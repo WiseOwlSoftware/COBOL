@@ -146,6 +146,12 @@ public enum TokenKind
     CloseKeyword,
     AlterKeyword,
 
+    // CALL/CANCEL keywords
+    UsingKeyword,            // USING
+    ReturningKeyword,        // RETURNING
+    ReferenceKeyword,        // REFERENCE
+    ContentKeyword,          // CONTENT
+
     // Arithmetic/conditional modifiers
     RoundedKeyword,          // ROUNDED
     SizeKeyword,             // SIZE

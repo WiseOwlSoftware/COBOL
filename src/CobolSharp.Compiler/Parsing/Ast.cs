@@ -273,6 +273,53 @@ public sealed class InitializeStatement : Statement
 }
 
 /// <summary>
+/// CALL program-name [USING param1 param2 ...] [RETURNING result]
+/// </summary>
+public sealed class CallStatement : Statement
+{
+    public Expression ProgramName { get; }  // literal or identifier
+    public List<CallParameter> Parameters { get; }
+    public IdentifierExpression? Returning { get; }
+
+    public CallStatement(Expression programName, List<CallParameter> parameters,
+        IdentifierExpression? returning, TextSpan span) : base(span)
+    {
+        ProgramName = programName;
+        Parameters = parameters;
+        Returning = returning;
+    }
+}
+
+public sealed class CallParameter
+{
+    public Expression Value { get; }
+    public CallConvention Convention { get; }
+
+    public CallParameter(Expression value, CallConvention convention)
+    {
+        Value = value;
+        Convention = convention;
+    }
+}
+
+public enum CallConvention
+{
+    ByReference,  // default
+    ByContent,
+    ByValue,
+}
+
+/// <summary>CANCEL program-name</summary>
+public sealed class CancelStatement : Statement
+{
+    public Expression ProgramName { get; }
+    public CancelStatement(Expression programName, TextSpan span) : base(span)
+    {
+        ProgramName = programName;
+    }
+}
+
+/// <summary>
 /// STRING source-1 DELIMITED BY delim-1 ... INTO target [WITH POINTER ptr] [ON OVERFLOW stmts]
 /// </summary>
 public sealed class StringStatement : Statement

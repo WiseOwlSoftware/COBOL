@@ -22,8 +22,8 @@ public sealed class CopyProcessor
     }
 
     /// <summary>
-    /// Process all COPY statements in the source text, expanding copybooks inline.
-    /// Returns the expanded source text.
+    /// Process all COPY and REPLACE statements in the source text.
+    /// Returns the expanded source text with COPY expanded and REPLACE applied.
     /// </summary>
     public string Process(string sourceText, string sourceDir)
     {
@@ -31,7 +31,88 @@ public sealed class CopyProcessor
         if (!_searchPaths.Contains(sourceDir))
             _searchPaths.Insert(0, sourceDir);
 
-        return ExpandCopyStatements(sourceText, new HashSet<string>(StringComparer.OrdinalIgnoreCase), 0);
+        string expanded = ExpandCopyStatements(sourceText, new HashSet<string>(StringComparer.OrdinalIgnoreCase), 0);
+
+        // Apply REPLACE statements
+        expanded = ApplyReplaceStatements(expanded);
+
+        return expanded;
+    }
+
+    /// <summary>
+    /// Process REPLACE statements: REPLACE ==pseudo-text-1== BY ==pseudo-text-2==.
+    /// REPLACE OFF turns off active replacements.
+    /// </summary>
+    private static string ApplyReplaceStatements(string text)
+    {
+        var result = new System.Text.StringBuilder();
+        var activeReplacements = new List<(string from, string to)>();
+        int pos = 0;
+
+        while (pos < text.Length)
+        {
+            int replaceIdx = FindReplaceStatement(text, pos);
+            if (replaceIdx < 0)
+            {
+                // Apply active replacements to remaining text
+                string remaining = text[pos..];
+                result.Append(ApplyReplacements(remaining, activeReplacements));
+                break;
+            }
+
+            // Apply replacements to text before REPLACE
+            string before = text[pos..replaceIdx];
+            result.Append(ApplyReplacements(before, activeReplacements));
+
+            // Parse REPLACE statement
+            int afterReplace = replaceIdx + 7; // past "REPLACE"
+            SkipWhitespace(text, ref afterReplace);
+
+            if (MatchWord(text, afterReplace, "OFF"))
+            {
+                afterReplace += 3;
+                activeReplacements.Clear();
+            }
+            else
+            {
+                activeReplacements.Clear();
+                ParseReplacements(text, ref afterReplace, activeReplacements);
+            }
+
+            // Skip to period
+            while (afterReplace < text.Length && text[afterReplace] != '.')
+                afterReplace++;
+            if (afterReplace < text.Length) afterReplace++;
+
+            pos = afterReplace;
+        }
+
+        return result.ToString();
+    }
+
+    private static int FindReplaceStatement(string text, int startPos)
+    {
+        int pos = startPos;
+        while (pos < text.Length - 6)
+        {
+            if ((pos == 0 || !char.IsLetterOrDigit(text[pos - 1])) &&
+                MatchWord(text, pos, "REPLACE") &&
+                (pos + 7 >= text.Length || !char.IsLetterOrDigit(text[pos + 7])))
+            {
+                return pos;
+            }
+            pos++;
+        }
+        return -1;
+    }
+
+    private static string ApplyReplacements(string text, List<(string from, string to)> replacements)
+    {
+        foreach (var (from, to) in replacements)
+        {
+            text = text.Replace(from, to, StringComparison.OrdinalIgnoreCase);
+        }
+        return text;
     }
 
     private string ExpandCopyStatements(string text, HashSet<string> alreadyIncluded, int depth)

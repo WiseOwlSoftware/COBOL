@@ -141,7 +141,24 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         var programs = new List<ProgramNode>();
-        programs.Add(ParseProgram());
+
+        while (Current.Kind != TokenKind.EndOfFile)
+        {
+            if (Check(TokenKind.IdentificationKeyword))
+            {
+                programs.Add(ParseProgram());
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (programs.Count == 0)
+        {
+            ReportError("CS0050", "Expected at least one program");
+        }
+
         int end = Current.Span.End;
         return new CompilationUnit(programs, TextSpan.FromBounds(start, end));
     }
@@ -163,6 +180,18 @@ public sealed class Parser
         ProcedureDivision? procedure = null;
         if (Check(TokenKind.ProcedureKeyword))
             procedure = ParseProcedureDivision();
+
+        // Optional END PROGRAM program-name.
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("END", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // END
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // PROGRAM
+                if (Check(TokenKind.Identifier)) Advance(); // program-name
+                Match(TokenKind.Period);
+            }
+        }
 
         int end = Current.Span.End;
         return new ProgramNode(identification, data, procedure, TextSpan.FromBounds(start, end));
@@ -682,6 +711,8 @@ public sealed class Parser
             TokenKind.ExitKeyword => ParseExitStatement(),
             TokenKind.AcceptKeyword => ParseAcceptStatement(),
             TokenKind.InitializeKeyword => ParseInitializeStatement(),
+            TokenKind.CallKeyword => ParseCallStatement(),
+            TokenKind.CancelKeyword => ParseCancelStatement(),
             TokenKind.StringKeyword => ParseStringStatement(),
             TokenKind.UnstringKeyword => ParseUnstringStatement(),
             TokenKind.InspectKeyword => ParseInspectStatement(),
@@ -1017,6 +1048,71 @@ public sealed class Parser
 
         Match(TokenKind.Period);
         return new InitializeStatement(targets,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── CALL ──
+
+    private CallStatement ParseCallStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // CALL
+
+        // Program name: literal or identifier
+        var programName = ParseExpression();
+
+        // USING clause
+        var parameters = new List<CallParameter>();
+        if (Match(TokenKind.UsingKeyword))
+        {
+            var convention = CallConvention.ByReference; // default
+            while (!Check(TokenKind.Period) && !Check(TokenKind.ReturningKeyword) &&
+                   !Check(TokenKind.OnKeyword) && Current.Kind != TokenKind.EndOfFile &&
+                   !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+            {
+                // Check for BY REFERENCE/CONTENT/VALUE
+                if (Match(TokenKind.ByKeyword))
+                {
+                    if (Match(TokenKind.ReferenceKeyword))
+                        convention = CallConvention.ByReference;
+                    else if (Match(TokenKind.ContentKeyword))
+                        convention = CallConvention.ByContent;
+                    else if (Check(TokenKind.ValueKeyword) || Check(TokenKind.ValuesKeyword))
+                    {
+                        Advance();
+                        convention = CallConvention.ByValue;
+                    }
+                }
+
+                var paramExpr = ParseExpression();
+                parameters.Add(new CallParameter(paramExpr, convention));
+            }
+        }
+
+        // RETURNING clause
+        IdentifierExpression? returning = null;
+        if (Match(TokenKind.ReturningKeyword))
+        {
+            var retToken = Expect(TokenKind.Identifier, "Expected identifier after RETURNING");
+            returning = new IdentifierExpression(retToken.Text, retToken.Span);
+        }
+
+        // Skip ON EXCEPTION / NOT ON EXCEPTION
+        SkipToEndOfStatement();
+
+        return new CallStatement(programName, parameters, returning,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── CANCEL ──
+
+    private CancelStatement ParseCancelStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // CANCEL
+        var programName = ParseExpression();
+        Match(TokenKind.Period);
+        return new CancelStatement(programName,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
 
