@@ -27,13 +27,15 @@ public sealed class CompilationUnit : AstNode
 public sealed class ProgramNode : AstNode
 {
     public IdentificationDivision Identification { get; }
+    public EnvironmentDivision? Environment { get; }
     public DataDivision? Data { get; }
     public ProcedureDivision? Procedure { get; }
 
-    public ProgramNode(IdentificationDivision identification,
+    public ProgramNode(IdentificationDivision identification, EnvironmentDivision? environment,
         DataDivision? data, ProcedureDivision? procedure, TextSpan span) : base(span)
     {
         Identification = identification;
+        Environment = environment;
         Data = data;
         Procedure = procedure;
     }
@@ -53,15 +55,151 @@ public sealed class IdentificationDivision : AstNode
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Environment Division
+// ═══════════════════════════════════════════════════════════════
+
+public sealed class EnvironmentDivision : AstNode
+{
+    public FileControlSection? FileControl { get; }
+
+    public EnvironmentDivision(FileControlSection? fileControl, TextSpan span) : base(span)
+    {
+        FileControl = fileControl;
+    }
+}
+
+public sealed class FileControlSection : AstNode
+{
+    public List<FileControlEntry> Entries { get; }
+
+    public FileControlSection(List<FileControlEntry> entries, TextSpan span) : base(span)
+    {
+        Entries = entries;
+    }
+}
+
+/// <summary>
+/// SELECT file-name ASSIGN TO external-name
+///   [ORGANIZATION IS {SEQUENTIAL|LINE SEQUENTIAL|INDEXED|RELATIVE}]
+///   [ACCESS MODE IS {SEQUENTIAL|RANDOM|DYNAMIC}]
+///   [RECORD KEY IS key-name]
+///   [ALTERNATE RECORD KEY IS key-name [WITH DUPLICATES]]
+///   [RELATIVE KEY IS key-name]
+///   [FILE STATUS IS status-name]
+/// </summary>
+public sealed class FileControlEntry : AstNode
+{
+    public string FileName { get; }
+    public string AssignTo { get; }
+    public FileOrganization Organization { get; }
+    public AccessMode AccessMode { get; }
+    public string? RecordKeyName { get; }
+    public List<AlternateKeyInfo> AlternateKeys { get; }
+    public string? RelativeKeyName { get; }
+    public string? FileStatusName { get; }
+
+    public FileControlEntry(string fileName, string assignTo,
+        FileOrganization organization, AccessMode accessMode,
+        string? recordKeyName, List<AlternateKeyInfo> alternateKeys,
+        string? relativeKeyName, string? fileStatusName, TextSpan span) : base(span)
+    {
+        FileName = fileName;
+        AssignTo = assignTo;
+        Organization = organization;
+        AccessMode = accessMode;
+        RecordKeyName = recordKeyName;
+        AlternateKeys = alternateKeys;
+        RelativeKeyName = relativeKeyName;
+        FileStatusName = fileStatusName;
+    }
+}
+
+public sealed class AlternateKeyInfo
+{
+    public string KeyName { get; }
+    public bool AllowDuplicates { get; }
+
+    public AlternateKeyInfo(string keyName, bool allowDuplicates)
+    {
+        KeyName = keyName;
+        AllowDuplicates = allowDuplicates;
+    }
+}
+
+public enum FileOrganization
+{
+    Sequential,
+    LineSequential,
+    Indexed,
+    Relative,
+}
+
+public enum AccessMode
+{
+    Sequential,
+    Random,
+    Dynamic,
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Data Division
 // ═══════════════════════════════════════════════════════════════
 
 public sealed class DataDivision : AstNode
 {
+    public FileSection? FileSection { get; }
     public WorkingStorageSection? WorkingStorage { get; }
-    public DataDivision(WorkingStorageSection? workingStorage, TextSpan span) : base(span)
+    public LinkageSection? Linkage { get; }
+
+    public DataDivision(FileSection? fileSection, WorkingStorageSection? workingStorage,
+        LinkageSection? linkage, TextSpan span) : base(span)
     {
+        FileSection = fileSection;
         WorkingStorage = workingStorage;
+        Linkage = linkage;
+    }
+}
+
+public sealed class FileSection : AstNode
+{
+    public List<FileDescriptionEntry> Entries { get; }
+    public FileSection(List<FileDescriptionEntry> entries, TextSpan span) : base(span)
+    {
+        Entries = entries;
+    }
+}
+
+/// <summary>
+/// FD file-name [BLOCK CONTAINS n] [RECORD CONTAINS n] ... followed by record descriptions.
+/// </summary>
+public sealed class FileDescriptionEntry : AstNode
+{
+    public bool IsSortDescription { get; }  // true = SD, false = FD
+    public string FileName { get; }
+    public int BlockContains { get; }
+    public int RecordContainsMin { get; }
+    public int RecordContainsMax { get; }
+    public List<DataDescriptionEntry> RecordDescriptions { get; }
+
+    public FileDescriptionEntry(bool isSortDescription, string fileName,
+        int blockContains, int recordContainsMin, int recordContainsMax,
+        List<DataDescriptionEntry> recordDescriptions, TextSpan span) : base(span)
+    {
+        IsSortDescription = isSortDescription;
+        FileName = fileName;
+        BlockContains = blockContains;
+        RecordContainsMin = recordContainsMin;
+        RecordContainsMax = recordContainsMax;
+        RecordDescriptions = recordDescriptions;
+    }
+}
+
+public sealed class LinkageSection : AstNode
+{
+    public List<DataDescriptionEntry> Entries { get; }
+    public LinkageSection(List<DataDescriptionEntry> entries, TextSpan span) : base(span)
+    {
+        Entries = entries;
     }
 }
 
@@ -316,6 +454,125 @@ public sealed class CancelStatement : Statement
     public CancelStatement(Expression programName, TextSpan span) : base(span)
     {
         ProgramName = programName;
+    }
+}
+
+// ── File I/O Statements ──
+
+public sealed class OpenStatement : Statement
+{
+    public List<OpenClause> Clauses { get; }
+    public OpenStatement(List<OpenClause> clauses, TextSpan span) : base(span)
+    {
+        Clauses = clauses;
+    }
+}
+
+public sealed class OpenClause
+{
+    public OpenMode Mode { get; }
+    public List<string> FileNames { get; }
+    public OpenClause(OpenMode mode, List<string> fileNames)
+    {
+        Mode = mode;
+        FileNames = fileNames;
+    }
+}
+
+public enum OpenMode
+{
+    Input,
+    Output,
+    InputOutput,
+    Extend,
+}
+
+public sealed class CloseStatement : Statement
+{
+    public List<string> FileNames { get; }
+    public CloseStatement(List<string> fileNames, TextSpan span) : base(span)
+    {
+        FileNames = fileNames;
+    }
+}
+
+public sealed class ReadStatement : Statement
+{
+    public string FileName { get; }
+    public IdentifierExpression? Into { get; }
+    public List<Statement> AtEnd { get; }
+    public List<Statement> NotAtEnd { get; }
+    public Expression? KeyIs { get; }
+
+    public ReadStatement(string fileName, IdentifierExpression? into,
+        List<Statement> atEnd, List<Statement> notAtEnd,
+        Expression? keyIs, TextSpan span) : base(span)
+    {
+        FileName = fileName;
+        Into = into;
+        AtEnd = atEnd;
+        NotAtEnd = notAtEnd;
+        KeyIs = keyIs;
+    }
+}
+
+public sealed class WriteStatement : Statement
+{
+    public IdentifierExpression RecordName { get; }
+    public Expression? From { get; }
+    public WriteAdvancing? Advancing { get; }
+
+    public WriteStatement(IdentifierExpression recordName, Expression? from,
+        WriteAdvancing? advancing, TextSpan span) : base(span)
+    {
+        RecordName = recordName;
+        From = from;
+        Advancing = advancing;
+    }
+}
+
+public sealed class WriteAdvancing
+{
+    public bool IsBefore { get; }  // BEFORE vs AFTER
+    public Expression? Lines { get; }  // number of lines, or null for PAGE
+
+    public WriteAdvancing(bool isBefore, Expression? lines)
+    {
+        IsBefore = isBefore;
+        Lines = lines;
+    }
+}
+
+public sealed class RewriteStatement : Statement
+{
+    public IdentifierExpression RecordName { get; }
+    public Expression? From { get; }
+
+    public RewriteStatement(IdentifierExpression recordName, Expression? from, TextSpan span) : base(span)
+    {
+        RecordName = recordName;
+        From = from;
+    }
+}
+
+public sealed class DeleteStatement : Statement
+{
+    public string FileName { get; }
+    public DeleteStatement(string fileName, TextSpan span) : base(span) { FileName = fileName; }
+}
+
+public sealed class StartStatement : Statement
+{
+    public string FileName { get; }
+    public BinaryOperator? KeyCondition { get; }  // =, >, >=, <, <=
+    public Expression? KeyIs { get; }
+
+    public StartStatement(string fileName, BinaryOperator? keyCondition,
+        Expression? keyIs, TextSpan span) : base(span)
+    {
+        FileName = fileName;
+        KeyCondition = keyCondition;
+        KeyIs = keyIs;
     }
 }
 

@@ -73,6 +73,46 @@ public enum TokenKind
     DescendingKeyword,       // DESCENDING
     KeyKeyword,              // KEY
 
+    // ── File I/O keywords ──
+    SelectKeyword,           // SELECT
+    AssignKeyword,           // ASSIGN
+    OrganizationKeyword,     // ORGANIZATION
+    AccessKeyword,           // ACCESS
+    ModeKeyword,             // MODE
+    RecordKeyword,           // RECORD
+    AlternateKeyword,        // ALTERNATE
+    StatusKeyword,           // STATUS
+    FileKeyword,             // FILE
+    FdKeyword,               // FD
+    SdKeyword,               // SD
+    BlockKeyword,            // BLOCK
+    ContainsKeyword,         // CONTAINS
+    LabelKeyword,            // LABEL
+    RecordsKeyword,          // RECORDS
+    LinageKeyword,           // LINAGE
+    InputKeyword,            // INPUT
+    OutputKeyword,           // OUTPUT
+    ExtendKeyword,           // EXTEND
+    PageKeyword,             // PAGE
+    AdvancingKeyword,        // ADVANCING
+    DuplicatesKeyword,       // DUPLICATES
+    WithKeyword,             // WITH
+    LinkageKeyword,          // LINKAGE
+    LineKeyword,             // LINE
+    SequentialKeyword,       // SEQUENTIAL
+    RandomKeyword,           // RANDOM
+    DynamicKeyword,          // DYNAMIC
+    RelativeKeyword,         // RELATIVE
+    InvalidKeyword,          // INVALID
+    EndReadKeyword,          // END-READ
+    EndWriteKeyword,         // END-WRITE
+    EndDeleteKeyword,        // END-DELETE
+    EndStartKeyword,         // END-START
+    AtKeyword,               // AT
+    EndKeyword,              // END
+    NextKeyword,             // NEXT
+    I_OKeyword,              // I-O
+
     // ── Procedure division statements ──
     DisplayKeyword,          // DISPLAY
     StopKeyword,             // STOP
