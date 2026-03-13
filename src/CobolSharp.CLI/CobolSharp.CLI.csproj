@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CobolSharp.CLI</RootNamespace>
+    <AssemblyName>cobolsharp</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CobolSharp.Compiler\CobolSharp.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

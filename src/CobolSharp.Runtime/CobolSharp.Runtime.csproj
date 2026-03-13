@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>CobolSharp.Runtime</RootNamespace>
+    <AssemblyName>CobolSharp.Runtime</AssemblyName>
+  </PropertyGroup>
+
+</Project>

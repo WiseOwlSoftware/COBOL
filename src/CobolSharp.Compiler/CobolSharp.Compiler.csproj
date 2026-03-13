@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>CobolSharp.Compiler</RootNamespace>
+    <AssemblyName>CobolSharp.Compiler</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CobolSharp.Runtime\CobolSharp.Runtime.csproj" />
+  </ItemGroup>
+
+</Project>
