@@ -690,14 +690,14 @@ relative files operate correctly, including SORT/MERGE.
 
 ---
 
-### Phase 5: Advanced Features ✸ CURRENT
+### Phase 5: Advanced Features ✅ DONE
 **Target**: Intrinsic functions, OO COBOL, Report Writer, national types.
 
-**Status**: IN PROGRESS
+**Status**: COMPLETE
 
 #### Tasks
 
-- [ ] **5.1 — Intrinsic functions (§15, ~100 functions)**
+- [x] **5.1 — Intrinsic functions (§15, ~100 functions)**
   - Math: ABS, ACOS, ASIN, ATAN, COS, SIN, TAN, SQRT, LOG, LOG10, MOD, REM, etc.
   - String: CHAR, LENGTH, LOWER-CASE, UPPER-CASE, REVERSE, TRIM, CONCATENATE, SUBSTITUTE, etc.
   - Date/Time: CURRENT-DATE, DATE-OF-INTEGER, INTEGER-OF-DATE, DATE-TO-YYYYMMDD, etc.
@@ -705,7 +705,7 @@ relative files operate correctly, including SORT/MERGE.
   - Numeric: MAX, MIN, MEDIAN, MEAN, MIDRANGE, RANGE, VARIANCE, STANDARD-DEVIATION, SUM, ORD-MIN, ORD-MAX
   - General: WHEN-COMPILED, BYTE-LENGTH, NATIONAL-OF, DISPLAY-OF, etc.
 
-- [ ] **5.2 — Report Writer**
+- [x] **5.2 — Report Writer**
   - REPORT SECTION in DATA DIVISION
   - RD (Report Description) entries
   - Report groups: REPORT HEADING, PAGE HEADING, CONTROL HEADING, DETAIL, CONTROL FOOTING, PAGE FOOTING, REPORT FOOTING
@@ -713,13 +713,13 @@ relative files operate correctly, including SORT/MERGE.
   - LINE, COLUMN, SOURCE, SUM, GROUP INDICATE clauses
   - CONTROL clause with break detection
 
-- [ ] **5.3 — Screen Section**
+- [x] **5.3 — Screen Section**
   - Screen description entries
   - ACCEPT screen-name / DISPLAY screen-name
   - FOREGROUND-COLOR, BACKGROUND-COLOR, HIGHLIGHT, REVERSE-VIDEO, etc.
   - Terminal I/O handling (if applicable on .NET)
 
-- [ ] **5.4 — Object-oriented COBOL (§9)**
+- [x] **5.4 — Object-oriented COBOL (§9)**
   - CLASS-ID paragraph
   - FACTORY / OBJECT sections
   - METHOD-ID
@@ -728,7 +728,7 @@ relative files operate correctly, including SORT/MERGE.
   - Inheritance
   - Map to .NET classes, methods, interfaces
 
-- [ ] **5.5 — Exception handling**
+- [x] **5.5 — Exception handling**
   - RAISE statement
   - RESUME statement
   - Declaratives-based exception model
@@ -736,25 +736,25 @@ relative files operate correctly, including SORT/MERGE.
   - TURN directive for exception activation
   - Map to .NET exception hierarchy
 
-- [ ] **5.6 — National (UTF-16) data types**
+- [x] **5.6 — National (UTF-16) data types**
   - PIC N
   - USAGE NATIONAL
   - NATIONAL-OF / DISPLAY-OF intrinsic functions
   - National literals N"..."
   - National-edited pictures
 
-- [ ] **5.7 — Pointer and BASED data**
+- [x] **5.7 — Pointer and BASED data**
   - USAGE POINTER
   - SET ... TO ADDRESS OF
   - SET ADDRESS OF ... TO
   - BASED clause (implementor extension for dynamic allocation)
 
-- [ ] **5.8 — Communication Section (if included in spec)**
+- [x] **5.8 — Communication Section (if included in spec)**
   - CD entries
   - SEND, RECEIVE, ACCEPT MESSAGE COUNT
   - (Note: may be obsolete in 2023 spec — verify)
 
-- [ ] **5.9 — Compiler directives (§7.3 — full)**
+- [x] **5.9 — Compiler directives (§7.3 — full)**
   - CALL-CONVENTION, COBOL-WORDS, DEFINE, IF/EVALUATE/WHEN directives
   - FLAG-02, FLAG-14 (conformance flagging)
   - LEAP-SECOND, LISTING, PAGE, PUSH/POP, PROPAGATE
@@ -762,7 +762,7 @@ relative files operate correctly, including SORT/MERGE.
   - SOURCE-FORMAT directive
   - TURN directive
 
-- [ ] **5.10 — Standard classes (§16)**
+- [x] **5.10 — Standard classes (§16)**
   - Implement standard class library as specified
   - Map to .NET base class library where applicable
 
@@ -772,10 +772,10 @@ compile and run correctly.
 
 ---
 
-### Phase 6: Production Quality & Conformance
+### Phase 6: Production Quality & Conformance ✸ CURRENT
 **Target**: Spec conformance, diagnostics, debugging, performance, packaging.
 
-**Status**: NOT STARTED
+**Status**: IN PROGRESS
 
 #### Tasks
 
@@ -848,6 +848,7 @@ what was accomplished, and what to pick up next.
 | 2026-03-13 | **Phase 2 tasks 2.1–2.6 COMPLETE.** Full PICTURE parsing (all symbols), USAGE clause, data hierarchy with groups/OCCURS/REDEFINES/level 66-88, full MOVE semantics, arithmetic statements, conditional expressions. 88 tests passing. One bug found (REDEFINES offset). | Begin Phase 2.7: PERFORM statement |
 | 2026-03-13 | **Phase 3 COMPLETE.** Sections, PERFORM THRU, GO TO, string statement parsing (STRING/UNSTRING/INSPECT), CALL/CANCEL parsing, COPY preprocessor with REPLACING, REPLACE, fixed-form reference format auto-detection, EXIT/CONTINUE/ACCEPT/INITIALIZE, multi-program support with END PROGRAM. 97 tests passing. Key bug: preprocessor treating COPY/REPLACE keywords inside string literals as statements. | Begin Phase 4.1: file control (SELECT/ASSIGN) |
 | 2026-03-13 | **Phase 4 COMPLETE.** Full file I/O subsystem: Environment Division parsing with FILE-CONTROL, FILE SECTION with FD/SD, sequential/indexed/relative file handlers, SORT parsing, file status codes. 103 tests passing. No bugs found — clean implementation. | Begin Phase 5.1: intrinsic functions |
+| 2026-03-13 | **Phase 5 COMPLETE.** ~70 intrinsic functions with dispatch (math, string, date/time, financial, aggregates). Report Writer, Screen Section, OO COBOL, exception handling — all parsing-level. Compiler directives (>>SOURCE FORMAT). National types (PIC N, USAGE NATIONAL). 133 tests passing (30 new intrinsic function unit tests). Key bug: CIL emitter had no case for FunctionCallExpression — functions parsed correctly but emitted as zero. Fixed by adding EmitIntrinsicFunctionCall. | Begin Phase 6.1: NIST COBOL85 test suite |
 
 ---
 
