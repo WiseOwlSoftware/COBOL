@@ -89,10 +89,15 @@ public sealed class CilEmitter
         // Emit Main entry point
         EmitMainEntryPoint();
 
-        // Write assembly to disk
+        // Write assembly to disk with portable PDB for debugging
         try
         {
-            _assembly.Write(outputPath);
+            var writerParams = new WriterParameters
+            {
+                WriteSymbols = true,
+                SymbolWriterProvider = new Mono.Cecil.Cil.PortablePdbWriterProvider()
+            };
+            _assembly.Write(outputPath, writerParams);
             return new EmitResult(true, outputPath);
         }
         catch (Exception ex)
