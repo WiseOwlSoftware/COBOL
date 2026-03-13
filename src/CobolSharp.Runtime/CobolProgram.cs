@@ -76,6 +76,10 @@ public abstract class CobolProgram
     /// </summary>
     protected static void MoveSpace(CobolField target) => target.SetSpaces();
     protected static void MoveZero(CobolField target) => target.SetZeros();
+    protected static void MoveHighValue(CobolField target) => target.SetHighValues();
+    protected static void MoveLowValue(CobolField target) => target.SetLowValues();
+    protected static void MoveQuote(CobolField target) => target.SetQuotes();
+    protected static void MoveAll(string literal, CobolField target) => target.SetAll(literal);
 
     /// <summary>
     /// ADD: target = target + value

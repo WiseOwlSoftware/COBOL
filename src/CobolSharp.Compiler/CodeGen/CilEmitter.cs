@@ -35,6 +35,9 @@ public sealed class CilEmitter
     private MethodReference? _moveFieldMethod;
     private MethodReference? _moveSpaceMethod;
     private MethodReference? _moveZeroMethod;
+    private MethodReference? _moveHighValueMethod;
+    private MethodReference? _moveLowValueMethod;
+    private MethodReference? _moveQuoteMethod;
     private MethodReference? _addToMethod;
     private MethodReference? _subtractFromMethod;
     private MethodReference? _getNumericValueMethod;
@@ -148,6 +151,12 @@ public sealed class CilEmitter
             cobolProgramTypeDef.Methods.First(m => m.Name == "MoveSpace"));
         _moveZeroMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "MoveZero"));
+        _moveHighValueMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "MoveHighValue"));
+        _moveLowValueMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "MoveLowValue"));
+        _moveQuoteMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "MoveQuote"));
         _addToMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "AddTo"));
         _subtractFromMethod = _module.ImportReference(
@@ -442,6 +451,15 @@ public sealed class CilEmitter
                         break;
                     case FigurativeConstant.Zero:
                         _il.Emit(OpCodes.Call, _moveZeroMethod);
+                        break;
+                    case FigurativeConstant.HighValue:
+                        _il.Emit(OpCodes.Call, _moveHighValueMethod);
+                        break;
+                    case FigurativeConstant.LowValue:
+                        _il.Emit(OpCodes.Call, _moveLowValueMethod);
+                        break;
+                    case FigurativeConstant.Quote:
+                        _il.Emit(OpCodes.Call, _moveQuoteMethod);
                         break;
                 }
             }

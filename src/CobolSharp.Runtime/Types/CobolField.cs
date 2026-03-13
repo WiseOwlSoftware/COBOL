@@ -142,8 +142,44 @@ public class CobolField
     /// </summary>
     public void SetZeros()
     {
-        byte fill = Type == FieldType.Numeric ? (byte)'0' : (byte)'0';
-        Array.Fill(_data, fill);
+        Array.Fill(_data, (byte)'0');
+    }
+
+    /// <summary>
+    /// Set the field to HIGH-VALUE (0xFF).
+    /// </summary>
+    public void SetHighValues()
+    {
+        Array.Fill(_data, (byte)0xFF);
+    }
+
+    /// <summary>
+    /// Set the field to LOW-VALUE (0x00).
+    /// </summary>
+    public void SetLowValues()
+    {
+        Array.Fill(_data, (byte)0x00);
+    }
+
+    /// <summary>
+    /// Set the field to QUOTE (double-quote character).
+    /// </summary>
+    public void SetQuotes()
+    {
+        Array.Fill(_data, (byte)'"');
+    }
+
+    /// <summary>
+    /// Set the field to ALL literal (repeat the literal to fill the field).
+    /// </summary>
+    public void SetAll(string literal)
+    {
+        if (string.IsNullOrEmpty(literal)) return;
+        byte[] litBytes = Encoding.ASCII.GetBytes(literal);
+        for (int i = 0; i < _data.Length; i++)
+        {
+            _data[i] = litBytes[i % litBytes.Length];
+        }
     }
 }
 
