@@ -81,23 +81,63 @@ public sealed class DataDescriptionEntry : AstNode
     public string? PictureString { get; }
     public UsageType Usage { get; }
     public Expression? InitialValue { get; }
+    public string? RedefinesName { get; }   // REDEFINES data-name
+    public int OccursCount { get; }          // OCCURS n TIMES (0 = no OCCURS)
+    public string? OccursDependingOn { get; } // OCCURS ... DEPENDING ON
+    public string? RenamesStartName { get; }  // RENAMES start (level 66)
+    public string? RenamesEndName { get; }    // RENAMES THRU end (level 66)
+    public bool IsBlankWhenZero { get; }
+    public bool IsJustifiedRight { get; }
+    public List<ConditionValueClause>? ConditionValues { get; }  // level 88
 
     public DataDescriptionEntry(int levelNumber, string? name, string? pictureString,
-        UsageType usage, Expression? initialValue, TextSpan span) : base(span)
+        UsageType usage, Expression? initialValue, TextSpan span,
+        string? redefinesName = null, int occursCount = 0,
+        string? occursDependingOn = null, string? renamesStartName = null,
+        string? renamesEndName = null, bool isBlankWhenZero = false,
+        bool isJustifiedRight = false,
+        List<ConditionValueClause>? conditionValues = null) : base(span)
     {
         LevelNumber = levelNumber;
         Name = name;
         PictureString = pictureString;
         Usage = usage;
         InitialValue = initialValue;
+        RedefinesName = redefinesName;
+        OccursCount = occursCount;
+        OccursDependingOn = occursDependingOn;
+        RenamesStartName = renamesStartName;
+        RenamesEndName = renamesEndName;
+        IsBlankWhenZero = isBlankWhenZero;
+        IsJustifiedRight = isJustifiedRight;
+        ConditionValues = conditionValues;
+    }
+}
+
+/// <summary>
+/// A value or range for a level-88 condition-name.
+/// </summary>
+public sealed class ConditionValueClause : AstNode
+{
+    public Expression Value { get; }
+    public Expression? ThruValue { get; }  // for VALUE 1 THRU 5
+
+    public ConditionValueClause(Expression value, Expression? thruValue, TextSpan span) : base(span)
+    {
+        Value = value;
+        ThruValue = thruValue;
     }
 }
 
 public enum UsageType
 {
-    Display,     // default
-    Binary,      // COMP / BINARY
-    PackedDecimal, // COMP-3 / PACKED-DECIMAL
+    Display,        // default
+    Binary,         // COMP / BINARY / COMP-4 / COMP-5
+    PackedDecimal,  // COMP-3 / PACKED-DECIMAL
+    Index,          // INDEX
+    Pointer,        // POINTER
+    FunctionPointer, // FUNCTION-POINTER
+    ProcedurePointer, // PROCEDURE-POINTER
 }
 
 // ═══════════════════════════════════════════════════════════════

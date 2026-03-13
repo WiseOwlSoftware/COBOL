@@ -259,10 +259,33 @@ public sealed class Parser
             name = null; // FILLER
         }
 
+        // Level 66 (RENAMES) — special syntax
+        if (level == 66)
+        {
+            return ParseRenamesEntry(start, name);
+        }
+
         // Parse clauses until period
         string? pic = null;
         var usage = UsageType.Display;
         Expression? initialValue = null;
+        string? redefinesName = null;
+        int occursCount = 0;
+        string? occursDependingOn = null;
+        bool blankWhenZero = false;
+        bool justifiedRight = false;
+        List<ConditionValueClause>? conditionValues = null;
+
+        // Level 88 (condition-name) — special syntax: VALUE/VALUES
+        if (level == 88)
+        {
+            conditionValues = ParseLevel88Values();
+            Expect(TokenKind.Period);
+            int end88 = Current.Span.Start;
+            return new DataDescriptionEntry(level, name, null, usage, null,
+                TextSpan.FromBounds(start, end88),
+                conditionValues: conditionValues);
+        }
 
         while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile)
         {
@@ -288,16 +311,96 @@ public sealed class Parser
                 Advance();
                 usage = UsageType.PackedDecimal;
             }
-            else if (Check(TokenKind.DisplayUsageKeyword))
+            else if (Check(TokenKind.IndexKeyword) &&
+                     Peek().Kind != TokenKind.ByKeyword) // INDEX as USAGE, not INDEX BY
             {
                 Advance();
-                usage = UsageType.Display;
+                usage = UsageType.Index;
             }
-            else if (Check(TokenKind.ValueKeyword))
+            else if (Check(TokenKind.PointerKeyword))
+            {
+                Advance();
+                usage = UsageType.Pointer;
+            }
+            else if (Check(TokenKind.FunctionPointerKeyword))
+            {
+                Advance();
+                usage = UsageType.FunctionPointer;
+            }
+            else if (Check(TokenKind.ProcedurePointerKeyword))
+            {
+                Advance();
+                usage = UsageType.ProcedurePointer;
+            }
+            else if (Check(TokenKind.ValueKeyword) || Check(TokenKind.ValuesKeyword))
             {
                 Advance();
                 Match(TokenKind.IsKeyword); // optional IS
                 initialValue = ParseExpression();
+            }
+            else if (Check(TokenKind.RedefinesKeyword))
+            {
+                Advance();
+                var redToken = Expect(TokenKind.Identifier, "Expected data-name after REDEFINES");
+                redefinesName = redToken.Text;
+            }
+            else if (Check(TokenKind.OccursKeyword))
+            {
+                Advance();
+                // OCCURS n TIMES or OCCURS n TO m DEPENDING ON identifier
+                if (Check(TokenKind.IntegerLiteral))
+                {
+                    var countToken = Advance();
+                    occursCount = (int)(long)countToken.Value!;
+                }
+                Match(TokenKind.TimesKeyword); // optional TIMES
+
+                // Check for DEPENDING ON
+                if (Check(TokenKind.DependingKeyword))
+                {
+                    Advance();
+                    Match(TokenKind.OnKeyword);
+                    var depToken = Expect(TokenKind.Identifier, "Expected identifier after DEPENDING ON");
+                    occursDependingOn = depToken.Text;
+                }
+
+                // Skip ASCENDING/DESCENDING KEY IS, INDEXED BY (consume but don't model yet)
+                while (Check(TokenKind.AscendingKeyword) || Check(TokenKind.DescendingKeyword))
+                {
+                    Advance();
+                    Match(TokenKind.KeyKeyword);
+                    Match(TokenKind.IsKeyword);
+                    if (Check(TokenKind.Identifier)) Advance(); // key name
+                }
+                while (Check(TokenKind.IndexedKeyword))
+                {
+                    Advance();
+                    Match(TokenKind.ByKeyword);
+                    while (Check(TokenKind.Identifier)) Advance(); // index names
+                }
+            }
+            else if (Check(TokenKind.BlankKeyword))
+            {
+                Advance();
+                Match(TokenKind.WhenKeyword); // BLANK WHEN ZERO
+                Match(TokenKind.ZeroKeyword);
+                blankWhenZero = true;
+            }
+            else if (Check(TokenKind.JustifiedKeyword))
+            {
+                Advance();
+                Match(TokenKind.Identifier); // optional RIGHT
+                justifiedRight = true;
+            }
+            else if (Check(TokenKind.SynchronizedKeyword))
+            {
+                Advance();
+                // Skip optional LEFT/RIGHT
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+            else if (Check(TokenKind.GlobalKeyword) || Check(TokenKind.ExternalKeyword))
+            {
+                Advance(); // consume, not modeled yet
             }
             else
             {
@@ -310,7 +413,63 @@ public sealed class Parser
 
         int end = Current.Span.Start;
         return new DataDescriptionEntry(level, name, pic, usage, initialValue,
-            TextSpan.FromBounds(start, end));
+            TextSpan.FromBounds(start, end),
+            redefinesName: redefinesName,
+            occursCount: occursCount,
+            occursDependingOn: occursDependingOn,
+            isBlankWhenZero: blankWhenZero,
+            isJustifiedRight: justifiedRight);
+    }
+
+    private DataDescriptionEntry ParseRenamesEntry(int start, string? name)
+    {
+        // 66 data-name RENAMES data-name-1 [THRU data-name-2].
+        Expect(TokenKind.RenamesKeyword, "Expected RENAMES after level 66");
+        var startName = Expect(TokenKind.Identifier, "Expected data-name after RENAMES");
+
+        string? endName = null;
+        if (Match(TokenKind.ThruKeyword))
+        {
+            var endToken = Expect(TokenKind.Identifier, "Expected data-name after THRU");
+            endName = endToken.Text;
+        }
+
+        Expect(TokenKind.Period);
+        int end = Current.Span.Start;
+        return new DataDescriptionEntry(66, name, null, UsageType.Display, null,
+            TextSpan.FromBounds(start, end),
+            renamesStartName: startName.Text,
+            renamesEndName: endName);
+    }
+
+    private List<ConditionValueClause> ParseLevel88Values()
+    {
+        // VALUE/VALUES IS/ARE literal [THRU literal] [literal [THRU literal]] ...
+        if (!Match(TokenKind.ValueKeyword) && !Match(TokenKind.ValuesKeyword))
+        {
+            Expect(TokenKind.ValueKeyword, "Expected VALUE or VALUES for level 88");
+        }
+        Match(TokenKind.IsKeyword);   // optional IS
+        Match(TokenKind.Identifier);  // optional ARE (would be lexed as identifier)
+
+        var values = new List<ConditionValueClause>();
+
+        while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile)
+        {
+            int valStart = Current.Span.Start;
+            var val = ParseExpression();
+            Expression? thru = null;
+
+            if (Match(TokenKind.ThruKeyword))
+            {
+                thru = ParseExpression();
+            }
+
+            values.Add(new ConditionValueClause(val, thru,
+                TextSpan.FromBounds(valStart, Current.Span.Start)));
+        }
+
+        return values;
     }
 
     private string ParsePictureString()
@@ -333,8 +492,11 @@ public sealed class Parser
     }
 
     private static bool IsDataClauseKeyword(TokenKind kind) => kind is
-        TokenKind.UsageKeyword or TokenKind.ValueKeyword or TokenKind.PicKeyword or
-        TokenKind.CompKeyword or TokenKind.Comp3Keyword;
+        TokenKind.UsageKeyword or TokenKind.ValueKeyword or TokenKind.ValuesKeyword or
+        TokenKind.PicKeyword or TokenKind.CompKeyword or TokenKind.Comp3Keyword or
+        TokenKind.RedefinesKeyword or TokenKind.OccursKeyword or TokenKind.BlankKeyword or
+        TokenKind.JustifiedKeyword or TokenKind.SynchronizedKeyword or
+        TokenKind.GlobalKeyword or TokenKind.ExternalKeyword;
 
     private UsageType ParseUsage()
     {
@@ -344,6 +506,14 @@ public sealed class Parser
             return UsageType.PackedDecimal;
         if (Match(TokenKind.DisplayKeyword))
             return UsageType.Display;
+        if (Match(TokenKind.IndexKeyword))
+            return UsageType.Index;
+        if (Match(TokenKind.PointerKeyword))
+            return UsageType.Pointer;
+        if (Match(TokenKind.FunctionPointerKeyword))
+            return UsageType.FunctionPointer;
+        if (Match(TokenKind.ProcedurePointerKeyword))
+            return UsageType.ProcedurePointer;
         // Default
         return UsageType.Display;
     }

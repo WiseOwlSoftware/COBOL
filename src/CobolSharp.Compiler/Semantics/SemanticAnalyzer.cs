@@ -5,8 +5,8 @@ using CobolSharp.Compiler.Parsing;
 namespace CobolSharp.Compiler.Semantics;
 
 /// <summary>
-/// Performs semantic analysis on the AST: builds symbol table, resolves references,
-/// validates types. Phase 1 minimal implementation.
+/// Performs semantic analysis on the AST: builds symbol table with data hierarchy,
+/// resolves references, validates types.
 /// </summary>
 public sealed class SemanticAnalyzer
 {
@@ -31,13 +31,10 @@ public sealed class SemanticAnalyzer
 
     private void AnalyzeProgram(ProgramNode program, SemanticModel model)
     {
-        // Build symbol table from DATA DIVISION
+        // Build symbol table and hierarchy from DATA DIVISION
         if (program.Data?.WorkingStorage != null)
         {
-            foreach (var entry in program.Data.WorkingStorage.Entries)
-            {
-                AnalyzeDataEntry(entry, model.SymbolTable);
-            }
+            BuildDataHierarchy(program.Data.WorkingStorage.Entries, model.SymbolTable);
         }
 
         // Resolve references in PROCEDURE DIVISION
@@ -50,26 +47,177 @@ public sealed class SemanticAnalyzer
         }
     }
 
-    private void AnalyzeDataEntry(DataDescriptionEntry entry, SymbolTable symbols)
+    /// <summary>
+    /// Build the data hierarchy from a flat list of data description entries.
+    /// COBOL uses level numbers to define hierarchy:
+    /// - 01 starts a new record
+    /// - 02-49: higher number = deeper nesting (child of nearest preceding lower number)
+    /// - 66: RENAMES (special)
+    /// - 77: standalone elementary item
+    /// - 88: condition-name (attached to parent)
+    /// </summary>
+    private void BuildDataHierarchy(List<DataDescriptionEntry> entries, SymbolTable symbols)
     {
-        PictureInfo? pic = null;
-        if (entry.PictureString != null)
+        // Stack tracks the current nesting path: stack[0] is the 01-level, etc.
+        var parentStack = new Stack<DataSymbol>();
+
+        foreach (var entry in entries)
         {
-            pic = PictureParser.Parse(entry.PictureString);
+            PictureInfo? pic = null;
+            if (entry.PictureString != null)
+            {
+                pic = PictureParser.Parse(entry.PictureString);
+            }
+
+            int byteSize = ComputeByteSize(pic, entry.Usage);
+            bool isGroup = pic == null && entry.LevelNumber != 66 &&
+                           entry.LevelNumber != 77 && entry.LevelNumber != 88;
+
+            var symbol = new DataSymbol(entry.Name ?? "FILLER", entry.LevelNumber, pic, entry.Usage)
+            {
+                ByteSize = byteSize,
+                IsGroup = isGroup,
+                OccursCount = entry.OccursCount > 0 ? entry.OccursCount : 1,
+                OccursDependingOn = entry.OccursDependingOn,
+            };
+
+            // Handle level-based nesting
+            if (entry.LevelNumber == 1 || entry.LevelNumber == 77)
+            {
+                // 01 or 77: top-level item, clear the parent stack
+                parentStack.Clear();
+                parentStack.Push(symbol);
+            }
+            else if (entry.LevelNumber == 66)
+            {
+                // RENAMES: standalone, no nesting
+            }
+            else if (entry.LevelNumber == 88)
+            {
+                // Condition-name: attached to the item at the top of the stack
+                if (parentStack.Count > 0)
+                {
+                    var parent = parentStack.Peek();
+                    symbol.Parent = parent;
+                    parent.Children.Add(symbol);
+                }
+            }
+            else
+            {
+                // Level 02-49: find the correct parent
+                // Pop until we find a symbol with a lower level number
+                while (parentStack.Count > 0 &&
+                       parentStack.Peek().LevelNumber >= entry.LevelNumber)
+                {
+                    parentStack.Pop();
+                }
+
+                if (parentStack.Count > 0)
+                {
+                    var parent = parentStack.Peek();
+                    symbol.Parent = parent;
+                    parent.Children.Add(symbol);
+                    parent.IsGroup = true; // ensure parent is marked as group
+                }
+
+                parentStack.Push(symbol);
+            }
+
+            // Handle REDEFINES
+            if (entry.RedefinesName != null)
+            {
+                var target = symbols.Resolve(entry.RedefinesName);
+                if (target != null)
+                {
+                    symbol.RedefinesTarget = target;
+                    symbol.Offset = target.Offset; // shares same memory location
+                }
+                else
+                {
+                    _diagnostics.ReportError("CS0402",
+                        $"REDEFINES target '{entry.RedefinesName}' not found",
+                        new SourceLocation("<unknown>", entry.Span.Start, 0, 0), entry.Span);
+                }
+            }
+
+            // Register in symbol table
+            if (entry.Name != null && !symbols.TryDeclare(symbol))
+            {
+                _diagnostics.ReportError("CS0400",
+                    $"Duplicate data-name '{entry.Name}'",
+                    new SourceLocation("<unknown>", entry.Span.Start, 0, 0), entry.Span);
+            }
         }
 
-        int byteSize = ComputeByteSize(pic, entry.Usage);
+        // Second pass: compute group sizes (sum of children's sizes)
+        ComputeGroupSizes(symbols);
+        ComputeOffsets(symbols);
+    }
 
-        var symbol = new DataSymbol(entry.Name ?? "FILLER", entry.LevelNumber, pic, entry.Usage)
+    private static void ComputeGroupSizes(SymbolTable symbols)
+    {
+        foreach (var (_, symbol) in symbols.AllSymbols)
         {
-            ByteSize = byteSize
-        };
+            if (symbol.IsGroup && symbol.LevelNumber <= 49)
+            {
+                symbol.ByteSize = ComputeGroupByteSize(symbol);
+            }
+        }
+    }
 
-        if (entry.Name != null && !symbols.TryDeclare(symbol))
+    private static int ComputeGroupByteSize(DataSymbol group)
+    {
+        int total = 0;
+        foreach (var child in group.Children)
         {
-            _diagnostics.ReportError("CS0400",
-                $"Duplicate data-name '{entry.Name}'",
-                new SourceLocation("<unknown>", entry.Span.Start, 0, 0), entry.Span);
+            if (child.LevelNumber == 88) continue; // condition-names don't occupy space
+
+            if (child.IsGroup)
+            {
+                child.ByteSize = ComputeGroupByteSize(child);
+            }
+
+            total += child.TotalByteSize;
+        }
+        return total;
+    }
+
+    private static void ComputeOffsets(SymbolTable symbols)
+    {
+        int offset = 0;
+        foreach (var (_, symbol) in symbols.AllSymbols)
+        {
+            if (symbol.LevelNumber == 1 || symbol.LevelNumber == 77)
+            {
+                if (symbol.RedefinesTarget != null)
+                {
+                    // REDEFINES shares target's offset — already set during hierarchy build
+                    AssignChildOffsets(symbol, symbol.Offset);
+                }
+                else
+                {
+                    symbol.Offset = offset;
+                    AssignChildOffsets(symbol, offset);
+                    offset += symbol.TotalByteSize;
+                }
+            }
+        }
+    }
+
+    private static void AssignChildOffsets(DataSymbol parent, int baseOffset)
+    {
+        int childOffset = baseOffset;
+        foreach (var child in parent.Children)
+        {
+            if (child.LevelNumber == 88) continue;
+            if (child.RedefinesTarget != null) continue; // REDEFINES shares offset
+
+            child.Offset = childOffset;
+            if (child.IsGroup)
+            {
+                AssignChildOffsets(child, childOffset);
+            }
+            childOffset += child.TotalByteSize;
         }
     }
 
@@ -87,6 +235,8 @@ public sealed class SemanticAnalyzer
                 _ => 8
             },
             UsageType.PackedDecimal => (pic.IntegerDigits + pic.DecimalDigits + 2) / 2,
+            UsageType.Index => 4,
+            UsageType.Pointer or UsageType.FunctionPointer or UsageType.ProcedurePointer => 8,
             _ => pic.Size
         };
     }

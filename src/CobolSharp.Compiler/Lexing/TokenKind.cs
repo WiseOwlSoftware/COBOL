@@ -47,10 +47,29 @@ public enum TokenKind
     PicKeyword,              // PIC / PICTURE
     UsageKeyword,            // USAGE
     ValueKeyword,            // VALUE
+    ValuesKeyword,           // VALUES
     DisplayUsageKeyword,     // DISPLAY (as USAGE)
     CompKeyword,             // COMP / COMPUTATIONAL / BINARY
     Comp3Keyword,            // COMP-3 / PACKED-DECIMAL
     FillerKeyword,           // FILLER
+    RedefinesKeyword,        // REDEFINES
+    OccursKeyword,           // OCCURS
+    DependingKeyword,        // DEPENDING
+    RenamesKeyword,          // RENAMES
+    BlankKeyword,            // BLANK
+    JustifiedKeyword,        // JUSTIFIED / JUST
+    SynchronizedKeyword,     // SYNCHRONIZED / SYNC
+    IndexKeyword,            // INDEX
+    IndexedKeyword,          // INDEXED
+    PointerKeyword,          // POINTER
+    FunctionPointerKeyword,  // FUNCTION-POINTER
+    ProcedurePointerKeyword, // PROCEDURE-POINTER
+    GlobalKeyword,           // GLOBAL
+    ExternalKeyword,         // EXTERNAL
+    WhenKeyword2,            // (placeholder, WHEN is already defined)
+    AscendingKeyword,        // ASCENDING
+    DescendingKeyword,       // DESCENDING
+    KeyKeyword,              // KEY
 
     // ── Procedure division statements ──
     DisplayKeyword,          // DISPLAY
