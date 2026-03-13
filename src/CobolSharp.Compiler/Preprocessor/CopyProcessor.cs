@@ -93,8 +93,32 @@ public sealed class CopyProcessor
     private static int FindReplaceStatement(string text, int startPos)
     {
         int pos = startPos;
+        bool inString = false;
+        char stringChar = '\0';
+
         while (pos < text.Length - 6)
         {
+            char c = text[pos];
+
+            if (!inString && (c == '"' || c == '\''))
+            {
+                inString = true;
+                stringChar = c;
+                pos++;
+                continue;
+            }
+            if (inString)
+            {
+                if (c == stringChar)
+                {
+                    if (pos + 1 < text.Length && text[pos + 1] == stringChar)
+                    { pos += 2; continue; }
+                    inString = false;
+                }
+                pos++;
+                continue;
+            }
+
             if ((pos == 0 || !char.IsLetterOrDigit(text[pos - 1])) &&
                 MatchWord(text, pos, "REPLACE") &&
                 (pos + 7 >= text.Length || !char.IsLetterOrDigit(text[pos + 7])))
@@ -194,8 +218,37 @@ public sealed class CopyProcessor
     private static int FindCopyStatement(string text, int startPos)
     {
         int pos = startPos;
+        bool inString = false;
+        char stringChar = '\0';
+
         while (pos < text.Length - 3)
         {
+            char c = text[pos];
+
+            // Track string literal boundaries
+            if (!inString && (c == '"' || c == '\''))
+            {
+                inString = true;
+                stringChar = c;
+                pos++;
+                continue;
+            }
+            if (inString)
+            {
+                if (c == stringChar)
+                {
+                    // Check for doubled quote (escape)
+                    if (pos + 1 < text.Length && text[pos + 1] == stringChar)
+                    {
+                        pos += 2;
+                        continue;
+                    }
+                    inString = false;
+                }
+                pos++;
+                continue;
+            }
+
             if ((pos == 0 || !char.IsLetterOrDigit(text[pos - 1])) &&
                 MatchWord(text, pos, "COPY") &&
                 (pos + 4 >= text.Length || !char.IsLetterOrDigit(text[pos + 4])))

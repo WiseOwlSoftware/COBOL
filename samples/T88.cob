@@ -1,0 +1,9 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. T88.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-FLAG        PIC 9    VALUE 0.
+          88 DONE-FLAG   VALUE 1.
+       PROCEDURE DIVISION.
+           DISPLAY "88 test".
+           STOP RUN.

@@ -25,9 +25,14 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static bool IsFixedForm(string sourceText)
     {
+        // Quick check: if source contains *> (free-form comment), it's free-form
+        if (sourceText.Contains("*>"))
+            return false;
+
         var lines = sourceText.Split('\n');
         int fixedIndicators = 0;
         int totalLines = 0;
+        bool hasNumericSequence = false; // at least one line must have digits in cols 1-6
 
         foreach (var rawLine in lines)
         {
@@ -52,13 +57,27 @@ public static class ReferenceFormatProcessor
                             break;
                         }
                     }
-                    if (seqOk) fixedIndicators++;
+                    if (seqOk)
+                    {
+                        fixedIndicators++;
+                        // Check if any digit appears in columns 1-6 (not all spaces)
+                        for (int i = 0; i < 6 && i < line.Length; i++)
+                        {
+                            if (char.IsDigit(line[i]))
+                            {
+                                hasNumericSequence = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // If > 60% of non-empty lines look fixed-form, treat as fixed-form
-        return totalLines > 0 && fixedIndicators * 100 / totalLines > 60;
+        // Must have at least one line with numeric sequence numbers AND
+        // > 60% of lines matching fixed-form pattern
+        return totalLines > 0 && hasNumericSequence &&
+               fixedIndicators * 100 / totalLines > 60;
     }
 
     /// <summary>
