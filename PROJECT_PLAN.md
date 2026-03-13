@@ -373,25 +373,25 @@ Maps each major spec section to the compiler component(s) responsible for implem
 
 ## Phased Implementation Plan
 
-### Phase 1: Project Skeleton & "Hello World" ✸ CURRENT
+### Phase 1: Project Skeleton & "Hello World" ✅ DONE
 **Target**: Compile and run a minimal COBOL program on .NET.
 
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
 #### Tasks
 
-- [ ] **1.1 — Solution scaffolding**
+- [x] **1.1 — Solution scaffolding**
   - Create .NET 8 solution with project structure above
   - Add NuGet references: Mono.Cecil, xUnit
   - Set up `Directory.Build.props` for shared settings
   - Create basic CLI entry point (`cobolsharp compile <file>`)
 
-- [ ] **1.2 — Source text abstraction**
+- [x] **1.2 — Source text abstraction**
   - `SourceText` class: load file, track lines/columns, support UTF-8 and codepages
   - `SourceLocation` / `TextSpan` for diagnostic positions
   - Free-form reference format only (§6.4) — fixed-form deferred to Phase 3
 
-- [ ] **1.3 — Lexer (free-form, minimal)**
+- [x] **1.3 — Lexer (free-form, minimal)**
   - Tokenize: keywords, user-defined words, numeric literals, alphanumeric literals,
     period separator, parentheses, arithmetic operators
   - Handle free-form comments (`*>`)
@@ -399,7 +399,7 @@ Maps each major spec section to the compiler component(s) responsible for implem
   - Comprehensive token type enum (plan for all COBOL keywords from §8)
   - Unit tests for each token type
 
-- [ ] **1.4 — AST node definitions (minimal subset)**
+- [x] **1.4 — AST node definitions (minimal subset)**
   - Nodes for: CompilationUnit, ProgramNode, IdentificationDivision,
     DataDivision, ProcedureDivision
   - Statement nodes: DisplayStatement, StopStatement, MoveStatement,
@@ -407,27 +407,27 @@ Maps each major spec section to the compiler component(s) responsible for implem
   - Data entry nodes: DataDescriptionEntry (level number, PIC, USAGE, VALUE)
   - Literal nodes: NumericLiteral, StringLiteral, FigurativeConstant
 
-- [ ] **1.5 — Parser (minimal subset)**
+- [x] **1.5 — Parser (minimal subset)**
   - Parse IDENTIFICATION DIVISION (PROGRAM-ID)
   - Parse DATA DIVISION / WORKING-STORAGE SECTION (level-77, level-01 elementary items)
   - Parse PROCEDURE DIVISION with DISPLAY, STOP RUN, MOVE, ADD
   - Syntax error recovery (skip to next period/sentence)
   - Unit tests for each grammar rule
 
-- [ ] **1.6 — Semantic analysis (minimal)**
+- [x] **1.6 — Semantic analysis (minimal)**
   - Build symbol table from DATA DIVISION entries
   - Resolve data-name references in PROCEDURE DIVISION
   - Basic PICTURE clause parsing (9, X, A only)
   - Validate literal compatibility in MOVE
 
-- [ ] **1.7 — Runtime library (minimal)**
+- [x] **1.7 — Runtime library (minimal)**
   - `CobolProgram` base class (compiled programs derive from this)
   - `CobolField` abstraction: holds byte[] storage + metadata (PIC, USAGE, length)
   - `CobolDecimal` for arithmetic operations
   - `Display()` implementation → Console.WriteLine
   - `Move()` with basic numeric/alphanumeric conversion
 
-- [ ] **1.8 — CIL code generator (minimal)**
+- [x] **1.8 — CIL code generator (minimal)**
   - Use Mono.Cecil to emit a .NET assembly
   - Generate a class per PROGRAM-ID, deriving from CobolProgram
   - Emit fields for WORKING-STORAGE data items
@@ -436,7 +436,7 @@ Maps each major spec section to the compiler component(s) responsible for implem
   - STOP RUN → return / Environment.Exit
   - Generate valid .exe that runs on `dotnet` runtime
 
-- [ ] **1.9 — End-to-end test: Hello World**
+- [x] **1.9 — End-to-end test: Hello World**
   - Sample: `HELLO.cob`
     ```cobol
     IDENTIFICATION DIVISION.
@@ -447,7 +447,7 @@ Maps each major spec section to the compiler component(s) responsible for implem
     ```
   - Integration test: compile → execute → assert stdout = "Hello, World!"
 
-- [ ] **1.10 — CI setup**
+- [x] **1.10 — CI setup**
   - GitHub Actions workflow: build + test on push
   - Badge in README
 
@@ -457,7 +457,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
 
 ---
 
-### Phase 2: Core Data & Arithmetic
+### Phase 2: Core Data & Arithmetic ✸ CURRENT
 **Target**: Full numeric/alphanumeric data handling, arithmetic, and control flow.
 
 **Status**: NOT STARTED
@@ -843,6 +843,7 @@ what was accomplished, and what to pick up next.
 | Date | Summary | Next Step |
 |------|---------|-----------|
 | 2026-03-13 | Project plan created. Architecture and phased roadmap defined. | Begin Phase 1.1: solution scaffolding |
+| 2026-03-13 | **Phase 1 COMPLETE.** Full compiler pipeline working: Source→Lex→Parse→Analyze→CIL→.NET Assembly. Hello World compiles and runs. 43 tests (39 unit + 4 integration) all passing. CI via GitHub Actions. Five bugs found and fixed during testing. | Begin Phase 2.1: full PICTURE clause |
 
 ---
 

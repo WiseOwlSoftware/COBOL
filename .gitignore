@@ -26,3 +26,7 @@ desktop.ini
 # Test results
 TestResults/
 coverage/
+
+# Compiled COBOL output (samples directory)
+samples/*.dll
+samples/*.runtimeconfig.json
