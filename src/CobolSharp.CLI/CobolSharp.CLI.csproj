@@ -4,10 +4,25 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CobolSharp.CLI</RootNamespace>
     <AssemblyName>cobolsharp</AssemblyName>
+
+    <!-- dotnet tool packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>cobolsharp</ToolCommandName>
+    <PackageId>CobolSharp</PackageId>
+    <Version>0.1.0</Version>
+    <Description>COBOL compiler targeting .NET — compiles ISO/IEC 1989:2023 COBOL to CIL assemblies</Description>
+    <PackageProjectUrl>https://github.com/BrentRector/CobolSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/BrentRector/CobolSharp</RepositoryUrl>
+    <PackageTags>cobol;compiler;dotnet;cil</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CobolSharp.Compiler\CobolSharp.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
