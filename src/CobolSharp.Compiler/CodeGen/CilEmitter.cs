@@ -429,6 +429,12 @@ public sealed class CilEmitter
                 _il!.Emit(OpCodes.Ldstr, text);
                 _il.Emit(OpCodes.Call, consoleWriteString);
             }
+            else if (operand is FunctionCallExpression funcCall)
+            {
+                // Emit function call, get result as string for display
+                EmitIntrinsicFunctionCall(funcCall, expectDecimal: false);
+                _il!.Emit(OpCodes.Call, consoleWriteString);
+            }
         }
 
         _il!.Emit(OpCodes.Call, consoleWriteLine);
@@ -710,6 +716,10 @@ public sealed class CilEmitter
             EmitArithmeticExpression(unary.Operand);
             _il!.Emit(OpCodes.Call, _module!.ImportReference(typeof(decimal).GetMethod("Negate")));
         }
+        else if (expr is FunctionCallExpression funcCall)
+        {
+            EmitIntrinsicFunctionCall(funcCall, expectDecimal: true);
+        }
         else
         {
             EmitDecimalConstant(_il!, 0m);
@@ -821,6 +831,71 @@ public sealed class CilEmitter
 
         _programType.Methods.Add(mainMethod);
         _assembly!.EntryPoint = mainMethod;
+    }
+
+    /// <summary>
+    /// Emit a call to IntrinsicFunctions.Call(name, args) and handle the result.
+    /// </summary>
+    private void EmitIntrinsicFunctionCall(FunctionCallExpression funcCall, bool expectDecimal)
+    {
+        var callMethod = _module!.ImportReference(
+            typeof(CobolSharp.Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
+                new[] { typeof(string), typeof(object[]) }));
+
+        // Push function name
+        _il!.Emit(OpCodes.Ldstr, funcCall.FunctionName);
+
+        // Build args array
+        _il.Emit(OpCodes.Ldc_I4, funcCall.Arguments.Count);
+        _il.Emit(OpCodes.Newarr, _module.TypeSystem.Object);
+
+        for (int i = 0; i < funcCall.Arguments.Count; i++)
+        {
+            _il.Emit(OpCodes.Dup);
+            _il.Emit(OpCodes.Ldc_I4, i);
+
+            var arg = funcCall.Arguments[i];
+            if (arg is StringLiteralExpression strLit)
+            {
+                _il.Emit(OpCodes.Ldstr, strLit.Value);
+            }
+            else if (arg is NumericLiteralExpression numLit)
+            {
+                EmitDecimalConstant(_il, numLit.Value);
+                _il.Emit(OpCodes.Box, _module.ImportReference(typeof(decimal)));
+            }
+            else if (arg is IdentifierExpression idExpr && _fields.TryGetValue(idExpr.Name, out var field))
+            {
+                // Pass the field's display value as string (works for both string and numeric args)
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, field);
+                _il.Emit(OpCodes.Callvirt, _getDisplayValueMethod);
+            }
+            else
+            {
+                // Try to evaluate as arithmetic and box
+                EmitArithmeticExpression(arg);
+                _il.Emit(OpCodes.Box, _module.ImportReference(typeof(decimal)));
+            }
+
+            _il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        // Call IntrinsicFunctions.Call(name, args) → object
+        _il.Emit(OpCodes.Call, callMethod);
+
+        if (expectDecimal)
+        {
+            // Unbox result to decimal
+            _il.Emit(OpCodes.Unbox_Any, _module.ImportReference(typeof(decimal)));
+        }
+        else
+        {
+            // Convert result to string via ToString()
+            var toStringMethod = _module.ImportReference(
+                typeof(object).GetMethod("ToString", Type.EmptyTypes));
+            _il.Emit(OpCodes.Callvirt, toStringMethod);
+        }
     }
 
     private void EmitDecimalConstant(ILProcessor il, decimal value)
