@@ -43,13 +43,13 @@ public sealed class Compilation
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
         // Phase 3: Parse
-        var parser = new Parser(tokens, diagnostics);
+        var parser = new Parser(tokens, diagnostics, source);
         var ast = parser.ParseCompilationUnit();
         if (diagnostics.HasErrors)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
         // Phase 4: Semantic analysis
-        var analyzer = new SemanticAnalyzer(diagnostics);
+        var analyzer = new SemanticAnalyzer(diagnostics, source);
         var model = analyzer.Analyze(ast);
         if (diagnostics.HasErrors)
             return new CompilationResult(false, "", diagnostics.Diagnostics);

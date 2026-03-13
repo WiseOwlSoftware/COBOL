@@ -11,11 +11,18 @@ namespace CobolSharp.Compiler.Semantics;
 public sealed class SemanticAnalyzer
 {
     private readonly DiagnosticBag _diagnostics;
+    private readonly SourceText? _source;
 
-    public SemanticAnalyzer(DiagnosticBag diagnostics)
+    public SemanticAnalyzer(DiagnosticBag diagnostics, SourceText? source = null)
     {
         _diagnostics = diagnostics;
+        _source = source;
     }
+
+    private SourceLocation GetLocation(int position) =>
+        _source != null
+            ? _source.GetLocation(position)
+            : new SourceLocation("<unknown>", position, 0, 0);
 
     public SemanticModel Analyze(CompilationUnit compilationUnit)
     {
@@ -144,7 +151,7 @@ public sealed class SemanticAnalyzer
                 {
                     _diagnostics.ReportError("CS0402",
                         $"REDEFINES target '{entry.RedefinesName}' not found",
-                        new SourceLocation("<unknown>", entry.Span.Start, 0, 0), entry.Span);
+                        GetLocation(entry.Span.Start), entry.Span);
                 }
             }
 
@@ -153,7 +160,7 @@ public sealed class SemanticAnalyzer
             {
                 _diagnostics.ReportError("CS0400",
                     $"Duplicate data-name '{entry.Name}'",
-                    new SourceLocation("<unknown>", entry.Span.Start, 0, 0), entry.Span);
+                    GetLocation(entry.Span.Start), entry.Span);
             }
         }
 
@@ -318,10 +325,53 @@ public sealed class SemanticAnalyzer
     {
         if (symbols.Resolve(id.Name) == null)
         {
-            _diagnostics.ReportError("CS0401",
-                $"Undefined data-name '{id.Name}'",
-                new SourceLocation("<unknown>", id.Span.Start, 0, 0), id.Span);
+            string msg = $"Undefined data-name '{id.Name}'";
+
+            // "Did you mean...?" suggestion
+            string? suggestion = FindClosestName(id.Name, symbols);
+            if (suggestion != null)
+                msg += $". Did you mean '{suggestion}'?";
+
+            _diagnostics.ReportError("CS0401", msg,
+                GetLocation(id.Span.Start), id.Span);
         }
+    }
+
+    private static string? FindClosestName(string name, SymbolTable symbols)
+    {
+        string? best = null;
+        int bestDist = int.MaxValue;
+
+        foreach (var (candidate, _) in symbols.AllSymbols)
+        {
+            int dist = LevenshteinDistance(name.ToUpperInvariant(), candidate.ToUpperInvariant());
+            if (dist < bestDist && dist <= 3) // max 3 edits
+            {
+                bestDist = dist;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    private static int LevenshteinDistance(string a, string b)
+    {
+        int[,] d = new int[a.Length + 1, b.Length + 1];
+        for (int i = 0; i <= a.Length; i++) d[i, 0] = i;
+        for (int j = 0; j <= b.Length; j++) d[0, j] = j;
+
+        for (int i = 1; i <= a.Length; i++)
+        {
+            for (int j = 1; j <= b.Length; j++)
+            {
+                int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                d[i, j] = Math.Min(Math.Min(
+                    d[i - 1, j] + 1,       // deletion
+                    d[i, j - 1] + 1),      // insertion
+                    d[i - 1, j - 1] + cost); // substitution
+            }
+        }
+        return d[a.Length, b.Length];
     }
 }
 

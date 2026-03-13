@@ -13,12 +13,14 @@ public sealed class Parser
 {
     private readonly List<Token> _tokens;
     private readonly DiagnosticBag _diagnostics;
+    private readonly SourceText? _source;
     private int _position;
 
-    public Parser(List<Token> tokens, DiagnosticBag diagnostics)
+    public Parser(List<Token> tokens, DiagnosticBag diagnostics, SourceText? source = null)
     {
         _tokens = tokens;
         _diagnostics = diagnostics;
+        _source = source;
         _position = 0;
     }
 
@@ -92,10 +94,10 @@ public sealed class Parser
 
     private void ReportError(string code, string message)
     {
-        // Derive location from current token's span if we have a source.
-        // For now, use a placeholder location.
-        _diagnostics.ReportError(code, message,
-            new SourceLocation("<unknown>", Current.Span.Start, 0, 0), Current.Span);
+        var location = _source != null
+            ? _source.GetLocation(Current.Span.Start)
+            : new SourceLocation("<unknown>", Current.Span.Start, 0, 0);
+        _diagnostics.ReportError(code, message, location, Current.Span);
     }
 
     /// <summary>
