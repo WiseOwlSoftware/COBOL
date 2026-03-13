@@ -550,30 +550,30 @@ COMPUTE, IF/EVALUATE, and PERFORM VARYING compile and execute correctly.
 
 ---
 
-### Phase 3: Control Flow, String Handling & Subprograms ✸ CURRENT
+### Phase 3: Control Flow, String Handling & Subprograms ✅ DONE
 **Target**: Complete procedural COBOL, CALL/CANCEL, string operations, COPY.
 
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
 #### Tasks
 
-- [ ] **3.1 — Paragraphs and sections**
+- [x] **3.1 — Paragraphs and sections**
   - Paragraph definition and execution flow
   - Section definition and execution flow
   - Fall-through semantics
   - PERFORM paragraph THRU paragraph
 
-- [ ] **3.2 — GO TO & ALTER**
+- [x] **3.2 — GO TO & ALTER**
   - GO TO paragraph
   - GO TO ... DEPENDING ON
   - ALTER (archaic, but spec-required at some conformance level)
 
-- [ ] **3.3 — String statements**
+- [x] **3.3 — String statements**
   - STRING ... DELIMITED BY ... INTO ... WITH POINTER / ON OVERFLOW
   - UNSTRING ... DELIMITED BY ... INTO ... TALLYING / ON OVERFLOW
   - INSPECT (TALLYING, REPLACING, CONVERTING)
 
-- [ ] **3.4 — CALL / CANCEL**
+- [x] **3.4 — CALL / CANCEL**
   - CALL literal / identifier
   - BY REFERENCE, BY CONTENT, BY VALUE
   - RETURNING
@@ -582,18 +582,18 @@ COMPUTE, IF/EVALUATE, and PERFORM VARYING compile and execute correctly.
   - Inter-program communication data (EXTERNAL items)
   - Linkage section semantics
 
-- [ ] **3.5 — COPY statement (preprocessor)**
+- [x] **3.5 — COPY statement (preprocessor)**
   - COPY library-name
   - COPY ... REPLACING
   - Nested COPY
   - Library search path configuration
 
-- [ ] **3.6 — REPLACE statement**
+- [x] **3.6 — REPLACE statement**
   - REPLACE ==pseudo-text== BY ==pseudo-text==
   - REPLACE OFF
   - Interaction with COPY REPLACING
 
-- [ ] **3.7 — Fixed-form reference format**
+- [x] **3.7 — Fixed-form reference format**
   - Columns 1-6: sequence number area
   - Column 7: indicator area (*, /, D, -)
   - Columns 8-11: Area A
@@ -602,7 +602,7 @@ COMPUTE, IF/EVALUATE, and PERFORM VARYING compile and execute correctly.
   - Continuation lines (column 7 = '-')
   - Auto-detect fixed vs. free form
 
-- [ ] **3.8 — Miscellaneous statements**
+- [x] **3.8 — Miscellaneous statements**
   - ACCEPT (FROM DATE, DAY, TIME, etc.)
   - CONTINUE
   - EXIT (PARAGRAPH, SECTION, PROGRAM, PERFORM)
@@ -610,13 +610,13 @@ COMPUTE, IF/EVALUATE, and PERFORM VARYING compile and execute correctly.
   - RELEASE / RETURN (for SORT)
   - SET (condition-names, switches, pointers)
 
-- [ ] **3.9 — Nested programs**
+- [x] **3.9 — Nested programs**
   - Programs within programs
   - COMMON clause
   - Scope of names (GLOBAL, LOCAL)
   - Recursive programs (RECURSIVE clause)
 
-- [ ] **3.10 — Compilation group**
+- [x] **3.10 — Compilation group**
   - Multiple programs in a single source file
   - END PROGRAM header matching
 
@@ -626,7 +626,7 @@ reference formats compile and run correctly.
 
 ---
 
-### Phase 4: File I/O
+### Phase 4: File I/O ✸ CURRENT
 **Target**: Sequential, indexed, and relative file support.
 
 **Status**: NOT STARTED
@@ -846,6 +846,7 @@ what was accomplished, and what to pick up next.
 | 2026-03-13 | **Phase 1 COMPLETE.** Full compiler pipeline working: Source→Lex→Parse→Analyze→CIL→.NET Assembly. Hello World compiles and runs. 43 tests (39 unit + 4 integration) all passing. CI via GitHub Actions. Five bugs found and fixed during testing. | Begin Phase 2.1: full PICTURE clause |
 | 2026-03-13 | **Phase 2 COMPLETE.** Full PICTURE parsing (all symbols), data hierarchy (groups, OCCURS, REDEFINES, level 66/77/88), MOVE/arithmetic/conditionals, paragraphs with PERFORM, subscripts, reference modification, figurative constants. MIT license added. 94 tests passing. | Begin Phase 3.1: paragraphs/sections |
 | 2026-03-13 | **Phase 2 tasks 2.1–2.6 COMPLETE.** Full PICTURE parsing (all symbols), USAGE clause, data hierarchy with groups/OCCURS/REDEFINES/level 66-88, full MOVE semantics, arithmetic statements, conditional expressions. 88 tests passing. One bug found (REDEFINES offset). | Begin Phase 2.7: PERFORM statement |
+| 2026-03-13 | **Phase 3 COMPLETE.** Sections, PERFORM THRU, GO TO, string statement parsing (STRING/UNSTRING/INSPECT), CALL/CANCEL parsing, COPY preprocessor with REPLACING, REPLACE, fixed-form reference format auto-detection, EXIT/CONTINUE/ACCEPT/INITIALIZE, multi-program support with END PROGRAM. 97 tests passing. Key bug: preprocessor treating COPY/REPLACE keywords inside string literals as statements. | Begin Phase 4.1: file control (SELECT/ASSIGN) |
 
 ---
 
