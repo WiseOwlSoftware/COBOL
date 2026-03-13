@@ -30,7 +30,6 @@ public sealed class CilEmitter
     private TypeReference? _cobolFieldRef;
     private TypeReference? _fieldTypeRef;
     private MethodReference? _fieldCtor;
-    private MethodReference? _displayMethod;
     private MethodReference? _moveNumericMethod;
     private MethodReference? _moveAlphanumericMethod;
     private MethodReference? _moveFieldMethod;
@@ -40,7 +39,6 @@ public sealed class CilEmitter
     private MethodReference? _subtractFromMethod;
     private MethodReference? _getNumericValueMethod;
     private MethodReference? _getDisplayValueMethod;
-    private MethodReference? _consoleWriteLineMethod;
 
     public CilEmitter(DiagnosticBag diagnostics)
     {
@@ -140,8 +138,6 @@ public sealed class CilEmitter
         _fieldCtor = _module.ImportReference(fieldCtorDef);
 
         // CobolProgram methods
-        _displayMethod = _module.ImportReference(
-            cobolProgramTypeDef.Methods.First(m => m.Name == "Display"));
         _moveNumericMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "MoveNumeric"));
         _moveAlphanumericMethod = _module.ImportReference(
@@ -162,12 +158,6 @@ public sealed class CilEmitter
             cobolFieldTypeDef.Methods.First(m => m.Name == "GetNumericValue"));
         _getDisplayValueMethod = _module.ImportReference(
             cobolFieldTypeDef.Methods.First(m => m.Name == "GetDisplayValue"));
-
-        // System types
-        var consoleType = typeof(Console);
-        _consoleWriteLineMethod = _module.ImportReference(
-            consoleType.GetMethod("WriteLine", new[] { typeof(string) }));
-
     }
 
     private void EmitDataFields(SymbolTable symbols)
@@ -241,18 +231,14 @@ public sealed class CilEmitter
     private void EmitFieldInitialValue(ILProcessor il, FieldDefinition field,
         Expression value, DataSymbol symbol)
     {
+        // MoveNumeric(decimal, CobolField) and MoveAlphanumeric(string, CobolField)
+        // are static methods. Stack order: arg1, arg2.
         if (value is NumericLiteralExpression numLit)
         {
+            EmitDecimalConstant(il, numLit.Value);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldfld, field);
-            EmitDecimalConstant(il, numLit.Value);
-            il.Emit(OpCodes.Call, _moveNumericMethod!.Resolve() != null
-                ? _moveNumericMethod : _moveNumericMethod);
-            // Actually call the static method with (decimal, CobolField)
-            // We need to reorganize: MoveNumeric is static, takes (decimal, CobolField)
-            // Stack needs: decimal, CobolField
-            // But we pushed CobolField first, then decimal. Swap needed.
-            // Let's redo this properly.
+            il.Emit(OpCodes.Call, _moveNumericMethod);
         }
         else if (value is StringLiteralExpression strLit)
         {
@@ -261,7 +247,6 @@ public sealed class CilEmitter
             il.Emit(OpCodes.Ldfld, field);
             il.Emit(OpCodes.Call, _moveAlphanumericMethod);
         }
-        // For other value types, skip for now
     }
 
     private void EmitRunMethod(ProgramNode program)
@@ -318,68 +303,49 @@ public sealed class CilEmitter
 
     private void EmitDisplayStatement(DisplayStatement display)
     {
-        // For simplicity in Phase 1: build a string from all operands and call Console.WriteLine
-        // If single string literal, just write it directly
-        if (display.Operands.Count == 1 && display.Operands[0] is StringLiteralExpression singleStr)
+        // Emit each operand as a Console.Write, then Console.WriteLine() at the end.
+        // This matches COBOL DISPLAY semantics: concatenate all operands, newline at end.
+        var consoleWriteString = _module!.ImportReference(
+            typeof(Console).GetMethod("Write", new[] { typeof(string) }));
+        var consoleWriteLine = _module.ImportReference(
+            typeof(Console).GetMethod("WriteLine", Type.EmptyTypes));
+
+        foreach (var operand in display.Operands)
         {
-            _il!.Emit(OpCodes.Ldstr, singleStr.Value);
-            _il.Emit(OpCodes.Call, _consoleWriteLineMethod);
-            return;
-        }
-
-        // For multiple operands, concatenate
-        // Use Display(params object[]) from base class
-        _il!.Emit(OpCodes.Ldc_I4, display.Operands.Count);
-        _il.Emit(OpCodes.Newarr, _module!.TypeSystem.Object);
-
-        for (int i = 0; i < display.Operands.Count; i++)
-        {
-            _il.Emit(OpCodes.Dup);
-            _il.Emit(OpCodes.Ldc_I4, i);
-
-            var operand = display.Operands[i];
             if (operand is StringLiteralExpression strLit)
             {
-                _il.Emit(OpCodes.Ldstr, strLit.Value);
+                _il!.Emit(OpCodes.Ldstr, strLit.Value);
+                _il.Emit(OpCodes.Call, consoleWriteString);
             }
             else if (operand is NumericLiteralExpression numLit)
             {
-                _il.Emit(OpCodes.Ldstr, numLit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                _il!.Emit(OpCodes.Ldstr,
+                    numLit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                _il.Emit(OpCodes.Call, consoleWriteString);
             }
-            else if (operand is IdentifierExpression idExpr && _fields.TryGetValue(idExpr.Name, out var field))
+            else if (operand is IdentifierExpression idExpr &&
+                     _fields.TryGetValue(idExpr.Name, out var field))
             {
-                _il.Emit(OpCodes.Ldarg_0);
+                // Call field.GetDisplayValue() → string, then Console.Write
+                _il!.Emit(OpCodes.Ldarg_0);
                 _il.Emit(OpCodes.Ldfld, field);
+                _il.Emit(OpCodes.Callvirt, _getDisplayValueMethod);
+                _il.Emit(OpCodes.Call, consoleWriteString);
             }
             else if (operand is FigurativeConstantExpression fig)
             {
-                _il.Emit(OpCodes.Ldstr, fig.Constant switch
+                string text = fig.Constant switch
                 {
                     FigurativeConstant.Space => " ",
                     FigurativeConstant.Zero => "0",
                     _ => ""
-                });
+                };
+                _il!.Emit(OpCodes.Ldstr, text);
+                _il.Emit(OpCodes.Call, consoleWriteString);
             }
-            else
-            {
-                _il.Emit(OpCodes.Ldstr, "");
-            }
-
-            _il.Emit(OpCodes.Stelem_Ref);
         }
 
-        _il.Emit(OpCodes.Ldarg_0);
-        // Call Display(params object[]) - but it's a static method, so we need the array on stack
-        // Actually Display is protected static — call it
-        _il.Emit(OpCodes.Pop); // pop 'this', we don't need it for static call
-        // Hmm, Display is static. Let me reorganize.
-        // The array is already on the stack after stelem_ref operations.
-        // Actually after the loop, the array is still on stack (because we dup'd and stored elements).
-        // Wait, let me think about this more carefully.
-
-        // After the Newarr and loop, the array ref is on the stack.
-        // Call the static Display method.
-        _il.Emit(OpCodes.Call, _displayMethod);
+        _il!.Emit(OpCodes.Call, consoleWriteLine);
     }
 
     private void EmitStopRunStatement()

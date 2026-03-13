@@ -66,6 +66,30 @@ public sealed class Parser
 
     private bool Check(TokenKind kind) => Current.Kind == kind;
 
+    /// <summary>
+    /// Checks if the current token is a valid level number (integer 1-49, 66, 77, or 88).
+    /// Level numbers are lexed as IntegerLiteral; this method provides context-sensitive recognition.
+    /// </summary>
+    private bool IsLevelNumber()
+    {
+        if (Current.Kind == TokenKind.LevelNumber) return true; // legacy support
+        if (Current.Kind != TokenKind.IntegerLiteral) return false;
+        if (Current.Value is long lv)
+        {
+            int v = (int)lv;
+            return (v >= 1 && v <= 49) || v == 66 || v == 77 || v == 88;
+        }
+        return false;
+    }
+
+    private int ConsumeLevelNumber()
+    {
+        var token = Advance();
+        if (token.Value is long lv) return (int)lv;
+        if (token.Value is int iv) return iv;
+        return 1;
+    }
+
     private void ReportError(string code, string message)
     {
         // Derive location from current token's span if we have a source.
@@ -103,6 +127,10 @@ public sealed class Parser
         TokenKind.IfKeyword or TokenKind.PerformKeyword or TokenKind.EvaluateKeyword or
         TokenKind.GoKeyword or TokenKind.AcceptKeyword or TokenKind.CallKeyword or
         TokenKind.ContinueKeyword or TokenKind.ExitKeyword or TokenKind.InitializeKeyword;
+
+    private static bool IsScopeTerminator(TokenKind kind) => kind is
+        TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
+        TokenKind.EndEvaluateKeyword or TokenKind.WhenKeyword;
 
     // ═══════════════════════════════════════════════════
     // Top-level parsing
@@ -205,7 +233,7 @@ public sealed class Parser
         Expect(TokenKind.Period);
 
         var entries = new List<DataDescriptionEntry>();
-        while (Check(TokenKind.LevelNumber))
+        while (IsLevelNumber())
         {
             entries.Add(ParseDataDescriptionEntry());
         }
@@ -218,8 +246,7 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
 
-        var levelToken = Expect(TokenKind.LevelNumber);
-        int level = (int)(levelToken.Value ?? 1);
+        int level = ConsumeLevelNumber();
 
         // Data name or FILLER
         string? name = null;
@@ -395,7 +422,8 @@ public sealed class Parser
         Advance(); // DISPLAY
 
         var operands = new List<Expression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
         {
             operands.Add(ParseExpression());
         }
@@ -426,7 +454,7 @@ public sealed class Parser
         Expect(TokenKind.ToKeyword, "Expected TO after MOVE source");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
         {
             var id = Expect(TokenKind.Identifier, "Expected identifier after TO");
             targets.Add(new IdentifierExpression(id.Text, id.Span));
@@ -452,7 +480,7 @@ public sealed class Parser
         Expect(TokenKind.ToKeyword, "Expected TO in ADD statement");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
         {
             var id = Expect(TokenKind.Identifier, "Expected identifier after TO");
             targets.Add(new IdentifierExpression(id.Text, id.Span));
@@ -478,7 +506,7 @@ public sealed class Parser
         Expect(TokenKind.FromKeyword, "Expected FROM in SUBTRACT statement");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
         {
             var id = Expect(TokenKind.Identifier, "Expected identifier after FROM");
             targets.Add(new IdentifierExpression(id.Text, id.Span));

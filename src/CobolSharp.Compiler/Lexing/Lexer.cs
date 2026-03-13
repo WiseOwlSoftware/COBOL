@@ -120,13 +120,6 @@ public sealed class Lexer
         string text = _source.GetText(start, _position - start);
         string upper = text.ToUpperInvariant();
 
-        // Check if it's a level number (01-49, 66, 77, 88)
-        if (text.Length <= 2 && int.TryParse(text, out int level) &&
-            ((level >= 1 && level <= 49) || level == 66 || level == 77 || level == 88))
-        {
-            return new Token(TokenKind.LevelNumber, text, new TextSpan(start, _position - start), level);
-        }
-
         // Check keyword map
         if (Keywords.TryGetValue(upper, out var kind))
             return new Token(kind, text, new TextSpan(start, _position - start));
@@ -157,10 +150,17 @@ public sealed class Lexer
         }
 
         string text = _source.GetText(start, _position - start);
-        var kind = hasDot ? TokenKind.DecimalLiteral : TokenKind.IntegerLiteral;
-        object value = hasDot ? decimal.Parse(text) : long.Parse(text);
 
-        return new Token(kind, text, new TextSpan(start, _position - start), value);
+        if (hasDot)
+        {
+            return new Token(TokenKind.DecimalLiteral, text,
+                new TextSpan(start, _position - start), decimal.Parse(text));
+        }
+        else
+        {
+            return new Token(TokenKind.IntegerLiteral, text,
+                new TextSpan(start, _position - start), long.Parse(text));
+        }
     }
 
     private Token ReadStringLiteral()
