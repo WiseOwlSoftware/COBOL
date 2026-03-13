@@ -126,7 +126,8 @@ public sealed class Parser
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
         TokenKind.IfKeyword or TokenKind.PerformKeyword or TokenKind.EvaluateKeyword or
         TokenKind.GoKeyword or TokenKind.AcceptKeyword or TokenKind.CallKeyword or
-        TokenKind.ContinueKeyword or TokenKind.ExitKeyword or TokenKind.InitializeKeyword;
+        TokenKind.ContinueKeyword or TokenKind.ExitKeyword or TokenKind.InitializeKeyword or
+        TokenKind.StringKeyword or TokenKind.UnstringKeyword or TokenKind.InspectKeyword;
 
     private static bool IsScopeTerminator(TokenKind kind) => kind is
         TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
@@ -681,6 +682,9 @@ public sealed class Parser
             TokenKind.ExitKeyword => ParseExitStatement(),
             TokenKind.AcceptKeyword => ParseAcceptStatement(),
             TokenKind.InitializeKeyword => ParseInitializeStatement(),
+            TokenKind.StringKeyword => ParseStringStatement(),
+            TokenKind.UnstringKeyword => ParseUnstringStatement(),
+            TokenKind.InspectKeyword => ParseInspectStatement(),
             _ => HandleUnknownStatement()
         };
     }
@@ -1014,6 +1018,177 @@ public sealed class Parser
         Match(TokenKind.Period);
         return new InitializeStatement(targets,
             TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── STRING ──
+
+    private StringStatement ParseStringStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // STRING
+
+        var sources = new List<StringSource>();
+        while (!Check(TokenKind.IntoKeyword) && Current.Kind != TokenKind.EndOfFile &&
+               Current.Kind != TokenKind.Period)
+        {
+            var value = ParseExpression();
+            Expression? delim = null;
+
+            // DELIMITED BY SIZE or DELIMITED BY literal/identifier
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("DELIMITED", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // DELIMITED
+                Match(TokenKind.ByKeyword); // BY
+                if (Check(TokenKind.SizeKeyword))
+                {
+                    Advance(); // SIZE
+                    delim = null; // SIZE means use full value
+                }
+                else
+                {
+                    delim = ParseExpression();
+                }
+            }
+
+            sources.Add(new StringSource(value, delim));
+        }
+
+        Expect(TokenKind.IntoKeyword, "Expected INTO in STRING statement");
+        var targetToken = Expect(TokenKind.Identifier, "Expected target identifier");
+        var target = new IdentifierExpression(targetToken.Text, targetToken.Span);
+
+        IdentifierExpression? pointer = null;
+        // WITH POINTER
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("WITH", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // WITH
+            if (Check(TokenKind.PointerKeyword))
+            {
+                Advance(); // POINTER
+                var ptrToken = Expect(TokenKind.Identifier, "Expected pointer identifier");
+                pointer = new IdentifierExpression(ptrToken.Text, ptrToken.Span);
+            }
+        }
+
+        // Skip ON OVERFLOW / NOT ON OVERFLOW for now
+        SkipToEndOfStatement();
+
+        return new StringStatement(sources, target, pointer,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── UNSTRING ──
+
+    private UnstringStatement ParseUnstringStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // UNSTRING
+
+        var sourceToken = Expect(TokenKind.Identifier, "Expected source identifier");
+        var source = new IdentifierExpression(sourceToken.Text, sourceToken.Span);
+
+        Expression? delimiter = null;
+        // DELIMITED BY
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("DELIMITED", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance();
+            Match(TokenKind.ByKeyword);
+            delimiter = ParseExpression();
+        }
+
+        Expect(TokenKind.IntoKeyword, "Expected INTO in UNSTRING statement");
+
+        var targets = new List<IdentifierExpression>();
+        while (Check(TokenKind.Identifier) && !Current.Text.Equals("TALLYING", StringComparison.OrdinalIgnoreCase))
+        {
+            var tok = Advance();
+            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+        }
+
+        IdentifierExpression? tallying = null;
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("TALLYING", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance();
+            // Skip optional IN
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("IN", StringComparison.OrdinalIgnoreCase))
+                Advance();
+            var tallyToken = Expect(TokenKind.Identifier, "Expected tally counter");
+            tallying = new IdentifierExpression(tallyToken.Text, tallyToken.Span);
+        }
+
+        SkipToEndOfStatement();
+
+        return new UnstringStatement(source, delimiter, targets, tallying,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── INSPECT ──
+
+    private InspectStatement ParseInspectStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // INSPECT
+
+        var targetToken = Expect(TokenKind.Identifier, "Expected identifier after INSPECT");
+        var target = new IdentifierExpression(targetToken.Text, targetToken.Span);
+
+        InspectType inspectKind = InspectType.ReplacingAll;
+        Expression? searchFor = null;
+        Expression? replaceWith = null;
+        IdentifierExpression? tallyCounter = null;
+
+        // TALLYING or REPLACING or CONVERTING
+        if (Check(TokenKind.Identifier))
+        {
+            string verb = Current.Text.ToUpperInvariant();
+            if (verb == "TALLYING")
+            {
+                Advance();
+                var counterToken = Expect(TokenKind.Identifier, "Expected counter");
+                tallyCounter = new IdentifierExpression(counterToken.Text, counterToken.Span);
+                Match(TokenKind.Identifier); // FOR
+                if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.TallyingAll; }
+                else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
+                { Advance(); inspectKind = InspectType.TallyingLeading; }
+                searchFor = ParseExpression();
+            }
+            else if (verb == "REPLACING")
+            {
+                Advance();
+                if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.ReplacingAll; }
+                else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
+                { Advance(); inspectKind = InspectType.ReplacingLeading; }
+                else if (Check(TokenKind.Identifier) && Current.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase))
+                { Advance(); inspectKind = InspectType.ReplacingFirst; }
+                searchFor = ParseExpression();
+                Match(TokenKind.ByKeyword);
+                replaceWith = ParseExpression();
+            }
+            else if (verb == "CONVERTING")
+            {
+                Advance();
+                inspectKind = InspectType.Converting;
+                searchFor = ParseExpression();
+                Match(TokenKind.ToKeyword);
+                replaceWith = ParseExpression();
+            }
+        }
+
+        SkipToEndOfStatement();
+
+        return new InspectStatement(target, inspectKind, searchFor, replaceWith, tallyCounter,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    /// <summary>Skip remaining tokens in a statement to the period.</summary>
+    private void SkipToEndOfStatement()
+    {
+        while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+        {
+            Advance();
+        }
+        Match(TokenKind.Period);
     }
 
     // ═══════════════════════════════════════════════════

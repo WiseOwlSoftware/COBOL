@@ -272,6 +272,91 @@ public sealed class InitializeStatement : Statement
     }
 }
 
+/// <summary>
+/// STRING source-1 DELIMITED BY delim-1 ... INTO target [WITH POINTER ptr] [ON OVERFLOW stmts]
+/// </summary>
+public sealed class StringStatement : Statement
+{
+    public List<StringSource> Sources { get; }
+    public IdentifierExpression Target { get; }
+    public IdentifierExpression? Pointer { get; }
+
+    public StringStatement(List<StringSource> sources, IdentifierExpression target,
+        IdentifierExpression? pointer, TextSpan span) : base(span)
+    {
+        Sources = sources;
+        Target = target;
+        Pointer = pointer;
+    }
+}
+
+public sealed class StringSource
+{
+    public Expression Value { get; }
+    public Expression? Delimiter { get; }  // null = SIZE
+
+    public StringSource(Expression value, Expression? delimiter)
+    {
+        Value = value;
+        Delimiter = delimiter;
+    }
+}
+
+/// <summary>
+/// UNSTRING source DELIMITED BY delim INTO target-1 [, target-2...] [TALLYING count]
+/// </summary>
+public sealed class UnstringStatement : Statement
+{
+    public IdentifierExpression Source { get; }
+    public Expression? Delimiter { get; }
+    public List<IdentifierExpression> Targets { get; }
+    public IdentifierExpression? Tallying { get; }
+
+    public UnstringStatement(IdentifierExpression source, Expression? delimiter,
+        List<IdentifierExpression> targets, IdentifierExpression? tallying,
+        TextSpan span) : base(span)
+    {
+        Source = source;
+        Delimiter = delimiter;
+        Targets = targets;
+        Tallying = tallying;
+    }
+}
+
+/// <summary>
+/// INSPECT data-name TALLYING/REPLACING/CONVERTING
+/// Simplified for Phase 3: supports INSPECT REPLACING ALL/LEADING/FIRST
+/// </summary>
+public sealed class InspectStatement : Statement
+{
+    public IdentifierExpression Target { get; }
+    public InspectType InspectKind { get; }
+    public Expression? SearchFor { get; }
+    public Expression? ReplaceWith { get; }
+    public IdentifierExpression? TallyCounter { get; }
+
+    public InspectStatement(IdentifierExpression target, InspectType inspectKind,
+        Expression? searchFor, Expression? replaceWith,
+        IdentifierExpression? tallyCounter, TextSpan span) : base(span)
+    {
+        Target = target;
+        InspectKind = inspectKind;
+        SearchFor = searchFor;
+        ReplaceWith = replaceWith;
+        TallyCounter = tallyCounter;
+    }
+}
+
+public enum InspectType
+{
+    TallyingAll,
+    TallyingLeading,
+    ReplacingAll,
+    ReplacingLeading,
+    ReplacingFirst,
+    Converting,
+}
+
 public sealed class MoveStatement : Statement
 {
     public Expression Source { get; }
