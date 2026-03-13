@@ -130,7 +130,7 @@ public sealed class Parser
         TokenKind.StringKeyword or TokenKind.UnstringKeyword or TokenKind.InspectKeyword or
         TokenKind.OpenKeyword or TokenKind.CloseKeyword or TokenKind.ReadKeyword or
         TokenKind.WriteKeyword or TokenKind.RewriteKeyword or TokenKind.DeleteKeyword or
-        TokenKind.StartKeyword;
+        TokenKind.StartKeyword or TokenKind.SortKeyword;
 
     private static bool IsScopeTerminator(TokenKind kind) => kind is
         TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
@@ -1083,6 +1083,7 @@ public sealed class Parser
             TokenKind.RewriteKeyword => ParseRewriteStatement(),
             TokenKind.DeleteKeyword => ParseDeleteStatement(),
             TokenKind.StartKeyword => ParseStartStatement(),
+            TokenKind.SortKeyword => ParseSortStatement(),
             TokenKind.CallKeyword => ParseCallStatement(),
             TokenKind.CancelKeyword => ParseCancelStatement(),
             TokenKind.StringKeyword => ParseStringStatement(),
@@ -1599,6 +1600,76 @@ public sealed class Parser
         }
         SkipToEndOfStatement();
         return new StartStatement(fileToken.Text, keyCondition, keyIs,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── SORT ──
+
+    private SortStatement ParseSortStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // SORT
+
+        var fileToken = Expect(TokenKind.Identifier, "Expected sort file name");
+        var keys = new List<SortKey>();
+
+        // ON ASCENDING/DESCENDING KEY
+        while (Check(TokenKind.OnKeyword) || Check(TokenKind.AscendingKeyword) || Check(TokenKind.DescendingKeyword))
+        {
+            Match(TokenKind.OnKeyword);
+            bool asc = true;
+            if (Match(TokenKind.DescendingKeyword)) asc = false;
+            else Match(TokenKind.AscendingKeyword);
+            Match(TokenKind.KeyKeyword);
+            Match(TokenKind.IsKeyword);
+            while (Check(TokenKind.Identifier) &&
+                   !Current.Text.Equals("INPUT", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("OUTPUT", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("USING", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("GIVING", StringComparison.OrdinalIgnoreCase))
+            {
+                keys.Add(new SortKey(asc, Advance().Text));
+            }
+        }
+
+        string? inputProc = null, usingFile = null, outputProc = null, givingFile = null;
+
+        // INPUT PROCEDURE / USING
+        if (Check(TokenKind.InputKeyword))
+        {
+            Advance();
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance();
+                Match(TokenKind.IsKeyword);
+                inputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
+            }
+        }
+        else if (Check(TokenKind.UsingKeyword))
+        {
+            Advance();
+            usingFile = Expect(TokenKind.Identifier, "Expected file name after USING").Text;
+        }
+
+        // OUTPUT PROCEDURE / GIVING
+        if (Check(TokenKind.OutputKeyword))
+        {
+            Advance();
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance();
+                Match(TokenKind.IsKeyword);
+                outputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
+            }
+        }
+        else if (Check(TokenKind.GivingKeyword))
+        {
+            Advance();
+            givingFile = Expect(TokenKind.Identifier, "Expected file name after GIVING").Text;
+        }
+
+        Match(TokenKind.Period);
+        return new SortStatement(fileToken.Text, keys, inputProc, usingFile, outputProc, givingFile,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
 

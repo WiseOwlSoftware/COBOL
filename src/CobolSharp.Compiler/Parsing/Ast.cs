@@ -577,6 +577,44 @@ public sealed class StartStatement : Statement
 }
 
 /// <summary>
+/// SORT file-name ON ASCENDING/DESCENDING KEY key-name
+///   [INPUT PROCEDURE IS para | USING file-name]
+///   [OUTPUT PROCEDURE IS para | GIVING file-name]
+/// </summary>
+public sealed class SortStatement : Statement
+{
+    public string SortFileName { get; }
+    public List<SortKey> Keys { get; }
+    public string? InputProcedure { get; }
+    public string? UsingFileName { get; }
+    public string? OutputProcedure { get; }
+    public string? GivingFileName { get; }
+
+    public SortStatement(string sortFileName, List<SortKey> keys,
+        string? inputProcedure, string? usingFileName,
+        string? outputProcedure, string? givingFileName, TextSpan span) : base(span)
+    {
+        SortFileName = sortFileName;
+        Keys = keys;
+        InputProcedure = inputProcedure;
+        UsingFileName = usingFileName;
+        OutputProcedure = outputProcedure;
+        GivingFileName = givingFileName;
+    }
+}
+
+public sealed class SortKey
+{
+    public bool IsAscending { get; }
+    public string KeyName { get; }
+    public SortKey(bool isAscending, string keyName)
+    {
+        IsAscending = isAscending;
+        KeyName = keyName;
+    }
+}
+
+/// <summary>
 /// STRING source-1 DELIMITED BY delim-1 ... INTO target [WITH POINTER ptr] [ON OVERFLOW stmts]
 /// </summary>
 public sealed class StringStatement : Statement
