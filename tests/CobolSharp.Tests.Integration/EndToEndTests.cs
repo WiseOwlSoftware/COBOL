@@ -208,6 +208,34 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void PerformThru_ExecutesParagraphRange()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. THRUTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-RESULT PIC X(20) VALUE SPACES.
+            PROCEDURE DIVISION.
+                PERFORM STEP-A THRU STEP-C.
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            STEP-A.
+                MOVE "ABC" TO WS-RESULT.
+            STEP-B.
+                DISPLAY "In B".
+            STEP-C.
+                DISPLAY "In C".
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("In B", lines[0]);
+        Assert.Equal("In C", lines[1]);
+        Assert.Equal("ABC", lines[2]);
+    }
+
+    [Fact]
     public void MoveStringToField()
     {
         var (success, stdout, stderr) = CompileAndRun("""

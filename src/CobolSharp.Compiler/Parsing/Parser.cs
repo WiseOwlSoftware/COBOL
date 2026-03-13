@@ -530,65 +530,100 @@ public sealed class Parser
         Expect(TokenKind.DivisionKeyword);
         Expect(TokenKind.Period);
 
-        // Parse statements before the first paragraph (if any)
+        // Parse statements before the first paragraph/section (if any)
         var initialStatements = new List<Statement>();
         var paragraphs = new List<Paragraph>();
+        var sections = new List<Section>();
 
         while (Current.Kind != TokenKind.EndOfFile)
         {
-            // Check if this is a paragraph header: IDENTIFIER followed by PERIOD
+            if (IsSectionHeader())
+                break;
             if (IsParagraphHeader())
-            {
-                break; // start parsing paragraphs
-            }
-
-            // Skip stray periods
+                break;
             if (Check(TokenKind.Period))
             {
                 Advance();
                 continue;
             }
-
             var stmt = ParseStatement();
             if (stmt != null)
                 initialStatements.Add(stmt);
         }
 
-        // Parse paragraphs
+        // Parse sections and/or standalone paragraphs
         while (Current.Kind != TokenKind.EndOfFile)
         {
-            if (IsParagraphHeader())
+            if (IsSectionHeader())
             {
-                paragraphs.Add(ParseParagraph());
+                sections.Add(ParseSection());
+                // Paragraphs within a section are added to the flat list too
+                if (sections.Count > 0)
+                {
+                    foreach (var p in sections[^1].Paragraphs)
+                        paragraphs.Add(p);
+                }
+            }
+            else if (IsParagraphHeader())
+            {
+                paragraphs.Add(ParseParagraph(null));
             }
             else
             {
-                break; // end of procedure division
+                break;
             }
         }
 
         int end = Current.Span.Start;
-        return new ProcedureDivision(initialStatements, paragraphs, TextSpan.FromBounds(start, end));
+        return new ProcedureDivision(initialStatements, paragraphs, sections,
+            TextSpan.FromBounds(start, end));
     }
 
-    /// <summary>
-    /// Checks if the current position looks like a paragraph header:
-    /// an identifier (not a statement keyword) followed by a period.
-    /// </summary>
     private bool IsParagraphHeader()
     {
         if (Current.Kind != TokenKind.Identifier) return false;
         return Peek().Kind == TokenKind.Period;
     }
 
-    private Paragraph ParseParagraph()
+    private bool IsSectionHeader()
+    {
+        if (Current.Kind != TokenKind.Identifier) return false;
+        return Peek().Kind == TokenKind.SectionKeyword;
+    }
+
+    private Section ParseSection()
     {
         int start = Current.Span.Start;
-        string name = Advance().Text; // paragraph name
-        Expect(TokenKind.Period);     // period after name
+        string name = Advance().Text; // section name
+        Expect(TokenKind.SectionKeyword);
+        Expect(TokenKind.Period);
+
+        var paragraphs = new List<Paragraph>();
+        while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader())
+        {
+            if (IsParagraphHeader())
+            {
+                paragraphs.Add(ParseParagraph(name));
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        int end = Current.Span.Start;
+        return new Section(name, paragraphs, TextSpan.FromBounds(start, end));
+    }
+
+    private Paragraph ParseParagraph(string? sectionName)
+    {
+        int start = Current.Span.Start;
+        string name = Advance().Text;
+        Expect(TokenKind.Period);
 
         var statements = new List<Statement>();
-        while (Current.Kind != TokenKind.EndOfFile && !IsParagraphHeader())
+        while (Current.Kind != TokenKind.EndOfFile &&
+               !IsParagraphHeader() && !IsSectionHeader())
         {
             if (Check(TokenKind.Period))
             {
@@ -601,7 +636,7 @@ public sealed class Parser
         }
 
         int end = Current.Span.Start;
-        return new Paragraph(name, statements, TextSpan.FromBounds(start, end));
+        return new Paragraph(name, statements, TextSpan.FromBounds(start, end), sectionName);
     }
 
     private List<Statement> ParseStatements(params TokenKind[] terminators)
@@ -838,13 +873,19 @@ public sealed class Parser
                 TextSpan.FromBounds(start, Current.Span.Start));
         }
 
-        // Out-of-line: PERFORM paragraph-name
+        // Out-of-line: PERFORM paragraph-name [THRU paragraph-name]
         if (Check(TokenKind.Identifier))
         {
             string name = Advance().Text;
+            string? thruName = null;
+            if (Match(TokenKind.ThruKeyword))
+            {
+                var thruToken = Expect(TokenKind.Identifier, "Expected paragraph name after THRU");
+                thruName = thruToken.Text;
+            }
             Match(TokenKind.Period);
             return new PerformStatement(name, new List<Statement>(), null, null,
-                TextSpan.FromBounds(start, Current.Span.Start));
+                TextSpan.FromBounds(start, Current.Span.Start), thruParagraphName: thruName);
         }
 
         // Bare inline PERFORM ... END-PERFORM

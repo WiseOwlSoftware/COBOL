@@ -148,12 +148,28 @@ public sealed class ProcedureDivision : AstNode
 {
     /// <summary>Statements before the first paragraph (the "initial" paragraph).</summary>
     public List<Statement> Statements { get; }
-    /// <summary>Named paragraphs in the procedure division.</summary>
+    /// <summary>Named paragraphs in the procedure division (across all sections).</summary>
     public List<Paragraph> Paragraphs { get; }
+    /// <summary>Named sections in the procedure division.</summary>
+    public List<Section> Sections { get; }
 
-    public ProcedureDivision(List<Statement> statements, List<Paragraph> paragraphs, TextSpan span) : base(span)
+    public ProcedureDivision(List<Statement> statements, List<Paragraph> paragraphs,
+        List<Section> sections, TextSpan span) : base(span)
     {
         Statements = statements;
+        Paragraphs = paragraphs;
+        Sections = sections;
+    }
+}
+
+public sealed class Section : AstNode
+{
+    public string Name { get; }
+    public List<Paragraph> Paragraphs { get; }
+
+    public Section(string name, List<Paragraph> paragraphs, TextSpan span) : base(span)
+    {
+        Name = name;
         Paragraphs = paragraphs;
     }
 }
@@ -162,11 +178,14 @@ public sealed class Paragraph : AstNode
 {
     public string Name { get; }
     public List<Statement> Statements { get; }
+    public string? SectionName { get; }  // which section this paragraph belongs to
 
-    public Paragraph(string name, List<Statement> statements, TextSpan span) : base(span)
+    public Paragraph(string name, List<Statement> statements, TextSpan span,
+        string? sectionName = null) : base(span)
     {
         Name = name;
         Statements = statements;
+        SectionName = sectionName;
     }
 }
 
@@ -262,6 +281,8 @@ public sealed class PerformStatement : Statement
 {
     /// <summary>Paragraph name for out-of-line PERFORM, null for inline.</summary>
     public string? ParagraphName { get; }
+    /// <summary>End paragraph for PERFORM THRU.</summary>
+    public string? ThruParagraphName { get; }
     /// <summary>Inline body statements (for inline PERFORM).</summary>
     public List<Statement> Body { get; }
     /// <summary>Number of times (PERFORM n TIMES).</summary>
@@ -270,9 +291,11 @@ public sealed class PerformStatement : Statement
     public Expression? Until { get; }
 
     public PerformStatement(string? paragraphName, List<Statement> body,
-        Expression? times, Expression? until, TextSpan span) : base(span)
+        Expression? times, Expression? until, TextSpan span,
+        string? thruParagraphName = null) : base(span)
     {
         ParagraphName = paragraphName;
+        ThruParagraphName = thruParagraphName;
         Body = body;
         Times = times;
         Until = until;

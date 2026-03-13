@@ -301,6 +301,7 @@ public sealed class CilEmitter
     }
 
     private readonly Dictionary<string, MethodDefinition> _paragraphMethods = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<string> _paragraphOrder = new(); // tracks source order for PERFORM THRU
 
     private void EmitParagraphMethod(Paragraph para)
     {
@@ -323,6 +324,7 @@ public sealed class CilEmitter
         _il.Emit(OpCodes.Ret);
         _programType!.Methods.Add(method);
         _paragraphMethods[para.Name.ToUpperInvariant()] = method;
+        _paragraphOrder.Add(para.Name.ToUpperInvariant());
 
         _il = savedIl;
         _runMethod = savedRunMethod;
@@ -594,11 +596,33 @@ public sealed class CilEmitter
         }
         else if (perform.ParagraphName != null)
         {
-            // Out-of-line PERFORM: call the paragraph method
-            if (_paragraphMethods.TryGetValue(perform.ParagraphName.ToUpperInvariant(), out var method))
+            // Out-of-line PERFORM [THRU]: call paragraph method(s)
+            string startName = perform.ParagraphName.ToUpperInvariant();
+            string? endName = perform.ThruParagraphName?.ToUpperInvariant();
+
+            if (endName != null)
             {
-                _il!.Emit(OpCodes.Ldarg_0);
-                _il.Emit(OpCodes.Call, method);
+                // PERFORM THRU: call all paragraphs from start to end in source order
+                bool inRange = false;
+                foreach (var pName in _paragraphOrder)
+                {
+                    if (pName == startName) inRange = true;
+                    if (inRange && _paragraphMethods.TryGetValue(pName, out var m))
+                    {
+                        _il!.Emit(OpCodes.Ldarg_0);
+                        _il.Emit(OpCodes.Call, m);
+                    }
+                    if (pName == endName) break;
+                }
+            }
+            else
+            {
+                // Simple PERFORM: call single paragraph
+                if (_paragraphMethods.TryGetValue(startName, out var method))
+                {
+                    _il!.Emit(OpCodes.Ldarg_0);
+                    _il.Emit(OpCodes.Call, method);
+                }
             }
         }
         else
