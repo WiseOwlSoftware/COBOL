@@ -212,6 +212,66 @@ public sealed class StopRunStatement : Statement
     public StopRunStatement(TextSpan span) : base(span) { }
 }
 
+public sealed class GoToStatement : Statement
+{
+    public string ParagraphName { get; }
+    public GoToStatement(string paragraphName, TextSpan span) : base(span)
+    {
+        ParagraphName = paragraphName;
+    }
+}
+
+public sealed class GoToDependingStatement : Statement
+{
+    public List<string> ParagraphNames { get; }
+    public Expression DependingOn { get; }
+    public GoToDependingStatement(List<string> paragraphNames, Expression dependingOn, TextSpan span) : base(span)
+    {
+        ParagraphNames = paragraphNames;
+        DependingOn = dependingOn;
+    }
+}
+
+public sealed class ContinueStatement : Statement
+{
+    public ContinueStatement(TextSpan span) : base(span) { }
+}
+
+public sealed class ExitStatement : Statement
+{
+    public ExitType ExitKind { get; }
+    public ExitStatement(ExitType exitKind, TextSpan span) : base(span) { ExitKind = exitKind; }
+}
+
+public enum ExitType
+{
+    Paragraph,
+    Section,
+    Program,
+    Perform,
+}
+
+public sealed class AcceptStatement : Statement
+{
+    public IdentifierExpression Target { get; }
+    public string? FromSource { get; }  // DATE, DAY, TIME, etc. null = from console
+
+    public AcceptStatement(IdentifierExpression target, string? fromSource, TextSpan span) : base(span)
+    {
+        Target = target;
+        FromSource = fromSource;
+    }
+}
+
+public sealed class InitializeStatement : Statement
+{
+    public List<IdentifierExpression> Targets { get; }
+    public InitializeStatement(List<IdentifierExpression> targets, TextSpan span) : base(span)
+    {
+        Targets = targets;
+    }
+}
+
 public sealed class MoveStatement : Statement
 {
     public Expression Source { get; }

@@ -358,6 +358,32 @@ public sealed class CilEmitter
             case PerformStatement perform:
                 EmitPerformStatement(perform);
                 break;
+            case GoToStatement goTo:
+                // GO TO as a call to the paragraph + return (transfers control)
+                if (_paragraphMethods.TryGetValue(goTo.ParagraphName.ToUpperInvariant(), out var goToMethod))
+                {
+                    _il!.Emit(OpCodes.Ldarg_0);
+                    _il.Emit(OpCodes.Call, goToMethod);
+                }
+                _il!.Emit(OpCodes.Ret); // exit current paragraph
+                break;
+            case ContinueStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case ExitStatement exit:
+                if (exit.ExitKind == ExitType.Program)
+                    _il!.Emit(OpCodes.Ret);
+                else
+                    _il!.Emit(OpCodes.Ret); // EXIT PARAGRAPH/SECTION = return from method
+                break;
+            case AcceptStatement:
+                // TODO: ACCEPT from console/date — emit nop for now
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case InitializeStatement:
+                // TODO: INITIALIZE — emit nop for now
+                _il!.Emit(OpCodes.Nop);
+                break;
         }
     }
 

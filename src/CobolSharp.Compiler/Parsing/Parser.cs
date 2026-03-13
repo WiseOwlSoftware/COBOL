@@ -676,6 +676,11 @@ public sealed class Parser
             TokenKind.ComputeKeyword => ParseComputeStatement(),
             TokenKind.IfKeyword => ParseIfStatement(),
             TokenKind.PerformKeyword => ParsePerformStatement(),
+            TokenKind.GoKeyword => ParseGoToStatement(),
+            TokenKind.ContinueKeyword => ParseContinueStatement(),
+            TokenKind.ExitKeyword => ParseExitStatement(),
+            TokenKind.AcceptKeyword => ParseAcceptStatement(),
+            TokenKind.InitializeKeyword => ParseInitializeStatement(),
             _ => HandleUnknownStatement()
         };
     }
@@ -893,6 +898,121 @@ public sealed class Parser
         Expect(TokenKind.EndPerformKeyword);
         Match(TokenKind.Period);
         return new PerformStatement(null, stmts, null, null,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── GO TO ──
+
+    private Statement ParseGoToStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // GO
+        Match(TokenKind.ToKeyword); // optional TO
+
+        var names = new List<string>();
+        while (Check(TokenKind.Identifier))
+        {
+            names.Add(Advance().Text);
+        }
+
+        // GO TO ... DEPENDING ON
+        if (Check(TokenKind.DependingKeyword))
+        {
+            Advance();
+            Match(TokenKind.OnKeyword);
+            var expr = ParseExpression();
+            Match(TokenKind.Period);
+            return new GoToDependingStatement(names, expr,
+                TextSpan.FromBounds(start, Current.Span.Start));
+        }
+
+        Match(TokenKind.Period);
+
+        if (names.Count == 0)
+        {
+            ReportError("CS0210", "GO TO requires a paragraph name");
+            return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
+        }
+
+        return new GoToStatement(names[0], TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── CONTINUE ──
+
+    private ContinueStatement ParseContinueStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // CONTINUE
+        Match(TokenKind.Period);
+        return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── EXIT ──
+
+    private ExitStatement ParseExitStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // EXIT
+
+        ExitType kind = ExitType.Paragraph; // default
+        if (Check(TokenKind.Identifier))
+        {
+            string word = Current.Text.ToUpperInvariant();
+            if (word == "PARAGRAPH") { Advance(); kind = ExitType.Paragraph; }
+            else if (word == "SECTION") { Advance(); kind = ExitType.Section; }
+            else if (word == "PROGRAM") { Advance(); kind = ExitType.Program; }
+            else if (word == "PERFORM") { Advance(); kind = ExitType.Perform; }
+        }
+        else if (Check(TokenKind.ProcedureKeyword))
+        {
+            // EXIT PROGRAM uses PROGRAM which isn't a generic identifier
+        }
+
+        Match(TokenKind.Period);
+        return new ExitStatement(kind, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── ACCEPT ──
+
+    private AcceptStatement ParseAcceptStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // ACCEPT
+
+        var targetToken = Expect(TokenKind.Identifier, "Expected identifier after ACCEPT");
+        var target = new IdentifierExpression(targetToken.Text, targetToken.Span);
+
+        string? fromSource = null;
+        if (Check(TokenKind.FromKeyword))
+        {
+            Advance();
+            if (Check(TokenKind.Identifier))
+            {
+                fromSource = Advance().Text.ToUpperInvariant();
+            }
+        }
+
+        Match(TokenKind.Period);
+        return new AcceptStatement(target, fromSource,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── INITIALIZE ──
+
+    private InitializeStatement ParseInitializeStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // INITIALIZE
+
+        var targets = new List<IdentifierExpression>();
+        while (Check(TokenKind.Identifier))
+        {
+            var tok = Advance();
+            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+        }
+
+        Match(TokenKind.Period);
+        return new InitializeStatement(targets,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
 
