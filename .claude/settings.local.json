@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"\nimport fitz\ndoc = fitz.open\\(r'E:\\\\COBOL\\\\ISO_COBOL_2023.pdf'\\)\nprint\\(f'Pages: {len\\(doc\\)}'\\)\nprint\\(\\)\ntoc = doc.get_toc\\(\\)\nfor level, title, page in toc[:80]:\n    indent = '  ' * \\(level - 1\\)\n    print\\(f'{indent}{title} \\(p.{page}\\)'\\)\n\")",
+      "Bash(python -c \"\nimport fitz\ndoc = fitz.open\\(r'E:\\\\COBOL\\\\ISO_COBOL_2023.pdf'\\)\ntoc = doc.get_toc\\(\\)\nfor level, title, page in toc[80:200]:\n    indent = '  ' * \\(level - 1\\)\n    print\\(f'{indent}{title} \\(p.{page}\\)'\\)\n\")"
+    ]
+  }
+}

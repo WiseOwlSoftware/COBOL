@@ -1,0 +1,28 @@
+# ISO specification (copyrighted, not for distribution)
+*.pdf
+
+# .NET build outputs
+bin/
+obj/
+out/
+
+# NuGet
+packages/
+*.nupkg
+
+# IDE
+.vs/
+*.suo
+*.user
+*.sln.docstates
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Test results
+TestResults/
+coverage/
