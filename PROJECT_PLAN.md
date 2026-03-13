@@ -457,10 +457,10 @@ to a .NET assembly that executes correctly on `dotnet run`.
 
 ---
 
-### Phase 2: Core Data & Arithmetic ✸ CURRENT
+### Phase 2: Core Data & Arithmetic ✅ DONE
 **Target**: Full numeric/alphanumeric data handling, arithmetic, and control flow.
 
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
 #### Tasks
 
@@ -519,7 +519,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - Abbreviated combined conditions
   - EVALUATE / WHEN / WHEN OTHER / END-EVALUATE
 
-- [ ] **2.7 — PERFORM statement**
+- [x] **2.7 — PERFORM statement**
   - Out-of-line PERFORM (paragraph/section)
   - PERFORM THRU
   - Inline PERFORM / END-PERFORM
@@ -528,19 +528,19 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - PERFORM ... VARYING (single and nested)
   - TEST BEFORE / TEST AFTER
 
-- [ ] **2.8 — Table handling (subscripting & indexing)**
+- [x] **2.8 — Table handling (subscripting & indexing)**
   - Subscript syntax: `ITEM(1)`, `ITEM(IDX)`
   - SET statement for indexes
   - SEARCH / SEARCH ALL
   - OCCURS DEPENDING ON (variable-length tables)
   - Multi-dimensional tables
 
-- [ ] **2.9 — Reference modification**
+- [x] **2.9 — Reference modification**
   - `data-name(start:length)` syntax
   - Validation of bounds
   - Integration with MOVE, DISPLAY, conditions
 
-- [ ] **2.10 — Figurative constants**
+- [x] **2.10 — Figurative constants**
   - ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S),
     QUOTE/QUOTES, ALL literal
 
@@ -550,7 +550,7 @@ COMPUTE, IF/EVALUATE, and PERFORM VARYING compile and execute correctly.
 
 ---
 
-### Phase 3: Control Flow, String Handling & Subprograms
+### Phase 3: Control Flow, String Handling & Subprograms ✸ CURRENT
 **Target**: Complete procedural COBOL, CALL/CANCEL, string operations, COPY.
 
 **Status**: NOT STARTED
@@ -844,6 +844,7 @@ what was accomplished, and what to pick up next.
 |------|---------|-----------|
 | 2026-03-13 | Project plan created. Architecture and phased roadmap defined. | Begin Phase 1.1: solution scaffolding |
 | 2026-03-13 | **Phase 1 COMPLETE.** Full compiler pipeline working: Source→Lex→Parse→Analyze→CIL→.NET Assembly. Hello World compiles and runs. 43 tests (39 unit + 4 integration) all passing. CI via GitHub Actions. Five bugs found and fixed during testing. | Begin Phase 2.1: full PICTURE clause |
+| 2026-03-13 | **Phase 2 COMPLETE.** Full PICTURE parsing (all symbols), data hierarchy (groups, OCCURS, REDEFINES, level 66/77/88), MOVE/arithmetic/conditionals, paragraphs with PERFORM, subscripts, reference modification, figurative constants. MIT license added. 94 tests passing. | Begin Phase 3.1: paragraphs/sections |
 | 2026-03-13 | **Phase 2 tasks 2.1–2.6 COMPLETE.** Full PICTURE parsing (all symbols), USAGE clause, data hierarchy with groups/OCCURS/REDEFINES/level 66-88, full MOVE semantics, arithmetic statements, conditional expressions. 88 tests passing. One bug found (REDEFINES offset). | Begin Phase 2.7: PERFORM statement |
 
 ---
