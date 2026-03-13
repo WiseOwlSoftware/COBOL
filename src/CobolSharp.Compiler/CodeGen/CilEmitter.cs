@@ -251,6 +251,16 @@ public sealed class CilEmitter
 
     private void EmitRunMethod(ProgramNode program)
     {
+        // First, emit paragraph methods
+        if (program.Procedure != null)
+        {
+            foreach (var para in program.Procedure.Paragraphs)
+            {
+                EmitParagraphMethod(para);
+            }
+        }
+
+        // Now emit Run() — the main entry point
         _runMethod = new MethodDefinition(
             "Run",
             MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
@@ -260,14 +270,53 @@ public sealed class CilEmitter
 
         if (program.Procedure != null)
         {
+            // Emit initial statements (before first paragraph)
             foreach (var stmt in program.Procedure.Statements)
             {
                 EmitStatement(stmt);
+            }
+
+            // Fall-through: call each paragraph in order (COBOL semantics)
+            foreach (var para in program.Procedure.Paragraphs)
+            {
+                if (_paragraphMethods.TryGetValue(para.Name.ToUpperInvariant(), out var method))
+                {
+                    _il.Emit(OpCodes.Ldarg_0);
+                    _il.Emit(OpCodes.Call, method);
+                }
             }
         }
 
         _il.Emit(OpCodes.Ret);
         _programType!.Methods.Add(_runMethod);
+    }
+
+    private readonly Dictionary<string, MethodDefinition> _paragraphMethods = new(StringComparer.OrdinalIgnoreCase);
+
+    private void EmitParagraphMethod(Paragraph para)
+    {
+        var method = new MethodDefinition(
+            $"Para_{para.Name}",
+            MethodAttributes.Private | MethodAttributes.HideBySig,
+            _module!.TypeSystem.Void);
+
+        var savedIl = _il;
+        var savedRunMethod = _runMethod;
+
+        _runMethod = method; // for variable declarations
+        _il = method.Body.GetILProcessor();
+
+        foreach (var stmt in para.Statements)
+        {
+            EmitStatement(stmt);
+        }
+
+        _il.Emit(OpCodes.Ret);
+        _programType!.Methods.Add(method);
+        _paragraphMethods[para.Name.ToUpperInvariant()] = method;
+
+        _il = savedIl;
+        _runMethod = savedRunMethod;
     }
 
     private void EmitStatement(Statement stmt)
@@ -525,9 +574,18 @@ public sealed class CilEmitter
             _il.Emit(OpCodes.Br, loopStart);
             _il.Append(loopEnd);
         }
+        else if (perform.ParagraphName != null)
+        {
+            // Out-of-line PERFORM: call the paragraph method
+            if (_paragraphMethods.TryGetValue(perform.ParagraphName.ToUpperInvariant(), out var method))
+            {
+                _il!.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Call, method);
+            }
+        }
         else
         {
-            // Inline perform (execute body once) or out-of-line (not yet supported)
+            // Inline perform (execute body once)
             foreach (var stmt in perform.Body)
                 EmitStatement(stmt);
         }

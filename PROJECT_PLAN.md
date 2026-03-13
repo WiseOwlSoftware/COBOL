@@ -464,7 +464,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
 
 #### Tasks
 
-- [ ] **2.1 — PICTURE clause (full)**
+- [x] **2.1 — PICTURE clause (full)**
   - Parsing: 9, X, A, V, S, P, Z, *, +, -, CR, DB, B, 0, /, comma, period, currency
   - Repeat counts: `9(5)`, `X(10)`
   - Edited pictures: numeric edited, alphanumeric edited
@@ -472,13 +472,13 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - Category determination: numeric, alphabetic, alphanumeric, numeric-edited, etc.
   - Extensive unit tests for every PICTURE symbol combination
 
-- [ ] **2.2 — USAGE clause**
+- [x] **2.2 — USAGE clause**
   - DISPLAY (default), BINARY/COMP/COMP-4/COMP-5, PACKED-DECIMAL/COMP-3
   - INDEX, POINTER, FUNCTION-POINTER, PROCEDURE-POINTER
   - Storage size calculation per USAGE type
   - Alignment rules
 
-- [ ] **2.3 — Data hierarchy & groups**
+- [x] **2.3 — Data hierarchy & groups**
   - Level numbers: 01-49, 66, 77, 88
   - Group items (composite structure)
   - OCCURS clause (fixed, DEPENDING ON)
@@ -491,7 +491,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - VALUE clause for initialization
   - SYNCHRONIZED clause
 
-- [ ] **2.4 — MOVE statement (full semantics)**
+- [x] **2.4 — MOVE statement (full semantics)**
   - Numeric to numeric (scaling, truncation, sign handling)
   - Numeric to alphanumeric / edited
   - Alphanumeric to alphanumeric (space-padding, truncation)
@@ -499,7 +499,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - CORRESPONDING (MOVE CORR)
   - Category-based validity rules from §14
 
-- [ ] **2.5 — Arithmetic statements**
+- [x] **2.5 — Arithmetic statements**
   - ADD (TO, GIVING, CORRESPONDING)
   - SUBTRACT (FROM, GIVING, CORRESPONDING)
   - MULTIPLY (BY, GIVING)
@@ -509,7 +509,7 @@ to a .NET assembly that executes correctly on `dotnet run`.
   - ON SIZE ERROR / NOT ON SIZE ERROR
   - Intermediate result precision rules
 
-- [ ] **2.6 — Conditional expressions**
+- [x] **2.6 — Conditional expressions**
   - IF / ELSE / END-IF
   - Relation conditions (=, <, >, <=, >=, <>)
   - Class conditions (NUMERIC, ALPHABETIC, etc.)
@@ -844,6 +844,7 @@ what was accomplished, and what to pick up next.
 |------|---------|-----------|
 | 2026-03-13 | Project plan created. Architecture and phased roadmap defined. | Begin Phase 1.1: solution scaffolding |
 | 2026-03-13 | **Phase 1 COMPLETE.** Full compiler pipeline working: Source→Lex→Parse→Analyze→CIL→.NET Assembly. Hello World compiles and runs. 43 tests (39 unit + 4 integration) all passing. CI via GitHub Actions. Five bugs found and fixed during testing. | Begin Phase 2.1: full PICTURE clause |
+| 2026-03-13 | **Phase 2 tasks 2.1–2.6 COMPLETE.** Full PICTURE parsing (all symbols), USAGE clause, data hierarchy with groups/OCCURS/REDEFINES/level 66-88, full MOVE semantics, arithmetic statements, conditional expressions. 88 tests passing. One bug found (REDEFINES offset). | Begin Phase 2.7: PERFORM statement |
 
 ---
 

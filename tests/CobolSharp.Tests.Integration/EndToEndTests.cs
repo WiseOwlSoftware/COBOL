@@ -185,6 +185,29 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void PerformParagraph()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PERFTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-COUNT PIC 9(3) VALUE 0.
+            PROCEDURE DIVISION.
+                PERFORM ADD-ONE.
+                PERFORM ADD-ONE.
+                PERFORM ADD-ONE.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            ADD-ONE.
+                ADD 1 TO WS-COUNT.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("003", stdout);
+    }
+
+    [Fact]
     public void MoveStringToField()
     {
         var (success, stdout, stderr) = CompileAndRun("""

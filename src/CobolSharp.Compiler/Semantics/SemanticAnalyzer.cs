@@ -44,6 +44,14 @@ public sealed class SemanticAnalyzer
             {
                 AnalyzeStatement(stmt, model.SymbolTable);
             }
+
+            foreach (var para in program.Procedure.Paragraphs)
+            {
+                foreach (var stmt in para.Statements)
+                {
+                    AnalyzeStatement(stmt, model.SymbolTable);
+                }
+            }
         }
     }
 

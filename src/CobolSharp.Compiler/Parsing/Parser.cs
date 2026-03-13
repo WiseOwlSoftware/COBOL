@@ -530,10 +530,78 @@ public sealed class Parser
         Expect(TokenKind.DivisionKeyword);
         Expect(TokenKind.Period);
 
-        var statements = ParseStatements();
+        // Parse statements before the first paragraph (if any)
+        var initialStatements = new List<Statement>();
+        var paragraphs = new List<Paragraph>();
+
+        while (Current.Kind != TokenKind.EndOfFile)
+        {
+            // Check if this is a paragraph header: IDENTIFIER followed by PERIOD
+            if (IsParagraphHeader())
+            {
+                break; // start parsing paragraphs
+            }
+
+            // Skip stray periods
+            if (Check(TokenKind.Period))
+            {
+                Advance();
+                continue;
+            }
+
+            var stmt = ParseStatement();
+            if (stmt != null)
+                initialStatements.Add(stmt);
+        }
+
+        // Parse paragraphs
+        while (Current.Kind != TokenKind.EndOfFile)
+        {
+            if (IsParagraphHeader())
+            {
+                paragraphs.Add(ParseParagraph());
+            }
+            else
+            {
+                break; // end of procedure division
+            }
+        }
 
         int end = Current.Span.Start;
-        return new ProcedureDivision(statements, TextSpan.FromBounds(start, end));
+        return new ProcedureDivision(initialStatements, paragraphs, TextSpan.FromBounds(start, end));
+    }
+
+    /// <summary>
+    /// Checks if the current position looks like a paragraph header:
+    /// an identifier (not a statement keyword) followed by a period.
+    /// </summary>
+    private bool IsParagraphHeader()
+    {
+        if (Current.Kind != TokenKind.Identifier) return false;
+        return Peek().Kind == TokenKind.Period;
+    }
+
+    private Paragraph ParseParagraph()
+    {
+        int start = Current.Span.Start;
+        string name = Advance().Text; // paragraph name
+        Expect(TokenKind.Period);     // period after name
+
+        var statements = new List<Statement>();
+        while (Current.Kind != TokenKind.EndOfFile && !IsParagraphHeader())
+        {
+            if (Check(TokenKind.Period))
+            {
+                Advance();
+                continue;
+            }
+            var stmt = ParseStatement();
+            if (stmt != null)
+                statements.Add(stmt);
+        }
+
+        int end = Current.Span.Start;
+        return new Paragraph(name, statements, TextSpan.FromBounds(start, end));
     }
 
     private List<Statement> ParseStatements(params TokenKind[] terminators)

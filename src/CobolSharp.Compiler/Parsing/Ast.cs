@@ -146,9 +146,26 @@ public enum UsageType
 
 public sealed class ProcedureDivision : AstNode
 {
+    /// <summary>Statements before the first paragraph (the "initial" paragraph).</summary>
     public List<Statement> Statements { get; }
-    public ProcedureDivision(List<Statement> statements, TextSpan span) : base(span)
+    /// <summary>Named paragraphs in the procedure division.</summary>
+    public List<Paragraph> Paragraphs { get; }
+
+    public ProcedureDivision(List<Statement> statements, List<Paragraph> paragraphs, TextSpan span) : base(span)
     {
+        Statements = statements;
+        Paragraphs = paragraphs;
+    }
+}
+
+public sealed class Paragraph : AstNode
+{
+    public string Name { get; }
+    public List<Statement> Statements { get; }
+
+    public Paragraph(string name, List<Statement> statements, TextSpan span) : base(span)
+    {
+        Name = name;
         Statements = statements;
     }
 }
