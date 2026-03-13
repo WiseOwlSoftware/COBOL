@@ -236,6 +236,45 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void CopyStatement_ExpandsCopybook()
+    {
+        // Create a copybook file
+        string copybookPath = Path.Combine(_tempDir, "WS-FIELDS.cpy");
+        File.WriteAllText(copybookPath, """
+            01 WS-MSG PIC X(20) VALUE "From Copybook".
+            """);
+
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COPYTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            COPY WS-FIELDS.
+            PROCEDURE DIVISION.
+                DISPLAY WS-MSG.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("From Copybook", stdout);
+    }
+
+    [Fact]
+    public void FixedForm_CompilesCorrectly()
+    {
+        // Fixed-form: cols 1-6 sequence, 7 indicator, 8-72 source
+        var (success, stdout, stderr) = CompileAndRun(
+            "000100 IDENTIFICATION DIVISION.\r\n" +
+            "000200 PROGRAM-ID. FIXTEST.\r\n" +
+            "000300 PROCEDURE DIVISION.\r\n" +
+            "000400     DISPLAY \"Fixed-form works!\".\r\n" +
+            "000500     STOP RUN.\r\n");
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("Fixed-form works!", stdout);
+    }
+
+    [Fact]
     public void MoveStringToField()
     {
         var (success, stdout, stderr) = CompileAndRun("""

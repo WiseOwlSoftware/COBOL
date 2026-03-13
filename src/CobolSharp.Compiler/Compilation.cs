@@ -3,22 +3,38 @@ using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Lexing;
 using CobolSharp.Compiler.Parsing;
+using CobolSharp.Compiler.Preprocessor;
 using CobolSharp.Compiler.Semantics;
 
 namespace CobolSharp.Compiler;
 
 /// <summary>
 /// Top-level compilation facade. Orchestrates all compiler phases:
-/// Source → Lex → Parse → Analyze → Emit.
+/// Source → Preprocess → Lex → Parse → Analyze → Emit.
 /// </summary>
 public sealed class Compilation
 {
+    private readonly List<string> _copySearchPaths = new();
+
+    /// <summary>Add a directory to search for COPY copybooks.</summary>
+    public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
+
     public CompilationResult Compile(string sourcePath, string? outputPath = null)
     {
         var diagnostics = new DiagnosticBag();
 
-        // Phase 1: Load source
-        var source = SourceText.FromFile(sourcePath);
+        // Phase 0: Load and preprocess (expand COPY statements)
+        string rawText = File.ReadAllText(sourcePath);
+        string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
+
+        // Detect and normalize reference format (fixed-form → free-form)
+        string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
+
+        // Expand COPY statements
+        var copyProcessor = new CopyProcessor(_copySearchPaths);
+        string processedText = copyProcessor.Process(normalizedText, sourceDir);
+
+        var source = SourceText.From(processedText, sourcePath);
 
         // Phase 2: Lex
         var lexer = new Lexer(source, diagnostics);
