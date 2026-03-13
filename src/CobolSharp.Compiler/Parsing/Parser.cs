@@ -130,7 +130,15 @@ public sealed class Parser
         TokenKind.StringKeyword or TokenKind.UnstringKeyword or TokenKind.InspectKeyword or
         TokenKind.OpenKeyword or TokenKind.CloseKeyword or TokenKind.ReadKeyword or
         TokenKind.WriteKeyword or TokenKind.RewriteKeyword or TokenKind.DeleteKeyword or
-        TokenKind.StartKeyword or TokenKind.SortKeyword;
+        TokenKind.StartKeyword or TokenKind.SortKeyword or
+        // Phase 5.2 — Report Writer
+        TokenKind.InitiateKeyword or TokenKind.GenerateKeyword or TokenKind.TerminateKeyword or
+        // Phase 5.4 — OO COBOL
+        TokenKind.InvokeKeyword or
+        // Phase 5.5 — Exception handling
+        TokenKind.RaiseKeyword or TokenKind.ResumeKeyword or
+        // Phase 5.6-5.10 — Compiler directives
+        TokenKind.CompilerDirective;
 
     private static bool IsScopeTerminator(TokenKind kind) => kind is
         TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
@@ -152,6 +160,11 @@ public sealed class Parser
             if (Check(TokenKind.IdentificationKeyword))
             {
                 programs.Add(ParseProgram());
+            }
+            else if (Check(TokenKind.CompilerDirective))
+            {
+                // Compiler directives at the file level are ignored (consumed as no-ops)
+                Advance();
             }
             else
             {
@@ -449,17 +462,87 @@ public sealed class Parser
         Expect(TokenKind.DivisionKeyword);
         Expect(TokenKind.Period);
 
-        Expect(TokenKind.ProgramIdKeyword, "Expected PROGRAM-ID");
-        Expect(TokenKind.Period);
+        string programId = "";
+        string? classId = null;
+        string? methodId = null;
+        string? interfaceId = null;
 
-        var nameToken = Expect(TokenKind.Identifier, "Expected program name");
-        string programId = nameToken.Text;
+        if (Check(TokenKind.ProgramIdKeyword))
+        {
+            Advance(); // PROGRAM-ID
+            Expect(TokenKind.Period);
+            var nameToken = Expect(TokenKind.Identifier, "Expected program name");
+            programId = nameToken.Text;
+            Match(TokenKind.Period);
+        }
+        else if (Check(TokenKind.ClassIdKeyword))
+        {
+            // CLASS-ID. class-name.
+            Advance();
+            Expect(TokenKind.Period);
+            var nameToken = Expect(TokenKind.Identifier, "Expected class name after CLASS-ID");
+            classId = nameToken.Text;
+            programId = classId;
+            Match(TokenKind.Period);
+        }
+        else if (Check(TokenKind.MethodIdKeyword))
+        {
+            // METHOD-ID. method-name.
+            Advance();
+            Expect(TokenKind.Period);
+            var nameToken = Expect(TokenKind.Identifier, "Expected method name after METHOD-ID");
+            methodId = nameToken.Text;
+            programId = methodId;
+            Match(TokenKind.Period);
+        }
+        else if (Check(TokenKind.InterfaceIdKeyword))
+        {
+            // INTERFACE-ID. interface-name.
+            Advance();
+            Expect(TokenKind.Period);
+            var nameToken = Expect(TokenKind.Identifier, "Expected interface name after INTERFACE-ID");
+            interfaceId = nameToken.Text;
+            programId = interfaceId;
+            Match(TokenKind.Period);
+        }
+        else
+        {
+            // Fallback: attempt PROGRAM-ID
+            Expect(TokenKind.ProgramIdKeyword, "Expected PROGRAM-ID, CLASS-ID, METHOD-ID, or INTERFACE-ID");
+            Expect(TokenKind.Period);
+            var nameToken = Expect(TokenKind.Identifier, "Expected program name");
+            programId = nameToken.Text;
+            Match(TokenKind.Period);
+        }
 
-        // Optional period after program ID, or period might be on same line
-        Match(TokenKind.Period);
+        // Skip any remaining identification paragraphs (AUTHOR, DATE-WRITTEN, etc.)
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        {
+            // Check for next paragraph-like heading: identifier + period
+            if (Check(TokenKind.Identifier) && Peek().Kind == TokenKind.Period)
+            {
+                // Could be an identification paragraph name — consume it
+                string upperText = Current.Text.ToUpperInvariant();
+                if (upperText == "AUTHOR" || upperText == "DATE-WRITTEN" ||
+                    upperText == "DATE-COMPILED" || upperText == "INSTALLATION" ||
+                    upperText == "SECURITY" || upperText == "REMARKS")
+                {
+                    Advance(); // paragraph name
+                    Advance(); // period
+                    // Skip content until next division
+                    while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
+                           !IsDivisionKeyword(Current.Kind))
+                        Advance();
+                    Match(TokenKind.Period);
+                    continue;
+                }
+            }
+            break;
+        }
 
         int end = Current.Span.Start;
-        return new IdentificationDivision(programId, TextSpan.FromBounds(start, end));
+        return new IdentificationDivision(programId, TextSpan.FromBounds(start, end),
+            classId: classId, methodId: methodId, interfaceId: interfaceId);
     }
 
     // ═══════════════════════════════════════════════════
@@ -477,8 +560,10 @@ public sealed class Parser
         FileSection? fileSection = null;
         WorkingStorageSection? ws = null;
         LinkageSection? linkage = null;
+        ReportSection? reportSection = null;
+        ScreenSection? screenSection = null;
 
-        // Parse sections in order (FILE, WORKING-STORAGE, LINKAGE, etc.)
+        // Parse sections in order (FILE, WORKING-STORAGE, LINKAGE, REPORT, SCREEN, etc.)
         while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
         {
             if (Check(TokenKind.FileKeyword))
@@ -493,21 +578,31 @@ public sealed class Parser
             {
                 linkage = ParseLinkageSection();
             }
+            else if (Check(TokenKind.ReportKeyword))
+            {
+                reportSection = ParseReportSection();
+            }
+            else if (Check(TokenKind.ScreenKeyword))
+            {
+                screenSection = ParseScreenSection();
+            }
             else
             {
-                // Skip unrecognized section header (e.g., LOCAL-STORAGE, SCREEN SECTION)
+                // Skip unrecognized section header (e.g., LOCAL-STORAGE)
                 Advance();
                 if (Check(TokenKind.SectionKeyword)) Advance();
                 if (Check(TokenKind.Period)) Advance();
                 while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
                        !Check(TokenKind.WorkingStorageKeyword) && !Check(TokenKind.LinkageKeyword) &&
-                       !Check(TokenKind.FileKeyword))
+                       !Check(TokenKind.FileKeyword) && !Check(TokenKind.ReportKeyword) &&
+                       !Check(TokenKind.ScreenKeyword))
                     Advance();
             }
         }
 
         int end = Current.Span.Start;
-        return new DataDivision(fileSection, ws, linkage, TextSpan.FromBounds(start, end));
+        return new DataDivision(fileSection, ws, linkage, TextSpan.FromBounds(start, end),
+            reportSection: reportSection, screenSection: screenSection);
     }
 
     private FileSection ParseFileSection()
@@ -727,6 +822,11 @@ public sealed class Parser
                 Advance();
                 usage = UsageType.ProcedurePointer;
             }
+            else if (Check(TokenKind.NationalKeyword))
+            {
+                Advance();
+                usage = UsageType.National;
+            }
             else if (Check(TokenKind.ValueKeyword) || Check(TokenKind.ValuesKeyword))
             {
                 Advance();
@@ -909,6 +1009,8 @@ public sealed class Parser
             return UsageType.FunctionPointer;
         if (Match(TokenKind.ProcedurePointerKeyword))
             return UsageType.ProcedurePointer;
+        if (Match(TokenKind.NationalKeyword))
+            return UsageType.National;
         // Default
         return UsageType.Display;
     }
@@ -1089,6 +1191,17 @@ public sealed class Parser
             TokenKind.StringKeyword => ParseStringStatement(),
             TokenKind.UnstringKeyword => ParseUnstringStatement(),
             TokenKind.InspectKeyword => ParseInspectStatement(),
+            // Phase 5.2 — Report Writer
+            TokenKind.InitiateKeyword => ParseInitiateStatement(),
+            TokenKind.GenerateKeyword => ParseGenerateStatement(),
+            TokenKind.TerminateKeyword => ParseTerminateStatement(),
+            // Phase 5.4 — OO COBOL
+            TokenKind.InvokeKeyword => ParseInvokeStatement(),
+            // Phase 5.5 — Exception handling
+            TokenKind.RaiseKeyword => ParseRaiseStatement(),
+            TokenKind.ResumeKeyword => ParseResumeStatement(),
+            // Phase 5.6-5.10 — Compiler directive
+            TokenKind.CompilerDirective => ParseCompilerDirective(),
             _ => HandleUnknownStatement()
         };
     }
@@ -1896,6 +2009,194 @@ public sealed class Parser
 
         return new InspectStatement(target, inspectKind, searchFor, replaceWith, tallyCounter,
             TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── INITIATE (Phase 5.2) ──
+
+    private InitiateStatement ParseInitiateStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // INITIATE
+        var names = new List<string>();
+        while (Check(TokenKind.Identifier))
+            names.Add(Advance().Text);
+        Match(TokenKind.Period);
+        return new InitiateStatement(names, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── GENERATE (Phase 5.2) ──
+
+    private GenerateStatement ParseGenerateStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // GENERATE
+        var nameToken = Expect(TokenKind.Identifier, "Expected report-group name after GENERATE");
+        Match(TokenKind.Period);
+        return new GenerateStatement(nameToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── TERMINATE (Phase 5.2) ──
+
+    private TerminateStatement ParseTerminateStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // TERMINATE
+        var names = new List<string>();
+        while (Check(TokenKind.Identifier))
+            names.Add(Advance().Text);
+        Match(TokenKind.Period);
+        return new TerminateStatement(names, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── INVOKE (Phase 5.4) ──
+
+    private InvokeStatement ParseInvokeStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // INVOKE
+
+        // object-ref: identifier or SELF/SUPER
+        var objectRef = ParseExpression();
+
+        // method-name: literal or identifier
+        var methodName = ParseExpression();
+
+        // USING clause
+        var args = new List<Expression>();
+        if (Match(TokenKind.UsingKeyword))
+        {
+            while (!Check(TokenKind.Period) && !Check(TokenKind.ReturningKeyword) &&
+                   Current.Kind != TokenKind.EndOfFile &&
+                   !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+            {
+                Match(TokenKind.ByKeyword);       // optional BY
+                Match(TokenKind.ReferenceKeyword); // optional REFERENCE
+                Match(TokenKind.ContentKeyword);   // optional CONTENT
+                args.Add(ParseExpression());
+            }
+        }
+
+        // RETURNING clause
+        IdentifierExpression? returning = null;
+        if (Match(TokenKind.ReturningKeyword))
+        {
+            var retToken = Expect(TokenKind.Identifier, "Expected identifier after RETURNING");
+            returning = new IdentifierExpression(retToken.Text, retToken.Span);
+        }
+
+        Match(TokenKind.Period);
+        return new InvokeStatement(objectRef, methodName, args, returning,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── RAISE (Phase 5.5) ──
+
+    private RaiseStatement ParseRaiseStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // RAISE
+        var nameToken = Expect(TokenKind.Identifier, "Expected exception name after RAISE");
+        Match(TokenKind.Period);
+        return new RaiseStatement(nameToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── RESUME (Phase 5.5) ──
+
+    private ResumeStatement ParseResumeStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // RESUME
+
+        string? atLabel = null;
+        if (Match(TokenKind.AtKeyword))
+        {
+            // AT NEXT STATEMENT  or  AT paragraph-name
+            if (Check(TokenKind.NextKeyword))
+            {
+                Advance(); // NEXT
+                // Skip optional STATEMENT
+                if (Check(TokenKind.Identifier) &&
+                    Current.Text.Equals("STATEMENT", StringComparison.OrdinalIgnoreCase))
+                    Advance();
+            }
+            else if (Check(TokenKind.Identifier))
+            {
+                atLabel = Advance().Text;
+            }
+        }
+
+        Match(TokenKind.Period);
+        return new ResumeStatement(atLabel, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── >>SOURCE FORMAT (Phase 5.6-5.10) ──
+
+    private SourceFormatDirective ParseCompilerDirective()
+    {
+        int start = Current.Span.Start;
+        string directiveText = Current.Value is string s ? s : Current.Text;
+        Advance(); // CompilerDirective token
+
+        // Parse >>SOURCE FORMAT IS FREE | FIXED from the directive text
+        bool isFree = directiveText.Contains("FREE", StringComparison.OrdinalIgnoreCase);
+
+        return new SourceFormatDirective(isFree, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── REPORT SECTION (Phase 5.2) ──
+
+    private ReportSection ParseReportSection()
+    {
+        int start = Current.Span.Start;
+        Expect(TokenKind.ReportKeyword);
+        Expect(TokenKind.SectionKeyword);
+        Expect(TokenKind.Period);
+
+        var entries = new List<ReportDescriptionEntry>();
+        while (Check(TokenKind.RdKeyword))
+        {
+            entries.Add(ParseReportDescriptionEntry());
+        }
+
+        return new ReportSection(entries, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    private ReportDescriptionEntry ParseReportDescriptionEntry()
+    {
+        int start = Current.Span.Start;
+        Advance(); // RD
+
+        var nameToken = Expect(TokenKind.Identifier, "Expected report name after RD");
+        string reportName = nameToken.Text;
+
+        // Skip any RD clauses (CONTROL IS, PAGE LIMIT, etc.) until the period
+        while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile)
+            Advance();
+        Expect(TokenKind.Period);
+
+        // Parse report record descriptions (01-level entries under RD)
+        var records = new List<DataDescriptionEntry>();
+        while (IsLevelNumber())
+            records.Add(ParseDataDescriptionEntry());
+
+        return new ReportDescriptionEntry(reportName, records,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── SCREEN SECTION (Phase 5.3) ──
+
+    private ScreenSection ParseScreenSection()
+    {
+        int start = Current.Span.Start;
+        Expect(TokenKind.ScreenKeyword);
+        Expect(TokenKind.SectionKeyword);
+        Expect(TokenKind.Period);
+
+        var entries = new List<DataDescriptionEntry>();
+        while (IsLevelNumber())
+            entries.Add(ParseDataDescriptionEntry());
+
+        return new ScreenSection(entries, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
     /// <summary>Skip remaining tokens in a statement to the period.</summary>

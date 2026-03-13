@@ -46,6 +46,12 @@ public sealed class Lexer
 
         char c = Current;
 
+        // Compiler directive: >>SOURCE FORMAT IS FREE/FIXED
+        if (c == '>' && Peek(1) == '>')
+        {
+            return ReadCompilerDirective();
+        }
+
         // Period (sentence terminator) — but not if followed by a digit (decimal literal)
         if (c == '.' && !IsDigit(Peek(1)))
             return MakeToken(TokenKind.Period, _position++, 1);
@@ -113,6 +119,16 @@ public sealed class Lexer
         var span = new TextSpan(_position, 1);
         _diagnostics.ReportError("CS0001", $"Unexpected character '{c}'", location, span);
         return MakeToken(TokenKind.Bad, _position++, 1);
+    }
+
+    private Token ReadCompilerDirective()
+    {
+        int start = _position;
+        // Consume entire line as a CompilerDirective token (>> ... end of line)
+        while (_position < _source.Length && Current != '\n' && Current != '\r')
+            _position++;
+        string text = _source.GetText(start, _position - start);
+        return new Token(TokenKind.CompilerDirective, text, new TextSpan(start, _position - start), text.Trim());
     }
 
     private Token ReadWord()
@@ -431,6 +447,34 @@ public sealed class Lexer
             ["TEST"] = TokenKind.TestKeyword,
             ["BEFORE"] = TokenKind.BeforeKeyword,
             ["AFTER"] = TokenKind.AfterKeyword,
+
+            // Phase 5.2: Report Writer
+            ["REPORT"] = TokenKind.ReportKeyword,
+            ["RD"] = TokenKind.RdKeyword,
+            ["INITIATE"] = TokenKind.InitiateKeyword,
+            ["GENERATE"] = TokenKind.GenerateKeyword,
+            ["TERMINATE"] = TokenKind.TerminateKeyword,
+
+            // Phase 5.3: Screen Section
+            ["SCREEN"] = TokenKind.ScreenKeyword,
+
+            // Phase 5.4: OO COBOL
+            ["CLASS-ID"] = TokenKind.ClassIdKeyword,
+            ["METHOD-ID"] = TokenKind.MethodIdKeyword,
+            ["INTERFACE-ID"] = TokenKind.InterfaceIdKeyword,
+            ["INVOKE"] = TokenKind.InvokeKeyword,
+            ["FACTORY"] = TokenKind.FactoryKeyword,
+            ["OBJECT"] = TokenKind.ObjectKeyword,
+
+            // Phase 5.5: Exception Handling
+            ["RAISE"] = TokenKind.RaiseKeyword,
+            ["RESUME"] = TokenKind.ResumeKeyword,
+
+            // Phase 5.6–5.10: Compiler directives / national types
+            ["SOURCE-FORMAT"] = TokenKind.SourceFormatKeyword,
+            ["FREE"] = TokenKind.FreeKeyword,
+            ["FIXED"] = TokenKind.FixedKeyword,
+            ["NATIONAL"] = TokenKind.NationalKeyword,
         };
     }
 }

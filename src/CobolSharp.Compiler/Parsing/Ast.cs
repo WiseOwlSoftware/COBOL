@@ -48,9 +48,20 @@ public sealed class ProgramNode : AstNode
 public sealed class IdentificationDivision : AstNode
 {
     public string ProgramId { get; }
-    public IdentificationDivision(string programId, TextSpan span) : base(span)
+    /// <summary>CLASS-ID name (OO COBOL). Null for regular programs.</summary>
+    public string? ClassId { get; }
+    /// <summary>METHOD-ID name (OO COBOL method). Null for regular programs.</summary>
+    public string? MethodId { get; }
+    /// <summary>INTERFACE-ID name (OO COBOL). Null for regular programs.</summary>
+    public string? InterfaceId { get; }
+
+    public IdentificationDivision(string programId, TextSpan span,
+        string? classId = null, string? methodId = null, string? interfaceId = null) : base(span)
     {
         ProgramId = programId;
+        ClassId = classId;
+        MethodId = methodId;
+        InterfaceId = interfaceId;
     }
 }
 
@@ -150,13 +161,64 @@ public sealed class DataDivision : AstNode
     public FileSection? FileSection { get; }
     public WorkingStorageSection? WorkingStorage { get; }
     public LinkageSection? Linkage { get; }
+    public ReportSection? ReportSection { get; }
+    public ScreenSection? ScreenSection { get; }
 
     public DataDivision(FileSection? fileSection, WorkingStorageSection? workingStorage,
-        LinkageSection? linkage, TextSpan span) : base(span)
+        LinkageSection? linkage, TextSpan span,
+        ReportSection? reportSection = null,
+        ScreenSection? screenSection = null) : base(span)
     {
         FileSection = fileSection;
         WorkingStorage = workingStorage;
         Linkage = linkage;
+        ReportSection = reportSection;
+        ScreenSection = screenSection;
+    }
+}
+
+// ── Report Section (Phase 5.2) ──
+
+/// <summary>
+/// REPORT SECTION containing RD (report description) entries.
+/// </summary>
+public sealed class ReportSection : AstNode
+{
+    public List<ReportDescriptionEntry> Entries { get; }
+    public ReportSection(List<ReportDescriptionEntry> entries, TextSpan span) : base(span)
+    {
+        Entries = entries;
+    }
+}
+
+/// <summary>
+/// RD report-name [CONTROL IS / CONTROLS ARE ...] [PAGE LIMIT ...] [HEADING ...] ...
+/// Minimal: captures report-name and the record descriptions under the RD.
+/// </summary>
+public sealed class ReportDescriptionEntry : AstNode
+{
+    public string ReportName { get; }
+    public List<DataDescriptionEntry> RecordDescriptions { get; }
+
+    public ReportDescriptionEntry(string reportName,
+        List<DataDescriptionEntry> recordDescriptions, TextSpan span) : base(span)
+    {
+        ReportName = reportName;
+        RecordDescriptions = recordDescriptions;
+    }
+}
+
+// ── Screen Section (Phase 5.3) ──
+
+/// <summary>
+/// SCREEN SECTION — list of screen description entries (similar in structure to WORKING-STORAGE).
+/// </summary>
+public sealed class ScreenSection : AstNode
+{
+    public List<DataDescriptionEntry> Entries { get; }
+    public ScreenSection(List<DataDescriptionEntry> entries, TextSpan span) : base(span)
+    {
+        Entries = entries;
     }
 }
 
@@ -269,13 +331,14 @@ public sealed class ConditionValueClause : AstNode
 
 public enum UsageType
 {
-    Display,        // default
-    Binary,         // COMP / BINARY / COMP-4 / COMP-5
-    PackedDecimal,  // COMP-3 / PACKED-DECIMAL
-    Index,          // INDEX
-    Pointer,        // POINTER
-    FunctionPointer, // FUNCTION-POINTER
+    Display,          // default
+    Binary,           // COMP / BINARY / COMP-4 / COMP-5
+    PackedDecimal,    // COMP-3 / PACKED-DECIMAL
+    Index,            // INDEX
+    Pointer,          // POINTER
+    FunctionPointer,  // FUNCTION-POINTER
     ProcedurePointer, // PROCEDURE-POINTER
+    National,         // NATIONAL (Phase 5.6 – PIC N)
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -914,4 +977,104 @@ public enum UnaryOperator
 {
     Negate,
     Not,
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 5.2 — Report Writer statements
+// ═══════════════════════════════════════════════════════════════
+
+/// <summary>INITIATE report-name [report-name ...]</summary>
+public sealed class InitiateStatement : Statement
+{
+    public List<string> ReportNames { get; }
+    public InitiateStatement(List<string> reportNames, TextSpan span) : base(span)
+    {
+        ReportNames = reportNames;
+    }
+}
+
+/// <summary>GENERATE data-name</summary>
+public sealed class GenerateStatement : Statement
+{
+    public string DataName { get; }
+    public GenerateStatement(string dataName, TextSpan span) : base(span)
+    {
+        DataName = dataName;
+    }
+}
+
+/// <summary>TERMINATE report-name [report-name ...]</summary>
+public sealed class TerminateStatement : Statement
+{
+    public List<string> ReportNames { get; }
+    public TerminateStatement(List<string> reportNames, TextSpan span) : base(span)
+    {
+        ReportNames = reportNames;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 5.4 — OO COBOL statement
+// ═══════════════════════════════════════════════════════════════
+
+/// <summary>
+/// INVOKE object-ref method-name [USING args] [RETURNING result]
+/// </summary>
+public sealed class InvokeStatement : Statement
+{
+    public Expression ObjectRef { get; }
+    public Expression MethodName { get; }
+    public List<Expression> Arguments { get; }
+    public IdentifierExpression? Returning { get; }
+
+    public InvokeStatement(Expression objectRef, Expression methodName,
+        List<Expression> arguments, IdentifierExpression? returning, TextSpan span) : base(span)
+    {
+        ObjectRef = objectRef;
+        MethodName = methodName;
+        Arguments = arguments;
+        Returning = returning;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 5.5 — Exception Handling statements
+// ═══════════════════════════════════════════════════════════════
+
+/// <summary>RAISE exception-name</summary>
+public sealed class RaiseStatement : Statement
+{
+    public string ExceptionName { get; }
+    public RaiseStatement(string exceptionName, TextSpan span) : base(span)
+    {
+        ExceptionName = exceptionName;
+    }
+}
+
+/// <summary>RESUME [AT NEXT STATEMENT | AT paragraph-name]</summary>
+public sealed class ResumeStatement : Statement
+{
+    /// <summary>Optional paragraph/section to resume at. Null = resume at next statement.</summary>
+    public string? AtLabel { get; }
+    public ResumeStatement(string? atLabel, TextSpan span) : base(span)
+    {
+        AtLabel = atLabel;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Phase 5.6-5.10 — Compiler directive AST node
+// ═══════════════════════════════════════════════════════════════
+
+/// <summary>
+/// >>SOURCE FORMAT IS FREE | FIXED compiler directive.
+/// Modelled as a pseudo-statement so it can appear in statement lists.
+/// </summary>
+public sealed class SourceFormatDirective : Statement
+{
+    public bool IsFreeFormat { get; }
+    public SourceFormatDirective(bool isFreeFormat, TextSpan span) : base(span)
+    {
+        IsFreeFormat = isFreeFormat;
+    }
 }

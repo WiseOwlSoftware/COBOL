@@ -225,4 +225,36 @@ public enum TokenKind
     TestKeyword,
     BeforeKeyword,
     AfterKeyword,
+
+    // ── Phase 5.2: Report Writer ──
+    ReportKeyword,           // REPORT
+    ReportSectionKeyword,    // REPORT SECTION (treated as two tokens, REPORT + SECTION)
+    RdKeyword,               // RD
+    InitiateKeyword,         // INITIATE
+    GenerateKeyword,         // GENERATE
+    TerminateKeyword,        // TERMINATE
+
+    // ── Phase 5.3: Screen Section ──
+    ScreenKeyword,           // SCREEN
+
+    // ── Phase 5.4: OO COBOL ──
+    ClassIdKeyword,          // CLASS-ID
+    MethodIdKeyword,         // METHOD-ID
+    InterfaceIdKeyword,      // INTERFACE-ID
+    InvokeKeyword,           // INVOKE
+    FactoryKeyword,          // FACTORY
+    ObjectKeyword,           // OBJECT
+
+    // ── Phase 5.5: Exception Handling ──
+    RaiseKeyword,            // RAISE
+    ResumeKeyword,           // RESUME
+
+    // ── Phase 5.6–5.10: Compiler directives ──
+    SourceFormatKeyword,     // SOURCE-FORMAT (compiler directive keyword)
+    FreeKeyword,             // FREE (source format value)
+    FixedKeyword,            // FIXED (source format value)
+    NationalKeyword,         // NATIONAL (PIC N usage / type)
+
+    // ─── Compiler directive delimiter >>>
+    CompilerDirective,       // >>SOURCE FORMAT IS FREE/FIXED
 }
