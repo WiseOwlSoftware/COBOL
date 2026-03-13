@@ -278,6 +278,7 @@ public sealed class Lexer
             ["INDEX"] = TokenKind.IndexKeyword,
             ["INDEXED"] = TokenKind.IndexedKeyword,
             ["POINTER"] = TokenKind.PointerKeyword,
+            ["FUNCTION"] = TokenKind.FunctionKeyword,
             ["FUNCTION-POINTER"] = TokenKind.FunctionPointerKeyword,
             ["PROCEDURE-POINTER"] = TokenKind.ProcedurePointerKeyword,
             ["GLOBAL"] = TokenKind.GlobalKeyword,

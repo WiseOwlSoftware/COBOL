@@ -895,6 +895,21 @@ public sealed class UnaryExpression : Expression
     }
 }
 
+/// <summary>
+/// FUNCTION function-name(arg1, arg2, ...)
+/// </summary>
+public sealed class FunctionCallExpression : Expression
+{
+    public string FunctionName { get; }
+    public List<Expression> Arguments { get; }
+
+    public FunctionCallExpression(string functionName, List<Expression> arguments, TextSpan span) : base(span)
+    {
+        FunctionName = functionName;
+        Arguments = arguments;
+    }
+}
+
 public enum UnaryOperator
 {
     Negate,

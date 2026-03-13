@@ -64,6 +64,7 @@ public enum TokenKind
     IndexKeyword,            // INDEX
     IndexedKeyword,          // INDEXED
     PointerKeyword,          // POINTER
+    FunctionKeyword,         // FUNCTION
     FunctionPointerKeyword,  // FUNCTION-POINTER
     ProcedurePointerKeyword, // PROCEDURE-POINTER
     GlobalKeyword,           // GLOBAL

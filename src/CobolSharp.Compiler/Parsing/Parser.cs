@@ -2030,6 +2030,9 @@ public sealed class Parser
                 Advance();
                 return new FigurativeConstantExpression(FigurativeConstant.Quote, token.Span);
 
+            case TokenKind.FunctionKeyword:
+                return ParseFunctionCall();
+
             case TokenKind.LeftParen:
                 Advance();
                 var expr = ParseArithmeticExpression();
@@ -2049,6 +2052,29 @@ public sealed class Parser
     /// Reference modification: NAME(start : length)
     /// Distinguishing: if we see a colon, it's ref-mod; otherwise subscripts.
     /// </summary>
+    private FunctionCallExpression ParseFunctionCall()
+    {
+        int start = Current.Span.Start;
+        Advance(); // FUNCTION
+
+        string funcName = Expect(TokenKind.Identifier, "Expected function name after FUNCTION").Text;
+
+        var args = new List<Expression>();
+        if (Match(TokenKind.LeftParen))
+        {
+            while (!Check(TokenKind.RightParen) && Current.Kind != TokenKind.EndOfFile)
+            {
+                args.Add(ParseArithmeticExpression());
+                if (!Check(TokenKind.RightParen))
+                    Match(TokenKind.Comma); // optional comma separator
+            }
+            Expect(TokenKind.RightParen, "Expected ) after function arguments");
+        }
+
+        return new FunctionCallExpression(funcName.ToUpperInvariant(), args,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
     private IdentifierExpression ParseSubscriptOrRefMod(Token nameToken)
     {
         Advance(); // consume (
