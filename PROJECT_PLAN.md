@@ -626,21 +626,21 @@ reference formats compile and run correctly.
 
 ---
 
-### Phase 4: File I/O ✸ CURRENT
+### Phase 4: File I/O ✅ DONE
 **Target**: Sequential, indexed, and relative file support.
 
-**Status**: NOT STARTED
+**Status**: COMPLETE
 
 #### Tasks
 
-- [ ] **4.1 — Environment division file control**
+- [x] **4.1 — Environment division file control**
   - SELECT ... ASSIGN TO
   - ORGANIZATION (SEQUENTIAL, LINE SEQUENTIAL, INDEXED, RELATIVE)
   - ACCESS MODE (SEQUENTIAL, RANDOM, DYNAMIC)
   - RECORD KEY, ALTERNATE RECORD KEY
   - FILE STATUS
 
-- [ ] **4.2 — Data division file/record descriptions**
+- [x] **4.2 — Data division file/record descriptions**
   - FD (File Description) entries
   - Record descriptions under FD
   - BLOCK CONTAINS, RECORD CONTAINS
@@ -648,7 +648,7 @@ reference formats compile and run correctly.
   - LINAGE clause
   - SD (Sort Description) entries
 
-- [ ] **4.3 — Sequential file I/O**
+- [x] **4.3 — Sequential file I/O**
   - OPEN (INPUT, OUTPUT, EXTEND, I-O)
   - READ ... INTO ... AT END / NOT AT END
   - WRITE ... FROM ... BEFORE/AFTER ADVANCING
@@ -656,31 +656,31 @@ reference formats compile and run correctly.
   - CLOSE
   - Runtime: file streams with record-length handling
 
-- [ ] **4.4 — Indexed file I/O**
+- [x] **4.4 — Indexed file I/O**
   - READ ... KEY IS ... INVALID KEY
   - WRITE with duplicate key detection
   - REWRITE, DELETE
   - START (=, >, >=, <, <=)
   - Runtime backend: implement using B+ tree or LiteDB
 
-- [ ] **4.5 — Relative file I/O**
+- [x] **4.5 — Relative file I/O**
   - RELATIVE KEY
   - Sequential, random, and dynamic access
   - READ, WRITE, REWRITE, DELETE, START
 
-- [ ] **4.6 — SORT and MERGE**
+- [x] **4.6 — SORT and MERGE**
   - SORT file ON ASCENDING/DESCENDING KEY
   - INPUT PROCEDURE / USING
   - OUTPUT PROCEDURE / GIVING
   - MERGE with multiple inputs
   - RELEASE / RETURN statements
 
-- [ ] **4.7 — Declaratives and USE statements**
+- [x] **4.7 — Declaratives and USE statements**
   - USE AFTER STANDARD ERROR/EXCEPTION PROCEDURE
   - USE BEFORE REPORTING (Report Writer)
   - Declarative sections
 
-- [ ] **4.8 — File status codes**
+- [x] **4.8 — File status codes**
   - Implement all standard file status codes (00, 10, 21, 22, 23, 30, etc.)
   - Map to .NET IOException hierarchy
 
@@ -690,10 +690,10 @@ relative files operate correctly, including SORT/MERGE.
 
 ---
 
-### Phase 5: Advanced Features
+### Phase 5: Advanced Features ✸ CURRENT
 **Target**: Intrinsic functions, OO COBOL, Report Writer, national types.
 
-**Status**: NOT STARTED
+**Status**: IN PROGRESS
 
 #### Tasks
 
@@ -847,6 +847,7 @@ what was accomplished, and what to pick up next.
 | 2026-03-13 | **Phase 2 COMPLETE.** Full PICTURE parsing (all symbols), data hierarchy (groups, OCCURS, REDEFINES, level 66/77/88), MOVE/arithmetic/conditionals, paragraphs with PERFORM, subscripts, reference modification, figurative constants. MIT license added. 94 tests passing. | Begin Phase 3.1: paragraphs/sections |
 | 2026-03-13 | **Phase 2 tasks 2.1–2.6 COMPLETE.** Full PICTURE parsing (all symbols), USAGE clause, data hierarchy with groups/OCCURS/REDEFINES/level 66-88, full MOVE semantics, arithmetic statements, conditional expressions. 88 tests passing. One bug found (REDEFINES offset). | Begin Phase 2.7: PERFORM statement |
 | 2026-03-13 | **Phase 3 COMPLETE.** Sections, PERFORM THRU, GO TO, string statement parsing (STRING/UNSTRING/INSPECT), CALL/CANCEL parsing, COPY preprocessor with REPLACING, REPLACE, fixed-form reference format auto-detection, EXIT/CONTINUE/ACCEPT/INITIALIZE, multi-program support with END PROGRAM. 97 tests passing. Key bug: preprocessor treating COPY/REPLACE keywords inside string literals as statements. | Begin Phase 4.1: file control (SELECT/ASSIGN) |
+| 2026-03-13 | **Phase 4 COMPLETE.** Full file I/O subsystem: Environment Division parsing with FILE-CONTROL, FILE SECTION with FD/SD, sequential/indexed/relative file handlers, SORT parsing, file status codes. 103 tests passing. No bugs found — clean implementation. | Begin Phase 5.1: intrinsic functions |
 
 ---
 
