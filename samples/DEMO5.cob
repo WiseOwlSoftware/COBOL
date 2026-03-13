@@ -4,7 +4,7 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-RESULT       PIC 9(5)V99 VALUE 0.
+       01 WS-RESULT       PIC 9(5) VALUE 0.
        01 WS-NAME         PIC X(20) VALUE "hello world".
        01 WS-DATE-STR     PIC X(21).
        01 WS-PI           PIC 9V9(10) VALUE 0.
