@@ -303,7 +303,25 @@ public sealed class StringLiteralExpression : Expression
 public sealed class IdentifierExpression : Expression
 {
     public string Name { get; }
-    public IdentifierExpression(string name, TextSpan span) : base(span) { Name = name; }
+    /// <summary>Subscripts for table access: ITEM(1, 2) → [1, 2]</summary>
+    public List<Expression>? Subscripts { get; }
+    /// <summary>Reference modification start position: ITEM(3:5) → 3</summary>
+    public Expression? RefModStart { get; }
+    /// <summary>Reference modification length: ITEM(3:5) → 5</summary>
+    public Expression? RefModLength { get; }
+
+    public IdentifierExpression(string name, TextSpan span,
+        List<Expression>? subscripts = null,
+        Expression? refModStart = null, Expression? refModLength = null) : base(span)
+    {
+        Name = name;
+        Subscripts = subscripts;
+        RefModStart = refModStart;
+        RefModLength = refModLength;
+    }
+
+    public bool HasSubscripts => Subscripts != null && Subscripts.Count > 0;
+    public bool HasRefMod => RefModStart != null;
 }
 
 public sealed class FigurativeConstantExpression : Expression

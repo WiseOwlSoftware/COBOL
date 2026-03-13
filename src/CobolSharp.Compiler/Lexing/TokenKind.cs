@@ -32,6 +32,8 @@ public enum TokenKind
     GreaterThan,         // >
     LessThanOrEqual,     // <=
     GreaterThanOrEqual,  // >=
+    Comma,               // ,
+    Colon,               // :
 
     // ── Division / section / paragraph keywords ──
     IdentificationKeyword,   // IDENTIFICATION

@@ -949,6 +949,11 @@ public sealed class Parser
 
             case TokenKind.Identifier:
                 Advance();
+                // Check for subscripts or reference modification: NAME(...)
+                if (Check(TokenKind.LeftParen))
+                {
+                    return ParseSubscriptOrRefMod(token);
+                }
                 return new IdentifierExpression(token.Text, token.Span);
 
             case TokenKind.ZeroKeyword:
@@ -982,6 +987,48 @@ public sealed class Parser
                 Advance();
                 return new NumericLiteralExpression(0, token.Span); // error recovery
         }
+    }
+
+    /// <summary>
+    /// Parse subscripts or reference modification after an identifier.
+    /// Subscripts: NAME(expr1, expr2, ...)
+    /// Reference modification: NAME(start : length)
+    /// Distinguishing: if we see a colon, it's ref-mod; otherwise subscripts.
+    /// </summary>
+    private IdentifierExpression ParseSubscriptOrRefMod(Token nameToken)
+    {
+        Advance(); // consume (
+
+        // Parse first expression
+        var first = ParseArithmeticExpression();
+
+        // Check for colon → reference modification: NAME(start : length)
+        if (Check(TokenKind.Colon))
+        {
+            Advance(); // consume :
+            Expression? length = null;
+            if (!Check(TokenKind.RightParen))
+            {
+                length = ParseArithmeticExpression();
+            }
+            Expect(TokenKind.RightParen, "Expected ) after reference modification");
+            var span = TextSpan.FromBounds(nameToken.Span.Start, Current.Span.Start);
+            return new IdentifierExpression(nameToken.Text, span,
+                refModStart: first, refModLength: length);
+        }
+
+        // Subscripts: NAME(expr1, expr2, ...)
+        var subscripts = new List<Expression> { first };
+        while (Check(TokenKind.Comma))
+        {
+            Advance(); // consume comma
+            subscripts.Add(ParseArithmeticExpression());
+        }
+
+        Expect(TokenKind.RightParen, "Expected ) after subscripts");
+
+        var span2 = TextSpan.FromBounds(nameToken.Span.Start, Current.Span.Start);
+        return new IdentifierExpression(nameToken.Text, span2, subscripts: subscripts);
     }
 
     /// <summary>

@@ -65,6 +65,10 @@ public sealed class Lexer
                 return MakeToken(TokenKind.LeftParen, _position++, 1);
             case ')':
                 return MakeToken(TokenKind.RightParen, _position++, 1);
+            case ',':
+                return MakeToken(TokenKind.Comma, _position++, 1);
+            case ':':
+                return MakeToken(TokenKind.Colon, _position++, 1);
             case '+':
                 return MakeToken(TokenKind.Plus, _position++, 1);
             case '-':
