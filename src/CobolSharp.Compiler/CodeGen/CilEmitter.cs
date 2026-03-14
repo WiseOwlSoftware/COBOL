@@ -47,6 +47,30 @@ public sealed class CilEmitter
     private MethodReference? _getNumericValueMethod;
     private MethodReference? _getDisplayValueMethod;
 
+    // File I/O
+    private FieldDefinition? _fileManagerField;
+    private TypeReference? _fileManagerRef;
+    private MethodReference? _fileManagerCtor;
+    private MethodReference? _fileManagerRegisterMethod;
+    private MethodReference? _fileManagerOpenMethod;
+    private MethodReference? _fileManagerCloseMethod;
+    private MethodReference? _fileManagerReadNextMethod;
+    private MethodReference? _fileManagerWriteMethod;
+    private MethodReference? _fileManagerRewriteMethod;
+    private MethodReference? _fileManagerDeleteMethod;
+    private MethodReference? _seqFileHandlerCtor;
+    private TypeReference? _fileOpenModeRef;
+    private MethodReference? _fileReadNextMethod;
+    private MethodReference? _fileWriteMethod;
+    private MethodReference? _fileRewriteMethod;
+    private MethodReference? _setFromBytesMethod;
+    private MethodReference? _copyToBytesMethod;
+
+    // Maps COBOL file name → record field name (01-level under FD)
+    private readonly Dictionary<string, string> _fileRecordNames = new(StringComparer.OrdinalIgnoreCase);
+    // Maps COBOL file name → FILE STATUS field name
+    private readonly Dictionary<string, string> _fileStatusNames = new(StringComparer.OrdinalIgnoreCase);
+
     // New runtime methods for all statement types
     private MethodReference? _acceptFromConsoleMethod;
     private MethodReference? _acceptDateMethod;
@@ -184,6 +208,47 @@ public sealed class CilEmitter
         _divideGivingMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "DivideGiving"));
 
+        // File I/O types
+        var fileManagerTypeDef = runtimeModule.GetType("CobolSharp.Runtime.IO.CobolFileManager");
+        _fileManagerRef = _module.ImportReference(fileManagerTypeDef);
+        _fileManagerCtor = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.IsConstructor && !m.HasParameters));
+        _fileManagerRegisterMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "RegisterFile"));
+        _fileManagerOpenMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "Open"));
+        _fileManagerCloseMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "Close"));
+        _fileManagerReadNextMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "ReadNext"));
+        _fileManagerWriteMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "Write"));
+        _fileManagerRewriteMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "Rewrite"));
+        _fileManagerDeleteMethod = _module.ImportReference(
+            fileManagerTypeDef.Methods.First(m => m.Name == "Delete"));
+
+        var seqHandlerTypeDef = runtimeModule.GetType("CobolSharp.Runtime.IO.SequentialFileHandler");
+        _seqFileHandlerCtor = _module.ImportReference(
+            seqHandlerTypeDef.Methods.First(m => m.IsConstructor));
+
+        var fileOpenModeTypeDef = runtimeModule.GetType("CobolSharp.Runtime.IO.FileOpenMode");
+        _fileOpenModeRef = _module.ImportReference(fileOpenModeTypeDef);
+
+        // File I/O helper methods on CobolProgram
+        _fileReadNextMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "FileReadNext"));
+        _fileWriteMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "FileWrite"));
+        _fileRewriteMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "FileRewrite"));
+
+        // CobolField methods for file I/O
+        _setFromBytesMethod = _module.ImportReference(
+            cobolFieldTypeDef.Methods.First(m => m.Name == "SetFromBytes"));
+        _copyToBytesMethod = _module.ImportReference(
+            cobolFieldTypeDef.Methods.First(m => m.Name == "CopyToBytes"));
+
         // New runtime methods
         _acceptFromConsoleMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "AcceptFromConsole"));
@@ -277,8 +342,87 @@ public sealed class CilEmitter
             }
         }
 
+        // Initialize file manager if program has file I/O
+        if (program.Environment?.FileControl?.Entries.Count > 0)
+        {
+            EmitFileManagerInit(il, program, symbols);
+        }
+
         il.Emit(OpCodes.Ret);
         _programType!.Methods.Add(ctor);
+    }
+
+    private void EmitFileManagerInit(ILProcessor il, ProgramNode program, SymbolTable symbols)
+    {
+        // Create the file manager field
+        _fileManagerField = new FieldDefinition(
+            "_fileManager",
+            FieldAttributes.Private,
+            _fileManagerRef);
+        _programType!.Fields.Add(_fileManagerField);
+
+        // this._fileManager = new CobolFileManager()
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Newobj, _fileManagerCtor);
+        il.Emit(OpCodes.Stfld, _fileManagerField);
+
+        // Register each file handler
+        var fileEntries = program.Environment!.FileControl!.Entries;
+        var fdEntries = program.Data?.FileSection?.Entries ?? new List<Parsing.FileDescriptionEntry>();
+
+        foreach (var selectEntry in fileEntries)
+        {
+            // Find the FD entry to determine record length
+            var fd = fdEntries.FirstOrDefault(f =>
+                string.Equals(f.FileName, selectEntry.FileName, StringComparison.OrdinalIgnoreCase));
+            int recordLength = fd?.RecordContainsMax ?? 80;
+            if (recordLength == 0 && fd?.RecordDescriptions.Count > 0)
+            {
+                // Try to get from symbol table
+                var recName = fd.RecordDescriptions[0].Name;
+                if (recName != null)
+                {
+                    var sym = symbols.Resolve(recName);
+                    if (sym != null) recordLength = sym.ByteSize;
+                }
+            }
+            if (recordLength == 0) recordLength = 80; // default
+
+            bool lineSeq = selectEntry.Organization == Parsing.FileOrganization.LineSequential;
+
+            // this._fileManager.RegisterFile("FILENAME",
+            //     new SequentialFileHandler("external-name", recordLength, lineSeq))
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, _fileManagerField);
+            il.Emit(OpCodes.Ldstr, selectEntry.FileName);
+            il.Emit(OpCodes.Ldstr, selectEntry.AssignTo);
+            il.Emit(OpCodes.Ldc_I4, recordLength);
+            il.Emit(lineSeq ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Newobj, _seqFileHandlerCtor);
+            il.Emit(OpCodes.Callvirt, _fileManagerRegisterMethod);
+
+            // Create a byte[] field for the record buffer
+            var bufferField = new FieldDefinition(
+                $"_buf_{selectEntry.FileName}",
+                FieldAttributes.Private,
+                _module!.ImportReference(typeof(byte[])));
+            _programType.Fields.Add(bufferField);
+            _fields[$"_buf_{selectEntry.FileName}"] = bufferField;
+
+            // this._buf_FILENAME = new byte[recordLength]
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldc_I4, recordLength);
+            il.Emit(OpCodes.Newarr, _module.TypeSystem.Byte);
+            il.Emit(OpCodes.Stfld, bufferField);
+
+            // Track the record field name (01-level under FD)
+            if (fd?.RecordDescriptions.Count > 0 && fd.RecordDescriptions[0].Name != null)
+                _fileRecordNames[selectEntry.FileName] = fd.RecordDescriptions[0].Name!;
+
+            // Track FILE STATUS field name
+            if (selectEntry.FileStatusName != null)
+                _fileStatusNames[selectEntry.FileName] = selectEntry.FileStatusName;
+        }
     }
 
     private void EmitFieldInitialValue(ILProcessor il, FieldDefinition field,
@@ -507,8 +651,8 @@ public sealed class CilEmitter
             case GobackStatement:
                 EmitStopRunStatement(); // GOBACK is equivalent to STOP RUN
                 break;
-            case GoToDependingStatement:
-                EmitRuntimeWarning("GO TO DEPENDING ON — not yet implemented");
+            case GoToDependingStatement goToDep:
+                EmitGoToDependingStatement(goToDep);
                 break;
         }
     }
@@ -564,6 +708,48 @@ public sealed class CilEmitter
             EmitStatement(stmt);
 
         _il.Append(endLabel);
+    }
+
+    private void EmitGoToDependingStatement(GoToDependingStatement goToDep)
+    {
+        // GO TO para1 para2 para3 DEPENDING ON expr
+        // If expr=1, go to para1; expr=2, go to para2; etc.
+        // If expr < 1 or > count, fall through (COBOL spec behavior).
+        var fallThrough = _il!.Create(OpCodes.Nop);
+        var labels = new List<Mono.Cecil.Cil.Instruction>();
+
+        // Create labels for each paragraph
+        foreach (var _ in goToDep.ParagraphNames)
+            labels.Add(_il.Create(OpCodes.Nop));
+
+        // Evaluate the expression → decimal on stack
+        EmitNumericExprValue(goToDep.DependingOn);
+
+        // Convert decimal to int
+        var decToInt = _module!.ImportReference(
+            typeof(decimal).GetMethods()
+                .First(m => m.Name == "op_Explicit" && m.ReturnType == typeof(int)));
+        _il.Emit(OpCodes.Call, decToInt);
+
+        // switch (value - 1) → jump table
+        _il.Emit(OpCodes.Ldc_I4_1);
+        _il.Emit(OpCodes.Sub);
+        _il.Emit(OpCodes.Switch, labels.ToArray());
+        _il.Emit(OpCodes.Br, fallThrough); // out of range → fall through
+
+        for (int i = 0; i < goToDep.ParagraphNames.Count; i++)
+        {
+            _il.Append(labels[i]);
+            string pName = goToDep.ParagraphNames[i].ToUpperInvariant();
+            if (_paragraphMethods.TryGetValue(pName, out var method))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Call, method);
+            }
+            _il.Emit(OpCodes.Ret);
+        }
+
+        _il.Append(fallThrough);
     }
 
     /// <summary>Emit a Console.Error.WriteLine with a warning message.</summary>
@@ -847,56 +1033,236 @@ public sealed class CilEmitter
     }
 
     // ── File I/O emission ──
-    // The emitter does not currently wire up CobolFileManager.
-    // File I/O requires infrastructure: file handler registration in the constructor,
-    // record buffer fields, and status field updates. For now, emit stderr diagnostics
-    // so programs fail loudly rather than silently.
+
+    /// <summary>Helper: emit status store if FILE STATUS is declared.</summary>
+    private void EmitFileStatusStore(string fileName)
+    {
+        // Stack has the status string on top. If FILE STATUS declared, store it.
+        if (_fileStatusNames.TryGetValue(fileName, out var statusName) &&
+            _fields.TryGetValue(statusName, out var statusField))
+        {
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, statusField);
+            _il.Emit(OpCodes.Call, _moveAlphanumericMethod);
+        }
+        else
+        {
+            _il!.Emit(OpCodes.Pop); // discard status string
+        }
+    }
 
     private void EmitOpenStatement(OpenStatement open)
     {
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
         foreach (var clause in open.Clauses)
         {
+            int mode = clause.Mode switch
+            {
+                OpenMode.Input => 0,
+                OpenMode.Output => 1,
+                OpenMode.InputOutput => 2,
+                OpenMode.Extend => 3,
+                _ => 0
+            };
+
             foreach (var fileName in clause.FileNames)
             {
-                EmitRuntimeWarning($"OPEN {clause.Mode} {fileName} — file I/O not yet wired to emitter");
+                // _fileManager.Open(fileName, mode)
+                _il!.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, _fileManagerField);
+                _il.Emit(OpCodes.Ldstr, fileName);
+                _il.Emit(OpCodes.Ldc_I4, mode);
+                _il.Emit(OpCodes.Callvirt, _fileManagerOpenMethod);
+                EmitFileStatusStore(fileName);
             }
         }
     }
 
     private void EmitCloseStatement(CloseStatement close)
     {
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
         foreach (var fileName in close.FileNames)
         {
-            EmitRuntimeWarning($"CLOSE {fileName} — file I/O not yet wired to emitter");
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, _fileManagerField);
+            _il.Emit(OpCodes.Ldstr, fileName);
+            _il.Emit(OpCodes.Callvirt, _fileManagerCloseMethod);
+            EmitFileStatusStore(fileName);
         }
     }
 
     private void EmitReadStatement(ReadStatement read)
     {
-        EmitRuntimeWarning($"READ {read.FileName} — file I/O not yet wired to emitter");
-        // Execute AT END statements (since we can't read, it's always at-end)
-        foreach (var stmt in read.AtEnd)
-            EmitStatement(stmt);
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
+        string fileName = read.FileName;
+
+        // Get the record field and buffer for this file
+        string? recName = _fileRecordNames.GetValueOrDefault(fileName);
+        FieldDefinition? recField = recName != null ? _fields.GetValueOrDefault(recName) : null;
+        FieldDefinition? bufField = _fields.GetValueOrDefault($"_buf_{fileName}");
+
+        if (recField == null || bufField == null)
+        {
+            EmitRuntimeWarning($"READ {fileName}: no record field or buffer found");
+            return;
+        }
+
+        // status = FileReadNext(this._fileManager, fileName, this._buf, this.recordField)
+        _il!.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, _fileManagerField);
+        _il.Emit(OpCodes.Ldstr, fileName);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, bufField);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, recField);
+        _il.Emit(OpCodes.Call, _fileReadNextMethod);
+
+        // Store status; also need it for AT END check
+        var statusLocal = new VariableDefinition(_module!.TypeSystem.String);
+        _runMethod!.Body.Variables.Add(statusLocal);
+        _il.Emit(OpCodes.Dup);
+        _il.Emit(OpCodes.Stloc, statusLocal);
+        EmitFileStatusStore(fileName);
+
+        // INTO clause: copy record field to INTO target
+        if (read.Into != null && _fields.TryGetValue(read.Into.Name, out var intoField))
+        {
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, recField);
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, intoField);
+            _il.Emit(OpCodes.Call, _moveFieldMethod);
+        }
+
+        // AT END / NOT AT END branching
+        if (read.AtEnd.Count > 0 || read.NotAtEnd.Count > 0)
+        {
+            var notAtEndLabel = _il.Create(OpCodes.Nop);
+            var endLabel = _il.Create(OpCodes.Nop);
+
+            // if (status == "10") → AT END
+            _il.Emit(OpCodes.Ldloc, statusLocal);
+            _il.Emit(OpCodes.Ldstr, "10");
+            var stringEquals = _module.ImportReference(
+                typeof(string).GetMethod("op_Equality", new[] { typeof(string), typeof(string) }));
+            _il.Emit(OpCodes.Call, stringEquals);
+            _il.Emit(OpCodes.Brfalse, notAtEndLabel);
+
+            foreach (var stmt in read.AtEnd)
+                EmitStatement(stmt);
+            _il.Emit(OpCodes.Br, endLabel);
+
+            _il.Append(notAtEndLabel);
+            foreach (var stmt in read.NotAtEnd)
+                EmitStatement(stmt);
+
+            _il.Append(endLabel);
+        }
     }
 
     private void EmitWriteStatement(WriteStatement write)
     {
-        EmitRuntimeWarning($"WRITE {write.RecordName.Name} — file I/O not yet wired to emitter");
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
+        // WRITE record-name — find which file this record belongs to
+        string recName = write.RecordName.Name;
+        string? fileName = null;
+        foreach (var (fn, rn) in _fileRecordNames)
+        {
+            if (string.Equals(rn, recName, StringComparison.OrdinalIgnoreCase))
+            { fileName = fn; break; }
+        }
+        if (fileName == null) { EmitRuntimeWarning($"WRITE: cannot find file for record {recName}"); return; }
+
+        FieldDefinition? recField = _fields.GetValueOrDefault(recName);
+        FieldDefinition? bufField = _fields.GetValueOrDefault($"_buf_{fileName}");
+        if (recField == null || bufField == null) return;
+
+        // FROM clause: move source to record field first
+        if (write.From != null)
+        {
+            if (write.From is IdentifierExpression fromId && _fields.TryGetValue(fromId.Name, out var fromField))
+            {
+                _il!.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, fromField);
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, recField);
+                _il.Emit(OpCodes.Call, _moveFieldMethod);
+            }
+        }
+
+        // FileWrite(fm, fileName, buffer, recordField)
+        _il!.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, _fileManagerField);
+        _il.Emit(OpCodes.Ldstr, fileName);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, bufField);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, recField);
+        _il.Emit(OpCodes.Call, _fileWriteMethod);
+        EmitFileStatusStore(fileName);
     }
 
     private void EmitRewriteStatement(RewriteStatement rewrite)
     {
-        EmitRuntimeWarning($"REWRITE {rewrite.RecordName.Name} — file I/O not yet wired to emitter");
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
+        string recName = rewrite.RecordName.Name;
+        string? fileName = null;
+        foreach (var (fn, rn) in _fileRecordNames)
+        {
+            if (string.Equals(rn, recName, StringComparison.OrdinalIgnoreCase))
+            { fileName = fn; break; }
+        }
+        if (fileName == null) return;
+
+        FieldDefinition? recField = _fields.GetValueOrDefault(recName);
+        FieldDefinition? bufField = _fields.GetValueOrDefault($"_buf_{fileName}");
+        if (recField == null || bufField == null) return;
+
+        if (rewrite.From != null)
+        {
+            if (rewrite.From is IdentifierExpression fromId && _fields.TryGetValue(fromId.Name, out var fromField))
+            {
+                _il!.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, fromField);
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, recField);
+                _il.Emit(OpCodes.Call, _moveFieldMethod);
+            }
+        }
+
+        _il!.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, _fileManagerField);
+        _il.Emit(OpCodes.Ldstr, fileName);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, bufField);
+        _il.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, recField);
+        _il.Emit(OpCodes.Call, _fileRewriteMethod);
+        EmitFileStatusStore(fileName);
     }
 
     private void EmitDeleteStatement(DeleteStatement del)
     {
-        EmitRuntimeWarning($"DELETE {del.FileName} — file I/O not yet wired to emitter");
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+
+        _il!.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, _fileManagerField);
+        _il.Emit(OpCodes.Ldstr, del.FileName);
+        _il.Emit(OpCodes.Callvirt, _fileManagerDeleteMethod);
+        EmitFileStatusStore(del.FileName);
     }
 
     private void EmitStartStatement(StartStatement start)
     {
-        EmitRuntimeWarning($"START {start.FileName} — file I/O not yet wired to emitter");
+        if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
+        // START is a positioning operation for keyed files — requires IFileHandler.Start
+        // For now, emit a diagnostic for this less common operation
+        EmitRuntimeWarning($"START {start.FileName} — keyed positioning not yet implemented");
     }
 
     private void EmitDisplayStatement(DisplayStatement display)

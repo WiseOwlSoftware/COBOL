@@ -38,10 +38,25 @@ public sealed class SemanticAnalyzer
 
     private void AnalyzeProgram(ProgramNode program, SemanticModel model)
     {
+        // Build symbol table from FILE SECTION record descriptions
+        if (program.Data?.FileSection != null)
+        {
+            foreach (var fd in program.Data.FileSection.Entries)
+            {
+                BuildDataHierarchy(fd.RecordDescriptions, model.SymbolTable);
+            }
+        }
+
         // Build symbol table and hierarchy from DATA DIVISION
         if (program.Data?.WorkingStorage != null)
         {
             BuildDataHierarchy(program.Data.WorkingStorage.Entries, model.SymbolTable);
+        }
+
+        // Build from LINKAGE SECTION
+        if (program.Data?.Linkage != null)
+        {
+            BuildDataHierarchy(program.Data.Linkage.Entries, model.SymbolTable);
         }
 
         // Resolve references in PROCEDURE DIVISION

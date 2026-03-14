@@ -133,6 +133,40 @@ public abstract class CobolProgram
         }
     }
 
+    // ── File I/O helpers ──
+
+    /// <summary>
+    /// Read the next sequential record into the record field, returning the file status.
+    /// </summary>
+    protected static string FileReadNext(IO.CobolFileManager fm, string fileName,
+        byte[] buffer, CobolField recordField)
+    {
+        string status = fm.ReadNext(fileName, buffer);
+        if (status == IO.FileStatus.Success)
+            recordField.SetFromBytes(buffer);
+        return status;
+    }
+
+    /// <summary>
+    /// Write the record field to a file, returning the file status.
+    /// </summary>
+    protected static string FileWrite(IO.CobolFileManager fm, string fileName,
+        byte[] buffer, CobolField recordField)
+    {
+        recordField.CopyToBytes(buffer);
+        return fm.Write(fileName, buffer);
+    }
+
+    /// <summary>
+    /// Rewrite the current record from the record field.
+    /// </summary>
+    protected static string FileRewrite(IO.CobolFileManager fm, string fileName,
+        byte[] buffer, CobolField recordField)
+    {
+        recordField.CopyToBytes(buffer);
+        return fm.Rewrite(fileName, buffer);
+    }
+
     /// <summary>
     /// ACCEPT target FROM CONSOLE — reads one line from stdin and moves it to target.
     /// </summary>

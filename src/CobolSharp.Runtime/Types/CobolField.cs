@@ -39,6 +39,20 @@ public class CobolField
     /// </summary>
     public ReadOnlySpan<byte> RawBytes => _data;
 
+    /// <summary>Copy bytes from a buffer into this field's storage.</summary>
+    public void SetFromBytes(byte[] source, int sourceOffset = 0)
+    {
+        int len = Math.Min(_data.Length, source.Length - sourceOffset);
+        Array.Copy(source, sourceOffset, _data, 0, len);
+    }
+
+    /// <summary>Copy this field's bytes into a buffer.</summary>
+    public void CopyToBytes(byte[] target, int targetOffset = 0)
+    {
+        int len = Math.Min(_data.Length, target.Length - targetOffset);
+        Array.Copy(_data, 0, target, targetOffset, len);
+    }
+
     /// <summary>
     /// Get the display string value (ASCII interpretation).
     /// </summary>

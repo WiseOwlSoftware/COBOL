@@ -474,17 +474,44 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
-    public void FileIO_EmitsDiagnostic()
+    public void FileIO_WriteAndReadBack()
     {
-        var (success, stdout, stderr) = CompileAndRun("""
+        // Create a test data file path
+        string dataFile = Path.Combine(_tempDir, "testdata.dat");
+
+        var (success, stdout, stderr) = CompileAndRun($$"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. FILETEST.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT TEST-FILE ASSIGN TO "{{dataFile}}"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD TEST-FILE.
+            01 TEST-RECORD PIC X(20).
+            WORKING-STORAGE SECTION.
+            01 WS-REC PIC X(20).
+            01 WS-EOF PIC 9 VALUE 0.
             PROCEDURE DIVISION.
-                DISPLAY "Before file ops".
+                OPEN OUTPUT TEST-FILE.
+                MOVE "Hello File" TO TEST-RECORD.
+                WRITE TEST-RECORD.
+                MOVE "Line Two" TO TEST-RECORD.
+                WRITE TEST-RECORD.
+                CLOSE TEST-FILE.
+                OPEN INPUT TEST-FILE.
+                READ TEST-FILE
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY TEST-RECORD.
+                CLOSE TEST-FILE.
                 STOP RUN.
             """);
 
         Assert.True(success, $"Failed: {stderr}");
-        Assert.Equal("Before file ops", stdout);
+        // Should display the first record read back
+        Assert.StartsWith("Hello File", stdout);
     }
 }

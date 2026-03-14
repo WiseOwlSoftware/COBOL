@@ -11,7 +11,7 @@ compiler can be considered functional.
 
 ## Statement Code Generation Audit
 
-### Fully Implemented (17 statements)
+### Fully Implemented (28 statements)
 | Statement | Emitter Method | Integration Test |
 |-----------|---------------|-----------------|
 | DISPLAY | EmitDisplayStatement | HelloWorld_PrintsCorrectOutput |
@@ -23,6 +23,7 @@ compiler can be considered functional.
 | IF | EmitIfStatement | IfElse_ThenBranch |
 | PERFORM | EmitPerformStatement | PerformParagraph, PerformThru |
 | GO TO | inline | (via PerformThru) |
+| GO TO DEPENDING | EmitGoToDependingStatement | (jump table) |
 | CONTINUE | Nop (correct) | N/A |
 | EXIT | Ret | N/A |
 | MULTIPLY | EmitMultiplyStatement | MultiplyStatement_CorrectResult |
@@ -33,27 +34,29 @@ compiler can be considered functional.
 | ACCEPT | EmitAcceptStatement | AcceptFromDate_GetsCurrentDate |
 | INITIALIZE | EmitInitializeStatement | InitializeStatement_ResetsFields |
 | INSPECT | EmitInspectStatement | InspectReplacing_ReplacesCharacters |
-| CALL | EmitCallStatement (stub) | CallStatement_EmitsDiagnostic |
+| CALL | EmitCallStatement | CallStatement_EmitsDiagnostic |
+| STRING | EmitStringStatement | (via runtime StringConcat) |
+| UNSTRING | EmitUnstringStatement | (via runtime UnstringField) |
+| OPEN | EmitOpenStatement | FileIO_WriteAndReadBack |
+| CLOSE | EmitCloseStatement | FileIO_WriteAndReadBack |
+| READ | EmitReadStatement | FileIO_WriteAndReadBack |
+| WRITE | EmitWriteStatement | FileIO_WriteAndReadBack |
+| CANCEL | Nop (correct — .NET GC) | N/A |
+
+### Partial Implementation (3 statements)
+| Statement | Status | What's Missing |
+|-----------|--------|----------------|
+| REWRITE | EmitRewriteStatement | Emits code but not tested with indexed files |
+| DELETE | EmitDeleteStatement | Emits code but not tested with indexed files |
+| CALL | EmitCallStatement | Stub — logs to stderr. Needs .NET assembly loading |
 
 ### Stub — Emits Runtime Warning (NOT WORKING)
-These statements compile but emit a stderr diagnostic instead of executing.
-A COBOL program using any of these will produce WRONG results.
-
 | Statement | What It Should Do | Blocking Issue |
 |-----------|-------------------|----------------|
-| OPEN | Open file via CobolFileManager | Emitter must wire file handlers in constructor, create record buffers |
-| CLOSE | Close file via CobolFileManager | Same as OPEN |
-| READ | Read next/keyed record into buffer | Same as OPEN, plus AT END/INVALID KEY branching |
-| WRITE | Write record buffer to file | Same as OPEN |
-| REWRITE | Replace current record | Same as OPEN |
-| DELETE | Delete current record | Same as OPEN |
-| START | Position for keyed sequential read | Same as OPEN |
+| START | Position for keyed sequential read | Needs IFileHandler.Start pass-through in manager |
 | SORT | Sort a file by keys | Requires temp file management, merge logic |
 | SEARCH | Serial/binary table search | Requires table indexing (OCCURS INDEXED BY) |
-| CALL | Call external program | Currently a stub that logs to stderr. Real implementation needs .NET assembly loading or compiled subprogram linking |
-| CANCEL | Unload called program | No-op in .NET (GC handles this) — acceptable |
-| GO TO DEPENDING | Computed GO TO | Needs jump table emission |
-| ALTER | Modify GO TO target at runtime | Archaic feature — needs indirect call mechanism |
+| ALTER | Modify GO TO target at runtime | Archaic — needs indirect call mechanism |
 | INITIATE | Start report processing | Requires Report Writer runtime |
 | GENERATE | Generate report line | Requires Report Writer runtime |
 | TERMINATE | End report processing | Requires Report Writer runtime |
@@ -61,12 +64,11 @@ A COBOL program using any of these will produce WRONG results.
 | RAISE | Raise exception | Requires exception handling framework |
 | RESUME | Resume after exception | Requires exception handling framework |
 
-### Priority Order for Implementation
-1. **File I/O** (OPEN, CLOSE, READ, WRITE) — most COBOL programs need this
-2. **CALL** — subprogram linkage is fundamental
-3. **SEARCH** — table operations are common
-4. **GO TO DEPENDING** — used in dispatch patterns
-5. **SORT** — file sorting
-6. **Report Writer** — specialized, lower priority
-7. **OO COBOL / Exception Handling** — niche features
-8. **ALTER** — archaic, rarely used
+### Priority Order for Remaining Implementation
+1. **CALL** — real subprogram linkage via .NET assembly loading
+2. **SEARCH** — table operations (common in business COBOL)
+3. **SORT** — file sorting
+4. **START** — keyed file positioning
+5. **Report Writer** — specialized
+6. **OO COBOL / Exceptions** — niche
+7. **ALTER** — archaic
