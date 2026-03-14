@@ -138,6 +138,17 @@ public sealed class Parser
         return Peek().Kind == TokenKind.DivisionKeyword;
     }
 
+    /// <summary>
+    /// Checks if the current position is at END PROGRAM (the end of a compilation unit
+    /// in a multi-program source file). END is a keyword; PROGRAM is an identifier.
+    /// </summary>
+    private bool IsEndProgram()
+    {
+        if (Current.Kind != TokenKind.EndKeyword) return false;
+        return Peek().Kind == TokenKind.Identifier &&
+               Peek().Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsStatementStart(TokenKind kind) => kind is
         TokenKind.DisplayKeyword or TokenKind.StopKeyword or TokenKind.MoveKeyword or
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
@@ -1136,7 +1147,8 @@ public sealed class Parser
         var paragraphs = new List<Paragraph>();
         var sections = new List<Section>();
 
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
+               !IsEndProgram())
         {
             if (IsSectionHeader())
                 break;
@@ -1160,7 +1172,7 @@ public sealed class Parser
         }
 
         // Parse sections and/or standalone paragraphs
-        while (Current.Kind != TokenKind.EndOfFile)
+        while (Current.Kind != TokenKind.EndOfFile && !IsEndProgram())
         {
             if (IsSectionHeader())
             {
@@ -1211,7 +1223,7 @@ public sealed class Parser
 
         var paragraphs = new List<Paragraph>();
         while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind))
+               !IsDivisionKeyword(Current.Kind) && !IsEndProgram())
         {
             if (IsParagraphHeader())
             {
@@ -1238,7 +1250,7 @@ public sealed class Parser
         while (Current.Kind != TokenKind.EndOfFile && !Check(TokenKind.Period))
         {
             // Stop at structural boundaries (paragraph/section/division headers)
-            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart())
+            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart() || IsEndProgram())
                 break;
 
             if (IsStatementStart(Current.Kind))
@@ -1272,7 +1284,7 @@ public sealed class Parser
         var statements = new List<Statement>();
         while (Current.Kind != TokenKind.EndOfFile &&
                !IsParagraphHeader() && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind))
+               !IsDivisionKeyword(Current.Kind) && !IsEndProgram())
         {
             // Skip stray periods (empty sentences)
             if (Check(TokenKind.Period))
@@ -3326,7 +3338,9 @@ public sealed class Parser
 
             case TokenKind.LeftParen:
                 Advance();
-                var expr = ParseArithmeticExpression();
+                // Use ParseConditionExpression to handle both arithmetic and relational
+                // expressions inside parentheses — e.g., (A >= B) in IF conditions
+                var expr = ParseConditionExpression();
                 Expect(TokenKind.RightParen, "Expected closing parenthesis");
                 return expr;
 
