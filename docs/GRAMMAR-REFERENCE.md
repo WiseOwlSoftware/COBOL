@@ -2,6 +2,99 @@
 
 Extracted from the spec for lexer/parser implementation. Page references are to the PDF (physical = logical + 30).
 
+---
+
+## ANTLR4 Grammar Architecture (CobolSharp)
+
+CobolSharp uses a layered ANTLR4 grammar in `src/CobolSharp.Compiler/Grammar/`:
+
+### Grammar Files
+
+| File | Purpose |
+|------|---------|
+| `CobolLexer.g4` | Shared lexer — tokens, keywords, literals, punctuation |
+| `CobolParserCore.g4` | Procedural core — all divisions, statements, expressions |
+| `CobolParserOO.g4` | OO extension — CLASS, METHOD, INVOKE |
+| `CobolParserGenerics.g4` | Generics extension — TYPEDEF GENERIC |
+| `CobolParserJsonXml.g4` | JSON/XML extension — JSON PARSE/GENERATE, XML PARSE/GENERATE |
+| `CobolDialect.g4` | Dialect overlays — COBOL-85 compatibility (e.g., bare END as imperative) |
+
+### Architecture
+
+```
+Raw COBOL Source
+      │
+      ▼
+┌─────────────────────┐
+│ 1. Preprocessor     │  ReferenceFormatProcessor + CopyProcessor
+│    (not ANTLR)       │  Fixed→free normalization, COPY, REPLACE
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 2. ANTLR4 Lexer     │  CobolLexer.g4
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 3. ANTLR4 Parser    │  CobolParserCore.g4 + extensions
+│                     │  Produces parse tree (CST)
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 4. Semantic Analysis│  Context-sensitive validation
+│                     │  Name resolution, type checking
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 5. CIL Code Gen     │  Walks parse tree → .NET assembly
+└─────────────────────┘
+```
+
+### Statement Coverage (CobolParserCore.g4)
+
+**Fully expanded** (with all clauses, exception phrases, END-xxx terminators):
+- Arithmetic: ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE (with ON SIZE ERROR)
+- Data movement: MOVE (simple + CORRESPONDING)
+- String: STRING (DELIMITED BY, POINTER, OVERFLOW), UNSTRING (DELIMITER IN, COUNT IN, TALLYING)
+- Control flow: IF/END-IF, PERFORM (TIMES/UNTIL/VARYING)/END-PERFORM, EVALUATE (WHEN/OTHER)/END-EVALUATE
+- File I/O: READ (AT END, INVALID KEY)/END-READ, WRITE, OPEN, CLOSE, REWRITE/END-REWRITE, DELETE/END-DELETE, START
+- Sort/Merge: SORT (keys, USING/GIVING, INPUT/OUTPUT PROCEDURE)/END-SORT, MERGE/END-MERGE
+- Table: SEARCH (WHEN, AT END)/END-SEARCH, SEARCH ALL
+- Inter-program: CALL (BY REFERENCE/VALUE/CONTENT, RETURNING, ON EXCEPTION)/END-CALL, CANCEL
+- SET: TO value, TO TRUE/FALSE, ADDRESS OF, object reference, UP/DOWN BY
+- Sort I/O: RETURN (AT END)/END-RETURN, RELEASE
+- File management: DELETE FILE (2023, ON EXCEPTION)/END-DELETE
+- Flow: CONTINUE, NEXT SENTENCE, EXIT, GOBACK, GO TO, STOP
+- Other: ACCEPT, DISPLAY, INITIALIZE, INSPECT
+- 2023: JSON PARSE/GENERATE, XML PARSE/GENERATE, inline method invocation
+
+**Stub** (to be expanded): ACCEPT, DISPLAY, EXIT, GOBACK, GO TO, INITIALIZE, INSPECT
+
+### Expression Grammar (precedence, highest to lowest)
+
+1. NOT (logical negation)
+2. AND (logical conjunction)
+3. OR (logical disjunction)
+4. Relational: =, <>, <, <=, >, >=
+5. Additive: +, -
+6. Multiplicative: *, /
+7. Exponentiation: **
+8. Unary: +, -
+9. Primary: literal, identifier, (expression)
+
+### Dialect Support
+
+The grammar accepts a superset. Dialect-specific validation (COBOL-85 vs 2023)
+is handled in the semantic phase via a `CobolDialect` enum:
+
+```csharp
+enum CobolDialect { Cobol85, Cobol2002, Cobol2014, Cobol2023 }
+```
+
+COBOL-85 compatibility extensions (e.g., bare END as imperative statement,
+ALTER, NEXT SENTENCE) are accepted by the parser and gated in semantics.
+
+---
+
 ## Notation Conventions (§5)
 
 In the General Format definitions:
