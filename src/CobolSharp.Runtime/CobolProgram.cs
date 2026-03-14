@@ -96,4 +96,40 @@ public abstract class CobolProgram
     {
         target.SetNumericValue(target.GetNumericValue() - value);
     }
+
+    /// <summary>
+    /// MULTIPLY: target = target * value
+    /// </summary>
+    protected static void MultiplyBy(decimal value, CobolField target)
+    {
+        target.SetNumericValue(target.GetNumericValue() * value);
+    }
+
+    /// <summary>
+    /// DIVIDE: target = target / value (truncated to field's decimal places)
+    /// </summary>
+    protected static void DivideInto(decimal value, CobolField target)
+    {
+        if (value == 0)
+        {
+            // COBOL SIZE ERROR condition — for now, leave target unchanged
+            return;
+        }
+        target.SetNumericValue(target.GetNumericValue() / value);
+    }
+
+    /// <summary>
+    /// DIVIDE giving quotient and remainder: quotient = dividend / divisor
+    /// </summary>
+    protected static void DivideGiving(decimal dividend, decimal divisor,
+        CobolField quotient, CobolField? remainder)
+    {
+        if (divisor == 0) return;
+        decimal q = Math.Truncate(dividend / divisor);
+        quotient.SetNumericValue(q);
+        if (remainder != null)
+        {
+            remainder.SetNumericValue(dividend - (q * divisor));
+        }
+    }
 }

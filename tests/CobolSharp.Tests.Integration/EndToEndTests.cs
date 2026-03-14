@@ -291,4 +291,102 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Execution failed: {stderr}");
         Assert.Equal("Hello World", stdout);
     }
+
+    [Fact]
+    public void MultiplyStatement_CorrectResult()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MULTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC 9(5) VALUE 7.
+            PROCEDURE DIVISION.
+                MULTIPLY 6 BY WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00042", stdout);
+    }
+
+    [Fact]
+    public void DivideStatement_CorrectResult()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DIVTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC 9(5) VALUE 42.
+            PROCEDURE DIVISION.
+                DIVIDE 7 INTO WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00006", stdout);
+    }
+
+    [Fact]
+    public void EvaluateStatement_SelectsCorrectBranch()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EVALTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-CODE PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+                EVALUATE WS-CODE
+                    WHEN 1
+                        DISPLAY "One"
+                    WHEN 2
+                        DISPLAY "Two"
+                    WHEN OTHER
+                        DISPLAY "Other"
+                END-EVALUATE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("Two", stdout);
+    }
+
+    [Fact]
+    public void GobackStatement_ExitsProgram()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GOBACKTEST.
+            PROCEDURE DIVISION.
+                DISPLAY "Before".
+                GOBACK.
+                DISPLAY "After".
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("Before", stdout);
+    }
+
+    [Fact]
+    public void SetStatement_SetsValue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SETTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-IDX PIC 9(3) VALUE 0.
+            PROCEDURE DIVISION.
+                SET WS-IDX TO 42.
+                DISPLAY WS-IDX.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("042", stdout);
+    }
 }

@@ -1917,8 +1917,10 @@ public sealed class Parser
             advancing = new WriteAdvancing(isBefore, lines);
         }
 
-        // Skip INVALID KEY / END-WRITE
-        SkipToEndOfStatement();
+        // INVALID KEY / NOT INVALID KEY / AT END-OF-PAGE / NOT AT END-OF-PAGE
+        SkipExceptionPhrases(TokenKind.EndWriteKeyword);
+        Match(TokenKind.EndWriteKeyword);
+        Match(TokenKind.Period);
         return new WriteStatement(recordName, from, advancing,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1932,7 +1934,9 @@ public sealed class Parser
         Expression? from = null;
         if (Match(TokenKind.FromKeyword))
             from = ParseExpression();
-        SkipToEndOfStatement();
+        SkipExceptionPhrases(TokenKind.EndRewriteKeyword);
+        Match(TokenKind.EndRewriteKeyword);
+        Match(TokenKind.Period);
         return new RewriteStatement(recordName, from, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1942,7 +1946,9 @@ public sealed class Parser
         Advance(); // DELETE
         var fileToken = Expect(TokenKind.Identifier, "Expected file name");
         Match(TokenKind.RecordKeyword); // optional RECORD
-        SkipToEndOfStatement();
+        SkipExceptionPhrases(TokenKind.EndDeleteKeyword);
+        Match(TokenKind.EndDeleteKeyword);
+        Match(TokenKind.Period);
         return new DeleteStatement(fileToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1960,7 +1966,9 @@ public sealed class Parser
             keyCondition = TryParseRelationalOperator();
             keyIs = ParseExpression();
         }
-        SkipToEndOfStatement();
+        SkipExceptionPhrases(TokenKind.EndStartKeyword);
+        Match(TokenKind.EndStartKeyword);
+        Match(TokenKind.Period);
         return new StartStatement(fileToken.Text, keyCondition, keyIs,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2081,8 +2089,10 @@ public sealed class Parser
             returning = new IdentifierExpression(retToken.Text, retToken.Span);
         }
 
-        // Skip ON EXCEPTION / NOT ON EXCEPTION
-        SkipToEndOfStatement();
+        // ON EXCEPTION / NOT ON EXCEPTION
+        SkipExceptionPhrases(TokenKind.EndCallKeyword);
+        Match(TokenKind.EndCallKeyword);
+        Match(TokenKind.Period);
 
         return new CallStatement(programName, parameters, returning,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2150,8 +2160,10 @@ public sealed class Parser
             }
         }
 
-        // Skip ON OVERFLOW / NOT ON OVERFLOW for now
-        SkipToEndOfStatement();
+        // ON OVERFLOW / NOT ON OVERFLOW
+        SkipExceptionPhrases(TokenKind.EndStringKeyword);
+        Match(TokenKind.EndStringKeyword);
+        Match(TokenKind.Period);
 
         return new StringStatement(sources, target, pointer,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2189,14 +2201,14 @@ public sealed class Parser
         if (Check(TokenKind.Identifier) && Current.Text.Equals("TALLYING", StringComparison.OrdinalIgnoreCase))
         {
             Advance();
-            // Skip optional IN
-            if (Check(TokenKind.Identifier) && Current.Text.Equals("IN", StringComparison.OrdinalIgnoreCase))
-                Advance();
+            Match(TokenKind.InKeyword); // optional IN (now a keyword)
             var tallyToken = Expect(TokenKind.Identifier, "Expected tally counter");
             tallying = new IdentifierExpression(tallyToken.Text, tallyToken.Span);
         }
 
-        SkipToEndOfStatement();
+        SkipExceptionPhrases(TokenKind.EndUnstringKeyword);
+        Match(TokenKind.EndUnstringKeyword);
+        Match(TokenKind.Period);
 
         return new UnstringStatement(source, delimiter, targets, tallying,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2702,6 +2714,105 @@ public sealed class Parser
         return new GobackStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
+    /// <summary>
+    /// Skip exception/error handler phrases: ON EXCEPTION, ON OVERFLOW,
+    /// INVALID KEY, AT END, NOT ON EXCEPTION, NOT ON OVERFLOW, etc.
+    /// These appear in CALL, STRING, UNSTRING, READ, WRITE, DELETE, START, REWRITE.
+    /// </summary>
+    private void SkipExceptionPhrases(TokenKind endScopeTerminator)
+    {
+        // Skip phrases like ON EXCEPTION, ON OVERFLOW, INVALID KEY, AT END-OF-PAGE
+        while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+               Current.Kind != endScopeTerminator)
+        {
+            // ON EXCEPTION / ON OVERFLOW
+            if (Check(TokenKind.OnKeyword) &&
+                (Peek().Kind == TokenKind.ErrorKeyword || Peek().Kind == TokenKind.SizeKeyword ||
+                 (Peek().Kind == TokenKind.Identifier &&
+                  (Peek().Text.Equals("EXCEPTION", StringComparison.OrdinalIgnoreCase) ||
+                   Peek().Text.Equals("OVERFLOW", StringComparison.OrdinalIgnoreCase)))))
+            {
+                Advance(); Advance(); // ON + keyword
+                // Skip imperative statements
+                while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                       Current.Kind != endScopeTerminator && !Check(TokenKind.NotKeyword))
+                {
+                    if (IsStatementStart(Current.Kind))
+                        ParseStatement(); // discard
+                    else
+                        Advance();
+                }
+                continue;
+            }
+
+            // NOT ON EXCEPTION / NOT ON OVERFLOW / NOT INVALID KEY / NOT AT END
+            if (Check(TokenKind.NotKeyword))
+            {
+                int saved = _position;
+                Advance(); // NOT
+                if (Check(TokenKind.OnKeyword) || Check(TokenKind.InvalidKeyword) || Check(TokenKind.AtKeyword))
+                {
+                    Advance(); // ON/INVALID/AT
+                    // Skip the rest of the phrase keyword(s)
+                    while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                           Current.Kind != endScopeTerminator && !IsStatementStart(Current.Kind))
+                        Advance();
+                    // Skip imperative statements
+                    while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                           Current.Kind != endScopeTerminator)
+                    {
+                        if (IsStatementStart(Current.Kind))
+                            ParseStatement();
+                        else
+                            Advance();
+                    }
+                    continue;
+                }
+                _position = saved;
+                break;
+            }
+
+            // INVALID KEY
+            if (Check(TokenKind.InvalidKeyword))
+            {
+                Advance();
+                Match(TokenKind.KeyKeyword);
+                while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                       Current.Kind != endScopeTerminator && !Check(TokenKind.NotKeyword))
+                {
+                    if (IsStatementStart(Current.Kind))
+                        ParseStatement();
+                    else
+                        Advance();
+                }
+                continue;
+            }
+
+            // AT END / AT END-OF-PAGE
+            if (Check(TokenKind.AtKeyword))
+            {
+                Advance(); // AT
+                if (Check(TokenKind.EndKeyword)) Advance();
+                // Skip optional "-OF-PAGE" etc.
+                while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                       Current.Kind != endScopeTerminator && !Check(TokenKind.NotKeyword) &&
+                       !IsStatementStart(Current.Kind))
+                    Advance();
+                while (Current.Kind != TokenKind.Period && Current.Kind != TokenKind.EndOfFile &&
+                       Current.Kind != endScopeTerminator && !Check(TokenKind.NotKeyword))
+                {
+                    if (IsStatementStart(Current.Kind))
+                        ParseStatement();
+                    else
+                        Advance();
+                }
+                continue;
+            }
+
+            break;
+        }
+    }
+
     /// <summary>Skip ON SIZE ERROR / NOT ON SIZE ERROR phrases.</summary>
     private void SkipSizeErrorPhrases()
     {
@@ -2985,12 +3096,31 @@ public sealed class Parser
         while (Check(TokenKind.AndKeyword))
         {
             Advance();
+            // Check for abbreviated combined relation: A > B AND C
+            // If left is a relational expression and the next tokens look like
+            // a simple operand (not a full condition), expand using carried subject/operator
             var right = ParseNotExpression();
+
+            // If right is just a bare value (not a relational/logical expression),
+            // and left is a relational expression, expand the abbreviation
+            if (right is not BinaryExpression && left is BinaryExpression leftBin &&
+                IsRelationalOp(leftBin.Operator))
+            {
+                // A > B AND C → A > B AND A > C
+                right = new BinaryExpression(leftBin.Left, leftBin.Operator, right,
+                    TextSpan.FromBounds(right.Span.Start, right.Span.End));
+            }
+
             left = new BinaryExpression(left, BinaryOperator.And, right,
                 TextSpan.FromBounds(left.Span.Start, right.Span.End));
         }
         return left;
     }
+
+    private static bool IsRelationalOp(BinaryOperator op) => op is
+        BinaryOperator.Equal or BinaryOperator.NotEqual or
+        BinaryOperator.LessThan or BinaryOperator.GreaterThan or
+        BinaryOperator.LessThanOrEqual or BinaryOperator.GreaterThanOrEqual;
 
     private Expression ParseNotExpression()
     {

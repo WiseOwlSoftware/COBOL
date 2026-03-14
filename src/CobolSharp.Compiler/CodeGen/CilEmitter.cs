@@ -1,3 +1,4 @@
+using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Parsing;
 using CobolSharp.Compiler.Semantics;
@@ -40,6 +41,9 @@ public sealed class CilEmitter
     private MethodReference? _moveQuoteMethod;
     private MethodReference? _addToMethod;
     private MethodReference? _subtractFromMethod;
+    private MethodReference? _multiplyByMethod;
+    private MethodReference? _divideIntoMethod;
+    private MethodReference? _divideGivingMethod;
     private MethodReference? _getNumericValueMethod;
     private MethodReference? _getDisplayValueMethod;
 
@@ -161,6 +165,12 @@ public sealed class CilEmitter
             cobolProgramTypeDef.Methods.First(m => m.Name == "AddTo"));
         _subtractFromMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "SubtractFrom"));
+        _multiplyByMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "MultiplyBy"));
+        _divideIntoMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "DivideInto"));
+        _divideGivingMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "DivideGiving"));
 
         // CobolField methods
         _getNumericValueMethod = _module.ImportReference(
@@ -422,11 +432,17 @@ public sealed class CilEmitter
             case EvaluateStatement eval:
                 EmitEvaluateStatement(eval);
                 break;
-            case MultiplyStatement:
-            case DivideStatement:
-            case SetStatement:
+            case MultiplyStatement mul:
+                EmitMultiplyStatement(mul);
+                break;
+            case DivideStatement div:
+                EmitDivideStatement(div);
+                break;
+            case SetStatement set:
+                EmitSetStatement(set);
+                break;
             case SearchStatement:
-                _il!.Emit(OpCodes.Nop); // TODO: implement code generation
+                _il!.Emit(OpCodes.Nop); // TODO: SEARCH requires table indexing
                 break;
             case GobackStatement:
                 EmitStopRunStatement(); // GOBACK is equivalent to STOP RUN
@@ -439,22 +455,43 @@ public sealed class CilEmitter
 
     private void EmitEvaluateStatement(EvaluateStatement eval)
     {
-        // Emit EVALUATE as if-else chain
+        // Emit EVALUATE as if-else chain:
+        // EVALUATE subject WHEN val1 stmts WHEN val2 stmts WHEN OTHER stmts END-EVALUATE
+        // becomes:
+        // if (subject == val1) { stmts } else if (subject == val2) { stmts } else { stmts }
         var endLabel = _il!.Create(OpCodes.Nop);
 
         foreach (var whenClause in eval.WhenClauses)
         {
             var nextWhen = _il.Create(OpCodes.Nop);
 
-            // For each object in the WHEN clause, check equality with subject
-            // Multiple objects in one WHEN clause are OR'd together
-            foreach (var obj in whenClause.Objects)
+            // For multiple objects in one WHEN: OR them together
+            // WHEN 1 WHEN 2 → subject = 1 OR subject = 2
+            if (whenClause.Objects.Count == 1)
             {
-                // Simple implementation: always compare as equal for now
-                // Full implementation would emit the comparison
+                // Simple case: single WHEN object
+                EmitConditionExpression(
+                    new BinaryExpression(eval.Subject, BinaryOperator.Equal,
+                        whenClause.Objects[0],
+                        TextSpan.FromBounds(eval.Subject.Span.Start, whenClause.Objects[0].Span.End)));
+                _il.Emit(OpCodes.Brfalse, nextWhen);
+            }
+            else
+            {
+                // Multiple WHEN objects: OR them
+                var matchLabel = _il.Create(OpCodes.Nop);
+                foreach (var obj in whenClause.Objects)
+                {
+                    EmitConditionExpression(
+                        new BinaryExpression(eval.Subject, BinaryOperator.Equal, obj,
+                            TextSpan.FromBounds(eval.Subject.Span.Start, obj.Span.End)));
+                    _il.Emit(OpCodes.Brtrue, matchLabel);
+                }
+                _il.Emit(OpCodes.Br, nextWhen);
+                _il.Append(matchLabel);
             }
 
-            // Emit the statements
+            // Emit the statements for this WHEN
             foreach (var stmt in whenClause.Statements)
                 EmitStatement(stmt);
 
@@ -629,6 +666,48 @@ public sealed class CilEmitter
         _il.Emit(OpCodes.Call, _moveNumericMethod);
     }
 
+    private void EmitMultiplyStatement(MultiplyStatement mul)
+    {
+        // MULTIPLY operand BY target1 [target2 ...]
+        foreach (var target in mul.Targets)
+        {
+            if (!_fields.TryGetValue(target.Name, out var targetField))
+                continue;
+            EmitNumericExprValue(mul.Operand);
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            _il.Emit(OpCodes.Call, _multiplyByMethod);
+        }
+    }
+
+    private void EmitDivideStatement(DivideStatement div)
+    {
+        // DIVIDE operand INTO target
+        foreach (var target in div.Targets)
+        {
+            if (!_fields.TryGetValue(target.Name, out var targetField))
+                continue;
+            EmitNumericExprValue(div.Operand);
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            _il.Emit(OpCodes.Call, _divideIntoMethod);
+        }
+    }
+
+    private void EmitSetStatement(SetStatement set)
+    {
+        // SET target TO value — equivalent to MOVE for code gen purposes
+        foreach (var target in set.Targets)
+        {
+            if (!_fields.TryGetValue(target.Name, out var targetField))
+                continue;
+            EmitNumericExprValue(set.Value);
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            _il.Emit(OpCodes.Call, _moveNumericMethod);
+        }
+    }
+
     private void EmitIfStatement(IfStatement ifStmt)
     {
         var elseLabel = _il!.Create(OpCodes.Nop);
@@ -692,9 +771,61 @@ public sealed class CilEmitter
 
             _il.Append(loopEnd);
         }
+        else if (perform.Varying != null && perform.Until != null)
+        {
+            // PERFORM VARYING identifier FROM expr BY expr UNTIL condition
+            // 1. SET identifier TO from-value
+            // 2. Loop: test condition → exit if true
+            // 3. Execute body
+            // 4. ADD by-value TO identifier
+            // 5. Go to 2
+            var varying = perform.Varying;
+            if (_fields.TryGetValue(varying.Identifier.Name, out var varyField))
+            {
+                // Step 1: identifier = FROM value
+                EmitNumericExprValue(varying.From);
+                _il!.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, varyField);
+                _il.Emit(OpCodes.Call, _moveNumericMethod);
+
+                var loopStart = _il.Create(OpCodes.Nop);
+                var loopEnd = _il.Create(OpCodes.Nop);
+
+                _il.Append(loopStart);
+
+                // Step 2: test UNTIL condition
+                EmitConditionExpression(perform.Until);
+                _il.Emit(OpCodes.Brtrue, loopEnd);
+
+                // Step 3: execute body or call paragraph
+                if (perform.ParagraphName != null)
+                {
+                    string pName = perform.ParagraphName.ToUpperInvariant();
+                    if (_paragraphMethods.TryGetValue(pName, out var m))
+                    {
+                        _il.Emit(OpCodes.Ldarg_0);
+                        _il.Emit(OpCodes.Call, m);
+                    }
+                }
+                else
+                {
+                    foreach (var stmt in perform.Body)
+                        EmitStatement(stmt);
+                }
+
+                // Step 4: ADD BY value TO identifier
+                EmitNumericExprValue(varying.By);
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, varyField);
+                _il.Emit(OpCodes.Call, _addToMethod);
+
+                _il.Emit(OpCodes.Br, loopStart);
+                _il.Append(loopEnd);
+            }
+        }
         else if (perform.Until != null)
         {
-            // PERFORM UNTIL condition
+            // PERFORM UNTIL condition (inline or out-of-line)
             var loopStart = _il!.Create(OpCodes.Nop);
             var loopEnd = _il.Create(OpCodes.Nop);
 
@@ -702,8 +833,20 @@ public sealed class CilEmitter
             EmitConditionExpression(perform.Until);
             _il.Emit(OpCodes.Brtrue, loopEnd);
 
-            foreach (var stmt in perform.Body)
-                EmitStatement(stmt);
+            if (perform.ParagraphName != null)
+            {
+                string pName = perform.ParagraphName.ToUpperInvariant();
+                if (_paragraphMethods.TryGetValue(pName, out var m))
+                {
+                    _il.Emit(OpCodes.Ldarg_0);
+                    _il.Emit(OpCodes.Call, m);
+                }
+            }
+            else
+            {
+                foreach (var stmt in perform.Body)
+                    EmitStatement(stmt);
+            }
 
             _il.Emit(OpCodes.Br, loopStart);
             _il.Append(loopEnd);
