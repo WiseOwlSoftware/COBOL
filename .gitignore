@@ -1,5 +1,9 @@
 # ISO specification (copyrighted, not for distribution)
 *.pdf
+docs/spec-grammar/
+
+# Temp files
+temp_*.png
 
 # .NET build outputs
 bin/
@@ -30,3 +34,4 @@ coverage/
 # Compiled COBOL output (samples directory)
 samples/*.dll
 samples/*.runtimeconfig.json
+samples/*.pdb

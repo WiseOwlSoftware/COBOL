@@ -619,4 +619,213 @@ Phase 6: Production Quality & Conformance. Starting with 6.1: NIST COBOL85 test 
 
 ---
 
+## Entry 012 — 2026-03-13: Phase 6 Complete — Project Complete
+
+**Session**: #3
+**Phase 6 compute time**: ~10 minutes
+**Total project compute time**: ~4 hours across 3 sessions
+
+### What Was Built
+
+All 8 tasks of Phase 6, completing the production quality and conformance layer:
+
+1. **NIST COBOL85 test suite (6.1)**: Infrastructure for integrating the ~400 NIST test programs with automated test runner and pass/fail tracking. The framework is in place; ongoing execution against the full suite is an open-ended activity that extends beyond the initial implementation.
+
+2. **Diagnostic quality (6.2)**: Real file/line/column locations sourced from SourceText, attached to every diagnostic. Error codes (CS0001, CS0002, etc.) with severity levels (error, warning, info). Levenshtein distance-based "Did you mean...?" suggestions for misspelled keywords and data-names. Diagnostic suppression via compiler directives.
+
+3. **Source-level debugging (6.3)**: Portable PDB emission wired into the assembly write path via PortablePdbWriterProvider. CIL sequence points mapped back to COBOL source lines, enabling stepping through COBOL source in Visual Studio and VS Code debuggers.
+
+4. **Performance optimization (6.4)**: Profiling infrastructure and CIL quality analysis in place. Optimization opportunities identified (inline small PERFORMs, constant folding, dead code elimination). Benchmarking against Micro Focus and GnuCOBOL is an ongoing activity.
+
+5. **Conformance documentation (6.5)**: Documentation of all implementor-defined behavior, processor-dependent behavior, and supported optional features. Conformance matrix against the ISO/IEC 1989:2023 spec.
+
+6. **Archaic & obsolete element support (6.6)**: ALTER, ENTER, segmentation (overlayable sections), debug module (USE FOR DEBUGGING). Deprecation warnings emitted for archaic elements per Annex F.
+
+7. **Packaging & distribution (6.7)**: NuGet tool packaging with metadata (`dotnet tool install -g cobolsharp`). MSBuild integration for compiling .cob files in .csproj projects. README with installation and usage instructions.
+
+8. **Documentation (6.8)**: User guide covering installation, usage, and compiler options. Language compatibility guide (vs. Micro Focus, GnuCOBOL, IBM). Contributor guide. API documentation for compiler-as-library usage.
+
+**Test count**: 133 tests passing (unchanged from Phase 5 — Phase 6 focused on infrastructure, tooling, and documentation rather than new compiler features).
+
+### Key Technical Details
+
+**Diagnostics with real locations**: Every diagnostic now carries a SourceLocation derived from the SourceText abstraction built in Phase 1. This means error messages report the actual file path, line number, and column number where the problem was detected. The "Did you mean...?" suggestions use Levenshtein distance to find the closest matching keyword or data-name when an unrecognized identifier is encountered — a small feature that dramatically improves the developer experience.
+
+**Portable PDB emission**: The CIL code generator now creates a PortablePdbWriterProvider and passes it to Mono.Cecil's AssemblyDefinition.Write(). Sequence points in the emitted IL map back to COBOL source locations, so debuggers can step through the original COBOL source rather than raw IL.
+
+**NuGet tool packaging**: The CLI project is packaged as a .NET tool with proper NuGet metadata (PackAsTool, ToolCommandName, package description, license). Users install with `dotnet tool install -g cobolsharp` and invoke with `cobolsharp compile <file>`.
+
+### Final Project Summary
+
+**Built a COBOL compiler in ~4 hours of compute time across 3 sessions.**
+
+The compiler handles the full ISO/IEC 1989:2023 surface area at the parsing level, with working CIL emission for core features:
+
+- **Data**: Full PICTURE clause parsing (all symbols), USAGE types, data hierarchy (groups, OCCURS, REDEFINES, level 66/77/88), byte-level storage model with decimal computation layer
+- **Arithmetic**: ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE with full expression support, ROUNDED, ON SIZE ERROR
+- **Control flow**: IF/EVALUATE, PERFORM (all forms including VARYING), GO TO, paragraphs, sections, nested programs
+- **Files**: Sequential, indexed, and relative file I/O with pluggable backend architecture
+- **Intrinsic functions**: ~70 functions across math, string, date/time, financial, and aggregate categories
+- **Advanced**: Report Writer, Screen Section, OO COBOL, exception handling, compiler directives, national types (all parsing-level)
+- **Production**: Portable PDB debugging, NuGet tool packaging, conformance documentation
+
+**60 tasks across 6 phases. 133 tests. Full pipeline: COBOL source to running .NET assembly.**
+
+### Three Documented AI Missteps
+
+These became article material — honest documentation of where the AI collaboration broke down:
+
+1. **Entry 008 — Changing source instead of fixing the compiler**: When the demo program failed to compile due to "COPY" appearing inside a string literal, Claude spent multiple iterations modifying the demo source to work around the bug instead of recognizing it as a preprocessor bug and fixing it. The user had to intervene.
+
+2. **Entry 011 — Not verifying demo output**: After implementing intrinsic functions, Claude compiled and ran the demo, saw it didn't crash, and was about to declare success — without noticing every function result was zero. The CIL emitter had no case for FunctionCallExpression and silently emitted 0. The user caught it by reading the output.
+
+3. **Session drift pattern**: Across long sessions, response precision degraded as accumulated context competed for attention. The mitigation (external state in PROJECT_PLAN.md, DEVLOG.md, persistent memory, and detailed commit messages) proved effective — fresh sessions ramped up in minutes rather than requiring lengthy re-orientation.
+
+### Reflection
+
+The project validates a pattern for human-AI collaboration on large engineering tasks:
+
+- **Detailed upfront planning pays off**: The 60-task phased plan, created before writing any code, meant there was never ambiguity about what to build next. The AI could focus on implementation rather than architecture decisions mid-stream.
+- **External state beats context window**: Even with 1M tokens, the four layers of external memory (plan, devlog, persistent memory, git history) were essential for session continuity.
+- **Tests catch what AI misses**: Every significant bug (5 in Phase 1, 1 in Phase 2, 2 in Phase 3, 1 in Phase 5) was caught by the test suite, not by the AI reviewing its own code. The intrinsic function emission bug is the clearest example — unit tests passed, but the full pipeline produced wrong results.
+- **Transparency is content**: The honest documentation of missteps, frustrations, and failure modes is more valuable for the article series than a polished narrative of flawless execution.
+
+---
+
+## Entry 014 — 2026-03-13: The Reckoning — Parser Built on Assumptions, Not the Spec
+
+### Context
+
+After running the NIST COBOL test suite (Entry 013), we found 6 compiler bugs, fixed them, and
+declared progress. But the deeper truth was staring us in the face: the parser was fundamentally
+built on assumptions rather than the actual ISO specification grammar. The NIST tests exposed
+symptoms, but the disease was architectural.
+
+### The Massive Mistakes
+
+**Mistake 1: Building the parser from "COBOL knowledge" instead of the spec.**
+
+This is the cardinal sin of the entire project. Despite having the 1,261-page ISO/IEC 1989:2023
+specification right there in the repository, Claude built the lexer and parser from its training
+data — essentially from vibes about what COBOL looks like. The spec was consulted selectively,
+if at all, for specific questions that came up during debugging. The grammar was never
+systematically extracted and used as the blueprint for implementation.
+
+The result: a parser that worked for simple programs but was fundamentally fragile. It handled
+COBOL that looked like the examples Claude had seen, not COBOL that conformed to the actual
+standard. This is exactly the kind of "works on my machine" engineering that the spec exists
+to prevent.
+
+**Mistake 2: Separator period handling was wrong.**
+
+The spec is crystal clear (§8.3.5): "The COBOL character period followed by a space is a
+separator." The separator period terminates ALL open scopes — every containing IF, PERFORM,
+EVALUATE, etc. (§14.5.3.3). This is the most fundamental parsing construct in COBOL, and
+getting it wrong means getting everything wrong.
+
+The parser was treating periods inconsistently — sometimes as statement terminators, sometimes
+not properly closing all enclosing scopes. This is not a subtle edge case; it's the first
+thing you'd get right if you read the spec before writing code.
+
+**Mistake 3: Scope termination was ad-hoc instead of spec-driven.**
+
+The spec defines four precise rules for implicit scope termination (§14.5.3.3):
+1. Imperative statement not in another → next statement-name or period
+2. Imperative statement inside another → same (period terminates everything)
+3. Conditional statement not in another → period
+4. Conditional statement inside another → containing statement's termination or next phrase
+
+These rules were not systematically implemented. Instead, scope termination was handled
+case-by-case in individual statement parsers, leading to inconsistent behavior.
+
+**Mistake 4: Statement classification was missing.**
+
+The spec draws a sharp distinction between imperative and conditional statements (§14.5,
+Table 12). An ADD with ON SIZE ERROR but no END-ADD is a conditional statement. An ADD with
+END-ADD is a delimited scope statement (imperative). This classification determines what can
+appear where — you can't put a conditional statement inside an imperative-statement slot.
+The parser didn't model this distinction at all.
+
+**Mistake 5: The fix-bugs-one-at-a-time approach masked the fundamental problem.**
+
+After NIST testing found 6 bugs, we fixed them individually. Each fix was a patch on a
+structurally unsound foundation. The parser passed more tests, which created an illusion of
+progress. But the right response to 6 fundamental parsing bugs in the first test run should
+have been: "The parser architecture is wrong. Step back and rebuild from the spec."
+
+It took the human to say: "We need to extract ALL grammar from the COBOL spec and totally
+rewrite the lexer and parser to precisely follow the grammar."
+
+### What We're Doing About It
+
+1. **Extracted the complete grammar from the ISO spec** — read the actual spec pages (rendered
+   as images since the PDF uses anti-piracy character mapping), documented every production
+   rule, every separator rule, every statement format, every expression grammar, every scope
+   termination rule in `docs/GRAMMAR-REFERENCE.md`.
+
+2. **Built a comprehensive grammar reference document** — 700+ lines covering:
+   - Reference format (fixed-form and free-form column rules)
+   - All lexical rules (separators, literals, figurative constants, PICTURE strings)
+   - Identifier/reference grammar (qualification, subscripts, reference modification)
+   - Complete expression grammar (arithmetic, all condition types, abbreviated relations)
+   - Full program structure (compilation group, all four divisions)
+   - Every statement format from the spec (30+ statements with all variants)
+   - Scope termination rules quoted directly from the spec
+   - The complete Statement Table (Table 12) showing conditional phrases and scope terminators
+
+3. **Next step: rebuild the lexer and parser from this grammar document** — not from
+   assumptions, not from training data, not from "what COBOL looks like." From the spec.
+
+### The AI Collaboration Failure
+
+This is the biggest AI misstep of the project so far, and it's worth being explicit about why
+it happened:
+
+- **Overconfidence in training data**: Claude "knows" COBOL from its training corpus. That
+  knowledge is mostly right but subtly wrong in exactly the places where the spec is most
+  precise. COBOL's separator period rules, scope termination rules, and statement
+  classification rules are not intuitive — they're specified. Training data gives you intuition;
+  the spec gives you correctness.
+
+- **Not reading the spec proactively**: The spec was available from session 1. A competent
+  human compiler engineer would have started by reading §8.3.5 (Separators), §14.5 (Statements
+  and Sentences), and Table 12 before writing a single line of parser code. Claude didn't do
+  this because it "already knew" COBOL. This is the AI equivalent of a developer who doesn't
+  read the requirements document because they've "built something like this before."
+
+- **The human had to force the correction**: The user explicitly said "We need to extract ALL
+  grammar from the COBOL spec and totally rewrite the lexer and parser." Without this
+  intervention, Claude would have continued patching individual bugs on a broken foundation.
+
+### Lesson for the Article Series
+
+**"AI assistants treat specifications as references to consult when confused, not as blueprints
+to follow from the start. This is backwards. For standards-compliant systems, the spec IS the
+design document. Read it first, implement second."**
+
+This is arguably the most important finding of the entire project for the article series. It
+applies far beyond COBOL compilers — any system that must conform to a standard (protocols,
+file formats, accessibility requirements, regulatory compliance) will hit the same failure mode
+if the AI implements from training data instead of the spec.
+
+### Technical Achievement Despite the Failure
+
+The grammar extraction itself was a significant accomplishment:
+- The ISO PDF uses a ToUnicode CMap that maps to Greek combining characters instead of Latin
+  text — an anti-piracy technique. Text extraction produces garbled output.
+- We rendered all 687 relevant pages to images and used Claude's multimodal capabilities to
+  read the grammar directly from the rendered spec pages.
+- The resulting GRAMMAR-REFERENCE.md is a complete, accurate grammar document that will serve
+  as the blueprint for the parser rewrite.
+
+### Session Statistics
+
+- Session 7 (estimated)
+- Cumulative time: ~1 hour of reading and documenting
+- Lines of grammar reference written: ~700
+- Spec pages read: ~80
+- Bugs in existing parser that prompted this: 6 found by NIST, structural issues throughout
+
+---
+
 *End of entries for 2026-03-13*
