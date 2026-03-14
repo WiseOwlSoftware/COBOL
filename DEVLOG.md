@@ -1482,9 +1482,13 @@ documented on MOVE/ADD/SUBTRACT. NEXT SENTENCE semantics documented.
 4. **Fix the parser, not the source.** No "safety advance" workarounds added. Every fix properly
    consumes the tokens the grammar says should be there.
 
-### NIST Batch
+### NIST Results
 
-Running 391-program NIST batch to measure improvement from 192/391 (49.1%) baseline.
+NIST batch: **196/391 (50.1%)**, up from 192/391 (49.1%). +4 programs from grammar fixes.
+The modest improvement confirms most remaining failures are NOT parser issues:
+- ~17 programs: COPY-related undefined names (preprocessor needs NIST copybooks)
+- ~14 programs: continuation lines in preprocessor
+- ~164 programs: various emitter/semantic gaps beyond parser scope
 
 ### Parser Refactoring
 
