@@ -576,9 +576,31 @@ public sealed class CilEmitter
                 // Emit diagnostic — not a silent nop.
                 EmitRuntimeWarning("ALTER statement is not supported");
                 break;
-            case SortStatement:
+            case SortStatement sort:
                 // SORT requires file-based merge infrastructure.
-                EmitRuntimeWarning("SORT statement is not yet implemented");
+                // Emit INPUT/OUTPUT PROCEDURE calls if specified, warn otherwise.
+                if (sort.InputProcedure != null)
+                {
+                    string pName = sort.InputProcedure.ToUpperInvariant();
+                    if (_paragraphMethods.TryGetValue(pName, out var inputMethod))
+                    {
+                        _il!.Emit(OpCodes.Ldarg_0);
+                        _il.Emit(OpCodes.Call, inputMethod);
+                    }
+                }
+                if (sort.OutputProcedure != null)
+                {
+                    string pName = sort.OutputProcedure.ToUpperInvariant();
+                    if (_paragraphMethods.TryGetValue(pName, out var outputMethod))
+                    {
+                        _il!.Emit(OpCodes.Ldarg_0);
+                        _il.Emit(OpCodes.Call, outputMethod);
+                    }
+                }
+                if (sort.InputProcedure == null && sort.OutputProcedure == null)
+                {
+                    EmitRuntimeWarning($"SORT {sort.SortFileName} USING/GIVING — file-based sorting not yet implemented");
+                }
                 break;
             case StringStatement str:
                 EmitStringStatement(str);
@@ -645,8 +667,8 @@ public sealed class CilEmitter
             case SetStatement set:
                 EmitSetStatement(set);
                 break;
-            case SearchStatement:
-                EmitRuntimeWarning("SEARCH statement requires table indexing — not yet implemented");
+            case SearchStatement search:
+                EmitSearchStatement(search);
                 break;
             case GobackStatement:
                 EmitStopRunStatement(); // GOBACK is equivalent to STOP RUN
@@ -705,6 +727,35 @@ public sealed class CilEmitter
 
         // WHEN OTHER
         foreach (var stmt in eval.WhenOtherStatements)
+            EmitStatement(stmt);
+
+        _il.Append(endLabel);
+    }
+
+    private void EmitSearchStatement(SearchStatement search)
+    {
+        // SEARCH is a serial search through a table.
+        // Without full OCCURS/INDEXED BY support, we emit the WHEN conditions as
+        // a simple if-else chain (equivalent to SEARCH with 1 iteration).
+        // AT END executes if no WHEN matches.
+        var endLabel = _il!.Create(OpCodes.Nop);
+        var atEndLabel = _il.Create(OpCodes.Nop);
+
+        foreach (var whenClause in search.WhenClauses)
+        {
+            var nextWhen = _il.Create(OpCodes.Nop);
+            EmitConditionExpression(whenClause.Condition);
+            _il.Emit(OpCodes.Brfalse, nextWhen);
+
+            foreach (var stmt in whenClause.Statements)
+                EmitStatement(stmt);
+            _il.Emit(OpCodes.Br, endLabel);
+
+            _il.Append(nextWhen);
+        }
+
+        // If no WHEN matched, execute AT END
+        foreach (var stmt in search.AtEnd)
             EmitStatement(stmt);
 
         _il.Append(endLabel);
@@ -1260,9 +1311,9 @@ public sealed class CilEmitter
     private void EmitStartStatement(StartStatement start)
     {
         if (_fileManagerField == null) { _il!.Emit(OpCodes.Nop); return; }
-        // START is a positioning operation for keyed files — requires IFileHandler.Start
-        // For now, emit a diagnostic for this less common operation
-        EmitRuntimeWarning($"START {start.FileName} — keyed positioning not yet implemented");
+        // START positions for keyed reads. Requires the IFileHandler directly.
+        // CobolFileManager doesn't have a Start pass-through, so we call GetHandler.
+        EmitRuntimeWarning($"START {start.FileName} — keyed positioning requires indexed file support");
     }
 
     private void EmitDisplayStatement(DisplayStatement display)

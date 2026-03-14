@@ -239,12 +239,42 @@ public abstract class CobolProgram
     }
 
     /// <summary>
-    /// CALL programName — stub that writes a diagnostic to stderr.
-    /// Dynamic CALL is not supported; the emitter should generate static calls where possible.
+    /// CALL programName — attempts to find and run a CobolProgram subclass with the given name.
+    /// Searches loaded assemblies for a type matching the program name that derives from CobolProgram.
     /// </summary>
     protected static void CallProgram(string programName, CobolField[] parameters)
     {
-        Console.Error.WriteLine($"CALL not supported: {programName}");
+        // Search loaded assemblies for a CobolProgram subclass matching the name
+        string upperName = programName.Trim().ToUpperInvariant();
+        Type? programType = null;
+
+        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            try
+            {
+                foreach (var type in asm.GetTypes())
+                {
+                    if (type.IsSubclassOf(typeof(CobolProgram)) &&
+                        string.Equals(type.Name, upperName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        programType = type;
+                        break;
+                    }
+                }
+            }
+            catch { /* skip assemblies that can't be reflected */ }
+            if (programType != null) break;
+        }
+
+        if (programType == null)
+        {
+            Console.Error.WriteLine($"CALL: program '{programName}' not found in loaded assemblies");
+            return;
+        }
+
+        // Instantiate and call Run()
+        var instance = (CobolProgram)Activator.CreateInstance(programType)!;
+        instance.Run();
     }
 
     /// <summary>

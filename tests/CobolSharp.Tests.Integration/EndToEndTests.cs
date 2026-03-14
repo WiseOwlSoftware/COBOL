@@ -470,7 +470,7 @@ public class EndToEndTests : IDisposable
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("After call", stdout);
-        Assert.Contains("CALL not supported", stderr);
+        Assert.Contains("CALL:", stderr); // program not found diagnostic
     }
 
     [Fact]

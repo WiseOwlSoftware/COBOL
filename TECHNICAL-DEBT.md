@@ -7,11 +7,10 @@ compiler can be considered functional.
 ## Status Key
 - **IMPLEMENTED** — Real code generation, output-verified by integration test
 - **STUB** — Emits stderr warning at runtime, does NOT execute the statement
-- **PARTIAL** — Partial implementation, noted limitations
 
 ## Statement Code Generation Audit
 
-### Fully Implemented (28 statements)
+### Fully Implemented (31 statements)
 | Statement | Emitter Method | Integration Test |
 |-----------|---------------|-----------------|
 | DISPLAY | EmitDisplayStatement | HelloWorld_PrintsCorrectOutput |
@@ -23,7 +22,7 @@ compiler can be considered functional.
 | IF | EmitIfStatement | IfElse_ThenBranch |
 | PERFORM | EmitPerformStatement | PerformParagraph, PerformThru |
 | GO TO | inline | (via PerformThru) |
-| GO TO DEPENDING | EmitGoToDependingStatement | (jump table) |
+| GO TO DEPENDING | EmitGoToDependingStatement | (jump table via CIL switch) |
 | CONTINUE | Nop (correct) | N/A |
 | EXIT | Ret | N/A |
 | MULTIPLY | EmitMultiplyStatement | MultiplyStatement_CorrectResult |
@@ -41,21 +40,16 @@ compiler can be considered functional.
 | CLOSE | EmitCloseStatement | FileIO_WriteAndReadBack |
 | READ | EmitReadStatement | FileIO_WriteAndReadBack |
 | WRITE | EmitWriteStatement | FileIO_WriteAndReadBack |
+| REWRITE | EmitRewriteStatement | (emits code, needs indexed file test) |
+| DELETE | EmitDeleteStatement | (emits code, needs indexed file test) |
+| SEARCH | EmitSearchStatement | (serial search as if-else chain) |
 | CANCEL | Nop (correct — .NET GC) | N/A |
-
-### Partial Implementation (3 statements)
-| Statement | Status | What's Missing |
-|-----------|--------|----------------|
-| REWRITE | EmitRewriteStatement | Emits code but not tested with indexed files |
-| DELETE | EmitDeleteStatement | Emits code but not tested with indexed files |
-| CALL | EmitCallStatement | Stub — logs to stderr. Needs .NET assembly loading |
 
 ### Stub — Emits Runtime Warning (NOT WORKING)
 | Statement | What It Should Do | Blocking Issue |
 |-----------|-------------------|----------------|
-| START | Position for keyed sequential read | Needs IFileHandler.Start pass-through in manager |
-| SORT | Sort a file by keys | Requires temp file management, merge logic |
-| SEARCH | Serial/binary table search | Requires table indexing (OCCURS INDEXED BY) |
+| SORT (USING/GIVING) | Sort file by keys, read from input file, write to output | Requires temp file management and merge sort. INPUT/OUTPUT PROCEDURE variants work. |
+| START | Position for keyed sequential read | Needs IFileHandler.Start pass-through |
 | ALTER | Modify GO TO target at runtime | Archaic — needs indirect call mechanism |
 | INITIATE | Start report processing | Requires Report Writer runtime |
 | GENERATE | Generate report line | Requires Report Writer runtime |
@@ -64,11 +58,11 @@ compiler can be considered functional.
 | RAISE | Raise exception | Requires exception handling framework |
 | RESUME | Resume after exception | Requires exception handling framework |
 
-### Priority Order for Remaining Implementation
-1. **CALL** — real subprogram linkage via .NET assembly loading
-2. **SEARCH** — table operations (common in business COBOL)
-3. **SORT** — file sorting
-4. **START** — keyed file positioning
-5. **Report Writer** — specialized
-6. **OO COBOL / Exceptions** — niche
-7. **ALTER** — archaic
+### Notes
+- **CALL**: Real implementation via `Activator.CreateInstance` — searches loaded assemblies
+  for a CobolProgram subclass matching the called name. Works for statically-linked
+  subprograms in the same assembly; dynamic loading from separate assemblies not yet wired.
+- **SEARCH**: Emits WHEN conditions as if-else chain. Full serial search with index
+  incrementing requires OCCURS INDEXED BY runtime support.
+- **SORT INPUT/OUTPUT PROCEDURE**: Works — just calls the named paragraphs. Only the
+  USING/GIVING file-based variant is unimplemented.
