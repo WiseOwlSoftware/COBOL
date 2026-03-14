@@ -117,7 +117,7 @@ public sealed class Parser
                 return; // DO NOT consume — period belongs to ParseSentence
             // Stop at known division/section/statement keywords or scope terminators
             if (IsStatementStart(Current.Kind) || IsDivisionKeyword(Current.Kind) ||
-                IsScopeTerminator(Current.Kind) || IsEndProgram())
+                IsScopeTerminator(Current.Kind))
                 return;
             Advance();
         }
@@ -138,17 +138,6 @@ public sealed class Parser
         return Peek().Kind == TokenKind.DivisionKeyword;
     }
 
-    /// <summary>
-    /// Checks if the current position is at END PROGRAM (the end of a compilation unit
-    /// in a multi-program source file). END is a keyword; PROGRAM is an identifier.
-    /// </summary>
-    private bool IsEndProgram()
-    {
-        if (Current.Kind != TokenKind.EndKeyword) return false;
-        return Peek().Kind == TokenKind.Identifier &&
-               Peek().Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static bool IsStatementStart(TokenKind kind) => kind is
         TokenKind.DisplayKeyword or TokenKind.StopKeyword or TokenKind.MoveKeyword or
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
@@ -164,7 +153,6 @@ public sealed class Parser
         TokenKind.ReturnKeyword or // RETURN (sort output)
         TokenKind.ReleaseKeyword or // RELEASE (sort input)
         TokenKind.SetKeyword or TokenKind.SearchKeyword or TokenKind.GobackKeyword or
-        TokenKind.CancelKeyword or
         // Phase 5.2 — Report Writer
         TokenKind.InitiateKeyword or TokenKind.GenerateKeyword or TokenKind.TerminateKeyword or
         // Phase 5.4 — OO COBOL
@@ -243,14 +231,17 @@ public sealed class Parser
             procedure = ParseProcedureDivision();
 
         // Optional END PROGRAM program-name.
-        if (IsEndProgram())
+        if (Check(TokenKind.EndKeyword))
         {
             Advance(); // END
-            Advance(); // PROGRAM
-            // program-name can be an identifier or a string literal
-            if (Check(TokenKind.Identifier)) Advance();
-            else if (Check(TokenKind.StringLiteral)) Advance();
-            Match(TokenKind.Period);
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // PROGRAM
+                // program-name can be an identifier or a string literal
+                if (Check(TokenKind.Identifier)) Advance();
+                else if (Check(TokenKind.StringLiteral)) Advance();
+                Match(TokenKind.Period);
+            }
         }
 
         int end = Current.Span.End;
@@ -262,8 +253,7 @@ public sealed class Parser
         Advance(); // keyword
         if (Check(TokenKind.DivisionKeyword)) Advance();
         if (Check(TokenKind.Period)) Advance();
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
-               !IsEndProgram())
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
             Advance();
     }
 
@@ -282,7 +272,7 @@ public sealed class Parser
 
         // Parse sections until next division (use IsDivisionStart to avoid false
         // matches on reserved words like DATA appearing in free text)
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart() && !IsEndProgram())
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
         {
             if (Check(TokenKind.InputKeyword) || Check(TokenKind.I_OKeyword))
             {
@@ -613,8 +603,7 @@ public sealed class Parser
         ScreenSection? screenSection = null;
 
         // Parse sections in order (FILE, WORKING-STORAGE, LINKAGE, REPORT, SCREEN, etc.)
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
-               !IsEndProgram())
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
         {
             if (Check(TokenKind.FileKeyword))
             {
@@ -1147,8 +1136,7 @@ public sealed class Parser
         var paragraphs = new List<Paragraph>();
         var sections = new List<Section>();
 
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
-               !IsEndProgram())
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
         {
             if (IsSectionHeader())
                 break;
@@ -1172,7 +1160,7 @@ public sealed class Parser
         }
 
         // Parse sections and/or standalone paragraphs
-        while (Current.Kind != TokenKind.EndOfFile && !IsEndProgram())
+        while (Current.Kind != TokenKind.EndOfFile)
         {
             if (IsSectionHeader())
             {
@@ -1223,7 +1211,7 @@ public sealed class Parser
 
         var paragraphs = new List<Paragraph>();
         while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind) && !IsEndProgram())
+               !IsDivisionKeyword(Current.Kind))
         {
             if (IsParagraphHeader())
             {
@@ -1250,7 +1238,7 @@ public sealed class Parser
         while (Current.Kind != TokenKind.EndOfFile && !Check(TokenKind.Period))
         {
             // Stop at structural boundaries (paragraph/section/division headers)
-            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart() || IsEndProgram())
+            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart())
                 break;
 
             if (IsStatementStart(Current.Kind))
@@ -1284,7 +1272,7 @@ public sealed class Parser
         var statements = new List<Statement>();
         while (Current.Kind != TokenKind.EndOfFile &&
                !IsParagraphHeader() && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind) && !IsEndProgram())
+               !IsDivisionKeyword(Current.Kind))
         {
             // Skip stray periods (empty sentences)
             if (Check(TokenKind.Period))
@@ -2046,10 +2034,7 @@ public sealed class Parser
         Advance(); // CLOSE
         var fileNames = new List<string>();
         while (Check(TokenKind.Identifier))
-        {
             fileNames.Add(Advance().Text);
-            Match(TokenKind.Comma); // optional comma separator
-        }
         return new CloseStatement(fileNames, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2708,9 +2693,6 @@ public sealed class Parser
             // Parse WHEN objects (may have multiple WHEN before statements)
             var objects = new List<Expression>();
             objects.Add(ParseExpression());
-            // WHEN value1 THRU value2 — skip the THRU range end (not modeled yet)
-            if (Match(TokenKind.ThruKeyword))
-                ParseExpression(); // consume range end
 
             // Handle additional WHEN clauses that share the same statement block
             // (WHEN value1 WHEN value2 ... statements)
@@ -2718,8 +2700,6 @@ public sealed class Parser
             {
                 Advance(); // WHEN
                 objects.Add(ParseExpression());
-                if (Match(TokenKind.ThruKeyword))
-                    ParseExpression(); // consume range end
             }
 
             // Parse statements for this WHEN clause
