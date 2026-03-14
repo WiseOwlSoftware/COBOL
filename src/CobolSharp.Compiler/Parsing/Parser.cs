@@ -143,6 +143,10 @@ public sealed class Parser
     /// END is EndKeyword; PROGRAM is an Identifier in the keyword map but
     /// may also be lexed as an identifier depending on context.
     /// </summary>
+    /// <summary>
+    /// Issue 16 (§5.3.2): END PROGRAM program-name .
+    /// PROGRAM is typically lexed as Identifier since it's context-sensitive.
+    /// </summary>
     private bool IsEndProgram()
     {
         if (Current.Kind != TokenKind.EndKeyword) return false;
@@ -536,6 +540,23 @@ public sealed class Parser
             Expect(TokenKind.Period);
             var nameToken = Expect(TokenKind.Identifier, "Expected program name");
             programId = nameToken.Text;
+            // Issue 15 (§5.3.1): PROGRAM-ID. name [AS literal] [{COMMON|INITIAL|RECURSIVE} PROGRAM].
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("AS", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // AS
+                if (Check(TokenKind.StringLiteral)) Advance(); // literal
+            }
+            // COMMON, INITIAL, RECURSIVE modifiers
+            while (Check(TokenKind.Identifier))
+            {
+                string mod = Current.Text.ToUpperInvariant();
+                if (mod == "COMMON" || mod == "INITIAL" || mod == "RECURSIVE")
+                    Advance();
+                else break;
+            }
+            // Optional PROGRAM keyword
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase))
+                Advance();
             Match(TokenKind.Period);
         }
         else if (Check(TokenKind.ClassIdKeyword))
@@ -652,16 +673,38 @@ public sealed class Parser
             {
                 screenSection = ParseScreenSection();
             }
+            // Issue 18 (§5.5): LOCAL-STORAGE SECTION — parse as WORKING-STORAGE
+            else if (Check(TokenKind.Identifier) &&
+                     Current.Text.Equals("LOCAL-STORAGE", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // LOCAL-STORAGE
+                Match(TokenKind.SectionKeyword);
+                Match(TokenKind.Period);
+                // Parse entries and merge into working storage
+                var localEntries = new List<DataDescriptionEntry>();
+                while (IsLevelNumber())
+                    localEntries.Add(ParseDataDescriptionEntry());
+                if (ws == null)
+                    ws = new WorkingStorageSection(localEntries,
+                        TextSpan.FromBounds(start, Current.Span.Start));
+                else
+                {
+                    // Merge local-storage entries into working-storage
+                    foreach (var e in localEntries)
+                        ws.Entries.Add(e);
+                }
+            }
             else
             {
-                // Skip unrecognized section header (e.g., LOCAL-STORAGE)
+                // Skip unrecognized section header
                 Advance();
                 if (Check(TokenKind.SectionKeyword)) Advance();
                 if (Check(TokenKind.Period)) Advance();
                 while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart() &&
                        !Check(TokenKind.WorkingStorageKeyword) && !Check(TokenKind.LinkageKeyword) &&
                        !Check(TokenKind.FileKeyword) && !Check(TokenKind.ReportKeyword) &&
-                       !Check(TokenKind.ScreenKeyword))
+                       !Check(TokenKind.ScreenKeyword) &&
+                       !(Check(TokenKind.Identifier) && Current.Text.Equals("LOCAL-STORAGE", StringComparison.OrdinalIgnoreCase)))
                     Advance();
             }
         }
@@ -742,6 +785,31 @@ public sealed class Parser
                        !Check(TokenKind.RecordKeyword) && !Check(TokenKind.BlockKeyword) &&
                        !Check(TokenKind.LinageKeyword) && !Check(TokenKind.DataKeyword))
                     Advance();
+            }
+            // Issue 75 (§5.5): LINAGE clause
+            else if (Check(TokenKind.LinageKeyword))
+            {
+                Advance(); // LINAGE
+                Match(TokenKind.IsKeyword);
+                // integer or identifier (number of lines)
+                if (Check(TokenKind.IntegerLiteral) || Check(TokenKind.Identifier))
+                    Advance();
+                // Optional LINES
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("LINES", StringComparison.OrdinalIgnoreCase))
+                    Advance();
+                // Optional WITH FOOTING AT / LINES AT TOP / LINES AT BOTTOM
+                while (Check(TokenKind.WithKeyword) || Check(TokenKind.Identifier))
+                {
+                    string w = Current.Text.ToUpperInvariant();
+                    if (w == "WITH" || w == "FOOTING" || w == "LINES" || w == "TOP" || w == "BOTTOM")
+                    {
+                        Advance();
+                        Match(TokenKind.AtKeyword);
+                        if (Check(TokenKind.IntegerLiteral) || Check(TokenKind.Identifier))
+                            Advance();
+                    }
+                    else break;
+                }
             }
             else
             {
@@ -950,10 +1018,10 @@ public sealed class Parser
                     Advance();
                     Match(TokenKind.KeyKeyword);
                     Match(TokenKind.IsKeyword);
-                    // Multiple key names
+                    // Issue 80 (§5.5.1): Multiple key names — stop at clause keywords
                     while (Check(TokenKind.Identifier) &&
                            !Check(TokenKind.AscendingKeyword) && !Check(TokenKind.DescendingKeyword) &&
-                           !Check(TokenKind.IndexedKeyword))
+                           !Check(TokenKind.IndexedKeyword) && !IsDataClauseKeyword(Current.Kind))
                         Advance();
                 }
                 while (Check(TokenKind.IndexedKeyword))
@@ -979,8 +1047,47 @@ public sealed class Parser
             else if (Check(TokenKind.SynchronizedKeyword))
             {
                 Advance();
-                // Skip optional LEFT/RIGHT
-                if (Check(TokenKind.Identifier)) Advance();
+                // Issue 79 (§5.5.1): SYNC [LEFT|RIGHT] — only consume if LEFT or RIGHT
+                if (Check(TokenKind.Identifier))
+                {
+                    string syncDir = Current.Text.ToUpperInvariant();
+                    if (syncDir == "LEFT" || syncDir == "RIGHT")
+                        Advance();
+                }
+            }
+            // Issue 77 (§5.5.1): SIGN IS LEADING/TRAILING [SEPARATE CHARACTER]
+            else if (Check(TokenKind.Identifier) && Current.Text.Equals("SIGN", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // SIGN
+                Match(TokenKind.IsKeyword); // optional IS
+                if (Check(TokenKind.Identifier))
+                {
+                    string signDir = Current.Text.ToUpperInvariant();
+                    if (signDir == "LEADING" || signDir == "TRAILING")
+                    {
+                        Advance();
+                        // SEPARATE [CHARACTER]
+                        if (Check(TokenKind.Identifier) && Current.Text.Equals("SEPARATE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Advance();
+                            if (Check(TokenKind.Identifier) && Current.Text.Equals("CHARACTER", StringComparison.OrdinalIgnoreCase))
+                                Advance();
+                        }
+                    }
+                }
+            }
+            // Issue 77 (§5.5.1): LEADING/TRAILING without SIGN prefix (shorthand)
+            else if (Check(TokenKind.Identifier) &&
+                     (Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase) ||
+                      Current.Text.Equals("TRAILING", StringComparison.OrdinalIgnoreCase)))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("SEPARATE", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance();
+                    if (Check(TokenKind.Identifier) && Current.Text.Equals("CHARACTER", StringComparison.OrdinalIgnoreCase))
+                        Advance();
+                }
             }
             else if (Check(TokenKind.GlobalKeyword) || Check(TokenKind.ExternalKeyword))
             {
@@ -1217,15 +1324,37 @@ public sealed class Parser
 
     private bool IsParagraphHeader()
     {
-        if (Current.Kind != TokenKind.Identifier) return false;
-        return Peek().Kind == TokenKind.Period;
+        // Issue 22 (§6.3): Paragraph names can be identifiers or certain keyword tokens
+        // that serve as user-defined names in context
+        if (Current.Kind == TokenKind.Identifier)
+            return Peek().Kind == TokenKind.Period;
+        // Allow keyword tokens as paragraph names when followed by period
+        // (context-dependent: reserved words used as paragraph names in legacy code)
+        if (IsUserDefinableKeyword(Current.Kind) && Peek().Kind == TokenKind.Period)
+            return true;
+        return false;
     }
 
     private bool IsSectionHeader()
     {
-        if (Current.Kind != TokenKind.Identifier) return false;
-        return Peek().Kind == TokenKind.SectionKeyword;
+        // Issue 21 (§6.3): Section names can be identifiers or certain keyword tokens
+        if (Current.Kind == TokenKind.Identifier)
+            return Peek().Kind == TokenKind.SectionKeyword;
+        if (IsUserDefinableKeyword(Current.Kind) && Peek().Kind == TokenKind.SectionKeyword)
+            return true;
+        return false;
     }
+
+    /// <summary>
+    /// Issues 21-22: Keywords that can serve as user-defined paragraph/section names
+    /// in legacy COBOL code. These are keywords that appear in statements but may
+    /// also be used as procedure names.
+    /// </summary>
+    private static bool IsUserDefinableKeyword(TokenKind kind) => kind is
+        TokenKind.InputKeyword or TokenKind.OutputKeyword or TokenKind.ExtendKeyword or
+        TokenKind.ErrorKeyword or TokenKind.StatusKeyword or TokenKind.FileKeyword or
+        TokenKind.RecordKeyword or TokenKind.LineKeyword or TokenKind.SequentialKeyword or
+        TokenKind.DynamicKeyword or TokenKind.RandomKeyword;
 
     private Section ParseSection()
     {
@@ -1453,7 +1582,7 @@ public sealed class Parser
                !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
                !Check(TokenKind.EndDisplayKeyword))
         {
-            // Skip optional UPON clause
+            // Issue 31 (§7.8): UPON clause
             if (Check(TokenKind.Identifier) && Current.Text.Equals("UPON", StringComparison.OrdinalIgnoreCase))
             {
                 Advance(); // UPON
@@ -1489,7 +1618,39 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // STOP
+
+        // Issue 30 (§7.23): STOP literal (archaic format)
+        if (Check(TokenKind.StringLiteral) || Check(TokenKind.IntegerLiteral) ||
+            Check(TokenKind.DecimalLiteral))
+        {
+            Advance(); // consume the literal
+            return new StopRunStatement(TextSpan.FromBounds(start, Current.Span.Start));
+        }
+
         Expect(TokenKind.RunKeyword, "Expected RUN after STOP");
+
+        // Issue 29 (§7.23): STOP RUN [WITH {ERROR|NORMAL} STATUS {identifier|literal}]
+        if (Check(TokenKind.WithKeyword))
+        {
+            Advance(); // WITH
+            // ERROR or NORMAL
+            if (Check(TokenKind.ErrorKeyword))
+                Advance();
+            else if (Check(TokenKind.Identifier) &&
+                     (Current.Text.Equals("NORMAL", StringComparison.OrdinalIgnoreCase) ||
+                      Current.Text.Equals("ERROR", StringComparison.OrdinalIgnoreCase)))
+                Advance();
+            // STATUS
+            if (Check(TokenKind.StatusKeyword))
+                Advance();
+            else if (Check(TokenKind.Identifier) && Current.Text.Equals("STATUS", StringComparison.OrdinalIgnoreCase))
+                Advance();
+            // identifier or literal
+            if (Check(TokenKind.Identifier) || Check(TokenKind.IntegerLiteral) ||
+                Check(TokenKind.StringLiteral))
+                Advance();
+        }
+
         return new StopRunStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1500,7 +1661,8 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // MOVE
 
-        // MOVE CORRESPONDING/CORR — skip the keyword, treat as regular MOVE
+        // Issue 27 (§7.16): MOVE CORRESPONDING/CORR — consume the keyword
+        // CORRESPONDING flag is consumed but not modeled in AST (semantic difference)
         Match(TokenKind.CorrespondingKeyword);
 
         var source = ParseExpression();
@@ -1542,7 +1704,7 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // ADD
 
-        // ADD CORRESPONDING/CORR
+        // Issue 25 (§7.2): ADD CORRESPONDING/CORR — consumed but not modeled
         Match(TokenKind.CorrespondingKeyword);
 
         var operands = new List<Expression>();
@@ -1577,12 +1739,12 @@ public sealed class Parser
             if (Check(TokenKind.LeftParen))
             {
                 var subId = ParseSubscriptOrRefMod(id);
-                Match(TokenKind.RoundedKeyword);
+                ConsumeRoundedPhrase();
                 targets.Add(subId);
             }
             else
             {
-                Match(TokenKind.RoundedKeyword); // optional ROUNDED
+                ConsumeRoundedPhrase(); // optional ROUNDED
                 targets.Add(new IdentifierExpression(id.Text, id.Span));
             }
         }
@@ -1596,12 +1758,12 @@ public sealed class Parser
                 if (Check(TokenKind.LeftParen))
                 {
                     var subId = ParseSubscriptOrRefMod(id);
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(subId);
                 }
                 else
                 {
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(new IdentifierExpression(id.Text, id.Span));
                 }
             }
@@ -1620,7 +1782,7 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // SUBTRACT
 
-        // SUBTRACT CORRESPONDING/CORR
+        // Issue 26 (§7.25): SUBTRACT CORRESPONDING/CORR — consumed but not modeled
         Match(TokenKind.CorrespondingKeyword);
 
         var operands = new List<Expression>();
@@ -1651,12 +1813,12 @@ public sealed class Parser
             if (Check(TokenKind.LeftParen))
             {
                 var subId = ParseSubscriptOrRefMod(id);
-                Match(TokenKind.RoundedKeyword);
+                ConsumeRoundedPhrase();
                 targets.Add(subId);
             }
             else
             {
-                Match(TokenKind.RoundedKeyword);
+                ConsumeRoundedPhrase();
                 targets.Add(new IdentifierExpression(id.Text, id.Span));
             }
         }
@@ -1669,12 +1831,12 @@ public sealed class Parser
                 if (Check(TokenKind.LeftParen))
                 {
                     var subId = ParseSubscriptOrRefMod(id);
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(subId);
                 }
                 else
                 {
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(new IdentifierExpression(id.Text, id.Span));
                 }
             }
@@ -1711,7 +1873,7 @@ public sealed class Parser
         {
             target = new IdentifierExpression(targetToken.Text, targetToken.Span);
         }
-        Match(TokenKind.RoundedKeyword); // optional ROUNDED
+        ConsumeRoundedPhrase(); // optional ROUNDED
 
         // Consume additional targets until = sign (Issue 28)
         while (Check(TokenKind.Identifier) && !Check(TokenKind.Equals))
@@ -1735,7 +1897,7 @@ public sealed class Parser
                     Advance();
                 }
             }
-            Match(TokenKind.RoundedKeyword); // optional ROUNDED on additional target
+            ConsumeRoundedPhrase(); // optional ROUNDED on additional target
         }
 
         Expect(TokenKind.Equals, "Expected = in COMPUTE statement");
@@ -1807,7 +1969,18 @@ public sealed class Parser
         if (Check(TokenKind.UntilKeyword))
         {
             Advance();
-            var until = ParseConditionExpression();
+            // Issue 60 (§7.19): PERFORM UNTIL EXIT — infinite loop
+            Expression until;
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("EXIT", StringComparison.OrdinalIgnoreCase))
+            {
+                // UNTIL EXIT = infinite loop; use TRUE as a never-true "until" condition
+                var exitToken = Advance();
+                until = new NumericLiteralExpression(0, exitToken.Span); // FALSE = never exit
+            }
+            else
+            {
+                until = ParseConditionExpression();
+            }
             var body = ParseImperativeStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
             return new PerformStatement(null, body, null, until,
@@ -2009,6 +2182,17 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // CONTINUE
+
+        // Issue 68 (§7.7): CONTINUE [AFTER arithmetic-expression SECONDS]
+        if (Check(TokenKind.AfterKeyword))
+        {
+            Advance(); // AFTER
+            ParseArithmeticExpression(); // seconds expression
+            // SECONDS keyword
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("SECONDS", StringComparison.OrdinalIgnoreCase))
+                Advance();
+        }
+
         return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2026,7 +2210,16 @@ public sealed class Parser
             if (word == "PARAGRAPH") { Advance(); kind = ExitType.Paragraph; }
             else if (word == "SECTION") { Advance(); kind = ExitType.Section; }
             else if (word == "PROGRAM") { Advance(); kind = ExitType.Program; }
-            else if (word == "PERFORM") { Advance(); kind = ExitType.Perform; }
+            else if (word == "PERFORM")
+            {
+                Advance(); kind = ExitType.Perform;
+                // Issue 34 (§7.11): EXIT PERFORM [CYCLE]
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("CYCLE", StringComparison.OrdinalIgnoreCase))
+                    Advance();
+            }
+            // Issue 35 (§7.11): EXIT FUNCTION / EXIT METHOD
+            else if (word == "FUNCTION") { Advance(); kind = ExitType.Program; }
+            else if (word == "METHOD") { Advance(); kind = ExitType.Program; }
         }
         else if (Check(TokenKind.ProcedureKeyword))
         {
@@ -2053,7 +2246,7 @@ public sealed class Parser
             if (Check(TokenKind.Identifier))
             {
                 fromSource = Advance().Text.ToUpperInvariant();
-                // Issue 23: Consume YYYYMMDD/YYYYDDD modifier after DATE/DAY
+                // Issue 23 (§7.1): Consume YYYYMMDD/YYYYDDD modifier after DATE/DAY
                 if ((fromSource == "DATE" || fromSource == "DAY") && Check(TokenKind.Identifier))
                 {
                     string modifier = Current.Text.ToUpperInvariant();
@@ -2062,6 +2255,10 @@ public sealed class Parser
                 }
             }
         }
+
+        // Issue 24 (§7.1): ON EXCEPTION / NOT ON EXCEPTION / END-ACCEPT
+        SkipExceptionPhrases(TokenKind.EndAcceptKeyword);
+        Match(TokenKind.EndAcceptKeyword);
 
         return new AcceptStatement(target, fromSource,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2079,6 +2276,43 @@ public sealed class Parser
         {
             var tok = Advance();
             targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+        }
+
+        // Issue 38 (§7.14): [WITH FILLER] [THEN REPLACING {category DATA BY {id|lit}}...]
+        //                    [THEN TO DEFAULT]
+        if (Check(TokenKind.WithKeyword))
+        {
+            Advance(); // WITH
+            if (Check(TokenKind.FillerKeyword)) Advance(); // FILLER
+        }
+        // REPLACING clause
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("REPLACING", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // REPLACING
+            // Loop: category DATA BY value
+            while (Check(TokenKind.Identifier) || Check(TokenKind.NumericKeyword) ||
+                   Check(TokenKind.AlphabeticKeyword) || Check(TokenKind.NationalKeyword))
+            {
+                // Category: ALPHABETIC, ALPHANUMERIC, NATIONAL, NUMERIC, etc.
+                Advance();
+                // Optional DATA keyword
+                if (Check(TokenKind.DataKeyword)) Advance();
+                // BY
+                if (Check(TokenKind.ByKeyword))
+                {
+                    Advance();
+                    ParseExpression(); // replacement value
+                }
+                else break;
+            }
+        }
+        // THEN TO DEFAULT
+        if (Check(TokenKind.ThenKeyword))
+        {
+            Advance(); // THEN
+            if (Check(TokenKind.ToKeyword)) Advance(); // TO
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase))
+                Advance();
         }
 
         return new InitializeStatement(targets,
@@ -2106,7 +2340,38 @@ public sealed class Parser
             var fileNames = new List<string>();
             while (Check(TokenKind.Identifier))
             {
+                // Issue 41 (§7.18): Skip SHARING clause
+                if (Current.Text.Equals("SHARING", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance(); // SHARING
+                    if (Check(TokenKind.WithKeyword)) Advance();
+                    // ALL OTHER or NO OTHER or ALL
+                    while (Check(TokenKind.AllKeyword) || Check(TokenKind.Identifier))
+                    {
+                        string w = Current.Text.ToUpperInvariant();
+                        if (w == "ALL" || w == "OTHER" || w == "NO" || w == "READ" || w == "ONLY")
+                            Advance();
+                        else break;
+                    }
+                    continue;
+                }
                 fileNames.Add(Advance().Text);
+                // Issue 41 (§7.18): Skip WITH NO REWIND after file name
+                if (Check(TokenKind.WithKeyword))
+                {
+                    int saved = _position;
+                    Advance(); // WITH
+                    if (Check(TokenKind.Identifier) && Current.Text.Equals("NO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Advance(); // NO
+                        if (Check(TokenKind.Identifier) && Current.Text.Equals("REWIND", StringComparison.OrdinalIgnoreCase))
+                            Advance(); // REWIND
+                    }
+                    else
+                    {
+                        _position = saved; // not WITH NO REWIND, restore
+                    }
+                }
             }
             clauses.Add(new OpenClause(mode, fileNames));
         }
@@ -2151,8 +2416,11 @@ public sealed class Parser
         var fileNameToken = Expect(TokenKind.Identifier, "Expected file name after READ");
         string fileName = fileNameToken.Text;
 
-        // Optional NEXT RECORD
-        Match(TokenKind.NextKeyword);
+        // Issue 43 (§7.20): Optional NEXT/PREVIOUS RECORD
+        if (Match(TokenKind.NextKeyword))
+        { /* consumed NEXT */ }
+        else if (Check(TokenKind.Identifier) && Current.Text.Equals("PREVIOUS", StringComparison.OrdinalIgnoreCase))
+            Advance();
         if (Check(TokenKind.RecordKeyword)) Advance();
 
         // INTO identifier
@@ -2194,6 +2462,13 @@ public sealed class Parser
             Advance(); Match(TokenKind.KeyKeyword);
             atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
         }
+        // Issue 44 (§7.20): NOT INVALID KEY handler
+        if (Check(TokenKind.NotKeyword) && Peek().Kind == TokenKind.InvalidKeyword)
+        {
+            Advance(); Advance(); // NOT INVALID
+            Match(TokenKind.KeyKeyword);
+            notAtEnd = ParseImperativeStatements(TokenKind.EndReadKeyword);
+        }
 
         Match(TokenKind.EndReadKeyword);
 
@@ -2205,6 +2480,10 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // WRITE
+
+        // Issue 45 (§7.27): WRITE {record-name | FILE file-name}
+        if (Check(TokenKind.FileKeyword))
+            Advance(); // consume FILE keyword prefix
 
         var recToken = Expect(TokenKind.Identifier, "Expected record name after WRITE");
         var recordName = new IdentifierExpression(recToken.Text, recToken.Span);
@@ -2243,6 +2522,9 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // REWRITE
+        // Issue 46 (§7.29): REWRITE {record-name | FILE file-name}
+        if (Check(TokenKind.FileKeyword))
+            Advance(); // consume FILE keyword prefix
         var recToken = Expect(TokenKind.Identifier, "Expected record name");
         var recordName = new IdentifierExpression(recToken.Text, recToken.Span);
         Expression? from = null;
@@ -2313,6 +2595,30 @@ public sealed class Parser
             }
         }
 
+        // Issue 49 (§7.33): WITH DUPLICATES IN ORDER
+        if (Check(TokenKind.WithKeyword))
+        {
+            Advance(); // WITH
+            if (Check(TokenKind.DuplicatesKeyword))
+            {
+                Advance(); // DUPLICATES
+                if (Check(TokenKind.InKeyword)) Advance(); // IN
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("ORDER", StringComparison.OrdinalIgnoreCase))
+                    Advance(); // ORDER
+            }
+        }
+
+        // Issue 50 (§7.33): COLLATING SEQUENCE IS alphabet-name
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("COLLATING", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // COLLATING
+            if (Check(TokenKind.SequentialKeyword) || (Check(TokenKind.Identifier) &&
+                Current.Text.Equals("SEQUENCE", StringComparison.OrdinalIgnoreCase)))
+                Advance(); // SEQUENCE
+            Match(TokenKind.IsKeyword); // IS
+            if (Check(TokenKind.Identifier)) Advance(); // alphabet-name
+        }
+
         string? inputProc = null, usingFile = null, outputProc = null, givingFile = null;
 
         // INPUT PROCEDURE / USING
@@ -2324,12 +2630,22 @@ public sealed class Parser
                 Advance();
                 Match(TokenKind.IsKeyword);
                 inputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
+                // Issue 47 (§7.33): THRU in INPUT/OUTPUT PROCEDURE
+                if (Match(TokenKind.ThruKeyword))
+                {
+                    if (Check(TokenKind.Identifier)) Advance(); // end procedure name
+                }
             }
         }
         else if (Check(TokenKind.UsingKeyword))
         {
             Advance();
             usingFile = Expect(TokenKind.Identifier, "Expected file name after USING").Text;
+            // Issue 48 (§7.33): Multiple USING files
+            while (Check(TokenKind.Identifier) &&
+                   !Current.Text.Equals("OUTPUT", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("GIVING", StringComparison.OrdinalIgnoreCase))
+                Advance();
         }
 
         // OUTPUT PROCEDURE / GIVING
@@ -2341,12 +2657,21 @@ public sealed class Parser
                 Advance();
                 Match(TokenKind.IsKeyword);
                 outputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
+                // Issue 47 (§7.33): THRU in INPUT/OUTPUT PROCEDURE
+                if (Match(TokenKind.ThruKeyword))
+                {
+                    if (Check(TokenKind.Identifier)) Advance(); // end procedure name
+                }
             }
         }
         else if (Check(TokenKind.GivingKeyword))
         {
             Advance();
             givingFile = Expect(TokenKind.Identifier, "Expected file name after GIVING").Text;
+            // Issue 48 (§7.33): Multiple GIVING files
+            while (Check(TokenKind.Identifier) &&
+                   !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+                Advance();
         }
 
         return new SortStatement(fileToken.Text, keys, inputProc, usingFile, outputProc, givingFile,
@@ -2386,6 +2711,15 @@ public sealed class Parser
                     }
                 }
 
+                // Issue 51 (§7.3): Handle OMITTED keyword
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("OMITTED", StringComparison.OrdinalIgnoreCase))
+                {
+                    var omitToken = Advance();
+                    var omitExpr = new StringLiteralExpression("OMITTED", omitToken.Span);
+                    parameters.Add(new CallParameter(omitExpr, convention));
+                    continue;
+                }
+
                 var paramExpr = ParseExpression();
                 parameters.Add(new CallParameter(paramExpr, convention));
             }
@@ -2413,7 +2747,14 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // CANCEL
+
+        // Issue 62 (§7.4): CANCEL accepts multiple operands
         var programName = ParseExpression();
+        while (Check(TokenKind.Identifier) || Check(TokenKind.StringLiteral))
+        {
+            ParseExpression(); // consume additional operands (not modeled in AST)
+        }
+
         return new CancelStatement(programName,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2487,21 +2828,55 @@ public sealed class Parser
         var source = new IdentifierExpression(sourceToken.Text, sourceToken.Span);
 
         Expression? delimiter = null;
-        // DELIMITED BY
+        // DELIMITED BY [ALL] delimiter [OR [ALL] delimiter] ...
         if (Check(TokenKind.Identifier) && Current.Text.Equals("DELIMITED", StringComparison.OrdinalIgnoreCase))
         {
-            Advance();
-            Match(TokenKind.ByKeyword);
+            Advance(); // DELIMITED
+            Match(TokenKind.ByKeyword); // BY
+            Match(TokenKind.AllKeyword); // Issue 54: optional ALL
             delimiter = ParseExpression();
+            // Issue 54 (§7.26): OR [ALL] delimiter ...
+            while (Check(TokenKind.OrKeyword))
+            {
+                Advance(); // OR
+                Match(TokenKind.AllKeyword); // optional ALL
+                ParseExpression(); // additional delimiter (consumed, not modeled)
+            }
         }
 
         Expect(TokenKind.IntoKeyword, "Expected INTO in UNSTRING statement");
 
         var targets = new List<IdentifierExpression>();
-        while (Check(TokenKind.Identifier) && !Current.Text.Equals("TALLYING", StringComparison.OrdinalIgnoreCase))
+        while (Check(TokenKind.Identifier) &&
+               !Current.Text.Equals("TALLYING", StringComparison.OrdinalIgnoreCase) &&
+               !Current.Text.Equals("WITH", StringComparison.OrdinalIgnoreCase))
         {
             var tok = Advance();
             targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            // Issue 55 (§7.26): DELIMITER IN identifier / COUNT IN identifier
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("DELIMITER", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // DELIMITER
+                Match(TokenKind.InKeyword); // IN
+                if (Check(TokenKind.Identifier)) Advance(); // identifier
+            }
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("COUNT", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // COUNT
+                Match(TokenKind.InKeyword); // IN
+                if (Check(TokenKind.Identifier)) Advance(); // identifier
+            }
+        }
+
+        // Issue 56 (§7.26): WITH POINTER identifier
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("WITH", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // WITH
+            if (Check(TokenKind.PointerKeyword))
+            {
+                Advance(); // POINTER
+                if (Check(TokenKind.Identifier)) Advance(); // identifier
+            }
         }
 
         IdentifierExpression? tallying = null;
@@ -2535,6 +2910,8 @@ public sealed class Parser
         Expression? replaceWith = null;
         IdentifierExpression? tallyCounter = null;
 
+        // Issues 39-40 (§7.15): Full INSPECT parsing with multiple phrases and BEFORE/AFTER
+
         // TALLYING or REPLACING or CONVERTING
         if (Check(TokenKind.Identifier))
         {
@@ -2544,23 +2921,53 @@ public sealed class Parser
                 Advance();
                 var counterToken = Expect(TokenKind.Identifier, "Expected counter");
                 tallyCounter = new IdentifierExpression(counterToken.Text, counterToken.Span);
-                Match(TokenKind.Identifier); // FOR
-                if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.TallyingAll; }
-                else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
-                { Advance(); inspectKind = InspectType.TallyingLeading; }
-                searchFor = ParseExpression();
+
+                // Parse multiple FOR phrases
+                while (Check(TokenKind.Identifier) && Current.Text.Equals("FOR", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance(); // FOR
+
+                    // CHARACTERS or ALL/LEADING search-pattern
+                    if (Check(TokenKind.Identifier) && Current.Text.Equals("CHARACTERS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Advance();
+                        inspectKind = InspectType.TallyingAll;
+                    }
+                    else
+                    {
+                        if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.TallyingAll; }
+                        else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
+                        { Advance(); inspectKind = InspectType.TallyingLeading; }
+                        searchFor = ParseExpression();
+                    }
+
+                    // BEFORE/AFTER INITIAL phrases
+                    ConsumeBeforeAfterPhrases();
+                }
+
+                // Handle case where FOR is omitted (non-standard but common)
+                if (searchFor == null && !Check(TokenKind.Period) && !IsStatementStart(Current.Kind) &&
+                    !IsScopeTerminator(Current.Kind))
+                {
+                    if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.TallyingAll; }
+                    else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
+                    { Advance(); inspectKind = InspectType.TallyingLeading; }
+                    if (!Check(TokenKind.Period) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+                        searchFor = ParseExpression();
+                    ConsumeBeforeAfterPhrases();
+                }
+
+                // TALLYING ... REPLACING is a combined form
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("REPLACING", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance(); // REPLACING
+                    ParseInspectReplacingPhrases(ref inspectKind, ref searchFor, ref replaceWith);
+                }
             }
             else if (verb == "REPLACING")
             {
                 Advance();
-                if (Check(TokenKind.AllKeyword)) { Advance(); inspectKind = InspectType.ReplacingAll; }
-                else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
-                { Advance(); inspectKind = InspectType.ReplacingLeading; }
-                else if (Check(TokenKind.Identifier) && Current.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase))
-                { Advance(); inspectKind = InspectType.ReplacingFirst; }
-                searchFor = ParseExpression();
-                Match(TokenKind.ByKeyword);
-                replaceWith = ParseExpression();
+                ParseInspectReplacingPhrases(ref inspectKind, ref searchFor, ref replaceWith);
             }
             else if (verb == "CONVERTING")
             {
@@ -2569,13 +2976,95 @@ public sealed class Parser
                 searchFor = ParseExpression();
                 Match(TokenKind.ToKeyword);
                 replaceWith = ParseExpression();
+                ConsumeBeforeAfterPhrases();
             }
         }
 
-        SkipToEndOfStatement();
-
         return new InspectStatement(target, inspectKind, searchFor, replaceWith, tallyCounter,
             TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    /// <summary>
+    /// Issues 39-40: Parse REPLACING phrases: {ALL|LEADING|FIRST|CHARACTERS} pattern BY replacement ...
+    /// </summary>
+    private void ParseInspectReplacingPhrases(ref InspectType inspectKind,
+        ref Expression? searchFor, ref Expression? replaceWith)
+    {
+        // Loop for multiple replacing phrases
+        bool first = true;
+        while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+        {
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("CHARACTERS", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // CHARACTERS
+                inspectKind = InspectType.ReplacingAll;
+                Match(TokenKind.ByKeyword);
+                var rep = ParseExpression();
+                if (first) { replaceWith = rep; first = false; }
+            }
+            else if (Check(TokenKind.AllKeyword))
+            {
+                Advance(); inspectKind = InspectType.ReplacingAll;
+                var pat = ParseExpression();
+                if (first) { searchFor = pat; first = false; }
+                Match(TokenKind.ByKeyword);
+                var rep = ParseExpression();
+                if (replaceWith == null) replaceWith = rep;
+            }
+            else if (Check(TokenKind.Identifier) && Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); inspectKind = InspectType.ReplacingLeading;
+                var pat = ParseExpression();
+                if (first) { searchFor = pat; first = false; }
+                Match(TokenKind.ByKeyword);
+                var rep = ParseExpression();
+                if (replaceWith == null) replaceWith = rep;
+            }
+            else if (Check(TokenKind.Identifier) && Current.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); inspectKind = InspectType.ReplacingFirst;
+                var pat = ParseExpression();
+                if (first) { searchFor = pat; first = false; }
+                Match(TokenKind.ByKeyword);
+                var rep = ParseExpression();
+                if (replaceWith == null) replaceWith = rep;
+            }
+            else
+            {
+                break;
+            }
+
+            ConsumeBeforeAfterPhrases();
+
+            // Check for additional ALL/LEADING/FIRST phrases
+            if (!Check(TokenKind.AllKeyword) &&
+                !(Check(TokenKind.Identifier) && (
+                    Current.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase) ||
+                    Current.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase) ||
+                    Current.Text.Equals("CHARACTERS", StringComparison.OrdinalIgnoreCase))))
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Issues 39-40: Consume BEFORE/AFTER INITIAL phrases in INSPECT.
+    /// </summary>
+    private void ConsumeBeforeAfterPhrases()
+    {
+        while ((Check(TokenKind.BeforeKeyword) || Check(TokenKind.AfterKeyword)) &&
+               !(Check(TokenKind.AfterKeyword) && Peek().Kind == TokenKind.AdvancingKeyword))
+        {
+            Advance(); // BEFORE or AFTER
+            // Optional INITIAL keyword
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("INITIAL", StringComparison.OrdinalIgnoreCase))
+                Advance();
+            // The delimiter value
+            if (!Check(TokenKind.Period) && !IsStatementStart(Current.Kind) &&
+                !IsScopeTerminator(Current.Kind) && !Check(TokenKind.BeforeKeyword) &&
+                !Check(TokenKind.AfterKeyword))
+                ParseExpression();
+        }
     }
 
     // ── INITIATE (Phase 5.2) ──
@@ -2633,9 +3122,16 @@ public sealed class Parser
                    Current.Kind != TokenKind.EndOfFile &&
                    !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
             {
-                Match(TokenKind.ByKeyword);       // optional BY
-                Match(TokenKind.ReferenceKeyword); // optional REFERENCE
-                Match(TokenKind.ContentKeyword);   // optional CONTENT
+                // Issue 66 (§7.39): BY REFERENCE/CONTENT/VALUE
+                if (Match(TokenKind.ByKeyword))
+                {
+                    if (!Match(TokenKind.ReferenceKeyword) && !Match(TokenKind.ContentKeyword))
+                    {
+                        // Issue 66: Also check for VALUE keyword
+                        if (Check(TokenKind.ValueKeyword) || Check(TokenKind.ValuesKeyword))
+                            Advance();
+                    }
+                }
                 args.Add(ParseExpression());
             }
         }
@@ -2658,6 +3154,11 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // RAISE
+
+        // Issue 63 (§7.37): RAISE [EXCEPTION] exception-name
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("EXCEPTION", StringComparison.OrdinalIgnoreCase))
+            Advance(); // consume EXCEPTION keyword prefix
+
         var nameToken = Expect(TokenKind.Identifier, "Expected exception name after RAISE");
         return new RaiseStatement(nameToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2669,22 +3170,17 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // RESUME
 
+        // Issue 64 (§7.38): RESUME [AT] NEXT STATEMENT
+        // The grammar only allows NEXT STATEMENT, not paragraph-name
         string? atLabel = null;
-        if (Match(TokenKind.AtKeyword))
+        Match(TokenKind.AtKeyword); // optional AT
+        if (Check(TokenKind.NextKeyword))
         {
-            // AT NEXT STATEMENT  or  AT paragraph-name
-            if (Check(TokenKind.NextKeyword))
-            {
-                Advance(); // NEXT
-                // Skip optional STATEMENT
-                if (Check(TokenKind.Identifier) &&
-                    Current.Text.Equals("STATEMENT", StringComparison.OrdinalIgnoreCase))
-                    Advance();
-            }
-            else if (Check(TokenKind.Identifier))
-            {
-                atLabel = Advance().Text;
-            }
+            Advance(); // NEXT
+            // Consume optional STATEMENT
+            if (Check(TokenKind.Identifier) &&
+                Current.Text.Equals("STATEMENT", StringComparison.OrdinalIgnoreCase))
+                Advance();
         }
 
         return new ResumeStatement(atLabel, TextSpan.FromBounds(start, Current.Span.Start));
@@ -2780,6 +3276,13 @@ public sealed class Parser
 
         // Subject can be: identifier, literal, expression, TRUE, FALSE, condition
         var subject = ParseConditionExpression();
+        // Issue 32 (§7.10): ALSO subject2 [ALSO subject3] ...
+        while (Check(TokenKind.Identifier) && Current.Text.Equals("ALSO", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // ALSO
+            ParseConditionExpression(); // additional subject (consumed, not modeled)
+        }
+
         var whenClauses = new List<WhenClause>();
         var whenOtherStatements = new List<Statement>();
 
@@ -2796,33 +3299,107 @@ public sealed class Parser
                 break;
             }
 
-            // Parse WHEN objects. Per §7.7 EVALUATE, objects can be:
-            // value-1 [THRU value-2] | TRUE | FALSE | ANY | condition
+            // Parse WHEN objects. Per §7.10, objects can be:
+            // value-1 [THRU value-2] | TRUE | FALSE | ANY | condition | partial-expression
+
             var objects = new List<Expression>();
-            var whenObj = ParseExpression();
-            // Handle THRU/THROUGH for range: WHEN 1 THRU 10
-            if (Check(TokenKind.ThruKeyword))
+
+            // Issue 33 (§7.10): Check for partial-expression (relational operator + operand)
+            var partialOp = TryParseRelationalOperator();
+            if (partialOp.HasValue)
             {
-                Advance(); // THRU
-                var rangeEnd = ParseExpression();
-                // Represent range as a BinaryExpression with a special operator
-                // For now, just keep the start value (range semantics handled at runtime)
-                // For parsing, consume THRU range. Code gen uses only start value for now.
+                var partialRight = ParseArithmeticExpression();
+                // Synthesize comparison with subject: subject op operand
+                var whenObj = new BinaryExpression(subject, partialOp.Value, partialRight,
+                    TextSpan.FromBounds(partialRight.Span.Start, partialRight.Span.End));
+                objects.Add(whenObj);
             }
-            objects.Add(whenObj);
+            else
+            {
+                // Check for ANY keyword
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("ANY", StringComparison.OrdinalIgnoreCase))
+                {
+                    var anyToken = Advance();
+                    objects.Add(new StringLiteralExpression("ANY", anyToken.Span));
+                }
+                else
+                {
+                    var whenObj = ParseExpression();
+                    // Handle THRU/THROUGH for range: WHEN 1 THRU 10
+                    if (Check(TokenKind.ThruKeyword))
+                    {
+                        Advance(); // THRU
+                        ParseExpression(); // consume range end (not modeled yet)
+                    }
+                    objects.Add(whenObj);
+                }
+            }
+
+            // Issue 32 (§7.10): ALSO selection-object per WHEN
+            while (Check(TokenKind.Identifier) && Current.Text.Equals("ALSO", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // ALSO
+                // Parse ALSO object (partial-expression or value)
+                var alsoOp = TryParseRelationalOperator();
+                if (alsoOp.HasValue)
+                {
+                    ParseArithmeticExpression(); // consume (not modeled)
+                }
+                else if (Check(TokenKind.Identifier) && Current.Text.Equals("ANY", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance(); // ANY
+                }
+                else
+                {
+                    ParseExpression();
+                    if (Check(TokenKind.ThruKeyword)) { Advance(); ParseExpression(); }
+                }
+            }
 
             // Handle additional WHEN clauses that share the same statement block
             // (WHEN value1 WHEN value2 ... statements)
             while (Check(TokenKind.WhenKeyword) && Peek().Kind != TokenKind.OtherKeyword)
             {
                 Advance(); // WHEN
-                var nextObj = ParseExpression();
-                if (Check(TokenKind.ThruKeyword))
+                // Issue 33: Check for partial-expression in subsequent WHENs
+                var nextPartialOp = TryParseRelationalOperator();
+                if (nextPartialOp.HasValue)
                 {
-                    Advance();
-                    ParseExpression(); // consume range end
+                    var nextPartialRight = ParseArithmeticExpression();
+                    var nextObj = new BinaryExpression(subject, nextPartialOp.Value, nextPartialRight,
+                        TextSpan.FromBounds(nextPartialRight.Span.Start, nextPartialRight.Span.End));
+                    objects.Add(nextObj);
                 }
-                objects.Add(nextObj);
+                else if (Check(TokenKind.Identifier) && Current.Text.Equals("ANY", StringComparison.OrdinalIgnoreCase))
+                {
+                    var anyToken = Advance();
+                    objects.Add(new StringLiteralExpression("ANY", anyToken.Span));
+                }
+                else
+                {
+                    var nextObj = ParseExpression();
+                    if (Check(TokenKind.ThruKeyword))
+                    {
+                        Advance();
+                        ParseExpression(); // consume range end
+                    }
+                    objects.Add(nextObj);
+                }
+                // ALSO in subsequent WHENs
+                while (Check(TokenKind.Identifier) && Current.Text.Equals("ALSO", StringComparison.OrdinalIgnoreCase))
+                {
+                    Advance(); // ALSO
+                    var alsoOp = TryParseRelationalOperator();
+                    if (alsoOp.HasValue)
+                        ParseArithmeticExpression();
+                    else if (Check(TokenKind.Identifier) && Current.Text.Equals("ANY", StringComparison.OrdinalIgnoreCase))
+                        Advance();
+                    else
+                    {
+                        ParseExpression();
+                        if (Check(TokenKind.ThruKeyword)) { Advance(); ParseExpression(); }
+                    }
+                }
             }
 
             // Parse statements for this WHEN clause
@@ -2869,12 +3446,12 @@ public sealed class Parser
             if (Check(TokenKind.LeftParen))
             {
                 var subId = ParseSubscriptOrRefMod(tok);
-                Match(TokenKind.RoundedKeyword);
+                ConsumeRoundedPhrase();
                 targets.Add(subId);
             }
             else
             {
-                Match(TokenKind.RoundedKeyword); // optional ROUNDED
+                ConsumeRoundedPhrase(); // optional ROUNDED
                 targets.Add(new IdentifierExpression(tok.Text, tok.Span));
             }
         }
@@ -2883,7 +3460,7 @@ public sealed class Parser
         if (Match(TokenKind.GivingKeyword))
         {
             giving = ParseExpression();
-            Match(TokenKind.RoundedKeyword);
+            ConsumeRoundedPhrase();
         }
 
         // Skip ON SIZE ERROR / NOT ON SIZE ERROR
@@ -2921,7 +3498,7 @@ public sealed class Parser
                 divisor.Span));
             Expect(TokenKind.GivingKeyword, "Expected GIVING in DIVIDE ... BY");
             giving = ParseExpression();
-            Match(TokenKind.RoundedKeyword);
+            ConsumeRoundedPhrase();
         }
         else
         {
@@ -2947,12 +3524,12 @@ public sealed class Parser
                 if (Check(TokenKind.LeftParen))
                 {
                     var subId = ParseSubscriptOrRefMod(tok);
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(subId);
                 }
                 else
                 {
-                    Match(TokenKind.RoundedKeyword);
+                    ConsumeRoundedPhrase();
                     targets.Add(new IdentifierExpression(tok.Text, tok.Span));
                 }
             }
@@ -2960,7 +3537,7 @@ public sealed class Parser
             if (Match(TokenKind.GivingKeyword))
             {
                 giving = ParseExpression();
-                Match(TokenKind.RoundedKeyword);
+                ConsumeRoundedPhrase();
             }
         }
 
@@ -2985,10 +3562,28 @@ public sealed class Parser
         Advance(); // SET
 
         var targets = new List<IdentifierExpression>();
-        while (Check(TokenKind.Identifier))
+
+        // Issue 58 (§7.22): SET {ADDRESS OF identifier | pointer-name} ... TO ...
+        while (Check(TokenKind.Identifier) ||
+               (Check(TokenKind.Identifier) && Current.Text.Equals("ADDRESS", StringComparison.OrdinalIgnoreCase)))
         {
-            var tok = Advance();
-            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            // Check for ADDRESS OF construct
+            if (Current.Text.Equals("ADDRESS", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // ADDRESS
+                Match(TokenKind.OfKeyword); // OF
+                if (Check(TokenKind.Identifier))
+                {
+                    var tok = Advance();
+                    targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+                }
+            }
+            else if (Check(TokenKind.Identifier))
+            {
+                var tok = Advance();
+                targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            }
+            else break;
         }
 
         SetAction action = SetAction.To;
@@ -3066,16 +3661,45 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // GOBACK
+
+        // Issue 67 (§7.52): GOBACK [RAISING {EXCEPTION exception-name | identifier | LAST EXCEPTION}]
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("RAISING", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // RAISING
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("EXCEPTION", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // EXCEPTION
+                if (Check(TokenKind.Identifier)) Advance(); // exception-name
+            }
+            else if (Check(TokenKind.Identifier) && Current.Text.Equals("LAST", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // LAST
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("EXCEPTION", StringComparison.OrdinalIgnoreCase))
+                    Advance(); // EXCEPTION
+            }
+            else if (Check(TokenKind.Identifier))
+            {
+                Advance(); // identifier
+            }
+        }
+
         return new GobackStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
     // ── NEXT SENTENCE ──
 
+    /// <summary>
+    /// Issue 37 (§7.13): NEXT SENTENCE is NOT equivalent to CONTINUE.
+    /// NEXT SENTENCE jumps past the next period, ignoring scope terminators.
+    /// For now we emit it as ContinueStatement (no-op) which is semantically
+    /// wrong but syntactically correct — fixing the runtime behavior requires
+    /// emitter changes.
+    /// </summary>
     private ContinueStatement ParseNextSentenceStatement()
     {
         int start = Current.Span.Start;
         Advance(); // NEXT
-        // Consume optional SENTENCE
+        // Consume SENTENCE
         if (Check(TokenKind.Identifier) && Current.Text.Equals("SENTENCE", StringComparison.OrdinalIgnoreCase))
             Advance();
         return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
@@ -3211,6 +3835,23 @@ public sealed class Parser
             }
 
             break;
+        }
+    }
+
+    /// <summary>
+    /// Issue 72 (§8.1): Consume ROUNDED [MODE IS {AWAY-FROM-ZERO|NEAREST-AWAY-FROM-ZERO|...}]
+    /// </summary>
+    private void ConsumeRoundedPhrase()
+    {
+        if (Match(TokenKind.RoundedKeyword))
+        {
+            // MODE IS mode-name
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("MODE", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // MODE
+                Match(TokenKind.IsKeyword); // IS
+                if (Check(TokenKind.Identifier)) Advance(); // mode-name
+            }
         }
     }
 
@@ -3574,7 +4215,37 @@ public sealed class Parser
             // Check for abbreviated combined relation: A > B OR <= C
             if (left is BinaryExpression leftBin && IsRelationalOp(leftBin.Operator))
             {
-                int saved = _position;
+                // Issue 5 (§4.2.3): Handle NOT in abbreviated OR context
+                if (Check(TokenKind.NotKeyword))
+                {
+                    int saved = _position;
+                    Advance(); // NOT
+                    var negOp = TryParseRelationalOperator();
+                    if (negOp.HasValue)
+                    {
+                        var finalOp = NegateRelationalOp(negOp.Value);
+                        var abbrevRight = ParseArithmeticExpression();
+                        var right = new BinaryExpression(leftBin.Left, finalOp, abbrevRight,
+                            TextSpan.FromBounds(abbrevRight.Span.Start, abbrevRight.Span.End));
+                        left = new BinaryExpression(left, BinaryOperator.Or, right,
+                            TextSpan.FromBounds(left.Span.Start, right.Span.End));
+                        continue;
+                    }
+                    // Bare NOT value: A > B OR NOT C → A > B OR A <= C
+                    var notRight = ParseArithmeticExpression();
+                    if (notRight is not BinaryExpression)
+                    {
+                        var negatedOp = NegateRelationalOp(leftBin.Operator);
+                        var expandedRight = new BinaryExpression(leftBin.Left, negatedOp, notRight,
+                            TextSpan.FromBounds(notRight.Span.Start, notRight.Span.End));
+                        left = new BinaryExpression(left, BinaryOperator.Or, expandedRight,
+                            TextSpan.FromBounds(left.Span.Start, expandedRight.Span.End));
+                        continue;
+                    }
+                    _position = saved;
+                }
+
+                int saved2 = _position;
                 var abbrevOp = TryParseRelationalOperator();
                 if (abbrevOp.HasValue)
                 {
@@ -3585,7 +4256,7 @@ public sealed class Parser
                         TextSpan.FromBounds(left.Span.Start, right.Span.End));
                     continue;
                 }
-                _position = saved;
+                _position = saved2;
             }
 
             // Check for abbreviated: A > B OR C → A > B OR A > C
@@ -3615,8 +4286,47 @@ public sealed class Parser
             // carry the subject from the left side
             if (left is BinaryExpression leftBin && IsRelationalOp(leftBin.Operator))
             {
+                // Issue 5 (§4.2.3): Handle NOT in abbreviated context
+                // A > B AND NOT C → A > B AND A <= C (NOT negates carried-forward op)
+                if (Check(TokenKind.NotKeyword))
+                {
+                    int saved = _position;
+                    Advance(); // NOT
+
+                    // Try relational operator after NOT: A > B AND NOT <= C
+                    var negOp = TryParseRelationalOperator();
+                    if (negOp.HasValue)
+                    {
+                        // Negate the operator
+                        var finalOp = NegateRelationalOp(negOp.Value);
+                        var abbrevRight = ParseArithmeticExpression();
+                        var right = new BinaryExpression(leftBin.Left, finalOp, abbrevRight,
+                            TextSpan.FromBounds(abbrevRight.Span.Start, abbrevRight.Span.End));
+                        left = new BinaryExpression(left, BinaryOperator.And, right,
+                            TextSpan.FromBounds(left.Span.Start, right.Span.End));
+                        continue;
+                    }
+
+                    // No relational op after NOT — check for bare value abbreviation
+                    // A > B AND NOT C → A > B AND NOT(A > C) = A > B AND A <= C
+                    var notRight = ParseArithmeticExpression();
+                    if (notRight is not BinaryExpression)
+                    {
+                        // Negate the carried-forward operator
+                        var negatedOp = NegateRelationalOp(leftBin.Operator);
+                        var expandedRight = new BinaryExpression(leftBin.Left, negatedOp, notRight,
+                            TextSpan.FromBounds(notRight.Span.Start, notRight.Span.End));
+                        left = new BinaryExpression(left, BinaryOperator.And, expandedRight,
+                            TextSpan.FromBounds(left.Span.Start, expandedRight.Span.End));
+                        continue;
+                    }
+
+                    // Was a complex expression — treat NOT as unary NOT (backtrack and reparse)
+                    _position = saved;
+                }
+
                 // Try to parse a relational operator at the current position
-                int saved = _position;
+                int saved2 = _position;
                 var abbrevOp = TryParseRelationalOperator();
                 if (abbrevOp.HasValue)
                 {
@@ -3628,7 +4338,7 @@ public sealed class Parser
                         TextSpan.FromBounds(left.Span.Start, right.Span.End));
                     continue;
                 }
-                _position = saved;
+                _position = saved2;
             }
 
             var rightExpr = ParseNotExpression();
@@ -3648,6 +4358,20 @@ public sealed class Parser
         }
         return left;
     }
+
+    /// <summary>
+    /// Issue 5 (§4.2.3): Negate a relational operator for abbreviated NOT context.
+    /// </summary>
+    private static BinaryOperator NegateRelationalOp(BinaryOperator op) => op switch
+    {
+        BinaryOperator.Equal => BinaryOperator.NotEqual,
+        BinaryOperator.NotEqual => BinaryOperator.Equal,
+        BinaryOperator.LessThan => BinaryOperator.GreaterThanOrEqual,
+        BinaryOperator.GreaterThan => BinaryOperator.LessThanOrEqual,
+        BinaryOperator.LessThanOrEqual => BinaryOperator.GreaterThan,
+        BinaryOperator.GreaterThanOrEqual => BinaryOperator.LessThan,
+        _ => op
+    };
 
     private static bool IsRelationalOp(BinaryOperator op) => op is
         BinaryOperator.Equal or BinaryOperator.NotEqual or
