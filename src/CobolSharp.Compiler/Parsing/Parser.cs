@@ -218,16 +218,18 @@ public sealed class Parser
 
         var identification = ParseIdentificationDivision();
 
+        // Issue 8: Check keyword + DIVISION to avoid false-matching reserved words
+        // like DATA in identification division free text
         EnvironmentDivision? environment = null;
-        if (Check(TokenKind.EnvironmentKeyword))
+        if (Current.Kind == TokenKind.EnvironmentKeyword && Peek().Kind == TokenKind.DivisionKeyword)
             environment = ParseEnvironmentDivision();
 
         DataDivision? data = null;
-        if (Check(TokenKind.DataKeyword))
+        if (Current.Kind == TokenKind.DataKeyword && Peek().Kind == TokenKind.DivisionKeyword)
             data = ParseDataDivision();
 
         ProcedureDivision? procedure = null;
-        if (Check(TokenKind.ProcedureKeyword))
+        if (Current.Kind == TokenKind.ProcedureKeyword && Peek().Kind == TokenKind.DivisionKeyword)
             procedure = ParseProcedureDivision();
 
         // Optional END PROGRAM program-name.
@@ -253,7 +255,9 @@ public sealed class Parser
         Advance(); // keyword
         if (Check(TokenKind.DivisionKeyword)) Advance();
         if (Check(TokenKind.Period)) Advance();
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        // Issue 7: Use IsDivisionStart() to avoid false-stopping on reserved words
+        // like DATA appearing in non-division contexts
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
             Advance();
     }
 
@@ -568,9 +572,9 @@ public sealed class Parser
                 {
                     Advance(); // paragraph name
                     Advance(); // period
-                    // Skip content until next division
+                    // Issue 13: Use IsDivisionStart() for consistency with outer loop
                     while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
-                           !IsDivisionKeyword(Current.Kind))
+                           !IsDivisionStart())
                         Advance();
                     Match(TokenKind.Period);
                     continue;
@@ -603,7 +607,8 @@ public sealed class Parser
         ScreenSection? screenSection = null;
 
         // Parse sections in order (FILE, WORKING-STORAGE, LINKAGE, REPORT, SCREEN, etc.)
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        // Issue 9: Use IsDivisionStart() to avoid false-stopping on reserved words
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
         {
             if (Check(TokenKind.FileKeyword))
             {
@@ -631,7 +636,7 @@ public sealed class Parser
                 Advance();
                 if (Check(TokenKind.SectionKeyword)) Advance();
                 if (Check(TokenKind.Period)) Advance();
-                while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
+                while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart() &&
                        !Check(TokenKind.WorkingStorageKeyword) && !Check(TokenKind.LinkageKeyword) &&
                        !Check(TokenKind.FileKeyword) && !Check(TokenKind.ReportKeyword) &&
                        !Check(TokenKind.ScreenKeyword))
@@ -1136,7 +1141,8 @@ public sealed class Parser
         var paragraphs = new List<Paragraph>();
         var sections = new List<Section>();
 
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        // Issue 12: Use IsDivisionStart() to avoid false-stopping on reserved words
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
         {
             if (IsSectionHeader())
                 break;
@@ -1210,8 +1216,9 @@ public sealed class Parser
         Expect(TokenKind.Period);
 
         var paragraphs = new List<Paragraph>();
+        // Issue 11: Use IsDivisionStart() to avoid false-stopping on reserved words
         while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind))
+               !IsDivisionStart())
         {
             if (IsParagraphHeader())
             {
@@ -1270,9 +1277,10 @@ public sealed class Parser
         Expect(TokenKind.Period);
 
         var statements = new List<Statement>();
+        // Issue 10: Use IsDivisionStart() to avoid false-stopping on reserved words
         while (Current.Kind != TokenKind.EndOfFile &&
                !IsParagraphHeader() && !IsSectionHeader() &&
-               !IsDivisionKeyword(Current.Kind))
+               !IsDivisionStart())
         {
             // Skip stray periods (empty sentences)
             if (Check(TokenKind.Period))
@@ -1652,6 +1660,8 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // COMPUTE
 
+        // Issue 28: COMPUTE accepts multiple targets: COMPUTE A B C = expr
+        // Parse first target (required)
         var targetToken = Expect(TokenKind.Identifier, "Expected target identifier in COMPUTE");
         // Handle IN/OF qualification
         while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
@@ -1669,6 +1679,31 @@ public sealed class Parser
             target = new IdentifierExpression(targetToken.Text, targetToken.Span);
         }
         Match(TokenKind.RoundedKeyword); // optional ROUNDED
+
+        // Consume additional targets until = sign (Issue 28)
+        while (Check(TokenKind.Identifier) && !Check(TokenKind.Equals))
+        {
+            Advance(); // additional target identifier
+            // Handle IN/OF qualification on additional targets
+            while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+            if (Check(TokenKind.LeftParen))
+            {
+                // Skip subscript/refmod on additional targets
+                Advance(); // (
+                int depth = 1;
+                while (depth > 0 && Current.Kind != TokenKind.EndOfFile)
+                {
+                    if (Check(TokenKind.LeftParen)) depth++;
+                    else if (Check(TokenKind.RightParen)) depth--;
+                    Advance();
+                }
+            }
+            Match(TokenKind.RoundedKeyword); // optional ROUNDED on additional target
+        }
 
         Expect(TokenKind.Equals, "Expected = in COMPUTE statement");
 
@@ -1974,6 +2009,13 @@ public sealed class Parser
             if (Check(TokenKind.Identifier))
             {
                 fromSource = Advance().Text.ToUpperInvariant();
+                // Issue 23: Consume YYYYMMDD/YYYYDDD modifier after DATE/DAY
+                if ((fromSource == "DATE" || fromSource == "DAY") && Check(TokenKind.Identifier))
+                {
+                    string modifier = Current.Text.ToUpperInvariant();
+                    if (modifier == "YYYYMMDD" || modifier == "YYYYDDD")
+                        Advance();
+                }
             }
         }
 
