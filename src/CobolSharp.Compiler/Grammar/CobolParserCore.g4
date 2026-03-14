@@ -628,27 +628,66 @@ imperativeStatement
     ;
 
 // ==========================================
-// READ (§14.9.30)
+// READ (§14.9.30 — full expansion)
 // ==========================================
 
 readStatement
     : READ fileName
-      ( (NEXT | PREVIOUS) RECORD )?
-      (INTO identifier)?
-      (KEY IS identifier)?
-      (AT END imperativeStatement)?
+      readDirection?
+      readInto?
+      readKey?
+      readAtEnd?
+      readInvalidKey?
+      END_READ?
+      DOT?
+    ;
+
+readDirection
+    : (NEXT | PREVIOUS) RECORD
+    ;
+
+readInto
+    : INTO identifier
+    ;
+
+readKey
+    : KEY IS identifier
+    ;
+
+readAtEnd
+    : AT END imperativeStatement
       (NOT AT END imperativeStatement)?
-      (INVALID KEY imperativeStatement)?
+    ;
+
+readInvalidKey
+    : INVALID KEY imperativeStatement
       (NOT INVALID KEY imperativeStatement)?
-      (END_READ)?
     ;
 
 // ==========================================
-// WRITE (§14.9.46)
+// WRITE (§14.9.46 — full expansion)
 // ==========================================
 
 writeStatement
-    : WRITE identifier (FROM identifier)? DOT?
+    : WRITE recordName
+      writeFrom?
+      writeBeforeAfter?
+      writeInvalidKey?
+      END_WRITE?
+      DOT?
+    ;
+
+writeFrom
+    : FROM identifier
+    ;
+
+writeBeforeAfter
+    : ('BEFORE' | 'AFTER') 'ADVANCING' (identifier | integerLiteral | literal)
+    ;
+
+writeInvalidKey
+    : INVALID KEY imperativeStatement
+      (NOT INVALID KEY imperativeStatement)?
     ;
 
 // ==========================================
@@ -1234,13 +1273,90 @@ notOnExceptionPhrase
 // REMAINING STATEMENT STUBS (to be expanded)
 // ==========================================
 
-acceptStatement       : 'ACCEPT' identifier (FROM identifier)? DOT? ;
-displayStatement      : 'DISPLAY' (identifier | literal)+ DOT? ;
-exitStatement         : 'EXIT' IDENTIFIER? DOT? ;
-gobackStatement       : 'GOBACK' DOT? ;
-goToStatement         : 'GO' 'TO'? identifier DOT? ;
-initializeStatement   : 'INITIALIZE' identifierList DOT? ;
-inspectStatement      : 'INSPECT' identifier IDENTIFIER+ DOT? ;
+// ==========================================
+// STOP (§14.9.41)
+// ==========================================
+
+stopStatement
+    : 'STOP' ('RUN' | literal | identifier)? DOT?
+    ;
+
+// ==========================================
+// GOBACK (§14.9.16)
+// ==========================================
+
+gobackStatement
+    : 'GOBACK' DOT?
+    ;
+
+// ==========================================
+// EXIT (§14.9.14)
+// ==========================================
+
+exitStatement
+    : 'EXIT' ( 'PROGRAM' | 'PERFORM' | 'SECTION' | 'PARAGRAPH' | 'METHOD' | 'FUNCTION' )? DOT?
+    ;
+
+// ==========================================
+// START (§14.9.38)
+// ==========================================
+
+startStatement
+    : 'START' fileName
+      startKeyPhrase?
+      startInvalidKeyPhrase?
+      END_START?
+      DOT?
+    ;
+
+startKeyPhrase
+    : KEY IS relationalExpression
+    ;
+
+startInvalidKeyPhrase
+    : INVALID KEY imperativeStatement
+      (NOT INVALID KEY imperativeStatement)?
+    ;
+
+// ==========================================
+// GO TO (§14.9.17)
+// ==========================================
+
+goToStatement
+    : 'GO' 'TO'? identifier DOT?
+    ;
+
+// ==========================================
+// ACCEPT (§14.9.0)
+// ==========================================
+
+acceptStatement
+    : 'ACCEPT' identifier (FROM identifier)? DOT?
+    ;
+
+// ==========================================
+// DISPLAY (§14.9.11)
+// ==========================================
+
+displayStatement
+    : 'DISPLAY' (identifier | literal)+ DOT?
+    ;
+
+// ==========================================
+// INITIALIZE (§14.9.20)
+// ==========================================
+
+initializeStatement
+    : 'INITIALIZE' identifierList DOT?
+    ;
+
+// ==========================================
+// INSPECT (§14.9.21 — stub, complex)
+// ==========================================
+
+inspectStatement
+    : 'INSPECT' identifier IDENTIFIER+ DOT?
+    ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)
 // ==========================================
@@ -1284,8 +1400,7 @@ searchAllAtEndClause
     ;
 setStatement          : 'SET' identifierList 'TO' (identifier | literal) DOT? ;
 sortStatement         : 'SORT' identifier IDENTIFIER+ DOT? ;
-startStatement        : 'START' identifier DOT? ;
-stopStatement         : 'STOP' IDENTIFIER DOT? ;
+// (startStatement and stopStatement are fully expanded above)
 
 // =========================
 // Conditions (boolean)
