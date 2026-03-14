@@ -885,8 +885,13 @@ public sealed partial class Parser
             keyIs = ParseExpression();
         }
 
-        // §7.20: [AT END imperative-statement] [NOT AT END imperative-statement]
-        // AT is optional in practice — many COBOL programs write just END or NOT END
+        // §14.9.30: [AT END imperative-statement-1] [NOT AT END imperative-statement-2]
+        //
+        // COBOL-85 compatibility: In COBOL-85, END was a valid standalone imperative
+        // statement (a no-op). NIST tests write "READ file RECORD END" which is
+        // "AT END END" — the AT END clause with END as the minimal imperative.
+        // Bare END after READ RECORD is accepted as a COBOL-85 compatibility extension.
+        // COBOL-2023 removed standalone END as an imperative.
         var atEnd = new List<Statement>();
         var notAtEnd = new List<Statement>();
 
@@ -898,7 +903,7 @@ public sealed partial class Parser
         }
         else if (Check(TokenKind.EndKeyword) && !Check(TokenKind.EndReadKeyword))
         {
-            // Bare END without AT
+            // COBOL-85 compat: bare END = AT END with END as no-op imperative
             Advance(); // END
             atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
         }
@@ -906,7 +911,7 @@ public sealed partial class Parser
             (Peek().Kind == TokenKind.AtKeyword || Peek().Kind == TokenKind.EndKeyword))
         {
             Advance(); // NOT
-            if (Check(TokenKind.AtKeyword)) Advance(); // optional AT
+            if (Check(TokenKind.AtKeyword)) Advance(); // AT (required per 2023, often omitted in 85)
             Match(TokenKind.EndKeyword);
             notAtEnd = ParseImperativeStatements(TokenKind.EndReadKeyword);
         }
@@ -1943,7 +1948,8 @@ public sealed partial class Parser
             if (Check(TokenKind.Identifier)) Advance(); // varying identifier
         }
 
-        // §7.21: [AT END imperative-statement] — AT is optional in practice
+        // §14.9.37: [AT END imperative-statement-1]
+        // COBOL-85 compat: bare END accepted (see READ comment for rationale)
         var atEnd = new List<Statement>();
         if (Check(TokenKind.AtKeyword))
         {
@@ -1953,7 +1959,8 @@ public sealed partial class Parser
         }
         else if (Check(TokenKind.EndKeyword))
         {
-            Advance(); // bare END
+            // COBOL-85 compat: bare END = AT END with END as no-op imperative
+            Advance();
             atEnd = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
         }
 
