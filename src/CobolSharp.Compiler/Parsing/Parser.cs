@@ -2913,6 +2913,18 @@ public sealed class Parser
     /// </summary>
     private Expression ParseExpression()
     {
+        // Handle unary +/- for signed literals (VALUE +123, VALUE -45.6)
+        if ((Check(TokenKind.Plus) || Check(TokenKind.Minus)) &&
+            (Peek().Kind == TokenKind.IntegerLiteral || Peek().Kind == TokenKind.DecimalLiteral))
+        {
+            bool negate = Check(TokenKind.Minus);
+            Advance(); // consume +/-
+            var lit = ParsePrimaryExpression();
+            if (negate && lit is NumericLiteralExpression numLit)
+                return new NumericLiteralExpression(-numLit.Value,
+                    TextSpan.FromBounds(numLit.Span.Start - 1, numLit.Span.End));
+            return lit;
+        }
         return ParsePrimaryExpression();
     }
 
@@ -2974,6 +2986,12 @@ public sealed class Parser
             var operand = ParsePrimaryExpression();
             return new UnaryExpression(UnaryOperator.Negate, operand,
                 TextSpan.FromBounds(start, operand.Span.End));
+        }
+        if (Check(TokenKind.Plus))
+        {
+            // Unary plus — consume and return the operand as-is
+            Advance();
+            return ParsePrimaryExpression();
         }
         return ParsePrimaryExpression();
     }
