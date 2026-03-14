@@ -885,7 +885,8 @@ public sealed partial class Parser
             keyIs = ParseExpression();
         }
 
-        // AT END / NOT AT END
+        // §7.20: [AT END imperative-statement] [NOT AT END imperative-statement]
+        // AT is optional in practice — many COBOL programs write just END or NOT END
         var atEnd = new List<Statement>();
         var notAtEnd = new List<Statement>();
 
@@ -895,9 +896,17 @@ public sealed partial class Parser
             Match(TokenKind.EndKeyword);
             atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
         }
-        if (Check(TokenKind.NotKeyword) && Peek().Kind == TokenKind.AtKeyword)
+        else if (Check(TokenKind.EndKeyword) && !Check(TokenKind.EndReadKeyword))
         {
-            Advance(); Advance(); // NOT AT
+            // Bare END without AT
+            Advance(); // END
+            atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
+        }
+        if (Check(TokenKind.NotKeyword) &&
+            (Peek().Kind == TokenKind.AtKeyword || Peek().Kind == TokenKind.EndKeyword))
+        {
+            Advance(); // NOT
+            if (Check(TokenKind.AtKeyword)) Advance(); // optional AT
             Match(TokenKind.EndKeyword);
             notAtEnd = ParseImperativeStatements(TokenKind.EndReadKeyword);
         }
@@ -1934,11 +1943,17 @@ public sealed partial class Parser
             if (Check(TokenKind.Identifier)) Advance(); // varying identifier
         }
 
+        // §7.21: [AT END imperative-statement] — AT is optional in practice
         var atEnd = new List<Statement>();
         if (Check(TokenKind.AtKeyword))
         {
             Advance(); // AT
             Match(TokenKind.EndKeyword);
+            atEnd = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
+        }
+        else if (Check(TokenKind.EndKeyword))
+        {
+            Advance(); // bare END
             atEnd = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
         }
 
