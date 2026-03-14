@@ -1,4 +1,5 @@
 using CobolSharp.Compiler;
+using CobolSharp.Compiler.Preprocessor;
 
 namespace CobolSharp.CLI;
 
@@ -24,6 +25,18 @@ public class Program
             return RunCompile(args[1..]);
         }
 
+        if (args[0] == "preprocess")
+        {
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Error: no source file specified.");
+                Console.Error.WriteLine("Usage: cobolsharp preprocess <file.cob> [-o <output>]");
+                return 1;
+            }
+
+            return RunPreprocess(args[1..]);
+        }
+
         Console.Error.WriteLine($"Unknown command: {args[0]}");
         PrintUsage();
         return 1;
@@ -36,11 +49,54 @@ public class Program
         Console.WriteLine("Usage: cobolsharp <command> [options]");
         Console.WriteLine();
         Console.WriteLine("Commands:");
-        Console.WriteLine("  compile <file.cob>   Compile a COBOL source file to a .NET assembly");
+        Console.WriteLine("  compile <file.cob>      Compile a COBOL source file to a .NET assembly");
+        Console.WriteLine("  preprocess <file.cob>   Run preprocessor only, output normalized source");
         Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  -o <output>          Output file path (default: <program-id>.dll)");
+        Console.WriteLine("  -o <output>          Output file path (default: stdout / <program-id>.dll)");
         Console.WriteLine("  -h, --help           Show this help message");
+    }
+
+    private static int RunPreprocess(string[] args)
+    {
+        string? sourcePath = null;
+        string? outputPath = null;
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "-o" && i + 1 < args.Length)
+                outputPath = args[++i];
+            else if (!args[i].StartsWith('-'))
+                sourcePath = args[i];
+        }
+
+        if (sourcePath is null || !File.Exists(sourcePath))
+        {
+            Console.Error.WriteLine($"Error: source file not found: {sourcePath}");
+            return 1;
+        }
+
+        string rawText = File.ReadAllText(sourcePath);
+        string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
+
+        // Phase 0a: Reference format normalization
+        string normalized = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
+
+        // Phase 0b: COPY/REPLACE expansion
+        var copyProcessor = new CopyProcessor(new List<string>());
+        string processed = copyProcessor.Process(normalized, sourceDir);
+
+        if (outputPath != null)
+        {
+            File.WriteAllText(outputPath, processed);
+            Console.WriteLine($"Preprocessed to: {outputPath}");
+        }
+        else
+        {
+            Console.Write(processed);
+        }
+
+        return 0;
     }
 
     private static int RunCompile(string[] args)

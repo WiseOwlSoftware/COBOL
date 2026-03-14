@@ -118,18 +118,40 @@ public static class ReferenceFormatProcessor
                     break;
 
                 case '-':
-                    // Continuation line — append to previous line (remove leading spaces)
+                    // Continuation line (§6.2.2): append to previous line
                     string contText = line.Length > 7 ? line[7..] : "";
-                    // Truncate at column 72 (index 71)
+                    // Truncate at column 72 (65 chars of source area)
                     if (contText.Length > 65) contText = contText[..65];
-                    // Remove the last newline from result and append continuation
+
+                    // Remove the last newline from result
                     if (result.Length > 0)
                     {
-                        // Trim trailing newline
                         while (result.Length > 0 && (result[result.Length - 1] == '\n' || result[result.Length - 1] == '\r'))
                             result.Length--;
                     }
-                    result.AppendLine(contText.TrimStart());
+
+                    // Per §6.2.2: if the continuation starts with a quote (after spaces),
+                    // it's continuing a non-numeric literal. The opening quote on the
+                    // continuation line replaces the continuation point — strip leading
+                    // spaces but keep the first quote as the join point.
+                    string trimmedCont = contText.TrimStart();
+                    if (trimmedCont.Length > 0 && (trimmedCont[0] == '"' || trimmedCont[0] == '\''))
+                    {
+                        // String literal continuation: the previous line's content up to
+                        // the last character before the sequence area is part of the string.
+                        // Remove trailing spaces from prev line that are inside the string.
+                        // The continuation quote replaces these — skip it and join directly.
+                        // Previous: ...DOGS AND K
+                        // Continuation: "IDS CAN NOT BE ALL BAD."
+                        // Result: ...DOGS AND KIDS CAN NOT BE ALL BAD."
+                        result.Append(trimmedCont[1..]); // skip the opening quote
+                        result.AppendLine();
+                    }
+                    else
+                    {
+                        // Non-literal continuation: just join with trimmed content
+                        result.AppendLine(trimmedCont);
+                    }
                     break;
 
                 default:
