@@ -1492,7 +1492,41 @@ The modest improvement confirms most remaining failures are NOT parser issues:
 
 Final fix: SUBTRACT FROM literal GIVING (§7.25 Format 3) — NC112A now compiles.
 
-Total: 78 → 95 → 139 → 170 → 186 → 192 → 197/391 (50.4%)
+Total: 78 → 95 → 139 → 170 → 186 → 192 → 197 → 205+ (continuation fix)
+
+### Debugging Failure — Overcomplicated Diagnosis
+
+When investigating why "Expected TO after MOVE source" appeared at column 67 (which is
+impossible in preprocessed output limited to 65 chars), I tried to write a standalone test
+program to check the preprocessor output. The user pointed out the obvious: just add a
+`preprocess` command to the CLI and inspect the output directly.
+
+This is the same pattern from Entry 018 — going on tangents instead of using the simplest
+diagnostic tool available. The `preprocess` command was added and immediately revealed the
+root cause: continuation lines for string literals were joining incorrectly, producing
+`...AND K"IDS...` instead of `...AND KIDS...` (§6.2.2 violation).
+
+### Grammar Compliance Failure — AGAIN
+
+While fixing SET UP BY, I initially fixed the bug ad-hoc (stopping the target loop at
+identifiers named UP/DOWN) without checking the grammar. The user called this out — yet
+another instance of the same failure that was documented in Entries 011, 013, 016, 017,
+020, and 022. Despite explicit instructions to implement from the spec grammar, I keep
+guessing at fixes instead of reading §7.22 first.
+
+The grammar (§7.22) shows three formats for SET:
+- Format 1: SET {id}... TO {expression}
+- Format 2: SET {index}... {UP BY | DOWN BY} expression
+- Format 3: SET {condition}... TO {TRUE | FALSE}
+
+Reading the grammar first would have immediately shown that UP BY and DOWN BY are
+two-word phrases — the fix needs lookahead (UP/DOWN followed by BY), not unconditional
+stopping. An ad-hoc fix that stops at any identifier named UP would break programs
+with data items named UP.
+
+This is a systemic failure. Every fix should start with: open GRAMMAR-REFERENCE.md,
+find the section, read the production rule, THEN implement. Not guess, test, fix,
+repeat. The grammar exists precisely to prevent this guessing cycle.
 
 ### Parser Refactoring
 
