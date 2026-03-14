@@ -3537,9 +3537,25 @@ public sealed class Parser
         {
             int start = Current.Span.Start;
             Advance();
-            var operand = ParseRelationalExpression();
+            var operand = ParseNotExpression(); // NOT can apply to parenthesized conditions
             return new UnaryExpression(UnaryOperator.Not, operand,
                 TextSpan.FromBounds(start, operand.Span.End));
+        }
+        // Per §8.8.4.9: "Parentheses may override precedence" in conditions.
+        // (condition) is valid wherever a simple condition appears.
+        if (Check(TokenKind.LeftParen))
+        {
+            // Try parsing as a parenthesized condition.
+            int saved = _position;
+            Advance(); // consume (
+            var inner = ParseConditionExpression();
+            if (Check(TokenKind.RightParen))
+            {
+                Advance(); // consume )
+                return inner;
+            }
+            // Not a parenthesized condition — backtrack
+            _position = saved;
         }
         return ParseRelationalExpression();
     }
