@@ -1318,4 +1318,24 @@ NIST: 139/391 (35.5%). Next target: 70% (274 programs).
 
 ---
 
+## Entry 020 — 2026-03-14: Audit Scope Failure
+
+The user asked for a comprehensive grammar-to-parser audit. I scoped it to 5 items
+instead of checking every production rule. The 5-item audit reported "no divergences"
+which was misleading — it missed `IsDivisionKeyword` vs `IsDivisionStart` (a bug
+affecting 32 NIST programs), and likely many more.
+
+A proper comprehensive audit is now running, checking every grammar production against
+the parser implementation.
+
+### OCR Progress
+COBOL.pdf updated: now contains OCR'd text from pages 1-100 and 600-760 (§14 Procedure
+Division). 6,819 lines of spec text, 179KB PDF. The procedure division grammar rules
+are now available for parser implementation reference.
+
+### NIST Progress
+139/391 (35.5%) after duplicate data-name fix. Target: 70%.
+
+---
+
 *End of entries for 2026-03-14*
