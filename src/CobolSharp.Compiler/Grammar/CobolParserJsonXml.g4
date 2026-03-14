@@ -4,55 +4,113 @@ options { tokenVocab = CobolLexer; }
 
 import CobolParserCore;
 
-// --- JSON ---
+// ==========================================
+// JSON STATEMENTS
+// ==========================================
 
 jsonStatement
     : jsonParseStatement
     | jsonGenerateStatement
     ;
 
+// ---------- JSON PARSE ----------
+
 jsonParseStatement
-    : JSON 'PARSE' identifier
-      'INTO' identifier
-      ('WITH' 'DETAIL')?
-      (ON EXCEPTION imperativeStatement)?
-      (NOT ON EXCEPTION imperativeStatement)?
+    : JSON 'PARSE' jsonSource
+      INTO jsonTarget
+      jsonWithDetail?
+      jsonOnException?
       END_JSON?
       DOT?
     ;
+
+jsonSource
+    : identifier
+    ;
+
+jsonTarget
+    : identifier
+    ;
+
+jsonWithDetail
+    : 'WITH' 'DETAIL'
+    ;
+
+jsonOnException
+    : ON EXCEPTION imperativeStatement
+      (NOT ON EXCEPTION imperativeStatement)?
+    ;
+
+// ---------- JSON GENERATE ----------
 
 jsonGenerateStatement
-    : JSON 'GENERATE' identifier
-      'FROM' identifier
-      ('SUPPRESS' 'SPACES')?
-      (ON EXCEPTION imperativeStatement)?
-      (NOT ON EXCEPTION imperativeStatement)?
+    : JSON 'GENERATE' jsonOutput
+      FROM jsonInput
+      jsonSuppressSpaces?
+      jsonOnException?
       END_JSON?
       DOT?
     ;
 
-// --- XML ---
+jsonOutput
+    : identifier
+    ;
+
+jsonInput
+    : identifier
+    ;
+
+jsonSuppressSpaces
+    : 'SUPPRESS' 'SPACES'
+    ;
+
+// ==========================================
+// XML STATEMENTS
+// ==========================================
 
 xmlStatement
     : xmlParseStatement
     | xmlGenerateStatement
     ;
 
+// ---------- XML PARSE ----------
+
 xmlParseStatement
-    : XML 'PARSE' identifier
-      'PROCESSING' 'PROCEDURE' IS procedureName
-      (ON EXCEPTION imperativeStatement)?
-      (NOT ON EXCEPTION imperativeStatement)?
+    : XML 'PARSE' xmlSource
+      'PROCESSING' PROCEDURE IS procedureName
+      xmlOnException?
       END_XML?
       DOT?
     ;
 
-xmlGenerateStatement
-    : XML 'GENERATE' identifier
-      'FROM' identifier
-      ('COUNT' 'IN' identifier)?
-      (ON EXCEPTION imperativeStatement)?
+xmlSource
+    : identifier
+    ;
+
+xmlOnException
+    : ON EXCEPTION imperativeStatement
       (NOT ON EXCEPTION imperativeStatement)?
+    ;
+
+// ---------- XML GENERATE ----------
+
+xmlGenerateStatement
+    : XML 'GENERATE' xmlOutput
+      FROM xmlInput
+      xmlCountIn?
+      xmlOnException?
       END_XML?
       DOT?
+    ;
+
+xmlOutput
+    : identifier
+    ;
+
+xmlInput
+    : identifier
+    ;
+
+xmlCountIn
+    : 'COUNT' 'IN' identifier
     ;
