@@ -1484,11 +1484,15 @@ documented on MOVE/ADD/SUBTRACT. NEXT SENTENCE semantics documented.
 
 ### NIST Results
 
-NIST batch: **196/391 (50.1%)**, up from 192/391 (49.1%). +4 programs from grammar fixes.
+NIST batch: **197/391 (50.4%)**, up from 192/391 (49.1%). +5 programs from grammar fixes.
 The modest improvement confirms most remaining failures are NOT parser issues:
 - ~17 programs: COPY-related undefined names (preprocessor needs NIST copybooks)
 - ~14 programs: continuation lines in preprocessor
-- ~164 programs: various emitter/semantic gaps beyond parser scope
+- ~164 programs: various emitter/semantic/lexer gaps beyond parser scope
+
+Final fix: SUBTRACT FROM literal GIVING (§7.25 Format 3) — NC112A now compiles.
+
+Total: 78 → 95 → 139 → 170 → 186 → 192 → 197/391 (50.4%)
 
 ### Parser Refactoring
 
