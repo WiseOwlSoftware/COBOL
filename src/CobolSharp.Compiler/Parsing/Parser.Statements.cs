@@ -1863,12 +1863,17 @@ public sealed partial class Parser
 
         var targets = new List<IdentifierExpression>();
 
-        // Issue 58 (§7.22): SET {ADDRESS OF identifier | pointer-name} ... TO ...
-        while (Check(TokenKind.Identifier) ||
-               (Check(TokenKind.Identifier) && Current.Text.Equals("ADDRESS", StringComparison.OrdinalIgnoreCase)))
+        // §7.22: SET {identifier|index-name|ADDRESS OF id}... {TO|UP BY|DOWN BY} value
+        // Stop consuming targets at TO keyword, and at UP/DOWN when followed by BY
+        // (per grammar Format 2: UP BY and DOWN BY are action phrases, not target names)
+        while (Check(TokenKind.Identifier) && !Check(TokenKind.ToKeyword))
         {
+            string upper = Current.Text.ToUpperInvariant();
+            // UP BY / DOWN BY = Format 2 action (check lookahead for BY)
+            if ((upper == "UP" || upper == "DOWN") && Peek().Kind == TokenKind.ByKeyword)
+                break;
             // Check for ADDRESS OF construct
-            if (Current.Text.Equals("ADDRESS", StringComparison.OrdinalIgnoreCase))
+            if (upper == "ADDRESS")
             {
                 Advance(); // ADDRESS
                 Match(TokenKind.OfKeyword); // OF
@@ -1878,12 +1883,11 @@ public sealed partial class Parser
                     targets.Add(new IdentifierExpression(tok.Text, tok.Span));
                 }
             }
-            else if (Check(TokenKind.Identifier))
+            else
             {
                 var tok = Advance();
                 targets.Add(new IdentifierExpression(tok.Text, tok.Span));
             }
-            else break;
         }
 
         SetAction action = SetAction.To;
