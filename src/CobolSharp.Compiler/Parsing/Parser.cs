@@ -44,6 +44,8 @@ public sealed class Parser
     {
         if (++_iterationCount > MaxIterations)
             throw new InvalidOperationException($"Parser exceeded {MaxIterations} iterations — likely infinite loop at position {_position}, token '{Current.Text}'");
+        if (_iterationCount % 100000 == 0)
+            Console.Error.WriteLine($"[PARSER] iterations={_iterationCount} pos={_position}/{_tokens.Count} token={Current.Kind}:{Current.Text}");
         var token = Current;
         if (_position < _tokens.Count - 1) _position++;
         return token;
@@ -1375,30 +1377,51 @@ public sealed class Parser
 
         var condition = ParseConditionExpression();
 
-        // Optional THEN keyword
-        if (Check(TokenKind.Identifier) && Current.Text.Equals("THEN", StringComparison.OrdinalIgnoreCase))
-            Advance();
+        // COBOL supports two IF styles:
+        // 1. IF ... END-IF (explicit scope terminator, COBOL 85+)
+        // 2. IF ... . (period terminates ALL open scopes, COBOL 74)
+        //
+        // For period-terminated IFs, we stop at the period without recursing
+        // into nested ParseStatements, avoiding deep recursion for files with
+        // many period-terminated IFs (like the NIST test suite).
 
-        // Parse then-statements until ELSE, END-IF, or period (old-style scope termination)
-        var thenStatements = ParseStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword,
-            TokenKind.Period);
+        var thenStatements = new List<Statement>();
+        while (Current.Kind != TokenKind.EndOfFile &&
+               !Check(TokenKind.ElseKeyword) &&
+               !Check(TokenKind.EndIfKeyword) &&
+               !Check(TokenKind.Period))
+        {
+            var stmt = ParseStatement();
+            if (stmt != null)
+                thenStatements.Add(stmt);
+            else if (!Check(TokenKind.ElseKeyword) && !Check(TokenKind.EndIfKeyword) &&
+                     !Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile)
+                Advance(); // safety: ensure progress
+        }
 
         var elseStatements = new List<Statement>();
         if (Match(TokenKind.ElseKeyword))
         {
-            elseStatements = ParseStatements(TokenKind.EndIfKeyword, TokenKind.Period);
+            while (Current.Kind != TokenKind.EndOfFile &&
+                   !Check(TokenKind.EndIfKeyword) &&
+                   !Check(TokenKind.Period))
+            {
+                var stmt = ParseStatement();
+                if (stmt != null)
+                    elseStatements.Add(stmt);
+                else if (!Check(TokenKind.EndIfKeyword) && !Check(TokenKind.Period) &&
+                         Current.Kind != TokenKind.EndOfFile)
+                    Advance();
+            }
         }
 
-        // Accept either END-IF (modern) or period (old-style)
         if (Check(TokenKind.EndIfKeyword))
         {
             Advance();
             Match(TokenKind.Period);
         }
-        else
-        {
-            Match(TokenKind.Period); // period-terminated IF (COBOL 74 style)
-        }
+        // else: period-terminated IF — don't consume the period here,
+        // the paragraph loop will consume it
 
         return new IfStatement(condition, thenStatements, elseStatements,
             TextSpan.FromBounds(start, Current.Span.Start));
