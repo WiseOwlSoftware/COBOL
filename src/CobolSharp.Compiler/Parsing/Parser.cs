@@ -1914,6 +1914,17 @@ public sealed class Parser
         Expect(TokenKind.UntilKeyword, "Expected UNTIL in PERFORM VARYING");
         var until = ParseConditionExpression();
 
+        // Per §7.19: consume optional AFTER clauses (nested varying)
+        // AFTER id FROM expr BY expr UNTIL cond [AFTER ...]
+        while (Check(TokenKind.AfterKeyword))
+        {
+            Advance(); // AFTER
+            if (Check(TokenKind.Identifier)) Advance(); // varying identifier
+            if (Check(TokenKind.FromKeyword)) { Advance(); ParseExpression(); } // FROM expr
+            if (Check(TokenKind.ByKeyword)) { Advance(); ParseExpression(); } // BY expr
+            if (Check(TokenKind.UntilKeyword)) { Advance(); ParseConditionExpression(); } // UNTIL cond
+        }
+
         var varying = new PerformVarying(varyId, from, by,
             TextSpan.FromBounds(varyToken.Span.Start, Current.Span.Start));
 
@@ -2105,11 +2116,30 @@ public sealed class Parser
 
     private CloseStatement ParseCloseStatement()
     {
+        // Per §7.4 CLOSE: CLOSE file-name-1 [WITH {LOCK|NO REWIND}] ...
         int start = Current.Span.Start;
         Advance(); // CLOSE
         var fileNames = new List<string>();
         while (Check(TokenKind.Identifier))
+        {
             fileNames.Add(Advance().Text);
+            Match(TokenKind.Comma);
+            // Skip optional WITH LOCK / WITH NO REWIND / REEL / UNIT phrases
+            if (Check(TokenKind.WithKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier)) Advance(); // LOCK or NO
+                if (Check(TokenKind.Identifier)) Advance(); // REWIND
+            }
+            if (Check(TokenKind.Identifier) &&
+                (Current.Text.Equals("REEL", StringComparison.OrdinalIgnoreCase) ||
+                 Current.Text.Equals("UNIT", StringComparison.OrdinalIgnoreCase)))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier)) Advance();
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+        }
         return new CloseStatement(fileNames, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
