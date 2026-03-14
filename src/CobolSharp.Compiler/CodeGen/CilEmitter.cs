@@ -1563,10 +1563,9 @@ public sealed class CilEmitter
             _il.Emit(OpCodes.Ldloc, counter);
             EmitNumericExprValue(perform.Times);
             // Convert decimal to int
-            _il.Emit(OpCodes.Call, _module.ImportReference(
-                typeof(decimal).GetMethod("op_Explicit", new[] { typeof(decimal) })!
-                    // Actually we need the one that returns int
-            ));
+            var decToInt = typeof(decimal).GetMethods()
+                .First(m => m.Name == "op_Explicit" && m.ReturnType == typeof(int));
+            _il.Emit(OpCodes.Call, _module.ImportReference(decToInt));
             _il.Emit(OpCodes.Bge, loopEnd);
 
             foreach (var stmt in perform.Body)
@@ -1945,16 +1944,17 @@ public sealed class CilEmitter
         }
         else
         {
-            // Use decimal constructor from parts
-            int[] bits = decimal.GetBits(value);
-            il.Emit(OpCodes.Ldc_I4, bits[0]);
-            il.Emit(OpCodes.Ldc_I4, bits[1]);
-            il.Emit(OpCodes.Ldc_I4, bits[2]);
-            il.Emit(OpCodes.Ldc_I4, (bits[3] >> 31) != 0 ? 1 : 0); // sign
-            il.Emit(OpCodes.Ldc_I4, (byte)((bits[3] >> 16) & 0xFF)); // scale
-            var ctor = typeof(decimal).GetConstructor(
-                new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(byte) });
-            il.Emit(OpCodes.Newobj, _module!.ImportReference(ctor));
+            // Use decimal.Parse for non-integer values — simpler and avoids
+            // Cecil type-mismatch issues with the decimal(int,int,int,bool,byte) ctor
+            string decStr = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            il.Emit(OpCodes.Ldstr, decStr);
+            var parseMethod = typeof(decimal).GetMethod("Parse",
+                new[] { typeof(string), typeof(System.Globalization.NumberStyles), typeof(IFormatProvider) });
+            il.Emit(OpCodes.Ldc_I4, (int)System.Globalization.NumberStyles.Any);
+            var invariantProp = typeof(System.Globalization.CultureInfo)
+                .GetProperty("InvariantCulture")!.GetGetMethod()!;
+            il.Emit(OpCodes.Call, _module!.ImportReference(invariantProp));
+            il.Emit(OpCodes.Call, _module.ImportReference(parseMethod));
         }
     }
 }
