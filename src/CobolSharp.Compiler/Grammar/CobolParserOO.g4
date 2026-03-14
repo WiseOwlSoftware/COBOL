@@ -94,6 +94,7 @@ methodAttribute
     | 'PRIVATE'
     | 'PROTECTED'
     | 'PUBLIC'
+    | genericParameterList   // METHOD-ID. AddItem<T>. (COBOL-2023)
     ;
 
 // ==========================================
@@ -117,7 +118,11 @@ invokeTarget
     ;
 
 invokeMethod
-    : methodName
+    : methodName genericInvocationArguments?
+    ;
+
+genericInvocationArguments
+    : LT typeArgument (COMMA typeArgument)* GT
     ;
 
 invokeUsing

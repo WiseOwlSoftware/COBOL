@@ -396,7 +396,13 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
+    | typeClause
     | genericDataClause
+    ;
+
+// TYPE clause (COBOL-2023 — threaded from CobolParserGenerics)
+typeClause
+    : 'TYPE' IS? IDENTIFIER
     ;
 
 genericDataClause

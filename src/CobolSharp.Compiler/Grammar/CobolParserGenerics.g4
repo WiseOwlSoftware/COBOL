@@ -4,33 +4,41 @@ options { tokenVocab = CobolLexer; }
 
 import CobolParserCore;
 
-// --- generic typedefs ---
+// ==========================================
+// TYPEDEF GENERIC (COBOL-2023)
+// ==========================================
 
 typeDefinitionEntry
-    : TYPEDEF GENERIC? genericParameterList? dataDescriptionEntry
+    : TYPEDEF genericMarker? genericParameterList? dataDescriptionEntry
     ;
+
+genericMarker
+    : GENERIC
+    ;
+
+// ==========================================
+// GENERIC PARAMETER LIST
+// ==========================================
 
 genericParameterList
     : LT genericParameter (COMMA genericParameter)* GT
     ;
 
 genericParameter
-    : typeParameterName ( 'OF' typeConstraint )?
+    : typeParameterName genericConstraint?
     ;
 
 typeParameterName
     : IDENTIFIER
     ;
 
-typeConstraint
-    : typeName
+genericConstraint
+    : 'OF' typeName
     ;
 
-typeName
-    : IDENTIFIER
-    ;
-
-// --- generic type specifier ---
+// ==========================================
+// GENERIC TYPE SPECIFIER
+// ==========================================
 
 genericTypeSpecifier
     : typeName LT typeArgument (COMMA typeArgument)* GT
@@ -38,8 +46,54 @@ genericTypeSpecifier
 
 typeArgument
     : typeName
-    | genericTypeSpecifier
+    | genericTypeSpecifier   // supports nested generics: Tree<Node<INTEGER>>
     ;
 
-// You'll thread genericTypeSpecifier into dataDescriptionEntry, parameter lists, etc.
-// e.g., by extending dataDescriptionClauses or adding a type-usage production.
+// ==========================================
+// TYPE NAME
+// ==========================================
+
+typeName
+    : IDENTIFIER
+    ;
+
+// ==========================================
+// TYPE CLAUSE (for data descriptions)
+// ==========================================
+// Extends dataDescriptionClause with:
+//   01 Customers TYPE MyList<Customer>.
+//   01 Node TYPE Tree<Node<INTEGER>>.
+
+typeClause
+    : 'TYPE' IS? (typeName | genericTypeSpecifier)
+    ;
+
+// ==========================================
+// GENERIC METHOD PARAMETERS (COBOL-2023)
+// ==========================================
+// Extends methodAttribute with generic parameter lists:
+//   METHOD-ID. AddItem<T>.
+
+genericMethodAttribute
+    : genericParameterList
+    ;
+
+// ==========================================
+// INVOKE WITH GENERIC TYPES
+// ==========================================
+// Extends invokeMethod with generic type arguments:
+//   INVOKE MyList::AddItem<INTEGER> USING 5.
+
+genericInvocationArguments
+    : LT typeArgument (COMMA typeArgument)* GT
+    ;
+
+// ==========================================
+// CALL WITH GENERIC TYPES (optional)
+// ==========================================
+// Extends callTarget with generic type specifiers:
+//   CALL MyFactory<Customer>::Create USING params.
+
+genericCallTarget
+    : genericTypeSpecifier
+    ;
