@@ -138,6 +138,28 @@ public sealed class Parser
         return Peek().Kind == TokenKind.DivisionKeyword;
     }
 
+    /// <summary>
+    /// Checks for END PROGRAM (§5.3.2) which terminates a compilation unit.
+    /// END is EndKeyword; PROGRAM is an Identifier in the keyword map but
+    /// may also be lexed as an identifier depending on context.
+    /// </summary>
+    private bool IsEndProgram()
+    {
+        if (Current.Kind != TokenKind.EndKeyword) return false;
+        var next = Peek();
+        return next.Kind == TokenKind.Identifier &&
+               next.Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Checks if the current position is at a structural boundary that ends
+    /// the procedure division: division start or END PROGRAM.
+    /// </summary>
+    private bool IsAtProcedureDivisionEnd()
+    {
+        return IsDivisionStart() || IsEndProgram();
+    }
+
     private static bool IsStatementStart(TokenKind kind) => kind is
         TokenKind.DisplayKeyword or TokenKind.StopKeyword or TokenKind.MoveKeyword or
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
@@ -1142,7 +1164,7 @@ public sealed class Parser
         var sections = new List<Section>();
 
         // Issue 12: Use IsDivisionStart() to avoid false-stopping on reserved words
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
+        while (Current.Kind != TokenKind.EndOfFile && !IsAtProcedureDivisionEnd())
         {
             if (IsSectionHeader())
                 break;
@@ -1218,7 +1240,7 @@ public sealed class Parser
         var paragraphs = new List<Paragraph>();
         // Issue 11: Use IsDivisionStart() to avoid false-stopping on reserved words
         while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader() &&
-               !IsDivisionStart())
+               !IsAtProcedureDivisionEnd())
         {
             if (IsParagraphHeader())
             {
@@ -1245,8 +1267,15 @@ public sealed class Parser
         while (Current.Kind != TokenKind.EndOfFile && !Check(TokenKind.Period))
         {
             // Stop at structural boundaries (paragraph/section/division headers)
-            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart())
+            if (IsParagraphHeader() || IsSectionHeader() || IsAtProcedureDivisionEnd())
                 break;
+
+            // Per §8.3.5: comma-space is a separator equivalent to space — skip it
+            if (Check(TokenKind.Comma))
+            {
+                Advance();
+                continue;
+            }
 
             if (IsStatementStart(Current.Kind))
             {
@@ -1280,7 +1309,7 @@ public sealed class Parser
         // Issue 10: Use IsDivisionStart() to avoid false-stopping on reserved words
         while (Current.Kind != TokenKind.EndOfFile &&
                !IsParagraphHeader() && !IsSectionHeader() &&
-               !IsDivisionStart())
+               !IsAtProcedureDivisionEnd())
         {
             // Skip stray periods (empty sentences)
             if (Check(TokenKind.Period))
@@ -1523,7 +1552,11 @@ public sealed class Parser
             operands.Add(ParseExpression());
         }
 
-        Expect(TokenKind.ToKeyword, "Expected TO in ADD statement");
+        // Per §7.2: ADD Format 1 has TO, Format 3 (GIVING) may not have TO
+        if (!Match(TokenKind.ToKeyword) && !Check(TokenKind.GivingKeyword))
+        {
+            ReportError("CS0100", "Expected TO or GIVING in ADD statement");
+        }
 
         var targets = new List<IdentifierExpression>();
         while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
