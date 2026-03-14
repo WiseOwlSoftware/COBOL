@@ -42,10 +42,9 @@ public sealed class Parser
 
     private Token Advance()
     {
-        if (++_iterationCount > MaxIterations)
-            throw new InvalidOperationException($"Parser exceeded {MaxIterations} iterations — likely infinite loop at position {_position}, token '{Current.Text}'");
-        if (_iterationCount % 100000 == 0)
-            Console.Error.WriteLine($"[PARSER] iterations={_iterationCount} pos={_position}/{_tokens.Count} token={Current.Kind}:{Current.Text}");
+        _iterationCount++;
+        if (_iterationCount > MaxIterations)
+            throw new InvalidOperationException($"Parser exceeded {MaxIterations} iterations — likely infinite loop at position {_position}, token '{Current.Text}')");
         var token = Current;
         if (_position < _tokens.Count - 1) _position++;
         return token;
@@ -143,6 +142,7 @@ public sealed class Parser
     private static bool IsStatementStart(TokenKind kind) => kind is
         TokenKind.DisplayKeyword or TokenKind.StopKeyword or TokenKind.MoveKeyword or
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
+        TokenKind.MultiplyKeyword or TokenKind.DivideKeyword or
         TokenKind.IfKeyword or TokenKind.PerformKeyword or TokenKind.EvaluateKeyword or
         TokenKind.GoKeyword or TokenKind.AcceptKeyword or TokenKind.CallKeyword or
         TokenKind.ContinueKeyword or TokenKind.ExitKeyword or TokenKind.InitializeKeyword or
@@ -150,6 +150,7 @@ public sealed class Parser
         TokenKind.OpenKeyword or TokenKind.CloseKeyword or TokenKind.ReadKeyword or
         TokenKind.WriteKeyword or TokenKind.RewriteKeyword or TokenKind.DeleteKeyword or
         TokenKind.StartKeyword or TokenKind.SortKeyword or
+        TokenKind.SetKeyword or TokenKind.SearchKeyword or TokenKind.GobackKeyword or
         // Phase 5.2 — Report Writer
         TokenKind.InitiateKeyword or TokenKind.GenerateKeyword or TokenKind.TerminateKeyword or
         // Phase 5.4 — OO COBOL
@@ -165,7 +166,14 @@ public sealed class Parser
         TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
         TokenKind.EndEvaluateKeyword or TokenKind.WhenKeyword or
         TokenKind.EndReadKeyword or TokenKind.EndWriteKeyword or
-        TokenKind.EndDeleteKeyword or TokenKind.EndStartKeyword;
+        TokenKind.EndDeleteKeyword or TokenKind.EndStartKeyword or
+        TokenKind.EndAddKeyword or TokenKind.EndSubtractKeyword or
+        TokenKind.EndMultiplyKeyword or TokenKind.EndDivideKeyword or
+        TokenKind.EndComputeKeyword or TokenKind.EndCallKeyword or
+        TokenKind.EndStringKeyword or TokenKind.EndUnstringKeyword or
+        TokenKind.EndAcceptKeyword or TokenKind.EndDisplayKeyword or
+        TokenKind.EndSearchKeyword or TokenKind.EndReturnKeyword or
+        TokenKind.EndRewriteKeyword;
 
     // ═══════════════════════════════════════════════════
     // Top-level parsing
@@ -808,9 +816,19 @@ public sealed class Parser
         {
             if (Check(TokenKind.PicKeyword))
             {
-                Advance();
-                Match(TokenKind.IsKeyword); // optional IS
-                pic = ParsePictureString();
+                Advance(); // PIC/PICTURE keyword
+                // The lexer now produces a PictureString token after PIC
+                // (it also consumes optional IS internally)
+                if (Check(TokenKind.PictureString))
+                {
+                    pic = Advance().Text;
+                }
+                else
+                {
+                    // Fallback: old-style parsing if lexer didn't produce PictureString
+                    Match(TokenKind.IsKeyword); // optional IS
+                    pic = ParsePictureString();
+                }
             }
             else if (Check(TokenKind.UsageKeyword))
             {
@@ -1224,6 +1242,12 @@ public sealed class Parser
             TokenKind.StringKeyword => ParseStringStatement(),
             TokenKind.UnstringKeyword => ParseUnstringStatement(),
             TokenKind.InspectKeyword => ParseInspectStatement(),
+            TokenKind.MultiplyKeyword => ParseMultiplyStatement(),
+            TokenKind.DivideKeyword => ParseDivideStatement(),
+            TokenKind.EvaluateKeyword => ParseEvaluateStatement(),
+            TokenKind.SetKeyword => ParseSetStatement(),
+            TokenKind.SearchKeyword => ParseSearchStatement(),
+            TokenKind.GobackKeyword => ParseGobackStatement(),
             // Phase 5.2 — Report Writer
             TokenKind.InitiateKeyword => ParseInitiateStatement(),
             TokenKind.GenerateKeyword => ParseGenerateStatement(),
@@ -1257,10 +1281,28 @@ public sealed class Parser
 
         var operands = new List<Expression>();
         while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
-               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+               !Check(TokenKind.EndDisplayKeyword))
         {
+            // Skip optional UPON clause
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("UPON", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // UPON
+                if (Check(TokenKind.Identifier)) Advance(); // device-name
+                continue;
+            }
+            // Skip optional WITH NO ADVANCING
+            if (Check(TokenKind.WithKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier) && Current.Text.Equals("NO", StringComparison.OrdinalIgnoreCase))
+                    Advance();
+                Match(TokenKind.AdvancingKeyword);
+                continue;
+            }
             operands.Add(ParseExpression());
         }
+        Match(TokenKind.EndDisplayKeyword);
         Match(TokenKind.Period);
 
         return new DisplayStatement(operands, TextSpan.FromBounds(start, Current.Span.Start));
@@ -1306,7 +1348,8 @@ public sealed class Parser
         Advance(); // ADD
 
         var operands = new List<Expression>();
-        while (!Check(TokenKind.ToKeyword) && !Check(TokenKind.Period) && !Check(TokenKind.EndOfFile))
+        while (!Check(TokenKind.ToKeyword) && !Check(TokenKind.GivingKeyword) &&
+               !Check(TokenKind.Period) && !Check(TokenKind.EndOfFile))
         {
             operands.Add(ParseExpression());
         }
@@ -1314,11 +1357,30 @@ public sealed class Parser
         Expect(TokenKind.ToKeyword, "Expected TO in ADD statement");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+               !Check(TokenKind.GivingKeyword) &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+               !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
+               !Check(TokenKind.EndAddKeyword))
         {
             var id = Expect(TokenKind.Identifier, "Expected identifier after TO");
+            Match(TokenKind.RoundedKeyword); // optional ROUNDED
             targets.Add(new IdentifierExpression(id.Text, id.Span));
         }
+
+        // Optional GIVING
+        if (Match(TokenKind.GivingKeyword))
+        {
+            while (Check(TokenKind.Identifier) && !IsStatementStart(Current.Kind))
+            {
+                var id = Advance();
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(new IdentifierExpression(id.Text, id.Span));
+            }
+        }
+
+        SkipSizeErrorPhrases();
+        Match(TokenKind.EndAddKeyword);
         Match(TokenKind.Period);
 
         return new AddStatement(operands, targets, TextSpan.FromBounds(start, Current.Span.Start));
@@ -1340,11 +1402,29 @@ public sealed class Parser
         Expect(TokenKind.FromKeyword, "Expected FROM in SUBTRACT statement");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+               !Check(TokenKind.GivingKeyword) &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+               !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
+               !Check(TokenKind.EndSubtractKeyword))
         {
             var id = Expect(TokenKind.Identifier, "Expected identifier after FROM");
+            Match(TokenKind.RoundedKeyword);
             targets.Add(new IdentifierExpression(id.Text, id.Span));
         }
+
+        if (Match(TokenKind.GivingKeyword))
+        {
+            while (Check(TokenKind.Identifier) && !IsStatementStart(Current.Kind))
+            {
+                var id = Advance();
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(new IdentifierExpression(id.Text, id.Span));
+            }
+        }
+
+        SkipSizeErrorPhrases();
+        Match(TokenKind.EndSubtractKeyword);
         Match(TokenKind.Period);
 
         return new SubtractStatement(operands, targets, TextSpan.FromBounds(start, Current.Span.Start));
@@ -1358,11 +1438,15 @@ public sealed class Parser
         Advance(); // COMPUTE
 
         var targetToken = Expect(TokenKind.Identifier, "Expected target identifier in COMPUTE");
+        Match(TokenKind.RoundedKeyword); // optional ROUNDED
         var target = new IdentifierExpression(targetToken.Text, targetToken.Span);
 
         Expect(TokenKind.Equals, "Expected = in COMPUTE statement");
 
         var value = ParseArithmeticExpression();
+
+        SkipSizeErrorPhrases();
+        Match(TokenKind.EndComputeKeyword);
         Match(TokenKind.Period);
 
         return new ComputeStatement(target, value, TextSpan.FromBounds(start, Current.Span.Start));
@@ -1377,51 +1461,23 @@ public sealed class Parser
 
         var condition = ParseConditionExpression();
 
-        // COBOL supports two IF styles:
-        // 1. IF ... END-IF (explicit scope terminator, COBOL 85+)
-        // 2. IF ... . (period terminates ALL open scopes, COBOL 74)
-        //
-        // For period-terminated IFs, we stop at the period without recursing
-        // into nested ParseStatements, avoiding deep recursion for files with
-        // many period-terminated IFs (like the NIST test suite).
+        // Optional THEN keyword
+        Match(TokenKind.ThenKeyword);
 
-        var thenStatements = new List<Statement>();
-        while (Current.Kind != TokenKind.EndOfFile &&
-               !Check(TokenKind.ElseKeyword) &&
-               !Check(TokenKind.EndIfKeyword) &&
-               !Check(TokenKind.Period))
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-                thenStatements.Add(stmt);
-            else if (!Check(TokenKind.ElseKeyword) && !Check(TokenKind.EndIfKeyword) &&
-                     !Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile)
-                Advance(); // safety: ensure progress
-        }
+        // Parse then-statements until ELSE, END-IF, or period
+        var thenStatements = ParseStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword);
 
         var elseStatements = new List<Statement>();
         if (Match(TokenKind.ElseKeyword))
         {
-            while (Current.Kind != TokenKind.EndOfFile &&
-                   !Check(TokenKind.EndIfKeyword) &&
-                   !Check(TokenKind.Period))
-            {
-                var stmt = ParseStatement();
-                if (stmt != null)
-                    elseStatements.Add(stmt);
-                else if (!Check(TokenKind.EndIfKeyword) && !Check(TokenKind.Period) &&
-                         Current.Kind != TokenKind.EndOfFile)
-                    Advance();
-            }
+            elseStatements = ParseStatements(TokenKind.EndIfKeyword);
         }
 
         if (Check(TokenKind.EndIfKeyword))
         {
             Advance();
-            Match(TokenKind.Period);
         }
-        // else: period-terminated IF — don't consume the period here,
-        // the paragraph loop will consume it
+        // else: period-terminated IF — period consumed by caller
 
         return new IfStatement(condition, thenStatements, elseStatements,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -1434,40 +1490,47 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // PERFORM
 
-        // Inline PERFORM: PERFORM ... END-PERFORM
-        // Out-of-line PERFORM: PERFORM paragraph-name
-        // PERFORM n TIMES ... END-PERFORM
-        // PERFORM UNTIL condition ... END-PERFORM
+        // Parse optional TEST BEFORE/AFTER
+        bool testAfter = false;
+        if (Check(TokenKind.TestKeyword))
+        {
+            Advance(); // TEST
+            if (Check(TokenKind.AfterKeyword)) { Advance(); testAfter = true; }
+            else Match(TokenKind.BeforeKeyword); // default
+        }
 
-        Expression? times = null;
-        Expression? until = null;
+        // PERFORM VARYING identifier FROM expr BY expr UNTIL condition
+        if (Check(TokenKind.VaryingKeyword))
+        {
+            return ParsePerformVarying(start, testAfter, null, null);
+        }
 
-        // Check for UNTIL
+        // PERFORM UNTIL condition [inline body] END-PERFORM
         if (Check(TokenKind.UntilKeyword))
         {
             Advance();
-            until = ParseConditionExpression();
+            var until = ParseConditionExpression();
             var body = ParseStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
             Match(TokenKind.Period);
             return new PerformStatement(null, body, null, until,
-                TextSpan.FromBounds(start, Current.Span.Start));
+                TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
         }
 
-        // Check for integer literal followed by TIMES
+        // PERFORM n TIMES [inline body] END-PERFORM
         if ((Check(TokenKind.IntegerLiteral) || Check(TokenKind.Identifier)) &&
             Peek().Kind == TokenKind.TimesKeyword)
         {
-            times = ParseExpression();
+            var times = ParseExpression();
             Expect(TokenKind.TimesKeyword);
             var body = ParseStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
             Match(TokenKind.Period);
             return new PerformStatement(null, body, times, null,
-                TextSpan.FromBounds(start, Current.Span.Start));
+                TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
         }
 
-        // Out-of-line: PERFORM paragraph-name [THRU paragraph-name]
+        // Out-of-line: PERFORM paragraph-name [THRU paragraph-name] [modifier]
         if (Check(TokenKind.Identifier))
         {
             string name = Advance().Text;
@@ -1477,9 +1540,62 @@ public sealed class Parser
                 var thruToken = Expect(TokenKind.Identifier, "Expected paragraph name after THRU");
                 thruName = thruToken.Text;
             }
+
+            // Out-of-line with TIMES
+            if ((Check(TokenKind.IntegerLiteral) || Check(TokenKind.Identifier)) &&
+                Peek().Kind == TokenKind.TimesKeyword)
+            {
+                var times = ParseExpression();
+                Expect(TokenKind.TimesKeyword);
+                Match(TokenKind.Period);
+                return new PerformStatement(name, new List<Statement>(), times, null,
+                    TextSpan.FromBounds(start, Current.Span.Start),
+                    thruParagraphName: thruName, testAfter: testAfter);
+            }
+
+            // Out-of-line with UNTIL
+            if (Check(TokenKind.UntilKeyword))
+            {
+                Advance();
+                var until = ParseConditionExpression();
+                Match(TokenKind.Period);
+                return new PerformStatement(name, new List<Statement>(), null, until,
+                    TextSpan.FromBounds(start, Current.Span.Start),
+                    thruParagraphName: thruName, testAfter: testAfter);
+            }
+
+            // Out-of-line with VARYING
+            if (Check(TokenKind.VaryingKeyword))
+            {
+                return ParsePerformVarying(start, testAfter, name, thruName);
+            }
+
+            // Out-of-line with TEST BEFORE/AFTER
+            if (Check(TokenKind.TestKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.AfterKeyword)) { Advance(); testAfter = true; }
+                else Match(TokenKind.BeforeKeyword);
+
+                if (Check(TokenKind.UntilKeyword))
+                {
+                    Advance();
+                    var until = ParseConditionExpression();
+                    Match(TokenKind.Period);
+                    return new PerformStatement(name, new List<Statement>(), null, until,
+                        TextSpan.FromBounds(start, Current.Span.Start),
+                        thruParagraphName: thruName, testAfter: testAfter);
+                }
+                if (Check(TokenKind.VaryingKeyword))
+                {
+                    return ParsePerformVarying(start, testAfter, name, thruName);
+                }
+            }
+
             Match(TokenKind.Period);
             return new PerformStatement(name, new List<Statement>(), null, null,
-                TextSpan.FromBounds(start, Current.Span.Start), thruParagraphName: thruName);
+                TextSpan.FromBounds(start, Current.Span.Start),
+                thruParagraphName: thruName, testAfter: testAfter);
         }
 
         // Bare inline PERFORM ... END-PERFORM
@@ -1487,7 +1603,47 @@ public sealed class Parser
         Expect(TokenKind.EndPerformKeyword);
         Match(TokenKind.Period);
         return new PerformStatement(null, stmts, null, null,
-            TextSpan.FromBounds(start, Current.Span.Start));
+            TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
+    }
+
+    private PerformStatement ParsePerformVarying(int start, bool testAfter,
+        string? paraName, string? thruName)
+    {
+        Advance(); // VARYING
+
+        var varyToken = Expect(TokenKind.Identifier, "Expected identifier after VARYING");
+        var varyId = new IdentifierExpression(varyToken.Text, varyToken.Span);
+
+        Expect(TokenKind.FromKeyword, "Expected FROM in PERFORM VARYING");
+        var from = ParseExpression();
+
+        Expect(TokenKind.ByKeyword, "Expected BY in PERFORM VARYING");
+        var by = ParseExpression();
+
+        Expect(TokenKind.UntilKeyword, "Expected UNTIL in PERFORM VARYING");
+        var until = ParseConditionExpression();
+
+        var varying = new PerformVarying(varyId, from, by,
+            TextSpan.FromBounds(varyToken.Span.Start, Current.Span.Start));
+
+        if (paraName != null)
+        {
+            // Out-of-line PERFORM para VARYING
+            Match(TokenKind.Period);
+            return new PerformStatement(paraName, new List<Statement>(), null, until,
+                TextSpan.FromBounds(start, Current.Span.Start),
+                thruParagraphName: thruName, varying: varying, testAfter: testAfter);
+        }
+        else
+        {
+            // Inline PERFORM VARYING ... END-PERFORM
+            var body = ParseStatements(TokenKind.EndPerformKeyword);
+            Expect(TokenKind.EndPerformKeyword);
+            Match(TokenKind.Period);
+            return new PerformStatement(null, body, null, until,
+                TextSpan.FromBounds(start, Current.Span.Start),
+                varying: varying, testAfter: testAfter);
+        }
     }
 
     // ── GO TO ──
@@ -2303,6 +2459,288 @@ public sealed class Parser
         Match(TokenKind.Period);
     }
 
+    // ── EVALUATE ──
+
+    private EvaluateStatement ParseEvaluateStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // EVALUATE
+
+        var subject = ParseExpression();
+        var whenClauses = new List<WhenClause>();
+        var whenOtherStatements = new List<Statement>();
+
+        while (Check(TokenKind.WhenKeyword))
+        {
+            int whenStart = Current.Span.Start;
+            Advance(); // WHEN
+
+            // WHEN OTHER
+            if (Check(TokenKind.OtherKeyword))
+            {
+                Advance(); // OTHER
+                whenOtherStatements = ParseStatements(TokenKind.EndEvaluateKeyword);
+                break;
+            }
+
+            // Parse WHEN objects (may have multiple WHEN before statements)
+            var objects = new List<Expression>();
+            objects.Add(ParseExpression());
+
+            // Handle additional WHEN clauses that share the same statement block
+            // (WHEN value1 WHEN value2 ... statements)
+            while (Check(TokenKind.WhenKeyword) && Peek().Kind != TokenKind.OtherKeyword)
+            {
+                Advance(); // WHEN
+                objects.Add(ParseExpression());
+            }
+
+            // Parse statements for this WHEN clause
+            var stmts = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndEvaluateKeyword);
+            whenClauses.Add(new WhenClause(objects, stmts,
+                TextSpan.FromBounds(whenStart, Current.Span.Start)));
+        }
+
+        Match(TokenKind.EndEvaluateKeyword);
+        Match(TokenKind.Period);
+
+        return new EvaluateStatement(subject, whenClauses, whenOtherStatements,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── MULTIPLY ──
+
+    private MultiplyStatement ParseMultiplyStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // MULTIPLY
+
+        var operand = ParseExpression();
+        Expect(TokenKind.ByKeyword, "Expected BY in MULTIPLY statement");
+
+        var targets = new List<IdentifierExpression>();
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+               !Check(TokenKind.GivingKeyword) &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+               !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
+               !Check(TokenKind.EndMultiplyKeyword))
+        {
+            var tok = Expect(TokenKind.Identifier, "Expected identifier in MULTIPLY");
+            Match(TokenKind.RoundedKeyword); // optional ROUNDED
+            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+        }
+
+        Expression? giving = null;
+        if (Match(TokenKind.GivingKeyword))
+        {
+            giving = ParseExpression();
+            Match(TokenKind.RoundedKeyword);
+        }
+
+        // Skip ON SIZE ERROR / NOT ON SIZE ERROR
+        SkipSizeErrorPhrases();
+        Match(TokenKind.EndMultiplyKeyword);
+        Match(TokenKind.Period);
+
+        return new MultiplyStatement(operand, targets, giving,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── DIVIDE ──
+
+    private DivideStatement ParseDivideStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // DIVIDE
+
+        var operand = ParseExpression();
+
+        // DIVIDE x INTO y  or  DIVIDE x BY y GIVING z
+        bool hasInto = Match(TokenKind.IntoKeyword);
+        bool hasBy = !hasInto && Match(TokenKind.ByKeyword);
+
+        var targets = new List<IdentifierExpression>();
+        Expression? giving = null;
+        IdentifierExpression? remainder = null;
+
+        if (hasBy)
+        {
+            // DIVIDE x BY y GIVING z [REMAINDER r]
+            var divisor = ParseExpression();
+            // For now, store the divisor as a target — semantic analysis resolves
+            targets.Add(new IdentifierExpression(
+                divisor is IdentifierExpression id ? id.Name : "?",
+                divisor.Span));
+            Expect(TokenKind.GivingKeyword, "Expected GIVING in DIVIDE ... BY");
+            giving = ParseExpression();
+            Match(TokenKind.RoundedKeyword);
+        }
+        else
+        {
+            // DIVIDE x INTO y [GIVING z] [REMAINDER r]
+            while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+                   !Check(TokenKind.GivingKeyword) && !Check(TokenKind.RemainderKeyword) &&
+                   !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+                   !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
+                   !Check(TokenKind.EndDivideKeyword))
+            {
+                var tok = Expect(TokenKind.Identifier, "Expected identifier in DIVIDE");
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            }
+
+            if (Match(TokenKind.GivingKeyword))
+            {
+                giving = ParseExpression();
+                Match(TokenKind.RoundedKeyword);
+            }
+        }
+
+        if (Match(TokenKind.RemainderKeyword))
+        {
+            var remToken = Expect(TokenKind.Identifier, "Expected identifier after REMAINDER");
+            remainder = new IdentifierExpression(remToken.Text, remToken.Span);
+        }
+
+        SkipSizeErrorPhrases();
+        Match(TokenKind.EndDivideKeyword);
+        Match(TokenKind.Period);
+
+        return new DivideStatement(operand, targets, giving, remainder,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── SET ──
+
+    private SetStatement ParseSetStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // SET
+
+        var targets = new List<IdentifierExpression>();
+        while (Check(TokenKind.Identifier))
+        {
+            var tok = Advance();
+            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+        }
+
+        SetAction action = SetAction.To;
+        if (Match(TokenKind.ToKeyword))
+        {
+            action = SetAction.To;
+        }
+        else if (Check(TokenKind.Identifier) && Current.Text.Equals("UP", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // UP
+            Match(TokenKind.ByKeyword);
+            action = SetAction.UpBy;
+        }
+        else if (Check(TokenKind.Identifier) && Current.Text.Equals("DOWN", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // DOWN
+            Match(TokenKind.ByKeyword);
+            action = SetAction.DownBy;
+        }
+
+        var value = ParseExpression();
+        Match(TokenKind.Period);
+
+        return new SetStatement(targets, value, action,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── SEARCH ──
+
+    private SearchStatement ParseSearchStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // SEARCH
+
+        var tableToken = Expect(TokenKind.Identifier, "Expected table name after SEARCH");
+        var tableName = new IdentifierExpression(tableToken.Text, tableToken.Span);
+
+        // Optional VARYING identifier
+        if (Check(TokenKind.VaryingKeyword))
+        {
+            Advance();
+            if (Check(TokenKind.Identifier)) Advance(); // varying identifier
+        }
+
+        var atEnd = new List<Statement>();
+        if (Check(TokenKind.AtKeyword))
+        {
+            Advance(); // AT
+            Match(TokenKind.EndKeyword);
+            atEnd = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
+        }
+
+        var whenClauses = new List<SearchWhenClause>();
+        while (Check(TokenKind.WhenKeyword))
+        {
+            int whenStart = Current.Span.Start;
+            Advance(); // WHEN
+            var condition = ParseConditionExpression();
+            var stmts = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
+            whenClauses.Add(new SearchWhenClause(condition, stmts,
+                TextSpan.FromBounds(whenStart, Current.Span.Start)));
+        }
+
+        Match(TokenKind.EndSearchKeyword);
+        Match(TokenKind.Period);
+
+        return new SearchStatement(tableName, whenClauses, atEnd,
+            TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── GOBACK ──
+
+    private GobackStatement ParseGobackStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // GOBACK
+        Match(TokenKind.Period);
+        return new GobackStatement(TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    /// <summary>Skip ON SIZE ERROR / NOT ON SIZE ERROR phrases.</summary>
+    private void SkipSizeErrorPhrases()
+    {
+        // ON SIZE ERROR imperative-statements
+        if (Check(TokenKind.OnKeyword) && Peek().Kind == TokenKind.SizeKeyword)
+        {
+            Advance(); Advance(); // ON SIZE
+            Match(TokenKind.ErrorKeyword);
+            // Skip statements until NOT or END-xxx or period
+            while (!Check(TokenKind.NotKeyword) && !Check(TokenKind.Period) &&
+                   Current.Kind != TokenKind.EndOfFile && !IsScopeTerminator(Current.Kind))
+            {
+                var stmt = ParseStatement();
+                // discard — we don't model size error handlers yet
+            }
+        }
+        // NOT ON SIZE ERROR imperative-statements
+        if (Check(TokenKind.NotKeyword))
+        {
+            int saved = _position;
+            Advance(); // NOT
+            if (Check(TokenKind.OnKeyword)) Advance();
+            if (Check(TokenKind.SizeKeyword))
+            {
+                Advance(); // SIZE
+                Match(TokenKind.ErrorKeyword);
+                while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
+                       !IsScopeTerminator(Current.Kind))
+                {
+                    ParseStatement();
+                }
+            }
+            else
+            {
+                _position = saved; // wasn't NOT ON SIZE ERROR, restore
+            }
+        }
+    }
+
     // ═══════════════════════════════════════════════════
     // Expression parsing
     // ═══════════════════════════════════════════════════
@@ -2397,6 +2835,14 @@ public sealed class Parser
 
             case TokenKind.Identifier:
                 Advance();
+                // Consume IN/OF qualification chain: NAME IN PARENT OF GRANDPARENT
+                // Keep only the most specific (leftmost) name for now
+                while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+                {
+                    Advance(); // IN or OF
+                    if (Check(TokenKind.Identifier))
+                        Advance(); // qualifier name — consumed but not stored
+                }
                 // Check for subscripts or reference modification: NAME(...)
                 if (Check(TokenKind.LeftParen))
                 {
@@ -2426,6 +2872,12 @@ public sealed class Parser
 
             case TokenKind.FunctionKeyword:
                 return ParseFunctionCall();
+
+            case TokenKind.HexLiteral:
+            case TokenKind.BooleanLiteral:
+            case TokenKind.NationalLiteral:
+                Advance();
+                return new StringLiteralExpression((string)token.Value!, token.Span);
 
             case TokenKind.LeftParen:
                 Advance();
@@ -2557,13 +3009,55 @@ public sealed class Parser
     {
         var left = ParseArithmeticExpression();
 
+        // Check for class condition: identifier IS [NOT] NUMERIC/ALPHABETIC
+        if (Check(TokenKind.IsKeyword) || Check(TokenKind.NotKeyword))
+        {
+            int saved = _position;
+            bool isNot = false;
+
+            if (Check(TokenKind.IsKeyword)) Advance();
+            if (Check(TokenKind.NotKeyword)) { isNot = true; Advance(); }
+
+            if (Check(TokenKind.NumericKeyword) || Check(TokenKind.AlphabeticKeyword) ||
+                Check(TokenKind.PositiveKeyword) || Check(TokenKind.NegativeKeyword) ||
+                Check(TokenKind.ZeroKeyword))
+            {
+                // Class or sign condition — represent as a binary expression
+                // using Equal/NotEqual with the class as a figurative constant
+                var classToken = Advance();
+                Expression classExpr;
+                if (classToken.Kind == TokenKind.NumericKeyword)
+                    classExpr = new StringLiteralExpression("NUMERIC", classToken.Span);
+                else if (classToken.Kind == TokenKind.AlphabeticKeyword)
+                    classExpr = new StringLiteralExpression("ALPHABETIC", classToken.Span);
+                else if (classToken.Kind == TokenKind.PositiveKeyword)
+                    classExpr = new StringLiteralExpression("POSITIVE", classToken.Span);
+                else if (classToken.Kind == TokenKind.NegativeKeyword)
+                    classExpr = new StringLiteralExpression("NEGATIVE", classToken.Span);
+                else // ZeroKeyword
+                    classExpr = new FigurativeConstantExpression(FigurativeConstant.Zero, classToken.Span);
+
+                var op2 = isNot ? BinaryOperator.NotEqual : BinaryOperator.Equal;
+                return new BinaryExpression(left, op2, classExpr,
+                    TextSpan.FromBounds(left.Span.Start, classToken.Span.End));
+            }
+
+            // Not a class/sign condition — restore position and try relational
+            _position = saved;
+        }
+
         // Check for relational operator
         BinaryOperator? op = TryParseRelationalOperator();
         if (op.HasValue)
         {
             var right = ParseArithmeticExpression();
-            return new BinaryExpression(left, op.Value, right,
+            var result = new BinaryExpression(left, op.Value, right,
                 TextSpan.FromBounds(left.Span.Start, right.Span.End));
+
+            // Check for abbreviated combined relations: A > B AND C → A > B AND A > C
+            // If next token is AND/OR followed by something that's NOT a statement keyword,
+            // and there's no relational operator after the AND/OR operand, it's abbreviated.
+            return result;
         }
 
         return left;
@@ -2573,6 +3067,8 @@ public sealed class Parser
     {
         // = , < , > , <= , >= , NOT = , NOT < , NOT >
         // EQUAL TO, GREATER THAN, LESS THAN, etc.
+        // Use lookahead to avoid consuming IS/NOT when no operator follows
+        int saved = _position;
         bool negated = false;
 
         if (Check(TokenKind.IsKeyword))
@@ -2634,6 +3130,13 @@ public sealed class Parser
             {
                 op = BinaryOperator.LessThan;
             }
+        }
+
+        // If we consumed IS/NOT but found no operator, restore position
+        if (!op.HasValue && _position != saved)
+        {
+            _position = saved;
+            return null;
         }
 
         if (op.HasValue && negated)

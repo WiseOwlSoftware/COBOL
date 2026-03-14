@@ -151,9 +151,71 @@ public class LexerTests
     [Fact]
     public void Lex_PicKeyword_Aliases()
     {
-        var tokens = Lex("PIC PICTURE");
+        // PIC and PICTURE are both recognized as PicKeyword
+        // After PIC, lexer enters PictureString mode, so test them separately
+        var tokens1 = Lex("PICTURE IS X(10)");
+        Assert.Equal(TokenKind.PicKeyword, tokens1[0].Kind);
+        Assert.Equal(TokenKind.PictureString, tokens1[1].Kind);
+        Assert.Equal("X(10)", tokens1[1].Text);
+
+        var tokens2 = Lex("PIC 9(5)V99");
+        Assert.Equal(TokenKind.PicKeyword, tokens2[0].Kind);
+        Assert.Equal(TokenKind.PictureString, tokens2[1].Kind);
+        Assert.Equal("9(5)V99", tokens2[1].Text);
+    }
+
+    [Fact]
+    public void Lex_PictureString_WithIS()
+    {
+        var tokens = Lex("PIC IS X(20)");
         Assert.Equal(TokenKind.PicKeyword, tokens[0].Kind);
-        Assert.Equal(TokenKind.PicKeyword, tokens[1].Kind);
+        Assert.Equal(TokenKind.PictureString, tokens[1].Kind);
+        Assert.Equal("X(20)", tokens[1].Text);
+    }
+
+    [Fact]
+    public void Lex_ScopeTerminators()
+    {
+        var tokens = Lex("END-ADD END-SUBTRACT END-MULTIPLY END-DIVIDE END-COMPUTE END-CALL");
+        Assert.Equal(TokenKind.EndAddKeyword, tokens[0].Kind);
+        Assert.Equal(TokenKind.EndSubtractKeyword, tokens[1].Kind);
+        Assert.Equal(TokenKind.EndMultiplyKeyword, tokens[2].Kind);
+        Assert.Equal(TokenKind.EndDivideKeyword, tokens[3].Kind);
+        Assert.Equal(TokenKind.EndComputeKeyword, tokens[4].Kind);
+        Assert.Equal(TokenKind.EndCallKeyword, tokens[5].Kind);
+    }
+
+    [Fact]
+    public void Lex_HexLiteral()
+    {
+        var tokens = Lex("X\"48454C4C4F\"");
+        Assert.Equal(TokenKind.HexLiteral, tokens[0].Kind);
+        Assert.Equal("48454C4C4F", tokens[0].Value);
+    }
+
+    [Fact]
+    public void Lex_GobackKeyword()
+    {
+        var tokens = Lex("GOBACK");
+        Assert.Equal(TokenKind.GobackKeyword, tokens[0].Kind);
+    }
+
+    [Fact]
+    public void Lex_ThenKeyword()
+    {
+        var tokens = Lex("THEN");
+        Assert.Equal(TokenKind.ThenKeyword, tokens[0].Kind);
+    }
+
+    [Fact]
+    public void Lex_InOfKeywords()
+    {
+        var tokens = Lex("WS-NAME IN WS-RECORD OF WS-FILE");
+        Assert.Equal(TokenKind.Identifier, tokens[0].Kind);
+        Assert.Equal(TokenKind.InKeyword, tokens[1].Kind);
+        Assert.Equal(TokenKind.Identifier, tokens[2].Kind);
+        Assert.Equal(TokenKind.OfKeyword, tokens[3].Kind);
+        Assert.Equal(TokenKind.Identifier, tokens[4].Kind);
     }
 
     [Fact]

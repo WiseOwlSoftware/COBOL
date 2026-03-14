@@ -848,17 +848,168 @@ public sealed class PerformStatement : Statement
     public Expression? Times { get; }
     /// <summary>UNTIL condition.</summary>
     public Expression? Until { get; }
+    /// <summary>VARYING clause (spec §14.9.28).</summary>
+    public PerformVarying? Varying { get; }
+    /// <summary>Whether TEST BEFORE (default) or TEST AFTER.</summary>
+    public bool TestAfter { get; }
 
     public PerformStatement(string? paragraphName, List<Statement> body,
         Expression? times, Expression? until, TextSpan span,
-        string? thruParagraphName = null) : base(span)
+        string? thruParagraphName = null,
+        PerformVarying? varying = null,
+        bool testAfter = false) : base(span)
     {
         ParagraphName = paragraphName;
         ThruParagraphName = thruParagraphName;
         Body = body;
         Times = times;
         Until = until;
+        Varying = varying;
+        TestAfter = testAfter;
     }
+}
+
+/// <summary>
+/// VARYING identifier FROM expr BY expr UNTIL condition
+/// </summary>
+public sealed class PerformVarying : AstNode
+{
+    public IdentifierExpression Identifier { get; }
+    public Expression From { get; }
+    public Expression By { get; }
+
+    public PerformVarying(IdentifierExpression identifier, Expression from,
+        Expression by, TextSpan span) : base(span)
+    {
+        Identifier = identifier;
+        From = from;
+        By = by;
+    }
+}
+
+// ── EVALUATE (spec §14.9.13) ──
+
+public sealed class EvaluateStatement : Statement
+{
+    public Expression Subject { get; }
+    public List<WhenClause> WhenClauses { get; }
+    public List<Statement> WhenOtherStatements { get; }
+
+    public EvaluateStatement(Expression subject, List<WhenClause> whenClauses,
+        List<Statement> whenOtherStatements, TextSpan span) : base(span)
+    {
+        Subject = subject;
+        WhenClauses = whenClauses;
+        WhenOtherStatements = whenOtherStatements;
+    }
+}
+
+public sealed class WhenClause : AstNode
+{
+    public List<Expression> Objects { get; }
+    public List<Statement> Statements { get; }
+
+    public WhenClause(List<Expression> objects, List<Statement> statements, TextSpan span) : base(span)
+    {
+        Objects = objects;
+        Statements = statements;
+    }
+}
+
+// ── MULTIPLY (spec §14.9.26) ──
+
+public sealed class MultiplyStatement : Statement
+{
+    public Expression Operand { get; }
+    public List<IdentifierExpression> Targets { get; }
+    public Expression? Giving { get; }
+
+    public MultiplyStatement(Expression operand, List<IdentifierExpression> targets,
+        Expression? giving, TextSpan span) : base(span)
+    {
+        Operand = operand;
+        Targets = targets;
+        Giving = giving;
+    }
+}
+
+// ── DIVIDE (spec §14.9.12) ──
+
+public sealed class DivideStatement : Statement
+{
+    public Expression Operand { get; }
+    public List<IdentifierExpression> Targets { get; }
+    public Expression? Giving { get; }
+    public IdentifierExpression? Remainder { get; }
+
+    public DivideStatement(Expression operand, List<IdentifierExpression> targets,
+        Expression? giving, IdentifierExpression? remainder, TextSpan span) : base(span)
+    {
+        Operand = operand;
+        Targets = targets;
+        Giving = giving;
+        Remainder = remainder;
+    }
+}
+
+// ── SET (spec §14.9.39) ──
+
+public sealed class SetStatement : Statement
+{
+    public List<IdentifierExpression> Targets { get; }
+    public Expression Value { get; }
+    public SetAction Action { get; }
+
+    public SetStatement(List<IdentifierExpression> targets, Expression value,
+        SetAction action, TextSpan span) : base(span)
+    {
+        Targets = targets;
+        Value = value;
+        Action = action;
+    }
+}
+
+public enum SetAction
+{
+    To,      // SET x TO y
+    UpBy,    // SET x UP BY y
+    DownBy,  // SET x DOWN BY y
+}
+
+// ── SEARCH (spec §14.9.37) ──
+
+public sealed class SearchStatement : Statement
+{
+    public IdentifierExpression TableName { get; }
+    public List<SearchWhenClause> WhenClauses { get; }
+    public List<Statement> AtEnd { get; }
+
+    public SearchStatement(IdentifierExpression tableName, List<SearchWhenClause> whenClauses,
+        List<Statement> atEnd, TextSpan span) : base(span)
+    {
+        TableName = tableName;
+        WhenClauses = whenClauses;
+        AtEnd = atEnd;
+    }
+}
+
+public sealed class SearchWhenClause : AstNode
+{
+    public Expression Condition { get; }
+    public List<Statement> Statements { get; }
+
+    public SearchWhenClause(Expression condition, List<Statement> statements, TextSpan span) : base(span)
+    {
+        Condition = condition;
+        Statements = statements;
+    }
+}
+
+// ── GOBACK (spec §14.9.18) ──
+
+public sealed class GobackStatement : Statement
+{
+    public GobackStatement(TextSpan span) : base(span) { }
 }
 
 // ═══════════════════════════════════════════════════════════════

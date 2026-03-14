@@ -299,7 +299,51 @@ public sealed class SemanticAnalyzer
             case PerformStatement perform:
                 if (perform.Times != null) ResolveExpression(perform.Times, symbols);
                 if (perform.Until != null) ResolveExpression(perform.Until, symbols);
+                if (perform.Varying != null)
+                {
+                    ResolveIdentifier(perform.Varying.Identifier, symbols);
+                    ResolveExpression(perform.Varying.From, symbols);
+                    ResolveExpression(perform.Varying.By, symbols);
+                }
                 foreach (var s in perform.Body) AnalyzeStatement(s, symbols);
+                break;
+
+            case EvaluateStatement eval:
+                ResolveExpression(eval.Subject, symbols);
+                foreach (var wc in eval.WhenClauses)
+                {
+                    foreach (var obj in wc.Objects) ResolveExpression(obj, symbols);
+                    foreach (var s in wc.Statements) AnalyzeStatement(s, symbols);
+                }
+                foreach (var s in eval.WhenOtherStatements) AnalyzeStatement(s, symbols);
+                break;
+
+            case MultiplyStatement mul:
+                ResolveExpression(mul.Operand, symbols);
+                foreach (var t in mul.Targets) ResolveIdentifier(t, symbols);
+                if (mul.Giving != null) ResolveExpression(mul.Giving, symbols);
+                break;
+
+            case DivideStatement div:
+                ResolveExpression(div.Operand, symbols);
+                foreach (var t in div.Targets) ResolveIdentifier(t, symbols);
+                if (div.Giving != null) ResolveExpression(div.Giving, symbols);
+                if (div.Remainder != null) ResolveIdentifier(div.Remainder, symbols);
+                break;
+
+            case SetStatement set:
+                foreach (var t in set.Targets) ResolveIdentifier(t, symbols);
+                ResolveExpression(set.Value, symbols);
+                break;
+
+            case SearchStatement search:
+                ResolveIdentifier(search.TableName, symbols);
+                foreach (var s in search.AtEnd) AnalyzeStatement(s, symbols);
+                foreach (var wc in search.WhenClauses)
+                {
+                    ResolveExpression(wc.Condition, symbols);
+                    foreach (var s in wc.Statements) AnalyzeStatement(s, symbols);
+                }
                 break;
         }
     }

@@ -419,7 +419,54 @@ public sealed class CilEmitter
             case SourceFormatDirective:
                 _il!.Emit(OpCodes.Nop);
                 break;
+            case EvaluateStatement eval:
+                EmitEvaluateStatement(eval);
+                break;
+            case MultiplyStatement:
+            case DivideStatement:
+            case SetStatement:
+            case SearchStatement:
+                _il!.Emit(OpCodes.Nop); // TODO: implement code generation
+                break;
+            case GobackStatement:
+                EmitStopRunStatement(); // GOBACK is equivalent to STOP RUN
+                break;
+            case GoToDependingStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
         }
+    }
+
+    private void EmitEvaluateStatement(EvaluateStatement eval)
+    {
+        // Emit EVALUATE as if-else chain
+        var endLabel = _il!.Create(OpCodes.Nop);
+
+        foreach (var whenClause in eval.WhenClauses)
+        {
+            var nextWhen = _il.Create(OpCodes.Nop);
+
+            // For each object in the WHEN clause, check equality with subject
+            // Multiple objects in one WHEN clause are OR'd together
+            foreach (var obj in whenClause.Objects)
+            {
+                // Simple implementation: always compare as equal for now
+                // Full implementation would emit the comparison
+            }
+
+            // Emit the statements
+            foreach (var stmt in whenClause.Statements)
+                EmitStatement(stmt);
+
+            _il.Emit(OpCodes.Br, endLabel);
+            _il.Append(nextWhen);
+        }
+
+        // WHEN OTHER
+        foreach (var stmt in eval.WhenOtherStatements)
+            EmitStatement(stmt);
+
+        _il.Append(endLabel);
     }
 
     private void EmitDisplayStatement(DisplayStatement display)

@@ -255,6 +255,35 @@ public enum TokenKind
     FixedKeyword,            // FIXED (source format value)
     NationalKeyword,         // NATIONAL (PIC N usage / type)
 
+    // ── Scope terminators (§14.5.3) ──
+    EndAddKeyword,           // END-ADD
+    EndSubtractKeyword,      // END-SUBTRACT
+    EndMultiplyKeyword,      // END-MULTIPLY
+    EndDivideKeyword,        // END-DIVIDE
+    EndComputeKeyword,       // END-COMPUTE
+    EndCallKeyword,          // END-CALL
+    EndStringKeyword,        // END-STRING
+    EndUnstringKeyword,      // END-UNSTRING
+    EndAcceptKeyword,        // END-ACCEPT
+    EndDisplayKeyword,       // END-DISPLAY
+    EndSearchKeyword,        // END-SEARCH
+    EndReturnKeyword,        // END-RETURN
+    EndRewriteKeyword,       // END-REWRITE
+
+    // ── Additional keywords ──
+    ThenKeyword,             // THEN
+    GobackKeyword,           // GOBACK
+    InKeyword,               // IN (qualification)
+    OfKeyword,               // OF (qualification)
+
+    // ── PICTURE string token (lexer-produced) ──
+    PictureString,           // The character-string after PIC/PICTURE [IS]
+
+    // ── Hex/Boolean/National literals ──
+    HexLiteral,              // X"..." or X'...'
+    BooleanLiteral,          // B"..." or B'...'
+    NationalLiteral,         // N"..." or N'...'
+
     // ─── Compiler directive delimiter >>>
     CompilerDirective,       // >>SOURCE FORMAT IS FREE/FIXED
 }

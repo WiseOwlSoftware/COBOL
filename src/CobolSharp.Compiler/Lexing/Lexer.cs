@@ -6,12 +6,21 @@ namespace CobolSharp.Compiler.Lexing;
 /// <summary>
 /// Free-form COBOL lexer. Produces tokens from source text.
 /// Case-insensitive keyword matching. Handles free-form comments (*>).
+/// Spec-driven: period handling per §8.3.5, PICTURE string tokenization,
+/// hex/boolean/national literal prefixes.
 /// </summary>
 public sealed class Lexer
 {
     private readonly SourceText _source;
     private readonly DiagnosticBag _diagnostics;
     private int _position;
+
+    /// <summary>
+    /// After emitting a PicKeyword, this flag tells the next call to NextToken()
+    /// to consume the optional IS and then read the PICTURE character-string as
+    /// a single PictureString token.
+    /// </summary>
+    private bool _expectPictureString;
 
     private static readonly Dictionary<string, TokenKind> Keywords = BuildKeywordMap();
 
@@ -39,6 +48,14 @@ public sealed class Lexer
 
     private Token NextToken()
     {
+        // Handle PICTURE string state: after PIC/PICTURE keyword,
+        // consume optional IS, then read the picture character-string as one token.
+        if (_expectPictureString)
+        {
+            _expectPictureString = false;
+            return ReadPictureString();
+        }
+
         SkipWhitespaceAndComments();
 
         if (_position >= _source.Length)
@@ -52,13 +69,36 @@ public sealed class Lexer
             return ReadCompilerDirective();
         }
 
-        // Period (sentence terminator) — but not if followed by a digit (decimal literal)
-        if (c == '.' && !IsDigit(Peek(1)))
+        // Numeric literal: starts with digit, or period followed by digit
+        // Check this BEFORE period handling so ".5" is correctly parsed as decimal
+        if (c == '.' && IsDigit(Peek(1)))
+            return ReadNumericLiteral();
+
+        // Period (sentence terminator) — spec §8.3.5:
+        // A period followed by a space, EOL, or EOF is a separator period.
+        // A period followed by a digit is part of a decimal literal (handled above).
+        // A period in other contexts (e.g., followed by a letter) is still treated
+        // as a separator period for practical purposes in free-form COBOL.
+        if (c == '.')
             return MakeToken(TokenKind.Period, _position++, 1);
 
-        // Numeric literal: starts with digit, or period followed by digit
-        if (IsDigit(c) || (c == '.' && IsDigit(Peek(1))))
+        if (IsDigit(c))
             return ReadNumericLiteral();
+
+        // Hex/Boolean/National prefixed literals: X"...", B"...", N"...", Z"...",
+        // BX"...", NX"..."
+        if ((c == 'X' || c == 'x' || c == 'B' || c == 'b' || c == 'N' || c == 'n' || c == 'Z' || c == 'z')
+            && (Peek(1) == '"' || Peek(1) == '\''))
+        {
+            return ReadPrefixedLiteral();
+        }
+        // Two-char prefixes: BX, NX
+        if ((c == 'B' || c == 'b' || c == 'N' || c == 'n')
+            && (Peek(1) == 'X' || Peek(1) == 'x')
+            && (Peek(2) == '"' || Peek(2) == '\''))
+        {
+            return ReadPrefixedLiteral();
+        }
 
         // String literal
         if (c == '"' || c == '\'')
@@ -153,9 +193,156 @@ public sealed class Lexer
 
         // Check keyword map
         if (Keywords.TryGetValue(upper, out var kind))
+        {
+            // If this is PIC/PICTURE, set the flag so the next token reads the picture string
+            if (kind == TokenKind.PicKeyword)
+                _expectPictureString = true;
+
             return new Token(kind, text, new TextSpan(start, _position - start));
+        }
 
         return new Token(TokenKind.Identifier, text, new TextSpan(start, _position - start));
+    }
+
+    /// <summary>
+    /// After PIC/PICTURE keyword, read the optional IS and then consume the entire
+    /// PICTURE character-string as a single PictureString token.
+    /// PICTURE strings can contain: 9, X, A, V, S, P, Z, B, 0, /, comma, period,
+    /// CR, DB, *, +, -, $, and parenthesized repetition counts like (5).
+    /// Terminates at separator space (not inside parens), period followed by space/EOL/EOF,
+    /// or another data clause keyword.
+    /// </summary>
+    private Token ReadPictureString()
+    {
+        SkipWhitespaceAndComments();
+
+        // Skip optional IS
+        if (_position < _source.Length)
+        {
+            int saved = _position;
+            // Read a word to check for IS
+            if (IsLetter(Current))
+            {
+                int wordStart = _position;
+                while (_position < _source.Length && IsWordChar(Current))
+                    _position++;
+                string word = _source.GetText(wordStart, _position - wordStart);
+                if (!word.Equals("IS", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Not IS — restore position; this word is the start of the picture string
+                    _position = saved;
+                }
+                else
+                {
+                    // Consumed IS, skip whitespace before the actual picture string
+                    SkipWhitespaceAndComments();
+                }
+            }
+        }
+
+        int start = _position;
+        int parenDepth = 0;
+
+        // Read the picture character-string
+        while (_position < _source.Length)
+        {
+            char c = Current;
+
+            if (c == '(')
+            {
+                parenDepth++;
+                _position++;
+                continue;
+            }
+            if (c == ')' && parenDepth > 0)
+            {
+                parenDepth--;
+                _position++;
+                continue;
+            }
+
+            // Period: if followed by space/EOL/EOF, it's a sentence terminator — stop
+            if (c == '.' && parenDepth == 0)
+            {
+                char next = Peek(1);
+                if (next == '\0' || char.IsWhiteSpace(next))
+                    break;
+                // Period followed by digit (e.g., PIC 9.99) is part of the picture
+                _position++;
+                continue;
+            }
+
+            // Separator space outside parens terminates the picture string
+            if (char.IsWhiteSpace(c) && parenDepth == 0)
+                break;
+
+            _position++;
+        }
+
+        string text = _source.GetText(start, _position - start);
+        return new Token(TokenKind.PictureString, text, new TextSpan(start, _position - start), text);
+    }
+
+    /// <summary>
+    /// Read a prefixed literal: X"...", B"...", N"...", Z"...", BX"...", NX"..."
+    /// </summary>
+    private Token ReadPrefixedLiteral()
+    {
+        int start = _position;
+        char prefix1 = char.ToUpperInvariant(Current);
+        _position++;
+
+        // Check for two-char prefix (BX, NX)
+        char prefix2 = '\0';
+        if ((prefix1 == 'B' || prefix1 == 'N') && (Current == 'X' || Current == 'x'))
+        {
+            prefix2 = 'X';
+            _position++;
+        }
+
+        // Now we should be at the quote character
+        char quote = Current;
+        _position++; // skip opening quote
+
+        var sb = new System.Text.StringBuilder();
+        while (_position < _source.Length)
+        {
+            if (Current == quote)
+            {
+                _position++;
+                if (_position < _source.Length && Current == quote)
+                {
+                    sb.Append(quote);
+                    _position++;
+                    continue;
+                }
+                break;
+            }
+            sb.Append(Current);
+            _position++;
+        }
+
+        string text = _source.GetText(start, _position - start);
+        string value = sb.ToString();
+
+        TokenKind kind;
+        if (prefix2 == 'X')
+        {
+            kind = prefix1 == 'B' ? TokenKind.HexLiteral : TokenKind.NationalLiteral;
+        }
+        else
+        {
+            kind = prefix1 switch
+            {
+                'X' => TokenKind.HexLiteral,
+                'B' => TokenKind.BooleanLiteral,
+                'N' => TokenKind.NationalLiteral,
+                'Z' => TokenKind.StringLiteral, // Z"..." is null-terminated, treat as string
+                _ => TokenKind.StringLiteral
+            };
+        }
+
+        return new Token(kind, text, new TextSpan(start, _position - start), value);
     }
 
     private Token ReadNumericLiteral()
@@ -486,6 +673,27 @@ public sealed class Lexer
             ["FREE"] = TokenKind.FreeKeyword,
             ["FIXED"] = TokenKind.FixedKeyword,
             ["NATIONAL"] = TokenKind.NationalKeyword,
+
+            // Scope terminators
+            ["END-ADD"] = TokenKind.EndAddKeyword,
+            ["END-SUBTRACT"] = TokenKind.EndSubtractKeyword,
+            ["END-MULTIPLY"] = TokenKind.EndMultiplyKeyword,
+            ["END-DIVIDE"] = TokenKind.EndDivideKeyword,
+            ["END-COMPUTE"] = TokenKind.EndComputeKeyword,
+            ["END-CALL"] = TokenKind.EndCallKeyword,
+            ["END-STRING"] = TokenKind.EndStringKeyword,
+            ["END-UNSTRING"] = TokenKind.EndUnstringKeyword,
+            ["END-ACCEPT"] = TokenKind.EndAcceptKeyword,
+            ["END-DISPLAY"] = TokenKind.EndDisplayKeyword,
+            ["END-SEARCH"] = TokenKind.EndSearchKeyword,
+            ["END-RETURN"] = TokenKind.EndReturnKeyword,
+            ["END-REWRITE"] = TokenKind.EndRewriteKeyword,
+
+            // Additional keywords
+            ["THEN"] = TokenKind.ThenKeyword,
+            ["GOBACK"] = TokenKind.GobackKeyword,
+            ["IN"] = TokenKind.InKeyword,
+            ["OF"] = TokenKind.OfKeyword,
         };
     }
 }
