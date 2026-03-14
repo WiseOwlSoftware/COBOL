@@ -47,6 +47,18 @@ public sealed class CilEmitter
     private MethodReference? _getNumericValueMethod;
     private MethodReference? _getDisplayValueMethod;
 
+    // New runtime methods for all statement types
+    private MethodReference? _acceptFromConsoleMethod;
+    private MethodReference? _acceptDateMethod;
+    private MethodReference? _acceptDayMethod;
+    private MethodReference? _acceptTimeMethod;
+    private MethodReference? _initializeFieldMethod;
+    private MethodReference? _callProgramMethod;
+    private MethodReference? _stringConcatMethod;
+    private MethodReference? _unstringFieldMethod;
+    private MethodReference? _inspectReplacingMethod;
+    private MethodReference? _inspectTallyingMethod;
+
     public CilEmitter(DiagnosticBag diagnostics)
     {
         _diagnostics = diagnostics;
@@ -171,6 +183,28 @@ public sealed class CilEmitter
             cobolProgramTypeDef.Methods.First(m => m.Name == "DivideInto"));
         _divideGivingMethod = _module.ImportReference(
             cobolProgramTypeDef.Methods.First(m => m.Name == "DivideGiving"));
+
+        // New runtime methods
+        _acceptFromConsoleMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "AcceptFromConsole"));
+        _acceptDateMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "AcceptDate"));
+        _acceptDayMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "AcceptDay"));
+        _acceptTimeMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "AcceptTime"));
+        _initializeFieldMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "InitializeField"));
+        _callProgramMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "CallProgram"));
+        _stringConcatMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "StringConcat"));
+        _unstringFieldMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "UnstringField"));
+        _inspectReplacingMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "InspectReplacing"));
+        _inspectTallyingMethod = _module.ImportReference(
+            cobolProgramTypeDef.Methods.First(m => m.Name == "InspectTallying"));
 
         // CobolField methods
         _getNumericValueMethod = _module.ImportReference(
@@ -387,47 +421,73 @@ public sealed class CilEmitter
                 else
                     _il!.Emit(OpCodes.Ret); // EXIT PARAGRAPH/SECTION = return from method
                 break;
-            case AcceptStatement:
-                // TODO: ACCEPT from console/date — emit nop for now
-                _il!.Emit(OpCodes.Nop);
+            case AcceptStatement accept:
+                EmitAcceptStatement(accept);
                 break;
-            case InitializeStatement:
-                _il!.Emit(OpCodes.Nop);
+            case InitializeStatement init:
+                EmitInitializeStatement(init);
                 break;
             case AlterStatement:
-                _il!.Emit(OpCodes.Nop);
+                // ALTER is archaic (modifies GO TO targets at runtime).
+                // Emit diagnostic — not a silent nop.
+                EmitRuntimeWarning("ALTER statement is not supported");
                 break;
             case SortStatement:
-                _il!.Emit(OpCodes.Nop);
+                // SORT requires file-based merge infrastructure.
+                EmitRuntimeWarning("SORT statement is not yet implemented");
                 break;
-            case StringStatement:
-            case UnstringStatement:
-            case InspectStatement:
-                _il!.Emit(OpCodes.Nop);
+            case StringStatement str:
+                EmitStringStatement(str);
                 break;
-            case OpenStatement:
-            case CloseStatement:
-            case ReadStatement:
-            case WriteStatement:
-            case RewriteStatement:
-            case DeleteStatement:
-            case StartStatement:
-                _il!.Emit(OpCodes.Nop);
+            case UnstringStatement unstr:
+                EmitUnstringStatement(unstr);
                 break;
-            case CallStatement:
+            case InspectStatement insp:
+                EmitInspectStatement(insp);
+                break;
+            case OpenStatement open:
+                EmitOpenStatement(open);
+                break;
+            case CloseStatement close:
+                EmitCloseStatement(close);
+                break;
+            case ReadStatement read:
+                EmitReadStatement(read);
+                break;
+            case WriteStatement write:
+                EmitWriteStatement(write);
+                break;
+            case RewriteStatement rewrite:
+                EmitRewriteStatement(rewrite);
+                break;
+            case DeleteStatement del:
+                EmitDeleteStatement(del);
+                break;
+            case StartStatement start:
+                EmitStartStatement(start);
+                break;
+            case CallStatement call:
+                EmitCallStatement(call);
+                break;
             case CancelStatement:
+                // CANCEL unloads a called program — no-op in .NET (GC handles it)
                 _il!.Emit(OpCodes.Nop);
                 break;
             case InitiateStatement:
             case GenerateStatement:
             case TerminateStatement:
-                _il!.Emit(OpCodes.Nop);
+                // Report Writer — requires full report runtime, emit diagnostic
+                EmitRuntimeWarning("Report Writer statements are not yet implemented");
                 break;
             case InvokeStatement:
+                EmitRuntimeWarning("INVOKE (OO COBOL) is not yet implemented");
+                break;
             case RaiseStatement:
             case ResumeStatement:
+                EmitRuntimeWarning("Exception handling statements are not yet implemented");
+                break;
             case SourceFormatDirective:
-                _il!.Emit(OpCodes.Nop);
+                // Compiler directive — no runtime code needed (correct nop)
                 break;
             case EvaluateStatement eval:
                 EmitEvaluateStatement(eval);
@@ -442,13 +502,13 @@ public sealed class CilEmitter
                 EmitSetStatement(set);
                 break;
             case SearchStatement:
-                _il!.Emit(OpCodes.Nop); // TODO: SEARCH requires table indexing
+                EmitRuntimeWarning("SEARCH statement requires table indexing — not yet implemented");
                 break;
             case GobackStatement:
                 EmitStopRunStatement(); // GOBACK is equivalent to STOP RUN
                 break;
             case GoToDependingStatement:
-                _il!.Emit(OpCodes.Nop);
+                EmitRuntimeWarning("GO TO DEPENDING ON — not yet implemented");
                 break;
         }
     }
@@ -504,6 +564,339 @@ public sealed class CilEmitter
             EmitStatement(stmt);
 
         _il.Append(endLabel);
+    }
+
+    /// <summary>Emit a Console.Error.WriteLine with a warning message.</summary>
+    private void EmitRuntimeWarning(string message)
+    {
+        var writeLineMethod = _module!.ImportReference(
+            typeof(Console).GetProperty("Error")!.GetGetMethod());
+        var textWriterWriteLine = _module.ImportReference(
+            typeof(System.IO.TextWriter).GetMethod("WriteLine", new[] { typeof(string) }));
+        _il!.Emit(OpCodes.Call, writeLineMethod); // Console.Error
+        _il.Emit(OpCodes.Ldstr, message);
+        _il.Emit(OpCodes.Callvirt, textWriterWriteLine);
+    }
+
+    private void EmitAcceptStatement(AcceptStatement accept)
+    {
+        if (!_fields.TryGetValue(accept.Target.Name, out var targetField))
+            return;
+
+        _il!.Emit(OpCodes.Ldarg_0);
+        _il.Emit(OpCodes.Ldfld, targetField);
+
+        if (accept.FromSource == null)
+        {
+            _il.Emit(OpCodes.Call, _acceptFromConsoleMethod);
+        }
+        else
+        {
+            var method = accept.FromSource.ToUpperInvariant() switch
+            {
+                "DATE" => _acceptDateMethod,
+                "DAY" => _acceptDayMethod,
+                "TIME" => _acceptTimeMethod,
+                "DAY-OF-WEEK" => _acceptDateMethod, // approximate
+                _ => _acceptFromConsoleMethod
+            };
+            _il.Emit(OpCodes.Call, method);
+        }
+    }
+
+    private void EmitInitializeStatement(InitializeStatement init)
+    {
+        foreach (var target in init.Targets)
+        {
+            if (!_fields.TryGetValue(target.Name, out var targetField))
+                continue;
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            _il.Emit(OpCodes.Call, _initializeFieldMethod);
+        }
+    }
+
+    private void EmitCallStatement(CallStatement call)
+    {
+        // Emit: CallProgram(programName, new CobolField[] { param1, param2, ... })
+        // Push program name as string
+        if (call.ProgramName is StringLiteralExpression strLit)
+        {
+            _il!.Emit(OpCodes.Ldstr, strLit.Value);
+        }
+        else if (call.ProgramName is IdentifierExpression id &&
+                 _fields.TryGetValue(id.Name, out var nameField))
+        {
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, nameField);
+            _il.Emit(OpCodes.Call, _getDisplayValueMethod);
+        }
+        else
+        {
+            _il!.Emit(OpCodes.Ldstr, "UNKNOWN");
+        }
+
+        // Create parameter array
+        _il.Emit(OpCodes.Ldc_I4, call.Parameters.Count);
+        _il.Emit(OpCodes.Newarr, _cobolFieldRef);
+        for (int i = 0; i < call.Parameters.Count; i++)
+        {
+            _il.Emit(OpCodes.Dup);
+            _il.Emit(OpCodes.Ldc_I4, i);
+            if (call.Parameters[i].Value is IdentifierExpression paramId &&
+                _fields.TryGetValue(paramId.Name, out var paramField))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, paramField);
+            }
+            else
+            {
+                _il.Emit(OpCodes.Ldnull);
+            }
+            _il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        _il.Emit(OpCodes.Call, _callProgramMethod);
+    }
+
+    private void EmitStringStatement(StringStatement str)
+    {
+        // Create sources array
+        _il!.Emit(OpCodes.Ldc_I4, str.Sources.Count);
+        _il.Emit(OpCodes.Newarr, _cobolFieldRef);
+        for (int i = 0; i < str.Sources.Count; i++)
+        {
+            _il.Emit(OpCodes.Dup);
+            _il.Emit(OpCodes.Ldc_I4, i);
+            if (str.Sources[i].Value is IdentifierExpression srcId &&
+                _fields.TryGetValue(srcId.Name, out var srcField))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, srcField);
+            }
+            else
+            {
+                _il.Emit(OpCodes.Ldnull);
+            }
+            _il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        // Create delimiters array (string?[])
+        _il.Emit(OpCodes.Ldc_I4, str.Sources.Count);
+        _il.Emit(OpCodes.Newarr, _module!.TypeSystem.String);
+        for (int i = 0; i < str.Sources.Count; i++)
+        {
+            _il.Emit(OpCodes.Dup);
+            _il.Emit(OpCodes.Ldc_I4, i);
+            var delim = str.Sources[i].Delimiter;
+            if (delim is StringLiteralExpression delimStr)
+                _il.Emit(OpCodes.Ldstr, delimStr.Value);
+            else if (delim is IdentifierExpression delimId &&
+                     _fields.TryGetValue(delimId.Name, out var delimField))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, delimField);
+                _il.Emit(OpCodes.Call, _getDisplayValueMethod);
+            }
+            else
+                _il.Emit(OpCodes.Ldnull);
+            _il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        // Target field
+        if (_fields.TryGetValue(str.Target.Name, out var targetField))
+        {
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+        }
+        else
+        {
+            _il.Emit(OpCodes.Ldnull);
+        }
+
+        // Pointer field (or null)
+        if (str.Pointer != null && _fields.TryGetValue(str.Pointer.Name, out var ptrField))
+        {
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, ptrField);
+        }
+        else
+        {
+            _il.Emit(OpCodes.Ldnull);
+        }
+
+        _il.Emit(OpCodes.Call, _stringConcatMethod);
+    }
+
+    private void EmitUnstringStatement(UnstringStatement unstr)
+    {
+        // Source field
+        if (_fields.TryGetValue(unstr.Source.Name, out var srcField))
+        {
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, srcField);
+        }
+        else
+        {
+            _il!.Emit(OpCodes.Ldnull);
+        }
+
+        // Delimiter string (or null)
+        if (unstr.Delimiter is StringLiteralExpression delimStr)
+            _il.Emit(OpCodes.Ldstr, delimStr.Value);
+        else if (unstr.Delimiter is IdentifierExpression delimId &&
+                 _fields.TryGetValue(delimId.Name, out var delimField))
+        {
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, delimField);
+            _il.Emit(OpCodes.Call, _getDisplayValueMethod);
+        }
+        else
+            _il.Emit(OpCodes.Ldnull);
+
+        // Targets array
+        _il.Emit(OpCodes.Ldc_I4, unstr.Targets.Count);
+        _il.Emit(OpCodes.Newarr, _cobolFieldRef);
+        for (int i = 0; i < unstr.Targets.Count; i++)
+        {
+            _il.Emit(OpCodes.Dup);
+            _il.Emit(OpCodes.Ldc_I4, i);
+            if (_fields.TryGetValue(unstr.Targets[i].Name, out var tgtField))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, tgtField);
+            }
+            else
+                _il.Emit(OpCodes.Ldnull);
+            _il.Emit(OpCodes.Stelem_Ref);
+        }
+
+        // Tallying field (or null)
+        if (unstr.Tallying != null && _fields.TryGetValue(unstr.Tallying.Name, out var tallyField))
+        {
+            _il.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, tallyField);
+        }
+        else
+            _il.Emit(OpCodes.Ldnull);
+
+        _il.Emit(OpCodes.Call, _unstringFieldMethod);
+    }
+
+    private void EmitInspectStatement(InspectStatement insp)
+    {
+        if (!_fields.TryGetValue(insp.Target.Name, out var targetField))
+            return;
+
+        bool isTallying = insp.InspectKind is InspectType.TallyingAll or InspectType.TallyingLeading;
+        bool allOccurrences = insp.InspectKind is InspectType.ReplacingAll or InspectType.TallyingAll;
+
+        if (isTallying)
+        {
+            // InspectTallying(target, counter, searchFor, allOccurrences)
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+
+            if (insp.TallyCounter != null && _fields.TryGetValue(insp.TallyCounter.Name, out var counterField))
+            {
+                _il.Emit(OpCodes.Ldarg_0);
+                _il.Emit(OpCodes.Ldfld, counterField);
+            }
+            else
+                _il.Emit(OpCodes.Ldnull);
+
+            EmitStringExprValue(insp.SearchFor);
+            _il.Emit(allOccurrences ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+            _il.Emit(OpCodes.Call, _inspectTallyingMethod);
+        }
+        else if (insp.InspectKind == InspectType.Converting)
+        {
+            // Converting X TO Y = replacing ALL X BY Y
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            EmitStringExprValue(insp.SearchFor);
+            EmitStringExprValue(insp.ReplaceWith);
+            _il.Emit(OpCodes.Ldc_I4_1); // all occurrences
+            _il.Emit(OpCodes.Call, _inspectReplacingMethod);
+        }
+        else
+        {
+            // InspectReplacing(target, searchFor, replaceWith, allOccurrences)
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, targetField);
+            EmitStringExprValue(insp.SearchFor);
+            EmitStringExprValue(insp.ReplaceWith);
+            _il.Emit(allOccurrences ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+            _il.Emit(OpCodes.Call, _inspectReplacingMethod);
+        }
+    }
+
+    /// <summary>Emit an expression as a string value on the stack.</summary>
+    private void EmitStringExprValue(Expression? expr)
+    {
+        if (expr is StringLiteralExpression strLit)
+            _il!.Emit(OpCodes.Ldstr, strLit.Value);
+        else if (expr is IdentifierExpression id && _fields.TryGetValue(id.Name, out var field))
+        {
+            _il!.Emit(OpCodes.Ldarg_0);
+            _il.Emit(OpCodes.Ldfld, field);
+            _il.Emit(OpCodes.Call, _getDisplayValueMethod);
+        }
+        else
+            _il!.Emit(OpCodes.Ldstr, "");
+    }
+
+    // ── File I/O emission ──
+    // The emitter does not currently wire up CobolFileManager.
+    // File I/O requires infrastructure: file handler registration in the constructor,
+    // record buffer fields, and status field updates. For now, emit stderr diagnostics
+    // so programs fail loudly rather than silently.
+
+    private void EmitOpenStatement(OpenStatement open)
+    {
+        foreach (var clause in open.Clauses)
+        {
+            foreach (var fileName in clause.FileNames)
+            {
+                EmitRuntimeWarning($"OPEN {clause.Mode} {fileName} — file I/O not yet wired to emitter");
+            }
+        }
+    }
+
+    private void EmitCloseStatement(CloseStatement close)
+    {
+        foreach (var fileName in close.FileNames)
+        {
+            EmitRuntimeWarning($"CLOSE {fileName} — file I/O not yet wired to emitter");
+        }
+    }
+
+    private void EmitReadStatement(ReadStatement read)
+    {
+        EmitRuntimeWarning($"READ {read.FileName} — file I/O not yet wired to emitter");
+        // Execute AT END statements (since we can't read, it's always at-end)
+        foreach (var stmt in read.AtEnd)
+            EmitStatement(stmt);
+    }
+
+    private void EmitWriteStatement(WriteStatement write)
+    {
+        EmitRuntimeWarning($"WRITE {write.RecordName.Name} — file I/O not yet wired to emitter");
+    }
+
+    private void EmitRewriteStatement(RewriteStatement rewrite)
+    {
+        EmitRuntimeWarning($"REWRITE {rewrite.RecordName.Name} — file I/O not yet wired to emitter");
+    }
+
+    private void EmitDeleteStatement(DeleteStatement del)
+    {
+        EmitRuntimeWarning($"DELETE {del.FileName} — file I/O not yet wired to emitter");
+    }
+
+    private void EmitStartStatement(StartStatement start)
+    {
+        EmitRuntimeWarning($"START {start.FileName} — file I/O not yet wired to emitter");
     }
 
     private void EmitDisplayStatement(DisplayStatement display)

@@ -389,4 +389,102 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("042", stdout);
     }
+
+    [Fact]
+    public void InitializeStatement_ResetsFields()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INITTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-NUM PIC 9(3) VALUE 123.
+            01 WS-STR PIC X(5) VALUE "Hello".
+            PROCEDURE DIVISION.
+                INITIALIZE WS-NUM.
+                INITIALIZE WS-STR.
+                DISPLAY WS-NUM.
+                DISPLAY ">" WS-STR "<".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, lines.Length);
+        Assert.Equal("000", lines[0]);
+        // After INITIALIZE, alphanumeric is spaces. DISPLAY trims trailing spaces.
+        Assert.Equal("><", lines[1]);
+    }
+
+    [Fact]
+    public void AcceptFromDate_GetsCurrentDate()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DATETEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATE PIC 9(8).
+            PROCEDURE DIVISION.
+                ACCEPT WS-DATE FROM DATE.
+                DISPLAY WS-DATE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // Should be 8 digits starting with 2026
+        Assert.Equal(8, stdout.Length);
+        Assert.StartsWith("2026", stdout);
+    }
+
+    [Fact]
+    public void InspectReplacing_ReplacesCharacters()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSPTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(10) VALUE "AABBAACCAA".
+            PROCEDURE DIVISION.
+                INSPECT WS-DATA REPLACING ALL "AA" BY "XX".
+                DISPLAY WS-DATA.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("XXBBXXCCXX", stdout);
+    }
+
+    [Fact]
+    public void CallStatement_EmitsDiagnostic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CALLTEST.
+            PROCEDURE DIVISION.
+                CALL "SUBPROG".
+                DISPLAY "After call".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("After call", stdout);
+        Assert.Contains("CALL not supported", stderr);
+    }
+
+    [Fact]
+    public void FileIO_EmitsDiagnostic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FILETEST.
+            PROCEDURE DIVISION.
+                DISPLAY "Before file ops".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("Before file ops", stdout);
+    }
 }

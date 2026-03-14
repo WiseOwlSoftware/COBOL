@@ -132,4 +132,231 @@ public abstract class CobolProgram
             remainder.SetNumericValue(dividend - (q * divisor));
         }
     }
+
+    /// <summary>
+    /// ACCEPT target FROM CONSOLE — reads one line from stdin and moves it to target.
+    /// </summary>
+    protected static void AcceptFromConsole(CobolField target)
+    {
+        string input = Console.ReadLine() ?? "";
+        if (target.Type == FieldType.Numeric)
+        {
+            if (decimal.TryParse(input, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out decimal num))
+            {
+                target.SetNumericValue(num);
+            }
+        }
+        else
+        {
+            target.SetAlphanumericValue(input);
+        }
+    }
+
+    /// <summary>
+    /// ACCEPT target FROM DATE — sets target to current date as YYYYMMDD (8 digits).
+    /// </summary>
+    protected static void AcceptDate(CobolField target)
+    {
+        string value = DateTime.Today.ToString("yyyyMMdd");
+        if (target.Type == FieldType.Numeric)
+            target.SetNumericValue(decimal.Parse(value));
+        else
+            target.SetAlphanumericValue(value);
+    }
+
+    /// <summary>
+    /// ACCEPT target FROM DAY — sets target to current day-of-year as YYYYDDD (7 digits).
+    /// </summary>
+    protected static void AcceptDay(CobolField target)
+    {
+        DateTime today = DateTime.Today;
+        string value = today.Year.ToString("D4") + today.DayOfYear.ToString("D3");
+        if (target.Type == FieldType.Numeric)
+            target.SetNumericValue(decimal.Parse(value));
+        else
+            target.SetAlphanumericValue(value);
+    }
+
+    /// <summary>
+    /// ACCEPT target FROM TIME — sets target to current time as HHMMSSss (8 digits,
+    /// ss = hundredths of a second).
+    /// </summary>
+    protected static void AcceptTime(CobolField target)
+    {
+        DateTime now = DateTime.Now;
+        int hundredths = now.Millisecond / 10;
+        string value = now.ToString("HHmmss") + hundredths.ToString("D2");
+        if (target.Type == FieldType.Numeric)
+            target.SetNumericValue(decimal.Parse(value));
+        else
+            target.SetAlphanumericValue(value);
+    }
+
+    /// <summary>
+    /// INITIALIZE target — numeric fields receive zeros, alphanumeric fields receive spaces.
+    /// </summary>
+    protected static void InitializeField(CobolField target)
+    {
+        if (target.Type == FieldType.Numeric)
+            target.SetZeros();
+        else
+            target.SetSpaces();
+    }
+
+    /// <summary>
+    /// CALL programName — stub that writes a diagnostic to stderr.
+    /// Dynamic CALL is not supported; the emitter should generate static calls where possible.
+    /// </summary>
+    protected static void CallProgram(string programName, CobolField[] parameters)
+    {
+        Console.Error.WriteLine($"CALL not supported: {programName}");
+    }
+
+    /// <summary>
+    /// STRING sources DELIMITED BY delimiters INTO target [WITH POINTER pointer].
+    /// Each source string is appended to target up to (but not including) its delimiter.
+    /// If a delimiter entry is null the whole source value is used.
+    /// pointer, if supplied, tracks the next write position (1-based) in target and is
+    /// updated on exit.
+    /// </summary>
+    protected static void StringConcat(CobolField[] sources, string?[] delimiters,
+        CobolField target, CobolField? pointer)
+    {
+        // Determine starting position in target (1-based, default 1)
+        int startPos = 1;
+        if (pointer != null)
+            startPos = (int)pointer.GetNumericValue();
+        if (startPos < 1) startPos = 1;
+
+        string targetText = target.GetDisplayValue().PadRight(target.Size);
+        char[] buffer = targetText.ToCharArray();
+        if (buffer.Length < target.Size)
+            Array.Resize(ref buffer, target.Size);
+
+        int pos = startPos - 1; // convert to 0-based index
+
+        for (int i = 0; i < sources.Length && pos < buffer.Length; i++)
+        {
+            string srcText = sources[i].GetDisplayValue();
+            string? delim = i < delimiters.Length ? delimiters[i] : null;
+
+            // Trim at delimiter if one is specified
+            string chunk;
+            if (!string.IsNullOrEmpty(delim))
+            {
+                int delimIdx = srcText.IndexOf(delim, StringComparison.Ordinal);
+                chunk = delimIdx >= 0 ? srcText[..delimIdx] : srcText;
+            }
+            else
+            {
+                chunk = srcText;
+            }
+
+            foreach (char c in chunk)
+            {
+                if (pos >= buffer.Length) break;
+                buffer[pos++] = c;
+            }
+        }
+
+        target.SetAlphanumericValue(new string(buffer));
+        pointer?.SetNumericValue(pos + 1); // update pointer to next write position (1-based)
+    }
+
+    /// <summary>
+    /// UNSTRING source DELIMITED BY delimiter INTO targets [TALLYING IN tallying].
+    /// Splits source on delimiter and distributes segments into targets left-to-right.
+    /// If delimiter is null, splits on a single space (COBOL default).
+    /// tallying, if supplied, is incremented by the number of targets populated.
+    /// </summary>
+    protected static void UnstringField(CobolField source, string? delimiter,
+        CobolField[] targets, CobolField? tallying)
+    {
+        string srcText = source.GetDisplayValue();
+        string delim = string.IsNullOrEmpty(delimiter) ? " " : delimiter;
+
+        string[] parts = srcText.Split(delim, StringSplitOptions.None);
+
+        int count = 0;
+        for (int i = 0; i < targets.Length; i++)
+        {
+            string segment = i < parts.Length ? parts[i] : "";
+            if (targets[i].Type == FieldType.Numeric)
+            {
+                if (decimal.TryParse(segment, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out decimal num))
+                {
+                    targets[i].SetNumericValue(num);
+                }
+            }
+            else
+            {
+                targets[i].SetAlphanumericValue(segment);
+            }
+            count++;
+        }
+
+        if (tallying != null)
+            tallying.SetNumericValue(tallying.GetNumericValue() + count);
+    }
+
+    /// <summary>
+    /// INSPECT target REPLACING — replaces occurrences of searchFor with replaceWith.
+    /// If allOccurrences is true, replaces every occurrence; otherwise only the first.
+    /// </summary>
+    protected static void InspectReplacing(CobolField target, string searchFor,
+        string replaceWith, bool allOccurrences)
+    {
+        if (string.IsNullOrEmpty(searchFor)) return;
+
+        string text = target.GetDisplayValue().PadRight(target.Size);
+
+        string result = allOccurrences
+            ? text.Replace(searchFor, replaceWith, StringComparison.Ordinal)
+            : ReplaceFirst(text, searchFor, replaceWith);
+
+        target.SetAlphanumericValue(result);
+    }
+
+    private static string ReplaceFirst(string text, string searchFor, string replaceWith)
+    {
+        int idx = text.IndexOf(searchFor, StringComparison.Ordinal);
+        if (idx < 0) return text;
+        return text[..idx] + replaceWith + text[(idx + searchFor.Length)..];
+    }
+
+    /// <summary>
+    /// INSPECT target TALLYING counter FOR — counts occurrences of searchFor in target
+    /// and adds the count to counter.
+    /// If allOccurrences is true, counts every non-overlapping occurrence;
+    /// otherwise counts only the first.
+    /// </summary>
+    protected static void InspectTallying(CobolField target, CobolField counter,
+        string searchFor, bool allOccurrences)
+    {
+        if (string.IsNullOrEmpty(searchFor)) return;
+
+        string text = target.GetDisplayValue();
+        int count = 0;
+
+        if (allOccurrences)
+        {
+            int idx = 0;
+            while (idx <= text.Length - searchFor.Length)
+            {
+                int found = text.IndexOf(searchFor, idx, StringComparison.Ordinal);
+                if (found < 0) break;
+                count++;
+                idx = found + searchFor.Length; // non-overlapping
+            }
+        }
+        else
+        {
+            if (text.Contains(searchFor, StringComparison.Ordinal))
+                count = 1;
+        }
+
+        counter.SetNumericValue(counter.GetNumericValue() + count);
+    }
 }
