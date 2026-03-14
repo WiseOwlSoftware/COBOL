@@ -149,6 +149,9 @@ public sealed class Parser
         TokenKind.OpenKeyword or TokenKind.CloseKeyword or TokenKind.ReadKeyword or
         TokenKind.WriteKeyword or TokenKind.RewriteKeyword or TokenKind.DeleteKeyword or
         TokenKind.StartKeyword or TokenKind.SortKeyword or
+        TokenKind.NextKeyword or // NEXT SENTENCE
+        TokenKind.ReturnKeyword or // RETURN (sort output)
+        TokenKind.ReleaseKeyword or // RELEASE (sort input)
         TokenKind.SetKeyword or TokenKind.SearchKeyword or TokenKind.GobackKeyword or
         // Phase 5.2 — Report Writer
         TokenKind.InitiateKeyword or TokenKind.GenerateKeyword or TokenKind.TerminateKeyword or
@@ -228,13 +231,15 @@ public sealed class Parser
             procedure = ParseProcedureDivision();
 
         // Optional END PROGRAM program-name.
-        if (Check(TokenKind.Identifier) && Current.Text.Equals("END", StringComparison.OrdinalIgnoreCase))
+        if (Check(TokenKind.EndKeyword))
         {
             Advance(); // END
             if (Check(TokenKind.Identifier) && Current.Text.Equals("PROGRAM", StringComparison.OrdinalIgnoreCase))
             {
                 Advance(); // PROGRAM
-                if (Check(TokenKind.Identifier)) Advance(); // program-name
+                // program-name can be an identifier or a string literal
+                if (Check(TokenKind.Identifier)) Advance();
+                else if (Check(TokenKind.StringLiteral)) Advance();
                 Match(TokenKind.Period);
             }
         }
@@ -892,6 +897,15 @@ public sealed class Parser
                     var countToken = Advance();
                     occursCount = (int)(long)countToken.Value!;
                 }
+                // OCCURS n TO m — range form
+                if (Check(TokenKind.ToKeyword))
+                {
+                    Advance(); // TO
+                    if (Check(TokenKind.IntegerLiteral))
+                    {
+                        occursCount = (int)(long)Advance().Value!; // use max
+                    }
+                }
                 Match(TokenKind.TimesKeyword); // optional TIMES
 
                 // Check for DEPENDING ON
@@ -909,7 +923,11 @@ public sealed class Parser
                     Advance();
                     Match(TokenKind.KeyKeyword);
                     Match(TokenKind.IsKeyword);
-                    if (Check(TokenKind.Identifier)) Advance(); // key name
+                    // Multiple key names
+                    while (Check(TokenKind.Identifier) &&
+                           !Check(TokenKind.AscendingKeyword) && !Check(TokenKind.DescendingKeyword) &&
+                           !Check(TokenKind.IndexedKeyword))
+                        Advance();
                 }
                 while (Check(TokenKind.IndexedKeyword))
                 {
@@ -989,7 +1007,9 @@ public sealed class Parser
             Expect(TokenKind.ValueKeyword, "Expected VALUE or VALUES for level 88");
         }
         Match(TokenKind.IsKeyword);   // optional IS
-        Match(TokenKind.Identifier);  // optional ARE (would be lexed as identifier)
+        // optional ARE (would be lexed as identifier)
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("ARE", StringComparison.OrdinalIgnoreCase))
+            Advance();
 
         var values = new List<ConditionValueClause>();
 
@@ -1069,7 +1089,47 @@ public sealed class Parser
 
         Expect(TokenKind.ProcedureKeyword);
         Expect(TokenKind.DivisionKeyword);
+
+        // Skip optional USING/RETURNING clause before the period
+        if (Check(TokenKind.UsingKeyword))
+        {
+            Advance(); // USING
+            while (Check(TokenKind.Identifier) || Check(TokenKind.ByKeyword) ||
+                   Check(TokenKind.ReferenceKeyword) || Check(TokenKind.ValueKeyword) ||
+                   Check(TokenKind.ContentKeyword))
+                Advance();
+        }
+        if (Check(TokenKind.ReturningKeyword))
+        {
+            Advance(); // RETURNING
+            if (Check(TokenKind.Identifier)) Advance();
+        }
+
         Expect(TokenKind.Period);
+
+        // Handle DECLARATIVES section
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("DECLARATIVES", StringComparison.OrdinalIgnoreCase))
+        {
+            Advance(); // DECLARATIVES
+            Match(TokenKind.Period);
+            // Skip everything until END DECLARATIVES
+            while (Current.Kind != TokenKind.EndOfFile)
+            {
+                if (Check(TokenKind.EndKeyword))
+                {
+                    int saved = _position;
+                    Advance(); // END
+                    if (Check(TokenKind.Identifier) && Current.Text.Equals("DECLARATIVES", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Advance(); // DECLARATIVES
+                        Match(TokenKind.Period);
+                        break;
+                    }
+                    _position = saved;
+                }
+                Advance();
+            }
+        }
 
         // Parse statements before the first paragraph/section (if any)
         var initialStatements = new List<Statement>();
@@ -1317,6 +1377,9 @@ public sealed class Parser
             TokenKind.SetKeyword => ParseSetStatement(),
             TokenKind.SearchKeyword => ParseSearchStatement(),
             TokenKind.GobackKeyword => ParseGobackStatement(),
+            TokenKind.NextKeyword => ParseNextSentenceStatement(),
+            TokenKind.ReturnKeyword => ParseReturnSortStatement(),
+            TokenKind.ReleaseKeyword => ParseReleaseSortStatement(),
             // Phase 5.2 — Report Writer
             TokenKind.InitiateKeyword => ParseInitiateStatement(),
             TokenKind.GenerateKeyword => ParseGenerateStatement(),
@@ -1360,13 +1423,20 @@ public sealed class Parser
                 if (Check(TokenKind.Identifier)) Advance(); // device-name
                 continue;
             }
-            // Skip optional WITH NO ADVANCING
+            // Skip optional WITH NO ADVANCING or NO ADVANCING
             if (Check(TokenKind.WithKeyword))
             {
                 Advance();
                 if (Check(TokenKind.Identifier) && Current.Text.Equals("NO", StringComparison.OrdinalIgnoreCase))
                     Advance();
                 Match(TokenKind.AdvancingKeyword);
+                continue;
+            }
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("NO", StringComparison.OrdinalIgnoreCase) &&
+                Peek().Kind == TokenKind.AdvancingKeyword)
+            {
+                Advance(); // NO
+                Advance(); // ADVANCING
                 continue;
             }
             operands.Add(ParseExpression());
@@ -1393,20 +1463,36 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // MOVE
 
+        // MOVE CORRESPONDING/CORR — skip the keyword, treat as regular MOVE
+        Match(TokenKind.CorrespondingKeyword);
+
         var source = ParseExpression();
         Expect(TokenKind.ToKeyword, "Expected TO after MOVE source");
 
         var targets = new List<IdentifierExpression>();
-        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
+        while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) &&
+               !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind) &&
+               !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword))
         {
             if (!Check(TokenKind.Identifier))
-            {
-                ReportError("CS0100", "Expected identifier after TO");
-                Advance(); // ensure progress
                 break;
-            }
             var id = Advance();
-            targets.Add(new IdentifierExpression(id.Text, id.Span));
+            // Handle IN/OF qualification
+            while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+            {
+                Advance(); // IN or OF
+                if (Check(TokenKind.Identifier)) Advance(); // qualifier
+            }
+            // Handle subscripts: NAME(expr1, expr2, ...)
+            if (Check(TokenKind.LeftParen))
+            {
+                var subId = ParseSubscriptOrRefMod(id);
+                targets.Add(subId);
+            }
+            else
+            {
+                targets.Add(new IdentifierExpression(id.Text, id.Span));
+            }
         }
 
         return new MoveStatement(source, targets, TextSpan.FromBounds(start, Current.Span.Start));
@@ -1418,6 +1504,9 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // ADD
+
+        // ADD CORRESPONDING/CORR
+        Match(TokenKind.CorrespondingKeyword);
 
         var operands = new List<Expression>();
         while (!Check(TokenKind.ToKeyword) && !Check(TokenKind.GivingKeyword) &&
@@ -1436,14 +1525,25 @@ public sealed class Parser
                !Check(TokenKind.EndAddKeyword))
         {
             if (!Check(TokenKind.Identifier))
-            {
-                ReportError("CS0100", "Expected identifier after TO");
-                Advance();
                 break;
-            }
             var id = Advance();
-            Match(TokenKind.RoundedKeyword); // optional ROUNDED
-            targets.Add(new IdentifierExpression(id.Text, id.Span));
+            // Handle IN/OF qualification
+            while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+            {
+                Advance(); // IN or OF
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+            if (Check(TokenKind.LeftParen))
+            {
+                var subId = ParseSubscriptOrRefMod(id);
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(subId);
+            }
+            else
+            {
+                Match(TokenKind.RoundedKeyword); // optional ROUNDED
+                targets.Add(new IdentifierExpression(id.Text, id.Span));
+            }
         }
 
         // Optional GIVING
@@ -1452,8 +1552,17 @@ public sealed class Parser
             while (Check(TokenKind.Identifier) && !IsStatementStart(Current.Kind))
             {
                 var id = Advance();
-                Match(TokenKind.RoundedKeyword);
-                targets.Add(new IdentifierExpression(id.Text, id.Span));
+                if (Check(TokenKind.LeftParen))
+                {
+                    var subId = ParseSubscriptOrRefMod(id);
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(subId);
+                }
+                else
+                {
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(new IdentifierExpression(id.Text, id.Span));
+                }
             }
         }
 
@@ -1469,6 +1578,9 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // SUBTRACT
+
+        // SUBTRACT CORRESPONDING/CORR
+        Match(TokenKind.CorrespondingKeyword);
 
         var operands = new List<Expression>();
         while (!Check(TokenKind.FromKeyword) && !Check(TokenKind.Period) && !Check(TokenKind.EndOfFile))
@@ -1487,13 +1599,25 @@ public sealed class Parser
         {
             if (!Check(TokenKind.Identifier))
             {
-                ReportError("CS0100", "Expected identifier after FROM");
-                Advance();
                 break;
             }
             var id = Advance();
-            Match(TokenKind.RoundedKeyword);
-            targets.Add(new IdentifierExpression(id.Text, id.Span));
+            while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+            if (Check(TokenKind.LeftParen))
+            {
+                var subId = ParseSubscriptOrRefMod(id);
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(subId);
+            }
+            else
+            {
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(new IdentifierExpression(id.Text, id.Span));
+            }
         }
 
         if (Match(TokenKind.GivingKeyword))
@@ -1501,8 +1625,17 @@ public sealed class Parser
             while (Check(TokenKind.Identifier) && !IsStatementStart(Current.Kind))
             {
                 var id = Advance();
-                Match(TokenKind.RoundedKeyword);
-                targets.Add(new IdentifierExpression(id.Text, id.Span));
+                if (Check(TokenKind.LeftParen))
+                {
+                    var subId = ParseSubscriptOrRefMod(id);
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(subId);
+                }
+                else
+                {
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(new IdentifierExpression(id.Text, id.Span));
+                }
             }
         }
 
@@ -1520,8 +1653,22 @@ public sealed class Parser
         Advance(); // COMPUTE
 
         var targetToken = Expect(TokenKind.Identifier, "Expected target identifier in COMPUTE");
+        // Handle IN/OF qualification
+        while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+        {
+            Advance();
+            if (Check(TokenKind.Identifier)) Advance();
+        }
+        IdentifierExpression target;
+        if (Check(TokenKind.LeftParen))
+        {
+            target = ParseSubscriptOrRefMod(targetToken);
+        }
+        else
+        {
+            target = new IdentifierExpression(targetToken.Text, targetToken.Span);
+        }
         Match(TokenKind.RoundedKeyword); // optional ROUNDED
-        var target = new IdentifierExpression(targetToken.Text, targetToken.Span);
 
         Expect(TokenKind.Equals, "Expected = in COMPUTE statement");
 
@@ -1571,8 +1718,10 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // PERFORM
 
-        // Parse optional TEST BEFORE/AFTER
+        // Parse optional [WITH] TEST BEFORE/AFTER
         bool testAfter = false;
+        if (Check(TokenKind.WithKeyword) && Peek().Kind == TokenKind.TestKeyword)
+            Advance(); // consume WITH (only when followed by TEST)
         if (Check(TokenKind.TestKeyword))
         {
             Advance(); // TEST
@@ -2589,8 +2738,22 @@ public sealed class Parser
                 break;
             }
             var tok = Advance();
-            Match(TokenKind.RoundedKeyword); // optional ROUNDED
-            targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+            {
+                Advance();
+                if (Check(TokenKind.Identifier)) Advance();
+            }
+            if (Check(TokenKind.LeftParen))
+            {
+                var subId = ParseSubscriptOrRefMod(tok);
+                Match(TokenKind.RoundedKeyword);
+                targets.Add(subId);
+            }
+            else
+            {
+                Match(TokenKind.RoundedKeyword); // optional ROUNDED
+                targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+            }
         }
 
         Expression? giving = null;
@@ -2653,8 +2816,22 @@ public sealed class Parser
                     break;
                 }
                 var tok = Advance();
-                Match(TokenKind.RoundedKeyword);
-                targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+                while (Check(TokenKind.InKeyword) || Check(TokenKind.OfKeyword))
+                {
+                    Advance();
+                    if (Check(TokenKind.Identifier)) Advance();
+                }
+                if (Check(TokenKind.LeftParen))
+                {
+                    var subId = ParseSubscriptOrRefMod(tok);
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(subId);
+                }
+                else
+                {
+                    Match(TokenKind.RoundedKeyword);
+                    targets.Add(new IdentifierExpression(tok.Text, tok.Span));
+                }
             }
 
             if (Match(TokenKind.GivingKeyword))
@@ -2722,6 +2899,9 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // SEARCH
 
+        // SEARCH ALL identifier — binary search form
+        bool isAll = Match(TokenKind.AllKeyword);
+
         var tableToken = Expect(TokenKind.Identifier, "Expected table name after SEARCH");
         var tableName = new IdentifierExpression(tableToken.Text, tableToken.Span);
 
@@ -2764,6 +2944,52 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // GOBACK
         return new GobackStatement(TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── NEXT SENTENCE ──
+
+    private ContinueStatement ParseNextSentenceStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // NEXT
+        // Consume optional SENTENCE
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("SENTENCE", StringComparison.OrdinalIgnoreCase))
+            Advance();
+        return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── RETURN (sort output procedure) ──
+
+    private Statement ParseReturnSortStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // RETURN
+        if (Check(TokenKind.Identifier)) Advance(); // file-name
+        if (Check(TokenKind.RecordKeyword)) Advance(); // optional RECORD
+        // INTO identifier
+        IdentifierExpression? into = null;
+        if (Match(TokenKind.IntoKeyword))
+        {
+            var intoToken = Expect(TokenKind.Identifier, "Expected identifier after INTO");
+            into = new IdentifierExpression(intoToken.Text, intoToken.Span);
+        }
+        // AT END / NOT AT END
+        SkipExceptionPhrases(TokenKind.EndReturnKeyword);
+        Match(TokenKind.EndReturnKeyword);
+        // Use ContinueStatement as placeholder — no AST node exists
+        return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── RELEASE (sort input procedure) ──
+
+    private Statement ParseReleaseSortStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // RELEASE
+        if (Check(TokenKind.Identifier)) Advance(); // record-name
+        if (Match(TokenKind.FromKeyword))
+            ParseExpression(); // discard
+        return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
     /// <summary>
@@ -3051,6 +3277,14 @@ public sealed class Parser
                 Advance();
                 return new FigurativeConstantExpression(FigurativeConstant.Quote, token.Span);
 
+            case TokenKind.TrueKeyword:
+                Advance();
+                return new NumericLiteralExpression(1, token.Span); // TRUE → 1
+
+            case TokenKind.FalseKeyword:
+                Advance();
+                return new NumericLiteralExpression(0, token.Span); // FALSE → 0
+
             case TokenKind.FunctionKeyword:
                 return ParseFunctionCall();
 
@@ -3059,6 +3293,36 @@ public sealed class Parser
             case TokenKind.NationalLiteral:
                 Advance();
                 return new StringLiteralExpression((string)token.Value!, token.Span);
+
+            case TokenKind.AllKeyword:
+                // ALL literal — figurative constant meaning "fill with literal"
+                Advance(); // ALL
+                if (Check(TokenKind.StringLiteral))
+                {
+                    var allLit = Advance();
+                    return new StringLiteralExpression((string)allLit.Value!,
+                        TextSpan.FromBounds(token.Span.Start, allLit.Span.End));
+                }
+                else if (Check(TokenKind.ZeroKeyword) || Check(TokenKind.SpaceKeyword) ||
+                         Check(TokenKind.HighValueKeyword) || Check(TokenKind.LowValueKeyword) ||
+                         Check(TokenKind.QuoteKeyword))
+                {
+                    // ALL ZEROS, ALL SPACES, etc. — parse the figurative constant
+                    return ParsePrimaryExpression();
+                }
+                else if (Check(TokenKind.IntegerLiteral) || Check(TokenKind.DecimalLiteral))
+                {
+                    var allNum = Advance();
+                    return new NumericLiteralExpression(Convert.ToDecimal(allNum.Value),
+                        TextSpan.FromBounds(token.Span.Start, allNum.Span.End));
+                }
+                // ALL by itself (e.g., in INSPECT TALLYING ALL)
+                return new StringLiteralExpression("ALL", token.Span);
+
+            case TokenKind.Comma:
+                // Commas are separators in COBOL — skip and parse the next expression
+                Advance();
+                return ParsePrimaryExpression();
 
             case TokenKind.LeftParen:
                 Advance();
@@ -3124,12 +3388,42 @@ public sealed class Parser
                 refModStart: first, refModLength: length);
         }
 
-        // Subscripts: NAME(expr1, expr2, ...)
+        // Subscripts: NAME(expr1, expr2, ...) or NAME(expr1 expr2 ...)
+        // COBOL subscripts can be separated by commas OR spaces
         var subscripts = new List<Expression> { first };
-        while (Check(TokenKind.Comma))
+        Match(TokenKind.Comma); // optional comma separator
+        while (!Check(TokenKind.RightParen) && !Check(TokenKind.Colon) &&
+               Current.Kind != TokenKind.EndOfFile && !Check(TokenKind.Period))
         {
-            Advance(); // consume comma
             subscripts.Add(ParseArithmeticExpression());
+            Match(TokenKind.Comma); // optional comma separator
+        }
+
+        // Check for reference modification after subscripts: NAME(sub1, sub2)(start:len)
+        // or colon in the middle if it's actually ref-mod: NAME(start : length)
+        if (Check(TokenKind.Colon))
+        {
+            // This was actually reference modification, not subscripts
+            // The first subscript is the ref-mod start
+            Advance(); // consume :
+            Expression? length = null;
+            if (!Check(TokenKind.RightParen))
+            {
+                length = ParseArithmeticExpression();
+            }
+            Expect(TokenKind.RightParen, "Expected ) after reference modification");
+            var spanRefMod = TextSpan.FromBounds(nameToken.Span.Start, Current.Span.Start);
+            // If we had multiple "subscripts" before the colon, the last one is
+            // actually the ref-mod start and the preceding ones are real subscripts
+            if (subscripts.Count > 1)
+            {
+                var refStart = subscripts[^1];
+                var realSubs = subscripts.GetRange(0, subscripts.Count - 1);
+                return new IdentifierExpression(nameToken.Text, spanRefMod,
+                    subscripts: realSubs, refModStart: refStart, refModLength: length);
+            }
+            return new IdentifierExpression(nameToken.Text, spanRefMod,
+                refModStart: first, refModLength: length);
         }
 
         Expect(TokenKind.RightParen, "Expected ) after subscripts");
@@ -3153,9 +3447,35 @@ public sealed class Parser
         while (Check(TokenKind.OrKeyword))
         {
             Advance();
-            var right = ParseAndExpression();
-            left = new BinaryExpression(left, BinaryOperator.Or, right,
-                TextSpan.FromBounds(left.Span.Start, right.Span.End));
+
+            // Check for abbreviated combined relation: A > B OR <= C
+            if (left is BinaryExpression leftBin && IsRelationalOp(leftBin.Operator))
+            {
+                int saved = _position;
+                var abbrevOp = TryParseRelationalOperator();
+                if (abbrevOp.HasValue)
+                {
+                    var abbrevRight = ParseArithmeticExpression();
+                    var right = new BinaryExpression(leftBin.Left, abbrevOp.Value, abbrevRight,
+                        TextSpan.FromBounds(abbrevRight.Span.Start, abbrevRight.Span.End));
+                    left = new BinaryExpression(left, BinaryOperator.Or, right,
+                        TextSpan.FromBounds(left.Span.Start, right.Span.End));
+                    continue;
+                }
+                _position = saved;
+            }
+
+            // Check for abbreviated: A > B OR C → A > B OR A > C
+            var rightExpr = ParseAndExpression();
+            if (rightExpr is not BinaryExpression && left is BinaryExpression leftBin2 &&
+                IsRelationalOp(leftBin2.Operator))
+            {
+                rightExpr = new BinaryExpression(leftBin2.Left, leftBin2.Operator, rightExpr,
+                    TextSpan.FromBounds(rightExpr.Span.Start, rightExpr.Span.End));
+            }
+
+            left = new BinaryExpression(left, BinaryOperator.Or, rightExpr,
+                TextSpan.FromBounds(left.Span.Start, rightExpr.Span.End));
         }
         return left;
     }
@@ -3166,23 +3486,42 @@ public sealed class Parser
         while (Check(TokenKind.AndKeyword))
         {
             Advance();
-            // Check for abbreviated combined relation: A > B AND C
-            // If left is a relational expression and the next tokens look like
-            // a simple operand (not a full condition), expand using carried subject/operator
-            var right = ParseNotExpression();
+
+            // Check for abbreviated combined relation: A > B AND <= C
+            // If left is a relational expression and we see a relational operator,
+            // carry the subject from the left side
+            if (left is BinaryExpression leftBin && IsRelationalOp(leftBin.Operator))
+            {
+                // Try to parse a relational operator at the current position
+                int saved = _position;
+                var abbrevOp = TryParseRelationalOperator();
+                if (abbrevOp.HasValue)
+                {
+                    // Abbreviated form: A > B AND <= C → A > B AND A <= C
+                    var abbrevRight = ParseArithmeticExpression();
+                    var right = new BinaryExpression(leftBin.Left, abbrevOp.Value, abbrevRight,
+                        TextSpan.FromBounds(abbrevRight.Span.Start, abbrevRight.Span.End));
+                    left = new BinaryExpression(left, BinaryOperator.And, right,
+                        TextSpan.FromBounds(left.Span.Start, right.Span.End));
+                    continue;
+                }
+                _position = saved;
+            }
+
+            var rightExpr = ParseNotExpression();
 
             // If right is just a bare value (not a relational/logical expression),
             // and left is a relational expression, expand the abbreviation
-            if (right is not BinaryExpression && left is BinaryExpression leftBin &&
-                IsRelationalOp(leftBin.Operator))
+            // A > B AND C → A > B AND A > C
+            if (rightExpr is not BinaryExpression && left is BinaryExpression leftBin2 &&
+                IsRelationalOp(leftBin2.Operator))
             {
-                // A > B AND C → A > B AND A > C
-                right = new BinaryExpression(leftBin.Left, leftBin.Operator, right,
-                    TextSpan.FromBounds(right.Span.Start, right.Span.End));
+                rightExpr = new BinaryExpression(leftBin2.Left, leftBin2.Operator, rightExpr,
+                    TextSpan.FromBounds(rightExpr.Span.Start, rightExpr.Span.End));
             }
 
-            left = new BinaryExpression(left, BinaryOperator.And, right,
-                TextSpan.FromBounds(left.Span.Start, right.Span.End));
+            left = new BinaryExpression(left, BinaryOperator.And, rightExpr,
+                TextSpan.FromBounds(left.Span.Start, rightExpr.Span.End));
         }
         return left;
     }
@@ -3306,9 +3645,11 @@ public sealed class Parser
         else if (Match(TokenKind.GreaterKeyword))
         {
             Match(TokenKind.ThanKeyword); // optional THAN
-            Match(TokenKind.OrKeyword); // GREATER THAN OR EQUAL TO
-            if (Match(TokenKind.EqualKeyword))
+            // GREATER THAN OR EQUAL TO — only consume OR if followed by EQUAL
+            if (Check(TokenKind.OrKeyword) && Peek().Kind == TokenKind.EqualKeyword)
             {
+                Advance(); // OR
+                Advance(); // EQUAL
                 Match(TokenKind.ToKeyword);
                 op = BinaryOperator.GreaterThanOrEqual;
             }
@@ -3320,9 +3661,10 @@ public sealed class Parser
         else if (Match(TokenKind.LessKeyword))
         {
             Match(TokenKind.ThanKeyword);
-            Match(TokenKind.OrKeyword);
-            if (Match(TokenKind.EqualKeyword))
+            if (Check(TokenKind.OrKeyword) && Peek().Kind == TokenKind.EqualKeyword)
             {
+                Advance(); // OR
+                Advance(); // EQUAL
                 Match(TokenKind.ToKeyword);
                 op = BinaryOperator.LessThanOrEqual;
             }
