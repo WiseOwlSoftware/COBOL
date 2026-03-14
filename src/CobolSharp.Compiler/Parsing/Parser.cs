@@ -107,18 +107,17 @@ public sealed class Parser
 
     /// <summary>
     /// Error recovery: skip tokens until we reach a period (sentence terminator) or a known keyword.
+    /// Stops WITHOUT consuming the period or keyword — the caller decides what to do.
     /// </summary>
     private void SkipToPeriodOrKeyword()
     {
         while (Current.Kind != TokenKind.EndOfFile)
         {
             if (Current.Kind == TokenKind.Period)
-            {
-                Advance();
-                return;
-            }
-            // Stop at known division/section/statement keywords
-            if (IsStatementStart(Current.Kind) || IsDivisionKeyword(Current.Kind))
+                return; // DO NOT consume — period belongs to ParseSentence
+            // Stop at known division/section/statement keywords or scope terminators
+            if (IsStatementStart(Current.Kind) || IsDivisionKeyword(Current.Kind) ||
+                IsScopeTerminator(Current.Kind))
                 return;
             Advance();
         }
@@ -1088,9 +1087,16 @@ public sealed class Parser
                 Advance();
                 continue;
             }
-            var stmt = ParseStatement();
-            if (stmt != null)
-                initialStatements.Add(stmt);
+            if (IsStatementStart(Current.Kind))
+            {
+                var sentenceStmts = ParseSentence();
+                initialStatements.AddRange(sentenceStmts);
+            }
+            else
+            {
+                // Unknown token before first paragraph/section
+                Advance();
+            }
         }
 
         // Parse sections and/or standalone paragraphs
@@ -1161,6 +1167,42 @@ public sealed class Parser
         return new Section(name, paragraphs, TextSpan.FromBounds(start, end));
     }
 
+    /// <summary>
+    /// Parse a sentence: a sequence of statements terminated by a period.
+    /// This is the ONLY place periods are consumed in the procedure division.
+    /// </summary>
+    private List<Statement> ParseSentence()
+    {
+        var statements = new List<Statement>();
+
+        while (Current.Kind != TokenKind.EndOfFile && !Check(TokenKind.Period))
+        {
+            // Stop at structural boundaries (paragraph/section/division headers)
+            if (IsParagraphHeader() || IsSectionHeader() || IsDivisionStart())
+                break;
+
+            if (IsStatementStart(Current.Kind))
+            {
+                var stmt = ParseStatement();
+                if (stmt != null)
+                    statements.Add(stmt);
+            }
+            else
+            {
+                // Error recovery: unknown token in sentence
+                ReportError("CS0200", $"Unexpected token '{Current.Text}' — expected a statement");
+                Advance(); // ensure progress
+                SkipToPeriodOrKeyword();
+            }
+        }
+
+        // SENTENCE OWNS THE PERIOD — consume it
+        if (Check(TokenKind.Period))
+            Advance();
+
+        return statements;
+    }
+
     private Paragraph ParseParagraph(string? sectionName)
     {
         int start = Current.Span.Start;
@@ -1172,40 +1214,67 @@ public sealed class Parser
                !IsParagraphHeader() && !IsSectionHeader() &&
                !IsDivisionKeyword(Current.Kind))
         {
+            // Skip stray periods (empty sentences)
             if (Check(TokenKind.Period))
             {
                 Advance();
                 continue;
             }
-            var stmt = ParseStatement();
-            if (stmt != null)
-                statements.Add(stmt);
+
+            // If we see a statement start, parse a sentence
+            if (IsStatementStart(Current.Kind))
+            {
+                var sentenceStmts = ParseSentence();
+                statements.AddRange(sentenceStmts);
+            }
+            else
+            {
+                // Unknown token — try to recover
+                ReportError("CS0200", $"Unexpected token '{Current.Text}' in paragraph");
+                Advance();
+            }
         }
 
         int end = Current.Span.Start;
         return new Paragraph(name, statements, TextSpan.FromBounds(start, end), sectionName);
     }
 
-    private List<Statement> ParseStatements(params TokenKind[] terminators)
+    /// <summary>
+    /// Parse imperative statements inside compound statement bodies (IF then/else,
+    /// PERFORM body, EVALUATE when, etc.). Returns at period WITHOUT consuming it.
+    /// Returns at explicit terminators WITHOUT consuming. Returns at mismatched
+    /// scope terminators WITHOUT consuming.
+    /// </summary>
+    private List<Statement> ParseImperativeStatements(params TokenKind[] terminators)
     {
         var statements = new List<Statement>();
 
         while (Current.Kind != TokenKind.EndOfFile)
         {
-            // Check terminators
+            // Check explicit terminators (END-IF, ELSE, WHEN, etc.)
             foreach (var t in terminators)
                 if (Check(t)) return statements;
 
-            // Skip stray periods
+            // Period terminates ALL open scopes — return WITHOUT consuming
             if (Check(TokenKind.Period))
-            {
-                Advance();
-                continue;
-            }
+                return statements;
 
-            var stmt = ParseStatement();
-            if (stmt != null)
-                statements.Add(stmt);
+            // Scope terminator not in our list = mismatched nesting — return without consuming
+            if (IsScopeTerminator(Current.Kind))
+                return statements;
+
+            if (IsStatementStart(Current.Kind))
+            {
+                var stmt = ParseStatement();
+                if (stmt != null)
+                    statements.Add(stmt);
+            }
+            else
+            {
+                // Error recovery: unknown token in imperative statement context
+                ReportError("CS0200", $"Unexpected token '{Current.Text}' — expected a statement");
+                Advance(); // ensure progress
+            }
         }
 
         return statements;
@@ -1303,7 +1372,6 @@ public sealed class Parser
             operands.Add(ParseExpression());
         }
         Match(TokenKind.EndDisplayKeyword);
-        Match(TokenKind.Period);
 
         return new DisplayStatement(operands, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1315,7 +1383,6 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // STOP
         Expect(TokenKind.RunKeyword, "Expected RUN after STOP");
-        Match(TokenKind.Period);
         return new StopRunStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1332,10 +1399,15 @@ public sealed class Parser
         var targets = new List<IdentifierExpression>();
         while (!Check(TokenKind.Period) && !Check(TokenKind.EndOfFile) && !IsStatementStart(Current.Kind) && !IsScopeTerminator(Current.Kind))
         {
-            var id = Expect(TokenKind.Identifier, "Expected identifier after TO");
+            if (!Check(TokenKind.Identifier))
+            {
+                ReportError("CS0100", "Expected identifier after TO");
+                Advance(); // ensure progress
+                break;
+            }
+            var id = Advance();
             targets.Add(new IdentifierExpression(id.Text, id.Span));
         }
-        Match(TokenKind.Period);
 
         return new MoveStatement(source, targets, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1363,7 +1435,13 @@ public sealed class Parser
                !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
                !Check(TokenKind.EndAddKeyword))
         {
-            var id = Expect(TokenKind.Identifier, "Expected identifier after TO");
+            if (!Check(TokenKind.Identifier))
+            {
+                ReportError("CS0100", "Expected identifier after TO");
+                Advance();
+                break;
+            }
+            var id = Advance();
             Match(TokenKind.RoundedKeyword); // optional ROUNDED
             targets.Add(new IdentifierExpression(id.Text, id.Span));
         }
@@ -1381,7 +1459,6 @@ public sealed class Parser
 
         SkipSizeErrorPhrases();
         Match(TokenKind.EndAddKeyword);
-        Match(TokenKind.Period);
 
         return new AddStatement(operands, targets, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1408,7 +1485,13 @@ public sealed class Parser
                !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
                !Check(TokenKind.EndSubtractKeyword))
         {
-            var id = Expect(TokenKind.Identifier, "Expected identifier after FROM");
+            if (!Check(TokenKind.Identifier))
+            {
+                ReportError("CS0100", "Expected identifier after FROM");
+                Advance();
+                break;
+            }
+            var id = Advance();
             Match(TokenKind.RoundedKeyword);
             targets.Add(new IdentifierExpression(id.Text, id.Span));
         }
@@ -1425,7 +1508,6 @@ public sealed class Parser
 
         SkipSizeErrorPhrases();
         Match(TokenKind.EndSubtractKeyword);
-        Match(TokenKind.Period);
 
         return new SubtractStatement(operands, targets, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1447,7 +1529,6 @@ public sealed class Parser
 
         SkipSizeErrorPhrases();
         Match(TokenKind.EndComputeKeyword);
-        Match(TokenKind.Period);
 
         return new ComputeStatement(target, value, TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1465,12 +1546,12 @@ public sealed class Parser
         Match(TokenKind.ThenKeyword);
 
         // Parse then-statements until ELSE, END-IF, or period
-        var thenStatements = ParseStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword);
+        var thenStatements = ParseImperativeStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword);
 
         var elseStatements = new List<Statement>();
         if (Match(TokenKind.ElseKeyword))
         {
-            elseStatements = ParseStatements(TokenKind.EndIfKeyword);
+            elseStatements = ParseImperativeStatements(TokenKind.EndIfKeyword);
         }
 
         if (Check(TokenKind.EndIfKeyword))
@@ -1510,9 +1591,8 @@ public sealed class Parser
         {
             Advance();
             var until = ParseConditionExpression();
-            var body = ParseStatements(TokenKind.EndPerformKeyword);
+            var body = ParseImperativeStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
-            Match(TokenKind.Period);
             return new PerformStatement(null, body, null, until,
                 TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
         }
@@ -1523,9 +1603,8 @@ public sealed class Parser
         {
             var times = ParseExpression();
             Expect(TokenKind.TimesKeyword);
-            var body = ParseStatements(TokenKind.EndPerformKeyword);
+            var body = ParseImperativeStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
-            Match(TokenKind.Period);
             return new PerformStatement(null, body, times, null,
                 TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
         }
@@ -1547,7 +1626,6 @@ public sealed class Parser
             {
                 var times = ParseExpression();
                 Expect(TokenKind.TimesKeyword);
-                Match(TokenKind.Period);
                 return new PerformStatement(name, new List<Statement>(), times, null,
                     TextSpan.FromBounds(start, Current.Span.Start),
                     thruParagraphName: thruName, testAfter: testAfter);
@@ -1558,7 +1636,6 @@ public sealed class Parser
             {
                 Advance();
                 var until = ParseConditionExpression();
-                Match(TokenKind.Period);
                 return new PerformStatement(name, new List<Statement>(), null, until,
                     TextSpan.FromBounds(start, Current.Span.Start),
                     thruParagraphName: thruName, testAfter: testAfter);
@@ -1581,7 +1658,6 @@ public sealed class Parser
                 {
                     Advance();
                     var until = ParseConditionExpression();
-                    Match(TokenKind.Period);
                     return new PerformStatement(name, new List<Statement>(), null, until,
                         TextSpan.FromBounds(start, Current.Span.Start),
                         thruParagraphName: thruName, testAfter: testAfter);
@@ -1592,16 +1668,14 @@ public sealed class Parser
                 }
             }
 
-            Match(TokenKind.Period);
             return new PerformStatement(name, new List<Statement>(), null, null,
                 TextSpan.FromBounds(start, Current.Span.Start),
                 thruParagraphName: thruName, testAfter: testAfter);
         }
 
         // Bare inline PERFORM ... END-PERFORM
-        var stmts = ParseStatements(TokenKind.EndPerformKeyword);
+        var stmts = ParseImperativeStatements(TokenKind.EndPerformKeyword);
         Expect(TokenKind.EndPerformKeyword);
-        Match(TokenKind.Period);
         return new PerformStatement(null, stmts, null, null,
             TextSpan.FromBounds(start, Current.Span.Start), testAfter: testAfter);
     }
@@ -1629,7 +1703,6 @@ public sealed class Parser
         if (paraName != null)
         {
             // Out-of-line PERFORM para VARYING
-            Match(TokenKind.Period);
             return new PerformStatement(paraName, new List<Statement>(), null, until,
                 TextSpan.FromBounds(start, Current.Span.Start),
                 thruParagraphName: thruName, varying: varying, testAfter: testAfter);
@@ -1637,9 +1710,8 @@ public sealed class Parser
         else
         {
             // Inline PERFORM VARYING ... END-PERFORM
-            var body = ParseStatements(TokenKind.EndPerformKeyword);
+            var body = ParseImperativeStatements(TokenKind.EndPerformKeyword);
             Expect(TokenKind.EndPerformKeyword);
-            Match(TokenKind.Period);
             return new PerformStatement(null, body, null, until,
                 TextSpan.FromBounds(start, Current.Span.Start),
                 varying: varying, testAfter: testAfter);
@@ -1666,12 +1738,9 @@ public sealed class Parser
             Advance();
             Match(TokenKind.OnKeyword);
             var expr = ParseExpression();
-            Match(TokenKind.Period);
             return new GoToDependingStatement(names, expr,
                 TextSpan.FromBounds(start, Current.Span.Start));
         }
-
-        Match(TokenKind.Period);
 
         // Bare GO TO (no paragraph) is valid — target set by ALTER at runtime
         string? targetName = names.Count > 0 ? names[0] : null;
@@ -1703,7 +1772,6 @@ public sealed class Parser
             Match(TokenKind.Comma);
         }
 
-        Match(TokenKind.Period);
         return new AlterStatement(alterations, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1713,7 +1781,6 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // CONTINUE
-        Match(TokenKind.Period);
         return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1738,7 +1805,6 @@ public sealed class Parser
             // EXIT PROGRAM uses PROGRAM which isn't a generic identifier
         }
 
-        Match(TokenKind.Period);
         return new ExitStatement(kind, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1762,7 +1828,6 @@ public sealed class Parser
             }
         }
 
-        Match(TokenKind.Period);
         return new AcceptStatement(target, fromSource,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1781,7 +1846,6 @@ public sealed class Parser
             targets.Add(new IdentifierExpression(tok.Text, tok.Span));
         }
 
-        Match(TokenKind.Period);
         return new InitializeStatement(targets,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1812,7 +1876,6 @@ public sealed class Parser
             clauses.Add(new OpenClause(mode, fileNames));
         }
 
-        Match(TokenKind.Period);
         return new OpenStatement(clauses, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1823,7 +1886,6 @@ public sealed class Parser
         var fileNames = new List<string>();
         while (Check(TokenKind.Identifier))
             fileNames.Add(Advance().Text);
-        Match(TokenKind.Period);
         return new CloseStatement(fileNames, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1864,23 +1926,22 @@ public sealed class Parser
         {
             Advance(); // AT
             Match(TokenKind.EndKeyword);
-            atEnd = ParseStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
+            atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
         }
         if (Check(TokenKind.NotKeyword) && Peek().Kind == TokenKind.AtKeyword)
         {
             Advance(); Advance(); // NOT AT
             Match(TokenKind.EndKeyword);
-            notAtEnd = ParseStatements(TokenKind.EndReadKeyword);
+            notAtEnd = ParseImperativeStatements(TokenKind.EndReadKeyword);
         }
         // INVALID KEY / NOT INVALID KEY
         if (Check(TokenKind.InvalidKeyword))
         {
             Advance(); Match(TokenKind.KeyKeyword);
-            atEnd = ParseStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
+            atEnd = ParseImperativeStatements(TokenKind.NotKeyword, TokenKind.EndReadKeyword);
         }
 
         Match(TokenKind.EndReadKeyword);
-        Match(TokenKind.Period);
 
         return new ReadStatement(fileName, into, atEnd, notAtEnd, keyIs,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -1920,7 +1981,6 @@ public sealed class Parser
         // INVALID KEY / NOT INVALID KEY / AT END-OF-PAGE / NOT AT END-OF-PAGE
         SkipExceptionPhrases(TokenKind.EndWriteKeyword);
         Match(TokenKind.EndWriteKeyword);
-        Match(TokenKind.Period);
         return new WriteStatement(recordName, from, advancing,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -1936,7 +1996,6 @@ public sealed class Parser
             from = ParseExpression();
         SkipExceptionPhrases(TokenKind.EndRewriteKeyword);
         Match(TokenKind.EndRewriteKeyword);
-        Match(TokenKind.Period);
         return new RewriteStatement(recordName, from, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1948,7 +2007,6 @@ public sealed class Parser
         Match(TokenKind.RecordKeyword); // optional RECORD
         SkipExceptionPhrases(TokenKind.EndDeleteKeyword);
         Match(TokenKind.EndDeleteKeyword);
-        Match(TokenKind.Period);
         return new DeleteStatement(fileToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -1968,7 +2026,6 @@ public sealed class Parser
         }
         SkipExceptionPhrases(TokenKind.EndStartKeyword);
         Match(TokenKind.EndStartKeyword);
-        Match(TokenKind.Period);
         return new StartStatement(fileToken.Text, keyCondition, keyIs,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2038,7 +2095,6 @@ public sealed class Parser
             givingFile = Expect(TokenKind.Identifier, "Expected file name after GIVING").Text;
         }
 
-        Match(TokenKind.Period);
         return new SortStatement(fileToken.Text, keys, inputProc, usingFile, outputProc, givingFile,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2092,7 +2148,6 @@ public sealed class Parser
         // ON EXCEPTION / NOT ON EXCEPTION
         SkipExceptionPhrases(TokenKind.EndCallKeyword);
         Match(TokenKind.EndCallKeyword);
-        Match(TokenKind.Period);
 
         return new CallStatement(programName, parameters, returning,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2105,7 +2160,6 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // CANCEL
         var programName = ParseExpression();
-        Match(TokenKind.Period);
         return new CancelStatement(programName,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2163,7 +2217,6 @@ public sealed class Parser
         // ON OVERFLOW / NOT ON OVERFLOW
         SkipExceptionPhrases(TokenKind.EndStringKeyword);
         Match(TokenKind.EndStringKeyword);
-        Match(TokenKind.Period);
 
         return new StringStatement(sources, target, pointer,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2208,7 +2261,6 @@ public sealed class Parser
 
         SkipExceptionPhrases(TokenKind.EndUnstringKeyword);
         Match(TokenKind.EndUnstringKeyword);
-        Match(TokenKind.Period);
 
         return new UnstringStatement(source, delimiter, targets, tallying,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2281,7 +2333,6 @@ public sealed class Parser
         var names = new List<string>();
         while (Check(TokenKind.Identifier))
             names.Add(Advance().Text);
-        Match(TokenKind.Period);
         return new InitiateStatement(names, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2292,7 +2343,6 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // GENERATE
         var nameToken = Expect(TokenKind.Identifier, "Expected report-group name after GENERATE");
-        Match(TokenKind.Period);
         return new GenerateStatement(nameToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2305,7 +2355,6 @@ public sealed class Parser
         var names = new List<string>();
         while (Check(TokenKind.Identifier))
             names.Add(Advance().Text);
-        Match(TokenKind.Period);
         return new TerminateStatement(names, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2345,7 +2394,6 @@ public sealed class Parser
             returning = new IdentifierExpression(retToken.Text, retToken.Span);
         }
 
-        Match(TokenKind.Period);
         return new InvokeStatement(objectRef, methodName, args, returning,
             TextSpan.FromBounds(start, Current.Span.Start));
     }
@@ -2357,7 +2405,6 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // RAISE
         var nameToken = Expect(TokenKind.Identifier, "Expected exception name after RAISE");
-        Match(TokenKind.Period);
         return new RaiseStatement(nameToken.Text, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2386,7 +2433,6 @@ public sealed class Parser
             }
         }
 
-        Match(TokenKind.Period);
         return new ResumeStatement(atLabel, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
@@ -2460,7 +2506,7 @@ public sealed class Parser
         return new ScreenSection(entries, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
-    /// <summary>Skip remaining tokens in a statement to the period.</summary>
+    /// <summary>Skip remaining tokens in a statement to the period or next statement boundary.</summary>
     private void SkipToEndOfStatement()
     {
         while (!Check(TokenKind.Period) && Current.Kind != TokenKind.EndOfFile &&
@@ -2468,7 +2514,7 @@ public sealed class Parser
         {
             Advance();
         }
-        Match(TokenKind.Period);
+        // DO NOT consume period — it belongs to ParseSentence
     }
 
     // ── EVALUATE ──
@@ -2491,7 +2537,7 @@ public sealed class Parser
             if (Check(TokenKind.OtherKeyword))
             {
                 Advance(); // OTHER
-                whenOtherStatements = ParseStatements(TokenKind.EndEvaluateKeyword);
+                whenOtherStatements = ParseImperativeStatements(TokenKind.EndEvaluateKeyword);
                 break;
             }
 
@@ -2508,13 +2554,12 @@ public sealed class Parser
             }
 
             // Parse statements for this WHEN clause
-            var stmts = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndEvaluateKeyword);
+            var stmts = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndEvaluateKeyword);
             whenClauses.Add(new WhenClause(objects, stmts,
                 TextSpan.FromBounds(whenStart, Current.Span.Start)));
         }
 
         Match(TokenKind.EndEvaluateKeyword);
-        Match(TokenKind.Period);
 
         return new EvaluateStatement(subject, whenClauses, whenOtherStatements,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2537,7 +2582,13 @@ public sealed class Parser
                !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
                !Check(TokenKind.EndMultiplyKeyword))
         {
-            var tok = Expect(TokenKind.Identifier, "Expected identifier in MULTIPLY");
+            if (!Check(TokenKind.Identifier))
+            {
+                ReportError("CS0100", "Expected identifier in MULTIPLY");
+                Advance();
+                break;
+            }
+            var tok = Advance();
             Match(TokenKind.RoundedKeyword); // optional ROUNDED
             targets.Add(new IdentifierExpression(tok.Text, tok.Span));
         }
@@ -2552,7 +2603,6 @@ public sealed class Parser
         // Skip ON SIZE ERROR / NOT ON SIZE ERROR
         SkipSizeErrorPhrases();
         Match(TokenKind.EndMultiplyKeyword);
-        Match(TokenKind.Period);
 
         return new MultiplyStatement(operand, targets, giving,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2596,7 +2646,13 @@ public sealed class Parser
                    !Check(TokenKind.OnKeyword) && !Check(TokenKind.NotKeyword) &&
                    !Check(TokenKind.EndDivideKeyword))
             {
-                var tok = Expect(TokenKind.Identifier, "Expected identifier in DIVIDE");
+                if (!Check(TokenKind.Identifier))
+                {
+                    ReportError("CS0100", "Expected identifier in DIVIDE");
+                    Advance();
+                    break;
+                }
+                var tok = Advance();
                 Match(TokenKind.RoundedKeyword);
                 targets.Add(new IdentifierExpression(tok.Text, tok.Span));
             }
@@ -2616,7 +2672,6 @@ public sealed class Parser
 
         SkipSizeErrorPhrases();
         Match(TokenKind.EndDivideKeyword);
-        Match(TokenKind.Period);
 
         return new DivideStatement(operand, targets, giving, remainder,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2655,7 +2710,6 @@ public sealed class Parser
         }
 
         var value = ParseExpression();
-        Match(TokenKind.Period);
 
         return new SetStatement(targets, value, action,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2683,7 +2737,7 @@ public sealed class Parser
         {
             Advance(); // AT
             Match(TokenKind.EndKeyword);
-            atEnd = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
+            atEnd = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
         }
 
         var whenClauses = new List<SearchWhenClause>();
@@ -2692,13 +2746,12 @@ public sealed class Parser
             int whenStart = Current.Span.Start;
             Advance(); // WHEN
             var condition = ParseConditionExpression();
-            var stmts = ParseStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
+            var stmts = ParseImperativeStatements(TokenKind.WhenKeyword, TokenKind.EndSearchKeyword);
             whenClauses.Add(new SearchWhenClause(condition, stmts,
                 TextSpan.FromBounds(whenStart, Current.Span.Start)));
         }
 
         Match(TokenKind.EndSearchKeyword);
-        Match(TokenKind.Period);
 
         return new SearchStatement(tableName, whenClauses, atEnd,
             TextSpan.FromBounds(start, Current.Span.Start));
@@ -2710,7 +2763,6 @@ public sealed class Parser
     {
         int start = Current.Span.Start;
         Advance(); // GOBACK
-        Match(TokenKind.Period);
         return new GobackStatement(TextSpan.FromBounds(start, Current.Span.Start));
     }
 

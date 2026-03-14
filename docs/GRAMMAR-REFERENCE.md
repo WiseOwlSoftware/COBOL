@@ -361,14 +361,16 @@ A conditional expression evaluates to true or false. Types:
 operand-1  relational-operator  operand-2
 ```
 
-Where relational-operator is one of:
+Where relational-operator is one of (IS is optional throughout):
 ```
-IS [NOT] GREATER THAN       or  IS [NOT] >
-IS [NOT] LESS THAN          or  IS [NOT] <
-IS [NOT] EQUAL TO           or  IS [NOT] =
-IS GREATER THAN OR EQUAL TO or  IS >=
-IS LESS THAN OR EQUAL TO    or  IS <=
+[IS] [NOT] GREATER [THAN]      or  [IS] [NOT] >
+[IS] [NOT] LESS [THAN]         or  [IS] [NOT] <
+[IS] [NOT] EQUAL [TO]          or  [IS] [NOT] =
+[IS] GREATER [THAN] OR EQUAL [TO]  or  [IS] >=
+[IS] LESS [THAN] OR EQUAL [TO]     or  [IS] <=
 ```
+
+Note: `NOT >` is equivalent to `<=`, and `NOT <` is equivalent to `>=`.
 
 Operand-1 and operand-2 can be: identifier, literal, arithmetic expression, index-name, or (in some cases) object reference.
 
@@ -418,22 +420,66 @@ Parentheses may override precedence.
 
 #### 4.2.3 Abbreviated Combined Relation Conditions (§8.8.4.10)
 
-When consecutive relation conditions share the same subject (operand-1), the subject and optionally the relational operator may be omitted in subsequent conditions:
+When consecutive relation conditions are connected by AND or OR, the subject (operand-1) and optionally the relational operator may be omitted from subsequent conditions. The omitted elements are inherited from the nearest preceding complete relation condition.
 
+**General form**:
 ```
-subject-1 IS GREATER THAN object-1 AND object-2 OR object-3
+subject relop object-1 { AND | OR } [NOT] [relop] object-2 ...
+```
+
+**Example 1** — subject and relational operator carried forward:
+```
+A > B AND C OR D
 ```
 is equivalent to:
 ```
-subject-1 IS GREATER THAN object-1
-AND subject-1 IS GREATER THAN object-2
-OR subject-1 IS GREATER THAN object-3
+(A > B) AND (A > C) OR (A > D)
 ```
 
-Rules:
-- The subject and relational operator are carried forward from the nearest preceding relation condition
-- If a new relational operator appears, it replaces the carried-forward operator
-- NOT before an object negates just that comparison: `A > B AND NOT C` means `A > B AND A NOT > C`
+**Example 2** — new relational operator replaces the old one:
+```
+A > B AND < C
+```
+is equivalent to:
+```
+(A > B) AND (A < C)
+```
+
+**Example 3** — NOT negates the carried-forward relational operator:
+```
+A > B AND NOT C AND NOT D
+```
+is equivalent to:
+```
+(A > B) AND (A NOT > C) AND (A NOT > D)
+```
+which means:
+```
+(A > B) AND (A <= C) AND (A <= D)
+```
+
+**Example 4** — NOT with a new relational operator:
+```
+A > B OR NOT < C
+```
+is equivalent to:
+```
+(A > B) OR (A NOT < C)
+```
+which means:
+```
+(A > B) OR (A >= C)
+```
+
+**Rules**:
+1. The subject is carried forward from the nearest preceding complete relation condition (the one that had an explicit subject)
+2. The relational operator is carried forward from the nearest preceding relation condition (which may itself have been abbreviated)
+3. If a new relational operator appears in the abbreviated form, it replaces the carried-forward operator going forward
+4. NOT before an object (or before a relational operator) negates the relational operator for that particular comparison only — it does NOT negate the entire relation
+5. Parentheses may NOT be used within an abbreviated combined relation condition to alter grouping — they may only be used around the entire abbreviated condition
+6. The logical operators AND and OR within an abbreviated combined relation follow normal precedence (AND binds tighter than OR)
+
+**CRITICAL PARSER NOTE**: The parser must track the "current subject" and "current relational operator" as state while parsing sequences of conditions connected by AND/OR. When a token after AND/OR is NOT a relational operator and NOT a keyword that begins a new statement, it may be an abbreviated object. This is one of the most complex parsing challenges in COBOL.
 
 ---
 
@@ -740,13 +786,24 @@ A statement NOT explicitly terminated is implicitly terminated as follows:
 
 ```
 Format 1 (device):
-ACCEPT identifier-1 [ FROM mnemonic-name-1 ] [ WITH NO ADVANCING ] [ END-ACCEPT ]
+ACCEPT identifier-1 [ FROM mnemonic-name-1 ]
+  [ ON EXCEPTION imperative-statement-1 ]
+  [ NOT ON EXCEPTION imperative-statement-2 ]
+  [ END-ACCEPT ]
 
 Format 2 (temporal):
 ACCEPT identifier-2 FROM { DATE [ YYYYMMDD ]  }
                           { DAY [ YYYYDDD ]    }
                           { DAY-OF-WEEK        }
                           { TIME               }
+  [ END-ACCEPT ]
+
+Format 3 (screen — extended):
+ACCEPT identifier-1
+  [ AT { LINE NUMBER { identifier-2 | integer-1 } }
+       { COLUMN NUMBER { identifier-3 | integer-2 } } ]
+  [ ON EXCEPTION imperative-statement-1 ]
+  [ NOT ON EXCEPTION imperative-statement-2 ]
   [ END-ACCEPT ]
 ```
 
@@ -781,13 +838,21 @@ ADD { CORRESPONDING | CORR } identifier-4
 ```
 Format 1 (program):
 CALL { identifier-1 | literal-1 }
-  [ USING { [ BY REFERENCE ] { identifier-2 } ... } ...
-          { BY CONTENT { identifier-2 } ...         } ]
+  [ USING { [ BY REFERENCE ] { { identifier-2 } | OMITTED } ... } ...
+          { BY CONTENT { { identifier-2 | literal-2 } | OMITTED } ... }
+          { BY VALUE { identifier-2 | literal-2 } ...                  } ]
   [ RETURNING identifier-3 ]
   [ ON EXCEPTION imperative-statement-1 ]
   [ NOT ON EXCEPTION imperative-statement-2 ]
   [ END-CALL ]
 ```
+
+Rules:
+- BY REFERENCE is the default if no BY phrase is specified
+- BY REFERENCE: the address of the data item is passed; the called program may modify it
+- BY CONTENT: a copy of the data item is passed; the called program cannot modify the original
+- BY VALUE: the value of the data item is passed as a binary value (used for interop with C/non-COBOL)
+- OMITTED: indicates a parameter is not provided (can be used with BY REFERENCE or BY CONTENT)
 
 ### 7.4 CANCEL Statement (§14.9.5)
 
@@ -908,33 +973,40 @@ Where selection-subject is:
 
 Where selection-object is:
 ```
-{ [ NOT ] identifier-2             }
-{ [ NOT ] literal-2                }
-{ [ NOT ] arithmetic-expression-2  }
-{ [ NOT ] boolean-expression       }
-{ [ NOT ] range-expression         }
-{ condition-2                      }
-{ partial-expression-1             }
-{ TRUE                             }
-{ FALSE                            }
-{ ANY                              }
+{ ANY                                                                        }
+{ condition-2                                                                }
+{ partial-expression-1                                                       }
+{ TRUE                                                                       }
+{ FALSE                                                                      }
+{ [ NOT ] { identifier-2 | literal-2 | arithmetic-expression-2 }
+    [ { THROUGH | THRU } { identifier-3 | literal-3 | arithmetic-expression-3 } ] }
 ```
 
-Where range-expression is:
-```
-operand-1 { THROUGH | THRU } operand-2
-```
+Rules for selection-object:
+- ANY: matches any value
+- condition-2: a conditional expression (used when selection-subject is TRUE or FALSE)
+- partial-expression-1: a relational operator followed by an operand (used when selection-subject is an identifier/expression, e.g., `WHEN > 10`)
+- THROUGH/THRU: defines a range of values (inclusive)
+- NOT: negates the match (including the range if THROUGH/THRU is specified)
 
 ### 7.11 EXIT Statement (§14.9.14)
 
 ```
-Format 1 (simple):       EXIT
-Format 2 (program):      EXIT PROGRAM [ RAISING { EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION } ]
-Format 3 (inline-perform): EXIT PERFORM [ CYCLE ]
-Format 4 (procedure):    EXIT { PARAGRAPH | SECTION }
+Format 1 (simple):         EXIT
+Format 2 (program):        EXIT PROGRAM [ RAISING { EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION } ]
+Format 3 (function):       EXIT FUNCTION [ RAISING { EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION } ]
+Format 4 (method):         EXIT METHOD [ RAISING { EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION } ]
+Format 5 (inline-perform): EXIT PERFORM [ CYCLE ]
+Format 6 (procedure):      EXIT { PARAGRAPH | SECTION }
 ```
 
-NOTE: EXIT PROGRAM format is an archaic feature.
+Rules:
+- Format 1 (simple EXIT): A no-operation. When used as the only statement in a paragraph, it provides a procedure-name as an end-point for a PERFORM range.
+- Format 2 (EXIT PROGRAM): Returns control from a called program to the calling program. Archaic — use GOBACK instead.
+- Format 3 (EXIT FUNCTION): Returns control from a function to the invoker.
+- Format 4 (EXIT METHOD): Returns control from a method to the invoker.
+- Format 5 (EXIT PERFORM): Exits the innermost inline PERFORM. CYCLE causes the loop to skip to the next iteration.
+- Format 6 (EXIT PARAGRAPH/SECTION): Transfers control to the end of the current paragraph or section.
 
 ### 7.12 GO TO Statement (§14.9.17)
 
@@ -950,15 +1022,17 @@ Rules:
 ### 7.13 IF Statement (§14.9.19)
 
 ```
-Format 1 (delimited):
-IF condition-1 THEN statement-1 [ ELSE statement-2 ] END-IF
-
-Format 2 (historic/archaic):
-IF condition-1 THEN { statement-1   } [ ELSE { statement-2   } ]
-                     { NEXT SENTENCE }       { NEXT SENTENCE }
+General Format:
+IF condition-1 [ THEN ]
+  { statement-1   }
+  { NEXT SENTENCE }
+[ ELSE
+  { statement-2   }
+  { NEXT SENTENCE } ]
+[ END-IF ]
 ```
 
-NOTE: NEXT SENTENCE is an archaic feature.
+NOTE: NEXT SENTENCE is an archaic feature. THEN is optional (noise word).
 
 Rules:
 - Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements
@@ -967,7 +1041,9 @@ Rules:
 - Processing from left to right, whether an ELSE or END-IF matches a preceding IF is determined as follows:
   - a) any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE or has not been implicitly or explicitly terminated
   - b) any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated
-- **NOTE: A nested IF statement is terminated by terminal separator period of the containing IF statement** — a period terminates the ENTIRE containing IF and all nested IFs
+- **PERIOD TERMINATION**: An IF statement without END-IF is a conditional statement. A separator period terminates the ENTIRE containing IF and all nested IFs — every open scope is closed. This is critical: `IF A THEN IF B THEN MOVE X TO Y.` — the period terminates BOTH IFs.
+- When END-IF is present, the IF statement is a delimited-scope statement and is treated as an imperative statement (may appear inside other conditional phrases)
+- NEXT SENTENCE transfers control to the implicit statement following the next separator period. It is NOT the same as CONTINUE — NEXT SENTENCE jumps past all enclosing statements to the next sentence
 
 ### 7.14 INITIALIZE Statement (§14.9.20)
 
@@ -1111,6 +1187,18 @@ VARYING { identifier-2    } FROM { identifier-3   } BY { identifier-4   } UNTIL 
                                   { literal-3      }
 ```
 
+**PERFORM traditional usage patterns (all 4)**:
+1. **Basic** (no phrase): `PERFORM proc-1` or `PERFORM stmt END-PERFORM` — execute once
+2. **TIMES**: `PERFORM proc-1 n TIMES` — execute n times
+3. **UNTIL**: `PERFORM proc-1 UNTIL cond` — loop until condition is true
+4. **VARYING**: `PERFORM proc-1 VARYING i FROM 1 BY 1 UNTIL i > 10` — counted loop
+
+All 4 patterns work with both out-of-line (Format 1) and inline (Format 2).
+
+**WITH TEST BEFORE** (default): Condition is tested before each execution. If true initially, the body is never executed.
+**WITH TEST AFTER**: Condition is tested after each execution. The body always executes at least once.
+**UNTIL EXIT**: Used only with inline PERFORM. Creates an infinite loop that must be exited via EXIT PERFORM.
+
 ### 7.20 READ Statement (§14.9.30)
 
 ```
@@ -1164,21 +1252,40 @@ SET { index-name-1 | identifier-1 } ...
 Format 2 (index-arithmetic):
 SET { index-name-3 } ... { UP BY | DOWN BY } arithmetic-expression-2
 
-Format 3 (switch-setting):
+Format 3 (condition-name):
+SET { condition-name-1 } ... TO { TRUE | FALSE }
+
+Format 4 (switch-setting):
 SET { mnemonic-name-1 } ... TO { ON | OFF }
+
+Format 5 (pointer):
+SET { ADDRESS OF identifier-1 | pointer-name-1 } ...
+  TO { ADDRESS OF identifier-2 | pointer-name-2 | NULL | NULLS }
+
+Format 6 (program-pointer):
+SET { program-pointer-name-1 } ...
+  TO { ENTRY { identifier-3 | literal-1 } | pointer-name-2 | NULL | NULLS }
 ```
 
-(Additional SET formats exist for object references, address manipulation, etc.)
+Rules:
+- Format 3 (condition-name): Sets the associated data item to the value that makes the 88-level condition true. FALSE may only be specified if the FALSE phrase is present in the VALUE clause of the condition-name definition.
+- Format 5/6: Used for pointer and program-pointer manipulation.
 
 ### 7.23 STOP Statement (§14.9.42)
 
 ```
+Format 1 (run):
 STOP RUN [ WITH { ERROR | NORMAL } STATUS { identifier-1 | literal-1 } ]
+
+Format 2 (literal — archaic):
+STOP literal-1
 ```
 
 Rules:
-- The STOP statement shall be specified only as the last statement in any discard block of code
-- Execution of the STOP RUN statement terminates and control is transferred to the operating system
+- Format 1: Terminates the run unit and returns control to the operating system
+- Format 2 (archaic): Suspends execution and displays literal-1. Execution may be resumed by the operator. This format is archaic and should not be used in new code.
+- STOP RUN with ERROR STATUS returns a non-zero/error status to the operating system
+- STOP RUN with NORMAL STATUS (or no STATUS phrase) returns a zero/success status
 
 ### 7.24 STRING Statement (§14.9.43)
 
@@ -1246,9 +1353,259 @@ WRITE { record-name-1 | FILE file-name-1 }
   [ AT { END-OF-PAGE | EOP } imperative-statement-1 ]
   [ NOT AT { END-OF-PAGE | EOP } imperative-statement-2 ]
   [ END-WRITE ]
+
+Format 2 (random/indexed):
+WRITE { record-name-1 | FILE file-name-1 }
+  [ FROM { identifier-1 | literal-1 } ]
+  [ retry-phrase ]
+  [ { WITH LOCK | WITH NO LOCK } ]
+  [ INVALID KEY imperative-statement-1 ]
+  [ NOT INVALID KEY imperative-statement-2 ]
+  [ END-WRITE ]
 ```
 
-### 7.28 GOBACK Statement (§14.9.18)
+### 7.28 DELETE Statement (§14.9.10)
+
+```
+Format 1 (file):
+DELETE file-name-1 RECORD
+  [ retry-phrase ]
+  [ INVALID KEY imperative-statement-1 ]
+  [ NOT INVALID KEY imperative-statement-2 ]
+  [ END-DELETE ]
+```
+
+### 7.29 REWRITE Statement (§14.9.35)
+
+```
+Format 1 (file):
+REWRITE { record-name-1 | FILE file-name-1 }
+  [ FROM { identifier-1 | literal-1 } ]
+  [ retry-phrase ]
+  [ { WITH LOCK | WITH NO LOCK } ]
+  [ INVALID KEY imperative-statement-1 ]
+  [ NOT INVALID KEY imperative-statement-2 ]
+  [ END-REWRITE ]
+```
+
+### 7.30 START Statement (§14.9.41)
+
+```
+Format 1:
+START file-name-1
+  [ KEY IS { IS EQUAL TO       | IS =  | EQUALS       }
+           { IS GREATER THAN   | IS >                  }
+           { IS NOT LESS THAN  | IS NOT <              }
+           { IS GREATER THAN OR EQUAL TO | IS >=       }
+           { IS LESS THAN     | IS <                   }
+           { IS NOT GREATER THAN | IS NOT >            }
+           { IS LESS THAN OR EQUAL TO | IS <=          }
+    { data-name-1 | record-key-name-1 | split-key-spec } ]
+  [ { WITH SIZE { arithmetic-expression-1 } } ]
+  [ INVALID KEY imperative-statement-1 ]
+  [ NOT INVALID KEY imperative-statement-2 ]
+  [ END-START ]
+```
+
+### 7.31 RETURN Statement (§14.9.34)
+
+```
+RETURN file-name-1 RECORD [ INTO identifier-1 ]
+  AT END imperative-statement-1
+  [ NOT AT END imperative-statement-2 ]
+  [ END-RETURN ]
+```
+
+### 7.32 RELEASE Statement (§14.9.32)
+
+```
+RELEASE record-name-1 [ FROM { identifier-1 | literal-1 } ]
+```
+
+### 7.33 SORT Statement (§14.9.40)
+
+```
+Format 1 (file-sort):
+SORT file-name-1
+  { { ON } { ASCENDING | DESCENDING } KEY { data-name-1 } ... } ...
+  [ WITH DUPLICATES IN ORDER ]
+  [ COLLATING SEQUENCE IS alphabet-name-1
+    [ ALPHANUMERIC IS alphabet-name-2 ]
+    [ NATIONAL IS alphabet-name-3 ] ]
+  { USING { file-name-2 } ...                                                     }
+  { INPUT PROCEDURE IS procedure-name-1 [ { THROUGH | THRU } procedure-name-2 ]   }
+  { GIVING { file-name-3 } ...                                                     }
+  { OUTPUT PROCEDURE IS procedure-name-3 [ { THROUGH | THRU } procedure-name-4 ]   }
+
+Format 2 (table-sort):
+SORT data-name-1
+  { { ON } { ASCENDING | DESCENDING } KEY { data-name-2 } ... } ...
+  [ WITH DUPLICATES IN ORDER ]
+  [ COLLATING SEQUENCE IS alphabet-name-1 ]
+```
+
+### 7.34 MERGE Statement (§14.9.24)
+
+```
+MERGE file-name-1
+  { { ON } { ASCENDING | DESCENDING } KEY { data-name-1 } ... } ...
+  [ COLLATING SEQUENCE IS alphabet-name-1
+    [ ALPHANUMERIC IS alphabet-name-2 ]
+    [ NATIONAL IS alphabet-name-3 ] ]
+  USING file-name-2 { file-name-3 } ...
+  { GIVING { file-name-4 } ...                                                     }
+  { OUTPUT PROCEDURE IS procedure-name-1 [ { THROUGH | THRU } procedure-name-2 ]   }
+```
+
+### 7.35 ALLOCATE Statement (§14.9.3)
+
+```
+Format 1 (data):
+ALLOCATE { identifier-1 } [ INITIALIZED ] [ RETURNING identifier-2 ]
+
+Format 2 (size):
+ALLOCATE arithmetic-expression-1 CHARACTERS [ INITIALIZED ] RETURNING identifier-2
+```
+
+### 7.36 FREE Statement (§14.9.16)
+
+```
+FREE { identifier-1 } ...
+```
+
+### 7.37 RAISE Statement (§14.9.29)
+
+```
+RAISE { EXCEPTION exception-name-1 | identifier-1 }
+```
+
+### 7.38 RESUME Statement (§14.9.33)
+
+```
+RESUME [ AT ] NEXT STATEMENT
+```
+
+### 7.39 INVOKE Statement (§14.9.23)
+
+```
+INVOKE { identifier-1 | class-name-1 | SELF | SUPER }
+  { literal-1 | identifier-2 | NEW }
+  [ USING { [ BY REFERENCE ] { identifier-3 } ... } ...
+          { BY CONTENT { identifier-3 } ...         }
+          { BY VALUE { identifier-3 } ...           } ]
+  [ RETURNING identifier-4 ]
+  [ END-INVOKE ]
+```
+
+NOTE: INVOKE does not appear in the statement table as having conditional phrases or a scope terminator, but END-INVOKE is recognized by some implementations. The 2023 spec removed INVOKE in favor of inline method invocation syntax. For legacy COBOL, INVOKE is common.
+
+### 7.40 GENERATE Statement (§14.9.15)
+
+```
+GENERATE { data-name-1 | report-name-1 }
+```
+
+### 7.41 INITIATE Statement (§14.9.21)
+
+```
+INITIATE { report-name-1 } ...
+```
+
+### 7.42 TERMINATE Statement (§14.9.47)
+
+```
+TERMINATE { report-name-1 } ...
+```
+
+### 7.43 SUPPRESS Statement (§14.9.45)
+
+```
+SUPPRESS PRINTING
+```
+
+### 7.44 UNLOCK Statement (§14.9.49)
+
+```
+UNLOCK file-name-1 { RECORD | RECORDS }
+```
+
+### 7.45 VALIDATE Statement (§14.9.50)
+
+```
+VALIDATE { identifier-1 } ...
+```
+
+### 7.46 RECEIVE Statement (§14.9.31)
+
+```
+Format 1 (message — legacy Communication):
+RECEIVE cd-name-1 { MESSAGE | SEGMENT } INTO identifier-1
+  [ NO DATA imperative-statement-1 ]
+  [ WITH DATA imperative-statement-2 ]
+  [ END-RECEIVE ]
+```
+
+NOTE: RECEIVE is part of the Communication facility. The statement table shows conditional phrases as `[NOT] ON EXCEPTION` for the modern form. In legacy COBOL, the conditional phrases are `NO DATA` / `WITH DATA` as shown above. Both forms use END-RECEIVE as the scope terminator.
+
+### 7.47 SEND Statement (§14.9.38)
+
+```
+SEND { message-name-1 | identifier-1 }
+  FROM identifier-2
+  [ WITH { identifier-3 | ESI | EMI | EGI } ]
+  [ { BEFORE | AFTER } ADVANCING
+    { { identifier-4 | integer-1 } { LINE | LINES } }
+    { PAGE                                           } ]
+  [ END-SEND ]
+```
+
+NOTE: SEND is part of the Communication facility (archaic/deleted in 2023). For legacy code compatibility.
+
+### 7.48 COMMIT Statement
+
+```
+COMMIT
+```
+
+### 7.49 ROLLBACK Statement
+
+```
+ROLLBACK
+```
+
+### 7.50 ALTER Statement (§14.9 — archaic)
+
+```
+ALTER { procedure-name-1 TO [ PROCEED TO ] procedure-name-2 } ...
+```
+
+NOTE: ALTER is an archaic feature. It dynamically modifies the target of a GO TO statement. Should not be used in new code, but may be encountered in legacy programs.
+
+### 7.51 USE Statement (§14.9.46)
+
+```
+Format 1 (exception/error):
+USE [ GLOBAL ] AFTER STANDARD { EXCEPTION | ERROR } PROCEDURE ON
+  { file-name-1 } ...
+  { INPUT          }
+  { OUTPUT         }
+  { I-O            }
+  { EXTEND         }
+
+Format 2 (reporting):
+USE [ GLOBAL ] BEFORE REPORTING identifier-1
+
+Format 3 (exception-object):
+USE AFTER EXCEPTION OBJECT identifier-1
+```
+
+Rules:
+- USE statements may only appear in the DECLARATIVES portion of the Procedure Division
+- They define procedures to be executed automatically when certain conditions occur
+- Format 1: Invoked when an I/O error occurs on the specified file(s) or file category
+- Format 2: Invoked before a report group is presented (Report Writer)
+
+### 7.52 GOBACK Statement (§14.9.18)
 
 ```
 GOBACK [ RAISING { EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION } ]
@@ -1282,7 +1639,21 @@ ROUNDED [ MODE IS { AWAY-FROM-ZERO       } ]
 
 D1 and D2 are identifiers that refer to alphanumeric group items, bit group items, national group items, or strongly typed group items, or variable-length groups.
 
-### 8.4 THROUGH/THRU Phrase (§14.7.8)
+### 8.4 RETRY Phrase (§14.7.3)
+
+```
+RETRY { { identifier-1 | integer-1 } TIMES    }
+      { FOREVER                                 }
+      { FOR { identifier-2 | arithmetic-expression-1 } SECONDS }
+```
+
+Rules:
+- Specifies the retry action when an I/O statement fails due to a lock condition
+- TIMES: retry the specified number of times
+- FOREVER: retry indefinitely
+- SECONDS: retry for the specified duration
+
+### 8.5 THROUGH/THRU Phrase (§14.7.8)
 
 A THROUGH/THRU phrase specifies a range of values, literal-1 through literal-2. The set of values included in the range is determined by the following rules:
 1. When the range is defined by numeric literals, the range includes literal-1, literal-2, and all algebraic values between them.
@@ -1301,6 +1672,7 @@ This table is critical for parser implementation. It determines:
 | ACCEPT | [NOT] ON EXCEPTION | END-ACCEPT |
 | ADD | [NOT] ON SIZE ERROR | END-ADD |
 | ALLOCATE | — | — |
+| ALTER | — | — |
 | CALL | [NOT] ON EXCEPTION | END-CALL |
 | CANCEL | — | — |
 | CLOSE | — | — |
@@ -1346,6 +1718,7 @@ This table is critical for parser implementation. It determines:
 | TERMINATE | — | — |
 | UNLOCK | — | — |
 | UNSTRING | [NOT] ON OVERFLOW | END-UNSTRING |
+| USE | — | — |
 | VALIDATE | — | — |
 | WRITE | [NOT] INVALID KEY, [NOT] AT END-OF-PAGE/EOP | END-WRITE |
 
