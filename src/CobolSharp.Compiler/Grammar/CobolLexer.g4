@@ -5,7 +5,9 @@ lexer grammar CobolLexer;
 // ==========================================
 
 WS          : [ \t\r\n]+ -> skip ;
-COMMENTLINE : '*>' ~[\r\n]* -> skip ;
+
+// Free-form comments: *> to end of line
+COMMENT_START : '*>' -> pushMode(COMMENT_MODE) ;
 
 // --- keywords (uppercased by preprocessor) ---
 // Order matters: longer matches first, then keywords before IDENTIFIER
@@ -166,3 +168,12 @@ mode PSEUDOTEXT;
 
 PSEUDO_TEXT_CLOSE : '==' -> popMode ;
 PSEUDO_TEXT_BODY  : (~[=] | '=' ~[=])+ ;
+
+// ==========================================
+// COMMENT_MODE — *> to end of line
+// ==========================================
+
+mode COMMENT_MODE;
+
+COMMENT_TEXT : ~[\r\n]+ -> skip ;
+COMMENT_END  : [\r\n]   -> popMode, skip ;

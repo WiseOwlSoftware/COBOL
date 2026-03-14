@@ -1,6 +1,32 @@
 parser grammar CobolParserCore;
 
-options { tokenVocab = CobolLexer; }
+options {
+    tokenVocab = CobolLexer;
+    contextSuperClass = CobolParserContext;
+}
+
+// ==========================================
+// ERROR RECOVERY
+// ==========================================
+//
+// Statement-level sync: on parse error, skip to the nearest
+// statement boundary (period or END-xxx terminator).
+//
+// @parser::members {
+//     private void syncToStatementBoundary() {
+//         while (_input.LA(1) != DOT
+//             && !_input.LT(1).getText().startsWith("END-")
+//             && _input.LA(1) != EOF) {
+//             _input.consume();
+//         }
+//     }
+// }
+//
+// Error nodes in AST:
+//     public override void VisitErrorNode(IErrorNode node)
+//     {
+//         ast.Add(new ErrorNode(node.GetText(), node.Symbol.Line));
+//     }
 
 // --- top level ---
 
