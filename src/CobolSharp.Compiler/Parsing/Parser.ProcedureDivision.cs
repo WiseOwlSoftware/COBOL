@@ -325,6 +325,7 @@ public sealed partial class Parser
             TokenKind.DeleteKeyword => ParseDeleteStatement(),
             TokenKind.StartKeyword => ParseStartStatement(),
             TokenKind.SortKeyword => ParseSortStatement(),
+            TokenKind.MergeKeyword => ParseSortStatement(), // MERGE uses same syntax as SORT
             TokenKind.CallKeyword => ParseCallStatement(),
             TokenKind.CancelKeyword => ParseCancelStatement(),
             TokenKind.StringKeyword => ParseStringStatement(),

@@ -1034,7 +1034,10 @@ public sealed partial class Parser
                    !Current.Text.Equals("INPUT", StringComparison.OrdinalIgnoreCase) &&
                    !Current.Text.Equals("OUTPUT", StringComparison.OrdinalIgnoreCase) &&
                    !Current.Text.Equals("USING", StringComparison.OrdinalIgnoreCase) &&
-                   !Current.Text.Equals("GIVING", StringComparison.OrdinalIgnoreCase))
+                   !Current.Text.Equals("GIVING", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("WITH", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("COLLATING", StringComparison.OrdinalIgnoreCase) &&
+                   !Current.Text.Equals("DUPLICATES", StringComparison.OrdinalIgnoreCase))
             {
                 keys.Add(new SortKey(asc, Advance().Text));
             }
@@ -1070,9 +1073,10 @@ public sealed partial class Parser
         if (Check(TokenKind.InputKeyword))
         {
             Advance();
-            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase))
+            if (Check(TokenKind.ProcedureKeyword) ||
+                (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase)))
             {
-                Advance();
+                Advance(); // PROCEDURE
                 Match(TokenKind.IsKeyword);
                 inputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
                 // Issue 47 (§7.33): THRU in INPUT/OUTPUT PROCEDURE
@@ -1097,9 +1101,10 @@ public sealed partial class Parser
         if (Check(TokenKind.OutputKeyword))
         {
             Advance();
-            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase))
+            if (Check(TokenKind.ProcedureKeyword) ||
+                (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEDURE", StringComparison.OrdinalIgnoreCase)))
             {
-                Advance();
+                Advance(); // PROCEDURE
                 Match(TokenKind.IsKeyword);
                 outputProc = Expect(TokenKind.Identifier, "Expected procedure name").Text;
                 // Issue 47 (§7.33): THRU in INPUT/OUTPUT PROCEDURE

@@ -174,7 +174,7 @@ public sealed partial class Parser
         TokenKind.StringKeyword or TokenKind.UnstringKeyword or TokenKind.InspectKeyword or
         TokenKind.OpenKeyword or TokenKind.CloseKeyword or TokenKind.ReadKeyword or
         TokenKind.WriteKeyword or TokenKind.RewriteKeyword or TokenKind.DeleteKeyword or
-        TokenKind.StartKeyword or TokenKind.SortKeyword or
+        TokenKind.StartKeyword or TokenKind.SortKeyword or TokenKind.MergeKeyword or
         TokenKind.NextKeyword or // NEXT SENTENCE
         TokenKind.ReturnKeyword or // RETURN (sort output)
         TokenKind.ReleaseKeyword or // RELEASE (sort input)
