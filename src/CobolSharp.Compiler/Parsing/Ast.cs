@@ -415,10 +415,19 @@ public sealed class StopRunStatement : Statement
 
 public sealed class GoToStatement : Statement
 {
-    public string ParagraphName { get; }
-    public GoToStatement(string paragraphName, TextSpan span) : base(span)
+    public string? ParagraphName { get; }  // null for bare GO TO (altered at runtime)
+    public GoToStatement(string? paragraphName, TextSpan span) : base(span)
     {
         ParagraphName = paragraphName;
+    }
+}
+
+public sealed class AlterStatement : Statement
+{
+    public List<(string FromParagraph, string ToParagraph)> Alterations { get; }
+    public AlterStatement(List<(string FromParagraph, string ToParagraph)> alterations, TextSpan span) : base(span)
+    {
+        Alterations = alterations;
     }
 }
 

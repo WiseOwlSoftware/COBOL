@@ -73,8 +73,19 @@ public sealed class Lexer
                 return MakeToken(TokenKind.RightParen, _position++, 1);
             case ',':
                 return MakeToken(TokenKind.Comma, _position++, 1);
+            case ';':
+                // Semicolon is a valid separator in COBOL (treated like a space)
+                _position++;
+                return NextToken(); // skip it
             case ':':
                 return MakeToken(TokenKind.Colon, _position++, 1);
+            case '$':
+                // Currency symbol — valid in PICTURE strings, emit as its own token
+                return MakeToken(TokenKind.Identifier, _position++, 1);
+            case '&':
+                // Ampersand — skip (appears in some COBOL string contexts)
+                _position++;
+                return NextToken();
             case '+':
                 return MakeToken(TokenKind.Plus, _position++, 1);
             case '-':

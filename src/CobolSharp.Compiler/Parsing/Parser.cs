@@ -123,6 +123,17 @@ public sealed class Parser
         TokenKind.IdentificationKeyword or TokenKind.EnvironmentKeyword or
         TokenKind.DataKeyword or TokenKind.ProcedureKeyword;
 
+    /// <summary>
+    /// Checks if current position is the start of a division: keyword followed by DIVISION.
+    /// More reliable than IsDivisionKeyword alone, because reserved words like DATA
+    /// appear in free-text paragraphs (e.g., "AUTOMATED DATA AND TELECOMMUNICATION").
+    /// </summary>
+    private bool IsDivisionStart()
+    {
+        if (!IsDivisionKeyword(Current.Kind)) return false;
+        return Peek().Kind == TokenKind.DivisionKeyword;
+    }
+
     private static bool IsStatementStart(TokenKind kind) => kind is
         TokenKind.DisplayKeyword or TokenKind.StopKeyword or TokenKind.MoveKeyword or
         TokenKind.AddKeyword or TokenKind.SubtractKeyword or TokenKind.ComputeKeyword or
@@ -140,7 +151,9 @@ public sealed class Parser
         // Phase 5.5 — Exception handling
         TokenKind.RaiseKeyword or TokenKind.ResumeKeyword or
         // Phase 5.6-5.10 — Compiler directives
-        TokenKind.CompilerDirective;
+        TokenKind.CompilerDirective or
+        // Archaic
+        TokenKind.AlterKeyword;
 
     private static bool IsScopeTerminator(TokenKind kind) => kind is
         TokenKind.ElseKeyword or TokenKind.EndIfKeyword or TokenKind.EndPerformKeyword or
@@ -239,8 +252,9 @@ public sealed class Parser
 
         FileControlSection? fileControl = null;
 
-        // Parse sections until next division
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        // Parse sections until next division (use IsDivisionStart to avoid false
+        // matches on reserved words like DATA appearing in free text)
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
         {
             if (Check(TokenKind.InputKeyword) || Check(TokenKind.I_OKeyword))
             {
@@ -290,9 +304,12 @@ public sealed class Parser
                     Match(TokenKind.SectionKeyword);
                     Match(TokenKind.Period);
                     // Skip section contents
-                    while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind) &&
+                    while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart() &&
+                           !(Check(TokenKind.InputKeyword)) && !(Check(TokenKind.I_OKeyword)) &&
                            !(Check(TokenKind.FileKeyword)) &&
-                           !(Check(TokenKind.Identifier) && Current.Text.Equals("FILE-CONTROL", StringComparison.OrdinalIgnoreCase)))
+                           !(Check(TokenKind.Identifier) && (
+                               Current.Text.Equals("FILE-CONTROL", StringComparison.OrdinalIgnoreCase) ||
+                               Current.Text.Equals("INPUT-OUTPUT", StringComparison.OrdinalIgnoreCase))))
                         Advance();
                     continue;
                 }
@@ -518,7 +535,9 @@ public sealed class Parser
         }
 
         // Skip any remaining identification paragraphs (AUTHOR, DATE-WRITTEN, etc.)
-        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
+        // Must check for "keyword DIVISION" pattern, not just the keyword alone,
+        // because reserved words like DATA appear in free text (e.g., INSTALLATION paragraph)
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionStart())
         {
             // Check for next paragraph-like heading: identifier + period
             if (Check(TokenKind.Identifier) && Peek().Kind == TokenKind.Period)
@@ -1095,6 +1114,9 @@ public sealed class Parser
         int start = Current.Span.Start;
         string name = Advance().Text; // section name
         Expect(TokenKind.SectionKeyword);
+        // Optional segment/priority number (archaic feature)
+        if (Check(TokenKind.IntegerLiteral))
+            Advance();
         Expect(TokenKind.Period);
 
         var paragraphs = new List<Paragraph>();
@@ -1176,6 +1198,7 @@ public sealed class Parser
             TokenKind.IfKeyword => ParseIfStatement(),
             TokenKind.PerformKeyword => ParsePerformStatement(),
             TokenKind.GoKeyword => ParseGoToStatement(),
+            TokenKind.AlterKeyword => ParseAlterStatement(),
             TokenKind.ContinueKeyword => ParseContinueStatement(),
             TokenKind.ExitKeyword => ParseExitStatement(),
             TokenKind.AcceptKeyword => ParseAcceptStatement(),
@@ -1451,13 +1474,38 @@ public sealed class Parser
 
         Match(TokenKind.Period);
 
-        if (names.Count == 0)
+        // Bare GO TO (no paragraph) is valid — target set by ALTER at runtime
+        string? targetName = names.Count > 0 ? names[0] : null;
+        return new GoToStatement(targetName, TextSpan.FromBounds(start, Current.Span.Start));
+    }
+
+    // ── ALTER ──
+
+    private AlterStatement ParseAlterStatement()
+    {
+        int start = Current.Span.Start;
+        Advance(); // ALTER
+
+        var alterations = new List<(string, string)>();
+        while (Check(TokenKind.Identifier))
         {
-            ReportError("CS0210", "GO TO requires a paragraph name");
-            return new ContinueStatement(TextSpan.FromBounds(start, Current.Span.Start));
+            string fromPara = Advance().Text;
+            Match(TokenKind.ToKeyword); // TO
+            // Optional PROCEED TO
+            if (Check(TokenKind.Identifier) && Current.Text.Equals("PROCEED", StringComparison.OrdinalIgnoreCase))
+            {
+                Advance(); // PROCEED
+                Match(TokenKind.ToKeyword); // TO
+            }
+            string toPara = Expect(TokenKind.Identifier, "Expected paragraph name after ALTER TO").Text;
+            alterations.Add((fromPara, toPara));
+
+            // Comma separator between multiple alterations
+            Match(TokenKind.Comma);
         }
 
-        return new GoToStatement(names[0], TextSpan.FromBounds(start, Current.Span.Start));
+        Match(TokenKind.Period);
+        return new AlterStatement(alterations, TextSpan.FromBounds(start, Current.Span.Start));
     }
 
     // ── CONTINUE ──

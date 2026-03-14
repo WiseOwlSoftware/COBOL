@@ -365,7 +365,8 @@ public sealed class CilEmitter
                 break;
             case GoToStatement goTo:
                 // GO TO as a call to the paragraph + return (transfers control)
-                if (_paragraphMethods.TryGetValue(goTo.ParagraphName.ToUpperInvariant(), out var goToMethod))
+                if (goTo.ParagraphName != null &&
+                    _paragraphMethods.TryGetValue(goTo.ParagraphName.ToUpperInvariant(), out var goToMethod))
                 {
                     _il!.Emit(OpCodes.Ldarg_0);
                     _il.Emit(OpCodes.Call, goToMethod);
@@ -386,7 +387,41 @@ public sealed class CilEmitter
                 _il!.Emit(OpCodes.Nop);
                 break;
             case InitializeStatement:
-                // TODO: INITIALIZE — emit nop for now
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case AlterStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case SortStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case StringStatement:
+            case UnstringStatement:
+            case InspectStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case OpenStatement:
+            case CloseStatement:
+            case ReadStatement:
+            case WriteStatement:
+            case RewriteStatement:
+            case DeleteStatement:
+            case StartStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case CallStatement:
+            case CancelStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case InitiateStatement:
+            case GenerateStatement:
+            case TerminateStatement:
+                _il!.Emit(OpCodes.Nop);
+                break;
+            case InvokeStatement:
+            case RaiseStatement:
+            case ResumeStatement:
+            case SourceFormatDirective:
                 _il!.Emit(OpCodes.Nop);
                 break;
         }

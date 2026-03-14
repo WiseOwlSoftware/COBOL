@@ -92,40 +92,24 @@ public sealed class CopyProcessor
 
     private static int FindReplaceStatement(string text, int startPos)
     {
+        // Search line-by-line: REPLACE must be first significant word on a line
         int pos = startPos;
-        bool inString = false;
-        char stringChar = '\0';
 
-        while (pos < text.Length - 6)
+        while (pos < text.Length)
         {
-            char c = text[pos];
-
-            if (!inString && (c == '"' || c == '\''))
-            {
-                inString = true;
-                stringChar = c;
+            while (pos < text.Length && text[pos] == ' ')
                 pos++;
-                continue;
-            }
-            if (inString)
-            {
-                if (c == stringChar)
-                {
-                    if (pos + 1 < text.Length && text[pos + 1] == stringChar)
-                    { pos += 2; continue; }
-                    inString = false;
-                }
-                pos++;
-                continue;
-            }
 
-            if ((pos == 0 || !char.IsLetterOrDigit(text[pos - 1])) &&
+            if (pos < text.Length - 6 &&
                 MatchWord(text, pos, "REPLACE") &&
                 (pos + 7 >= text.Length || !char.IsLetterOrDigit(text[pos + 7])))
             {
                 return pos;
             }
-            pos++;
+
+            while (pos < text.Length && text[pos] != '\n')
+                pos++;
+            if (pos < text.Length) pos++;
         }
         return -1;
     }
@@ -217,45 +201,32 @@ public sealed class CopyProcessor
 
     private static int FindCopyStatement(string text, int startPos)
     {
+        // Search line-by-line: COPY must be the first significant word on a line
+        // (after optional whitespace). This avoids matching COPY inside VALUE strings
+        // and other data contexts.
         int pos = startPos;
-        bool inString = false;
-        char stringChar = '\0';
 
-        while (pos < text.Length - 3)
+        while (pos < text.Length)
         {
-            char c = text[pos];
+            // Find start of next line
+            int lineStart = pos;
 
-            // Track string literal boundaries
-            if (!inString && (c == '"' || c == '\''))
-            {
-                inString = true;
-                stringChar = c;
+            // Skip to first non-whitespace on this line
+            while (pos < text.Length && text[pos] == ' ')
                 pos++;
-                continue;
-            }
-            if (inString)
-            {
-                if (c == stringChar)
-                {
-                    // Check for doubled quote (escape)
-                    if (pos + 1 < text.Length && text[pos + 1] == stringChar)
-                    {
-                        pos += 2;
-                        continue;
-                    }
-                    inString = false;
-                }
-                pos++;
-                continue;
-            }
 
-            if ((pos == 0 || !char.IsLetterOrDigit(text[pos - 1])) &&
+            // Check if line starts with COPY (case-insensitive)
+            if (pos < text.Length - 3 &&
                 MatchWord(text, pos, "COPY") &&
                 (pos + 4 >= text.Length || !char.IsLetterOrDigit(text[pos + 4])))
             {
                 return pos;
             }
-            pos++;
+
+            // Skip to end of line
+            while (pos < text.Length && text[pos] != '\n')
+                pos++;
+            if (pos < text.Length) pos++; // skip \n
         }
         return -1;
     }
@@ -322,9 +293,27 @@ public sealed class CopyProcessor
             if (pos < text.Length - 1) pos += 2; // skip closing ==
             return result;
         }
+        else if (pos < text.Length && (text[pos] == '"' || text[pos] == '\''))
+        {
+            // Quoted string: "..." or '...'
+            char quote = text[pos];
+            pos++;
+            int start = pos;
+            while (pos < text.Length && text[pos] != quote)
+                pos++;
+            string result = text[start..pos];
+            if (pos < text.Length) pos++; // skip closing quote
+            return result;
+        }
         else
         {
-            return ReadWord(text, ref pos);
+            string word = ReadWord(text, ref pos);
+            if (string.IsNullOrEmpty(word) && pos < text.Length)
+            {
+                // Skip unrecognized character to avoid infinite loop
+                pos++;
+            }
+            return word;
         }
     }
 
