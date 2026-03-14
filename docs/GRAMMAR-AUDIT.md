@@ -599,40 +599,76 @@ The `...` means multiple target identifiers are allowed.
 
 ---
 
-## Summary: Critical Issues (Must Fix)
+## Fix Status (updated 2026-03-14)
 
-1. **Issue 7-12**: `IsDivisionKeyword` used instead of `IsDivisionStart` in 6 locations — causes false-stops on reserved words like DATA in non-division contexts. **Highest priority.**
-2. **Issue 8**: `ParseProgram` checks bare keyword instead of `IsDivisionStart` — can misidentify division starts in identification division free text.
-3. **Issue 28**: COMPUTE only parses one target — grammar allows multiple.
-4. **Issue 23**: ACCEPT FROM DATE YYYYMMDD leaves YYYYMMDD unconsumed.
-5. **Issue 59**: PERFORM VARYING AFTER clause not handled — nested varying loops fail.
-6. **Issue 32-33**: EVALUATE missing ALSO support and partial-expression objects.
-7. **Issue 15**: PROGRAM-ID AS/COMMON/INITIAL/RECURSIVE not handled.
+### FIXED — Commit 4ecb788 (Session 1)
+- Issues 7-13: IsDivisionKeyword → IsDivisionStart (6 locations + ID division)
+- Issue 23: ACCEPT FROM DATE YYYYMMDD
+- Issue 28: COMPUTE multi-target
 
-## Summary: Medium Priority Issues
+### FIXED — Commits 054fd7e, 45a6c28 (Session 1)
+- Issue 42: CLOSE WITH LOCK / WITH NO REWIND
+- Issue 59: PERFORM VARYING AFTER
 
-8. Issues 25-27: CORRESPONDING flag silently dropped on ADD/SUBTRACT/MOVE.
-9. Issue 5: Abbreviated relation NOT in abbreviated context mishandled.
-10. Issue 39-40: INSPECT parsing oversimplified.
-11. Issues 54-56: UNSTRING missing OR delimiters, DELIMITER IN, COUNT IN, WITH POINTER.
-12. Issues 47-50: SORT missing THRU, multiple files, DUPLICATES, COLLATING.
-13. Issues 70-71: RETURN/RELEASE produce ContinueStatement placeholder.
-14. Issues 73-74: SIZE ERROR and exception handler statements discarded.
-15. Issue 20: PROCEDURE DIVISION USING/RETURNING not modeled.
-16. Issue 37: NEXT SENTENCE mapped to CONTINUE (different semantics).
+### FIXED — Commit 8acb8c2 (Session 2 — all 65 remaining issues)
+- Issue 5: Abbreviated NOT in combined relations (NegateRelationalOp helper)
+- Issue 15: PROGRAM-ID AS literal, COMMON/INITIAL/RECURSIVE
+- Issue 16: END PROGRAM token check documented
+- Issue 18: LOCAL-STORAGE SECTION parsed as WORKING-STORAGE
+- Issues 21-22: Section/paragraph names as keyword tokens (IsUserDefinableKeyword)
+- Issue 24: ACCEPT ON EXCEPTION / END-ACCEPT
+- Issues 25-27: CORRESPONDING flag documented on MOVE/ADD/SUBTRACT
+- Issue 29: STOP RUN WITH STATUS phrase
+- Issue 30: STOP literal (archaic)
+- Issues 32-33: EVALUATE ALSO + partial-expression WHEN objects + ANY
+- Issue 34: EXIT PERFORM CYCLE
+- Issue 35: EXIT FUNCTION / EXIT METHOD
+- Issue 37: NEXT SENTENCE semantics documented
+- Issue 38: INITIALIZE REPLACING / WITH FILLER / THEN TO DEFAULT
+- Issues 39-40: Full INSPECT parsing (multiple phrases, BEFORE/AFTER INITIAL)
+- Issue 41: OPEN SHARING + WITH NO REWIND
+- Issue 43: READ PREVIOUS
+- Issue 44: READ NOT INVALID KEY
+- Issues 45-46: WRITE/REWRITE FILE keyword prefix
+- Issues 47-48: SORT THRU + multiple USING/GIVING files
+- Issue 49: SORT WITH DUPLICATES IN ORDER
+- Issue 50: SORT COLLATING SEQUENCE
+- Issue 51: CALL USING OMITTED
+- Issues 54-56: UNSTRING OR delimiters, ALL, DELIMITER IN, COUNT IN, WITH POINTER
+- Issue 58: SET ADDRESS OF
+- Issue 60: PERFORM UNTIL EXIT
+- Issue 62: CANCEL multiple operands
+- Issue 63: RAISE EXCEPTION prefix
+- Issue 64: RESUME conformant (NEXT STATEMENT only)
+- Issue 66: INVOKE BY VALUE
+- Issue 67: GOBACK RAISING
+- Issue 68: CONTINUE AFTER seconds
+- Issue 72: ROUNDED MODE IS clause (ConsumeRoundedPhrase helper)
+- Issue 75: FD LINAGE clause
+- Issue 77: SIGN IS LEADING/TRAILING SEPARATE CHARACTER
+- Issue 79: SYNCHRONIZED LEFT/RIGHT validation
+- Issue 80: OCCURS key loop data-clause boundary check
 
-## Summary: Low Priority Issues
+### NOT FIXED (lexer changes required)
+- Issue 4: EXCLUSIVE-OR (needs ExclusiveOrKeyword in lexer, extremely rare)
 
-17. Issue 1: Qualification chain discarded.
-18. Issue 2: ALL subscript not handled.
-19. Issue 4: EXCLUSIVE-OR not supported.
-20. Issue 14: IDENTIFICATION keyword required (2023 spec makes it optional).
-21. Issues 21-22: Reserved words as section/paragraph names not recognized.
-22. Issues 29-30: STOP RUN STATUS / STOP literal not handled.
-23. Issues 34-35: EXIT PERFORM CYCLE / EXIT FUNCTION/METHOD.
-24. Issue 38: INITIALIZE REPLACING not handled.
-25. Issues 41-42: OPEN/CLOSE missing clause handling.
-26. Issue 62: CANCEL multiple operands.
-27. Issues 63-68: Minor missing phrase handling (RAISE EXCEPTION, RESUME, INVOKE BY VALUE, GOBACK RAISING, CONTINUE AFTER).
-28. Issue 72: ROUNDED MODE clause not consumed.
-29. Issues 77-80: Data description clause parsing gaps.
+### NO FIX NEEDED (per audit analysis)
+- Issue 6: Condition-name — correctly allows bare identifiers
+- Issue 36: GO TO DEPENDING — correct
+- Issue 52: CALL NOT ON EXCEPTION — SkipExceptionPhrases handles it
+- Issue 57: SEARCH ALL WHEN — semantic validation, not parsing
+- Issue 61: PERFORM WITH TEST — adequately handled
+- Issue 69: DELETE RECORD — leniency is fine
+- Issue 76: FD DATA RECORD — correct within FD context
+- Issue 78: JUSTIFIED RIGHT — works for standard COBOL
+
+### SEMANTIC ISSUES (not parser fixes — need emitter/runtime changes)
+- Issue 1: Qualification chain — needs semantic resolver, not parser
+- Issue 2: ALL subscript — needs runtime support
+- Issue 3: Function boolean arguments — ParseArithmeticExpression is sufficient
+- Issue 14: IDENTIFICATION optional — 2023 spec; legacy always includes it
+- Issue 17: SPECIAL-NAMES — needs emitter support for DECIMAL-POINT IS COMMA
+- Issue 19: DECLARATIVES — needs USE statement handler in emitter
+- Issue 20: PROCEDURE DIVISION USING/RETURNING — needs parameter linkage
+- Issues 70-71: RETURN/RELEASE — need dedicated AST nodes and emitter
+- Issues 73-74: SIZE ERROR/exception handler statements — need AST storage
