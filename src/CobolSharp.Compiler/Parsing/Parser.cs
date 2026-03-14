@@ -15,6 +15,8 @@ public sealed class Parser
     private readonly DiagnosticBag _diagnostics;
     private readonly SourceText? _source;
     private int _position;
+    private int _iterationCount;
+    private const int MaxIterations = 1_000_000;
 
     public Parser(List<Token> tokens, DiagnosticBag diagnostics, SourceText? source = null)
     {
@@ -40,6 +42,8 @@ public sealed class Parser
 
     private Token Advance()
     {
+        if (++_iterationCount > MaxIterations)
+            throw new InvalidOperationException($"Parser exceeded {MaxIterations} iterations — likely infinite loop at position {_position}, token '{Current.Text}'");
         var token = Current;
         if (_position < _tokens.Count - 1) _position++;
         return token;
@@ -1053,7 +1057,7 @@ public sealed class Parser
         var paragraphs = new List<Paragraph>();
         var sections = new List<Section>();
 
-        while (Current.Kind != TokenKind.EndOfFile)
+        while (Current.Kind != TokenKind.EndOfFile && !IsDivisionKeyword(Current.Kind))
         {
             if (IsSectionHeader())
                 break;
@@ -1120,7 +1124,8 @@ public sealed class Parser
         Expect(TokenKind.Period);
 
         var paragraphs = new List<Paragraph>();
-        while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader())
+        while (Current.Kind != TokenKind.EndOfFile && !IsSectionHeader() &&
+               !IsDivisionKeyword(Current.Kind))
         {
             if (IsParagraphHeader())
             {
@@ -1144,7 +1149,8 @@ public sealed class Parser
 
         var statements = new List<Statement>();
         while (Current.Kind != TokenKind.EndOfFile &&
-               !IsParagraphHeader() && !IsSectionHeader())
+               !IsParagraphHeader() && !IsSectionHeader() &&
+               !IsDivisionKeyword(Current.Kind))
         {
             if (Check(TokenKind.Period))
             {
@@ -1234,6 +1240,8 @@ public sealed class Parser
     private Statement? HandleUnknownStatement()
     {
         ReportError("CS0200", $"Unexpected token '{Current.Text}' — expected a statement");
+        // MUST advance at least one token to prevent infinite loops
+        Advance();
         SkipToPeriodOrKeyword();
         return null;
     }
@@ -1367,18 +1375,30 @@ public sealed class Parser
 
         var condition = ParseConditionExpression();
 
-        // Optional THEN (not required in COBOL)
-        // Parse then-statements until ELSE or END-IF
-        var thenStatements = ParseStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword);
+        // Optional THEN keyword
+        if (Check(TokenKind.Identifier) && Current.Text.Equals("THEN", StringComparison.OrdinalIgnoreCase))
+            Advance();
+
+        // Parse then-statements until ELSE, END-IF, or period (old-style scope termination)
+        var thenStatements = ParseStatements(TokenKind.ElseKeyword, TokenKind.EndIfKeyword,
+            TokenKind.Period);
 
         var elseStatements = new List<Statement>();
         if (Match(TokenKind.ElseKeyword))
         {
-            elseStatements = ParseStatements(TokenKind.EndIfKeyword);
+            elseStatements = ParseStatements(TokenKind.EndIfKeyword, TokenKind.Period);
         }
 
-        Expect(TokenKind.EndIfKeyword, "Expected END-IF");
-        Match(TokenKind.Period);
+        // Accept either END-IF (modern) or period (old-style)
+        if (Check(TokenKind.EndIfKeyword))
+        {
+            Advance();
+            Match(TokenKind.Period);
+        }
+        else
+        {
+            Match(TokenKind.Period); // period-terminated IF (COBOL 74 style)
+        }
 
         return new IfStatement(condition, thenStatements, elseStatements,
             TextSpan.FromBounds(start, Current.Span.Start));
