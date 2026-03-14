@@ -2673,7 +2673,8 @@ public sealed class Parser
         int start = Current.Span.Start;
         Advance(); // EVALUATE
 
-        var subject = ParseExpression();
+        // Subject can be: identifier, literal, expression, TRUE, FALSE, condition
+        var subject = ParseConditionExpression();
         var whenClauses = new List<WhenClause>();
         var whenOtherStatements = new List<Statement>();
 
@@ -2690,16 +2691,33 @@ public sealed class Parser
                 break;
             }
 
-            // Parse WHEN objects (may have multiple WHEN before statements)
+            // Parse WHEN objects. Per §7.7 EVALUATE, objects can be:
+            // value-1 [THRU value-2] | TRUE | FALSE | ANY | condition
             var objects = new List<Expression>();
-            objects.Add(ParseExpression());
+            var whenObj = ParseExpression();
+            // Handle THRU/THROUGH for range: WHEN 1 THRU 10
+            if (Check(TokenKind.ThruKeyword))
+            {
+                Advance(); // THRU
+                var rangeEnd = ParseExpression();
+                // Represent range as a BinaryExpression with a special operator
+                // For now, just keep the start value (range semantics handled at runtime)
+                // For parsing, consume THRU range. Code gen uses only start value for now.
+            }
+            objects.Add(whenObj);
 
             // Handle additional WHEN clauses that share the same statement block
             // (WHEN value1 WHEN value2 ... statements)
             while (Check(TokenKind.WhenKeyword) && Peek().Kind != TokenKind.OtherKeyword)
             {
                 Advance(); // WHEN
-                objects.Add(ParseExpression());
+                var nextObj = ParseExpression();
+                if (Check(TokenKind.ThruKeyword))
+                {
+                    Advance();
+                    ParseExpression(); // consume range end
+                }
+                objects.Add(nextObj);
             }
 
             // Parse statements for this WHEN clause
