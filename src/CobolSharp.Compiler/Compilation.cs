@@ -55,6 +55,9 @@ public sealed class Compilation
             return new CompilationResult(false, "", diagnostics.Diagnostics);
         }
 
+        // Phase 2b: Validate grammar invariants (debug only)
+        Semantics.GrammarInvariants.ValidateSentenceAndStatementBoundaries(tree);
+
         // Phase 3: Semantic analysis — Pass 1: declaration collection
         string programId = ExtractProgramId(tree) ?? Path.GetFileNameWithoutExtension(sourcePath);
         var semanticBuilder = new Semantics.SemanticBuilder(programId, 1);

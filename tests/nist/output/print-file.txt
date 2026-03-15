@@ -15,10 +15,8 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  MULTIPLY BY          PASS  MPY-TEST-F1-1      .00
 *** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
- MULTIPLY BY          FAIL* MPY-TEST-F1-2      .00
-
-                                     COMPUTED=                     00000000000000000072
-                                     CORRECT =                     00000000000000000073
+ MULTIPLY BY          PASS  MPY-TEST-F1-2      .00
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
  MULTIPLY BY          FAIL* MPY-TEST-F1-3-1    .00        ON SIZE ERROR NOT EXECUTED
 
@@ -37,7 +35,7 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  MULTIPLY BY          FAIL* MPY-TEST-F1-4-2    .00        WRONGLY AFFECTED BY SIZE ERROR
 
-                                     COMPUTED=                     00000000000000000099
+                                     COMPUTED=                     00000000000000000000
                                      CORRECT =                     00000000000000000020
 
  MULTIPLY BY          PASS  MPY-TEST-F1-5      .00
@@ -66,7 +64,7 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  MULTIPLY BY          FAIL* MPY-TEST-F1-9-1    .00        WRONGLY AFFECTED BY SIZE ERROR
 
-                                     COMPUTED=                     00000000000000000099
+                                     COMPUTED=                     00000000000000000000
                                      CORRECT =                     00000000000000000001
 
  MULTIPLY BY          FAIL* MPY-TEST-F1-9-2    .00        ON SIZE ERROR NOT EXECUTED
@@ -129,20 +127,16 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED=                     00000000000000000000
                                      CORRECT =                     00000000000000000000
 
- MULTIPLY BY          FAIL*                    .02
-
-                                     COMPUTED=                     00000000000000990000
-                                     CORRECT =                     00000000000000000000
+ MULTIPLY BY          PASS                     .02
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
  MULTIPLY BY          FAIL*                    .03
 
-                                     COMPUTED=                     00000000000000099999
+                                     COMPUTED=                     00000000000000000000
                                      CORRECT =                     00000000000000000001
 
- MULTIPLY BY          FAIL*                    .04
-
-                                     COMPUTED=                     00000000000000099999
-                                     CORRECT =                     00000000000000000000
+ MULTIPLY BY          PASS                     .04
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
  MULTIPLY BY          FAIL*                    .05
 
@@ -380,7 +374,7 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC101A
 
-                                                    048 OF 089  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    051 OF 089  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION

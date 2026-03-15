@@ -918,11 +918,15 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY arithmeticExpression BY identifierList multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    : MULTIPLY arithmeticExpression BY multiplyByTarget+ multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    ;
+
+multiplyByTarget
+    : identifier ROUNDED?
     ;
 
 multiplyGivingPhrase
-    : GIVING identifier
+    : GIVING multiplyByTarget+
     ;
 
 multiplyOnSizeError

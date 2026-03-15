@@ -315,50 +315,34 @@ public sealed class Binder
 
     private void LowerMultiply(BoundMultiplyStatement mult, IrBasicBlock block)
     {
-        // Destination: GIVING target or in-place (BY operand)
-        DataSymbol? destSym = mult.GivingTarget
-            ?? (mult.Right as BoundIdentifierExpression)?.Symbol;
-        if (destSym == null) return;
+        // For MULTIPLY BY: operand is the literal/identifier being multiplied,
+        // each target is multiplied in-place (target = operand × target)
+        // For MULTIPLY GIVING: operand × first BY target → GIVING targets
 
-        var destLoc = _semantic.GetStorageLocation(destSym);
-        if (!destLoc.HasValue) return;
-
-        // identifier × identifier
-        if (mult.Left is BoundIdentifierExpression leftId &&
-            mult.Right is BoundIdentifierExpression rightId)
+        foreach (var target in mult.Targets)
         {
-            var leftLoc = _semantic.GetStorageLocation(leftId.Symbol);
-            var rightLoc = _semantic.GetStorageLocation(rightId.Symbol);
-            if (leftLoc.HasValue && rightLoc.HasValue)
-            {
-                block.Instructions.Add(new IrPicMultiply(
-                    leftLoc.Value, rightLoc.Value, destLoc.Value));
-            }
-            return;
-        }
+            var destLoc = _semantic.GetStorageLocation(target.Symbol);
+            if (!destLoc.HasValue) continue;
 
-        // literal × identifier
-        if (mult.Left is BoundLiteralExpression litLeft && litLeft.Value is decimal dLeft &&
-            mult.Right is BoundIdentifierExpression rId)
-        {
-            var rightLoc = _semantic.GetStorageLocation(rId.Symbol);
-            if (rightLoc.HasValue)
+            int roundingMode = target.IsRounded ? 1 : 0;
+
+            // operand is literal
+            if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
             {
                 block.Instructions.Add(new IrPicMultiplyLiteral(
-                    dLeft, rightLoc.Value, destLoc.Value));
+                    d, destLoc.Value, destLoc.Value, roundingMode));
+                continue;
             }
-            return;
-        }
 
-        // identifier × literal (swap)
-        if (mult.Right is BoundLiteralExpression litRight && litRight.Value is decimal dRight &&
-            mult.Left is BoundIdentifierExpression lId)
-        {
-            var leftLoc = _semantic.GetStorageLocation(lId.Symbol);
-            if (leftLoc.HasValue)
+            // operand is identifier
+            if (mult.Operand is BoundIdentifierExpression opId)
             {
-                block.Instructions.Add(new IrPicMultiplyLiteral(
-                    dRight, leftLoc.Value, destLoc.Value));
+                var opLoc = _semantic.GetStorageLocation(opId.Symbol);
+                if (opLoc.HasValue)
+                {
+                    block.Instructions.Add(new IrPicMultiply(
+                        opLoc.Value, destLoc.Value, destLoc.Value, roundingMode));
+                }
             }
         }
     }

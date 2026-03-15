@@ -199,36 +199,50 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
     {
-        // MULTIPLY expr BY identifierList [GIVING identifier]
-        var leftExpr = BindArithmeticExpr(ctx.arithmeticExpression());
+        // MULTIPLY expr BY target1 [ROUNDED] target2 [ROUNDED] ...
+        var operand = BindArithmeticExpr(ctx.arithmeticExpression());
 
-        // BY targets
-        var idList = ctx.identifierList();
-        BoundExpression? rightExpr = null;
-        if (idList != null && idList.identifier().Length > 0)
-            rightExpr = BindIdentifier(idList.identifier()[0]);
-
-        if (rightExpr == null)
+        // BY targets — each with per-item ROUNDED flag
+        var byTargets = ctx.multiplyByTarget();
+        if (byTargets.Length == 0)
             return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
 
-        // GIVING target (if present)
+        var targets = new List<BoundMultiplyTarget>();
+        foreach (var bt in byTargets)
+        {
+            var sym = _semantic.ResolveData(bt.identifier().GetText());
+            if (sym != null)
+                targets.Add(new BoundMultiplyTarget(sym, bt.ROUNDED() != null));
+        }
+
+        if (targets.Count == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+
+        // GIVING targets (if present)
         DataSymbol? givingTarget = null;
         var givingCtx = ctx.multiplyGivingPhrase();
         if (givingCtx != null)
         {
-            var givingId = givingCtx.identifier();
-            if (givingId != null)
+            var givingTargets = givingCtx.multiplyByTarget();
+            if (givingTargets.Length > 0)
             {
-                var sym = _semantic.ResolveData(givingId.GetText());
-                givingTarget = sym;
+                var givingSym = _semantic.ResolveData(givingTargets[0].identifier().GetText());
+                if (givingSym != null)
+                {
+                    givingTarget = givingSym;
+                    // Replace targets with GIVING targets (GIVING overrides BY targets as destinations)
+                    targets.Clear();
+                    foreach (var gt in givingTargets)
+                    {
+                        var sym = _semantic.ResolveData(gt.identifier().GetText());
+                        if (sym != null)
+                            targets.Add(new BoundMultiplyTarget(sym, gt.ROUNDED() != null));
+                    }
+                }
             }
         }
 
-        // If no GIVING, the BY target is also the destination
-        if (givingTarget == null && rightExpr is BoundIdentifierExpression rightId)
-            givingTarget = rightId.Symbol;
-
-        return new BoundMultiplyStatement(leftExpr, rightExpr, givingTarget);
+        return new BoundMultiplyStatement(operand, targets, givingTarget);
     }
 
     // ── ADD ──

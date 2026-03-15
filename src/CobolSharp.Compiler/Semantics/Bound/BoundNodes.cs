@@ -213,17 +213,33 @@ public sealed class BoundAddStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
 }
 
+/// <summary>
+/// A single receiving item in MULTIPLY BY, with per-item ROUNDED flag.
+/// </summary>
+public sealed class BoundMultiplyTarget
+{
+    public DataSymbol Symbol { get; }
+    public bool IsRounded { get; }
+
+    public BoundMultiplyTarget(DataSymbol symbol, bool isRounded)
+    {
+        Symbol = symbol;
+        IsRounded = isRounded;
+    }
+}
+
 public sealed class BoundMultiplyStatement : BoundStatement
 {
-    public BoundExpression Left { get; }
-    public BoundExpression Right { get; }
+    public BoundExpression Operand { get; }
+    public IReadOnlyList<BoundMultiplyTarget> Targets { get; }
     public DataSymbol? GivingTarget { get; }
 
-    public BoundMultiplyStatement(BoundExpression left, BoundExpression right,
-        DataSymbol? givingTarget)
+    public BoundMultiplyStatement(BoundExpression operand,
+        IReadOnlyList<BoundMultiplyTarget> targets,
+        DataSymbol? givingTarget = null)
     {
-        Left = left;
-        Right = right;
+        Operand = operand;
+        Targets = targets;
         GivingTarget = givingTarget;
     }
 

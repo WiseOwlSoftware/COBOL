@@ -927,6 +927,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMultiplyStatement([NotNull] CobolParserCore.MultiplyStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyByTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultiplyByTarget([NotNull] CobolParserCore.MultiplyByTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
