@@ -881,11 +881,15 @@ addOperand
     ;
 
 addToPhrase
-    : TO identifierList
+    : TO addTarget+
+    ;
+
+addTarget
+    : identifier ROUNDED?
     ;
 
 addGivingPhrase
-    : GIVING identifierList
+    : GIVING addTarget+
     ;
 
 addOnSizeError

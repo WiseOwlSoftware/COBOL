@@ -140,8 +140,7 @@ public sealed class Binder
             case BoundMultiplyStatement mult:
                 return LowerMultiply(mult, method, block);
             case BoundAddStatement add:
-                LowerAdd(add, block);
-                break;
+                return LowerAdd(add, method, block);
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
                 break;
@@ -568,32 +567,65 @@ public sealed class Binder
 
     // ── ADD ──
 
-    private void LowerAdd(BoundAddStatement add, IrBasicBlock block)
+    private IrBasicBlock LowerAdd(BoundAddStatement add, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        if (add.Target is not BoundIdentifierExpression destId) return;
-        var destLoc = _semantic.GetStorageLocation(destId.Symbol);
-        if (!destLoc.HasValue) return;
-
-        // ADD literal TO identifier
-        if (add.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+        // ADD A B C TO T1 T2 → for each target, add each operand in sequence
+        foreach (var target in add.Targets)
         {
-            block.Instructions.Add(new IrPicAddLiteral(
-                destLoc.Value, d, add.IsRounded ? 1 : 0));
-            return;
-        }
+            var destLoc = _semantic.GetStorageLocation(target.Symbol);
+            if (!destLoc.HasValue) continue;
 
-        // ADD identifier TO identifier
-        if (add.Operand is BoundIdentifierExpression srcId)
-        {
-            var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
-            if (srcLoc.HasValue)
+            int roundingMode = target.IsRounded ? 1 : 0;
+
+            foreach (var operand in add.Operands)
             {
-                block.Instructions.Add(new IrPicAdd(
-                    srcLoc.Value, destLoc.Value, add.IsRounded ? 1 : 0));
+                if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
+                {
+                    block.Instructions.Add(new IrPicAddLiteral(
+                        destLoc.Value, d, roundingMode));
+                }
+                else if (operand is BoundIdentifierExpression srcId)
+                {
+                    var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
+                    if (srcLoc.HasValue)
+                    {
+                        block.Instructions.Add(new IrPicAdd(
+                            srcLoc.Value, destLoc.Value, roundingMode));
+                    }
+                }
             }
         }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        if (add.OnSizeError.Count > 0 || add.NotOnSizeError.Count > 0)
+        {
+            var sizeErrorBlock = method.CreateBlock("size.error");
+            var notSizeErrorBlock = method.CreateBlock("not.size.error");
+            var doneBlock = method.CreateBlock("size.done");
+
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadSizeError(condVal));
+            block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
+
+            method.Blocks.Add(sizeErrorBlock);
+            var seCurrent = sizeErrorBlock;
+            foreach (var stmt in add.OnSizeError)
+                seCurrent = LowerStatement(stmt, method, seCurrent);
+            seCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(notSizeErrorBlock);
+            var nseCurrent = notSizeErrorBlock;
+            foreach (var stmt in add.NotOnSizeError)
+                nseCurrent = LowerStatement(stmt, method, nseCurrent);
+            nseCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(doneBlock);
+            return doneBlock;
+        }
+
+        return block;
     }
 
     // ── IF ──

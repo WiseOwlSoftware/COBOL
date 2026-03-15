@@ -885,6 +885,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAddToPhrase([NotNull] CobolParserCore.AddToPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.addTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAddTarget([NotNull] CobolParserCore.AddTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.addGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

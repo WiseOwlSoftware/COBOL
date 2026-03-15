@@ -201,20 +201,20 @@ public sealed class BoundCloseStatement : BoundStatement
 
 public sealed class BoundAddStatement : BoundStatement
 {
-    public BoundExpression Operand { get; }
-    public BoundExpression Target { get; }
-    public bool IsRounded { get; }
+    /// <summary>The operands being added (ADD A B C TO T: operands = [A, B, C]).</summary>
+    public IReadOnlyList<BoundExpression> Operands { get; }
+    /// <summary>The TO targets: each gets target = target + sum(operands).</summary>
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
     public IReadOnlyList<BoundStatement> OnSizeError { get; }
     public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
 
-    public BoundAddStatement(BoundExpression operand, BoundExpression target,
-        bool isRounded = false,
+    public BoundAddStatement(IReadOnlyList<BoundExpression> operands,
+        IReadOnlyList<BoundArithmeticTarget> targets,
         IReadOnlyList<BoundStatement>? onSizeError = null,
         IReadOnlyList<BoundStatement>? notOnSizeError = null)
     {
-        Operand = operand;
-        Target = target;
-        IsRounded = isRounded;
+        Operands = operands;
+        Targets = targets;
         OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
         NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
     }
