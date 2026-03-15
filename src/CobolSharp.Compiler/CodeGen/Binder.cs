@@ -200,9 +200,48 @@ public sealed class Binder
         {
             if (_currentBlock == null) return;
 
+            // Collect display operands as string constants
+            var operands = new List<string>();
+            foreach (var child in ctx.children)
+            {
+                if (child is Antlr4.Runtime.Tree.ITerminalNode term)
+                {
+                    string text = term.GetText();
+                    if (text != "DISPLAY" && text != ".")
+                    {
+                        if (text.StartsWith("\"") && text.EndsWith("\""))
+                            text = text[1..^1];
+                        else if (text.StartsWith("'") && text.EndsWith("'"))
+                            text = text[1..^1];
+                        operands.Add(text);
+                    }
+                }
+            }
+
+            // Also check for literal/identifier rule contexts (not just terminals)
+            foreach (var child in ctx.children)
+            {
+                if (child is CobolParserCore.LiteralContext lit)
+                {
+                    string litText = lit.GetText();
+                    if (litText.StartsWith("\"") && litText.EndsWith("\""))
+                        litText = litText[1..^1];
+                    else if (litText.StartsWith("'") && litText.EndsWith("'"))
+                        litText = litText[1..^1];
+                    operands.Add(litText);
+                }
+                else if (child is CobolParserCore.IdentifierContext id)
+                {
+                    operands.Add(id.GetText()); // data name — resolved later
+                }
+            }
+
+            string displayText = string.Join(" ", operands);
+            var constVal = _binder._valueFactory.Next(IrPrimitiveType.String);
+            _currentBlock.Instructions.Add(new IrLoadConst(constVal, displayText));
             _currentBlock.Instructions.Add(new IrRuntimeCall(
                 null, "CobolRuntime.Display",
-                Array.Empty<IrValue>()));
+                new[] { constVal }));
         }
 
         private void LowerPerform(CobolParserCore.PerformStatementContext ctx)

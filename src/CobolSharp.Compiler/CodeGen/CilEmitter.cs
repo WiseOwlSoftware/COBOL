@@ -29,6 +29,16 @@ public sealed class CilEmitter
         var asm = AssemblyDefinition.CreateAssembly(asmName, assemblyName, ModuleKind.Console);
         var emitter = new CilEmitter(asm.MainModule);
         emitter.EmitModule(ir);
+
+        // Set entry point to Main method
+        if (emitter._methodMap.Count > 0)
+        {
+            var mainMethod = emitter._methodMap.Values
+                .FirstOrDefault(m => m.Name == "Main");
+            if (mainMethod != null)
+                asm.EntryPoint = mainMethod;
+        }
+
         return asm;
     }
 
@@ -55,6 +65,10 @@ public sealed class CilEmitter
             DefineMethodSignature(m);
 
         // 4. Method bodies
+        Console.Error.WriteLine($"[CIL] IR module '{ir.Name}' has {ir.Methods.Count} methods:");
+        foreach (var m in ir.Methods)
+            Console.Error.WriteLine($"[CIL]   {m.Name}: {m.Blocks.Count} blocks, {m.Blocks.Sum(b => b.Instructions.Count)} instr");
+
         foreach (var m in ir.Methods)
             EmitMethodBody(m);
     }
@@ -143,6 +157,7 @@ public sealed class CilEmitter
     private void EmitMethodBody(IrMethod irMethod)
     {
         var md = _methodMap[irMethod];
+
         md.Body.InitLocals = true;
 
         var il = md.Body.GetILProcessor();
@@ -179,6 +194,11 @@ public sealed class CilEmitter
         {
             il.Append(il.Create(OpCodes.Ret));
         }
+
+        // DIAG: dump IL
+        Console.Error.WriteLine($"[IL] {md.FullName}: {md.Body.Instructions.Count} IL instructions, {md.Body.Variables.Count} locals");
+        foreach (var instr in md.Body.Instructions)
+            Console.Error.WriteLine($"[IL]   {instr}");
     }
 
     // ── Instruction emission ──
@@ -232,7 +252,7 @@ public sealed class CilEmitter
                 break;
 
             case IrRuntimeCall rtc:
-                // Runtime calls will be wired later
+                EmitRuntimeCall(il, rtc, getLocal);
                 break;
 
             default:
@@ -244,6 +264,8 @@ public sealed class CilEmitter
     private void EmitLoadConst(ILProcessor il, IrLoadConst lc,
         Func<IrValue, VariableDefinition> getLocal)
     {
+        // Push constant onto stack — no stloc.
+        // Consumer (next instruction) reads from stack directly.
         switch (lc.Value)
         {
             case int i:
@@ -256,15 +278,10 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ldstr, s));
                 break;
             default:
-                il.Append(il.Create(OpCodes.Ldc_I4_0)); // fallback
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
                 break;
         }
-
-        if (lc.Result is { } res)
-        {
-            var local = getLocal(res);
-            il.Append(il.Create(OpCodes.Stloc, local));
-        }
+        // No stloc — value stays on stack for the next instruction to consume
     }
 
     private void EmitLoadField(ILProcessor il, IrLoadField lf,
@@ -377,5 +394,21 @@ public sealed class CilEmitter
     {
         var target = _methodMap[perf.Target];
         il.Append(il.Create(OpCodes.Call, target));
+    }
+
+    private void EmitRuntimeCall(ILProcessor il, IrRuntimeCall rtc,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // For now, DISPLAY emits Console.WriteLine("statement executed")
+        // Other runtime calls are NOPs
+        if (rtc.MethodName == "CobolRuntime.Display")
+        {
+            // Argument is already on the stack (pushed by preceding IrLoadConst).
+            // Just call Console.WriteLine(string).
+            var consoleWriteLine = _module.ImportReference(
+                typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, consoleWriteLine));
+        }
+        // Other runtime calls: NOP for now
     }
 }
