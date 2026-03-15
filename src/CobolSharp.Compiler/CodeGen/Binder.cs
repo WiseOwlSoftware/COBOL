@@ -200,48 +200,66 @@ public sealed class Binder
         {
             if (_currentBlock == null) return;
 
-            // Collect display operands as string constants
             var operands = new List<string>();
+
+            // Walk typed child contexts (identifier | literal), skip DISPLAY and DOT terminals
             foreach (var child in ctx.children)
             {
-                if (child is Antlr4.Runtime.Tree.ITerminalNode term)
+                if (child is Antlr4.Runtime.Tree.ITerminalNode t)
                 {
-                    string text = term.GetText();
-                    if (text != "DISPLAY" && text != ".")
-                    {
-                        if (text.StartsWith("\"") && text.EndsWith("\""))
-                            text = text[1..^1];
-                        else if (text.StartsWith("'") && text.EndsWith("'"))
-                            text = text[1..^1];
-                        operands.Add(text);
-                    }
+                    var kind = t.Symbol.Type;
+                    if (kind == CobolLexer.DISPLAY || kind == CobolLexer.DOT)
+                        continue;
+                }
+
+                if (child is CobolParserCore.IdentifierContext idCtx)
+                {
+                    // For now just use raw text; later bind to DataSymbol
+                    operands.Add(idCtx.GetText());
+                    continue;
+                }
+
+                if (child is CobolParserCore.LiteralContext litCtx)
+                {
+                    var s = ExtractLiteralText(litCtx);
+                    if (s != null)
+                        operands.Add(s);
+                    continue;
                 }
             }
 
-            // Also check for literal/identifier rule contexts (not just terminals)
-            foreach (var child in ctx.children)
-            {
-                if (child is CobolParserCore.LiteralContext lit)
-                {
-                    string litText = lit.GetText();
-                    if (litText.StartsWith("\"") && litText.EndsWith("\""))
-                        litText = litText[1..^1];
-                    else if (litText.StartsWith("'") && litText.EndsWith("'"))
-                        litText = litText[1..^1];
-                    operands.Add(litText);
-                }
-                else if (child is CobolParserCore.IdentifierContext id)
-                {
-                    operands.Add(id.GetText()); // data name — resolved later
-                }
-            }
+            var displayText = string.Join(" ", operands);
 
-            string displayText = string.Join(" ", operands);
             var constVal = _binder._valueFactory.Next(IrPrimitiveType.String);
             _currentBlock.Instructions.Add(new IrLoadConst(constVal, displayText));
             _currentBlock.Instructions.Add(new IrRuntimeCall(
                 null, "CobolRuntime.Display",
                 new[] { constVal }));
+        }
+
+        /// <summary>
+        /// Extract text from a literal parse context.
+        /// Strips quotes from STRINGLIT. For numeric/figurative, returns raw text.
+        /// TODO: add special handling for figurativeConstant (ZERO, SPACE, ALL "X", etc.)
+        /// </summary>
+        private static string? ExtractLiteralText(CobolParserCore.LiteralContext lit)
+        {
+            // STRINGLIT
+            var s = lit.STRINGLIT();
+            if (s != null)
+            {
+                var text = s.GetText();
+                if (text.Length >= 2 &&
+                    ((text[0] == '"' && text[^1] == '"') ||
+                     (text[0] == '\'' && text[^1] == '\'')))
+                {
+                    return text[1..^1];
+                }
+                return text;
+            }
+
+            // signedNumericLiteral, HEXLIT, figurativeConstant → raw text for now
+            return lit.GetText();
         }
 
         private void LowerPerform(CobolParserCore.PerformStatementContext ctx)
