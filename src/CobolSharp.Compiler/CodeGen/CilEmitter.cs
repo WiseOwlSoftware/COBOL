@@ -739,6 +739,7 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic)
     {
+        // Must match the CIL-emitted constructor parameter order in PicDescriptor
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TotalDigits));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.FractionDigits));
         il.Append(il.Create(pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
@@ -748,12 +749,19 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, pic.StorageLength));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Usage));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Category));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.SignStorage));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Editing));
+        il.Append(il.Create(pic.BlankWhenZero ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, pic.LeadingScaleDigits));
+        il.Append(il.Create(OpCodes.Ldc_I4, pic.TrailingScaleDigits));
 
         var ctor = _module.ImportReference(
             typeof(Runtime.PicDescriptor).GetConstructor(
                 new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
                         typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind),
-                        typeof(Runtime.CobolCategory) })!);
+                        typeof(Runtime.CobolCategory),
+                        typeof(Runtime.SignStorageKind), typeof(Runtime.EditingKind),
+                        typeof(bool), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
     }
 

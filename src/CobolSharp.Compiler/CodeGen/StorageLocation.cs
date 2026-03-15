@@ -40,6 +40,13 @@ public static class PicDescriptorFactory
     {
         var pic = symbol.ResolvedType?.Pic;
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
+
+        // Determine editing kind from PIC analysis
+        var editingKind = EditingKind.None;
+        if (pic?.IsEdited ?? false)
+            editingKind = EditingKind.ZeroSuppress; // Default; refined later
+
+        // Parameter order matches the single PicDescriptor constructor
         return new PicDescriptor(
             totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
             fractionDigits: pic?.FractionDigits ?? 0,
@@ -49,6 +56,11 @@ public static class PicDescriptorFactory
             hasEditing: pic?.IsEdited ?? false,
             storageLength: storageLength,
             usage: symbol.Usage,
-            category: category);
+            category: category,
+            signStorage: (pic?.IsSigned ?? false) ? SignStorageKind.LeadingSeparate : SignStorageKind.None,
+            editing: editingKind,
+            blankWhenZero: false,
+            leadingScaleDigits: 0,
+            trailingScaleDigits: 0);
     }
 }

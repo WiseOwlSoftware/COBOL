@@ -47,11 +47,83 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        // TODO: numeric editing formatting (Z, *, $, etc.)
-        // For now: decode, scale, encode as display
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
-        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+        string formatted = FormatNumericEdited(value, dstPic);
+        MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+    }
+
+    /// <summary>
+    /// Format a numeric value into an edited picture string.
+    /// Handles zero-suppress, currency, CR/DB based on EditingKind.
+    /// </summary>
+    public static string FormatNumericEdited(decimal value, PicDescriptor pic)
+    {
+        if (pic.BlankWhenZero && value == 0m)
+            return new string(' ', pic.StorageLength);
+
+        bool negative = value < 0m;
+        decimal absValue = Math.Abs(value);
+
+        int scale = pic.FractionDigits;
+        if (scale < 0) scale = 0;
+
+        decimal scaled = absValue * Pow10(scale);
+        long intValue = (long)scaled;
+        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+
+        if (digits.Length < pic.TotalDigits)
+            digits = digits.PadLeft(pic.TotalDigits, '0');
+        else if (digits.Length > pic.TotalDigits)
+            digits = digits.Substring(digits.Length - pic.TotalDigits);
+
+        var chars = new char[pic.StorageLength];
+        for (int i = 0; i < chars.Length; i++)
+            chars[i] = ' ';
+
+        // Right-justify digits
+        int start = pic.StorageLength - digits.Length;
+        for (int i = 0; i < digits.Length && start + i < pic.StorageLength; i++)
+            chars[start + i] = digits[i];
+
+        // Apply editing
+        switch (pic.Editing)
+        {
+            case EditingKind.ZeroSuppress:
+                // Replace leading zeros with spaces
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    if (chars[i] == '0') chars[i] = ' ';
+                    else break;
+                }
+                break;
+
+            case EditingKind.Currency:
+                // Place $ before first non-space digit
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    if (chars[i] != ' ') { chars[i] = '$'; break; }
+                }
+                break;
+
+            case EditingKind.CreditDebit:
+                if (negative && chars.Length >= 2)
+                {
+                    chars[^2] = 'C';
+                    chars[^1] = 'R';
+                }
+                break;
+        }
+
+        if (negative && pic.IsSigned && pic.Editing != EditingKind.CreditDebit)
+        {
+            for (int i = 0; i < chars.Length; i++)
+            {
+                if (chars[i] != ' ') { chars[i] = '-'; break; }
+            }
+        }
+
+        return new string(chars);
     }
 
     public static void MoveNumericToAlphanumeric(
@@ -518,17 +590,23 @@ public static class PicRuntime
     /// </summary>
     private static decimal DecodeDisplay(byte[] area, int offset, int length, PicDescriptor pic)
     {
-        var s = Encoding.ASCII.GetString(area, offset, length).Trim();
+        var s = Encoding.ASCII.GetString(area, offset, length);
+
+        // BLANK WHEN ZERO
+        if (pic.BlankWhenZero && string.IsNullOrWhiteSpace(s))
+            return 0m;
+
+        s = s.Trim();
         if (string.IsNullOrEmpty(s)) return 0m;
 
         // Check for sign
         bool negative = false;
-        if (s.Length > 0 && s[0] == '-')
+        if (s[0] == '-')
         {
             negative = true;
             s = s[1..].Trim();
         }
-        else if (s.Length > 0 && s[0] == '+')
+        else if (s[0] == '+')
         {
             s = s[1..].Trim();
         }
@@ -538,11 +616,18 @@ public static class PicRuntime
         // Try to parse as integer (digits-only, no decimal point)
         if (long.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out long intVal))
         {
-            // Apply implied decimal from FractionDigits
             decimal result = intVal;
-            int scale = pic.FractionDigits;
-            if (scale > 0)
-                result /= Pow10(scale);
+
+            // Apply implied decimal from FractionDigits
+            if (pic.FractionDigits > 0)
+                result /= Pow10(pic.FractionDigits);
+
+            // Apply P scaling
+            if (pic.LeadingScaleDigits > 0)
+                result *= Pow10(pic.LeadingScaleDigits);
+            if (pic.TrailingScaleDigits > 0)
+                result /= Pow10(pic.TrailingScaleDigits);
+
             return negative ? -result : result;
         }
 
@@ -603,8 +688,18 @@ public static class PicRuntime
         for (int i = 0; i < length; i++)
             area[offset + i] = (byte)' ';
 
+        // BLANK WHEN ZERO
+        if (pic.BlankWhenZero && value == 0m)
+            return;
+
         bool isNegative = value < 0m;
         decimal absValue = Math.Abs(value);
+
+        // Apply P scaling
+        if (pic.LeadingScaleDigits > 0)
+            absValue /= Pow10(pic.LeadingScaleDigits);
+        if (pic.TrailingScaleDigits > 0)
+            absValue *= Pow10(pic.TrailingScaleDigits);
 
         int scale = pic.FractionDigits;
         if (scale < 0) scale = 0;
@@ -616,13 +711,18 @@ public static class PicRuntime
         // Digits-only string
         string digits = intValue.ToString(CultureInfo.InvariantCulture);
 
-        // Truncate from left if too long for field (SIZE ERROR should be handled separately)
-        int availableLength = pic.IsSigned && isNegative ? length - 1 : length;
+        // Determine available width (reserve 1 for separate sign if needed)
+        bool separateSign = pic.SignStorage is SignStorageKind.LeadingSeparate
+            or SignStorageKind.TrailingSeparate;
+        int availableLength = (pic.IsSigned && separateSign) ? length - 1 : length;
+
+        // Truncate from left if too long (SIZE ERROR should be handled separately)
         if (digits.Length > availableLength)
             digits = digits.Substring(digits.Length - availableLength);
 
-        // Right-justify digits in field
-        int digitStart = pic.IsSigned && isNegative ? 1 : 0;
+        // Right-justify digits
+        int digitStart = (pic.IsSigned && separateSign &&
+            pic.SignStorage == SignStorageKind.LeadingSeparate) ? 1 : 0;
         int start = digitStart + (availableLength - digits.Length);
         for (int i = 0; i < digits.Length; i++)
             area[offset + start + i] = (byte)digits[i];
@@ -633,7 +733,18 @@ public static class PicRuntime
 
         // Sign handling
         if (pic.IsSigned && isNegative)
-            area[offset] = (byte)'-';
+        {
+            if (separateSign)
+            {
+                int signPos = pic.SignStorage == SignStorageKind.LeadingSeparate ? 0 : length - 1;
+                area[offset + signPos] = (byte)'-';
+            }
+            else
+            {
+                // Simple leading sign for overpunch (refine later)
+                area[offset] = (byte)'-';
+            }
+        }
     }
 
     private static void EncodeComp3(byte[] area, int offset, int length, decimal value)

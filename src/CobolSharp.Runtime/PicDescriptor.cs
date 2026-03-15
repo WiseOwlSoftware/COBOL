@@ -30,43 +30,72 @@ public static class CobolCategoryExtensions
 }
 
 /// <summary>
+/// How the sign is stored in a DISPLAY numeric field.
+/// </summary>
+public enum SignStorageKind
+{
+    None = 0,            // Unsigned
+    LeadingSeparate,     // SIGN IS LEADING SEPARATE
+    TrailingSeparate,    // SIGN IS TRAILING SEPARATE
+    LeadingOverpunch,    // SIGN IS LEADING (overpunch)
+    TrailingOverpunch,   // SIGN IS TRAILING (overpunch, default)
+}
+
+/// <summary>
+/// Editing kind for numeric-edited and alphanumeric-edited fields.
+/// </summary>
+public enum EditingKind
+{
+    None = 0,
+    ZeroSuppress,        // Z, *, BLANK WHEN ZERO
+    Currency,            // $, currency symbol
+    CreditDebit,         // CR, DB
+    Custom,              // Complex edited pictures
+}
+
+/// <summary>
 /// Canonical descriptor for a COBOL data item's PIC semantics.
 /// Shared between compiler (for layout/analysis) and runtime (for PicRuntime).
+/// See docs/CATEGORY-RULES.md for the full category lattice.
 /// </summary>
 public sealed class PicDescriptor
 {
+    // Core numeric properties
     public int TotalDigits { get; init; }
     public int FractionDigits { get; init; }
+    public int LeadingScaleDigits { get; init; }   // P scaling (leading)
+    public int TrailingScaleDigits { get; init; }  // P scaling (trailing)
+
+    // Sign
     public bool IsSigned { get; init; }
+    public SignStorageKind SignStorage { get; init; }
+
+    // Category flags
     public bool IsNumeric { get; init; }
     public bool IsAlphanumeric { get; init; }
     public bool HasEditing { get; init; }
+    public EditingKind Editing { get; init; }
+
+    // Storage
     public int StorageLength { get; init; }
     public UsageKind Usage { get; init; }
     public CobolCategory Category { get; init; }
 
+    // Display options
+    public bool BlankWhenZero { get; init; }
+
     public PicDescriptor() { }
 
+    /// <summary>
+    /// Constructor matching EmitLoadPicDescriptor parameter order.
+    /// Used both from compiler-side factory and from CIL-emitted newobj.
+    /// </summary>
     public PicDescriptor(
         int totalDigits, int fractionDigits, bool isSigned,
         bool isNumeric, bool isAlphanumeric, bool hasEditing,
-        int storageLength, UsageKind usage)
-    {
-        TotalDigits = totalDigits;
-        FractionDigits = fractionDigits;
-        IsSigned = isSigned;
-        IsNumeric = isNumeric;
-        IsAlphanumeric = isAlphanumeric;
-        HasEditing = hasEditing;
-        StorageLength = storageLength;
-        Usage = usage;
-        Category = ClassifyCategory(isNumeric, isAlphanumeric, hasEditing);
-    }
-
-    public PicDescriptor(
-        int totalDigits, int fractionDigits, bool isSigned,
-        bool isNumeric, bool isAlphanumeric, bool hasEditing,
-        int storageLength, UsageKind usage, CobolCategory category)
+        int storageLength, UsageKind usage, CobolCategory category,
+        SignStorageKind signStorage, EditingKind editing, bool blankWhenZero,
+        int leadingScaleDigits, int trailingScaleDigits)
     {
         TotalDigits = totalDigits;
         FractionDigits = fractionDigits;
@@ -77,15 +106,11 @@ public sealed class PicDescriptor
         StorageLength = storageLength;
         Usage = usage;
         Category = category;
-    }
-
-    private static CobolCategory ClassifyCategory(bool isNumeric, bool isAlphanumeric, bool hasEditing)
-    {
-        if (isNumeric && hasEditing) return CobolCategory.NumericEdited;
-        if (isNumeric) return CobolCategory.Numeric;
-        if (isAlphanumeric && hasEditing) return CobolCategory.AlphanumericEdited;
-        if (isAlphanumeric) return CobolCategory.Alphanumeric;
-        return CobolCategory.Unknown;
+        SignStorage = signStorage;
+        Editing = editing;
+        BlankWhenZero = blankWhenZero;
+        LeadingScaleDigits = leadingScaleDigits;
+        TrailingScaleDigits = trailingScaleDigits;
     }
 }
 
