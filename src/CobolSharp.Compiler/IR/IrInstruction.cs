@@ -202,6 +202,25 @@ public sealed class IrPerform : IrInstruction
     public IrPerform(IrMethod target) => Target = target;
 }
 
+/// <summary>
+/// PERFORM para-a THRU para-b: dynamic dispatch loop that respects GO TO returns.
+/// Calls paragraphs startIdx..endIdx, but if a paragraph returns a PC within the
+/// range, skips forward to that PC. If it returns outside the range or negative, exits.
+/// </summary>
+public sealed class IrPerformThru : IrInstruction
+{
+    public int StartIndex { get; }
+    public int EndIndex { get; }
+    public IReadOnlyList<IrMethod> Paragraphs { get; }
+
+    public IrPerformThru(int startIndex, int endIndex, IReadOnlyList<IrMethod> paragraphs)
+    {
+        StartIndex = startIndex;
+        EndIndex = endIndex;
+        Paragraphs = paragraphs;
+    }
+}
+
 // ── Storage-backed data movement ──
 
 /// <summary>

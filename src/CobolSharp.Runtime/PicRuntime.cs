@@ -132,7 +132,8 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
-        string formatted = FormatNumericForDisplay(value, srcPic.FractionDigits + srcPic.LeadingScaleDigits);
+        int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
+        string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
         MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
     }
 
@@ -931,11 +932,16 @@ public static class PicRuntime
     // Helpers
     // ══════════════════════════════════════════════════════════
 
-    public static string FormatNumericForDisplay(decimal value, int fractionDigits)
+    public static string FormatNumericForDisplay(decimal value, int fractionDigits, int totalDigits = 0)
     {
         if (fractionDigits > 0)
-            return value.ToString("0." + new string('0', fractionDigits), CultureInfo.InvariantCulture);
-        return ((long)value).ToString(CultureInfo.InvariantCulture);
+        {
+            int intDigits = Math.Max(1, totalDigits - fractionDigits);
+            string fmt = new string('0', intDigits) + "." + new string('0', fractionDigits);
+            return value.ToString(fmt, CultureInfo.InvariantCulture);
+        }
+        int digits = totalDigits > 0 ? totalDigits : 1;
+        return ((long)value).ToString(new string('0', digits), CultureInfo.InvariantCulture);
     }
 
     /// <summary>

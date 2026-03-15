@@ -38,6 +38,7 @@ public static class FileRuntime
     {
         if (_openFiles.TryGetValue(fileName, out var writer))
         {
+            writer.WriteLine(); // Final newline after last AFTER ADVANCING record
             writer.Flush();
             writer.Close();
             _openFiles.Remove(fileName);
@@ -71,13 +72,25 @@ public static class FileRuntime
     /// </summary>
     public static void WriteText(string fileName, string text)
     {
+        WriteAfterAdvancing(fileName, text, 1);
+    }
+
+    /// <summary>
+    /// WRITE AFTER ADVANCING n LINES: output n line-feeds then the record text.
+    /// </summary>
+    public static void WriteAfterAdvancing(string fileName, string text, int advanceLines)
+    {
         if (_openFiles.TryGetValue(fileName, out var writer))
         {
-            writer.WriteLine(text);
+            for (int i = 0; i < advanceLines; i++)
+                writer.WriteLine();
+            writer.Write(text);
         }
         else
         {
-            Console.WriteLine(text);
+            for (int i = 0; i < advanceLines; i++)
+                Console.WriteLine();
+            Console.Write(text);
         }
     }
 

@@ -273,14 +273,32 @@ public sealed class Binder
             endIdx = thruIdx;
 
         int times = perf.Times > 0 ? perf.Times : 1;
-        for (int t = 0; t < times; t++)
+
+        if (startIdx == endIdx)
         {
+            // Simple PERFORM (no THRU): call once, ignore return value
+            var paraName = _paragraphsByIndex[startIdx];
+            if (_paragraphMethods.TryGetValue(paraName, out var method))
+            {
+                for (int t = 0; t < times; t++)
+                    block.Instructions.Add(new IrPerform(method));
+            }
+        }
+        else
+        {
+            // PERFORM THRU: dynamic dispatch that respects GO TO returns
+            var methods = new List<IrMethod>();
             for (int i = startIdx; i <= endIdx; i++)
             {
                 var paraName = _paragraphsByIndex[i];
                 if (_paragraphMethods.TryGetValue(paraName, out var method))
-                    block.Instructions.Add(new IrPerform(method));
+                    methods.Add(method);
+                else
+                    methods.Add(null!); // placeholder for unresolved paragraphs
             }
+
+            for (int t = 0; t < times; t++)
+                block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
         }
     }
 
