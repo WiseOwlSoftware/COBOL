@@ -1,3 +1,4 @@
+using CobolSharp.Runtime;
 using CobolSharp.Compiler.Diagnostics;
 
 namespace CobolSharp.Compiler.Semantics;

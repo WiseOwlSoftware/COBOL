@@ -1,3 +1,5 @@
+using CobolSharp.Runtime;
+
 namespace CobolSharp.Compiler.Semantics;
 
 /// <summary>
@@ -14,20 +16,7 @@ public interface ITypeSymbol
     UsageKind Usage { get; }
 }
 
-public enum UsageKind
-{
-    Display,
-    Comp,
-    Comp1,
-    Comp2,
-    Comp3,
-    Binary,
-    PackedDecimal,
-    Index,
-    Pointer,
-    Object,
-    Unknown
-}
+// UsageKind is now in CobolSharp.Runtime (shared between compiler and runtime)
 
 public enum PicCategory
 {

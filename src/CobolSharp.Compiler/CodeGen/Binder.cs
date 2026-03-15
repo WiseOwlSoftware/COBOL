@@ -1,3 +1,4 @@
+using CobolSharp.Runtime;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Generated;
 using CobolSharp.Compiler.IR;

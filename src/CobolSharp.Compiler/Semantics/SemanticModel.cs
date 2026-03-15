@@ -1,3 +1,4 @@
+using CobolSharp.Runtime;
 using CobolSharp.Compiler.CodeGen;
 using CobolSharp.Compiler.Diagnostics;
 

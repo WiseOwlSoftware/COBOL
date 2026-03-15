@@ -1,3 +1,4 @@
+using CobolSharp.Runtime;
 namespace CobolSharp.Compiler.Semantics;
 
 public sealed class DataSymbol : Symbol

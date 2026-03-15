@@ -1,3 +1,4 @@
+using CobolSharp.Runtime;
 using Antlr4.Runtime;
 using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
@@ -194,7 +195,7 @@ public sealed class Compilation
         {
             // Elementary: allocate bytes from PIC
             int size = ComputeFieldSize(item);
-            var pic = CodeGen.PicDescriptor.FromDataSymbol(item, size);
+            var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
             var loc = new CodeGen.StorageLocation(area, offset, size, pic);
             model.RegisterStorageLocation(item, loc);
             RegisterValue(model, item);
@@ -213,14 +214,14 @@ public sealed class Compilation
                 // Group spans all children
                 int groupSize = offset - groupStart;
                 if (groupSize <= 0) groupSize = 1;
-                var pic = CodeGen.PicDescriptor.FromDataSymbol(item, groupSize);
+                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, groupSize);
                 var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
                 model.RegisterStorageLocation(item, loc);
             }
             else
             {
                 // Empty group (no children found) — allocate minimum
-                var pic = CodeGen.PicDescriptor.FromDataSymbol(item, 1);
+                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, 1);
                 var loc = new CodeGen.StorageLocation(area, offset, 1, pic);
                 model.RegisterStorageLocation(item, loc);
                 offset += 1;

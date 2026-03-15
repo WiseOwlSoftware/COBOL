@@ -1,5 +1,5 @@
-using CobolSharp.Compiler.IR;
 using CobolSharp.Compiler.Semantics;
+using CobolSharp.Runtime;
 
 namespace CobolSharp.Compiler.CodeGen;
 
@@ -11,7 +11,7 @@ public enum StorageAreaKind
 
 /// <summary>
 /// Maps a DataSymbol to its backing byte slice in ProgramState.
-/// Area selects WorkingStorage or FileSection; Offset + Length select the field.
+/// Uses the shared PicDescriptor from CobolSharp.Runtime.
 /// </summary>
 public readonly struct StorageLocation
 {
@@ -30,41 +30,14 @@ public readonly struct StorageLocation
 }
 
 /// <summary>
-/// PIC descriptor for a data item. The emitter never parses PIC strings.
+/// Factory for creating PicDescriptor from compiler DataSymbol.
 /// </summary>
-public sealed class PicDescriptor
+public static class PicDescriptorFactory
 {
-    public string PictureText { get; }
-    public int TotalDigits { get; }
-    public int FractionDigits { get; }
-    public bool IsSigned { get; }
-    public bool IsNumeric { get; }
-    public bool IsAlphanumeric { get; }
-    public bool HasEditing { get; }
-    public int StorageLength { get; }
-    public UsageKind Usage { get; }
-
-    public PicDescriptor(
-        string pictureText, int totalDigits, int fractionDigits,
-        bool isSigned, bool isNumeric, bool isAlphanumeric,
-        bool hasEditing, int storageLength, UsageKind usage)
-    {
-        PictureText = pictureText;
-        TotalDigits = totalDigits;
-        FractionDigits = fractionDigits;
-        IsSigned = isSigned;
-        IsNumeric = isNumeric;
-        IsAlphanumeric = isAlphanumeric;
-        HasEditing = hasEditing;
-        StorageLength = storageLength;
-        Usage = usage;
-    }
-
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
         return new PicDescriptor(
-            pictureText: symbol.PicString ?? "",
             totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
             fractionDigits: pic?.FractionDigits ?? 0,
             isSigned: pic?.IsSigned ?? false,

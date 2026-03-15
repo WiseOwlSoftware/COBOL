@@ -144,17 +144,42 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
 
-                if (init.Value is string s)
+                if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
+                {
+                    // Numeric VALUE → PicRuntime.MoveNumericLiteral
+                    // Already have byte[] on stack from above, plus offset + length
+                    // Need: totalDigits, fractionDigits, signed, usage, literal, rounding
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Pic.TotalDigits));
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Pic.FractionDigits));
+                    il.Append(il.Create(loc.Value.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+                    il.Append(il.Create(OpCodes.Ldc_I4, (int)loc.Value.Pic.Usage));
+
+                    // Load decimal literal: ldc.r8 → new decimal(double)
+                    il.Append(il.Create(OpCodes.Ldc_R8, (double)d));
+                    var decCtor = _module.ImportReference(
+                        typeof(decimal).GetConstructor(new[] { typeof(double) })!);
+                    il.Append(il.Create(OpCodes.Newobj, decCtor));
+
+                    il.Append(il.Create(OpCodes.Ldc_I4_0)); // rounding = truncate
+
+                    var numMethod = _module.ImportReference(
+                        typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                            "MoveNumericLiteral",
+                            new[] { typeof(byte[]), typeof(int), typeof(int),
+                                    typeof(int), typeof(int), typeof(bool), typeof(int),
+                                    typeof(decimal), typeof(int) })!);
+                    il.Append(il.Create(OpCodes.Call, numMethod));
+                }
+                else if (init.Value is string s)
                 {
                     // String VALUE → MoveStringToField
                     il.Append(il.Create(OpCodes.Ldstr, s));
                     il.Append(il.Create(OpCodes.Call, moveStringMethod));
                 }
-                else if (init.Value is decimal d)
+                else if (init.Value is decimal d2)
                 {
-                    // Numeric VALUE → convert to string for now, write as DISPLAY digits
-                    // TODO: use PicRuntime.EncodeNumeric for PIC-correct initialization
-                    string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    // Numeric VALUE on non-numeric field → treat as string
+                    string numStr = d2.ToString(System.Globalization.CultureInfo.InvariantCulture);
                     il.Append(il.Create(OpCodes.Ldstr, numStr));
                     il.Append(il.Create(OpCodes.Call, moveStringMethod));
                 }
@@ -546,27 +571,63 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// MOVE field TO field via ProgramState.MoveFieldToField.
+    /// MOVE field TO field: routes numeric→numeric through PicRuntime.MoveNumeric,
+    /// alpha→alpha through StorageHelpers.MoveFieldToField.
     /// </summary>
     private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
     {
-        // dest: byte[], offset, size
-        EmitLoadBackingArray(il, pm.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+        if (pm.Source.Pic.IsNumeric && pm.Destination.Pic.IsNumeric)
+        {
+            // PIC-aware numeric MOVE via PicRuntime.MoveNumeric
+            // dest: byte[], offset, length, totalDigits, fractionDigits, signed, usage
+            EmitLoadBackingArray(il, pm.Destination.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Pic.TotalDigits));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Pic.FractionDigits));
+            il.Append(il.Create(pm.Destination.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ldc_I4, (int)pm.Destination.Pic.Usage));
 
-        // src: byte[], offset, size
-        EmitLoadBackingArray(il, pm.Source.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+            // src: byte[], offset, length, totalDigits, fractionDigits, signed, usage
+            EmitLoadBackingArray(il, pm.Source.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Pic.TotalDigits));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Pic.FractionDigits));
+            il.Append(il.Create(pm.Source.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ldc_I4, (int)pm.Source.Pic.Usage));
 
-        // Call ProgramState.MoveFieldToField(byte[], int, int, byte[], int, int)
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "MoveFieldToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
+            // rounding
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
+
+            var method = _module.ImportReference(
+                typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                    "MoveNumeric",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(int), typeof(int), typeof(bool), typeof(int),
+                            typeof(byte[]), typeof(int), typeof(int),
+                            typeof(int), typeof(int), typeof(bool), typeof(int),
+                            typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
+        else
+        {
+            // Alpha/group MOVE: raw byte copy
+            EmitLoadBackingArray(il, pm.Destination.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+
+            EmitLoadBackingArray(il, pm.Source.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+
+            var method = _module.ImportReference(
+                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                    "MoveFieldToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
     }
 
     /// <summary>
