@@ -15,18 +15,7 @@ public class Program
             return 0;
         }
 
-        if (args[0] == "compile")
-        {
-            if (args.Length < 2)
-            {
-                Console.Error.WriteLine("Error: no source file specified.");
-                Console.Error.WriteLine("Usage: cobolsharp compile <file.cob> [options]");
-                return 1;
-            }
-
-            return RunCompile(args[1..]);
-        }
-
+        // Explicit subcommand: preprocess
         if (args[0] == "preprocess")
         {
             if (args.Length < 2)
@@ -39,24 +28,23 @@ public class Program
             return RunPreprocess(args[1..]);
         }
 
-        Console.Error.WriteLine($"Unknown command: {args[0]}");
-        PrintUsage();
-        return 1;
+        // Default: compile. Accept "compile" as optional explicit subcommand.
+        var compileArgs = args[0] == "compile" ? args[1..] : args;
+        return RunCompile(compileArgs);
     }
 
     private static void PrintUsage()
     {
         Console.WriteLine("CobolSharp — COBOL compiler for .NET");
         Console.WriteLine();
-        Console.WriteLine("Usage: cobolsharp <command> [options]");
-        Console.WriteLine();
-        Console.WriteLine("Commands:");
-        Console.WriteLine("  compile <file.cob>      Compile a COBOL source file to a .NET assembly");
-        Console.WriteLine("  preprocess <file.cob>   Run preprocessor only, output normalized source");
+        Console.WriteLine("Usage: cobolsharp [options] <file.cob>");
+        Console.WriteLine("       cobolsharp preprocess <file.cob> [-o <output>]");
         Console.WriteLine();
         Console.WriteLine("Options:");
-        Console.WriteLine("  -o <output>          Output file path (default: stdout / <program-id>.dll)");
-        Console.WriteLine("  -h, --help           Show this help message");
+        Console.WriteLine("  -o <output>              Output file path (default: <program-id>.dll)");
+        Console.WriteLine("  --standard <version>     COBOL standard version (default: cobol85)");
+        Console.WriteLine("                           Values: cobol85, cobol2002, cobol2014, cobol2023");
+        Console.WriteLine("  -h, --help               Show this help message");
     }
 
     private static int RunPreprocess(string[] args)
@@ -105,12 +93,22 @@ public class Program
     {
         string? sourcePath = null;
         string? outputPath = null;
+        string standard = "cobol85";
 
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "-o" && i + 1 < args.Length)
             {
                 outputPath = args[++i];
+            }
+            else if (args[i] == "--standard" && i + 1 < args.Length)
+            {
+                standard = args[++i].ToLowerInvariant();
+                if (standard is not ("cobol85" or "cobol2002" or "cobol2014" or "cobol2023"))
+                {
+                    Console.Error.WriteLine($"Error: unknown standard '{standard}'. Use: cobol85, cobol2002, cobol2014, cobol2023");
+                    return 1;
+                }
             }
             else if (!args[i].StartsWith('-'))
             {
@@ -135,6 +133,7 @@ public class Program
             return 1;
         }
 
+        // TODO: pass standard to Compilation when grammar overlays are wired up
         var compilation = new Compilation();
         var result = compilation.Compile(sourcePath, outputPath);
 
