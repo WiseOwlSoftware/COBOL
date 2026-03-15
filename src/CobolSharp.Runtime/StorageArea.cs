@@ -1,9 +1,10 @@
+using System.Text;
+
 namespace CobolSharp.Runtime;
 
 /// <summary>
 /// Holds backing storage for a COBOL program's data divisions.
-/// WorkingStorage and FileSection are flat byte arrays.
-/// Each field is accessed via offset + size from RecordLayout.
+/// Pure data holder — no behavior. Helpers are in StorageHelpers.
 /// </summary>
 public sealed class ProgramState
 {
@@ -19,10 +20,17 @@ public sealed class ProgramState
         Array.Fill(WorkingStorage, (byte)' ');
         Array.Fill(FileSection, (byte)' ');
     }
+}
 
+/// <summary>
+/// Static helpers for COBOL data movement and file I/O.
+/// The CIL emitter calls these directly with byte[] + offset + size.
+/// Later, PicRuntime-aware versions will replace the byte-copy helpers.
+/// </summary>
+public static class StorageHelpers
+{
     /// <summary>
-    /// Move a string literal into a field. Left-justified, space-padded.
-    /// Called by emitter for: MOVE "literal" TO field
+    /// MOVE "literal" TO field. Left-justified, space-padded.
     /// </summary>
     public static void MoveStringToField(byte[] area, int offset, int size, string value)
     {
@@ -32,8 +40,7 @@ public sealed class ProgramState
     }
 
     /// <summary>
-    /// Move bytes from one field to another. Left-justified, space-padded.
-    /// Called by emitter for: MOVE alpha-field TO alpha-field
+    /// MOVE field TO field. Left-justified, space-padded (alphanumeric).
     /// </summary>
     public static void MoveFieldToField(
         byte[] dest, int destOffset, int destSize,
@@ -46,21 +53,19 @@ public sealed class ProgramState
     }
 
     /// <summary>
-    /// Read a field as a trimmed ASCII string.
-    /// Called by emitter for: DISPLAY field
+    /// Read a field as a trimmed ASCII string. Used by DISPLAY.
     /// </summary>
     public static string ReadFieldAsString(byte[] area, int offset, int size)
     {
-        return System.Text.Encoding.ASCII.GetString(area, offset, size).TrimEnd();
+        return Encoding.ASCII.GetString(area, offset, size).TrimEnd();
     }
 
     /// <summary>
-    /// Write a record's bytes as ASCII to a file.
-    /// Called by emitter for: WRITE record
+    /// WRITE record: copy record bytes to file as ASCII line.
     /// </summary>
     public static void WriteRecordToFile(string fileName, byte[] area, int offset, int size)
     {
-        string text = System.Text.Encoding.ASCII.GetString(area, offset, size).TrimEnd();
+        string text = Encoding.ASCII.GetString(area, offset, size).TrimEnd();
         FileRuntime.WriteText(fileName, text);
     }
 }

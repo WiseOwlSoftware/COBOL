@@ -31,9 +31,14 @@ public sealed class SemanticModel
 
     private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = new();
 
-    // ── Storage locations per data symbol (set by binder after record layout) ──
+    // ── Storage sizes (set by ComputeStorageLayout) ──
 
-    private readonly Dictionary<DataSymbol, StorageLocation> _storageLocations = new();
+    public int WorkingStorageSize { get; set; }
+    public int FileSectionSize { get; set; }
+
+    // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
+
+    private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = new();
 
     // ── Parse node → symbol mapping (for binder lookups) ──
 

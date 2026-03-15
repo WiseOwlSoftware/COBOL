@@ -65,11 +65,28 @@ public sealed class Compilation
         foreach (var d in semDiagnostics)
             diagnostics.Add(d);
 
-        // Phase 4: Build semantic model
+        // Phase 4: Build semantic model — populate from symbol table
         var semanticModel = new Semantics.SemanticModel(
             semanticBuilder.Symbols.Program,
             semanticBuilder.Symbols,
             diagnostics);
+
+        // Populate paragraphs, sections, and data records from symbol table
+        foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)
+        {
+            if (sym is Semantics.ParagraphSymbol para)
+                semanticModel.AddParagraph(para);
+            else if (sym is Semantics.SectionSymbol sect)
+                semanticModel.AddSection(sect);
+        }
+        foreach (var sym in semanticBuilder.Symbols.Program.DataDivisionScope.Symbols.Values)
+        {
+            if (sym is Semantics.DataSymbol data && (data.LevelNumber == 1 || data.LevelNumber == 77))
+                semanticModel.AddDataRecord(data);
+        }
+
+        // Phase 4b: Compute storage layout — assign byte offsets to all data items
+        ComputeStorageLayout(semanticModel);
 
         // Phase 5: Bind → IR
         var binder = new CodeGen.Binder(semanticModel, diagnostics);
@@ -135,6 +152,49 @@ public sealed class Compilation
                 File.Copy(candidatePath, destPath, overwrite: true);
             }
         }
+    }
+
+    /// <summary>
+    /// Assign byte offsets to all data items in working-storage and file section.
+    /// Populates SemanticModel.StorageLocations for the binder to use.
+    /// </summary>
+    private static void ComputeStorageLayout(Semantics.SemanticModel model)
+    {
+        int wsOffset = 0;
+
+        foreach (var sym in model.Symbols.Program.DataDivisionScope.Symbols.Values)
+        {
+            if (sym is Semantics.DataSymbol data)
+            {
+                // Compute size from PIC or default
+                int size = ComputeFieldSize(data);
+
+                var pic = CodeGen.PicDescriptor.FromDataSymbol(data, size);
+                var loc = new CodeGen.StorageLocation(
+                    CodeGen.StorageAreaKind.WorkingStorage,
+                    wsOffset, size, pic);
+
+                model.RegisterStorageLocation(data, loc);
+                wsOffset += size;
+            }
+        }
+
+        // Store total sizes for CIL emitter
+        model.WorkingStorageSize = wsOffset > 0 ? wsOffset : 256;
+        model.FileSectionSize = 1024;
+    }
+
+    private static int ComputeFieldSize(Semantics.DataSymbol data)
+    {
+        var pic = data.ResolvedType?.Pic;
+        if (pic != null && pic.Length > 0)
+            return pic.Length + (pic.IsSigned ? 1 : 0);
+
+        // Group items or no PIC: use default
+        if (data.LevelNumber == 1 || data.LevelNumber == 77)
+            return 120; // default record size
+
+        return 1; // minimum
     }
 
     private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)

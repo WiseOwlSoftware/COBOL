@@ -3,9 +3,34 @@ using CobolSharp.Compiler.Semantics;
 
 namespace CobolSharp.Compiler.CodeGen;
 
+public enum StorageAreaKind
+{
+    WorkingStorage,
+    FileSection,
+}
+
 /// <summary>
-/// Canonical descriptor for a COBOL data item's PIC semantics.
-/// The emitter never parses PIC strings — it consumes this.
+/// Maps a DataSymbol to its backing byte slice in ProgramState.
+/// Area selects WorkingStorage or FileSection; Offset + Length select the field.
+/// </summary>
+public readonly struct StorageLocation
+{
+    public StorageAreaKind Area { get; }
+    public int Offset { get; }
+    public int Length { get; }
+    public PicDescriptor Pic { get; }
+
+    public StorageLocation(StorageAreaKind area, int offset, int length, PicDescriptor pic)
+    {
+        Area = area;
+        Offset = offset;
+        Length = length;
+        Pic = pic;
+    }
+}
+
+/// <summary>
+/// PIC descriptor for a data item. The emitter never parses PIC strings.
 /// </summary>
 public sealed class PicDescriptor
 {
@@ -19,18 +44,10 @@ public sealed class PicDescriptor
     public int StorageLength { get; }
     public UsageKind Usage { get; }
 
-    public int Scale => FractionDigits;
-
     public PicDescriptor(
-        string pictureText,
-        int totalDigits,
-        int fractionDigits,
-        bool isSigned,
-        bool isNumeric,
-        bool isAlphanumeric,
-        bool hasEditing,
-        int storageLength,
-        UsageKind usage)
+        string pictureText, int totalDigits, int fractionDigits,
+        bool isSigned, bool isNumeric, bool isAlphanumeric,
+        bool hasEditing, int storageLength, UsageKind usage)
     {
         PictureText = pictureText;
         TotalDigits = totalDigits;
@@ -43,37 +60,18 @@ public sealed class PicDescriptor
         Usage = usage;
     }
 
-    /// <summary>
-    /// Create a PicDescriptor from a resolved DataSymbol.
-    /// </summary>
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
         return new PicDescriptor(
             pictureText: symbol.PicString ?? "",
-            totalDigits: pic?.IntegerDigits + pic?.FractionDigits ?? 0,
+            totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
             fractionDigits: pic?.FractionDigits ?? 0,
             isSigned: pic?.IsSigned ?? false,
             isNumeric: symbol.ResolvedType?.IsNumeric ?? false,
-            isAlphanumeric: symbol.ResolvedType?.IsAlphanumeric ?? false,
+            isAlphanumeric: symbol.ResolvedType?.IsAlphanumeric ?? true,
             hasEditing: pic?.IsEdited ?? false,
             storageLength: storageLength,
             usage: symbol.Usage);
-    }
-}
-
-/// <summary>
-/// Binds an IR field to its PIC descriptor. The emitter uses this
-/// to select the correct runtime helper for MOVE, arithmetic, etc.
-/// </summary>
-public sealed class StorageLocation
-{
-    public IrField Field { get; }
-    public PicDescriptor Pic { get; }
-
-    public StorageLocation(IrField field, PicDescriptor pic)
-    {
-        Field = field;
-        Pic = pic;
     }
 }

@@ -137,6 +137,38 @@ public sealed class IrPerform : IrInstruction
     public IrPerform(IrMethod target) => Target = target;
 }
 
+// ── Storage-backed data movement ──
+
+/// <summary>
+/// MOVE "literal" TO field — writes string bytes into ProgramState backing array.
+/// </summary>
+public sealed class IrMoveStringToField : IrInstruction
+{
+    public CodeGen.StorageLocation Target { get; }
+    public string Value { get; }  // embedded string — no IrValue dependency
+
+    public IrMoveStringToField(CodeGen.StorageLocation target, string value)
+    {
+        Target = target;
+        Value = value;
+    }
+}
+
+/// <summary>
+/// WRITE record — outputs record bytes from ProgramState to file.
+/// </summary>
+public sealed class IrWriteRecordFromStorage : IrInstruction
+{
+    public string FileName { get; }
+    public CodeGen.StorageLocation Record { get; }
+
+    public IrWriteRecordFromStorage(string fileName, CodeGen.StorageLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
 // ── PIC-aware data movement ──
 
 /// <summary>
@@ -147,11 +179,13 @@ public sealed class IrPicMove : IrInstruction
 {
     public CodeGen.StorageLocation Source { get; }
     public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; } // 0=Truncate, 1=RoundHalfUp
 
-    public IrPicMove(CodeGen.StorageLocation source, CodeGen.StorageLocation destination)
+    public IrPicMove(CodeGen.StorageLocation source, CodeGen.StorageLocation destination, int rounding = 0)
     {
         Source = source;
         Destination = destination;
+        Rounding = rounding;
     }
 }
 

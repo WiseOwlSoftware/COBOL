@@ -176,10 +176,49 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
-        // For now, emit as runtime call placeholder
-        // TODO: resolve StorageLocations and emit IrPicMove
-        block.Instructions.Add(new IrRuntimeCall(
-            null, "CobolRuntime.Move", Array.Empty<IrValue>()));
+        // Handle MOVE "literal" TO identifier
+        if (mv.Source is BoundLiteralExpression lit && lit.Value is string s)
+        {
+            foreach (var t in mv.Targets)
+            {
+                if (t is BoundIdentifierExpression id)
+                {
+                    var loc = _semantic.GetStorageLocation(id.Symbol);
+                    if (loc.HasValue)
+                    {
+                        block.Instructions.Add(new IrMoveStringToField(loc.Value, s));
+                        continue;
+                    }
+                }
+                // Fallback: NOP for unsupported move patterns
+            }
+            return;
+        }
+
+        // Handle MOVE identifier TO identifier (field-to-field)
+        if (mv.Source is BoundIdentifierExpression srcId)
+        {
+            var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
+            if (srcLoc.HasValue)
+            {
+                foreach (var t in mv.Targets)
+                {
+                    if (t is BoundIdentifierExpression destId)
+                    {
+                        var destLoc = _semantic.GetStorageLocation(destId.Symbol);
+                        if (destLoc.HasValue)
+                        {
+                            block.Instructions.Add(new IrPicMove(
+                                srcLoc.Value, destLoc.Value,
+                                mv.IsRounded ? 1 : 0));
+                        }
+                    }
+                }
+                return;
+            }
+        }
+
+        // Fallback for unresolved: NOP
     }
 
     // ── PERFORM ──
@@ -194,20 +233,26 @@ public sealed class Binder
 
     private void LowerWrite(BoundWriteStatement wr, IrBasicBlock block)
     {
-        // For now: call FileRuntime.WriteText with the file name
-        // TODO: wire actual record bytes via StorageLocation
         string fileName = wr.File?.Name ?? "PRINT-FILE";
 
-        var fileNameVal = _valueFactory.Next(IrPrimitiveType.String);
-        block.Instructions.Add(new IrLoadConst(fileNameVal, fileName));
-
-        // Placeholder text — later this will be the actual record content
-        var textVal = _valueFactory.Next(IrPrimitiveType.String);
-        block.Instructions.Add(new IrLoadConst(textVal, $"[RECORD: {wr.Record.Name}]"));
-
-        block.Instructions.Add(new IrRuntimeCall(
-            null, "CobolRuntime.WriteText",
-            new[] { fileNameVal, textVal }));
+        // Try to get storage location for the record
+        var recordLoc = _semantic.GetStorageLocation(wr.Record);
+        if (recordLoc.HasValue)
+        {
+            // Real storage: emit IrWriteRecordFromStorage
+            block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc.Value));
+        }
+        else
+        {
+            // Fallback: write placeholder via WriteText
+            var fileNameVal = _valueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(fileNameVal, fileName));
+            var textVal = _valueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(textVal, $"[RECORD: {wr.Record.Name}]"));
+            block.Instructions.Add(new IrRuntimeCall(
+                null, "CobolRuntime.WriteText",
+                new[] { fileNameVal, textVal }));
+        }
     }
 
     // ── IF ──

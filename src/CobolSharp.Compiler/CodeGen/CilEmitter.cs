@@ -299,6 +299,18 @@ public sealed class CilEmitter
                 EmitPerform(il, perf);
                 break;
 
+            case IrMoveStringToField ms:
+                EmitMoveStringToField(il, ms, getLocal);
+                break;
+
+            case IrWriteRecordFromStorage wr:
+                EmitWriteRecordFromStorage(il, wr);
+                break;
+
+            case IrPicMove pm:
+                EmitPicMoveFieldToField(il, pm);
+                break;
+
             case IrRuntimeCall rtc:
                 EmitRuntimeCall(il, rtc, getLocal);
                 break;
@@ -442,6 +454,93 @@ public sealed class CilEmitter
     {
         var target = _methodMap[perf.Target];
         il.Append(il.Create(OpCodes.Call, target));
+    }
+
+    /// <summary>
+    /// MOVE "literal" TO field:
+    /// IL: ldsfld State → ldfld WorkingStorage → ldc.i4 offset → ldc.i4 size → ldstr value → call MoveStringToField
+    /// </summary>
+    private void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Call ProgramState.MoveStringToField(byte[] area, int offset, int size, string value)
+        // All args emitted inline — no stack ordering issues.
+        EmitLoadBackingArray(il, ms.Target.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, ms.Target.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, ms.Target.Length));
+        il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                "MoveStringToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// WRITE record from ProgramState storage:
+    /// IL: ldstr fileName → ldsfld State → ldfld area → ldc.i4 offset → ldc.i4 size → call WriteRecordToFile
+    /// </summary>
+    private void EmitWriteRecordFromStorage(ILProcessor il, IrWriteRecordFromStorage wr)
+    {
+        // fileName
+        il.Append(il.Create(OpCodes.Ldstr, wr.FileName));
+
+        // Load backing byte array
+        EmitLoadBackingArray(il, wr.Record.Area);
+
+        // offset + size
+        il.Append(il.Create(OpCodes.Ldc_I4, wr.Record.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, wr.Record.Length));
+
+        // Call ProgramState.WriteRecordToFile(string, byte[], int, int)
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                "WriteRecordToFile",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// MOVE field TO field via ProgramState.MoveFieldToField.
+    /// </summary>
+    private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
+    {
+        // dest: byte[], offset, size
+        EmitLoadBackingArray(il, pm.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+
+        // src: byte[], offset, size
+        EmitLoadBackingArray(il, pm.Source.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+
+        // Call ProgramState.MoveFieldToField(byte[], int, int, byte[], int, int)
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                "MoveFieldToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// Load the backing byte array from ProgramState.
+    /// Pushes: State.WorkingStorage or State.FileSection (byte[]) onto the stack.
+    /// </summary>
+    private void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)
+    {
+        il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+
+        var propertyName = area == StorageAreaKind.WorkingStorage
+            ? "WorkingStorage"
+            : "FileSection";
+
+        // Get the property as a field (it's an auto-property, so use getter)
+        var getter = _module.ImportReference(
+            typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
+        il.Append(il.Create(OpCodes.Callvirt, getter));
     }
 
     private void EmitRuntimeCall(ILProcessor il, IrRuntimeCall rtc,
