@@ -137,6 +137,14 @@ public sealed class IrSetBool : IrInstruction
     }
 }
 
+/// <summary>
+/// Load the SizeError flag from the method's ArithmeticStatus local into a bool.
+/// </summary>
+public sealed class IrLoadSizeError : IrInstruction
+{
+    public IrLoadSizeError(IrValue result) => Result = result;
+}
+
 public sealed class IrReturn : IrInstruction
 {
     public IrValue? Value { get; }

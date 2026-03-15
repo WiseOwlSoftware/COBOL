@@ -18,7 +18,7 @@ public struct MoveStatus
 /// </summary>
 public struct ArithmeticStatus
 {
-    public bool SizeError { get; set; }
+    public bool SizeError;
 }
 
 /// <summary>
@@ -248,12 +248,17 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         byte[] leftArea, int leftOffset, int leftLength, PicDescriptor leftPic,
         byte[] rightArea, int rightOffset, int rightLength, PicDescriptor rightPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
         decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
         decimal value = left * right;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -261,11 +266,16 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal literal,
         byte[] otherArea, int otherOffset, int otherLength, PicDescriptor otherPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal other = DecodeNumeric(otherArea, otherOffset, otherLength, otherPic);
         decimal value = literal * other;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -276,22 +286,32 @@ public static class PicRuntime
     public static void AddNumeric(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal src = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
         decimal value = dest + src;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
     public static void AddNumericLiteral(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
-        decimal literal, int roundingMode)
+        decimal literal, int roundingMode, ref ArithmeticStatus status)
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest + literal;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -302,22 +322,32 @@ public static class PicRuntime
     public static void SubtractNumeric(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal src = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
         decimal value = dest - src;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
     public static void SubtractNumericLiteral(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
-        decimal literal, int roundingMode)
+        decimal literal, int roundingMode, ref ArithmeticStatus status)
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest - literal;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -329,13 +359,22 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         byte[] leftArea, int leftOffset, int leftLength, PicDescriptor leftPic,
         byte[] rightArea, int rightOffset, int rightLength, PicDescriptor rightPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
         decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
-        if (right == 0m) return; // SIZE ERROR handling deferred
+        if (right == 0m)
+        {
+            status.SizeError = true;
+            return;
+        }
         decimal value = left / right;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -343,12 +382,21 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal literal,
         byte[] otherArea, int otherOffset, int otherLength, PicDescriptor otherPic,
-        int roundingMode)
+        int roundingMode, ref ArithmeticStatus status)
     {
         decimal other = DecodeNumeric(otherArea, otherOffset, otherLength, otherPic);
-        if (literal == 0m) return; // SIZE ERROR handling deferred
+        if (literal == 0m)
+        {
+            status.SizeError = true;
+            return;
+        }
         decimal value = other / literal;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -889,6 +937,65 @@ public static class PicRuntime
         if (fractionDigits > 0)
             return value.ToString("0." + new string('0', fractionDigits), CultureInfo.InvariantCulture);
         return ((long)value).ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Check if a value would overflow when encoded into the destination PIC.
+    /// Returns true if SIZE ERROR should be raised.
+    /// </summary>
+    private static bool WouldOverflow(decimal value, PicDescriptor destPic)
+    {
+        decimal absValue = Math.Abs(value);
+
+        switch (destPic.Usage)
+        {
+            case UsageKind.Comp:
+            case UsageKind.Binary:
+            {
+                // Scale to integer
+                decimal scaled = absValue;
+                if (destPic.FractionDigits > 0)
+                    scaled *= Pow10(destPic.FractionDigits);
+                long raw;
+                try { raw = checked((long)decimal.Truncate(scaled)); }
+                catch (OverflowException) { return true; }
+
+                return destPic.StorageLength switch
+                {
+                    2 => raw > short.MaxValue || raw < short.MinValue,
+                    4 => raw > int.MaxValue || raw < int.MinValue,
+                    _ => false // 8-byte long is the max we support
+                };
+            }
+
+            case UsageKind.Comp3:
+            case UsageKind.PackedDecimal:
+            {
+                decimal scaled = absValue;
+                if (destPic.FractionDigits > 0)
+                    scaled *= Pow10(destPic.FractionDigits);
+                long intVal;
+                try { intVal = checked((long)decimal.Truncate(scaled)); }
+                catch (OverflowException) { return true; }
+
+                int digits = intVal == 0 ? 1 : (int)Math.Floor(Math.Log10((double)Math.Abs(intVal))) + 1;
+                int capacity = (destPic.StorageLength * 2) - 1;
+                return digits > capacity;
+            }
+
+            default: // DISPLAY
+            {
+                decimal scaled = absValue;
+                if (destPic.FractionDigits > 0)
+                    scaled *= Pow10(destPic.FractionDigits);
+                long intVal;
+                try { intVal = checked((long)decimal.Truncate(scaled)); }
+                catch (OverflowException) { return true; }
+
+                int digits = intVal == 0 ? 1 : (int)Math.Floor(Math.Log10((double)Math.Abs(intVal))) + 1;
+                return digits > destPic.TotalDigits;
+            }
+        }
     }
 
     private static decimal Pow10(int scale)

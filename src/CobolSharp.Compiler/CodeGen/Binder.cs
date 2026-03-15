@@ -341,15 +341,13 @@ public sealed class Binder
         // ON SIZE ERROR / NOT ON SIZE ERROR conditional execution
         if (mult.OnSizeError.Count > 0 || mult.NotOnSizeError.Count > 0)
         {
-            // TODO: real size error detection via ArithmeticStatus
-            // For now: always take NOT ON SIZE ERROR path (no overflow detection yet)
             var sizeErrorBlock = method.CreateBlock("size.error");
             var notSizeErrorBlock = method.CreateBlock("not.size.error");
             var doneBlock = method.CreateBlock("size.done");
 
-            // Stub: always false (no size error) — emit IrSetBool(false) + branch
+            // Load real ArithmeticStatus.SizeError from the method's status local
             var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-            block.Instructions.Add(new IrSetBool(condVal, false));
+            block.Instructions.Add(new IrLoadSizeError(condVal));
             block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
 
             // ON SIZE ERROR block

@@ -21,6 +21,7 @@ public sealed class CilEmitter
     private TypeDefinition? _programType;
     private FieldDefinition? _programStateField;
     private MethodDefinition? _currentMethodDef;
+    private VariableDefinition? _arithmeticStatusLocal;
 
     private CilEmitter(ModuleDefinition module)
     {
@@ -269,6 +270,7 @@ public sealed class CilEmitter
     {
         var md = _methodMap[irMethod];
         _currentMethodDef = md;
+        _arithmeticStatusLocal = null; // reset per method (lazy allocation)
 
         md.Body.InitLocals = true;
 
@@ -373,6 +375,21 @@ public sealed class CilEmitter
                 if (sb.Result.HasValue)
                 {
                     var local = getLocal(sb.Result.Value);
+                    il.Append(il.Create(OpCodes.Stloc, local));
+                }
+                break;
+            }
+
+            case IrLoadSizeError lse:
+            {
+                var statusLocal = EnsureArithmeticStatusLocal(_currentMethodDef!);
+                il.Append(il.Create(OpCodes.Ldloc, statusLocal));
+                var sizeErrorField = _module.ImportReference(
+                    typeof(ArithmeticStatus).GetField("SizeError")!);
+                il.Append(il.Create(OpCodes.Ldfld, sizeErrorField));
+                if (lse.Result.HasValue)
+                {
+                    var local = getLocal(lse.Result.Value);
                     il.Append(il.Create(OpCodes.Stloc, local));
                 }
                 break;
@@ -686,6 +703,8 @@ public sealed class CilEmitter
 
     private void EmitPicMultiply(ILProcessor il, IrPicMultiply mul)
     {
+        EmitInitArithmeticStatus(il, _currentMethodDef!);
+
         EmitLoadBackingArray(il, mul.Destination.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
@@ -702,13 +721,14 @@ public sealed class CilEmitter
         EmitLoadPicDescriptor(il, mul.Right.Pic);
 
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("MultiplyNumeric",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int) })!);
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
@@ -815,6 +835,8 @@ public sealed class CilEmitter
 
     private void EmitPicMultiplyLiteral(ILProcessor il, IrPicMultiplyLiteral mul)
     {
+        EmitInitArithmeticStatus(il, _currentMethodDef!);
+
         EmitLoadBackingArray(il, mul.Destination.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
@@ -825,18 +847,21 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Other.Length));
         EmitLoadPicDescriptor(il, mul.Other.Pic);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("MultiplyNumericLiteral",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(decimal),
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int) })!);
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
     private void EmitPicAdd(ILProcessor il, IrPicAdd add)
     {
+        EmitInitArithmeticStatus(il, _currentMethodDef!);
+
         EmitLoadBackingArray(il, add.Destination.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
@@ -846,28 +871,32 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, add.Source.Length));
         EmitLoadPicDescriptor(il, add.Source.Pic);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("AddNumeric",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int) })!);
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
     private void EmitPicAddLiteral(ILProcessor il, IrPicAddLiteral add)
     {
+        EmitInitArithmeticStatus(il, _currentMethodDef!);
+
         EmitLoadBackingArray(il, add.Destination.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
         EmitLoadPicDescriptor(il, add.Destination.Pic);
         EmitLoadDecimal(il, add.Value);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("AddNumericLiteral",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int) })!);
+                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
@@ -1024,6 +1053,40 @@ public sealed class CilEmitter
     /// Load the backing byte array from ProgramState.
     /// Pushes: State.WorkingStorage or State.FileSection (byte[]) onto the stack.
     /// </summary>
+    /// <summary>
+    /// Lazily allocate one ArithmeticStatus local per method.
+    /// </summary>
+    private VariableDefinition EnsureArithmeticStatusLocal(MethodDefinition md)
+    {
+        if (_arithmeticStatusLocal == null)
+        {
+            _arithmeticStatusLocal = new VariableDefinition(
+                _module.ImportReference(typeof(ArithmeticStatus)));
+            md.Body.Variables.Add(_arithmeticStatusLocal);
+        }
+        return _arithmeticStatusLocal;
+    }
+
+    /// <summary>
+    /// Zero-initialize the ArithmeticStatus local before an arithmetic call.
+    /// </summary>
+    private void EmitInitArithmeticStatus(ILProcessor il, MethodDefinition md)
+    {
+        var statusLocal = EnsureArithmeticStatusLocal(md);
+        il.Append(il.Create(OpCodes.Ldloca, statusLocal));
+        il.Append(il.Create(OpCodes.Initobj,
+            _module.ImportReference(typeof(ArithmeticStatus))));
+    }
+
+    /// <summary>
+    /// Push address of ArithmeticStatus local onto stack (for ref parameter).
+    /// </summary>
+    private void EmitLoadArithmeticStatusRef(ILProcessor il, MethodDefinition md)
+    {
+        var statusLocal = EnsureArithmeticStatusLocal(md);
+        il.Append(il.Create(OpCodes.Ldloca, statusLocal));
+    }
+
     private void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)
     {
         il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
