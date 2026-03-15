@@ -1,0 +1,150 @@
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+SPACE
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+ ***********************************************************************************************************************
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
