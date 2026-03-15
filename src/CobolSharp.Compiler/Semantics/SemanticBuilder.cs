@@ -86,7 +86,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Extract PIC and USAGE from dataDescriptionBody
         string? picString = null;
-        var usage = CobolUsage.Display;
+        var usage = UsageKind.Display;
         string? typeName = null;
         DataSymbol? redefines = null;
 
@@ -141,6 +141,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         var data = new DataSymbol(name, level, picString, usage, typeName, redefines, line);
 
+        // Resolve PIC/USAGE → ITypeSymbol
+        var diagBag = new DiagnosticBag();
+        data.ResolvedType = PicUsageResolver.ResolveForDataItem(
+            name, picString, usage, diagBag, line);
+        foreach (var d in diagBag.Diagnostics)
+            _diagnostics.Add(d);
+
         // Declare in data division scope
         // COBOL allows duplicate names (resolved by IN/OF qualification)
         _symbols.Program.DataDivisionScope.TryDeclare(data, out _);
@@ -148,22 +155,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return null;
     }
 
-    private static CobolUsage ExtractUsage(CobolParserCore.UsageClauseContext usageClause)
+    private static UsageKind ExtractUsage(CobolParserCore.UsageClauseContext usageClause)
     {
         var usageKw = usageClause.usageKeyword();
-        if (usageKw == null) return CobolUsage.Display;
-
-        string usageText = usageKw.GetText().ToUpperInvariant();
-        return usageText switch
-        {
-            "COMP" or "COMPUTATIONAL" => CobolUsage.Comp,
-            "COMP-1" or "COMPUTATIONAL-1" => CobolUsage.Comp1,
-            "COMP-2" or "COMPUTATIONAL-2" => CobolUsage.Comp2,
-            "COMP-3" or "COMPUTATIONAL-3" => CobolUsage.Comp3,
-            "BINARY" => CobolUsage.Binary,
-            "PACKED-DECIMAL" => CobolUsage.PackedDecimal,
-            _ => CobolUsage.Display,
-        };
+        return UsageMapper.FromUsageKeyword(usageKw?.GetText());
     }
 
     // ── Procedure Division ──

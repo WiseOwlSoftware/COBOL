@@ -1,22 +1,11 @@
 namespace CobolSharp.Compiler.Semantics;
 
-public enum CobolUsage
-{
-    Display,
-    Comp,
-    Comp1,
-    Comp2,
-    Comp3,
-    Binary,
-    PackedDecimal,
-    UserDefinedType,
-}
-
 public sealed class DataSymbol : Symbol
 {
     public int LevelNumber { get; }
     public string? PicString { get; }
-    public CobolUsage Usage { get; }
+    public UsageKind Usage { get; }
+    public ITypeSymbol? ResolvedType { get; set; }
     public string? TypeName { get; }
     public bool IsFiller => string.Equals(Name, "FILLER", StringComparison.OrdinalIgnoreCase);
     public DataSymbol? Redefines { get; }
@@ -28,7 +17,7 @@ public sealed class DataSymbol : Symbol
         string name,
         int levelNumber,
         string? picString,
-        CobolUsage usage,
+        UsageKind usage,
         string? typeName,
         DataSymbol? redefines,
         int line)
@@ -45,21 +34,5 @@ public sealed class DataSymbol : Symbol
     {
         child.Parent = this;
         _children.Add(child);
-    }
-}
-
-public sealed class ResolvedType
-{
-    public string Name { get; }
-    public int SizeInBytes { get; }
-    public bool IsNumeric { get; }
-    public bool IsSigned { get; }
-
-    public ResolvedType(string name, int sizeInBytes, bool isNumeric, bool isSigned)
-    {
-        Name = name;
-        SizeInBytes = sizeInBytes;
-        IsNumeric = isNumeric;
-        IsSigned = isSigned;
     }
 }
