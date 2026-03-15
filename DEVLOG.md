@@ -1535,4 +1535,237 @@ using C# partial classes. This will be done after NIST results confirm the fixes
 
 ---
 
+## Entry 024 — 2026-03-14: The Case for ANTLR4
+
+The user made a compelling argument that the hand-written parser was fundamentally flawed:
+the parser was a **separate artifact from the grammar**, and every bug existed because they
+drifted apart. ANTLR4 eliminates this entire failure class — the grammar IS the parser.
+
+The user identified 6 traps that break naïve COBOL grammars (context-sensitive keywords,
+column-sensitive lexing, "everything is optional" problem, paired terminators, COPY/REPLACE,
+free vs fixed format) and showed how a layered ANTLR4 architecture handles all of them.
+
+Decision: clean break. Remove all hand-written lexer/parser/codegen. Rebuild with ANTLR4.
+
+---
+
+## Entry 025 — 2026-03-14: ANTLR4 Grammar Received
+
+The user provided a complete, layered ANTLR4 grammar set, delivered division-by-division:
+- CobolLexer.g4 — shared lexer
+- CobolParserCore.g4 — procedural core (expressions, conditions, all statements)
+- CobolParserOO.g4 — OO: CLASS-ID, METHOD, INVOKE
+- CobolParserGenerics.g4 — TYPEDEF GENERIC, type specifiers
+- CobolParserJsonXml.g4 — JSON/XML PARSE/GENERATE
+- CobolDialect.g4 — COBOL-85/2002/2014/2023 dialect gates
+- CobolPreprocessor.g4 — COPY/REPLACE/pseudo-text
+
+Each grammar file was provided with architectural rationale. Statement set expanded
+iteratively: arithmetic → STRING/UNSTRING → SEARCH → CALL/SET → SORT/MERGE →
+RETURN/RELEASE/REWRITE → DELETE FILE → STOP/GOBACK/EXIT → START/READ/WRITE.
+
+Saved all grammar files and 4 reference documents:
+- ANTLR4-GRAMMAR-ARCHITECTURE.md (607 lines, 14 sections)
+- ANTLR4-RATIONALE.md (design rationale)
+- SEMANTIC-ANALYSIS-ARCHITECTURE.md (10 semantic passes)
+- IL-BYTECODE-GENERATION-DESIGN.md (IL model, codegen)
+
+---
+
+## Entry 026 — 2026-03-14: Clean Break — Old Code Removed, ANTLR4 Wired
+
+Removed: Lexing/ (3 files), Parsing/ (9 files, ~4200 lines), CodeGen/ (CilEmitter.cs),
+Semantics/ (4 files). Removed old unit tests referencing deleted code.
+
+Added: ANTLR4 JAR (2.1MB), Antlr4.Runtime.Standard NuGet 4.13.1, PowerShell generation
+scripts, MSBuild build target, Generated/ directory. Compilation.cs rewritten with ANTLR4
+pipeline: AntlrInputStream → CobolLexer → CommonTokenStream → CobolParserCore.
+
+First test: `*>` comments not being skipped (COMMENT_START needed `-> skip`).
+
+Build passes. Pipeline works end-to-end for the first time.
+
+---
+
+## Entry 027 — 2026-03-14: Debugging — Lexer Precedence (INTEGERLIT vs IDENTIFIER)
+
+**Failure:** Parser errors at first `01` level number in DATA DIVISION.
+`extraneous input '01' expecting {<EOF>, 'IDENTIFICATION'}`
+
+**Diagnosis:** `01` was lexed as IDENTIFIER because IDENTIFIER rule appeared before
+INTEGERLIT in the lexer. ANTLR4's longest-match-first-rule tiebreaker gave IDENTIFIER
+priority.
+
+**Root cause identified by user:** Two fixes needed:
+1. Move INTEGERLIT before IDENTIFIER (ordering precedence)
+2. Restrict IDENTIFIER to start with a letter (COBOL spec)
+
+Applied both. Parser now reaches DATA DIVISION.
+
+---
+
+## Entry 028 — 2026-03-14: Debugging — PIC Strings Break Lexer
+
+**Failure:** `PICTURE X(120)` produces 5 tokens: PICTURE, IDENTIFIER("X"), LPAREN,
+INTEGERLIT("120"), RPAREN. Grammar expects PIC followed by a single token.
+
+**Diagnosis:** PIC strings are bare character sequences with their own mini-grammar
+(X, 9, S, V, parenthesized repeats, editing symbols). They cannot be tokenized by
+normal lexer rules because they contain parentheses, periods, commas, plus signs, etc.
+
+**User-provided solution:** PICMODE lexer mode. When lexer sees PIC/PICTURE, push into
+PICMODE which captures the entire PIC string as one PIC_STRING token. Key insight:
+PIC strings never contain spaces, so the rule `( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+`
+correctly handles embedded decimals (9.99) while stopping at sentence-ending periods.
+
+This is how IBM, Micro Focus, and GnuCOBOL handle PIC strings.
+
+---
+
+## Entry 029 — 2026-03-14: Debugging — VALUE Clauses (6 sub-failures)
+
+**Failures in NC101A VALUE clauses:**
+1. DECIMALLIT (333.333) not in `literal` rule
+2. Figurative constants (ZERO, SPACE) not in `literal`
+3. Signed literals (+022.00, -33) — PLUS/MINUS separate from number
+4. Leading-dot decimals (.11111) — DECIMALLIT requires leading digits
+5. VALUE IS noise word — IS not consumed
+6. Comma/semicolon separators — COMMA token between data name and clause
+
+**All 6 fixed in one batch** with user-provided patches:
+- `literal` expanded: signedNumericLiteral, figurativeConstant, HEXLIT
+- DECIMALLIT: `[0-9]+ '.' [0-9]+ | '.' [0-9]+`
+- valueClause: `VALUE IS? literal`
+- COMMA/SEMICOLON: `-> skip` in lexer (§8.3.5)
+- FILLER added to dataName
+- OPEN with openMode (INPUT/OUTPUT/EXTEND)
+
+Result: entire DATA DIVISION now parses cleanly.
+
+---
+
+## Entry 030 — 2026-03-14: Debugging — PERFORM Missing DOT
+
+**Failure:** PERFORM inside sections fails while MOVE/DISPLAY/OPEN work fine.
+
+**Diagnosis by progressive isolation:** Wrote test programs adding one statement at a time.
+Found that PERFORM was the ONLY statement missing `DOT?`. All other statements consumed the
+sentence-ending period; PERFORM didn't, so the next statement saw a period where it expected
+a keyword.
+
+**User's analysis was precise:** Same root cause pattern, immediately identified.
+Also fixed performTarget ambiguity (factored common prefix) and added inline PERFORM form.
+
+---
+
+## Entry 031 — 2026-03-14: Debugging — Word-Form Relational Operators
+
+**Failure:** `IF REC-CT NOT EQUAL TO ZERO` — parser sees NOT as boolean negation,
+not as part of relational operator.
+
+**Root cause:** Grammar only had symbol operators (=, <>, <, >, <=, >=). COBOL also uses
+word forms: EQUAL TO, NOT EQUAL TO, GREATER THAN, LESS THAN, with optional IS prefix.
+
+**User provided canonical ISO 2023 relational operator set:**
+```
+IS? EQUAL (TO | THAN)?
+IS? NOT EQUAL (TO | THAN)?
+IS? GREATER THAN?
+IS? NOT GREATER THAN?
+IS? LESS THAN?
+IS? NOT LESS THAN?
+```
+Also identified: `GREATER` without `THAN` is valid (COBOL allows bare GREATER).
+
+---
+
+## Entry 032 — 2026-03-14: Debugging — END-MULTIPLY and Arithmetic Terminators
+
+**Failure:** `MULTIPLY ... ON SIZE ERROR ... END-MULTIPLY` — parser doesn't recognize
+END-MULTIPLY as a scope terminator.
+
+**Root cause:** All arithmetic statement rules (ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE)
+were missing their `END_xxx?` tokens. Also `ifStatement` was missing `DOT?`.
+
+**Fix:** Added END_ADD?, END_SUBTRACT?, END_MULTIPLY?, END_DIVIDE?, END_COMPUTE? to all
+arithmetic statement rules. Added DOT? to ifStatement.
+
+---
+
+## Entry 033 — 2026-03-14: Debugging — genericStatement Exponential Backtracking
+
+**Failure:** Apparent parser hang on NC101A. Initially diagnosed as INSPECT grammar
+causing exponential backtracking (IDENTIFIER-first alternatives).
+
+**Real cause:** File lock from a previously killed process. Not a grammar issue.
+However, the INSPECT grammar WAS problematic (IDENTIFIER as first token in phrase
+alternatives violates LL(1)). User provided LL(1)-safe INSPECT with keyword-discriminated
+alternatives (ALL/LEADING/FIRST/BEFORE as discriminators).
+
+genericStatement catch-all also removed as a backtracking risk.
+
+---
+
+## Entry 034 — 2026-03-14: Debugging — ANTLR Warnings Eliminated
+
+Three ANTLR warnings:
+1. `implicit definition of token METHOD` — METHOD used in exitStatement but not in lexer
+2. `implicit definition of token REPLACING` — REPLACING used in INSPECT but not in lexer
+3. `parameterDescriptionBody optional block can match empty` — `dataDescriptionClauses?`
+   where `dataDescriptionClauses: dataDescriptionClause*` can be empty
+
+Fixes: METHOD and REPLACING tokens added to lexer. parameterDescriptionBody restructured
+to `(dataDescriptionClause+)?`. exitStatement changed from string literal `'SECTION'` to
+token `SECTION`.
+
+Result: **zero ANTLR warnings, zero ANTLR errors.**
+
+---
+
+## Entry 035 — 2026-03-14: NC101A Compiles Successfully
+
+NC101A (NIST MULTIPLY test, ~1400 lines, ~150 data items, ~80 paragraphs, nested IFs,
+ON SIZE ERROR, END-MULTIPLY, PERFORM THRU, GO TO, multiple sections) now parses through
+the ANTLR4 grammar with zero errors.
+
+This is the first NIST program to compile through the new ANTLR4-based front-end.
+
+---
+
+## Entry 036 — 2026-03-14: Semantic Layer — Symbol Table + Two-Pass Analysis
+
+User provided concrete C# symbol table design. Implemented:
+- Symbol hierarchy: Symbol, DataSymbol, ProgramSymbol, SectionSymbol, ParagraphSymbol,
+  FileSymbol, ConditionSymbol
+- Scope model: hierarchical parent-chain resolution, case-insensitive
+- SymbolTable facade: PushScope/Dispose pattern for scoped declaration
+
+SemanticBuilder (Pass 1): walks ANTLR parse tree, creates symbols for data items
+(with PIC/USAGE extraction), files, sections, paragraphs.
+
+ReferenceResolver (Pass 2): validates PERFORM/GO TO targets, file name references.
+
+Pipeline wired: Parse → SemanticBuilder → ReferenceResolver.
+NC101A passes both semantic passes with zero diagnostics.
+
+Binder design documented for next phase: BoundNode tree between parse tree and CIL codegen.
+
+### Recurring Failures Documented
+
+- **Entry 023 (grammar compliance):** Kept making ad-hoc fixes without reading the grammar.
+  User called this out repeatedly. Same failure from Entries 011-022.
+- **Entry 027 (overcomplicated diagnosis):** Tried writing test programs instead of using
+  the `preprocess` CLI command. User pointed out the obvious approach.
+- **Entry 033 (false hang diagnosis):** Attributed a file lock to grammar backtracking and
+  made unnecessary changes. Should have checked process list first.
+
+### Current State
+
+- Grammar: 8 files, zero warnings, NC101A compiles
+- Semantic: symbol table + two-pass analysis working
+- Pipeline: Preprocess → ANTLR4 Lex → Parse → SemanticBuilder → ReferenceResolver → [CIL next]
+- Next: type system (PIC/USAGE → ITypeSymbol), binder (bound tree), CIL emitter
+
+---
+
 *End of entries for 2026-03-14*
