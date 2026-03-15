@@ -67,7 +67,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.closeStatement() is { }) return new BoundCloseStatement();
         if (ctx.addStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
         if (ctx.subtractStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
-        if (ctx.multiplyStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+        if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
         if (ctx.computeStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
 
@@ -191,6 +191,42 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return new BoundWriteStatement(null, recordSym, null);
     }
 
+    // ── MULTIPLY ──
+
+    private BoundStatement BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
+    {
+        // MULTIPLY expr BY identifierList [GIVING identifier]
+        var leftExpr = BindArithmeticExpr(ctx.arithmeticExpression());
+
+        // BY targets
+        var idList = ctx.identifierList();
+        BoundExpression? rightExpr = null;
+        if (idList != null && idList.identifier().Length > 0)
+            rightExpr = BindIdentifier(idList.identifier()[0]);
+
+        if (rightExpr == null)
+            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+
+        // GIVING target (if present)
+        DataSymbol? givingTarget = null;
+        var givingCtx = ctx.multiplyGivingPhrase();
+        if (givingCtx != null)
+        {
+            var givingId = givingCtx.identifier();
+            if (givingId != null)
+            {
+                var sym = _semantic.ResolveData(givingId.GetText());
+                givingTarget = sym;
+            }
+        }
+
+        // If no GIVING, the BY target is also the destination
+        if (givingTarget == null && rightExpr is BoundIdentifierExpression rightId)
+            givingTarget = rightId.Symbol;
+
+        return new BoundMultiplyStatement(leftExpr, rightExpr, givingTarget);
+    }
+
     // ── IF ──
 
     private BoundIfStatement? BindIf(CobolParserCore.IfStatementContext ctx)
@@ -198,8 +234,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var condCtx = ctx.condition();
         if (condCtx == null) return null;
 
-        // Minimal condition binding: treat as a literal boolean for now
-        var condition = new BoundLiteralExpression(true, CobolType.Boolean);
+        // Try to bind a real condition
+        var condition = BindCondition(condCtx);
 
         var thenStmts = new List<BoundStatement>();
         var elseStmts = new List<BoundStatement>();
@@ -302,6 +338,69 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Unresolved — treat as string literal for now
         return new BoundLiteralExpression(name, CobolType.String);
+    }
+
+    /// <summary>
+    /// Bind a condition expression. Handles simple relational: left op right.
+    /// </summary>
+    private BoundExpression BindCondition(CobolParserCore.ConditionContext ctx)
+    {
+        // condition → logicalOrExpression → ... → relationalExpression
+        // For now, try to extract a simple relational expression
+        try
+        {
+            var orExpr = ctx.logicalOrExpression();
+            var andExpr = orExpr?.logicalAndExpression();
+            if (andExpr == null || andExpr.Length == 0)
+                return new BoundLiteralExpression(true, CobolType.Boolean);
+
+            var notExpr = andExpr[0].logicalNotExpression();
+            if (notExpr == null || notExpr.Length == 0)
+                return new BoundLiteralExpression(true, CobolType.Boolean);
+
+            var relExpr = notExpr[0].relationalExpression();
+            if (relExpr == null)
+                return new BoundLiteralExpression(true, CobolType.Boolean);
+
+            var arithExprs = relExpr.arithmeticExpression();
+            var relOp = relExpr.relationalOperator();
+
+            if (arithExprs.Length < 2 || relOp == null)
+            {
+                // Bare identifier condition (e.g., IF condition-name)
+                if (arithExprs.Length == 1)
+                    return BindArithmeticExpr(arithExprs[0]);
+                return new BoundLiteralExpression(true, CobolType.Boolean);
+            }
+
+            var left = BindArithmeticExpr(arithExprs[0]);
+            var right = BindArithmeticExpr(arithExprs[1]);
+
+            // Determine operator
+            string opText = relOp.GetText().ToUpperInvariant()
+                .Replace("IS", "").Replace("TO", "").Replace("THAN", "").Trim();
+            var op = opText switch
+            {
+                "=" or "EQUAL" => BoundBinaryOperatorKind.Equal,
+                "NOT=" or "NOTEQUAL" => BoundBinaryOperatorKind.NotEqual,
+                ">" or "GREATER" => BoundBinaryOperatorKind.Greater,
+                ">=" or "GREATEROREQUAL" => BoundBinaryOperatorKind.GreaterOrEqual,
+                "<" or "LESS" => BoundBinaryOperatorKind.Less,
+                "<=" or "LESSOREQUAL" => BoundBinaryOperatorKind.LessOrEqual,
+                _ when opText.Contains("NOT") && opText.Contains("EQUAL") => BoundBinaryOperatorKind.NotEqual,
+                _ when opText.Contains("EQUAL") => BoundBinaryOperatorKind.Equal,
+                _ when opText.Contains("GREATER") => BoundBinaryOperatorKind.Greater,
+                _ when opText.Contains("LESS") => BoundBinaryOperatorKind.Less,
+                _ => BoundBinaryOperatorKind.Equal
+            };
+
+            return new BoundBinaryExpression(left, op, right, CobolType.Boolean);
+        }
+        catch
+        {
+            // Fallback: treat as always true
+            return new BoundLiteralExpression(true, CobolType.Boolean);
+        }
     }
 
     private BoundExpression BindArithmeticExpr(CobolParserCore.ArithmeticExpressionContext? ctx)

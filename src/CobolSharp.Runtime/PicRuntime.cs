@@ -56,6 +56,48 @@ public static class PicRuntime
     }
 
     // ══════════════════════════════════════
+    // PIC-aware MULTIPLY
+    // ══════════════════════════════════════
+
+    public static void MultiplyNumeric(
+        byte[] destArea, int destOffset, int destLength,
+        int destTotalDigits, int destFractionDigits, bool destSigned, int destUsage,
+        byte[] leftArea, int leftOffset, int leftLength,
+        int leftFractionDigits, bool leftSigned, int leftUsage,
+        byte[] rightArea, int rightOffset, int rightLength,
+        int rightFractionDigits, bool rightSigned, int rightUsage)
+    {
+        var left = DecodeNumeric(leftArea, leftOffset, leftLength,
+            leftFractionDigits, leftSigned, leftUsage);
+        var right = DecodeNumeric(rightArea, rightOffset, rightLength,
+            rightFractionDigits, rightSigned, rightUsage);
+
+        var value = left * right;
+        value = ApplyScalingAndRounding(value, destFractionDigits, 0);
+
+        EncodeNumeric(destArea, destOffset, destLength,
+            destTotalDigits, destFractionDigits, destSigned, destUsage, value);
+    }
+
+    // ══════════════════════════════════════
+    // PIC-aware COMPARE (returns -1, 0, 1)
+    // ══════════════════════════════════════
+
+    public static int CompareNumeric(
+        byte[] leftArea, int leftOffset, int leftLength,
+        int leftFractionDigits, bool leftSigned, int leftUsage,
+        byte[] rightArea, int rightOffset, int rightLength,
+        int rightFractionDigits, bool rightSigned, int rightUsage)
+    {
+        var left = DecodeNumeric(leftArea, leftOffset, leftLength,
+            leftFractionDigits, leftSigned, leftUsage);
+        var right = DecodeNumeric(rightArea, rightOffset, rightLength,
+            rightFractionDigits, rightSigned, rightUsage);
+
+        return left.CompareTo(right);
+    }
+
+    // ══════════════════════════════════════
     // Alphanumeric MOVE (existing, unchanged)
     // ══════════════════════════════════════
 

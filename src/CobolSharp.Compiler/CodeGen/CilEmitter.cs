@@ -382,6 +382,14 @@ public sealed class CilEmitter
                 EmitPicMoveFieldToField(il, pm);
                 break;
 
+            case IrPicMultiply mul:
+                EmitPicMultiply(il, mul);
+                break;
+
+            case IrPicCompare cmp:
+                EmitPicCompare(il, cmp, getLocal);
+                break;
+
             case IrRuntimeCall rtc:
                 EmitRuntimeCall(il, rtc, getLocal);
                 break;
@@ -629,6 +637,99 @@ public sealed class CilEmitter
                     new[] { typeof(byte[]), typeof(int), typeof(int),
                             typeof(byte[]), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, method));
+        }
+    }
+
+    private void EmitPicMultiply(ILProcessor il, IrPicMultiply mul)
+    {
+        // dest: byte[], offset, length, totalDigits, fractionDigits, signed, usage
+        EmitLoadBackingArray(il, mul.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Pic.TotalDigits));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Pic.FractionDigits));
+        il.Append(il.Create(mul.Destination.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Destination.Pic.Usage));
+
+        // left
+        EmitLoadBackingArray(il, mul.Left.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Pic.FractionDigits));
+        il.Append(il.Create(mul.Left.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Left.Pic.Usage));
+
+        // right
+        EmitLoadBackingArray(il, mul.Right.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Pic.FractionDigits));
+        il.Append(il.Create(mul.Right.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Right.Pic.Usage));
+
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                "MultiplyNumeric",
+                new[] {
+                    typeof(byte[]), typeof(int), typeof(int),
+                    typeof(int), typeof(int), typeof(bool), typeof(int),
+                    typeof(byte[]), typeof(int), typeof(int),
+                    typeof(int), typeof(bool), typeof(int),
+                    typeof(byte[]), typeof(int), typeof(int),
+                    typeof(int), typeof(bool), typeof(int)
+                })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // left
+        EmitLoadBackingArray(il, cmp.Left.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Pic.FractionDigits));
+        il.Append(il.Create(cmp.Left.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)cmp.Left.Pic.Usage));
+
+        // right
+        EmitLoadBackingArray(il, cmp.Right.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Pic.FractionDigits));
+        il.Append(il.Create(cmp.Right.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)cmp.Right.Pic.Usage));
+
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                "CompareNumeric",
+                new[] {
+                    typeof(byte[]), typeof(int), typeof(int),
+                    typeof(int), typeof(bool), typeof(int),
+                    typeof(byte[]), typeof(int), typeof(int),
+                    typeof(int), typeof(bool), typeof(int)
+                })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        // CompareNumeric returns int (-1, 0, 1)
+        // Convert to bool based on operator kind
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
+
+            // Compare the result to 0
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ceq)); // 1 if equal to 0
+
+            // For Equal: result = (compare == 0)
+            // For NotEqual: result = (compare != 0), so invert
+            if (cmp.OperatorKind == 1) // NotEqual
+            {
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq)); // invert
+            }
+
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
         }
     }
 

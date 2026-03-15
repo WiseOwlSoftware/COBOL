@@ -171,6 +171,39 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
     }
 }
 
+// ── PIC-aware arithmetic ──
+
+public sealed class IrPicMultiply : IrInstruction
+{
+    public CodeGen.StorageLocation Left { get; }
+    public CodeGen.StorageLocation Right { get; }
+    public CodeGen.StorageLocation Destination { get; }
+
+    public IrPicMultiply(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
+        CodeGen.StorageLocation dest)
+    {
+        Left = left;
+        Right = right;
+        Destination = dest;
+    }
+}
+
+public sealed class IrPicCompare : IrInstruction
+{
+    public CodeGen.StorageLocation Left { get; }
+    public CodeGen.StorageLocation Right { get; }
+    public int OperatorKind { get; } // 0=Equal, 1=NotEqual, 2=Less, 3=Greater, etc.
+
+    public IrPicCompare(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
+        IrValue result, int operatorKind)
+    {
+        Left = left;
+        Right = right;
+        Result = result;
+        OperatorKind = operatorKind;
+    }
+}
+
 // ── PIC-aware data movement ──
 
 /// <summary>

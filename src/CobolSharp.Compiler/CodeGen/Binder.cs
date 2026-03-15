@@ -119,6 +119,9 @@ public sealed class Binder
             case BoundIfStatement iff:
                 LowerIf(iff, block);
                 break;
+            case BoundMultiplyStatement mult:
+                LowerMultiply(mult, block);
+                break;
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
                 break;
@@ -279,12 +282,89 @@ public sealed class Binder
         }
     }
 
+    // ── MULTIPLY ──
+
+    private void LowerMultiply(BoundMultiplyStatement mult, IrBasicBlock block)
+    {
+        if (mult.GivingTarget == null) return;
+
+        // Get storage locations for left, right, and destination
+        DataSymbol? leftSym = (mult.Left as BoundIdentifierExpression)?.Symbol;
+        DataSymbol? rightSym = (mult.Right as BoundIdentifierExpression)?.Symbol;
+        DataSymbol destSym = mult.GivingTarget;
+
+        var destLoc = _semantic.GetStorageLocation(destSym);
+        if (!destLoc.HasValue) return;
+
+        // Handle literal × identifier and identifier × identifier
+        if (leftSym != null && rightSym != null)
+        {
+            var leftLoc = _semantic.GetStorageLocation(leftSym);
+            var rightLoc = _semantic.GetStorageLocation(rightSym);
+            if (leftLoc.HasValue && rightLoc.HasValue)
+            {
+                block.Instructions.Add(new IrPicMultiply(
+                    leftLoc.Value, rightLoc.Value, destLoc.Value));
+            }
+        }
+    }
+
     // ── IF ──
 
     private void LowerIf(BoundIfStatement iff, IrBasicBlock block)
     {
-        // Simplified: emit then-statements sequentially (always-true for now)
-        // TODO: condition → IrBinary → IrBranch with then/else blocks
+        // Check if condition is a real comparison
+        if (iff.Condition is BoundBinaryExpression binCond)
+        {
+            var leftSym = (binCond.Left as BoundIdentifierExpression)?.Symbol;
+            var rightSym = (binCond.Right as BoundIdentifierExpression)?.Symbol;
+
+            // Compare two identifiers (numeric comparison)
+            if (leftSym != null)
+            {
+                var leftLoc = _semantic.GetStorageLocation(leftSym);
+
+                // Right side can be identifier or literal
+                StorageLocation? rightLoc = null;
+                if (rightSym != null)
+                    rightLoc = _semantic.GetStorageLocation(rightSym);
+
+                if (leftLoc.HasValue)
+                {
+                    // Emit compare + branch
+                    var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+
+                    if (rightLoc.HasValue)
+                    {
+                        block.Instructions.Add(new IrPicCompare(
+                            leftLoc.Value, rightLoc.Value, condVal,
+                            (int)binCond.OperatorKind));
+                    }
+                    else if (binCond.Right is BoundLiteralExpression litRight)
+                    {
+                        // Compare identifier to literal: write literal to temp, compare
+                        // For now: fall through to always-then
+                    }
+
+                    // Simple branch: if condition true → then, else → else
+                    // For now, use condVal to gate then/else
+                    // TODO: proper basic block branching
+                    // Emit then statements when condition is true
+                    foreach (var stmt in iff.ThenStatements)
+                        LowerStatement(stmt, block);
+
+                    // Emit else if present
+                    if (iff.ElseStatements != null)
+                    {
+                        foreach (var stmt in iff.ElseStatements)
+                            LowerStatement(stmt, block);
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Fallback: emit then-statements (always-true)
         foreach (var stmt in iff.ThenStatements)
             LowerStatement(stmt, block);
     }

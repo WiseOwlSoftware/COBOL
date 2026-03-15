@@ -198,6 +198,23 @@ public sealed class BoundCloseStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.CloseStatement;
 }
 
+public sealed class BoundMultiplyStatement : BoundStatement
+{
+    public BoundExpression Left { get; }
+    public BoundExpression Right { get; }
+    public DataSymbol? GivingTarget { get; }
+
+    public BoundMultiplyStatement(BoundExpression left, BoundExpression right,
+        DataSymbol? givingTarget)
+    {
+        Left = left;
+        Right = right;
+        GivingTarget = givingTarget;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;
+}
+
 public sealed class BoundArithmeticStatement : BoundStatement
 {
     public BoundNodeKind StatementKind { get; }
