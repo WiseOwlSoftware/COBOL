@@ -65,17 +65,76 @@ public sealed class Compilation
         foreach (var d in semDiagnostics)
             diagnostics.Add(d);
 
-        // Phase 4: CIL emission (TODO — emit from semantic model)
+        // Phase 4: Build semantic model
+        var semanticModel = new Semantics.SemanticModel(
+            semanticBuilder.Symbols.Program,
+            semanticBuilder.Symbols,
+            diagnostics);
+
+        // Phase 5: Bind → IR
+        var binder = new CodeGen.Binder(semanticModel, diagnostics);
+        var irModule = binder.Bind(tree);
 
         outputPath ??= Path.Combine(
             Path.GetDirectoryName(sourcePath) ?? ".",
             programId + ".dll");
 
-        // For now, report success if parsing + semantic analysis succeeded
-        return new CompilationResult(
-            !diagnostics.HasErrors,
-            outputPath,
-            diagnostics.Diagnostics);
+        // Phase 6: CIL emission
+        try
+        {
+            var assembly = CodeGen.CilEmitter.EmitAssembly(irModule, programId);
+            string dir = Path.GetDirectoryName(outputPath) ?? ".";
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            assembly.Write(outputPath);
+
+            EmitRuntimeConfig(outputPath);
+            CopyRuntimeLibrary(outputPath);
+
+            return new CompilationResult(
+                !diagnostics.HasErrors,
+                outputPath,
+                diagnostics.Diagnostics);
+        }
+        catch (Exception ex)
+        {
+            diagnostics.ReportError("CIL", $"CIL emission failed: {ex.Message}",
+                new Common.SourceLocation(sourcePath, 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return new CompilationResult(false, outputPath, diagnostics.Diagnostics);
+        }
+    }
+
+    private static void EmitRuntimeConfig(string outputPath)
+    {
+        string configPath = Path.ChangeExtension(outputPath, ".runtimeconfig.json");
+        File.WriteAllText(configPath, """
+            {
+              "runtimeOptions": {
+                "tfm": "net8.0",
+                "framework": {
+                  "name": "Microsoft.NETCore.App",
+                  "version": "8.0.0"
+                }
+              }
+            }
+            """);
+    }
+
+    private static void CopyRuntimeLibrary(string outputPath)
+    {
+        string outputDir = Path.GetDirectoryName(outputPath) ?? ".";
+        string compilerDir = Path.GetDirectoryName(typeof(Compilation).Assembly.Location)!;
+        string candidatePath = Path.Combine(compilerDir, "CobolSharp.Runtime.dll");
+
+        if (File.Exists(candidatePath))
+        {
+            string destPath = Path.Combine(outputDir, "CobolSharp.Runtime.dll");
+            if (!File.Exists(destPath) ||
+                new FileInfo(candidatePath).LastWriteTimeUtc > new FileInfo(destPath).LastWriteTimeUtc)
+            {
+                File.Copy(candidatePath, destPath, overwrite: true);
+            }
+        }
     }
 
     private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)
