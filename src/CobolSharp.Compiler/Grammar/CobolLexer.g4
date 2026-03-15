@@ -187,8 +187,9 @@ OUTPUT      : 'OUTPUT' ;
 OVERFLOW    : 'OVERFLOW' ;
 PACKED      : 'PACKED' ;
 PARAGRAPH   : 'PARAGRAPH' ;
-PIC         : 'PIC' ;
-PICTURE     : 'PICTURE' ;
+// PIC/PICTURE → push into PICMODE to capture the PIC string as one token.
+// Handles: PIC X(120), PIC IS S9(18), PICTURE $$$,$$9.99CR, etc.
+PIC         : ('PIC' | 'PICTURE') -> pushMode(PICMODE) ;
 POINTER     : 'POINTER' ;
 PREVIOUS    : 'PREVIOUS' ;
 PROGRAM     : 'PROGRAM' ;
@@ -234,17 +235,20 @@ WHEN        : 'WHEN' ;
 WITH        : 'WITH' ;
 ZERO        : 'ZERO' ;
 
-// ── IDENTIFIER (must come AFTER all keywords) ──
-
-IDENTIFIER
-    : [A-Za-z0-9] [A-Za-z0-9-]* [A-Za-z0-9]
-    | [A-Za-z0-9]
-    ;
-
-// ── Numeric literals ──
+// ── Numeric literals (must come BEFORE IDENTIFIER) ──
+// Option A: ordering guarantees "01" → INTEGERLIT, not IDENTIFIER
 
 DECIMALLIT  : [0-9]+ '.' [0-9]+ ;
 INTEGERLIT  : [0-9]+ ;
+
+// ── IDENTIFIER (must come AFTER all keywords AND numeric literals) ──
+// Option B: identifiers must start with a letter (matches COBOL spec —
+// user-defined words begin with a letter, not a digit)
+
+IDENTIFIER
+    : [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]
+    | [A-Za-z]
+    ;
 
 // ── String literals ──
 
@@ -279,6 +283,25 @@ SEMICOLON   : ';' ;
 // ── Catch-all for unrecognized characters ──
 
 ANY_CHAR    : . ;
+
+// ==========================================
+// PICMODE — captures PIC/PICTURE string as one token
+// ==========================================
+// After PIC/PICTURE, optionally skip IS, then capture the entire
+// PIC string (e.g., X(120), S9(18), $$$,$$9.99CR) as one token.
+//
+// Key insight: PIC strings never contain spaces. A period within
+// a PIC string (like 9.99) is always followed by another PIC char,
+// while a sentence-ending period is followed by whitespace/EOF.
+
+mode PICMODE;
+
+PIC_IS      : 'IS' -> skip ;              // optional IS keyword
+PIC_WS      : [ \t\r\n]+ -> skip ;        // skip whitespace
+PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+ -> popMode ;
+    // Matches: any non-whitespace-non-period char,
+    //      OR: a period followed by a non-whitespace char (embedded decimal)
+    // Stops:  at whitespace or period-before-whitespace (sentence end)
 
 // ==========================================
 // COMMENT_MODE — *> to end of line

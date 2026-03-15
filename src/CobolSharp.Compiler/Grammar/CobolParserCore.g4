@@ -434,14 +434,10 @@ genericDataClause
     : IDENTIFIER (IDENTIFIER | literal)*
     ;
 
-// PIC Clause
+// PIC Clause — PIC/PICTURE triggers PICMODE in the lexer,
+// which emits a single PIC_STRING token. IS is consumed by PICMODE.
 pictureClause
-    : PIC pictureString
-    | PICTURE pictureString
-    ;
-
-pictureString
-    : STRINGLIT
+    : PIC PIC_STRING
     ;
 
 // USAGE Clause

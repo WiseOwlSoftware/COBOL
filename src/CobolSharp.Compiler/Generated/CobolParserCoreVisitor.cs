@@ -471,12 +471,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitPictureClause([NotNull] CobolParserCore.PictureClauseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.pictureString"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPictureString([NotNull] CobolParserCore.PictureStringContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.usageClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
