@@ -901,11 +901,15 @@ subtractOperandList
     ;
 
 subtractFromPhrase
-    : FROM identifierList
+    : FROM subtractTarget (subtractTarget)*
+    ;
+
+subtractTarget
+    : identifier ROUNDED?
     ;
 
 subtractGivingPhrase
-    : GIVING identifierList
+    : GIVING subtractTarget (subtractTarget)*
     ;
 
 subtractOnSizeError

@@ -223,14 +223,15 @@ public sealed class BoundAddStatement : BoundStatement
 }
 
 /// <summary>
-/// A single receiving item in MULTIPLY BY, with per-item ROUNDED flag.
+/// A single receiving item in an arithmetic statement, with per-item ROUNDED flag.
+/// Used by MULTIPLY, SUBTRACT, DIVIDE, ADD.
 /// </summary>
-public sealed class BoundMultiplyTarget
+public sealed class BoundArithmeticTarget
 {
     public DataSymbol Symbol { get; }
     public bool IsRounded { get; }
 
-    public BoundMultiplyTarget(DataSymbol symbol, bool isRounded)
+    public BoundArithmeticTarget(DataSymbol symbol, bool isRounded)
     {
         Symbol = symbol;
         IsRounded = isRounded;
@@ -240,13 +241,13 @@ public sealed class BoundMultiplyTarget
 public sealed class BoundMultiplyStatement : BoundStatement
 {
     public BoundExpression Operand { get; }
-    public IReadOnlyList<BoundMultiplyTarget> Targets { get; }
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
     public DataSymbol? GivingTarget { get; }
     public IReadOnlyList<BoundStatement> OnSizeError { get; }
     public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
 
     public BoundMultiplyStatement(BoundExpression operand,
-        IReadOnlyList<BoundMultiplyTarget> targets,
+        IReadOnlyList<BoundArithmeticTarget> targets,
         DataSymbol? givingTarget = null,
         IReadOnlyList<BoundStatement>? onSizeError = null,
         IReadOnlyList<BoundStatement>? notOnSizeError = null)
@@ -259,6 +260,29 @@ public sealed class BoundMultiplyStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;
+}
+
+public sealed class BoundSubtractStatement : BoundStatement
+{
+    /// <summary>The operands being subtracted (SUBTRACT A B C FROM ...: operands = [A, B, C]).</summary>
+    public IReadOnlyList<BoundExpression> Operands { get; }
+    /// <summary>The FROM targets: each gets target = target - sum(operands).</summary>
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+
+    public BoundSubtractStatement(IReadOnlyList<BoundExpression> operands,
+        IReadOnlyList<BoundArithmeticTarget> targets,
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+    {
+        Operands = operands;
+        Targets = targets;
+        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
+        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
 }
 
 public sealed class BoundArithmeticStatement : BoundStatement

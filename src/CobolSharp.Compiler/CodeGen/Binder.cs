@@ -167,6 +167,8 @@ public sealed class Binder
                     null, "CobolRuntime.CloseFile", new[] { fnVal }));
                 break;
             }
+            case BoundSubtractStatement sub:
+                return LowerSubtract(sub, method, block);
             case BoundArithmeticStatement:
                 break;
         }
@@ -382,6 +384,71 @@ public sealed class Binder
             method.Blocks.Add(notSizeErrorBlock);
             var nseCurrent = notSizeErrorBlock;
             foreach (var stmt in mult.NotOnSizeError)
+                nseCurrent = LowerStatement(stmt, method, nseCurrent);
+            nseCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(doneBlock);
+            return doneBlock;
+        }
+
+        return block;
+    }
+
+    // ── SUBTRACT ──
+
+    private IrBasicBlock LowerSubtract(BoundSubtractStatement sub, IrMethod method, IrBasicBlock block)
+    {
+        // One ArithmeticStatus per statement — init once, sticky across all targets
+        block.Instructions.Add(new IrInitArithmeticStatus());
+
+        // SUBTRACT A B C FROM T1 T2 → for each target, subtract each operand in sequence
+        // T1 = T1 - A - B - C, T2 = T2 - A - B - C
+        foreach (var target in sub.Targets)
+        {
+            var destLoc = _semantic.GetStorageLocation(target.Symbol);
+            if (!destLoc.HasValue) continue;
+
+            int roundingMode = target.IsRounded ? 1 : 0;
+
+            foreach (var operand in sub.Operands)
+            {
+                if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
+                {
+                    block.Instructions.Add(new IrPicSubtractLiteral(
+                        destLoc.Value, d, roundingMode));
+                }
+                else if (operand is BoundIdentifierExpression opId)
+                {
+                    var opLoc = _semantic.GetStorageLocation(opId.Symbol);
+                    if (opLoc.HasValue)
+                    {
+                        block.Instructions.Add(new IrPicSubtract(
+                            opLoc.Value, destLoc.Value, roundingMode));
+                    }
+                }
+            }
+        }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        if (sub.OnSizeError.Count > 0 || sub.NotOnSizeError.Count > 0)
+        {
+            var sizeErrorBlock = method.CreateBlock("size.error");
+            var notSizeErrorBlock = method.CreateBlock("not.size.error");
+            var doneBlock = method.CreateBlock("size.done");
+
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadSizeError(condVal));
+            block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
+
+            method.Blocks.Add(sizeErrorBlock);
+            var seCurrent = sizeErrorBlock;
+            foreach (var stmt in sub.OnSizeError)
+                seCurrent = LowerStatement(stmt, method, seCurrent);
+            seCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(notSizeErrorBlock);
+            var nseCurrent = notSizeErrorBlock;
+            foreach (var stmt in sub.NotOnSizeError)
                 nseCurrent = LowerStatement(stmt, method, nseCurrent);
             nseCurrent.Instructions.Add(new IrJump(doneBlock));
 

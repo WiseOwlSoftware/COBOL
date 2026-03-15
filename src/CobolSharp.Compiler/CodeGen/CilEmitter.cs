@@ -454,6 +454,14 @@ public sealed class CilEmitter
                 EmitPicAddLiteral(il, addLit);
                 break;
 
+            case IrPicSubtract subInst:
+                EmitPicSubtract(il, subInst);
+                break;
+
+            case IrPicSubtractLiteral subLit:
+                EmitPicSubtractLiteral(il, subLit);
+                break;
+
             case IrPicCompare cmp:
                 EmitPicCompare(il, cmp, getLocal);
                 break;
@@ -1024,6 +1032,44 @@ public sealed class CilEmitter
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("AddNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicSubtract(ILProcessor il, IrPicSubtract sub)
+    {
+        EmitLoadBackingArray(il, sub.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Length));
+        EmitLoadPicDescriptor(il, sub.Destination.Pic);
+        EmitLoadBackingArray(il, sub.Source.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Source.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Source.Length));
+        EmitLoadPicDescriptor(il, sub.Source.Pic);
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("SubtractNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicSubtractLiteral(ILProcessor il, IrPicSubtractLiteral sub)
+    {
+        EmitLoadBackingArray(il, sub.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Length));
+        EmitLoadPicDescriptor(il, sub.Destination.Pic);
+        EmitLoadDecimal(il, sub.Value);
+        il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("SubtractNumericLiteral",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));

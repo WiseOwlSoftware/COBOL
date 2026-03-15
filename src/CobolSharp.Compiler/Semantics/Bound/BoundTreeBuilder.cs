@@ -70,7 +70,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.openStatement() is { }) return new BoundOpenStatement();
         if (ctx.closeStatement() is { }) return new BoundCloseStatement();
         if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
-        if (ctx.subtractStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+        if (ctx.subtractStatement() is { } sub) return BindSubtract(sub);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
         if (ctx.computeStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
@@ -207,12 +207,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (byTargets.Length == 0)
             return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
 
-        var targets = new List<BoundMultiplyTarget>();
+        var targets = new List<BoundArithmeticTarget>();
         foreach (var bt in byTargets)
         {
             var sym = _semantic.ResolveData(bt.identifier().GetText());
             if (sym != null)
-                targets.Add(new BoundMultiplyTarget(sym, bt.ROUNDED() != null));
+                targets.Add(new BoundArithmeticTarget(sym, bt.ROUNDED() != null));
         }
 
         if (targets.Count == 0)
@@ -236,7 +236,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     {
                         var sym = _semantic.ResolveData(gt.identifier().GetText());
                         if (sym != null)
-                            targets.Add(new BoundMultiplyTarget(sym, gt.ROUNDED() != null));
+                            targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
                     }
                 }
             }
@@ -296,6 +296,90 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var target = BindIdentifier(idList.identifier()[0]);
 
         return new BoundAddStatement(operand, target);
+    }
+
+    // ── SUBTRACT ──
+
+    private BoundStatement BindSubtract(CobolParserCore.SubtractStatementContext ctx)
+    {
+        // SUBTRACT operand(s) FROM target1 [ROUNDED] target2 [ROUNDED] ...
+        // Multiple operands: SUBTRACT A B C FROM T → T = T - (A + B + C)
+        var operandList = ctx.subtractOperandList();
+        if (operandList == null)
+            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+
+        var arithExprs = operandList.arithmeticExpression();
+        if (arithExprs.Length == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+
+        // Bind all operands
+        var operands = new List<BoundExpression>();
+        foreach (var expr in arithExprs)
+            operands.Add(BindArithmeticExpr(expr));
+
+        // FROM targets (each with per-target ROUNDED)
+        var fromPhrase = ctx.subtractFromPhrase();
+        if (fromPhrase == null)
+            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+
+        var fromTargetCtxs = fromPhrase.subtractTarget();
+        if (fromTargetCtxs.Length == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+
+        var targets = new List<BoundArithmeticTarget>();
+        foreach (var t in fromTargetCtxs)
+        {
+            var sym = _semantic.ResolveData(t.identifier().GetText());
+            if (sym != null)
+                targets.Add(new BoundArithmeticTarget(sym, t.ROUNDED() != null));
+        }
+
+        if (targets.Count == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+
+        // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
+        var givingPhrase = ctx.subtractGivingPhrase();
+        if (givingPhrase != null)
+        {
+            var givingTargetCtxs = givingPhrase.subtractTarget();
+            if (givingTargetCtxs.Length > 0)
+            {
+                targets.Clear();
+                foreach (var gt in givingTargetCtxs)
+                {
+                    var sym = _semantic.ResolveData(gt.identifier().GetText());
+                    if (sym != null)
+                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                }
+            }
+        }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        var onSizeError = new List<BoundStatement>();
+        var notOnSizeError = new List<BoundStatement>();
+        var sizeCtx = ctx.subtractOnSizeError();
+        if (sizeCtx != null)
+        {
+            var imperatives = sizeCtx.imperativeStatement();
+            if (imperatives.Length > 0)
+            {
+                foreach (var stmt in imperatives[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onSizeError.Add(bound);
+                }
+            }
+            if (imperatives.Length > 1)
+            {
+                foreach (var stmt in imperatives[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
+            }
+        }
+
+        return new BoundSubtractStatement(operands, targets, onSizeError, notOnSizeError);
     }
 
     // ── IF ──
