@@ -374,7 +374,7 @@ linkageProcedureParameter
     ;
 
 parameterDescriptionBody
-    : parameterPassingClause dataDescriptionClauses?
+    : parameterPassingClause (dataDescriptionClause+)?
     ;
 
 parameterPassingClause
@@ -642,13 +642,12 @@ statement
     | inlineMethodInvocationStatement
     | continueStatement
     | nextSentenceStatement
-    | genericStatement
     ;
 
-// Safety net for vendor extensions
-genericStatement
-    : IDENTIFIER (IDENTIFIER | literal)* DOT?
-    ;
+// Safety net for vendor extensions — disabled to prevent exponential backtracking
+// genericStatement
+//     : IDENTIFIER (IDENTIFIER | literal)* DOT?
+//     ;
 
 // Imperative statement (used by AT END, ON EXCEPTION, etc.)
 imperativeStatement
@@ -749,6 +748,7 @@ ifStatement
       imperativeStatement*
       (ELSE imperativeStatement*)?
       END_IF?
+      DOT?
     ;
 
 // ==========================================
@@ -756,12 +756,14 @@ ifStatement
 // ==========================================
 
 performStatement
-    : PERFORM performTarget performOptions* END_PERFORM?
+    // Out-of-line: PERFORM PARA [THRU PARA] [options] [END-PERFORM] .
+    : PERFORM performTarget performOptions* END_PERFORM? DOT?
+    // Inline: PERFORM [options]+ statements END-PERFORM .
+    | PERFORM performOptions+ imperativeStatement* END_PERFORM DOT?
     ;
 
 performTarget
-    : procedureName
-    | procedureName THRU procedureName
+    : procedureName ((THRU | THROUGH) procedureName)?
     ;
 
 procedureName
@@ -818,7 +820,7 @@ evaluateObject
 // ==========================================
 
 computeStatement
-    : COMPUTE identifier EQUALS arithmeticExpression DOT?
+    : COMPUTE identifier EQUALS arithmeticExpression END_COMPUTE? DOT?
     ;
 
 // ==========================================
@@ -856,7 +858,7 @@ argument
 // ==========================================
 
 addStatement
-    : ADD addOperandList addToPhrase? addGivingPhrase? addOnSizeError? DOT?
+    : ADD addOperandList addToPhrase? addGivingPhrase? addOnSizeError? END_ADD? DOT?
     ;
 
 addOperandList
@@ -881,7 +883,7 @@ addOnSizeError
 // ==========================================
 
 subtractStatement
-    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? DOT?
+    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? END_SUBTRACT? DOT?
     ;
 
 subtractOperandList
@@ -906,7 +908,7 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY arithmeticExpression BY identifierList multiplyGivingPhrase? multiplyOnSizeError? DOT?
+    : MULTIPLY arithmeticExpression BY identifierList multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY? DOT?
     ;
 
 multiplyGivingPhrase
@@ -923,7 +925,7 @@ multiplyOnSizeError
 // ==========================================
 
 divideStatement
-    : DIVIDE arithmeticExpression divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? DOT?
+    : DIVIDE arithmeticExpression divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE? DOT?
     ;
 
 divideIntoPhrase
@@ -966,12 +968,12 @@ moveTarget
 // ==========================================
 
 stringStatement
-    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? DOT?
+    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? END_STRING? DOT?
     ;
 
 stringSendingPhrase
     : (identifier | literal)
-      (DELIMITED BY (identifier | literal | SIZE))?
+      (DELIMITED BY (ALL)? (identifier | literal | SIZE))?
     ;
 
 stringIntoPhrase
@@ -998,6 +1000,7 @@ unstringStatement
       unstringWithPointer?
       unstringTallying?
       unstringOnOverflow?
+      END_UNSTRING?
       DOT?
     ;
 
@@ -1328,7 +1331,7 @@ gobackStatement
 // ==========================================
 
 exitStatement
-    : EXIT ( PROGRAM | PERFORM | 'SECTION' | PARAGRAPH | METHOD | FUNCTION )? DOT?
+    : EXIT ( PROGRAM | PERFORM | SECTION | PARAGRAPH | METHOD | FUNCTION )? DOT?
     ;
 
 // ==========================================
@@ -1385,11 +1388,47 @@ initializeStatement
     ;
 
 // ==========================================
-// INSPECT (§14.9.21 — stub, complex)
+// INSPECT (§14.9.21 — LL(1)-safe, keyword-discriminated)
 // ==========================================
 
 inspectStatement
-    : INSPECT identifier IDENTIFIER+ DOT?
+    : INSPECT identifier
+      inspectTallyingPhrase?
+      inspectReplacingPhrase?
+      inspectConvertingPhrase?
+      DOT?
+    ;
+
+inspectTallyingPhrase
+    : TALLYING inspectTallyingItem+
+    ;
+
+inspectTallyingItem
+    : identifier FOR inspectForPhrase+
+    ;
+
+inspectForPhrase
+    : ALL literal
+    | LEADING literal
+    | FIRST literal
+    | BEFORE INITIAL_? literal
+    ;
+
+inspectReplacingPhrase
+    : REPLACING inspectReplacingItem+
+    ;
+
+inspectReplacingItem
+    : ALL literal BY (identifier | literal)
+    | LEADING literal BY (identifier | literal)
+    | FIRST literal BY (identifier | literal)
+    | BEFORE INITIAL_? literal BY (identifier | literal)
+    ;
+
+inspectConvertingPhrase
+    : CONVERTING identifier
+      FROM (identifier | literal)
+      TO   (identifier | literal)
     ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)
@@ -1474,12 +1513,20 @@ relationalExpression
     ;
 
 relationalOperator
-    : '='
-    | '<>'
-    | '<='
-    | '>='
-    | '<'
-    | '>'
+    // Symbolic
+    : EQUALS
+    | NOTEQUAL
+    | LTEQUAL
+    | GTEQUAL
+    | LT
+    | GT
+    // Word forms with optional IS and optional THAN
+    | IS? EQUAL (TO | THAN)?
+    | IS? NOT EQUAL (TO | THAN)?
+    | IS? GREATER THAN?
+    | IS? NOT GREATER THAN?
+    | IS? LESS THAN?
+    | IS? NOT LESS THAN?
     ;
 
 // =========================
@@ -1523,8 +1570,14 @@ unaryExpression
 
 primaryExpression
     : literal
+    | functionCall
     | identifier
     | LPAREN arithmeticExpression RPAREN
+    ;
+
+// FUNCTION calls (ISO 2002+)
+functionCall
+    : FUNCTION identifier (LPAREN argumentList? RPAREN)?
     ;
 
 // =========================
@@ -1548,5 +1601,6 @@ figurativeConstant
     | HIGH_VALUE
     | LOW_VALUE
     | QUOTE_
-    | ALL literal
+    | ALL STRINGLIT
+    | ALL HEXLIT
     ;
