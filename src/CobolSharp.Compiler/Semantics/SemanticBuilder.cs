@@ -6,16 +6,23 @@ namespace CobolSharp.Compiler.Semantics;
 
 /// <summary>
 /// Pass 1: Walk the ANTLR parse tree and collect all symbol declarations.
-/// Creates ProgramSymbol, DataSymbol, FileSymbol, SectionSymbol, ParagraphSymbol,
-/// and ConditionSymbol entries in the symbol table.
+/// Builds a proper parent/child DataSymbol tree using level numbers.
 /// </summary>
 public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SymbolTable _symbols;
     private readonly List<Diagnostic> _diagnostics = new();
+    private int _fillerCounter;
+
+    // Data items in declaration order (preserves all FILLERs)
+    private readonly List<DataSymbol> _dataItemsInOrder = new();
+
+    // Parent stack for level-number-based tree building
+    private readonly Stack<DataSymbol> _dataStack = new();
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
+    public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
     public SemanticBuilder(string programName, int line)
     {
@@ -36,29 +43,25 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitWorkingStorageSection(CobolParserCore.WorkingStorageSectionContext ctx)
     {
-        using var _ = _symbols.PushScope(
-            new Scope(ScopeKind.WorkingStorage, _symbols.Program.DataDivisionScope));
+        _dataStack.Clear();
         return base.VisitWorkingStorageSection(ctx);
     }
 
     public override object? VisitLocalStorageSection(CobolParserCore.LocalStorageSectionContext ctx)
     {
-        using var _ = _symbols.PushScope(
-            new Scope(ScopeKind.LocalStorage, _symbols.Program.DataDivisionScope));
+        _dataStack.Clear();
         return base.VisitLocalStorageSection(ctx);
     }
 
     public override object? VisitLinkageSection(CobolParserCore.LinkageSectionContext ctx)
     {
-        using var _ = _symbols.PushScope(
-            new Scope(ScopeKind.Linkage, _symbols.Program.DataDivisionScope));
+        _dataStack.Clear();
         return base.VisitLinkageSection(ctx);
     }
 
     public override object? VisitFileSection(CobolParserCore.FileSectionContext ctx)
     {
-        using var _ = _symbols.PushScope(
-            new Scope(ScopeKind.FileSection, _symbols.Program.DataDivisionScope));
+        _dataStack.Clear();
         return base.VisitFileSection(ctx);
     }
 
@@ -68,9 +71,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (nameCtx != null)
         {
             var fileSym = new FileSymbol(nameCtx.GetText(), nameCtx.Start.Line);
-            if (!_symbols.Program.GlobalScope.TryDeclare(fileSym, out _))
-                Error(ctx, $"Duplicate file name '{fileSym.Name}'.");
+            _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
         }
+        _dataStack.Clear();
         return base.VisitFileDescriptionEntry(ctx);
     }
 
@@ -81,13 +84,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (levelCtx == null) return base.VisitDataDescriptionEntry(ctx);
 
         int level = int.Parse(levelCtx.GetText());
-        string name = nameCtx?.GetText() ?? "FILLER";
+        string displayName = nameCtx?.GetText() ?? "FILLER";
         int line = levelCtx.Start.Line;
 
-        // Extract PIC and USAGE from dataDescriptionBody
+        // Make FILLER unique for symbol table
+        bool isFiller = string.Equals(displayName, "FILLER", StringComparison.OrdinalIgnoreCase);
+        string internalName = isFiller ? $"FILLER${_fillerCounter++}" : displayName;
+
+        // Extract PIC, USAGE, VALUE from clauses
         string? picString = null;
         var usage = UsageKind.Display;
         string? typeName = null;
+        string? initialValue = null;
         DataSymbol? redefines = null;
 
         var body = ctx.dataDescriptionBody();
@@ -97,16 +105,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 var picClause = clause.pictureClause();
                 if (picClause != null)
-                {
-                    var picStr = picClause.PIC_STRING();
-                    picString = picStr?.GetText()?.Trim();
-                }
+                    picString = picClause.PIC_STRING()?.GetText()?.Trim();
 
                 var usageClause = clause.usageClause();
                 if (usageClause != null)
-                {
-                    usage = ExtractUsage(usageClause);
-                }
+                    usage = UsageMapper.FromUsageKeyword(usageClause.usageKeyword()?.GetText());
 
                 var redefinesClause = clause.redefinesClause();
                 if (redefinesClause != null)
@@ -117,48 +120,88 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 var typeClause = clause.typeClause();
                 if (typeClause != null)
-                {
                     typeName = typeClause.IDENTIFIER()?.GetText();
-                }
-            }
 
-            // Handle 88-level condition entries
-            var condEntry = body.conditionEntry88();
-            if (condEntry != null && level == 88)
-            {
-                // 88-levels are handled below
+                // VALUE clause
+                var valClause = clause.valueClause();
+                if (valClause != null)
+                {
+                    var literals = valClause.literal();
+                    var litCtx = literals.Length > 0 ? literals[0] : null;
+                    if (litCtx?.STRINGLIT() is { } slit)
+                    {
+                        var text = slit.GetText();
+                        if (text.Length >= 2) initialValue = text[1..^1];
+                    }
+                    else if (litCtx?.signedNumericLiteral() is { } numLit)
+                    {
+                        initialValue = numLit.GetText();
+                    }
+                    else if (litCtx?.figurativeConstant() is { } fig)
+                    {
+                        string figText = fig.GetText().ToUpperInvariant();
+                        initialValue = figText switch
+                        {
+                            "SPACE" or "SPACES" => " ",
+                            "ZERO" or "ZEROS" or "ZEROES" => "0",
+                            _ => figText
+                        };
+                    }
+                }
             }
         }
 
+        // Skip 88-level condition names for now
         if (level == 88)
         {
-            // Condition name — parent is the previously declared data item
-            // For now, declare in data division scope
-            var condSym = new ConditionSymbol(name, null!, line);
+            var condSym = new ConditionSymbol(displayName, null!, line);
             _symbols.Program.DataDivisionScope.TryDeclare(condSym, out _);
             return null;
         }
 
-        var data = new DataSymbol(name, level, picString, usage, typeName, redefines, line);
+        // Create DataSymbol
+        var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines, line);
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
         data.ResolvedType = PicUsageResolver.ResolveForDataItem(
-            name, picString, usage, diagBag, line);
+            displayName, picString, usage, diagBag, line);
         foreach (var d in diagBag.Diagnostics)
             _diagnostics.Add(d);
 
-        // Declare in data division scope
-        // COBOL allows duplicate names (resolved by IN/OF qualification)
+        data.InitialValue = initialValue;
+
+        // Build parent/child tree using level numbers
+        if (level == 1 || level == 77)
+        {
+            // Root-level item
+            _dataStack.Clear();
+            _dataStack.Push(data);
+        }
+        else if (level == 66)
+        {
+            // RENAMES — no parent/child
+            _dataStack.Clear();
+        }
+        else
+        {
+            // Subordinate: pop stack until we find a parent with lower level
+            while (_dataStack.Count > 0 && _dataStack.Peek().LevelNumber >= level)
+                _dataStack.Pop();
+
+            if (_dataStack.Count > 0)
+                _dataStack.Peek().AddChild(data);
+
+            _dataStack.Push(data);
+        }
+
+        // Add to declaration-order list (preserves ALL items including FILLERs)
+        _dataItemsInOrder.Add(data);
+
+        // Declare in scope (for name resolution)
         _symbols.Program.DataDivisionScope.TryDeclare(data, out _);
 
         return null;
-    }
-
-    private static UsageKind ExtractUsage(CobolParserCore.UsageClauseContext usageClause)
-    {
-        var usageKw = usageClause.usageKeyword();
-        return UsageMapper.FromUsageKeyword(usageKw?.GetText());
     }
 
     // ── Procedure Division ──
@@ -197,7 +240,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
         _symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal);
-        // Also register in procedure division scope for global PERFORM/GO TO resolution
         _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
 
         using var paraScope = _symbols.PushScope(paragraph.Scope);

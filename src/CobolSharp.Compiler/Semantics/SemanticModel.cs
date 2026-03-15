@@ -14,6 +14,14 @@ public sealed class SemanticModel
     public SymbolTable Symbols { get; }
     public DiagnosticBag Diagnostics { get; }
 
+    // ── Data items in declaration order (all levels, preserves FILLERs) ──
+
+    private IReadOnlyList<DataSymbol> _dataItemsInOrder = Array.Empty<DataSymbol>();
+    public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
+
+    public void SetDataItemsInOrder(IReadOnlyList<DataSymbol> items)
+        => _dataItemsInOrder = items;
+
     // ── Data records (01/77-level items) ──
 
     private readonly List<DataSymbol> _dataRecords = new();
@@ -39,6 +47,17 @@ public sealed class SemanticModel
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
     private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = new();
+
+    // ── Initial VALUE clauses (typed) ──
+
+    public sealed record InitialValue(object Value, Bound.CobolType Type);
+
+    private readonly Dictionary<DataSymbol, InitialValue> _initialValues = new();
+
+    public void RegisterInitialValue(DataSymbol symbol, object value, Bound.CobolType type)
+        => _initialValues[symbol] = new InitialValue(value, type);
+
+    public IReadOnlyDictionary<DataSymbol, InitialValue> InitialValues => _initialValues;
 
     // ── Parse node → symbol mapping (for binder lookups) ──
 

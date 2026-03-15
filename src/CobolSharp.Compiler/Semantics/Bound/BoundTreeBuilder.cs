@@ -148,11 +148,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         string name = procNames[0].GetText();
         var paraSym = _semantic.ResolveParagraph(name);
-        if (paraSym == null)
-        {
-            // Might be a section
-            return null;
-        }
+        if (paraSym == null) return null;
 
         ParagraphSymbol? thruSym = null;
         if (procNames.Length > 1)
@@ -161,7 +157,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             thruSym = _semantic.ResolveParagraph(thruName);
         }
 
-        return new BoundPerformStatement(paraSym, thruSym);
+        // Check for TIMES phrase
+        int times = 0;
+        var options = ctx.performOptions();
+        if (options != null && options.Length > 0)
+        {
+            var timesOpt = options[0].performTimes();
+            if (timesOpt != null)
+            {
+                var intLit = timesOpt.integerLiteral();
+                if (intLit != null && int.TryParse(intLit.GetText(), out var t))
+                    times = t;
+            }
+        }
+
+        return new BoundPerformStatement(paraSym, thruSym, times);
     }
 
     // ── WRITE ──
@@ -256,7 +266,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return new BoundLiteralExpression(raw, CobolType.String);
         }
 
-        // figurativeConstant, HEXLIT, etc.
+        // figurativeConstant
+        var figCtx = lit.figurativeConstant();
+        if (figCtx != null)
+        {
+            string figText = figCtx.GetText().ToUpperInvariant();
+            return figText switch
+            {
+                "SPACE" or "SPACES" =>
+                    new BoundLiteralExpression(" ", CobolType.Alphanumeric),
+                "ZERO" or "ZEROS" or "ZEROES" =>
+                    new BoundLiteralExpression("0", CobolType.Numeric),
+                "HIGH-VALUE" or "HIGH-VALUES" =>
+                    new BoundLiteralExpression("\xFF", CobolType.Alphanumeric),
+                "LOW-VALUE" or "LOW-VALUES" =>
+                    new BoundLiteralExpression("\x00", CobolType.Alphanumeric),
+                "QUOTE" or "QUOTES" =>
+                    new BoundLiteralExpression("\"", CobolType.Alphanumeric),
+                _ => new BoundLiteralExpression(figText, CobolType.String)
+            };
+        }
+
+        // HEXLIT, etc.
         return new BoundLiteralExpression(lit.GetText(), CobolType.String);
     }
 

@@ -24,11 +24,15 @@ public sealed class CilEmitter
         SeedPrimitiveTypes();
     }
 
-    public static AssemblyDefinition EmitAssembly(IrModule ir, string assemblyName)
+    private Semantics.SemanticModel? _semanticModel;
+
+    public static AssemblyDefinition EmitAssembly(IrModule ir, string assemblyName,
+        Semantics.SemanticModel? semanticModel = null)
     {
         var asmName = new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0));
         var asm = AssemblyDefinition.CreateAssembly(asmName, assemblyName, ModuleKind.Console);
         var emitter = new CilEmitter(asm.MainModule);
+        emitter._semanticModel = semanticModel;
         emitter.EmitModule(ir);
 
         // Set entry point to Main method
@@ -82,15 +86,9 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitProgramState(IrModule ir)
     {
-        // Calculate total sizes from record types
-        int wsSize = 0;
-        int fileSize = 0;
-        foreach (var t in ir.Types)
-        {
-            if (t is IrRecordType rec)
-                wsSize += rec.TotalSize;
-        }
-        // Minimum sizes
+        // Use sizes computed by ComputeStorageLayout
+        int wsSize = _semanticModel?.WorkingStorageSize ?? 4096;
+        int fileSize = _semanticModel?.FileSectionSize ?? 1024;
         if (wsSize == 0) wsSize = 4096;
         if (fileSize == 0) fileSize = 1024;
 
@@ -118,6 +116,51 @@ public sealed class CilEmitter
                 .GetConstructor(new[] { typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
         il.Append(il.Create(OpCodes.Stsfld, _programStateField));
+
+        // Apply VALUE clauses: write initial values into backing storage
+        if (_semanticModel != null)
+        {
+            var moveStringMethod = _module.ImportReference(
+                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+
+            foreach (var kvp in _semanticModel.InitialValues)
+            {
+                var loc = _semanticModel.GetStorageLocation(kvp.Key);
+                if (!loc.HasValue) continue;
+
+                var init = kvp.Value;
+
+                // Load backing array
+                il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
+                var getter = _module.ImportReference(
+                    typeof(CobolSharp.Runtime.ProgramState).GetProperty(
+                        loc.Value.Area == StorageAreaKind.WorkingStorage
+                            ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
+                il.Append(il.Create(OpCodes.Callvirt, getter));
+
+                // offset + size
+                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+
+                if (init.Value is string s)
+                {
+                    // String VALUE → MoveStringToField
+                    il.Append(il.Create(OpCodes.Ldstr, s));
+                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                }
+                else if (init.Value is decimal d)
+                {
+                    // Numeric VALUE → convert to string for now, write as DISPLAY digits
+                    // TODO: use PicRuntime.EncodeNumeric for PIC-correct initialization
+                    string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    il.Append(il.Create(OpCodes.Ldstr, numStr));
+                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                }
+            }
+        }
+
         il.Append(il.Create(OpCodes.Ret));
     }
 
@@ -129,6 +172,7 @@ public sealed class CilEmitter
         _typeMap[IrPrimitiveType.String] = _module.TypeSystem.String;
         _typeMap[IrPrimitiveType.Bool] = _module.TypeSystem.Boolean;
         _typeMap[IrPrimitiveType.Void] = _module.TypeSystem.Void;
+        _typeMap[IrPrimitiveType.ByteArray] = _module.ImportReference(typeof(byte[]));
     }
 
     // ── Type definitions ──

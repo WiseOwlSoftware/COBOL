@@ -176,7 +176,7 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
-        // Handle MOVE "literal" TO identifier
+        // Handle MOVE "literal" TO identifier (string literal)
         if (mv.Source is BoundLiteralExpression lit && lit.Value is string s)
         {
             foreach (var t in mv.Targets)
@@ -190,7 +190,24 @@ public sealed class Binder
                         continue;
                     }
                 }
-                // Fallback: NOP for unsupported move patterns
+            }
+            return;
+        }
+
+        // Handle MOVE numeric-literal TO identifier
+        if (mv.Source is BoundLiteralExpression numLit && numLit.Value is decimal d)
+        {
+            string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            foreach (var t in mv.Targets)
+            {
+                if (t is BoundIdentifierExpression id)
+                {
+                    var loc = _semantic.GetStorageLocation(id.Symbol);
+                    if (loc.HasValue)
+                    {
+                        block.Instructions.Add(new IrMoveStringToField(loc.Value, numStr));
+                    }
+                }
             }
             return;
         }
@@ -225,7 +242,11 @@ public sealed class Binder
 
     private void LowerPerform(BoundPerformStatement perf, IrBasicBlock block)
     {
-        if (_paragraphMethods.TryGetValue(perf.Target.Name, out var method))
+        if (!_paragraphMethods.TryGetValue(perf.Target.Name, out var method))
+            return;
+
+        int times = perf.Times > 0 ? perf.Times : 1;
+        for (int i = 0; i < times; i++)
             block.Instructions.Add(new IrPerform(method));
     }
 

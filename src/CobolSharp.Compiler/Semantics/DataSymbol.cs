@@ -6,23 +6,32 @@ public sealed class DataSymbol : Symbol
     public string? PicString { get; }
     public UsageKind Usage { get; }
     public ITypeSymbol? ResolvedType { get; set; }
+    public string? InitialValue { get; set; }
     public string? TypeName { get; }
-    public bool IsFiller => string.Equals(Name, "FILLER", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Original COBOL name (e.g., "FILLER"). Internal Name may differ for uniqueness.</summary>
+    public string DisplayName { get; }
+    public bool IsFiller { get; }
+    public bool IsGroup => PicString == null;
+    public bool IsElementary => PicString != null;
+
     public DataSymbol? Redefines { get; }
-    public DataSymbol? Parent { get; internal set; }
-    public IReadOnlyList<DataSymbol> Children => _children;
-    private readonly List<DataSymbol> _children = new();
+    public DataSymbol? Parent { get; private set; }
+    public List<DataSymbol> Children { get; } = new();
 
     public DataSymbol(
-        string name,
+        string internalName,
+        string displayName,
         int levelNumber,
         string? picString,
         UsageKind usage,
         string? typeName,
         DataSymbol? redefines,
         int line)
-        : base(name, SymbolKind.Data, line)
+        : base(internalName, SymbolKind.Data, line)
     {
+        DisplayName = displayName;
+        IsFiller = string.Equals(displayName, "FILLER", StringComparison.OrdinalIgnoreCase);
         LevelNumber = levelNumber;
         PicString = picString;
         Usage = usage;
@@ -30,9 +39,9 @@ public sealed class DataSymbol : Symbol
         Redefines = redefines;
     }
 
-    public void AddChild(DataSymbol child)
+    internal void AddChild(DataSymbol child)
     {
         child.Parent = this;
-        _children.Add(child);
+        Children.Add(child);
     }
 }

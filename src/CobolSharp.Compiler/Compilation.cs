@@ -79,11 +79,13 @@ public sealed class Compilation
             else if (sym is Semantics.SectionSymbol sect)
                 semanticModel.AddSection(sect);
         }
-        foreach (var sym in semanticBuilder.Symbols.Program.DataDivisionScope.Symbols.Values)
+        // Expose data items in declaration order (from SemanticBuilder's tree)
+        foreach (var data in semanticBuilder.DataItemsInOrder)
         {
-            if (sym is Semantics.DataSymbol data && (data.LevelNumber == 1 || data.LevelNumber == 77))
+            if (data.LevelNumber == 1 || data.LevelNumber == 77)
                 semanticModel.AddDataRecord(data);
         }
+        semanticModel.SetDataItemsInOrder(semanticBuilder.DataItemsInOrder);
 
         // Phase 4b: Compute storage layout — assign byte offsets to all data items
         ComputeStorageLayout(semanticModel);
@@ -99,7 +101,7 @@ public sealed class Compilation
         // Phase 6: CIL emission
         try
         {
-            var assembly = CodeGen.CilEmitter.EmitAssembly(irModule, programId);
+            var assembly = CodeGen.CilEmitter.EmitAssembly(irModule, programId, semanticModel);
             string dir = Path.GetDirectoryName(outputPath) ?? ".";
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             assembly.Write(outputPath);
@@ -158,30 +160,90 @@ public sealed class Compilation
     /// Assign byte offsets to all data items in working-storage and file section.
     /// Populates SemanticModel.StorageLocations for the binder to use.
     /// </summary>
+    /// <summary>
+    /// Recursive storage layout: groups share bytes with their children.
+    /// Only elementary items (with PIC) consume bytes.
+    /// </summary>
     private static void ComputeStorageLayout(Semantics.SemanticModel model)
     {
         int wsOffset = 0;
 
-        foreach (var sym in model.Symbols.Program.DataDivisionScope.Symbols.Values)
+        // Find root-level items (01/77) from the declaration-order list
+        foreach (var data in model.DataItemsInOrder)
         {
-            if (sym is Semantics.DataSymbol data)
+            if (data.LevelNumber == 1 || data.LevelNumber == 77)
             {
-                // Compute size from PIC or default
-                int size = ComputeFieldSize(data);
-
-                var pic = CodeGen.PicDescriptor.FromDataSymbol(data, size);
-                var loc = new CodeGen.StorageLocation(
-                    CodeGen.StorageAreaKind.WorkingStorage,
-                    wsOffset, size, pic);
-
-                model.RegisterStorageLocation(data, loc);
-                wsOffset += size;
+                LayoutItem(data, CodeGen.StorageAreaKind.WorkingStorage, ref wsOffset, model);
             }
         }
 
-        // Store total sizes for CIL emitter
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : 256;
         model.FileSectionSize = 1024;
+    }
+
+    /// <summary>
+    /// Recursively layout a data item and its children.
+    /// </summary>
+    private static void LayoutItem(
+        Semantics.DataSymbol item,
+        CodeGen.StorageAreaKind area,
+        ref int offset,
+        Semantics.SemanticModel model)
+    {
+        if (item.IsElementary)
+        {
+            // Elementary: allocate bytes from PIC
+            int size = ComputeFieldSize(item);
+            var pic = CodeGen.PicDescriptor.FromDataSymbol(item, size);
+            var loc = new CodeGen.StorageLocation(area, offset, size, pic);
+            model.RegisterStorageLocation(item, loc);
+            RegisterValue(model, item);
+            offset += size;
+        }
+        else
+        {
+            // Group: recurse into children, then span from first child to last
+            int groupStart = offset;
+
+            if (item.Children.Count > 0)
+            {
+                foreach (var child in item.Children)
+                    LayoutItem(child, area, ref offset, model);
+
+                // Group spans all children
+                int groupSize = offset - groupStart;
+                if (groupSize <= 0) groupSize = 1;
+                var pic = CodeGen.PicDescriptor.FromDataSymbol(item, groupSize);
+                var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
+                model.RegisterStorageLocation(item, loc);
+            }
+            else
+            {
+                // Empty group (no children found) — allocate minimum
+                var pic = CodeGen.PicDescriptor.FromDataSymbol(item, 1);
+                var loc = new CodeGen.StorageLocation(area, offset, 1, pic);
+                model.RegisterStorageLocation(item, loc);
+                offset += 1;
+            }
+
+            RegisterValue(model, item);
+        }
+    }
+
+    private static void RegisterValue(Semantics.SemanticModel model, Semantics.DataSymbol data)
+    {
+        if (data.InitialValue == null) return;
+
+        if (decimal.TryParse(data.InitialValue,
+            System.Globalization.CultureInfo.InvariantCulture, out var numVal)
+            && data.ResolvedType?.IsNumeric == true)
+        {
+            model.RegisterInitialValue(data, numVal, Semantics.Bound.CobolType.Numeric);
+        }
+        else
+        {
+            model.RegisterInitialValue(data, data.InitialValue, Semantics.Bound.CobolType.String);
+        }
     }
 
     private static int ComputeFieldSize(Semantics.DataSymbol data)
@@ -189,12 +251,7 @@ public sealed class Compilation
         var pic = data.ResolvedType?.Pic;
         if (pic != null && pic.Length > 0)
             return pic.Length + (pic.IsSigned ? 1 : 0);
-
-        // Group items or no PIC: use default
-        if (data.LevelNumber == 1 || data.LevelNumber == 77)
-            return 120; // default record size
-
-        return 1; // minimum
+        return 1;
     }
 
     private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)

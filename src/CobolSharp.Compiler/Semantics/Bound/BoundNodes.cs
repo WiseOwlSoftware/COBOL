@@ -120,11 +120,13 @@ public sealed class BoundPerformStatement : BoundStatement
 {
     public ParagraphSymbol Target { get; }
     public ParagraphSymbol? ThruTarget { get; }
+    public int Times { get; } // 0 = once (no TIMES phrase)
 
-    public BoundPerformStatement(ParagraphSymbol target, ParagraphSymbol? thruTarget = null)
+    public BoundPerformStatement(ParagraphSymbol target, ParagraphSymbol? thruTarget = null, int times = 0)
     {
         Target = target;
         ThruTarget = thruTarget;
+        Times = times;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.PerformStatement;
