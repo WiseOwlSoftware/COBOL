@@ -20,7 +20,10 @@ public sealed class DataSymbol : Symbol
     public bool IsElementary => PicString != null;
     public CodeGen.StorageAreaKind Area { get; set; }
 
-    public DataSymbol? Redefines { get; }
+    public DataSymbol? Redefines { get; set; }
+
+    /// <summary>Unresolved REDEFINES target name (for deferred resolution).</summary>
+    public string? RedefinesName { get; set; }
     public DataSymbol? Parent { get; private set; }
     public List<DataSymbol> Children { get; } = new();
 

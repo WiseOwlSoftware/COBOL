@@ -314,6 +314,9 @@ public sealed class Binder
 
     private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
     {
+        // One ArithmeticStatus per statement — init once, sticky across all targets
+        block.Instructions.Add(new IrInitArithmeticStatus());
+
         // Emit the arithmetic operations
         foreach (var target in mult.Targets)
         {
@@ -375,6 +378,8 @@ public sealed class Binder
 
     private void LowerAdd(BoundAddStatement add, IrBasicBlock block)
     {
+        block.Instructions.Add(new IrInitArithmeticStatus());
+
         if (add.Target is not BoundIdentifierExpression destId) return;
         var destLoc = _semantic.GetStorageLocation(destId.Symbol);
         if (!destLoc.HasValue) return;

@@ -2974,4 +2974,212 @@ Remaining 11 failures: F1-6, F1-12 (COMP issues), F1-17/19/21/23 .01/.03/.05
 
 ---
 
+## Entry 071 — 2026-03-15: PIC P(4)9 Classification Fix — 79→90/93
+
+### The Bug (Two-Part)
+
+**Part 1: PicUsageResolver misclassification.**
+`PIC P(4)9` was classified as integerDigits=1, fractionDigits=0. But leading P shifts the
+decimal left *before* the stored digit — so the `9` is actually a fractional digit. NIST
+declares `PIC P(4)9 VALUE .00001`, meaning stored `1` must decode as 10⁻⁵, not 10⁻⁴.
+
+**Fix:** Post-adjustment in PicUsageResolver: when leadingPScaling > 0 with no V and no
+existing fractionDigits, reclassify integerDigits as fractionDigits. Now P(4)9 gives
+fractionDigits=1, integerDigits=0, totalScale = 1+4 = 5. Stored 1 → 1/10⁵ = .00001. ✅
+
+**Part 2: ApplyScalingAndRounding used FractionDigits alone.**
+Even after Part 1, `MOVE .00001 TO PIC P(4)9` still stored 0 because
+`ApplyScalingAndRounding` truncated to `FractionDigits` decimal places (1), losing
+precision. The effective precision for P-scaled fields is `FractionDigits + LeadingScaleDigits`.
+
+**Fix:** Changed `ApplyScalingAndRounding` to use `FractionDigits + LeadingScaleDigits`.
+
+### AI Process Failure — Incomplete Fix Propagation
+
+After finding and fixing `ApplyScalingAndRounding`, the user asked: "Are there other places
+that need the same fix?" There were. Four more locations used `FractionDigits` alone without
+`LeadingScaleDigits`:
+
+1. `FormatNumericEdited` — numeric edited formatting
+2. `FormatNumericForDisplay` call in `MoveNumericToAlphanumeric`
+3. `WouldOverflow` COMP branch — overflow detection
+4. `WouldOverflow` COMP-3 branch — overflow detection
+
+**The lesson:** When fixing a pattern bug (using X where you should use X+Y), immediately
+grep for ALL occurrences of the pattern and fix them in one pass. Don't fix one spot, test,
+and move on. The user had to prompt this audit — it should have been automatic.
+
+### Result
+
+**NC101A: 90/93 pass** (was 79/90). +11 tests from P scaling classification fix.
+Only remaining failures:
+- F1-6 (1 test): COMP S9(6)V9(6) with REDEFINES — COMPUTED empty
+- Footer "NO TEST(S) FAILED" display bug (2 lines)
+
+---
+
+## Entry 072 — 2026-03-15: ArithmeticStatus Refactor — Statement-Level Sticky Status
+
+### The Problem
+
+Multi-target MULTIPLY with ON SIZE ERROR:
+```cobol
+MULTIPLY A BY B C D ON SIZE ERROR ...
+```
+If target B overflows but D doesn't, ON SIZE ERROR should still fire (spec: "if any target
+overflows"). The old design called `EmitInitArithmeticStatus` inside each arithmetic emitter,
+so each target reset the status — only the last target's overflow was preserved. This caused
+3 sub-tests (F1-18/20/22 .06) to be missing entirely from output.
+
+### The Fix — Production-Quality Refactor
+
+**Old design**: Each arithmetic CIL emitter (EmitPicMultiply, EmitPicAdd, etc.) called
+`EmitInitArithmeticStatus` internally. Emitter controlled status lifecycle.
+
+**New design**: One ArithmeticStatus per statement, binder-driven.
+- **Binder** emits `IrInitArithmeticStatus` once before all operations in a statement.
+- **Runtime helpers** never clear status — they only set `SizeError = true` (sticky).
+- **Emitter** is dumb and uniform: `IrInitArithmeticStatus` → initobj, arithmetic ops just
+  pass `ref status`, `IrLoadSizeError` reads the accumulated result.
+
+No accumulator locals, no OR operations, no special multi-target logic. The status naturally
+accumulates across all targets because nobody clears it between calls.
+
+### AI Process Failure — Attempted Backward-Compatible Hack
+
+First instinct was to add a second "accumulator" local variable and OR flags together after
+each target. User corrected: back-compatibility is irrelevant in a from-scratch compiler.
+The right fix is to refactor the architecture to the cleanest long-term shape.
+
+### Result
+
+**NC101A: 93/93 test results appear** (was 90/93). F1-18/20/22 .06 sub-tests now pass.
+Only remaining: F1-6 (COMP REDEFINES issue) + footer display bug.
+
+---
+
+## Entry 073 — 2026-03-15: REDEFINES Triple Bug — NC101A 93/93 (100%)
+
+### The Problem Chain
+
+F1-6 tests MULTIPLY with REDEFINES overlay: S9(6)V9(6) multiplied, then read as S9(12)
+through a REDEFINES. Three cascading bugs prevented this from working.
+
+### Bug 1: REDEFINES Symbol Resolution (SemanticBuilder)
+
+REDEFINES targets were resolved during the data item visit pass, but items at the same
+or higher level hadn't been declared yet. `_symbols.Resolve<DataSymbol>("COMPUTED-A")`
+returned null for every REDEFINES in the program — not just nested ones, ALL of them.
+WRK-DS-12V00-S, CM-18V0, CORRECT-N, etc. — every single REDEFINES was silently unresolved.
+
+**Fix:** Two-pass REDEFINES resolution. Pass 1 (visitor) stores `RedefinesName` string on
+each DataSymbol. Pass 2 (`ResolveRedefines()`) runs after all items are declared, resolving
+names against the fully-populated DataDivisionScope. Required making `DataSymbol.Redefines`
+settable.
+
+### Bug 2: Group REDEFINES Child Layout (Compilation.LayoutItem)
+
+When a REDEFINES item is a group (like CM-18V0 with children COMPUTED-18V0 + FILLER), the
+layout engine copied the target's StorageLocation and returned without recursing into
+children. COMPUTED-18V0 never received a storage location, making every MOVE to it a no-op.
+
+**Fix:** After registering the group REDEFINES item, recurse into its children using the
+target's base offset. Children get their own StorageLocations at the correct overlapping
+offsets.
+
+### Bug 3: REDEFINES PicDescriptor Sharing (Compilation.LayoutItem)
+
+The REDEFINES handler copied the *entire* StorageLocation from the target, including the
+target's PicDescriptor. WRK-DS-12V00-S (S9(12), 12 integer digits, 0 fraction) inherited
+WRK-DS-06V06's PicDescriptor (S9(6)V9(6), 6 integer, 6 fraction). DecodeDisplay then
+divided by 10^6, producing `8` instead of `8888889`.
+
+**Fix:** REDEFINES items share offset and area with target, but build their own PicDescriptor
+from their own PIC clause.
+
+### Bug 4 (Bonus): MOVE Numeric → NumericEdited Dispatch
+
+MOVE to COMPUTED-18V0 (PIC -9(18), which is NumericEdited) was routed through
+`MoveNumeric` (for plain Numeric), which writes raw digits without editing. The leading
+minus sign and formatting were lost, producing blank output.
+
+**Fix:** Added explicit dispatch in `EmitPicMoveFieldToField`: Numeric → NumericEdited
+calls `MoveNumericToNumericEdited` (with FormatNumericEdited). Also added Numeric →
+Alphanumeric dispatch for completeness.
+
+### AI Process Failures
+
+1. **Tunnel vision on a single code path.** After finding the REDEFINES handler in
+   `Compilation.LayoutItem`, I assumed it was the only one. User had to point out that
+   there might be other layout paths (RecordLayoutBuilder exists but turned out not to be
+   the issue — the real second problem was in SemanticBuilder's symbol resolution).
+
+2. **Not searching for ALL instances of a pattern.** When fixing REDEFINES, should have
+   immediately grepped for every occurrence of `Redefines != null` and every place that
+   builds StorageLocations. The user had to demand this audit.
+
+### Result
+
+**NC101A: 93/93 internal PASS** — all arithmetic tests correct. REDEFINES overlays, ON SIZE
+ERROR accumulation, P scaling, multi-target MULTIPLY, and numeric-edited MOVE all working.
+Footer reads "93 OF 93 TESTS WERE EXECUTED SUCCESSFULLY" and "NO TEST(S) FAILED."
+
+**However, output does NOT match expected file.** Declared victory too early — checked the
+internal PASS/FAIL counters but didn't diff against `tests/nist/valid/NC101A.txt`. Remaining
+output mismatches:
+
+1. Missing leading blank line
+2. `.00` remark appearing on every simple test (expected has no remark for F1-1 through F1-12)
+3. `*** INFORMATION ***` lines + blank lines after every PASS (BAIL-OUT firing for PASS tests)
+4. Missing paragraph names for continuation sub-tests (.02-.06)
+
+These are data movement / comparison bugs in the NIST test harness code, not arithmetic bugs.
+The harness BAIL-OUT path fires incorrectly, REC-CT formatting produces `.00` instead of
+blank, and PAR-NAME isn't preserved for multi-result tests. Still need to fix for true
+output parity.
+
+### AI Process Failure — Premature Victory Declaration
+
+Checked "93 OF 93 TESTS WERE EXECUTED SUCCESSFULLY" and declared 100% pass without diffing
+the actual output against the expected file. The internal PASS count is necessary but not
+sufficient — the output must match byte-for-byte (modulo trailing spaces). Always diff.
+
+---
+
+## Entry 074 — 2026-03-15: ZERO Figurative Constant + Output Diff Analysis
+
+### ZERO Bug
+
+Figurative constant ZERO was bound as `BoundLiteralExpression("0", Numeric)` — string "0",
+not decimal 0m. When the binder compared `IF REC-CT NOT EQUAL TO ZERO`, it checked
+`litRight.Value is decimal d` which failed (Value is string). Fell through to the
+`IrSetBool(result, true)` fallback — meaning every comparison with ZERO evaluated as TRUE.
+
+This caused: `.00` remark appearing on every test (REC-CT NOT EQUAL TO ZERO was always
+"true", so the `.` and DOTVALUE were always written), and PAR-NAME being cleared for
+sub-tests (REC-CT EQUAL TO ZERO was always "true" via the same fallback).
+
+**Fix:** Changed ZERO binding from string `"0"` to decimal `0m` in BoundTreeBuilder.
+
+### Remaining Output Mismatches (vs expected file diff)
+
+After the ZERO fix, diffing `print-file.txt` vs `tests/nist/valid/NC101A.txt`:
+
+1. **Missing leading blank line** — expected starts with a blank line, actual doesn't
+2. **`*** INFORMATION ***` after every PASS** — BAIL-OUT paragraph falls through to
+   BAIL-OUT-WRITE instead of GO TO BAIL-OUT-EX. Traced: both COMPUTED-A and CORRECT-A
+   are correctly all-spaces (0x20), CompareFieldToString returns 0 (equal). The comparisons
+   are correct but the GO TO inside `IF cond GO TO para` within a PERFORM THRU range isn't
+   changing control flow. This is a PERFORM THRU + GO TO interaction bug.
+3. **`93 OF 93` vs `093 OF 093`** — numeric-to-alphanumeric MOVE formatting (PIC 999 →
+   PIC XXX should produce zero-padded "093", not "93 ").
+
+### Status
+
+**NC101A: 93/93 internal PASS.** Output diff has 3 categories of mismatch remaining, all
+in test harness behavior (BAIL-OUT control flow, number formatting, leading blank line).
+No arithmetic bugs remain.
+
+---
+
 *End of entries for 2026-03-15*

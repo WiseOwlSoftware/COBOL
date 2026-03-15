@@ -65,7 +65,7 @@ public static class PicRuntime
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
 
-        int scale = pic.FractionDigits;
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
 
         decimal scaled = absValue * Pow10(scale);
@@ -132,7 +132,7 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
-        string formatted = FormatNumericForDisplay(value, srcPic.FractionDigits);
+        string formatted = FormatNumericForDisplay(value, srcPic.FractionDigits + srcPic.LeadingScaleDigits);
         MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
     }
 
@@ -915,7 +915,8 @@ public static class PicRuntime
 
     private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
     {
-        int scale = destPic.FractionDigits;
+        // Total fraction scale includes leading P digits (e.g. PIC P(4)9 has scale 5)
+        int scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
         decimal factor = 1m;
         for (int i = 0; i < scale; i++) factor *= 10m;
@@ -950,10 +951,11 @@ public static class PicRuntime
             case UsageKind.Comp:
             case UsageKind.Binary:
             {
-                // Scale to integer
+                // Scale to integer (include leading P scaling)
                 decimal scaled = absValue;
-                if (destPic.FractionDigits > 0)
-                    scaled *= Pow10(destPic.FractionDigits);
+                int compScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+                if (compScale > 0)
+                    scaled *= Pow10(compScale);
                 long raw;
                 try { raw = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
@@ -969,9 +971,11 @@ public static class PicRuntime
             case UsageKind.Comp3:
             case UsageKind.PackedDecimal:
             {
+                // Include leading P scaling
                 decimal scaled = absValue;
-                if (destPic.FractionDigits > 0)
-                    scaled *= Pow10(destPic.FractionDigits);
+                int comp3Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+                if (comp3Scale > 0)
+                    scaled *= Pow10(comp3Scale);
                 long intVal;
                 try { intVal = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }

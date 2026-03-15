@@ -179,6 +179,14 @@ public static class PicUsageResolver
             }
         }
 
+        // Leading P with no V: digits after leading P are fractional, not integer.
+        // E.g. PIC P(4)9 → fractionDigits=1, integerDigits=0, scale = 1+4 = 5
+        if (!pastDecimal && leadingPScaling > 0 && integerDigits > 0 && fractionDigits == 0)
+        {
+            fractionDigits = integerDigits;
+            integerDigits = 0;
+        }
+
         int length = integerDigits + fractionDigits;
 
         // Classify into CobolCategory using the full lattice

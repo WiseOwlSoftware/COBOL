@@ -27,6 +27,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Tracks which data division section we're currently visiting
     private StorageAreaKind _currentArea = StorageAreaKind.WorkingStorage;
 
+    // Temporary: holds the REDEFINES target name during clause parsing
+    private string? _deferredRedefinesName;
+
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
@@ -34,6 +37,22 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public SemanticBuilder(string programName, int line)
     {
         _symbols = new SymbolTable(programName, line);
+    }
+
+    /// <summary>
+    /// Pass 2: Resolve all deferred REDEFINES references now that all data items
+    /// are registered in the symbol table.
+    /// </summary>
+    public void ResolveRedefines()
+    {
+        foreach (var data in _dataItemsInOrder)
+        {
+            if (data.RedefinesName == null) continue;
+            var target = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.RedefinesName);
+            if (target != null)
+                data.Redefines = target;
+            // else: target not found — silently ignore for now (may be in COPY not yet expanded)
+        }
     }
 
     private void Error(ParserRuleContext ctx, string message)
@@ -105,8 +124,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var usage = UsageKind.Display;
         string? typeName = null;
         string? initialValue = null;
-        DataSymbol? redefines = null;
-
         var body = ctx.dataDescriptionBody();
         if (body?.dataDescriptionClauses() != null)
         {
@@ -123,8 +140,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var redefinesClause = clause.redefinesClause();
                 if (redefinesClause != null)
                 {
-                    string redefinesName = redefinesClause.identifier()?.GetText() ?? "";
-                    redefines = _symbols.Resolve<DataSymbol>(redefinesName);
+                    // Store the unresolved name; actual resolution happens in pass 2
+                    // after all data items are registered in the symbol table
+                    _deferredRedefinesName = redefinesClause.identifier()?.GetText() ?? "";
                 }
 
                 var typeClause = clause.typeClause();
@@ -177,8 +195,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        // Create DataSymbol
-        var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines, line);
+        // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
+        var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
+        data.RedefinesName = _deferredRedefinesName;
+        _deferredRedefinesName = null;
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();

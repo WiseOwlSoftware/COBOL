@@ -63,6 +63,9 @@ public sealed class Compilation
         var semanticBuilder = new Semantics.SemanticBuilder(programId, 1);
         semanticBuilder.Visit(tree);
 
+        // Phase 3a: Resolve deferred REDEFINES (requires all data items registered)
+        semanticBuilder.ResolveRedefines();
+
         // Phase 3b: Semantic analysis — Pass 2: reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
         var resolver = new Semantics.ReferenceResolver(semanticBuilder.Symbols, semDiagnostics);
@@ -253,8 +256,22 @@ public sealed class Compilation
             var targetLoc = model.GetStorageLocation(item.Redefines);
             if (targetLoc.HasValue)
             {
-                model.RegisterStorageLocation(item, targetLoc.Value);
+                // REDEFINES shares the target's offset and area, but uses its own PIC
+                int size = item.IsElementary ? ComputeFieldSize(item) : targetLoc.Value.Length;
+                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
+                var loc = new CodeGen.StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic);
+                model.RegisterStorageLocation(item, loc);
                 RegisterValue(model, item);
+
+                // For group REDEFINES, recurse into children so nested items
+                // get storage locations (e.g., CM-18V0 REDEFINES COMPUTED-A
+                // contains COMPUTED-18V0 which needs its own location)
+                if (item.Children.Count > 0)
+                {
+                    int childOffset = targetLoc.Value.Offset;
+                    foreach (var child in item.Children)
+                        LayoutItem(child, area, ref childOffset, model);
+                }
             }
             return;
         }

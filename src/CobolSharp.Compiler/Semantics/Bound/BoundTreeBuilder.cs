@@ -398,7 +398,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 "SPACE" or "SPACES" =>
                     new BoundLiteralExpression(" ", CobolCategory.Alphanumeric),
                 "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundLiteralExpression("0", CobolCategory.Numeric),
+                    new BoundLiteralExpression(0m, CobolCategory.Numeric),
                 "HIGH-VALUE" or "HIGH-VALUES" =>
                     new BoundLiteralExpression("\xFF", CobolCategory.Alphanumeric),
                 "LOW-VALUE" or "LOW-VALUES" =>

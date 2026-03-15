@@ -138,6 +138,12 @@ public sealed class IrSetBool : IrInstruction
 }
 
 /// <summary>
+/// Initialize (clear) the method's ArithmeticStatus local.
+/// Emitted once per arithmetic statement, before any operations.
+/// </summary>
+public sealed class IrInitArithmeticStatus : IrInstruction { }
+
+/// <summary>
 /// Load the SizeError flag from the method's ArithmeticStatus local into a bool.
 /// </summary>
 public sealed class IrLoadSizeError : IrInstruction
