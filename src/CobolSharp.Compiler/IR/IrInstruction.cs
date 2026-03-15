@@ -108,10 +108,59 @@ public sealed class IrJump : IrInstruction
     public IrJump(IrBasicBlock target) => Target = target;
 }
 
+/// <summary>
+/// Branch to Target if Condition is false; otherwise fall through.
+/// </summary>
+public sealed class IrBranchIfFalse : IrInstruction
+{
+    public IrValue Condition { get; }
+    public IrBasicBlock Target { get; }
+
+    public IrBranchIfFalse(IrValue condition, IrBasicBlock target)
+    {
+        Condition = condition;
+        Target = target;
+    }
+}
+
+/// <summary>
+/// Store a boolean constant into an IrValue (used as fallback condition).
+/// </summary>
+public sealed class IrSetBool : IrInstruction
+{
+    public bool Value { get; }
+
+    public IrSetBool(IrValue result, bool value)
+    {
+        Result = result;
+        Value = value;
+    }
+}
+
 public sealed class IrReturn : IrInstruction
 {
     public IrValue? Value { get; }
     public IrReturn(IrValue? value) => Value = value;
+}
+
+/// <summary>
+/// Return a constant int from a paragraph method.
+/// Fall-through: myIndex+1, GO TO: targetIndex, STOP RUN: -1.
+/// </summary>
+public sealed class IrReturnConst : IrInstruction
+{
+    public int Value { get; }
+    public IrReturnConst(int value) => Value = value;
+}
+
+/// <summary>
+/// PC-driven dispatch loop over paragraph methods (emitted in Main).
+/// while (pc >= 0 && pc &lt; N) pc = paragraphs[pc]();
+/// </summary>
+public sealed class IrParagraphDispatch : IrInstruction
+{
+    public IReadOnlyList<IrMethod> Paragraphs { get; }
+    public IrParagraphDispatch(IReadOnlyList<IrMethod> paragraphs) => Paragraphs = paragraphs;
 }
 
 // ── Calls and PERFORM ──
@@ -245,6 +294,22 @@ public sealed class IrPicCompareLiteral : IrInstruction
     public int OperatorKind { get; }
 
     public IrPicCompareLiteral(CodeGen.StorageLocation left, decimal value,
+        IrValue result, int operatorKind)
+    {
+        Left = left; Value = value; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// Compare an alphanumeric field to a string literal. Result is bool.
+/// </summary>
+public sealed class IrStringCompareLiteral : IrInstruction
+{
+    public CodeGen.StorageLocation Left { get; }
+    public string Value { get; }
+    public int OperatorKind { get; }
+
+    public IrStringCompareLiteral(CodeGen.StorageLocation left, string value,
         IrValue result, int operatorKind)
     {
         Left = left; Value = value; Result = result; OperatorKind = operatorKind;

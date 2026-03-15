@@ -12,6 +12,12 @@ namespace CobolSharp.Compiler.CodeGen;
 /// <summary>
 /// The Binder lowers a BoundProgram (typed, symbol-resolved) into an IrModule.
 /// It never touches the parse tree — all syntax is pre-resolved by BoundTreeBuilder.
+///
+/// Paragraph methods return int (next PC):
+///   fall-through → myIndex + 1
+///   GO TO X      → indexOf(X)
+///   STOP RUN     → -1
+/// Main dispatches via: while (pc >= 0 && pc &lt; N) pc = paragraphs[pc]();
 /// </summary>
 public sealed class Binder
 {
@@ -21,6 +27,9 @@ public sealed class Binder
     private readonly IrValueFactory _valueFactory = new();
     private readonly Dictionary<string, IrMethod> _paragraphMethods =
         new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, int> _paragraphIndices =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<string> _paragraphsByIndex = new();
 
     public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
     {
@@ -42,13 +51,17 @@ public sealed class Binder
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);
 
-        // Phase 3: Create paragraph method stubs
+        // Phase 3: Create paragraph method stubs (return Int32 for PC)
+        int paraIndex = 0;
         foreach (var para in boundProgram.Paragraphs)
         {
-            var method = new IrMethod($"Para_{para.Symbol.Name}", returnType: IrPrimitiveType.Void);
+            var method = new IrMethod($"Para_{para.Symbol.Name}", returnType: IrPrimitiveType.Int32);
             method.Blocks.Add(new IrBasicBlock($"{para.Symbol.Name}_entry"));
             _paragraphMethods[para.Symbol.Name] = method;
+            _paragraphIndices[para.Symbol.Name] = paraIndex;
+            _paragraphsByIndex.Add(para.Symbol.Name);
             module.Methods.Add(method);
+            paraIndex++;
         }
 
         // Phase 4: Lower bound statements into IR
@@ -56,13 +69,16 @@ public sealed class Binder
         {
             if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var method))
             {
+                int myIndex = _paragraphIndices[para.Symbol.Name];
                 var block = method.Blocks[0];
                 foreach (var stmt in para.Statements)
-                    LowerStatement(stmt, block);
+                    block = LowerStatement(stmt, method, block);
+                // Fall-through: return next paragraph index
+                block.Instructions.Add(new IrReturnConst(myIndex + 1));
             }
         }
 
-        // Phase 5: Create entry point
+        // Phase 5: Create entry point (PC dispatch loop)
         CreateEntryPoint(module, boundProgram);
 
         return module;
@@ -86,21 +102,24 @@ public sealed class Binder
         var main = new IrMethod("Main", returnType: IrPrimitiveType.Void);
         var block = new IrBasicBlock("main_entry");
 
-        if (boundProgram.Paragraphs.Count > 0)
+        // Collect paragraph methods in declaration order
+        var orderedMethods = new List<IrMethod>();
+        foreach (var para in boundProgram.Paragraphs)
         {
-            var firstPara = boundProgram.Paragraphs[0];
-            if (_paragraphMethods.TryGetValue(firstPara.Symbol.Name, out var firstMethod))
-                block.Instructions.Add(new IrPerform(firstMethod));
+            if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var m))
+                orderedMethods.Add(m);
         }
 
-        block.Instructions.Add(new IrReturn(null));
+        // Emit PC dispatch loop
+        block.Instructions.Add(new IrParagraphDispatch(orderedMethods));
+
         main.Blocks.Add(block);
         module.Methods.Insert(0, main);
     }
 
     // ── Statement lowering ──
 
-    private void LowerStatement(BoundStatement stmt, IrBasicBlock block)
+    private IrBasicBlock LowerStatement(BoundStatement stmt, IrMethod method, IrBasicBlock block)
     {
         switch (stmt)
         {
@@ -117,8 +136,7 @@ public sealed class Binder
                 LowerWrite(wr, block);
                 break;
             case BoundIfStatement iff:
-                LowerIf(iff, block);
-                break;
+                return LowerIf(iff, method, block);
             case BoundMultiplyStatement mult:
                 LowerMultiply(mult, block);
                 break;
@@ -129,15 +147,13 @@ public sealed class Binder
                 LowerGoTo(gt, block);
                 break;
             case BoundStopStatement:
-                block.Instructions.Add(new IrReturn(null));
+                block.Instructions.Add(new IrReturnConst(-1));
                 break;
             case BoundExitStatement:
-                block.Instructions.Add(new IrReturn(null));
+                // EXIT is a no-op; fall-through return handles it
                 break;
             case BoundOpenStatement:
             {
-                // Emit FileRuntime.OpenOutput("PRINT-FILE")
-                // TODO: resolve actual file name from bound statement
                 var fnVal = _valueFactory.Next(IrPrimitiveType.String);
                 block.Instructions.Add(new IrLoadConst(fnVal, "PRINT-FILE"));
                 block.Instructions.Add(new IrRuntimeCall(
@@ -153,9 +169,9 @@ public sealed class Binder
                 break;
             }
             case BoundArithmeticStatement:
-                // Placeholder — NOP for now
                 break;
         }
+        return block;
     }
 
     // ── DISPLAY ──
@@ -248,12 +264,24 @@ public sealed class Binder
 
     private void LowerPerform(BoundPerformStatement perf, IrBasicBlock block)
     {
-        if (!_paragraphMethods.TryGetValue(perf.Target.Name, out var method))
+        if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
             return;
 
+        int endIdx = startIdx;
+        if (perf.ThruTarget != null &&
+            _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
+            endIdx = thruIdx;
+
         int times = perf.Times > 0 ? perf.Times : 1;
-        for (int i = 0; i < times; i++)
-            block.Instructions.Add(new IrPerform(method));
+        for (int t = 0; t < times; t++)
+        {
+            for (int i = startIdx; i <= endIdx; i++)
+            {
+                var paraName = _paragraphsByIndex[i];
+                if (_paragraphMethods.TryGetValue(paraName, out var method))
+                    block.Instructions.Add(new IrPerform(method));
+            }
+        }
     }
 
     // ── WRITE ──
@@ -364,72 +392,101 @@ public sealed class Binder
 
     // ── IF ──
 
-    private void LowerIf(BoundIfStatement iff, IrBasicBlock block)
+    private IrBasicBlock LowerIf(BoundIfStatement iff, IrMethod method, IrBasicBlock current)
     {
-        // Check if condition is a real comparison
-        if (iff.Condition is BoundBinaryExpression binCond)
+        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        LowerCondition(iff.Condition, condVal, current);
+
+        var thenBlock = method.CreateBlock("if.then");
+        var elseBlock = iff.ElseStatements is { Count: > 0 }
+            ? method.CreateBlock("if.else")
+            : null;
+        var joinBlock = method.CreateBlock("if.join");
+
+        // Branch: if condition false → else (or join if no else)
+        current.Instructions.Add(new IrBranchIfFalse(condVal,
+            elseBlock ?? joinBlock));
+
+        // THEN block
+        method.Blocks.Add(thenBlock);
+        var thenCurrent = thenBlock;
+        foreach (var stmt in iff.ThenStatements)
+            thenCurrent = LowerStatement(stmt, method, thenCurrent);
+        thenCurrent.Instructions.Add(new IrJump(joinBlock));
+
+        // ELSE block (optional)
+        if (elseBlock != null)
+        {
+            method.Blocks.Add(elseBlock);
+            var elseCurrent = elseBlock;
+            foreach (var stmt in iff.ElseStatements!)
+                elseCurrent = LowerStatement(stmt, method, elseCurrent);
+            elseCurrent.Instructions.Add(new IrJump(joinBlock));
+        }
+
+        // Subsequent statements go to join block
+        method.Blocks.Add(joinBlock);
+        return joinBlock;
+    }
+
+    private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
+    {
+        if (cond is BoundBinaryExpression binCond)
         {
             var leftSym = (binCond.Left as BoundIdentifierExpression)?.Symbol;
             var rightSym = (binCond.Right as BoundIdentifierExpression)?.Symbol;
 
-            // Compare two identifiers (numeric comparison)
             if (leftSym != null)
             {
                 var leftLoc = _semantic.GetStorageLocation(leftSym);
-
-                // Right side can be identifier or literal
-                StorageLocation? rightLoc = null;
-                if (rightSym != null)
-                    rightLoc = _semantic.GetStorageLocation(rightSym);
-
                 if (leftLoc.HasValue)
                 {
-                    // Emit compare + branch
-                    var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-
-                    if (rightLoc.HasValue)
+                    // identifier vs string literal (alphanumeric comparison)
+                    if (binCond.Right is BoundLiteralExpression litStr &&
+                        litStr.Value is string s && !leftLoc.Value.Pic.IsNumeric)
                     {
-                        block.Instructions.Add(new IrPicCompare(
-                            leftLoc.Value, rightLoc.Value, condVal,
+                        block.Instructions.Add(new IrStringCompareLiteral(
+                            leftLoc.Value, s, result,
                             (int)binCond.OperatorKind));
-                    }
-                    else if (binCond.Right is BoundLiteralExpression litRight)
-                    {
-                        // Compare identifier to literal: write literal to temp, compare
-                        // For now: fall through to always-then
+                        return;
                     }
 
-                    // Simple branch: if condition true → then, else → else
-                    // For now, use condVal to gate then/else
-                    // TODO: proper basic block branching
-                    // Emit then statements when condition is true
-                    foreach (var stmt in iff.ThenStatements)
-                        LowerStatement(stmt, block);
-
-                    // Emit else if present
-                    if (iff.ElseStatements != null)
+                    // identifier vs identifier (numeric comparison)
+                    if (rightSym != null)
                     {
-                        foreach (var stmt in iff.ElseStatements)
-                            LowerStatement(stmt, block);
+                        var rightLoc = _semantic.GetStorageLocation(rightSym);
+                        if (rightLoc.HasValue)
+                        {
+                            block.Instructions.Add(new IrPicCompare(
+                                leftLoc.Value, rightLoc.Value, result,
+                                (int)binCond.OperatorKind));
+                            return;
+                        }
                     }
-                    return;
+                    // identifier vs numeric literal
+                    else if (binCond.Right is BoundLiteralExpression litRight
+                             && litRight.Value is decimal d)
+                    {
+                        block.Instructions.Add(new IrPicCompareLiteral(
+                            leftLoc.Value, d, result,
+                            (int)binCond.OperatorKind));
+                        return;
+                    }
                 }
             }
         }
 
-        // Fallback: emit then-statements (always-true)
-        foreach (var stmt in iff.ThenStatements)
-            LowerStatement(stmt, block);
+        // Fallback: always true
+        block.Instructions.Add(new IrSetBool(result, true));
     }
 
     // ── GO TO ──
 
     private void LowerGoTo(BoundGoToStatement gt, IrBasicBlock block)
     {
-        if (_paragraphMethods.TryGetValue(gt.Target.Name, out var method))
+        if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
         {
-            block.Instructions.Add(new IrPerform(method));
-            block.Instructions.Add(new IrReturn(null));
+            block.Instructions.Add(new IrReturnConst(targetIndex));
         }
     }
 }

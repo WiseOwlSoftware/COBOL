@@ -170,18 +170,35 @@ public sealed class Compilation
     private static void ComputeStorageLayout(Semantics.SemanticModel model)
     {
         int wsOffset = 0;
+        int fsOffset = 0;
 
-        // Find root-level items (01/77) from the declaration-order list
+        // Layout working storage roots
         foreach (var data in model.DataItemsInOrder)
         {
-            if (data.LevelNumber == 1 || data.LevelNumber == 77)
+            if ((data.LevelNumber == 1 || data.LevelNumber == 77) &&
+                data.Area == CodeGen.StorageAreaKind.WorkingStorage)
             {
                 LayoutItem(data, CodeGen.StorageAreaKind.WorkingStorage, ref wsOffset, model);
             }
         }
 
+        // Layout file section roots: all 01-level records under the same FD
+        // share the same record buffer (implicit REDEFINES). Layout each at
+        // offset 0 and take the max size as the file section size.
+        int maxRecordSize = 0;
+        foreach (var data in model.DataItemsInOrder)
+        {
+            if (data.LevelNumber == 1 && data.Area == CodeGen.StorageAreaKind.FileSection)
+            {
+                int recOffset = 0;
+                LayoutItem(data, CodeGen.StorageAreaKind.FileSection, ref recOffset, model);
+                if (recOffset > maxRecordSize) maxRecordSize = recOffset;
+            }
+        }
+        fsOffset = maxRecordSize;
+
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : 256;
-        model.FileSectionSize = 1024;
+        model.FileSectionSize = fsOffset > 0 ? fsOffset : 256;
     }
 
     /// <summary>

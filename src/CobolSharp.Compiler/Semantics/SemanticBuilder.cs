@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Runtime;
 using Antlr4.Runtime;
+using CobolSharp.Compiler.CodeGen;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Generated;
 
@@ -22,6 +23,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     // Parent stack for level-number-based tree building
     private readonly Stack<DataSymbol> _dataStack = new();
+
+    // Tracks which data division section we're currently visiting
+    private StorageAreaKind _currentArea = StorageAreaKind.WorkingStorage;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -47,6 +51,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public override object? VisitWorkingStorageSection(CobolParserCore.WorkingStorageSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.WorkingStorage;
         return base.VisitWorkingStorageSection(ctx);
     }
 
@@ -65,6 +70,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public override object? VisitFileSection(CobolParserCore.FileSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.FileSection;
         return base.VisitFileSection(ctx);
     }
 
@@ -173,6 +179,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             _diagnostics.Add(d);
 
         data.InitialValue = initialValue;
+        data.Area = _currentArea;
 
         // Build parent/child tree using level numbers
         if (level == 1 || level == 77)

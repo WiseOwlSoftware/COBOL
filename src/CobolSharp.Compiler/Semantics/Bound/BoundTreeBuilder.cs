@@ -441,6 +441,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (decimal.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var val))
             return new BoundLiteralExpression(val, CobolType.Numeric);
 
+        // Figurative constants
+        var upper = text.ToUpperInvariant();
+        if (upper is "SPACE" or "SPACES")
+            return new BoundLiteralExpression(" ", CobolType.String);
+        if (upper is "ZERO" or "ZEROS" or "ZEROES")
+            return new BoundLiteralExpression(0m, CobolType.Numeric);
+
         var sym = _semantic.ResolveData(text);
         if (sym != null)
             return new BoundIdentifierExpression(sym, CobolType.Alphanumeric);

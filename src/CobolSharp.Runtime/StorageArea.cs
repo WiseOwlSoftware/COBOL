@@ -70,4 +70,15 @@ public static class StorageHelpers
         string text = Encoding.ASCII.GetString(area, offset, size).TrimEnd();
         FileRuntime.WriteText(fileName, text);
     }
+
+    /// <summary>
+    /// Compare a field's bytes (as ASCII) to a string literal.
+    /// Returns -1/0/1 like string.Compare. Trailing spaces ignored (COBOL semantics).
+    /// </summary>
+    public static int CompareFieldToString(byte[] area, int offset, int length, string value)
+    {
+        var field = Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        var trimmedValue = value.TrimEnd();
+        return string.Compare(field, trimmedValue, StringComparison.Ordinal);
+    }
 }

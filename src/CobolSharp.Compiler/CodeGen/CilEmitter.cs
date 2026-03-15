@@ -19,6 +19,7 @@ public sealed class CilEmitter
     private readonly Dictionary<IrMethod, MethodDefinition> _methodMap = new();
     private TypeDefinition? _programType;
     private FieldDefinition? _programStateField;
+    private MethodDefinition? _currentMethodDef;
 
     private CilEmitter(ModuleDefinition module)
     {
@@ -266,6 +267,7 @@ public sealed class CilEmitter
     private void EmitMethodBody(IrMethod irMethod)
     {
         var md = _methodMap[irMethod];
+        _currentMethodDef = md;
 
         md.Body.InitLocals = true;
 
@@ -285,13 +287,15 @@ public sealed class CilEmitter
             return vd;
         }
 
-        // Create block labels (NOP as first instruction of each block)
+        // Pass 1: Create labels for all blocks (enables forward branches)
         var blockLabels = new Dictionary<IrBasicBlock, Instruction>();
         foreach (var block in irMethod.Blocks)
+            blockLabels[block] = il.Create(OpCodes.Nop);
+
+        // Pass 2: Emit blocks with labels and instructions
+        foreach (var block in irMethod.Blocks)
         {
-            var label = il.Create(OpCodes.Nop);
-            blockLabels[block] = label;
-            il.Append(label);
+            il.Append(blockLabels[block]);
 
             foreach (var inst in block.Instructions)
                 EmitInstruction(il, inst, GetLocalForValue, blockLabels);
@@ -348,8 +352,36 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Br, blockLabels[j.Target]));
                 break;
 
+            case IrBranchIfFalse bif:
+            {
+                var condLocal = getLocal(bif.Condition);
+                il.Append(il.Create(OpCodes.Ldloc, condLocal));
+                il.Append(il.Create(OpCodes.Brfalse, blockLabels[bif.Target]));
+                break;
+            }
+
+            case IrSetBool sb:
+            {
+                il.Append(il.Create(sb.Value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+                if (sb.Result.HasValue)
+                {
+                    var local = getLocal(sb.Result.Value);
+                    il.Append(il.Create(OpCodes.Stloc, local));
+                }
+                break;
+            }
+
+            case IrReturnConst rc:
+                il.Append(il.Create(OpCodes.Ldc_I4, rc.Value));
+                il.Append(il.Create(OpCodes.Ret));
+                break;
+
             case IrReturn ret:
                 EmitReturn(il, ret, getLocal);
+                break;
+
+            case IrParagraphDispatch dispatch:
+                EmitParagraphDispatch(il, dispatch, _currentMethodDef!);
                 break;
 
             case IrCall call:
@@ -394,6 +426,10 @@ public sealed class CilEmitter
 
             case IrPicCompareLiteral cmpLit:
                 EmitPicCompareLiteral(il, cmpLit, getLocal);
+                break;
+
+            case IrStringCompareLiteral strCmp:
+                EmitStringCompareLiteral(il, strCmp, getLocal);
                 break;
 
             case IrPicMoveLiteralNumeric movLit:
@@ -543,6 +579,9 @@ public sealed class CilEmitter
     {
         var target = _methodMap[perf.Target];
         il.Append(il.Create(OpCodes.Call, target));
+        // Paragraph methods return int (next PC); discard in PERFORM context
+        if (target.ReturnType != _module.TypeSystem.Void)
+            il.Append(il.Create(OpCodes.Pop));
     }
 
     /// <summary>
@@ -685,13 +724,7 @@ public sealed class CilEmitter
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ceq));
-        if (cmp.OperatorKind == 1) // NotEqual
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ceq));
-        }
+        EmitCompareResultToBool(il, cmp.OperatorKind);
 
         if (cmp.Result.HasValue)
         {
@@ -823,20 +856,138 @@ public sealed class CilEmitter
                         typeof(decimal) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
-        // Compare result to 0
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ceq));
-        if (cmp.OperatorKind == 1) // NotEqual
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ceq));
-        }
+        EmitCompareResultToBool(il, cmp.OperatorKind);
 
         if (cmp.Result.HasValue)
         {
             var resLocal = getLocal(cmp.Result.Value);
             il.Append(il.Create(OpCodes.Stloc, resLocal));
         }
+    }
+
+    /// <summary>
+    /// Convert CompareNumeric result (-1/0/1) to bool based on operator kind.
+    /// BoundBinaryOperatorKind: Equal=4, NotEqual=5, Less=6, LessOrEqual=7, Greater=8, GreaterOrEqual=9
+    /// </summary>
+    private void EmitCompareResultToBool(ILProcessor il, int operatorKind)
+    {
+        switch (operatorKind)
+        {
+            case 4: // Equal: result == 0
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                break;
+            case 5: // NotEqual: NOT (result == 0)
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                break;
+            case 6: // Less: result < 0
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Clt));
+                break;
+            case 7: // LessOrEqual: NOT (result > 0)
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Cgt));
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                break;
+            case 8: // Greater: result > 0
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Cgt));
+                break;
+            case 9: // GreaterOrEqual: NOT (result < 0)
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Clt));
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                break;
+            default: // Fallback: treat as equal
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ceq));
+                break;
+        }
+    }
+
+    private void EmitStringCompareLiteral(ILProcessor il, IrStringCompareLiteral cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, cmp.Left.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
+        il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToString",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
+
+    /// <summary>
+    /// Emit the PC-driven dispatch loop for Main:
+    ///   int pc = 0;
+    ///   while (pc >= 0 && pc &lt; N) pc = paragraphs[pc]();
+    /// Uses CIL switch opcode for O(1) dispatch.
+    /// </summary>
+    private void EmitParagraphDispatch(ILProcessor il, IrParagraphDispatch dispatch,
+        MethodDefinition md)
+    {
+        var paragraphs = dispatch.Paragraphs;
+        int count = paragraphs.Count;
+
+        // Local: int pc
+        var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        md.Body.Variables.Add(pcLocal);
+
+        // pc = 0
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Stloc, pcLocal));
+
+        // LOOP label
+        var loopLabel = il.Create(OpCodes.Nop);
+        il.Append(loopLabel);
+
+        // EXIT label (created now, appended later)
+        var exitLabel = il.Create(OpCodes.Nop);
+
+        // if pc < 0, goto EXIT
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Blt, exitLabel));
+
+        // Create case labels
+        var caseLabels = new Instruction[count];
+        for (int i = 0; i < count; i++)
+            caseLabels[i] = il.Create(OpCodes.Nop);
+
+        // switch (pc) — jumps to caseLabels[pc], falls through if pc >= count
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Switch, caseLabels));
+
+        // Default (pc >= count): goto EXIT
+        il.Append(il.Create(OpCodes.Br, exitLabel));
+
+        // Case bodies: call paragraph, store returned pc, loop
+        for (int i = 0; i < count; i++)
+        {
+            il.Append(caseLabels[i]);
+            var target = _methodMap[paragraphs[i]];
+            il.Append(il.Create(OpCodes.Call, target));
+            il.Append(il.Create(OpCodes.Stloc, pcLocal));
+            il.Append(il.Create(OpCodes.Br, loopLabel));
+        }
+
+        // EXIT
+        il.Append(exitLabel);
     }
 
     /// <summary>

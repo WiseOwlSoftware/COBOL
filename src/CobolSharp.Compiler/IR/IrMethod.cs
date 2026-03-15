@@ -16,6 +16,9 @@ public sealed class IrMethod
 
     public IrBasicBlock Entry => Blocks[0];
 
+    private int _blockCounter;
+    public IrBasicBlock CreateBlock(string name) => new IrBasicBlock($"{name}_{_blockCounter++}");
+
     public IrMethod(string name, IrType? returnType)
     {
         Name = name;

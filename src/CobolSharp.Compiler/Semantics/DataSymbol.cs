@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Runtime;
+using CobolSharp.Compiler.CodeGen;
 namespace CobolSharp.Compiler.Semantics;
 
 public sealed class DataSymbol : Symbol
@@ -17,6 +18,7 @@ public sealed class DataSymbol : Symbol
     public bool IsFiller { get; }
     public bool IsGroup => PicString == null;
     public bool IsElementary => PicString != null;
+    public CodeGen.StorageAreaKind Area { get; set; }
 
     public DataSymbol? Redefines { get; }
     public DataSymbol? Parent { get; private set; }

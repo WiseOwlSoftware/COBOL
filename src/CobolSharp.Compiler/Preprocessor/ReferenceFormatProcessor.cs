@@ -114,7 +114,11 @@ public static class ReferenceFormatProcessor
 
                 case 'D':
                 case 'd':
-                    // Debug line — treat as comment for now
+                case 'S':
+                case 's':
+                case 'Y':
+                case 'y':
+                    // Debug/conditional line — treat as comment
                     string debugText = line.Length > 7 ? line[7..].TrimEnd() : "";
                     result.AppendLine($"*> DEBUG: {debugText}");
                     break;
