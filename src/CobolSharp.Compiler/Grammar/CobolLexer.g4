@@ -1,22 +1,15 @@
 lexer grammar CobolLexer;
 
 // ==========================================
-// DEFAULT MODE (assumes preprocessed, free/fixed normalized)
+// DEFAULT MODE
 // ==========================================
+// Assumes preprocessed input: fixed→free normalized, COPY/REPLACE expanded.
 
-WS          : [ \t\r\n]+ -> skip ;
+WS           : [ \t\r\n]+ -> skip ;
+COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
 
-// Free-form comments: *> to end of line
-COMMENT_START : '*>' -> pushMode(COMMENT_MODE) ;
+// ── END-xxx paired terminators (must precede END and IDENTIFIER) ──
 
-// --- keywords (uppercased by preprocessor) ---
-// Order matters: longer matches first, then keywords before IDENTIFIER
-
-// COPY/REPLACE directives — push to COPYMODE for preprocessor capture
-COPY_DIRECTIVE : 'COPY' -> pushMode(COPYMODE) ;
-REPLACE_DIRECTIVE : 'REPLACE' -> pushMode(REPLACEMODE) ;
-
-// END-xxx paired terminators (must precede END)
 END_IF       : 'END-IF' ;
 END_PERFORM  : 'END-PERFORM' ;
 END_EVALUATE : 'END-EVALUATE' ;
@@ -34,18 +27,40 @@ END_INVOKE   : 'END-INVOKE' ;
 END_JSON     : 'END-JSON' ;
 END_XML      : 'END-XML' ;
 END_METHOD   : 'END-METHOD' ;
+END_ADD      : 'END-ADD' ;
+END_SUBTRACT : 'END-SUBTRACT' ;
+END_MULTIPLY : 'END-MULTIPLY' ;
+END_DIVIDE   : 'END-DIVIDE' ;
+END_COMPUTE  : 'END-COMPUTE' ;
+END_STRING   : 'END-STRING' ;
+END_UNSTRING : 'END-UNSTRING' ;
+END_ACCEPT   : 'END-ACCEPT' ;
+END_DISPLAY  : 'END-DISPLAY' ;
 
-// Hyphenated keywords (must precede IDENTIFIER)
+// ── Hyphenated keywords (must precede IDENTIFIER) ──
+
 PROGRAM_ID      : 'PROGRAM-ID' ;
 METHOD_ID       : 'METHOD-ID' ;
+CLASS_ID        : 'CLASS-ID' ;
+INTERFACE_ID    : 'INTERFACE-ID' ;
 WORKING_STORAGE : 'WORKING-STORAGE' ;
 LOCAL_STORAGE   : 'LOCAL-STORAGE' ;
 NEXT_SENTENCE   : 'NEXT' [ ]+ 'SENTENCE' ;
 BY_REFERENCE    : 'BY' [ ]+ 'REFERENCE' ;
 BY_VALUE        : 'BY' [ ]+ 'VALUE' ;
 BY_CONTENT      : 'BY' [ ]+ 'CONTENT' ;
+DATE_WRITTEN    : 'DATE-WRITTEN' ;
+DATE_COMPILED   : 'DATE-COMPILED' ;
+SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
+OBJECT_COMPUTER : 'OBJECT-COMPUTER' ;
+SPECIAL_NAMES   : 'SPECIAL-NAMES' ;
+FILE_CONTROL    : 'FILE-CONTROL' ;
+I_O_CONTROL     : 'I-O-CONTROL' ;
+PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
+BLANK_WHEN_ZERO : 'BLANK' [ ]+ 'WHEN' [ ]+ 'ZERO' ;
 
-// Division/section keywords
+// ── Division/section keywords ──
+
 IDENTIFICATION : 'IDENTIFICATION' ;
 DIVISION    : 'DIVISION' ;
 ENVIRONMENT : 'ENVIRONMENT' ;
@@ -53,62 +68,199 @@ DATA        : 'DATA' ;
 PROCEDURE   : 'PROCEDURE' ;
 SECTION     : 'SECTION' ;
 LINKAGE     : 'LINKAGE' ;
-FILE        : 'FILE' ;
 FD          : 'FD' ;
+SD          : 'SD' ;
 
-// Statement keywords
-READ        : 'READ' ;
-WRITE       : 'WRITE' ;
-OPEN        : 'OPEN' ;
+// ── Statement keywords ──
+
+ACCEPT      : 'ACCEPT' ;
+ADD         : 'ADD' ;
+ALTER       : 'ALTER' ;
+CALL        : 'CALL' ;
+CANCEL      : 'CANCEL' ;
 CLOSE       : 'CLOSE' ;
-IF          : 'IF' ;
-ELSE        : 'ELSE' ;
-PERFORM     : 'PERFORM' ;
+COMPUTE     : 'COMPUTE' ;
+CONTINUE    : 'CONTINUE' ;
+DELETE      : 'DELETE' ;
+DISPLAY     : 'DISPLAY' ;
+DIVIDE      : 'DIVIDE' ;
 EVALUATE    : 'EVALUATE' ;
+EXIT        : 'EXIT' ;
+GOBACK      : 'GOBACK' ;
+GO          : 'GO' ;
+IF          : 'IF' ;
+INITIALIZE  : 'INITIALIZE' ;
+INSPECT     : 'INSPECT' ;
 INVOKE      : 'INVOKE' ;
 JSON        : 'JSON' ;
+MERGE       : 'MERGE' ;
+MOVE        : 'MOVE' ;
+MULTIPLY    : 'MULTIPLY' ;
+OPEN        : 'OPEN' ;
+PERFORM     : 'PERFORM' ;
+READ        : 'READ' ;
+RELEASE     : 'RELEASE' ;
+RETURN      : 'RETURN' ;
+REWRITE     : 'REWRITE' ;
+SEARCH      : 'SEARCH' ;
+SET         : 'SET' ;
+SORT        : 'SORT' ;
+START       : 'START' ;
+STOP        : 'STOP' ;
+STRING      : 'STRING' ;
+SUBTRACT    : 'SUBTRACT' ;
+UNSTRING    : 'UNSTRING' ;
+WRITE       : 'WRITE' ;
 XML         : 'XML' ;
-CLASS       : 'CLASS' ;
-TYPEDEF     : 'TYPEDEF' ;
-GENERIC     : 'GENERIC' ;
-CONTINUE    : 'CONTINUE' ;
 
-// Clause/phrase keywords
-USING       : 'USING' ;
-RETURNING   : 'RETURNING' ;
-INTO        : 'INTO' ;
-FROM        : 'FROM' ;
-KEY         : 'KEY' ;
-IS          : 'IS' ;
+// ── Clause/phrase keywords ──
+
+ACCESS      : 'ACCESS' ;
+ADDRESS     : 'ADDRESS' ;
+ADVANCING   : 'ADVANCING' ;
+AFTER       : 'AFTER' ;
+ALL         : 'ALL' ;
+ALTERNATE   : 'ALTERNATE' ;
+AND         : 'AND' ;
+ASCENDING   : 'ASCENDING' ;
+ASSIGN      : 'ASSIGN' ;
 AT          : 'AT' ;
+AUTHOR      : 'AUTHOR' ;
+BEFORE      : 'BEFORE' ;
+BINARY      : 'BINARY' ;
+BLANK       : 'BLANK' ;
+BY          : 'BY' ;
+CHARACTER   : 'CHARACTER' ;
+CLASS       : 'CLASS' ;
+COMMON      : 'COMMON' ;
+COMP        : 'COMP' ;
+COMP_1      : 'COMP-1' ;
+COMP_2      : 'COMP-2' ;
+COMP_3      : 'COMP-3' ;
+CONTENT     : 'CONTENT' ;
+CORRESPONDING : 'CORRESPONDING' ;
+COUNT       : 'COUNT' ;
+DECLARATIVES: 'DECLARATIVES' ;
+DELIMITED   : 'DELIMITED' ;
+DELIMITER   : 'DELIMITER' ;
+DEPENDING   : 'DEPENDING' ;
+DESCENDING  : 'DESCENDING' ;
+DOWN        : 'DOWN' ;
+DUPLICATES  : 'DUPLICATES' ;
+DYNAMIC     : 'DYNAMIC' ;
+ELSE        : 'ELSE' ;
 END         : 'END' ;
-NOT         : 'NOT' ;
-INVALID     : 'INVALID' ;
-ON          : 'ON' ;
+ERROR       : 'ERROR' ;
 EXCEPTION   : 'EXCEPTION' ;
+EXTERNAL    : 'EXTERNAL' ;
+FALSE_      : 'FALSE' ;
+FILE        : 'FILE' ;
+FILLER      : 'FILLER' ;
+FROM        : 'FROM' ;
+FUNCTION    : 'FUNCTION' ;
+GENERIC     : 'GENERIC' ;
+GIVING      : 'GIVING' ;
+GLOBAL      : 'GLOBAL' ;
+IN          : 'IN' ;
+INDEXED     : 'INDEXED' ;
+INITIAL_    : 'INITIAL' ;
+INPUT       : 'INPUT' ;
+INSTALLATION: 'INSTALLATION' ;
+INTO        : 'INTO' ;
+INVALID     : 'INVALID' ;
+IS          : 'IS' ;
+JUST        : 'JUST' ;
+JUSTIFIED   : 'JUSTIFIED' ;
+KEY         : 'KEY' ;
+LEADING     : 'LEADING' ;
+MODE        : 'MODE' ;
 NEXT        : 'NEXT' ;
+NOT         : 'NOT' ;
+NULL_       : 'NULL' ;
+OCCURS      : 'OCCURS' ;
+OF          : 'OF' ;
+ON          : 'ON' ;
+OR          : 'OR' ;
+ORGANIZATION: 'ORGANIZATION' ;
+OTHER       : 'OTHER' ;
+OUTPUT      : 'OUTPUT' ;
+OVERFLOW    : 'OVERFLOW' ;
+PACKED      : 'PACKED' ;
+PARAGRAPH   : 'PARAGRAPH' ;
+PIC         : 'PIC' ;
+PICTURE     : 'PICTURE' ;
+POINTER     : 'POINTER' ;
 PREVIOUS    : 'PREVIOUS' ;
+PROGRAM     : 'PROGRAM' ;
+RANDOM      : 'RANDOM' ;
 RECORD      : 'RECORD' ;
+RECURSIVE   : 'RECURSIVE' ;
+REDEFINES   : 'REDEFINES' ;
+REFERENCE   : 'REFERENCE' ;
+RELATIVE    : 'RELATIVE' ;
+REMAINDER   : 'REMAINDER' ;
+REMARKS     : 'REMARKS' ;
+RENAMES     : 'RENAMES' ;
+RETURNING   : 'RETURNING' ;
+RIGHT       : 'RIGHT' ;
+RUN         : 'RUN' ;
+SECURITY    : 'SECURITY' ;
+SELECT      : 'SELECT' ;
+SELF        : 'SELF' ;
+SEPARATE    : 'SEPARATE' ;
+SEQUENTIAL  : 'SEQUENTIAL' ;
+SIGN        : 'SIGN' ;
+SIZE        : 'SIZE' ;
+STATUS      : 'STATUS' ;
+SUPER       : 'SUPER' ;
+SYNC        : 'SYNC' ;
+SYNCHRONIZED: 'SYNCHRONIZED' ;
+TALLYING    : 'TALLYING' ;
+THRU        : 'THRU' ;
+TIMES       : 'TIMES' ;
+TO          : 'TO' ;
+TRAILING    : 'TRAILING' ;
+TRUE_       : 'TRUE' ;
+TYPE        : 'TYPE' ;
+TYPEDEF     : 'TYPEDEF' ;
+UNTIL       : 'UNTIL' ;
+UP          : 'UP' ;
+USAGE       : 'USAGE' ;
+USING       : 'USING' ;
+VALUE       : 'VALUE' ;
+VALUES      : 'VALUES' ;
+VARYING     : 'VARYING' ;
+WHEN        : 'WHEN' ;
+WITH        : 'WITH' ;
+ZERO        : 'ZERO' ;
 
-// --- IDENTIFIER (must come AFTER all keywords) ---
+// ── IDENTIFIER (must come AFTER all keywords) ──
 
 IDENTIFIER
     : [A-Za-z0-9] [A-Za-z0-9-]* [A-Za-z0-9]
     | [A-Za-z0-9]
     ;
 
-// --- literals ---
+// ── Numeric literals ──
 
-INTEGERLIT  : [0-9]+ ;
 DECIMALLIT  : [0-9]+ '.' [0-9]+ ;
+INTEGERLIT  : [0-9]+ ;
+
+// ── String literals ──
+
 STRINGLIT   : '"' (~["\r\n] | '""')* '"'
             | '\'' (~['\r\n] | '\'\'')* '\''
             ;
-HEXLIT      : 'X' '"' [0-9A-Fa-f]+ '"'
-            | 'X' '\'' [0-9A-Fa-f]+ '\''
+HEXLIT      : [Xx] '"' [0-9A-Fa-f]+ '"'
+            | [Xx] '\'' [0-9A-Fa-f]+ '\''
             ;
 
-// --- punctuation ---
+// ── Operators (multi-char before single-char) ──
+
+POWER       : '**' ;
+LTEQUAL     : '<=' ;
+GTEQUAL     : '>=' ;
+NOTEQUAL    : '<>' ;
 
 DOT         : '.' ;
 COMMA       : ',' ;
@@ -116,58 +268,17 @@ LPAREN      : '(' ;
 RPAREN      : ')' ;
 LT          : '<' ;
 GT          : '>' ;
-LTEQUAL     : '<=' ;
-GTEQUAL     : '>=' ;
-NOTEQUAL    : '<>' ;
 EQUALS      : '=' ;
 PLUS        : '+' ;
 MINUS       : '-' ;
 STAR        : '*' ;
 SLASH       : '/' ;
-POWER       : '**' ;
 COLON       : ':' ;
 SEMICOLON   : ';' ;
 
-// ==========================================
-// COPYMODE — captures COPY directive content
-// ==========================================
+// ── Catch-all for unrecognized characters ──
 
-mode COPYMODE;
-
-COPY_WS         : [ \t\r\n]+ -> skip ;
-COPY_NAME       : [A-Za-z0-9] [A-Za-z0-9-]* [A-Za-z0-9]
-                | [A-Za-z0-9]
-                ;
-COPY_STRINGLIT  : '"' (~["\r\n])* '"'
-                | '\'' (~['\r\n])* '\''
-                ;
-COPY_REPLACING  : 'REPLACING' ;
-COPY_BY         : 'BY' ;
-COPY_PSEUDO_OPEN  : '==' -> pushMode(PSEUDOTEXT) ;
-COPY_DOT        : '.' -> popMode ;
-COPY_TOKEN      : ~[ \t\r\n.=]+ ;
-
-// ==========================================
-// REPLACEMODE — captures REPLACE directive
-// ==========================================
-
-mode REPLACEMODE;
-
-REPLACE_WS      : [ \t\r\n]+ -> skip ;
-REPLACE_OFF     : 'OFF' ;
-REPLACE_BY      : 'BY' ;
-REPLACE_PSEUDO_OPEN : '==' -> pushMode(PSEUDOTEXT) ;
-REPLACE_DOT     : '.' -> popMode ;
-REPLACE_TOKEN   : ~[ \t\r\n.=]+ ;
-
-// ==========================================
-// PSEUDOTEXT — captures == ... == content
-// ==========================================
-
-mode PSEUDOTEXT;
-
-PSEUDO_TEXT_CLOSE : '==' -> popMode ;
-PSEUDO_TEXT_BODY  : (~[=] | '=' ~[=])+ ;
+ANY_CHAR    : . ;
 
 // ==========================================
 // COMMENT_MODE — *> to end of line

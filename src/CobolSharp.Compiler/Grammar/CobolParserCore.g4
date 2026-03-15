@@ -2,7 +2,6 @@ parser grammar CobolParserCore;
 
 options {
     tokenVocab = CobolLexer;
-    contextSuperClass = CobolParserContext;
 }
 
 // ==========================================
@@ -80,10 +79,10 @@ programIdAttribute
     ;
 
 commonProgramAttribute
-    : 'INITIAL'
-    | 'COMMON'
-    | 'RECURSIVE'
-    | 'GLOBAL'
+    : INITIAL_
+    | COMMON
+    | RECURSIVE
+    | GLOBAL
     ;
 
 literalAttribute
@@ -111,7 +110,7 @@ identificationParagraph
 
 // AUTHOR.
 authorParagraph
-    : 'AUTHOR' DOT authorContent
+    : AUTHOR DOT authorContent
     ;
 
 authorContent
@@ -120,7 +119,7 @@ authorContent
 
 // INSTALLATION.
 installationParagraph
-    : 'INSTALLATION' DOT installationContent
+    : INSTALLATION DOT installationContent
     ;
 
 installationContent
@@ -129,7 +128,7 @@ installationContent
 
 // DATE-WRITTEN.
 dateWrittenParagraph
-    : 'DATE-WRITTEN' DOT dateWrittenContent
+    : DATE_WRITTEN DOT dateWrittenContent
     ;
 
 dateWrittenContent
@@ -138,7 +137,7 @@ dateWrittenContent
 
 // DATE-COMPILED.
 dateCompiledParagraph
-    : 'DATE-COMPILED' DOT dateCompiledContent
+    : DATE_COMPILED DOT dateCompiledContent
     ;
 
 dateCompiledContent
@@ -147,7 +146,7 @@ dateCompiledContent
 
 // SECURITY.
 securityParagraph
-    : 'SECURITY' DOT securityContent
+    : SECURITY DOT securityContent
     ;
 
 securityContent
@@ -156,7 +155,7 @@ securityContent
 
 // REMARKS.
 remarksParagraph
-    : 'REMARKS' DOT remarksContent
+    : REMARKS DOT remarksContent
     ;
 
 remarksContent
@@ -195,11 +194,11 @@ configurationParagraph
 
 // SOURCE-COMPUTER.
 sourceComputerParagraph
-    : 'SOURCE-COMPUTER' DOT computerName computerAttributes? DOT
+    : SOURCE_COMPUTER DOT computerName computerAttributes? DOT
     ;
 
 objectComputerParagraph
-    : 'OBJECT-COMPUTER' DOT computerName computerAttributes? DOT
+    : OBJECT_COMPUTER DOT computerName computerAttributes? DOT
     ;
 
 computerName
@@ -212,7 +211,7 @@ computerAttributes
 
 // SPECIAL-NAMES.
 specialNamesParagraph
-    : 'SPECIAL-NAMES' DOT specialNameEntry+
+    : SPECIAL_NAMES DOT specialNameEntry+
     ;
 
 specialNameEntry
@@ -237,12 +236,12 @@ inputOutputSection
 
 // FILE-CONTROL.
 fileControlParagraph
-    : 'FILE-CONTROL' DOT fileControlEntry+
+    : FILE_CONTROL DOT fileControlEntry+
     ;
 
 fileControlEntry
-    : 'SELECT' fileName
-      ( 'ASSIGN' 'TO' assignTarget )?
+    : SELECT fileName
+      ( ASSIGN TO assignTarget )?
       fileControlClauses*
       DOT
     ;
@@ -262,23 +261,23 @@ fileControlClauses
     ;
 
 organizationClause
-    : 'ORGANIZATION' IS? organizationType
+    : ORGANIZATION IS? organizationType
     ;
 
 organizationType
-    : 'SEQUENTIAL'
-    | 'RELATIVE'
-    | 'INDEXED'
+    : SEQUENTIAL
+    | RELATIVE
+    | INDEXED
     ;
 
 accessModeClause
-    : 'ACCESS' 'MODE'? IS? accessMode
+    : ACCESS MODE? IS? accessMode
     ;
 
 accessMode
-    : 'SEQUENTIAL'
-    | 'RANDOM'
-    | 'DYNAMIC'
+    : SEQUENTIAL
+    | RANDOM
+    | DYNAMIC
     ;
 
 recordKeyClause
@@ -286,12 +285,12 @@ recordKeyClause
     ;
 
 alternateKeyClause
-    : 'ALTERNATE' KEY IS identifier
-      ('WITH'? 'DUPLICATES')?
+    : ALTERNATE KEY IS identifier
+      (WITH? DUPLICATES)?
     ;
 
 fileStatusClause
-    : FILE 'STATUS' IS identifier
+    : FILE STATUS IS identifier
     ;
 
 genericFileControlClause
@@ -300,7 +299,7 @@ genericFileControlClause
 
 // I-O-CONTROL.
 ioControlParagraph
-    : 'I-O-CONTROL' DOT ioControlEntry+
+    : I_O_CONTROL DOT ioControlEntry+
     ;
 
 ioControlEntry
@@ -428,7 +427,7 @@ dataDescriptionClause
 
 // TYPE clause (COBOL-2023 — threaded from CobolParserGenerics)
 typeClause
-    : 'TYPE' IS? IDENTIFIER
+    : TYPE IS? IDENTIFIER
     ;
 
 genericDataClause
@@ -437,8 +436,8 @@ genericDataClause
 
 // PIC Clause
 pictureClause
-    : 'PIC' pictureString
-    | 'PICTURE' pictureString
+    : PIC pictureString
+    | PICTURE pictureString
     ;
 
 pictureString
@@ -447,29 +446,29 @@ pictureString
 
 // USAGE Clause
 usageClause
-    : 'USAGE' IS? usageKeyword
+    : USAGE IS? usageKeyword
     ;
 
 usageKeyword
-    : 'DISPLAY'
-    | 'COMP'
-    | 'COMP-1'
-    | 'COMP-2'
-    | 'COMP-3'
-    | 'BINARY'
-    | 'PACKED-DECIMAL'
+    : DISPLAY
+    | COMP
+    | COMP_1
+    | COMP_2
+    | COMP_3
+    | BINARY
+    | PACKED_DECIMAL
     | IDENTIFIER        // for 2023 types, OO types, generics
     ;
 
 // OCCURS Clause
 occursClause
-    : 'OCCURS' integerLiteral ('TO' integerLiteral)? timesKeyword?
-      ('DEPENDING' ON identifier)?
-      ('INDEXED' 'BY' identifierList)?
+    : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
+      (DEPENDING ON identifier)?
+      (INDEXED BY identifierList)?
     ;
 
 timesKeyword
-    : 'TIMES'
+    : TIMES
     ;
 
 integerLiteral
@@ -478,42 +477,42 @@ integerLiteral
 
 // REDEFINES Clause
 redefinesClause
-    : 'REDEFINES' identifier
+    : REDEFINES identifier
     ;
 
 // RENAMES (Level 66)
 renamesClause
-    : 'RENAMES' identifier ('THRU' identifier)?
+    : RENAMES identifier (THRU identifier)?
     ;
 
 // VALUE Clause
 valueClause
-    : 'VALUE' literal
-    | 'VALUES' literal (COMMA literal)*
+    : VALUE literal
+    | VALUES literal (COMMA literal)*
     ;
 
 // SIGN Clause
 signClause
-    : 'SIGN' IS? ('LEADING' | 'TRAILING') ('SEPARATE' 'CHARACTER')?
+    : SIGN IS? (LEADING | TRAILING) (SEPARATE CHARACTER)?
     ;
 
 // JUSTIFIED / SYNCHRONIZED
 justifiedClause
-    : 'JUSTIFIED' | 'JUST' 'RIGHT'
+    : JUSTIFIED | JUST RIGHT
     ;
 
 syncClause
-    : 'SYNCHRONIZED' | 'SYNC'
+    : SYNCHRONIZED | SYNC
     ;
 
 // BLANK WHEN ZERO
 blankWhenZeroClause
-    : 'BLANK' 'WHEN' 'ZERO'
+    : BLANK WHEN ZERO
     ;
 
 // 88-LEVEL CONDITION ENTRIES
 conditionEntry88
-    : '88' conditionName valueSet
+    : INTEGERLIT conditionName valueSet
     ;
 
 conditionName
@@ -525,7 +524,7 @@ valueSet
     ;
 
 valueRange
-    : literal ('THRU' literal)?
+    : literal (THRU literal)?
     ;
 
 // ==========================================
@@ -563,7 +562,7 @@ fileName
 // ==========================================
 
 declarativePart
-    : 'DECLARATIVES' DOT declarativeSection+ END 'DECLARATIVES' DOT
+    : DECLARATIVES DOT declarativeSection+ END DECLARATIVES DOT
     ;
 
 declarativeSection
@@ -755,7 +754,7 @@ performStatement
 
 performTarget
     : procedureName
-    | procedureName 'THRU' procedureName
+    | procedureName THRU procedureName
     ;
 
 procedureName
@@ -769,17 +768,17 @@ performOptions
     ;
 
 performTimes
-    : integerLiteral 'TIMES'
+    : integerLiteral TIMES
     ;
 
 performUntil
-    : 'UNTIL' condition
+    : UNTIL condition
     ;
 
 performVarying
-    : 'VARYING' identifier FROM arithmeticExpression
-      'BY' arithmeticExpression
-      'UNTIL' condition
+    : VARYING identifier FROM arithmeticExpression
+      BY arithmeticExpression
+      UNTIL condition
     ;
 
 // ==========================================
@@ -798,25 +797,21 @@ evaluateSubject
     ;
 
 evaluateWhenClause
-    : 'WHEN' evaluateObject+ imperativeStatement*
+    : WHEN evaluateObject+ imperativeStatement*
     ;
 
 evaluateObject
     : arithmeticExpression
     | condition
-    | 'OTHER'
+    | OTHER
     ;
 
 // ==========================================
-// MOVE / COMPUTE (§14.9.24, §14.9.8)
+// COMPUTE (§14.9.8)
 // ==========================================
-
-moveStatement
-    : 'MOVE' identifier 'TO' identifierList DOT?
-    ;
 
 computeStatement
-    : 'COMPUTE' identifier EQUALS arithmeticExpression DOT?
+    : COMPUTE identifier EQUALS arithmeticExpression DOT?
     ;
 
 // ==========================================
@@ -854,7 +849,7 @@ argument
 // ==========================================
 
 addStatement
-    : 'ADD' addOperandList addToPhrase? addGivingPhrase? addOnSizeError? DOT?
+    : ADD addOperandList addToPhrase? addGivingPhrase? addOnSizeError? DOT?
     ;
 
 addOperandList
@@ -862,16 +857,16 @@ addOperandList
     ;
 
 addToPhrase
-    : 'TO' identifierList
+    : TO identifierList
     ;
 
 addGivingPhrase
-    : 'GIVING' identifierList
+    : GIVING identifierList
     ;
 
 addOnSizeError
-    : ON 'SIZE' 'ERROR' imperativeStatement
-      (NOT ON 'SIZE' 'ERROR' imperativeStatement)?
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
     ;
 
 // ==========================================
@@ -879,7 +874,7 @@ addOnSizeError
 // ==========================================
 
 subtractStatement
-    : 'SUBTRACT' subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? DOT?
+    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? DOT?
     ;
 
 subtractOperandList
@@ -891,12 +886,12 @@ subtractFromPhrase
     ;
 
 subtractGivingPhrase
-    : 'GIVING' identifierList
+    : GIVING identifierList
     ;
 
 subtractOnSizeError
-    : ON 'SIZE' 'ERROR' imperativeStatement
-      (NOT ON 'SIZE' 'ERROR' imperativeStatement)?
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
     ;
 
 // ==========================================
@@ -904,16 +899,16 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : 'MULTIPLY' arithmeticExpression 'BY' identifierList multiplyGivingPhrase? multiplyOnSizeError? DOT?
+    : MULTIPLY arithmeticExpression BY identifierList multiplyGivingPhrase? multiplyOnSizeError? DOT?
     ;
 
 multiplyGivingPhrase
-    : 'GIVING' identifier
+    : GIVING identifier
     ;
 
 multiplyOnSizeError
-    : ON 'SIZE' 'ERROR' imperativeStatement
-      (NOT ON 'SIZE' 'ERROR' imperativeStatement)?
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
     ;
 
 // ==========================================
@@ -921,7 +916,7 @@ multiplyOnSizeError
 // ==========================================
 
 divideStatement
-    : 'DIVIDE' arithmeticExpression divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? DOT?
+    : DIVIDE arithmeticExpression divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? DOT?
     ;
 
 divideIntoPhrase
@@ -929,16 +924,16 @@ divideIntoPhrase
     ;
 
 divideGivingPhrase
-    : 'GIVING' identifier
+    : GIVING identifier
     ;
 
 divideRemainderPhrase
-    : 'REMAINDER' identifier
+    : REMAINDER identifier
     ;
 
 divideOnSizeError
-    : ON 'SIZE' 'ERROR' imperativeStatement
-      (NOT ON 'SIZE' 'ERROR' imperativeStatement)?
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
     ;
 
 // ==========================================
@@ -946,7 +941,7 @@ divideOnSizeError
 // ==========================================
 
 moveStatement
-    : 'MOVE' moveSource moveTarget DOT?
+    : MOVE moveSource moveTarget DOT?
     ;
 
 moveSource
@@ -955,8 +950,8 @@ moveSource
     ;
 
 moveTarget
-    : 'TO' identifierList
-    | 'CORRESPONDING' identifier 'TO' identifier
+    : TO identifierList
+    | CORRESPONDING identifier TO identifier
     ;
 
 // ==========================================
@@ -964,12 +959,12 @@ moveTarget
 // ==========================================
 
 stringStatement
-    : 'STRING' stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? DOT?
+    : STRING stringSendingPhrase+ stringIntoPhrase stringWithPointer? stringOnOverflow? DOT?
     ;
 
 stringSendingPhrase
     : (identifier | literal)
-      ('DELIMITED' 'BY' (identifier | literal | 'SIZE'))?
+      (DELIMITED BY (identifier | literal | SIZE))?
     ;
 
 stringIntoPhrase
@@ -977,12 +972,12 @@ stringIntoPhrase
     ;
 
 stringWithPointer
-    : 'WITH' 'POINTER' identifier
+    : WITH POINTER identifier
     ;
 
 stringOnOverflow
-    : ON 'OVERFLOW' imperativeStatement
-      (NOT ON 'OVERFLOW' imperativeStatement)?
+    : ON OVERFLOW imperativeStatement
+      (NOT ON OVERFLOW imperativeStatement)?
     ;
 
 // ==========================================
@@ -990,7 +985,7 @@ stringOnOverflow
 // ==========================================
 
 unstringStatement
-    : 'UNSTRING' identifier
+    : UNSTRING identifier
       unstringDelimiterPhrase?
       unstringIntoPhrase+
       unstringWithPointer?
@@ -1000,26 +995,26 @@ unstringStatement
     ;
 
 unstringDelimiterPhrase
-    : 'DELIMITED' 'BY' ('ALL')? (identifier | literal)
+    : DELIMITED BY (ALL)? (identifier | literal)
     ;
 
 unstringIntoPhrase
     : INTO identifier
-      ('DELIMITER' 'IN' identifier)?
-      ('COUNT' 'IN' identifier)?
+      (DELIMITER IN identifier)?
+      (COUNT IN identifier)?
     ;
 
 unstringWithPointer
-    : 'WITH' 'POINTER' identifier
+    : WITH POINTER identifier
     ;
 
 unstringTallying
-    : 'TALLYING' 'IN' identifier
+    : TALLYING IN identifier
     ;
 
 unstringOnOverflow
-    : ON 'OVERFLOW' imperativeStatement
-      (NOT ON 'OVERFLOW' imperativeStatement)?
+    : ON OVERFLOW imperativeStatement
+      (NOT ON OVERFLOW imperativeStatement)?
     ;
 
 // ==========================================
@@ -1031,7 +1026,7 @@ unstringOnOverflow
 // ==========================================
 
 callStatement
-    : 'CALL' callTarget
+    : CALL callTarget
       callUsingPhrase?
       callReturningPhrase?
       callOnExceptionPhrase?
@@ -1055,15 +1050,15 @@ callArgument
     ;
 
 callByReference
-    : 'BY' 'REFERENCE'? identifier
+    : BY 'REFERENCE'? identifier
     ;
 
 callByValue
-    : 'BY' 'VALUE' arithmeticExpression
+    : BY VALUE arithmeticExpression
     ;
 
 callByContent
-    : 'BY' 'CONTENT' (identifier | literal)
+    : BY 'CONTENT' (identifier | literal)
     ;
 
 callReturningPhrase
@@ -1080,7 +1075,7 @@ callOnExceptionPhrase
 // ==========================================
 
 cancelStatement
-    : 'CANCEL' identifierList DOT?
+    : CANCEL identifierList DOT?
     ;
 
 // ==========================================
@@ -1097,34 +1092,34 @@ setStatement
 
 // SET identifier TO arithmeticExpression
 setToValueStatement
-    : 'SET' identifier 'TO' arithmeticExpression DOT?
+    : SET identifier TO arithmeticExpression DOT?
     ;
 
 // SET identifier TO TRUE/FALSE
 setBooleanStatement
-    : 'SET' identifier 'TO' ('TRUE' | 'FALSE') DOT?
+    : SET identifier TO (TRUE_ | FALSE_) DOT?
     ;
 
 // SET ADDRESS OF identifier TO identifier
 setAddressStatement
-    : 'SET' 'ADDRESS' 'OF' identifier 'TO' identifier DOT?
+    : SET ADDRESS OF identifier TO identifier DOT?
     ;
 
 // SET object-reference TO class/object reference (OO)
 setObjectReferenceStatement
-    : 'SET' identifier 'TO' objectReference DOT?
+    : SET identifier TO objectReference DOT?
     ;
 
 objectReference
     : identifier
-    | 'NULL'
-    | 'SELF'
-    | 'SUPER'
+    | NULL_
+    | SELF
+    | SUPER
     ;
 
 // SET index UP/DOWN BY integer
 setIndexStatement
-    : 'SET' identifier ( 'UP' | 'DOWN' ) 'BY' integerLiteral DOT?
+    : SET identifier ( UP | DOWN ) BY integerLiteral DOT?
     ;
 
 // ==========================================
@@ -1136,7 +1131,7 @@ setIndexStatement
 // ==========================================
 
 sortStatement
-    : 'SORT' sortFileName
+    : SORT sortFileName
       sortKeyPhrase*
       sortUsingPhrase?
       sortGivingPhrase?
@@ -1151,7 +1146,7 @@ sortFileName
     ;
 
 sortKeyPhrase
-    : ('ASCENDING' | 'DESCENDING') KEY identifierList
+    : (ASCENDING | DESCENDING) KEY identifierList
     ;
 
 sortUsingPhrase
@@ -1159,15 +1154,15 @@ sortUsingPhrase
     ;
 
 sortGivingPhrase
-    : 'GIVING' identifierList
+    : GIVING identifierList
     ;
 
 sortInputProcedurePhrase
-    : 'INPUT' PROCEDURE IS procedureName
+    : INPUT PROCEDURE IS procedureName
     ;
 
 sortOutputProcedurePhrase
-    : 'OUTPUT' PROCEDURE IS procedureName
+    : OUTPUT PROCEDURE IS procedureName
     ;
 
 // ==========================================
@@ -1175,7 +1170,7 @@ sortOutputProcedurePhrase
 // ==========================================
 
 mergeStatement
-    : 'MERGE' mergeFileName
+    : MERGE mergeFileName
       mergeKeyPhrase+
       mergeUsingPhrase
       mergeOutputProcedurePhrase?
@@ -1189,7 +1184,7 @@ mergeFileName
     ;
 
 mergeKeyPhrase
-    : ('ASCENDING' | 'DESCENDING') KEY identifierList
+    : (ASCENDING | DESCENDING) KEY identifierList
     ;
 
 mergeUsingPhrase
@@ -1197,11 +1192,11 @@ mergeUsingPhrase
     ;
 
 mergeGivingPhrase
-    : 'GIVING' identifierList
+    : GIVING identifierList
     ;
 
 mergeOutputProcedurePhrase
-    : 'OUTPUT' PROCEDURE IS procedureName
+    : OUTPUT PROCEDURE IS procedureName
     ;
 
 // ==========================================
@@ -1209,7 +1204,7 @@ mergeOutputProcedurePhrase
 // ==========================================
 
 returnStatement
-    : 'RETURN' fileName
+    : RETURN fileName
       (INTO identifier)?
       returnAtEndPhrase?
       END_RETURN?
@@ -1226,7 +1221,7 @@ returnAtEndPhrase
 // ==========================================
 
 releaseStatement
-    : 'RELEASE' identifier
+    : RELEASE identifier
       (FROM identifier)?
       DOT?
     ;
@@ -1236,7 +1231,7 @@ releaseStatement
 // ==========================================
 
 rewriteStatement
-    : 'REWRITE' recordName
+    : REWRITE recordName
       (FROM identifier)?
       rewriteInvalidKeyPhrase?
       END_REWRITE?
@@ -1257,7 +1252,7 @@ rewriteInvalidKeyPhrase
 // ==========================================
 
 deleteFileStatement
-    : 'DELETE' FILE fileName
+    : DELETE FILE fileName
       deleteFileOnException?
       END_DELETE?
       DOT?
@@ -1273,7 +1268,7 @@ deleteFileOnException
 // ==========================================
 
 deleteStatement
-    : 'DELETE' fileName RECORD?
+    : DELETE fileName RECORD?
       deleteInvalidKeyPhrase?
       END_DELETE?
       DOT?
@@ -1310,7 +1305,7 @@ notOnExceptionPhrase
 // ==========================================
 
 stopStatement
-    : 'STOP' ('RUN' | literal | identifier)? DOT?
+    : STOP (RUN | literal | identifier)? DOT?
     ;
 
 // ==========================================
@@ -1318,7 +1313,7 @@ stopStatement
 // ==========================================
 
 gobackStatement
-    : 'GOBACK' DOT?
+    : GOBACK DOT?
     ;
 
 // ==========================================
@@ -1326,7 +1321,7 @@ gobackStatement
 // ==========================================
 
 exitStatement
-    : 'EXIT' ( 'PROGRAM' | 'PERFORM' | 'SECTION' | 'PARAGRAPH' | 'METHOD' | 'FUNCTION' )? DOT?
+    : EXIT ( PROGRAM | PERFORM | 'SECTION' | PARAGRAPH | METHOD | FUNCTION )? DOT?
     ;
 
 // ==========================================
@@ -1334,7 +1329,7 @@ exitStatement
 // ==========================================
 
 startStatement
-    : 'START' fileName
+    : START fileName
       startKeyPhrase?
       startInvalidKeyPhrase?
       END_START?
@@ -1355,7 +1350,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : 'GO' 'TO'? identifier DOT?
+    : GO TO? identifier DOT?
     ;
 
 // ==========================================
@@ -1363,7 +1358,7 @@ goToStatement
 // ==========================================
 
 acceptStatement
-    : 'ACCEPT' identifier (FROM identifier)? DOT?
+    : ACCEPT identifier (FROM identifier)? DOT?
     ;
 
 // ==========================================
@@ -1371,7 +1366,7 @@ acceptStatement
 // ==========================================
 
 displayStatement
-    : 'DISPLAY' (identifier | literal)+ DOT?
+    : DISPLAY (identifier | literal)+ DOT?
     ;
 
 // ==========================================
@@ -1379,7 +1374,7 @@ displayStatement
 // ==========================================
 
 initializeStatement
-    : 'INITIALIZE' identifierList DOT?
+    : INITIALIZE identifierList DOT?
     ;
 
 // ==========================================
@@ -1387,14 +1382,14 @@ initializeStatement
 // ==========================================
 
 inspectStatement
-    : 'INSPECT' identifier IDENTIFIER+ DOT?
+    : INSPECT identifier IDENTIFIER+ DOT?
     ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)
 // ==========================================
 
 searchStatement
-    : 'SEARCH' identifier
+    : SEARCH identifier
       searchAtEndClause?
       searchWhenClause+
       END_SEARCH?
@@ -1402,7 +1397,7 @@ searchStatement
     ;
 
 searchWhenClause
-    : 'WHEN' condition imperativeStatement*
+    : WHEN condition imperativeStatement*
     ;
 
 searchAtEndClause
@@ -1415,7 +1410,7 @@ searchAtEndClause
 // ==========================================
 
 searchAllStatement
-    : 'SEARCH' 'ALL' identifier
+    : SEARCH ALL identifier
       searchAllAtEndClause?
       searchAllWhenClause+
       END_SEARCH?
@@ -1423,16 +1418,24 @@ searchAllStatement
     ;
 
 searchAllWhenClause
-    : 'WHEN' relationalExpression
+    : WHEN relationalExpression
     ;
 
 searchAllAtEndClause
     : AT END imperativeStatement
       (NOT AT END imperativeStatement)?
     ;
-setStatement          : 'SET' identifierList 'TO' (identifier | literal) DOT? ;
-sortStatement         : 'SORT' identifier IDENTIFIER+ DOT? ;
-// (startStatement and stopStatement are fully expanded above)
+// (setStatement, sortStatement, startStatement, stopStatement are fully expanded above)
+
+// ==========================================
+// EXTENSION STUBS (overridden by import grammars)
+// ==========================================
+// These are defined here as stubs so CobolParserCore compiles standalone.
+// CobolParserOO, CobolParserJsonXml override them with full implementations.
+
+jsonStatement     : JSON (identifier | literal)+ DOT? ;
+xmlStatement      : XML (identifier | literal)+ DOT? ;
+invokeStatement   : INVOKE (identifier | literal)+ DOT? ;
 
 // =========================
 // Conditions (boolean)

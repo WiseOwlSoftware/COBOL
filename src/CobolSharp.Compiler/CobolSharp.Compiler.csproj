@@ -3,14 +3,52 @@
   <PropertyGroup>
     <RootNamespace>CobolSharp.Compiler</RootNamespace>
     <AssemblyName>CobolSharp.Compiler</AssemblyName>
+    <!-- Suppress CS3021 warnings from ANTLR-generated files -->
+    <NoWarn>$(NoWarn);CS3021</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CobolSharp.Runtime\CobolSharp.Runtime.csproj" />
   </ItemGroup>
+
+  <!-- Grammar files included for reference -->
+  <ItemGroup>
+    <None Include="Grammar\CobolLexer.g4" />
+    <None Include="Grammar\CobolParserCore.g4" />
+    <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
+  </ItemGroup>
+
+  <!-- Ensure Generated folder exists and regenerate parser if needed -->
+  <Target Name="EnsureGeneratedFiles"
+          BeforeTargets="BeforeCompile"
+          Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4"
+          Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
+
+    <Message Text="Parser files not found. Generating..." Importance="high"
+             Condition="!Exists('Generated\CobolParserCore.cs')" />
+    <Message Text="Grammar file is newer than parser. Regenerating..." Importance="high"
+             Condition="Exists('Generated\CobolParserCore.cs')" />
+
+    <!-- Create Generated folder if it doesn't exist -->
+    <MakeDir Directories="$(MSBuildProjectDirectory)\Generated" Condition="!Exists('$(MSBuildProjectDirectory)\Generated')" />
+
+    <!-- Run parser generation -->
+    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\GenerateIfNewer.ps1&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <!-- Clean target to remove generated files -->
+  <Target Name="CleanGenerated" AfterTargets="Clean">
+    <ItemGroup>
+      <GeneratedFiles Include="$(MSBuildProjectDirectory)\Generated\*.*" />
+    </ItemGroup>
+    <Delete Files="@(GeneratedFiles)" TreatErrorsAsWarnings="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated" ContinueOnError="true" />
+  </Target>
 
 </Project>

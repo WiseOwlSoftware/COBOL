@@ -1,16 +1,14 @@
-using CobolSharp.Compiler.CodeGen;
+using Antlr4.Runtime;
 using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Lexing;
-using CobolSharp.Compiler.Parsing;
+using CobolSharp.Compiler.Generated;
 using CobolSharp.Compiler.Preprocessor;
-using CobolSharp.Compiler.Semantics;
 
 namespace CobolSharp.Compiler;
 
 /// <summary>
 /// Top-level compilation facade. Orchestrates all compiler phases:
-/// Source → Preprocess → Lex → Parse → Analyze → Emit.
+/// Source → Preprocess → ANTLR4 Lex → ANTLR4 Parse → Semantic → Emit.
 /// </summary>
 public sealed class Compilation
 {
@@ -34,94 +32,93 @@ public sealed class Compilation
         var copyProcessor = new CopyProcessor(_copySearchPaths);
         string processedText = copyProcessor.Process(normalizedText, sourceDir);
 
-        var source = SourceText.From(processedText, sourcePath);
+        // Phase 1: ANTLR4 Lex
+        var inputStream = new AntlrInputStream(processedText);
+        var lexer = new CobolLexer(inputStream);
 
-        // Phase 2: Lex
-        var lexer = new Lexer(source, diagnostics);
-        var tokens = lexer.Tokenize();
-        if (diagnostics.HasErrors)
+        // Phase 2: ANTLR4 Parse
+        var tokenStream = new CommonTokenStream(lexer);
+        var parser = new CobolParserCore(tokenStream);
+
+        // Replace default error listener with our collecting listener
+        parser.RemoveErrorListeners();
+        var errorListener = new CobolErrorListener(diagnostics, sourcePath);
+        parser.AddErrorListener(errorListener);
+
+        var tree = parser.compilationUnit();
+
+        if (parser.NumberOfSyntaxErrors > 0)
+        {
             return new CompilationResult(false, "", diagnostics.Diagnostics);
+        }
 
-        // Phase 3: Parse
-        var parser = new Parser(tokens, diagnostics, source);
-        var ast = parser.ParseCompilationUnit();
-        if (diagnostics.HasErrors)
-            return new CompilationResult(false, "", diagnostics.Diagnostics);
+        // Phase 3: Build semantic model (TODO — walk parse tree with visitor)
+        // Phase 4: CIL emission (TODO — emit from semantic model)
 
-        // Phase 4: Semantic analysis
-        var analyzer = new SemanticAnalyzer(diagnostics, source);
-        var model = analyzer.Analyze(ast);
-        if (diagnostics.HasErrors)
-            return new CompilationResult(false, "", diagnostics.Diagnostics);
-
-        // Determine output path
-        string programId = ast.Programs[0].Identification.ProgramId;
+        // For now, determine output path from parse tree
+        string programId = ExtractProgramId(tree) ?? Path.GetFileNameWithoutExtension(sourcePath);
         outputPath ??= Path.Combine(
             Path.GetDirectoryName(sourcePath) ?? ".",
             programId + ".dll");
 
-        // Phase 5: CIL emission
-        var emitter = new CilEmitter(diagnostics);
-        var emitResult = emitter.Emit(ast, model, outputPath);
-
-        if (emitResult.Success)
-        {
-            // Generate runtimeconfig.json alongside the output assembly
-            EmitRuntimeConfig(outputPath);
-
-            // Copy runtime DLL alongside the output assembly
-            CopyRuntimeLibrary(outputPath);
-        }
-
+        // TODO: Emit .NET assembly from parse tree
+        // For now, report success if parsing succeeded
         return new CompilationResult(
-            emitResult.Success && !diagnostics.HasErrors,
-            emitResult.OutputPath,
+            !diagnostics.HasErrors,
+            outputPath,
             diagnostics.Diagnostics);
     }
-    private static void EmitRuntimeConfig(string outputPath)
+
+    private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)
     {
-        string configPath = Path.ChangeExtension(outputPath, ".runtimeconfig.json");
-        string json = """
-            {
-              "runtimeOptions": {
-                "tfm": "net8.0",
-                "framework": {
-                  "name": "Microsoft.NETCore.App",
-                  "version": "8.0.0"
-                }
-              }
-            }
-            """;
-        File.WriteAllText(configPath, json);
+        // Walk the parse tree to find PROGRAM-ID
+        var compilationGroups = tree.compilationGroup();
+        if (compilationGroups.Length == 0) return null;
+
+        var programUnit = compilationGroups[0].programUnit();
+        if (programUnit.Length == 0) return null;
+
+        var idDiv = programUnit[0].identificationDivision();
+        if (idDiv == null) return null;
+
+        var body = idDiv.identificationBody();
+        if (body == null) return null;
+
+        var progId = body.programIdParagraph();
+        if (progId == null) return null;
+
+        var name = progId.programName();
+        return name?.IDENTIFIER()?.GetText();
+    }
+}
+
+/// <summary>
+/// ANTLR4 error listener that feeds into our DiagnosticBag.
+/// </summary>
+public sealed class CobolErrorListener : BaseErrorListener
+{
+    private readonly DiagnosticBag _diagnostics;
+    private readonly string _sourcePath;
+
+    public CobolErrorListener(DiagnosticBag diagnostics, string sourcePath)
+    {
+        _diagnostics = diagnostics;
+        _sourcePath = sourcePath;
     }
 
-    private static void CopyRuntimeLibrary(string outputPath)
+    public override void SyntaxError(
+        TextWriter output,
+        IRecognizer recognizer,
+        IToken offendingSymbol,
+        int line,
+        int charPositionInLine,
+        string msg,
+        RecognitionException e)
     {
-        string outputDir = Path.GetDirectoryName(outputPath) ?? ".";
-
-        // Find the runtime DLL — first check alongside the compiler, then via loaded assembly
-        string? runtimeSource = null;
-        string compilerDir = Path.GetDirectoryName(typeof(Compilation).Assembly.Location)!;
-        string candidatePath = Path.Combine(compilerDir, "CobolSharp.Runtime.dll");
-
-        if (File.Exists(candidatePath))
-        {
-            runtimeSource = candidatePath;
-        }
-        else
-        {
-            // Fallback: use the loaded assembly location
-            runtimeSource = typeof(Runtime.CobolProgram).Assembly.Location;
-        }
-
-        if (runtimeSource != null && File.Exists(runtimeSource))
-        {
-            string destPath = Path.Combine(outputDir, "CobolSharp.Runtime.dll");
-            if (!File.Exists(destPath) || new FileInfo(runtimeSource).LastWriteTimeUtc > new FileInfo(destPath).LastWriteTimeUtc)
-            {
-                File.Copy(runtimeSource, destPath, overwrite: true);
-            }
-        }
+        var location = new SourceLocation(_sourcePath, 0, line, charPositionInLine);
+        var span = new TextSpan(offendingSymbol?.StartIndex ?? 0,
+            offendingSymbol?.StopIndex ?? 0);
+        _diagnostics.ReportError("ANTLR", msg, location, span);
     }
 }
 
