@@ -183,6 +183,8 @@ JUSTIFIED   : 'JUSTIFIED' ;
 KEY         : 'KEY' ;
 LEADING     : 'LEADING' ;
 LESS        : 'LESS' ;
+LINE        : 'LINE' ;
+LINES       : 'LINES' ;
 METHOD      : 'METHOD' ;
 MODE        : 'MODE' ;
 NEXT        : 'NEXT' ;

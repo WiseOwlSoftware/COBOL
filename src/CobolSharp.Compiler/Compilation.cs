@@ -90,6 +90,9 @@ public sealed class Compilation
         }
         semanticModel.SetDataItemsInOrder(semanticBuilder.DataItemsInOrder);
 
+        // Phase 4a: Validate paragraphs — detect phantom paragraphs
+        ValidateParagraphs(semanticModel, diagnostics);
+
         // Phase 4b: Compute storage layout — assign byte offsets to all data items
         ComputeStorageLayout(semanticModel);
 
@@ -167,6 +170,37 @@ public sealed class Compilation
     /// Recursive storage layout: groups share bytes with their children.
     /// Only elementary items (with PIC) consume bytes.
     /// </summary>
+    /// <summary>
+    /// Detect phantom paragraphs — paragraphs with no statements that may indicate
+    /// a parsing error (e.g., stray identifier like 'LINES' from WRITE ADVANCING).
+    /// </summary>
+    private static void ValidateParagraphs(
+        Semantics.SemanticModel model,
+        Diagnostics.DiagnosticBag diagnostics)
+    {
+        // Check for paragraphs with suspicious names that are known COBOL keywords
+        // These should never be paragraph names in well-formed programs
+        var suspiciousNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "LINE", "LINES", "PAGE", "ADVANCING", "GIVING", "ROUNDED",
+            "TALLYING", "REPLACING", "UNTIL", "VARYING", "TIMES",
+        };
+
+        foreach (var para in model.ParagraphsInOrder)
+        {
+            if (suspiciousNames.Contains(para.Name))
+            {
+                diagnostics.Add(new Diagnostics.Diagnostic(
+                    "SEM",
+                    Diagnostics.DiagnosticSeverity.Warning,
+                    $"Paragraph '{para.Name}' has a name that matches a COBOL keyword — " +
+                    "this may indicate a parsing error (e.g., unconsumed keyword from a statement clause).",
+                    new Common.SourceLocation("<source>", 0, para.Line, 0),
+                    new Common.TextSpan(0, 0)));
+            }
+        }
+    }
+
     private static void ComputeStorageLayout(Semantics.SemanticModel model)
     {
         int wsOffset = 0;

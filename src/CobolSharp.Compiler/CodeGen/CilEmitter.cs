@@ -309,8 +309,14 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ret));
         }
 
-        // DIAG: dump IL
+        // DIAG: dump IL with computed offsets
+        int diagOffset = 0;
         Console.Error.WriteLine($"[IL] {md.FullName}: {md.Body.Instructions.Count} IL instructions, {md.Body.Variables.Count} locals");
+        foreach (var instr in md.Body.Instructions)
+        {
+            instr.Offset = diagOffset;
+            diagOffset += instr.GetSize();
+        }
         foreach (var instr in md.Body.Instructions)
             Console.Error.WriteLine($"[IL]   {instr}");
     }
@@ -768,11 +774,24 @@ public sealed class CilEmitter
     /// <summary>
     /// Emit a decimal literal onto the CIL stack.
     /// </summary>
+    /// <summary>
+    /// Emit a decimal literal with exact precision (no double round-trip).
+    /// Uses decimal(lo, mid, hi, isNegative, scale) constructor.
+    /// </summary>
     private void EmitLoadDecimal(ILProcessor il, decimal value)
     {
-        il.Append(il.Create(OpCodes.Ldc_R8, (double)value));
+        var bits = decimal.GetBits(value);
+        il.Append(il.Create(OpCodes.Ldc_I4, bits[0]));  // lo
+        il.Append(il.Create(OpCodes.Ldc_I4, bits[1]));  // mid
+        il.Append(il.Create(OpCodes.Ldc_I4, bits[2]));  // hi
+        il.Append(il.Create(value < 0 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));  // isNegative
+        // Scale is in bits 16-23 of bits[3]
+        byte scale = (byte)((bits[3] >> 16) & 0xFF);
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)scale));  // scale
+
         var decCtor = _module.ImportReference(
-            typeof(decimal).GetConstructor(new[] { typeof(double) })!);
+            typeof(decimal).GetConstructor(new[] {
+                typeof(int), typeof(int), typeof(int), typeof(bool), typeof(byte) })!);
         il.Append(il.Create(OpCodes.Newobj, decCtor));
     }
 

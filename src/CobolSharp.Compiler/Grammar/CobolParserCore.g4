@@ -5,6 +5,7 @@ parser grammar CobolParserCore;
 
 options {
     tokenVocab = CobolLexer;
+    superClass = CobolParserCoreBase;
 }
 
 // ==========================================
@@ -595,7 +596,7 @@ paragraphDeclaration
     ;
 
 paragraphName
-    : IDENTIFIER
+    : {IsAtLineStart()}? IDENTIFIER
     ;
 
 // ==========================================
@@ -712,7 +713,7 @@ writeFrom
     ;
 
 writeBeforeAfter
-    : ('BEFORE' | 'AFTER') 'ADVANCING' (identifier | integerLiteral | literal)
+    : ('BEFORE' | 'AFTER') ADVANCING (identifier | integerLiteral | literal) (LINE | LINES)?
     ;
 
 writeInvalidKey
