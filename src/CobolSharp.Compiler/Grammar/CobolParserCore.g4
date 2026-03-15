@@ -395,6 +395,7 @@ levelNumber
 
 dataName
     : IDENTIFIER
+    | FILLER
     ;
 
 dataDescriptionBody
@@ -481,10 +482,10 @@ renamesClause
     : RENAMES identifier (THRU identifier)?
     ;
 
-// VALUE Clause
+// VALUE Clause — IS is optional noise word
 valueClause
-    : VALUE literal
-    | VALUES literal (COMMA literal)*
+    : VALUE IS? literal
+    | VALUES IS? literal (literal)*
     ;
 
 // SIGN Clause
@@ -722,7 +723,17 @@ writeInvalidKey
 // ==========================================
 
 openStatement
-    : OPEN identifierList DOT?
+    : OPEN openClause+ DOT?
+    ;
+
+openClause
+    : openMode identifier+
+    ;
+
+openMode
+    : INPUT
+    | OUTPUT
+    | EXTEND
     ;
 
 closeStatement
@@ -1521,7 +1532,21 @@ primaryExpression
 // =========================
 
 literal
-    : INTEGERLIT
+    : signedNumericLiteral
     | STRINGLIT
-    // add DECIMAL, HEX, BOOLEAN, etc. as you introduce tokens
+    | HEXLIT
+    | figurativeConstant
+    ;
+
+signedNumericLiteral
+    : (PLUS | MINUS)? (INTEGERLIT | DECIMALLIT)
+    ;
+
+figurativeConstant
+    : ZERO
+    | SPACE
+    | HIGH_VALUE
+    | LOW_VALUE
+    | QUOTE_
+    | ALL literal
     ;

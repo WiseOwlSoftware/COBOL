@@ -152,6 +152,7 @@ ELSE        : 'ELSE' ;
 END         : 'END' ;
 ERROR       : 'ERROR' ;
 EXCEPTION   : 'EXCEPTION' ;
+EXTEND      : 'EXTEND' ;
 EXTERNAL    : 'EXTERNAL' ;
 FALSE_      : 'FALSE' ;
 FILE        : 'FILE' ;
@@ -233,12 +234,16 @@ VALUES      : 'VALUES' ;
 VARYING     : 'VARYING' ;
 WHEN        : 'WHEN' ;
 WITH        : 'WITH' ;
-ZERO        : 'ZERO' ;
+ZERO        : 'ZERO' | 'ZEROS' | 'ZEROES' ;
+SPACE       : 'SPACE' | 'SPACES' ;
+HIGH_VALUE  : 'HIGH-VALUE' | 'HIGH-VALUES' ;
+LOW_VALUE   : 'LOW-VALUE' | 'LOW-VALUES' ;
+QUOTE_      : 'QUOTE' | 'QUOTES' ;
 
 // ── Numeric literals (must come BEFORE IDENTIFIER) ──
 // Option A: ordering guarantees "01" → INTEGERLIT, not IDENTIFIER
 
-DECIMALLIT  : [0-9]+ '.' [0-9]+ ;
+DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 INTEGERLIT  : [0-9]+ ;
 
 // ── IDENTIFIER (must come AFTER all keywords AND numeric literals) ──
@@ -267,7 +272,7 @@ GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
 DOT         : '.' ;
-COMMA       : ',' ;
+COMMA       : ',' -> skip ;   // §8.3.5: comma-space is equivalent to space
 LPAREN      : '(' ;
 RPAREN      : ')' ;
 LT          : '<' ;
@@ -278,7 +283,7 @@ MINUS       : '-' ;
 STAR        : '*' ;
 SLASH       : '/' ;
 COLON       : ':' ;
-SEMICOLON   : ';' ;
+SEMICOLON   : ';' -> skip ;   // §8.3.5: semicolon-space is equivalent to space
 
 // ── Catch-all for unrecognized characters ──
 

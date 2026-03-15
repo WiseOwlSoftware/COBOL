@@ -735,6 +735,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOpenStatement([NotNull] CobolParserCore.OpenStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenClause([NotNull] CobolParserCore.OpenClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openMode"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenMode([NotNull] CobolParserCore.OpenModeContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.closeStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1508,5 +1520,17 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLiteral([NotNull] CobolParserCore.LiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.signedNumericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSignedNumericLiteral([NotNull] CobolParserCore.SignedNumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.figurativeConstant"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFigurativeConstant([NotNull] CobolParserCore.FigurativeConstantContext context);
 }
 } // namespace CobolSharp.Compiler.Generated
