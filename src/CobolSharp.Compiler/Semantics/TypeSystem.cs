@@ -29,6 +29,8 @@ public sealed class PicLayout
     public int Length { get; }
     public int IntegerDigits { get; }
     public int FractionDigits { get; }
+    public int LeadingPScaling { get; }   // P digits before real digits (e.g., PIC P(4)9)
+    public int TrailingPScaling { get; }  // P digits after real digits (e.g., PIC 99P)
     public bool IsSigned { get; }
     public bool IsEdited { get; }
 
@@ -37,6 +39,8 @@ public sealed class PicLayout
         int length,
         int integerDigits,
         int fractionDigits,
+        int leadingPScaling,
+        int trailingPScaling,
         bool isSigned,
         bool isEdited)
     {
@@ -44,6 +48,8 @@ public sealed class PicLayout
         Length = length;
         IntegerDigits = integerDigits;
         FractionDigits = fractionDigits;
+        LeadingPScaling = leadingPScaling;
+        TrailingPScaling = trailingPScaling;
         IsSigned = isSigned;
         IsEdited = isEdited;
     }

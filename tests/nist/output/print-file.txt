@@ -62,10 +62,8 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  MULTIPLY BY          PASS  MPY-TEST-F1-10-2   .00
 *** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
- MULTIPLY BY          FAIL* MPY-TEST-F1-11     .00
-
-                                     COMPUTED=                     00000000000000000099
-                                     CORRECT =                     00000000000000000090
+ MULTIPLY BY          PASS  MPY-TEST-F1-11     .00
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
 
  MULTIPLY BY          FAIL* MPY-TEST-F1-12     .00
 
@@ -322,7 +320,7 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC101A
 
-                                                    078 OF 090  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    079 OF 090  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION

@@ -667,15 +667,14 @@ public static class PicRuntime
         {
             decimal result = intVal;
 
-            // Apply implied decimal from FractionDigits
-            if (pic.FractionDigits > 0)
-                result /= Pow10(pic.FractionDigits);
-
-            // Apply P scaling
-            if (pic.LeadingScaleDigits > 0)
-                result *= Pow10(pic.LeadingScaleDigits);
+            // Apply implied decimal from FractionDigits + leading P scaling
+            // Leading P = additional implied fraction positions not stored
+            // Trailing P = additional implied integer positions not stored
+            int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+            if (totalFractionScale > 0)
+                result /= Pow10(totalFractionScale);
             if (pic.TrailingScaleDigits > 0)
-                result /= Pow10(pic.TrailingScaleDigits);
+                result *= Pow10(pic.TrailingScaleDigits);
 
             return negative ? -result : result;
         }
@@ -732,15 +731,12 @@ public static class PicRuntime
 
         decimal result = raw;
 
-        // Apply implied decimal
-        if (pic.FractionDigits > 0)
-            result /= Pow10(pic.FractionDigits);
-
-        // Apply P scaling
-        if (pic.LeadingScaleDigits > 0)
-            result *= Pow10(pic.LeadingScaleDigits);
+        // Apply implied decimal + leading P scaling
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            result /= Pow10(totalFractionScale);
         if (pic.TrailingScaleDigits > 0)
-            result /= Pow10(pic.TrailingScaleDigits);
+            result *= Pow10(pic.TrailingScaleDigits);
 
         return result;
     }
@@ -752,13 +748,14 @@ public static class PicRuntime
         byte[] area, int offset, int length, PicDescriptor pic, decimal value)
     {
         // Apply scaling to get integer representation
+        // Leading P = additional implied fraction (multiply to remove)
+        // Trailing P = additional implied integer (divide to remove)
         decimal scaled = value;
-        if (pic.FractionDigits > 0)
-            scaled *= Pow10(pic.FractionDigits);
-        if (pic.LeadingScaleDigits > 0)
-            scaled /= Pow10(pic.LeadingScaleDigits);
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            scaled *= Pow10(totalFractionScale);
         if (pic.TrailingScaleDigits > 0)
-            scaled *= Pow10(pic.TrailingScaleDigits);
+            scaled /= Pow10(pic.TrailingScaleDigits);
 
         long raw = (long)decimal.Truncate(scaled);
 
@@ -839,13 +836,14 @@ public static class PicRuntime
         bool isNegative = value < 0m;
         decimal absValue = Math.Abs(value);
 
-        // Apply P scaling
-        if (pic.LeadingScaleDigits > 0)
-            absValue /= Pow10(pic.LeadingScaleDigits);
+        // Apply P scaling (inverse of decode):
+        // Leading P = additional fraction → multiply to get stored integer
+        // Trailing P = additional integer → divide to get stored integer
         if (pic.TrailingScaleDigits > 0)
-            absValue *= Pow10(pic.TrailingScaleDigits);
+            absValue /= Pow10(pic.TrailingScaleDigits);
 
-        int scale = pic.FractionDigits;
+        // Total fraction scale = FractionDigits + LeadingPScaling
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
 
         // Scale to integer: 320.48 with scale=2 → 32048
@@ -986,8 +984,11 @@ public static class PicRuntime
             default: // DISPLAY
             {
                 decimal scaled = absValue;
-                if (destPic.FractionDigits > 0)
-                    scaled *= Pow10(destPic.FractionDigits);
+                int totalScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+                if (totalScale > 0)
+                    scaled *= Pow10(totalScale);
+                if (destPic.TrailingScaleDigits > 0)
+                    scaled /= Pow10(destPic.TrailingScaleDigits);
                 long intVal;
                 try { intVal = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }

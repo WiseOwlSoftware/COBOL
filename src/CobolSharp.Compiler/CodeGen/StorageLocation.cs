@@ -60,7 +60,7 @@ public static class PicDescriptorFactory
             signStorage: (pic?.IsSigned ?? false) ? SignStorageKind.LeadingSeparate : SignStorageKind.None,
             editing: editingKind,
             blankWhenZero: false,
-            leadingScaleDigits: 0,
-            trailingScaleDigits: 0);
+            leadingScaleDigits: pic?.LeadingPScaling ?? 0,
+            trailingScaleDigits: pic?.TrailingPScaling ?? 0);
     }
 }

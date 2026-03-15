@@ -63,6 +63,9 @@ public static class PicUsageResolver
         bool hasNumericChars = false;   // 9, V, P, S
         bool hasAlphaChars = false;     // X, A
         bool hasNationalChars = false;  // N
+        int leadingPScaling = 0;        // P before any 9 digits
+        int trailingPScaling = 0;       // P after 9 digits
+        bool hasRealDigits = false;     // Have we seen any 9 digits?
 
         while (pos < text.Length)
         {
@@ -79,6 +82,7 @@ public static class PicUsageResolver
                 case '9':
                 {
                     hasNumericChars = true;
+                    hasRealDigits = true;
                     int count = ParseRepeatCount(text, ref pos);
                     if (pastDecimal)
                         fractionDigits += count;
@@ -120,13 +124,13 @@ public static class PicUsageResolver
 
                 case 'P':
                 {
-                    // Scaling position
+                    // P scaling — implied positions, NOT stored in field
                     hasNumericChars = true;
                     int count = ParseRepeatCount(text, ref pos);
-                    if (pastDecimal)
-                        fractionDigits += count;
+                    if (!hasRealDigits)
+                        leadingPScaling += count;  // P before 9's (e.g., PIC P(4)9)
                     else
-                        integerDigits += count;
+                        trailingPScaling += count; // P after 9's (e.g., PIC 99P)
                     break;
                 }
 
@@ -190,7 +194,8 @@ public static class PicUsageResolver
         else
             category = CobolCategory.Unknown;
 
-        return new PicLayout(category, length, integerDigits, fractionDigits, signed, edited);
+        return new PicLayout(category, length, integerDigits, fractionDigits,
+            leadingPScaling, trailingPScaling, signed, edited);
     }
 
     /// <summary>
