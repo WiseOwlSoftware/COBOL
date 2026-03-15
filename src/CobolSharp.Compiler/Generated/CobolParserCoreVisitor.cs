@@ -621,6 +621,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDeclarativeParagraph([NotNull] CobolParserCore.DeclarativeParagraphContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sentence"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSentence([NotNull] CobolParserCore.SentenceContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureSectionOrParagraph"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

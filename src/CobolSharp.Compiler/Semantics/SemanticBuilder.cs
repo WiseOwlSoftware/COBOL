@@ -262,8 +262,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
 
         using var paraScope = _symbols.PushScope(paragraph.Scope);
-        foreach (var stmt in ctx.statement())
-            Visit(stmt);
+        foreach (var sentence in ctx.sentence())
+            foreach (var stmt in sentence.statement())
+                Visit(stmt);
 
         return null;
     }

@@ -39,11 +39,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (paraSym == null) return null;
 
         var statements = new List<BoundStatement>();
-        foreach (var stmtCtx in ctx.statement())
+        foreach (var sentence in ctx.sentence())
         {
-            var bound = BindStatement(stmtCtx);
-            if (bound != null)
-                statements.Add(bound);
+            foreach (var stmtCtx in sentence.statement())
+            {
+                var bound = BindStatement(stmtCtx);
+                if (bound != null)
+                    statements.Add(bound);
+            }
         }
 
         _paragraphs.Add(new BoundParagraph(paraSym, statements));
