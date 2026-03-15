@@ -52,17 +52,26 @@ public sealed class Compilation
             return new CompilationResult(false, "", diagnostics.Diagnostics);
         }
 
-        // Phase 3: Build semantic model (TODO — walk parse tree with visitor)
+        // Phase 3: Semantic analysis — Pass 1: declaration collection
+        string programId = ExtractProgramId(tree) ?? Path.GetFileNameWithoutExtension(sourcePath);
+        var semanticBuilder = new Semantics.SemanticBuilder(programId, 1);
+        semanticBuilder.Visit(tree);
+
+        // Phase 3b: Semantic analysis — Pass 2: reference resolution
+        var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
+        var resolver = new Semantics.ReferenceResolver(semanticBuilder.Symbols, semDiagnostics);
+        resolver.Visit(tree);
+
+        foreach (var d in semDiagnostics)
+            diagnostics.Add(d);
+
         // Phase 4: CIL emission (TODO — emit from semantic model)
 
-        // For now, determine output path from parse tree
-        string programId = ExtractProgramId(tree) ?? Path.GetFileNameWithoutExtension(sourcePath);
         outputPath ??= Path.Combine(
             Path.GetDirectoryName(sourcePath) ?? ".",
             programId + ".dll");
 
-        // TODO: Emit .NET assembly from parse tree
-        // For now, report success if parsing succeeded
+        // For now, report success if parsing + semantic analysis succeeded
         return new CompilationResult(
             !diagnostics.HasErrors,
             outputPath,

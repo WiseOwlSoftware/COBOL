@@ -27,4 +27,9 @@ public sealed class DiagnosticBag
     {
         Report(code, DiagnosticSeverity.Warning, message, location, span);
     }
+
+    public void Add(Diagnostic diagnostic)
+    {
+        _diagnostics.Add(diagnostic);
+    }
 }
