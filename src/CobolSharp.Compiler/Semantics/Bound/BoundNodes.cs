@@ -204,10 +204,19 @@ public sealed class BoundAddStatement : BoundStatement
     public BoundExpression Operand { get; }
     public BoundExpression Target { get; }
     public bool IsRounded { get; }
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
 
-    public BoundAddStatement(BoundExpression operand, BoundExpression target, bool isRounded = false)
+    public BoundAddStatement(BoundExpression operand, BoundExpression target,
+        bool isRounded = false,
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
     {
-        Operand = operand; Target = target; IsRounded = isRounded;
+        Operand = operand;
+        Target = target;
+        IsRounded = isRounded;
+        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
+        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
@@ -233,14 +242,20 @@ public sealed class BoundMultiplyStatement : BoundStatement
     public BoundExpression Operand { get; }
     public IReadOnlyList<BoundMultiplyTarget> Targets { get; }
     public DataSymbol? GivingTarget { get; }
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
 
     public BoundMultiplyStatement(BoundExpression operand,
         IReadOnlyList<BoundMultiplyTarget> targets,
-        DataSymbol? givingTarget = null)
+        DataSymbol? givingTarget = null,
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
     {
         Operand = operand;
         Targets = targets;
         GivingTarget = givingTarget;
+        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
+        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;

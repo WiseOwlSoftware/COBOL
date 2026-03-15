@@ -242,7 +242,32 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundMultiplyStatement(operand, targets, givingTarget);
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        var onSizeError = new List<BoundStatement>();
+        var notOnSizeError = new List<BoundStatement>();
+        var sizeCtx = ctx.multiplyOnSizeError();
+        if (sizeCtx != null)
+        {
+            var imperatives = sizeCtx.imperativeStatement();
+            if (imperatives.Length > 0)
+            {
+                foreach (var stmt in imperatives[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onSizeError.Add(bound);
+                }
+            }
+            if (imperatives.Length > 1)
+            {
+                foreach (var stmt in imperatives[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
+            }
+        }
+
+        return new BoundMultiplyStatement(operand, targets, givingTarget, onSizeError, notOnSizeError);
     }
 
     // ── ADD ──

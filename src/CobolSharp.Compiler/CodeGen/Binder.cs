@@ -138,8 +138,7 @@ public sealed class Binder
             case BoundIfStatement iff:
                 return LowerIf(iff, method, block);
             case BoundMultiplyStatement mult:
-                LowerMultiply(mult, block);
-                break;
+                return LowerMultiply(mult, method, block);
             case BoundAddStatement add:
                 LowerAdd(add, block);
                 break;
@@ -313,12 +312,9 @@ public sealed class Binder
 
     // ── MULTIPLY ──
 
-    private void LowerMultiply(BoundMultiplyStatement mult, IrBasicBlock block)
+    private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
     {
-        // For MULTIPLY BY: operand is the literal/identifier being multiplied,
-        // each target is multiplied in-place (target = operand × target)
-        // For MULTIPLY GIVING: operand × first BY target → GIVING targets
-
+        // Emit the arithmetic operations
         foreach (var target in mult.Targets)
         {
             var destLoc = _semantic.GetStorageLocation(target.Symbol);
@@ -326,16 +322,12 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
 
-            // operand is literal
             if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
             {
                 block.Instructions.Add(new IrPicMultiplyLiteral(
                     d, destLoc.Value, destLoc.Value, roundingMode));
-                continue;
             }
-
-            // operand is identifier
-            if (mult.Operand is BoundIdentifierExpression opId)
+            else if (mult.Operand is BoundIdentifierExpression opId)
             {
                 var opLoc = _semantic.GetStorageLocation(opId.Symbol);
                 if (opLoc.HasValue)
@@ -345,6 +337,40 @@ public sealed class Binder
                 }
             }
         }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR conditional execution
+        if (mult.OnSizeError.Count > 0 || mult.NotOnSizeError.Count > 0)
+        {
+            // TODO: real size error detection via ArithmeticStatus
+            // For now: always take NOT ON SIZE ERROR path (no overflow detection yet)
+            var sizeErrorBlock = method.CreateBlock("size.error");
+            var notSizeErrorBlock = method.CreateBlock("not.size.error");
+            var doneBlock = method.CreateBlock("size.done");
+
+            // Stub: always false (no size error) — emit IrSetBool(false) + branch
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrSetBool(condVal, false));
+            block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
+
+            // ON SIZE ERROR block
+            method.Blocks.Add(sizeErrorBlock);
+            var seCurrent = sizeErrorBlock;
+            foreach (var stmt in mult.OnSizeError)
+                seCurrent = LowerStatement(stmt, method, seCurrent);
+            seCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            // NOT ON SIZE ERROR block
+            method.Blocks.Add(notSizeErrorBlock);
+            var nseCurrent = notSizeErrorBlock;
+            foreach (var stmt in mult.NotOnSizeError)
+                nseCurrent = LowerStatement(stmt, method, nseCurrent);
+            nseCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(doneBlock);
+            return doneBlock;
+        }
+
+        return block;
     }
 
     // ── ADD ──
