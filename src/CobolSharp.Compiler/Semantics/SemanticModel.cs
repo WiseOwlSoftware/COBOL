@@ -53,12 +53,12 @@ public sealed class SemanticModel
 
     // ── Initial VALUE clauses (typed) ──
 
-    public sealed record InitialValue(object Value, Bound.CobolType Type);
+    public sealed record InitialValue(object Value, Runtime.CobolCategory Category);
 
     private readonly Dictionary<DataSymbol, InitialValue> _initialValues = new();
 
-    public void RegisterInitialValue(DataSymbol symbol, object value, Bound.CobolType type)
-        => _initialValues[symbol] = new InitialValue(value, type);
+    public void RegisterInitialValue(DataSymbol symbol, object value, Runtime.CobolCategory category)
+        => _initialValues[symbol] = new InitialValue(value, category);
 
     public IReadOnlyDictionary<DataSymbol, InitialValue> InitialValues => _initialValues;
 

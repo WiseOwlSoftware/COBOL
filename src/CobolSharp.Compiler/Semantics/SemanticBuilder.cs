@@ -137,24 +137,33 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     var literals = valClause.literal();
                     var litCtx = literals.Length > 0 ? literals[0] : null;
-                    if (litCtx?.STRINGLIT() is { } slit)
+                    if (litCtx != null)
                     {
-                        var text = slit.GetText();
-                        if (text.Length >= 2) initialValue = text[1..^1];
-                    }
-                    else if (litCtx?.signedNumericLiteral() is { } numLit)
-                    {
-                        initialValue = numLit.GetText();
-                    }
-                    else if (litCtx?.figurativeConstant() is { } fig)
-                    {
-                        string figText = fig.GetText().ToUpperInvariant();
-                        initialValue = figText switch
+                        // literal: numericLiteral | nonNumericLiteral
+                        var numLit = litCtx.numericLiteral();
+                        if (numLit != null)
                         {
-                            "SPACE" or "SPACES" => " ",
-                            "ZERO" or "ZEROS" or "ZEROES" => "0",
-                            _ => figText
-                        };
+                            initialValue = numLit.GetText();
+                        }
+                        else
+                        {
+                            var nonNum = litCtx.nonNumericLiteral();
+                            if (nonNum?.STRINGLIT() is { } slit)
+                            {
+                                var text = slit.GetText();
+                                if (text.Length >= 2) initialValue = text[1..^1];
+                            }
+                            else if (nonNum?.figurativeConstant() is { } fig)
+                            {
+                                string figText = fig.GetText().ToUpperInvariant();
+                                initialValue = figText switch
+                                {
+                                    "SPACE" or "SPACES" => " ",
+                                    "ZERO" or "ZEROS" or "ZEROES" => "0",
+                                    _ => figText
+                                };
+                            }
+                        }
                     }
                 }
             }

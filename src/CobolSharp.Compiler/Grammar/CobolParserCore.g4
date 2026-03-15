@@ -957,8 +957,8 @@ moveStatement
     ;
 
 moveSource
-    : arithmeticExpression
-    | literal
+    : literal
+    | arithmeticExpression
     ;
 
 moveTarget
@@ -1511,8 +1511,13 @@ logicalNotExpression
 // Relational
 // =========================
 
+relationalOperand
+    : arithmeticExpression
+    | nonNumericLiteral
+    ;
+
 relationalExpression
-    : arithmeticExpression ( relationalOperator arithmeticExpression )?
+    : relationalOperand ( relationalOperator relationalOperand )?
     ;
 
 relationalOperator
@@ -1572,7 +1577,7 @@ unaryExpression
 // =========================
 
 primaryExpression
-    : literal
+    : numericLiteral
     | functionCall
     | identifier
     | LPAREN arithmeticExpression RPAREN
@@ -1588,8 +1593,16 @@ functionCall
 // =========================
 
 literal
+    : numericLiteral
+    | nonNumericLiteral
+    ;
+
+numericLiteral
     : signedNumericLiteral
-    | STRINGLIT
+    ;
+
+nonNumericLiteral
+    : STRINGLIT
     | HEXLIT
     | figurativeConstant
     ;

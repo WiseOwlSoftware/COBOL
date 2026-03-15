@@ -12,129 +12,227 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
  TESTED               FAIL
  ***********************************************************************************************************************
- "MULTIPLY BY"        "**** "MPY-TEST-F1-13    " 1        "****TEST DELETED****"
-*** INFORMATION ***        "                        "L"                 "VI-67 6.4.2 "
-*** INFORMATION ***        "                        "L"                 "VI-67 6.4.2 "
- "MULTIPLY BY"        "**** "MPY-TEST-F1-14    " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
- "MULTIPLY BY"        "**** "MPY-TEST-F1-14    " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
- "MULTIPLY BY"        "**** "MPY-TEST-F1-14    " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
-*** INFORMATION ***                                                     "VI-67 6.4.2 "
- "MULTIPLY BY"        "FAIL "MPY-TEST-F1-17"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
- "MULTIPLY BY"        "FAIL "MPY-TEST-F1-17"   " 2        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
- "MULTIPLY BY"        "FAIL "MPY-TEST-F1-17"   " 3        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
- "MULTIPLY BY"        "FAIL "MPY-TEST-F1-17"   " 4        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
- "MULTIPLY BY"        "FAIL "MPY-TEST-F1-17"   " 5        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
-*** INFORMATION ***                                                     "VI-106 6.19.4 GR1"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-18"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-19"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-20"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-21"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-22"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "**** "MPY-TEST-F1-23"   " 1        "****TEST DELETED****"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
-*** INFORMATION ***                                                     "VI-67 6.4.2"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-24-1" " 1        "ON SIZE ERROR NOT EXECUTED"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-24-2" " 2        "ON SIZE ERROR NOT EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-24-3" " 3        "ON SIZE ERROR NOT EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-24-4" " 4        "ON SIZE ERROR NOT EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-24-5" " 5        "ON SIZE ERROR NOT EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-25-1" " 1        "SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-25-2" " 2        "SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-25-3" " 2        "SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-25-4" " 2        "SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-25-5" " 2        "SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-26-1" " 1        "NOT ON SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***        "                        "0"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "0"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-26-2" " 2        "NOT ON SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-26-3" " 2        "NOT ON SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-26-4" " 2        "NOT ON SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-26-5" " 2        "NOT ON SIZE ERROR SHOULD NOT BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-27-1" " 1        "NOT ON SIZE ERROR SHOULD BE EXECUTED"
-*** INFORMATION ***        "                        "0"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "0"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-27-2" " 2        "NOT ON SIZE ERROR SHOULD BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-27-3" " 3        "NOT ON SIZE ERROR SHOULD BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-27-4" " 3        "NOT ON SIZE ERROR SHOULD BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-27-5" " 4        "NOT ON SIZE ERROR SHOULD BE EXECUTED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-28-1" " 1        "SIZE ERROR SHOULD HAVE OCCURRED"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "1"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-28-2" " 2        "SIZE ERROR SHOULD HAVE OCCURRED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-28-3" " 3        "SIZE ERROR SHOULD HAVE OCCURRED"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "FAIL "MPY-TEST-F1-29-1" " 1        "WRONGLY AFFECTED BY SIZE ERROR"
-*** INFORMATION ***        "                        "2"                 "IV-41 6.4.3"
-*** INFORMATION ***        "                        "2"                 "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-29-2" " 2        "WRONGLY AFFECTED BY SIZE ERROR"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
- "*DELETED BY FCTC*"  "PASS "MPY-TEST-F1-29-3" " 2        "WRONGLY AFFECTED BY SIZE ERROR"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
-*** INFORMATION ***                                                     "IV-41 6.4.3"
+ MULTIPLY BY          FAIL* MPY-TEST-F1-1      . 0
+ MULTIPLY BY          FAIL* MPY-TEST-F1-1      . 0
+                                     COMPUTED=                                      320
+                                     CORRECT =                                      320
+                                     CORRECT =                                      320
+ MULTIPLY BY          FAIL* MPY-TEST-F1-2      . 0
+ MULTIPLY BY          FAIL* MPY-TEST-F1-2      . 0
+                                     COMPUTED=                                       72
+                                     CORRECT =                                       73
+                                     CORRECT =                                       73
+ MULTIPLY BY          FAIL* MPY-TEST-F1-3-1    . 0        ON SIZE ERROR NOT EXECUTED
+ MULTIPLY BY          FAIL* MPY-TEST-F1-3-1    . 0        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= A
+                                     CORRECT = A
+                                     CORRECT = A
+ MULTIPLY BY          FAIL* MPY-TEST-F1-3-2    . 0        WRONGLY AFFECTED BY SIZE ERROR
+ MULTIPLY BY          FAIL* MPY-TEST-F1-3-2    . 0        WRONGLY AFFECTED BY SIZE ERROR
+                                     COMPUTED= A                                      1
+                                     CORRECT = A                                      4
+                                     CORRECT = A                                      4
+ MULTIPLY BY          FAIL* MPY-TEST-F1-4-1    . 0        ON SIZE ERROR NOT EXECUTED
+ MULTIPLY BY          FAIL* MPY-TEST-F1-4-1    . 0        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= B
+                                     CORRECT = L
+                                     CORRECT = L
+ MULTIPLY BY          FAIL* MPY-TEST-F1-4-2    . 0        WRONGLY AFFECTED BY SIZE ERROR
+ MULTIPLY BY          FAIL* MPY-TEST-F1-4-2    . 0        WRONGLY AFFECTED BY SIZE ERROR
+                                     COMPUTED= B                                     99
+                                     CORRECT = L                                     20
+                                     CORRECT = L                                     20
+ MULTIPLY BY          PASS  MPY-TEST-F1-5      . 0        WRONGLY AFFECTED BY SIZE ERROR
+*** INFORMATION ***        B                        L                   VI-106 6.19.4 GR1
+*** INFORMATION ***        B                        L                   VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-6      . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-7-1    . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-7-2    . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          PASS  MPY-TEST-F1-8-1    . 0
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          PASS  MPY-TEST-F1-8-2    . 0
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-9-1    . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-9-2    . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          PASS  MPY-TEST-F1-10-1   . 0
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          PASS  MPY-TEST-F1-10-2   . 0
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-11     . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-12     . 0        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+*** INFORMATION ***                                                     VI-106 6.19.4 GR1
+ MULTIPLY BY          ***** MPY-TEST-F1-13     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ MULTIPLY BY          ***** MPY-TEST-F1-14     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ MULTIPLY BY          *****                    . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ MULTIPLY BY          *****                    . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 1
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 1
+                                     COMPUTED=                                        0
+                                     CORRECT =                                        0
+                                     CORRECT =                                        0
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 2
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 2
+                                     COMPUTED=                                   990000
+                                     CORRECT =                                        0
+                                     CORRECT =                                        0
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 3
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 3
+                                     COMPUTED=                                    99999
+                                     CORRECT =                                        1
+                                     CORRECT =                                        1
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 4
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 4
+                                     COMPUTED=                                    99999
+                                     CORRECT =                                        0
+                                     CORRECT =                                        0
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 5
+ MULTIPLY BY          FAIL* MPY-TEST-F1-17     . 5
+                                     COMPUTED=                                    99999                   0
+                                     CORRECT =                                        0                   0
+                                     CORRECT =                                        0                   0
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-18     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-19     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-20     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-21     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-22     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    ***** MPY-TEST-F1-23     . 1        ****TEST DELETED****
+*** INFORMATION ***                                                     VI-67 6.4.2
+*** INFORMATION ***                                                     VI-67 6.4.2
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-1   . 1        ON SIZE ERROR NOT EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-1   . 1        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= 0
+                                     CORRECT = 1
+                                     CORRECT = 1
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-2   . 2        ON SIZE ERROR NOT EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-2   . 2        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= 0                                      0
+                                     CORRECT = 1                                     23
+                                     CORRECT = 1                                     23
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-3   . 3        ON SIZE ERROR NOT EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-3   . 3        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= 0                                      0
+                                     CORRECT = 1                                     -4
+                                     CORRECT = 1                                     -4
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-4   . 4        ON SIZE ERROR NOT EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-24-4   . 4        ON SIZE ERROR NOT EXECUTED
+                                     COMPUTED= 0                                      0
+                                     CORRECT = 1                                     -4
+                                     CORRECT = 1                                     -4
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-24-5   . 5        ON SIZE ERROR NOT EXECUTED
+*** INFORMATION ***        0                        1                   IV-41 6.4.3
+*** INFORMATION ***        0                        1                   IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-25-1   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-25-2   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-25-3   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-25-4   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-25-5   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-26-1   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-26-2   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-26-3   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-26-4   . 1
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-26-5   . 1        NOT ON SIZE ERROR SHOULD NOT BE EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-26-5   . 1        NOT ON SIZE ERROR SHOULD NOT BE EXECUTED
+                                     COMPUTED=
+                                     CORRECT =
+                                     CORRECT =
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-1   . 1        NOT ON SIZE ERROR SHOULD BE EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-1   . 1        NOT ON SIZE ERROR SHOULD BE EXECUTED
+                                     COMPUTED= 1
+                                     CORRECT = 0
+                                     CORRECT = 0
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-2   . 2        NOT ON SIZE ERROR SHOULD BE EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-2   . 2        NOT ON SIZE ERROR SHOULD BE EXECUTED
+                                     COMPUTED= 1                                      0
+                                     CORRECT = 0                                     23
+                                     CORRECT = 0                                     23
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-27-3   . 3        NOT ON SIZE ERROR SHOULD BE EXECUTED
+*** INFORMATION ***        1                        0                   IV-41 6.4.3
+*** INFORMATION ***        1                        0                   IV-41 6.4.3
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-4   . 3        NOT ON SIZE ERROR SHOULD BE EXECUTED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-27-4   . 3        NOT ON SIZE ERROR SHOULD BE EXECUTED
+                                     COMPUTED=                                        0
+                                     CORRECT =                                       -4
+                                     CORRECT =                                       -4
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-27-5   . 4        NOT ON SIZE ERROR SHOULD BE EXECUTED
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-28-1   . 1        SIZE ERROR SHOULD HAVE OCCURRED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-28-1   . 1        SIZE ERROR SHOULD HAVE OCCURRED
+                                     COMPUTED= 0
+                                     CORRECT = 1
+                                     CORRECT = 1
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-28-2   . 2        SIZE ERROR SHOULD HAVE OCCURRED
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-28-2   . 2        SIZE ERROR SHOULD HAVE OCCURRED
+                                     COMPUTED= 0
+                                     CORRECT = 1
+                                     CORRECT = 1
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-28-3   . 3        SIZE ERROR SHOULD HAVE OCCURRED
+*** INFORMATION ***        0                        1                   IV-41 6.4.3
+*** INFORMATION ***        0                        1                   IV-41 6.4.3
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-29-1   . 1        WRONGLY AFFECTED BY SIZE ERROR
+ *DELETED BY FCTC*    FAIL* MPY-TEST-F1-29-1   . 1        WRONGLY AFFECTED BY SIZE ERROR
+                                     COMPUTED= 0
+                                     CORRECT = 2
+                                     CORRECT = 2
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-29-2   . 2        WRONGLY AFFECTED BY SIZE ERROR
+*** INFORMATION ***        0                        2                   IV-41 6.4.3
+*** INFORMATION ***        0                        2                   IV-41 6.4.3
+ *DELETED BY FCTC*    PASS  MPY-TEST-F1-29-3   . 2
+*** INFORMATION ***                                                     IV-41 6.4.3
+*** INFORMATION ***                                                     IV-41 6.4.3
  ***********************************************************************************************************************
  ***********************************************************************************************************************
  ***********************************************************************************************************************
@@ -142,6 +240,4 @@ TEST RESULT OF NC101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  ***********************************************************************************************************************
                                                     END OF TEST-  NC101A
                                                     END OF TEST-  NC101A
-                                                     16 OF  59  TESTS WERE EXECUTED SUCCESSFULLY
-                                                     24 "TEST(S) FAILED"
-                                                     19 "TEST(S) DELETED     "
+                                                     20 OF  59  TESTS WERE EXECUTED SUCCESSFULLY

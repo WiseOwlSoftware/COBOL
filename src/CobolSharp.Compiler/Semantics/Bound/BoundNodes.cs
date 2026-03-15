@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolSharp.Runtime;
 namespace CobolSharp.Compiler.Semantics.Bound;
 
 public enum BoundNodeKind
@@ -37,16 +38,16 @@ public abstract class BoundNode
 
 public abstract class BoundExpression : BoundNode
 {
-    public CobolType Type { get; }
-    protected BoundExpression(CobolType type) => Type = type;
+    public CobolCategory Category { get; }
+    protected BoundExpression(CobolCategory category) => Category = category;
 }
 
 public sealed class BoundLiteralExpression : BoundExpression
 {
     public object Value { get; }
 
-    public BoundLiteralExpression(object value, CobolType type)
-        : base(type) => Value = value;
+    public BoundLiteralExpression(object value, CobolCategory category)
+        : base(category) => Value = value;
 
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
 }
@@ -55,8 +56,8 @@ public sealed class BoundIdentifierExpression : BoundExpression
 {
     public DataSymbol Symbol { get; }
 
-    public BoundIdentifierExpression(DataSymbol symbol, CobolType type)
-        : base(type) => Symbol = symbol;
+    public BoundIdentifierExpression(DataSymbol symbol, CobolCategory category)
+        : base(category) => Symbol = symbol;
 
     public override BoundNodeKind Kind => BoundNodeKind.IdentifierExpression;
 }
@@ -75,8 +76,8 @@ public sealed class BoundBinaryExpression : BoundExpression
 
     public BoundBinaryExpression(
         BoundExpression left, BoundBinaryOperatorKind op,
-        BoundExpression right, CobolType type)
-        : base(type)
+        BoundExpression right, CobolCategory category)
+        : base(category)
     {
         Left = left;
         OperatorKind = op;
@@ -270,18 +271,3 @@ public sealed class BoundProgram : BoundNode
     public override BoundNodeKind Kind => BoundNodeKind.Program;
 }
 
-// ═══════════════════════════════════
-// COBOL type (minimal for now)
-// ═══════════════════════════════════
-
-public sealed class CobolType
-{
-    public static readonly CobolType Numeric = new("Numeric");
-    public static readonly CobolType Alphanumeric = new("Alphanumeric");
-    public static readonly CobolType Boolean = new("Boolean");
-    public static readonly CobolType String = new("String");
-    public static readonly CobolType Unknown = new("Unknown");
-
-    public string Name { get; }
-    private CobolType(string name) => Name = name;
-}

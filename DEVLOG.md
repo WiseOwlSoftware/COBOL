@@ -2405,4 +2405,139 @@ emission, and runtime execution.
 
 ---
 
+---
+
+## Entry 055 — 2026-03-15: Grammar Literal Split — Strings Out of Arithmetic
+
+### The Problem
+
+ANTLR grammar precedence bug: `moveSource: arithmeticExpression | literal` —
+`arithmeticExpression` appears first and can match STRINGLIT through
+`primaryExpression → literal`, so string literals are ALWAYS parsed as arithmetic
+expressions, never as literals. This caused:
+- Quote characters `"` embedded in field data (MOVE "FAIL*" stored as `"FAIL*"` with quotes)
+- Figurative constants SPACE/ZERO treated as identifiers in expressions
+- Cascading failures: BAIL-OUT string comparisons, header duplication, missing test lines
+
+### The Fix
+
+Split `literal` into `numericLiteral | nonNumericLiteral`. Restricted
+`primaryExpression` to `numericLiteral | identifier | functionCall | (expr)`.
+String literals and figurative constants can now only appear through `literal`
+or `nonNumericLiteral` paths, never through arithmetic.
+
+Also added `relationalOperand: arithmeticExpression | nonNumericLiteral` so
+IF conditions can still compare against string literals and figurative constants.
+
+Updated `BoundTreeBuilder`:
+- `BindLiteral` → delegates to `BindNumericLiteral` / `BindNonNumericLiteral`
+- `BindCondition` → uses `relationalOperand` instead of `arithmeticExpression`
+- `BindRelationalOperand` → routes non-numeric literals through proper path
+- `BindArithmeticExpr` simplified — no more figurative constant hacks
+
+### Result
+
+NC101A output: 243 lines, 20/59 pass. Quotes eliminated from all field data.
+Test names show cleanly. Headers no longer corrupted. Behavior-preserving
+refactor verified against test output.
+
+---
+
+## Entry 056 — 2026-03-15: CobolCategory Lattice — Unified Type System
+
+### The Change
+
+Replaced the ad-hoc `PicCategory` (compiler) / `CobolType` (bound tree) dual
+system with a single `CobolCategory` enum (ISO §6.1.2) shared between compiler
+and runtime:
+
+```
+Numeric, NumericEdited, Alphanumeric, AlphanumericEdited, National, NationalEdited
+```
+
+Changes across 8 files:
+- **Runtime**: `CobolCategory` enum + `CobolCategoryExtensions` (IsNumericLike,
+  IsAlphanumericLike, IsNationalLike)
+- **PicDescriptor**: `Category` property, auto-classified from flags, passed
+  through CIL `newobj` (9-arg constructor)
+- **TypeSystem**: `PicCategory` removed. `PicLayout.Category` is `CobolCategory`.
+  `ITypeSymbol.Category` / `DataTypeSymbol.Category` added.
+- **PicUsageResolver**: Classifies into full lattice (NumericEdited vs Numeric, etc.)
+  using tracked char flags (hasNumericChars, hasAlphaChars, hasNationalChars)
+- **PicDescriptorFactory**: Uses `symbol.ResolvedType.Category` as source of truth
+- **BoundNodes**: `BoundExpression.Category` replaces `CobolType Type`. Old
+  `CobolType` class removed entirely.
+- **BoundTreeBuilder**: All `CobolType.*` → `CobolCategory.*`
+- **CilEmitter**: `EmitLoadPicDescriptor` passes Category, uses `Category.IsNumericLike()`
+
+### Result
+
+NC101A: 243 lines, 20/59 pass — identical output. Pure refactor, no behavior change.
+
+---
+
+## Entry 057 — 2026-03-15: CategoryCompatibility Matrix — ISO MOVE/Arithmetic/Compare Rules
+
+### The Change
+
+Created `CategoryCompatibility.cs` — single authoritative source for COBOL
+category compatibility rules per ISO/IEC 1989:2023:
+
+**MOVE matrix** (HashSet-based): Numeric→anything, NumericEdited→NumericEdited
++ alpha/national, all others→alpha/national families only. Exactly matches the
+ISO truth table.
+
+**Arithmetic**: Operands must be Numeric or NumericEdited. No alphanumeric/national
+in arithmetic.
+
+**Comparison**: Same-family (including edited variants). Numeric↔NumericEdited,
+Alphanumeric↔AlphanumericEdited, National↔NationalEdited. Cross-family illegal.
+
+Public API: `IsMoveLegal()`, `IsArithmeticOperand()`, `IsArithmeticResult()`,
+`IsComparisonLegal()`, `IsNumericFamily()`, `IsAlphanumericFamily()`,
+`IsNationalFamily()`.
+
+### Result
+
+NC101A: 243 lines, 20/59 pass — identical output. Matrix ready for binder
+diagnostics and lowering dispatch.
+
+---
+
+## Entry 058 — 2026-03-15: PicRuntime Surface + LoweringTable — Category-Driven Dispatch
+
+### The Change
+
+Restructured `PicRuntime` into a category-organized public surface matching the
+compatibility matrices 1:1:
+
+**MOVE helpers** (28 methods): Every legal (source, target) category pair has a
+dedicated method. Numeric→Numeric, Numeric→NumericEdited, Numeric→Alphanumeric,
+NumericEdited→Alphanumeric, Alphanumeric→Alphanumeric, plus all National variants.
+Implementations delegate to core helpers (DecodeNumeric/EncodeNumeric for numeric,
+Array.Copy+space-fill for alphanumeric).
+
+**Arithmetic** (6 methods): AddNumeric, SubtractNumeric (new), MultiplyNumeric,
+DivideNumeric (new), plus literal variants for Add and Multiply.
+
+**Comparison** (3 families): CompareNumeric (decode+compare decimals),
+CompareAlphanumeric (new — byte-by-byte with space padding),
+CompareNational (new — delegates to alphanumeric for now).
+
+**Status structs**: `MoveStatus` (Truncated), `ArithmeticStatus` (SizeError)
+ready for ON SIZE ERROR wiring.
+
+**LoweringTable.cs**: Central dispatch — `ResolveHelper(OperationKind, source,
+target)` returns `MethodInfo?`. null = illegal combination (binder diagnostic).
+Maps every legal category pair to its PicRuntime method. Binder and emitter
+share this single source of truth.
+
+### Result
+
+NC101A: 243 lines, 20/59 pass — identical output. All infrastructure in place
+for category-driven lowering. Legacy method signatures preserved for backward
+compatibility during transition.
+
+---
+
 *End of entries for 2026-03-15*

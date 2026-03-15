@@ -270,11 +270,11 @@ public sealed class Compilation
             System.Globalization.CultureInfo.InvariantCulture, out var numVal)
             && data.ResolvedType?.IsNumeric == true)
         {
-            model.RegisterInitialValue(data, numVal, Semantics.Bound.CobolType.Numeric);
+            model.RegisterInitialValue(data, numVal, Runtime.CobolCategory.Numeric);
         }
         else
         {
-            model.RegisterInitialValue(data, data.InitialValue, Semantics.Bound.CobolType.String);
+            model.RegisterInitialValue(data, data.InitialValue, Runtime.CobolCategory.Alphanumeric);
         }
     }
 

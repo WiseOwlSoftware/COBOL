@@ -25,14 +25,17 @@ public static class PicUsageResolver
             layout = ParsePic(picString, diagnostics, line);
         }
 
-        var category = layout?.Category ?? PicCategory.Unknown;
-        bool isNumeric = category == PicCategory.Numeric;
-        bool isAlpha = category == PicCategory.Alphanumeric;
-        bool isBool = category == PicCategory.Boolean;
+        var category = layout?.Category ?? CobolCategory.Unknown;
+        bool isNumeric = category.IsNumericLike();
+        bool isAlpha = category.IsAlphanumericLike();
+        bool isBool = false;
 
         // Group items (no PIC) are alphanumeric by default
         if (picString == null && usage == UsageKind.Display)
+        {
             isAlpha = true;
+            category = CobolCategory.Alphanumeric;
+        }
 
         var name = BuildTypeName(dataName, layout, usage);
         return new DataTypeSymbol(name, isNumeric, isAlpha, isBool, layout, usage);
@@ -46,9 +49,7 @@ public static class PicUsageResolver
     }
 
     /// <summary>
-    /// Parse a PIC string into a PicLayout. First-pass: classifies numeric vs
-    /// alphanumeric, computes length/scale/sign. Conservative — flags editing
-    /// symbols for later refinement.
+    /// Parse a PIC string into a PicLayout with CobolCategory classification.
     /// </summary>
     private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line)
     {
@@ -59,7 +60,9 @@ public static class PicUsageResolver
         int fractionDigits = 0;
         bool pastDecimal = false;
         bool edited = false;
-        var category = PicCategory.Unknown;
+        bool hasNumericChars = false;   // 9, V, P, S
+        bool hasAlphaChars = false;     // X, A
+        bool hasNationalChars = false;  // N
 
         while (pos < text.Length)
         {
@@ -69,12 +72,13 @@ public static class PicUsageResolver
             {
                 case 'S':
                     signed = true;
+                    hasNumericChars = true;
                     pos++;
                     break;
 
                 case '9':
                 {
-                    category = PicCategory.Numeric;
+                    hasNumericChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     if (pastDecimal)
                         fractionDigits += count;
@@ -85,14 +89,14 @@ public static class PicUsageResolver
 
                 case 'V':
                     // Implied decimal point
+                    hasNumericChars = true;
                     pastDecimal = true;
                     pos++;
                     break;
 
                 case 'X':
                 {
-                    if (category == PicCategory.Unknown)
-                        category = PicCategory.Alphanumeric;
+                    hasAlphaChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -100,8 +104,7 @@ public static class PicUsageResolver
 
                 case 'A':
                 {
-                    if (category == PicCategory.Unknown)
-                        category = PicCategory.Alphanumeric;
+                    hasAlphaChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -109,8 +112,7 @@ public static class PicUsageResolver
 
                 case 'N':
                 {
-                    if (category == PicCategory.Unknown)
-                        category = PicCategory.National;
+                    hasNationalChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -119,6 +121,7 @@ public static class PicUsageResolver
                 case 'P':
                 {
                     // Scaling position
+                    hasNumericChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     if (pastDecimal)
                         fractionDigits += count;
@@ -140,8 +143,6 @@ public static class PicUsageResolver
                 {
                     // Editing symbols
                     edited = true;
-                    if (category == PicCategory.Unknown)
-                        category = PicCategory.Edited;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -176,8 +177,18 @@ public static class PicUsageResolver
 
         int length = integerDigits + fractionDigits;
 
-        if (category == PicCategory.Unknown)
-            category = edited ? PicCategory.Edited : PicCategory.Unknown;
+        // Classify into CobolCategory using the full lattice
+        CobolCategory category;
+        if (hasNumericChars && !hasAlphaChars && !hasNationalChars)
+            category = edited ? CobolCategory.NumericEdited : CobolCategory.Numeric;
+        else if (hasNationalChars && !hasNumericChars && !hasAlphaChars)
+            category = edited ? CobolCategory.NationalEdited : CobolCategory.National;
+        else if (hasAlphaChars || (!hasNumericChars && !hasNationalChars && edited))
+            category = edited ? CobolCategory.AlphanumericEdited : CobolCategory.Alphanumeric;
+        else if (edited && hasNumericChars)
+            category = CobolCategory.NumericEdited;
+        else
+            category = CobolCategory.Unknown;
 
         return new PicLayout(category, length, integerDigits, fractionDigits, signed, edited);
     }

@@ -210,22 +210,23 @@ public sealed class Binder
                 var loc = _semantic.GetStorageLocation(id.Symbol);
                 if (!loc.HasValue) continue;
 
+                var destCat = loc.Value.Pic.Category;
                 if (lit.Value is string s)
                 {
-                    // String literal → MoveStringToField
+                    // Alphanumeric literal → MoveStringToField
                     block.Instructions.Add(new IrMoveStringToField(loc.Value, s));
                 }
                 else if (lit.Value is decimal d)
                 {
-                    if (loc.Value.Pic.IsNumeric)
+                    if (destCat.IsNumericLike())
                     {
-                        // Numeric literal → PicRuntime.MoveNumericLiteral
+                        // Numeric literal → numeric destination
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(
                             loc.Value, d, mv.IsRounded ? 1 : 0));
                     }
                     else
                     {
-                        // Numeric to alpha field: format as string
+                        // Numeric literal → alphanumeric destination: format as string
                         string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
                         block.Instructions.Add(new IrMoveStringToField(loc.Value, numStr));
                     }
@@ -441,9 +442,11 @@ public sealed class Binder
                 var leftLoc = _semantic.GetStorageLocation(leftSym);
                 if (leftLoc.HasValue)
                 {
+                    var leftCat = leftLoc.Value.Pic.Category;
+
                     // identifier vs string literal (alphanumeric comparison)
                     if (binCond.Right is BoundLiteralExpression litStr &&
-                        litStr.Value is string s && !leftLoc.Value.Pic.IsNumeric)
+                        litStr.Value is string s && leftCat.IsAlphanumericLike())
                     {
                         block.Instructions.Add(new IrStringCompareLiteral(
                             leftLoc.Value, s, result,
@@ -451,7 +454,7 @@ public sealed class Binder
                         return;
                     }
 
-                    // identifier vs identifier (numeric comparison)
+                    // identifier vs identifier
                     if (rightSym != null)
                     {
                         var rightLoc = _semantic.GetStorageLocation(rightSym);

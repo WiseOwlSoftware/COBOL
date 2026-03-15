@@ -16,26 +16,16 @@ public interface ITypeSymbol
     bool IsBoolean { get; }
     PicLayout? Pic { get; }
     UsageKind Usage { get; }
-}
-
-// UsageKind is now in CobolSharp.Runtime (shared between compiler and runtime)
-
-public enum PicCategory
-{
-    Numeric,
-    Alphanumeric,
-    National,
-    Boolean,
-    Edited,
-    Unknown
+    CobolCategory Category { get; }
 }
 
 /// <summary>
 /// Decoded PIC string layout: category, length, scale, sign, editing.
+/// Uses CobolCategory (from Runtime) as the canonical category lattice.
 /// </summary>
 public sealed class PicLayout
 {
-    public PicCategory Category { get; }
+    public CobolCategory Category { get; }
     public int Length { get; }
     public int IntegerDigits { get; }
     public int FractionDigits { get; }
@@ -43,7 +33,7 @@ public sealed class PicLayout
     public bool IsEdited { get; }
 
     public PicLayout(
-        PicCategory category,
+        CobolCategory category,
         int length,
         int integerDigits,
         int fractionDigits,
@@ -70,6 +60,7 @@ public sealed class DataTypeSymbol : ITypeSymbol
     public bool IsBoolean { get; }
     public PicLayout? Pic { get; }
     public UsageKind Usage { get; }
+    public CobolCategory Category { get; }
 
     public DataTypeSymbol(
         string name,
@@ -85,6 +76,9 @@ public sealed class DataTypeSymbol : ITypeSymbol
         IsBoolean = isBoolean;
         Pic = pic;
         Usage = usage;
+        Category = pic?.Category ?? (isNumeric ? CobolCategory.Numeric
+            : isAlphanumeric ? CobolCategory.Alphanumeric
+            : CobolCategory.Unknown);
     }
 }
 

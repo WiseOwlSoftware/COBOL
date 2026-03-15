@@ -6,24 +6,146 @@ using System.Text;
 namespace CobolSharp.Runtime;
 
 /// <summary>
+/// Status returned by MOVE operations.
+/// </summary>
+public struct MoveStatus
+{
+    public bool Truncated { get; set; }
+}
+
+/// <summary>
+/// Status returned by arithmetic operations (for ON SIZE ERROR).
+/// </summary>
+public struct ArithmeticStatus
+{
+    public bool SizeError { get; set; }
+}
+
+/// <summary>
 /// PIC/USAGE-aware runtime for COBOL data movement, arithmetic, and comparison.
+/// Public surface organized by (OperationKind × source CobolCategory × target CobolCategory).
 /// All methods use byte[] + offset + length + PicDescriptor.
 /// </summary>
 public static class PicRuntime
 {
-    // ══════════════════════════════════════
-    // MOVE numeric
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Numeric → …
+    // ══════════════════════════════════════════════════════════
 
-    public static void MoveNumeric(
-        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+    public static void MoveNumericToNumeric(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
     }
+
+    public static void MoveNumericToNumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        // TODO: numeric editing formatting (Z, *, $, etc.)
+        // For now: decode, scale, encode as display
+        decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+    }
+
+    public static void MoveNumericToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        string formatted = FormatNumericForDisplay(value, srcPic.FractionDigits);
+        MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+    }
+
+    public static void MoveNumericToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Alphanumeric → …
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        // Left-justified, space-padded
+        int copyLen = Math.Min(srcLength, dstLength);
+        Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
+        for (int i = copyLen; i < dstLength; i++)
+            dstArea[dstOffset + i] = (byte)' ';
+    }
+
+    public static void MoveAlphanumericToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: NumericEdited → …
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNumericEditedToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        // Treat numeric-edited as alphanumeric for MOVE to alpha targets
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNumericEditedToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: AlphanumericEdited → …
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericEditedToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveAlphanumericEditedToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Literal helpers (called by emitter for MOVE "lit" TO field)
+    // ══════════════════════════════════════════════════════════
 
     public static void MoveNumericLiteral(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
@@ -33,9 +155,22 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Legacy aliases (keep CIL emitter working during transition)
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNumeric(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        int roundingMode)
+    {
+        MoveNumericToNumeric(srcArea, srcOffset, srcLength, srcPic,
+            destArea, destOffset, destLength, destPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
     // MULTIPLY
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     public static void MultiplyNumeric(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
@@ -62,9 +197,9 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // ADD
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     public static void AddNumeric(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
@@ -88,9 +223,66 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
-    // ══════════════════════════════════════
-    // COMPARE
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
+    // SUBTRACT
+    // ══════════════════════════════════════════════════════════
+
+    public static void SubtractNumeric(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        int roundingMode)
+    {
+        decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
+        decimal src = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        decimal value = dest - src;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    public static void SubtractNumericLiteral(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal literal, int roundingMode)
+    {
+        decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
+        decimal value = dest - literal;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DIVIDE
+    // ══════════════════════════════════════════════════════════
+
+    public static void DivideNumeric(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        byte[] leftArea, int leftOffset, int leftLength, PicDescriptor leftPic,
+        byte[] rightArea, int rightOffset, int rightLength, PicDescriptor rightPic,
+        int roundingMode)
+    {
+        decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
+        decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
+        if (right == 0m) return; // SIZE ERROR handling deferred
+        decimal value = left / right;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    public static void DivideNumericLiteral(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal literal,
+        byte[] otherArea, int otherOffset, int otherLength, PicDescriptor otherPic,
+        int roundingMode)
+    {
+        decimal other = DecodeNumeric(otherArea, otherOffset, otherLength, otherPic);
+        if (literal == 0m) return; // SIZE ERROR handling deferred
+        decimal value = other / literal;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // COMPARE: Numeric
+    // ══════════════════════════════════════════════════════════
 
     /// <summary>Returns -1, 0, or 1.</summary>
     public static int CompareNumeric(
@@ -110,23 +302,202 @@ public static class PicRuntime
         return Math.Sign(left - literal);
     }
 
-    // ══════════════════════════════════════
-    // Alphanumeric MOVE
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
+    // COMPARE: Alphanumeric
+    // ══════════════════════════════════════════════════════════
 
-    public static void MoveAlpha(
-        byte[] dest, int destOffset, int destLength,
-        byte[] src, int srcOffset, int srcLength)
+    /// <summary>Alphanumeric comparison using collating sequence. Returns -1, 0, or 1.</summary>
+    public static int CompareAlphanumeric(
+        byte[] leftArea, int leftOffset, int leftLength,
+        byte[] rightArea, int rightOffset, int rightLength)
     {
-        int copyLen = Math.Min(srcLength, destLength);
-        Array.Copy(src, srcOffset, dest, destOffset, copyLen);
-        for (int i = copyLen; i < destLength; i++)
-            dest[destOffset + i] = (byte)' ';
+        int maxLen = Math.Max(leftLength, rightLength);
+        for (int i = 0; i < maxLen; i++)
+        {
+            byte lb = i < leftLength ? leftArea[leftOffset + i] : (byte)' ';
+            byte rb = i < rightLength ? rightArea[rightOffset + i] : (byte)' ';
+            if (lb < rb) return -1;
+            if (lb > rb) return 1;
+        }
+        return 0;
     }
 
-    // ══════════════════════════════════════
+    /// <summary>National comparison. Returns -1, 0, or 1.</summary>
+    public static int CompareNational(
+        byte[] leftArea, int leftOffset, int leftLength,
+        byte[] rightArea, int rightOffset, int rightLength)
+    {
+        // National uses 2-byte characters; for now treat same as alphanumeric
+        return CompareAlphanumeric(leftArea, leftOffset, leftLength,
+            rightArea, rightOffset, rightLength);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: NumericEdited → NumericEdited
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNumericEditedToNumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        // Edited-to-edited: raw byte copy (same as alpha-to-alpha)
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: National stubs
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNationalToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalEditedToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalEditedToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalEditedToAlphanumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNationalEditedToAlphanumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // Also add missing cross-category MOVE stubs for Numeric → National
+    public static void MoveNumericToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNumericToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNumericEditedToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveNumericEditedToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveAlphanumericToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveAlphanumericToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveAlphanumericEditedToNational(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    public static void MoveAlphanumericEditedToNationalEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
     // Decode: bytes → decimal
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     public static decimal DecodeNumeric(
         byte[] area, int offset, int length, PicDescriptor pic)
@@ -165,9 +536,9 @@ public static class PicRuntime
         return negative ? -intPart : intPart;
     }
 
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // Encode: decimal → bytes
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     public static void EncodeNumeric(
         byte[] area, int offset, int length, PicDescriptor pic, decimal value)
@@ -216,9 +587,9 @@ public static class PicRuntime
         }
     }
 
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // Scaling / rounding
-    // ══════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
     {
@@ -233,10 +604,21 @@ public static class PicRuntime
         };
     }
 
+    // ══════════════════════════════════════════════════════════
+    // Helpers
+    // ══════════════════════════════════════════════════════════
+
     public static string FormatNumericForDisplay(decimal value, int fractionDigits)
     {
         if (fractionDigits > 0)
             return value.ToString("0." + new string('0', fractionDigits), CultureInfo.InvariantCulture);
         return ((long)value).ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static void MoveStringToBytes(byte[] area, int offset, int length, string value)
+    {
+        int copyLen = Math.Min(value.Length, length);
+        for (int i = 0; i < length; i++)
+            area[offset + i] = i < copyLen ? (byte)value[i] : (byte)' ';
     }
 }

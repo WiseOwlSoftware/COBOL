@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Generated;
+using CobolSharp.Runtime;
 
 namespace CobolSharp.Compiler.Semantics.Bound;
 
@@ -94,9 +95,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 var sym = _semantic.ResolveData(idCtx.GetText());
                 if (sym != null)
-                    operands.Add(new BoundIdentifierExpression(sym, CobolType.Alphanumeric));
+                    operands.Add(new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric));
                 else
-                    operands.Add(new BoundLiteralExpression(idCtx.GetText(), CobolType.String));
+                    operands.Add(new BoundLiteralExpression(idCtx.GetText(), CobolCategory.Alphanumeric));
             }
             else if (child is CobolParserCore.LiteralContext litCtx)
             {
@@ -312,7 +313,30 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindLiteral(CobolParserCore.LiteralContext lit)
     {
-        var s = lit.STRINGLIT();
+        // literal: numericLiteral | nonNumericLiteral
+        var numLit = lit.numericLiteral();
+        if (numLit != null)
+            return BindNumericLiteral(numLit);
+
+        var nonNumLit = lit.nonNumericLiteral();
+        if (nonNumLit != null)
+            return BindNonNumericLiteral(nonNumLit);
+
+        // Fallback
+        return new BoundLiteralExpression(lit.GetText(), CobolCategory.Alphanumeric);
+    }
+
+    private BoundExpression BindNumericLiteral(CobolParserCore.NumericLiteralContext numLit)
+    {
+        var raw = numLit.GetText();
+        if (decimal.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture, out var val))
+            return new BoundLiteralExpression(val, CobolCategory.Numeric);
+        return new BoundLiteralExpression(raw, CobolCategory.Alphanumeric);
+    }
+
+    private BoundExpression BindNonNumericLiteral(CobolParserCore.NonNumericLiteralContext nonNum)
+    {
+        var s = nonNum.STRINGLIT();
         if (s != null)
         {
             var text = s.GetText();
@@ -320,41 +344,31 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 ((text[0] == '"' && text[^1] == '"') ||
                  (text[0] == '\'' && text[^1] == '\'')))
                 text = text[1..^1];
-            return new BoundLiteralExpression(text, CobolType.String);
+            return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
         }
 
-        var numCtx = lit.signedNumericLiteral();
-        if (numCtx != null)
-        {
-            var raw = numCtx.GetText();
-            if (decimal.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture, out var val))
-                return new BoundLiteralExpression(val, CobolType.Numeric);
-            return new BoundLiteralExpression(raw, CobolType.String);
-        }
-
-        // figurativeConstant
-        var figCtx = lit.figurativeConstant();
+        var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
         {
             string figText = figCtx.GetText().ToUpperInvariant();
             return figText switch
             {
                 "SPACE" or "SPACES" =>
-                    new BoundLiteralExpression(" ", CobolType.Alphanumeric),
+                    new BoundLiteralExpression(" ", CobolCategory.Alphanumeric),
                 "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundLiteralExpression("0", CobolType.Numeric),
+                    new BoundLiteralExpression("0", CobolCategory.Numeric),
                 "HIGH-VALUE" or "HIGH-VALUES" =>
-                    new BoundLiteralExpression("\xFF", CobolType.Alphanumeric),
+                    new BoundLiteralExpression("\xFF", CobolCategory.Alphanumeric),
                 "LOW-VALUE" or "LOW-VALUES" =>
-                    new BoundLiteralExpression("\x00", CobolType.Alphanumeric),
+                    new BoundLiteralExpression("\x00", CobolCategory.Alphanumeric),
                 "QUOTE" or "QUOTES" =>
-                    new BoundLiteralExpression("\"", CobolType.Alphanumeric),
-                _ => new BoundLiteralExpression(figText, CobolType.String)
+                    new BoundLiteralExpression("\"", CobolCategory.Alphanumeric),
+                _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
             };
         }
 
         // HEXLIT, etc.
-        return new BoundLiteralExpression(lit.GetText(), CobolType.String);
+        return new BoundLiteralExpression(nonNum.GetText(), CobolCategory.Alphanumeric);
     }
 
     private BoundExpression BindIdentifier(CobolParserCore.IdentifierContext idCtx)
@@ -362,10 +376,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         string name = idCtx.GetText();
         var sym = _semantic.ResolveData(name);
         if (sym != null)
-            return new BoundIdentifierExpression(sym, CobolType.Alphanumeric);
+            return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
 
         // Unresolved — treat as string literal for now
-        return new BoundLiteralExpression(name, CobolType.String);
+        return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
     }
 
     /// <summary>
@@ -380,29 +394,29 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             var orExpr = ctx.logicalOrExpression();
             var andExpr = orExpr?.logicalAndExpression();
             if (andExpr == null || andExpr.Length == 0)
-                return new BoundLiteralExpression(true, CobolType.Boolean);
+                return new BoundLiteralExpression(true, CobolCategory.Unknown);
 
             var notExpr = andExpr[0].logicalNotExpression();
             if (notExpr == null || notExpr.Length == 0)
-                return new BoundLiteralExpression(true, CobolType.Boolean);
+                return new BoundLiteralExpression(true, CobolCategory.Unknown);
 
             var relExpr = notExpr[0].relationalExpression();
             if (relExpr == null)
-                return new BoundLiteralExpression(true, CobolType.Boolean);
+                return new BoundLiteralExpression(true, CobolCategory.Unknown);
 
-            var arithExprs = relExpr.arithmeticExpression();
+            var operands = relExpr.relationalOperand();
             var relOp = relExpr.relationalOperator();
 
-            if (arithExprs.Length < 2 || relOp == null)
+            if (operands.Length < 2 || relOp == null)
             {
                 // Bare identifier condition (e.g., IF condition-name)
-                if (arithExprs.Length == 1)
-                    return BindArithmeticExpr(arithExprs[0]);
-                return new BoundLiteralExpression(true, CobolType.Boolean);
+                if (operands.Length == 1)
+                    return BindRelationalOperand(operands[0]);
+                return new BoundLiteralExpression(true, CobolCategory.Unknown);
             }
 
-            var left = BindArithmeticExpr(arithExprs[0]);
-            var right = BindArithmeticExpr(arithExprs[1]);
+            var left = BindRelationalOperand(operands[0]);
+            var right = BindRelationalOperand(operands[1]);
 
             // Determine operator
             string opText = relOp.GetText().ToUpperInvariant()
@@ -422,36 +436,39 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 _ => BoundBinaryOperatorKind.Equal
             };
 
-            return new BoundBinaryExpression(left, op, right, CobolType.Boolean);
+            return new BoundBinaryExpression(left, op, right, CobolCategory.Unknown);
         }
         catch
         {
             // Fallback: treat as always true
-            return new BoundLiteralExpression(true, CobolType.Boolean);
+            return new BoundLiteralExpression(true, CobolCategory.Unknown);
         }
+    }
+
+    private BoundExpression BindRelationalOperand(CobolParserCore.RelationalOperandContext ctx)
+    {
+        // relationalOperand: arithmeticExpression | nonNumericLiteral
+        var nonNumLit = ctx.nonNumericLiteral();
+        if (nonNumLit != null)
+            return BindNonNumericLiteral(nonNumLit);
+
+        return BindArithmeticExpr(ctx.arithmeticExpression());
     }
 
     private BoundExpression BindArithmeticExpr(CobolParserCore.ArithmeticExpressionContext? ctx)
     {
         if (ctx == null)
-            return new BoundLiteralExpression(0m, CobolType.Numeric);
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
-        // Minimal: just get the text and try to parse as number or identifier
+        // primaryExpression now only allows numericLiteral | identifier | functionCall
         string text = ctx.GetText();
         if (decimal.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var val))
-            return new BoundLiteralExpression(val, CobolType.Numeric);
-
-        // Figurative constants
-        var upper = text.ToUpperInvariant();
-        if (upper is "SPACE" or "SPACES")
-            return new BoundLiteralExpression(" ", CobolType.String);
-        if (upper is "ZERO" or "ZEROS" or "ZEROES")
-            return new BoundLiteralExpression(0m, CobolType.Numeric);
+            return new BoundLiteralExpression(val, CobolCategory.Numeric);
 
         var sym = _semantic.ResolveData(text);
         if (sym != null)
-            return new BoundIdentifierExpression(sym, CobolType.Alphanumeric);
+            return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
 
-        return new BoundLiteralExpression(text, CobolType.String);
+        return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
     }
 }

@@ -3,6 +3,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
+using CobolSharp.Runtime;
 
 namespace CobolSharp.Compiler.CodeGen;
 
@@ -635,7 +636,7 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
     {
-        if (pm.Source.Pic.IsNumeric && pm.Destination.Pic.IsNumeric)
+        if (pm.Source.Pic.Category.IsNumericLike() && pm.Destination.Pic.Category.IsNumericLike())
         {
             // PIC-aware numeric MOVE via PicRuntime.MoveNumeric
             EmitLoadBackingArray(il, pm.Destination.Area);
@@ -746,11 +747,13 @@ public sealed class CilEmitter
         il.Append(il.Create(pic.HasEditing ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.StorageLength));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Usage));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Category));
 
         var ctor = _module.ImportReference(
             typeof(Runtime.PicDescriptor).GetConstructor(
                 new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
-                        typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind) })!);
+                        typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind),
+                        typeof(Runtime.CobolCategory) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
     }
 

@@ -39,14 +39,16 @@ public static class PicDescriptorFactory
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
+        var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
         return new PicDescriptor(
             totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
             fractionDigits: pic?.FractionDigits ?? 0,
             isSigned: pic?.IsSigned ?? false,
-            isNumeric: symbol.ResolvedType?.IsNumeric ?? false,
-            isAlphanumeric: symbol.ResolvedType?.IsAlphanumeric ?? true,
+            isNumeric: category.IsNumericLike(),
+            isAlphanumeric: category.IsAlphanumericLike(),
             hasEditing: pic?.IsEdited ?? false,
             storageLength: storageLength,
-            usage: symbol.Usage);
+            usage: symbol.Usage,
+            category: category);
     }
 }

@@ -118,10 +118,10 @@ public sealed class RecordLayoutBuilder
         if (pic == null)
             return 1; // unknown — minimum 1 byte
 
-        if (pic.Category == PicCategory.Alphanumeric || pic.Category == PicCategory.National)
+        if (pic.Category == CobolCategory.Alphanumeric || pic.Category == CobolCategory.National)
             return pic.Length;
 
-        if (s.Usage == UsageKind.Display && pic.Category == PicCategory.Numeric)
+        if (s.Usage == UsageKind.Display && pic.Category == CobolCategory.Numeric)
             return pic.Length + (pic.IsSigned ? 1 : 0);
 
         return s.Usage switch
@@ -149,10 +149,10 @@ public sealed class RecordLayoutBuilder
         if (pic == null)
             return IrPrimitiveType.ByteArray;
 
-        if (pic.Category == PicCategory.Alphanumeric || pic.Category == PicCategory.National)
+        if (pic.Category == CobolCategory.Alphanumeric || pic.Category == CobolCategory.National)
             return IrPrimitiveType.ByteArray;
 
-        if (s.Usage == UsageKind.Display && pic.Category == PicCategory.Numeric)
+        if (s.Usage == UsageKind.Display && pic.Category == CobolCategory.Numeric)
         {
             if (pic.FractionDigits > 0)
                 return IrPrimitiveType.Decimal;

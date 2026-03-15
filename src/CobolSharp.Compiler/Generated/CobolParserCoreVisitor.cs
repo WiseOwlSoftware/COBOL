@@ -1485,6 +1485,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitLogicalNotExpression([NotNull] CobolParserCore.LogicalNotExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRelationalOperand([NotNull] CobolParserCore.RelationalOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalExpression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1556,6 +1562,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLiteral([NotNull] CobolParserCore.LiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNumericLiteral([NotNull] CobolParserCore.NumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.nonNumericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNonNumericLiteral([NotNull] CobolParserCore.NonNumericLiteralContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.signedNumericLiteral"/>.
 	/// </summary>
