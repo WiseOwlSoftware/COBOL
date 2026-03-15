@@ -599,7 +599,7 @@ The `...` means multiple target identifiers are allowed.
 
 ---
 
-## Fix Status (updated 2026-03-14)
+## Fix Status (updated 2026-03-15)
 
 ### FIXED — Commit 4ecb788 (Session 1)
 - Issues 7-13: IsDivisionKeyword → IsDivisionStart (6 locations + ID division)
@@ -648,6 +648,11 @@ The `...` means multiple target identifiers are allowed.
 - Issue 77: SIGN IS LEADING/TRAILING SEPARATE CHARACTER
 - Issue 79: SYNCHRONIZED LEFT/RIGHT validation
 - Issue 80: OCCURS key loop data-clause boundary check
+
+### FIXED — ANTLR4 grammar operand type correction (Session 3)
+- ADD/SUBTRACT/MULTIPLY/DIVIDE: operand lists changed from `arithmeticExpression` to simple `identifier | literal` sub-rules (`addOperand`, `subtractOperand`, `multiplyOperand`, `divideOperand`). Per COBOL-85 spec, these statements require simple operands (identifiers or literals), not full arithmetic expressions. Only COMPUTE uses `arithmeticExpression` for its right-hand side.
+- SUBTRACT FROM/GIVING targets changed from `identifierList` to `subtractTarget+` where `subtractTarget: identifier ROUNDED?`, correctly associating ROUNDED with each individual target per spec.
+- ADD operand list changed from `arithmeticExpression (COMMA arithmeticExpression)*` to `addOperand+` where `addOperand: identifier | literal`.
 
 ### NOT FIXED (lexer changes required)
 - Issue 4: EXCLUSIVE-OR (needs ExclusiveOrKeyword in lexer, extremely rare)

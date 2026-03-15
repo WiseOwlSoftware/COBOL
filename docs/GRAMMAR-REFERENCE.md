@@ -52,7 +52,7 @@ Raw COBOL Source
 ### Statement Coverage (CobolParserCore.g4)
 
 **Fully expanded** (with all clauses, exception phrases, END-xxx terminators):
-- Arithmetic: ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE (with ON SIZE ERROR)
+- Arithmetic: ADD, SUBTRACT, MULTIPLY, DIVIDE (simple operands: identifier|literal), COMPUTE (full arithmetic expressions), all with ON SIZE ERROR
 - Data movement: MOVE (simple + CORRESPONDING)
 - String: STRING (DELIMITED BY, POINTER, OVERFLOW), UNSTRING (DELIMITER IN, COUNT IN, TALLYING)
 - Control flow: IF/END-IF, PERFORM (TIMES/UNTIL/VARYING)/END-PERFORM, EVALUATE (WHEN/OTHER)/END-EVALUATE
@@ -80,6 +80,8 @@ Raw COBOL Source
 7. Exponentiation: **
 8. Unary: +, -
 9. Primary: literal, identifier, (expression)
+
+**Note**: Full arithmetic expressions (`arithmeticExpression` rule) are only used by COMPUTE, EVALUATE, PERFORM VARYING, conditions, and MOVE. The four basic arithmetic statements (ADD, SUBTRACT, MULTIPLY, DIVIDE) require simple operands (identifier or literal) per the COBOL-85 spec, enforced in the ANTLR4 grammar via dedicated `addOperand`, `subtractOperand`, `multiplyOperand`, and `divideOperand` sub-rules.
 
 ### Dialect Support
 
@@ -1866,3 +1868,15 @@ ADD, SUBTRACT, MULTIPLY, DIVIDE, and COMPUTE all follow a common pattern:
 4. Optional END-xxx scope terminator
 
 When SIZE ERROR phrases are present and no END-xxx terminator is used, the statement is conditional.
+
+**Operand types**: Per the COBOL-85 spec, ADD, SUBTRACT, MULTIPLY, and DIVIDE require **simple operands** (identifiers or literals) — not full arithmetic expressions. Only COMPUTE allows a full `arithmetic-expression` on its right-hand side. The ANTLR4 grammar enforces this distinction with dedicated sub-rules:
+- `addOperand: identifier | literal`
+- `subtractOperand: identifier | literal`
+- `multiplyOperand: identifier | literal`
+- `divideOperand: identifier | literal`
+
+Receiving operands (targets) that support ROUNDED have their own sub-rules:
+- `subtractTarget: identifier ROUNDED?`
+- `multiplyByTarget: identifier ROUNDED?`
+
+This prevents the parser from accepting invalid syntax like `ADD (A + B) TO C` — the correct COBOL equivalent is `COMPUTE C = C + A + B`.
