@@ -178,13 +178,50 @@ public sealed class IrPicMultiply : IrInstruction
     public CodeGen.StorageLocation Left { get; }
     public CodeGen.StorageLocation Right { get; }
     public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
 
     public IrPicMultiply(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
-        CodeGen.StorageLocation dest)
+        CodeGen.StorageLocation dest, int rounding = 0)
     {
-        Left = left;
-        Right = right;
-        Destination = dest;
+        Left = left; Right = right; Destination = dest; Rounding = rounding;
+    }
+}
+
+public sealed class IrPicMultiplyLiteral : IrInstruction
+{
+    public decimal Value { get; }
+    public CodeGen.StorageLocation Other { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrPicMultiplyLiteral(decimal value, CodeGen.StorageLocation other,
+        CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Value = value; Other = other; Destination = dest; Rounding = rounding;
+    }
+}
+
+public sealed class IrPicAdd : IrInstruction
+{
+    public CodeGen.StorageLocation Source { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrPicAdd(CodeGen.StorageLocation src, CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Source = src; Destination = dest; Rounding = rounding;
+    }
+}
+
+public sealed class IrPicAddLiteral : IrInstruction
+{
+    public decimal Value { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrPicAddLiteral(CodeGen.StorageLocation dest, decimal value, int rounding = 0)
+    {
+        Destination = dest; Value = value; Rounding = rounding;
     }
 }
 
@@ -192,15 +229,37 @@ public sealed class IrPicCompare : IrInstruction
 {
     public CodeGen.StorageLocation Left { get; }
     public CodeGen.StorageLocation Right { get; }
-    public int OperatorKind { get; } // 0=Equal, 1=NotEqual, 2=Less, 3=Greater, etc.
+    public int OperatorKind { get; }
 
     public IrPicCompare(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
         IrValue result, int operatorKind)
     {
-        Left = left;
-        Right = right;
-        Result = result;
-        OperatorKind = operatorKind;
+        Left = left; Right = right; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+public sealed class IrPicCompareLiteral : IrInstruction
+{
+    public CodeGen.StorageLocation Left { get; }
+    public decimal Value { get; }
+    public int OperatorKind { get; }
+
+    public IrPicCompareLiteral(CodeGen.StorageLocation left, decimal value,
+        IrValue result, int operatorKind)
+    {
+        Left = left; Value = value; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+public sealed class IrPicMoveLiteralNumeric : IrInstruction
+{
+    public CodeGen.StorageLocation Destination { get; }
+    public decimal Value { get; }
+    public int Rounding { get; }
+
+    public IrPicMoveLiteralNumeric(CodeGen.StorageLocation dest, decimal value, int rounding = 0)
+    {
+        Destination = dest; Value = value; Rounding = rounding;
     }
 }
 

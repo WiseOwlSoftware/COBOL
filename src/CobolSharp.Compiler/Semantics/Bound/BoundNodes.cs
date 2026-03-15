@@ -198,6 +198,20 @@ public sealed class BoundCloseStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.CloseStatement;
 }
 
+public sealed class BoundAddStatement : BoundStatement
+{
+    public BoundExpression Operand { get; }
+    public BoundExpression Target { get; }
+    public bool IsRounded { get; }
+
+    public BoundAddStatement(BoundExpression operand, BoundExpression target, bool isRounded = false)
+    {
+        Operand = operand; Target = target; IsRounded = isRounded;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
+}
+
 public sealed class BoundMultiplyStatement : BoundStatement
 {
     public BoundExpression Left { get; }

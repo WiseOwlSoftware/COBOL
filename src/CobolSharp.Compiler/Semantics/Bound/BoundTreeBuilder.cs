@@ -65,7 +65,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.exitStatement() is { }) return new BoundExitStatement();
         if (ctx.openStatement() is { }) return new BoundOpenStatement();
         if (ctx.closeStatement() is { }) return new BoundCloseStatement();
-        if (ctx.addStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+        if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
         if (ctx.subtractStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
@@ -225,6 +225,34 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             givingTarget = rightId.Symbol;
 
         return new BoundMultiplyStatement(leftExpr, rightExpr, givingTarget);
+    }
+
+    // ── ADD ──
+
+    private BoundStatement BindAdd(CobolParserCore.AddStatementContext ctx)
+    {
+        // ADD operand(s) TO identifier
+        var operandList = ctx.addOperandList();
+        var toPhrase = ctx.addToPhrase();
+
+        if (operandList == null || toPhrase == null)
+            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+
+        // Get first operand
+        var arithExprs = operandList.arithmeticExpression();
+        if (arithExprs.Length == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+
+        var operand = BindArithmeticExpr(arithExprs[0]);
+
+        // Get first TO target
+        var idList = toPhrase.identifierList();
+        if (idList == null || idList.identifier().Length == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+
+        var target = BindIdentifier(idList.identifier()[0]);
+
+        return new BoundAddStatement(operand, target);
     }
 
     // ── IF ──

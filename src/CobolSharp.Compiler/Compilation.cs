@@ -193,6 +193,18 @@ public sealed class Compilation
         ref int offset,
         Semantics.SemanticModel model)
     {
+        // REDEFINES: share bytes with target, do NOT advance offset
+        if (item.Redefines != null)
+        {
+            var targetLoc = model.GetStorageLocation(item.Redefines);
+            if (targetLoc.HasValue)
+            {
+                model.RegisterStorageLocation(item, targetLoc.Value);
+                RegisterValue(model, item);
+            }
+            return;
+        }
+
         if (item.IsElementary)
         {
             // Elementary: allocate bytes from PIC

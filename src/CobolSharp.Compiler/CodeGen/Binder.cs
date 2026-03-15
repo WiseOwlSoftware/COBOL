@@ -122,6 +122,9 @@ public sealed class Binder
             case BoundMultiplyStatement mult:
                 LowerMultiply(mult, block);
                 break;
+            case BoundAddStatement add:
+                LowerAdd(add, block);
+                break;
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
                 break;
@@ -182,35 +185,32 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
-        // Handle MOVE "literal" TO identifier (string literal)
-        if (mv.Source is BoundLiteralExpression lit && lit.Value is string s)
+        // Handle MOVE literal TO identifier
+        if (mv.Source is BoundLiteralExpression lit)
         {
             foreach (var t in mv.Targets)
             {
-                if (t is BoundIdentifierExpression id)
-                {
-                    var loc = _semantic.GetStorageLocation(id.Symbol);
-                    if (loc.HasValue)
-                    {
-                        block.Instructions.Add(new IrMoveStringToField(loc.Value, s));
-                        continue;
-                    }
-                }
-            }
-            return;
-        }
+                if (t is not BoundIdentifierExpression id) continue;
+                var loc = _semantic.GetStorageLocation(id.Symbol);
+                if (!loc.HasValue) continue;
 
-        // Handle MOVE numeric-literal TO identifier
-        if (mv.Source is BoundLiteralExpression numLit && numLit.Value is decimal d)
-        {
-            string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            foreach (var t in mv.Targets)
-            {
-                if (t is BoundIdentifierExpression id)
+                if (lit.Value is string s)
                 {
-                    var loc = _semantic.GetStorageLocation(id.Symbol);
-                    if (loc.HasValue)
+                    // String literal → MoveStringToField
+                    block.Instructions.Add(new IrMoveStringToField(loc.Value, s));
+                }
+                else if (lit.Value is decimal d)
+                {
+                    if (loc.Value.Pic.IsNumeric)
                     {
+                        // Numeric literal → PicRuntime.MoveNumericLiteral
+                        block.Instructions.Add(new IrPicMoveLiteralNumeric(
+                            loc.Value, d, mv.IsRounded ? 1 : 0));
+                    }
+                    else
+                    {
+                        // Numeric to alpha field: format as string
+                        string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
                         block.Instructions.Add(new IrMoveStringToField(loc.Value, numStr));
                     }
                 }
@@ -286,25 +286,78 @@ public sealed class Binder
 
     private void LowerMultiply(BoundMultiplyStatement mult, IrBasicBlock block)
     {
-        if (mult.GivingTarget == null) return;
-
-        // Get storage locations for left, right, and destination
-        DataSymbol? leftSym = (mult.Left as BoundIdentifierExpression)?.Symbol;
-        DataSymbol? rightSym = (mult.Right as BoundIdentifierExpression)?.Symbol;
-        DataSymbol destSym = mult.GivingTarget;
+        // Destination: GIVING target or in-place (BY operand)
+        DataSymbol? destSym = mult.GivingTarget
+            ?? (mult.Right as BoundIdentifierExpression)?.Symbol;
+        if (destSym == null) return;
 
         var destLoc = _semantic.GetStorageLocation(destSym);
         if (!destLoc.HasValue) return;
 
-        // Handle literal × identifier and identifier × identifier
-        if (leftSym != null && rightSym != null)
+        // identifier × identifier
+        if (mult.Left is BoundIdentifierExpression leftId &&
+            mult.Right is BoundIdentifierExpression rightId)
         {
-            var leftLoc = _semantic.GetStorageLocation(leftSym);
-            var rightLoc = _semantic.GetStorageLocation(rightSym);
+            var leftLoc = _semantic.GetStorageLocation(leftId.Symbol);
+            var rightLoc = _semantic.GetStorageLocation(rightId.Symbol);
             if (leftLoc.HasValue && rightLoc.HasValue)
             {
                 block.Instructions.Add(new IrPicMultiply(
                     leftLoc.Value, rightLoc.Value, destLoc.Value));
+            }
+            return;
+        }
+
+        // literal × identifier
+        if (mult.Left is BoundLiteralExpression litLeft && litLeft.Value is decimal dLeft &&
+            mult.Right is BoundIdentifierExpression rId)
+        {
+            var rightLoc = _semantic.GetStorageLocation(rId.Symbol);
+            if (rightLoc.HasValue)
+            {
+                block.Instructions.Add(new IrPicMultiplyLiteral(
+                    dLeft, rightLoc.Value, destLoc.Value));
+            }
+            return;
+        }
+
+        // identifier × literal (swap)
+        if (mult.Right is BoundLiteralExpression litRight && litRight.Value is decimal dRight &&
+            mult.Left is BoundIdentifierExpression lId)
+        {
+            var leftLoc = _semantic.GetStorageLocation(lId.Symbol);
+            if (leftLoc.HasValue)
+            {
+                block.Instructions.Add(new IrPicMultiplyLiteral(
+                    dRight, leftLoc.Value, destLoc.Value));
+            }
+        }
+    }
+
+    // ── ADD ──
+
+    private void LowerAdd(BoundAddStatement add, IrBasicBlock block)
+    {
+        if (add.Target is not BoundIdentifierExpression destId) return;
+        var destLoc = _semantic.GetStorageLocation(destId.Symbol);
+        if (!destLoc.HasValue) return;
+
+        // ADD literal TO identifier
+        if (add.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+        {
+            block.Instructions.Add(new IrPicAddLiteral(
+                destLoc.Value, d, add.IsRounded ? 1 : 0));
+            return;
+        }
+
+        // ADD identifier TO identifier
+        if (add.Operand is BoundIdentifierExpression srcId)
+        {
+            var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
+            if (srcLoc.HasValue)
+            {
+                block.Instructions.Add(new IrPicAdd(
+                    srcLoc.Value, destLoc.Value, add.IsRounded ? 1 : 0));
             }
         }
     }

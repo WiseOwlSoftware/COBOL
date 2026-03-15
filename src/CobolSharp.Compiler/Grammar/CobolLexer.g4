@@ -8,8 +8,7 @@ lexer grammar CobolLexer;
 // ==========================================
 // Assumes preprocessed input: fixed→free normalized, COPY/REPLACE expanded.
 
-WS           : [ 	
-]+ -> skip ;
+WS           : [ \t\r\n]+ -> skip ;
 COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
 
 // ── END-xxx paired terminators (must precede END and IDENTIFIER) ──
@@ -271,13 +270,11 @@ IDENTIFIER
 
 // ── String literals ──
 
-STRINGLIT   : '"' (~["
-] | '""')* '"'
-            | ''' (~['
-] | '''')* '''
+STRINGLIT   : '"' (~["\r\n] | '""')* '"'
+            | '\'' (~['\r\n] | '\'\'')* '\''
             ;
 HEXLIT      : [Xx] '"' [0-9A-Fa-f]+ '"'
-            | [Xx] ''' [0-9A-Fa-f]+ '''
+            | [Xx] '\'' [0-9A-Fa-f]+ '\''
             ;
 
 // ── Operators (multi-char before single-char) ──
@@ -318,11 +315,8 @@ ANY_CHAR    : . ;
 mode PICMODE;
 
 PIC_IS      : 'IS' -> skip ;              // optional IS keyword
-PIC_WS      : [ 	
-]+ -> skip ;        // skip whitespace
-PIC_STRING  : ( ~[ 	
-.] | '.' ~[ 	
-] )+ -> popMode ;
+PIC_WS      : [ \t\r\n]+ -> skip ;        // skip whitespace
+PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+ -> popMode ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)
     // Stops:  at whitespace or period-before-whitespace (sentence end)
@@ -333,7 +327,5 @@ PIC_STRING  : ( ~[
 
 mode COMMENT_MODE;
 
-COMMENT_TEXT : ~[
-]+ -> skip ;
-COMMENT_END  : [
-]   -> popMode, skip ;
+COMMENT_TEXT : ~[\r\n]+ -> skip ;
+COMMENT_END  : [\r\n]   -> popMode, skip ;

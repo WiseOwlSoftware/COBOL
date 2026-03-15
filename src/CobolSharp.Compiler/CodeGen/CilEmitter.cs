@@ -149,26 +149,16 @@ public sealed class CilEmitter
                 if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
                 {
                     // Numeric VALUE → PicRuntime.MoveNumericLiteral
-                    // Already have byte[] on stack from above, plus offset + length
-                    // Need: totalDigits, fractionDigits, signed, usage, literal, rounding
-                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Pic.TotalDigits));
-                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Pic.FractionDigits));
-                    il.Append(il.Create(loc.Value.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-                    il.Append(il.Create(OpCodes.Ldc_I4, (int)loc.Value.Pic.Usage));
-
-                    // Load decimal literal: ldc.r8 → new decimal(double)
-                    il.Append(il.Create(OpCodes.Ldc_R8, (double)d));
-                    var decCtor = _module.ImportReference(
-                        typeof(decimal).GetConstructor(new[] { typeof(double) })!);
-                    il.Append(il.Create(OpCodes.Newobj, decCtor));
-
+                    // Stack already has: byte[] area, int offset, int length
+                    EmitLoadPicDescriptor(il, loc.Value.Pic);
+                    EmitLoadDecimal(il, d);
                     il.Append(il.Create(OpCodes.Ldc_I4_0)); // rounding = truncate
 
                     var numMethod = _module.ImportReference(
-                        typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                        typeof(Runtime.PicRuntime).GetMethod(
                             "MoveNumericLiteral",
                             new[] { typeof(byte[]), typeof(int), typeof(int),
-                                    typeof(int), typeof(int), typeof(bool), typeof(int),
+                                    typeof(Runtime.PicDescriptor),
                                     typeof(decimal), typeof(int) })!);
                     il.Append(il.Create(OpCodes.Call, numMethod));
                 }
@@ -386,8 +376,28 @@ public sealed class CilEmitter
                 EmitPicMultiply(il, mul);
                 break;
 
+            case IrPicMultiplyLiteral mulLit:
+                EmitPicMultiplyLiteral(il, mulLit);
+                break;
+
+            case IrPicAdd addInst:
+                EmitPicAdd(il, addInst);
+                break;
+
+            case IrPicAddLiteral addLit:
+                EmitPicAddLiteral(il, addLit);
+                break;
+
             case IrPicCompare cmp:
                 EmitPicCompare(il, cmp, getLocal);
+                break;
+
+            case IrPicCompareLiteral cmpLit:
+                EmitPicCompareLiteral(il, cmpLit, getLocal);
+                break;
+
+            case IrPicMoveLiteralNumeric movLit:
+                EmitPicMoveLiteralNumeric(il, movLit);
                 break;
 
             case IrRuntimeCall rtc:
@@ -589,34 +599,22 @@ public sealed class CilEmitter
         if (pm.Source.Pic.IsNumeric && pm.Destination.Pic.IsNumeric)
         {
             // PIC-aware numeric MOVE via PicRuntime.MoveNumeric
-            // dest: byte[], offset, length, totalDigits, fractionDigits, signed, usage
             EmitLoadBackingArray(il, pm.Destination.Area);
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Pic.TotalDigits));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Pic.FractionDigits));
-            il.Append(il.Create(pm.Destination.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ldc_I4, (int)pm.Destination.Pic.Usage));
+            EmitLoadPicDescriptor(il, pm.Destination.Pic);
 
-            // src: byte[], offset, length, totalDigits, fractionDigits, signed, usage
             EmitLoadBackingArray(il, pm.Source.Area);
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Pic.TotalDigits));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Pic.FractionDigits));
-            il.Append(il.Create(pm.Source.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ldc_I4, (int)pm.Source.Pic.Usage));
+            EmitLoadPicDescriptor(il, pm.Source.Pic);
 
-            // rounding
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
 
             var method = _module.ImportReference(
-                typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
-                    "MoveNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(int), typeof(int), typeof(bool), typeof(int),
-                            typeof(byte[]), typeof(int), typeof(int),
-                            typeof(int), typeof(int), typeof(bool), typeof(int),
+                typeof(Runtime.PicRuntime).GetMethod("MoveNumeric",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                            typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                             typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, method));
         }
@@ -642,93 +640,201 @@ public sealed class CilEmitter
 
     private void EmitPicMultiply(ILProcessor il, IrPicMultiply mul)
     {
-        // dest: byte[], offset, length, totalDigits, fractionDigits, signed, usage
         EmitLoadBackingArray(il, mul.Destination.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Pic.TotalDigits));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Pic.FractionDigits));
-        il.Append(il.Create(mul.Destination.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Destination.Pic.Usage));
+        EmitLoadPicDescriptor(il, mul.Destination.Pic);
 
-        // left
         EmitLoadBackingArray(il, mul.Left.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Length));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Pic.FractionDigits));
-        il.Append(il.Create(mul.Left.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Left.Pic.Usage));
+        EmitLoadPicDescriptor(il, mul.Left.Pic);
 
-        // right
         EmitLoadBackingArray(il, mul.Right.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Length));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Pic.FractionDigits));
-        il.Append(il.Create(mul.Right.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)mul.Right.Pic.Usage));
+        EmitLoadPicDescriptor(il, mul.Right.Pic);
+
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
 
         var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
-                "MultiplyNumeric",
-                new[] {
-                    typeof(byte[]), typeof(int), typeof(int),
-                    typeof(int), typeof(int), typeof(bool), typeof(int),
-                    typeof(byte[]), typeof(int), typeof(int),
-                    typeof(int), typeof(bool), typeof(int),
-                    typeof(byte[]), typeof(int), typeof(int),
-                    typeof(int), typeof(bool), typeof(int)
-                })!);
+            typeof(Runtime.PicRuntime).GetMethod("MultiplyNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
     private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        // left
         EmitLoadBackingArray(il, cmp.Left.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Pic.FractionDigits));
-        il.Append(il.Create(cmp.Left.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)cmp.Left.Pic.Usage));
+        EmitLoadPicDescriptor(il, cmp.Left.Pic);
 
-        // right
         EmitLoadBackingArray(il, cmp.Right.Area);
         il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Offset));
         il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Length));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Pic.FractionDigits));
-        il.Append(il.Create(cmp.Right.Pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)cmp.Right.Pic.Usage));
+        EmitLoadPicDescriptor(il, cmp.Right.Pic);
 
         var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
-                "CompareNumeric",
-                new[] {
-                    typeof(byte[]), typeof(int), typeof(int),
-                    typeof(int), typeof(bool), typeof(int),
-                    typeof(byte[]), typeof(int), typeof(int),
-                    typeof(int), typeof(bool), typeof(int)
-                })!);
+            typeof(Runtime.PicRuntime).GetMethod("CompareNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
-        // CompareNumeric returns int (-1, 0, 1)
-        // Convert to bool based on operator kind
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ceq));
+        if (cmp.OperatorKind == 1) // NotEqual
+        {
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ceq));
+        }
+
         if (cmp.Result.HasValue)
         {
             var resLocal = getLocal(cmp.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
 
-            // Compare the result to 0
+    /// <summary>
+    /// Construct a PicDescriptor on the CIL stack.
+    /// </summary>
+    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic)
+    {
+        il.Append(il.Create(OpCodes.Ldc_I4, pic.TotalDigits));
+        il.Append(il.Create(OpCodes.Ldc_I4, pic.FractionDigits));
+        il.Append(il.Create(pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(pic.IsNumeric ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(pic.IsAlphanumeric ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(pic.HasEditing ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, pic.StorageLength));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Usage));
+
+        var ctor = _module.ImportReference(
+            typeof(Runtime.PicDescriptor).GetConstructor(
+                new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
+                        typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind) })!);
+        il.Append(il.Create(OpCodes.Newobj, ctor));
+    }
+
+    /// <summary>
+    /// Emit a decimal literal onto the CIL stack.
+    /// </summary>
+    private void EmitLoadDecimal(ILProcessor il, decimal value)
+    {
+        il.Append(il.Create(OpCodes.Ldc_R8, (double)value));
+        var decCtor = _module.ImportReference(
+            typeof(decimal).GetConstructor(new[] { typeof(double) })!);
+        il.Append(il.Create(OpCodes.Newobj, decCtor));
+    }
+
+    // ── New PIC-aware emitters ──
+
+    private void EmitPicMoveLiteralNumeric(ILProcessor il, IrPicMoveLiteralNumeric mv)
+    {
+        EmitLoadBackingArray(il, mv.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mv.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mv.Destination.Length));
+        EmitLoadPicDescriptor(il, mv.Destination.Pic);
+        EmitLoadDecimal(il, mv.Value);
+        il.Append(il.Create(OpCodes.Ldc_I4, mv.Rounding));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicMultiplyLiteral(ILProcessor il, IrPicMultiplyLiteral mul)
+    {
+        EmitLoadBackingArray(il, mul.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
+        EmitLoadPicDescriptor(il, mul.Destination.Pic);
+        EmitLoadDecimal(il, mul.Value);
+        EmitLoadBackingArray(il, mul.Other.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Other.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Other.Length));
+        EmitLoadPicDescriptor(il, mul.Other.Pic);
+        il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("MultiplyNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicAdd(ILProcessor il, IrPicAdd add)
+    {
+        EmitLoadBackingArray(il, add.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
+        EmitLoadPicDescriptor(il, add.Destination.Pic);
+        EmitLoadBackingArray(il, add.Source.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Source.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Source.Length));
+        EmitLoadPicDescriptor(il, add.Source.Pic);
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("AddNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicAddLiteral(ILProcessor il, IrPicAddLiteral add)
+    {
+        EmitLoadBackingArray(il, add.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
+        EmitLoadPicDescriptor(il, add.Destination.Pic);
+        EmitLoadDecimal(il, add.Value);
+        il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("AddNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, cmp.Left.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
+        EmitLoadPicDescriptor(il, cmp.Left.Pic);
+        EmitLoadDecimal(il, cmp.Value);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("CompareNumericToLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        // Compare result to 0
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ceq));
+        if (cmp.OperatorKind == 1) // NotEqual
+        {
             il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ceq)); // 1 if equal to 0
+            il.Append(il.Create(OpCodes.Ceq));
+        }
 
-            // For Equal: result = (compare == 0)
-            // For NotEqual: result = (compare != 0), so invert
-            if (cmp.OperatorKind == 1) // NotEqual
-            {
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq)); // invert
-            }
-
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
             il.Append(il.Create(OpCodes.Stloc, resLocal));
         }
     }
