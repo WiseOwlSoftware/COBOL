@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(python -c \"\nimport fitz\ndoc = fitz.open\\(r'E:\\\\COBOL\\\\ISO_COBOL_2023.pdf'\\)\nprint\\(f'Pages: {len\\(doc\\)}'\\)\nprint\\(\\)\ntoc = doc.get_toc\\(\\)\nfor level, title, page in toc[:80]:\n    indent = '  ' * \\(level - 1\\)\n    print\\(f'{indent}{title} \\(p.{page}\\)'\\)\n\")",
-      "Bash(python -c \"\nimport fitz\ndoc = fitz.open\\(r'E:\\\\COBOL\\\\ISO_COBOL_2023.pdf'\\)\ntoc = doc.get_toc\\(\\)\nfor level, title, page in toc[80:200]:\n    indent = '  ' * \\(level - 1\\)\n    print\\(f'{indent}{title} \\(p.{page}\\)'\\)\n\")"
+      "Bash(python -c \"\nimport fitz\ndoc = fitz.open\\(r'E:\\\\COBOL\\\\ISO_COBOL_2023.pdf'\\)\ntoc = doc.get_toc\\(\\)\nfor level, title, page in toc[80:200]:\n    indent = '  ' * \\(level - 1\\)\n    print\\(f'{indent}{title} \\(p.{page}\\)'\\)\n\")",
+      "Bash(cd E:/CobolSharp && dotnet restore 2>&1)",
+      "Bash(cd E:/CobolSharp && dotnet build 2>&1)",
+      "Bash(cd E:/CobolSharp && dotnet run --project src/CobolSharp.CLI -- compile samples/HELLO.cob -o samples/HELLO.dll 2>&1)",
+      "Bash(cd E:/CobolSharp/samples && dotnet HELLO.dll 2>&1)",
+      "Bash(cp E:/CobolSharp/src/CobolSharp.Runtime/bin/Debug/net8.0/CobolSharp.Runtime.dll E:/CobolSharp/samples/ && cd E:/CobolSharp/samples && dotnet HELLO.dll 2>&1)",
+      "Bash(cd E:/CobolSharp && dotnet test --verbosity minimal 2>&1)",
+      "Bash(tasklist)",
+      "Bash(while read:*)",
+      "Bash(do taskkill:*)",
+      "Bash(done)",
+      "Bash(dotnet test:*)",
+      "Bash(cd:*)",
+      "Bash(taskkill:*)",
+      "Bash(python3:*)",
+      "Bash(dotnet build:*)",
+      "Bash(where choco:*)"
     ]
   }
 }
