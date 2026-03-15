@@ -958,7 +958,8 @@ multiplyOnSizeError
 // ==========================================
 
 divideStatement
-    : DIVIDE divideOperand divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
+    : DIVIDE divideOperand (divideIntoPhrase | divideByPhrase)
+      divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
     ;
 
 divideOperand
@@ -967,11 +968,19 @@ divideOperand
     ;
 
 divideIntoPhrase
-    : INTO identifierList
+    : INTO divideTarget+
+    ;
+
+divideByPhrase
+    : BY divideOperand
+    ;
+
+divideTarget
+    : identifier ROUNDED?
     ;
 
 divideGivingPhrase
-    : GIVING identifier
+    : GIVING divideTarget+
     ;
 
 divideRemainderPhrase

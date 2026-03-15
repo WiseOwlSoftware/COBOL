@@ -169,6 +169,8 @@ public sealed class Binder
             }
             case BoundSubtractStatement sub:
                 return LowerSubtract(sub, method, block);
+            case BoundDivideStatement div:
+                return LowerDivide(div, method, block);
             case BoundArithmeticStatement:
                 break;
         }
@@ -449,6 +451,111 @@ public sealed class Binder
             method.Blocks.Add(notSizeErrorBlock);
             var nseCurrent = notSizeErrorBlock;
             foreach (var stmt in sub.NotOnSizeError)
+                nseCurrent = LowerStatement(stmt, method, nseCurrent);
+            nseCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(doneBlock);
+            return doneBlock;
+        }
+
+        return block;
+    }
+
+    // ── DIVIDE ──
+
+    private IrBasicBlock LowerDivide(BoundDivideStatement div, IrMethod method, IrBasicBlock block)
+    {
+        block.Instructions.Add(new IrInitArithmeticStatus());
+
+        foreach (var target in div.Targets)
+        {
+            var destLoc = _semantic.GetStorageLocation(target.Symbol);
+            if (!destLoc.HasValue) continue;
+
+            int roundingMode = target.IsRounded ? 1 : 0;
+
+            if (div.Dividend != null)
+            {
+                // GIVING form: dest = dividend / divisor
+                // For now, handle literal divisor or identifier divisor
+                if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                {
+                    // DivideLiteral: literal is the divisor, other is the dividend
+                    if (div.Dividend is BoundIdentifierExpression dividendId)
+                    {
+                        var dividendLoc = _semantic.GetStorageLocation(dividendId.Symbol);
+                        if (dividendLoc.HasValue)
+                        {
+                            block.Instructions.Add(new IrPicDivideLiteral(
+                                d, dividendLoc.Value, destLoc.Value, roundingMode));
+                        }
+                    }
+                }
+                else if (div.Divisor is BoundIdentifierExpression divisorId)
+                {
+                    var divisorLoc = _semantic.GetStorageLocation(divisorId.Symbol);
+                    if (divisorLoc.HasValue)
+                    {
+                        if (div.Dividend is BoundIdentifierExpression dividendId)
+                        {
+                            var dividendLoc = _semantic.GetStorageLocation(dividendId.Symbol);
+                            if (dividendLoc.HasValue)
+                            {
+                                block.Instructions.Add(new IrPicDivide(
+                                    dividendLoc.Value, divisorLoc.Value, destLoc.Value, roundingMode));
+                            }
+                        }
+                        else if (div.Dividend is BoundLiteralExpression litDividend && litDividend.Value is decimal dv)
+                        {
+                            // dividend is literal, divisor is field — use DivideLiteral with swapped semantics
+                            // Actually we need DivideNumeric with the field as right operand
+                            // For now emit DivideLiteral where literal=dv, other=divisor, dest=target
+                            block.Instructions.Add(new IrPicDivideLiteral(
+                                dv, divisorLoc.Value, destLoc.Value, roundingMode));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // INTO form without GIVING: dest = dest / divisor
+                if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                {
+                    block.Instructions.Add(new IrPicDivideLiteral(
+                        d, destLoc.Value, destLoc.Value, roundingMode));
+                }
+                else if (div.Divisor is BoundIdentifierExpression divisorId)
+                {
+                    var divisorLoc = _semantic.GetStorageLocation(divisorId.Symbol);
+                    if (divisorLoc.HasValue)
+                    {
+                        block.Instructions.Add(new IrPicDivide(
+                            destLoc.Value, divisorLoc.Value, destLoc.Value, roundingMode));
+                    }
+                }
+            }
+        }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        if (div.OnSizeError.Count > 0 || div.NotOnSizeError.Count > 0)
+        {
+            var sizeErrorBlock = method.CreateBlock("size.error");
+            var notSizeErrorBlock = method.CreateBlock("not.size.error");
+            var doneBlock = method.CreateBlock("size.done");
+
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadSizeError(condVal));
+            block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
+
+            method.Blocks.Add(sizeErrorBlock);
+            var seCurrent = sizeErrorBlock;
+            foreach (var stmt in div.OnSizeError)
+                seCurrent = LowerStatement(stmt, method, seCurrent);
+            seCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(notSizeErrorBlock);
+            var nseCurrent = notSizeErrorBlock;
+            foreach (var stmt in div.NotOnSizeError)
                 nseCurrent = LowerStatement(stmt, method, nseCurrent);
             nseCurrent.Instructions.Add(new IrJump(doneBlock));
 

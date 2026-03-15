@@ -462,6 +462,14 @@ public sealed class CilEmitter
                 EmitPicSubtractLiteral(il, subLit);
                 break;
 
+            case IrPicDivide divInst:
+                EmitPicDivide(il, divInst);
+                break;
+
+            case IrPicDivideLiteral divLit:
+                EmitPicDivideLiteral(il, divLit);
+                break;
+
             case IrPicCompare cmp:
                 EmitPicCompare(il, cmp, getLocal);
                 break;
@@ -1072,6 +1080,58 @@ public sealed class CilEmitter
             typeof(Runtime.PicRuntime).GetMethod("SubtractNumericLiteral",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicDivide(ILProcessor il, IrPicDivide div)
+    {
+        EmitLoadBackingArray(il, div.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Length));
+        EmitLoadPicDescriptor(il, div.Destination.Pic);
+
+        EmitLoadBackingArray(il, div.Left.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Left.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Left.Length));
+        EmitLoadPicDescriptor(il, div.Left.Pic);
+
+        EmitLoadBackingArray(il, div.Right.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Right.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Right.Length));
+        EmitLoadPicDescriptor(il, div.Right.Pic);
+
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("DivideNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitPicDivideLiteral(ILProcessor il, IrPicDivideLiteral div)
+    {
+        EmitLoadBackingArray(il, div.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Length));
+        EmitLoadPicDescriptor(il, div.Destination.Pic);
+        EmitLoadDecimal(il, div.Value);
+        EmitLoadBackingArray(il, div.Other.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Other.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Other.Length));
+        EmitLoadPicDescriptor(il, div.Other.Pic);
+        il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("DivideNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

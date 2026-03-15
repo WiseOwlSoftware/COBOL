@@ -285,6 +285,42 @@ public sealed class BoundSubtractStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
 }
 
+public sealed class BoundDivideStatement : BoundStatement
+{
+    /// <summary>The divisor (DIVIDE a INTO b → a is divisor, b is dividend/target).</summary>
+    public BoundExpression Divisor { get; }
+    /// <summary>The dividend (for BY form: DIVIDE a BY b → b is dividend).</summary>
+    public BoundExpression? Dividend { get; }
+    /// <summary>True if DIVIDE a BY b form (vs INTO form).</summary>
+    public bool IsByForm { get; }
+    /// <summary>INTO targets (Format 1) or GIVING targets (Formats 2-5).</summary>
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
+    /// <summary>REMAINDER target (Formats 4-5).</summary>
+    public DataSymbol? RemainderTarget { get; }
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+
+    public BoundDivideStatement(
+        BoundExpression divisor,
+        BoundExpression? dividend,
+        bool isByForm,
+        IReadOnlyList<BoundArithmeticTarget> targets,
+        DataSymbol? remainderTarget = null,
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+    {
+        Divisor = divisor;
+        Dividend = dividend;
+        IsByForm = isByForm;
+        Targets = targets;
+        RemainderTarget = remainderTarget;
+        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
+        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.DivideStatement;
+}
+
 public sealed class BoundArithmeticStatement : BoundStatement
 {
     public BoundNodeKind StatementKind { get; }

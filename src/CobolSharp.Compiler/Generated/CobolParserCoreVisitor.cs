@@ -987,6 +987,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDivideIntoPhrase([NotNull] CobolParserCore.DivideIntoPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.divideByPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDivideByPhrase([NotNull] CobolParserCore.DivideByPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.divideTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDivideTarget([NotNull] CobolParserCore.DivideTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.divideGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

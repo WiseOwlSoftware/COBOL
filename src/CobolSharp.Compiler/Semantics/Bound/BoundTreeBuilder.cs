@@ -72,7 +72,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
         if (ctx.subtractStatement() is { } sub) return BindSubtract(sub);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
-        if (ctx.divideStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+        if (ctx.divideStatement() is { } div) return BindDivide(div);
         if (ctx.computeStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
 
         // Unrecognized statement — skip
@@ -380,6 +380,113 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundSubtractStatement(operands, targets, onSizeError, notOnSizeError);
+    }
+
+    // ── DIVIDE ──
+
+    private BoundStatement BindDivide(CobolParserCore.DivideStatementContext ctx)
+    {
+        // DIVIDE operand INTO/BY ...
+        var operandCtx = ctx.divideOperand();
+        if (operandCtx == null)
+            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+
+        var firstOperand = BindSimpleOperand(operandCtx);
+        bool isByForm = ctx.divideByPhrase() != null;
+        BoundExpression? dividend = null;
+
+        // Determine targets based on INTO vs BY form
+        var targets = new List<BoundArithmeticTarget>();
+
+        if (isByForm)
+        {
+            // DIVIDE a BY b GIVING c → divisor=b, dividend=a, target=c
+            // The BY phrase contains the second operand
+            var byOperand = ctx.divideByPhrase().divideOperand();
+            dividend = firstOperand; // a is the dividend
+            firstOperand = BindSimpleOperand(byOperand); // b is the divisor
+
+            // GIVING targets
+            var givingPhrase = ctx.divideGivingPhrase();
+            if (givingPhrase != null)
+            {
+                foreach (var gt in givingPhrase.divideTarget())
+                {
+                    var sym = _semantic.ResolveData(gt.identifier().GetText());
+                    if (sym != null)
+                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                }
+            }
+        }
+        else
+        {
+            // DIVIDE a INTO b → divisor=a, target=b (b = b / a)
+            var intoPhrase = ctx.divideIntoPhrase();
+            if (intoPhrase != null)
+            {
+                foreach (var it in intoPhrase.divideTarget())
+                {
+                    var sym = _semantic.ResolveData(it.identifier().GetText());
+                    if (sym != null)
+                        targets.Add(new BoundArithmeticTarget(sym, it.ROUNDED() != null));
+                }
+            }
+
+            // GIVING overrides INTO targets as destinations
+            var givingPhrase = ctx.divideGivingPhrase();
+            if (givingPhrase != null)
+            {
+                // INTO target becomes the dividend, GIVING targets are destinations
+                if (targets.Count > 0)
+                    dividend = new BoundIdentifierExpression(targets[0].Symbol, CobolCategory.Numeric);
+                targets.Clear();
+                foreach (var gt in givingPhrase.divideTarget())
+                {
+                    var sym = _semantic.ResolveData(gt.identifier().GetText());
+                    if (sym != null)
+                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                }
+            }
+        }
+
+        if (targets.Count == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+
+        // REMAINDER
+        DataSymbol? remainderTarget = null;
+        var remPhrase = ctx.divideRemainderPhrase();
+        if (remPhrase != null)
+        {
+            remainderTarget = _semantic.ResolveData(remPhrase.identifier().GetText());
+        }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        var onSizeError = new List<BoundStatement>();
+        var notOnSizeError = new List<BoundStatement>();
+        var sizeCtx = ctx.divideOnSizeError();
+        if (sizeCtx != null)
+        {
+            var imperatives = sizeCtx.imperativeStatement();
+            if (imperatives.Length > 0)
+            {
+                foreach (var stmt in imperatives[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onSizeError.Add(bound);
+                }
+            }
+            if (imperatives.Length > 1)
+            {
+                foreach (var stmt in imperatives[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
+            }
+        }
+
+        return new BoundDivideStatement(firstOperand, dividend, isByForm, targets,
+            remainderTarget, onSizeError, notOnSizeError);
     }
 
     // ── IF ──

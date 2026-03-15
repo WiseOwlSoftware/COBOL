@@ -331,6 +331,34 @@ public sealed class IrPicSubtractLiteral : IrInstruction
     }
 }
 
+public sealed class IrPicDivide : IrInstruction
+{
+    public CodeGen.StorageLocation Left { get; }
+    public CodeGen.StorageLocation Right { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrPicDivide(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
+        CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Left = left; Right = right; Destination = dest; Rounding = rounding;
+    }
+}
+
+public sealed class IrPicDivideLiteral : IrInstruction
+{
+    public decimal Value { get; }
+    public CodeGen.StorageLocation Other { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrPicDivideLiteral(decimal value, CodeGen.StorageLocation other,
+        CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Value = value; Other = other; Destination = dest; Rounding = rounding;
+    }
+}
+
 public sealed class IrPicCompare : IrInstruction
 {
     public CodeGen.StorageLocation Left { get; }
