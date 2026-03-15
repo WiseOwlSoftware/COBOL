@@ -137,6 +137,24 @@ public sealed class IrPerform : IrInstruction
     public IrPerform(IrMethod target) => Target = target;
 }
 
+// ── PIC-aware data movement ──
+
+/// <summary>
+/// PIC-aware MOVE: the emitter calls the appropriate PicRuntime helper
+/// based on source/destination PIC descriptors.
+/// </summary>
+public sealed class IrPicMove : IrInstruction
+{
+    public CodeGen.StorageLocation Source { get; }
+    public CodeGen.StorageLocation Destination { get; }
+
+    public IrPicMove(CodeGen.StorageLocation source, CodeGen.StorageLocation destination)
+    {
+        Source = source;
+        Destination = destination;
+    }
+}
+
 // ── I/O and runtime calls ──
 
 public sealed class IrRuntimeCall : IrInstruction
