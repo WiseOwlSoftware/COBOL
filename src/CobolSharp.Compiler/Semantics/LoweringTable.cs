@@ -7,6 +7,7 @@ namespace CobolSharp.Compiler.Semantics;
 
 /// <summary>
 /// Central dispatch table: (OperationKind, CobolCategory source, CobolCategory target) → PicRuntime helper.
+/// See docs/CATEGORY-RULES.md for the full compatibility matrices.
 /// Both the binder (for validation) and the emitter (for lowering) consult this single table.
 /// If ResolveHelper returns null, the combination is illegal and the binder should emit a diagnostic.
 /// </summary>

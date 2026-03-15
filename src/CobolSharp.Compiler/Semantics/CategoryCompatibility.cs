@@ -20,6 +20,7 @@ public enum OperationKind
 /// <summary>
 /// Central authority for COBOL category compatibility rules.
 /// ISO/IEC 1989:2023 §6.1.2, §6.1.3, §6.13, §13.5, §14.9.24.
+/// See docs/CATEGORY-RULES.md for full truth tables and rationale.
 ///
 /// One place, one lattice — binder uses this for diagnostics, LoweringTable uses it
 /// to select the correct PicRuntime helper.
@@ -86,10 +87,11 @@ public static class CategoryCompatibility
 
     // ── Arithmetic ──
 
+    // ISO §6.13: Only Numeric is a legal arithmetic operand.
+    // NumericEdited is a display/editing category, not numeric for arithmetic.
     private static readonly HashSet<CobolCategory> s_arithmeticOperand = new()
     {
         CobolCategory.Numeric,
-        CobolCategory.NumericEdited,
     };
 
     private static readonly HashSet<CobolCategory> s_arithmeticResult = new()
