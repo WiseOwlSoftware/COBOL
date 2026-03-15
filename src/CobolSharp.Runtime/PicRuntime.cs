@@ -504,20 +504,54 @@ public static class PicRuntime
     {
         return pic.Usage switch
         {
-            UsageKind.Display => DecodeDisplay(area, offset, length),
+            UsageKind.Display => DecodeDisplay(area, offset, length, pic),
             UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length),
-            _ => DecodeDisplay(area, offset, length)
+            _ => DecodeDisplay(area, offset, length, pic)
         };
     }
 
-    private static decimal DecodeDisplay(byte[] area, int offset, int length)
+    /// <summary>
+    /// DISPLAY numeric decoding:
+    /// - Field contains digits only (no decimal point stored)
+    /// - Uses PicDescriptor.FractionDigits to restore the implied decimal
+    /// - Handles leading '-' for signed fields
+    /// </summary>
+    private static decimal DecodeDisplay(byte[] area, int offset, int length, PicDescriptor pic)
     {
         var s = Encoding.ASCII.GetString(area, offset, length).Trim();
         if (string.IsNullOrEmpty(s)) return 0m;
+
+        // Check for sign
+        bool negative = false;
+        if (s.Length > 0 && s[0] == '-')
+        {
+            negative = true;
+            s = s[1..].Trim();
+        }
+        else if (s.Length > 0 && s[0] == '+')
+        {
+            s = s[1..].Trim();
+        }
+
+        if (string.IsNullOrEmpty(s)) return 0m;
+
+        // Try to parse as integer (digits-only, no decimal point)
+        if (long.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out long intVal))
+        {
+            // Apply implied decimal from FractionDigits
+            decimal result = intVal;
+            int scale = pic.FractionDigits;
+            if (scale > 0)
+                result /= Pow10(scale);
+            return negative ? -result : result;
+        }
+
+        // Fallback: try decimal parse (handles legacy data with embedded decimal)
         if (decimal.TryParse(s,
             NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
-            CultureInfo.InvariantCulture, out var value))
-            return value;
+            CultureInfo.InvariantCulture, out var fallback))
+            return negative ? -fallback : fallback;
+
         return 0m;
     }
 
@@ -550,21 +584,56 @@ public static class PicRuntime
                 EncodeComp3(area, offset, length, value);
                 break;
             default:
-                EncodeDisplay(area, offset, length, value);
+                EncodeDisplay(area, offset, length, pic, value);
                 break;
         }
     }
 
-    private static void EncodeDisplay(byte[] area, int offset, int length, decimal value)
+    /// <summary>
+    /// DISPLAY numeric encoding:
+    /// - Implied decimal: no '.' stored; digits only
+    /// - Uses PicDescriptor.FractionDigits to scale
+    /// - Right-justified, zero-padded in field
+    /// - Sign rendered as leading '-' when IsSigned and value &lt; 0
+    /// </summary>
+    private static void EncodeDisplay(
+        byte[] area, int offset, int length, PicDescriptor pic, decimal value)
     {
-        string s = value.ToString("G", CultureInfo.InvariantCulture);
-        // Right-justify
+        // Clear field to spaces
         for (int i = 0; i < length; i++)
             area[offset + i] = (byte)' ';
-        var bytes = Encoding.ASCII.GetBytes(s);
-        int len = Math.Min(bytes.Length, length);
-        int start = length - len;
-        Array.Copy(bytes, 0, area, offset + start, len);
+
+        bool isNegative = value < 0m;
+        decimal absValue = Math.Abs(value);
+
+        int scale = pic.FractionDigits;
+        if (scale < 0) scale = 0;
+
+        // Scale to integer: 320.48 with scale=2 → 32048
+        decimal scaled = absValue * Pow10(scale);
+        long intValue = (long)scaled;
+
+        // Digits-only string
+        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+
+        // Truncate from left if too long for field (SIZE ERROR should be handled separately)
+        int availableLength = pic.IsSigned && isNegative ? length - 1 : length;
+        if (digits.Length > availableLength)
+            digits = digits.Substring(digits.Length - availableLength);
+
+        // Right-justify digits in field
+        int digitStart = pic.IsSigned && isNegative ? 1 : 0;
+        int start = digitStart + (availableLength - digits.Length);
+        for (int i = 0; i < digits.Length; i++)
+            area[offset + start + i] = (byte)digits[i];
+
+        // Zero-fill leading positions (COBOL numeric fields are zero-filled)
+        for (int i = digitStart; i < start; i++)
+            area[offset + i] = (byte)'0';
+
+        // Sign handling
+        if (pic.IsSigned && isNegative)
+            area[offset] = (byte)'-';
     }
 
     private static void EncodeComp3(byte[] area, int offset, int length, decimal value)
@@ -613,6 +682,14 @@ public static class PicRuntime
         if (fractionDigits > 0)
             return value.ToString("0." + new string('0', fractionDigits), CultureInfo.InvariantCulture);
         return ((long)value).ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static decimal Pow10(int scale)
+    {
+        decimal result = 1m;
+        for (int i = 0; i < scale; i++)
+            result *= 10m;
+        return result;
     }
 
     private static void MoveStringToBytes(byte[] area, int offset, int length, string value)
