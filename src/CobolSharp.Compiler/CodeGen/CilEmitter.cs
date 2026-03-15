@@ -404,10 +404,33 @@ public sealed class CilEmitter
         if (rtc.MethodName == "CobolRuntime.Display")
         {
             // Argument is already on the stack (pushed by preceding IrLoadConst).
-            // Just call Console.WriteLine(string).
             var consoleWriteLine = _module.ImportReference(
                 typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, consoleWriteLine));
+        }
+        else if (rtc.MethodName == "CobolRuntime.WriteText")
+        {
+            // Two args on stack: fileName, text
+            var writeText = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("WriteText",
+                    new[] { typeof(string), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, writeText));
+        }
+        else if (rtc.MethodName == "CobolRuntime.OpenOutput")
+        {
+            // One arg on stack: fileName
+            var openOutput = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("OpenOutput",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, openOutput));
+        }
+        else if (rtc.MethodName == "CobolRuntime.CloseFile")
+        {
+            // One arg on stack: fileName
+            var closeFile = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseFile",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, closeFile));
         }
         // Other runtime calls: NOP for now
     }

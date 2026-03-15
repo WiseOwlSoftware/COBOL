@@ -126,7 +126,23 @@ public sealed class Binder
                 block.Instructions.Add(new IrReturn(null));
                 break;
             case BoundOpenStatement:
+            {
+                // Emit FileRuntime.OpenOutput("PRINT-FILE")
+                // TODO: resolve actual file name from bound statement
+                var fnVal = _valueFactory.Next(IrPrimitiveType.String);
+                block.Instructions.Add(new IrLoadConst(fnVal, "PRINT-FILE"));
+                block.Instructions.Add(new IrRuntimeCall(
+                    null, "CobolRuntime.OpenOutput", new[] { fnVal }));
+                break;
+            }
             case BoundCloseStatement:
+            {
+                var fnVal = _valueFactory.Next(IrPrimitiveType.String);
+                block.Instructions.Add(new IrLoadConst(fnVal, "PRINT-FILE"));
+                block.Instructions.Add(new IrRuntimeCall(
+                    null, "CobolRuntime.CloseFile", new[] { fnVal }));
+                break;
+            }
             case BoundArithmeticStatement:
                 // Placeholder — NOP for now
                 break;
@@ -178,12 +194,20 @@ public sealed class Binder
 
     private void LowerWrite(BoundWriteStatement wr, IrBasicBlock block)
     {
-        // Placeholder: emit record name as DISPLAY
-        string recordName = wr.Record.Name;
-        var constVal = _valueFactory.Next(IrPrimitiveType.String);
-        block.Instructions.Add(new IrLoadConst(constVal, $"[WRITE {recordName}]"));
+        // For now: call FileRuntime.WriteText with the file name
+        // TODO: wire actual record bytes via StorageLocation
+        string fileName = wr.File?.Name ?? "PRINT-FILE";
+
+        var fileNameVal = _valueFactory.Next(IrPrimitiveType.String);
+        block.Instructions.Add(new IrLoadConst(fileNameVal, fileName));
+
+        // Placeholder text — later this will be the actual record content
+        var textVal = _valueFactory.Next(IrPrimitiveType.String);
+        block.Instructions.Add(new IrLoadConst(textVal, $"[RECORD: {wr.Record.Name}]"));
+
         block.Instructions.Add(new IrRuntimeCall(
-            null, "CobolRuntime.Display", new[] { constVal }));
+            null, "CobolRuntime.WriteText",
+            new[] { fileNameVal, textVal }));
     }
 
     // ── IF ──
