@@ -578,6 +578,7 @@ public static class PicRuntime
         {
             UsageKind.Display => DecodeDisplay(area, offset, length, pic),
             UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length),
+            UsageKind.Comp or UsageKind.Binary => DecodeCompBinary(area, offset, length, pic),
             _ => DecodeDisplay(area, offset, length, pic)
         };
     }
@@ -655,6 +656,97 @@ public static class PicRuntime
         return negative ? -intPart : intPart;
     }
 
+    /// <summary>
+    /// COMP/BINARY decoding: 2/4/8-byte signed big-endian integer.
+    /// Applies FractionDigits and P scaling to produce a decimal value.
+    /// </summary>
+    private static decimal DecodeCompBinary(byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        long raw = length switch
+        {
+            2 => (short)((area[offset] << 8) | area[offset + 1]),
+            4 => (int)(
+                    ((uint)area[offset] << 24) |
+                    ((uint)area[offset + 1] << 16) |
+                    ((uint)area[offset + 2] << 8) |
+                    area[offset + 3]),
+            8 => (long)(
+                    ((ulong)area[offset] << 56) |
+                    ((ulong)area[offset + 1] << 48) |
+                    ((ulong)area[offset + 2] << 40) |
+                    ((ulong)area[offset + 3] << 32) |
+                    ((ulong)area[offset + 4] << 24) |
+                    ((ulong)area[offset + 5] << 16) |
+                    ((ulong)area[offset + 6] << 8) |
+                    area[offset + 7]),
+            _ => 0
+        };
+
+        decimal result = raw;
+
+        // Apply implied decimal
+        if (pic.FractionDigits > 0)
+            result /= Pow10(pic.FractionDigits);
+
+        // Apply P scaling
+        if (pic.LeadingScaleDigits > 0)
+            result *= Pow10(pic.LeadingScaleDigits);
+        if (pic.TrailingScaleDigits > 0)
+            result /= Pow10(pic.TrailingScaleDigits);
+
+        return result;
+    }
+
+    /// <summary>
+    /// COMP/BINARY encoding: decimal → 2/4/8-byte signed big-endian integer.
+    /// </summary>
+    private static void EncodeCompBinary(
+        byte[] area, int offset, int length, PicDescriptor pic, decimal value)
+    {
+        // Apply scaling to get integer representation
+        decimal scaled = value;
+        if (pic.FractionDigits > 0)
+            scaled *= Pow10(pic.FractionDigits);
+        if (pic.LeadingScaleDigits > 0)
+            scaled /= Pow10(pic.LeadingScaleDigits);
+        if (pic.TrailingScaleDigits > 0)
+            scaled *= Pow10(pic.TrailingScaleDigits);
+
+        long raw = (long)decimal.Truncate(scaled);
+
+        switch (length)
+        {
+            case 2:
+            {
+                short s = (short)raw;
+                area[offset] = (byte)((s >> 8) & 0xFF);
+                area[offset + 1] = (byte)(s & 0xFF);
+                break;
+            }
+            case 4:
+            {
+                int i = (int)raw;
+                area[offset] = (byte)((i >> 24) & 0xFF);
+                area[offset + 1] = (byte)((i >> 16) & 0xFF);
+                area[offset + 2] = (byte)((i >> 8) & 0xFF);
+                area[offset + 3] = (byte)(i & 0xFF);
+                break;
+            }
+            case 8:
+            {
+                area[offset] = (byte)((raw >> 56) & 0xFF);
+                area[offset + 1] = (byte)((raw >> 48) & 0xFF);
+                area[offset + 2] = (byte)((raw >> 40) & 0xFF);
+                area[offset + 3] = (byte)((raw >> 32) & 0xFF);
+                area[offset + 4] = (byte)((raw >> 24) & 0xFF);
+                area[offset + 5] = (byte)((raw >> 16) & 0xFF);
+                area[offset + 6] = (byte)((raw >> 8) & 0xFF);
+                area[offset + 7] = (byte)(raw & 0xFF);
+                break;
+            }
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     // Encode: decimal → bytes
     // ══════════════════════════════════════════════════════════
@@ -667,6 +759,10 @@ public static class PicRuntime
             case UsageKind.Comp3:
             case UsageKind.PackedDecimal:
                 EncodeComp3(area, offset, length, value);
+                break;
+            case UsageKind.Comp:
+            case UsageKind.Binary:
+                EncodeCompBinary(area, offset, length, pic, value);
                 break;
             default:
                 EncodeDisplay(area, offset, length, pic, value);
