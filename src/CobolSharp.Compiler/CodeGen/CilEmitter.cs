@@ -16,6 +16,7 @@ public sealed class CilEmitter
     private readonly Dictionary<IrField, FieldDefinition> _fieldMap = new();
     private readonly Dictionary<IrMethod, MethodDefinition> _methodMap = new();
     private TypeDefinition? _programType;
+    private FieldDefinition? _programStateField;
 
     private CilEmitter(ModuleDefinition module)
     {
@@ -52,6 +53,9 @@ public sealed class CilEmitter
             baseType: _module.TypeSystem.Object);
         _module.Types.Add(_programType);
 
+        // 0. ProgramState static field + static constructor
+        EmitProgramState(ir);
+
         // 1. Record types
         foreach (var t in ir.Types)
             DefineType(t);
@@ -71,6 +75,50 @@ public sealed class CilEmitter
 
         foreach (var m in ir.Methods)
             EmitMethodBody(m);
+    }
+
+    /// <summary>
+    /// Create a static ProgramState field and static constructor that allocates it.
+    /// </summary>
+    private void EmitProgramState(IrModule ir)
+    {
+        // Calculate total sizes from record types
+        int wsSize = 0;
+        int fileSize = 0;
+        foreach (var t in ir.Types)
+        {
+            if (t is IrRecordType rec)
+                wsSize += rec.TotalSize;
+        }
+        // Minimum sizes
+        if (wsSize == 0) wsSize = 4096;
+        if (fileSize == 0) fileSize = 1024;
+
+        // Static field: ProgramState State
+        _programStateField = new FieldDefinition(
+            "State",
+            FieldAttributes.Public | FieldAttributes.Static,
+            _module.ImportReference(typeof(CobolSharp.Runtime.ProgramState)));
+        _programType!.Fields.Add(_programStateField);
+
+        // Static constructor: .cctor
+        var cctor = new MethodDefinition(
+            ".cctor",
+            MethodAttributes.Private | MethodAttributes.Static |
+            MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+            _module.TypeSystem.Void);
+        _programType.Methods.Add(cctor);
+
+        var il = cctor.Body.GetILProcessor();
+        il.Append(il.Create(OpCodes.Ldc_I4, wsSize));
+        il.Append(il.Create(OpCodes.Ldc_I4, fileSize));
+
+        var ctor = _module.ImportReference(
+            typeof(CobolSharp.Runtime.ProgramState)
+                .GetConstructor(new[] { typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Newobj, ctor));
+        il.Append(il.Create(OpCodes.Stsfld, _programStateField));
+        il.Append(il.Create(OpCodes.Ret));
     }
 
     private void SeedPrimitiveTypes()
