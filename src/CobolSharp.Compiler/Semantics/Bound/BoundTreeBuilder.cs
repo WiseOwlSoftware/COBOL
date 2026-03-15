@@ -199,8 +199,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
     {
-        // MULTIPLY expr BY target1 [ROUNDED] target2 [ROUNDED] ...
-        var operand = BindArithmeticExpr(ctx.arithmeticExpression());
+        // MULTIPLY operand BY target1 [ROUNDED] target2 [ROUNDED] ...
+        var operand = BindSimpleOperand(ctx.multiplyOperand());
 
         // BY targets — each with per-item ROUNDED flag
         var byTargets = ctx.multiplyByTarget();
@@ -281,12 +281,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (operandList == null || toPhrase == null)
             return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
 
-        // Get first operand
-        var arithExprs = operandList.arithmeticExpression();
-        if (arithExprs.Length == 0)
+        // Get first operand (simple identifier or literal)
+        var addOperands = operandList.addOperand();
+        if (addOperands.Length == 0)
             return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
 
-        var operand = BindArithmeticExpr(arithExprs[0]);
+        var operand = BindSimpleOperand(addOperands[0]);
 
         // Get first TO target
         var idList = toPhrase.identifierList();
@@ -308,14 +308,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (operandList == null)
             return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
 
-        var arithExprs = operandList.arithmeticExpression();
-        if (arithExprs.Length == 0)
+        var subOperands = operandList.subtractOperand();
+        if (subOperands.Length == 0)
             return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
 
-        // Bind all operands
+        // Bind all operands (simple identifiers or literals)
         var operands = new List<BoundExpression>();
-        foreach (var expr in arithExprs)
-            operands.Add(BindArithmeticExpr(expr));
+        foreach (var op in subOperands)
+            operands.Add(BindSimpleOperand(op));
 
         // FROM targets (each with per-target ROUNDED)
         var fromPhrase = ctx.subtractFromPhrase();
@@ -579,6 +579,60 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return BindNonNumericLiteral(nonNumLit);
 
         return BindArithmeticExpr(ctx.arithmeticExpression());
+    }
+
+    /// <summary>
+    /// Bind a simple operand (identifier or literal) from ADD/SUBTRACT/MULTIPLY/DIVIDE.
+    /// These statements accept only simple operands, not full expressions.
+    /// </summary>
+    private BoundExpression BindSimpleOperand(Antlr4.Runtime.ParserRuleContext ctx)
+    {
+        // The rule is: identifier | literal
+        // Check for identifier child first
+        if (ctx is CobolParserCore.AddOperandContext addOp)
+        {
+            if (addOp.identifier() != null)
+                return BindIdentifierOrLiteral(addOp.identifier().GetText());
+            if (addOp.literal() != null)
+                return BindLiteral(addOp.literal());
+        }
+        else if (ctx is CobolParserCore.SubtractOperandContext subOp)
+        {
+            if (subOp.identifier() != null)
+                return BindIdentifierOrLiteral(subOp.identifier().GetText());
+            if (subOp.literal() != null)
+                return BindLiteral(subOp.literal());
+        }
+        else if (ctx is CobolParserCore.MultiplyOperandContext mulOp)
+        {
+            if (mulOp.identifier() != null)
+                return BindIdentifierOrLiteral(mulOp.identifier().GetText());
+            if (mulOp.literal() != null)
+                return BindLiteral(mulOp.literal());
+        }
+        else if (ctx is CobolParserCore.DivideOperandContext divOp)
+        {
+            if (divOp.identifier() != null)
+                return BindIdentifierOrLiteral(divOp.identifier().GetText());
+            if (divOp.literal() != null)
+                return BindLiteral(divOp.literal());
+        }
+
+        // Fallback: try to parse the text
+        string text = ctx.GetText();
+        return BindIdentifierOrLiteral(text);
+    }
+
+    private BoundExpression BindIdentifierOrLiteral(string text)
+    {
+        if (decimal.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var val))
+            return new BoundLiteralExpression(val, CobolCategory.Numeric);
+
+        var sym = _semantic.ResolveData(text);
+        if (sym != null)
+            return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
+
+        return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
     }
 
     private BoundExpression BindArithmeticExpr(CobolParserCore.ArithmeticExpressionContext? ctx)

@@ -873,6 +873,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAddOperandList([NotNull] CobolParserCore.AddOperandListContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.addOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAddOperand([NotNull] CobolParserCore.AddOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.addToPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -902,6 +908,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSubtractOperandList([NotNull] CobolParserCore.SubtractOperandListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubtractOperand([NotNull] CobolParserCore.SubtractOperandContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractFromPhrase"/>.
 	/// </summary>
@@ -933,6 +945,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMultiplyStatement([NotNull] CobolParserCore.MultiplyStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultiplyOperand([NotNull] CobolParserCore.MultiplyOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyByTarget"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -956,6 +974,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDivideStatement([NotNull] CobolParserCore.DivideStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.divideOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDivideOperand([NotNull] CobolParserCore.DivideOperandContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.divideIntoPhrase"/>.
 	/// </summary>

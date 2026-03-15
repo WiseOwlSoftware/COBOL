@@ -872,7 +872,12 @@ addStatement
     ;
 
 addOperandList
-    : arithmeticExpression (COMMA arithmeticExpression)*
+    : addOperand+
+    ;
+
+addOperand
+    : identifier
+    | literal
     ;
 
 addToPhrase
@@ -897,7 +902,12 @@ subtractStatement
     ;
 
 subtractOperandList
-    : arithmeticExpression (COMMA arithmeticExpression)*
+    : subtractOperand+
+    ;
+
+subtractOperand
+    : identifier
+    | literal
     ;
 
 subtractFromPhrase
@@ -922,7 +932,12 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY arithmeticExpression BY multiplyByTarget+ multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    : MULTIPLY multiplyOperand BY multiplyByTarget+ multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    ;
+
+multiplyOperand
+    : identifier
+    | literal
     ;
 
 multiplyByTarget
@@ -943,7 +958,12 @@ multiplyOnSizeError
 // ==========================================
 
 divideStatement
-    : DIVIDE arithmeticExpression divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
+    : DIVIDE divideOperand divideIntoPhrase divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
+    ;
+
+divideOperand
+    : identifier
+    | literal
     ;
 
 divideIntoPhrase
