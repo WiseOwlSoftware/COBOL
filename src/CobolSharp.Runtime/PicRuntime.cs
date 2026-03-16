@@ -59,6 +59,9 @@ public static class PicRuntime
     /// </summary>
     public static string FormatNumericEdited(decimal value, PicDescriptor pic)
     {
+        if (pic.EditPattern != null)
+            return FormatByEditPattern(value, pic);
+
         if (pic.BlankWhenZero && value == 0m)
             return new string(' ', pic.StorageLength);
 
@@ -154,6 +157,235 @@ public static class PicRuntime
         }
 
         return new string(chars);
+    }
+
+    private static string FormatByEditPattern(decimal value, PicDescriptor pic)
+    {
+        string pattern = pic.EditPattern!;
+        bool negative = value < 0m;
+        decimal absValue = Math.Abs(value);
+
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (scale < 0) scale = 0;
+        decimal scaled = absValue * Pow10(scale);
+        long intValue = (long)scaled;
+        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        if (digits.Length < pic.TotalDigits)
+            digits = digits.PadLeft(pic.TotalDigits, '0');
+        else if (digits.Length > pic.TotalDigits)
+            digits = digits.Substring(digits.Length - pic.TotalDigits);
+
+        // Pass 1: Fill digit positions right-to-left, place insertion chars
+        var output = new char[pattern.Length];
+        int digitIdx = digits.Length - 1;
+
+        for (int i = pattern.Length - 1; i >= 0; i--)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            switch (p)
+            {
+                case '9':
+                case 'Z':
+                case '*':
+                case '+':
+                case '-':
+                case '$':
+                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    break;
+
+                case '.':
+                    output[i] = '.';
+                    break;
+
+                case ',':
+                    output[i] = ',';
+                    break;
+
+                case 'B':
+                    output[i] = ' ';
+                    break;
+
+                case '/':
+                    output[i] = '/';
+                    break;
+
+                case '0':
+                    output[i] = '0';
+                    break;
+
+                case 'C': // CR
+                    if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'R')
+                    {
+                        output[i] = negative ? 'C' : ' ';
+                        output[i + 1] = negative ? 'R' : ' ';
+                    }
+                    else output[i] = pattern[i];
+                    break;
+
+                case 'R': // second char of CR — already handled
+                    if (i > 0 && char.ToUpperInvariant(pattern[i - 1]) == 'C')
+                        break; // already set by 'C' handler
+                    output[i] = pattern[i];
+                    break;
+
+                case 'D': // DB
+                    if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'B')
+                    {
+                        output[i] = negative ? 'D' : ' ';
+                        output[i + 1] = negative ? 'B' : ' ';
+                    }
+                    else output[i] = pattern[i];
+                    break;
+
+                default:
+                    output[i] = pattern[i];
+                    break;
+            }
+        }
+
+        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols
+        // Suppress leading zeros and adjacent insertion characters (commas, etc.)
+        bool suppressing = true;
+        for (int i = 0; i < pattern.Length && suppressing; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            switch (p)
+            {
+                case 'Z':
+                    if (output[i] == '0')
+                        output[i] = ' ';
+                    else
+                        suppressing = false;
+                    break;
+
+                case '*':
+                    if (output[i] == '0')
+                        output[i] = '*';
+                    else
+                        suppressing = false;
+                    break;
+
+                case '+':
+                    if (output[i] == '0')
+                        output[i] = ' ';
+                    else
+                        suppressing = false;
+                    break;
+
+                case '-':
+                    if (output[i] == '0')
+                        output[i] = ' ';
+                    else
+                        suppressing = false;
+                    break;
+
+                case '$':
+                    if (output[i] == '0')
+                        output[i] = ' ';
+                    else
+                        suppressing = false;
+                    break;
+
+                case ',':
+                    // Comma in suppressed area becomes space (for Z) or * (for *)
+                    output[i] = ' ';
+                    break;
+
+                case '9':
+                    // 9 stops suppression — always show digit
+                    suppressing = false;
+                    break;
+
+                case '.':
+                    // Decimal point stops suppression
+                    suppressing = false;
+                    break;
+
+                default:
+                    // Other insertion characters (B, /, 0) stay as-is during suppression
+                    break;
+            }
+        }
+
+        // Handle floating sign symbols: find the rightmost suppressed +/- and place sign there
+        // For floating +: the last + before the first significant digit gets the sign
+        // For floating -: same but only shows '-' for negative
+        bool hasFloatingPlus = false;
+        bool hasFloatingMinus = false;
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == '+') hasFloatingPlus = true;
+            else if (p == '-') hasFloatingMinus = true;
+        }
+
+        if (hasFloatingPlus)
+        {
+            // Find last suppressed position (space) that was a '+' pattern
+            int signPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '+' && output[i] == ' ')
+                    signPos = i;
+                else if (p == '+' && output[i] != ' ')
+                    break;
+            }
+            if (signPos >= 0)
+                output[signPos] = negative ? '-' : '+';
+        }
+        else if (hasFloatingMinus)
+        {
+            int signPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '-' && output[i] == ' ')
+                    signPos = i;
+                else if (p == '-' && output[i] != ' ')
+                    break;
+            }
+            if (signPos >= 0)
+                output[signPos] = negative ? '-' : ' ';
+        }
+
+        // Handle floating $: place '$' at rightmost suppressed $ position
+        bool hasFloatingDollar = false;
+        int dollarCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            if (char.ToUpperInvariant(pattern[i]) == '$') dollarCount++;
+        }
+        hasFloatingDollar = dollarCount > 1;
+
+        if (hasFloatingDollar)
+        {
+            int dollarPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '$' && output[i] == ' ')
+                    dollarPos = i;
+                else if (p == '$' && output[i] != ' ')
+                    break;
+            }
+            if (dollarPos >= 0)
+                output[dollarPos] = '$';
+        }
+        else if (dollarCount == 1)
+        {
+            // Single $ is a fixed currency symbol, not floating
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (char.ToUpperInvariant(pattern[i]) == '$')
+                {
+                    output[i] = '$';
+                    break;
+                }
+            }
+        }
+
+        return new string(output);
     }
 
     public static void MoveNumericToAlphanumeric(
@@ -918,6 +1150,10 @@ public static class PicRuntime
 
         long raw = (long)decimal.Truncate(scaled);
 
+        // Unsigned field: store absolute value (COBOL strips sign on MOVE to unsigned)
+        if (!pic.IsSigned && raw < 0)
+            raw = -raw;
+
         switch (length)
         {
             case 2:
@@ -1231,6 +1467,11 @@ public static class PicRuntime
     public static string GetDisplayString(
         byte[] area, int offset, int length, PicDescriptor pic)
     {
+        if (pic.Category == CobolCategory.NumericEdited)
+        {
+            // Numeric-edited fields are already formatted — return raw bytes
+            return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        }
         if (pic.Category == CobolCategory.Numeric && pic.Usage == UsageKind.Display)
         {
             // DISPLAY numeric: show the raw field content (preserves sign format)

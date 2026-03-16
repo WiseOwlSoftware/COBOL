@@ -964,21 +964,22 @@ public sealed class CilEmitter
         }
         else if (srcCat.IsNumericLike() && dstCat.IsNumericLike())
         {
-            // Numeric → Numeric: PIC-aware move via PicRuntime.MoveNumeric
-            EmitLoadBackingArray(il, pm.Destination.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-            EmitLoadPicDescriptor(il, pm.Destination.Pic);
-
+            // Numeric → Numeric (any USAGE: DISPLAY ↔ COMP ↔ COMP-3):
+            // Single canonical path via DecodeNumeric(src) → EncodeNumeric(dst)
             EmitLoadBackingArray(il, pm.Source.Area);
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
             EmitLoadPicDescriptor(il, pm.Source.Pic);
 
+            EmitLoadBackingArray(il, pm.Destination.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+            EmitLoadPicDescriptor(il, pm.Destination.Pic);
+
             il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
 
             var method = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumeric",
+                typeof(Runtime.PicRuntime).GetMethod("MoveNumericToNumeric",
                     new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                             typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                             typeof(int) })!);
@@ -1104,13 +1105,18 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, pic.LeadingScaleDigits));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TrailingScaleDigits));
 
+        if (pic.EditPattern != null)
+            il.Append(il.Create(OpCodes.Ldstr, pic.EditPattern));
+        else
+            il.Append(il.Create(OpCodes.Ldnull));
+
         var ctor = _module.ImportReference(
             typeof(Runtime.PicDescriptor).GetConstructor(
                 new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
                         typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind),
                         typeof(Runtime.CobolCategory),
                         typeof(Runtime.SignStorageKind), typeof(Runtime.EditingKind),
-                        typeof(bool), typeof(int), typeof(int) })!);
+                        typeof(bool), typeof(int), typeof(int), typeof(string) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
     }
 

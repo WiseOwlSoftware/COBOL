@@ -1107,6 +1107,67 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void MoveNumeric_DisplayToCompRoundTrip()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NMOVE1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 DS-LS PIC S9(5) SIGN IS LEADING SEPARATE CHARACTER
+               VALUE -12345.
+            01 DS-TS PIC S9(5) SIGN IS TRAILING SEPARATE CHARACTER
+               VALUE 0.
+            01 CU-005 PIC 9(5) COMP VALUE 0.
+            01 CS-005 PIC S9(5) COMP VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE DS-LS TO CU-005.
+                MOVE CU-005 TO DS-TS.
+                DISPLAY DS-TS.
+                MOVE DS-LS TO CS-005.
+                MOVE CS-005 TO DS-TS.
+                DISPLAY DS-TS.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // CU unsigned: stores absolute 12345, then moved to trailing separate → "12345+"
+        Assert.Equal("12345+", lines[0]);
+        // CS signed: stores -12345, then moved to trailing separate → "12345-"
+        Assert.Equal("12345-", lines[1]);
+    }
+
+    [Fact]
+    public void MoveNumeric_ToEdited_ZeroSuppressed()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EDIT1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-N PIC S9(5) VALUE 42.
+            01 WS-E PIC ZZ,ZZ9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-N TO WS-E.
+                DISPLAY ">" WS-E "<".
+                MOVE ZERO TO WS-N.
+                MOVE WS-N TO WS-E.
+                DISPLAY ">" WS-E "<".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // 42 in ZZ,ZZ9 → "    42"
+        Assert.Equal(">    42<", lines[0]);
+        // 0 in ZZ,ZZ9 → "     0"
+        Assert.Equal(">     0<", lines[1]);
+    }
+
+    [Fact]
     public void FigurativeConstants_MoveAndDisplay()
     {
         var (success, stdout, stderr) = CompileAndRun("""

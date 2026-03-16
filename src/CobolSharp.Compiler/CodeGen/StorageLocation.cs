@@ -61,7 +61,8 @@ public static class PicDescriptorFactory
             editing: editingKind,
             blankWhenZero: false,
             leadingScaleDigits: pic?.LeadingPScaling ?? 0,
-            trailingScaleDigits: pic?.TrailingPScaling ?? 0);
+            trailingScaleDigits: pic?.TrailingPScaling ?? 0,
+            editPattern: (pic?.IsEdited ?? false) ? symbol.PicString : null);
     }
 
     private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)
