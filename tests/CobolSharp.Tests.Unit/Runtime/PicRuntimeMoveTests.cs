@@ -1,179 +1,354 @@
 using System.Text;
-using CobolSharp.Runtime;
 using Xunit;
+using CobolSharp.Runtime;
 
 namespace CobolSharp.Tests.Unit.Runtime;
 
-public class PicRuntimeMoveTests
+public sealed class PicRuntimeMoveTests
 {
-    // ── Helpers ──
+    private static PicDescriptor MakePic(
+        string picBody,
+        UsageKind usage = UsageKind.Display,
+        bool isSigned = false,
+        SignStorageKind signStorage = SignStorageKind.None,
+        bool blankWhenZero = false)
+        => PicDescriptorFactory.FromPicBody(picBody, usage, isSigned, signStorage, blankWhenZero);
 
-    private static PicDescriptor MakeNumeric(int totalDigits, int fractionDigits = 0,
-        bool isSigned = false, SignStorageKind signStorage = SignStorageKind.None)
-    {
-        int storageLength = totalDigits;
-        if (signStorage is SignStorageKind.LeadingSeparate or SignStorageKind.TrailingSeparate)
-            storageLength++;
-        return new PicDescriptor(
-            totalDigits: totalDigits, fractionDigits: fractionDigits, isSigned: isSigned,
-            isNumeric: true, isAlphanumeric: false, hasEditing: false,
-            storageLength: storageLength, usage: UsageKind.Display,
-            category: CobolCategory.Numeric, signStorage: signStorage,
-            editing: EditingKind.None, blankWhenZero: false,
-            leadingScaleDigits: 0, trailingScaleDigits: 0);
-    }
+    private static byte[] NewBuffer(PicDescriptor pic) => new byte[pic.StorageLength];
 
-    private static PicDescriptor MakeAlphanumeric(int length)
-    {
-        return new PicDescriptor(
-            totalDigits: 0, fractionDigits: 0, isSigned: false,
-            isNumeric: false, isAlphanumeric: true, hasEditing: false,
-            storageLength: length, usage: UsageKind.Display,
-            category: CobolCategory.Alphanumeric, signStorage: SignStorageKind.None,
-            editing: EditingKind.None, blankWhenZero: false,
-            leadingScaleDigits: 0, trailingScaleDigits: 0);
-    }
+    private static string GetAscii(byte[] buffer) => Encoding.ASCII.GetString(buffer);
 
-    private static PicDescriptor MakeEdited(string pattern, int totalDigits, int fractionDigits = 0,
-        bool isSigned = false)
-    {
-        return new PicDescriptor(
-            totalDigits: totalDigits, fractionDigits: fractionDigits, isSigned: isSigned,
-            isNumeric: true, isAlphanumeric: false, hasEditing: true,
-            storageLength: pattern.Length, usage: UsageKind.Display,
-            category: CobolCategory.NumericEdited, signStorage: SignStorageKind.None,
-            editing: EditingKind.ZeroSuppress, blankWhenZero: false,
-            leadingScaleDigits: 0, trailingScaleDigits: 0, editPattern: pattern);
-    }
-
-    // ── FormatByEditPattern tests ──
+    // ---------- Numeric → Numeric ----------
 
     [Fact]
-    public void FormatEdited_ZZ_ZZ9_Value42()
+    public void Move_NumericToNumeric_BasicAndScaling()
     {
-        var pic = MakeEdited("ZZ,ZZ9", totalDigits: 5);
-        string result = PicRuntime.FormatNumericEdited(42m, pic);
-        Assert.Equal("    42", result);
-    }
+        var srcPic = MakePic("S9(5)V99", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("S9(7)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
 
-    [Fact]
-    public void FormatEdited_ZZ_ZZ9_Value0()
-    {
-        var pic = MakeEdited("ZZ,ZZ9", totalDigits: 5);
-        string result = PicRuntime.FormatNumericEdited(0m, pic);
-        Assert.Equal("     0", result);
-    }
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
 
-    [Fact]
-    public void FormatEdited_ZZ_ZZ9_Value12345()
-    {
-        var pic = MakeEdited("ZZ,ZZ9", totalDigits: 5);
-        string result = PicRuntime.FormatNumericEdited(12345m, pic);
-        Assert.Equal("12,345", result);
-    }
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, 123.45m);
 
-    [Fact]
-    public void FormatEdited_Minus9_9_Negative()
-    {
-        // PIC -999999999.999999999 (expanded from -9(9).9(9))
-        var pic = MakeEdited("-999999999.999999999", totalDigits: 18, fractionDigits: 9, isSigned: true);
-        string result = PicRuntime.FormatNumericEdited(-123.456m, pic);
-        Assert.Contains("123", result);
-        Assert.Contains("-", result);
-    }
+        PicRuntime.MoveNumericToNumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
 
-    [Fact]
-    public void FormatEdited_Minus9_9_Positive()
-    {
-        var pic = MakeEdited("-999999999.999999999", totalDigits: 18, fractionDigits: 9, isSigned: true);
-        string result = PicRuntime.FormatNumericEdited(123.456m, pic);
-        Assert.Contains("123", result);
-        Assert.DoesNotContain("-", result);
-    }
-
-    // ── MoveNumericToAlphanumeric: sign stripped ──
-
-    [Fact]
-    public void MoveNumericToAlpha_StripsSign()
-    {
-        var srcPic = MakeNumeric(3, isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
-        var dstPic = MakeAlphanumeric(5);
-
-        byte[] src = new byte[3];
-        byte[] dst = new byte[5];
-        PicRuntime.EncodeNumeric(src, 0, 3, srcPic, -42m);
-
-        PicRuntime.MoveNumericToAlphanumeric(src, 0, 3, srcPic, dst, 0, 5, dstPic, 0);
-
-        string text = Encoding.ASCII.GetString(dst);
-        Assert.Equal("042  ", text); // absolute value, right-justified in source digits, left-justified in dest
-    }
-
-    // ── MoveAlphanumericToNumeric ──
-
-    [Fact]
-    public void MoveAlphaToNumeric_ParsesDigits()
-    {
-        var srcPic = MakeAlphanumeric(5);
-        var dstPic = MakeNumeric(5, isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
-
-        byte[] src = Encoding.ASCII.GetBytes("  123");
-        byte[] dst = new byte[5];
-
-        PicRuntime.MoveAlphanumericToNumeric(src, 0, 5, srcPic, dst, 0, 5, dstPic, 0);
-
-        decimal value = PicRuntime.DecodeNumeric(dst, 0, 5, dstPic);
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        // 123.45 truncated to integer → 123
         Assert.Equal(123m, value);
     }
 
-    // ── MoveNumericEditedToNumeric ──
-
     [Fact]
-    public void MoveEditedToNumeric_DeEdits()
+    public void Move_Numeric_TrailingSeparateToOverpunch_RoundTrip()
     {
-        var srcPic = MakeEdited("ZZ,ZZ9", totalDigits: 5);
-        var dstPic = MakeNumeric(5, isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var srcPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingSeparate);
+        var dstPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
 
-        byte[] src = Encoding.ASCII.GetBytes(" 1,234");
-        byte[] dst = new byte[5];
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
 
-        PicRuntime.MoveNumericEditedToNumeric(src, 0, 6, srcPic, dst, 0, 5, dstPic, 0);
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, -12345m);
 
-        decimal value = PicRuntime.DecodeNumeric(dst, 0, 5, dstPic);
-        Assert.Equal(1234m, value);
-    }
+        PicRuntime.MoveNumericToNumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
 
-    // ── MoveNumericToNumeric cross-sign-format ──
-
-    [Fact]
-    public void MoveNumeric_TrailingSeparateToOverpunch()
-    {
-        var srcPic = MakeNumeric(5, isSigned: true, signStorage: SignStorageKind.TrailingSeparate);
-        var dstPic = MakeNumeric(5, isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
-
-        byte[] src = new byte[6]; // 5 digits + 1 sign byte
-        byte[] dst = new byte[5];
-        PicRuntime.EncodeNumeric(src, 0, 6, srcPic, -12345m);
-
-        PicRuntime.MoveNumericToNumeric(src, 0, 6, srcPic, dst, 0, 5, dstPic, 0);
-
-        decimal value = PicRuntime.DecodeNumeric(dst, 0, 5, dstPic);
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
         Assert.Equal(-12345m, value);
     }
 
     [Fact]
-    public void MoveNumeric_OverpunchToLeadingSeparate()
+    public void Move_Numeric_OverpunchToLeadingSeparate()
     {
-        var srcPic = MakeNumeric(3, isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
-        var dstPic = MakeNumeric(3, isSigned: true, signStorage: SignStorageKind.LeadingSeparate);
+        var srcPic = MakePic("S9(3)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("S9(3)", isSigned: true, signStorage: SignStorageKind.LeadingSeparate);
 
-        byte[] src = new byte[3];
-        byte[] dst = new byte[4]; // 3 digits + 1 sign byte
-        PicRuntime.EncodeNumeric(src, 0, 3, srcPic, -99m);
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
 
-        PicRuntime.MoveNumericToNumeric(src, 0, 3, srcPic, dst, 0, 4, dstPic, 0);
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, -99m);
 
-        decimal value = PicRuntime.DecodeNumeric(dst, 0, 4, dstPic);
+        PicRuntime.MoveNumericToNumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
         Assert.Equal(-99m, value);
+    }
+
+    // ---------- Numeric → NumericEdited ----------
+
+    [Fact]
+    public void Move_NumericToNumericEdited_ZZ_ZZ9_Family()
+    {
+        var srcPic = MakePic("9(5)");
+        var dstPic = MakePic("ZZ,ZZ9");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, 42m);
+
+        PicRuntime.MoveNumericToNumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("    42", GetAscii(dst));
+    }
+
+    [Fact]
+    public void Move_NumericToNumericEdited_Minus9_9_Negative()
+    {
+        var srcPic = MakePic("S9(9)V9(9)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("-9(9).9(9)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, -123.45m);
+
+        PicRuntime.MoveNumericToNumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        var text = GetAscii(dst);
+        Assert.Contains("123", text);
+        Assert.Contains("-", text);
+    }
+
+    [Fact]
+    public void Move_NumericToNumericEdited_Minus9_9_Positive()
+    {
+        var srcPic = MakePic("S9(9)V9(9)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("-9(9).9(9)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, 123.45m);
+
+        PicRuntime.MoveNumericToNumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        var text = GetAscii(dst);
+        Assert.Contains("123", text);
+        Assert.DoesNotContain("-", text);
+    }
+
+    // ---------- Numeric → Alphanumeric ----------
+
+    [Fact]
+    public void Move_NumericToAlphanumeric_StripsSign()
+    {
+        var srcPic = MakePic("S9(3)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("X(3)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, -42m);
+
+        PicRuntime.MoveNumericToAlphanumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("042", GetAscii(dst));
+    }
+
+    [Fact]
+    public void Move_NumericToAlphanumericEdited_Delegates()
+    {
+        var srcPic = MakePic("9(3)");
+        var dstPic = MakePic("X(3)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, 123m);
+
+        PicRuntime.MoveNumericToAlphanumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("123", GetAscii(dst));
+    }
+
+    // ---------- Alphanumeric → Numeric / NumericEdited ----------
+
+    [Fact]
+    public void Move_AlphanumericToNumeric_ParsesDigits()
+    {
+        var srcPic = MakePic("X(5)");
+        var dstPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+
+        var src = Encoding.ASCII.GetBytes("  123");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveAlphanumericToNumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(123m, value);
+    }
+
+    [Fact]
+    public void Move_AlphanumericToNumericEdited_ParseAndFormat()
+    {
+        var srcPic = MakePic("X(6)");
+        var dstPic = MakePic("ZZ,ZZ9");
+
+        var src = Encoding.ASCII.GetBytes(" 1234 ");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveAlphanumericToNumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal(" 1,234", GetAscii(dst));
+    }
+
+    // ---------- NumericEdited → Numeric / Alphanumeric / NumericEdited ----------
+
+    [Fact]
+    public void Move_NumericEditedToNumeric_DeEditRoundTrip()
+    {
+        var srcPic = MakePic("ZZ,ZZ9");
+        var dstPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+
+        var src = Encoding.ASCII.GetBytes(" 1,234");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveNumericEditedToNumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(1234m, value);
+    }
+
+    [Fact]
+    public void Move_NumericEditedToAlphanumeric_Explicit()
+    {
+        var srcPic = MakePic("ZZ,ZZ9");
+        var dstPic = MakePic("X(6)");
+
+        var src = Encoding.ASCII.GetBytes("12,345");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveNumericEditedToAlphanumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("12,345", GetAscii(dst));
+    }
+
+    [Fact]
+    public void Move_NumericEditedToNumericEdited_Copy()
+    {
+        var srcPic = MakePic("ZZ,ZZ9");
+        var dstPic = MakePic("ZZ,ZZ9");
+
+        var src = Encoding.ASCII.GetBytes("12,345");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveNumericEditedToNumericEdited(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("12,345", GetAscii(dst));
+    }
+
+    // ---------- AlphanumericEdited → Alphanumeric ----------
+
+    [Fact]
+    public void Move_AlphanumericToAlphanumeric_JustifyPad()
+    {
+        var srcPic = MakePic("X(3)");
+        var dstPic = MakePic("X(5)");
+
+        var src = Encoding.ASCII.GetBytes("ABC");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveAlphanumericToAlphanumeric(
+            src, 0, src.Length, srcPic,
+            dst, 0, dst.Length, dstPic,
+            0);
+
+        Assert.Equal("ABC  ", GetAscii(dst));
+    }
+
+    // ---------- Figurative / ALL literal ----------
+
+    [Fact]
+    public void Move_FigurativeToField_Spaces()
+    {
+        var dstPic = MakePic("X(5)");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveFigurativeToField(
+            dst, 0, dst.Length, dstPic,
+            (int)FigurativeKind.Space);
+
+        Assert.Equal("     ", GetAscii(dst));
+    }
+
+    [Fact]
+    public void Move_FigurativeToField_Zero_Numeric()
+    {
+        var dstPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveFigurativeToField(
+            dst, 0, dst.Length, dstPic,
+            (int)FigurativeKind.Zero);
+
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(0m, value);
+    }
+
+    [Fact]
+    public void Move_AllLiteralToField_PatternRepeat()
+    {
+        var dstPic = MakePic("X(7)");
+        var dst = NewBuffer(dstPic);
+
+        var pattern = Encoding.ASCII.GetBytes("AB");
+        PicRuntime.MoveAllLiteralToField(
+            dst, 0, dst.Length, pattern);
+
+        Assert.Equal("ABABABA", GetAscii(dst));
+    }
+
+    // ---------- Numeric literal ----------
+
+    [Fact]
+    public void Move_NumericLiteralToNumeric_Scaling()
+    {
+        var dstPic = MakePic("9(3)V9(2)");
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.MoveNumericLiteral(
+            dst, 0, dst.Length, dstPic,
+            123.45m, 0);
+
+        var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(123.45m, value);
     }
 }

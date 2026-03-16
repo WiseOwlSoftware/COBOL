@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Globalization;
 using System.Text;
 
 namespace CobolSharp.Runtime;
@@ -22,97 +21,203 @@ public static class PicDescriptorFactory
         SignStorageKind signStorage = SignStorageKind.None,
         bool blankWhenZero = false)
     {
-        string body = picBody.Trim().ToUpperInvariant();
+        var text = picBody.Trim().ToUpperInvariant();
+        int pos = 0;
 
-        // Expand repeat notation: 9(5) → 99999
-        string expanded = ExpandPattern(body);
-
-        // Detect category
-        bool hasEditing = ContainsEditChars(expanded);
-        bool hasNumericChars = ContainsNumericChars(body);
-        bool hasAlphaChars = body.Contains('X') || body.Contains('A');
-
-        CobolCategory category;
-        if (hasNumericChars && !hasAlphaChars)
-            category = hasEditing ? CobolCategory.NumericEdited : CobolCategory.Numeric;
-        else if (hasAlphaChars)
-            category = hasEditing ? CobolCategory.AlphanumericEdited : CobolCategory.Alphanumeric;
-        else
-            category = CobolCategory.Alphanumeric;
-
-        // Count digits and fractions
-        int totalDigits = 0;
+        int integerDigits = 0;
         int fractionDigits = 0;
-        int leadingScaleDigits = 0;
         bool pastDecimal = false;
-        bool hasRealDigits = false;
+        bool edited = false;
 
-        foreach (char c in expanded)
+        bool hasNumericChars = false;   // 9, V, P, S
+        bool hasAlphaChars = false;     // X, A
+        bool hasNationalChars = false;  // N
+        bool hasRealDigits = false;     // any 9/edited-digit
+
+        int leadingPScaling = 0;
+        int trailingPScaling = 0;
+        int insertionChars = 0;         // ., B, /, , etc.
+
+        while (pos < text.Length)
         {
+            char c = text[pos];
+
             switch (c)
             {
                 case 'S':
                     isSigned = true;
+                    hasNumericChars = true;
+                    pos++;
                     break;
+
                 case '9':
+                {
+                    hasNumericChars = true;
                     hasRealDigits = true;
-                    totalDigits++;
-                    if (pastDecimal) fractionDigits++;
+                    int count = ParseRepeatCount(text, ref pos);
+                    if (pastDecimal)
+                        fractionDigits += count;
+                    else
+                        integerDigits += count;
                     break;
+                }
+
                 case 'V':
+                    hasNumericChars = true;
                     pastDecimal = true;
+                    pos++;
                     break;
-                case 'Z': case '*': case '+': case '-': case '$':
-                    totalDigits++;
-                    if (pastDecimal) fractionDigits++;
+
+                case 'X':
+                {
+                    hasAlphaChars = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    integerDigits += count;
                     break;
-                case '.':
-                    if (hasEditing) pastDecimal = true;
+                }
+
+                case 'A':
+                {
+                    hasAlphaChars = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    integerDigits += count;
                     break;
+                }
+
+                case 'N':
+                {
+                    hasNationalChars = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    integerDigits += count;
+                    break;
+                }
+
                 case 'P':
-                    if (!hasRealDigits) leadingScaleDigits++;
+                {
+                    hasNumericChars = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    if (!hasRealDigits)
+                        leadingPScaling += count;
+                    else
+                        trailingPScaling += count;
+                    break;
+                }
+
+                case '.':
+                {
+                    edited = true;
+                    pastDecimal = true;
+                    insertionChars++;
+                    pos++;
+                    break;
+                }
+
+                case ',':
+                case 'B':
+                case '/':
+                {
+                    edited = true;
+                    insertionChars++;
+                    pos++;
+                    break;
+                }
+
+                case 'Z':
+                case '*':
+                case '+':
+                case '-':
+                case '$':
+                case '0':
+                {
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    if (pastDecimal)
+                        fractionDigits += count;
+                    else
+                        integerDigits += count;
+                    hasNumericChars = true;
+                    hasRealDigits = true;
+                    break;
+                }
+
+                case 'C':
+                    if (pos + 1 < text.Length && text[pos + 1] == 'R')
+                    {
+                        edited = true;
+                        pos += 2;
+                    }
+                    else pos++;
+                    break;
+
+                case 'D':
+                    if (pos + 1 < text.Length && text[pos + 1] == 'B')
+                    {
+                        edited = true;
+                        pos += 2;
+                    }
+                    else pos++;
+                    break;
+
+                default:
+                    pos++;
                     break;
             }
         }
 
-        // Compute storage length
-        int storageLength;
-        if (category == CobolCategory.Alphanumeric || category == CobolCategory.AlphanumericEdited)
+        // Leading P with no explicit decimal: digits after leading P are fractional.
+        if (!pastDecimal && leadingPScaling > 0 && integerDigits > 0 && fractionDigits == 0)
         {
-            storageLength = expanded.Replace("S", "").Length;
-        }
-        else if (hasEditing)
-        {
-            // Edited: storage = expanded pattern length minus S
-            storageLength = expanded.Replace("S", "").Replace("V", "").Length;
-        }
-        else
-        {
-            // Pure numeric: digits only
-            storageLength = totalDigits;
-            if (isSigned && (signStorage is SignStorageKind.LeadingSeparate or SignStorageKind.TrailingSeparate))
-                storageLength++;
+            fractionDigits = integerDigits;
+            integerDigits = 0;
         }
 
-        // Determine editing kind
+        int totalDigits = integerDigits + fractionDigits;
+
+        // Category lattice (mirrors PicUsageResolver)
+        CobolCategory category;
+        if (hasNumericChars && !hasAlphaChars && !hasNationalChars)
+            category = edited ? CobolCategory.NumericEdited : CobolCategory.Numeric;
+        else if (hasNationalChars && !hasNumericChars && !hasAlphaChars)
+            category = edited ? CobolCategory.NationalEdited : CobolCategory.National;
+        else if (hasAlphaChars || (!hasNumericChars && !hasNationalChars && edited))
+            category = edited ? CobolCategory.AlphanumericEdited : CobolCategory.Alphanumeric;
+        else if (edited && hasNumericChars)
+            category = CobolCategory.NumericEdited;
+        else
+            category = CobolCategory.Unknown;
+
+        // Storage length (DISPLAY/NATIONAL only; COMP/COMP-3 handled by EncodeNumeric)
+        int storageLength = ComputeDisplayStorageLength(
+            category,
+            integerDigits,
+            fractionDigits,
+            insertionChars,
+            isSigned,
+            signStorage);
+
+        // Editing kind
         var editingKind = EditingKind.None;
-        if (hasEditing)
+        if (edited)
         {
-            if (expanded.Contains("CR") || expanded.Contains("DB"))
+            if (text.Contains("CR") || text.Contains("DB"))
                 editingKind = EditingKind.CreditDebit;
-            else if (expanded.Contains('$'))
+            else if (text.Contains('$'))
                 editingKind = EditingKind.Currency;
-            else if (expanded.Contains('Z') || expanded.Contains('*'))
+            else if (text.Contains('Z') || text.Contains('*') || blankWhenZero)
                 editingKind = EditingKind.ZeroSuppress;
             else
                 editingKind = EditingKind.Custom;
         }
 
-        // Edit pattern: only for numeric-edited, use expanded form minus S and V
+        // Expanded edit pattern for numeric-edited only (no S, V, P)
         string? editPattern = null;
         if (category == CobolCategory.NumericEdited)
         {
-            editPattern = expanded.Replace("S", "").Replace("V", "");
+            var expanded = ExpandPattern(text);
+            editPattern = expanded
+                .Replace("S", string.Empty)
+                .Replace("V", string.Empty)
+                .Replace("P", string.Empty);
         }
 
         return new PicDescriptor(
@@ -121,20 +226,21 @@ public static class PicDescriptorFactory
             isSigned: isSigned,
             isNumeric: category.IsNumericLike(),
             isAlphanumeric: category.IsAlphanumericLike(),
-            hasEditing: hasEditing,
+            hasEditing: edited,
             storageLength: storageLength,
             usage: usage,
             category: category,
             signStorage: signStorage,
             editing: editingKind,
             blankWhenZero: blankWhenZero,
-            leadingScaleDigits: leadingScaleDigits,
-            trailingScaleDigits: 0,
+            leadingScaleDigits: leadingPScaling,
+            trailingScaleDigits: trailingPScaling,
             editPattern: editPattern);
     }
 
     /// <summary>
     /// Expand PIC repeat notation: "9(5)" → "99999", "-9(9).9(9)" → "-999999999.999999999".
+    /// P is expanded as-is here; callers decide whether it contributes to storage.
     /// </summary>
     public static string ExpandPattern(string pic)
     {
@@ -167,23 +273,46 @@ public static class PicDescriptorFactory
         return sb.ToString();
     }
 
-    private static bool ContainsEditChars(string expanded)
+    private static int ParseRepeatCount(string text, ref int pos)
     {
-        foreach (char c in expanded)
-        {
-            if ("Z*+-$B/,".Contains(c)) return true;
-            // '.' is editing only if there are also numeric edit chars
-            // '-' at start is a sign position in editing
-        }
-        return false;
+        pos++; // consume the letter
+
+        if (pos >= text.Length || text[pos] != '(')
+            return 1;
+
+        int start = ++pos; // skip '('
+        while (pos < text.Length && char.IsDigit(text[pos]))
+            pos++;
+
+        if (pos >= text.Length || text[pos] != ')')
+            return 1;
+
+        var numText = text.Substring(start, pos - start);
+        pos++; // skip ')'
+
+        return int.TryParse(numText, out var n) && n > 0 ? n : 1;
     }
 
-    private static bool ContainsNumericChars(string body)
+    private static int ComputeDisplayStorageLength(
+        CobolCategory category,
+        int integerDigits,
+        int fractionDigits,
+        int insertionChars,
+        bool isSigned,
+        SignStorageKind signStorage)
     {
-        foreach (char c in body)
+        int baseLength = integerDigits + fractionDigits + insertionChars;
+
+        // For alpha/national, integerDigits already counts characters.
+        int length = baseLength;
+
+        if (isSigned &&
+            (signStorage == SignStorageKind.LeadingSeparate ||
+             signStorage == SignStorageKind.TrailingSeparate))
         {
-            if ("9SVSP".Contains(c)) return true;
+            length++;
         }
-        return false;
+
+        return length;
     }
 }
