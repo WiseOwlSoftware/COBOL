@@ -575,6 +575,10 @@ public sealed class CilEmitter
                 EmitAddAccumulatedToTarget(il, addAcc, getLocal);
                 break;
 
+            case IrMoveAccumulatedToTarget moveAcc:
+                EmitMoveAccumulatedToTarget(il, moveAcc, getLocal);
+                break;
+
             case IrSubtractAccumulatedFromTarget subAcc:
                 EmitSubtractAccumulatedFromTarget(il, subAcc, getLocal);
                 break;
@@ -1315,6 +1319,25 @@ public sealed class CilEmitter
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("AddAccumulatedToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitMoveAccumulatedToTarget(ILProcessor il, IrMoveAccumulatedToTarget inst,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, inst.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
+        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        var accLocal = getLocal(inst.Accumulator);
+        il.Append(il.Create(OpCodes.Ldloc, accLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));

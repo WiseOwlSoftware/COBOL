@@ -444,6 +444,23 @@ public sealed class IrAddAccumulatedToTarget : IrInstruction
 }
 
 /// <summary>
+/// target = accumulator (GIVING form: store sum directly, don't add to current value).
+/// </summary>
+public sealed class IrMoveAccumulatedToTarget : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrMoveAccumulatedToTarget(IrValue accumulator, CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Accumulator = accumulator;
+        Destination = dest;
+        Rounding = rounding;
+    }
+}
+
+/// <summary>
 /// target = target - accumulator, with rounding and overflow detection.
 /// </summary>
 public sealed class IrSubtractAccumulatedFromTarget : IrInstruction

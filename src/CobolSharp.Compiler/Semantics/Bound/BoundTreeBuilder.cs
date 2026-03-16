@@ -467,33 +467,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var op in addOps)
             operands.Add(BindSimpleOperand(op));
 
-        // TO targets (each with per-target ROUNDED)
-        var toPhrase = ctx.addToPhrase();
-        if (toPhrase == null)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
-        var toTargetCtxs = toPhrase.addTarget();
-        if (toTargetCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
+        // TO targets (each with per-target ROUNDED) — optional for GIVING form
         var targets = new List<BoundArithmeticTarget>();
-        foreach (var t in toTargetCtxs)
+        var toPhrase = ctx.addToPhrase();
+        if (toPhrase != null)
         {
-            var sym = _semantic.ResolveData(t.identifier().GetText());
-            if (sym != null)
-                targets.Add(new BoundArithmeticTarget(sym, t.ROUNDED() != null));
+            foreach (var t in toPhrase.addTarget())
+            {
+                var sym = _semantic.ResolveData(t.identifier().GetText());
+                if (sym != null)
+                    targets.Add(new BoundArithmeticTarget(sym, t.ROUNDED() != null));
+            }
         }
 
-        if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
         // GIVING phrase overrides TO targets
+        bool isGiving = false;
         var givingPhrase = ctx.addGivingPhrase();
         if (givingPhrase != null)
         {
             var givingTargetCtxs = givingPhrase.addTarget();
             if (givingTargetCtxs.Length > 0)
             {
+                isGiving = true;
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
@@ -504,8 +499,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
+        if (targets.Count == 0)
+            throw new InvalidOperationException(
+                $"ADD statement has no targets (line {ctx.Start?.Line})");
+
         var sizeError = BindSizeErrorClause(ctx.addOnSizeError());
-        return new BoundAddStatement(operands, targets, sizeError);
+        return new BoundAddStatement(operands, targets, sizeError, isGiving);
     }
 
     // ── SUBTRACT ──

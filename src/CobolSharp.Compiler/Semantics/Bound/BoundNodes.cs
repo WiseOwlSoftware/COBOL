@@ -260,14 +260,17 @@ public sealed class BoundAddStatement : BoundStatement
     public IReadOnlyList<BoundExpression> Operands { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
     public BoundSizeErrorClause? SizeError { get; }
+    public bool IsGiving { get; }  // true for ADD ... GIVING (target = sum, not target += sum)
 
     public BoundAddStatement(IReadOnlyList<BoundExpression> operands,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null)
+        BoundSizeErrorClause? sizeError = null,
+        bool isGiving = false)
     {
         Operands = operands;
         Targets = targets;
         SizeError = sizeError;
+        IsGiving = isGiving;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.AddStatement;

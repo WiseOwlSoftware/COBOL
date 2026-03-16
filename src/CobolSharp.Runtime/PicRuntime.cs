@@ -807,6 +807,23 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
+    /// <summary>
+    /// GIVING form: store accumulated value directly into target (target = accumulated).
+    /// Does NOT add to the target's current value.
+    /// </summary>
+    public static void MoveAccumulatedToField(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal accumulated, int roundingMode, ref ArithmeticStatus status)
+    {
+        decimal value = ApplyScalingAndRounding(accumulated, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
     public static void SubtractAccumulatedFromField(
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal accumulated, int roundingMode, ref ArithmeticStatus status)

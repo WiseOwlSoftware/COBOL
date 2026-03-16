@@ -699,14 +699,23 @@ public sealed class Binder
             }
         }
 
-        // Step 2: For each target, add the accumulated sum (rounding applied once)
+        // Step 2: For each target, apply the accumulated sum
         foreach (var target in add.Targets)
         {
             var destLoc = _semantic.GetStorageLocation(target.Symbol);
             if (!destLoc.HasValue) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
-            block.Instructions.Add(new IrAddAccumulatedToTarget(accum, destLoc.Value, roundingMode));
+            if (add.IsGiving)
+            {
+                // GIVING: target = accumulated sum (store directly, don't add to current value)
+                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc.Value, roundingMode));
+            }
+            else
+            {
+                // TO: target = target + accumulated sum
+                block.Instructions.Add(new IrAddAccumulatedToTarget(accum, destLoc.Value, roundingMode));
+            }
         }
 
         return LowerSizeError(add.SizeError, method, block);
