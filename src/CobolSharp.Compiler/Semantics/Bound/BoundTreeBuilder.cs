@@ -242,32 +242,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // ON SIZE ERROR / NOT ON SIZE ERROR
-        var onSizeError = new List<BoundStatement>();
-        var notOnSizeError = new List<BoundStatement>();
-        var sizeCtx = ctx.multiplyOnSizeError();
-        if (sizeCtx != null)
-        {
-            var imperatives = sizeCtx.imperativeStatement();
-            if (imperatives.Length > 0)
-            {
-                foreach (var stmt in imperatives[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            }
-            if (imperatives.Length > 1)
-            {
-                foreach (var stmt in imperatives[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
-                }
-            }
-        }
-
-        return new BoundMultiplyStatement(operand, targets, givingTarget, onSizeError, notOnSizeError);
+        var sizeError = BindSizeErrorClause(ctx.multiplyOnSizeError());
+        return new BoundMultiplyStatement(operand, targets, givingTarget, sizeError);
     }
 
     // ── ADD ──
@@ -325,32 +301,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // ON SIZE ERROR / NOT ON SIZE ERROR
-        var onSizeError = new List<BoundStatement>();
-        var notOnSizeError = new List<BoundStatement>();
-        var sizeCtx = ctx.addOnSizeError();
-        if (sizeCtx != null)
-        {
-            var imperatives = sizeCtx.imperativeStatement();
-            if (imperatives.Length > 0)
-            {
-                foreach (var stmt in imperatives[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            }
-            if (imperatives.Length > 1)
-            {
-                foreach (var stmt in imperatives[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
-                }
-            }
-        }
-
-        return new BoundAddStatement(operands, targets, onSizeError, notOnSizeError);
+        var sizeError = BindSizeErrorClause(ctx.addOnSizeError());
+        return new BoundAddStatement(operands, targets, sizeError);
     }
 
     // ── SUBTRACT ──
@@ -409,32 +361,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // ON SIZE ERROR / NOT ON SIZE ERROR
-        var onSizeError = new List<BoundStatement>();
-        var notOnSizeError = new List<BoundStatement>();
-        var sizeCtx = ctx.subtractOnSizeError();
-        if (sizeCtx != null)
-        {
-            var imperatives = sizeCtx.imperativeStatement();
-            if (imperatives.Length > 0)
-            {
-                foreach (var stmt in imperatives[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            }
-            if (imperatives.Length > 1)
-            {
-                foreach (var stmt in imperatives[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
-                }
-            }
-        }
-
-        return new BoundSubtractStatement(operands, targets, onSizeError, notOnSizeError);
+        var sizeError = BindSizeErrorClause(ctx.subtractOnSizeError());
+        return new BoundSubtractStatement(operands, targets, sizeError);
     }
 
     // ── DIVIDE ──
@@ -515,33 +443,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             remainderTarget = _semantic.ResolveData(remPhrase.identifier().GetText());
         }
 
-        // ON SIZE ERROR / NOT ON SIZE ERROR
-        var onSizeError = new List<BoundStatement>();
-        var notOnSizeError = new List<BoundStatement>();
-        var sizeCtx = ctx.divideOnSizeError();
-        if (sizeCtx != null)
-        {
-            var imperatives = sizeCtx.imperativeStatement();
-            if (imperatives.Length > 0)
-            {
-                foreach (var stmt in imperatives[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            }
-            if (imperatives.Length > 1)
-            {
-                foreach (var stmt in imperatives[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
-                }
-            }
-        }
-
+        var sizeError = BindSizeErrorClause(ctx.divideOnSizeError());
         return new BoundDivideStatement(firstOperand, dividend, isByForm, targets,
-            remainderTarget, onSizeError, notOnSizeError);
+            remainderTarget, sizeError);
     }
 
     // ── COMPUTE ──
@@ -567,32 +471,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Bind the full arithmetic expression (recursive tree walk)
         var expr = BindFullExpression(ctx.arithmeticExpression());
 
-        // ON SIZE ERROR / NOT ON SIZE ERROR
-        var onSizeError = new List<BoundStatement>();
-        var notOnSizeError = new List<BoundStatement>();
-        var sizeCtx = ctx.computeOnSizeError();
-        if (sizeCtx != null)
-        {
-            var imperatives = sizeCtx.imperativeStatement();
-            if (imperatives.Length > 0)
-            {
-                foreach (var stmt in imperatives[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            }
-            if (imperatives.Length > 1)
-            {
-                foreach (var stmt in imperatives[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
-                }
-            }
-        }
-
-        return new BoundComputeStatement(expr, targets, onSizeError, notOnSizeError);
+        var sizeError = BindSizeErrorClause(ctx.computeOnSizeError());
+        return new BoundComputeStatement(expr, targets, sizeError);
     }
 
     /// <summary>
@@ -942,6 +822,61 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return BindFullExpression(arithExpr);
 
         return BindArithmeticExpr(ctx.arithmeticExpression());
+    }
+
+    /// <summary>
+    /// Bind ON SIZE ERROR / NOT ON SIZE ERROR clause shared by all arithmetic statements.
+    /// Handles both forms: ON+NOT, ON-only, NOT-only.
+    /// </summary>
+    private BoundSizeErrorClause? BindSizeErrorClause(Antlr4.Runtime.ParserRuleContext? ctx)
+    {
+        if (ctx == null) return null;
+
+        var imperatives = ((dynamic)ctx).imperativeStatement()
+            as Antlr4.Runtime.Tree.IParseTree[];
+        if (imperatives == null || imperatives.Length == 0) return null;
+
+        // Check if this is the standalone NOT form (no ON keyword before SIZE)
+        string ruleText = ctx.GetText().ToUpperInvariant();
+        bool startsWithNot = ruleText.StartsWith("NOT");
+
+        var onSizeError = new List<BoundStatement>();
+        var notOnSizeError = new List<BoundStatement>();
+
+        if (startsWithNot)
+        {
+            // NOT ON SIZE ERROR only
+            foreach (var imp in imperatives)
+            {
+                if (imp is CobolParserCore.ImperativeStatementContext impCtx)
+                    foreach (var stmt in impCtx.statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) notOnSizeError.Add(bound);
+                    }
+            }
+        }
+        else
+        {
+            // ON SIZE ERROR (+ optional NOT ON SIZE ERROR)
+            if (imperatives.Length > 0 && imperatives[0] is CobolParserCore.ImperativeStatementContext imp0)
+                foreach (var stmt in imp0.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onSizeError.Add(bound);
+                }
+            if (imperatives.Length > 1 && imperatives[1] is CobolParserCore.ImperativeStatementContext imp1)
+                foreach (var stmt in imp1.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
+        }
+
+        if (onSizeError.Count == 0 && notOnSizeError.Count == 0)
+            return null;
+
+        return new BoundSizeErrorClause(onSizeError, notOnSizeError);
     }
 
     /// <summary>

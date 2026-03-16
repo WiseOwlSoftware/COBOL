@@ -201,25 +201,39 @@ public sealed class BoundCloseStatement : BoundStatement
 
 public sealed class BoundAddStatement : BoundStatement
 {
-    /// <summary>The operands being added (ADD A B C TO T: operands = [A, B, C]).</summary>
     public IReadOnlyList<BoundExpression> Operands { get; }
-    /// <summary>The TO targets: each gets target = target + sum(operands).</summary>
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public IReadOnlyList<BoundStatement> OnSizeError { get; }
-    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+    public BoundSizeErrorClause? SizeError { get; }
 
     public BoundAddStatement(IReadOnlyList<BoundExpression> operands,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        IReadOnlyList<BoundStatement>? onSizeError = null,
-        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+        BoundSizeErrorClause? sizeError = null)
     {
         Operands = operands;
         Targets = targets;
+        SizeError = sizeError;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
+}
+
+/// <summary>
+/// ON SIZE ERROR / NOT ON SIZE ERROR clause, shared by all arithmetic statements.
+/// </summary>
+public sealed class BoundSizeErrorClause
+{
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+
+    public BoundSizeErrorClause(
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+    {
         OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
         NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
     }
 
-    public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
+    public bool HasClauses => OnSizeError.Count > 0 || NotOnSizeError.Count > 0;
 }
 
 /// <summary>
@@ -243,20 +257,17 @@ public sealed class BoundMultiplyStatement : BoundStatement
     public BoundExpression Operand { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
     public DataSymbol? GivingTarget { get; }
-    public IReadOnlyList<BoundStatement> OnSizeError { get; }
-    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+    public BoundSizeErrorClause? SizeError { get; }
 
     public BoundMultiplyStatement(BoundExpression operand,
         IReadOnlyList<BoundArithmeticTarget> targets,
         DataSymbol? givingTarget = null,
-        IReadOnlyList<BoundStatement>? onSizeError = null,
-        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+        BoundSizeErrorClause? sizeError = null)
     {
         Operand = operand;
         Targets = targets;
         GivingTarget = givingTarget;
-        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
-        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+        SizeError = sizeError;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;
@@ -264,22 +275,17 @@ public sealed class BoundMultiplyStatement : BoundStatement
 
 public sealed class BoundSubtractStatement : BoundStatement
 {
-    /// <summary>The operands being subtracted (SUBTRACT A B C FROM ...: operands = [A, B, C]).</summary>
     public IReadOnlyList<BoundExpression> Operands { get; }
-    /// <summary>The FROM targets: each gets target = target - sum(operands).</summary>
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public IReadOnlyList<BoundStatement> OnSizeError { get; }
-    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+    public BoundSizeErrorClause? SizeError { get; }
 
     public BoundSubtractStatement(IReadOnlyList<BoundExpression> operands,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        IReadOnlyList<BoundStatement>? onSizeError = null,
-        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+        BoundSizeErrorClause? sizeError = null)
     {
         Operands = operands;
         Targets = targets;
-        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
-        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+        SizeError = sizeError;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
@@ -287,18 +293,12 @@ public sealed class BoundSubtractStatement : BoundStatement
 
 public sealed class BoundDivideStatement : BoundStatement
 {
-    /// <summary>The divisor (DIVIDE a INTO b → a is divisor, b is dividend/target).</summary>
     public BoundExpression Divisor { get; }
-    /// <summary>The dividend (for BY form: DIVIDE a BY b → b is dividend).</summary>
     public BoundExpression? Dividend { get; }
-    /// <summary>True if DIVIDE a BY b form (vs INTO form).</summary>
     public bool IsByForm { get; }
-    /// <summary>INTO targets (Format 1) or GIVING targets (Formats 2-5).</summary>
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    /// <summary>REMAINDER target (Formats 4-5).</summary>
     public DataSymbol? RemainderTarget { get; }
-    public IReadOnlyList<BoundStatement> OnSizeError { get; }
-    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+    public BoundSizeErrorClause? SizeError { get; }
 
     public BoundDivideStatement(
         BoundExpression divisor,
@@ -306,16 +306,14 @@ public sealed class BoundDivideStatement : BoundStatement
         bool isByForm,
         IReadOnlyList<BoundArithmeticTarget> targets,
         DataSymbol? remainderTarget = null,
-        IReadOnlyList<BoundStatement>? onSizeError = null,
-        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+        BoundSizeErrorClause? sizeError = null)
     {
         Divisor = divisor;
         Dividend = dividend;
         IsByForm = isByForm;
         Targets = targets;
         RemainderTarget = remainderTarget;
-        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
-        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+        SizeError = sizeError;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.DivideStatement;
@@ -325,18 +323,15 @@ public sealed class BoundComputeStatement : BoundStatement
 {
     public BoundExpression Expression { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public IReadOnlyList<BoundStatement> OnSizeError { get; }
-    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+    public BoundSizeErrorClause? SizeError { get; }
 
     public BoundComputeStatement(BoundExpression expression,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        IReadOnlyList<BoundStatement>? onSizeError = null,
-        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+        BoundSizeErrorClause? sizeError = null)
     {
         Expression = expression;
         Targets = targets;
-        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
-        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+        SizeError = sizeError;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ComputeStatement;
