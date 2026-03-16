@@ -57,10 +57,23 @@ public static class PicDescriptorFactory
             storageLength: storageLength,
             usage: symbol.Usage,
             category: category,
-            signStorage: (pic?.IsSigned ?? false) ? SignStorageKind.LeadingSeparate : SignStorageKind.None,
+            signStorage: DetermineSignStorage(pic?.IsSigned ?? false, symbol),
             editing: editingKind,
             blankWhenZero: false,
             leadingScaleDigits: pic?.LeadingPScaling ?? 0,
             trailingScaleDigits: pic?.TrailingPScaling ?? 0);
+    }
+
+    private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)
+    {
+        if (!isSigned) return SignStorageKind.None;
+
+        // Explicit SIGN clause takes priority
+        if (symbol.ExplicitSignStorage.HasValue)
+            return symbol.ExplicitSignStorage.Value;
+
+        // Default: SIGN IS LEADING SEPARATE (our current convention;
+        // TODO: COBOL default is TRAILING OVERPUNCH — change when overpunch is implemented)
+        return SignStorageKind.LeadingSeparate;
     }
 }

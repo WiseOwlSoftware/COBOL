@@ -122,7 +122,13 @@ public sealed class RecordLayoutBuilder
             return pic.Length;
 
         if (s.Usage == UsageKind.Display && pic.Category == CobolCategory.Numeric)
-            return pic.Length + (pic.IsSigned ? 1 : 0);
+        {
+            bool separateSign = s.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
+                or Runtime.SignStorageKind.TrailingSeparate;
+            bool defaultSeparate = pic.IsSigned && !s.ExplicitSignStorage.HasValue;
+            int signBytes = (separateSign || defaultSeparate) ? 1 : 0;
+            return pic.Length + signBytes;
+        }
 
         return s.Usage switch
         {

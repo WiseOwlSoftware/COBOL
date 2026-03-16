@@ -20,6 +20,12 @@ public sealed class DataSymbol : Symbol
     public bool IsElementary => PicString != null;
     public CodeGen.StorageAreaKind Area { get; set; }
 
+    /// <summary>
+    /// Sign storage from explicit SIGN clause. Null means no explicit clause
+    /// (default is trailing overpunch for signed DISPLAY fields).
+    /// </summary>
+    public SignStorageKind? ExplicitSignStorage { get; set; }
+
     public DataSymbol? Redefines { get; set; }
 
     /// <summary>Unresolved REDEFINES target name (for deferred resolution).</summary>

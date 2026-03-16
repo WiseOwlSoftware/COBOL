@@ -29,6 +29,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     // Temporary: holds the REDEFINES target name during clause parsing
     private string? _deferredRedefinesName;
+    private Runtime.SignStorageKind? _deferredSignStorage;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -149,6 +150,20 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (typeClause != null)
                     typeName = typeClause.IDENTIFIER()?.GetText();
 
+                var signCl = clause.signClause();
+                if (signCl != null)
+                {
+                    bool isLeading = signCl.LEADING() != null;
+                    bool isSeparate = signCl.SEPARATE() != null;
+                    _deferredSignStorage = (isLeading, isSeparate) switch
+                    {
+                        (true, true) => Runtime.SignStorageKind.LeadingSeparate,
+                        (true, false) => Runtime.SignStorageKind.LeadingOverpunch,
+                        (false, true) => Runtime.SignStorageKind.TrailingSeparate,
+                        (false, false) => Runtime.SignStorageKind.TrailingOverpunch,
+                    };
+                }
+
                 // VALUE clause
                 var valClause = clause.valueClause();
                 if (valClause != null)
@@ -199,6 +214,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
+        data.ExplicitSignStorage = _deferredSignStorage;
+        _deferredSignStorage = null;
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();

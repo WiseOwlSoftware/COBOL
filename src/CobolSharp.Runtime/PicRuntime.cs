@@ -715,16 +715,33 @@ public static class PicRuntime
         s = s.Trim();
         if (string.IsNullOrEmpty(s)) return 0m;
 
-        // Check for sign
+        // Check for sign based on SignStorageKind
         bool negative = false;
-        if (s[0] == '-')
+        if (pic.SignStorage == SignStorageKind.TrailingSeparate)
         {
-            negative = true;
-            s = s[1..].Trim();
+            // Sign is at the end of the field
+            if (s.Length > 0 && s[^1] == '-')
+            {
+                negative = true;
+                s = s[..^1].Trim();
+            }
+            else if (s.Length > 0 && s[^1] == '+')
+            {
+                s = s[..^1].Trim();
+            }
         }
-        else if (s[0] == '+')
+        else
         {
-            s = s[1..].Trim();
+            // Leading separate (or default): sign at the start
+            if (s[0] == '-')
+            {
+                negative = true;
+                s = s[1..].Trim();
+            }
+            else if (s[0] == '+')
+            {
+                s = s[1..].Trim();
+            }
         }
 
         if (string.IsNullOrEmpty(s)) return 0m;
@@ -941,18 +958,16 @@ public static class PicRuntime
             area[offset + i] = (byte)'0';
 
         // Sign handling
-        if (pic.IsSigned && isNegative)
+        if (pic.IsSigned && separateSign)
         {
-            if (separateSign)
-            {
-                int signPos = pic.SignStorage == SignStorageKind.LeadingSeparate ? 0 : length - 1;
-                area[offset + signPos] = (byte)'-';
-            }
-            else
-            {
-                // Simple leading sign for overpunch (refine later)
+            int signPos = pic.SignStorage == SignStorageKind.LeadingSeparate ? 0 : length - 1;
+            area[offset + signPos] = isNegative ? (byte)'-' : (byte)'+';
+        }
+        else if (pic.IsSigned && !separateSign)
+        {
+            // Overpunch (refine later) — for now write leading '-' or '+'
+            if (isNegative)
                 area[offset] = (byte)'-';
-            }
         }
     }
 
@@ -1110,6 +1125,11 @@ public static class PicRuntime
     public static string GetDisplayString(
         byte[] area, int offset, int length, PicDescriptor pic)
     {
+        if (pic.Category == CobolCategory.Numeric && pic.Usage == UsageKind.Display)
+        {
+            // DISPLAY numeric: show the raw field content (preserves sign format)
+            return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        }
         if (pic.Category.IsNumericLike())
         {
             decimal value = DecodeNumeric(area, offset, length, pic);

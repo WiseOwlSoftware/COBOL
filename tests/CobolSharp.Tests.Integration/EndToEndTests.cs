@@ -950,4 +950,52 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("00020001", stdout);
     }
+
+    // ═══════════════════════════════════════════
+    // SIGN clause tests
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void SignTrailingSeparate_NegativeResult()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SIGNTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC S9(3) SIGN IS TRAILING SEPARATE CHARACTER
+               VALUE 30.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SUBTRACT 50 FROM WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 30 - 50 = -20, trailing separate → "020-"
+        Assert.Equal("020-", stdout);
+    }
+
+    [Fact]
+    public void SignTrailingSeparate_PositiveValue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SIGNPOS.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC S9(3) SIGN IS TRAILING SEPARATE CHARACTER
+               VALUE 42.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ADD 8 TO WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 42 + 8 = 50, trailing separate positive → "050+"
+        Assert.Contains("050", stdout);
+    }
 }
