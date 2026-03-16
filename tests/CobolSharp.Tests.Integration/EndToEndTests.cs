@@ -536,4 +536,418 @@ public class EndToEndTests : IDisposable
         // Should display the first record read back
         Assert.StartsWith("Hello File", stdout);
     }
+
+    // ═══════════════════════════════════════════
+    // EVALUATE tests
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void Evaluate_SingleSubjectWithRange()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ET1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 3.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE A
+                    WHEN 1
+                        MOVE 1 TO RESULT
+                    WHEN 2 THRU 4
+                        MOVE 2 TO RESULT
+                    WHEN OTHER
+                        MOVE 9 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("2", stdout);
+    }
+
+    [Fact]
+    public void Evaluate_MultiSubjectAlsoExactMatch()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ET2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 3.
+            01 B PIC 9 VALUE 5.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE A ALSO B
+                    WHEN 3 ALSO 5
+                        MOVE 1 TO RESULT
+                    WHEN OTHER
+                        MOVE 9 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1", stdout);
+    }
+
+    [Fact]
+    public void Evaluate_MultiSubjectAlsoWithRanges()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ET3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 4.
+            01 B PIC 9 VALUE 7.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE A ALSO B
+                    WHEN 1 ALSO 5 THRU 6
+                        MOVE 1 TO RESULT
+                    WHEN 4 THRU 6 ALSO 7
+                        MOVE 2 TO RESULT
+                    WHEN OTHER
+                        MOVE 9 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("2", stdout);
+    }
+
+    [Fact]
+    public void Evaluate_PartialMatchMustFail()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ET4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 2.
+            01 B PIC 9 VALUE 9.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE A ALSO B
+                    WHEN 2 ALSO 5
+                        MOVE 1 TO RESULT
+                    WHEN OTHER
+                        MOVE 9 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("9", stdout);
+    }
+
+    [Fact]
+    public void Evaluate_MismatchedAlsoArity_FallsToOther()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ET5.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 1.
+            01 B PIC 9 VALUE 2.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE A ALSO B
+                    WHEN 1
+                        MOVE 1 TO RESULT
+                    WHEN OTHER
+                        MOVE 9 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("9", stdout);
+    }
+
+    [Fact]
+    public void EvaluateTrue_ConditionMatching()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EVTRUE.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(3) VALUE 15.
+            01 WS-B PIC 9(3) VALUE 10.
+            01 RESULT PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE TRUE
+                    WHEN WS-A > WS-B
+                        MOVE 1 TO RESULT
+                    WHEN WS-A = WS-B
+                        MOVE 2 TO RESULT
+                    WHEN OTHER
+                        MOVE 3 TO RESULT
+                END-EVALUATE.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1", stdout);
+    }
+
+    // ═══════════════════════════════════════════
+    // PERFORM VARYING / AFTER tests
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void PerformVarying_SumOneToFive()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PV1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I PIC 9(3) VALUE 0.
+            01 WS-SUM PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM ADD-PARA VARYING WS-I FROM 1 BY 1
+                    UNTIL WS-I > 5.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            ADD-PARA.
+                ADD WS-I TO WS-SUM.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00015", stdout);
+    }
+
+    [Fact]
+    public void PerformUntil_DecrementToZero()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PU1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-N PIC 9(3) VALUE 10.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM DEC-PARA UNTIL WS-N = 0.
+                DISPLAY "Done".
+                STOP RUN.
+            DEC-PARA.
+                SUBTRACT 1 FROM WS-N.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("Done", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingInline_SumOneToFive()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PVI1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I PIC 9(3) VALUE 0.
+            01 WS-SUM PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING WS-I FROM 1 BY 1
+                    UNTIL WS-I > 5
+                    ADD WS-I TO WS-SUM
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00015", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingAfter_InnerUntilTrueImmediately()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PA1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 J PIC 9 VALUE 0.
+            01 WS-COUNT PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    AFTER J FROM 1 BY 1 UNTIL J > 0
+                    ADD 1 TO WS-COUNT
+                END-PERFORM.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0000", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingAfter_Classic2D()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PA2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 J PIC 9 VALUE 0.
+            01 WS-COUNT PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3
+                    AFTER J FROM 1 BY 1 UNTIL J > 2
+                    ADD 1 TO WS-COUNT
+                END-PERFORM.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0006", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingAfter_OuterDependsOnInner()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PA3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 J PIC 9 VALUE 0.
+            01 WS-COUNT PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL WS-COUNT > 3
+                    AFTER J FROM 1 BY 1 UNTIL J > 2
+                    ADD 1 TO WS-COUNT
+                END-PERFORM.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0004", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingAfter_ThreeLevel()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PA4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 J PIC 9 VALUE 0.
+            01 K PIC 9 VALUE 0.
+            01 WS-COUNT PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    AFTER J FROM 1 BY 1 UNTIL J > 3
+                    AFTER K FROM 1 BY 1 UNTIL K > 2
+                    ADD 1 TO WS-COUNT
+                END-PERFORM.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0012", stdout);
+    }
+
+    [Fact]
+    public void EvaluateInsideVarying_MixedBranching()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EV1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 WS-SUM PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 5
+                    EVALUATE I
+                        WHEN 1
+                            ADD 1 TO WS-SUM
+                        WHEN 2
+                            ADD 1 TO WS-SUM
+                        WHEN 3 THRU 4
+                            ADD 2 TO WS-SUM
+                        WHEN OTHER
+                            ADD 3 TO WS-SUM
+                    END-EVALUATE
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0009", stdout);
+    }
+
+    [Fact]
+    public void EvaluateAlsoInsideNestedVarying()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EV2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9 VALUE 0.
+            01 J PIC 9 VALUE 0.
+            01 COUNT1 PIC 9(4) VALUE 0.
+            01 COUNT2 PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    AFTER J FROM 1 BY 1 UNTIL J > 3
+                    EVALUATE I ALSO J
+                        WHEN 1 ALSO 1
+                            ADD 1 TO COUNT1
+                        WHEN 1 ALSO 2
+                            ADD 1 TO COUNT1
+                        WHEN 2 ALSO 3
+                            ADD 1 TO COUNT2
+                        WHEN OTHER
+                            CONTINUE
+                    END-EVALUATE
+                END-PERFORM.
+                DISPLAY COUNT1 COUNT2.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00020001", stdout);
+    }
 }
