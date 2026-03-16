@@ -162,6 +162,8 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        // Per ISO §14.19.4: numeric → alphanumeric strips sign (absolute value only)
+        value = Math.Abs(value);
         int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
         string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
         MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
@@ -1088,7 +1090,8 @@ public static class PicRuntime
             case UsageKind.Comp:
             case UsageKind.Binary:
             {
-                // Scale to integer (include leading P scaling)
+                // COBOL spec: COMP overflow is based on PIC digit count, not binary capacity.
+                // PIC 99 COMP holds 0-99 (2 digits), not 0-32767 (short.MaxValue).
                 decimal scaled = absValue;
                 int compScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
                 if (compScale > 0)
@@ -1097,12 +1100,8 @@ public static class PicRuntime
                 try { raw = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
 
-                return destPic.StorageLength switch
-                {
-                    2 => raw > short.MaxValue || raw < short.MinValue,
-                    4 => raw > int.MaxValue || raw < int.MinValue,
-                    _ => false // 8-byte long is the max we support
-                };
+                int digits = CountDigits(Math.Abs(raw));
+                return digits > destPic.TotalDigits;
             }
 
             case UsageKind.Comp3:

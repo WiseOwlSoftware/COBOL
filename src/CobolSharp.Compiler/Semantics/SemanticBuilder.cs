@@ -136,7 +136,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 var usageClause = clause.usageClause();
                 if (usageClause != null)
-                    usage = UsageMapper.FromUsageKeyword(usageClause.usageKeyword()?.GetText());
+                {
+                    // Full form: USAGE IS? usageKeyword → use usageKeyword text
+                    // Bare form: COMP, BINARY, etc. → use the clause's text directly
+                    var kwText = usageClause.usageKeyword()?.GetText()
+                        ?? usageClause.GetText();
+                    usage = UsageMapper.FromUsageKeyword(kwText);
+                }
 
                 var redefinesClause = clause.redefinesClause();
                 if (redefinesClause != null)

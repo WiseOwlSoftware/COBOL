@@ -335,16 +335,27 @@ public sealed class Compilation
     private static int ComputeFieldSize(Semantics.DataSymbol data)
     {
         var pic = data.ResolvedType?.Pic;
-        if (pic != null && pic.Length > 0)
-        {
-            // SEPARATE sign adds 1 byte; overpunch encodes sign in a digit (no extra byte)
-            bool separateSign = data.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
-                or Runtime.SignStorageKind.TrailingSeparate;
-            // No explicit clause + signed → default is trailing overpunch (no extra byte)
-            int signBytes = separateSign ? 1 : 0;
-            return pic.Length + signBytes;
-        }
-        return 1;
+        if (pic == null || pic.Length <= 0) return 1;
+
+        int totalDigits = pic.IntegerDigits + pic.FractionDigits;
+
+        // COMP/BINARY: binary storage size based on digit count
+        if (data.Usage is Runtime.UsageKind.Comp or Runtime.UsageKind.Binary)
+            return totalDigits switch { <= 4 => 2, <= 9 => 4, _ => 8 };
+
+        // COMP-3/PACKED-DECIMAL: BCD packed (2 digits per byte + sign nibble)
+        if (data.Usage is Runtime.UsageKind.Comp3 or Runtime.UsageKind.PackedDecimal)
+            return (totalDigits + 2) / 2;
+
+        // COMP-1 (float) / COMP-2 (double)
+        if (data.Usage == Runtime.UsageKind.Comp1) return 4;
+        if (data.Usage == Runtime.UsageKind.Comp2) return 8;
+
+        // DISPLAY: digit length + sign byte (only for SEPARATE)
+        bool separateSign = data.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
+            or Runtime.SignStorageKind.TrailingSeparate;
+        int signBytes = separateSign ? 1 : 0;
+        return pic.Length + signBytes;
     }
 
     private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)
