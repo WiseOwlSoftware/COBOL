@@ -1455,14 +1455,30 @@ public static class PicRuntime
 
     private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
     {
-        // Total fraction scale includes leading P digits (e.g. PIC P(4)9 has scale 5)
-        int scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-        if (scale < 0) scale = 0;
-        decimal factor = 1m;
-        for (int i = 0; i < scale; i++) factor *= 10m;
+        // Fraction scale: FractionDigits + leading P (e.g., PIC P(4)9 has scale 5)
+        int fractionScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+        if (fractionScale < 0) fractionScale = 0;
+
+        // Trailing P: field stores multiples of 10^TrailingScaleDigits
+        // e.g., PIC S99P → TrailingScaleDigits=1 → values are multiples of 10
+        int trailingP = destPic.TrailingScaleDigits;
+
+        if (trailingP > 0)
+        {
+            // Round or truncate to the nearest 10^trailingP
+            decimal pFactor = Pow10(trailingP);
+            return roundingMode switch
+            {
+                1 => Math.Round(value / pFactor, 0, MidpointRounding.AwayFromZero) * pFactor,
+                _ => decimal.Truncate(value / pFactor) * pFactor
+            };
+        }
+
+        // Standard fraction rounding
+        decimal factor = Pow10(fractionScale);
         return roundingMode switch
         {
-            1 => Math.Round(value, scale, MidpointRounding.AwayFromZero),
+            1 => Math.Round(value, fractionScale, MidpointRounding.AwayFromZero),
             _ => decimal.Truncate(value * factor) / factor
         };
     }
