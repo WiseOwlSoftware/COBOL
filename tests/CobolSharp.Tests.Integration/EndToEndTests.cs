@@ -1037,6 +1037,54 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void SignLeadingSeparate_Arithmetic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LSEPTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC S9(3) SIGN IS LEADING SEPARATE CHARACTER
+               VALUE -25.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ADD 50 TO WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // -25 + 50 = 25, leading separate positive → "+025"
+        Assert.Equal("+025", stdout);
+    }
+
+    [Fact]
+    public void SignLeadingOverpunch()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LOVPTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC S9(3) SIGN IS LEADING VALUE -37.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-X.
+                ADD 100 TO WS-X.
+                DISPLAY WS-X.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, lines.Length);
+        // -37: leading overpunch on first digit '0' → '}', rest "37" → "}37"
+        Assert.Equal("}37", lines[0]);
+        // -37 + 100 = 63: leading overpunch on '0' → '{', rest "63" → "{63"
+        Assert.Equal("{63", lines[1]);
+    }
+
+    [Fact]
     public void SignTrailingSeparate_PositiveValue()
     {
         var (success, stdout, stderr) = CompileAndRun("""

@@ -447,18 +447,26 @@ pictureClause
 
 // USAGE Clause
 usageClause
-    : USAGE IS? usageKeyword
-    ;
-
-usageKeyword
-    : DISPLAY
+    : USAGE IS? usageKeyword        // full form: USAGE IS DISPLAY
+    | DISPLAY                        // bare keyword forms (no USAGE prefix)
+    | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
-    | IDENTIFIER        // for 2023 types, OO types, generics
+    ;
+
+usageKeyword
+    : DISPLAY
+    | COMPUTATIONAL
+    | COMP
+    | COMP_1
+    | COMP_2
+    | COMP_3
+    | BINARY
+    | PACKED_DECIMAL
     ;
 
 // OCCURS Clause
@@ -494,7 +502,7 @@ valueClause
 
 // SIGN Clause
 signClause
-    : SIGN IS? (LEADING | TRAILING) (SEPARATE CHARACTER)?
+    : (SIGN IS?)? (LEADING | TRAILING) (SEPARATE CHARACTER?)?
     ;
 
 // JUSTIFIED / SYNCHRONIZED
