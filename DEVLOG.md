@@ -6,6 +6,20 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 081 — 2026-03-16: NC118A 30/30 — ADD GIVING Was Silently Dropped
+
+One root cause fixed all 13 NC118A failures: `BindAdd` returned `BoundArithmeticStatement` (silent no-op) when `addToPhrase` was null, which is the case for `ADD A B GIVING C` — no TO phrase. The GIVING targets were never parsed.
+
+Fix: handle absent TO phrase by proceeding to check GIVING. Added `BoundAddStatement.IsGiving` flag. `LowerAdd` uses `IrMoveAccumulatedToTarget` (target = sum) for GIVING instead of `IrAddAccumulatedToTarget` (target += sum).
+
+Also fixed NC106A's last failure: `ApplyScalingAndRounding` ignored TrailingScaleDigits (trailing P). PIC S99P → stored values are multiples of 10. SUBTRACT ROUNDED now divides by 10^P, rounds, multiplies back.
+
+**New audit finding**: `BoundArithmeticStatement` is a silent-drop pattern used 13 times across all arithmetic binders. Same class of bug as `IrSetBool(true)`. These should all be compile errors, not silent no-ops. Recorded for follow-up.
+
+6 NIST tests at 100%: NC101A (94), NC171A (109), NC106A (127), NC176A (125), NC116A (67), NC118A (30).
+
+---
+
 ## Entry 080 — 2026-03-16: Session 10 (cont.) — Negative Literals, P-Scaling, Code Quality Audit
 
 **Session**: #10 (continued)
