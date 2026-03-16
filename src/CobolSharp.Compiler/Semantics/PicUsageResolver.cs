@@ -49,209 +49,28 @@ public static class PicUsageResolver
     }
 
     /// <summary>
-    /// Parse a PIC string into a PicLayout with CobolCategory classification.
+    /// Parse a PIC string into a PicLayout using the canonical Runtime.PicDescriptorFactory.
+    /// Single pipeline: all PIC semantics are defined by PicDescriptorFactory.FromPicBody.
+    /// PicLayout is a thin view for the compiler's type system.
     /// </summary>
     private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line)
     {
-        var text = picString.Trim();
-        int pos = 0;
-        bool signed = false;
-        int integerDigits = 0;
-        int fractionDigits = 0;
-        bool pastDecimal = false;
-        bool edited = false;
-        bool hasNumericChars = false;   // 9, V, P, S
-        bool hasAlphaChars = false;     // X, A
-        bool hasNationalChars = false;  // N
-        int leadingPScaling = 0;        // P before any 9 digits
-        int trailingPScaling = 0;       // P after 9 digits
-        bool hasRealDigits = false;     // Have we seen any 9 digits?
-        int insertionChars = 0;         // Non-digit insertion chars (., B, /, ,)
+        var desc = Runtime.PicDescriptorFactory.FromPicBody(
+            picString.Trim(),
+            usage: UsageKind.Display,
+            isSigned: false,               // S in the body will flip this
+            signStorage: SignStorageKind.None,
+            blankWhenZero: false);
 
-        while (pos < text.Length)
-        {
-            char c = char.ToUpperInvariant(text[pos]);
-
-            switch (c)
-            {
-                case 'S':
-                    signed = true;
-                    hasNumericChars = true;
-                    pos++;
-                    break;
-
-                case '9':
-                {
-                    hasNumericChars = true;
-                    hasRealDigits = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    if (pastDecimal)
-                        fractionDigits += count;
-                    else
-                        integerDigits += count;
-                    break;
-                }
-
-                case 'V':
-                    // Implied decimal point
-                    hasNumericChars = true;
-                    pastDecimal = true;
-                    pos++;
-                    break;
-
-                case 'X':
-                {
-                    hasAlphaChars = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    integerDigits += count;
-                    break;
-                }
-
-                case 'A':
-                {
-                    hasAlphaChars = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    integerDigits += count;
-                    break;
-                }
-
-                case 'N':
-                {
-                    hasNationalChars = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    integerDigits += count;
-                    break;
-                }
-
-                case 'P':
-                {
-                    // P scaling — implied positions, NOT stored in field
-                    hasNumericChars = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    if (!hasRealDigits)
-                        leadingPScaling += count;  // P before 9's (e.g., PIC P(4)9)
-                    else
-                        trailingPScaling += count; // P after 9's (e.g., PIC 99P)
-                    break;
-                }
-
-                case '.':
-                {
-                    // Decimal point insertion — sets decimal position (like V)
-                    // but takes 1 byte of storage (unlike V which is implied).
-                    // Digits after '.' are fraction digits.
-                    edited = true;
-                    pastDecimal = true;
-                    insertionChars++;
-                    pos++;
-                    break;
-                }
-
-                case ',':
-                case 'B':
-                case '/':
-                {
-                    // Insertion editing — takes storage space but not a digit position
-                    edited = true;
-                    insertionChars++;
-                    pos++;
-                    break;
-                }
-
-                case 'Z':
-                case '*':
-                case '+':
-                case '-':
-                case '$':
-                case '0':
-                {
-                    // Replacement editing symbols — each replaces a digit position
-                    edited = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    if (pastDecimal)
-                        fractionDigits += count;
-                    else
-                        integerDigits += count;
-                    break;
-                }
-
-                case 'C':
-                    // CR
-                    if (pos + 1 < text.Length && char.ToUpperInvariant(text[pos + 1]) == 'R')
-                    {
-                        edited = true;
-                        pos += 2;
-                    }
-                    else pos++;
-                    break;
-
-                case 'D':
-                    // DB
-                    if (pos + 1 < text.Length && char.ToUpperInvariant(text[pos + 1]) == 'B')
-                    {
-                        edited = true;
-                        pos += 2;
-                    }
-                    else pos++;
-                    break;
-
-                default:
-                    // Unknown PIC character — skip
-                    pos++;
-                    break;
-            }
-        }
-
-        // Leading P with no V: digits after leading P are fractional, not integer.
-        // E.g. PIC P(4)9 → fractionDigits=1, integerDigits=0, scale = 1+4 = 5
-        if (!pastDecimal && leadingPScaling > 0 && integerDigits > 0 && fractionDigits == 0)
-        {
-            fractionDigits = integerDigits;
-            integerDigits = 0;
-        }
-
-        int length = integerDigits + fractionDigits + insertionChars;
-
-        // Classify into CobolCategory using the full lattice
-        CobolCategory category;
-        if (hasNumericChars && !hasAlphaChars && !hasNationalChars)
-            category = edited ? CobolCategory.NumericEdited : CobolCategory.Numeric;
-        else if (hasNationalChars && !hasNumericChars && !hasAlphaChars)
-            category = edited ? CobolCategory.NationalEdited : CobolCategory.National;
-        else if (hasAlphaChars || (!hasNumericChars && !hasNationalChars && edited))
-            category = edited ? CobolCategory.AlphanumericEdited : CobolCategory.Alphanumeric;
-        else if (edited && hasNumericChars)
-            category = CobolCategory.NumericEdited;
-        else
-            category = CobolCategory.Unknown;
-
-        return new PicLayout(category, length, integerDigits, fractionDigits,
-            leadingPScaling, trailingPScaling, signed, edited);
-    }
-
-    /// <summary>
-    /// At current position (pointing to a PIC character like 9, X, A),
-    /// consume it and check for (n) repeat count.
-    /// Returns the repeat count (1 if no parentheses).
-    /// </summary>
-    private static int ParseRepeatCount(string text, ref int pos)
-    {
-        pos++; // consume the letter
-
-        if (pos >= text.Length || text[pos] != '(')
-            return 1;
-
-        int start = ++pos; // skip '('
-        while (pos < text.Length && char.IsDigit(text[pos]))
-            pos++;
-
-        if (pos >= text.Length || text[pos] != ')')
-            return 1;
-
-        var numText = text.Substring(start, pos - start);
-        pos++; // skip ')'
-
-        return int.TryParse(numText, out var n) && n > 0 ? n : 1;
+        return new PicLayout(
+            category: desc.Category,
+            length: desc.StorageLength,
+            integerDigits: desc.TotalDigits - desc.FractionDigits,
+            fractionDigits: desc.FractionDigits,
+            leadingPScaling: desc.LeadingScaleDigits,
+            trailingPScaling: desc.TrailingScaleDigits,
+            isSigned: desc.IsSigned,
+            isEdited: desc.HasEditing);
     }
 }
 

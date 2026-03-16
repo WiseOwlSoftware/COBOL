@@ -41,15 +41,13 @@ public static class CompilerPicDescriptorFactory
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
-        var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
         bool isSigned = pic?.IsSigned ?? false;
         var signStorage = DetermineSignStorage(isSigned, symbol);
 
-        // For any DISPLAY numeric field with a PIC string, use the canonical runtime factory.
-        // This ensures PicDescriptor semantics (digits, fractions, sign, editing, pattern)
-        // are identical between compiler and runtime — no divergence between PicLayout and factory.
-        if (symbol.PicString != null && category.IsNumericLike() &&
-            symbol.Usage == UsageKind.Display)
+        // Single pipeline: all PIC semantics come from the canonical runtime factory.
+        // The compiler only overlays storage length (from layout) and sign storage
+        // (from explicit SIGN clause in data description).
+        if (symbol.PicString != null)
         {
             var desc = Runtime.PicDescriptorFactory.FromPicBody(
                 symbol.PicString,
@@ -58,7 +56,6 @@ public static class CompilerPicDescriptorFactory
                 signStorage: signStorage,
                 blankWhenZero: false);
 
-            // Override storageLength from layout (compiler knows the actual allocation)
             return new PicDescriptor(
                 totalDigits: desc.TotalDigits,
                 fractionDigits: desc.FractionDigits,
@@ -71,32 +68,29 @@ public static class CompilerPicDescriptorFactory
                 category: desc.Category,
                 signStorage: signStorage,
                 editing: desc.Editing,
-                blankWhenZero: false,
+                blankWhenZero: desc.BlankWhenZero,
                 leadingScaleDigits: desc.LeadingScaleDigits,
                 trailingScaleDigits: desc.TrailingScaleDigits,
                 editPattern: desc.EditPattern);
         }
 
-        // Non-DISPLAY or non-numeric: use compiler's PicLayout directly
-        var editingKind = EditingKind.None;
-        if (pic?.IsEdited ?? false)
-            editingKind = EditingKind.ZeroSuppress;
-
+        // Group items (no PIC): alphanumeric DISPLAY
+        var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
         return new PicDescriptor(
-            totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
-            fractionDigits: pic?.FractionDigits ?? 0,
-            isSigned: isSigned,
-            isNumeric: category.IsNumericLike(),
-            isAlphanumeric: category.IsAlphanumericLike(),
-            hasEditing: pic?.IsEdited ?? false,
+            totalDigits: 0,
+            fractionDigits: 0,
+            isSigned: false,
+            isNumeric: false,
+            isAlphanumeric: true,
+            hasEditing: false,
             storageLength: storageLength,
             usage: symbol.Usage,
             category: category,
-            signStorage: signStorage,
-            editing: editingKind,
+            signStorage: SignStorageKind.None,
+            editing: EditingKind.None,
             blankWhenZero: false,
-            leadingScaleDigits: pic?.LeadingPScaling ?? 0,
-            trailingScaleDigits: pic?.TrailingPScaling ?? 0,
+            leadingScaleDigits: 0,
+            trailingScaleDigits: 0,
             editPattern: null);
     }
 
