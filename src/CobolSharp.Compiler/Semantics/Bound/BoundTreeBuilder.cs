@@ -832,64 +832,101 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     /// <summary>
     /// Bind a condition expression. Handles simple relational: left op right.
     /// </summary>
+    /// <summary>
+    /// Bind a full condition expression with AND/OR/NOT and relational operators.
+    /// condition → logicalOrExpression → logicalAndExpression → logicalNotExpression → relationalExpression
+    /// </summary>
     private BoundExpression BindCondition(CobolParserCore.ConditionContext ctx)
     {
-        // condition → logicalOrExpression → ... → relationalExpression
-        // For now, try to extract a simple relational expression
-        try
-        {
-            var orExpr = ctx.logicalOrExpression();
-            var andExpr = orExpr?.logicalAndExpression();
-            if (andExpr == null || andExpr.Length == 0)
-                return new BoundLiteralExpression(true, CobolCategory.Unknown);
-
-            var notExpr = andExpr[0].logicalNotExpression();
-            if (notExpr == null || notExpr.Length == 0)
-                return new BoundLiteralExpression(true, CobolCategory.Unknown);
-
-            var relExpr = notExpr[0].relationalExpression();
-            if (relExpr == null)
-                return new BoundLiteralExpression(true, CobolCategory.Unknown);
-
-            var operands = relExpr.relationalOperand();
-            var relOp = relExpr.relationalOperator();
-
-            if (operands.Length < 2 || relOp == null)
-            {
-                // Bare identifier condition (e.g., IF condition-name)
-                if (operands.Length == 1)
-                    return BindRelationalOperand(operands[0]);
-                return new BoundLiteralExpression(true, CobolCategory.Unknown);
-            }
-
-            var left = BindRelationalOperand(operands[0]);
-            var right = BindRelationalOperand(operands[1]);
-
-            // Determine operator
-            string opText = relOp.GetText().ToUpperInvariant()
-                .Replace("IS", "").Replace("TO", "").Replace("THAN", "").Trim();
-            var op = opText switch
-            {
-                "=" or "EQUAL" => BoundBinaryOperatorKind.Equal,
-                "NOT=" or "NOTEQUAL" => BoundBinaryOperatorKind.NotEqual,
-                ">" or "GREATER" => BoundBinaryOperatorKind.Greater,
-                ">=" or "GREATEROREQUAL" => BoundBinaryOperatorKind.GreaterOrEqual,
-                "<" or "LESS" => BoundBinaryOperatorKind.Less,
-                "<=" or "LESSOREQUAL" => BoundBinaryOperatorKind.LessOrEqual,
-                _ when opText.Contains("NOT") && opText.Contains("EQUAL") => BoundBinaryOperatorKind.NotEqual,
-                _ when opText.Contains("EQUAL") => BoundBinaryOperatorKind.Equal,
-                _ when opText.Contains("GREATER") => BoundBinaryOperatorKind.Greater,
-                _ when opText.Contains("LESS") => BoundBinaryOperatorKind.Less,
-                _ => BoundBinaryOperatorKind.Equal
-            };
-
-            return new BoundBinaryExpression(left, op, right, CobolCategory.Unknown);
-        }
-        catch
-        {
-            // Fallback: treat as always true
+        var orExpr = ctx.logicalOrExpression();
+        if (orExpr == null)
             return new BoundLiteralExpression(true, CobolCategory.Unknown);
+        return BindLogicalOr(orExpr);
+    }
+
+    private BoundExpression BindLogicalOr(CobolParserCore.LogicalOrExpressionContext ctx)
+    {
+        var andExprs = ctx.logicalAndExpression();
+        var result = BindLogicalAnd(andExprs[0]);
+        for (int i = 1; i < andExprs.Length; i++)
+        {
+            var right = BindLogicalAnd(andExprs[i]);
+            // OR is represented as a binary expression; the binder/emitter knows
+            // operator kinds > GreaterOrEqual are logical operators
+            result = new BoundBinaryExpression(result,
+                (BoundBinaryOperatorKind)20, // OR
+                right, CobolCategory.Unknown);
         }
+        return result;
+    }
+
+    private BoundExpression BindLogicalAnd(CobolParserCore.LogicalAndExpressionContext ctx)
+    {
+        var notExprs = ctx.logicalNotExpression();
+        var result = BindLogicalNot(notExprs[0]);
+        for (int i = 1; i < notExprs.Length; i++)
+        {
+            var right = BindLogicalNot(notExprs[i]);
+            result = new BoundBinaryExpression(result,
+                (BoundBinaryOperatorKind)21, // AND
+                right, CobolCategory.Unknown);
+        }
+        return result;
+    }
+
+    private BoundExpression BindLogicalNot(CobolParserCore.LogicalNotExpressionContext ctx)
+    {
+        if (ctx.logicalNotExpression() != null)
+        {
+            // NOT condition → negate
+            var inner = BindLogicalNot(ctx.logicalNotExpression());
+            return new BoundBinaryExpression(
+                inner,
+                (BoundBinaryOperatorKind)22, // NOT (unary, right is dummy)
+                new BoundLiteralExpression(0m, CobolCategory.Unknown),
+                CobolCategory.Unknown);
+        }
+        return BindRelational(ctx.relationalExpression());
+    }
+
+    private BoundExpression BindRelational(CobolParserCore.RelationalExpressionContext ctx)
+    {
+        var operands = ctx.relationalOperand();
+        var relOp = ctx.relationalOperator();
+
+        if (operands.Length == 0)
+            return new BoundLiteralExpression(true, CobolCategory.Unknown);
+
+        var left = BindRelationalOperand(operands[0]);
+
+        if (operands.Length < 2 || relOp == null)
+        {
+            // Bare expression: IF A (means A <> 0 for numeric, A <> SPACE for alpha)
+            return left;
+        }
+
+        var right = BindRelationalOperand(operands[1]);
+
+        string opText = relOp.GetText().ToUpperInvariant()
+            .Replace("IS", "").Replace("TO", "").Replace("THAN", "").Trim();
+        var op = opText switch
+        {
+            "=" or "EQUAL" => BoundBinaryOperatorKind.Equal,
+            "NOT=" or "NOTEQUAL" => BoundBinaryOperatorKind.NotEqual,
+            ">" or "GREATER" => BoundBinaryOperatorKind.Greater,
+            ">=" or "GREATEROREQUAL" => BoundBinaryOperatorKind.GreaterOrEqual,
+            "<" or "LESS" => BoundBinaryOperatorKind.Less,
+            "<=" or "LESSOREQUAL" => BoundBinaryOperatorKind.LessOrEqual,
+            _ when opText.Contains("NOT") && opText.Contains("GREATER") => BoundBinaryOperatorKind.LessOrEqual,
+            _ when opText.Contains("NOT") && opText.Contains("LESS") => BoundBinaryOperatorKind.GreaterOrEqual,
+            _ when opText.Contains("NOT") && opText.Contains("EQUAL") => BoundBinaryOperatorKind.NotEqual,
+            _ when opText.Contains("EQUAL") => BoundBinaryOperatorKind.Equal,
+            _ when opText.Contains("GREATER") => BoundBinaryOperatorKind.Greater,
+            _ when opText.Contains("LESS") => BoundBinaryOperatorKind.Less,
+            _ => BoundBinaryOperatorKind.Equal
+        };
+
+        return new BoundBinaryExpression(left, op, right, CobolCategory.Unknown);
     }
 
     private BoundExpression BindRelationalOperand(CobolParserCore.RelationalOperandContext ctx)
@@ -898,6 +935,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var nonNumLit = ctx.nonNumericLiteral();
         if (nonNumLit != null)
             return BindNonNumericLiteral(nonNumLit);
+
+        // Use the recursive expression binder for full expression support
+        var arithExpr = ctx.arithmeticExpression();
+        if (arithExpr != null)
+            return BindFullExpression(arithExpr);
 
         return BindArithmeticExpr(ctx.arithmeticExpression());
     }
