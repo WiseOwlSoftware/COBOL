@@ -830,7 +830,16 @@ evaluateObject
 // ==========================================
 
 computeStatement
-    : COMPUTE identifier EQUALS arithmeticExpression END_COMPUTE?
+    : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?
+    ;
+
+computeStore
+    : identifier ROUNDED?
+    ;
+
+computeOnSizeError
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
     ;
 
 // ==========================================

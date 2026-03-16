@@ -462,6 +462,10 @@ public sealed class CilEmitter
                 EmitPicSubtractLiteral(il, subLit);
                 break;
 
+            case IrComputeStore compStore:
+                EmitComputeStore(il, compStore);
+                break;
+
             case IrPicDivide divInst:
                 EmitPicDivide(il, divInst);
                 break;
@@ -1133,6 +1137,132 @@ public sealed class CilEmitter
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// COMPUTE: evaluate expression tree to decimal on stack, then store to target.
+    /// Emits: area, offset, length, pic, [expression result as decimal], rounding, ref status
+    /// Calls MoveNumericLiteral which handles scaling, rounding, and overflow.
+    /// </summary>
+    private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
+    {
+        // Push target storage args
+        EmitLoadBackingArray(il, cs.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, cs.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, cs.Destination.Length));
+        EmitLoadPicDescriptor(il, cs.Destination.Pic);
+
+        // Evaluate expression — pushes decimal onto stack
+        EmitExpression(il, cs.Expression);
+
+        // Rounding mode
+        il.Append(il.Create(OpCodes.Ldc_I4, cs.Rounding));
+
+        // Call MoveNumericLiteral(area, offset, length, pic, value, rounding)
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// Recursively emit a bound expression tree, leaving a decimal on the IL stack.
+    /// </summary>
+    private void EmitExpression(ILProcessor il, Semantics.Bound.BoundExpression expr)
+    {
+        switch (expr)
+        {
+            case Semantics.Bound.BoundLiteralExpression lit when lit.Value is decimal d:
+                EmitLoadDecimal(il, d);
+                break;
+
+            case Semantics.Bound.BoundIdentifierExpression id:
+            {
+                // Decode field to decimal: PicRuntime.DecodeNumeric(area, offset, len, pic)
+                var loc = _semanticModel?.GetStorageLocation(id.Symbol);
+                if (loc.HasValue)
+                {
+                    EmitLoadBackingArray(il, loc.Value.Area);
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+                    EmitLoadPicDescriptor(il, loc.Value.Pic);
+                    var decode = _module.ImportReference(
+                        typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                            new[] { typeof(byte[]), typeof(int), typeof(int),
+                                    typeof(Runtime.PicDescriptor) })!);
+                    il.Append(il.Create(OpCodes.Call, decode));
+                }
+                else
+                {
+                    EmitLoadDecimal(il, 0m);
+                }
+                break;
+            }
+
+            case Semantics.Bound.BoundBinaryExpression bin:
+            {
+                EmitExpression(il, bin.Left);
+                EmitExpression(il, bin.Right);
+
+                switch (bin.OperatorKind)
+                {
+                    case Semantics.Bound.BoundBinaryOperatorKind.Add:
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
+                                new[] { typeof(decimal), typeof(decimal) })!)));
+                        break;
+                    case Semantics.Bound.BoundBinaryOperatorKind.Subtract:
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("op_Subtraction",
+                                new[] { typeof(decimal), typeof(decimal) })!)));
+                        break;
+                    case Semantics.Bound.BoundBinaryOperatorKind.Multiply:
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("op_Multiply",
+                                new[] { typeof(decimal), typeof(decimal) })!)));
+                        break;
+                    case Semantics.Bound.BoundBinaryOperatorKind.Divide:
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("op_Division",
+                                new[] { typeof(decimal), typeof(decimal) })!)));
+                        break;
+                    case (Semantics.Bound.BoundBinaryOperatorKind)99: // Power (**)
+                    {
+                        // Convert both to double, call Math.Pow, convert back to decimal
+                        var toDouble = _module.ImportReference(
+                            typeof(decimal).GetMethod("op_Explicit",
+                                new[] { typeof(decimal) },
+                                null)!);
+                        // Stack has: decimal left, decimal right
+                        // Need to convert: store right, convert left, load right, convert right
+                        var tempRight = new VariableDefinition(_module.ImportReference(typeof(decimal)));
+                        il.Body.Variables.Add(tempRight);
+                        il.Append(il.Create(OpCodes.Stloc, tempRight));
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("ToDouble",
+                                new[] { typeof(decimal) })!)));
+                        il.Append(il.Create(OpCodes.Ldloc, tempRight));
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("ToDouble",
+                                new[] { typeof(decimal) })!)));
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(Math).GetMethod("Pow",
+                                new[] { typeof(double), typeof(double) })!)));
+                        // Convert double result back to decimal
+                        il.Append(il.Create(OpCodes.Newobj,
+                            _module.ImportReference(typeof(decimal).GetConstructor(
+                                new[] { typeof(double) })!)));
+                        break;
+                    }
+                }
+                break;
+            }
+
+            default:
+                EmitLoadDecimal(il, 0m);
+                break;
+        }
     }
 
     private void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,

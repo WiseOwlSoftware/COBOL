@@ -831,6 +831,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitComputeStatement([NotNull] CobolParserCore.ComputeStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStore"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComputeStore([NotNull] CobolParserCore.ComputeStoreContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.computeOnSizeError"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComputeOnSizeError([NotNull] CobolParserCore.ComputeOnSizeErrorContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.continueStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

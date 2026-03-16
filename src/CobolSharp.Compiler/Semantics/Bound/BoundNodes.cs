@@ -321,6 +321,27 @@ public sealed class BoundDivideStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.DivideStatement;
 }
 
+public sealed class BoundComputeStatement : BoundStatement
+{
+    public BoundExpression Expression { get; }
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
+    public IReadOnlyList<BoundStatement> OnSizeError { get; }
+    public IReadOnlyList<BoundStatement> NotOnSizeError { get; }
+
+    public BoundComputeStatement(BoundExpression expression,
+        IReadOnlyList<BoundArithmeticTarget> targets,
+        IReadOnlyList<BoundStatement>? onSizeError = null,
+        IReadOnlyList<BoundStatement>? notOnSizeError = null)
+    {
+        Expression = expression;
+        Targets = targets;
+        OnSizeError = onSizeError ?? Array.Empty<BoundStatement>();
+        NotOnSizeError = notOnSizeError ?? Array.Empty<BoundStatement>();
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ComputeStatement;
+}
+
 public sealed class BoundArithmeticStatement : BoundStatement
 {
     public BoundNodeKind StatementKind { get; }

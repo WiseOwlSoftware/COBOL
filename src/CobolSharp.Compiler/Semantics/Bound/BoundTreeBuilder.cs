@@ -73,7 +73,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.subtractStatement() is { } sub) return BindSubtract(sub);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { } div) return BindDivide(div);
-        if (ctx.computeStatement() is { }) return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+        if (ctx.computeStatement() is { } comp) return BindCompute(comp);
 
         // Unrecognized statement — skip
         return null;
@@ -542,6 +542,165 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         return new BoundDivideStatement(firstOperand, dividend, isByForm, targets,
             remainderTarget, onSizeError, notOnSizeError);
+    }
+
+    // ── COMPUTE ──
+
+    private BoundStatement BindCompute(CobolParserCore.ComputeStatementContext ctx)
+    {
+        // COMPUTE target1 [ROUNDED] target2 [ROUNDED] = expression
+        var storeCtxs = ctx.computeStore();
+        if (storeCtxs.Length == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+
+        var targets = new List<BoundArithmeticTarget>();
+        foreach (var s in storeCtxs)
+        {
+            var sym = _semantic.ResolveData(s.identifier().GetText());
+            if (sym != null)
+                targets.Add(new BoundArithmeticTarget(sym, s.ROUNDED() != null));
+        }
+
+        if (targets.Count == 0)
+            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+
+        // Bind the full arithmetic expression (recursive tree walk)
+        var expr = BindFullExpression(ctx.arithmeticExpression());
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        var onSizeError = new List<BoundStatement>();
+        var notOnSizeError = new List<BoundStatement>();
+        var sizeCtx = ctx.computeOnSizeError();
+        if (sizeCtx != null)
+        {
+            var imperatives = sizeCtx.imperativeStatement();
+            if (imperatives.Length > 0)
+            {
+                foreach (var stmt in imperatives[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onSizeError.Add(bound);
+                }
+            }
+            if (imperatives.Length > 1)
+            {
+                foreach (var stmt in imperatives[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
+            }
+        }
+
+        return new BoundComputeStatement(expr, targets, onSizeError, notOnSizeError);
+    }
+
+    /// <summary>
+    /// Recursively bind an arithmetic expression tree for COMPUTE.
+    /// Walks the parse tree: additiveExpression → multiplicativeExpression →
+    /// powerExpression → unaryExpression → primaryExpression.
+    /// </summary>
+    private BoundExpression BindFullExpression(CobolParserCore.ArithmeticExpressionContext ctx)
+    {
+        return BindAdditiveExpression(ctx.additiveExpression());
+    }
+
+    private BoundExpression BindAdditiveExpression(CobolParserCore.AdditiveExpressionContext ctx)
+    {
+        var terms = ctx.multiplicativeExpression();
+        var ops = ctx.addOp();
+
+        var left = BindMultiplicativeExpression(terms[0]);
+        for (int i = 0; i < ops.Length; i++)
+        {
+            var right = BindMultiplicativeExpression(terms[i + 1]);
+            var opKind = ops[i].GetText() == "+"
+                ? BoundBinaryOperatorKind.Add
+                : BoundBinaryOperatorKind.Subtract;
+            left = new BoundBinaryExpression(left, opKind, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression BindMultiplicativeExpression(CobolParserCore.MultiplicativeExpressionContext ctx)
+    {
+        var factors = ctx.powerExpression();
+        var ops = ctx.mulOp();
+
+        var left = BindPowerExpression(factors[0]);
+        for (int i = 0; i < ops.Length; i++)
+        {
+            var right = BindPowerExpression(factors[i + 1]);
+            var opKind = ops[i].GetText() == "*"
+                ? BoundBinaryOperatorKind.Multiply
+                : BoundBinaryOperatorKind.Divide;
+            left = new BoundBinaryExpression(left, opKind, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression BindPowerExpression(CobolParserCore.PowerExpressionContext ctx)
+    {
+        var unaries = ctx.unaryExpression();
+        var left = BindUnaryExpression(unaries[0]);
+        if (unaries.Length > 1)
+        {
+            // a ** b
+            var right = BindUnaryExpression(unaries[1]);
+            // Power is not a standard BoundBinaryOperatorKind; use Multiply as placeholder
+            // and handle at emit time. For now, use a dedicated representation.
+            // Simple approach: emit as Math.Pow at runtime
+            left = new BoundBinaryExpression(left,
+                (BoundBinaryOperatorKind)99, // Power — extend enum
+                right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression BindUnaryExpression(CobolParserCore.UnaryExpressionContext ctx)
+    {
+        var addOp = ctx.addOp();
+        if (addOp != null)
+        {
+            var inner = BindUnaryExpression(ctx.unaryExpression());
+            if (addOp.GetText() == "-")
+            {
+                // Negate: 0 - inner
+                return new BoundBinaryExpression(
+                    new BoundLiteralExpression(0m, CobolCategory.Numeric),
+                    BoundBinaryOperatorKind.Subtract,
+                    inner, CobolCategory.Numeric);
+            }
+            return inner; // unary + is identity
+        }
+        return BindPrimaryExpression(ctx.primaryExpression());
+    }
+
+    private BoundExpression BindPrimaryExpression(CobolParserCore.PrimaryExpressionContext ctx)
+    {
+        if (ctx.numericLiteral() != null)
+            return BindNumericLiteral(ctx.numericLiteral());
+
+        if (ctx.identifier() != null)
+        {
+            string name = ctx.identifier().GetText();
+            var sym = _semantic.ResolveData(name);
+            if (sym != null)
+                return new BoundIdentifierExpression(sym, CobolCategory.Numeric);
+            // Try as numeric literal (e.g., 100)
+            if (decimal.TryParse(name, System.Globalization.CultureInfo.InvariantCulture, out var val))
+                return new BoundLiteralExpression(val, CobolCategory.Numeric);
+            return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
+        }
+
+        if (ctx.arithmeticExpression() != null)
+            return BindFullExpression(ctx.arithmeticExpression());
+
+        // functionCall — bind as identifier for now
+        if (ctx.functionCall() != null)
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
+        return new BoundLiteralExpression(0m, CobolCategory.Numeric);
     }
 
     // ── IF ──

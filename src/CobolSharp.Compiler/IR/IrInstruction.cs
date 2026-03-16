@@ -359,6 +359,25 @@ public sealed class IrPicDivideLiteral : IrInstruction
     }
 }
 
+/// <summary>
+/// COMPUTE: evaluate a bound expression tree and store the decimal result
+/// into a target field with optional rounding and overflow detection.
+/// </summary>
+public sealed class IrComputeStore : IrInstruction
+{
+    public Semantics.Bound.BoundExpression Expression { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrComputeStore(Semantics.Bound.BoundExpression expression,
+        CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Expression = expression;
+        Destination = dest;
+        Rounding = rounding;
+    }
+}
+
 public sealed class IrPicCompare : IrInstruction
 {
     public CodeGen.StorageLocation Left { get; }

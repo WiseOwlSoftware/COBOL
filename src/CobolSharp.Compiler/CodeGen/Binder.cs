@@ -170,6 +170,8 @@ public sealed class Binder
                 return LowerSubtract(sub, method, block);
             case BoundDivideStatement div:
                 return LowerDivide(div, method, block);
+            case BoundComputeStatement comp:
+                return LowerCompute(comp, method, block);
             case BoundArithmeticStatement:
                 break;
         }
@@ -555,6 +557,53 @@ public sealed class Binder
             method.Blocks.Add(notSizeErrorBlock);
             var nseCurrent = notSizeErrorBlock;
             foreach (var stmt in div.NotOnSizeError)
+                nseCurrent = LowerStatement(stmt, method, nseCurrent);
+            nseCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(doneBlock);
+            return doneBlock;
+        }
+
+        return block;
+    }
+
+    // ── COMPUTE ──
+
+    private IrBasicBlock LowerCompute(BoundComputeStatement comp, IrMethod method, IrBasicBlock block)
+    {
+        block.Instructions.Add(new IrInitArithmeticStatus());
+
+        // Emit expression evaluation + store for each target
+        foreach (var target in comp.Targets)
+        {
+            var destLoc = _semantic.GetStorageLocation(target.Symbol);
+            if (!destLoc.HasValue) continue;
+
+            int roundingMode = target.IsRounded ? 1 : 0;
+            block.Instructions.Add(new IrComputeStore(
+                comp.Expression, destLoc.Value, roundingMode));
+        }
+
+        // ON SIZE ERROR / NOT ON SIZE ERROR
+        if (comp.OnSizeError.Count > 0 || comp.NotOnSizeError.Count > 0)
+        {
+            var sizeErrorBlock = method.CreateBlock("size.error");
+            var notSizeErrorBlock = method.CreateBlock("not.size.error");
+            var doneBlock = method.CreateBlock("size.done");
+
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadSizeError(condVal));
+            block.Instructions.Add(new IrBranchIfFalse(condVal, notSizeErrorBlock));
+
+            method.Blocks.Add(sizeErrorBlock);
+            var seCurrent = sizeErrorBlock;
+            foreach (var stmt in comp.OnSizeError)
+                seCurrent = LowerStatement(stmt, method, seCurrent);
+            seCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            method.Blocks.Add(notSizeErrorBlock);
+            var nseCurrent = notSizeErrorBlock;
+            foreach (var stmt in comp.NotOnSizeError)
                 nseCurrent = LowerStatement(stmt, method, nseCurrent);
             nseCurrent.Instructions.Add(new IrJump(doneBlock));
 
