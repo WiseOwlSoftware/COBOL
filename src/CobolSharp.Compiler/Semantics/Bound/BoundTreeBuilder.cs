@@ -734,7 +734,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // and handle at emit time. For now, use a dedicated representation.
             // Simple approach: emit as Math.Pow at runtime
             left = new BoundBinaryExpression(left,
-                (BoundBinaryOperatorKind)99, // Power — extend enum
+                BoundBinaryOperatorKind.Power,
                 right, CobolCategory.Numeric);
         }
         return left;
@@ -964,7 +964,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // OR is represented as a binary expression; the binder/emitter knows
             // operator kinds > GreaterOrEqual are logical operators
             result = new BoundBinaryExpression(result,
-                (BoundBinaryOperatorKind)20, // OR
+                BoundBinaryOperatorKind.Or,
                 right, CobolCategory.Unknown);
         }
         return result;
@@ -978,7 +978,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var right = BindLogicalNot(notExprs[i]);
             result = new BoundBinaryExpression(result,
-                (BoundBinaryOperatorKind)21, // AND
+                BoundBinaryOperatorKind.And,
                 right, CobolCategory.Unknown);
         }
         return result;
@@ -992,7 +992,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             var inner = BindLogicalNot(ctx.logicalNotExpression());
             return new BoundBinaryExpression(
                 inner,
-                (BoundBinaryOperatorKind)22, // NOT (unary, right is dummy)
+                BoundBinaryOperatorKind.Not, // unary, right is dummy
                 new BoundLiteralExpression(0m, CobolCategory.Unknown),
                 CobolCategory.Unknown);
         }

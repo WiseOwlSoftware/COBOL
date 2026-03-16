@@ -858,6 +858,26 @@ what was accomplished, and what to pick up next.
 
 ---
 
+## Code Quality Audit (Session 10, Phase B)
+
+Identified during Phase B. Items 1-3 fixed. Remaining deferred.
+
+| # | Location | Issue | Status |
+|---|----------|-------|--------|
+| 1 | Binder.cs LowerCondition | `IrSetBool(true)` fallback silently returned TRUE for unrecognized comparisons | **FIXED** — replaced with fatal `InvalidOperationException` |
+| 2 | BoundTreeBuilder.cs | Magic casts `(BoundBinaryOperatorKind)20/21/22` for OR/AND/NOT | **FIXED** — proper enum members Or, And, Not |
+| 3 | BoundTreeBuilder.cs/CilEmitter.cs | Magic cast `(BoundBinaryOperatorKind)99` for Power | **FIXED** — proper enum member Power |
+| 4 | RecordLayoutBuilder.cs:108 | TODO: extract OCCURS count from data description | Phase D |
+| 5 | BoundTreeBuilder.cs:397 | TODO: resolve file from record → FD relationship | Phase F |
+| 6 | BoundTreeBuilder.cs:782 | Function calls bound as identifiers | Phase K |
+| 7 | BoundTreeBuilder.cs:938 | Unresolved identifiers treated as string literals | Needs diagnostic |
+| 8 | SemanticBuilder.cs:56 | Unresolved REDEFINES silently ignored | Needs diagnostic |
+| 9 | SemanticBuilder.cs:257 | Level-88 condition names skipped | Phase B5c |
+| 10 | CilEmitter.cs:1821 | Runtime calls NOP'd | Known limitation |
+| 11 | RecordLayoutBuilder.cs:182-183 | COMP-1/COMP-2 mapped to Int32/Int64 | Known limitation |
+| 12 | ReferenceResolver.cs:87 | WRITE file validation skipped | Phase F |
+| 13 | PicRuntime.cs:921 | National chars treated as alphanumeric | Phase L |
+
 ## Open Design Questions
 
 Track decisions that still need to be made.

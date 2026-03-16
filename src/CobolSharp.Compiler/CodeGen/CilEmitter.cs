@@ -1484,7 +1484,7 @@ public sealed class CilEmitter
                             _module.ImportReference(typeof(decimal).GetMethod("Remainder",
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
-                    case (Semantics.Bound.BoundBinaryOperatorKind)99: // Power (**)
+                    case Semantics.Bound.BoundBinaryOperatorKind.Power:
                     {
                         // Convert both to double, call Math.Pow, convert back to decimal
                         var toDouble = _module.ImportReference(

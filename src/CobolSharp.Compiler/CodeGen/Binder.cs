@@ -966,40 +966,35 @@ public sealed class Binder
     {
         if (cond is BoundBinaryExpression binCond)
         {
-            int opKind = (int)binCond.OperatorKind;
-
-            // Logical OR (kind 20)
-            if (opKind == 20)
+            switch (binCond.OperatorKind)
             {
-                var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
-                var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
-                LowerCondition(binCond.Left, leftVal, block);
-                LowerCondition(binCond.Right, rightVal, block);
-                // result = left OR right
-                block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Or));
-                return;
-            }
+                case BoundBinaryOperatorKind.Or:
+                {
+                    var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    LowerCondition(binCond.Left, leftVal, block);
+                    LowerCondition(binCond.Right, rightVal, block);
+                    block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Or));
+                    return;
+                }
 
-            // Logical AND (kind 21)
-            if (opKind == 21)
-            {
-                var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
-                var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
-                LowerCondition(binCond.Left, leftVal, block);
-                LowerCondition(binCond.Right, rightVal, block);
-                // result = left AND right
-                block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
-                return;
-            }
+                case BoundBinaryOperatorKind.And:
+                {
+                    var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    LowerCondition(binCond.Left, leftVal, block);
+                    LowerCondition(binCond.Right, rightVal, block);
+                    block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
+                    return;
+                }
 
-            // Logical NOT (kind 22)
-            if (opKind == 22)
-            {
-                var innerVal = _valueFactory.Next(IrPrimitiveType.Bool);
-                LowerCondition(binCond.Left, innerVal, block);
-                // result = NOT inner
-                block.Instructions.Add(new IrBinaryLogical(result, innerVal, innerVal, IrLogicalOp.Not));
-                return;
+                case BoundBinaryOperatorKind.Not:
+                {
+                    var innerVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    LowerCondition(binCond.Left, innerVal, block);
+                    block.Instructions.Add(new IrBinaryLogical(result, innerVal, innerVal, IrLogicalOp.Not));
+                    return;
+                }
             }
 
             var leftSym = (binCond.Left as BoundIdentifierExpression)?.Symbol;
@@ -1118,8 +1113,12 @@ public sealed class Binder
             }
         }
 
-        // Fallback: always true
-        block.Instructions.Add(new IrSetBool(result, true));
+        // Fatal: unrecognized condition shape. Never silently return true —
+        // that masks bugs (e.g., NC106A SUB-TEST-F1-7 passed for months with wrong arithmetic).
+        // TODO: replace with IrExpressionCompare for production-grade general comparison.
+        throw new InvalidOperationException(
+            $"Unsupported condition shape in LowerCondition: {cond.GetType().Name} " +
+            $"(operator: {(cond is BoundBinaryExpression bc ? bc.OperatorKind.ToString() : "N/A")})");
     }
 
     private static BoundBinaryOperatorKind FlipComparisonOp(BoundBinaryOperatorKind op)

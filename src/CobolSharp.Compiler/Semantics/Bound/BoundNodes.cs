@@ -85,8 +85,14 @@ public sealed class BoundIdentifierExpression : BoundExpression
 
 public enum BoundBinaryOperatorKind
 {
+    // Arithmetic
     Add, Subtract, Multiply, Divide, Remainder,
+    // Comparison
     Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual,
+    // Logical
+    Or, And, Not,
+    // Exponentiation
+    Power,
 }
 
 public sealed class BoundBinaryExpression : BoundExpression
