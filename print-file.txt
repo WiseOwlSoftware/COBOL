@@ -3,7 +3,7 @@
                                                                                                                         
                                         CCVS85 4.2  COPY - NOT FOR DISTRIBUTION                                         
                                                                                                                         
-TEST RESULT OF NC171A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.     
+TEST RESULT OF NC116A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.     
                                                                                                                         
                                                                                                                         
  FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985          
@@ -13,123 +13,89 @@ TEST RESULT OF NC171A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL                                                                                              
                                                                                                                         
  ***********************************************************************************************************************
- DIVIDE INTO          PASS  DIV-TEST-F1-1                                                                               
- DIVIDE INTO          PASS  DIV-TEST-F1-2                                                                               
- DIVIDE INTO          PASS  DIV-TEST-F1-3-1                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-3-2                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-4-1                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-4-2                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-5-1                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-5-2                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-6                                                                               
- DIVIDE INTO          PASS  DIV-TEST-F1-7                                                                               
- DIVIDE INTO          PASS  DIV-TEST-F1-8-1                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-8-2                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-9-1                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-9-2                                                                             
- DIVIDE INTO          PASS  DIV-TEST-F1-10-1                                                                            
- DIVIDE INTO          PASS  DIV-TEST-F1-10-2                                                                            
- DIVIDE INTO          PASS  DIV-TEST-F1-11-1                                                                            
- DIVIDE INTO          PASS  DIV-TEST-F1-11-2                                                                            
- DIVIDE INTO          PASS  DIV-TEST-F1-12                                                                              
- DIVIDE INTO          PASS  DIV-TEST-F1-13                                                                              
- DIVIDE INTO          PASS  DIV-TEST-F1-14-1   .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-14-2   .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-15-1   .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-15-2   .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-16-1   .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-16-2   .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-17-1   .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-17-2   .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-18     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-19     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-20     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-21     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-22     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-23     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .06                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .07                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-24     .08                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-25     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-25     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-25     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-25     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-26     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-26     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-26     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-26     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-26     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-27     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-27     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-27     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-27     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-27     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-28     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-28     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-28     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-28     .04                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-28     .05                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-29     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-29     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-29     .03                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-30     .01                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-30     .02                                                                      
- DIVIDE INTO          PASS  DIV-TEST-F1-30     .03                                                                      
+ SIGN LEADING SEPARAT PASS  SIG-TEST-GF-1      .01        LEADING SIGN EQUAL PLUS                                       
+ SIGN LEADING SEPARAT PASS  SIG-TEST-GF-1      .02                                                                      
+ SIGN LEADING SEPARAT PASS  SIG-TEST-GF-1      .03        LEADING SIGN EQUAL MINUS                                      
+ SIGN LEADING SEPARAT PASS  SIG-TEST-GF-1      .04                                                                      
+ SIGN TRLNG SEPARATE  PASS  SIG-TEST-GF-2      .01        TRAILING SIGN EQUAL PLUS                                      
+ SIGN TRLNG SEPARATE  PASS  SIG-TEST-GF-2      .02                                                                      
+ SIGN TRLNG SEPARATE  PASS  SIG-TEST-GF-2      .03        TRAILING SIGN EQUAL MINUS                                     
+ SIGN TRLNG SEPARATE  PASS  SIG-TEST-GF-2      .04                                                                      
+ SIGN LEADING         PASS  SIG-TEST-GF-3      .01        POSITIVE NUMERIC ITEM                                         
+ SIGN LEADING         PASS  SIG-TEST-GF-3      .02        NEGATIVE NUMERIC ITEM                                         
+ SIGN TRAILING        PASS  SIG-TEST-GF-4      .01        POSITIVE NUMERIC ITEM                                         
+ SIGN TRAILING        PASS  SIG-TEST-GF-4      .02        NEGATIVE NUMERIC ITEM                                         
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-5      .01        LEADING SIGN                                                  
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-5      .02                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-5      .03                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-5      .04                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-6      .01        TRAILING SIGN                                                 
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-6      .02                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-6      .03                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-6      .04                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-7      .01        LEADING SIGN SEPARATE CHARACTER                               
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-7      .02                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-7      .03                                                                      
+ COMPARE SIGNED ITEMS PASS  SIG-TEST-GF-7      .04                                                                      
+ COMPARE SIGN ITEMS   PASS  SIG-TEST-GF-8      .01        TRAILING SIGN SEPARATE CHARACTR                               
+ COMPARE SIGN ITEMS   PASS  SIG-TEST-GF-8      .02                                                                      
+ COMPARE SIGN ITEMS   PASS  SIG-TEST-GF-8      .03                                                                      
+ COMPARE SIGN ITEMS   PASS  SIG-TEST-GF-8      .04                                                                      
+ SENDING ITEM DS-LS   PASS  SIG-TEST-GF-9      .01                                                                      
+ SENDING ITEM DS-LS   PASS  SIG-TEST-GF-9      .02                                                                      
+ SENDING ITEM DS-LS   PASS  SIG-TEST-GF-9      .03                                                                      
+ SENDING ITEM DS-LS   PASS  SIG-TEST-GF-9      .04                                                                      
+ SENDING ITEM DS-TS-4 PASS  SIG-TEST-GF-10     .01                                                                      
+ SENDING ITEM DS-TS-4 FAIL* SIG-TEST-GF-10     .02        MOVE DS-TS-4 TO DS-005                                        
+                                                                                                                        
+                                     COMPUTED= -000000000000008036                                                      
+                                     CORRECT = 0000000000000008036   VI-42 5.12.4                                       
+                                                                                                                        
+ SENDING ITEM DS-TS-4 PASS  SIG-TEST-GF-10     .03                                                                      
+ SENDING ITEM DS-TS-4 FAIL* SIG-TEST-GF-10     .04        MOVE DS-TS-4 TO CS-005                                        
+                                                                                                                        
+                                     COMPUTED= -000000000000008036                                                      
+                                     CORRECT = 0000000000000008036   VI-42 5.12.4                                       
+                                                                                                                        
+ SIGN SEPARATE ITEMS  PASS  SIG-TEST-GF-11     .01                                                                      
+ SIGN SEPARATE ITEMS  PASS  SIG-TEST-GF-11     .02                                                                      
+ SIGN SEPARATE ITEMS  PASS  SIG-TEST-GF-11     .03                                                                      
+ SIGN SEPARATE ITEMS  PASS  SIG-TEST-GF-11     .04                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-12     .01                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-12     .02                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-12     .03                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-12     .04                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-13     .01                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-13     .02                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-13     .03                                                                      
+ SIGN CLAUSE ITEMS    PASS  SIG-TEST-GF-13     .04                                                                      
+ SIGNED NUM. TO ALPHA PASS  SIG-TEST-GF-14     .01                                                                      
+ SIGNED NUM. TO ALPHA PASS  SIG-TEST-GF-14     .02                                                                      
+ SIGNED NUM. TO ALPHA PASS  SIG-TEST-GF-14     .03                                                                      
+ SIGNED NUM. TO ALPHA PASS  SIG-TEST-GF-14     .04                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .01                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .02                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .03                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .04                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .05                                                                      
+ RECEIVING ITEM DS-LS PASS  SIG-TEST-GF-15     .06                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .01                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .02                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .03                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .04                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .05                                                                      
+ RECEIVING ITEM DS-TS PASS  SIG-TEST-GF-16     .06                                                                      
+ PRECEDENCE OF SUBORD PASS  SIG-TEST-GF-17                                                                              
+ PRECEDENCE OF SUBORD PASS  SIG-TEST-GF-18                                                                              
  ***********************************************************************************************************************
                                                                                                                         
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                                    END OF TEST-  NC171A                                                
+                                                    END OF TEST-  NC116A                                                
                                                                                                                         
-                                                    108 OF 108  TESTS WERE EXECUTED SUCCESSFULLY                        
-                                                    NO  TEST(S) FAILED                                                  
+                                                    064 OF 066  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    002 TEST(S) FAILED                                                  
                                                     NO  TEST(S) DELETED                                                 
                                                     NO  TEST(S) REQUIRE INSPECTION                                      
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
