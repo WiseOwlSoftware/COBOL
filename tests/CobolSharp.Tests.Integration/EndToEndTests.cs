@@ -1224,4 +1224,44 @@ public class EndToEndTests : IDisposable
         // MOVE ZEROS to numeric field produces numeric zero
         Assert.Equal("000", lines[1]);
     }
+
+    // ═══════════════════════════════════════════
+    // DIVIDE — all spec-true forms
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void Divide_AllForms()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DIVALL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(5) VALUE 10.
+            01 WS-B PIC S9(5) VALUE 30.
+            01 WS-C PIC S9(5) VALUE 0.
+            01 WS-D PIC S9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DIVIDE WS-A BY 3 GIVING WS-C REMAINDER WS-D.
+                DISPLAY WS-C.
+                DISPLAY WS-D.
+                DIVIDE 2 INTO WS-B.
+                DISPLAY WS-B.
+                DIVIDE 5 INTO WS-A GIVING WS-C.
+                DISPLAY WS-C.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(4, lines.Length);
+        // 10 / 3 = 3 remainder 1 (trailing overpunch: 3→'C', 1→'A')
+        Assert.Equal("0000C", lines[0]);
+        Assert.Equal("0000A", lines[1]);
+        // 30 / 2 = 15 (5→'E')
+        Assert.Equal("0001E", lines[2]);
+        // 10 / 5 = 2 (2→'B')
+        Assert.Equal("0000B", lines[3]);
+    }
 }

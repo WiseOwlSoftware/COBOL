@@ -1439,6 +1439,11 @@ public sealed class CilEmitter
                             _module.ImportReference(typeof(decimal).GetMethod("op_Division",
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
+                    case Semantics.Bound.BoundBinaryOperatorKind.Remainder:
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(typeof(decimal).GetMethod("Remainder",
+                                new[] { typeof(decimal), typeof(decimal) })!)));
+                        break;
                     case (Semantics.Bound.BoundBinaryOperatorKind)99: // Power (**)
                     {
                         // Convert both to double, call Math.Pow, convert back to decimal
@@ -1503,37 +1508,38 @@ public sealed class CilEmitter
 
     /// <summary>
     /// Convert CompareNumeric result (-1/0/1) to bool based on operator kind.
-    /// BoundBinaryOperatorKind: Equal=4, NotEqual=5, Less=6, LessOrEqual=7, Greater=8, GreaterOrEqual=9
+    /// Uses enum values directly — never hardcode integer constants for enum members.
     /// </summary>
     private void EmitCompareResultToBool(ILProcessor il, int operatorKind)
     {
-        switch (operatorKind)
+        var op = (Semantics.Bound.BoundBinaryOperatorKind)operatorKind;
+        switch (op)
         {
-            case 4: // Equal: result == 0
+            case Semantics.Bound.BoundBinaryOperatorKind.Equal: // result == 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case 5: // NotEqual: NOT (result == 0)
+            case Semantics.Bound.BoundBinaryOperatorKind.NotEqual: // NOT (result == 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case 6: // Less: result < 0
+            case Semantics.Bound.BoundBinaryOperatorKind.Less: // result < 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Clt));
                 break;
-            case 7: // LessOrEqual: NOT (result > 0)
+            case Semantics.Bound.BoundBinaryOperatorKind.LessOrEqual: // NOT (result > 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Cgt));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case 8: // Greater: result > 0
+            case Semantics.Bound.BoundBinaryOperatorKind.Greater: // result > 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Cgt));
                 break;
-            case 9: // GreaterOrEqual: NOT (result < 0)
+            case Semantics.Bound.BoundBinaryOperatorKind.GreaterOrEqual: // NOT (result < 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Clt));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));

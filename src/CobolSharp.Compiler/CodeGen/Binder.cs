@@ -609,44 +609,11 @@ public sealed class Binder
             if (div.Dividend != null)
             {
                 // GIVING form: dest = dividend / divisor
-                // For now, handle literal divisor or identifier divisor
-                if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
-                {
-                    // DivideLiteral: literal is the divisor, other is the dividend
-                    if (div.Dividend is BoundIdentifierExpression dividendId)
-                    {
-                        var dividendLoc = _semantic.GetStorageLocation(dividendId.Symbol);
-                        if (dividendLoc.HasValue)
-                        {
-                            block.Instructions.Add(new IrPicDivideLiteral(
-                                d, dividendLoc.Value, destLoc.Value, roundingMode));
-                        }
-                    }
-                }
-                else if (div.Divisor is BoundIdentifierExpression divisorId)
-                {
-                    var divisorLoc = _semantic.GetStorageLocation(divisorId.Symbol);
-                    if (divisorLoc.HasValue)
-                    {
-                        if (div.Dividend is BoundIdentifierExpression dividendId)
-                        {
-                            var dividendLoc = _semantic.GetStorageLocation(dividendId.Symbol);
-                            if (dividendLoc.HasValue)
-                            {
-                                block.Instructions.Add(new IrPicDivide(
-                                    dividendLoc.Value, divisorLoc.Value, destLoc.Value, roundingMode));
-                            }
-                        }
-                        else if (div.Dividend is BoundLiteralExpression litDividend && litDividend.Value is decimal dv)
-                        {
-                            // dividend is literal, divisor is field — use DivideLiteral with swapped semantics
-                            // Actually we need DivideNumeric with the field as right operand
-                            // For now emit DivideLiteral where literal=dv, other=divisor, dest=target
-                            block.Instructions.Add(new IrPicDivideLiteral(
-                                dv, divisorLoc.Value, destLoc.Value, roundingMode));
-                        }
-                    }
-                }
+                // Use COMPUTE expression path — handles all operand combinations
+                var divExpr = new BoundBinaryExpression(
+                    div.Dividend, BoundBinaryOperatorKind.Divide, div.Divisor,
+                    CobolCategory.Numeric);
+                block.Instructions.Add(new IrComputeStore(divExpr, destLoc.Value, roundingMode));
             }
             else
             {
@@ -665,6 +632,19 @@ public sealed class Binder
                             destLoc.Value, divisorLoc.Value, destLoc.Value, roundingMode));
                     }
                 }
+            }
+        }
+
+        // REMAINDER: dividend MOD divisor
+        if (div.RemainderTarget != null && div.Dividend != null)
+        {
+            var remLoc = _semantic.GetStorageLocation(div.RemainderTarget);
+            if (remLoc.HasValue)
+            {
+                var remExpr = new BoundBinaryExpression(
+                    div.Dividend, BoundBinaryOperatorKind.Remainder, div.Divisor,
+                    CobolCategory.Numeric);
+                block.Instructions.Add(new IrComputeStore(remExpr, remLoc.Value, 0));
             }
         }
 
