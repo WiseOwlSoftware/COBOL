@@ -38,6 +38,14 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+
+        // ISO §14.19.4: when moving to an unsigned numeric DISPLAY target,
+        // the sign is not preserved; the magnitude is stored.
+        if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
+        {
+            value = Math.Abs(value);
+        }
+
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
     }
@@ -552,6 +560,12 @@ public static class PicRuntime
         }
 
         if (negative) value = -value;
+
+        // ISO §14.19.4: unsigned target strips sign
+        if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
+        {
+            value = Math.Abs(value);
+        }
 
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);

@@ -351,4 +351,40 @@ public sealed class PicRuntimeMoveTests
         var value = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
         Assert.Equal(123.45m, value);
     }
+
+    // ---------- Signed → Unsigned: sign stripped ----------
+
+    [Fact]
+    public void MoveNumeric_SignedToUnsignedDisplay_StripsSign()
+    {
+        var srcPic = MakePic("S9(5)", isSigned: true, signStorage: SignStorageKind.TrailingOverpunch);
+        var dstPic = MakePic("9(18)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, -8036m);
+        PicRuntime.MoveNumericToNumeric(src, 0, src.Length, srcPic,
+                                        dst, 0, dst.Length, dstPic, 0);
+
+        var decoded = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(8036m, decoded);
+    }
+
+    [Fact]
+    public void MoveNumeric_UnsignedToUnsignedDisplay_PreservesMagnitude()
+    {
+        var srcPic = MakePic("9(5)");
+        var dstPic = MakePic("9(18)");
+
+        var src = NewBuffer(srcPic);
+        var dst = NewBuffer(dstPic);
+
+        PicRuntime.EncodeNumeric(src, 0, src.Length, srcPic, 8036m);
+        PicRuntime.MoveNumericToNumeric(src, 0, src.Length, srcPic,
+                                        dst, 0, dst.Length, dstPic, 0);
+
+        var decoded = PicRuntime.DecodeNumeric(dst, 0, dst.Length, dstPic);
+        Assert.Equal(8036m, decoded);
+    }
 }
