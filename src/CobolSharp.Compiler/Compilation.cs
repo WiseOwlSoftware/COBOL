@@ -259,7 +259,7 @@ public sealed class Compilation
             {
                 // REDEFINES shares the target's offset and area, but uses its own PIC
                 int size = item.IsElementary ? ComputeFieldSize(item) : targetLoc.Value.Length;
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size);
                 var loc = new CodeGen.StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic);
                 model.RegisterStorageLocation(item, loc);
                 RegisterValue(model, item);
@@ -281,7 +281,7 @@ public sealed class Compilation
         {
             // Elementary: allocate bytes from PIC
             int size = ComputeFieldSize(item);
-            var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
+            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size);
             var loc = new CodeGen.StorageLocation(area, offset, size, pic);
             model.RegisterStorageLocation(item, loc);
             RegisterValue(model, item);
@@ -300,14 +300,14 @@ public sealed class Compilation
                 // Group spans all children
                 int groupSize = offset - groupStart;
                 if (groupSize <= 0) groupSize = 1;
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, groupSize);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize);
                 var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
                 model.RegisterStorageLocation(item, loc);
             }
             else
             {
                 // Empty group (no children found) — allocate minimum
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, 1);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, 1);
                 var loc = new CodeGen.StorageLocation(area, offset, 1, pic);
                 model.RegisterStorageLocation(item, loc);
                 offset += 1;

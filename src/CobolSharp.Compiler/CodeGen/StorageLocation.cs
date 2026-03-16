@@ -32,84 +32,76 @@ public readonly struct StorageLocation
 }
 
 /// <summary>
-/// Factory for creating PicDescriptor from compiler DataSymbol.
+/// Compiler-side bridge: creates PicDescriptor from DataSymbol using the canonical
+/// Runtime.PicDescriptorFactory for PIC parsing, plus compiler-specific context
+/// (ExplicitSignStorage, Usage from data description).
 /// </summary>
-public static class PicDescriptorFactory
+public static class CompilerPicDescriptorFactory
 {
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
+        bool isSigned = pic?.IsSigned ?? false;
+        var signStorage = DetermineSignStorage(isSigned, symbol);
 
-        // Determine editing kind from PIC analysis
+        // If we have a PIC string AND it's edited, use the canonical factory for pattern expansion
+        if (symbol.PicString != null && (pic?.IsEdited ?? false))
+        {
+            var desc = Runtime.PicDescriptorFactory.FromPicBody(
+                symbol.PicString,
+                usage: symbol.Usage,
+                isSigned: isSigned,
+                signStorage: signStorage,
+                blankWhenZero: false);
+
+            // Override storageLength from layout (compiler knows the actual allocation)
+            return new PicDescriptor(
+                totalDigits: desc.TotalDigits,
+                fractionDigits: desc.FractionDigits,
+                isSigned: desc.IsSigned,
+                isNumeric: desc.IsNumeric,
+                isAlphanumeric: desc.IsAlphanumeric,
+                hasEditing: desc.HasEditing,
+                storageLength: storageLength,
+                usage: symbol.Usage,
+                category: desc.Category,
+                signStorage: signStorage,
+                editing: desc.Editing,
+                blankWhenZero: false,
+                leadingScaleDigits: desc.LeadingScaleDigits,
+                trailingScaleDigits: desc.TrailingScaleDigits,
+                editPattern: desc.EditPattern);
+        }
+
+        // Non-edited fields: use compiler's PicLayout directly
         var editingKind = EditingKind.None;
-        if (pic?.IsEdited ?? false)
-            editingKind = EditingKind.ZeroSuppress; // Default; refined later
 
-        // Parameter order matches the single PicDescriptor constructor
         return new PicDescriptor(
             totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
             fractionDigits: pic?.FractionDigits ?? 0,
-            isSigned: pic?.IsSigned ?? false,
+            isSigned: isSigned,
             isNumeric: category.IsNumericLike(),
             isAlphanumeric: category.IsAlphanumericLike(),
             hasEditing: pic?.IsEdited ?? false,
             storageLength: storageLength,
             usage: symbol.Usage,
             category: category,
-            signStorage: DetermineSignStorage(pic?.IsSigned ?? false, symbol),
+            signStorage: signStorage,
             editing: editingKind,
             blankWhenZero: false,
             leadingScaleDigits: pic?.LeadingPScaling ?? 0,
             trailingScaleDigits: pic?.TrailingPScaling ?? 0,
-            editPattern: (pic?.IsEdited ?? false) ? ExpandEditPattern(symbol.PicString!) : null);
-    }
-
-    /// <summary>
-    /// Expand PIC repeat notation: "9(5)" → "99999", "-9(9).9(9)" → "-999999999.999999999".
-    /// The EditPattern must be the expanded form for FormatByEditPattern to walk character-by-character.
-    /// </summary>
-    private static string ExpandEditPattern(string pic)
-    {
-        var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < pic.Length; i++)
-        {
-            char c = pic[i];
-            if (i + 1 < pic.Length && pic[i + 1] == '(')
-            {
-                // Parse repeat count: c(n) or c(nn)
-                int start = i + 2;
-                int end = start;
-                while (end < pic.Length && char.IsDigit(pic[end])) end++;
-                if (end < pic.Length && pic[end] == ')' && end > start)
-                {
-                    int count = int.Parse(pic.Substring(start, end - start));
-                    for (int k = 0; k < count; k++)
-                        sb.Append(c);
-                    i = end; // skip past ')'
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-            else
-            {
-                sb.Append(c);
-            }
-        }
-        return sb.ToString();
+            editPattern: null);
     }
 
     private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)
     {
         if (!isSigned) return SignStorageKind.None;
 
-        // Explicit SIGN clause takes priority
         if (symbol.ExplicitSignStorage.HasValue)
             return symbol.ExplicitSignStorage.Value;
 
-        // COBOL default: SIGN IS TRAILING OVERPUNCH (sign encoded in last digit)
         return SignStorageKind.TrailingOverpunch;
     }
 }
