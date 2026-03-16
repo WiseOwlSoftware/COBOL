@@ -1105,4 +1105,62 @@ public class EndToEndTests : IDisposable
         // 42 + 8 = 50, trailing separate positive → "050+"
         Assert.Contains("050", stdout);
     }
+
+    [Fact]
+    public void FigurativeConstants_MoveAndDisplay()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIGTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(5).
+            01 WS-N PIC 9(5) VALUE ZERO.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE SPACES TO WS-A.
+                DISPLAY ">" WS-A "<".
+                MOVE ALL "AB" TO WS-A.
+                DISPLAY WS-A.
+                DISPLAY WS-N.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("><", lines[0]);       // SPACES fills with ' ', display trims trailing spaces
+        Assert.Equal("ABABA", lines[1]);    // ALL "AB" repeats
+        Assert.Equal("00000", lines[2]);    // VALUE ZERO
+    }
+
+    [Fact]
+    public void FigurativeConstants_HighValueLowValueZeros()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIGTEST2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(3).
+            01 WS-B PIC X(3).
+            01 WS-C PIC X(3).
+            01 WS-N PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE HIGH-VALUES TO WS-A.
+                MOVE LOW-VALUES TO WS-B.
+                MOVE ZEROS TO WS-C.
+                DISPLAY WS-C.
+                MOVE ZEROS TO WS-N.
+                DISPLAY WS-N.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // MOVE ZEROS to alphanumeric field fills with '0'
+        Assert.Equal("000", lines[0]);
+        // MOVE ZEROS to numeric field produces numeric zero
+        Assert.Equal("000", lines[1]);
+    }
 }

@@ -30,6 +30,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Temporary: holds the REDEFINES target name during clause parsing
     private string? _deferredRedefinesName;
     private Runtime.SignStorageKind? _deferredSignStorage;
+    private int? _deferredFigurativeInit;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -195,11 +196,25 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
                                 string figText = fig.GetText().ToUpperInvariant();
+                                // For ZERO, keep as "0" so numeric VALUE parsing still works
                                 initialValue = figText switch
                                 {
                                     "SPACE" or "SPACES" => " ",
                                     "ZERO" or "ZEROS" or "ZEROES" => "0",
+                                    "HIGH-VALUE" or "HIGH-VALUES" => null,
+                                    "LOW-VALUE" or "LOW-VALUES" => null,
+                                    "QUOTE" or "QUOTES" => null,
                                     _ => figText
+                                };
+                                // Store figurative kind for field-filling initialization
+                                _deferredFigurativeInit = figText switch
+                                {
+                                    "SPACE" or "SPACES" => (int)Runtime.FigurativeKind.Space,
+                                    "ZERO" or "ZEROS" or "ZEROES" => (int)Runtime.FigurativeKind.Zero,
+                                    "HIGH-VALUE" or "HIGH-VALUES" => (int)Runtime.FigurativeKind.HighValue,
+                                    "LOW-VALUE" or "LOW-VALUES" => (int)Runtime.FigurativeKind.LowValue,
+                                    "QUOTE" or "QUOTES" => (int)Runtime.FigurativeKind.Quote,
+                                    _ => null
                                 };
                             }
                         }
@@ -222,6 +237,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         _deferredRedefinesName = null;
         data.ExplicitSignStorage = _deferredSignStorage;
         _deferredSignStorage = null;
+        data.FigurativeInit = _deferredFigurativeInit;
+        _deferredFigurativeInit = null;
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();

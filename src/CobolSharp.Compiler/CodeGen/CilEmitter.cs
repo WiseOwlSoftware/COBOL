@@ -130,8 +130,40 @@ public sealed class CilEmitter
                     "MoveStringToField",
                     new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
 
+            // Figurative VALUE clauses: use MoveFigurativeToField (field-filling).
+            // Must be emitted BEFORE non-figurative InitialValues to avoid overwriting.
+            var moveFigMethod = _module.ImportReference(
+                typeof(Runtime.PicRuntime).GetMethod(
+                    "MoveFigurativeToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(Runtime.PicDescriptor), typeof(int) })!);
+
+            foreach (var kvp in _semanticModel.FigurativeInitValues)
+            {
+                var loc = _semanticModel.GetStorageLocation(kvp.Key);
+                if (!loc.HasValue) continue;
+
+                // Load backing array
+                il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
+                var getter = _module.ImportReference(
+                    typeof(CobolSharp.Runtime.ProgramState).GetProperty(
+                        loc.Value.Area == StorageAreaKind.WorkingStorage
+                            ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
+                il.Append(il.Create(OpCodes.Callvirt, getter));
+
+                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+                EmitLoadPicDescriptor(il, loc.Value.Pic);
+                il.Append(il.Create(OpCodes.Ldc_I4, kvp.Value));
+                il.Append(il.Create(OpCodes.Call, moveFigMethod));
+            }
+
             foreach (var kvp in _semanticModel.InitialValues)
             {
+                // Skip symbols that have a figurative init — already handled above
+                if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
+                    continue;
+
                 var loc = _semanticModel.GetStorageLocation(kvp.Key);
                 if (!loc.HasValue) continue;
 
@@ -455,6 +487,14 @@ public sealed class CilEmitter
 
             case IrMoveStringToField ms:
                 EmitMoveStringToField(il, ms, getLocal);
+                break;
+
+            case IrMoveFigurative mf:
+                EmitMoveFigurative(il, mf);
+                break;
+
+            case IrMoveAllLiteral mal:
+                EmitMoveAllLiteral(il, mal);
                 break;
 
             case IrWriteRecordFromStorage wr:
@@ -817,6 +857,53 @@ public sealed class CilEmitter
             typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
                 "MoveStringToField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// MOVE figurative-constant TO field: calls PicRuntime.MoveFigurativeToField.
+    /// </summary>
+    private void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
+    {
+        EmitLoadBackingArray(il, mf.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mf.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mf.Destination.Length));
+        EmitLoadPicDescriptor(il, mf.Destination.Pic);
+        il.Append(il.Create(OpCodes.Ldc_I4, mf.FigurativeKind));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod(
+                "MoveFigurativeToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(Runtime.PicDescriptor), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// MOVE ALL "pattern" TO field: calls PicRuntime.MoveAllLiteralToField.
+    /// </summary>
+    private void EmitMoveAllLiteral(ILProcessor il, IrMoveAllLiteral mal)
+    {
+        EmitLoadBackingArray(il, mal.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, mal.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, mal.Destination.Length));
+
+        // Emit pattern as byte[]: new byte[] { b0, b1, ... }
+        var patternBytes = System.Text.Encoding.ASCII.GetBytes(mal.Pattern);
+        il.Append(il.Create(OpCodes.Ldc_I4, patternBytes.Length));
+        il.Append(il.Create(OpCodes.Newarr, _module.TypeSystem.Byte));
+        for (int i = 0; i < patternBytes.Length; i++)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldc_I4, (int)patternBytes[i]));
+            il.Append(il.Create(OpCodes.Stelem_I1));
+        }
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod(
+                "MoveAllLiteralToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

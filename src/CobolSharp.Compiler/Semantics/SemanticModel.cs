@@ -62,6 +62,15 @@ public sealed class SemanticModel
 
     public IReadOnlyDictionary<DataSymbol, InitialValue> InitialValues => _initialValues;
 
+    // ── Figurative initial values (field-filling VALUE SPACE, HIGH-VALUE, etc.) ──
+
+    private readonly Dictionary<DataSymbol, int> _figurativeInitValues = new();
+
+    public void RegisterFigurativeInit(DataSymbol symbol, int figurativeKind)
+        => _figurativeInitValues[symbol] = figurativeKind;
+
+    public IReadOnlyDictionary<DataSymbol, int> FigurativeInitValues => _figurativeInitValues;
+
     // ── Parse node → symbol mapping (for binder lookups) ──
 
     private readonly Dictionary<object, Symbol> _nodeToSymbol = new();

@@ -318,6 +318,15 @@ public sealed class Compilation
 
     private static void RegisterValue(Semantics.SemanticModel model, Semantics.DataSymbol data)
     {
+        // Figurative constant VALUE (SPACE, HIGH-VALUE, etc.): register for field-filling init
+        if (data.FigurativeInit.HasValue)
+        {
+            model.RegisterFigurativeInit(data, data.FigurativeInit.Value);
+            // For ZERO and SPACE, also register the normal InitialValue path
+            // so numeric fields get correct numeric initialization
+            if (data.InitialValue == null) return;
+        }
+
         if (data.InitialValue == null) return;
 
         if (decimal.TryParse(data.InitialValue,

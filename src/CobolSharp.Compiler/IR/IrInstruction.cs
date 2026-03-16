@@ -260,6 +260,36 @@ public sealed class IrMoveStringToField : IrInstruction
 }
 
 /// <summary>
+/// MOVE figurative-constant TO field — fills entire field with figurative byte value.
+/// </summary>
+public sealed class IrMoveFigurative : IrInstruction
+{
+    public CodeGen.StorageLocation Destination { get; }
+    public int FigurativeKind { get; }  // cast to Runtime.FigurativeKind enum at runtime
+
+    public IrMoveFigurative(CodeGen.StorageLocation dest, int figurativeKind)
+    {
+        Destination = dest;
+        FigurativeKind = figurativeKind;
+    }
+}
+
+/// <summary>
+/// MOVE ALL "pattern" TO field — repeats pattern to fill entire field.
+/// </summary>
+public sealed class IrMoveAllLiteral : IrInstruction
+{
+    public CodeGen.StorageLocation Destination { get; }
+    public string Pattern { get; }
+
+    public IrMoveAllLiteral(CodeGen.StorageLocation dest, string pattern)
+    {
+        Destination = dest;
+        Pattern = pattern;
+    }
+}
+
+/// <summary>
 /// WRITE record — outputs record bytes from ProgramState to file.
 /// </summary>
 public sealed class IrWriteRecordFromStorage : IrInstruction

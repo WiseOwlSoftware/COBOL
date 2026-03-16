@@ -53,6 +53,26 @@ public sealed class BoundLiteralExpression : BoundExpression
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
 }
 
+/// <summary>
+/// A COBOL figurative constant (SPACE, ZERO, HIGH-VALUE, LOW-VALUE, QUOTE, ALL "X").
+/// Unlike BoundLiteralExpression, this carries FigurativeKind so that MOVE can fill
+/// the entire destination field with the figurative's byte value.
+/// </summary>
+public sealed class BoundFigurativeExpression : BoundExpression
+{
+    public int FigurativeKind { get; }   // Runtime.FigurativeKind enum value
+    public string? AllLiteral { get; }   // non-null for ALL "X"
+
+    public BoundFigurativeExpression(int figurativeKind, string? allLiteral = null)
+        : base(CobolCategory.Alphanumeric)
+    {
+        FigurativeKind = figurativeKind;
+        AllLiteral = allLiteral;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
+}
+
 public sealed class BoundIdentifierExpression : BoundExpression
 {
     public DataSymbol Symbol { get; }

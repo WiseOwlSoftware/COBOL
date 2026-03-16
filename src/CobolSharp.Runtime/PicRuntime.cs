@@ -249,6 +249,63 @@ public static class PicRuntime
     }
 
     // ══════════════════════════════════════════════════════════
+    // MOVE: Figurative constants (SPACE, ZERO, HIGH-VALUE, etc.)
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// MOVE figurative-constant TO field. Fills the entire destination field
+    /// with the appropriate byte value. For numeric destinations with ZERO,
+    /// encodes numeric zero instead.
+    /// </summary>
+    public static void MoveFigurativeToField(
+        byte[] dstArea, int dstOffset, int dstLength,
+        PicDescriptor dstPic, int figurativeKindInt)
+    {
+        var kind = (FigurativeKind)figurativeKindInt;
+
+        if (dstPic.IsNumeric && kind == FigurativeKind.Zero)
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        // Alphanumeric or non-zero figurative: fill entire field with figurative byte
+        byte b = kind switch
+        {
+            FigurativeKind.Zero => (byte)'0',
+            FigurativeKind.Space => (byte)' ',
+            FigurativeKind.HighValue => 0xFF,
+            FigurativeKind.LowValue => 0x00,
+            FigurativeKind.Quote => (byte)'"',
+            FigurativeKind.Null => 0x00,
+            _ => (byte)' '
+        };
+        for (int i = 0; i < dstLength; i++)
+            dstArea[dstOffset + i] = b;
+    }
+
+    /// <summary>
+    /// MOVE ALL "pattern" TO field. Repeats the pattern to fill the entire field.
+    /// </summary>
+    public static void MoveAllLiteralToField(
+        byte[] dstArea, int dstOffset, int dstLength,
+        byte[] pattern)
+    {
+        if (pattern.Length == 0)
+        {
+            for (int i = 0; i < dstLength; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+            return;
+        }
+        int pos = 0;
+        for (int i = 0; i < dstLength; i++)
+        {
+            dstArea[dstOffset + i] = pattern[pos];
+            if (++pos >= pattern.Length) pos = 0;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
     // MOVE: Literal helpers (called by emitter for MOVE "lit" TO field)
     // ══════════════════════════════════════════════════════════
 

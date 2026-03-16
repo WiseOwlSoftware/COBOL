@@ -26,6 +26,12 @@ public sealed class DataSymbol : Symbol
     /// </summary>
     public SignStorageKind? ExplicitSignStorage { get; set; }
 
+    /// <summary>
+    /// If non-null, the VALUE clause specified a figurative constant.
+    /// Used for field-filling initialization instead of InitialValue string.
+    /// </summary>
+    public int? FigurativeInit { get; set; }  // Runtime.FigurativeKind enum value, or null
+
     public DataSymbol? Redefines { get; set; }
 
     /// <summary>Unresolved REDEFINES target name (for deferred resolution).</summary>

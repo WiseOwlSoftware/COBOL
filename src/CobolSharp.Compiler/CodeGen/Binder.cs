@@ -186,7 +186,21 @@ public sealed class Binder
         var operands = new List<IR.DisplayOperand>();
         foreach (var op in disp.Operands)
         {
-            if (op is BoundLiteralExpression lit && lit.Value is string s)
+            if (op is BoundFigurativeExpression fig)
+            {
+                // In DISPLAY context, figuratives display a single character
+                string figStr = ((Runtime.FigurativeKind)fig.FigurativeKind) switch
+                {
+                    Runtime.FigurativeKind.Space => " ",
+                    Runtime.FigurativeKind.Zero => "0",
+                    Runtime.FigurativeKind.HighValue => "\xFF",
+                    Runtime.FigurativeKind.LowValue => "\x00",
+                    Runtime.FigurativeKind.Quote => "\"",
+                    _ => fig.AllLiteral ?? " "
+                };
+                operands.Add(new IR.DisplayLiteralOperand(figStr));
+            }
+            else if (op is BoundLiteralExpression lit && lit.Value is string s)
             {
                 operands.Add(new IR.DisplayLiteralOperand(s));
             }
@@ -216,6 +230,29 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
+        // Handle MOVE figurative-constant TO identifier
+        if (mv.Source is BoundFigurativeExpression fig)
+        {
+            foreach (var t in mv.Targets)
+            {
+                if (t is not BoundIdentifierExpression id) continue;
+                var loc = _semantic.GetStorageLocation(id.Symbol);
+                if (!loc.HasValue) continue;
+
+                if (fig.AllLiteral != null)
+                {
+                    // ALL "pattern" — repeat pattern to fill field
+                    block.Instructions.Add(new IrMoveAllLiteral(loc.Value, fig.AllLiteral));
+                }
+                else
+                {
+                    // Named figurative (SPACE, ZERO, HIGH-VALUE, etc.)
+                    block.Instructions.Add(new IrMoveFigurative(loc.Value, fig.FigurativeKind));
+                }
+            }
+            return;
+        }
+
         // Handle MOVE literal TO identifier
         if (mv.Source is BoundLiteralExpression lit)
         {
@@ -994,6 +1031,37 @@ public sealed class Binder
                 if (leftLoc.HasValue)
                 {
                     var leftCat = leftLoc.Value.Pic.Category;
+
+                    // identifier vs figurative constant (alphanumeric comparison)
+                    if (binCond.Right is BoundFigurativeExpression figRight)
+                    {
+                        // Convert figurative to single-char string for comparison;
+                        // IrStringCompareLiteral pads with spaces, so SPACE works.
+                        // For ZERO on numeric, use numeric comparison.
+                        var fk = (Runtime.FigurativeKind)figRight.FigurativeKind;
+                        if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
+                        {
+                            block.Instructions.Add(new IrPicCompareLiteral(
+                                leftLoc.Value, 0m, result,
+                                (int)binCond.OperatorKind));
+                        }
+                        else
+                        {
+                            string figStr = fk switch
+                            {
+                                Runtime.FigurativeKind.Space => " ",
+                                Runtime.FigurativeKind.Zero => "0",
+                                Runtime.FigurativeKind.HighValue => "\xFF",
+                                Runtime.FigurativeKind.LowValue => "\x00",
+                                Runtime.FigurativeKind.Quote => "\"",
+                                _ => figRight.AllLiteral ?? " "
+                            };
+                            block.Instructions.Add(new IrStringCompareLiteral(
+                                leftLoc.Value, figStr, result,
+                                (int)binCond.OperatorKind));
+                        }
+                        return;
+                    }
 
                     // identifier vs string literal (alphanumeric comparison)
                     if (binCond.Right is BoundLiteralExpression litStr &&

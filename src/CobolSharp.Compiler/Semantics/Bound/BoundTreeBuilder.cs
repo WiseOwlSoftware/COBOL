@@ -880,19 +880,46 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
         {
+            // ALL "literal" — extract the string and produce a figurative with AllLiteral
+            if (figCtx.ALL() != null)
+            {
+                string? allText = null;
+                var allStr = figCtx.STRINGLIT();
+                if (allStr != null)
+                {
+                    var raw = allStr.GetText();
+                    if (raw.Length >= 2) allText = raw[1..^1];
+                }
+                var allHex = figCtx.HEXLIT();
+                if (allHex != null)
+                {
+                    var raw = allHex.GetText(); // X"..." or X'...'
+                    if (raw.Length >= 3)
+                    {
+                        var hexBody = raw[2..^1];
+                        var sb = new System.Text.StringBuilder();
+                        for (int i = 0; i + 1 < hexBody.Length; i += 2)
+                            sb.Append((char)Convert.ToByte(hexBody.Substring(i, 2), 16));
+                        allText = sb.ToString();
+                    }
+                }
+                return new BoundFigurativeExpression(
+                    (int)FigurativeKind.None, allText ?? "");
+            }
+
             string figText = figCtx.GetText().ToUpperInvariant();
             return figText switch
             {
                 "SPACE" or "SPACES" =>
-                    new BoundLiteralExpression(" ", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Space),
                 "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundLiteralExpression(0m, CobolCategory.Numeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Zero),
                 "HIGH-VALUE" or "HIGH-VALUES" =>
-                    new BoundLiteralExpression("\xFF", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.HighValue),
                 "LOW-VALUE" or "LOW-VALUES" =>
-                    new BoundLiteralExpression("\x00", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.LowValue),
                 "QUOTE" or "QUOTES" =>
-                    new BoundLiteralExpression("\"", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Quote),
                 _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
             };
         }
