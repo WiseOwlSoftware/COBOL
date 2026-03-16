@@ -151,14 +151,17 @@ public sealed class BoundPerformVarying
     public BoundExpression Initial { get; }
     public BoundExpression Step { get; }
     public BoundExpression UntilCondition { get; }
+    public BoundPerformVarying? Next { get; }  // AFTER clause → nested inner level
 
     public BoundPerformVarying(DataSymbol index, BoundExpression initial,
-        BoundExpression step, BoundExpression untilCondition)
+        BoundExpression step, BoundExpression untilCondition,
+        BoundPerformVarying? next = null)
     {
         Index = index;
         Initial = initial;
         Step = step;
         UntilCondition = untilCondition;
+        Next = next;
     }
 }
 
@@ -379,7 +382,7 @@ public sealed class BoundArithmeticStatement : BoundStatement
 
 public sealed class BoundEvaluateStatement : BoundStatement
 {
-    public IReadOnlyList<BoundExpression> Subjects { get; }
+    public IReadOnlyList<BoundExpression> Subjects { get; }  // empty for EVALUATE TRUE
     public IReadOnlyList<BoundEvaluateWhen> Whens { get; }
     public IReadOnlyList<BoundStatement>? WhenOther { get; }
 
@@ -398,20 +401,75 @@ public sealed class BoundEvaluateStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.EvaluateStatement;
 }
 
+/// <summary>
+/// One WHEN clause in an EVALUATE. SubjectConditions has one entry per subject
+/// (positional: SubjectConditions[i] matches Subjects[i]).
+/// For EVALUATE TRUE, SubjectConditions[0] is a BoundEvaluateConditionWhen.
+/// </summary>
 public sealed class BoundEvaluateWhen
 {
-    public IReadOnlyList<BoundExpression> Objects { get; }
+    public IReadOnlyList<BoundEvaluateCondition> SubjectConditions { get; }
     public IReadOnlyList<BoundStatement> Statements { get; }
-    public bool IsConditionWhen { get; }
 
     public BoundEvaluateWhen(
-        IReadOnlyList<BoundExpression> objects,
-        IReadOnlyList<BoundStatement> statements,
-        bool isConditionWhen = false)
+        IReadOnlyList<BoundEvaluateCondition> subjectConditions,
+        IReadOnlyList<BoundStatement> statements)
     {
-        Objects = objects;
+        SubjectConditions = subjectConditions;
         Statements = statements;
-        IsConditionWhen = isConditionWhen;
+    }
+}
+
+/// <summary>
+/// Base class for a single subject's match condition in an EVALUATE WHEN.
+/// </summary>
+public abstract class BoundEvaluateCondition { }
+
+/// <summary>
+/// Match subject against values and/or ranges: WHEN 1, WHEN 4 THRU 6.
+/// </summary>
+public sealed class BoundEvaluateValueCondition : BoundEvaluateCondition
+{
+    public IReadOnlyList<BoundExpression> Values { get; }
+    public IReadOnlyList<BoundEvaluateRange> Ranges { get; }
+    public bool IsAny { get; }  // WHEN ANY — matches unconditionally
+
+    public BoundEvaluateValueCondition(
+        IReadOnlyList<BoundExpression> values,
+        IReadOnlyList<BoundEvaluateRange> ranges,
+        bool isAny = false)
+    {
+        Values = values;
+        Ranges = ranges;
+        IsAny = isAny;
+    }
+}
+
+/// <summary>
+/// A range in an EVALUATE WHEN: value THRU value.
+/// </summary>
+public sealed class BoundEvaluateRange
+{
+    public BoundExpression From { get; }
+    public BoundExpression To { get; }
+
+    public BoundEvaluateRange(BoundExpression from, BoundExpression to)
+    {
+        From = from;
+        To = to;
+    }
+}
+
+/// <summary>
+/// For EVALUATE TRUE: the WHEN's object is a standalone condition.
+/// </summary>
+public sealed class BoundEvaluateConditionWhen : BoundEvaluateCondition
+{
+    public BoundExpression Condition { get; }
+
+    public BoundEvaluateConditionWhen(BoundExpression condition)
+    {
+        Condition = condition;
     }
 }
 

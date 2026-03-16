@@ -233,42 +233,56 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundPerformVarying BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
     {
+        // Build innermost AFTER clauses first, then chain outward
+        BoundPerformVarying? inner = null;
+        var afterClauses = ctx.performVaryingAfter();
+        if (afterClauses != null)
+        {
+            // Process AFTER clauses in reverse to build inside-out chain
+            for (int i = afterClauses.Length - 1; i >= 0; i--)
+            {
+                var afterCtx = afterClauses[i];
+                string afterId = afterCtx.identifier().GetText();
+                var afterSym = _semantic.ResolveData(afterId)!;
+                var afterExprs = afterCtx.arithmeticExpression();
+                var afterInit = BindFullExpression(afterExprs[0]);
+                var afterStep = BindFullExpression(afterExprs[1]);
+                var afterUntil = BindCondition(afterCtx.condition());
+                inner = new BoundPerformVarying(afterSym, afterInit, afterStep, afterUntil, inner);
+            }
+        }
+
+        // Outer VARYING
         string idName = ctx.identifier().GetText();
         var indexSym = _semantic.ResolveData(idName)!;
-
         var arithExprs = ctx.arithmeticExpression();
         var initial = BindFullExpression(arithExprs[0]);  // FROM
         var step = BindFullExpression(arithExprs[1]);      // BY
         var untilCond = BindCondition(ctx.condition());
 
-        return new BoundPerformVarying(indexSym, initial, step, untilCond);
+        return new BoundPerformVarying(indexSym, initial, step, untilCond, inner);
     }
 
     // ── EVALUATE ──
 
     private BoundEvaluateStatement BindEvaluate(CobolParserCore.EvaluateStatementContext ctx)
     {
-        // Bind subjects
+        // Bind subjects — detect EVALUATE TRUE
         var subjects = new List<BoundExpression>();
         bool isEvaluateTrue = false;
 
         foreach (var subCtx in ctx.evaluateSubject())
         {
-            // Check for EVALUATE TRUE: subject is the TRUE keyword
-            string subText = subCtx.GetText().Trim().ToUpperInvariant();
-            if (subText == "TRUE")
+            if (subCtx.TRUE_() != null)
             {
                 isEvaluateTrue = true;
-                // Don't add a subject — IsEvaluateTrue is indicated by empty Subjects
                 continue;
             }
-
-            // Try arithmetic expression first
             if (subCtx.arithmeticExpression() is { } arithCtx)
                 subjects.Add(BindFullExpression(arithCtx));
-            else if (subCtx.condition() is { } condCtx)
-                subjects.Add(BindCondition(condCtx));
         }
+
+        int subjectCount = isEvaluateTrue ? 1 : subjects.Count;
 
         // Bind WHEN clauses
         var whens = new List<BoundEvaluateWhen>();
@@ -276,20 +290,34 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         foreach (var whenClause in ctx.evaluateWhenClause())
         {
-            var objects = whenClause.evaluateObject();
-            bool isOther = false;
-
-            // Check if any object is OTHER
-            foreach (var obj in objects)
+            // WHEN OTHER
+            if (whenClause.OTHER() != null)
             {
-                if (obj.OTHER() != null)
-                {
-                    isOther = true;
-                    break;
-                }
+                var otherStmts = new List<BoundStatement>();
+                foreach (var imp in whenClause.imperativeStatement())
+                    foreach (var stmt in imp.statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) otherStmts.Add(bound);
+                    }
+                whenOther = otherStmts;
+                continue;
             }
 
-            // Bind the statements for this WHEN clause
+            // Normal WHEN: bind per-subject groups (separated by ALSO)
+            var groups = whenClause.evaluateWhenGroup();
+            var subjectConditions = new List<BoundEvaluateCondition>();
+
+            for (int i = 0; i < subjectCount && i < groups.Length; i++)
+            {
+                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue));
+            }
+            // If fewer groups than subjects → semantic error; fill with "never match"
+            // so the WHEN clause doesn't fire (missing subjects are non-matching)
+            for (int i = groups.Length; i < subjectCount; i++)
+                subjectConditions.Add(new BoundEvaluateValueCondition(
+                    Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: false));
+
             var stmts = new List<BoundStatement>();
             foreach (var imp in whenClause.imperativeStatement())
                 foreach (var stmt in imp.statement())
@@ -298,39 +326,61 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     if (bound != null) stmts.Add(bound);
                 }
 
-            if (isOther)
-            {
-                whenOther = stmts;
-            }
-            else
-            {
-                // Bind each object as an expression or condition
-                var boundObjects = new List<BoundExpression>();
-                foreach (var obj in objects)
-                {
-                    if (isEvaluateTrue)
-                    {
-                        // For EVALUATE TRUE, each WHEN object is a condition
-                        if (obj.condition() is { } condCtx)
-                            boundObjects.Add(BindCondition(condCtx));
-                        else if (obj.arithmeticExpression() is { } arithCtx)
-                            boundObjects.Add(BindFullExpression(arithCtx));
-                    }
-                    else
-                    {
-                        // For normal EVALUATE, objects are values to compare
-                        if (obj.arithmeticExpression() is { } arithCtx)
-                            boundObjects.Add(BindFullExpression(arithCtx));
-                        else if (obj.condition() is { } condCtx)
-                            boundObjects.Add(BindCondition(condCtx));
-                    }
-                }
-
-                whens.Add(new BoundEvaluateWhen(boundObjects, stmts, isEvaluateTrue));
-            }
+            whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
         }
 
         return new BoundEvaluateStatement(subjects, whens, whenOther);
+    }
+
+    private BoundEvaluateCondition BindEvaluateWhenGroup(
+        CobolParserCore.EvaluateWhenGroupContext groupCtx, bool isEvaluateTrue)
+    {
+        var items = groupCtx.evaluateWhenItem();
+
+        if (isEvaluateTrue)
+        {
+            // For EVALUATE TRUE, the WHEN item is a condition
+            if (items.Length > 0 && items[0].condition() is { } condCtx)
+                return new BoundEvaluateConditionWhen(BindCondition(condCtx));
+            // Fallback: try as arithmetic expression (bare identifier → condition)
+            if (items.Length > 0 && items[0].arithmeticExpression().Length > 0)
+                return new BoundEvaluateConditionWhen(BindFullExpression(items[0].arithmeticExpression(0)));
+            return new BoundEvaluateValueCondition(
+                Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: true);
+        }
+
+        // Normal EVALUATE: bind values and ranges
+        var values = new List<BoundExpression>();
+        var ranges = new List<BoundEvaluateRange>();
+        bool isAny = false;
+
+        foreach (var item in items)
+        {
+            if (item.ANY() != null)
+            {
+                isAny = true;
+                continue;
+            }
+
+            var arithExprs = item.arithmeticExpression();
+            if (arithExprs.Length == 2)
+            {
+                // Range: value THRU value
+                var from = BindFullExpression(arithExprs[0]);
+                var to = BindFullExpression(arithExprs[1]);
+                ranges.Add(new BoundEvaluateRange(from, to));
+            }
+            else if (arithExprs.Length == 1)
+            {
+                values.Add(BindFullExpression(arithExprs[0]));
+            }
+            else if (item.condition() is { } condCtx)
+            {
+                values.Add(BindCondition(condCtx));
+            }
+        }
+
+        return new BoundEvaluateValueCondition(values, ranges, isAny);
     }
 
     // ── WRITE ──

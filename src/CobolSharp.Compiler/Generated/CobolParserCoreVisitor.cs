@@ -801,6 +801,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitPerformVarying([NotNull] CobolParserCore.PerformVaryingContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performVaryingAfter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformVaryingAfter([NotNull] CobolParserCore.PerformVaryingAfterContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -819,11 +825,17 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitEvaluateWhenClause([NotNull] CobolParserCore.EvaluateWhenClauseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateObject"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenGroup"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitEvaluateObject([NotNull] CobolParserCore.EvaluateObjectContext context);
+	Result VisitEvaluateWhenGroup([NotNull] CobolParserCore.EvaluateWhenGroupContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateWhenItem([NotNull] CobolParserCore.EvaluateWhenItemContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStatement"/>.
 	/// </summary>

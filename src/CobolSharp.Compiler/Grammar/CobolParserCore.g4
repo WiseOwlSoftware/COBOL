@@ -798,6 +798,13 @@ performVarying
     : VARYING identifier FROM arithmeticExpression
       BY arithmeticExpression
       UNTIL condition
+      performVaryingAfter*
+    ;
+
+performVaryingAfter
+    : AFTER identifier FROM arithmeticExpression
+      BY arithmeticExpression
+      UNTIL condition
     ;
 
 // ==========================================
@@ -805,24 +812,30 @@ performVarying
 // ==========================================
 
 evaluateStatement
-    : EVALUATE evaluateSubject+
+    : EVALUATE evaluateSubject (ALSO evaluateSubject)*
       evaluateWhenClause+
       END_EVALUATE?
     ;
 
 evaluateSubject
-    : arithmeticExpression
-    | condition
+    : TRUE_                        // EVALUATE TRUE (condition-only mode)
+    | arithmeticExpression
     ;
 
 evaluateWhenClause
-    : WHEN evaluateObject+ imperativeStatement*
+    : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)* imperativeStatement*
+    | WHEN OTHER imperativeStatement*
     ;
 
-evaluateObject
-    : arithmeticExpression
-    | condition
-    | OTHER
+evaluateWhenGroup
+    : evaluateWhenItem+
+    ;
+
+evaluateWhenItem
+    : arithmeticExpression (THRU | THROUGH) arithmeticExpression   // range
+    | arithmeticExpression                                          // single value
+    | condition                                                     // for EVALUATE TRUE
+    | ANY                                                           // match anything
     ;
 
 // ==========================================
