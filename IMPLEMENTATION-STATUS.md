@@ -11,10 +11,10 @@ Verified against source code as of 2026-03-15 (session 10).
 | ADD | Yes | Yes | Multi-target, accumulator pattern, ON SIZE ERROR |
 | MULTIPLY | Yes | Yes | Multi-target, statement-level ArithmeticStatus |
 | IF / ELSE | — | — | Nested, with conditions |
-| PERFORM | — | — | Simple, TIMES, THRU (dynamic dispatch) |
+| PERFORM | — | — | Simple, TIMES, THRU, VARYING, UNTIL, AFTER (nested) |
 | GO TO | — | — | Within paragraph, within PERFORM THRU |
 | GO TO DEPENDING | — | — | CIL switch |
-| ~~EVALUATE / WHEN~~ | — | — | **MOVED TO NOT IMPLEMENTED** — see below |
+| EVALUATE | — | — | Multi-subject ALSO, THRU ranges, TRUE, ANY, WHEN OTHER |
 | OPEN / CLOSE | — | — | Sequential files |
 | READ | — | — | Sequential, AT END |
 | WRITE | — | — | AFTER ADVANCING, full record length |
@@ -38,22 +38,18 @@ These statements are parsed but produce NO code. The binder silently drops them.
 
 | Statement | Bound Node | Binder Handling | What's Needed |
 |-----------|-----------|----------------|---------------|
-| **SUBTRACT** | BoundArithmeticStatement | `break` (no-op) | IrPicSubtract + IrPicSubtractLiteral, LowerSubtract with ON SIZE ERROR, emitter |
-| **DIVIDE** | BoundArithmeticStatement | `break` (no-op) | IrPicDivide + IrPicDivideLiteral, LowerDivide with ON SIZE ERROR, emitter |
-| **COMPUTE** | BoundArithmeticStatement | `break` (no-op) | Expression tree evaluation → arithmetic IR, full expression lowering |
 | **CALL** | Returns null | Not bound | BoundCallStatement, parameter passing (BY REF/VAL/CONTENT), dynamic loading |
-| **EVALUATE** | Returns null | Not bound | BoundEvaluateStatement, WHEN/WHEN OTHER/WHEN THRU lowering, CIL emission |
 
 ## Incomplete — Partially Implemented
 
 | Feature | Current State | What's Missing |
 |---------|--------------|----------------|
-| ~~ADD ON SIZE ERROR~~ | **DONE** | Accumulator pattern with proper SIZE ERROR handling |
-| **EVALUATE** | Not bound or lowered at all | Full implementation needed: WHEN, WHEN OTHER, WHEN THRU |
-| **PERFORM VARYING** | Only TIMES and THRU work | VARYING/UNTIL clauses parsed but ignored in BoundTreeBuilder |
-| **PERFORM UNTIL** | Not implemented | TEST BEFORE/TEST AFTER semantics |
-| **ROUNDED on SUBTRACT/DIVIDE** | N/A (statements not implemented) | Will come with SUBTRACT/DIVIDE implementation |
 | **Numeric-to-alphanumeric zero-pad** | Works for MoveNumericToAlphanumeric | Other MOVE paths may not zero-pad |
+| **Class conditions** | Not implemented | IF NUMERIC, IF ALPHABETIC — needs lexer tokens + condition binding |
+| **Level-88 condition names** | Parsed, not in symbol table | Need semantic resolution + condition generation |
+| **NEXT SENTENCE** | Parsed, not bound | Jump to next period-terminated sentence |
+| **SIGN clause** | Only leading separate | Trailing separate, trailing/leading overpunch needed |
+| **Abbreviated relations** | Not implemented | `A > B AND C` → `A > B AND A > C` |
 
 ## Subsystem Status
 
