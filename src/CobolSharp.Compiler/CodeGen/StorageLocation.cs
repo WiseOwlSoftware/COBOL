@@ -45,8 +45,11 @@ public static class CompilerPicDescriptorFactory
         bool isSigned = pic?.IsSigned ?? false;
         var signStorage = DetermineSignStorage(isSigned, symbol);
 
-        // If we have a PIC string AND it's edited, use the canonical factory for pattern expansion
-        if (symbol.PicString != null && (pic?.IsEdited ?? false))
+        // For any DISPLAY numeric field with a PIC string, use the canonical runtime factory.
+        // This ensures PicDescriptor semantics (digits, fractions, sign, editing, pattern)
+        // are identical between compiler and runtime — no divergence between PicLayout and factory.
+        if (symbol.PicString != null && category.IsNumericLike() &&
+            symbol.Usage == UsageKind.Display)
         {
             var desc = Runtime.PicDescriptorFactory.FromPicBody(
                 symbol.PicString,
@@ -74,8 +77,10 @@ public static class CompilerPicDescriptorFactory
                 editPattern: desc.EditPattern);
         }
 
-        // Non-edited fields: use compiler's PicLayout directly
+        // Non-DISPLAY or non-numeric: use compiler's PicLayout directly
         var editingKind = EditingKind.None;
+        if (pic?.IsEdited ?? false)
+            editingKind = EditingKind.ZeroSuppress;
 
         return new PicDescriptor(
             totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
