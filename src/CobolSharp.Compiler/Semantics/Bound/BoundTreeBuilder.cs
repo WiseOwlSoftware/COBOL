@@ -832,41 +832,45 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (ctx == null) return null;
 
-        var imperatives = ((dynamic)ctx).imperativeStatement()
-            as Antlr4.Runtime.Tree.IParseTree[];
-        if (imperatives == null || imperatives.Length == 0) return null;
+        // Get all imperativeStatement children using the tree API
+        var imperatives = new List<CobolParserCore.ImperativeStatementContext>();
+        for (int i = 0; i < ctx.ChildCount; i++)
+        {
+            if (ctx.GetChild(i) is CobolParserCore.ImperativeStatementContext imp)
+                imperatives.Add(imp);
+        }
 
-        // Check if this is the standalone NOT form (no ON keyword before SIZE)
-        string ruleText = ctx.GetText().ToUpperInvariant();
-        bool startsWithNot = ruleText.StartsWith("NOT");
+        if (imperatives.Count == 0) return null;
+
+        // Determine form by checking first token
+        var firstToken = ctx.Start;
+        bool startsWithNot = firstToken?.Type == CobolParserCore.NOT;
 
         var onSizeError = new List<BoundStatement>();
         var notOnSizeError = new List<BoundStatement>();
 
         if (startsWithNot)
         {
-            // NOT ON SIZE ERROR only
+            // NOT ON SIZE ERROR only — all imperatives go to notOnSizeError
             foreach (var imp in imperatives)
-            {
-                if (imp is CobolParserCore.ImperativeStatementContext impCtx)
-                    foreach (var stmt in impCtx.statement())
-                    {
-                        var bound = BindStatement(stmt);
-                        if (bound != null) notOnSizeError.Add(bound);
-                    }
-            }
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnSizeError.Add(bound);
+                }
         }
         else
         {
             // ON SIZE ERROR (+ optional NOT ON SIZE ERROR)
-            if (imperatives.Length > 0 && imperatives[0] is CobolParserCore.ImperativeStatementContext imp0)
-                foreach (var stmt in imp0.statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onSizeError.Add(bound);
-                }
-            if (imperatives.Length > 1 && imperatives[1] is CobolParserCore.ImperativeStatementContext imp1)
-                foreach (var stmt in imp1.statement())
+            // First imperative is for ON SIZE ERROR
+            foreach (var stmt in imperatives[0].statement())
+            {
+                var bound = BindStatement(stmt);
+                if (bound != null) onSizeError.Add(bound);
+            }
+            // Second imperative (if present) is for NOT ON SIZE ERROR
+            if (imperatives.Count > 1)
+                foreach (var stmt in imperatives[1].statement())
                 {
                     var bound = BindStatement(stmt);
                     if (bound != null) notOnSizeError.Add(bound);
