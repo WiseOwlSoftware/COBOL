@@ -175,6 +175,30 @@ public static class PicRuntime
         else if (digits.Length > pic.TotalDigits)
             digits = digits.Substring(digits.Length - pic.TotalDigits);
 
+        // Pre-scan for sign symbols so we can distinguish fixed vs floating
+        int plusCount = 0;
+        int minusCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == '+') plusCount++;
+            else if (p == '-') minusCount++;
+        }
+
+        // Single '-' and no '+' → fixed sign position (e.g. PIC -9(9).9(9))
+        int fixedMinusIndex = -1;
+        if (minusCount == 1 && plusCount == 0)
+        {
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (char.ToUpperInvariant(pattern[i]) == '-')
+                {
+                    fixedMinusIndex = i;
+                    break;
+                }
+            }
+        }
+
         // Pass 1: Fill digit positions right-to-left, place insertion chars
         var output = new char[pattern.Length];
         int digitIdx = digits.Length - 1;
@@ -190,7 +214,15 @@ public static class PicRuntime
                 case '+':
                 case '-':
                 case '$':
-                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    if (i == fixedMinusIndex && p == '-')
+                    {
+                        // Fixed sign: do not consume a digit here
+                        output[i] = ' ';
+                    }
+                    else
+                    {
+                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    }
                     break;
 
                 case '.':
@@ -224,7 +256,7 @@ public static class PicRuntime
 
                 case 'R': // second char of CR — already handled
                     if (i > 0 && char.ToUpperInvariant(pattern[i - 1]) == 'C')
-                        break; // already set by 'C' handler
+                        break;
                     output[i] = pattern[i];
                     break;
 
@@ -244,7 +276,6 @@ public static class PicRuntime
         }
 
         // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols
-        // Suppress leading zeros and adjacent insertion characters (commas, etc.)
         bool suppressing = true;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
@@ -252,76 +283,55 @@ public static class PicRuntime
             switch (p)
             {
                 case 'Z':
-                    if (output[i] == '0')
-                        output[i] = ' ';
-                    else
-                        suppressing = false;
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
                     break;
 
                 case '*':
-                    if (output[i] == '0')
-                        output[i] = '*';
-                    else
-                        suppressing = false;
+                    if (output[i] == '0') output[i] = '*';
+                    else suppressing = false;
                     break;
 
                 case '+':
-                    if (output[i] == '0')
-                        output[i] = ' ';
-                    else
-                        suppressing = false;
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
                     break;
 
                 case '-':
-                    if (output[i] == '0')
-                        output[i] = ' ';
-                    else
-                        suppressing = false;
+                    if (i == fixedMinusIndex)
+                        break; // Fixed sign does not participate in floating suppression
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
                     break;
 
                 case '$':
-                    if (output[i] == '0')
-                        output[i] = ' ';
-                    else
-                        suppressing = false;
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
                     break;
 
                 case ',':
-                    // Comma in suppressed area becomes space (for Z) or * (for *)
                     output[i] = ' ';
                     break;
 
                 case '9':
-                    // 9 stops suppression — always show digit
                     suppressing = false;
                     break;
 
                 case '.':
-                    // Decimal point stops suppression
                     suppressing = false;
                     break;
 
                 default:
-                    // Other insertion characters (B, /, 0) stay as-is during suppression
                     break;
             }
         }
 
         // Handle floating sign symbols: find the rightmost suppressed +/- and place sign there
-        // For floating +: the last + before the first significant digit gets the sign
-        // For floating -: same but only shows '-' for negative
-        bool hasFloatingPlus = false;
-        bool hasFloatingMinus = false;
-        for (int i = 0; i < pattern.Length; i++)
-        {
-            char p = char.ToUpperInvariant(pattern[i]);
-            if (p == '+') hasFloatingPlus = true;
-            else if (p == '-') hasFloatingMinus = true;
-        }
+        bool hasFloatingPlus = plusCount > 0 && (plusCount + minusCount) > 1;
+        bool hasFloatingMinus = minusCount > 0 && (plusCount + minusCount) > 1;
 
         if (hasFloatingPlus)
         {
-            // Find last suppressed position (space) that was a '+' pattern
             int signPos = -1;
             for (int i = 0; i < pattern.Length; i++)
             {
@@ -340,9 +350,9 @@ public static class PicRuntime
             for (int i = 0; i < pattern.Length; i++)
             {
                 char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '-' && output[i] == ' ')
+                if (p == '-' && i != fixedMinusIndex && output[i] == ' ')
                     signPos = i;
-                else if (p == '-' && output[i] != ' ')
+                else if (p == '-' && i != fixedMinusIndex && output[i] != ' ')
                     break;
             }
             if (signPos >= 0)
@@ -350,15 +360,13 @@ public static class PicRuntime
         }
 
         // Handle floating $: place '$' at rightmost suppressed $ position
-        bool hasFloatingDollar = false;
         int dollarCount = 0;
         for (int i = 0; i < pattern.Length; i++)
         {
             if (char.ToUpperInvariant(pattern[i]) == '$') dollarCount++;
         }
-        hasFloatingDollar = dollarCount > 1;
 
-        if (hasFloatingDollar)
+        if (dollarCount > 1)
         {
             int dollarPos = -1;
             for (int i = 0; i < pattern.Length; i++)
@@ -383,6 +391,12 @@ public static class PicRuntime
                     break;
                 }
             }
+        }
+
+        // Fixed leading '-' (e.g. PIC -9(9).9(9)): show '-' only for negative, space for positive
+        if (fixedMinusIndex >= 0)
+        {
+            output[fixedMinusIndex] = negative ? '-' : ' ';
         }
 
         return new string(output);
