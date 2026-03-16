@@ -1,0 +1,154 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM                                        
+                                                                                                                        
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION                                         
+                                                                                                                        
+TEST RESULT OF NC106A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.     
+                                                                                                                        
+                                                                                                                        
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985          
+                                                                                                                        
+                                                                                                                        
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS                      
+ TESTED               FAIL                                                                                              
+                                                                                                                        
+ ***********************************************************************************************************************
+ SUBTRACT             PASS  SUB-TEST-F1-1                                                                               
+ SUBTRACT             PASS  SUB-TEST-F1-2                                                                               
+ SUBTRACT             PASS  SUB-TEST-F1-3-1                                                                             
+ SUBTRACT             PASS  SUB-TEST-F1-3-2                                                                             
+ SUBTRACT             PASS  SUB-TEST-F1-4-1                                                                             
+ SUBTRACT             PASS  SUB-TEST-F1-4-2                                                                             
+ SUBTRACT ---                                                                                                           
+   FROM               PASS  SUB-TEST-F1-5                                                                               
+   FROM               PASS  SUB-TEST-F1-6                                                                               
+   ROUNDED            PASS  SUB-TEST-F1-7                                                                               
+   SIZE ERROR         PASS  SUB-TEST-F1-8-1                                                                             
+   SIZE ERROR         PASS  SUB-TEST-F1-8-2                                                                             
+   ROUNDED,SIZE ERROR PASS  SUB-TEST-F1-9-1                                                                             
+   ROUNDED,SIZE ERROR PASS  SUB-TEST-F1-9-2                                                                             
+   ROUNDED,SIZE ERROR PASS  SUB-TEST-F1-10-1                                                                            
+   ROUNDED,SIZE ERROR PASS  SUB-TEST-F1-10-2                                                                            
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-11                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-12                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-13                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-14-1                                                                            
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-14-2                                                                            
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-15                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-16                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-17                                                                              
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-18-1                                                                            
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-18-2                                                                            
+   COMP VS. DISPLAY   PASS  SUB-TEST-F1-19                                                                              
+ SUBT, COMP, SIZE ERR PASS  SUB-TEST-F1-20                                                                              
+ SUBT, COMP, SIZE ERR PASS  SUB-TEST-F1-21                                                                              
+ SUBT, COMP, SIZE ERR PASS  SUB-TEST-F1-22                                                                              
+ SUBT, COMP, SIZE ERR PASS  SUB-TEST-F1-23                                                                              
+ SUBT, COMP, SIZE ERR PASS  SUB-TEST-F1-24                                                                              
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-25                                                                              
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-1                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-2                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-3                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-4                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-5                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-6                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-7                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-8                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-9                                                                            
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-10                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-11                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-12                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-13                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-14                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-15                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-16                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-17                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-18                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-19                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-20                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-26-21                                                                           
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-27-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-27-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-27-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-27-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-27-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-28-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-29-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-30-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-31-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-32-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-6   .06                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-33-7   .07                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-34-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-34-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-34-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-34-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-34-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-35-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-35-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-35-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-35-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-35-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-36-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-36-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-36-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-36-4   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-36-5   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-37-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-37-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-37-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-37-4   .04                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-37-5   .05                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-38-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-38-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-38-3   .03                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-39-1   .01                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-39-2   .02                                                                      
+ SUBTR LIMIT TESTS    PASS  SUB-TEST-F1-39-3   .03                                                                      
+ ***********************************************************************************************************************
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                    END OF TEST-  NC106A                                                
+                                                                                                                        
+                                                    126 OF 126  TESTS WERE EXECUTED SUCCESSFULLY                        
+                                                    NO  TEST(S) FAILED                                                  
+                                                    NO  TEST(S) DELETED                                                 
+                                                    NO  TEST(S) REQUIRE INSPECTION                                      
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

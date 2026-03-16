@@ -77,26 +77,59 @@ public static class PicRuntime
         else if (digits.Length > pic.TotalDigits)
             digits = digits.Substring(digits.Length - pic.TotalDigits);
 
+        // Split digits into integer and fraction parts
+        int intDigits = pic.TotalDigits - pic.FractionDigits;
+        string intPart = digits.Substring(0, intDigits);
+        string fracPart = pic.FractionDigits > 0 ? digits.Substring(intDigits) : "";
+
+        // Determine if decimal point insertion is needed
+        // StorageLength > TotalDigits + sign chars means there's room for a decimal point
+        bool hasSeparateSign = pic.IsSigned && pic.Editing != EditingKind.CreditDebit;
+        int signChars = hasSeparateSign ? 1 : 0;
+        int crDbChars = (pic.Editing == EditingKind.CreditDebit) ? 2 : 0;
+        bool hasDecimalPoint = pic.FractionDigits > 0 &&
+            pic.StorageLength > pic.TotalDigits + signChars + crDbChars;
+
         var chars = new char[pic.StorageLength];
         for (int i = 0; i < chars.Length; i++)
             chars[i] = ' ';
 
-        // Right-justify digits
-        int start = pic.StorageLength - digits.Length;
-        for (int i = 0; i < digits.Length && start + i < pic.StorageLength; i++)
-            chars[start + i] = digits[i];
+        // Build output: [sign] [integer digits] [.] [fraction digits] [CR/DB]
+        int pos = signChars; // reserve leading sign position
+
+        // Right-justify integer digits in their field
+        int intFieldWidth = intDigits;
+        int intStart = pos + (intFieldWidth - intPart.Length);
+        for (int i = 0; i < intPart.Length; i++)
+        {
+            int idx = intStart + i;
+            if (idx >= 0 && idx < chars.Length)
+                chars[idx] = intPart[i];
+        }
+        pos += intFieldWidth;
+
+        // Decimal point
+        if (hasDecimalPoint && pos < chars.Length)
+            chars[pos++] = '.';
+
+        // Fraction digits
+        for (int i = 0; i < fracPart.Length && pos + i < chars.Length; i++)
+            chars[pos + i] = fracPart[i];
 
         // Apply editing
         switch (pic.Editing)
         {
             case EditingKind.ZeroSuppress:
-                // Replace leading zeros with spaces
-                for (int i = 0; i < chars.Length; i++)
+            {
+                // Replace leading zeros with spaces (up to but not including decimal point)
+                int suppressEnd = hasDecimalPoint ? signChars + intFieldWidth : chars.Length;
+                for (int i = signChars; i < suppressEnd; i++)
                 {
                     if (chars[i] == '0') chars[i] = ' ';
                     else break;
                 }
                 break;
+            }
 
             case EditingKind.Currency:
                 // Place $ before first non-space digit
@@ -115,12 +148,9 @@ public static class PicRuntime
                 break;
         }
 
-        if (negative && pic.IsSigned && pic.Editing != EditingKind.CreditDebit)
+        if (negative && hasSeparateSign)
         {
-            for (int i = 0; i < chars.Length; i++)
-            {
-                if (chars[i] != ' ') { chars[i] = '-'; break; }
-            }
+            chars[0] = '-';
         }
 
         return new string(chars);
@@ -343,6 +373,42 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest - literal;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // ADD/SUBTRACT with pre-accumulated operand sum
+    // COBOL spec requires summing all operands first, then
+    // applying the sum to each target (with per-target rounding).
+    // ══════════════════════════════════════════════════════════
+
+    public static void AddAccumulatedToField(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal accumulated, int roundingMode, ref ArithmeticStatus status)
+    {
+        decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
+        decimal value = dest + accumulated;
+        value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    public static void SubtractAccumulatedFromField(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal accumulated, int roundingMode, ref ArithmeticStatus status)
+    {
+        decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
+        decimal value = dest - accumulated;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
         if (WouldOverflow(value, destPic))
         {
@@ -986,7 +1052,7 @@ public static class PicRuntime
                 try { intVal = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
 
-                int digits = intVal == 0 ? 1 : (int)Math.Floor(Math.Log10((double)Math.Abs(intVal))) + 1;
+                int digits = CountDigits(Math.Abs(intVal));
                 int capacity = (destPic.StorageLength * 2) - 1;
                 return digits > capacity;
             }
@@ -1003,10 +1069,29 @@ public static class PicRuntime
                 try { intVal = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
 
-                int digits = intVal == 0 ? 1 : (int)Math.Floor(Math.Log10((double)Math.Abs(intVal))) + 1;
+                // Count digits without floating-point conversion to avoid
+                // precision loss for large values (e.g., 999999999999998765
+                // rounds to 1.0E+18 as double, giving wrong digit count)
+                int digits = CountDigits(Math.Abs(intVal));
                 return digits > destPic.TotalDigits;
             }
         }
+    }
+
+    /// <summary>
+    /// Count decimal digits in a non-negative long without floating-point conversion.
+    /// Avoids precision loss that occurs with Math.Log10((double)value) for large values.
+    /// </summary>
+    private static int CountDigits(long value)
+    {
+        if (value == 0) return 1;
+        int count = 0;
+        while (value > 0)
+        {
+            count++;
+            value /= 10;
+        }
+        return count;
     }
 
     private static decimal Pow10(int scale)
@@ -1015,6 +1100,23 @@ public static class PicRuntime
         for (int i = 0; i < scale; i++)
             result *= 10m;
         return result;
+    }
+
+    /// <summary>
+    /// Returns the display-format string for a PIC field stored in a byte array.
+    /// For numeric fields, decodes and formats with leading zeros.
+    /// For alphanumeric fields, returns raw bytes as a string with trailing spaces trimmed.
+    /// </summary>
+    public static string GetDisplayString(
+        byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        if (pic.Category.IsNumericLike())
+        {
+            decimal value = DecodeNumeric(area, offset, length, pic);
+            return FormatNumericForDisplay(value, pic.FractionDigits, pic.TotalDigits);
+        }
+        // Alphanumeric / edited: return raw bytes as string, trim trailing spaces
+        return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
     }
 
     private static void MoveStringToBytes(byte[] area, int offset, int length, string value)

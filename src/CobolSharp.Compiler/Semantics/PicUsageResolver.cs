@@ -66,6 +66,7 @@ public static class PicUsageResolver
         int leadingPScaling = 0;        // P before any 9 digits
         int trailingPScaling = 0;       // P after 9 digits
         bool hasRealDigits = false;     // Have we seen any 9 digits?
+        int insertionChars = 0;         // Non-digit insertion chars (., B, /, ,)
 
         while (pos < text.Length)
         {
@@ -134,21 +135,43 @@ public static class PicUsageResolver
                     break;
                 }
 
+                case '.':
+                {
+                    // Decimal point insertion — sets decimal position (like V)
+                    // but takes 1 byte of storage (unlike V which is implied).
+                    // Digits after '.' are fraction digits.
+                    edited = true;
+                    pastDecimal = true;
+                    insertionChars++;
+                    pos++;
+                    break;
+                }
+
+                case ',':
+                case 'B':
+                case '/':
+                {
+                    // Insertion editing — takes storage space but not a digit position
+                    edited = true;
+                    insertionChars++;
+                    pos++;
+                    break;
+                }
+
                 case 'Z':
                 case '*':
                 case '+':
                 case '-':
                 case '$':
-                case 'B':
                 case '0':
-                case '/':
-                case ',':
-                case '.':
                 {
-                    // Editing symbols
+                    // Replacement editing symbols — each replaces a digit position
                     edited = true;
                     int count = ParseRepeatCount(text, ref pos);
-                    integerDigits += count;
+                    if (pastDecimal)
+                        fractionDigits += count;
+                    else
+                        integerDigits += count;
                     break;
                 }
 
@@ -187,7 +210,7 @@ public static class PicUsageResolver
             integerDigits = 0;
         }
 
-        int length = integerDigits + fractionDigits;
+        int length = integerDigits + fractionDigits + insertionChars;
 
         // Classify into CobolCategory using the full lattice
         CobolCategory category;

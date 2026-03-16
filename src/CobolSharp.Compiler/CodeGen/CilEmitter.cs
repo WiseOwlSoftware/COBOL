@@ -462,6 +462,56 @@ public sealed class CilEmitter
                 EmitPicSubtractLiteral(il, subLit);
                 break;
 
+            case IrInitAccumulator initAcc:
+            {
+                var local = getLocal(initAcc.Result!.Value);
+                EmitLoadDecimal(il, 0m);
+                il.Append(il.Create(OpCodes.Stloc, local));
+                break;
+            }
+
+            case IrAccumulateField accField:
+            {
+                var accLocal = getLocal(accField.Accumulator);
+                il.Append(il.Create(OpCodes.Ldloc, accLocal));
+                // DecodeNumeric(area, offset, length, pic) → decimal
+                EmitLoadBackingArray(il, accField.Source.Area);
+                il.Append(il.Create(OpCodes.Ldc_I4, accField.Source.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, accField.Source.Length));
+                EmitLoadPicDescriptor(il, accField.Source.Pic);
+                var decode = _module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(Runtime.PicDescriptor) })!);
+                il.Append(il.Create(OpCodes.Call, decode));
+                // accumulator += decoded
+                il.Append(il.Create(OpCodes.Call,
+                    _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
+                        new[] { typeof(decimal), typeof(decimal) })!)));
+                il.Append(il.Create(OpCodes.Stloc, accLocal));
+                break;
+            }
+
+            case IrAccumulateLiteral accLit:
+            {
+                var accLocal = getLocal(accLit.Accumulator);
+                il.Append(il.Create(OpCodes.Ldloc, accLocal));
+                EmitLoadDecimal(il, accLit.Value);
+                il.Append(il.Create(OpCodes.Call,
+                    _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
+                        new[] { typeof(decimal), typeof(decimal) })!)));
+                il.Append(il.Create(OpCodes.Stloc, accLocal));
+                break;
+            }
+
+            case IrAddAccumulatedToTarget addAcc:
+                EmitAddAccumulatedToTarget(il, addAcc, getLocal);
+                break;
+
+            case IrSubtractAccumulatedFromTarget subAcc:
+                EmitSubtractAccumulatedFromTarget(il, subAcc, getLocal);
+                break;
+
             case IrComputeStore compStore:
                 EmitComputeStore(il, compStore);
                 break;
@@ -492,6 +542,10 @@ public sealed class CilEmitter
 
             case IrRuntimeCall rtc:
                 EmitRuntimeCall(il, rtc, getLocal);
+                break;
+
+            case IrPicDisplay disp:
+                EmitPicDisplay(il, disp);
                 break;
 
             default:
@@ -1087,6 +1141,44 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    private void EmitAddAccumulatedToTarget(ILProcessor il, IrAddAccumulatedToTarget inst,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, inst.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
+        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        var accLocal = getLocal(inst.Accumulator);
+        il.Append(il.Create(OpCodes.Ldloc, accLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("AddAccumulatedToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitSubtractAccumulatedFromTarget(ILProcessor il, IrSubtractAccumulatedFromTarget inst,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, inst.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
+        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        var accLocal = getLocal(inst.Accumulator);
+        il.Append(il.Create(OpCodes.Ldloc, accLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("SubtractAccumulatedFromField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     private void EmitPicDivide(ILProcessor il, IrPicDivide div)
     {
         EmitLoadBackingArray(il, div.Destination.Area);
@@ -1464,6 +1556,64 @@ public sealed class CilEmitter
         var getter = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
         il.Append(il.Create(OpCodes.Callvirt, getter));
+    }
+
+    private void EmitPicDisplay(ILProcessor il, IrPicDisplay disp)
+    {
+        // Strategy: push each operand as a string, then concat and call Console.WriteLine.
+        // For a single operand, just push it directly. For multiple, use String.Concat.
+        if (disp.Operands.Count == 0)
+        {
+            // DISPLAY with no operands: just output empty line
+            il.Append(il.Create(OpCodes.Ldstr, ""));
+        }
+        else if (disp.Operands.Count == 1)
+        {
+            EmitDisplayOperand(il, disp.Operands[0]);
+        }
+        else
+        {
+            // Create a string array, populate it, then call String.Concat(string[])
+            il.Append(il.Create(OpCodes.Ldc_I4, disp.Operands.Count));
+            il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(string))));
+
+            for (int i = 0; i < disp.Operands.Count; i++)
+            {
+                il.Append(il.Create(OpCodes.Dup)); // keep array ref
+                il.Append(il.Create(OpCodes.Ldc_I4, i));
+                EmitDisplayOperand(il, disp.Operands[i]);
+                il.Append(il.Create(OpCodes.Stelem_Ref));
+            }
+
+            var concat = _module.ImportReference(
+                typeof(string).GetMethod("Concat", new[] { typeof(string[]) })!);
+            il.Append(il.Create(OpCodes.Call, concat));
+        }
+
+        var consoleWriteLine = _module.ImportReference(
+            typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, consoleWriteLine));
+    }
+
+    private void EmitDisplayOperand(ILProcessor il, DisplayOperand operand)
+    {
+        if (operand is DisplayLiteralOperand lit)
+        {
+            il.Append(il.Create(OpCodes.Ldstr, lit.Value));
+        }
+        else if (operand is DisplayFieldOperand field)
+        {
+            // Call PicRuntime.GetDisplayString(byte[] area, int offset, int length, PicDescriptor pic)
+            EmitLoadBackingArray(il, field.Location.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, field.Location.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, field.Location.Length));
+            EmitLoadPicDescriptor(il, field.Location.Pic);
+
+            var method = _module.ImportReference(
+                typeof(PicRuntime).GetMethod("GetDisplayString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
     }
 
     private void EmitRuntimeCall(ILProcessor il, IrRuntimeCall rtc,

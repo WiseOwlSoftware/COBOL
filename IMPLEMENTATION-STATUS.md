@@ -1,6 +1,6 @@
 # CobolSharp Implementation Status
 
-Verified against source code as of 2026-03-15 (session 9, commit f11402e).
+Verified against source code as of 2026-03-15 (session 10).
 
 ## Fully Implemented (Binder → IR → CIL → Runtime)
 
@@ -8,7 +8,7 @@ Verified against source code as of 2026-03-15 (session 9, commit f11402e).
 |-----------|:---:|:---:|-------|
 | DISPLAY | — | — | Multi-operand, fields + literals |
 | MOVE | — | Yes | Numeric, alphanumeric, numeric-edited, group dispatch |
-| ADD | **No** | Yes | Single target only; ON SIZE ERROR fields exist in AST but not lowered |
+| ADD | Yes | Yes | Multi-target, accumulator pattern, ON SIZE ERROR |
 | MULTIPLY | Yes | Yes | Multi-target, statement-level ArithmeticStatus |
 | IF / ELSE | — | — | Nested, with conditions |
 | PERFORM | — | — | Simple, TIMES, THRU (dynamic dispatch) |
@@ -48,7 +48,7 @@ These statements are parsed but produce NO code. The binder silently drops them.
 
 | Feature | Current State | What's Missing |
 |---------|--------------|----------------|
-| **ADD ON SIZE ERROR** | Fields exist in BoundAddStatement | LowerAdd doesn't create conditional blocks like LowerMultiply does |
+| ~~ADD ON SIZE ERROR~~ | **DONE** | Accumulator pattern with proper SIZE ERROR handling |
 | **EVALUATE** | Not bound or lowered at all | Full implementation needed: WHEN, WHEN OTHER, WHEN THRU |
 | **PERFORM VARYING** | Only TIMES and THRU work | VARYING/UNTIL clauses parsed but ignored in BoundTreeBuilder |
 | **PERFORM UNTIL** | Not implemented | TEST BEFORE/TEST AFTER semantics |
@@ -97,8 +97,11 @@ silently through the compilation with no diagnostic.
 
 | Test | Status | Notes |
 |------|--------|-------|
-| NC101A (MULTIPLY) | **PASS — byte-for-byte match** | 93/93 tests, exact output |
-| All others | Not yet attempted | 391 programs extracted, only NC101A validated |
+| NC101A (MULTIPLY) | **PASS — byte-for-byte match** | 94/94 tests, exact output |
+| NC171A (DIVIDE F1) | **PASS — 100%** | 109/109 tests |
+| NC106A (SUBTRACT F1) | **PASS — 100%** | 127/127 tests |
+| NC176A (ADD F1) | **PASS — 100%** | 125/125 tests |
+| All others | Not yet attempted | 391 programs extracted, 4 validated |
 
 ## Priority Order for Next Implementation
 

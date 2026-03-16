@@ -331,6 +331,84 @@ public sealed class IrPicSubtractLiteral : IrInstruction
     }
 }
 
+// ── Accumulator pattern for multi-operand ADD/SUBTRACT ──
+// COBOL spec: "All operands preceding TO/FROM are summed, then the sum is applied to each target."
+
+/// <summary>
+/// Initialize a decimal accumulator local to zero.
+/// </summary>
+public sealed class IrInitAccumulator : IrInstruction
+{
+    public IrInitAccumulator(IrValue result)
+    {
+        Result = result;
+    }
+}
+
+/// <summary>
+/// Decode a field to decimal and add it to the accumulator.
+/// </summary>
+public sealed class IrAccumulateField : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public CodeGen.StorageLocation Source { get; }
+
+    public IrAccumulateField(IrValue accumulator, CodeGen.StorageLocation source)
+    {
+        Accumulator = accumulator;
+        Source = source;
+    }
+}
+
+/// <summary>
+/// Add a literal decimal to the accumulator.
+/// </summary>
+public sealed class IrAccumulateLiteral : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public decimal Value { get; }
+
+    public IrAccumulateLiteral(IrValue accumulator, decimal value)
+    {
+        Accumulator = accumulator;
+        Value = value;
+    }
+}
+
+/// <summary>
+/// target = target + accumulator, with rounding and overflow detection.
+/// </summary>
+public sealed class IrAddAccumulatedToTarget : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrAddAccumulatedToTarget(IrValue accumulator, CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Accumulator = accumulator;
+        Destination = dest;
+        Rounding = rounding;
+    }
+}
+
+/// <summary>
+/// target = target - accumulator, with rounding and overflow detection.
+/// </summary>
+public sealed class IrSubtractAccumulatedFromTarget : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public CodeGen.StorageLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrSubtractAccumulatedFromTarget(IrValue accumulator, CodeGen.StorageLocation dest, int rounding = 0)
+    {
+        Accumulator = accumulator;
+        Destination = dest;
+        Rounding = rounding;
+    }
+}
+
 public sealed class IrPicDivide : IrInstruction
 {
     public CodeGen.StorageLocation Left { get; }
@@ -449,6 +527,38 @@ public sealed class IrPicMove : IrInstruction
         Source = source;
         Destination = destination;
         Rounding = rounding;
+    }
+}
+
+// ── DISPLAY ──
+
+/// <summary>
+/// Represents a single DISPLAY operand: either a string literal or a field reference.
+/// </summary>
+public abstract class DisplayOperand { }
+
+public sealed class DisplayLiteralOperand : DisplayOperand
+{
+    public string Value { get; }
+    public DisplayLiteralOperand(string value) => Value = value;
+}
+
+public sealed class DisplayFieldOperand : DisplayOperand
+{
+    public CodeGen.StorageLocation Location { get; }
+    public DisplayFieldOperand(CodeGen.StorageLocation location) => Location = location;
+}
+
+/// <summary>
+/// DISPLAY statement: outputs concatenated operands (literals + field values) to console.
+/// </summary>
+public sealed class IrPicDisplay : IrInstruction
+{
+    public IReadOnlyList<DisplayOperand> Operands { get; }
+
+    public IrPicDisplay(IReadOnlyList<DisplayOperand> operands)
+    {
+        Operands = operands;
     }
 }
 

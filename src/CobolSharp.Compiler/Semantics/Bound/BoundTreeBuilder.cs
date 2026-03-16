@@ -66,6 +66,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.ifStatement() is { } iff) return BindIf(iff);
         if (ctx.goToStatement() is { } gt) return BindGoTo(gt);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
+        if (ctx.gobackStatement() is { }) return new BoundStopStatement();
         if (ctx.exitStatement() is { }) return new BoundExitStatement();
         if (ctx.openStatement() is { }) return new BoundOpenStatement();
         if (ctx.closeStatement() is { }) return new BoundCloseStatement();

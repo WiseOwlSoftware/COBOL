@@ -182,23 +182,33 @@ public sealed class Binder
 
     private void LowerDisplay(BoundDisplayStatement disp, IrBasicBlock block)
     {
-        // Concatenate operand texts for now
-        var parts = new List<string>();
+        var operands = new List<IR.DisplayOperand>();
         foreach (var op in disp.Operands)
         {
             if (op is BoundLiteralExpression lit && lit.Value is string s)
-                parts.Add(s);
+            {
+                operands.Add(new IR.DisplayLiteralOperand(s));
+            }
+            else if (op is BoundLiteralExpression numLit && numLit.Value is decimal d)
+            {
+                operands.Add(new IR.DisplayLiteralOperand(
+                    d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            }
             else if (op is BoundIdentifierExpression id)
-                parts.Add($"[{id.Symbol.Name}]"); // placeholder — later load from storage
+            {
+                var loc = _semantic.GetStorageLocation(id.Symbol);
+                if (loc.HasValue)
+                    operands.Add(new IR.DisplayFieldOperand(loc.Value));
+                else
+                    operands.Add(new IR.DisplayLiteralOperand($"[{id.Symbol.Name}]"));
+            }
             else
-                parts.Add(op.ToString() ?? "");
+            {
+                operands.Add(new IR.DisplayLiteralOperand(op.ToString() ?? ""));
+            }
         }
 
-        string text = string.Join(" ", parts);
-        var constVal = _valueFactory.Next(IrPrimitiveType.String);
-        block.Instructions.Add(new IrLoadConst(constVal, text));
-        block.Instructions.Add(new IrRuntimeCall(
-            null, "CobolRuntime.Display", new[] { constVal }));
+        block.Instructions.Add(new IR.IrPicDisplay(operands));
     }
 
     // ── MOVE ──
@@ -374,32 +384,36 @@ public sealed class Binder
         // One ArithmeticStatus per statement — init once, sticky across all targets
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        // SUBTRACT A B C FROM T1 T2 → for each target, subtract each operand in sequence
-        // T1 = T1 - A - B - C, T2 = T2 - A - B - C
+        // COBOL spec: "All operands preceding FROM are added together, and this sum
+        // is subtracted from each identifier following FROM."
+        // Step 1: Accumulate all operands into a decimal sum
+        var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+        block.Instructions.Add(new IrInitAccumulator(accum));
+
+        foreach (var operand in sub.Operands)
+        {
+            if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
+            {
+                block.Instructions.Add(new IrAccumulateLiteral(accum, d));
+            }
+            else if (operand is BoundIdentifierExpression opId)
+            {
+                var opLoc = _semantic.GetStorageLocation(opId.Symbol);
+                if (opLoc.HasValue)
+                {
+                    block.Instructions.Add(new IrAccumulateField(accum, opLoc.Value));
+                }
+            }
+        }
+
+        // Step 2: For each target, subtract the accumulated sum (rounding applied once)
         foreach (var target in sub.Targets)
         {
             var destLoc = _semantic.GetStorageLocation(target.Symbol);
             if (!destLoc.HasValue) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
-
-            foreach (var operand in sub.Operands)
-            {
-                if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
-                {
-                    block.Instructions.Add(new IrPicSubtractLiteral(
-                        destLoc.Value, d, roundingMode));
-                }
-                else if (operand is BoundIdentifierExpression opId)
-                {
-                    var opLoc = _semantic.GetStorageLocation(opId.Symbol);
-                    if (opLoc.HasValue)
-                    {
-                        block.Instructions.Add(new IrPicSubtract(
-                            opLoc.Value, destLoc.Value, roundingMode));
-                    }
-                }
-            }
+            block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, destLoc.Value, roundingMode));
         }
 
         return LowerSizeError(sub.SizeError, method, block);
@@ -509,31 +523,36 @@ public sealed class Binder
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        // ADD A B C TO T1 T2 → for each target, add each operand in sequence
+        // COBOL spec: "All operands preceding TO are added together, and this sum
+        // is added to each identifier following TO."
+        // Step 1: Accumulate all operands into a decimal sum
+        var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+        block.Instructions.Add(new IrInitAccumulator(accum));
+
+        foreach (var operand in add.Operands)
+        {
+            if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
+            {
+                block.Instructions.Add(new IrAccumulateLiteral(accum, d));
+            }
+            else if (operand is BoundIdentifierExpression srcId)
+            {
+                var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
+                if (srcLoc.HasValue)
+                {
+                    block.Instructions.Add(new IrAccumulateField(accum, srcLoc.Value));
+                }
+            }
+        }
+
+        // Step 2: For each target, add the accumulated sum (rounding applied once)
         foreach (var target in add.Targets)
         {
             var destLoc = _semantic.GetStorageLocation(target.Symbol);
             if (!destLoc.HasValue) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
-
-            foreach (var operand in add.Operands)
-            {
-                if (operand is BoundLiteralExpression lit && lit.Value is decimal d)
-                {
-                    block.Instructions.Add(new IrPicAddLiteral(
-                        destLoc.Value, d, roundingMode));
-                }
-                else if (operand is BoundIdentifierExpression srcId)
-                {
-                    var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
-                    if (srcLoc.HasValue)
-                    {
-                        block.Instructions.Add(new IrPicAdd(
-                            srcLoc.Value, destLoc.Value, roundingMode));
-                    }
-                }
-            }
+            block.Instructions.Add(new IrAddAccumulatedToTarget(accum, destLoc.Value, roundingMode));
         }
 
         return LowerSizeError(add.SizeError, method, block);
