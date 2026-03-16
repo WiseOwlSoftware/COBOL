@@ -840,6 +840,7 @@ computeStore
 computeOnSizeError
     : ON SIZE ERROR imperativeStatement
       (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
@@ -904,6 +905,7 @@ addGivingPhrase
 addOnSizeError
     : ON SIZE ERROR imperativeStatement
       (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
@@ -938,6 +940,7 @@ subtractGivingPhrase
 subtractOnSizeError
     : ON SIZE ERROR imperativeStatement
       (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
@@ -964,6 +967,7 @@ multiplyGivingPhrase
 multiplyOnSizeError
     : ON SIZE ERROR imperativeStatement
       (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
@@ -1003,6 +1007,7 @@ divideRemainderPhrase
 divideOnSizeError
     : ON SIZE ERROR imperativeStatement
       (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
