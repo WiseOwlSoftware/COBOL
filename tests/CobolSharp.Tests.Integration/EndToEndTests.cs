@@ -1264,4 +1264,44 @@ public class EndToEndTests : IDisposable
         // 10 / 5 = 2 (2→'B')
         Assert.Equal("0000B", lines[3]);
     }
+
+    // ═══════════════════════════════════════════
+    // Negative literal comparisons
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void Compare_NegativeLiteral_EqualAndNotEqual()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NEGLITCMP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(5) VALUE -8036.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A EQUAL TO -8036
+                    DISPLAY "EQ-YES"
+                ELSE
+                    DISPLAY "EQ-NO"
+                END-IF.
+                IF WS-A NOT EQUAL TO -8036
+                    DISPLAY "NEQ-YES"
+                ELSE
+                    DISPLAY "NEQ-NO"
+                END-IF.
+                IF WS-A NOT EQUAL TO -9999
+                    DISPLAY "DIFF-YES"
+                ELSE
+                    DISPLAY "DIFF-NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("EQ-YES", lines[0]);
+        Assert.Equal("NEQ-NO", lines[1]);
+        Assert.Equal("DIFF-YES", lines[2]);
+    }
 }

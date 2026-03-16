@@ -1074,6 +1074,19 @@ public sealed class Binder
                             (int)binCond.OperatorKind));
                         return;
                     }
+                    // identifier vs negative numeric literal: -(literal) encoded as (0 - literal)
+                    else if (binCond.Right is BoundBinaryExpression negExpr
+                             && negExpr.OperatorKind == BoundBinaryOperatorKind.Subtract
+                             && negExpr.Left is BoundLiteralExpression zeroLit
+                             && zeroLit.Value is decimal zd && zd == 0m
+                             && negExpr.Right is BoundLiteralExpression innerLit
+                             && innerLit.Value is decimal innerD)
+                    {
+                        block.Instructions.Add(new IrPicCompareLiteral(
+                            leftLoc.Value, -innerD, result,
+                            (int)binCond.OperatorKind));
+                        return;
+                    }
                 }
             }
 
