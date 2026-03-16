@@ -125,8 +125,8 @@ public sealed class RecordLayoutBuilder
         {
             bool separateSign = s.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
                 or Runtime.SignStorageKind.TrailingSeparate;
-            bool defaultSeparate = pic.IsSigned && !s.ExplicitSignStorage.HasValue;
-            int signBytes = (separateSign || defaultSeparate) ? 1 : 0;
+            // No explicit clause + signed → default is trailing overpunch (no extra byte)
+            int signBytes = separateSign ? 1 : 0;
             return pic.Length + signBytes;
         }
 

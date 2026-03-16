@@ -340,9 +340,8 @@ public sealed class Compilation
             // SEPARATE sign adds 1 byte; overpunch encodes sign in a digit (no extra byte)
             bool separateSign = data.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
                 or Runtime.SignStorageKind.TrailingSeparate;
-            // No explicit clause + signed → default is leading separate (current convention)
-            bool defaultSeparate = pic.IsSigned && !data.ExplicitSignStorage.HasValue;
-            int signBytes = (separateSign || defaultSeparate) ? 1 : 0;
+            // No explicit clause + signed → default is trailing overpunch (no extra byte)
+            int signBytes = separateSign ? 1 : 0;
             return pic.Length + signBytes;
         }
         return 1;

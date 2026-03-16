@@ -978,6 +978,65 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void SignDefault_TrailingOverpunch()
+    {
+        // PIC S9(3) with no SIGN clause → default trailing overpunch
+        // Positive 42 → last digit '2' overpunched positive → 04B
+        // Negative -42 → last digit '2' overpunched negative → 04K
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OVPTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-POS PIC S9(3) VALUE 42.
+            01 WS-NEG PIC S9(3) VALUE -42.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-POS.
+                DISPLAY WS-NEG.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, lines.Length);
+        // Positive 042: last digit '2' → 'B' (positive overpunch)
+        Assert.Equal("04B", lines[0]);
+        // Negative 042: last digit '2' → 'K' (negative overpunch)
+        Assert.Equal("04K", lines[1]);
+    }
+
+    [Fact]
+    public void SignDefault_OverpunchArithmeticRoundTrip()
+    {
+        // Verify arithmetic works correctly with overpunched fields
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OVPART.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(5) VALUE 100.
+            01 WS-B PIC S9(5) VALUE 250.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SUBTRACT WS-B FROM WS-A.
+                DISPLAY WS-A.
+                ADD 300 TO WS-A.
+                DISPLAY WS-A.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, lines.Length);
+        // 100 - 250 = -150, trailing overpunch: 0015P (P = negative 7... wait, 0 → })
+        // Actually: -150 → digits "00150", last digit 0, negative → '}'
+        Assert.Equal("0015}", lines[0]);
+        // -150 + 300 = 150, positive: 00150, last digit 0 → '{'
+        Assert.Equal("0015{", lines[1]);
+    }
+
+    [Fact]
     public void SignTrailingSeparate_PositiveValue()
     {
         var (success, stdout, stderr) = CompileAndRun("""

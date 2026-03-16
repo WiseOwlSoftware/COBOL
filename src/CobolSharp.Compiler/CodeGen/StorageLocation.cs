@@ -72,8 +72,7 @@ public static class PicDescriptorFactory
         if (symbol.ExplicitSignStorage.HasValue)
             return symbol.ExplicitSignStorage.Value;
 
-        // Default: SIGN IS LEADING SEPARATE (our current convention;
-        // TODO: COBOL default is TRAILING OVERPUNCH — change when overpunch is implemented)
-        return SignStorageKind.LeadingSeparate;
+        // COBOL default: SIGN IS TRAILING OVERPUNCH (sign encoded in last digit)
+        return SignStorageKind.TrailingOverpunch;
     }
 }

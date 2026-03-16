@@ -715,33 +715,49 @@ public static class PicRuntime
         s = s.Trim();
         if (string.IsNullOrEmpty(s)) return 0m;
 
-        // Check for sign based on SignStorageKind
+        // Extract sign based on SignStorageKind
         bool negative = false;
-        if (pic.SignStorage == SignStorageKind.TrailingSeparate)
+        switch (pic.SignStorage)
         {
-            // Sign is at the end of the field
-            if (s.Length > 0 && s[^1] == '-')
+            case SignStorageKind.TrailingSeparate:
+                if (s.Length > 0 && s[^1] == '-') { negative = true; s = s[..^1].Trim(); }
+                else if (s.Length > 0 && s[^1] == '+') { s = s[..^1].Trim(); }
+                break;
+
+            case SignStorageKind.LeadingSeparate:
+                if (s[0] == '-') { negative = true; s = s[1..].Trim(); }
+                else if (s[0] == '+') { s = s[1..].Trim(); }
+                break;
+
+            case SignStorageKind.TrailingOverpunch:
             {
-                negative = true;
-                s = s[..^1].Trim();
+                // Last byte is an overpunched digit encoding the sign
+                if (s.Length > 0)
+                {
+                    var (digit, neg) = DecodeOverpunch((byte)s[^1]);
+                    negative = neg;
+                    s = s[..^1] + digit;
+                }
+                break;
             }
-            else if (s.Length > 0 && s[^1] == '+')
+
+            case SignStorageKind.LeadingOverpunch:
             {
-                s = s[..^1].Trim();
+                // First byte is an overpunched digit encoding the sign
+                if (s.Length > 0)
+                {
+                    var (digit, neg) = DecodeOverpunch((byte)s[0]);
+                    negative = neg;
+                    s = digit + s[1..];
+                }
+                break;
             }
-        }
-        else
-        {
-            // Leading separate (or default): sign at the start
-            if (s[0] == '-')
-            {
-                negative = true;
-                s = s[1..].Trim();
-            }
-            else if (s[0] == '+')
-            {
-                s = s[1..].Trim();
-            }
+
+            default:
+                // Unsigned or None — try leading sign as fallback
+                if (s[0] == '-') { negative = true; s = s[1..].Trim(); }
+                else if (s[0] == '+') { s = s[1..].Trim(); }
+                break;
         }
 
         if (string.IsNullOrEmpty(s)) return 0m;
@@ -965,10 +981,44 @@ public static class PicRuntime
         }
         else if (pic.IsSigned && !separateSign)
         {
-            // Overpunch (refine later) — for now write leading '-' or '+'
-            if (isNegative)
-                area[offset] = (byte)'-';
+            // Overpunch: encode sign into the zone nibble of a digit
+            int overpunchPos = pic.SignStorage == SignStorageKind.LeadingOverpunch
+                ? offset + digitStart        // first digit
+                : offset + length - 1;       // last digit (default: trailing)
+            byte digit = area[overpunchPos];
+            area[overpunchPos] = EncodeOverpunch(digit, isNegative);
         }
+    }
+
+    // ── Overpunch tables (IBM ASCII convention) ──
+    // Positive: 0→'{', 1→'A', 2→'B', ... 9→'I'
+    // Negative: 0→'}', 1→'J', 2→'K', ... 9→'R'
+    private static readonly char[] PositiveOverpunch = { '{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
+    private static readonly char[] NegativeOverpunch = { '}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R' };
+
+    private static byte EncodeOverpunch(byte asciiDigit, bool negative)
+    {
+        int d = asciiDigit - '0';
+        if (d < 0 || d > 9) d = 0;
+        return (byte)(negative ? NegativeOverpunch[d] : PositiveOverpunch[d]);
+    }
+
+    /// <summary>
+    /// Decode an overpunched byte back to a digit (0-9) and sign.
+    /// Returns (digit char, isNegative).
+    /// </summary>
+    private static (char digit, bool negative) DecodeOverpunch(byte b)
+    {
+        char c = (char)b;
+        // Positive: { A B C D E F G H I
+        if (c == '{') return ('0', false);
+        if (c >= 'A' && c <= 'I') return ((char)('1' + (c - 'A')), false);
+        // Negative: } J K L M N O P Q R
+        if (c == '}') return ('0', true);
+        if (c >= 'J' && c <= 'R') return ((char)('1' + (c - 'J')), true);
+        // Plain digit (unsigned or already decoded)
+        if (c >= '0' && c <= '9') return (c, false);
+        return ('0', false);
     }
 
     private static void EncodeComp3(byte[] area, int offset, int length, decimal value)
