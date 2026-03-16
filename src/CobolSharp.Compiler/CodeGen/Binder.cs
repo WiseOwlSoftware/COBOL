@@ -130,8 +130,9 @@ public sealed class Binder
                 LowerMove(mv, block);
                 break;
             case BoundPerformStatement perf:
-                LowerPerform(perf, block);
-                break;
+                return LowerPerform(perf, method, block);
+            case BoundEvaluateStatement eval:
+                return LowerEvaluate(eval, method, block);
             case BoundWriteStatement wr:
                 LowerWrite(wr, block);
                 break;
@@ -277,8 +278,109 @@ public sealed class Binder
 
     // ── PERFORM ──
 
-    private void LowerPerform(BoundPerformStatement perf, IrBasicBlock block)
+    private IrBasicBlock LowerPerform(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
     {
+        // PERFORM VARYING: MOVE initial TO index, then loop
+        if (perf.Varying != null)
+        {
+            var varying = perf.Varying;
+            var indexLoc = _semantic.GetStorageLocation(varying.Index);
+            if (indexLoc.HasValue)
+            {
+                // MOVE initial TO index
+                if (varying.Initial is BoundLiteralExpression litInit && litInit.Value is decimal dInit)
+                {
+                    block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc.Value, dInit, 0));
+                }
+                else if (varying.Initial is BoundIdentifierExpression idInit)
+                {
+                    var srcLoc = _semantic.GetStorageLocation(idInit.Symbol);
+                    if (srcLoc.HasValue)
+                        block.Instructions.Add(new IrPicMove(srcLoc.Value, indexLoc.Value, 0));
+                }
+            }
+        }
+
+        // PERFORM UNTIL or PERFORM VARYING ... UNTIL: loop structure
+        if (perf.UntilCondition != null)
+        {
+            var loopStart = method.CreateBlock("perf.loop.start");
+            var loopBody = method.CreateBlock("perf.loop.body");
+            var loopEnd = method.CreateBlock("perf.loop.end");
+
+            // Jump to loop start
+            block.Instructions.Add(new IrJump(loopStart));
+
+            // Loop start: evaluate condition
+            method.Blocks.Add(loopStart);
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(perf.UntilCondition, condVal, loopStart);
+            // If condition true (UNTIL satisfied), exit loop
+            loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
+            loopStart.Instructions.Add(new IrJump(loopEnd));
+
+            // Loop body: execute target paragraphs or inline statements
+            method.Blocks.Add(loopBody);
+            var bodyCurrent = loopBody;
+            bodyCurrent = LowerPerformBody(perf, method, bodyCurrent);
+
+            // VARYING: ADD step TO index
+            if (perf.Varying != null)
+            {
+                var indexLoc = _semantic.GetStorageLocation(perf.Varying.Index);
+                if (indexLoc.HasValue)
+                {
+                    if (perf.Varying.Step is BoundLiteralExpression litStep && litStep.Value is decimal dStep)
+                    {
+                        block.Instructions.Add(new IrInitArithmeticStatus());
+                        bodyCurrent.Instructions.Add(new IrPicAddLiteral(indexLoc.Value, dStep, 0));
+                    }
+                    else if (perf.Varying.Step is BoundIdentifierExpression idStep)
+                    {
+                        var stepLoc = _semantic.GetStorageLocation(idStep.Symbol);
+                        if (stepLoc.HasValue)
+                        {
+                            block.Instructions.Add(new IrInitArithmeticStatus());
+                            bodyCurrent.Instructions.Add(new IrPicAdd(stepLoc.Value, indexLoc.Value, 0));
+                        }
+                    }
+                }
+            }
+
+            // Jump back to loop start
+            bodyCurrent.Instructions.Add(new IrJump(loopStart));
+
+            method.Blocks.Add(loopEnd);
+            return loopEnd;
+        }
+
+        // Simple PERFORM (no UNTIL/VARYING): just call paragraphs
+        LowerPerformSimple(perf, block);
+        return block;
+    }
+
+    private IrBasicBlock LowerPerformBody(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
+    {
+        // Inline statements
+        if (perf.InlineStatements is { Count: > 0 })
+        {
+            var current = block;
+            foreach (var stmt in perf.InlineStatements)
+                current = LowerStatement(stmt, method, current);
+            return current;
+        }
+
+        // Target paragraph(s)
+        if (perf.Target != null)
+        {
+            LowerPerformSimple(perf, block);
+        }
+        return block;
+    }
+
+    private void LowerPerformSimple(BoundPerformStatement perf, IrBasicBlock block)
+    {
+        if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
             return;
 
@@ -291,25 +393,23 @@ public sealed class Binder
 
         if (startIdx == endIdx)
         {
-            // Simple PERFORM (no THRU): call once, ignore return value
             var paraName = _paragraphsByIndex[startIdx];
-            if (_paragraphMethods.TryGetValue(paraName, out var method))
+            if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
             {
                 for (int t = 0; t < times; t++)
-                    block.Instructions.Add(new IrPerform(method));
+                    block.Instructions.Add(new IrPerform(paraMethod));
             }
         }
         else
         {
-            // PERFORM THRU: dynamic dispatch that respects GO TO returns
             var methods = new List<IrMethod>();
             for (int i = startIdx; i <= endIdx; i++)
             {
                 var paraName = _paragraphsByIndex[i];
-                if (_paragraphMethods.TryGetValue(paraName, out var method))
-                    methods.Add(method);
+                if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
+                    methods.Add(paraMethod);
                 else
-                    methods.Add(null!); // placeholder for unresolved paragraphs
+                    methods.Add(null!);
             }
 
             for (int t = 0; t < times; t++)
@@ -628,10 +728,179 @@ public sealed class Binder
         return joinBlock;
     }
 
+    // ── EVALUATE ──
+
+    private IrBasicBlock LowerEvaluate(BoundEvaluateStatement eval, IrMethod method, IrBasicBlock block)
+    {
+        var doneBlock = method.CreateBlock("eval.done");
+
+        for (int i = 0; i < eval.Whens.Count; i++)
+        {
+            var when = eval.Whens[i];
+            var whenBody = method.CreateBlock($"eval.when.{i}");
+            var nextWhen = method.CreateBlock($"eval.next.{i}");
+
+            if (eval.IsEvaluateTrue)
+            {
+                // EVALUATE TRUE: each WHEN object is a condition
+                // For multiple objects, OR them together
+                if (when.Objects.Count == 1)
+                {
+                    var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    LowerCondition(when.Objects[0], condVal, block);
+                    block.Instructions.Add(new IrBranchIfFalse(condVal, nextWhen));
+                }
+                else if (when.Objects.Count > 1)
+                {
+                    // Multiple objects: OR — if any is true, enter the when body
+                    // We chain: try each condition; if true, jump to body
+                    for (int j = 0; j < when.Objects.Count; j++)
+                    {
+                        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                        LowerCondition(when.Objects[j], condVal, block);
+                        // If true, jump to when body
+                        // We need: branch if TRUE to whenBody
+                        // IrBranchIfFalse skips when false, so we need to invert
+                        if (j < when.Objects.Count - 1)
+                        {
+                            // Not the last: if true, go to body; if false, try next
+                            var tryNext = method.CreateBlock($"eval.when.{i}.try.{j + 1}");
+                            block.Instructions.Add(new IrBranchIfFalse(condVal, tryNext));
+                            block.Instructions.Add(new IrJump(whenBody));
+                            method.Blocks.Add(tryNext);
+                            block = tryNext;
+                        }
+                        else
+                        {
+                            // Last: if false, go to nextWhen
+                            block.Instructions.Add(new IrBranchIfFalse(condVal, nextWhen));
+                        }
+                    }
+                }
+                else
+                {
+                    // No objects — skip
+                    block.Instructions.Add(new IrJump(nextWhen));
+                }
+            }
+            else
+            {
+                // Normal EVALUATE: compare subject(s) against object(s)
+                // For single subject, compare against each object with OR
+                if (eval.Subjects.Count > 0 && when.Objects.Count > 0)
+                {
+                    var subject = eval.Subjects[0]; // single subject for now
+
+                    if (when.Objects.Count == 1)
+                    {
+                        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                        LowerEvaluateComparison(subject, when.Objects[0], condVal, block);
+                        block.Instructions.Add(new IrBranchIfFalse(condVal, nextWhen));
+                    }
+                    else
+                    {
+                        // Multiple objects: OR them
+                        for (int j = 0; j < when.Objects.Count; j++)
+                        {
+                            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                            LowerEvaluateComparison(subject, when.Objects[j], condVal, block);
+                            if (j < when.Objects.Count - 1)
+                            {
+                                var tryNext = method.CreateBlock($"eval.when.{i}.try.{j + 1}");
+                                block.Instructions.Add(new IrBranchIfFalse(condVal, tryNext));
+                                block.Instructions.Add(new IrJump(whenBody));
+                                method.Blocks.Add(tryNext);
+                                block = tryNext;
+                            }
+                            else
+                            {
+                                block.Instructions.Add(new IrBranchIfFalse(condVal, nextWhen));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    block.Instructions.Add(new IrJump(nextWhen));
+                }
+            }
+
+            // WHEN body
+            method.Blocks.Add(whenBody);
+            var bodyCurrent = whenBody;
+            foreach (var stmt in when.Statements)
+                bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
+            bodyCurrent.Instructions.Add(new IrJump(doneBlock));
+
+            // Next WHEN
+            method.Blocks.Add(nextWhen);
+            block = nextWhen;
+        }
+
+        // WHEN OTHER
+        if (eval.WhenOther is { Count: > 0 })
+        {
+            var otherCurrent = block;
+            foreach (var stmt in eval.WhenOther)
+                otherCurrent = LowerStatement(stmt, method, otherCurrent);
+            otherCurrent.Instructions.Add(new IrJump(doneBlock));
+        }
+        else
+        {
+            block.Instructions.Add(new IrJump(doneBlock));
+        }
+
+        method.Blocks.Add(doneBlock);
+        return doneBlock;
+    }
+
+    private void LowerEvaluateComparison(BoundExpression subject, BoundExpression obj, IrValue result, IrBasicBlock block)
+    {
+        // Build an equality comparison: subject == obj
+        var equalExpr = new BoundBinaryExpression(subject, BoundBinaryOperatorKind.Equal, obj, CobolCategory.Unknown);
+        LowerCondition(equalExpr, result, block);
+    }
+
     private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
     {
         if (cond is BoundBinaryExpression binCond)
         {
+            int opKind = (int)binCond.OperatorKind;
+
+            // Logical OR (kind 20)
+            if (opKind == 20)
+            {
+                var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(binCond.Left, leftVal, block);
+                LowerCondition(binCond.Right, rightVal, block);
+                // result = left OR right
+                block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Or));
+                return;
+            }
+
+            // Logical AND (kind 21)
+            if (opKind == 21)
+            {
+                var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                var rightVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(binCond.Left, leftVal, block);
+                LowerCondition(binCond.Right, rightVal, block);
+                // result = left AND right
+                block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
+                return;
+            }
+
+            // Logical NOT (kind 22)
+            if (opKind == 22)
+            {
+                var innerVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(binCond.Left, innerVal, block);
+                // result = NOT inner
+                block.Instructions.Add(new IrBinaryLogical(result, innerVal, innerVal, IrLogicalOp.Not));
+                return;
+            }
+
             var leftSym = (binCond.Left as BoundIdentifierExpression)?.Symbol;
             var rightSym = (binCond.Right as BoundIdentifierExpression)?.Symbol;
 
@@ -675,10 +944,49 @@ public sealed class Binder
                     }
                 }
             }
+
+            // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
+            if (binCond.Left is BoundLiteralExpression litLeft && rightSym != null)
+            {
+                var rightLoc = _semantic.GetStorageLocation(rightSym);
+                if (rightLoc.HasValue)
+                {
+                    if (litLeft.Value is decimal dLeft)
+                    {
+                        // Flip: compare right field against left literal
+                        // Flip the operator for non-symmetric comparisons
+                        var flippedOp = FlipComparisonOp(binCond.OperatorKind);
+                        block.Instructions.Add(new IrPicCompareLiteral(
+                            rightLoc.Value, dLeft, result,
+                            (int)flippedOp));
+                        return;
+                    }
+                    else if (litLeft.Value is string sLeft)
+                    {
+                        var flippedOp = FlipComparisonOp(binCond.OperatorKind);
+                        block.Instructions.Add(new IrStringCompareLiteral(
+                            rightLoc.Value, sLeft, result,
+                            (int)flippedOp));
+                        return;
+                    }
+                }
+            }
         }
 
         // Fallback: always true
         block.Instructions.Add(new IrSetBool(result, true));
+    }
+
+    private static BoundBinaryOperatorKind FlipComparisonOp(BoundBinaryOperatorKind op)
+    {
+        return op switch
+        {
+            BoundBinaryOperatorKind.Less => BoundBinaryOperatorKind.Greater,
+            BoundBinaryOperatorKind.LessOrEqual => BoundBinaryOperatorKind.GreaterOrEqual,
+            BoundBinaryOperatorKind.Greater => BoundBinaryOperatorKind.Less,
+            BoundBinaryOperatorKind.GreaterOrEqual => BoundBinaryOperatorKind.LessOrEqual,
+            _ => op // Equal, NotEqual are symmetric
+        };
     }
 
     // ── GO TO ──

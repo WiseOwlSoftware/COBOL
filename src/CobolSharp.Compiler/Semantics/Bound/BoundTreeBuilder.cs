@@ -75,6 +75,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { } div) return BindDivide(div);
         if (ctx.computeStatement() is { } comp) return BindCompute(comp);
+        if (ctx.evaluateStatement() is { } evalStmt) return BindEvaluate(evalStmt);
 
         // Unrecognized statement — skip
         return null;
@@ -148,7 +149,44 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private BoundPerformStatement? BindPerform(CobolParserCore.PerformStatementContext ctx)
     {
         var target = ctx.performTarget();
-        if (target == null) return null;
+        var options = ctx.performOptions();
+
+        // Inline form: PERFORM options+ imperativeStatement* END-PERFORM (no target)
+        if (target == null)
+        {
+            BoundExpression? untilCond = null;
+            BoundPerformVarying? varying = null;
+
+            if (options != null)
+            {
+                foreach (var opt in options)
+                {
+                    if (opt.performUntil() is { } untilCtx)
+                        untilCond = BindCondition(untilCtx.condition());
+                    if (opt.performVarying() is { } varyCtx)
+                        varying = BindPerformVaryingOption(varyCtx);
+                }
+            }
+
+            // Bind inline statements
+            var inlineStmts = new List<BoundStatement>();
+            var impStmts = ctx.imperativeStatement();
+            if (impStmts != null)
+            {
+                foreach (var imp in impStmts)
+                    foreach (var stmt in imp.statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) inlineStmts.Add(bound);
+                    }
+            }
+
+            // Use the UNTIL condition from VARYING if present
+            if (varying != null)
+                untilCond = varying.UntilCondition;
+
+            return new BoundPerformStatement(null, null, 0, untilCond, varying, inlineStmts);
+        }
 
         var procNames = target.procedureName();
         if (procNames.Length == 0) return null;
@@ -164,21 +202,135 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             thruSym = _semantic.ResolveParagraph(thruName);
         }
 
-        // Check for TIMES phrase
+        // Check for TIMES, UNTIL, VARYING phrases
         int times = 0;
-        var options = ctx.performOptions();
+        BoundExpression? untilCondition = null;
+        BoundPerformVarying? varyingOpt = null;
+
         if (options != null && options.Length > 0)
         {
-            var timesOpt = options[0].performTimes();
-            if (timesOpt != null)
+            foreach (var opt in options)
             {
-                var intLit = timesOpt.integerLiteral();
-                if (intLit != null && int.TryParse(intLit.GetText(), out var t))
-                    times = t;
+                if (opt.performTimes() is { } timesOpt)
+                {
+                    var intLit = timesOpt.integerLiteral();
+                    if (intLit != null && int.TryParse(intLit.GetText(), out var t))
+                        times = t;
+                }
+                if (opt.performUntil() is { } untilCtx)
+                    untilCondition = BindCondition(untilCtx.condition());
+                if (opt.performVarying() is { } varyCtx)
+                    varyingOpt = BindPerformVaryingOption(varyCtx);
             }
         }
 
-        return new BoundPerformStatement(paraSym, thruSym, times);
+        // Use the UNTIL condition from VARYING if present
+        if (varyingOpt != null)
+            untilCondition = varyingOpt.UntilCondition;
+
+        return new BoundPerformStatement(paraSym, thruSym, times, untilCondition, varyingOpt);
+    }
+
+    private BoundPerformVarying BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
+    {
+        string idName = ctx.identifier().GetText();
+        var indexSym = _semantic.ResolveData(idName)!;
+
+        var arithExprs = ctx.arithmeticExpression();
+        var initial = BindFullExpression(arithExprs[0]);  // FROM
+        var step = BindFullExpression(arithExprs[1]);      // BY
+        var untilCond = BindCondition(ctx.condition());
+
+        return new BoundPerformVarying(indexSym, initial, step, untilCond);
+    }
+
+    // ── EVALUATE ──
+
+    private BoundEvaluateStatement BindEvaluate(CobolParserCore.EvaluateStatementContext ctx)
+    {
+        // Bind subjects
+        var subjects = new List<BoundExpression>();
+        bool isEvaluateTrue = false;
+
+        foreach (var subCtx in ctx.evaluateSubject())
+        {
+            // Check for EVALUATE TRUE: subject is the TRUE keyword
+            string subText = subCtx.GetText().Trim().ToUpperInvariant();
+            if (subText == "TRUE")
+            {
+                isEvaluateTrue = true;
+                // Don't add a subject — IsEvaluateTrue is indicated by empty Subjects
+                continue;
+            }
+
+            // Try arithmetic expression first
+            if (subCtx.arithmeticExpression() is { } arithCtx)
+                subjects.Add(BindFullExpression(arithCtx));
+            else if (subCtx.condition() is { } condCtx)
+                subjects.Add(BindCondition(condCtx));
+        }
+
+        // Bind WHEN clauses
+        var whens = new List<BoundEvaluateWhen>();
+        List<BoundStatement>? whenOther = null;
+
+        foreach (var whenClause in ctx.evaluateWhenClause())
+        {
+            var objects = whenClause.evaluateObject();
+            bool isOther = false;
+
+            // Check if any object is OTHER
+            foreach (var obj in objects)
+            {
+                if (obj.OTHER() != null)
+                {
+                    isOther = true;
+                    break;
+                }
+            }
+
+            // Bind the statements for this WHEN clause
+            var stmts = new List<BoundStatement>();
+            foreach (var imp in whenClause.imperativeStatement())
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) stmts.Add(bound);
+                }
+
+            if (isOther)
+            {
+                whenOther = stmts;
+            }
+            else
+            {
+                // Bind each object as an expression or condition
+                var boundObjects = new List<BoundExpression>();
+                foreach (var obj in objects)
+                {
+                    if (isEvaluateTrue)
+                    {
+                        // For EVALUATE TRUE, each WHEN object is a condition
+                        if (obj.condition() is { } condCtx)
+                            boundObjects.Add(BindCondition(condCtx));
+                        else if (obj.arithmeticExpression() is { } arithCtx)
+                            boundObjects.Add(BindFullExpression(arithCtx));
+                    }
+                    else
+                    {
+                        // For normal EVALUATE, objects are values to compare
+                        if (obj.arithmeticExpression() is { } arithCtx)
+                            boundObjects.Add(BindFullExpression(arithCtx));
+                        else if (obj.condition() is { } condCtx)
+                            boundObjects.Add(BindCondition(condCtx));
+                    }
+                }
+
+                whens.Add(new BoundEvaluateWhen(boundObjects, stmts, isEvaluateTrue));
+            }
+        }
+
+        return new BoundEvaluateStatement(subjects, whens, whenOther);
     }
 
     // ── WRITE ──

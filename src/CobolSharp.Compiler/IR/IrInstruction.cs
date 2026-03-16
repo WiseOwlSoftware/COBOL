@@ -137,6 +137,27 @@ public sealed class IrSetBool : IrInstruction
     }
 }
 
+public enum IrLogicalOp { And, Or, Not }
+
+/// <summary>
+/// Logical AND/OR/NOT on boolean values.
+/// For NOT, Left and Right are the same value (only Left is used).
+/// </summary>
+public sealed class IrBinaryLogical : IrInstruction
+{
+    public IrValue Left { get; }
+    public IrValue Right { get; }
+    public IrLogicalOp Op { get; }
+
+    public IrBinaryLogical(IrValue result, IrValue left, IrValue right, IrLogicalOp op)
+    {
+        Result = result;
+        Left = left;
+        Right = right;
+        Op = op;
+    }
+}
+
 /// <summary>
 /// Initialize (clear) the method's ArithmeticStatus local.
 /// Emitted once per arithmetic statement, before any operations.

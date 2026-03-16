@@ -380,6 +380,33 @@ public sealed class CilEmitter
                 break;
             }
 
+            case IrBinaryLogical log:
+            {
+                var leftLocal = getLocal(log.Left);
+                if (log.Op == IrLogicalOp.Not)
+                {
+                    il.Append(il.Create(OpCodes.Ldloc, leftLocal));
+                    il.Append(il.Create(OpCodes.Ldc_I4_0));
+                    il.Append(il.Create(OpCodes.Ceq));
+                }
+                else
+                {
+                    var rightLocal = getLocal(log.Right);
+                    il.Append(il.Create(OpCodes.Ldloc, leftLocal));
+                    il.Append(il.Create(OpCodes.Ldloc, rightLocal));
+                    if (log.Op == IrLogicalOp.And)
+                        il.Append(il.Create(OpCodes.And));
+                    else // Or
+                        il.Append(il.Create(OpCodes.Or));
+                }
+                if (log.Result.HasValue)
+                {
+                    var local = getLocal(log.Result.Value);
+                    il.Append(il.Create(OpCodes.Stloc, local));
+                }
+                break;
+            }
+
             case IrInitArithmeticStatus:
             {
                 EmitInitArithmeticStatus(il, _currentMethodDef!);

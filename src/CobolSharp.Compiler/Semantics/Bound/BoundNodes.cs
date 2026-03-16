@@ -22,6 +22,7 @@ public enum BoundNodeKind
     MultiplyStatement,
     DivideStatement,
     ComputeStatement,
+    EvaluateStatement,
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
@@ -121,18 +122,44 @@ public sealed class BoundMoveStatement : BoundStatement
 
 public sealed class BoundPerformStatement : BoundStatement
 {
-    public ParagraphSymbol Target { get; }
+    public ParagraphSymbol? Target { get; }
     public ParagraphSymbol? ThruTarget { get; }
     public int Times { get; } // 0 = once (no TIMES phrase)
+    public BoundExpression? UntilCondition { get; }
+    public BoundPerformVarying? Varying { get; }
+    public IReadOnlyList<BoundStatement>? InlineStatements { get; }
 
-    public BoundPerformStatement(ParagraphSymbol target, ParagraphSymbol? thruTarget = null, int times = 0)
+    public BoundPerformStatement(ParagraphSymbol? target, ParagraphSymbol? thruTarget = null,
+        int times = 0, BoundExpression? untilCondition = null,
+        BoundPerformVarying? varying = null,
+        IReadOnlyList<BoundStatement>? inlineStatements = null)
     {
         Target = target;
         ThruTarget = thruTarget;
         Times = times;
+        UntilCondition = untilCondition;
+        Varying = varying;
+        InlineStatements = inlineStatements;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.PerformStatement;
+}
+
+public sealed class BoundPerformVarying
+{
+    public DataSymbol Index { get; }
+    public BoundExpression Initial { get; }
+    public BoundExpression Step { get; }
+    public BoundExpression UntilCondition { get; }
+
+    public BoundPerformVarying(DataSymbol index, BoundExpression initial,
+        BoundExpression step, BoundExpression untilCondition)
+    {
+        Index = index;
+        Initial = initial;
+        Step = step;
+        UntilCondition = untilCondition;
+    }
 }
 
 public sealed class BoundWriteStatement : BoundStatement
@@ -344,6 +371,48 @@ public sealed class BoundArithmeticStatement : BoundStatement
     public BoundArithmeticStatement(BoundNodeKind kind) => StatementKind = kind;
 
     public override BoundNodeKind Kind => StatementKind;
+}
+
+// ═══════════════════════════════════
+// EVALUATE
+// ═══════════════════════════════════
+
+public sealed class BoundEvaluateStatement : BoundStatement
+{
+    public IReadOnlyList<BoundExpression> Subjects { get; }
+    public IReadOnlyList<BoundEvaluateWhen> Whens { get; }
+    public IReadOnlyList<BoundStatement>? WhenOther { get; }
+
+    public bool IsEvaluateTrue => Subjects.Count == 0;
+
+    public BoundEvaluateStatement(
+        IReadOnlyList<BoundExpression> subjects,
+        IReadOnlyList<BoundEvaluateWhen> whens,
+        IReadOnlyList<BoundStatement>? whenOther)
+    {
+        Subjects = subjects;
+        Whens = whens;
+        WhenOther = whenOther;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.EvaluateStatement;
+}
+
+public sealed class BoundEvaluateWhen
+{
+    public IReadOnlyList<BoundExpression> Objects { get; }
+    public IReadOnlyList<BoundStatement> Statements { get; }
+    public bool IsConditionWhen { get; }
+
+    public BoundEvaluateWhen(
+        IReadOnlyList<BoundExpression> objects,
+        IReadOnlyList<BoundStatement> statements,
+        bool isConditionWhen = false)
+    {
+        Objects = objects;
+        Statements = statements;
+        IsConditionWhen = isConditionWhen;
+    }
 }
 
 // ═══════════════════════════════════
