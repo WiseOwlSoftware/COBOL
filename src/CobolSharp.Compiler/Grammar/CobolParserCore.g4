@@ -499,11 +499,11 @@ signClause
 
 // JUSTIFIED / SYNCHRONIZED
 justifiedClause
-    : JUSTIFIED | JUST RIGHT
+    : (JUSTIFIED | JUST) RIGHT?
     ;
 
 syncClause
-    : SYNCHRONIZED | SYNC
+    : (SYNCHRONIZED | SYNC) (LEFT | RIGHT)?
     ;
 
 // BLANK WHEN ZERO

@@ -182,6 +182,7 @@ JUST        : 'JUST' ;
 JUSTIFIED   : 'JUSTIFIED' ;
 KEY         : 'KEY' ;
 LEADING     : 'LEADING' ;
+LEFT        : 'LEFT' ;
 LESS        : 'LESS' ;
 LINE        : 'LINE' ;
 LINES       : 'LINES' ;
@@ -263,12 +264,15 @@ DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 INTEGERLIT  : [0-9]+ ;
 
 // ── IDENTIFIER (must come AFTER all keywords AND numeric literals) ──
-// Option B: identifiers must start with a letter (matches COBOL spec —
-// user-defined words begin with a letter, not a digit)
+// COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},
+// must contain at least one letter, no leading/trailing hyphen.
+// Letter constraint enforced in semantic layer, not lexer.
+// Digit-start with hyphen (e.g., 42-DATANAMES) is the key case.
 
 IDENTIFIER
-    : [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]
-    | [A-Za-z]
+    : [0-9]+ '-' [A-Za-z0-9] [A-Za-z0-9-]*   // digit-start: 42-DATANAMES
+    | [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]      // alpha-start: WRK-DS-01V00
+    | [A-Za-z]                                  // single letter: A
     ;
 
 // ── String literals ──
