@@ -173,8 +173,6 @@ public sealed class Binder
                 return LowerDivide(div, method, block);
             case BoundComputeStatement comp:
                 return LowerCompute(comp, method, block);
-            case BoundArithmeticStatement:
-                break;
         }
         return block;
     }

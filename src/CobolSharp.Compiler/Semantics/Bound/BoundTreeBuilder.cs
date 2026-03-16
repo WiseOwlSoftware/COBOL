@@ -408,7 +408,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // BY targets — each with per-item ROUNDED flag
         var byTargets = ctx.multiplyByTarget();
         if (byTargets.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+            throw new InvalidOperationException($"MULTIPLY statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var bt in byTargets)
@@ -419,7 +419,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+            throw new InvalidOperationException($"MULTIPLY statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING targets (if present)
         DataSymbol? givingTarget = null;
@@ -456,11 +456,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // ADD operand(s) TO target1 [ROUNDED] target2 [ROUNDED] ...
         var operandList = ctx.addOperandList();
         if (operandList == null)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var addOps = operandList.addOperand();
         if (addOps.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind all operands
         var operands = new List<BoundExpression>();
@@ -515,11 +515,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Multiple operands: SUBTRACT A B C FROM T → T = T - (A + B + C)
         var operandList = ctx.subtractOperandList();
         if (operandList == null)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var subOperands = operandList.subtractOperand();
         if (subOperands.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind all operands (simple identifiers or literals)
         var operands = new List<BoundExpression>();
@@ -529,11 +529,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // FROM targets (each with per-target ROUNDED)
         var fromPhrase = ctx.subtractFromPhrase();
         if (fromPhrase == null)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var fromTargetCtxs = fromPhrase.subtractTarget();
         if (fromTargetCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var t in fromTargetCtxs)
@@ -544,7 +544,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
         var givingPhrase = ctx.subtractGivingPhrase();
@@ -574,7 +574,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // DIVIDE operand INTO/BY ...
         var operandCtx = ctx.divideOperand();
         if (operandCtx == null)
-            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var firstOperand = BindSimpleOperand(operandCtx);
         bool isByForm = ctx.divideByPhrase() != null;
@@ -635,7 +635,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // REMAINDER
         DataSymbol? remainderTarget = null;
@@ -657,7 +657,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // COMPUTE target1 [ROUNDED] target2 [ROUNDED] = expression
         var storeCtxs = ctx.computeStore();
         if (storeCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var s in storeCtxs)
@@ -668,7 +668,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind the full arithmetic expression (recursive tree walk)
         var expr = BindFullExpression(ctx.arithmeticExpression());

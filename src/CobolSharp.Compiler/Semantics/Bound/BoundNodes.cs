@@ -396,14 +396,9 @@ public sealed class BoundComputeStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.ComputeStatement;
 }
 
-public sealed class BoundArithmeticStatement : BoundStatement
-{
-    public BoundNodeKind StatementKind { get; }
-
-    public BoundArithmeticStatement(BoundNodeKind kind) => StatementKind = kind;
-
-    public override BoundNodeKind Kind => StatementKind;
-}
+// BoundArithmeticStatement DELETED — it was a silent-drop pattern that produced NO code.
+// All arithmetic binders now throw InvalidOperationException if they can't produce a
+// proper bound statement. A compiler must never silently skip a statement.
 
 // ═══════════════════════════════════
 // EVALUATE
