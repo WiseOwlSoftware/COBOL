@@ -985,16 +985,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindLogicalNot(CobolParserCore.LogicalNotExpressionContext ctx)
     {
-        if (ctx.logicalNotExpression() != null)
-        {
-            // NOT condition → negate
-            var inner = BindLogicalNot(ctx.logicalNotExpression());
-            return new BoundBinaryExpression(
-                inner,
-                BoundBinaryOperatorKind.Not, // unary, right is dummy
-                new BoundLiteralExpression(0m, CobolCategory.Unknown),
-                CobolCategory.Unknown);
-        }
+        // logicalNotExpression is a pass-through to relationalExpression.
+        // COBOL-85 has no general logical NOT — NOT lives only inside
+        // relational operators (NOT EQUAL, NOT GREATER, NOT LESS).
+        // Logical NOT for condition-names (IF NOT STATUS-ACTIVE) will be
+        // re-added as a separate production when level-88 is implemented.
         return BindRelational(ctx.relationalExpression());
     }
 

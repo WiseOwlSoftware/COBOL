@@ -1586,8 +1586,7 @@ logicalAndExpression
     ;
 
 logicalNotExpression
-    : 'NOT' logicalNotExpression
-    | relationalExpression
+    : relationalExpression
     ;
 
 // =========================
