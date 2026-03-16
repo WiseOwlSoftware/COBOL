@@ -62,7 +62,43 @@ public static class PicDescriptorFactory
             blankWhenZero: false,
             leadingScaleDigits: pic?.LeadingPScaling ?? 0,
             trailingScaleDigits: pic?.TrailingPScaling ?? 0,
-            editPattern: (pic?.IsEdited ?? false) ? symbol.PicString : null);
+            editPattern: (pic?.IsEdited ?? false) ? ExpandEditPattern(symbol.PicString!) : null);
+    }
+
+    /// <summary>
+    /// Expand PIC repeat notation: "9(5)" → "99999", "-9(9).9(9)" → "-999999999.999999999".
+    /// The EditPattern must be the expanded form for FormatByEditPattern to walk character-by-character.
+    /// </summary>
+    private static string ExpandEditPattern(string pic)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < pic.Length; i++)
+        {
+            char c = pic[i];
+            if (i + 1 < pic.Length && pic[i + 1] == '(')
+            {
+                // Parse repeat count: c(n) or c(nn)
+                int start = i + 2;
+                int end = start;
+                while (end < pic.Length && char.IsDigit(pic[end])) end++;
+                if (end < pic.Length && pic[end] == ')' && end > start)
+                {
+                    int count = int.Parse(pic.Substring(start, end - start));
+                    for (int k = 0; k < count; k++)
+                        sb.Append(c);
+                    i = end; // skip past ')'
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+        return sb.ToString();
     }
 
     private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)

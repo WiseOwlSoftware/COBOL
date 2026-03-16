@@ -863,6 +863,31 @@ public sealed class CilEmitter
     /// <summary>
     /// MOVE figurative-constant TO field: calls PicRuntime.MoveFigurativeToField.
     /// </summary>
+    /// <summary>
+    /// Emit a MOVE call with the standard (src, dst, rounding) signature used by most PicRuntime MOVE methods.
+    /// </summary>
+    private void EmitMoveWithStandardSignature(ILProcessor il, IrPicMove pm, string methodName)
+    {
+        EmitLoadBackingArray(il, pm.Source.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+        EmitLoadPicDescriptor(il, pm.Source.Pic);
+
+        EmitLoadBackingArray(il, pm.Destination.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
+        EmitLoadPicDescriptor(il, pm.Destination.Pic);
+
+        il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod(methodName,
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     private void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
         EmitLoadBackingArray(il, mf.Destination.Area);
@@ -1006,6 +1031,21 @@ public sealed class CilEmitter
                             typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                             typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, method));
+        }
+        else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
+        {
+            // Alphanumeric → Numeric: parse text as number
+            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumeric");
+        }
+        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
+        {
+            // NumericEdited → Numeric: de-edit and convert
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
+        }
+        else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
+        {
+            // Alphanumeric → NumericEdited: parse and format
+            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumericEdited");
         }
         else
         {

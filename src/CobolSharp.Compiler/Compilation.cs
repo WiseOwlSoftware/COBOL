@@ -65,6 +65,7 @@ public sealed class Compilation
 
         // Phase 3a: Resolve deferred REDEFINES (requires all data items registered)
         semanticBuilder.ResolveRedefines();
+        semanticBuilder.PropagateGroupSignClauses();
 
         // Phase 3b: Semantic analysis — Pass 2: reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);

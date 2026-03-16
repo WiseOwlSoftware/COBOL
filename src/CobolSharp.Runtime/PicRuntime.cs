@@ -481,6 +481,91 @@ public static class PicRuntime
     }
 
     // ══════════════════════════════════════════════════════════
+    // MOVE: Alphanumeric → Numeric
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericToNumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: NumericEdited → Numeric
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNumericEditedToNumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Replace("*", "").Trim();
+
+        bool negative = raw.Contains('-');
+        raw = raw.Replace("-", "").Replace("+", "");
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        if (negative) value = -value;
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Alphanumeric → NumericEdited
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericToNumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        string formatted = FormatNumericEdited(value, dstPic);
+        MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+    }
+
+    // ══════════════════════════════════════════════════════════
     // MOVE: Figurative constants (SPACE, ZERO, HIGH-VALUE, etc.)
     // ══════════════════════════════════════════════════════════
 

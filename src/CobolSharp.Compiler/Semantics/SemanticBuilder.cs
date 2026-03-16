@@ -57,6 +57,37 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         }
     }
 
+    /// <summary>
+    /// Pass 3: Propagate group-level SIGN clauses to elementary children.
+    /// Per ISO, a SIGN clause on a group item applies to all subordinate
+    /// elementary numeric DISPLAY items that don't have their own SIGN clause.
+    /// </summary>
+    public void PropagateGroupSignClauses()
+    {
+        foreach (var root in _dataItemsInOrder)
+        {
+            if (root.LevelNumber == 1 || root.LevelNumber == 77)
+                PropagateSignRecursive(root, inherited: null);
+        }
+    }
+
+    private void PropagateSignRecursive(DataSymbol sym, Runtime.SignStorageKind? inherited)
+    {
+        var effective = sym.ExplicitSignStorage ?? inherited;
+
+        if (sym.IsElementary &&
+            sym.ResolvedType?.Pic is PicLayout pic &&
+            pic.IsSigned &&
+            sym.Usage == Runtime.UsageKind.Display &&
+            sym.ExplicitSignStorage == null)
+        {
+            sym.ExplicitSignStorage = effective;
+        }
+
+        foreach (var child in sym.Children)
+            PropagateSignRecursive(child, effective);
+    }
+
     private void Error(ParserRuleContext ctx, string message)
     {
         _diagnostics.Add(new Diagnostic(
