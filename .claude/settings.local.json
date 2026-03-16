@@ -18,7 +18,9 @@
       "Bash(taskkill:*)",
       "Bash(python3:*)",
       "Bash(dotnet build:*)",
-      "Bash(where choco:*)"
+      "Bash(where choco:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }
