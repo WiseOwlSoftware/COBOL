@@ -2716,6 +2716,112 @@ public class EndToEndTests : IDisposable
         Assert.Equal("TWO", stdout);
     }
 
+    [Fact]
+    public void Subscript_VariableSubscript_MoveAndDisplay()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. VSUB1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC 9 OCCURS 3 TIMES.
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO I.
+                MOVE 3 TO J.
+                MOVE 0 TO ITEM(1).
+                MOVE 0 TO ITEM(2).
+                MOVE 0 TO ITEM(3).
+                MOVE 7 TO ITEM(I).
+                MOVE ITEM(I) TO ITEM(J).
+                DISPLAY ITEM(1) ITEM(2) ITEM(3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("707", stdout);
+    }
+
+    [Fact]
+    public void Subscript_2D_ConstantSubscripts()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUB2D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2 TIMES.
+                  10 COL PIC 9 OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO COL(1, 1).
+                MOVE 2 TO COL(1, 2).
+                MOVE 3 TO COL(1, 3).
+                MOVE 4 TO COL(2, 1).
+                MOVE 5 TO COL(2, 2).
+                MOVE 6 TO COL(2, 3).
+                DISPLAY COL(1, 1) COL(1, 2) COL(1, 3)
+                        COL(2, 1) COL(2, 2) COL(2, 3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("123456", stdout);
+    }
+
+    [Fact]
+    public void Subscript_2D_VariableSubscripts()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. VSUB2D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2 TIMES.
+                  10 COL PIC 9 OCCURS 3 TIMES.
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 2 TO I.
+                MOVE 3 TO J.
+                MOVE 7 TO COL(I, J).
+                DISPLAY COL(2, 3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("7", stdout);
+    }
+
+    [Fact]
+    public void Subscript_3D_ConstantSubscripts()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUB3D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CUBE.
+               05 X-DIM OCCURS 2 TIMES.
+                  10 Y-DIM OCCURS 2 TIMES.
+                     15 Z-ITEM PIC 9 OCCURS 2 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 9 TO Z-ITEM(2, 1, 2).
+                DISPLAY Z-ITEM(2, 1, 2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("9", stdout);
+    }
+
     // ── GO TO DEPENDING ──
 
     [Fact]

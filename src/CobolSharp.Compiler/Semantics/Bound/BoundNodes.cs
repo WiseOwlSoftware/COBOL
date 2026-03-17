@@ -303,11 +303,11 @@ public sealed class BoundStopStatement : BoundStatement
 public sealed class BoundGoToStatement : BoundStatement
 {
     public IReadOnlyList<ParagraphSymbol> Targets { get; }
-    public DataSymbol? DependingOn { get; }
+    public BoundIdentifierExpression? DependingOn { get; }
 
     public bool IsSimple => DependingOn == null && Targets.Count == 1;
 
-    public BoundGoToStatement(IReadOnlyList<ParagraphSymbol> targets, DataSymbol? dependingOn = null)
+    public BoundGoToStatement(IReadOnlyList<ParagraphSymbol> targets, BoundIdentifierExpression? dependingOn = null)
     {
         Targets = targets;
         DependingOn = dependingOn;
@@ -358,13 +358,13 @@ public sealed class BoundCloseStatement : BoundStatement
 public sealed class BoundReadStatement : BoundStatement
 {
     public FileSymbol File { get; }
-    public DataSymbol? Into { get; }
+    public BoundIdentifierExpression? Into { get; }
     public IReadOnlyList<BoundStatement> AtEnd { get; }
     public IReadOnlyList<BoundStatement> NotAtEnd { get; }
 
     public BoundReadStatement(
         FileSymbol file,
-        DataSymbol? into,
+        BoundIdentifierExpression? into,
         IReadOnlyList<BoundStatement> atEnd,
         IReadOnlyList<BoundStatement> notAtEnd)
     {
@@ -449,11 +449,11 @@ public sealed class BoundSetConditionStatement : BoundStatement
 
 public sealed class BoundSetIndexStatement : BoundStatement
 {
-    public DataSymbol Target { get; }
+    public BoundIdentifierExpression Target { get; }
     public SetOperation Operation { get; }
     public BoundExpression Value { get; }
 
-    public BoundSetIndexStatement(DataSymbol target, SetOperation operation, BoundExpression value)
+    public BoundSetIndexStatement(BoundIdentifierExpression target, SetOperation operation, BoundExpression value)
     {
         Target = target;
         Operation = operation;
@@ -476,10 +476,10 @@ public enum AcceptSourceKind
 
 public sealed class BoundAcceptStatement : BoundStatement
 {
-    public DataSymbol Target { get; }
+    public BoundIdentifierExpression Target { get; }
     public AcceptSourceKind Source { get; }
 
-    public BoundAcceptStatement(DataSymbol target, AcceptSourceKind source)
+    public BoundAcceptStatement(BoundIdentifierExpression target, AcceptSourceKind source)
     {
         Target = target;
         Source = source;
@@ -514,12 +514,12 @@ public enum InspectReplaceKind { All, First, Leading }
 
 public sealed class BoundInspectTallyingItem
 {
-    public DataSymbol Counter { get; }
+    public BoundIdentifierExpression Counter { get; }
     public InspectTallyKind Kind { get; }
     public string? Pattern { get; }
     public BoundInspectRegion Region { get; }
 
-    public BoundInspectTallyingItem(DataSymbol counter, InspectTallyKind kind,
+    public BoundInspectTallyingItem(BoundIdentifierExpression counter, InspectTallyKind kind,
         string? pattern, BoundInspectRegion region)
     {
         Counter = counter;
@@ -562,12 +562,12 @@ public sealed class BoundInspectConverting
 
 public sealed class BoundInspectStatement : BoundStatement
 {
-    public DataSymbol Target { get; }
+    public BoundIdentifierExpression Target { get; }
     public IReadOnlyList<BoundInspectTallyingItem> Tallying { get; }
     public IReadOnlyList<BoundInspectReplacingItem> Replacing { get; }
     public BoundInspectConverting? Converting { get; }
 
-    public BoundInspectStatement(DataSymbol target,
+    public BoundInspectStatement(BoundIdentifierExpression target,
         IReadOnlyList<BoundInspectTallyingItem> tallying,
         IReadOnlyList<BoundInspectReplacingItem> replacing,
         BoundInspectConverting? converting)
@@ -627,12 +627,12 @@ public sealed class BoundSizeErrorClause
 /// </summary>
 public sealed class BoundArithmeticTarget
 {
-    public DataSymbol Symbol { get; }
+    public BoundIdentifierExpression Target { get; }
     public bool IsRounded { get; }
 
-    public BoundArithmeticTarget(DataSymbol symbol, bool isRounded)
+    public BoundArithmeticTarget(BoundIdentifierExpression target, bool isRounded)
     {
-        Symbol = symbol;
+        Target = target;
         IsRounded = isRounded;
     }
 }
@@ -641,12 +641,12 @@ public sealed class BoundMultiplyStatement : BoundStatement
 {
     public BoundExpression Operand { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public DataSymbol? GivingTarget { get; }
+    public BoundIdentifierExpression? GivingTarget { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
     public BoundMultiplyStatement(BoundExpression operand,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        DataSymbol? givingTarget = null,
+        BoundIdentifierExpression? givingTarget = null,
         BoundSizeErrorClause? sizeError = null)
     {
         Operand = operand;
@@ -688,7 +688,7 @@ public sealed class BoundDivideStatement : BoundStatement
     public BoundExpression? Dividend { get; }
     public bool IsByForm { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public DataSymbol? RemainderTarget { get; }
+    public BoundIdentifierExpression? RemainderTarget { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
     public BoundDivideStatement(
@@ -696,7 +696,7 @@ public sealed class BoundDivideStatement : BoundStatement
         BoundExpression? dividend,
         bool isByForm,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        DataSymbol? remainderTarget = null,
+        BoundIdentifierExpression? remainderTarget = null,
         BoundSizeErrorClause? sizeError = null)
     {
         Divisor = divisor;

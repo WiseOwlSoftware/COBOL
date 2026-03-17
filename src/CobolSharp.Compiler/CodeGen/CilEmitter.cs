@@ -582,10 +582,7 @@ public sealed class CilEmitter
                 var accLocal = getLocal(accField.Accumulator);
                 il.Append(il.Create(OpCodes.Ldloc, accLocal));
                 // DecodeNumeric(area, offset, length, pic) → decimal
-                EmitLoadBackingArray(il, accField.Source.Area);
-                il.Append(il.Create(OpCodes.Ldc_I4, accField.Source.Offset));
-                il.Append(il.Create(OpCodes.Ldc_I4, accField.Source.Length));
-                EmitLoadPicDescriptor(il, accField.Source.Pic);
+                EmitLocationArgsWithPic(il, accField.Source);
                 var decode = _module.ImportReference(
                     typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
                         new[] { typeof(byte[]), typeof(int), typeof(int),
@@ -897,11 +894,8 @@ public sealed class CilEmitter
     private void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        // Call ProgramState.MoveStringToField(byte[] area, int offset, int size, string value)
-        // All args emitted inline — no stack ordering issues.
-        EmitLoadBackingArray(il, ms.Target.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, ms.Target.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, ms.Target.Length));
+        // Call StorageHelpers.MoveStringToField(byte[] area, int offset, int size, string value)
+        EmitLocationArgs(il, ms.Target);
         il.Append(il.Create(OpCodes.Ldstr, ms.Value));
 
         var method = _module.ImportReference(
@@ -919,15 +913,8 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitMoveWithStandardSignature(ILProcessor il, IrPicMove pm, string methodName)
     {
-        EmitLoadBackingArray(il, pm.Source.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
-        EmitLoadPicDescriptor(il, pm.Source.Pic);
-
-        EmitLoadBackingArray(il, pm.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-        EmitLoadPicDescriptor(il, pm.Destination.Pic);
+        EmitLocationArgsWithPic(il, pm.Source);
+        EmitLocationArgsWithPic(il, pm.Destination);
 
         il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
 
@@ -941,10 +928,7 @@ public sealed class CilEmitter
 
     private void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
-        EmitLoadBackingArray(il, mf.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mf.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mf.Destination.Length));
-        EmitLoadPicDescriptor(il, mf.Destination.Pic);
+        EmitLocationArgsWithPic(il, mf.Destination);
         il.Append(il.Create(OpCodes.Ldc_I4, mf.FigurativeKind));
 
         var method = _module.ImportReference(
@@ -960,9 +944,7 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitMoveAllLiteral(ILProcessor il, IrMoveAllLiteral mal)
     {
-        EmitLoadBackingArray(il, mal.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mal.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mal.Destination.Length));
+        EmitLocationArgs(il, mal.Destination);
 
         // Emit pattern as byte[]: new byte[] { b0, b1, ... }
         var patternBytes = System.Text.Encoding.ASCII.GetBytes(mal.Pattern);
@@ -992,12 +974,8 @@ public sealed class CilEmitter
         // fileName
         il.Append(il.Create(OpCodes.Ldstr, wr.FileName));
 
-        // Load backing byte array
-        EmitLoadBackingArray(il, wr.Record.Area);
-
-        // offset + size
-        il.Append(il.Create(OpCodes.Ldc_I4, wr.Record.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, wr.Record.Length));
+        // Load area, offset, size
+        EmitLocationArgs(il, wr.Record);
 
         // Call ProgramState.WriteRecordToFile(string, byte[], int, int)
         var method = _module.ImportReference(
@@ -1016,9 +994,7 @@ public sealed class CilEmitter
     private void EmitRewriteRecordFromStorage(ILProcessor il, IrRewriteRecordFromStorage rw)
     {
         il.Append(il.Create(OpCodes.Ldstr, rw.FileName));
-        EmitLoadBackingArray(il, rw.Record.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, rw.Record.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, rw.Record.Length));
+        EmitLocationArgs(il, rw.Record);
 
         var method = _module.ImportReference(
             typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
@@ -1031,11 +1007,8 @@ public sealed class CilEmitter
     {
         // fileName
         il.Append(il.Create(OpCodes.Ldstr, waa.FileName));
-        // Load backing byte array
-        EmitLoadBackingArray(il, waa.Record.Area);
-        // offset + size
-        il.Append(il.Create(OpCodes.Ldc_I4, waa.Record.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, waa.Record.Length));
+        // Load area, offset, size
+        EmitLocationArgs(il, waa.Record);
         // advanceLines
         il.Append(il.Create(OpCodes.Ldc_I4, waa.AdvanceLines));
 
@@ -1050,9 +1023,7 @@ public sealed class CilEmitter
     {
         // StorageHelpers.ReadRecordFromFile(string fileName, byte[] area, int offset, int size)
         il.Append(il.Create(OpCodes.Ldstr, rd.FileName));
-        EmitLoadBackingArray(il, rd.Record.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, rd.Record.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, rd.Record.Length));
+        EmitLocationArgs(il, rd.Record);
 
         var method = _module.ImportReference(
             typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
@@ -1068,9 +1039,7 @@ public sealed class CilEmitter
     private void EmitStoreFileStatus(ILProcessor il, IrStoreFileStatus sfs)
     {
         // Push args for MoveStringToField(byte[] area, int offset, int length, string value)
-        EmitLoadBackingArray(il, sfs.StatusVariable.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, sfs.StatusVariable.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, sfs.StatusVariable.Length));
+        EmitLocationArgs(il, sfs.StatusVariable);
 
         // Call FileRuntime.GetLastStatus(cobolName) to get the status string
         il.Append(il.Create(OpCodes.Ldstr, sfs.CobolFileName));
@@ -1108,10 +1077,7 @@ public sealed class CilEmitter
         Func<IrValue, VariableDefinition> getLocal)
     {
         // Decode selector to int: PicRuntime.DecodeNumeric(area, offset, length, pic) → decimal
-        EmitLoadBackingArray(il, gtd.Selector.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, gtd.Selector.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, gtd.Selector.Length));
-        EmitLoadPicDescriptor(il, gtd.Selector.Pic);
+        EmitLocationArgsWithPic(il, gtd.Selector);
 
         var decodeMethod = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
@@ -1154,9 +1120,7 @@ public sealed class CilEmitter
 
     private void EmitAccept(ILProcessor il, IrAccept acc)
     {
-        EmitLoadBackingArray(il, acc.Target.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, acc.Target.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, acc.Target.Length));
+        EmitLocationArgs(il, acc.Target);
         il.Append(il.Create(OpCodes.Ldc_I4, (int)acc.Source));
 
         var method = _module.ImportReference(
@@ -1170,9 +1134,7 @@ public sealed class CilEmitter
     private void EmitInspectTally(ILProcessor il, IrInspectTally it)
     {
         // Target area/offset/length
-        EmitLoadBackingArray(il, it.Target.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, it.Target.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, it.Target.Length));
+        EmitLocationArgs(il, it.Target);
 
         string methodName;
 
@@ -1188,10 +1150,7 @@ public sealed class CilEmitter
         }
 
         // Counter area/offset/length/pic
-        EmitLoadBackingArray(il, it.Counter.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, it.Counter.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, it.Counter.Length));
-        EmitLoadPicDescriptor(il, it.Counter.Pic);
+        EmitLocationArgsWithPic(il, it.Counter);
 
         // Region args
         EmitOptionalString(il, it.BeforePattern);
@@ -1227,9 +1186,7 @@ public sealed class CilEmitter
             _ => "ReplaceAll"
         };
 
-        EmitLoadBackingArray(il, ir.Target.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, ir.Target.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, ir.Target.Length));
+        EmitLocationArgs(il, ir.Target);
         il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
         il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
         EmitOptionalString(il, ir.BeforePattern);
@@ -1247,9 +1204,7 @@ public sealed class CilEmitter
 
     private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)
     {
-        EmitLoadBackingArray(il, ic.Target.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, ic.Target.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, ic.Target.Length));
+        EmitLocationArgs(il, ic.Target);
         il.Append(il.Create(OpCodes.Ldstr, ic.FromSet));
         il.Append(il.Create(OpCodes.Ldstr, ic.ToSet));
         EmitOptionalString(il, ic.BeforePattern);
@@ -1279,101 +1234,40 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
     {
-        var srcCat = pm.Source.Pic.Category;
-        var dstCat = pm.Destination.Pic.Category;
+        var srcPic = GetPicForLocation(pm.Source);
+        var dstPic = GetPicForLocation(pm.Destination);
+        var srcCat = srcPic.Category;
+        var dstCat = dstPic.Category;
 
         if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            // Numeric → NumericEdited: format with editing pattern
-            EmitLoadBackingArray(il, pm.Source.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
-            EmitLoadPicDescriptor(il, pm.Source.Pic);
-
-            EmitLoadBackingArray(il, pm.Destination.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-            EmitLoadPicDescriptor(il, pm.Destination.Pic);
-
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericToNumericEdited",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, method));
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsNumericLike())
         {
-            // Numeric → Numeric (any USAGE: DISPLAY ↔ COMP ↔ COMP-3):
-            // Single canonical path via DecodeNumeric(src) → EncodeNumeric(dst)
-            EmitLoadBackingArray(il, pm.Source.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
-            EmitLoadPicDescriptor(il, pm.Source.Pic);
-
-            EmitLoadBackingArray(il, pm.Destination.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-            EmitLoadPicDescriptor(il, pm.Destination.Pic);
-
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericToNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, method));
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumeric");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsAlphanumericLike())
         {
-            // Numeric → Alphanumeric: format as string
-            EmitLoadBackingArray(il, pm.Source.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
-            EmitLoadPicDescriptor(il, pm.Source.Pic);
-
-            EmitLoadBackingArray(il, pm.Destination.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-            EmitLoadPicDescriptor(il, pm.Destination.Pic);
-
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericToAlphanumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, method));
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumeric");
         }
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
         {
-            // Alphanumeric → Numeric: parse text as number
             EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumeric");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
         {
-            // NumericEdited → Numeric: de-edit and convert
             EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
         }
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            // Alphanumeric → NumericEdited: parse and format
             EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumericEdited");
         }
         else
         {
             // Alpha/group MOVE: raw byte copy
-            EmitLoadBackingArray(il, pm.Destination.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Destination.Length));
-
-            EmitLoadBackingArray(il, pm.Source.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, pm.Source.Length));
+            EmitLocationArgs(il, pm.Destination);
+            EmitLocationArgs(il, pm.Source);
 
             var method = _module.ImportReference(
                 typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
@@ -1386,20 +1280,9 @@ public sealed class CilEmitter
 
     private void EmitPicMultiply(ILProcessor il, IrPicMultiply mul)
     {
-        EmitLoadBackingArray(il, mul.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
-        EmitLoadPicDescriptor(il, mul.Destination.Pic);
-
-        EmitLoadBackingArray(il, mul.Left.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Left.Length));
-        EmitLoadPicDescriptor(il, mul.Left.Pic);
-
-        EmitLoadBackingArray(il, mul.Right.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Right.Length));
-        EmitLoadPicDescriptor(il, mul.Right.Pic);
+        EmitLocationArgsWithPic(il, mul.Destination);
+        EmitLocationArgsWithPic(il, mul.Left);
+        EmitLocationArgsWithPic(il, mul.Right);
 
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
@@ -1416,10 +1299,6 @@ public sealed class CilEmitter
     private void EmitClassCondition(ILProcessor il, IrClassCondition inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, inst.Subject.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Subject.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Subject.Length));
-
         var kind = (Semantics.Bound.ClassConditionKind)inst.ClassKind;
         string methodName = kind switch
         {
@@ -1434,12 +1313,13 @@ public sealed class CilEmitter
         System.Reflection.MethodInfo method;
         if (kind == Semantics.Bound.ClassConditionKind.Numeric)
         {
-            EmitLoadPicDescriptor(il, inst.Subject.Pic);
+            EmitLocationArgsWithPic(il, inst.Subject);
             method = typeof(Runtime.PicRuntime).GetMethod(methodName,
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!;
         }
         else
         {
+            EmitLocationArgs(il, inst.Subject);
             method = typeof(Runtime.PicRuntime).GetMethod(methodName,
                 new[] { typeof(byte[]), typeof(int), typeof(int) })!;
         }
@@ -1456,15 +1336,8 @@ public sealed class CilEmitter
     private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, cmp.Left.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
-        EmitLoadPicDescriptor(il, cmp.Left.Pic);
-
-        EmitLoadBackingArray(il, cmp.Right.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Right.Length));
-        EmitLoadPicDescriptor(il, cmp.Right.Pic);
+        EmitLocationArgsWithPic(il, cmp.Left);
+        EmitLocationArgsWithPic(il, cmp.Right);
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("CompareNumeric",
@@ -1545,10 +1418,7 @@ public sealed class CilEmitter
 
     private void EmitPicMoveLiteralNumeric(ILProcessor il, IrPicMoveLiteralNumeric mv)
     {
-        EmitLoadBackingArray(il, mv.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mv.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mv.Destination.Length));
-        EmitLoadPicDescriptor(il, mv.Destination.Pic);
+        EmitLocationArgsWithPic(il, mv.Destination);
         EmitLoadDecimal(il, mv.Value);
         il.Append(il.Create(OpCodes.Ldc_I4, mv.Rounding));
 
@@ -1561,15 +1431,9 @@ public sealed class CilEmitter
 
     private void EmitPicMultiplyLiteral(ILProcessor il, IrPicMultiplyLiteral mul)
     {
-        EmitLoadBackingArray(il, mul.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Destination.Length));
-        EmitLoadPicDescriptor(il, mul.Destination.Pic);
+        EmitLocationArgsWithPic(il, mul.Destination);
         EmitLoadDecimal(il, mul.Value);
-        EmitLoadBackingArray(il, mul.Other.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Other.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Other.Length));
-        EmitLoadPicDescriptor(il, mul.Other.Pic);
+        EmitLocationArgsWithPic(il, mul.Other);
         il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
@@ -1584,14 +1448,8 @@ public sealed class CilEmitter
 
     private void EmitPicAdd(ILProcessor il, IrPicAdd add)
     {
-        EmitLoadBackingArray(il, add.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
-        EmitLoadPicDescriptor(il, add.Destination.Pic);
-        EmitLoadBackingArray(il, add.Source.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Source.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Source.Length));
-        EmitLoadPicDescriptor(il, add.Source.Pic);
+        EmitLocationArgsWithPic(il, add.Destination);
+        EmitLocationArgsWithPic(il, add.Source);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
@@ -1605,10 +1463,7 @@ public sealed class CilEmitter
 
     private void EmitPicAddLiteral(ILProcessor il, IrPicAddLiteral add)
     {
-        EmitLoadBackingArray(il, add.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Destination.Length));
-        EmitLoadPicDescriptor(il, add.Destination.Pic);
+        EmitLocationArgsWithPic(il, add.Destination);
         EmitLoadDecimal(il, add.Value);
         il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
@@ -1622,14 +1477,8 @@ public sealed class CilEmitter
 
     private void EmitPicSubtract(ILProcessor il, IrPicSubtract sub)
     {
-        EmitLoadBackingArray(il, sub.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Length));
-        EmitLoadPicDescriptor(il, sub.Destination.Pic);
-        EmitLoadBackingArray(il, sub.Source.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Source.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Source.Length));
-        EmitLoadPicDescriptor(il, sub.Source.Pic);
+        EmitLocationArgsWithPic(il, sub.Destination);
+        EmitLocationArgsWithPic(il, sub.Source);
         il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
@@ -1643,10 +1492,7 @@ public sealed class CilEmitter
 
     private void EmitPicSubtractLiteral(ILProcessor il, IrPicSubtractLiteral sub)
     {
-        EmitLoadBackingArray(il, sub.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Destination.Length));
-        EmitLoadPicDescriptor(il, sub.Destination.Pic);
+        EmitLocationArgsWithPic(il, sub.Destination);
         EmitLoadDecimal(il, sub.Value);
         il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
@@ -1661,10 +1507,7 @@ public sealed class CilEmitter
     private void EmitAddAccumulatedToTarget(ILProcessor il, IrAddAccumulatedToTarget inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, inst.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
-        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        EmitLocationArgsWithPic(il, inst.Destination);
         var accLocal = getLocal(inst.Accumulator);
         il.Append(il.Create(OpCodes.Ldloc, accLocal));
         il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
@@ -1680,10 +1523,7 @@ public sealed class CilEmitter
     private void EmitMoveAccumulatedToTarget(ILProcessor il, IrMoveAccumulatedToTarget inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, inst.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
-        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        EmitLocationArgsWithPic(il, inst.Destination);
         var accLocal = getLocal(inst.Accumulator);
         il.Append(il.Create(OpCodes.Ldloc, accLocal));
         il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
@@ -1699,10 +1539,7 @@ public sealed class CilEmitter
     private void EmitSubtractAccumulatedFromTarget(ILProcessor il, IrSubtractAccumulatedFromTarget inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, inst.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Destination.Length));
-        EmitLoadPicDescriptor(il, inst.Destination.Pic);
+        EmitLocationArgsWithPic(il, inst.Destination);
         var accLocal = getLocal(inst.Accumulator);
         il.Append(il.Create(OpCodes.Ldloc, accLocal));
         il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
@@ -1717,20 +1554,9 @@ public sealed class CilEmitter
 
     private void EmitPicDivide(ILProcessor il, IrPicDivide div)
     {
-        EmitLoadBackingArray(il, div.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Length));
-        EmitLoadPicDescriptor(il, div.Destination.Pic);
-
-        EmitLoadBackingArray(il, div.Left.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Left.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Left.Length));
-        EmitLoadPicDescriptor(il, div.Left.Pic);
-
-        EmitLoadBackingArray(il, div.Right.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Right.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Right.Length));
-        EmitLoadPicDescriptor(il, div.Right.Pic);
+        EmitLocationArgsWithPic(il, div.Destination);
+        EmitLocationArgsWithPic(il, div.Left);
+        EmitLocationArgsWithPic(il, div.Right);
 
         il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
@@ -1746,15 +1572,9 @@ public sealed class CilEmitter
 
     private void EmitPicDivideLiteral(ILProcessor il, IrPicDivideLiteral div)
     {
-        EmitLoadBackingArray(il, div.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Destination.Length));
-        EmitLoadPicDescriptor(il, div.Destination.Pic);
+        EmitLocationArgsWithPic(il, div.Destination);
         EmitLoadDecimal(il, div.Value);
-        EmitLoadBackingArray(il, div.Other.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Other.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Other.Length));
-        EmitLoadPicDescriptor(il, div.Other.Pic);
+        EmitLocationArgsWithPic(il, div.Other);
         il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
@@ -1775,10 +1595,7 @@ public sealed class CilEmitter
     private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
     {
         // Push target storage args
-        EmitLoadBackingArray(il, cs.Destination.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, cs.Destination.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, cs.Destination.Length));
-        EmitLoadPicDescriptor(il, cs.Destination.Pic);
+        EmitLocationArgsWithPic(il, cs.Destination);
 
         // Evaluate expression — pushes decimal onto stack
         EmitExpression(il, cs.Expression);
@@ -1901,10 +1718,7 @@ public sealed class CilEmitter
     private void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, cmp.Left.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
-        EmitLoadPicDescriptor(il, cmp.Left.Pic);
+        EmitLocationArgsWithPic(il, cmp.Left);
         EmitLoadDecimal(il, cmp.Value);
 
         var method = _module.ImportReference(
@@ -1971,9 +1785,7 @@ public sealed class CilEmitter
     private void EmitStringCompareLiteral(ILProcessor il, IrStringCompareLiteral cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        EmitLoadBackingArray(il, cmp.Left.Area);
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Offset));
-        il.Append(il.Create(OpCodes.Ldc_I4, cmp.Left.Length));
+        EmitLocationArgs(il, cmp.Left);
         il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
 
         var method = _module.ImportReference(
@@ -2100,6 +1912,105 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Callvirt, getter));
     }
 
+    // ── Unified IrLocation emission helpers ──
+
+    /// <summary>
+    /// Get the PicDescriptor for an IrLocation (static or element).
+    /// </summary>
+    private static Runtime.PicDescriptor GetPicForLocation(IR.IrLocation loc)
+    {
+        return loc switch
+        {
+            IR.IrStaticLocation s => s.Location.Pic,
+            IR.IrElementRef e => e.ElementPic,
+            _ => throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}")
+        };
+    }
+
+    /// <summary>
+    /// Push (area, offset, length) onto the IL stack for any IrLocation.
+    /// For static: pushes compile-time constants.
+    /// For element ref: computes runtime offset via subscript decode.
+    /// </summary>
+    private void EmitLocationArgs(ILProcessor il, IR.IrLocation loc)
+    {
+        switch (loc)
+        {
+            case IR.IrStaticLocation s:
+                EmitLoadBackingArray(il, s.Location.Area);
+                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
+                break;
+
+            case IR.IrElementRef e:
+                EmitElementAddress(il, e);
+                il.Append(il.Create(OpCodes.Ldc_I4, e.ElementSize));
+                break;
+
+            default:
+                throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}");
+        }
+    }
+
+    /// <summary>
+    /// Push (area, offset, length, pic) onto the IL stack for any IrLocation.
+    /// </summary>
+    private void EmitLocationArgsWithPic(ILProcessor il, IR.IrLocation loc)
+    {
+        EmitLocationArgs(il, loc);
+        EmitLoadPicDescriptor(il, GetPicForLocation(loc));
+    }
+
+    /// <summary>
+    /// Push (area, effectiveOffset) onto the IL stack for an IrElementRef.
+    /// Decodes the subscript field to int and computes: baseOffset + (subscript - 1) * elementSize.
+    /// </summary>
+    /// <summary>
+    /// Push (area, effectiveOffset) for a multi-dimensional IrElementRef.
+    /// Loops over all dimensions: offset = base + sum((sub_i - 1) * multiplier_i).
+    /// Handles 1D, 2D, and 3D OCCURS uniformly.
+    /// </summary>
+    private void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
+    {
+        // Push base area
+        EmitLoadBackingArray(il, e.BaseLocation.Area);
+
+        // Push base offset — accumulates displacement from each dimension
+        il.Append(il.Create(OpCodes.Ldc_I4, e.BaseLocation.Offset));
+
+        var decodeNumeric = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(Runtime.PicDescriptor) })!);
+        var toInt32 = _module.ImportReference(
+            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
+
+        for (int dim = 0; dim < e.SubscriptLocations.Count; dim++)
+        {
+            var subLoc = e.SubscriptLocations[dim];
+            int multiplier = e.Multipliers[dim];
+
+            // Decode subscript field → decimal → int32
+            EmitLoadBackingArray(il, subLoc.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, subLoc.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, subLoc.Length));
+            EmitLoadPicDescriptor(il, subLoc.Pic);
+            il.Append(il.Create(OpCodes.Call, decodeNumeric));
+            il.Append(il.Create(OpCodes.Call, toInt32));
+
+            // (subscript - 1) * multiplier
+            il.Append(il.Create(OpCodes.Ldc_I4_1));
+            il.Append(il.Create(OpCodes.Sub));
+            il.Append(il.Create(OpCodes.Ldc_I4, multiplier));
+            il.Append(il.Create(OpCodes.Mul));
+
+            // Add to running offset
+            il.Append(il.Create(OpCodes.Add));
+        }
+
+        // Stack: [area, effectiveOffset]
+    }
+
     private void EmitPicDisplay(ILProcessor il, IrPicDisplay disp)
     {
         // Strategy: push each operand as a string, then concat and call Console.WriteLine.
@@ -2146,10 +2057,7 @@ public sealed class CilEmitter
         else if (operand is DisplayFieldOperand field)
         {
             // Call PicRuntime.GetDisplayString(byte[] area, int offset, int length, PicDescriptor pic)
-            EmitLoadBackingArray(il, field.Location.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, field.Location.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, field.Location.Length));
-            EmitLoadPicDescriptor(il, field.Location.Pic);
+            EmitLocationArgsWithPic(il, field.Location);
 
             var method = _module.ImportReference(
                 typeof(PicRuntime).GetMethod("GetDisplayString",

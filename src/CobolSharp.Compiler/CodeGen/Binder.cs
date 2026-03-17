@@ -250,32 +250,36 @@ public sealed class Binder
     // ── Subscript-aware storage resolution ──
 
     /// <summary>
-    /// Resolve a BoundIdentifierExpression to a StorageLocation.
-    /// For subscripted references (OCCURS items), computes element offset
-    /// from the subscript expression. Constant subscripts are resolved at compile time.
-    /// Variable subscripts are resolved at compile time by reading the subscript's
-    /// storage location and emitting runtime offset computation via IR.
+    /// Resolve a BoundIdentifierExpression to an IrLocation.
+    /// - Non-subscripted: returns IrStaticLocation (compile-time offset).
+    /// - All-constant subscripts: folds to IrStaticLocation (compile-time offset).
+    /// - Any variable subscript: returns IrElementRef (runtime offset computation).
+    /// Supports 1D, 2D, and 3D OCCURS (COBOL-85 max 3 dimensions).
+    /// Returns null only if the symbol has no registered storage location.
     /// </summary>
-    private StorageLocation? ResolveIdentifierLocation(BoundIdentifierExpression id)
+    private IrLocation? ResolveLocation(BoundIdentifierExpression id)
     {
         var baseLoc = _semantic.GetStorageLocation(id.Symbol);
         if (!baseLoc.HasValue) return null;
-        if (!id.IsSubscripted) return baseLoc;
+
+        // Non-subscripted: static location
+        if (!id.IsSubscripted)
+            return new IrStaticLocation(baseLoc.Value);
+
+        // Collect OCCURS dimension info by walking the symbol tree
+        // from the item upward, collecting each OCCURS level
+        var occursLevels = new List<(Semantics.DataSymbol sym, int count)>();
+        var current = id.Symbol;
+        while (current != null)
+        {
+            if (current.OccursCount > 1)
+                occursLevels.Insert(0, (current, current.OccursCount));
+            current = current.Parent;
+        }
 
         int elementSize = id.Symbol.ElementSize;
         if (elementSize == 0)
             elementSize = baseLoc.Value.Length / Math.Max(1, id.Symbol.OccursCount);
-
-        // Resolve subscript value — constant subscripts only at this level.
-        // Variable subscripts must be handled by the caller via IrDynamicSubscript.
-        var subExpr = id.Subscripts![0];
-        int? subscriptValue = TryEvaluateConstantSubscript(subExpr);
-        if (!subscriptValue.HasValue)
-            return null; // Variable subscript — caller must emit dynamic offset computation
-
-        if (subscriptValue.Value < 1) return null;
-
-        int effectiveOffset = baseLoc.Value.Offset + (subscriptValue.Value - 1) * elementSize;
 
         // Build element PicDescriptor with correct element storage length
         var arrayPic = baseLoc.Value.Pic;
@@ -287,40 +291,91 @@ public sealed class Binder
             arrayPic.BlankWhenZero, arrayPic.LeadingScaleDigits,
             arrayPic.TrailingScaleDigits, arrayPic.EditPattern);
 
-        return new StorageLocation(baseLoc.Value.Area, effectiveOffset, elementSize, elementPic);
+        // Compute multipliers: multiplier[i] = product of all inner dimensions * elementSize
+        // For 1D [N]:          multipliers = [elementSize]
+        // For 2D [N,M]:        multipliers = [M*elementSize, elementSize]
+        // For 3D [X,Y,Z]:      multipliers = [Y*Z*elementSize, Z*elementSize, elementSize]
+        var multipliers = ComputeMultipliers(occursLevels, elementSize);
+
+        // Try all-constant fold: if every subscript is a literal, compute offset at compile time
+        var subs = id.Subscripts!;
+        bool allConstant = true;
+        int effectiveOffset = baseLoc.Value.Offset;
+        for (int i = 0; i < subs.Count && i < multipliers.Count; i++)
+        {
+            if (subs[i] is BoundLiteralExpression lit && lit.Value is decimal d)
+            {
+                int val = (int)d;
+                if (val < 1) return null;
+                effectiveOffset += (val - 1) * multipliers[i];
+            }
+            else
+            {
+                allConstant = false;
+                break;
+            }
+        }
+
+        if (allConstant)
+        {
+            return new IrStaticLocation(
+                new StorageLocation(baseLoc.Value.Area, effectiveOffset, elementSize, elementPic));
+        }
+
+        // Variable subscripts → IrElementRef for runtime offset computation
+        var subLocs = new List<StorageLocation>();
+        foreach (var sub in subs)
+        {
+            if (sub is not BoundIdentifierExpression subId) return null;
+            var subLoc = _semantic.GetStorageLocation(subId.Symbol);
+            if (!subLoc.HasValue) return null;
+            subLocs.Add(subLoc.Value);
+        }
+
+        return new IrElementRef(baseLoc.Value, subLocs, multipliers, elementSize, elementPic);
     }
 
     /// <summary>
-    /// Try to evaluate a subscript expression as a compile-time constant.
-    /// Returns null if the subscript is variable (requires runtime computation).
+    /// Compute row/plane/element multipliers for multi-dimensional OCCURS.
+    /// multiplier[i] = product of all OCCURS counts at dimensions > i, times elementSize.
     /// </summary>
-    private int? TryEvaluateConstantSubscript(BoundExpression expr)
+    private static List<int> ComputeMultipliers(
+        List<(Semantics.DataSymbol sym, int count)> occursLevels, int elementSize)
     {
-        if (expr is BoundLiteralExpression lit && lit.Value is decimal d)
-            return (int)d;
-        return null;
+        var multipliers = new List<int>(occursLevels.Count);
+        int acc = elementSize;
+        for (int i = occursLevels.Count - 1; i >= 0; i--)
+        {
+            multipliers.Insert(0, acc);
+            acc *= occursLevels[i].count;
+        }
+        return multipliers;
     }
 
     /// <summary>
-    /// Build an IrElementRef for a variable-subscripted OCCURS reference.
-    /// The subscript expression must be a BoundIdentifierExpression (numeric field).
+    /// Resolve a DataSymbol (non-subscriptable reference) to an IrLocation.
+    /// Used for record buffers, file status variables, INITIALIZE items,
+    /// PERFORM VARYING index, and condition parents — cases where subscripts
+    /// are structurally impossible.
     /// </summary>
-    private IrElementRef? BuildElementRef(BoundIdentifierExpression id)
+    private IrLocation? ResolveLocation(DataSymbol sym)
     {
-        var baseLoc = _semantic.GetStorageLocation(id.Symbol);
-        if (!baseLoc.HasValue || !id.IsSubscripted) return null;
+        var loc = _semantic.GetStorageLocation(sym);
+        if (!loc.HasValue) return null;
+        return new IrStaticLocation(loc.Value);
+    }
 
-        int elementSize = id.Symbol.ElementSize;
-        if (elementSize == 0)
-            elementSize = baseLoc.Value.Length / Math.Max(1, id.Symbol.OccursCount);
-
-        var subExpr = id.Subscripts![0];
-        if (subExpr is not BoundIdentifierExpression subId) return null;
-
-        var subLoc = _semantic.GetStorageLocation(subId.Symbol);
-        if (!subLoc.HasValue) return null;
-
-        return new IrElementRef(baseLoc.Value, elementSize, subLoc.Value, baseLoc.Value.Pic);
+    /// <summary>
+    /// Get the PicDescriptor for an IrLocation (static or element).
+    /// </summary>
+    private static Runtime.PicDescriptor GetPicForLocation(IrLocation loc)
+    {
+        return loc switch
+        {
+            IrStaticLocation s => s.Location.Pic,
+            IrElementRef e => e.ElementPic,
+            _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
+        };
     }
 
     // ── DISPLAY ──
@@ -355,9 +410,9 @@ public sealed class Binder
             }
             else if (op is BoundIdentifierExpression id)
             {
-                var loc = ResolveIdentifierLocation(id);
-                if (loc.HasValue)
-                    operands.Add(new IR.DisplayFieldOperand(loc.Value));
+                var loc = ResolveLocation(id);
+                if (loc != null)
+                    operands.Add(new IR.DisplayFieldOperand(loc));
                 else
                     operands.Add(new IR.DisplayLiteralOperand($"[{id.Symbol.Name}]"));
             }
@@ -380,19 +435,13 @@ public sealed class Binder
             foreach (var t in mv.Targets)
             {
                 if (t is not BoundIdentifierExpression id) continue;
-                var loc = ResolveIdentifierLocation(id);
-                if (!loc.HasValue) continue;
+                var loc = ResolveLocation(id);
+                if (loc == null) continue;
 
                 if (fig.AllLiteral != null)
-                {
-                    // ALL "pattern" — repeat pattern to fill field
-                    block.Instructions.Add(new IrMoveAllLiteral(loc.Value, fig.AllLiteral));
-                }
+                    block.Instructions.Add(new IrMoveAllLiteral(loc, fig.AllLiteral));
                 else
-                {
-                    // Named figurative (SPACE, ZERO, HIGH-VALUE, etc.)
-                    block.Instructions.Add(new IrMoveFigurative(loc.Value, fig.FigurativeKind));
-                }
+                    block.Instructions.Add(new IrMoveFigurative(loc, fig.FigurativeKind));
             }
             return;
         }
@@ -403,28 +452,25 @@ public sealed class Binder
             foreach (var t in mv.Targets)
             {
                 if (t is not BoundIdentifierExpression id) continue;
-                var loc = ResolveIdentifierLocation(id);
-                if (!loc.HasValue) continue;
+                var loc = ResolveLocation(id);
+                if (loc == null) continue;
 
-                var destCat = loc.Value.Pic.Category;
+                var destPic = GetPicForLocation(loc);
                 if (lit.Value is string s)
                 {
-                    // Alphanumeric literal → MoveStringToField
-                    block.Instructions.Add(new IrMoveStringToField(loc.Value, s));
+                    block.Instructions.Add(new IrMoveStringToField(loc, s));
                 }
                 else if (lit.Value is decimal d)
                 {
-                    if (destCat.IsNumericLike())
+                    if (destPic.Category.IsNumericLike())
                     {
-                        // Numeric literal → numeric destination
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(
-                            loc.Value, d, mv.IsRounded ? 1 : 0));
+                            loc, d, mv.IsRounded ? 1 : 0));
                     }
                     else
                     {
-                        // Numeric literal → alphanumeric destination: format as string
                         string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        block.Instructions.Add(new IrMoveStringToField(loc.Value, numStr));
+                        block.Instructions.Add(new IrMoveStringToField(loc, numStr));
                     }
                 }
             }
@@ -434,18 +480,18 @@ public sealed class Binder
         // Handle MOVE identifier TO identifier (field-to-field)
         if (mv.Source is BoundIdentifierExpression srcId)
         {
-            var srcLoc = ResolveIdentifierLocation(srcId);
-            if (srcLoc.HasValue)
+            var srcLoc = ResolveLocation(srcId);
+            if (srcLoc != null)
             {
                 foreach (var t in mv.Targets)
                 {
                     if (t is BoundIdentifierExpression destId)
                     {
-                        var destLoc = ResolveIdentifierLocation(destId);
-                        if (destLoc.HasValue)
+                        var destLoc = ResolveLocation(destId);
+                        if (destLoc != null)
                         {
                             block.Instructions.Add(new IrPicMove(
-                                srcLoc.Value, destLoc.Value,
+                                srcLoc, destLoc,
                                 mv.IsRounded ? 1 : 0));
                         }
                     }
@@ -504,11 +550,11 @@ public sealed class Binder
     private IrBasicBlock LowerPerformVarying(BoundPerformVarying v, BoundPerformStatement perf,
         IrMethod method, IrBasicBlock block)
     {
-        var indexLoc = _semantic.GetStorageLocation(v.Index);
-        if (!indexLoc.HasValue) return block;
+        var indexLoc = ResolveLocation(v.Index);
+        if (indexLoc == null) return block;
 
         // 1. Initialize: MOVE initial TO index
-        EmitVaryingMove(v.Initial, indexLoc.Value, block);
+        EmitVaryingMove(v.Initial, indexLoc, block);
 
         // 2. Loop structure
         var loopStart = method.CreateBlock("vary.start");
@@ -540,7 +586,7 @@ public sealed class Binder
         }
 
         // Increment: ADD step TO index
-        EmitVaryingAdd(v.Step, indexLoc.Value, bodyCurrent);
+        EmitVaryingAdd(v.Step, indexLoc, bodyCurrent);
 
         bodyCurrent.Instructions.Add(new IrJump(loopStart));
 
@@ -548,7 +594,7 @@ public sealed class Binder
         return loopEnd;
     }
 
-    private void EmitVaryingMove(BoundExpression source, StorageLocation dest, IrBasicBlock block)
+    private void EmitVaryingMove(BoundExpression source, IrLocation dest, IrBasicBlock block)
     {
         if (source is BoundLiteralExpression lit && lit.Value is decimal d)
         {
@@ -556,13 +602,13 @@ public sealed class Binder
         }
         else if (source is BoundIdentifierExpression id)
         {
-            var srcLoc = _semantic.GetStorageLocation(id.Symbol);
-            if (srcLoc.HasValue)
-                block.Instructions.Add(new IrPicMove(srcLoc.Value, dest, 0));
+            var srcLoc = ResolveLocation(id);
+            if (srcLoc != null)
+                block.Instructions.Add(new IrPicMove(srcLoc, dest, 0));
         }
     }
 
-    private void EmitVaryingAdd(BoundExpression step, StorageLocation indexLoc, IrBasicBlock block)
+    private void EmitVaryingAdd(BoundExpression step, IrLocation indexLoc, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
         if (step is BoundLiteralExpression litStep && litStep.Value is decimal dStep)
@@ -571,9 +617,9 @@ public sealed class Binder
         }
         else if (step is BoundIdentifierExpression idStep)
         {
-            var stepLoc = _semantic.GetStorageLocation(idStep.Symbol);
-            if (stepLoc.HasValue)
-                block.Instructions.Add(new IrPicAdd(stepLoc.Value, indexLoc, 0));
+            var stepLoc = ResolveLocation(idStep);
+            if (stepLoc != null)
+                block.Instructions.Add(new IrPicAdd(stepLoc, indexLoc, 0));
         }
     }
 
@@ -642,19 +688,17 @@ public sealed class Binder
         string fileName = wr.File?.Name ?? "PRINT-FILE";
 
         // Try to get storage location for the record
-        var recordLoc = _semantic.GetStorageLocation(wr.Record);
-        if (recordLoc.HasValue)
+        var recordLoc = ResolveLocation(wr.Record);
+        if (recordLoc != null)
         {
             if (wr.AdvancingLines.HasValue)
             {
-                // WRITE AFTER/BEFORE ADVANCING: print-control path
                 block.Instructions.Add(new IrWriteAfterAdvancing(
-                    fileName, recordLoc.Value, wr.AdvancingLines.Value));
+                    fileName, recordLoc, wr.AdvancingLines.Value));
             }
             else
             {
-                // Plain WRITE: data record path via handler.Write
-                block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc.Value));
+                block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc));
             }
         }
         else
@@ -724,10 +768,10 @@ public sealed class Binder
         var recordSym = read.File.Record;
         if (recordSym != null)
         {
-            var recordLoc = _semantic.GetStorageLocation(recordSym);
-            if (recordLoc.HasValue)
+            var recordLoc = ResolveLocation(recordSym);
+            if (recordLoc != null)
             {
-                block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc.Value));
+                block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
             }
         }
 
@@ -737,11 +781,11 @@ public sealed class Binder
         // If INTO specified, MOVE FD record to INTO target
         if (read.Into != null && recordSym != null)
         {
-            var srcLoc = _semantic.GetStorageLocation(recordSym);
-            var dstLoc = _semantic.GetStorageLocation(read.Into);
-            if (srcLoc.HasValue && dstLoc.HasValue)
+            var srcLoc = ResolveLocation(recordSym);
+            var dstLoc = ResolveLocation(read.Into);
+            if (srcLoc != null && dstLoc != null)
             {
-                block.Instructions.Add(new IrPicMove(srcLoc.Value, dstLoc.Value));
+                block.Instructions.Add(new IrPicMove(srcLoc, dstLoc));
             }
         }
 
@@ -790,10 +834,10 @@ public sealed class Binder
         var statusSym = _semantic.ResolveData(file.FileStatus);
         if (statusSym == null) return;
 
-        var statusLoc = _semantic.GetStorageLocation(statusSym);
-        if (!statusLoc.HasValue) return;
+        var statusLoc = ResolveLocation(statusSym);
+        if (statusLoc == null) return;
 
-        block.Instructions.Add(new IrStoreFileStatus(file.Name, statusLoc.Value));
+        block.Instructions.Add(new IrStoreFileStatus(file.Name, statusLoc));
     }
 
     // ── REWRITE ──
@@ -801,10 +845,10 @@ public sealed class Binder
     private void LowerRewrite(BoundRewriteStatement rw, IrBasicBlock block)
     {
         string cobolName = rw.File.Name;
-        var recordLoc = _semantic.GetStorageLocation(rw.Record);
-        if (recordLoc.HasValue)
+        var recordLoc = ResolveLocation(rw.Record);
+        if (recordLoc != null)
         {
-            block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc.Value));
+            block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
         }
         EmitFileStatus(rw.File, block);
     }
@@ -831,17 +875,18 @@ public sealed class Binder
         }
 
         // Elementary item: check for category replacement, then default
-        var loc = _semantic.GetStorageLocation(item);
-        if (!loc.HasValue) return;
+        var loc = ResolveLocation(item);
+        if (loc == null) return;
 
-        var category = ClassifyInitializeCategory(loc.Value.Pic.Category);
+        var pic = GetPicForLocation(loc);
+        var category = ClassifyInitializeCategory(pic.Category);
 
         // Check for matching category replacement
         foreach (var repl in stmt.CategoryReplacements)
         {
             if (repl.Category == category)
             {
-                EmitInitializeAssignment(loc.Value, repl.Value, block);
+                EmitInitializeAssignment(loc, repl.Value, block);
                 return;
             }
         }
@@ -849,11 +894,11 @@ public sealed class Binder
         // Default: numeric → zero, everything else → spaces
         if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
         {
-            block.Instructions.Add(new IrPicMoveLiteralNumeric(loc.Value, 0m));
+            block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
         }
         else
         {
-            block.Instructions.Add(new IrMoveFigurative(loc.Value, (int)FigurativeKind.Space));
+            block.Instructions.Add(new IrMoveFigurative(loc, (int)FigurativeKind.Space));
         }
     }
 
@@ -868,13 +913,14 @@ public sealed class Binder
         };
     }
 
-    private void EmitInitializeAssignment(StorageLocation dest, BoundExpression value, IrBasicBlock block)
+    private void EmitInitializeAssignment(IrLocation dest, BoundExpression value, IrBasicBlock block)
     {
+        var pic = GetPicForLocation(dest);
         if (value is BoundLiteralExpression lit)
         {
             if (lit.Value is decimal d)
             {
-                if (dest.Pic.Category.IsNumericLike())
+                if (pic.Category.IsNumericLike())
                     block.Instructions.Add(new IrPicMoveLiteralNumeric(dest, d));
                 else
                     block.Instructions.Add(new IrMoveStringToField(dest,
@@ -887,9 +933,9 @@ public sealed class Binder
         }
         else if (value is BoundIdentifierExpression id)
         {
-            var srcLoc = _semantic.GetStorageLocation(id.Symbol);
-            if (srcLoc.HasValue)
-                block.Instructions.Add(new IrPicMove(srcLoc.Value, dest));
+            var srcLoc = ResolveLocation(id);
+            if (srcLoc != null)
+                block.Instructions.Add(new IrPicMove(srcLoc, dest));
         }
     }
 
@@ -897,25 +943,25 @@ public sealed class Binder
 
     private void LowerAccept(BoundAcceptStatement stmt, IrBasicBlock block)
     {
-        var loc = _semantic.GetStorageLocation(stmt.Target);
-        if (!loc.HasValue) return;
-        block.Instructions.Add(new IrAccept(loc.Value, stmt.Source));
+        var loc = ResolveLocation(stmt.Target);
+        if (loc == null) return;
+        block.Instructions.Add(new IrAccept(loc, stmt.Source));
     }
 
     // ── INSPECT ──
 
     private void LowerInspect(BoundInspectStatement stmt, IrBasicBlock block)
     {
-        var targetLoc = _semantic.GetStorageLocation(stmt.Target);
-        if (!targetLoc.HasValue) return;
+        var targetLoc = ResolveLocation(stmt.Target);
+        if (targetLoc == null) return;
 
         foreach (var t in stmt.Tallying)
         {
-            var counterLoc = _semantic.GetStorageLocation(t.Counter);
-            if (!counterLoc.HasValue) continue;
+            var counterLoc = ResolveLocation(t.Counter);
+            if (counterLoc == null) continue;
 
             block.Instructions.Add(new IrInspectTally(
-                targetLoc.Value, counterLoc.Value, t.Kind, t.Pattern,
+                targetLoc, counterLoc, t.Kind, t.Pattern,
                 t.Region.BeforePattern, t.Region.BeforeInitial,
                 t.Region.AfterPattern, t.Region.AfterInitial));
         }
@@ -923,7 +969,7 @@ public sealed class Binder
         foreach (var r in stmt.Replacing)
         {
             block.Instructions.Add(new IrInspectReplace(
-                targetLoc.Value, r.Kind, r.Pattern, r.Replacement,
+                targetLoc, r.Kind, r.Pattern, r.Replacement,
                 r.Region.BeforePattern, r.Region.BeforeInitial,
                 r.Region.AfterPattern, r.Region.AfterInitial));
         }
@@ -931,7 +977,7 @@ public sealed class Binder
         if (stmt.Converting != null)
         {
             block.Instructions.Add(new IrInspectConvert(
-                targetLoc.Value, stmt.Converting.FromSet, stmt.Converting.ToSet,
+                targetLoc, stmt.Converting.FromSet, stmt.Converting.ToSet,
                 stmt.Converting.Region.BeforePattern, stmt.Converting.Region.BeforeInitial,
                 stmt.Converting.Region.AfterPattern, stmt.Converting.Region.AfterInitial));
         }
@@ -942,8 +988,8 @@ public sealed class Binder
     private void LowerSetCondition(BoundSetConditionStatement stmt, IrBasicBlock block)
     {
         var parentSym = stmt.Condition.ParentDataItem;
-        var parentLoc = _semantic.GetStorageLocation(parentSym);
-        if (!parentLoc.HasValue) return;
+        var parentLoc = ResolveLocation(parentSym);
+        if (parentLoc == null) return;
 
         if (stmt.SetToTrue)
         {
@@ -953,17 +999,16 @@ public sealed class Binder
 
             var firstVal = ranges[0].From;
             if (firstVal is decimal d)
-                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc.Value, d));
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, d));
             else if (firstVal is string s)
-                block.Instructions.Add(new IrMoveStringToField(parentLoc.Value, s));
+                block.Instructions.Add(new IrMoveStringToField(parentLoc, s));
         }
         else
         {
             // SET condition TO FALSE: move a value that doesn't match any true value
-            var parentCat = parentLoc.Value.Pic.Category;
+            var parentCat = GetPicForLocation(parentLoc).Category;
             if (parentCat.IsNumericLike())
             {
-                // Try 0 first; if 0 is a true value, try others
                 var trueVals = stmt.Condition.ValueRanges.Select(r => r.From).ToList();
                 decimal falseVal = 0m;
                 foreach (var candidate in new[] { 0m, 1m, -1m, 99m })
@@ -974,20 +1019,19 @@ public sealed class Binder
                         break;
                     }
                 }
-                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc.Value, falseVal));
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, falseVal));
             }
             else
             {
-                // Alphanumeric: try spaces first
-                block.Instructions.Add(new IrMoveFigurative(parentLoc.Value, (int)FigurativeKind.Space));
+                block.Instructions.Add(new IrMoveFigurative(parentLoc, (int)FigurativeKind.Space));
             }
         }
     }
 
     private void LowerSetIndex(BoundSetIndexStatement stmt, IrBasicBlock block)
     {
-        var targetLoc = _semantic.GetStorageLocation(stmt.Target);
-        if (!targetLoc.HasValue) return;
+        var targetLoc = ResolveLocation(stmt.Target);
+        if (targetLoc == null) return;
 
         switch (stmt.Operation)
         {
@@ -997,35 +1041,35 @@ public sealed class Binder
                 {
                     if (lit.Value is decimal d)
                     {
-                        if (targetLoc.Value.Pic.Category.IsNumericLike())
-                            block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc.Value, d));
+                        if (GetPicForLocation(targetLoc).Category.IsNumericLike())
+                            block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, d));
                         else
-                            block.Instructions.Add(new IrMoveStringToField(targetLoc.Value,
+                            block.Instructions.Add(new IrMoveStringToField(targetLoc,
                                 d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                     }
                     else if (lit.Value is string s)
                     {
-                        block.Instructions.Add(new IrMoveStringToField(targetLoc.Value, s));
+                        block.Instructions.Add(new IrMoveStringToField(targetLoc, s));
                     }
                 }
                 else if (stmt.Value is BoundIdentifierExpression id)
                 {
-                    var srcLoc = _semantic.GetStorageLocation(id.Symbol);
-                    if (srcLoc.HasValue)
-                        block.Instructions.Add(new IrPicMove(srcLoc.Value, targetLoc.Value));
+                    var srcLoc = ResolveLocation(id);
+                    if (srcLoc != null)
+                        block.Instructions.Add(new IrPicMove(srcLoc, targetLoc));
                 }
                 break;
 
             case SetOperation.UpBy:
                 // SET identifier UP BY n → ADD n TO identifier
                 if (stmt.Value is BoundLiteralExpression upLit && upLit.Value is decimal upVal)
-                    block.Instructions.Add(new IrPicAddLiteral(targetLoc.Value, upVal));
+                    block.Instructions.Add(new IrPicAddLiteral(targetLoc, upVal));
                 break;
 
             case SetOperation.DownBy:
                 // SET identifier DOWN BY n → SUBTRACT n FROM identifier
                 if (stmt.Value is BoundLiteralExpression downLit && downLit.Value is decimal downVal)
-                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc.Value, downVal));
+                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc, downVal));
                 break;
         }
     }
@@ -1040,23 +1084,22 @@ public sealed class Binder
         // Emit the arithmetic operations
         foreach (var target in mult.Targets)
         {
-            var destLoc = _semantic.GetStorageLocation(target.Symbol);
-            if (!destLoc.HasValue) continue;
-
+            var destLoc = ResolveLocation(target.Target);
+            if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
 
             if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
             {
                 block.Instructions.Add(new IrPicMultiplyLiteral(
-                    d, destLoc.Value, destLoc.Value, roundingMode));
+                    d, destLoc, destLoc, roundingMode));
             }
             else if (mult.Operand is BoundIdentifierExpression opId)
             {
-                var opLoc = _semantic.GetStorageLocation(opId.Symbol);
-                if (opLoc.HasValue)
+                var opLoc = ResolveLocation(opId);
+                if (opLoc != null)
                 {
                     block.Instructions.Add(new IrPicMultiply(
-                        opLoc.Value, destLoc.Value, destLoc.Value, roundingMode));
+                        opLoc, destLoc, destLoc, roundingMode));
                 }
             }
         }
@@ -1085,10 +1128,10 @@ public sealed class Binder
             }
             else if (operand is BoundIdentifierExpression opId)
             {
-                var opLoc = _semantic.GetStorageLocation(opId.Symbol);
-                if (opLoc.HasValue)
+                var opLoc = ResolveLocation(opId);
+                if (opLoc != null)
                 {
-                    block.Instructions.Add(new IrAccumulateField(accum, opLoc.Value));
+                    block.Instructions.Add(new IrAccumulateField(accum, opLoc));
                 }
             }
         }
@@ -1096,9 +1139,8 @@ public sealed class Binder
         // Step 2: For each target, apply the subtraction
         foreach (var target in sub.Targets)
         {
-            var destLoc = _semantic.GetStorageLocation(target.Symbol);
-            if (!destLoc.HasValue) continue;
-
+            var destLoc = ResolveLocation(target.Target);
+            if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
             if (sub.IsGiving && sub.GivingMinuend != null)
             {
@@ -1116,12 +1158,12 @@ public sealed class Binder
                 var subExpr = new BoundBinaryExpression(
                     sub.GivingMinuend, BoundBinaryOperatorKind.Subtract, sumExpr,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(subExpr, destLoc.Value, roundingMode));
+                block.Instructions.Add(new IrComputeStore(subExpr, destLoc, roundingMode));
             }
             else
             {
                 // FROM: target = target - accumulated
-                block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, destLoc.Value, roundingMode));
+                block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, destLoc, roundingMode));
             }
         }
 
@@ -1136,35 +1178,30 @@ public sealed class Binder
 
         foreach (var target in div.Targets)
         {
-            var destLoc = _semantic.GetStorageLocation(target.Symbol);
-            if (!destLoc.HasValue) continue;
+            var destLoc = ResolveLocation(target.Target);
+            if (destLoc == null) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
 
             if (div.Dividend != null)
             {
-                // GIVING form: dest = dividend / divisor
-                // Use COMPUTE expression path — handles all operand combinations
                 var divExpr = new BoundBinaryExpression(
                     div.Dividend, BoundBinaryOperatorKind.Divide, div.Divisor,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(divExpr, destLoc.Value, roundingMode));
+                block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode));
             }
             else
             {
-                // INTO form without GIVING: dest = dest / divisor
                 if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                 {
-                    block.Instructions.Add(new IrPicDivideLiteral(
-                        d, destLoc.Value, destLoc.Value, roundingMode));
+                    block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
                 }
                 else if (div.Divisor is BoundIdentifierExpression divisorId)
                 {
-                    var divisorLoc = _semantic.GetStorageLocation(divisorId.Symbol);
-                    if (divisorLoc.HasValue)
+                    var divisorLoc = ResolveLocation(divisorId);
+                    if (divisorLoc != null)
                     {
-                        block.Instructions.Add(new IrPicDivide(
-                            destLoc.Value, divisorLoc.Value, destLoc.Value, roundingMode));
+                        block.Instructions.Add(new IrPicDivide(destLoc, divisorLoc, destLoc, roundingMode));
                     }
                 }
             }
@@ -1173,13 +1210,13 @@ public sealed class Binder
         // REMAINDER: dividend MOD divisor
         if (div.RemainderTarget != null && div.Dividend != null)
         {
-            var remLoc = _semantic.GetStorageLocation(div.RemainderTarget);
-            if (remLoc.HasValue)
+            var remLoc = ResolveLocation(div.RemainderTarget);
+            if (remLoc != null)
             {
                 var remExpr = new BoundBinaryExpression(
                     div.Dividend, BoundBinaryOperatorKind.Remainder, div.Divisor,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(remExpr, remLoc.Value, 0));
+                block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0));
             }
         }
 
@@ -1195,12 +1232,12 @@ public sealed class Binder
         // Emit expression evaluation + store for each target
         foreach (var target in comp.Targets)
         {
-            var destLoc = _semantic.GetStorageLocation(target.Symbol);
-            if (!destLoc.HasValue) continue;
+            var destLoc = ResolveLocation(target.Target);
+            if (destLoc == null) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
             block.Instructions.Add(new IrComputeStore(
-                comp.Expression, destLoc.Value, roundingMode));
+                comp.Expression, destLoc, roundingMode));
         }
 
         return LowerSizeError(comp.SizeError, method, block);
@@ -1226,10 +1263,10 @@ public sealed class Binder
             }
             else if (operand is BoundIdentifierExpression srcId)
             {
-                var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
-                if (srcLoc.HasValue)
+                var srcLoc = ResolveLocation(srcId);
+                if (srcLoc != null)
                 {
-                    block.Instructions.Add(new IrAccumulateField(accum, srcLoc.Value));
+                    block.Instructions.Add(new IrAccumulateField(accum, srcLoc));
                 }
             }
         }
@@ -1237,19 +1274,17 @@ public sealed class Binder
         // Step 2: For each target, apply the accumulated sum
         foreach (var target in add.Targets)
         {
-            var destLoc = _semantic.GetStorageLocation(target.Symbol);
-            if (!destLoc.HasValue) continue;
+            var destLoc = ResolveLocation(target.Target);
+            if (destLoc == null) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
             if (add.IsGiving)
             {
-                // GIVING: target = accumulated sum (store directly, don't add to current value)
-                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc.Value, roundingMode));
+                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc, roundingMode));
             }
             else
             {
-                // TO: target = target + accumulated sum
-                block.Instructions.Add(new IrAddAccumulatedToTarget(accum, destLoc.Value, roundingMode));
+                block.Instructions.Add(new IrAddAccumulatedToTarget(accum, destLoc, roundingMode));
             }
         }
 
@@ -1555,15 +1590,15 @@ public sealed class Binder
                 }
             }
 
-            var leftSym = (binCond.Left as BoundIdentifierExpression)?.Symbol;
-            var rightSym = (binCond.Right as BoundIdentifierExpression)?.Symbol;
+            var leftId = binCond.Left as BoundIdentifierExpression;
+            var rightId = binCond.Right as BoundIdentifierExpression;
 
-            if (leftSym != null)
+            if (leftId != null)
             {
-                var leftLoc = _semantic.GetStorageLocation(leftSym);
-                if (leftLoc.HasValue)
+                var leftLoc = ResolveLocation(leftId);
+                if (leftLoc != null)
                 {
-                    var leftCat = leftLoc.Value.Pic.Category;
+                    var leftCat = GetPicForLocation(leftLoc).Category;
 
                     // identifier vs figurative constant (alphanumeric comparison)
                     if (binCond.Right is BoundFigurativeExpression figRight)
@@ -1575,7 +1610,7 @@ public sealed class Binder
                         if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
                         {
                             block.Instructions.Add(new IrPicCompareLiteral(
-                                leftLoc.Value, 0m, result,
+                                leftLoc, 0m, result,
                                 (int)binCond.OperatorKind));
                         }
                         else
@@ -1590,7 +1625,7 @@ public sealed class Binder
                                 _ => figRight.AllLiteral ?? " "
                             };
                             block.Instructions.Add(new IrStringCompareLiteral(
-                                leftLoc.Value, figStr, result,
+                                leftLoc, figStr, result,
                                 (int)binCond.OperatorKind));
                         }
                         return;
@@ -1601,19 +1636,19 @@ public sealed class Binder
                         litStr.Value is string s && leftCat.IsAlphanumericLike())
                     {
                         block.Instructions.Add(new IrStringCompareLiteral(
-                            leftLoc.Value, s, result,
+                            leftLoc, s, result,
                             (int)binCond.OperatorKind));
                         return;
                     }
 
                     // identifier vs identifier
-                    if (rightSym != null)
+                    if (rightId != null)
                     {
-                        var rightLoc = _semantic.GetStorageLocation(rightSym);
-                        if (rightLoc.HasValue)
+                        var rightLoc = ResolveLocation(rightId);
+                        if (rightLoc != null)
                         {
                             block.Instructions.Add(new IrPicCompare(
-                                leftLoc.Value, rightLoc.Value, result,
+                                leftLoc, rightLoc, result,
                                 (int)binCond.OperatorKind));
                             return;
                         }
@@ -1623,7 +1658,7 @@ public sealed class Binder
                              && litRight.Value is decimal d)
                     {
                         block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc.Value, d, result,
+                            leftLoc, d, result,
                             (int)binCond.OperatorKind));
                         return;
                     }
@@ -1636,7 +1671,7 @@ public sealed class Binder
                              && innerLit.Value is decimal innerD)
                     {
                         block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc.Value, -innerD, result,
+                            leftLoc, -innerD, result,
                             (int)binCond.OperatorKind));
                         return;
                     }
@@ -1644,10 +1679,10 @@ public sealed class Binder
             }
 
             // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
-            if (binCond.Left is BoundLiteralExpression litLeft && rightSym != null)
+            if (binCond.Left is BoundLiteralExpression litLeft && rightId != null)
             {
-                var rightLoc = _semantic.GetStorageLocation(rightSym);
-                if (rightLoc.HasValue)
+                var rightLoc = ResolveLocation(rightId);
+                if (rightLoc != null)
                 {
                     if (litLeft.Value is decimal dLeft)
                     {
@@ -1655,7 +1690,7 @@ public sealed class Binder
                         // Flip the operator for non-symmetric comparisons
                         var flippedOp = FlipComparisonOp(binCond.OperatorKind);
                         block.Instructions.Add(new IrPicCompareLiteral(
-                            rightLoc.Value, dLeft, result,
+                            rightLoc, dLeft, result,
                             (int)flippedOp));
                         return;
                     }
@@ -1663,7 +1698,7 @@ public sealed class Binder
                     {
                         var flippedOp = FlipComparisonOp(binCond.OperatorKind);
                         block.Instructions.Add(new IrStringCompareLiteral(
-                            rightLoc.Value, sLeft, result,
+                            rightLoc, sLeft, result,
                             (int)flippedOp));
                         return;
                     }
@@ -1698,12 +1733,12 @@ public sealed class Binder
         if (cc.Subject is not BoundIdentifierExpression id)
             throw new InvalidOperationException("Class condition subject must be a data item");
 
-        var loc = _semantic.GetStorageLocation(id.Symbol);
-        if (!loc.HasValue)
+        var loc = ResolveLocation(id);
+        if (loc == null)
             throw new InvalidOperationException($"Cannot resolve storage for {id.Symbol.Name}");
 
         var tmp = _valueFactory.Next(IrPrimitiveType.Bool);
-        block.Instructions.Add(new IrClassCondition(loc.Value, (int)cc.ClassKind, tmp));
+        block.Instructions.Add(new IrClassCondition(loc, (int)cc.ClassKind, tmp));
 
         if (cc.IsNegated)
         {
@@ -1721,8 +1756,8 @@ public sealed class Binder
     private void LowerConditionName(BoundConditionNameExpression cn, IrValue result, IrBasicBlock block)
     {
         var parentSym = cn.Condition.ParentDataItem;
-        var parentLoc = _semantic.GetStorageLocation(parentSym);
-        if (!parentLoc.HasValue)
+        var parentLoc = ResolveLocation(parentSym);
+        if (parentLoc == null)
         {
             block.Instructions.Add(new IrSetBool(result, false));
             return;
@@ -1735,7 +1770,7 @@ public sealed class Binder
             return;
         }
 
-        var parentCat = parentLoc.Value.Pic.Category;
+        var parentCat = GetPicForLocation(parentLoc).Category;
 
         // Build a list of individual match results
         var matchResults = new List<IrValue>();
@@ -1750,7 +1785,7 @@ public sealed class Binder
                 if (from is decimal d)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc.Value, d, matchVal,
+                        parentLoc, d, matchVal,
                         (int)BoundBinaryOperatorKind.Equal));
                 }
                 else if (from is string s)
@@ -1759,13 +1794,13 @@ public sealed class Binder
                         System.Globalization.CultureInfo.InvariantCulture, out var numVal))
                     {
                         block.Instructions.Add(new IR.IrPicCompareLiteral(
-                            parentLoc.Value, numVal, matchVal,
+                            parentLoc, numVal, matchVal,
                             (int)BoundBinaryOperatorKind.Equal));
                     }
                     else
                     {
                         block.Instructions.Add(new IR.IrStringCompareLiteral(
-                            parentLoc.Value, s, matchVal,
+                            parentLoc, s, matchVal,
                             (int)BoundBinaryOperatorKind.Equal));
                     }
                 }
@@ -1779,19 +1814,19 @@ public sealed class Binder
                 if (from is decimal dFrom && to is decimal dTo)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc.Value, dFrom, geVal,
+                        parentLoc, dFrom, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc.Value, dTo, leVal,
+                        parentLoc, dTo, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
                 else if (from is string sFrom && to is string sTo)
                 {
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc.Value, sFrom, geVal,
+                        parentLoc, sFrom, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc.Value, sTo, leVal,
+                        parentLoc, sTo, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
 
@@ -1847,8 +1882,8 @@ public sealed class Binder
         // Evaluate selector, return corresponding paragraph PC (1-based)
         if (gt.DependingOn == null) return;
 
-        var selectorLoc = _semantic.GetStorageLocation(gt.DependingOn);
-        if (!selectorLoc.HasValue) return;
+        var selectorLoc = ResolveLocation(gt.DependingOn);
+        if (selectorLoc == null) return;
 
         // Build list of target paragraph indices
         var targetIndices = new List<int>();
@@ -1860,7 +1895,7 @@ public sealed class Binder
                 targetIndices.Add(-1); // shouldn't happen
         }
 
-        block.Instructions.Add(new IrGoToDepending(selectorLoc.Value, targetIndices));
+        block.Instructions.Add(new IrGoToDepending(selectorLoc, targetIndices));
     }
 
     // ── NEXT SENTENCE ──
