@@ -127,4 +127,15 @@ public sealed class SemanticModel
     /// <summary>Resolve a level-88 condition name.</summary>
     public ConditionSymbol? ResolveConditionName(string name)
         => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);
+
+    /// <summary>Find the FileSymbol whose FD record matches the given DataSymbol.</summary>
+    public FileSymbol? ResolveFileForRecord(DataSymbol record)
+    {
+        foreach (var sym in Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
+        {
+            if (sym.Record == record)
+                return sym;
+        }
+        return null;
+    }
 }

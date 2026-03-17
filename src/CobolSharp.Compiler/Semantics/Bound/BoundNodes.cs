@@ -17,6 +17,7 @@ public enum BoundNodeKind
     GoToStatement,
     OpenStatement,
     CloseStatement,
+    ReadStatement,
     ExitStatement,
     NextSentenceStatement,
     AddStatement,
@@ -298,14 +299,52 @@ public sealed class BoundNextSentenceStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.NextSentenceStatement;
 }
 
+public enum OpenMode { Input, Output, IO, Extend }
+
 public sealed class BoundOpenStatement : BoundStatement
 {
+    public OpenMode Mode { get; }
+    public IReadOnlyList<FileSymbol> Files { get; }
+
+    public BoundOpenStatement(OpenMode mode, IReadOnlyList<FileSymbol> files)
+    {
+        Mode = mode;
+        Files = files;
+    }
+
     public override BoundNodeKind Kind => BoundNodeKind.OpenStatement;
 }
 
 public sealed class BoundCloseStatement : BoundStatement
 {
+    public IReadOnlyList<FileSymbol> Files { get; }
+
+    public BoundCloseStatement(IReadOnlyList<FileSymbol> files)
+        => Files = files;
+
     public override BoundNodeKind Kind => BoundNodeKind.CloseStatement;
+}
+
+public sealed class BoundReadStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public DataSymbol? Into { get; }
+    public IReadOnlyList<BoundStatement> AtEnd { get; }
+    public IReadOnlyList<BoundStatement> NotAtEnd { get; }
+
+    public BoundReadStatement(
+        FileSymbol file,
+        DataSymbol? into,
+        IReadOnlyList<BoundStatement> atEnd,
+        IReadOnlyList<BoundStatement> notAtEnd)
+    {
+        File = file;
+        Into = into;
+        AtEnd = atEnd;
+        NotAtEnd = notAtEnd;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ReadStatement;
 }
 
 public sealed class BoundAddStatement : BoundStatement

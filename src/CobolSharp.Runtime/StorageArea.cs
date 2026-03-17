@@ -72,6 +72,15 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// READ: read next record from file into storage area.
+    /// Returns true if a record was read, false if at end-of-file.
+    /// </summary>
+    public static bool ReadRecordFromFile(string fileName, byte[] area, int offset, int size)
+    {
+        return FileRuntime.ReadRecord(fileName, area, offset, size);
+    }
+
+    /// <summary>
     /// Compare a field's bytes (as ASCII) to a string literal.
     /// Returns -1/0/1 like string.Compare. Trailing spaces ignored (COBOL semantics).
     /// </summary>

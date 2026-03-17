@@ -304,6 +304,36 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
     }
 }
 
+/// <summary>
+/// READ: read next record from file into storage location.
+/// </summary>
+public sealed class IrReadRecordToStorage : IrInstruction
+{
+    public string FileName { get; }
+    public CodeGen.StorageLocation Record { get; }
+
+    public IrReadRecordToStorage(string fileName, CodeGen.StorageLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
+/// Check if a file is at EOF after a READ. Sets result bool to true if at end.
+/// </summary>
+public sealed class IrCheckFileAtEnd : IrInstruction
+{
+    public string FileName { get; }
+    public new IrValue Result { get; }
+
+    public IrCheckFileAtEnd(string fileName, IrValue result)
+    {
+        FileName = fileName;
+        Result = result;
+    }
+}
+
 // ── PIC-aware arithmetic ──
 
 public sealed class IrPicMultiply : IrInstruction

@@ -119,6 +119,51 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitLinkageSection(ctx);
     }
 
+    // ═══════════════════════════════════
+    // FILE-CONTROL — extract SELECT/ASSIGN/clauses into FileSymbol
+    // ═══════════════════════════════════
+
+    public override object? VisitFileControlEntry(CobolParserCore.FileControlEntryContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return base.VisitFileControlEntry(ctx);
+
+        string name = fileNameCtx.GetText();
+        var fileSym = new FileSymbol(name, fileNameCtx.Start.Line);
+
+        // ASSIGN TO
+        var assignCtx = ctx.assignTarget();
+        if (assignCtx != null)
+        {
+            string assignText = assignCtx.GetText();
+            // Strip quotes if string literal
+            if (assignText.Length >= 2 &&
+                (assignText[0] == '"' || assignText[0] == '\''))
+                assignText = assignText[1..^1];
+            fileSym.AssignTarget = assignText;
+        }
+
+        // Clauses
+        foreach (var clause in ctx.fileControlClauses())
+        {
+            if (clause.organizationClause() is { } orgClause)
+                fileSym.Organization = orgClause.organizationType().GetText().ToUpperInvariant();
+            if (clause.accessModeClause() is { } accessClause)
+                fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
+            if (clause.recordKeyClause() is { } keyClause)
+                fileSym.RecordKey = keyClause.identifier().GetText();
+            if (clause.fileStatusClause() is { } statusClause)
+                fileSym.FileStatus = statusClause.identifier().GetText();
+        }
+
+        _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+        return base.VisitFileControlEntry(ctx);
+    }
+
+    // ═══════════════════════════════════
+    // FILE SECTION / FD
+    // ═══════════════════════════════════
+
     public override object? VisitFileSection(CobolParserCore.FileSectionContext ctx)
     {
         _dataStack.Clear();
@@ -126,16 +171,29 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitFileSection(ctx);
     }
 
+    /// <summary>Current FD file symbol — set during FD visiting so 01-level records can be linked.</summary>
+    private FileSymbol? _currentFdFile;
+
     public override object? VisitFileDescriptionEntry(CobolParserCore.FileDescriptionEntryContext ctx)
     {
         var nameCtx = ctx.fileName();
         if (nameCtx != null)
         {
-            var fileSym = new FileSymbol(nameCtx.GetText(), nameCtx.Start.Line);
-            _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+            string name = nameCtx.GetText();
+            // Look up existing FileSymbol created by FILE-CONTROL visitor.
+            // If not found (no SELECT), create one as a fallback.
+            var fileSym = _symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
+            if (fileSym == null)
+            {
+                fileSym = new FileSymbol(name, nameCtx.Start.Line);
+                _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+            }
+            _currentFdFile = fileSym;
         }
         _dataStack.Clear();
-        return base.VisitFileDescriptionEntry(ctx);
+        var result = base.VisitFileDescriptionEntry(ctx);
+        _currentFdFile = null;
+        return result;
     }
 
     public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
@@ -314,6 +372,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // Root-level item
             _dataStack.Clear();
             _dataStack.Push(data);
+
+            // Link 01-level record to FD file symbol (first 01 under an FD)
+            if (_currentFdFile != null && _currentFdFile.Record == null && level == 1)
+            {
+                _currentFdFile.Record = data;
+            }
         }
         else if (level == 66)
         {

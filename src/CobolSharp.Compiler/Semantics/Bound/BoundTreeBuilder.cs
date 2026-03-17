@@ -72,8 +72,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.gobackStatement() is { }) return new BoundStopStatement();
         if (ctx.exitStatement() is { }) return new BoundExitStatement();
         if (ctx.nextSentenceStatement() is { }) return new BoundNextSentenceStatement();
-        if (ctx.openStatement() is { }) return new BoundOpenStatement();
-        if (ctx.closeStatement() is { }) return new BoundCloseStatement();
+        if (ctx.openStatement() is { } openCtx) return BindOpen(openCtx);
+        if (ctx.closeStatement() is { } closeCtx) return BindClose(closeCtx);
+        if (ctx.readStatement() is { } readCtx) return BindRead(readCtx);
         if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
         if (ctx.subtractStatement() is { } sub) return BindSubtract(sub);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
@@ -403,8 +404,110 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var recordSym = _semantic.ResolveData(recordName);
         if (recordSym == null) return null;
 
-        // TODO: resolve file from record → FD relationship
-        return new BoundWriteStatement(null, recordSym, null);
+        // Resolve file from record → FD relationship
+        var fileSym = _semantic.ResolveFileForRecord(recordSym);
+        return new BoundWriteStatement(fileSym, recordSym, null);
+    }
+
+    // ── OPEN ──
+
+    private BoundStatement BindOpen(CobolParserCore.OpenStatementContext ctx)
+    {
+        var results = new List<BoundStatement>();
+        foreach (var clause in ctx.openClause())
+        {
+            var modeCtx = clause.openMode();
+            var mode = modeCtx.GetText().ToUpperInvariant() switch
+            {
+                "INPUT" => OpenMode.Input,
+                "OUTPUT" => OpenMode.Output,
+                "EXTEND" => OpenMode.Extend,
+                _ => OpenMode.Output
+            };
+
+            var files = new List<FileSymbol>();
+            foreach (var idCtx in clause.identifier())
+            {
+                string name = idCtx.GetText();
+                var fileSym = _semantic.ResolveFile(name);
+                if (fileSym != null)
+                    files.Add(fileSym);
+            }
+
+            if (files.Count > 0)
+                results.Add(new BoundOpenStatement(mode, files));
+        }
+
+        if (results.Count == 1) return results[0];
+        return results.Count > 0 ? results[0]
+            : new BoundOpenStatement(OpenMode.Output, Array.Empty<FileSymbol>());
+    }
+
+    // ── CLOSE ──
+
+    private BoundStatement BindClose(CobolParserCore.CloseStatementContext ctx)
+    {
+        var idListCtx = ctx.identifierList();
+        var files = new List<FileSymbol>();
+        if (idListCtx != null)
+        {
+            foreach (var idCtx in idListCtx.identifier())
+            {
+                string name = idCtx.GetText();
+                var fileSym = _semantic.ResolveFile(name);
+                if (fileSym != null)
+                    files.Add(fileSym);
+            }
+        }
+        return new BoundCloseStatement(files);
+    }
+
+    // ── READ ──
+
+    private BoundStatement? BindRead(CobolParserCore.ReadStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+
+        string name = fileNameCtx.GetText();
+        var fileSym = _semantic.ResolveFile(name);
+        if (fileSym == null) return null;
+
+        // INTO clause
+        DataSymbol? intoSym = null;
+        var intoCtx = ctx.readInto();
+        if (intoCtx != null)
+        {
+            string intoName = intoCtx.identifier().GetText();
+            intoSym = _semantic.ResolveData(intoName);
+        }
+
+        // AT END / NOT AT END
+        var atEnd = new List<BoundStatement>();
+        var notAtEnd = new List<BoundStatement>();
+        var atEndCtx = ctx.readAtEnd();
+        if (atEndCtx != null)
+        {
+            var impStmts = atEndCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+            {
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+            }
+            if (impStmts.Length >= 2)
+            {
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notAtEnd.Add(bound);
+                }
+            }
+        }
+
+        return new BoundReadStatement(fileSym, intoSym, atEnd, notAtEnd);
     }
 
     // ── MULTIPLY ──

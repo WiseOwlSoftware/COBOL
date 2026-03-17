@@ -13,8 +13,14 @@ namespace CobolSharp.Runtime;
 /// </summary>
 public static class FileRuntime
 {
-    // Track open files
+    // Track open output files (StreamWriter for line-oriented output)
     private static readonly Dictionary<string, StreamWriter> _openFiles = new();
+
+    // Track open input files (FileStream for binary/fixed-length reading)
+    private static readonly Dictionary<string, FileStream> _inputFiles = new();
+
+    // Track at-end state per file
+    private static readonly Dictionary<string, bool> _atEnd = new();
 
     /// <summary>
     /// OPEN OUTPUT file-name.
@@ -43,6 +49,12 @@ public static class FileRuntime
             writer.Close();
             _openFiles.Remove(fileName);
         }
+        if (_inputFiles.TryGetValue(fileName, out var stream))
+        {
+            stream.Close();
+            _inputFiles.Remove(fileName);
+        }
+        _atEnd.Remove(fileName);
     }
 
     /// <summary>
@@ -95,6 +107,58 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// OPEN INPUT file-name.
+    /// </summary>
+    public static void OpenInput(string fileName)
+    {
+        if (_inputFiles.ContainsKey(fileName))
+            return;
+
+        string hostPath = MapToHostPath(fileName);
+        if (!File.Exists(hostPath))
+            throw new FileNotFoundException($"OPEN INPUT: file not found: {hostPath}");
+
+        var stream = new FileStream(hostPath, FileMode.Open, FileAccess.Read);
+        _inputFiles[fileName] = stream;
+        _atEnd[fileName] = false;
+    }
+
+    /// <summary>
+    /// READ: read next fixed-length record into byte buffer.
+    /// Returns true if a record was read, false if at end.
+    /// </summary>
+    public static bool ReadRecord(string fileName, byte[] buffer, int offset, int length)
+    {
+        if (!_inputFiles.TryGetValue(fileName, out var stream))
+            return false;
+
+        int totalRead = 0;
+        while (totalRead < length)
+        {
+            int bytesRead = stream.Read(buffer, offset + totalRead, length - totalRead);
+            if (bytesRead == 0)
+            {
+                _atEnd[fileName] = true;
+                // Pad remainder with spaces if partial read
+                for (int i = offset + totalRead; i < offset + length; i++)
+                    buffer[i] = 0x20;
+                return totalRead > 0; // true if we got any data
+            }
+            totalRead += bytesRead;
+        }
+        _atEnd[fileName] = false;
+        return true;
+    }
+
+    /// <summary>
+    /// Check if a file has reached end-of-file.
+    /// </summary>
+    public static bool IsAtEnd(string fileName)
+    {
+        return _atEnd.TryGetValue(fileName, out var atEnd) && atEnd;
+    }
+
+    /// <summary>
     /// Map COBOL file name to host file path.
     /// For NIST: PRINT-FILE → stdout (console).
     /// </summary>
@@ -116,5 +180,10 @@ public static class FileRuntime
             writer.Close();
         }
         _openFiles.Clear();
+
+        foreach (var stream in _inputFiles.Values)
+            stream.Close();
+        _inputFiles.Clear();
+        _atEnd.Clear();
     }
 }

@@ -178,22 +178,14 @@ public sealed class Binder
                 break;
             case BoundNextSentenceStatement:
                 return LowerNextSentence(method, block);
-            case BoundOpenStatement:
-            {
-                var fnVal = _valueFactory.Next(IrPrimitiveType.String);
-                block.Instructions.Add(new IrLoadConst(fnVal, "PRINT-FILE"));
-                block.Instructions.Add(new IrRuntimeCall(
-                    null, "CobolRuntime.OpenOutput", new[] { fnVal }));
+            case BoundOpenStatement open:
+                LowerOpen(open, block);
                 break;
-            }
-            case BoundCloseStatement:
-            {
-                var fnVal = _valueFactory.Next(IrPrimitiveType.String);
-                block.Instructions.Add(new IrLoadConst(fnVal, "PRINT-FILE"));
-                block.Instructions.Add(new IrRuntimeCall(
-                    null, "CobolRuntime.CloseFile", new[] { fnVal }));
+            case BoundCloseStatement close:
+                LowerClose(close, block);
                 break;
-            }
+            case BoundReadStatement read:
+                return LowerRead(read, method, block);
             case BoundSubtractStatement sub:
                 return LowerSubtract(sub, method, block);
             case BoundDivideStatement div:
@@ -540,6 +532,122 @@ public sealed class Binder
                 null, "CobolRuntime.WriteText",
                 new[] { fileNameVal, textVal }));
         }
+    }
+
+    // ── OPEN ──
+
+    private void LowerOpen(BoundOpenStatement open, IrBasicBlock block)
+    {
+        string runtimeMethod = open.Mode switch
+        {
+            OpenMode.Input => "FileRuntime.OpenInput",
+            OpenMode.Output => "FileRuntime.OpenOutput",
+            OpenMode.IO => "FileRuntime.OpenIO",
+            OpenMode.Extend => "FileRuntime.OpenExtend",
+            _ => "FileRuntime.OpenOutput"
+        };
+
+        foreach (var file in open.Files)
+        {
+            string cobolName = file.Name;
+            var fnVal = _valueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
+            block.Instructions.Add(new IrRuntimeCall(null, runtimeMethod, new[] { fnVal }));
+
+            // Update FILE STATUS if declared
+            EmitFileStatus(file, block);
+        }
+    }
+
+    // ── CLOSE ──
+
+    private void LowerClose(BoundCloseStatement close, IrBasicBlock block)
+    {
+        foreach (var file in close.Files)
+        {
+            string cobolName = file.Name;
+            var fnVal = _valueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
+            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { fnVal }));
+
+            EmitFileStatus(file, block);
+        }
+    }
+
+    // ── READ ──
+
+    private IrBasicBlock LowerRead(BoundReadStatement read, IrMethod method, IrBasicBlock block)
+    {
+        string cobolName = read.File.Name;
+        var fnVal = _valueFactory.Next(IrPrimitiveType.String);
+        block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
+
+        // Read into the FD record buffer
+        var recordSym = read.File.Record;
+        if (recordSym != null)
+        {
+            var recordLoc = _semantic.GetStorageLocation(recordSym);
+            if (recordLoc.HasValue)
+            {
+                block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc.Value));
+            }
+        }
+
+        // Update FILE STATUS
+        EmitFileStatus(read.File, block);
+
+        // If INTO specified, MOVE FD record to INTO target
+        if (read.Into != null && recordSym != null)
+        {
+            var srcLoc = _semantic.GetStorageLocation(recordSym);
+            var dstLoc = _semantic.GetStorageLocation(read.Into);
+            if (srcLoc.HasValue && dstLoc.HasValue)
+            {
+                block.Instructions.Add(new IrPicMove(srcLoc.Value, dstLoc.Value));
+            }
+        }
+
+        // AT END / NOT AT END branching
+        if (read.AtEnd.Count > 0 || read.NotAtEnd.Count > 0)
+        {
+            var atEndResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileAtEnd(cobolName, atEndResult));
+
+            var atEndBlock = method.CreateBlock("read_at_end");
+            var notAtEndBlock = method.CreateBlock("read_not_at_end");
+            var afterBlock = method.CreateBlock("read_after");
+
+            block.Instructions.Add(new IrBranchIfFalse(atEndResult, notAtEndBlock));
+            block.Instructions.Add(new IrJump(atEndBlock));
+
+            // AT END
+            method.Blocks.Add(atEndBlock);
+            var current = atEndBlock;
+            foreach (var stmt in read.AtEnd)
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            // NOT AT END
+            method.Blocks.Add(notAtEndBlock);
+            current = notAtEndBlock;
+            foreach (var stmt in read.NotAtEnd)
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
+    /// <summary>
+    /// Emit FILE STATUS update for a file operation. Currently a no-op placeholder
+    /// that will be wired once FILE STATUS variable storage is resolved.
+    /// </summary>
+    private void EmitFileStatus(FileSymbol file, IrBasicBlock block)
+    {
+        // TODO: if file.FileStatus != null, emit MOVE of status code to the status variable
     }
 
     // ── MULTIPLY ──
