@@ -245,6 +245,110 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void PerformThru_StopsAtTarget()
+    {
+        // C must NOT execute
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. THRSTOP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 R PIC 99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM A THRU B.
+                DISPLAY R.
+                STOP RUN.
+            A.
+                ADD 1 TO R.
+            B.
+                ADD 2 TO R.
+            C.
+                ADD 4 TO R.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("03", stdout);
+    }
+
+    [Fact]
+    public void PerformThru_NestedThru()
+    {
+        // Two separate PERFORM THRU ranges
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. THRNEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 R PIC 99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM A THRU B.
+                PERFORM C THRU D.
+                DISPLAY R.
+                STOP RUN.
+            A. ADD 1 TO R.
+            B. ADD 2 TO R.
+            C. ADD 3 TO R.
+            D. ADD 4 TO R.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("10", stdout);
+    }
+
+    [Fact]
+    public void PerformThru_MultipleSentences()
+    {
+        // Paragraph A has two sentences
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. THRSENT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 R PIC 99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM A THRU B.
+                DISPLAY R.
+                STOP RUN.
+            A.
+                ADD 1 TO R.
+                ADD 1 TO R.
+            B.
+                ADD 2 TO R.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("04", stdout);
+    }
+
+    [Fact]
+    public void PerformThru_SingleParagraph()
+    {
+        // PERFORM A THRU A is the same as PERFORM A
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. THRSING.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 R PIC 99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM A THRU A.
+                DISPLAY R.
+                STOP RUN.
+            A.
+                ADD 5 TO R.
+            B.
+                ADD 9 TO R.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("05", stdout);
+    }
+
+    [Fact]
     public void CopyStatement_ExpandsCopybook()
     {
         // Create a copybook file
