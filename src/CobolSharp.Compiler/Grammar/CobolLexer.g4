@@ -61,6 +61,7 @@ FILE_CONTROL    : 'FILE-CONTROL' ;
 I_O_CONTROL     : 'I-O-CONTROL' ;
 PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
 BLANK_WHEN_ZERO : 'BLANK' [ ]+ 'WHEN' [ ]+ 'ZERO' ;
+DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 
 // ── Division/section keywords ──
 
@@ -152,6 +153,8 @@ CONTENT     : 'CONTENT' ;
 CONVERTING  : 'CONVERTING' ;
 CORRESPONDING : 'CORRESPONDING' ;
 COUNT       : 'COUNT' ;
+DATE        : 'DATE' ;
+DAY         : 'DAY' ;
 DECLARATIVES: 'DECLARATIVES' ;
 DELIMITED   : 'DELIMITED' ;
 DELIMITER   : 'DELIMITER' ;
@@ -246,6 +249,7 @@ TALLYING    : 'TALLYING' ;
 THAN        : 'THAN' ;
 THROUGH     : 'THROUGH' ;
 THRU        : 'THRU' ;
+TIME        : 'TIME' ;
 TIMES       : 'TIMES' ;
 TO          : 'TO' ;
 TRAILING    : 'TRAILING' ;

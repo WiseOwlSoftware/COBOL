@@ -1446,7 +1446,14 @@ goToStatement
 // ==========================================
 
 acceptStatement
-    : ACCEPT identifier (FROM identifier)?
+    : ACCEPT identifier (FROM acceptSource)?
+    ;
+
+acceptSource
+    : DATE
+    | TIME
+    | DAY
+    | DAY_OF_WEEK
     ;
 
 // ==========================================

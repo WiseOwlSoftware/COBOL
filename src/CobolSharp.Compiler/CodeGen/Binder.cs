@@ -225,6 +225,9 @@ public sealed class Binder
             case BoundInitializeStatement init:
                 LowerInitialize(init, block);
                 break;
+            case BoundAcceptStatement acc:
+                LowerAccept(acc, block);
+                break;
             case BoundInspectStatement insp:
                 LowerInspect(insp, block);
                 break;
@@ -812,6 +815,15 @@ public sealed class Binder
             if (srcLoc.HasValue)
                 block.Instructions.Add(new IrPicMove(srcLoc.Value, dest));
         }
+    }
+
+    // ── ACCEPT ──
+
+    private void LowerAccept(BoundAcceptStatement stmt, IrBasicBlock block)
+    {
+        var loc = _semantic.GetStorageLocation(stmt.Target);
+        if (!loc.HasValue) return;
+        block.Instructions.Add(new IrAccept(loc.Value, stmt.Source));
     }
 
     // ── INSPECT ──

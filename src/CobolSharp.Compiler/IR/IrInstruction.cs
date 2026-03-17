@@ -381,6 +381,20 @@ public sealed class IrStoreFileStatus : IrInstruction
     }
 }
 
+// ── ACCEPT ──
+
+public sealed class IrAccept : IrInstruction
+{
+    public CodeGen.StorageLocation Target { get; }
+    public Semantics.Bound.AcceptSourceKind Source { get; }
+
+    public IrAccept(CodeGen.StorageLocation target, Semantics.Bound.AcceptSourceKind source)
+    {
+        Target = target;
+        Source = source;
+    }
+}
+
 // ── INSPECT ──
 
 public sealed class IrInspectTally : IrInstruction

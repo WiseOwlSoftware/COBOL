@@ -30,6 +30,7 @@ public enum BoundNodeKind
     InitializeStatement,
     SetStatement,
     InspectStatement,
+    AcceptStatement,
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
@@ -442,6 +443,31 @@ public sealed class BoundSetIndexStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
+// ── ACCEPT ──
+
+public enum AcceptSourceKind
+{
+    None,
+    Date,
+    Time,
+    Day,
+    DayOfWeek
+}
+
+public sealed class BoundAcceptStatement : BoundStatement
+{
+    public DataSymbol Target { get; }
+    public AcceptSourceKind Source { get; }
+
+    public BoundAcceptStatement(DataSymbol target, AcceptSourceKind source)
+    {
+        Target = target;
+        Source = source;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.AcceptStatement;
 }
 
 // ── INSPECT ──

@@ -1419,6 +1419,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAcceptStatement([NotNull] CobolParserCore.AcceptStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.acceptSource"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAcceptSource([NotNull] CobolParserCore.AcceptSourceContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.displayStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

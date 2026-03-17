@@ -521,6 +521,10 @@ public sealed class CilEmitter
                 EmitStoreFileStatus(il, sfs);
                 break;
 
+            case IrAccept acc:
+                EmitAccept(il, acc);
+                break;
+
             case IrInspectTally it:
                 EmitInspectTally(il, it);
                 break;
@@ -1092,6 +1096,21 @@ public sealed class CilEmitter
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
         il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result)));
+    }
+
+    // ── ACCEPT ──
+
+    private void EmitAccept(ILProcessor il, IrAccept acc)
+    {
+        EmitLoadBackingArray(il, acc.Target.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, acc.Target.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, acc.Target.Length));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)acc.Source));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.AcceptRuntime).GetMethod("Accept",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
     }
 
     // ── INSPECT emit helpers ──

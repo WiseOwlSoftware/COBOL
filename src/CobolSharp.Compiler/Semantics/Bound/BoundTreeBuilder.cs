@@ -85,6 +85,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.initializeStatement() is { } initCtx) return BindInitialize(initCtx);
         if (ctx.setStatement() is { } setCtx) return BindSet(setCtx);
         if (ctx.inspectStatement() is { } inspCtx) return BindInspect(inspCtx);
+        if (ctx.acceptStatement() is { } accCtx) return BindAccept(accCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -554,6 +555,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fileSym == null) return null;
 
         return new BoundRewriteStatement(fileSym, recordSym);
+    }
+
+    // ── ACCEPT ──
+
+    private BoundStatement? BindAccept(CobolParserCore.AcceptStatementContext ctx)
+    {
+        string targetName = ctx.identifier().GetText();
+        var targetSym = _semantic.ResolveData(targetName);
+        if (targetSym == null) return null;
+
+        var sourceKind = AcceptSourceKind.None;
+        var sourceCtx = ctx.acceptSource();
+        if (sourceCtx != null)
+        {
+            if (sourceCtx.DATE() != null) sourceKind = AcceptSourceKind.Date;
+            else if (sourceCtx.TIME() != null) sourceKind = AcceptSourceKind.Time;
+            else if (sourceCtx.DAY_OF_WEEK() != null) sourceKind = AcceptSourceKind.DayOfWeek;
+            else if (sourceCtx.DAY() != null) sourceKind = AcceptSourceKind.Day;
+        }
+
+        return new BoundAcceptStatement(targetSym, sourceKind);
     }
 
     // ── INSPECT ──

@@ -538,7 +538,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("><", lines[1]);
     }
 
-    [Fact(Skip = "ACCEPT FROM DATE not yet lowered to CIL")]
+    [Fact]
     public void AcceptFromDate_GetsCurrentDate()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -2542,5 +2542,100 @@ public class EndToEndTests : IDisposable
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("AABBCCXXDDAA", stdout);
+    }
+
+    // ── ACCEPT ──
+
+    [Fact]
+    public void AcceptFromDate_6Digit()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACC1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 D PIC 9(6).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT D FROM DATE.
+                DISPLAY D.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal(6, stdout.Length);
+        Assert.True(stdout.All(char.IsDigit), $"Expected all digits, got: {stdout}");
+    }
+
+    [Fact]
+    public void AcceptFromTime_8Digit()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACC3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T PIC 9(8).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT T FROM TIME.
+                DISPLAY T.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal(8, stdout.Length);
+        Assert.True(stdout.All(char.IsDigit), $"Expected all digits, got: {stdout}");
+        int hh = int.Parse(stdout[..2]);
+        int mm = int.Parse(stdout[2..4]);
+        int ss = int.Parse(stdout[4..6]);
+        Assert.InRange(hh, 0, 23);
+        Assert.InRange(mm, 0, 59);
+        Assert.InRange(ss, 0, 59);
+    }
+
+    [Fact]
+    public void AcceptFromDay_7Digit()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACC4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 DY PIC 9(7).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT DY FROM DAY.
+                DISPLAY DY.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal(7, stdout.Length);
+        Assert.True(stdout.All(char.IsDigit), $"Expected all digits, got: {stdout}");
+        int dayOfYear = int.Parse(stdout[4..]);
+        Assert.InRange(dayOfYear, 1, 366);
+    }
+
+    [Fact]
+    public void AcceptFromDayOfWeek_1Digit()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACC5.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 DW PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT DW FROM DAY-OF-WEEK.
+                DISPLAY DW.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal(1, stdout.Length);
+        int dow = int.Parse(stdout);
+        Assert.InRange(dow, 1, 7);
     }
 }
