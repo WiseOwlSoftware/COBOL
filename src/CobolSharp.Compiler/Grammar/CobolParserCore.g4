@@ -1462,7 +1462,18 @@ displayStatement
 // ==========================================
 
 initializeStatement
-    : INITIALIZE identifierList
+    : INITIALIZE identifierList initializeReplacingPhrase?
+    ;
+
+initializeReplacingPhrase
+    : REPLACING initializeReplacingItem+
+    ;
+
+initializeReplacingItem
+    : ALPHANUMERIC DATA BY (identifier | literal)
+    | NUMERIC DATA BY (identifier | literal)
+    | ALPHANUMERIC EDITED DATA BY (identifier | literal)
+    | NUMERIC EDITED DATA BY (identifier | literal)
     ;
 
 // ==========================================

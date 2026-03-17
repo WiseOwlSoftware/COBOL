@@ -222,6 +222,15 @@ public sealed class Binder
             case BoundRewriteStatement rw:
                 LowerRewrite(rw, block);
                 break;
+            case BoundInitializeStatement init:
+                LowerInitialize(init, block);
+                break;
+            case BoundSetConditionStatement setCond:
+                LowerSetCondition(setCond, block);
+                break;
+            case BoundSetIndexStatement setIdx:
+                LowerSetIndex(setIdx, block);
+                break;
             case BoundSubtractStatement sub:
                 return LowerSubtract(sub, method, block);
             case BoundDivideStatement div:
@@ -716,6 +725,183 @@ public sealed class Binder
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc.Value));
         }
         EmitFileStatus(rw.File, block);
+    }
+
+    // ── INITIALIZE ──
+
+    private void LowerInitialize(BoundInitializeStatement stmt, IrBasicBlock block)
+    {
+        foreach (var target in stmt.Targets)
+            InitializeDataItem(target, stmt, block);
+    }
+
+    private void InitializeDataItem(DataSymbol item, BoundInitializeStatement stmt, IrBasicBlock block)
+    {
+        if (item.IsGroup)
+        {
+            // Recurse into children (skipping REDEFINES items — they share storage)
+            foreach (var child in item.Children)
+            {
+                if (child.Redefines != null) continue;
+                InitializeDataItem(child, stmt, block);
+            }
+            return;
+        }
+
+        // Elementary item: check for category replacement, then default
+        var loc = _semantic.GetStorageLocation(item);
+        if (!loc.HasValue) return;
+
+        var category = ClassifyInitializeCategory(loc.Value.Pic.Category);
+
+        // Check for matching category replacement
+        foreach (var repl in stmt.CategoryReplacements)
+        {
+            if (repl.Category == category)
+            {
+                EmitInitializeAssignment(loc.Value, repl.Value, block);
+                return;
+            }
+        }
+
+        // Default: numeric → zero, everything else → spaces
+        if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
+        {
+            block.Instructions.Add(new IrPicMoveLiteralNumeric(loc.Value, 0m));
+        }
+        else
+        {
+            block.Instructions.Add(new IrMoveFigurative(loc.Value, (int)FigurativeKind.Space));
+        }
+    }
+
+    private InitializeCategory ClassifyInitializeCategory(CobolCategory cat)
+    {
+        return cat switch
+        {
+            CobolCategory.Numeric => InitializeCategory.Numeric,
+            CobolCategory.NumericEdited => InitializeCategory.NumericEdited,
+            CobolCategory.AlphanumericEdited => InitializeCategory.AlphanumericEdited,
+            _ => InitializeCategory.Alphanumeric
+        };
+    }
+
+    private void EmitInitializeAssignment(StorageLocation dest, BoundExpression value, IrBasicBlock block)
+    {
+        if (value is BoundLiteralExpression lit)
+        {
+            if (lit.Value is decimal d)
+            {
+                if (dest.Pic.Category.IsNumericLike())
+                    block.Instructions.Add(new IrPicMoveLiteralNumeric(dest, d));
+                else
+                    block.Instructions.Add(new IrMoveStringToField(dest,
+                        d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            }
+            else if (lit.Value is string s)
+            {
+                block.Instructions.Add(new IrMoveStringToField(dest, s));
+            }
+        }
+        else if (value is BoundIdentifierExpression id)
+        {
+            var srcLoc = _semantic.GetStorageLocation(id.Symbol);
+            if (srcLoc.HasValue)
+                block.Instructions.Add(new IrPicMove(srcLoc.Value, dest));
+        }
+    }
+
+    // ── SET ──
+
+    private void LowerSetCondition(BoundSetConditionStatement stmt, IrBasicBlock block)
+    {
+        var parentSym = stmt.Condition.ParentDataItem;
+        var parentLoc = _semantic.GetStorageLocation(parentSym);
+        if (!parentLoc.HasValue) return;
+
+        if (stmt.SetToTrue)
+        {
+            // SET condition TO TRUE: move the first defining value into the parent
+            var ranges = stmt.Condition.ValueRanges;
+            if (ranges.Count == 0) return;
+
+            var firstVal = ranges[0].From;
+            if (firstVal is decimal d)
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc.Value, d));
+            else if (firstVal is string s)
+                block.Instructions.Add(new IrMoveStringToField(parentLoc.Value, s));
+        }
+        else
+        {
+            // SET condition TO FALSE: move a value that doesn't match any true value
+            var parentCat = parentLoc.Value.Pic.Category;
+            if (parentCat.IsNumericLike())
+            {
+                // Try 0 first; if 0 is a true value, try others
+                var trueVals = stmt.Condition.ValueRanges.Select(r => r.From).ToList();
+                decimal falseVal = 0m;
+                foreach (var candidate in new[] { 0m, 1m, -1m, 99m })
+                {
+                    if (!trueVals.Any(v => v is decimal d && d == candidate))
+                    {
+                        falseVal = candidate;
+                        break;
+                    }
+                }
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc.Value, falseVal));
+            }
+            else
+            {
+                // Alphanumeric: try spaces first
+                block.Instructions.Add(new IrMoveFigurative(parentLoc.Value, (int)FigurativeKind.Space));
+            }
+        }
+    }
+
+    private void LowerSetIndex(BoundSetIndexStatement stmt, IrBasicBlock block)
+    {
+        var targetLoc = _semantic.GetStorageLocation(stmt.Target);
+        if (!targetLoc.HasValue) return;
+
+        switch (stmt.Operation)
+        {
+            case SetOperation.Assign:
+                // SET identifier TO value — reuse MOVE machinery
+                if (stmt.Value is BoundLiteralExpression lit)
+                {
+                    if (lit.Value is decimal d)
+                    {
+                        if (targetLoc.Value.Pic.Category.IsNumericLike())
+                            block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc.Value, d));
+                        else
+                            block.Instructions.Add(new IrMoveStringToField(targetLoc.Value,
+                                d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                    }
+                    else if (lit.Value is string s)
+                    {
+                        block.Instructions.Add(new IrMoveStringToField(targetLoc.Value, s));
+                    }
+                }
+                else if (stmt.Value is BoundIdentifierExpression id)
+                {
+                    var srcLoc = _semantic.GetStorageLocation(id.Symbol);
+                    if (srcLoc.HasValue)
+                        block.Instructions.Add(new IrPicMove(srcLoc.Value, targetLoc.Value));
+                }
+                break;
+
+            case SetOperation.UpBy:
+                // SET identifier UP BY n → ADD n TO identifier
+                if (stmt.Value is BoundLiteralExpression upLit && upLit.Value is decimal upVal)
+                    block.Instructions.Add(new IrPicAddLiteral(targetLoc.Value, upVal));
+                break;
+
+            case SetOperation.DownBy:
+                // SET identifier DOWN BY n → SUBTRACT n FROM identifier
+                if (stmt.Value is BoundLiteralExpression downLit && downLit.Value is decimal downVal)
+                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc.Value, downVal));
+                break;
+        }
     }
 
     // ── MULTIPLY ──

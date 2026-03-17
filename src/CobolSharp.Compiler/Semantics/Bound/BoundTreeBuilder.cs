@@ -82,6 +82,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.computeStatement() is { } comp) return BindCompute(comp);
         if (ctx.evaluateStatement() is { } evalStmt) return BindEvaluate(evalStmt);
         if (ctx.rewriteStatement() is { } rewriteCtx) return BindRewrite(rewriteCtx);
+        if (ctx.initializeStatement() is { } initCtx) return BindInitialize(initCtx);
+        if (ctx.setStatement() is { } setCtx) return BindSet(setCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -551,6 +553,139 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fileSym == null) return null;
 
         return new BoundRewriteStatement(fileSym, recordSym);
+    }
+
+    // ── SET ──
+
+    private BoundStatement? BindSet(CobolParserCore.SetStatementContext ctx)
+    {
+        // SET condition-name TO TRUE/FALSE
+        if (ctx.setBooleanStatement() is { } boolCtx)
+            return BindSetBoolean(boolCtx);
+
+        // SET identifier TO value
+        if (ctx.setToValueStatement() is { } toCtx)
+            return BindSetToValue(toCtx);
+
+        // SET identifier UP/DOWN BY integer
+        if (ctx.setIndexStatement() is { } idxCtx)
+            return BindSetIndex(idxCtx);
+
+        return null;
+    }
+
+    private BoundStatement? BindSetBoolean(CobolParserCore.SetBooleanStatementContext ctx)
+    {
+        string name = ctx.identifier().GetText();
+        var condSym = _semantic.ResolveConditionName(name);
+        if (condSym != null)
+        {
+            bool setToTrue = ctx.TRUE_() != null;
+            return new BoundSetConditionStatement(condSym, setToTrue);
+        }
+
+        // Not a condition name — treat as a data item SET TO TRUE/FALSE (unusual but valid)
+        return null;
+    }
+
+    private BoundStatement? BindSetToValue(CobolParserCore.SetToValueStatementContext ctx)
+    {
+        string name = ctx.identifier().GetText();
+
+        // Check if it's a condition name first
+        var condSym = _semantic.ResolveConditionName(name);
+        if (condSym != null)
+        {
+            // SET condition-name TO TRUE/FALSE can also come through setToValueStatement
+            // if the grammar matched it that way
+            return new BoundSetConditionStatement(condSym, true);
+        }
+
+        // Regular data item: SET identifier TO value
+        var dataSym = _semantic.ResolveData(name);
+        if (dataSym == null) return null;
+
+        var valueExpr = BindArithmeticExpr(ctx.arithmeticExpression());
+        if (valueExpr == null) return null;
+
+        return new BoundSetIndexStatement(dataSym, SetOperation.Assign, valueExpr);
+    }
+
+    private BoundStatement? BindSetIndex(CobolParserCore.SetIndexStatementContext ctx)
+    {
+        string name = ctx.identifier().GetText();
+        var dataSym = _semantic.ResolveData(name);
+        if (dataSym == null) return null;
+
+        var intLit = ctx.integerLiteral();
+        if (intLit == null) return null;
+
+        if (!int.TryParse(intLit.GetText(), out int delta)) return null;
+        var deltaExpr = new BoundLiteralExpression((decimal)delta, CobolCategory.Numeric);
+
+        var op = ctx.UP() != null ? SetOperation.UpBy : SetOperation.DownBy;
+        return new BoundSetIndexStatement(dataSym, op, deltaExpr);
+    }
+
+    // ── INITIALIZE ──
+
+    private BoundStatement? BindInitialize(CobolParserCore.InitializeStatementContext ctx)
+    {
+        var targets = new List<DataSymbol>();
+        var idList = ctx.identifierList();
+        if (idList == null) return null;
+
+        foreach (var idCtx in idList.identifier())
+        {
+            var sym = _semantic.ResolveData(idCtx.GetText());
+            if (sym != null) targets.Add(sym);
+        }
+
+        if (targets.Count == 0) return null;
+
+        var categoryReplacements = new List<BoundInitializeCategoryReplacement>();
+        var replacingPhrase = ctx.initializeReplacingPhrase();
+        if (replacingPhrase != null)
+        {
+            foreach (var item in replacingPhrase.initializeReplacingItem())
+            {
+                var category = ClassifyReplacingItem(item);
+                var valueExpr = BindReplacingValue(item);
+                if (valueExpr != null)
+                    categoryReplacements.Add(new BoundInitializeCategoryReplacement(category, valueExpr));
+            }
+        }
+
+        return new BoundInitializeStatement(targets, categoryReplacements);
+    }
+
+    private InitializeCategory ClassifyReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
+    {
+        // The grammar alternatives are ordered:
+        // ALPHANUMERIC DATA BY ... | NUMERIC DATA BY ... | ALPHANUMERIC EDITED DATA BY ... | NUMERIC EDITED DATA BY ...
+        // Check for EDITED presence and ALPHANUMERIC/NUMERIC token
+        if (ctx.EDITED() != null)
+        {
+            if (ctx.ALPHANUMERIC() != null) return InitializeCategory.AlphanumericEdited;
+            return InitializeCategory.NumericEdited;
+        }
+        if (ctx.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
+        return InitializeCategory.Numeric;
+    }
+
+    private BoundExpression? BindReplacingValue(CobolParserCore.InitializeReplacingItemContext ctx)
+    {
+        var litCtx = ctx.literal();
+        if (litCtx != null) return BindLiteral(litCtx);
+
+        var idCtx = ctx.identifier();
+        if (idCtx != null)
+        {
+            var sym = _semantic.ResolveData(idCtx.GetText());
+            if (sym != null) return new BoundIdentifierExpression(sym, sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric);
+        }
+
+        return null;
     }
 
     // ── MULTIPLY ──

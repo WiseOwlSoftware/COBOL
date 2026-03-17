@@ -27,6 +27,8 @@ public enum BoundNodeKind
     ComputeStatement,
     EvaluateStatement,
     RewriteStatement,
+    InitializeStatement,
+    SetStatement,
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
@@ -367,6 +369,78 @@ public sealed class BoundRewriteStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.RewriteStatement;
+}
+
+// ── INITIALIZE ──
+
+public enum InitializeCategory
+{
+    Numeric,
+    Alphanumeric,
+    NumericEdited,
+    AlphanumericEdited
+}
+
+public sealed class BoundInitializeCategoryReplacement
+{
+    public InitializeCategory Category { get; }
+    public BoundExpression Value { get; }
+
+    public BoundInitializeCategoryReplacement(InitializeCategory category, BoundExpression value)
+    {
+        Category = category;
+        Value = value;
+    }
+}
+
+public sealed class BoundInitializeStatement : BoundStatement
+{
+    public IReadOnlyList<DataSymbol> Targets { get; }
+    public IReadOnlyList<BoundInitializeCategoryReplacement> CategoryReplacements { get; }
+
+    public BoundInitializeStatement(
+        IReadOnlyList<DataSymbol> targets,
+        IReadOnlyList<BoundInitializeCategoryReplacement> categoryReplacements)
+    {
+        Targets = targets;
+        CategoryReplacements = categoryReplacements;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.InitializeStatement;
+}
+
+// ── SET ──
+
+public enum SetOperation { Assign, UpBy, DownBy }
+
+public sealed class BoundSetConditionStatement : BoundStatement
+{
+    public ConditionSymbol Condition { get; }
+    public bool SetToTrue { get; }
+
+    public BoundSetConditionStatement(ConditionSymbol condition, bool setToTrue)
+    {
+        Condition = condition;
+        SetToTrue = setToTrue;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
+public sealed class BoundSetIndexStatement : BoundStatement
+{
+    public DataSymbol Target { get; }
+    public SetOperation Operation { get; }
+    public BoundExpression Value { get; }
+
+    public BoundSetIndexStatement(DataSymbol target, SetOperation operation, BoundExpression value)
+    {
+        Target = target;
+        Operation = operation;
+        Value = value;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
 }
 
 public sealed class BoundAddStatement : BoundStatement

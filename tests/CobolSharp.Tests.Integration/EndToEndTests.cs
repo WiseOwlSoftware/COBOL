@@ -491,7 +491,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("Before", stdout);
     }
 
-    [Fact(Skip = "SET statement not yet lowered to CIL")]
+    [Fact]
     public void SetStatement_SetsValue()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -511,7 +511,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("042", stdout);
     }
 
-    [Fact(Skip = "INITIALIZE statement not yet lowered to CIL")]
+    [Fact]
     public void InitializeStatement_ResetsFields()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -2278,5 +2278,164 @@ public class EndToEndTests : IDisposable
         Assert.Equal("LINESEQ1", lines[0]);
         Assert.Equal("LINESEQ2", lines[1]);
         Assert.Equal("AT-END-OK", lines[2]);
+    }
+
+    // ── INITIALIZE ──
+
+    [Fact]
+    public void Initialize_GroupWithMixedChildren()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INIT2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G1.
+               05 N1 PIC 9(3) VALUE 123.
+               05 A1 PIC X(3) VALUE "ABC".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INITIALIZE G1.
+                DISPLAY N1.
+                DISPLAY ">" A1 "<".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("000", lines[0]);
+        Assert.Equal("><", lines[1]); // spaces trimmed by DISPLAY
+    }
+
+    [Fact]
+    public void Initialize_Redefines_InitializesUnderlying()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INIT3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G1.
+               05 N1 PIC 9(3) VALUE 123.
+               05 R1 REDEFINES N1 PIC X(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INITIALIZE G1.
+                DISPLAY N1.
+                DISPLAY R1.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // N1 is numeric → initialized to 000
+        // R1 REDEFINES N1, shares same storage → shows "000"
+        Assert.Equal("000", lines[0]);
+        Assert.Equal("000", lines[1]);
+    }
+
+    [Fact]
+    public void Initialize_ReplacingNumericAndAlphanumeric()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INIT4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G1.
+               05 N1 PIC 9(3) VALUE 123.
+               05 A1 PIC X(3) VALUE "ABC".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INITIALIZE G1
+                    REPLACING NUMERIC DATA BY 7
+                              ALPHANUMERIC DATA BY "Q".
+                DISPLAY N1.
+                DISPLAY A1.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("007", lines[0]);
+        Assert.Equal("Q", lines[1]); // "Q" moved to X(3), right-padded with spaces, trimmed
+    }
+
+    // ── SET ──
+
+    [Fact]
+    public void Set_ConditionName_ToTrue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SET3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FLAG PIC X.
+               88 FLAG-ON VALUE "Y".
+               88 FLAG-OFF VALUE "N".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SET FLAG-ON TO TRUE.
+                IF FLAG-ON
+                    DISPLAY "ON"
+                ELSE
+                    DISPLAY "OFF"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ON", stdout);
+    }
+
+    [Fact]
+    public void Set_ConditionName_ToFalse()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SET4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FLAG PIC X VALUE "Y".
+               88 FLAG-ON VALUE "Y".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SET FLAG-ON TO FALSE.
+                IF FLAG-ON
+                    DISPLAY "ON"
+                ELSE
+                    DISPLAY "OFF"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OFF", stdout);
+    }
+
+    [Fact]
+    public void Set_Index_UpByDownBy()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SET2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-IDX PIC 9(3) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SET WS-IDX TO 2.
+                SET WS-IDX UP BY 2.
+                DISPLAY WS-IDX.
+                SET WS-IDX DOWN BY 1.
+                DISPLAY WS-IDX.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("004", lines[0]);
+        Assert.Equal("003", lines[1]);
     }
 }
