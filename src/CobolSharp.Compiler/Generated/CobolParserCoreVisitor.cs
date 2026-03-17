@@ -579,6 +579,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.refModSpec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRefModSpec([NotNull] CobolParserCore.RefModSpecContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptList"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1532,12 +1538,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSearchAllWhenClause([NotNull] CobolParserCore.SearchAllWhenClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.searchAllAtEndClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSearchAllAtEndClause([NotNull] CobolParserCore.SearchAllAtEndClauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.jsonStatement"/>.
 	/// </summary>

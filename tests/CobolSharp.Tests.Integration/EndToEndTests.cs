@@ -776,6 +776,65 @@ public class EndToEndTests : IDisposable
     // ═══════════════════════════════════════════
 
     [Fact]
+    public void ExitPerform_LeavesLoopEarly()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITP1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9.
+            01 WS-SUM PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 0 TO WS-SUM.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 10
+                    ADD I TO WS-SUM
+                    IF I = 4
+                        EXIT PERFORM
+                    END-IF
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 1+2+3+4 = 10
+        Assert.Equal("0010", stdout);
+    }
+
+    [Fact]
+    public void ExitPerform_ExitsOnlyInnermostPerform()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITP2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9.
+            01 J PIC 9.
+            01 WS-COUNT PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 0 TO WS-COUNT.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3
+                    PERFORM VARYING J FROM 1 BY 1 UNTIL J > 5
+                        ADD 1 TO WS-COUNT
+                        IF J = 2
+                            EXIT PERFORM
+                        END-IF
+                    END-PERFORM
+                END-PERFORM.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // For each I (1,2,3): J runs 1,2 → EXIT → 2 iterations each = 6
+        Assert.Equal("0006", stdout);
+    }
+
+    [Fact]
     public void PerformVarying_SumOneToFive()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -2746,6 +2805,58 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void Subscript_ExpressionSubscript_Addition()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXPRSUB1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC 9 OCCURS 5 TIMES.
+            01 I PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 0 TO ITEM(1) ITEM(2) ITEM(3) ITEM(4) ITEM(5).
+                MOVE 2 TO I.
+                MOVE 7 TO ITEM(I + 1).
+                DISPLAY ITEM(1) ITEM(2) ITEM(3) ITEM(4) ITEM(5).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00700", stdout);
+    }
+
+    [Fact]
+    public void Subscript_ExpressionSubscript_Multiplication()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXPRSUB2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC 9 OCCURS 9 TIMES.
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 0 TO ITEM(1) ITEM(2) ITEM(3) ITEM(4)
+                          ITEM(5) ITEM(6) ITEM(7) ITEM(8)
+                          ITEM(9).
+                MOVE 2 TO I.
+                MOVE 3 TO J.
+                MOVE 5 TO ITEM(I * J).
+                DISPLAY ITEM(6).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("5", stdout);
+    }
+
+    [Fact]
     public void Subscript_2D_ConstantSubscripts()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -2822,6 +2933,209 @@ public class EndToEndTests : IDisposable
         Assert.Equal("9", stdout);
     }
 
+    [Fact]
+    public void Subscript_RedefinesWithOccurs()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REDSUB1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 A OCCURS 3 TIMES.
+                  10 F1 PIC X(4).
+                  10 F2 REDEFINES F1 PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "1234" TO F1(2).
+                DISPLAY F2(2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1234", stdout);
+    }
+
+    [Fact]
+    public void Subscript_GroupOccursChild()
+    {
+        // Subscripted reference to a child of an OCCURS group.
+        // The step size must be the group's element size (VAL + FLAG = 2),
+        // not the child's size (VAL = 1). Without this, VAL(2) reads
+        // offset 1 instead of offset 2.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GRPOCC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 3 TIMES.
+                  10 VAL PIC 9.
+                  10 FLAG PIC X.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO VAL(1).
+                MOVE "A" TO FLAG(1).
+                MOVE 2 TO VAL(2).
+                MOVE "B" TO FLAG(2).
+                MOVE 3 TO VAL(3).
+                MOVE "C" TO FLAG(3).
+                DISPLAY VAL(1) FLAG(1) VAL(2) FLAG(2) VAL(3) FLAG(3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1A2B3C", stdout);
+    }
+
+    // ── Reference Modification ──
+
+    [Fact]
+    public void RefMod_ConstantStartLength()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDEFGHIJ" TO FIELD.
+                DISPLAY FIELD(3:4).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("CDEF", stdout);
+    }
+
+    [Fact]
+    public void RefMod_WithSubscript()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC X(4) OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCD" TO ITEM(2).
+                DISPLAY ITEM(2)(2:2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("BC", stdout);
+    }
+
+    [Fact]
+    public void RefMod_VariableStart()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(10).
+            01 I PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDEFGHIJ" TO FIELD.
+                MOVE 4 TO I.
+                DISPLAY FIELD(I:3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("DEF", stdout);
+    }
+
+    [Fact]
+    public void RefMod_RestOfField()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDE" TO FIELD.
+                DISPLAY FIELD(3:).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("CDE", stdout);
+    }
+
+    [Fact]
+    public void RefMod_ExpressionStartLength()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD5.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDEFGHIJ" TO FIELD.
+                DISPLAY FIELD(2 + 1:4 - 1).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("CDE", stdout);
+    }
+
+    [Fact]
+    public void RefMod_2DSubscriptWithRefMod()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. REFMOD6.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2 TIMES.
+                  10 COL PIC X(4) OCCURS 2 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCD" TO COL(2, 1).
+                DISPLAY COL(2, 1)(3:2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("CD", stdout);
+    }
+
+    [Fact]
+    public void Subscript_Comp3Array()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMP3SUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ITEM PIC 9(4) COMP-3 OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1234 TO ITEM(2).
+                DISPLAY ITEM(2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1234", stdout);
+    }
+
     // ── GO TO DEPENDING ──
 
     [Fact]
@@ -2879,6 +3193,189 @@ public class EndToEndTests : IDisposable
         Assert.Equal("DONE", stdout);
     }
 
+    // ── IrLocation regression: subscripts and ref-mod in expressions ──
+    // These tests lock in the invariant that EmitExpression goes through IrLocation
+    // for all data references, not directly to GetStorageLocation.
+
+    [Fact]
+    public void If_SubscriptedIdentifier_ComparisonWorks()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFSUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ELEM PIC 9 OCCURS 3 TIMES.
+            01 I PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 2 TO I.
+                MOVE 7 TO ELEM(I).
+                IF ELEM(I) = 7
+                    DISPLAY "OK"
+                ELSE
+                    DISPLAY "FAIL"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OK", stdout);
+    }
+
+    [Fact]
+    public void If_RefMod_ComparisonWorks()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFREFMOD.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDE" TO FIELD.
+                IF FIELD(2:3) = "BCD"
+                    DISPLAY "OK"
+                ELSE
+                    DISPLAY "FAIL"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OK", stdout);
+    }
+
+    [Fact]
+    public void Add_SubscriptedOperand_Works()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ADDSUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ELEM PIC 9 OCCURS 3 TIMES.
+            01 RESULT PIC 99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 5 TO ELEM(2).
+                MOVE 10 TO RESULT.
+                ADD ELEM(2) TO RESULT.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("15", stdout);
+    }
+
+    [Fact]
+    public void Subtract_SubscriptedOperand_Works()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUBSUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ELEM PIC 9 OCCURS 3 TIMES.
+            01 RESULT PIC 99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 3 TO ELEM(1).
+                MOVE 10 TO RESULT.
+                SUBTRACT ELEM(1) FROM RESULT.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("07", stdout);
+    }
+
+    [Fact]
+    public void Multiply_SubscriptedOperand_Works()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MULSUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ELEM PIC 9 OCCURS 3 TIMES.
+            01 RESULT PIC 99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 4 TO ELEM(3).
+                MOVE 5 TO RESULT.
+                MULTIPLY ELEM(3) BY RESULT.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("20", stdout);
+    }
+
+    [Fact]
+    public void If_SubscriptedRefMod_ComparisonWorks()
+    {
+        // Subscripts + ref-mod combined in a comparison
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFSUBREF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2.
+                  10 COL OCCURS 2 PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCD" TO COL(2, 1).
+                IF COL(2, 1)(3:2) = "CD"
+                    DISPLAY "OK"
+                ELSE
+                    DISPLAY "FAIL"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OK", stdout);
+    }
+
+    [Fact]
+    public void If_VariableRefMod_ComparisonWorks()
+    {
+        // Variable start/length in ref-mod comparison
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFVARREF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FIELD PIC X(10).
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDEFGHIJ" TO FIELD.
+                MOVE 3 TO I.
+                MOVE 4 TO J.
+                IF FIELD(I:J) = "CDEF"
+                    DISPLAY "OK"
+                ELSE
+                    DISPLAY "FAIL"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OK", stdout);
+    }
+
     [Fact]
     public void GoToDepending_FallsIntoNextParagraph()
     {
@@ -2907,5 +3404,638 @@ public class EndToEndTests : IDisposable
         var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal("TWO", lines[0]);
         Assert.Equal("THREE", lines[1]);
+    }
+
+    // ── SEARCH (linear) ──
+
+    [Fact]
+    public void Search_SimpleMatch()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCH1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                SEARCH ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = 3
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 3", stdout);
+    }
+
+    [Fact]
+    public void Search_NotFound()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCH2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                SEARCH ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = 9
+                        DISPLAY "FOUND"
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("NOT FOUND", stdout);
+    }
+
+    [Fact]
+    public void Search_MultiFieldWhen()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCH3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 3 TIMES.
+                  10 VAL PIC 9.
+                  10 FLAG PIC X.
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO VAL(1).
+                MOVE "N" TO FLAG(1).
+                MOVE 1 TO VAL(2).
+                MOVE "Y" TO FLAG(2).
+                MOVE 2 TO VAL(3).
+                MOVE "Y" TO FLAG(3).
+                SEARCH ROW
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN VAL(IDX) = 1 AND FLAG(IDX) = "Y"
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 2", stdout);
+    }
+
+    [Fact]
+    public void Search_ChildOfOccursGroup_DifferentSizes()
+    {
+        // OCCURS group with children of different sizes (A=2, B=3, group=5).
+        // Step size must be 5 (group), not 2 (A) or 3 (B).
+        // Before the stepSize fix, A(2) would read offset 2 (inside B(1))
+        // instead of offset 5 (start of second group element).
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GRPSRCH.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ITEM OCCURS 3 TIMES.
+                  10 A PIC X(2).
+                  10 B PIC X(3).
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1).
+                MOVE "BB" TO A(2).
+                MOVE "CC" TO A(3).
+                SEARCH ITEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN A(IDX) = "BB"
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 2", stdout);
+    }
+
+    [Fact]
+    public void Search_ChildOfOccursGroup_MultiFieldWhen()
+    {
+        // Two child-of-OCCURS references in the same WHEN condition.
+        // Forces two IrElementRef constructions, both using the group step size.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GRPMF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ITEM OCCURS 3 TIMES.
+                  10 A PIC X(2).
+                  10 B PIC X(3).
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1).
+                MOVE "111" TO B(1).
+                MOVE "BB" TO A(2).
+                MOVE "222" TO B(2).
+                MOVE "CC" TO A(3).
+                MOVE "333" TO B(3).
+                SEARCH ITEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN A(IDX) = "BB" AND B(IDX) = "222"
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 2", stdout);
+    }
+
+    [Fact]
+    public void SearchAll_ChildOfOccursGroup()
+    {
+        // SEARCH ALL with child-of-OCCURS group, ensuring the linear
+        // lowering path also uses the correct group step size.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GRPSA.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ITEM OCCURS 3 TIMES.
+                  10 A PIC X(2).
+                  10 B PIC X(3).
+            01 IDX PIC 9.
+            01 K PIC X(2).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1).
+                MOVE "BB" TO A(2).
+                MOVE "CC" TO A(3).
+                MOVE "BB" TO K.
+                SEARCH ALL ITEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN A(IDX) = K
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 2", stdout);
+    }
+
+    // ── SEARCH with multi-dimensional OCCURS (outer index via PERFORM) ──
+
+    [Fact]
+    public void Search_2D_OuterIndexFromPerform()
+    {
+        // SEARCH only iterates the innermost dimension (COL).
+        // Outer dimension (ROW) is driven by PERFORM VARYING.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. S2D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2 TIMES.
+                  10 COL OCCURS 3 TIMES.
+                     15 A PIC X(2).
+                     15 B PIC X(3).
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1, 1).
+                MOVE "BB" TO A(1, 2).
+                MOVE "CC" TO A(1, 3).
+                MOVE "DD" TO A(2, 1).
+                MOVE "EE" TO A(2, 2).
+                MOVE "FF" TO A(2, 3).
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    SEARCH COL
+                        AT END DISPLAY "MISS " I
+                        WHEN A(I, J) = "EE"
+                            DISPLAY "FOUND " I " " J
+                    END-SEARCH
+                END-PERFORM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("MISS 1", lines[0]);
+        Assert.Equal("FOUND 2 2", lines[1]);
+    }
+
+    [Fact]
+    public void Search_3D_OuterIndicesFromPerform()
+    {
+        // 3D OCCURS: SEARCH iterates innermost (COL), outer two via nested PERFORM.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. S3D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 PLANE OCCURS 2 TIMES.
+                  10 ROW OCCURS 2 TIMES.
+                     15 COL OCCURS 2 TIMES.
+                        20 A PIC X(2).
+                        20 B PIC X(3).
+            01 P PIC 9.
+            01 R PIC 9.
+            01 C PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1, 1, 1).
+                MOVE "BB" TO A(1, 1, 2).
+                MOVE "CC" TO A(1, 2, 1).
+                MOVE "DD" TO A(1, 2, 2).
+                MOVE "EE" TO A(2, 1, 1).
+                MOVE "FF" TO A(2, 1, 2).
+                MOVE "GG" TO A(2, 2, 1).
+                MOVE "HH" TO A(2, 2, 2).
+                PERFORM VARYING P FROM 1 BY 1 UNTIL P > 2
+                    PERFORM VARYING R FROM 1 BY 1 UNTIL R > 2
+                        SEARCH COL
+                            AT END DISPLAY "MISS"
+                            WHEN A(P, R, C) = "GG"
+                                DISPLAY "FOUND " P " " R " " C
+                        END-SEARCH
+                    END-PERFORM
+                END-PERFORM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // Misses for (1,1), (1,2), (2,1), then found at (2,2,1)
+        Assert.Equal("MISS", lines[0]);
+        Assert.Equal("MISS", lines[1]);
+        Assert.Equal("MISS", lines[2]);
+        Assert.Equal("FOUND 2 2 1", lines[3]);
+    }
+
+    [Fact]
+    public void SearchAll_2D_OuterIndexFromPerform()
+    {
+        // SEARCH ALL with 2D OCCURS, outer index via PERFORM.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SA2D.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ROW OCCURS 2 TIMES.
+                  10 COL OCCURS 3 TIMES.
+                     15 A PIC X(2).
+                     15 B PIC X(3).
+            01 I PIC 9.
+            01 J PIC 9.
+            01 K PIC X(2).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO A(1, 1).
+                MOVE "BB" TO A(1, 2).
+                MOVE "CC" TO A(1, 3).
+                MOVE "DD" TO A(2, 1).
+                MOVE "EE" TO A(2, 2).
+                MOVE "FF" TO A(2, 3).
+                MOVE "EE" TO K.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    SEARCH ALL COL
+                        AT END DISPLAY "MISS " I
+                        WHEN A(I, J) = K
+                            DISPLAY "FOUND " I " " J
+                    END-SEARCH
+                END-PERFORM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("MISS 1", lines[0]);
+        Assert.Equal("FOUND 2 2", lines[1]);
+    }
+
+    // ── SEARCH ALL ──
+
+    [Fact]
+    public void SearchAll_ExactMatch()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCHA1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            01 K PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                MOVE 3 TO K.
+                SEARCH ALL ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = K
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 3", stdout);
+    }
+
+    [Fact]
+    public void SearchAll_NotFound()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCHA2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            01 K PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                MOVE 9 TO K.
+                SEARCH ALL ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = K
+                        DISPLAY "FOUND"
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("NOT FOUND", stdout);
+    }
+
+    [Fact]
+    public void SearchAll_FirstElement()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCHA3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            01 K PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                MOVE 1 TO K.
+                SEARCH ALL ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = K
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 1", stdout);
+    }
+
+    [Fact]
+    public void SearchAll_LastElement()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCHA4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9.
+            01 K PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ELEM(1).
+                MOVE 2 TO ELEM(2).
+                MOVE 3 TO ELEM(3).
+                MOVE 4 TO ELEM(4).
+                MOVE 5 TO ELEM(5).
+                MOVE 5 TO K.
+                SEARCH ALL ELEM
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = K
+                        DISPLAY "FOUND " IDX
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("FOUND 5", stdout);
+    }
+
+    // ── STRING ──
+
+    [Fact]
+    public void String_ConcatenatesLiterals()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. STR1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE SPACES TO T.
+                STRING "AB" "CD" DELIMITED BY SIZE
+                    INTO T
+                END-STRING.
+                DISPLAY T.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // DISPLAY trims trailing spaces; STRING only writes to positions 1-4,
+        // remaining positions keep their SPACES value but are trimmed by DISPLAY
+        Assert.Equal("ABCD", stdout);
+    }
+
+    [Fact]
+    public void String_DelimitedByLiteral()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. STR2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE SPACES TO T.
+                STRING "ABXCD" DELIMITED BY "X"
+                       "ZZ" DELIMITED BY SIZE
+                    INTO T
+                END-STRING.
+                DISPLAY T.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ABZZ", stdout);
+    }
+
+    [Fact]
+    public void String_OnOverflow()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. STR3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE SPACES TO T.
+                STRING "ABCDEFGH" DELIMITED BY SIZE
+                    INTO T
+                    ON OVERFLOW DISPLAY "OVF"
+                    NOT ON OVERFLOW DISPLAY "OK"
+                END-STRING.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("OVF", stdout);
+    }
+
+    // ── UNSTRING ──
+
+    [Fact]
+    public void Unstring_BasicSplit()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UNSTR1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SRC PIC X(10) VALUE "AA,BB,CC".
+            01 A   PIC X(4).
+            01 B   PIC X(4).
+            01 C   PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                UNSTRING SRC DELIMITED BY ","
+                    INTO A
+                    INTO B
+                    INTO C
+                END-UNSTRING.
+                DISPLAY A.
+                DISPLAY B.
+                DISPLAY C.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(3, lines.Length);
+        Assert.Equal("AA", lines[0]);
+        Assert.Equal("BB", lines[1]);
+        Assert.Equal("CC", lines[2]);
+    }
+
+    [Fact]
+    public void Unstring_NoDelimiterMatch_MovesFullSource()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UNSTR2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SRC PIC X(10) VALUE "HELLO".
+            01 A   PIC X(10).
+            01 B   PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                UNSTRING SRC DELIMITED BY ","
+                    INTO A
+                    INTO B
+                END-UNSTRING.
+                DISPLAY A.
+                DISPLAY B.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // No delimiter match: full source goes to A. B is space-filled.
+        // DISPLAY trims trailing spaces, so B outputs nothing visible.
+        Assert.Equal("HELLO", stdout);
+    }
+
+    [Fact]
+    public void Unstring_OnOverflow()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UNSTR3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SRC PIC X(10) VALUE "A,B,C".
+            01 X   PIC X(4).
+            01 Y   PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                UNSTRING SRC DELIMITED BY ","
+                    INTO X
+                    INTO Y
+                    ON OVERFLOW DISPLAY "OVF"
+                    NOT ON OVERFLOW DISPLAY "OK"
+                END-UNSTRING.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // Source has 3 fields (A, B, C) but only 2 INTO targets
+        // After X gets "A" and Y gets "B", source pointer hasn't reached end
+        // because "C" remains. But there are no more INTO targets.
+        // COBOL spec: overflow occurs when pointer > length of source.
+        // With 2 INTOs for 3 fields, the third field "C" is left but no overflow
+        // because source isn't exhausted — pointer just stops.
+        // Actually: overflow = pointer exceeded source length, which doesn't happen here.
+        Assert.Equal("OK", stdout);
     }
 }

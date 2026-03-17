@@ -551,7 +551,13 @@ identifierList
     ;
 
 identifier
-    : IDENTIFIER (LPAREN subscriptList RPAREN)?
+    : IDENTIFIER
+      (LPAREN subscriptList RPAREN)?
+      (LPAREN refModSpec RPAREN)?
+    ;
+
+refModSpec
+    : arithmeticExpression COLON arithmeticExpression?
     ;
 
 subscriptList
@@ -1555,22 +1561,19 @@ searchAtEndClause
 // ==========================================
 // SEARCH ALL (§14.9.37 — Binary Search)
 // ==========================================
+// Semantic restrictions (single WHEN, relational operator, sorted table)
+// are enforced in the binder, not the grammar. The parser accepts the
+// same condition grammar as IF/EVALUATE/SEARCH.
 
 searchAllStatement
     : SEARCH ALL identifier
-      searchAllAtEndClause?
+      searchAtEndClause?
       searchAllWhenClause+
       END_SEARCH?
-     
     ;
 
 searchAllWhenClause
-    : WHEN relationalExpression
-    ;
-
-searchAllAtEndClause
-    : AT END imperativeStatement
-      (NOT AT END imperativeStatement)?
+    : WHEN condition imperativeStatement*
     ;
 // (setStatement, sortStatement, startStatement, stopStatement are fully expanded above)
 

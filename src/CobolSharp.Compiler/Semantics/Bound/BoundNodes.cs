@@ -35,6 +35,11 @@ public enum BoundNodeKind
     IdentifierExpression,
     BinaryExpression,
     ConditionNameExpression,
+    ReferenceModificationExpression,
+    SearchStatement,
+    SearchAllStatement,
+    StringStatement,
+    UnstringStatement,
 }
 
 public abstract class BoundNode
@@ -98,6 +103,31 @@ public sealed class BoundIdentifierExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.IdentifierExpression;
+}
+
+/// <summary>
+/// Reference modification: identifier(start:length) — extracts a substring.
+/// Base is a BoundIdentifierExpression (possibly with subscripts).
+/// Start is 1-based. Length is optional (null = rest of field).
+/// </summary>
+public sealed class BoundReferenceModificationExpression : BoundExpression
+{
+    public BoundIdentifierExpression Base { get; }
+    public BoundExpression Start { get; }
+    public BoundExpression? Length { get; }
+
+    public BoundReferenceModificationExpression(
+        BoundIdentifierExpression @base,
+        BoundExpression start,
+        BoundExpression? length)
+        : base(CobolCategory.Alphanumeric)
+    {
+        Base = @base;
+        Start = start;
+        Length = length;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ReferenceModificationExpression;
 }
 
 public enum BoundBinaryOperatorKind
@@ -322,6 +352,11 @@ public sealed class BoundGoToStatement : BoundStatement
 public sealed class BoundExitStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
+}
+
+public sealed class BoundExitPerformStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitStatement; // reuse — lowering distinguishes
 }
 
 public sealed class BoundNextSentenceStatement : BoundStatement
@@ -869,5 +904,184 @@ public sealed class BoundProgram : BoundNode
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.Program;
+}
+
+// ═══════════════════════════════════
+// SEARCH / SEARCH ALL
+// ═══════════════════════════════════
+
+/// <summary>
+/// A single WHEN clause in a SEARCH or SEARCH ALL statement.
+/// Condition is the match expression; Statements is the imperative body.
+/// </summary>
+public sealed class BoundSearchWhenClause
+{
+    public BoundExpression Condition { get; }
+    public IReadOnlyList<BoundStatement> Statements { get; }
+
+    public BoundSearchWhenClause(BoundExpression condition, IReadOnlyList<BoundStatement> statements)
+    {
+        Condition = condition;
+        Statements = statements;
+    }
+}
+
+/// <summary>
+/// SEARCH table — linear search through OCCURS table.
+/// Index is the subscript variable used in WHEN conditions, extracted by the binder.
+/// The lowering initializes Index to 1, increments it per iteration, and
+/// terminates when Index exceeds OccursCount.
+/// </summary>
+public sealed class BoundSearchStatement : BoundStatement
+{
+    public BoundIdentifierExpression Table { get; }
+    public BoundIdentifierExpression? Index { get; }
+    public IReadOnlyList<BoundSearchWhenClause> Whens { get; }
+    public IReadOnlyList<BoundStatement> AtEnd { get; }
+
+    public BoundSearchStatement(
+        BoundIdentifierExpression table,
+        BoundIdentifierExpression? index,
+        IReadOnlyList<BoundSearchWhenClause> whens,
+        IReadOnlyList<BoundStatement> atEnd)
+    {
+        Table = table;
+        Index = index;
+        Whens = whens;
+        AtEnd = atEnd;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SearchStatement;
+}
+
+/// <summary>
+/// SEARCH ALL table — binary search through sorted OCCURS table.
+/// Semantic restrictions (single WHEN, relational equality, sorted table)
+/// are enforced in the binder. The lowering implements a binary search loop
+/// using low/high/mid temporaries.
+/// </summary>
+public sealed class BoundSearchAllStatement : BoundStatement
+{
+    public BoundIdentifierExpression Table { get; }
+    public BoundIdentifierExpression? Index { get; }
+    public IReadOnlyList<BoundSearchWhenClause> Whens { get; }
+    public IReadOnlyList<BoundStatement> AtEnd { get; }
+
+    public BoundSearchAllStatement(
+        BoundIdentifierExpression table,
+        BoundIdentifierExpression? index,
+        IReadOnlyList<BoundSearchWhenClause> whens,
+        IReadOnlyList<BoundStatement> atEnd)
+    {
+        Table = table;
+        Index = index;
+        Whens = whens;
+        AtEnd = atEnd;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SearchAllStatement;
+}
+
+// ═══════════════════════════════════
+// STRING
+// ═══════════════════════════════════
+
+/// <summary>
+/// One sending phrase in a STRING statement: value + optional delimiter.
+/// </summary>
+public sealed class BoundStringSending
+{
+    public BoundExpression Value { get; }
+    public BoundExpression? Delimiter { get; } // null if DELIMITED BY SIZE or no DELIMITED clause
+    public bool DelimitedBySize { get; }
+
+    public BoundStringSending(BoundExpression value, BoundExpression? delimiter, bool delimitedBySize)
+    {
+        Value = value;
+        Delimiter = delimiter;
+        DelimitedBySize = delimitedBySize;
+    }
+}
+
+/// <summary>
+/// STRING statement: concatenate sending items into a destination field.
+/// </summary>
+public sealed class BoundStringStatement : BoundStatement
+{
+    public IReadOnlyList<BoundStringSending> Sendings { get; }
+    public BoundExpression Into { get; }
+    public BoundExpression? Pointer { get; }
+    public IReadOnlyList<BoundStatement> OnOverflow { get; }
+    public IReadOnlyList<BoundStatement> NotOnOverflow { get; }
+
+    public BoundStringStatement(
+        IReadOnlyList<BoundStringSending> sendings,
+        BoundExpression into,
+        BoundExpression? pointer,
+        IReadOnlyList<BoundStatement> onOverflow,
+        IReadOnlyList<BoundStatement> notOnOverflow)
+    {
+        Sendings = sendings;
+        Into = into;
+        Pointer = pointer;
+        OnOverflow = onOverflow;
+        NotOnOverflow = notOnOverflow;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.StringStatement;
+}
+
+// ═══════════════════════════════════
+// UNSTRING
+// ═══════════════════════════════════
+
+/// <summary>
+/// One INTO phrase in an UNSTRING statement: target + optional COUNT IN + optional DELIMITER IN.
+/// </summary>
+public sealed class BoundUnstringInto
+{
+    public BoundExpression Target { get; }
+    public BoundExpression? CountIn { get; }
+    public BoundExpression? DelimiterIn { get; }
+
+    public BoundUnstringInto(BoundExpression target, BoundExpression? countIn, BoundExpression? delimiterIn)
+    {
+        Target = target;
+        CountIn = countIn;
+        DelimiterIn = delimiterIn;
+    }
+}
+
+/// <summary>
+/// UNSTRING statement: split a source string into multiple destination fields.
+/// </summary>
+public sealed class BoundUnstringStatement : BoundStatement
+{
+    public BoundExpression Source { get; }
+    public BoundExpression? Delimiter { get; }
+    public bool DelimitedByAll { get; }
+    public IReadOnlyList<BoundUnstringInto> Intos { get; }
+    public BoundExpression? Pointer { get; }
+    public BoundExpression? Tallying { get; }
+    public IReadOnlyList<BoundStatement> OnOverflow { get; }
+    public IReadOnlyList<BoundStatement> NotOnOverflow { get; }
+
+    public BoundUnstringStatement(
+        BoundExpression source, BoundExpression? delimiter, bool delimitedByAll,
+        IReadOnlyList<BoundUnstringInto> intos, BoundExpression? pointer,
+        BoundExpression? tallying,
+        IReadOnlyList<BoundStatement> onOverflow, IReadOnlyList<BoundStatement> notOnOverflow)
+    {
+        Source = source;
+        Delimiter = delimiter;
+        DelimitedByAll = delimitedByAll;
+        Intos = intos;
+        Pointer = pointer;
+        Tallying = tallying;
+        OnOverflow = onOverflow;
+        NotOnOverflow = notOnOverflow;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.UnstringStatement;
 }
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Runtime;
+using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Generated;
 using CobolSharp.Compiler.IR;
@@ -36,6 +37,12 @@ public sealed class Binder
     /// Set during sentence lowering; NEXT SENTENCE emits a jump to this block.
     /// </summary>
     private IrBasicBlock? _currentSentenceEnd;
+
+    /// <summary>
+    /// Stack of exit blocks for active PERFORM statements.
+    /// EXIT PERFORM jumps to the top of this stack (innermost active PERFORM).
+    /// </summary>
+    private readonly Stack<IrBasicBlock> _performExitStack = new();
 
     public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
     {
@@ -209,6 +216,8 @@ public sealed class Binder
             case BoundExitStatement:
                 // EXIT is a no-op; fall-through return handles it
                 break;
+            case BoundExitPerformStatement:
+                return LowerExitPerform(method, block);
             case BoundNextSentenceStatement:
                 return LowerNextSentence(method, block);
             case BoundOpenStatement open:
@@ -243,6 +252,14 @@ public sealed class Binder
                 return LowerDivide(div, method, block);
             case BoundComputeStatement comp:
                 return LowerCompute(comp, method, block);
+            case BoundSearchStatement search:
+                return LowerSearch(search, method, block);
+            case BoundSearchAllStatement searchAll:
+                return LowerSearchAll(searchAll, method, block);
+            case BoundStringStatement str:
+                return LowerString(str, method, block);
+            case BoundUnstringStatement unstr:
+                return LowerUnstring(unstr, method, block);
         }
         return block;
     }
@@ -277,25 +294,38 @@ public sealed class Binder
             current = current.Parent;
         }
 
-        int elementSize = id.Symbol.ElementSize;
-        if (elementSize == 0)
-            elementSize = baseLoc.Value.Length / Math.Max(1, id.Symbol.OccursCount);
+        // Two sizes to distinguish:
+        // - stepSize: size of one occurrence of the innermost OCCURS level (for subscript arithmetic)
+        // - leafSize: size of the leaf element being addressed (for PIC descriptor and IrElementRef)
+        //
+        // For direct OCCURS items (ITEM PIC X OCCURS 5), stepSize == leafSize.
+        // For children of OCCURS groups (VAL PIC 9 within ROW OCCURS 3),
+        // stepSize = ROW's element size, leafSize = VAL's size.
+        int leafSize = id.Symbol.ElementSize;
+        if (leafSize == 0)
+            leafSize = baseLoc.Value.Length;
 
-        // Build element PicDescriptor with correct element storage length
+        int stepSize = occursLevels.Count > 0
+            ? occursLevels[^1].sym.ElementSize
+            : leafSize;
+        if (stepSize == 0)
+            stepSize = leafSize;
+
+        // Build element PicDescriptor with the leaf element's storage length
         var arrayPic = baseLoc.Value.Pic;
         var elementPic = new Runtime.PicDescriptor(
             arrayPic.TotalDigits, arrayPic.FractionDigits,
             arrayPic.IsSigned, arrayPic.IsNumeric, arrayPic.IsAlphanumeric,
-            arrayPic.HasEditing, elementSize, arrayPic.Usage,
+            arrayPic.HasEditing, leafSize, arrayPic.Usage,
             arrayPic.Category, arrayPic.SignStorage, arrayPic.Editing,
             arrayPic.BlankWhenZero, arrayPic.LeadingScaleDigits,
             arrayPic.TrailingScaleDigits, arrayPic.EditPattern);
 
-        // Compute multipliers: multiplier[i] = product of all inner dimensions * elementSize
-        // For 1D [N]:          multipliers = [elementSize]
-        // For 2D [N,M]:        multipliers = [M*elementSize, elementSize]
-        // For 3D [X,Y,Z]:      multipliers = [Y*Z*elementSize, Z*elementSize, elementSize]
-        var multipliers = ComputeMultipliers(occursLevels, elementSize);
+        // Compute multipliers using stepSize (OCCURS group element size for subscript arithmetic)
+        // For 1D [N]:          multipliers = [stepSize]
+        // For 2D [N,M]:        multipliers = [M*stepSize, stepSize]
+        // For 3D [X,Y,Z]:      multipliers = [Y*Z*stepSize, Z*stepSize, stepSize]
+        var multipliers = ComputeMultipliers(occursLevels, stepSize);
 
         // Try all-constant fold: if every subscript is a literal, compute offset at compile time
         var subs = id.Subscripts!;
@@ -319,20 +349,13 @@ public sealed class Binder
         if (allConstant)
         {
             return new IrStaticLocation(
-                new StorageLocation(baseLoc.Value.Area, effectiveOffset, elementSize, elementPic));
+                new StorageLocation(baseLoc.Value.Area, effectiveOffset, leafSize, elementPic));
         }
 
-        // Variable subscripts → IrElementRef for runtime offset computation
-        var subLocs = new List<StorageLocation>();
-        foreach (var sub in subs)
-        {
-            if (sub is not BoundIdentifierExpression subId) return null;
-            var subLoc = _semantic.GetStorageLocation(subId.Symbol);
-            if (!subLoc.HasValue) return null;
-            subLocs.Add(subLoc.Value);
-        }
-
-        return new IrElementRef(baseLoc.Value, subLocs, multipliers, elementSize, elementPic);
+        // Variable/expression subscripts → IrElementRef for runtime offset computation.
+        // Subscripts are carried as BoundExpressions — the emitter evaluates each one
+        // via EmitExpression, which handles identifiers, arithmetic, and any expression.
+        return new IrElementRef(baseLoc.Value, subs, multipliers, leafSize, elementPic);
     }
 
     /// <summary>
@@ -366,6 +389,37 @@ public sealed class Binder
     }
 
     /// <summary>
+    /// Resolve any data-reference BoundExpression to an IrLocation.
+    /// Handles BoundIdentifierExpression (with subscripts) and
+    /// BoundReferenceModificationExpression (subscripts + substring).
+    /// This is the single entry point for all lowering methods that need a location.
+    /// </summary>
+    private IrLocation? ResolveExpressionLocation(BoundExpression expr)
+    {
+        return expr switch
+        {
+            BoundIdentifierExpression id => ResolveLocation(id),
+            BoundReferenceModificationExpression refMod => ResolveRefModLocation(refMod),
+            _ => null
+        };
+    }
+
+    private IrLocation? ResolveRefModLocation(BoundReferenceModificationExpression refMod)
+    {
+        var baseLoc = ResolveLocation(refMod.Base);
+        if (baseLoc == null) return null;
+
+        int baseLen = baseLoc switch
+        {
+            IrStaticLocation s => s.Location.Length,
+            IrElementRef e => e.ElementSize,
+            _ => 0
+        };
+
+        return new IrRefModLocation(baseLoc, refMod.Start, refMod.Length, baseLen);
+    }
+
+    /// <summary>
     /// Get the PicDescriptor for an IrLocation (static or element).
     /// </summary>
     private static Runtime.PicDescriptor GetPicForLocation(IrLocation loc)
@@ -374,8 +428,42 @@ public sealed class Binder
         {
             IrStaticLocation s => s.Location.Pic,
             IrElementRef e => e.ElementPic,
+            IrRefModLocation r => GetPicForLocation(r.Base),
             _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
         };
+    }
+
+    /// <summary>
+    /// Walk a BoundExpression tree and pre-resolve all data-reference leaf nodes
+    /// (identifiers, ref-mod) to IrLocations. Used when embedding BoundExpression
+    /// trees inside IR instructions (IrComputeStore) so the emitter never needs
+    /// to resolve locations itself.
+    /// </summary>
+    private Dictionary<BoundExpression, IrLocation> PreResolveExpressionLocations(BoundExpression expr)
+    {
+        var result = new Dictionary<BoundExpression, IrLocation>();
+        WalkExpressionForLocations(expr, result);
+        return result;
+    }
+
+    private void WalkExpressionForLocations(BoundExpression expr, Dictionary<BoundExpression, IrLocation> result)
+    {
+        switch (expr)
+        {
+            case BoundIdentifierExpression:
+            case BoundReferenceModificationExpression:
+                var loc = ResolveExpressionLocation(expr);
+                if (loc != null)
+                    result[expr] = loc;
+                break;
+
+            case BoundBinaryExpression bin:
+                WalkExpressionForLocations(bin.Left, result);
+                WalkExpressionForLocations(bin.Right, result);
+                break;
+
+            // Literals, figuratives, etc. — no location to resolve
+        }
     }
 
     // ── DISPLAY ──
@@ -408,13 +496,13 @@ public sealed class Binder
                 operands.Add(new IR.DisplayLiteralOperand(
                     d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             }
-            else if (op is BoundIdentifierExpression id)
+            else if (op is BoundIdentifierExpression or BoundReferenceModificationExpression)
             {
-                var loc = ResolveLocation(id);
+                var loc = ResolveExpressionLocation(op);
                 if (loc != null)
                     operands.Add(new IR.DisplayFieldOperand(loc));
-                else
-                    operands.Add(new IR.DisplayLiteralOperand($"[{id.Symbol.Name}]"));
+                else if (op is BoundIdentifierExpression failedId)
+                    operands.Add(new IR.DisplayLiteralOperand($"[{failedId.Symbol.Name}]"));
             }
             else
             {
@@ -429,78 +517,47 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
-        // Handle MOVE figurative-constant TO identifier
-        if (mv.Source is BoundFigurativeExpression fig)
+        foreach (var t in mv.Targets)
         {
-            foreach (var t in mv.Targets)
-            {
-                if (t is not BoundIdentifierExpression id) continue;
-                var loc = ResolveLocation(id);
-                if (loc == null) continue;
+            var destLoc = ResolveExpressionLocation(t);
+            if (destLoc == null) continue;
 
+            // Source dispatch: figurative, literal, or data reference
+            if (mv.Source is BoundFigurativeExpression fig)
+            {
                 if (fig.AllLiteral != null)
-                    block.Instructions.Add(new IrMoveAllLiteral(loc, fig.AllLiteral));
+                    block.Instructions.Add(new IrMoveAllLiteral(destLoc, fig.AllLiteral));
                 else
-                    block.Instructions.Add(new IrMoveFigurative(loc, fig.FigurativeKind));
+                    block.Instructions.Add(new IrMoveFigurative(destLoc, fig.FigurativeKind));
             }
-            return;
-        }
-
-        // Handle MOVE literal TO identifier
-        if (mv.Source is BoundLiteralExpression lit)
-        {
-            foreach (var t in mv.Targets)
+            else if (mv.Source is BoundLiteralExpression lit)
             {
-                if (t is not BoundIdentifierExpression id) continue;
-                var loc = ResolveLocation(id);
-                if (loc == null) continue;
-
-                var destPic = GetPicForLocation(loc);
+                var destPic = GetPicForLocation(destLoc);
                 if (lit.Value is string s)
                 {
-                    block.Instructions.Add(new IrMoveStringToField(loc, s));
+                    block.Instructions.Add(new IrMoveStringToField(destLoc, s));
                 }
                 else if (lit.Value is decimal d)
                 {
                     if (destPic.Category.IsNumericLike())
-                    {
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(
-                            loc, d, mv.IsRounded ? 1 : 0));
-                    }
+                            destLoc, d, mv.IsRounded ? 1 : 0));
                     else
-                    {
-                        string numStr = d.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        block.Instructions.Add(new IrMoveStringToField(loc, numStr));
-                    }
+                        block.Instructions.Add(new IrMoveStringToField(destLoc,
+                            d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 }
             }
-            return;
-        }
-
-        // Handle MOVE identifier TO identifier (field-to-field)
-        if (mv.Source is BoundIdentifierExpression srcId)
-        {
-            var srcLoc = ResolveLocation(srcId);
-            if (srcLoc != null)
+            else
             {
-                foreach (var t in mv.Targets)
+                // Data reference source (identifier, ref mod, or any expression with a location)
+                var srcLoc = ResolveExpressionLocation(mv.Source);
+                if (srcLoc != null)
                 {
-                    if (t is BoundIdentifierExpression destId)
-                    {
-                        var destLoc = ResolveLocation(destId);
-                        if (destLoc != null)
-                        {
-                            block.Instructions.Add(new IrPicMove(
-                                srcLoc, destLoc,
-                                mv.IsRounded ? 1 : 0));
-                        }
-                    }
+                    block.Instructions.Add(new IrPicMove(
+                        srcLoc, destLoc, mv.IsRounded ? 1 : 0));
                 }
-                return;
             }
         }
-
-        // Fallback for unresolved: NOP
     }
 
     // ── PERFORM ──
@@ -510,7 +567,16 @@ public sealed class Binder
         // PERFORM VARYING: recursive loop structure with optional AFTER nesting
         if (perf.Varying != null)
         {
-            return LowerPerformVarying(perf.Varying, perf, method, block);
+            // The outermost loop's end block is the EXIT PERFORM target
+            var varyEnd = method.CreateBlock("vary.exit");
+            _performExitStack.Push(varyEnd);
+            var result = LowerPerformVarying(perf.Varying, perf, method, block);
+            // The recursive lowering returns the outermost loopEnd block,
+            // but EXIT PERFORM jumps to varyEnd. Wire them together.
+            result.Instructions.Add(new IrJump(varyEnd));
+            method.Blocks.Add(varyEnd);
+            _performExitStack.Pop();
+            return varyEnd;
         }
 
         // PERFORM UNTIL (no VARYING): simple condition loop
@@ -519,6 +585,8 @@ public sealed class Binder
             var loopStart = method.CreateBlock("perf.until.start");
             var loopBody = method.CreateBlock("perf.until.body");
             var loopEnd = method.CreateBlock("perf.until.end");
+
+            _performExitStack.Push(loopEnd);
 
             block.Instructions.Add(new IrJump(loopStart));
 
@@ -533,6 +601,7 @@ public sealed class Binder
             bodyCurrent.Instructions.Add(new IrJump(loopStart));
 
             method.Blocks.Add(loopEnd);
+            _performExitStack.Pop();
             return loopEnd;
         }
 
@@ -1158,7 +1227,8 @@ public sealed class Binder
                 var subExpr = new BoundBinaryExpression(
                     sub.GivingMinuend, BoundBinaryOperatorKind.Subtract, sumExpr,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(subExpr, destLoc, roundingMode));
+                block.Instructions.Add(new IrComputeStore(subExpr, destLoc, roundingMode,
+                    PreResolveExpressionLocations(subExpr)));
             }
             else
             {
@@ -1188,7 +1258,8 @@ public sealed class Binder
                 var divExpr = new BoundBinaryExpression(
                     div.Dividend, BoundBinaryOperatorKind.Divide, div.Divisor,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode));
+                block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode,
+                    PreResolveExpressionLocations(divExpr)));
             }
             else
             {
@@ -1216,7 +1287,8 @@ public sealed class Binder
                 var remExpr = new BoundBinaryExpression(
                     div.Dividend, BoundBinaryOperatorKind.Remainder, div.Divisor,
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0));
+                block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0,
+                    PreResolveExpressionLocations(remExpr)));
             }
         }
 
@@ -1237,7 +1309,8 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
             block.Instructions.Add(new IrComputeStore(
-                comp.Expression, destLoc, roundingMode));
+                comp.Expression, destLoc, roundingMode,
+                PreResolveExpressionLocations(comp.Expression)));
         }
 
         return LowerSizeError(comp.SizeError, method, block);
@@ -1590,118 +1663,118 @@ public sealed class Binder
                 }
             }
 
-            var leftId = binCond.Left as BoundIdentifierExpression;
-            var rightId = binCond.Right as BoundIdentifierExpression;
+            // Resolve left and right as data references (identifiers or ref-mod)
+            // via ResolveExpressionLocation — the single entry point for all data references.
+            var leftLoc = ResolveExpressionLocation(binCond.Left);
+            var rightLoc = ResolveExpressionLocation(binCond.Right);
 
-            if (leftId != null)
+            if (leftLoc != null)
             {
-                var leftLoc = ResolveLocation(leftId);
-                if (leftLoc != null)
+                var leftCat = GetPicForLocation(leftLoc).Category;
+
+                // location vs figurative constant (alphanumeric comparison)
+                if (binCond.Right is BoundFigurativeExpression figRight)
                 {
-                    var leftCat = GetPicForLocation(leftLoc).Category;
-
-                    // identifier vs figurative constant (alphanumeric comparison)
-                    if (binCond.Right is BoundFigurativeExpression figRight)
+                    // Convert figurative to single-char string for comparison;
+                    // IrStringCompareLiteral pads with spaces, so SPACE works.
+                    // For ZERO on numeric, use numeric comparison.
+                    var fk = (Runtime.FigurativeKind)figRight.FigurativeKind;
+                    if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
                     {
-                        // Convert figurative to single-char string for comparison;
-                        // IrStringCompareLiteral pads with spaces, so SPACE works.
-                        // For ZERO on numeric, use numeric comparison.
-                        var fk = (Runtime.FigurativeKind)figRight.FigurativeKind;
-                        if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
-                        {
-                            block.Instructions.Add(new IrPicCompareLiteral(
-                                leftLoc, 0m, result,
-                                (int)binCond.OperatorKind));
-                        }
-                        else
-                        {
-                            string figStr = fk switch
-                            {
-                                Runtime.FigurativeKind.Space => " ",
-                                Runtime.FigurativeKind.Zero => "0",
-                                Runtime.FigurativeKind.HighValue => "\xFF",
-                                Runtime.FigurativeKind.LowValue => "\x00",
-                                Runtime.FigurativeKind.Quote => "\"",
-                                _ => figRight.AllLiteral ?? " "
-                            };
-                            block.Instructions.Add(new IrStringCompareLiteral(
-                                leftLoc, figStr, result,
-                                (int)binCond.OperatorKind));
-                        }
-                        return;
+                        block.Instructions.Add(new IrPicCompareLiteral(
+                            leftLoc, 0m, result,
+                            (int)binCond.OperatorKind));
                     }
-
-                    // identifier vs string literal (alphanumeric comparison)
-                    if (binCond.Right is BoundLiteralExpression litStr &&
-                        litStr.Value is string s && leftCat.IsAlphanumericLike())
+                    else
                     {
+                        string figStr = fk switch
+                        {
+                            Runtime.FigurativeKind.Space => " ",
+                            Runtime.FigurativeKind.Zero => "0",
+                            Runtime.FigurativeKind.HighValue => "\xFF",
+                            Runtime.FigurativeKind.LowValue => "\x00",
+                            Runtime.FigurativeKind.Quote => "\"",
+                            _ => figRight.AllLiteral ?? " "
+                        };
                         block.Instructions.Add(new IrStringCompareLiteral(
-                            leftLoc, s, result,
+                            leftLoc, figStr, result,
                             (int)binCond.OperatorKind));
-                        return;
                     }
+                    return;
+                }
 
-                    // identifier vs identifier
-                    if (rightId != null)
+                // location vs string literal (alphanumeric comparison)
+                if (binCond.Right is BoundLiteralExpression litStr &&
+                    litStr.Value is string s && leftCat.IsAlphanumericLike())
+                {
+                    block.Instructions.Add(new IrStringCompareLiteral(
+                        leftLoc, s, result,
+                        (int)binCond.OperatorKind));
+                    return;
+                }
+
+                // location vs location
+                if (rightLoc != null)
+                {
+                    var rightCat = GetPicForLocation(rightLoc).Category;
+                    if (leftCat.IsAlphanumericLike() && rightCat.IsAlphanumericLike())
                     {
-                        var rightLoc = ResolveLocation(rightId);
-                        if (rightLoc != null)
-                        {
-                            block.Instructions.Add(new IrPicCompare(
-                                leftLoc, rightLoc, result,
-                                (int)binCond.OperatorKind));
-                            return;
-                        }
-                    }
-                    // identifier vs numeric literal
-                    else if (binCond.Right is BoundLiteralExpression litRight
-                             && litRight.Value is decimal d)
-                    {
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc, d, result,
+                        block.Instructions.Add(new IrStringCompare(
+                            leftLoc, rightLoc, result,
                             (int)binCond.OperatorKind));
-                        return;
                     }
-                    // identifier vs negative numeric literal: -(literal) encoded as (0 - literal)
-                    else if (binCond.Right is BoundBinaryExpression negExpr
-                             && negExpr.OperatorKind == BoundBinaryOperatorKind.Subtract
-                             && negExpr.Left is BoundLiteralExpression zeroLit
-                             && zeroLit.Value is decimal zd && zd == 0m
-                             && negExpr.Right is BoundLiteralExpression innerLit
-                             && innerLit.Value is decimal innerD)
+                    else
                     {
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc, -innerD, result,
+                        block.Instructions.Add(new IrPicCompare(
+                            leftLoc, rightLoc, result,
                             (int)binCond.OperatorKind));
-                        return;
                     }
+                    return;
+                }
+                // location vs numeric literal
+                else if (binCond.Right is BoundLiteralExpression litRight
+                         && litRight.Value is decimal d)
+                {
+                    block.Instructions.Add(new IrPicCompareLiteral(
+                        leftLoc, d, result,
+                        (int)binCond.OperatorKind));
+                    return;
+                }
+                // location vs negative numeric literal: -(literal) encoded as (0 - literal)
+                else if (binCond.Right is BoundBinaryExpression negExpr
+                         && negExpr.OperatorKind == BoundBinaryOperatorKind.Subtract
+                         && negExpr.Left is BoundLiteralExpression zeroLit
+                         && zeroLit.Value is decimal zd && zd == 0m
+                         && negExpr.Right is BoundLiteralExpression innerLit
+                         && innerLit.Value is decimal innerD)
+                {
+                    block.Instructions.Add(new IrPicCompareLiteral(
+                        leftLoc, -innerD, result,
+                        (int)binCond.OperatorKind));
+                    return;
                 }
             }
 
             // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
-            if (binCond.Left is BoundLiteralExpression litLeft && rightId != null)
+            if (binCond.Left is BoundLiteralExpression litLeft && rightLoc != null)
             {
-                var rightLoc = ResolveLocation(rightId);
-                if (rightLoc != null)
+                if (litLeft.Value is decimal dLeft)
                 {
-                    if (litLeft.Value is decimal dLeft)
-                    {
-                        // Flip: compare right field against left literal
-                        // Flip the operator for non-symmetric comparisons
-                        var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            rightLoc, dLeft, result,
-                            (int)flippedOp));
-                        return;
-                    }
-                    else if (litLeft.Value is string sLeft)
-                    {
-                        var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                        block.Instructions.Add(new IrStringCompareLiteral(
-                            rightLoc, sLeft, result,
-                            (int)flippedOp));
-                        return;
-                    }
+                    // Flip: compare right field against left literal
+                    // Flip the operator for non-symmetric comparisons
+                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
+                    block.Instructions.Add(new IrPicCompareLiteral(
+                        rightLoc, dLeft, result,
+                        (int)flippedOp));
+                    return;
+                }
+                else if (litLeft.Value is string sLeft)
+                {
+                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
+                    block.Instructions.Add(new IrStringCompareLiteral(
+                        rightLoc, sLeft, result,
+                        (int)flippedOp));
+                    return;
                 }
             }
         }
@@ -1913,5 +1986,328 @@ public sealed class Binder
         var dead = new IrBasicBlock("dead_after_next_sentence");
         method.Blocks.Add(dead);
         return dead;
+    }
+
+    // ── EXIT PERFORM ──
+
+    private IrBasicBlock LowerExitPerform(IrMethod method, IrBasicBlock block)
+    {
+        if (_performExitStack.Count == 0)
+        {
+            // EXIT PERFORM outside any active PERFORM — emit diagnostic, skip
+            _diagnostics.ReportError("CS0862",
+                "EXIT PERFORM used outside of any active PERFORM.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+
+        var exitBlock = _performExitStack.Peek();
+        block.Instructions.Add(new IrJump(exitBlock));
+
+        // Any statements after EXIT PERFORM are unreachable.
+        var dead = new IrBasicBlock("dead_after_exit_perform");
+        method.Blocks.Add(dead);
+        return dead;
+    }
+
+    // ── STRING ──
+
+    private IrBasicBlock LowerString(BoundStringStatement str, IrMethod method, IrBasicBlock block)
+    {
+        var destLoc = ResolveExpressionLocation(str.Into);
+        if (destLoc == null) return block;
+
+        // Pointer: resolve if present, null if no WITH POINTER clause
+        IrLocation? ptrLoc = null;
+        if (str.Pointer != null)
+            ptrLoc = ResolveExpressionLocation(str.Pointer);
+
+        // Build sending specs
+        var sendings = new List<IrStringSending>();
+        foreach (var sending in str.Sendings)
+        {
+            string? delimiter = null;
+            if (sending.Delimiter is BoundLiteralExpression delimLit && delimLit.Value is string ds)
+                delimiter = ds;
+
+            if (sending.Value is BoundLiteralExpression litVal && litVal.Value is string sv)
+            {
+                sendings.Add(new IrStringSending(sv, null, delimiter, sending.DelimitedBySize));
+            }
+            else
+            {
+                var srcLoc = ResolveExpressionLocation(sending.Value);
+                if (srcLoc != null)
+                    sendings.Add(new IrStringSending(null, srcLoc, delimiter, sending.DelimitedBySize));
+            }
+        }
+
+        // Emit single IrStringStatement
+        var overflowResult = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrStringStatement(destLoc, sendings, ptrLoc, overflowResult));
+
+        // ON OVERFLOW / NOT ON OVERFLOW branching
+        if (str.OnOverflow.Count > 0 || str.NotOnOverflow.Count > 0)
+        {
+            var onBlock = method.CreateBlock("string.overflow");
+            var notBlock = method.CreateBlock("string.not.overflow");
+            var afterBlock = method.CreateBlock("string.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(overflowResult, notBlock));
+            block.Instructions.Add(new IrJump(onBlock));
+
+            method.Blocks.Add(onBlock);
+            var onCurrent = onBlock;
+            foreach (var stmt in str.OnOverflow)
+                onCurrent = LowerStatement(stmt, method, onCurrent);
+            onCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notBlock);
+            var notCurrent = notBlock;
+            foreach (var stmt in str.NotOnOverflow)
+                notCurrent = LowerStatement(stmt, method, notCurrent);
+            notCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
+    // ── UNSTRING ──
+
+    private IrBasicBlock LowerUnstring(BoundUnstringStatement unstr, IrMethod method, IrBasicBlock block)
+    {
+        var srcLoc = ResolveExpressionLocation(unstr.Source);
+        if (srcLoc == null) return block;
+
+        // Resolve delimiter literal
+        string? literalDelimiter = null;
+        if (unstr.Delimiter is BoundLiteralExpression delimLit && delimLit.Value is string ds)
+            literalDelimiter = ds;
+
+        // Pointer: resolve if present
+        IrLocation? ptrLoc = null;
+        if (unstr.Pointer != null)
+            ptrLoc = ResolveExpressionLocation(unstr.Pointer);
+
+        // Tallying: resolve if present
+        IrLocation? tallyLoc = null;
+        if (unstr.Tallying != null)
+            tallyLoc = ResolveExpressionLocation(unstr.Tallying);
+
+        // Build INTO specs
+        var intos = new List<IrUnstringInto>();
+        foreach (var into in unstr.Intos)
+        {
+            var targetLoc = ResolveExpressionLocation(into.Target);
+            if (targetLoc == null) continue;
+
+            IrLocation? countLoc = null;
+            if (into.CountIn != null)
+                countLoc = ResolveExpressionLocation(into.CountIn);
+
+            IrLocation? delimInLoc = null;
+            if (into.DelimiterIn != null)
+                delimInLoc = ResolveExpressionLocation(into.DelimiterIn);
+
+            intos.Add(new IrUnstringInto(targetLoc, countLoc, delimInLoc));
+        }
+
+        // Emit single IrUnstringStatement
+        var overflowResult = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrUnstringStatement(srcLoc, literalDelimiter, unstr.DelimitedByAll,
+            intos, ptrLoc, tallyLoc, overflowResult));
+
+        // ON OVERFLOW / NOT ON OVERFLOW branching (same pattern as STRING)
+        if (unstr.OnOverflow.Count > 0 || unstr.NotOnOverflow.Count > 0)
+        {
+            var onBlock = method.CreateBlock("unstring.overflow");
+            var notBlock = method.CreateBlock("unstring.not.overflow");
+            var afterBlock = method.CreateBlock("unstring.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(overflowResult, notBlock));
+            block.Instructions.Add(new IrJump(onBlock));
+
+            method.Blocks.Add(onBlock);
+            var onCurrent = onBlock;
+            foreach (var stmt in unstr.OnOverflow)
+                onCurrent = LowerStatement(stmt, method, onCurrent);
+            onCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notBlock);
+            var notCurrent = notBlock;
+            foreach (var stmt in unstr.NotOnOverflow)
+                notCurrent = LowerStatement(stmt, method, notCurrent);
+            notCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
+    // ── SEARCH (linear) ──
+
+    private IrBasicBlock LowerSearch(BoundSearchStatement search, IrMethod method, IrBasicBlock block)
+    {
+        if (search.Index == null) return block;
+
+        var indexLoc = ResolveLocation(search.Index);
+        if (indexLoc == null) return block;
+
+        int upperBound = search.Table.Symbol.OccursCount;
+
+        // Initialize index to 1
+        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, 1m));
+
+        // Loop structure
+        var loopHeader = method.CreateBlock("search.loop");
+        var atEndBlock = method.CreateBlock("search.atend");
+        var exitBlock = method.CreateBlock("search.exit");
+
+        block.Instructions.Add(new IrJump(loopHeader));
+        method.Blocks.Add(loopHeader);
+
+        // Bounds check: if index > upperBound → AT END
+        var boundsResult = _valueFactory.Next(IrPrimitiveType.Bool);
+        loopHeader.Instructions.Add(new IrPicCompareLiteral(
+            indexLoc, (decimal)upperBound, boundsResult,
+            (int)BoundBinaryOperatorKind.Greater));
+        var whenChain = method.CreateBlock("search.whens");
+        loopHeader.Instructions.Add(new IrBranchIfFalse(boundsResult, whenChain));
+        loopHeader.Instructions.Add(new IrJump(atEndBlock));
+
+        // WHEN chain: evaluate each condition, execute body on match
+        method.Blocks.Add(whenChain);
+        var current = whenChain;
+
+        foreach (var when in search.Whens)
+        {
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(when.Condition, condVal, current);
+
+            var bodyBlock = method.CreateBlock("search.when.body");
+            var nextWhen = method.CreateBlock("search.when.next");
+
+            current.Instructions.Add(new IrBranchIfFalse(condVal, nextWhen));
+
+            // WHEN body
+            method.Blocks.Add(bodyBlock);
+            var bodyCurrent = bodyBlock;
+            foreach (var stmt in when.Statements)
+                bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
+            bodyCurrent.Instructions.Add(new IrJump(exitBlock));
+
+            method.Blocks.Add(nextWhen);
+            current = nextWhen;
+        }
+
+        // No WHEN matched: increment index and loop
+        block.Instructions.Add(new IrInitArithmeticStatus());
+        current.Instructions.Add(new IrPicAddLiteral(indexLoc, 1m));
+        current.Instructions.Add(new IrJump(loopHeader));
+
+        // AT END
+        method.Blocks.Add(atEndBlock);
+        var atEndCurrent = atEndBlock;
+        foreach (var stmt in search.AtEnd)
+            atEndCurrent = LowerStatement(stmt, method, atEndCurrent);
+        atEndCurrent.Instructions.Add(new IrJump(exitBlock));
+
+        method.Blocks.Add(exitBlock);
+        return exitBlock;
+    }
+
+    // ── SEARCH ALL (binary) ──
+
+    private IrBasicBlock LowerSearchAll(BoundSearchAllStatement searchAll, IrMethod method, IrBasicBlock block)
+    {
+        if (searchAll.Index == null || searchAll.Whens.Count == 0) return block;
+
+        var indexLoc = ResolveLocation(searchAll.Index);
+        if (indexLoc == null) return block;
+
+        int upperBound = searchAll.Table.Symbol.OccursCount;
+        var when = searchAll.Whens[0]; // SEARCH ALL allows exactly one WHEN
+
+        // Create temp variables for low, high, mid
+        // We use the index field itself for mid (so user code sees the found position)
+        // and create synthetic IrLocations for low/high by reusing the index field's
+        // storage characteristics.
+        //
+        // For simplicity, we lower binary search using the index as mid directly:
+        //   low = 1, high = upperBound
+        //   while low <= high:
+        //     index = (low + high) / 2
+        //     if condition → body, exit
+        //     if element < key → low = mid + 1
+        //     else → high = mid - 1
+        //   AT END
+
+        // We need temp storage for low and high. Use IrComputeStore with synthetic expressions.
+        // Actually, we can use PERFORM-style arithmetic with the index itself.
+
+        // Simpler approach: use COMPUTE expressions via IrComputeStore for mid calculation,
+        // and PicMoveLiteralNumeric/PicAddLiteral/PicSubtractLiteral for low/high.
+
+        // For now, implement as linear search (correct behavior, not O(log n)).
+        // This can be optimized to true binary search when KEY ASCENDING/DESCENDING
+        // is supported. Linear search produces correct results for all test cases.
+
+        // Initialize index to 1
+        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, 1m));
+
+        var loopHeader = method.CreateBlock("searchall.loop");
+        var atEndBlock = method.CreateBlock("searchall.atend");
+        var exitBlock = method.CreateBlock("searchall.exit");
+
+        block.Instructions.Add(new IrJump(loopHeader));
+        method.Blocks.Add(loopHeader);
+
+        // Bounds check: if index > upperBound → AT END
+        var boundsResult = _valueFactory.Next(IrPrimitiveType.Bool);
+        loopHeader.Instructions.Add(new IrPicCompareLiteral(
+            indexLoc, (decimal)upperBound, boundsResult,
+            (int)BoundBinaryOperatorKind.Greater));
+        var checkBlock = method.CreateBlock("searchall.check");
+        loopHeader.Instructions.Add(new IrBranchIfFalse(boundsResult, checkBlock));
+        loopHeader.Instructions.Add(new IrJump(atEndBlock));
+
+        // Evaluate WHEN condition
+        method.Blocks.Add(checkBlock);
+        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        LowerCondition(when.Condition, condVal, checkBlock);
+
+        var bodyBlock = method.CreateBlock("searchall.body");
+        var incrementBlock = method.CreateBlock("searchall.incr");
+
+        checkBlock.Instructions.Add(new IrBranchIfFalse(condVal, incrementBlock));
+
+        // Match: execute body
+        method.Blocks.Add(bodyBlock);
+        var bodyCurrent = bodyBlock;
+        foreach (var stmt in when.Statements)
+            bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
+        bodyCurrent.Instructions.Add(new IrJump(exitBlock));
+
+        // No match: increment and loop
+        method.Blocks.Add(incrementBlock);
+        incrementBlock.Instructions.Add(new IrInitArithmeticStatus());
+        incrementBlock.Instructions.Add(new IrPicAddLiteral(indexLoc, 1m));
+        incrementBlock.Instructions.Add(new IrJump(loopHeader));
+
+        // AT END
+        method.Blocks.Add(atEndBlock);
+        var atEndCurrent = atEndBlock;
+        foreach (var stmt in searchAll.AtEnd)
+            atEndCurrent = LowerStatement(stmt, method, atEndCurrent);
+        atEndCurrent.Instructions.Add(new IrJump(exitBlock));
+
+        method.Blocks.Add(exitBlock);
+        return exitBlock;
     }
 }

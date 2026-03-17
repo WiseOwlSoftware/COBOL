@@ -410,25 +410,49 @@ public sealed class IrStaticLocation : IrLocation
 /// The effective offset is computed at runtime using the general formula:
 ///   offset = base + sum_i((subscript_i - 1) * multiplier_i)
 /// where multiplier_i is the product of all inner dimension sizes * element size.
+/// Subscripts are carried as BoundExpressions — the emitter evaluates each one
+/// via EmitExpression (handles identifiers, arithmetic, and any expression).
 /// </summary>
 public sealed class IrElementRef : IrLocation
 {
     public CodeGen.StorageLocation BaseLocation { get; }
-    public IReadOnlyList<CodeGen.StorageLocation> SubscriptLocations { get; }
+    public IReadOnlyList<Semantics.Bound.BoundExpression> Subscripts { get; }
     public IReadOnlyList<int> Multipliers { get; }
     public int ElementSize { get; }
     public Runtime.PicDescriptor ElementPic { get; }
 
     public IrElementRef(CodeGen.StorageLocation baseLocation,
-        IReadOnlyList<CodeGen.StorageLocation> subscriptLocations,
+        IReadOnlyList<Semantics.Bound.BoundExpression> subscripts,
         IReadOnlyList<int> multipliers,
         int elementSize, Runtime.PicDescriptor elementPic)
     {
         BaseLocation = baseLocation;
-        SubscriptLocations = subscriptLocations;
+        Subscripts = subscripts;
         Multipliers = multipliers;
         ElementSize = elementSize;
         ElementPic = elementPic;
+    }
+}
+
+/// <summary>
+/// A reference modification: base location + runtime start:length substring.
+/// Composes with IrStaticLocation or IrElementRef as the base.
+/// The effective storage is: (base_area, base_offset + start - 1, length).
+/// </summary>
+public sealed class IrRefModLocation : IrLocation
+{
+    public IrLocation Base { get; }
+    public Semantics.Bound.BoundExpression Start { get; }
+    public Semantics.Bound.BoundExpression? Length { get; }
+    public int BaseFieldLength { get; }
+
+    public IrRefModLocation(IrLocation @base, Semantics.Bound.BoundExpression start,
+        Semantics.Bound.BoundExpression? length, int baseFieldLength)
+    {
+        Base = @base;
+        Start = start;
+        Length = length;
+        BaseFieldLength = baseFieldLength;
     }
 }
 
@@ -739,12 +763,22 @@ public sealed class IrComputeStore : IrInstruction
     public IrLocation Destination { get; }
     public int Rounding { get; }
 
+    /// <summary>
+    /// Pre-resolved IrLocations for all data-reference leaf nodes in the Expression tree.
+    /// Populated by the Binder so the emitter never needs to resolve locations itself.
+    /// </summary>
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
+
     public IrComputeStore(Semantics.Bound.BoundExpression expression,
-        IrLocation dest, int rounding = 0)
+        IrLocation dest, int rounding = 0,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
     {
         Expression = expression;
         Destination = dest;
         Rounding = rounding;
+        ResolvedLocations = resolvedLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
     }
 }
 
@@ -804,6 +838,112 @@ public sealed class IrStringCompareLiteral : IrInstruction
         IrValue result, int operatorKind)
     {
         Left = left; Value = value; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// Alphanumeric field-to-field comparison. Uses StorageHelpers.CompareFieldToField.
+/// </summary>
+public sealed class IrStringCompare : IrInstruction
+{
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
+    public int OperatorKind { get; }
+
+    public IrStringCompare(IrLocation left, IrLocation right,
+        IrValue result, int operatorKind)
+    {
+        Left = left; Right = right; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// One sending item in a STRING statement.
+/// </summary>
+public sealed class IrStringSending
+{
+    /// <summary>Literal value (non-null for literal sendings).</summary>
+    public string? LiteralValue { get; }
+    /// <summary>Field location (non-null for field sendings).</summary>
+    public IrLocation? SourceLocation { get; }
+    public string? Delimiter { get; }
+    public bool DelimitedBySize { get; }
+
+    public IrStringSending(string? literalValue, IrLocation? sourceLocation,
+        string? delimiter, bool delimitedBySize)
+    {
+        LiteralValue = literalValue;
+        SourceLocation = sourceLocation;
+        Delimiter = delimiter;
+        DelimitedBySize = delimitedBySize;
+    }
+}
+
+/// <summary>
+/// STRING statement: concatenate multiple sending items into a destination.
+/// The emitter manages a single pointer local, initializes from PointerLocation
+/// (or 1 if null), calls StringConcatLiteral/StringConcat per sending, and
+/// writes the pointer back to PointerLocation (if non-null).
+/// </summary>
+public sealed class IrStringStatement : IrInstruction
+{
+    public IrLocation Destination { get; }
+    public IReadOnlyList<IrStringSending> Sendings { get; }
+    /// <summary>Null if no WITH POINTER clause.</summary>
+    public IrLocation? PointerLocation { get; }
+
+    public IrStringStatement(IrLocation dest, IReadOnlyList<IrStringSending> sendings,
+        IrLocation? pointerLocation, IrValue overflowResult)
+    {
+        Destination = dest;
+        Sendings = sendings;
+        PointerLocation = pointerLocation;
+        Result = overflowResult;
+    }
+}
+
+/// <summary>
+/// One INTO target in an UNSTRING statement.
+/// </summary>
+public sealed class IrUnstringInto
+{
+    public IrLocation Target { get; }
+    public IrLocation? CountIn { get; }
+    public IrLocation? DelimiterIn { get; }
+
+    public IrUnstringInto(IrLocation target, IrLocation? countIn, IrLocation? delimiterIn)
+    {
+        Target = target;
+        CountIn = countIn;
+        DelimiterIn = delimiterIn;
+    }
+}
+
+/// <summary>
+/// UNSTRING statement: split a source string into multiple destination fields.
+/// The emitter manages a shared pointer local, calls UnstringExtract per INTO,
+/// handles COUNT IN / DELIMITER IN write-back, and writes pointer/tallying back.
+/// </summary>
+public sealed class IrUnstringStatement : IrInstruction
+{
+    public IrLocation Source { get; }
+    public string? LiteralDelimiter { get; }
+    public bool DelimitedByAll { get; }
+    public IReadOnlyList<IrUnstringInto> Intos { get; }
+    public IrLocation? PointerLocation { get; }
+    public IrLocation? TallyingLocation { get; }
+
+    public IrUnstringStatement(IrLocation source, string? literalDelimiter, bool delimitedByAll,
+        IReadOnlyList<IrUnstringInto> intos, IrLocation? pointerLocation, IrLocation? tallyingLocation,
+        IrValue overflowResult)
+    {
+        Source = source;
+        LiteralDelimiter = literalDelimiter;
+        DelimitedByAll = delimitedByAll;
+        Intos = intos;
+        PointerLocation = pointerLocation;
+        TallyingLocation = tallyingLocation;
+        Result = overflowResult;
     }
 }
 

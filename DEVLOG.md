@@ -6,6 +6,274 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 103 — 2026-03-17: STRING, UNSTRING, EXIT PERFORM, Ref-Mod Everywhere
+
+Massive session: 6 features implemented, 4 pre-existing bugs fixed, 2 architectural doctrines
+codified, 140 tests passing (up from 111 at session start).
+
+**Features implemented:**
+1. **Reference modification as first-class expression** — LowerCondition, BindPrimaryExpression,
+   arithmetic operand binding all now handle ref-mod via ResolveExpressionLocation.
+2. **SEARCH / SEARCH ALL** — grammar (corrected searchAllWhenClause), bound model, binding with
+   index extraction from WHEN conditions, linear search lowering, 13 tests including 2D/3D with
+   PERFORM VARYING outer loops.
+3. **STRING** — grammar already existed, added BoundStringStatement/BoundStringSending, IrStringStatement
+   composite IR, StringConcat/StringConcatLiteral runtime, EmitStringStatement with shared pointer
+   local, ON/NOT ON OVERFLOW branching.
+4. **UNSTRING** — mirrors STRING architecture exactly: IrUnstringStatement, UnstringExtract per-INTO
+   runtime step, shared pointer local, overflow OR'ing, COUNT IN / DELIMITER IN / TALLYING.
+5. **EXIT PERFORM** — BoundExitPerformStatement, _performExitStack in Binder, dead block after jump.
+6. **Alphanumeric field-vs-field comparison** — IrStringCompare IR instruction,
+   CompareFieldToField runtime, category-based dispatch in LowerCondition.
+
+**Pre-existing bugs fixed:**
+1. **EmitExpression bypassed IrLocation** — used GetStorageLocation directly for COMPUTE/DIVIDE
+   expressions. Fixed with pre-resolved location dictionary on IrComputeStore.
+2. **BindPrimaryExpression dropped subscripts/ref-mod** — used IDENTIFIER().GetText() instead of
+   BindIdentifierWithSubscripts. Same bug in 4 arithmetic operand binding sites.
+3. **Group OCCURS child step size** — ResolveLocation used leaf element size for multipliers
+   instead of OCCURS group element size. VAL(2) in a 2-byte group computed offset 1 instead of 2.
+4. **Multi-dimensional SEARCH index extraction** — FindSubscriptOnTable took the first subscript
+   instead of the one matching the SEARCH table's OCCURS level.
+
+**AI win:** Caught non-standard COBOL in user-supplied 2D/3D SEARCH tests. SEARCH only iterates
+the innermost dimension; outer dimensions require PERFORM VARYING. Stopped and asked before
+implementing, kept the compiler spec-compliant.
+
+**Architectural doctrine codified:** Four patterns (rogue paths, instance vs pattern, bolting vs
+integrating, missing dispatch points) analyzed across 15 entries and formalized in PROMPT.md as
+binding development rules for all future sessions.
+
+29 new tests, 140 total, 1 skip, all green.
+
+---
+
+## Entry 102 — 2026-03-17: SEARCH / SEARCH ALL — Spec Compliance Win
+
+Implemented SEARCH (linear) and SEARCH ALL (binary, currently lowered as linear pending KEY
+ASCENDING/DESCENDING support). Grammar, bound model, binding, lowering, 13 tests.
+
+**Grammar fix:** `searchAllWhenClause` changed from `WHEN relationalExpression` to
+`WHEN condition imperativeStatement*`. The original grammar was a real hole — no imperative
+statements and too-narrow condition syntax. Semantic restrictions (single WHEN, relational
+equality, sorted table) enforced in the binder, not the parser. Consistent with IF/EVALUATE.
+
+**Three pre-existing bugs surfaced and fixed:**
+
+1. **Group OCCURS child step size** — `ResolveLocation` used the leaf element's size for
+   subscript multipliers instead of the OCCURS group's element size. For `VAL PIC 9` inside
+   `ROW OCCURS 3` (containing VAL + FLAG = 2 bytes), VAL(2) computed offset 1 instead of 2.
+   Fix: introduced `stepSize` (OCCURS group element size) vs `leafSize` (leaf element size).
+
+2. **Alphanumeric field-vs-field comparison** — `LowerCondition` always used `IrPicCompare`
+   (numeric decode) for location-vs-location comparisons, even when both sides were PIC X.
+   Added `IrStringCompare` IR instruction, `CompareFieldToField` runtime method, and
+   category-based dispatch in the Binder.
+
+3. **Multi-dimensional SEARCH index extraction** — `FindSubscriptOnTable` took the first
+   subscript from `A(I, J)`, but for `SEARCH COL` the index should be J (COL's dimension),
+   not I (ROW's dimension). Fixed by walking the OCCURS level chain and matching the SEARCH
+   table to its positional subscript.
+
+**AI win: caught non-standard COBOL in user-supplied tests.** User provided 2D/3D SEARCH tests
+that expected SEARCH to iterate ALL dimensions simultaneously. Claude stopped implementation
+and flagged this: "In standard COBOL, SEARCH only searches the innermost dimension — you nest
+PERFORM loops for outer dimensions. Should I adjust these tests to conform to COBOL SEARCH
+semantics, or do you want the non-standard behavior?" User confirmed: stick with the ISO spec.
+Tests were rewritten to use PERFORM VARYING for outer dimensions, keeping the compiler
+spec-compliant. This is exactly the right behavior — the AI pushed back on incorrect
+assumptions instead of silently implementing non-standard semantics. The rule "implement from
+the spec" applies to tests too, not just compiler code.
+
+132 integration tests, 1 skip, all green.
+
+---
+
+## Retrospective — 2026-03-17: Systemic Pattern Analysis (Entries 086–101)
+
+A retrospective scan across 15 entries reveals four recurring failure modes. All are variations
+of the same root: bypassing the abstraction boundary. Codified here as architectural doctrine.
+
+### Pattern 1: Rogue paths bypassing the canonical abstraction
+
+Instances found across the log:
+- EmitExpression bypassed IrLocation (Entry 101)
+- LowerCondition bypassed ResolveExpressionLocation (Entry 101)
+- BindPrimaryExpression bypassed BindIdentifierWithSubscripts (Entry 101)
+- Arithmetic operand binding bypassed the identifier binder (Entry 101)
+- FileRuntime bypassed CobolFileManager (Entry 094)
+- ACCEPT FROM DATE initially bypassed lexer tokens (Entry 091)
+- INSPECT initially bypassed region abstraction (Entry 095)
+- GO TO DEPENDING initially bypassed subscript support (Entry 098)
+
+The fix is always the same: create or extend the canonical abstraction. The abstractions that
+now serve as canonical dispatch points:
+- `IrLocation` — all data storage references
+- `ResolveExpressionLocation` — all bound expression → location resolution
+- `EmitLocationArgs` / `EmitLocationArgsWithPic` — all CIL location emission
+- `BindIdentifierWithSubscripts` — all identifier binding from parse tree
+- `CobolFileManager` — all file I/O operations
+
+**Doctrine:** If a canonical abstraction exists, use it. If it doesn't, create it before
+implementing the feature. Never route around it.
+
+### Pattern 2: Fixing the instance instead of the pattern
+
+"I keep treating bugs as isolated incidents instead of structural patterns."
+
+Instances:
+- Fixing one `IDENTIFIER().GetText()` instead of all 8 occurrences
+- Fixing one `GetStorageLocation` bypass instead of auditing the emitter
+- Fixing one ref-mod special case in LowerMove instead of unifying expression resolution
+- Fixing one abbreviated relation case instead of rewriting the binder
+
+**Doctrine:** Every bug is a pattern. Every pattern has multiple instances. When you find a
+structural flaw, assume it exists elsewhere until proven otherwise. Stop, identify the pattern,
+sweep the codebase, fix all instances, add regression tests. One pass.
+
+### Pattern 3: Bolting instead of integrating
+
+Adding a feature at the leaves instead of at the abstraction boundary:
+- Reference modification initially bolted onto LowerMove as a type-check cascade (Entry 100)
+- OCCURS initially wired into MOVE/DISPLAY only, not unified into IrLocation (Entry 099)
+- ACCEPT FROM DATE initially bolted via string comparisons (Entry 091)
+- File I/O: legacy FileRuntime bolted next to CobolFileManager (Entry 094)
+- NEXT SENTENCE initially impossible because sentences weren't modeled (Entry 090)
+
+**Doctrine:** If a feature touches multiple subsystems, integrate it at the abstraction
+boundary, not at the leaves. The pre-change checklist (Entry 100) catches this:
+1. Is there a single, canonical dispatch point? Extend it or create it.
+2. Is the type logic centralized or smeared across call sites? If smeared, refactor first.
+3. Am I modifying a leaf when the concept is more general? If yes, step back.
+
+### Pattern 4: Missing the "single dispatch point"
+
+When the answer to "is there a single dispatch point?" was "yes," the fix was trivial:
+- `ResolveExpressionLocation` — one method, all data references
+- `EmitLocationArgs` — one method, all CIL location emission
+- `RewriteAbbreviatedRelations` — one pass, all abbreviated conditions
+- `CobolFileManager` — one class, all file operations
+
+When the answer was "no," creating one simplified everything downstream. The cost of creating
+a dispatch point is always less than the cost of not having one.
+
+**Doctrine:** Every concept in the compiler should have exactly one dispatch point. If you're
+adding logic in multiple places for the same concept, you don't have a dispatch point yet.
+
+---
+
+## Entry 101 — 2026-03-17: Reference Modification as First-Class Expression — Killing Rogue Paths
+
+Made reference modification work everywhere, not just MOVE/DISPLAY. Found and fixed three classes
+of bypass bugs that had been silently producing wrong results.
+
+**Bug 1: EmitExpression bypassed IrLocation entirely.** The CilEmitter's `EmitExpression` method
+(used by COMPUTE, SUBTRACT GIVING, DIVIDE expressions) went directly to
+`_semanticModel.GetStorageLocation(id.Symbol)`, ignoring subscripts and ref-mod completely.
+Any COMPUTE expression involving a subscripted identifier was silently reading from offset 0
+of the array instead of the correct element.
+
+Fix: IrComputeStore now carries a `ResolvedLocations` dictionary, pre-populated by the Binder
+via a new `PreResolveExpressionLocations()` tree walker. EmitExpression looks up pre-resolved
+IrLocations and uses `EmitLocationArgsWithPic` + DecodeNumeric — the same path everything else
+uses. The direct `GetStorageLocation` call in EmitExpression is dead.
+
+**Bug 2: LowerCondition only handled BoundIdentifierExpression.** The comparison lowering used
+`binCond.Left as BoundIdentifierExpression` + `ResolveLocation(leftId)`, which meant
+`IF FIELD(2:3) = "BCD"` silently failed — the ref-mod expression wasn't a BoundIdentifierExpression,
+so leftLoc was null, and the comparison fell through to the fatal throw. Fix: replaced with
+`ResolveExpressionLocation(binCond.Left)` which handles both identifiers and ref-mod.
+
+**Bug 3: BindPrimaryExpression dropped subscripts and ref-mod.** The `BindFullExpression` chain
+(used by IF conditions, EVALUATE, and anywhere arithmetic expressions appear) had its own
+`BindPrimaryExpression` that did `ctx.identifier().IDENTIFIER().GetText()` → bare
+`BoundIdentifierExpression(sym, CobolCategory.Numeric)`. This extracted only the name, hardcoded
+numeric category, and completely ignored the subscript/ref-mod parse tree children.
+
+**AI failure: didn't scan for similar patterns.** After finding the `BindPrimaryExpression` bug,
+I moved on to testing instead of immediately scanning for other instances of
+`ctx.identifier().IDENTIFIER().GetText()`. User had to explicitly prompt: "Scan for other
+occurrences of this faulty pattern." The scan found 4 more identical bugs in arithmetic operand
+binding (ADD, SUBTRACT, MULTIPLY, DIVIDE operands all used the same `IDENTIFIER().GetText()` →
+`BindIdentifierOrLiteral(text)` pattern, dropping subscripts/ref-mod). This is the same failure
+as Entry 100's "bolting not integrating" — I keep treating bugs as isolated incidents instead of
+structural patterns. **Rule added**: after finding any faulty pattern, immediately grep for all
+instances across the codebase. Don't wait to be told.
+
+**7 regression tests added** to lock in the invariant that data references flow through IrLocation:
+- IF with subscripted identifier, ref-mod, combined subscript+ref-mod, variable ref-mod
+- ADD/SUBTRACT/MULTIPLY with subscripted operands
+
+118 integration tests, 1 skip, all green.
+
+**Development rule formalized: Every bug is a pattern.**
+
+When a structural flaw is discovered, perform a full pattern sweep immediately.
+
+*Trigger:* You find a bug caused by bypassing an abstraction, duplicating logic, or violating
+layering.
+
+*Action:* Perform a codebase-wide search for all instances of the same pattern, not just the
+one that failed.
+
+*Examples:*
+- Found one `IDENTIFIER().GetText()` → search for all of them.
+- Found one direct `GetStorageLocation` → search for all.
+- Found one place bypassing `ResolveExpressionLocation` → search for all.
+- Found one place manually decoding numeric bytes → search for all.
+- Found one place doing type-check cascades → search for all.
+
+*Outcome:* You eliminate entire classes of bugs instead of single symptoms.
+
+This matters because every single-instance fix creates future regressions, inconsistent behavior,
+and architectural drift. Every pattern fix makes the architecture cleaner and new features easier.
+The evidence from this session: IrLocation, ResolveExpressionLocation, EmitExpression,
+BindIdentifierWithSubscripts, IrComputeStore pre-resolution — each time the pattern was unified,
+the entire compiler got simpler.
+
+---
+
+## Entry 100 — 2026-03-17: Expression Subscripts + Reference Modification + Multi-Dim OCCURS
+
+Extended the IrLocation architecture to handle expression subscripts (ARR(I+1), ARR(I*J)),
+reference modification (FIELD(3:2), ARR(I)(3:2)), REDEFINES+OCCURS, and COMP-3 arrays.
+
+**Expression subscripts**: Changed `IrElementRef.SubscriptLocations` from `IReadOnlyList<StorageLocation>`
+to `IReadOnlyList<BoundExpression>`. EmitElementAddress now calls EmitExpression for each subscript,
+which handles identifiers, arithmetic, and any expression uniformly. This was a simplification —
+removed the need for temp storage allocation entirely.
+
+**Reference modification**: Grammar extended with `refModSpec : arithmeticExpression COLON
+arithmeticExpression?` as optional suffix on `identifier`. New `IrRefModLocation : IrLocation`
+composes base location (static or element) with runtime start:length. `EmitRefModAddress` evaluates
+start/length expressions, pushes base via EmitElementAddress or static offset, computes
+`baseOffset + (start-1)` and pushes length. Added `ResolveExpressionLocation(BoundExpression)` as
+the single entry point for all lowering methods — handles both BoundIdentifierExpression and
+BoundReferenceModificationExpression uniformly.
+
+**AI failure (again)**: Initially bolted reference modification onto LowerMove as another type-check
+cascade (`if source is BoundReferenceModificationExpression...`) instead of refactoring to a unified
+`ResolveExpressionLocation`. Same pattern as the wrapping hack in Entry 099 — adding special cases
+instead of fixing the abstraction. User caught it: "I do not want the simplest modification. I want
+the production quality changes." The proper fix was straightforward: one new method
+(`ResolveExpressionLocation`) that dispatches on expression type, and LowerMove/LowerDisplay call it
+for ALL target/source expressions. This is the third time this session I've chosen the lazy path
+over the architectural one.
+
+**Pre-change checklist codified** (to prevent recurrence):
+1. Is there a single, canonical dispatch point for this concept?
+   If yes → extend it. If no → create it. Never wrap around it.
+2. Is the type logic centralized or smeared across call sites?
+   If smeared → stop and refactor toward a unified resolver.
+3. Am I modifying a leaf (like LowerMove) when the concept is more general?
+   If yes → I'm probably bolting, not integrating. Step back.
+
+**Tests**: 6 ref mod tests (constant, with subscript, variable start, rest-of-field, expression
+start/length, 2D+refmod), 2 expression subscript tests, REDEFINES+OCCURS test, COMP-3 array test.
+119 unit, 111 integration, 1 skip. All green.
+
+---
+
 ## Entry 099 — 2026-03-17: IrLocation Complete — Multi-Dimensional OCCURS + Subscript Validation
 
 Completed the full IrLocation migration and extended it to multi-dimensional OCCURS (1D/2D/3D),
