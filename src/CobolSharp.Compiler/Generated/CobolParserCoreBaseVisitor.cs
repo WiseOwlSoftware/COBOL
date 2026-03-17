@@ -946,6 +946,16 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context) { return VisitChildren(context); }
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptList"/>.
+	/// <para>
+	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
+	/// on <paramref name="context"/>.
+	/// </para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	public virtual Result VisitSubscriptList([NotNull] CobolParserCore.SubscriptListContext context) { return VisitChildren(context); }
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.fileName"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>

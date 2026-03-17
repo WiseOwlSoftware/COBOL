@@ -247,6 +247,82 @@ public sealed class Binder
         return block;
     }
 
+    // ── Subscript-aware storage resolution ──
+
+    /// <summary>
+    /// Resolve a BoundIdentifierExpression to a StorageLocation.
+    /// For subscripted references (OCCURS items), computes element offset
+    /// from the subscript expression. Constant subscripts are resolved at compile time.
+    /// Variable subscripts are resolved at compile time by reading the subscript's
+    /// storage location and emitting runtime offset computation via IR.
+    /// </summary>
+    private StorageLocation? ResolveIdentifierLocation(BoundIdentifierExpression id)
+    {
+        var baseLoc = _semantic.GetStorageLocation(id.Symbol);
+        if (!baseLoc.HasValue) return null;
+        if (!id.IsSubscripted) return baseLoc;
+
+        int elementSize = id.Symbol.ElementSize;
+        if (elementSize == 0)
+            elementSize = baseLoc.Value.Length / Math.Max(1, id.Symbol.OccursCount);
+
+        // Resolve subscript value — constant subscripts only at this level.
+        // Variable subscripts must be handled by the caller via IrDynamicSubscript.
+        var subExpr = id.Subscripts![0];
+        int? subscriptValue = TryEvaluateConstantSubscript(subExpr);
+        if (!subscriptValue.HasValue)
+            return null; // Variable subscript — caller must emit dynamic offset computation
+
+        if (subscriptValue.Value < 1) return null;
+
+        int effectiveOffset = baseLoc.Value.Offset + (subscriptValue.Value - 1) * elementSize;
+
+        // Build element PicDescriptor with correct element storage length
+        var arrayPic = baseLoc.Value.Pic;
+        var elementPic = new Runtime.PicDescriptor(
+            arrayPic.TotalDigits, arrayPic.FractionDigits,
+            arrayPic.IsSigned, arrayPic.IsNumeric, arrayPic.IsAlphanumeric,
+            arrayPic.HasEditing, elementSize, arrayPic.Usage,
+            arrayPic.Category, arrayPic.SignStorage, arrayPic.Editing,
+            arrayPic.BlankWhenZero, arrayPic.LeadingScaleDigits,
+            arrayPic.TrailingScaleDigits, arrayPic.EditPattern);
+
+        return new StorageLocation(baseLoc.Value.Area, effectiveOffset, elementSize, elementPic);
+    }
+
+    /// <summary>
+    /// Try to evaluate a subscript expression as a compile-time constant.
+    /// Returns null if the subscript is variable (requires runtime computation).
+    /// </summary>
+    private int? TryEvaluateConstantSubscript(BoundExpression expr)
+    {
+        if (expr is BoundLiteralExpression lit && lit.Value is decimal d)
+            return (int)d;
+        return null;
+    }
+
+    /// <summary>
+    /// Build an IrElementRef for a variable-subscripted OCCURS reference.
+    /// The subscript expression must be a BoundIdentifierExpression (numeric field).
+    /// </summary>
+    private IrElementRef? BuildElementRef(BoundIdentifierExpression id)
+    {
+        var baseLoc = _semantic.GetStorageLocation(id.Symbol);
+        if (!baseLoc.HasValue || !id.IsSubscripted) return null;
+
+        int elementSize = id.Symbol.ElementSize;
+        if (elementSize == 0)
+            elementSize = baseLoc.Value.Length / Math.Max(1, id.Symbol.OccursCount);
+
+        var subExpr = id.Subscripts![0];
+        if (subExpr is not BoundIdentifierExpression subId) return null;
+
+        var subLoc = _semantic.GetStorageLocation(subId.Symbol);
+        if (!subLoc.HasValue) return null;
+
+        return new IrElementRef(baseLoc.Value, elementSize, subLoc.Value, baseLoc.Value.Pic);
+    }
+
     // ── DISPLAY ──
 
     private void LowerDisplay(BoundDisplayStatement disp, IrBasicBlock block)
@@ -279,7 +355,7 @@ public sealed class Binder
             }
             else if (op is BoundIdentifierExpression id)
             {
-                var loc = _semantic.GetStorageLocation(id.Symbol);
+                var loc = ResolveIdentifierLocation(id);
                 if (loc.HasValue)
                     operands.Add(new IR.DisplayFieldOperand(loc.Value));
                 else
@@ -304,7 +380,7 @@ public sealed class Binder
             foreach (var t in mv.Targets)
             {
                 if (t is not BoundIdentifierExpression id) continue;
-                var loc = _semantic.GetStorageLocation(id.Symbol);
+                var loc = ResolveIdentifierLocation(id);
                 if (!loc.HasValue) continue;
 
                 if (fig.AllLiteral != null)
@@ -327,7 +403,7 @@ public sealed class Binder
             foreach (var t in mv.Targets)
             {
                 if (t is not BoundIdentifierExpression id) continue;
-                var loc = _semantic.GetStorageLocation(id.Symbol);
+                var loc = ResolveIdentifierLocation(id);
                 if (!loc.HasValue) continue;
 
                 var destCat = loc.Value.Pic.Category;
@@ -358,14 +434,14 @@ public sealed class Binder
         // Handle MOVE identifier TO identifier (field-to-field)
         if (mv.Source is BoundIdentifierExpression srcId)
         {
-            var srcLoc = _semantic.GetStorageLocation(srcId.Symbol);
+            var srcLoc = ResolveIdentifierLocation(srcId);
             if (srcLoc.HasValue)
             {
                 foreach (var t in mv.Targets)
                 {
                     if (t is BoundIdentifierExpression destId)
                     {
-                        var destLoc = _semantic.GetStorageLocation(destId.Symbol);
+                        var destLoc = ResolveIdentifierLocation(destId);
                         if (destLoc.HasValue)
                         {
                             block.Instructions.Add(new IrPicMove(

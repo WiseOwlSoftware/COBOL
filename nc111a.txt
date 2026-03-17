@@ -1,0 +1,50 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC111A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                                                          THE FOLLOWING 3 TESTS TEST
+                                                          SOME SPECIFIC FEATURES OF
+                                                          THE TRUNCATION, ROUNDED AND
+                                                          SIZE ERROR OPTIONS. GENERAL
+                                                          FEATURES OF THESE OPTIONS
+                                                          ARE TESTED IN THE ADD, SUB-
+                                                          TRACT, MULTIPLY, AND DIVIDE
+                                                          TESTS.
+ TRUNCATION           PASS  TRU-TEST-GF-1
+ TRUNCATION           PASS  TRU-TEST-GF-2
+ TRUNCATION           PASS  TRU-TEST-GF-3
+ TRUNCATION           FAIL* TRU-TEST-GF-4
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000008000000000  V1-67 6.4.1
+
+ TRUNCATION           FAIL* TRU-TEST-GF-5
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000008000000000  V1-67 6.4.1
+
+ TRUNCATION           PASS  TRU-TEST-GF-6
+ TRUNCATION           PASS  TRU-TEST-GF-7
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC111A
+
+                                                    005 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    002 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

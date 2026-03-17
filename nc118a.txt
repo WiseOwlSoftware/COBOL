@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC118A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ADD                  PASS  SIG-TEST-GF-1
+ ADD ---
+   TO                 PASS  SIG-TEST-GF-2
+   TO                 PASS  SIG-TEST-GF-3
+   TO                 PASS  SIG-TEST-GF-4
+   GIVING             PASS  SIG-TEST-GF-10
+   GIVING             PASS  SIG-TEST-GF-11
+   ROUNDED            PASS  SIG-TEST-GF-5
+   ROUNDED            PASS  SIG-TEST-GF-12
+   ROUNDED            PASS  SIG-TEST-GF-13-1
+   ROUNDED            PASS  SIG-TEST-GF-13-2
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-6-1
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-6-2
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-7-1
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-7-2
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-14-1
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-14-2
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-15-1
+   ROUNDED,SIZE ERROR PASS  SIG-TEST-GF-15-2
+   SERIES             PASS  SIG-TEST-GF-16
+   SERIES             PASS  SIG-TEST-GF-17
+   SERIES             PASS  SIG-TEST-GF-18
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-8
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-9
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-19-1
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-19-2
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-20-1
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-20-2
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-21
+   COMP VS. DISPLAY   PASS  SIG-TEST-GF-22
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC118A
+
+                                                    029 OF 029  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -85,9 +85,17 @@ public sealed class BoundFigurativeExpression : BoundExpression
 public sealed class BoundIdentifierExpression : BoundExpression
 {
     public DataSymbol Symbol { get; }
+    public IReadOnlyList<BoundExpression>? Subscripts { get; }
 
-    public BoundIdentifierExpression(DataSymbol symbol, CobolCategory category)
-        : base(category) => Symbol = symbol;
+    public bool IsSubscripted => Subscripts != null && Subscripts.Count > 0;
+
+    public BoundIdentifierExpression(DataSymbol symbol, CobolCategory category,
+        IReadOnlyList<BoundExpression>? subscripts = null)
+        : base(category)
+    {
+        Symbol = symbol;
+        Subscripts = subscripts;
+    }
 
     public override BoundNodeKind Kind => BoundNodeKind.IdentifierExpression;
 }

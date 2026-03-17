@@ -290,12 +290,14 @@ public sealed class Compilation
         if (item.IsElementary)
         {
             // Elementary: allocate bytes from PIC
-            int size = ComputeFieldSize(item);
-            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size);
-            var loc = new CodeGen.StorageLocation(area, offset, size, pic);
+            int elementSize = ComputeFieldSize(item);
+            item.ElementSize = elementSize;
+            int totalSize = elementSize * item.OccursCount;
+            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize);
+            var loc = new CodeGen.StorageLocation(area, offset, totalSize, pic);
             model.RegisterStorageLocation(item, loc);
             RegisterValue(model, item);
-            offset += size;
+            offset += totalSize;
         }
         else
         {
@@ -307,9 +309,13 @@ public sealed class Compilation
                 foreach (var child in item.Children)
                     LayoutItem(child, area, ref offset, model);
 
-                // Group spans all children
-                int groupSize = offset - groupStart;
-                if (groupSize <= 0) groupSize = 1;
+                // Group spans all children; OCCURS multiplies the total
+                int childrenSize = offset - groupStart;
+                if (childrenSize <= 0) childrenSize = 1;
+                item.ElementSize = childrenSize;
+                int groupSize = childrenSize * item.OccursCount;
+                if (item.OccursCount > 1)
+                    offset = groupStart + groupSize; // Advance past all occurrences
                 var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize);
                 var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
                 model.RegisterStorageLocation(item, loc);

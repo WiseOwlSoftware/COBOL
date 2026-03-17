@@ -2639,6 +2639,83 @@ public class EndToEndTests : IDisposable
         Assert.InRange(dow, 1, 7);
     }
 
+    // ── OCCURS + Subscripts ──
+
+    [Fact]
+    public void Subscript_MoveAndDisplay()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUB1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC 9 OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 7 TO ITEM(3).
+                DISPLAY ITEM(3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("7", stdout);
+    }
+
+    [Fact]
+    public void Subscript_MultipleElements()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUB2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 ARR.
+               05 ITEM PIC 9 OCCURS 5 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO ITEM(1).
+                MOVE 2 TO ITEM(2).
+                MOVE 3 TO ITEM(3).
+                DISPLAY ITEM(1) ITEM(2) ITEM(3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("123", stdout);
+    }
+
+    [Fact]
+    public void Subscript_InGoToDepending()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUB3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 GO-TABLE.
+               05 GO-SCRIPT PIC 9 OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 2 TO GO-SCRIPT(1).
+                GO TO P1 P2 P3 DEPENDING ON GO-SCRIPT(1).
+                DISPLAY "FALL".
+                STOP RUN.
+            P1.
+                DISPLAY "ONE".
+                STOP RUN.
+            P2.
+                DISPLAY "TWO".
+                STOP RUN.
+            P3.
+                DISPLAY "THREE".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("TWO", stdout);
+    }
+
     // ── GO TO DEPENDING ──
 
     [Fact]

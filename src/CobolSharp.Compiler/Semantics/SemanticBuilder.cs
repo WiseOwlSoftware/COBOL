@@ -361,8 +361,25 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
+        // Extract OCCURS count from clauses
+        int occursCount = 1;
+        if (body?.dataDescriptionClauses() != null)
+        {
+            foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
+            {
+                var occClause = clause.occursClause();
+                if (occClause != null)
+                {
+                    var intLits = occClause.integerLiteral();
+                    if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
+                        occursCount = oc;
+                }
+            }
+        }
+
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
+        data.OccursCount = occursCount;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
         data.ExplicitSignStorage = _deferredSignStorage;

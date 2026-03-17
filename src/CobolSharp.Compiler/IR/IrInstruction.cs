@@ -381,6 +381,86 @@ public sealed class IrStoreFileStatus : IrInstruction
     }
 }
 
+// ── Subscripted element reference ──
+
+/// <summary>
+/// A reference to an element within an OCCURS array.
+/// The effective offset is computed at runtime: base_offset + (subscript - 1) * elementSize.
+/// The subscript is read from SubscriptLocation (a numeric field decoded to int).
+/// </summary>
+public sealed class IrElementRef
+{
+    public CodeGen.StorageLocation BaseLocation { get; }
+    public int ElementSize { get; }
+    public CodeGen.StorageLocation SubscriptLocation { get; }
+    public Runtime.PicDescriptor ElementPic { get; }
+
+    public IrElementRef(CodeGen.StorageLocation baseLocation, int elementSize,
+        CodeGen.StorageLocation subscriptLocation, Runtime.PicDescriptor elementPic)
+    {
+        BaseLocation = baseLocation;
+        ElementSize = elementSize;
+        SubscriptLocation = subscriptLocation;
+        ElementPic = elementPic;
+    }
+}
+
+/// <summary>
+/// MOVE to/from a subscripted OCCURS element. Carries the element reference
+/// and either a source or destination StorageLocation.
+/// </summary>
+public sealed class IrMoveToElement : IrInstruction
+{
+    public IrElementRef Element { get; }
+    public string? LiteralValue { get; }
+    public decimal? NumericValue { get; }
+    public CodeGen.StorageLocation? SourceLocation { get; }
+
+    public IrMoveToElement(IrElementRef element, string literalValue)
+    {
+        Element = element; LiteralValue = literalValue;
+    }
+
+    public IrMoveToElement(IrElementRef element, decimal numericValue)
+    {
+        Element = element; NumericValue = numericValue;
+    }
+
+    public IrMoveToElement(IrElementRef element, CodeGen.StorageLocation sourceLocation)
+    {
+        Element = element; SourceLocation = sourceLocation;
+    }
+}
+
+public sealed class IrMoveFromElement : IrInstruction
+{
+    public IrElementRef Element { get; }
+    public CodeGen.StorageLocation Destination { get; }
+
+    public IrMoveFromElement(IrElementRef element, CodeGen.StorageLocation destination)
+    {
+        Element = element;
+        Destination = destination;
+    }
+}
+
+public sealed class IrDisplayElement : IrInstruction
+{
+    public IrElementRef Element { get; }
+    public IrDisplayElement(IrElementRef element) => Element = element;
+}
+
+public sealed class IrLoadElementNumeric : IrInstruction
+{
+    public IrElementRef Element { get; }
+
+    public IrLoadElementNumeric(IrElementRef element, IrValue result)
+    {
+        Element = element;
+        Result = result;
+    }
+}
+
 // ── GO TO DEPENDING ──
 
 /// <summary>

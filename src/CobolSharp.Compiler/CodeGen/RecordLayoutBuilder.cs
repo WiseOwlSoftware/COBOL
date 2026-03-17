@@ -78,6 +78,7 @@ public sealed class RecordLayoutBuilder
         if (isGroup)
         {
             int groupSize = LayoutChildren(symbol, irRecord, offset);
+            symbol.ElementSize = groupSize;
             int occurs = GetOccursCount(symbol);
             if (occurs > 1)
                 groupSize *= occurs;
@@ -86,6 +87,7 @@ public sealed class RecordLayoutBuilder
 
         // Elementary item
         int elemSize = ComputeStorageSize(symbol);
+        symbol.ElementSize = elemSize;
         int occurs2 = GetOccursCount(symbol);
         int totalSize = elemSize * Math.Max(1, occurs2);
 
@@ -105,9 +107,7 @@ public sealed class RecordLayoutBuilder
 
     private static int GetOccursCount(DataSymbol s)
     {
-        // TODO: extract OCCURS count from data description
-        // For now, return 1 (no OCCURS)
-        return 1;
+        return s.OccursCount;
     }
 
     private static int ComputeStorageSize(DataSymbol s)

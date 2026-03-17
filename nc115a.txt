@@ -1,0 +1,116 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC115A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TALLY FOR CHARACTERS PASS  INSP-TEST-F1-1
+ TALLY ALL LITERAL    PASS  INSP-TEST-F1-2
+ TALLY FOR ALL SPACE  FAIL* INSP-TEST-F1-3
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000017000000000  VI-95 6.17.4
+
+ TALLY LEADING LIT    PASS  INSP-TEST-F1-4
+ FOR CHARS AFTER LIT  PASS  INSP-TEST-F1-5
+ ALL BEFORE INITIAL   PASS  INSP-TEST-F1-6
+ LEAD LIT INITIAL FIG FAIL* INSP-TEST-F1-7
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000001000000000  VI-95 6.17.4
+
+ REP CHARS BY SPACE   FAIL* INSP-TEST-F2-1
+
+                                     COMPUTED= AH YES AH YES W.C. F
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= RITOES HERE. ANYONE
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= WHO HATES DOGS AND K
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= IDS CAN NOT BE ALL B
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= AD.
+                                     CORRECT =                       VI-95 6.17.4
+
+ CHARS BEFORE INITIAL PASS  INSP-TEST-F2-2
+*** INFORMATION ***        AD.                                          VI-95 6.17.4
+
+ LEAD AFTER INIT ID   PASS  INSP-TEST-F2-3
+ FIRST BY ID BEFORE   PASS  INSP-TEST-F2-4
+ ALL ID BY LIT AFTER  PASS  INSP-TEST-F2-5
+ TALLY-REPLACE CHARS  PASS  INSP-TEST-F3-1     .01
+ TALLY-REPLACE CHARS  FAIL* INSP-TEST-F3-1     .02
+
+                                     COMPUTED= AH YES AH YES W.C. F
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= RITOES HERE. ANYONE
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= WHO HATES DOGS AND K
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= IDS CAN NOT BE ALL B
+                                     CORRECT =                       VI-95 6.17.4
+
+                                     COMPUTED= AD.
+                                     CORRECT =                       VI-95 6.17.4
+
+ LIT BY BEFORE INIT   FAIL* INSP-TEST-F3-2     .01
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000006000000000  VI-95 6.17.4
+
+ LIT BY BEFORE INIT   PASS  INSP-TEST-F3-2     .02
+ REPL FIRST AFTER     FAIL* INSP-TEST-F3-3     .01
+
+                                     COMPUTED=  000000008.000000000
+                                     CORRECT = 00000000007000000000  VI-95 6.17.4
+
+ REPL FIRST AFTER     PASS  INSP-TEST-F3-3     .02
+ FOR LEADING          FAIL* INSP-TEST-F3-4     .01
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000001000000000  VI-95 6.17.4
+
+ FOR LEADING          PASS  INSP-TEST-F3-4     .02
+ LIT BY AFTER INIT    PASS  INSP-TEST-F3-5     .01
+ LIT BY AFTER INIT    PASS  INSP-TEST-F3-5     .02
+ CHAR AFTER ALL BEF   FAIL* INSP-TEST-F3-6     .01
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT = 00000000082000000000  VI-95 6.17.4
+
+ CHAR AFTER ALL BEF   PASS  INSP-TEST-F3-6     .02
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .01
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .02
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .03
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .04
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .05
+ REPLACE SERIES       PASS  INSP-TEST-F3-8     .01
+ REPLACE SERIES       PASS  INSP-TEST-F3-8     .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC115A
+
+                                                    023 OF 031  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    008 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

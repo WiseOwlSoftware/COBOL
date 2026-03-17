@@ -32,6 +32,12 @@ public sealed class DataSymbol : Symbol
     /// </summary>
     public int? FigurativeInit { get; set; }  // Runtime.FigurativeKind enum value, or null
 
+    /// <summary>OCCURS count (1 = no OCCURS, >1 = array).</summary>
+    public int OccursCount { get; set; } = 1;
+
+    /// <summary>Size of one element in bytes (set by RecordLayoutBuilder).</summary>
+    public int ElementSize { get; set; }
+
     public DataSymbol? Redefines { get; set; }
 
     /// <summary>Unresolved REDEFINES target name (for deferred resolution).</summary>

@@ -551,7 +551,11 @@ identifierList
     ;
 
 identifier
-    : IDENTIFIER
+    : IDENTIFIER (LPAREN subscriptList RPAREN)?
+    ;
+
+subscriptList
+    : arithmeticExpression (COMMA? arithmeticExpression)*
     ;
 
 fileName

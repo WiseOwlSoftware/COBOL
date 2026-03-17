@@ -579,6 +579,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptList([NotNull] CobolParserCore.SubscriptListContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.fileName"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
