@@ -989,7 +989,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var orExpr = ctx.logicalOrExpression();
         if (orExpr == null)
             return new BoundLiteralExpression(true, CobolCategory.Unknown);
-        return BindLogicalOr(orExpr);
+        var bound = BindLogicalOr(orExpr);
+        return RewriteAbbreviatedRelations(bound);
     }
 
     private BoundExpression BindLogicalOr(CobolParserCore.LogicalOrExpressionContext ctx)
@@ -1102,6 +1103,110 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         return new BoundBinaryExpression(left, op, right, CobolCategory.Unknown);
     }
+
+    // ═══════════════════════════════════
+    // Abbreviated relation rewriting
+    // ═══════════════════════════════════
+    // COBOL allows abbreviated relational conditions:
+    //   IF A = B OR C         → (A = B) OR (A = C)
+    //   IF A < B AND C        → (A < B) AND (A < C)
+    //   IF A < B < C          → (A < B) AND (B < C)    [chained, not abbreviated]
+    //
+    // After binding, abbreviated forms appear as:
+    //   BoundBinaryExpression(Or/And, relational_expr, bare_operand)
+    // where bare_operand is an identifier or literal with no relational operator.
+    //
+    // The rewrite propagates the left relation's operator and subject to the
+    // bare operand, producing an explicit relational expression.
+
+    /// <summary>
+    /// Rewrite abbreviated relations in a bound condition expression tree.
+    /// Called once after BindCondition to normalize all abbreviated forms into
+    /// explicit relational expressions before lowering.
+    /// </summary>
+    private static BoundExpression RewriteAbbreviatedRelations(BoundExpression expr)
+    {
+        if (expr is not BoundBinaryExpression bin)
+            return expr;
+
+        // Recursively rewrite children first (bottom-up)
+        var left = RewriteAbbreviatedRelations(bin.Left);
+        var right = RewriteAbbreviatedRelations(bin.Right);
+
+        // Only AND/OR can contain abbreviated relations
+        if (bin.OperatorKind is BoundBinaryOperatorKind.Or
+                             or BoundBinaryOperatorKind.And)
+        {
+            return RewriteLogicalWithAbbreviation(bin.OperatorKind, left, right);
+        }
+
+        // Rebuild if children changed
+        if (ReferenceEquals(left, bin.Left) && ReferenceEquals(right, bin.Right))
+            return bin;
+        return new BoundBinaryExpression(left, bin.OperatorKind, right, bin.Category);
+    }
+
+    /// <summary>
+    /// If the right side of a logical AND/OR is a bare operand (not a relational
+    /// or logical expression), expand it using the left side's relational operator
+    /// and subject. Otherwise return the expression unchanged.
+    /// </summary>
+    private static BoundExpression RewriteLogicalWithAbbreviation(
+        BoundBinaryOperatorKind logicalOp,
+        BoundExpression left,
+        BoundExpression right)
+    {
+        // Only rewrite if right is a bare operand (identifier or literal)
+        // and left contains a relational expression we can propagate from.
+        if (!IsBareOperand(right))
+            return new BoundBinaryExpression(left, logicalOp, right, CobolCategory.Unknown);
+
+        // Extract the nearest relational expression from the left side.
+        // For nested AND/OR chains like (A < B AND C AND D), the left may be
+        // another logical expression — we need to find the rightmost relational.
+        var (subject, relOp) = ExtractRelationalContext(left);
+        if (subject == null)
+            return new BoundBinaryExpression(left, logicalOp, right, CobolCategory.Unknown);
+
+        // Expand: bare_operand → subject relOp bare_operand
+        var expandedRight = new BoundBinaryExpression(subject, relOp, right, CobolCategory.Unknown);
+        return new BoundBinaryExpression(left, logicalOp, expandedRight, CobolCategory.Unknown);
+    }
+
+    /// <summary>
+    /// Extract the subject (left operand) and relational operator from an expression.
+    /// For a direct relational (A = B), returns (A, Equal).
+    /// For a logical chain ((A = B) AND (A = C)), walks the rightmost branch
+    /// to find the innermost relational.
+    /// </summary>
+    private static (BoundExpression? Subject, BoundBinaryOperatorKind RelOp) ExtractRelationalContext(
+        BoundExpression expr)
+    {
+        if (expr is BoundBinaryExpression bin)
+        {
+            if (IsRelational(bin.OperatorKind))
+                return (bin.Left, bin.OperatorKind);
+
+            // For logical AND/OR chains, the rightmost child carries the
+            // most recent relational context.
+            if (bin.OperatorKind is BoundBinaryOperatorKind.And
+                                or BoundBinaryOperatorKind.Or)
+                return ExtractRelationalContext(bin.Right);
+        }
+
+        return (null, default);
+    }
+
+    private static bool IsRelational(BoundBinaryOperatorKind kind) =>
+        kind is BoundBinaryOperatorKind.Equal
+            or BoundBinaryOperatorKind.NotEqual
+            or BoundBinaryOperatorKind.Less
+            or BoundBinaryOperatorKind.LessOrEqual
+            or BoundBinaryOperatorKind.Greater
+            or BoundBinaryOperatorKind.GreaterOrEqual;
+
+    private static bool IsBareOperand(BoundExpression expr) =>
+        expr is BoundIdentifierExpression or BoundLiteralExpression;
 
     private BoundExpression BindRelationalOperand(CobolParserCore.RelationalOperandContext ctx)
     {

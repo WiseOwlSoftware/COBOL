@@ -1690,4 +1690,136 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Contains("OK", stdout);
     }
+
+    // ── ABBREVIATED RELATIONS ──
+
+    [Fact]
+    public void AbbreviatedRelation_EqualOrBare()
+    {
+        // IF A = B OR C  →  (A = B) OR (A = C)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ABBR1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 5.
+            01 B PIC 9 VALUE 3.
+            01 C PIC 9 VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A = B OR C
+                    DISPLAY "MATCH"
+                ELSE
+                    DISPLAY "NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("MATCH", stdout);
+    }
+
+    [Fact]
+    public void AbbreviatedRelation_EqualOrBare_NoMatch()
+    {
+        // IF A = B OR C  →  (A = B) OR (A = C), neither true
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ABBR1N.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 5.
+            01 B PIC 9 VALUE 3.
+            01 C PIC 9 VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A = B OR C
+                    DISPLAY "MATCH"
+                ELSE
+                    DISPLAY "NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("NO", stdout);
+    }
+
+    [Fact]
+    public void AbbreviatedRelation_GreaterAndBare()
+    {
+        // IF A > B AND C  →  (A > B) AND (A > C)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ABBR2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 9.
+            01 B PIC 9 VALUE 3.
+            01 C PIC 9 VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A > B AND C
+                    DISPLAY "BOTH"
+                ELSE
+                    DISPLAY "NOT"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("BOTH", stdout);
+    }
+
+    [Fact]
+    public void AbbreviatedRelation_GreaterAndBare_OneFails()
+    {
+        // IF A > B AND C  →  (A > B) AND (A > C), second fails
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ABBR2N.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 5.
+            01 B PIC 9 VALUE 3.
+            01 C PIC 9 VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A > B AND C
+                    DISPLAY "BOTH"
+                ELSE
+                    DISPLAY "NOT"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("NOT", stdout);
+    }
+
+    [Fact]
+    public void AbbreviatedRelation_ExplicitNotRewritten()
+    {
+        // IF A < B AND B < C  → already explicit, no rewrite
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ABBR3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 1.
+            01 B PIC 9 VALUE 5.
+            01 C PIC 9 VALUE 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A < B AND B < C
+                    DISPLAY "CHAIN"
+                ELSE
+                    DISPLAY "NOT"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("CHAIN", stdout);
+    }
 }
