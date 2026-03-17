@@ -1373,14 +1373,33 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundGoToStatement? BindGoTo(CobolParserCore.GoToStatementContext ctx)
     {
-        var idCtx = ctx.identifier();
-        if (idCtx == null) return null;
+        var idContexts = ctx.identifier();
+        if (idContexts == null || idContexts.Length == 0) return null;
 
-        string name = idCtx.GetText();
-        var paraSym = _semantic.ResolveParagraph(name);
-        if (paraSym == null) return null;
+        // Check for DEPENDING ON — last identifier after DEPENDING is the selector
+        bool hasDepending = ctx.DEPENDING() != null;
 
-        return new BoundGoToStatement(paraSym);
+        // Target paragraphs: all identifiers except the DEPENDING ON one
+        int targetCount = hasDepending ? idContexts.Length - 1 : idContexts.Length;
+        var targets = new List<ParagraphSymbol>();
+
+        for (int i = 0; i < targetCount; i++)
+        {
+            string name = idContexts[i].GetText();
+            var paraSym = _semantic.ResolveParagraph(name);
+            if (paraSym != null) targets.Add(paraSym);
+        }
+
+        if (targets.Count == 0) return null;
+
+        DataSymbol? dependingOn = null;
+        if (hasDepending && idContexts.Length > targetCount)
+        {
+            string depName = idContexts[targetCount].GetText();
+            dependingOn = _semantic.ResolveData(depName);
+        }
+
+        return new BoundGoToStatement(targets, dependingOn);
     }
 
     // ═══════════════════════════════════

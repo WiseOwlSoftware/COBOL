@@ -381,6 +381,25 @@ public sealed class IrStoreFileStatus : IrInstruction
     }
 }
 
+// ── GO TO DEPENDING ──
+
+/// <summary>
+/// GO TO para1 para2 ... DEPENDING ON selector.
+/// Evaluates selector as integer N (1-based). If 1 ≤ N ≤ targets.Count,
+/// returns targets[N-1] as the next PC. Otherwise falls through.
+/// </summary>
+public sealed class IrGoToDepending : IrInstruction
+{
+    public CodeGen.StorageLocation Selector { get; }
+    public IReadOnlyList<int> TargetParagraphIndices { get; }
+
+    public IrGoToDepending(CodeGen.StorageLocation selector, IReadOnlyList<int> targetParagraphIndices)
+    {
+        Selector = selector;
+        TargetParagraphIndices = targetParagraphIndices;
+    }
+}
+
 // ── ACCEPT ──
 
 public sealed class IrAccept : IrInstruction

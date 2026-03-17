@@ -1438,7 +1438,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : GO TO? identifier
+    : GO TO? identifier (identifier)* (DEPENDING ON? identifier)?
     ;
 
 // ==========================================

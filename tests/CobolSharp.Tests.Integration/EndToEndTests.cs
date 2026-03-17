@@ -2638,4 +2638,91 @@ public class EndToEndTests : IDisposable
         int dow = int.Parse(stdout);
         Assert.InRange(dow, 1, 7);
     }
+
+    // ── GO TO DEPENDING ──
+
+    [Fact]
+    public void GoToDepending_SelectsCorrectTarget()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GOTO1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 IDX PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                GO TO P1 P2 P3 DEPENDING ON IDX.
+                DISPLAY "FALLTHROUGH".
+                STOP RUN.
+            P1.
+                DISPLAY "ONE".
+                STOP RUN.
+            P2.
+                DISPLAY "TWO".
+                STOP RUN.
+            P3.
+                DISPLAY "THREE".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("TWO", stdout);
+    }
+
+    [Fact]
+    public void GoToDepending_OutOfRange_FallsThrough()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GOTO2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 IDX PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                GO TO P1 P2 DEPENDING ON IDX.
+                DISPLAY "DONE".
+                STOP RUN.
+            P1.
+                DISPLAY "ONE".
+                STOP RUN.
+            P2.
+                DISPLAY "TWO".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("DONE", stdout);
+    }
+
+    [Fact]
+    public void GoToDepending_FallsIntoNextParagraph()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GOTO3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 IDX PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                GO TO P1 P2 P3 DEPENDING ON IDX.
+                DISPLAY "AFTER-GOTO".
+                STOP RUN.
+            P1.
+                DISPLAY "ONE".
+                STOP RUN.
+            P2.
+                DISPLAY "TWO".
+            P3.
+                DISPLAY "THREE".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("TWO", lines[0]);
+        Assert.Equal("THREE", lines[1]);
+    }
 }

@@ -294,9 +294,19 @@ public sealed class BoundStopStatement : BoundStatement
 
 public sealed class BoundGoToStatement : BoundStatement
 {
-    public ParagraphSymbol Target { get; }
+    public IReadOnlyList<ParagraphSymbol> Targets { get; }
+    public DataSymbol? DependingOn { get; }
 
-    public BoundGoToStatement(ParagraphSymbol target) => Target = target;
+    public bool IsSimple => DependingOn == null && Targets.Count == 1;
+
+    public BoundGoToStatement(IReadOnlyList<ParagraphSymbol> targets, DataSymbol? dependingOn = null)
+    {
+        Targets = targets;
+        DependingOn = dependingOn;
+    }
+
+    /// <summary>Convenience: single-target GO TO.</summary>
+    public ParagraphSymbol Target => Targets[0];
 
     public override BoundNodeKind Kind => BoundNodeKind.GoToStatement;
 }

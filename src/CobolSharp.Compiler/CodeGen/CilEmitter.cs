@@ -465,6 +465,10 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ret));
                 break;
 
+            case IrGoToDepending gtd:
+                EmitGoToDepending(il, gtd, getLocal);
+                break;
+
             case IrReturn ret:
                 EmitReturn(il, ret, getLocal);
                 break;
@@ -1096,6 +1100,54 @@ public sealed class CilEmitter
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
         il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result)));
+    }
+
+    // ── GO TO DEPENDING ──
+
+    private void EmitGoToDepending(ILProcessor il, IrGoToDepending gtd,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Decode selector to int: PicRuntime.DecodeNumeric(area, offset, length, pic) → decimal
+        EmitLoadBackingArray(il, gtd.Selector.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, gtd.Selector.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, gtd.Selector.Length));
+        EmitLoadPicDescriptor(il, gtd.Selector.Pic);
+
+        var decodeMethod = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!);
+        il.Append(il.Create(OpCodes.Call, decodeMethod));
+
+        // Convert decimal → int32
+        var toInt = _module.ImportReference(
+            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, toInt));
+
+        // Store in a local
+        var selectorLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        _currentMethodDef!.Body.Variables.Add(selectorLocal);
+        il.Append(il.Create(OpCodes.Stloc, selectorLocal));
+
+        // Emit cascaded: if (selector == 1) return target[0]; if (selector == 2) return target[1]; ...
+        for (int i = 0; i < gtd.TargetParagraphIndices.Count; i++)
+        {
+            int value = i + 1; // 1-based
+            int targetPc = gtd.TargetParagraphIndices[i];
+
+            var nextCheck = il.Create(OpCodes.Nop);
+
+            il.Append(il.Create(OpCodes.Ldloc, selectorLocal));
+            il.Append(il.Create(OpCodes.Ldc_I4, value));
+            il.Append(il.Create(OpCodes.Bne_Un, nextCheck));
+
+            // Match: return the target PC
+            il.Append(il.Create(OpCodes.Ldc_I4, targetPc));
+            il.Append(il.Create(OpCodes.Ret));
+
+            il.Append(nextCheck);
+        }
+
+        // No match: fall through (don't return, let execution continue)
     }
 
     // ── ACCEPT ──

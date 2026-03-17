@@ -1759,10 +1759,32 @@ public sealed class Binder
 
     private void LowerGoTo(BoundGoToStatement gt, IrBasicBlock block)
     {
-        if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
+        if (gt.IsSimple)
         {
-            block.Instructions.Add(new IrReturnConst(targetIndex));
+            // Simple GO TO: unconditional branch to paragraph
+            if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
+                block.Instructions.Add(new IrReturnConst(targetIndex));
+            return;
         }
+
+        // GO TO para1 para2 ... DEPENDING ON selector
+        // Evaluate selector, return corresponding paragraph PC (1-based)
+        if (gt.DependingOn == null) return;
+
+        var selectorLoc = _semantic.GetStorageLocation(gt.DependingOn);
+        if (!selectorLoc.HasValue) return;
+
+        // Build list of target paragraph indices
+        var targetIndices = new List<int>();
+        foreach (var target in gt.Targets)
+        {
+            if (_paragraphIndices.TryGetValue(target.Name, out int idx))
+                targetIndices.Add(idx);
+            else
+                targetIndices.Add(-1); // shouldn't happen
+        }
+
+        block.Instructions.Add(new IrGoToDepending(selectorLoc.Value, targetIndices));
     }
 
     // ── NEXT SENTENCE ──
