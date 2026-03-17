@@ -71,6 +71,14 @@ public class CobolFileManager : IDisposable
         return handler.Delete();
     }
 
+    /// <summary>Start (position) a file for subsequent reads.</summary>
+    public string Start(string cobolFileName, byte[] keyValue, StartCondition condition)
+    {
+        var handler = GetHandler(cobolFileName);
+        if (handler == null) return FileStatus.FileNotOpen;
+        return handler.Start(keyValue, condition);
+    }
+
     public void Dispose()
     {
         foreach (var handler in _handlers.Values)

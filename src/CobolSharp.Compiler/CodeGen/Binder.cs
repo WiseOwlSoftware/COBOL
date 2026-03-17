@@ -148,6 +148,12 @@ public sealed class Binder
             string externalPath = FileRuntime.ResolveHostPath(externalName);
 
             int recordLength = fileSym.RecordLength;
+            if (recordLength == 0 && fileSym.Record != null)
+            {
+                var recLoc = _semantic.GetStorageLocation(fileSym.Record);
+                if (recLoc.HasValue)
+                    recordLength = recLoc.Value.Length;
+            }
             if (recordLength == 0) recordLength = 132; // Default for print files
 
             // Line-sequential for SEQUENTIAL org (default) and LINE SEQUENTIAL
@@ -155,16 +161,47 @@ public sealed class Binder
                 || fileSym.Organization == "SEQUENTIAL"
                 || fileSym.Organization == "LINE SEQUENTIAL";
 
+            string org = fileSym.Organization ?? "SEQUENTIAL";
+            int keyOffset = 0, keyLength = 0;
+
+            // For INDEXED files, resolve RECORD KEY to get offset/length
+            if (org == "INDEXED" && fileSym.RecordKey != null)
+            {
+                var keySym = _semantic.ResolveData(fileSym.RecordKey);
+                if (keySym != null)
+                {
+                    var keyLoc = _semantic.GetStorageLocation(keySym);
+                    if (keyLoc.HasValue)
+                    {
+                        // Key offset is relative to the record's start
+                        var recordSym = fileSym.Record;
+                        if (recordSym != null)
+                        {
+                            var recordLoc = _semantic.GetStorageLocation(recordSym);
+                            if (recordLoc.HasValue)
+                                keyOffset = keyLoc.Value.Offset - recordLoc.Value.Offset;
+                        }
+                        keyLength = keyLoc.Value.Length;
+                    }
+                }
+            }
+
             var nameVal = _valueFactory.Next(IrPrimitiveType.String);
             var pathVal = _valueFactory.Next(IrPrimitiveType.String);
             var recLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
             var lineSeqVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            var orgVal = _valueFactory.Next(IrPrimitiveType.String);
+            var keyOffVal = _valueFactory.Next(IrPrimitiveType.Int32);
+            var keyLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
             block.Instructions.Add(new IrLoadConst(nameVal, fileSym.Name));
             block.Instructions.Add(new IrLoadConst(pathVal, externalPath));
             block.Instructions.Add(new IrLoadConst(recLenVal, recordLength));
             block.Instructions.Add(new IrLoadConst(lineSeqVal, lineSequential));
-            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandler",
-                new[] { nameVal, pathVal, recLenVal, lineSeqVal }));
+            block.Instructions.Add(new IrLoadConst(orgVal, org));
+            block.Instructions.Add(new IrLoadConst(keyOffVal, keyOffset));
+            block.Instructions.Add(new IrLoadConst(keyLenVal, keyLength));
+            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandlerWithOrg",
+                new[] { nameVal, pathVal, recLenVal, lineSeqVal, orgVal, keyOffVal, keyLenVal }));
         }
 
         // Collect paragraph methods in declaration order
@@ -260,6 +297,10 @@ public sealed class Binder
                 return LowerString(str, method, block);
             case BoundUnstringStatement unstr:
                 return LowerUnstring(unstr, method, block);
+            case BoundDeleteStatement del:
+                return LowerDelete(del, method, block);
+            case BoundStartStatement start:
+                return LowerStart(start, method, block);
         }
         return block;
     }
@@ -760,6 +801,14 @@ public sealed class Binder
         var recordLoc = ResolveLocation(wr.Record);
         if (recordLoc != null)
         {
+            // WRITE FROM: MOVE source TO record before writing
+            if (wr.From != null)
+            {
+                var fromLoc = ResolveExpressionLocation(wr.From);
+                if (fromLoc != null)
+                    block.Instructions.Add(new IrPicMove(fromLoc, recordLoc));
+            }
+
             if (wr.AdvancingLines.HasValue)
             {
                 block.Instructions.Add(new IrWriteAfterAdvancing(
@@ -920,6 +969,103 @@ public sealed class Binder
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
         }
         EmitFileStatus(rw.File, block);
+    }
+
+    // ── DELETE ──
+
+    private IrBasicBlock LowerDelete(BoundDeleteStatement del, IrMethod method, IrBasicBlock block)
+    {
+        string cobolName = del.File.Name;
+        block.Instructions.Add(new IrDeleteRecord(cobolName));
+        EmitFileStatus(del.File, block);
+
+        // INVALID KEY / NOT INVALID KEY branching
+        if (del.InvalidKey.Count > 0 || del.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+
+            var invalidBlock = method.CreateBlock("delete.invalid");
+            var notInvalidBlock = method.CreateBlock("delete.not.invalid");
+            var afterBlock = method.CreateBlock("delete.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
+            block.Instructions.Add(new IrJump(invalidBlock));
+
+            method.Blocks.Add(invalidBlock);
+            var ikCurrent = invalidBlock;
+            foreach (var stmt in del.InvalidKey)
+                ikCurrent = LowerStatement(stmt, method, ikCurrent);
+            ikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notInvalidBlock);
+            var nikCurrent = notInvalidBlock;
+            foreach (var stmt in del.NotInvalidKey)
+                nikCurrent = LowerStatement(stmt, method, nikCurrent);
+            nikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
+    // ── START ──
+
+    private IrBasicBlock LowerStart(BoundStartStatement start, IrMethod method, IrBasicBlock block)
+    {
+        string cobolName = start.File.Name;
+
+        // Resolve key from the file's RECORD KEY
+        var recordKey = start.File.RecordKey;
+        if (recordKey != null)
+        {
+            var keySym = _semantic.ResolveData(recordKey);
+            if (keySym != null)
+            {
+                var keyLoc = ResolveLocation(keySym);
+                if (keyLoc != null)
+                {
+                    // Default to Equal if no KEY IS clause
+                    int condition = 0; // StartCondition.Equal
+                    block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition));
+                }
+            }
+        }
+
+        EmitFileStatus(start.File, block);
+
+        // INVALID KEY / NOT INVALID KEY branching
+        if (start.InvalidKey.Count > 0 || start.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+
+            var invalidBlock = method.CreateBlock("start.invalid");
+            var notInvalidBlock = method.CreateBlock("start.not.invalid");
+            var afterBlock = method.CreateBlock("start.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
+            block.Instructions.Add(new IrJump(invalidBlock));
+
+            method.Blocks.Add(invalidBlock);
+            var ikCurrent = invalidBlock;
+            foreach (var stmt in start.InvalidKey)
+                ikCurrent = LowerStatement(stmt, method, ikCurrent);
+            ikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notInvalidBlock);
+            var nikCurrent = notInvalidBlock;
+            foreach (var stmt in start.NotInvalidKey)
+                nikCurrent = LowerStatement(stmt, method, nikCurrent);
+            nikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
     }
 
     // ── INITIALIZE ──

@@ -752,6 +752,7 @@ openClause
 openMode
     : INPUT
     | OUTPUT
+    | I_O
     | EXTEND
     ;
 

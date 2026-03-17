@@ -157,18 +157,38 @@ public class IndexedFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.FileNotOpen;
 
         string targetKey = Encoding.ASCII.GetString(keyValue).TrimEnd();
-        var matchingRecords = condition switch
-        {
-            StartCondition.Equal => _records!.Where(r => r.Key == targetKey),
-            StartCondition.GreaterThan => _records!.Where(r => string.Compare(r.Key, targetKey, StringComparison.Ordinal) > 0),
-            StartCondition.GreaterThanOrEqual => _records!.Where(r => string.Compare(r.Key, targetKey, StringComparison.Ordinal) >= 0),
-            StartCondition.LessThan => _records!.Where(r => string.Compare(r.Key, targetKey, StringComparison.Ordinal) < 0),
-            StartCondition.LessThanOrEqual => _records!.Where(r => string.Compare(r.Key, targetKey, StringComparison.Ordinal) <= 0),
-            _ => _records!.AsEnumerable()
-        };
 
-        _enumerator = matchingRecords.GetEnumerator();
-        return _enumerator.MoveNext() ? FileStatus.Success : FileStatus.RecordNotFound;
+        // Find the first key that satisfies the condition
+        string? firstKey = null;
+        foreach (var entry in _records!)
+        {
+            int cmp = string.Compare(entry.Key, targetKey, StringComparison.Ordinal);
+            bool matches = condition switch
+            {
+                StartCondition.Equal => cmp == 0,
+                StartCondition.GreaterThan => cmp > 0,
+                StartCondition.GreaterThanOrEqual => cmp >= 0,
+                StartCondition.LessThan => cmp < 0,
+                StartCondition.LessThanOrEqual => cmp <= 0,
+                _ => false
+            };
+            if (matches)
+            {
+                firstKey = entry.Key;
+                break;
+            }
+        }
+
+        if (firstKey == null)
+            return FileStatus.RecordNotFound;
+
+        // Position enumerator at all records from firstKey onward.
+        // ReadNext will call MoveNext to get the first record.
+        _enumerator = _records
+            .Where(r => string.Compare(r.Key, firstKey, StringComparison.Ordinal) >= 0)
+            .GetEnumerator();
+        _currentKey = firstKey;
+        return FileStatus.Success;
     }
 
     private string ExtractKey(byte[] record)

@@ -352,6 +352,48 @@ public sealed class IrReadRecordToStorage : IrInstruction
 }
 
 /// <summary>
+/// DELETE: delete the current record from an indexed/relative file.
+/// </summary>
+public sealed class IrDeleteRecord : IrInstruction
+{
+    public string FileName { get; }
+    public IrDeleteRecord(string fileName) { FileName = fileName; }
+}
+
+/// <summary>
+/// START: position an indexed file for subsequent READ NEXT.
+/// Condition maps to Runtime.IO.StartCondition enum.
+/// </summary>
+public sealed class IrStartFile : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation KeyLocation { get; }
+    public int Condition { get; }
+
+    public IrStartFile(string fileName, IrLocation keyLocation, int condition)
+    {
+        FileName = fileName;
+        KeyLocation = keyLocation;
+        Condition = condition;
+    }
+}
+
+/// <summary>
+/// Check if the last file operation was successful (status == "00").
+/// Sets result bool to true if the operation failed (invalid key / error).
+/// </summary>
+public sealed class IrCheckFileInvalidKey : IrInstruction
+{
+    public string FileName { get; }
+
+    public IrCheckFileInvalidKey(string fileName, IrValue result)
+    {
+        FileName = fileName;
+        Result = result;
+    }
+}
+
+/// <summary>
 /// Check if a file is at EOF after a READ. Sets result bool to true if at end.
 /// </summary>
 public sealed class IrCheckFileAtEnd : IrInstruction

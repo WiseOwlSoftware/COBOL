@@ -40,6 +40,8 @@ public enum BoundNodeKind
     SearchAllStatement,
     StringStatement,
     UnstringStatement,
+    DeleteStatement,
+    StartStatement,
 }
 
 public abstract class BoundNode
@@ -1083,5 +1085,45 @@ public sealed class BoundUnstringStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.UnstringStatement;
+}
+
+// ═══════════════════════════════════
+// DELETE / START
+// ═══════════════════════════════════
+
+public sealed class BoundDeleteStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
+
+    public BoundDeleteStatement(FileSymbol file,
+        IReadOnlyList<BoundStatement> invalidKey, IReadOnlyList<BoundStatement> notInvalidKey)
+    {
+        File = file;
+        InvalidKey = invalidKey;
+        NotInvalidKey = notInvalidKey;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.DeleteStatement;
+}
+
+public sealed class BoundStartStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public BoundExpression? KeyCondition { get; }
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
+
+    public BoundStartStatement(FileSymbol file, BoundExpression? keyCondition,
+        IReadOnlyList<BoundStatement> invalidKey, IReadOnlyList<BoundStatement> notInvalidKey)
+    {
+        File = file;
+        KeyCondition = keyCondition;
+        InvalidKey = invalidKey;
+        NotInvalidKey = notInvalidKey;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.StartStatement;
 }
 

@@ -2339,6 +2339,148 @@ public class EndToEndTests : IDisposable
         Assert.Equal("AT-END-OK", lines[2]);
     }
 
+    [Fact]
+    public void FileIO_WriteFrom_CopiesBeforeWriting()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOWF.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT WF-FILE ASSIGN TO "wftest"
+                    ORGANIZATION IS SEQUENTIAL
+                    ACCESS MODE IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD WF-FILE.
+            01 WF-REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-SRC PIC X(5) VALUE "HELLO".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT WF-FILE.
+                WRITE WF-REC FROM WS-SRC.
+                CLOSE WF-FILE.
+                OPEN INPUT WF-FILE.
+                READ WF-FILE
+                    AT END DISPLAY "EMPTY"
+                END-READ.
+                DISPLAY WF-REC.
+                CLOSE WF-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("HELLO", stdout);
+    }
+
+    [Fact]
+    public void FileIO_Delete_IndexedFile()
+    {
+        // Write two records, reopen, read first, delete it, verify only second remains
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIODEL.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixdel"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-KEY PIC X(3).
+               05 IX-VAL PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "AAA" TO IX-KEY.
+                MOVE "111" TO IX-VAL.
+                WRITE IX-REC.
+                MOVE "BBB" TO IX-KEY.
+                MOVE "222" TO IX-VAL.
+                WRITE IX-REC.
+                CLOSE IX-FILE.
+                OPEN I-O IX-FILE.
+                READ IX-FILE.
+                DELETE IX-FILE.
+                DISPLAY WS-FS.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                READ IX-FILE.
+                DISPLAY IX-KEY IX-VAL.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("00", lines[0]); // DELETE succeeded
+        Assert.Equal("BBB222", lines[1]); // Only BBB remains
+    }
+
+    [Fact]
+    public void FileIO_Start_PositionsForReadNext()
+    {
+        // Write 3 records to indexed file, START at key >= "BBB", READ NEXT
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOSTRT.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixstart"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-KEY PIC X(3).
+               05 IX-VAL PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "AAA" TO IX-KEY.
+                MOVE "111" TO IX-VAL.
+                WRITE IX-REC.
+                MOVE "BBB" TO IX-KEY.
+                MOVE "222" TO IX-VAL.
+                WRITE IX-REC.
+                MOVE "CCC" TO IX-KEY.
+                MOVE "333" TO IX-VAL.
+                WRITE IX-REC.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                MOVE "BBB" TO IX-KEY.
+                START IX-FILE KEY IS IX-KEY.
+                DISPLAY WS-FS.
+                READ IX-FILE.
+                DISPLAY IX-KEY IX-VAL.
+                READ IX-FILE.
+                DISPLAY IX-KEY IX-VAL.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("00", lines[0]); // START succeeded
+        Assert.Equal("BBB222", lines[1]); // First READ NEXT after START
+        Assert.Equal("CCC333", lines[2]); // Second READ NEXT
+    }
+
     // ── INITIALIZE ──
 
     [Fact]

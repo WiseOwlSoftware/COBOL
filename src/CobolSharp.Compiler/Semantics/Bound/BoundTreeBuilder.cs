@@ -95,6 +95,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.searchAllStatement() is { } searchAllCtx) return BindSearchAll(searchAllCtx);
         if (ctx.stringStatement() is { } stringCtx) return BindString(stringCtx);
         if (ctx.unstringStatement() is { } unstringCtx) return BindUnstring(unstringCtx);
+        if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
+        if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -467,7 +469,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundWriteStatement(fileSym, recordSym, null, advancingLines, isAfterAdvancing);
+        BoundExpression? from = null;
+        if (ctx.writeFrom() is { } fromCtx)
+            from = BindIdentifierWithSubscripts(fromCtx.identifier());
+
+        return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing);
     }
 
     // ── OPEN ──
@@ -482,6 +488,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 "INPUT" => OpenMode.Input,
                 "OUTPUT" => OpenMode.Output,
+                "I-O" => OpenMode.IO,
                 "EXTEND" => OpenMode.Extend,
                 _ => OpenMode.Output
             };
@@ -586,6 +593,75 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fileSym == null) return null;
 
         return new BoundRewriteStatement(fileSym, recordSym);
+    }
+
+    // ── DELETE ──
+
+    private BoundStatement? BindDelete(CobolParserCore.DeleteStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+
+        var fileSym = _semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+
+        var invalidKey = new List<BoundStatement>();
+        var notInvalidKey = new List<BoundStatement>();
+        if (ctx.deleteInvalidKeyPhrase() is { } ikCtx)
+        {
+            var impStmts = ikCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) invalidKey.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notInvalidKey.Add(bound);
+                }
+        }
+
+        return new BoundDeleteStatement(fileSym, invalidKey, notInvalidKey);
+    }
+
+    // ── START ──
+
+    private BoundStatement? BindStart(CobolParserCore.StartStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+
+        var fileSym = _semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+
+        // KEY IS relationalExpression (optional)
+        BoundExpression? keyCondition = null;
+        if (ctx.startKeyPhrase() is { } keyCtx)
+            keyCondition = BindRelational(keyCtx.relationalExpression());
+
+        var invalidKey = new List<BoundStatement>();
+        var notInvalidKey = new List<BoundStatement>();
+        if (ctx.startInvalidKeyPhrase() is { } ikCtx)
+        {
+            var impStmts = ikCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) invalidKey.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notInvalidKey.Add(bound);
+                }
+        }
+
+        return new BoundStartStatement(fileSym, keyCondition, invalidKey, notInvalidKey);
     }
 
     // ── ACCEPT ──

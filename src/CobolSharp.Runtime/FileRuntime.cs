@@ -33,7 +33,18 @@ public static class FileRuntime
     /// </summary>
     public static void RegisterFileHandler(string cobolName, string externalPath, int recordLength, bool lineSequential)
     {
-        var handler = new SequentialFileHandler(externalPath, recordLength, lineSequential);
+        RegisterFileHandlerWithOrg(cobolName, externalPath, recordLength, lineSequential, "SEQUENTIAL", 0, 0);
+    }
+
+    public static void RegisterFileHandlerWithOrg(string cobolName, string externalPath,
+        int recordLength, bool lineSequential, string organization, int keyOffset, int keyLength)
+    {
+        IFileHandler handler = organization switch
+        {
+            "INDEXED" => new IndexedFileHandler(externalPath, recordLength, keyOffset, keyLength),
+            "RELATIVE" => new RelativeFileHandler(externalPath, recordLength),
+            _ => new SequentialFileHandler(externalPath, recordLength, lineSequential)
+        };
         EnsureManager();
         _manager!.RegisterFile(cobolName, handler);
         _lastStatus[cobolName] = FileStatus.Success;
@@ -186,6 +197,39 @@ public static class FileRuntime
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
         string status = _manager!.Rewrite(fileName, recordSlice);
         _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// DELETE: delete the current record from a relative/indexed file.
+    /// </summary>
+    public static void DeleteRecord(string fileName)
+    {
+        EnsureManager();
+        string status = _manager!.Delete(fileName);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// START: position an indexed file for subsequent READ NEXT.
+    /// </summary>
+    public static void StartFile(string fileName, byte[] keyArea, int keyOffset, int keyLength, int condition)
+    {
+        EnsureManager();
+        byte[] keyValue = new byte[keyLength];
+        Array.Copy(keyArea, keyOffset, keyValue, 0, keyLength);
+        string status = _manager!.Start(fileName, keyValue, (IO.StartCondition)condition);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// Check if the last file operation was NOT successful (status != "00").
+    /// Returns true if an error occurred (invalid key, etc.).
+    /// </summary>
+    public static bool IsInvalidKey(string fileName)
+    {
+        if (_lastStatus.TryGetValue(fileName, out var status))
+            return status != IO.FileStatus.Success;
+        return false;
     }
 
     /// <summary>

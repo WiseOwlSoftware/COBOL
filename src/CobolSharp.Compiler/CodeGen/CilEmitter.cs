@@ -541,6 +541,18 @@ public sealed class CilEmitter
                 EmitInspectConvert(il, ic);
                 break;
 
+            case IrDeleteRecord del:
+                EmitDeleteRecord(il, del);
+                break;
+
+            case IrStartFile sf:
+                EmitStartFile(il, sf);
+                break;
+
+            case IrCheckFileInvalidKey cik:
+                EmitCheckFileInvalidKey(il, cik, getLocal);
+                break;
+
             case IrPicMove pm:
                 EmitPicMoveFieldToField(il, pm);
                 break;
@@ -1081,6 +1093,40 @@ public sealed class CilEmitter
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
         il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result)));
+    }
+
+    // ── DELETE / START / INVALID KEY ──
+
+    private void EmitDeleteRecord(ILProcessor il, IrDeleteRecord del)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, del.FileName));
+        var method = _module.ImportReference(
+            typeof(Runtime.FileRuntime).GetMethod("DeleteRecord",
+                new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitStartFile(ILProcessor il, IrStartFile sf)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, sf.FileName));
+        EmitLocationArgs(il, sf.KeyLocation);
+        il.Append(il.Create(OpCodes.Ldc_I4, sf.Condition));
+        var method = _module.ImportReference(
+            typeof(Runtime.FileRuntime).GetMethod("StartFile",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitCheckFileInvalidKey(ILProcessor il, IrCheckFileInvalidKey cik,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, cik.FileName));
+        var method = _module.ImportReference(
+            typeof(Runtime.FileRuntime).GetMethod("IsInvalidKey",
+                new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+        if (cik.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(cik.Result.Value)));
     }
 
     // ── GO TO DEPENDING ──
@@ -2510,11 +2556,12 @@ public sealed class CilEmitter
                     new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
-        else if (rtc.MethodName == "FileRuntime.RegisterFileHandler")
+        else if (rtc.MethodName == "FileRuntime.RegisterFileHandlerWithOrg")
         {
             var m = _module.ImportReference(
-                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("RegisterFileHandler",
-                    new[] { typeof(string), typeof(string), typeof(int), typeof(bool) })!);
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("RegisterFileHandlerWithOrg",
+                    new[] { typeof(string), typeof(string), typeof(int), typeof(bool),
+                            typeof(string), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now
