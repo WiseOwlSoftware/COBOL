@@ -63,12 +63,13 @@ public static class StorageHelpers
     }
 
     /// <summary>
-    /// WRITE record: copy record bytes to file as ASCII line.
+    /// WRITE record: write record bytes to file.
+    /// Routes through FileRuntime.WriteRecord which handles both binary (data files)
+    /// and text (PRINT-FILE) modes.
     /// </summary>
     public static void WriteRecordToFile(string fileName, byte[] area, int offset, int size)
     {
-        string text = Encoding.ASCII.GetString(area, offset, size);
-        FileRuntime.WriteText(fileName, text);
+        FileRuntime.WriteRecord(fileName, area, offset, size);
     }
 
     /// <summary>

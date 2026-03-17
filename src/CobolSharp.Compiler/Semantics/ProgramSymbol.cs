@@ -44,6 +44,9 @@ public sealed class FileSymbol : Symbol
     /// <summary>External file name from ASSIGN TO clause.</summary>
     public string? AssignTarget { get; set; }
 
+    /// <summary>True if ASSIGN target was a string literal (explicit path), false if identifier.</summary>
+    public bool AssignIsLiteral { get; set; }
+
     /// <summary>SEQUENTIAL, RELATIVE, or INDEXED.</summary>
     public string? Organization { get; set; }
 

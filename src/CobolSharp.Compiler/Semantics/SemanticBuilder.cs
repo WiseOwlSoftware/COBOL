@@ -136,11 +136,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (assignCtx != null)
         {
             string assignText = assignCtx.GetText();
-            // Strip quotes if string literal
+            // String literal → explicit host path; identifier → implementor-defined
             if (assignText.Length >= 2 &&
                 (assignText[0] == '"' || assignText[0] == '\''))
-                assignText = assignText[1..^1];
-            fileSym.AssignTarget = assignText;
+            {
+                fileSym.AssignTarget = assignText[1..^1];
+                fileSym.AssignIsLiteral = true;
+            }
+            else
+            {
+                fileSym.AssignTarget = assignText;
+                fileSym.AssignIsLiteral = false;
+            }
         }
 
         // Clauses

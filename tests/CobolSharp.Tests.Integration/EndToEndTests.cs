@@ -598,48 +598,7 @@ public class EndToEndTests : IDisposable
         Assert.Contains("CALL:", stderr); // program not found diagnostic
     }
 
-    [Fact(Skip = "READ statement not yet lowered to CIL")]
-    public void FileIO_WriteAndReadBack()
-    {
-        // Create a test data file path
-        string dataFile = Path.Combine(_tempDir, "testdata.dat");
-
-        var (success, stdout, stderr) = CompileAndRun($$"""
-            IDENTIFICATION DIVISION.
-            PROGRAM-ID. FILETEST.
-            ENVIRONMENT DIVISION.
-            INPUT-OUTPUT SECTION.
-            FILE-CONTROL.
-                SELECT TEST-FILE ASSIGN TO "{{dataFile}}"
-                    ORGANIZATION IS SEQUENTIAL.
-            DATA DIVISION.
-            FILE SECTION.
-            FD TEST-FILE.
-            01 TEST-RECORD PIC X(20).
-            WORKING-STORAGE SECTION.
-            01 WS-REC PIC X(20).
-            01 WS-EOF PIC 9 VALUE 0.
-            PROCEDURE DIVISION.
-            MAIN-PARA.
-                OPEN OUTPUT TEST-FILE.
-                MOVE "Hello File" TO TEST-RECORD.
-                WRITE TEST-RECORD.
-                MOVE "Line Two" TO TEST-RECORD.
-                WRITE TEST-RECORD.
-                CLOSE TEST-FILE.
-                OPEN INPUT TEST-FILE.
-                READ TEST-FILE
-                    AT END MOVE 1 TO WS-EOF
-                END-READ.
-                DISPLAY TEST-RECORD.
-                CLOSE TEST-FILE.
-                STOP RUN.
-            """);
-
-        Assert.True(success, $"Failed: {stderr}");
-        // Should display the first record read back
-        Assert.StartsWith("Hello File", stdout);
-    }
+    // (FileIO_WriteAndReadBack moved to end of file with proper implementation)
 
     // ═══════════════════════════════════════════
     // EVALUATE tests
@@ -1925,5 +1884,215 @@ public class EndToEndTests : IDisposable
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Contains("CHAIN", stdout);
+    }
+
+    // ── FILE I/O ──
+
+    [Fact]
+    public void FileIO_WriteAndReadBack()
+    {
+        // Write 3 records, then read them back and display
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIO1.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT OUT-FILE ASSIGN TO "testfile"
+                    ORGANIZATION IS SEQUENTIAL
+                    ACCESS MODE IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD OUT-FILE.
+            01 OUT-REC.
+               05 OUT-TEXT PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-TEXT PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT OUT-FILE.
+                MOVE "AAAAAAAAAA" TO OUT-TEXT.
+                WRITE OUT-REC.
+                MOVE "BBBBBBBBBB" TO OUT-TEXT.
+                WRITE OUT-REC.
+                MOVE "CCCCCCCCCC" TO OUT-TEXT.
+                WRITE OUT-REC.
+                CLOSE OUT-FILE.
+                OPEN INPUT OUT-FILE.
+                READ OUT-FILE INTO WS-TEXT
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-TEXT.
+                READ OUT-FILE INTO WS-TEXT
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-TEXT.
+                READ OUT-FILE INTO WS-TEXT
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-TEXT.
+                READ OUT-FILE INTO WS-TEXT
+                    AT END DISPLAY "AT-END-OK"
+                END-READ.
+                CLOSE OUT-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("AAAAAAAAAA", lines[0]);
+        Assert.Equal("BBBBBBBBBB", lines[1]);
+        Assert.Equal("CCCCCCCCCC", lines[2]);
+        Assert.Equal("AT-END-OK", lines[3]);
+    }
+
+    [Fact]
+    public void FileIO_ReadAtEnd_Branching()
+    {
+        // Create input file, then read until AT END
+        // First: write a file with 2 records
+        var (success1, _, stderr1) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOWR.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT DAT-FILE ASSIGN TO "readtest"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD DAT-FILE.
+            01 DAT-REC.
+               05 DAT-NUM PIC 9(5).
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT DAT-FILE.
+                MOVE 11111 TO DAT-NUM.
+                WRITE DAT-REC.
+                MOVE 22222 TO DAT-NUM.
+                WRITE DAT-REC.
+                CLOSE DAT-FILE.
+                STOP RUN.
+            """);
+        Assert.True(success1, $"Write failed: {stderr1}");
+
+        // Now read it back and count records
+        var (success2, stdout2, stderr2) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIORD.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT DAT-FILE ASSIGN TO "readtest"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD DAT-FILE.
+            01 DAT-REC.
+               05 DAT-NUM PIC 9(5).
+            WORKING-STORAGE SECTION.
+            01 WS-COUNT PIC 99 VALUE 0.
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN INPUT DAT-FILE.
+                PERFORM UNTIL WS-EOF = 1
+                    READ DAT-FILE
+                        AT END MOVE 1 TO WS-EOF
+                        NOT AT END ADD 1 TO WS-COUNT
+                    END-READ
+                END-PERFORM.
+                CLOSE DAT-FILE.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success2, $"Read failed: {stderr2}");
+        Assert.Equal("02", stdout2);
+    }
+
+    [Fact]
+    public void FileIO_OpenOutputCreatesFile()
+    {
+        // OPEN OUTPUT should create the file; WRITE should populate it
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOCR.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT OUT-FILE ASSIGN TO "newfile"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD OUT-FILE.
+            01 OUT-REC.
+               05 OUT-DATA PIC X(5).
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT OUT-FILE.
+                MOVE "HELLO" TO OUT-DATA.
+                WRITE OUT-REC.
+                CLOSE OUT-FILE.
+                DISPLAY "DONE".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("DONE", stdout);
+
+        // Verify the file was created
+        string filePath = Path.Combine(_tempDir, "newfile.txt");
+        Assert.True(File.Exists(filePath), $"Output file not found at {filePath}");
+        string content = File.ReadAllText(filePath);
+        Assert.Contains("HELLO", content);
+    }
+
+    [Fact]
+    public void FileIO_ReadNumericRoundTrip()
+    {
+        // Write numeric data, read it back, verify arithmetic works on it
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIONUM.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT NUM-FILE ASSIGN TO "numfile"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD NUM-FILE.
+            01 NUM-REC.
+               05 NUM-VAL PIC 9(5).
+            WORKING-STORAGE SECTION.
+            01 WS-SUM PIC 9(6) VALUE 0.
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT NUM-FILE.
+                MOVE 00100 TO NUM-VAL.
+                WRITE NUM-REC.
+                MOVE 00200 TO NUM-VAL.
+                WRITE NUM-REC.
+                MOVE 00300 TO NUM-VAL.
+                WRITE NUM-REC.
+                CLOSE NUM-FILE.
+                OPEN INPUT NUM-FILE.
+                PERFORM UNTIL WS-EOF = 1
+                    READ NUM-FILE
+                        AT END MOVE 1 TO WS-EOF
+                        NOT AT END ADD NUM-VAL TO WS-SUM
+                    END-READ
+                END-PERFORM.
+                CLOSE NUM-FILE.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("000600", stdout);
     }
 }

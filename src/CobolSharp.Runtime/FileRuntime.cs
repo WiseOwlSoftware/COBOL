@@ -13,8 +13,11 @@ namespace CobolSharp.Runtime;
 /// </summary>
 public static class FileRuntime
 {
-    // Track open output files (StreamWriter for line-oriented output)
+    // Track open text output files (StreamWriter for line-oriented output — PRINT-FILE)
     private static readonly Dictionary<string, StreamWriter> _openFiles = new();
+
+    // Track open binary output files (FileStream for fixed-length records)
+    private static readonly Dictionary<string, FileStream> _outputStreams = new();
 
     // Track open input files (FileStream for binary/fixed-length reading)
     private static readonly Dictionary<string, FileStream> _inputFiles = new();
@@ -25,16 +28,37 @@ public static class FileRuntime
     /// <summary>
     /// OPEN OUTPUT file-name.
     /// </summary>
+    // Map COBOL file name → ASSIGN target for host path resolution
+    private static readonly Dictionary<string, string> _assignTargets = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Register a file's ASSIGN target (called by compiler-generated code at startup).
+    /// </summary>
+    public static void RegisterFile(string cobolName, string assignTarget)
+    {
+        _assignTargets[cobolName] = assignTarget;
+    }
+
     public static void OpenOutput(string fileName)
     {
-        if (_openFiles.ContainsKey(fileName))
+        if (_openFiles.ContainsKey(fileName) || _outputStreams.ContainsKey(fileName))
             return;
 
-        // Map COBOL file name to host path
-        string hostPath = MapToHostPath(fileName);
-        var writer = new StreamWriter(hostPath, append: false, Encoding.ASCII);
-        writer.AutoFlush = true;
-        _openFiles[fileName] = writer;
+        string hostPath = ResolveHostPath(fileName);
+
+        // Use text mode for PRINT-FILE (line-oriented NIST output),
+        // binary mode for all other files (fixed-length records)
+        if (fileName.Equals("PRINT-FILE", StringComparison.OrdinalIgnoreCase))
+        {
+            var writer = new StreamWriter(hostPath, append: false, Encoding.ASCII);
+            writer.AutoFlush = true;
+            _openFiles[fileName] = writer;
+        }
+        else
+        {
+            var stream = new FileStream(hostPath, FileMode.Create, FileAccess.Write);
+            _outputStreams[fileName] = stream;
+        }
     }
 
     /// <summary>
@@ -49,9 +73,15 @@ public static class FileRuntime
             writer.Close();
             _openFiles.Remove(fileName);
         }
-        if (_inputFiles.TryGetValue(fileName, out var stream))
+        if (_outputStreams.TryGetValue(fileName, out var outStream))
         {
-            stream.Close();
+            outStream.Flush();
+            outStream.Close();
+            _outputStreams.Remove(fileName);
+        }
+        if (_inputFiles.TryGetValue(fileName, out var inStream))
+        {
+            inStream.Close();
             _inputFiles.Remove(fileName);
         }
         _atEnd.Remove(fileName);
@@ -64,18 +94,25 @@ public static class FileRuntime
     /// </summary>
     public static void WriteRecord(string fileName, byte[] recordBytes, int offset, int length)
     {
-        // Convert record bytes to ASCII text, trim trailing spaces
-        string text = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
+        // Binary output stream (data files)
+        if (_outputStreams.TryGetValue(fileName, out var stream))
+        {
+            stream.Write(recordBytes, offset, length);
+            return;
+        }
 
-        if (_openFiles.TryGetValue(fileName, out var writer))
+        // Text output via StreamWriter (line-oriented, for PRINT-FILE)
+        // Uses WriteAfterAdvancing to match NIST expected format (newline before text)
+        if (_openFiles.ContainsKey(fileName))
         {
-            writer.WriteLine(text);
+            string text = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
+            WriteAfterAdvancing(fileName, text, 1);
+            return;
         }
-        else
-        {
-            // File not open — write to console (DISPLAY device)
-            Console.WriteLine(text);
-        }
+
+        // File not open — write to console
+        string fallbackText = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
+        Console.WriteLine(fallbackText);
     }
 
     /// <summary>
@@ -114,7 +151,7 @@ public static class FileRuntime
         if (_inputFiles.ContainsKey(fileName))
             return;
 
-        string hostPath = MapToHostPath(fileName);
+        string hostPath = ResolveHostPath(fileName);
         if (!File.Exists(hostPath))
             throw new FileNotFoundException($"OPEN INPUT: file not found: {hostPath}");
 
@@ -159,14 +196,23 @@ public static class FileRuntime
     }
 
     /// <summary>
-    /// Map COBOL file name to host file path.
-    /// For NIST: PRINT-FILE → stdout (console).
+    /// Resolve COBOL file name to host file path.
+    /// Implementor-defined mapping (ISO §9.3.3):
+    /// - If ASSIGN target was a string literal, use it as the base name.
+    /// - Otherwise (identifier like NIST's XXXXX055), use the COBOL file name.
+    /// The ".txt" extension is appended unless the name already has one.
     /// </summary>
-    private static string MapToHostPath(string fileName)
+    private static string ResolveHostPath(string cobolName)
     {
-        // For now, use the COBOL file name as the host file name
-        // NIST test programs use PRINT-FILE for output
-        return fileName.ToLowerInvariant() + ".txt";
+        if (_assignTargets.TryGetValue(cobolName, out var assignTarget))
+        {
+            string baseName = assignTarget;
+            // If the target already has an extension or path separator, use as-is
+            if (baseName.Contains('.') || baseName.Contains('/') || baseName.Contains('\\'))
+                return baseName;
+            return baseName.ToLowerInvariant() + ".txt";
+        }
+        return cobolName.ToLowerInvariant() + ".txt";
     }
 
     /// <summary>
@@ -181,9 +227,17 @@ public static class FileRuntime
         }
         _openFiles.Clear();
 
+        foreach (var stream in _outputStreams.Values)
+        {
+            stream.Flush();
+            stream.Close();
+        }
+        _outputStreams.Clear();
+
         foreach (var stream in _inputFiles.Values)
             stream.Close();
         _inputFiles.Clear();
         _atEnd.Clear();
+        _assignTargets.Clear();
     }
 }

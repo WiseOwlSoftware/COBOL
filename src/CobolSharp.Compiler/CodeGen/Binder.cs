@@ -127,6 +127,21 @@ public sealed class Binder
         var main = new IrMethod("Main", returnType: IrPrimitiveType.Void);
         var block = new IrBasicBlock("main_entry");
 
+        // Register file ASSIGN targets at startup (only literal targets — identifier
+        // targets like NIST's XXXXX055 are implementor-defined and use COBOL name)
+        foreach (var fileSym in _semantic.Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
+        {
+            if (fileSym.AssignTarget != null && fileSym.AssignIsLiteral)
+            {
+                var nameVal = _valueFactory.Next(IrPrimitiveType.String);
+                var assignVal = _valueFactory.Next(IrPrimitiveType.String);
+                block.Instructions.Add(new IrLoadConst(nameVal, fileSym.Name));
+                block.Instructions.Add(new IrLoadConst(assignVal, fileSym.AssignTarget));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFile",
+                    new[] { nameVal, assignVal }));
+            }
+        }
+
         // Collect paragraph methods in declaration order
         var orderedMethods = new List<IrMethod>();
         foreach (var para in boundProgram.Paragraphs)
@@ -579,8 +594,6 @@ public sealed class Binder
     private IrBasicBlock LowerRead(BoundReadStatement read, IrMethod method, IrBasicBlock block)
     {
         string cobolName = read.File.Name;
-        var fnVal = _valueFactory.Next(IrPrimitiveType.String);
-        block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
 
         // Read into the FD record buffer
         var recordSym = read.File.Record;

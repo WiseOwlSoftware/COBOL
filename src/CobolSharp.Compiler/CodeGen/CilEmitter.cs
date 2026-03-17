@@ -1929,6 +1929,13 @@ public sealed class CilEmitter
                     new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "FileRuntime.RegisterFile")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("RegisterFile",
+                    new[] { typeof(string), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         // Other runtime calls: NOP for now
     }
 }
