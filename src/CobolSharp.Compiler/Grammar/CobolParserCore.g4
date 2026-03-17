@@ -269,7 +269,8 @@ organizationClause
     ;
 
 organizationType
-    : SEQUENTIAL
+    : LINE SEQUENTIAL
+    | SEQUENTIAL
     | RELATIVE
     | INDEXED
     ;

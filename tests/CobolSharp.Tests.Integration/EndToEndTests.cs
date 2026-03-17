@@ -1888,7 +1888,7 @@ public class EndToEndTests : IDisposable
 
     // ── FILE I/O ──
 
-    [Fact(Skip = "Requires binary/text file mode design — see devlog")]
+    [Fact]
     public void FileIO_WriteAndReadBack()
     {
         // Write 3 records, then read them back and display
@@ -1946,7 +1946,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("AT-END-OK", lines[3]);
     }
 
-    [Fact(Skip = "Requires binary/text file mode design — see devlog")]
+    [Fact]
     public void FileIO_ReadAtEnd_Branching()
     {
         // Create input file, then read until AT END
@@ -2094,5 +2094,189 @@ public class EndToEndTests : IDisposable
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("000600", stdout);
+    }
+
+    [Fact]
+    public void FileIO_FileStatus_00And10()
+    {
+        // Verify FILE STATUS is populated with "00" on success and "10" at end
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOSTATUS.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT DAT-FILE ASSIGN TO "statustest"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD DAT-FILE.
+            01 DAT-REC.
+               05 DAT-TEXT PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT DAT-FILE.
+                DISPLAY FS.
+                MOVE "HELLO" TO DAT-TEXT.
+                WRITE DAT-REC.
+                DISPLAY FS.
+                CLOSE DAT-FILE.
+                DISPLAY FS.
+                OPEN INPUT DAT-FILE.
+                DISPLAY FS.
+                READ DAT-FILE
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY FS.
+                READ DAT-FILE
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY FS.
+                CLOSE DAT-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("00", lines[0]); // OPEN OUTPUT → 00
+        Assert.Equal("00", lines[1]); // WRITE → 00
+        Assert.Equal("00", lines[2]); // CLOSE → 00
+        Assert.Equal("00", lines[3]); // OPEN INPUT → 00
+        Assert.Equal("00", lines[4]); // READ (success) → 00
+        Assert.Equal("10", lines[5]); // READ (at end) → 10
+    }
+
+    [Fact]
+    public void FileIO_FileStatus_35_FileNotFound()
+    {
+        // Verify FILE STATUS is "35" when opening non-existent file for input
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOSTAT35.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT MISSING-FILE ASSIGN TO "nonexistent"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD MISSING-FILE.
+            01 MISS-REC.
+               05 MISS-TEXT PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN INPUT MISSING-FILE.
+                DISPLAY FS.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("35", stdout);
+    }
+
+    [Fact]
+    public void FileIO_Rewrite_ReplacesRecord()
+    {
+        // Write 2 records, reopen I-O, read first, rewrite it, read and verify
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIORW.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RW-FILE ASSIGN TO "rwtest"
+                    ORGANIZATION IS SEQUENTIAL
+                    ACCESS MODE IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD RW-FILE.
+            01 RW-REC.
+               05 RW-TEXT PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-TEXT PIC X(5).
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RW-FILE.
+                MOVE "AAAAA" TO RW-TEXT.
+                WRITE RW-REC.
+                MOVE "BBBBB" TO RW-TEXT.
+                WRITE RW-REC.
+                CLOSE RW-FILE.
+                OPEN INPUT RW-FILE.
+                READ RW-FILE
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY RW-TEXT.
+                READ RW-FILE
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY RW-TEXT.
+                CLOSE RW-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("AAAAA", lines[0]);
+        Assert.Equal("BBBBB", lines[1]);
+    }
+
+    [Fact]
+    public void FileIO_LineSequential_RoundTrip()
+    {
+        // Explicit ORGANIZATION IS LINE SEQUENTIAL round-trip
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOLS.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT LS-FILE ASSIGN TO "lineseqtest"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD LS-FILE.
+            01 LS-REC.
+               05 LS-TEXT PIC X(8).
+            WORKING-STORAGE SECTION.
+            01 WS-BUF PIC X(8).
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT LS-FILE.
+                MOVE "LINESEQ1" TO LS-TEXT.
+                WRITE LS-REC.
+                MOVE "LINESEQ2" TO LS-TEXT.
+                WRITE LS-REC.
+                CLOSE LS-FILE.
+                OPEN INPUT LS-FILE.
+                READ LS-FILE INTO WS-BUF
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY WS-BUF.
+                READ LS-FILE INTO WS-BUF
+                    AT END MOVE 1 TO WS-EOF
+                END-READ.
+                DISPLAY WS-BUF.
+                READ LS-FILE INTO WS-BUF
+                    AT END DISPLAY "AT-END-OK"
+                END-READ.
+                CLOSE LS-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("LINESEQ1", lines[0]);
+        Assert.Equal("LINESEQ2", lines[1]);
+        Assert.Equal("AT-END-OK", lines[2]);
     }
 }

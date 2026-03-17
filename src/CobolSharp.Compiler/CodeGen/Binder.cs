@@ -127,19 +127,37 @@ public sealed class Binder
         var main = new IrMethod("Main", returnType: IrPrimitiveType.Void);
         var block = new IrBasicBlock("main_entry");
 
-        // Register file ASSIGN targets at startup (only literal targets — identifier
-        // targets like NIST's XXXXX055 are implementor-defined and use COBOL name)
+        // Initialize file manager
+        block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.Init", Array.Empty<IrValue>()));
+
+        // Register file handlers at startup for each SELECT
         foreach (var fileSym in _semantic.Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
         {
-            if (fileSym.AssignTarget != null && fileSym.AssignIsLiteral)
-            {
-                var nameVal = _valueFactory.Next(IrPrimitiveType.String);
-                var assignVal = _valueFactory.Next(IrPrimitiveType.String);
-                block.Instructions.Add(new IrLoadConst(nameVal, fileSym.Name));
-                block.Instructions.Add(new IrLoadConst(assignVal, fileSym.AssignTarget));
-                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFile",
-                    new[] { nameVal, assignVal }));
-            }
+            // Resolve external path: literal ASSIGN target uses the target value,
+            // identifier ASSIGN target (like NIST's XXXXX055) uses the COBOL file name
+            string externalName = (fileSym.AssignIsLiteral && fileSym.AssignTarget != null)
+                ? fileSym.AssignTarget
+                : fileSym.Name;
+            string externalPath = FileRuntime.ResolveHostPath(externalName);
+
+            int recordLength = fileSym.RecordLength;
+            if (recordLength == 0) recordLength = 132; // Default for print files
+
+            // Line-sequential for SEQUENTIAL org (default) and LINE SEQUENTIAL
+            bool lineSequential = fileSym.Organization == null
+                || fileSym.Organization == "SEQUENTIAL"
+                || fileSym.Organization == "LINE SEQUENTIAL";
+
+            var nameVal = _valueFactory.Next(IrPrimitiveType.String);
+            var pathVal = _valueFactory.Next(IrPrimitiveType.String);
+            var recLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
+            var lineSeqVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadConst(nameVal, fileSym.Name));
+            block.Instructions.Add(new IrLoadConst(pathVal, externalPath));
+            block.Instructions.Add(new IrLoadConst(recLenVal, recordLength));
+            block.Instructions.Add(new IrLoadConst(lineSeqVal, lineSequential));
+            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandler",
+                new[] { nameVal, pathVal, recLenVal, lineSeqVal }));
         }
 
         // Collect paragraph methods in declaration order
@@ -201,6 +219,9 @@ public sealed class Binder
                 break;
             case BoundReadStatement read:
                 return LowerRead(read, method, block);
+            case BoundRewriteStatement rw:
+                LowerRewrite(rw, block);
+                break;
             case BoundSubtractStatement sub:
                 return LowerSubtract(sub, method, block);
             case BoundDivideStatement div:
@@ -533,8 +554,17 @@ public sealed class Binder
         var recordLoc = _semantic.GetStorageLocation(wr.Record);
         if (recordLoc.HasValue)
         {
-            // Real storage: emit IrWriteRecordFromStorage
-            block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc.Value));
+            if (wr.AdvancingLines.HasValue)
+            {
+                // WRITE AFTER/BEFORE ADVANCING: print-control path
+                block.Instructions.Add(new IrWriteAfterAdvancing(
+                    fileName, recordLoc.Value, wr.AdvancingLines.Value));
+            }
+            else
+            {
+                // Plain WRITE: data record path via handler.Write
+                block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc.Value));
+            }
         }
         else
         {
@@ -547,6 +577,10 @@ public sealed class Binder
                 null, "CobolRuntime.WriteText",
                 new[] { fileNameVal, textVal }));
         }
+
+        // Update FILE STATUS if declared
+        if (wr.File != null)
+            EmitFileStatus(wr.File, block);
     }
 
     // ── OPEN ──
@@ -655,12 +689,33 @@ public sealed class Binder
     }
 
     /// <summary>
-    /// Emit FILE STATUS update for a file operation. Currently a no-op placeholder
-    /// that will be wired once FILE STATUS variable storage is resolved.
+    /// Emit FILE STATUS update: after each file operation, store the 2-char
+    /// status code into the FILE STATUS variable if one was declared.
     /// </summary>
     private void EmitFileStatus(FileSymbol file, IrBasicBlock block)
     {
-        // TODO: if file.FileStatus != null, emit MOVE of status code to the status variable
+        if (file.FileStatus == null) return;
+
+        var statusSym = _semantic.ResolveData(file.FileStatus);
+        if (statusSym == null) return;
+
+        var statusLoc = _semantic.GetStorageLocation(statusSym);
+        if (!statusLoc.HasValue) return;
+
+        block.Instructions.Add(new IrStoreFileStatus(file.Name, statusLoc.Value));
+    }
+
+    // ── REWRITE ──
+
+    private void LowerRewrite(BoundRewriteStatement rw, IrBasicBlock block)
+    {
+        string cobolName = rw.File.Name;
+        var recordLoc = _semantic.GetStorageLocation(rw.Record);
+        if (recordLoc.HasValue)
+        {
+            block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc.Value));
+        }
+        EmitFileStatus(rw.File, block);
     }
 
     // ── MULTIPLY ──

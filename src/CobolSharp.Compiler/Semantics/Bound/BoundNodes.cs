@@ -26,6 +26,7 @@ public enum BoundNodeKind
     DivideStatement,
     ComputeStatement,
     EvaluateStatement,
+    RewriteStatement,
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
@@ -245,12 +246,19 @@ public sealed class BoundWriteStatement : BoundStatement
     public FileSymbol? File { get; }
     public DataSymbol Record { get; }
     public BoundExpression? From { get; }
+    /// <summary>If non-null, this is WRITE AFTER/BEFORE ADVANCING n LINES.</summary>
+    public int? AdvancingLines { get; }
+    /// <summary>True for AFTER advancing, false for BEFORE advancing.</summary>
+    public bool IsAfterAdvancing { get; }
 
-    public BoundWriteStatement(FileSymbol? file, DataSymbol record, BoundExpression? from)
+    public BoundWriteStatement(FileSymbol? file, DataSymbol record, BoundExpression? from,
+        int? advancingLines = null, bool isAfterAdvancing = true)
     {
         File = file;
         Record = record;
         From = from;
+        AdvancingLines = advancingLines;
+        IsAfterAdvancing = isAfterAdvancing;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.WriteStatement;
@@ -345,6 +353,20 @@ public sealed class BoundReadStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ReadStatement;
+}
+
+public sealed class BoundRewriteStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public DataSymbol Record { get; }
+
+    public BoundRewriteStatement(FileSymbol file, DataSymbol record)
+    {
+        File = file;
+        Record = record;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.RewriteStatement;
 }
 
 public sealed class BoundAddStatement : BoundStatement

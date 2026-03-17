@@ -81,6 +81,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.divideStatement() is { } div) return BindDivide(div);
         if (ctx.computeStatement() is { } comp) return BindCompute(comp);
         if (ctx.evaluateStatement() is { } evalStmt) return BindEvaluate(evalStmt);
+        if (ctx.rewriteStatement() is { } rewriteCtx) return BindRewrite(rewriteCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -406,7 +407,32 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Resolve file from record → FD relationship
         var fileSym = _semantic.ResolveFileForRecord(recordSym);
-        return new BoundWriteStatement(fileSym, recordSym, null);
+
+        // Parse BEFORE/AFTER ADVANCING clause
+        int? advancingLines = null;
+        bool isAfterAdvancing = true;
+        var advCtx = ctx.writeBeforeAfter();
+        if (advCtx != null)
+        {
+            isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);
+            // Parse the advancing value — integer literal or PAGE
+            var intLit = advCtx.integerLiteral();
+            if (intLit != null)
+            {
+                advancingLines = int.Parse(intLit.GetText());
+            }
+            else
+            {
+                // Could be PAGE or an identifier — for PAGE, use a large value
+                var idCtx = advCtx.identifier();
+                if (idCtx != null && idCtx.GetText().Equals("PAGE", StringComparison.OrdinalIgnoreCase))
+                    advancingLines = 0; // PAGE = no line advance, just form-feed (handled separately)
+                else
+                    advancingLines = 1; // Default: 1 line
+            }
+        }
+
+        return new BoundWriteStatement(fileSym, recordSym, null, advancingLines, isAfterAdvancing);
     }
 
     // ── OPEN ──
@@ -508,6 +534,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundReadStatement(fileSym, intoSym, atEnd, notAtEnd);
+    }
+
+    // ── REWRITE ──
+
+    private BoundStatement? BindRewrite(CobolParserCore.RewriteStatementContext ctx)
+    {
+        var recordCtx = ctx.recordName();
+        if (recordCtx == null) return null;
+
+        string recordName = recordCtx.GetText();
+        var recordSym = _semantic.ResolveData(recordName);
+        if (recordSym == null) return null;
+
+        var fileSym = _semantic.ResolveFileForRecord(recordSym);
+        if (fileSym == null) return null;
+
+        return new BoundRewriteStatement(fileSym, recordSym);
     }
 
     // ── MULTIPLY ──

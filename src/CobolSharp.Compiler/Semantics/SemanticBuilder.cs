@@ -154,7 +154,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var clause in ctx.fileControlClauses())
         {
             if (clause.organizationClause() is { } orgClause)
-                fileSym.Organization = orgClause.organizationType().GetText().ToUpperInvariant();
+            {
+                var orgType = orgClause.organizationType();
+                // LINE SEQUENTIAL is two tokens; GetText() gives "LINESEQUENTIAL"
+                if (orgType.LINE() != null)
+                    fileSym.Organization = "LINE SEQUENTIAL";
+                else
+                    fileSym.Organization = orgType.GetText().ToUpperInvariant();
+            }
             if (clause.accessModeClause() is { } accessClause)
                 fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
             if (clause.recordKeyClause() is { } keyClause)

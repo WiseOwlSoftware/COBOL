@@ -305,6 +305,38 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
 }
 
 /// <summary>
+/// REWRITE record — replaces the last-read record in a file.
+/// </summary>
+public sealed class IrRewriteRecordFromStorage : IrInstruction
+{
+    public string FileName { get; }
+    public CodeGen.StorageLocation Record { get; }
+
+    public IrRewriteRecordFromStorage(string fileName, CodeGen.StorageLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
+/// WRITE AFTER ADVANCING: print-control write with line advance.
+/// </summary>
+public sealed class IrWriteAfterAdvancing : IrInstruction
+{
+    public string FileName { get; }
+    public CodeGen.StorageLocation Record { get; }
+    public int AdvanceLines { get; }
+
+    public IrWriteAfterAdvancing(string fileName, CodeGen.StorageLocation record, int advanceLines)
+    {
+        FileName = fileName;
+        Record = record;
+        AdvanceLines = advanceLines;
+    }
+}
+
+/// <summary>
 /// READ: read next record from file into storage location.
 /// </summary>
 public sealed class IrReadRecordToStorage : IrInstruction
@@ -331,6 +363,21 @@ public sealed class IrCheckFileAtEnd : IrInstruction
     {
         FileName = fileName;
         Result = result;
+    }
+}
+
+/// <summary>
+/// Store the most recent file status code into a FILE STATUS variable.
+/// </summary>
+public sealed class IrStoreFileStatus : IrInstruction
+{
+    public string CobolFileName { get; }
+    public CodeGen.StorageLocation StatusVariable { get; }
+
+    public IrStoreFileStatus(string cobolFileName, CodeGen.StorageLocation statusVariable)
+    {
+        CobolFileName = cobolFileName;
+        StatusVariable = statusVariable;
     }
 }
 

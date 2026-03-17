@@ -172,6 +172,21 @@ public class SequentialFileHandler : IFileHandler
         }
     }
 
+    /// <summary>
+    /// Write raw text directly to the underlying stream without record formatting.
+    /// Used for WRITE AFTER ADVANCING (print-control semantics: newlines BEFORE text).
+    /// </summary>
+    public void WriteRawText(string text)
+    {
+        if (_lineSequential && _writer != null)
+            _writer.Write(text);
+        else if (_stream != null)
+        {
+            var bytes = Encoding.ASCII.GetBytes(text);
+            _stream.Write(bytes, 0, bytes.Length);
+        }
+    }
+
     public string Delete() => FileStatus.PermanentError; // Not supported for sequential files
 
     public string Start(byte[] keyValue, StartCondition condition) =>

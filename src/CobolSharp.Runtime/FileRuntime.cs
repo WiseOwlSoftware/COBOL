@@ -1,123 +1,52 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using CobolSharp.Runtime.IO;
 
 namespace CobolSharp.Runtime;
 
 /// <summary>
-/// COBOL file I/O runtime. The compiler emits calls to these methods
-/// for OPEN, CLOSE, READ, WRITE operations.
-///
-/// For now: sequential output to host files. NIST print files are
-/// fixed-length ASCII records written line-by-line.
+/// COBOL file I/O runtime. Thin static facade over CobolFileManager.
+/// The compiler emits calls to these static methods for OPEN, CLOSE, READ, WRITE operations.
+/// Internally all operations delegate to production CobolFileManager + IFileHandler.
 /// </summary>
 public static class FileRuntime
 {
-    // Track open text output files (StreamWriter for line-oriented output — PRINT-FILE)
-    private static readonly Dictionary<string, StreamWriter> _openFiles = new();
+    private static CobolFileManager? _manager;
+    private static readonly Dictionary<string, string> _lastStatus = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> _afterAdvancingFiles = new(StringComparer.OrdinalIgnoreCase);
 
-    // Track open input files (StreamReader for line-sequential reading)
-    private static readonly Dictionary<string, StreamReader> _inputFiles = new();
+    /// <summary>
+    /// Initialize the file manager. Called once at program start.
+    /// </summary>
+    public static void Init()
+    {
+        _manager?.Dispose();
+        _manager = new CobolFileManager();
+        _lastStatus.Clear();
+        _afterAdvancingFiles.Clear();
+    }
 
-    // Track at-end state per file
-    private static readonly Dictionary<string, bool> _atEnd = new();
+    /// <summary>
+    /// Register a file handler for a COBOL file name.
+    /// Called by compiler-generated code at startup for each SELECT.
+    /// </summary>
+    public static void RegisterFileHandler(string cobolName, string externalPath, int recordLength, bool lineSequential)
+    {
+        var handler = new SequentialFileHandler(externalPath, recordLength, lineSequential);
+        EnsureManager();
+        _manager!.RegisterFile(cobolName, handler);
+        _lastStatus[cobolName] = FileStatus.Success;
+    }
 
     /// <summary>
     /// OPEN OUTPUT file-name.
     /// </summary>
-    // Map COBOL file name → ASSIGN target for host path resolution
-    private static readonly Dictionary<string, string> _assignTargets = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Register a file's ASSIGN target (called by compiler-generated code at startup).
-    /// </summary>
-    public static void RegisterFile(string cobolName, string assignTarget)
-    {
-        _assignTargets[cobolName] = assignTarget;
-    }
-
     public static void OpenOutput(string fileName)
     {
-        if (_openFiles.ContainsKey(fileName))
-            return;
-
-        string hostPath = ResolveHostPath(fileName);
-        var writer = new StreamWriter(hostPath, append: false, Encoding.ASCII);
-        writer.AutoFlush = true;
-        _openFiles[fileName] = writer;
-    }
-
-    /// <summary>
-    /// CLOSE file-name.
-    /// </summary>
-    public static void CloseFile(string fileName)
-    {
-        if (_openFiles.TryGetValue(fileName, out var writer))
-        {
-            writer.WriteLine(); // Final newline after last AFTER ADVANCING record
-            writer.Flush();
-            writer.Close();
-            _openFiles.Remove(fileName);
-        }
-        if (_inputFiles.TryGetValue(fileName, out var reader))
-        {
-            reader.Close();
-            _inputFiles.Remove(fileName);
-        }
-        _atEnd.Remove(fileName);
-    }
-
-    /// <summary>
-    /// WRITE record-name.
-    /// Writes the record bytes as an ASCII line to the file.
-    /// If the file isn't open, writes to console (DISPLAY device).
-    /// </summary>
-    /// <summary>
-    /// WRITE record-name: write record as a line-sequential record.
-    /// Uses AFTER ADVANCING 1 LINE semantics (newline before text) to match
-    /// NIST expected output format. This will be split into separate WRITE
-    /// and WRITE AFTER ADVANCING paths when we implement proper file mode handling.
-    /// </summary>
-    public static void WriteRecord(string fileName, byte[] recordBytes, int offset, int length)
-    {
-        string text = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
-
-        if (_openFiles.TryGetValue(fileName, out _))
-        {
-            WriteAfterAdvancing(fileName, text, 1);
-        }
-        else
-        {
-            Console.WriteLine(text);
-        }
-    }
-
-    /// <summary>
-    /// WRITE record-name (simplified: just the text content).
-    /// Used when record bytes aren't available yet.
-    /// </summary>
-    public static void WriteText(string fileName, string text)
-    {
-        WriteAfterAdvancing(fileName, text, 1);
-    }
-
-    /// <summary>
-    /// WRITE AFTER ADVANCING n LINES: output n line-feeds then the record text.
-    /// </summary>
-    public static void WriteAfterAdvancing(string fileName, string text, int advanceLines)
-    {
-        if (_openFiles.TryGetValue(fileName, out var writer))
-        {
-            for (int i = 0; i < advanceLines; i++)
-                writer.WriteLine();
-            writer.Write(text);
-        }
-        else
-        {
-            for (int i = 0; i < advanceLines; i++)
-                Console.WriteLine();
-            Console.Write(text);
-        }
+        EnsureManager();
+        string status = _manager!.Open(fileName, FileOpenMode.Output);
+        _lastStatus[fileName] = status;
     }
 
     /// <summary>
@@ -125,45 +54,110 @@ public static class FileRuntime
     /// </summary>
     public static void OpenInput(string fileName)
     {
-        if (_inputFiles.ContainsKey(fileName))
-            return;
-
-        string hostPath = ResolveHostPath(fileName);
-        if (!File.Exists(hostPath))
-            throw new FileNotFoundException($"OPEN INPUT: file not found: {hostPath}");
-
-        var reader = new StreamReader(hostPath, Encoding.ASCII);
-        _inputFiles[fileName] = reader;
-        _atEnd[fileName] = false;
+        EnsureManager();
+        string status = _manager!.Open(fileName, FileOpenMode.Input);
+        _lastStatus[fileName] = status;
     }
 
     /// <summary>
-    /// READ: read next record (line-sequential) into byte buffer.
-    /// Reads one line, pads/truncates to fit the record length.
+    /// OPEN I-O file-name.
+    /// </summary>
+    public static void OpenIO(string fileName)
+    {
+        EnsureManager();
+        string status = _manager!.Open(fileName, FileOpenMode.InputOutput);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// OPEN EXTEND file-name.
+    /// </summary>
+    public static void OpenExtend(string fileName)
+    {
+        EnsureManager();
+        string status = _manager!.Open(fileName, FileOpenMode.Extend);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// CLOSE file-name.
+    /// </summary>
+    public static void CloseFile(string fileName)
+    {
+        EnsureManager();
+        // For AFTER ADVANCING files, write final newline before closing
+        if (_afterAdvancingFiles.Remove(fileName))
+        {
+            var handler = _manager!.GetHandler(fileName) as SequentialFileHandler;
+            handler?.WriteRawText("\r\n");
+        }
+        string status = _manager!.Close(fileName);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// WRITE record-name: plain WRITE (data path).
+    /// Delegates to handler.Write which does line-sequential formatting (TrimEnd + WriteLine).
+    /// </summary>
+    public static void WriteRecord(string fileName, byte[] recordBytes, int offset, int length)
+    {
+        EnsureManager();
+        byte[] recordSlice = new byte[length];
+        Array.Copy(recordBytes, offset, recordSlice, 0, length);
+        string status = _manager!.Write(fileName, recordSlice);
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// WRITE AFTER ADVANCING n LINES: print-control semantics.
+    /// Outputs n CR/LF sequences then the record text (no trailing newline).
+    /// </summary>
+    public static void WriteAfterAdvancing(string fileName, byte[] area, int offset, int size, int advanceLines)
+    {
+        string text = Encoding.ASCII.GetString(area, offset, size).TrimEnd();
+        WriteAfterAdvancingText(fileName, text, advanceLines);
+    }
+
+    /// <summary>
+    /// WRITE AFTER ADVANCING with pre-extracted text.
+    /// </summary>
+    public static void WriteAfterAdvancingText(string fileName, string text, int advanceLines)
+    {
+        EnsureManager();
+        var handler = _manager!.GetHandler(fileName) as SequentialFileHandler;
+        if (handler != null && handler.IsOpen)
+        {
+            _afterAdvancingFiles.Add(fileName);
+            for (int i = 0; i < advanceLines; i++)
+                handler.WriteRawText("\r\n");
+            handler.WriteRawText(text);
+            _lastStatus[fileName] = FileStatus.Success;
+        }
+        else
+        {
+            // Fallback: console output
+            for (int i = 0; i < advanceLines; i++)
+                Console.WriteLine();
+            Console.Write(text);
+        }
+    }
+
+    /// <summary>
+    /// READ: read next record from file into byte buffer.
     /// Returns true if a record was read, false if at end-of-file.
     /// </summary>
     public static bool ReadRecord(string fileName, byte[] buffer, int offset, int length)
     {
-        if (!_inputFiles.TryGetValue(fileName, out var reader))
+        EnsureManager();
+        byte[] tempBuf = new byte[length];
+        string status = _manager!.ReadNext(fileName, tempBuf);
+        _lastStatus[fileName] = status;
+
+        if (status == FileStatus.AtEnd)
             return false;
 
-        string? line = reader.ReadLine();
-        if (line == null)
-        {
-            _atEnd[fileName] = true;
-            return false;
-        }
-
-        // Convert line to ASCII bytes, pad with spaces to record length
-        byte[] lineBytes = Encoding.ASCII.GetBytes(line);
-        int copyLen = Math.Min(lineBytes.Length, length);
-        Array.Copy(lineBytes, 0, buffer, offset, copyLen);
-        // Pad remainder with spaces
-        for (int i = offset + copyLen; i < offset + length; i++)
-            buffer[i] = 0x20;
-
-        _atEnd[fileName] = false;
-        return true;
+        Array.Copy(tempBuf, 0, buffer, offset, length);
+        return status == FileStatus.Success;
     }
 
     /// <summary>
@@ -171,27 +165,39 @@ public static class FileRuntime
     /// </summary>
     public static bool IsAtEnd(string fileName)
     {
-        return _atEnd.TryGetValue(fileName, out var atEnd) && atEnd;
+        return _lastStatus.TryGetValue(fileName, out var status) && status == FileStatus.AtEnd;
+    }
+
+    /// <summary>
+    /// Get the last file status code for a COBOL file name.
+    /// </summary>
+    public static string GetLastStatus(string cobolName)
+    {
+        return _lastStatus.TryGetValue(cobolName, out var status) ? status : FileStatus.Success;
+    }
+
+    /// <summary>
+    /// REWRITE: replace the last-read record.
+    /// </summary>
+    public static void Rewrite(string fileName, byte[] recordBytes, int offset, int length)
+    {
+        EnsureManager();
+        byte[] recordSlice = new byte[length];
+        Array.Copy(recordBytes, offset, recordSlice, 0, length);
+        string status = _manager!.Rewrite(fileName, recordSlice);
+        _lastStatus[fileName] = status;
     }
 
     /// <summary>
     /// Resolve COBOL file name to host file path.
-    /// Implementor-defined mapping (ISO §9.3.3):
-    /// - If ASSIGN target was a string literal, use it as the base name.
-    /// - Otherwise (identifier like NIST's XXXXX055), use the COBOL file name.
-    /// The ".txt" extension is appended unless the name already has one.
+    /// Used during handler registration to compute the external file name.
     /// </summary>
-    private static string ResolveHostPath(string cobolName)
+    public static string ResolveHostPath(string assignTarget)
     {
-        if (_assignTargets.TryGetValue(cobolName, out var assignTarget))
-        {
-            string baseName = assignTarget;
-            // If the target already has an extension or path separator, use as-is
-            if (baseName.Contains('.') || baseName.Contains('/') || baseName.Contains('\\'))
-                return baseName;
-            return baseName.ToLowerInvariant() + ".txt";
-        }
-        return cobolName.ToLowerInvariant() + ".txt";
+        string baseName = assignTarget;
+        if (baseName.Contains('.') || baseName.Contains('/') || baseName.Contains('\\'))
+            return baseName;
+        return baseName.ToLowerInvariant() + ".txt";
     }
 
     /// <summary>
@@ -199,17 +205,14 @@ public static class FileRuntime
     /// </summary>
     public static void CloseAll()
     {
-        foreach (var writer in _openFiles.Values)
-        {
-            writer.Flush();
-            writer.Close();
-        }
-        _openFiles.Clear();
+        _manager?.Dispose();
+        _manager = null;
+        _lastStatus.Clear();
+        _afterAdvancingFiles.Clear();
+    }
 
-        foreach (var reader in _inputFiles.Values)
-            reader.Close();
-        _inputFiles.Clear();
-        _atEnd.Clear();
-        _assignTargets.Clear();
+    private static void EnsureManager()
+    {
+        _manager ??= new CobolFileManager();
     }
 }
