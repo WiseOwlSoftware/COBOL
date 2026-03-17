@@ -1638,4 +1638,55 @@ public static class PicRuntime
         for (int i = 0; i < length; i++)
             area[offset + i] = i < copyLen ? (byte)value[i] : (byte)' ';
     }
+
+    // ══════════════════════════════════════════════════════════
+    // CLASS CONDITIONS (IS NUMERIC, IS ALPHABETIC, etc.)
+    // ══════════════════════════════════════════════════════════
+
+    public static bool IsNumericClass(byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c >= '0' && c <= '9') continue;
+            if (c == '+' || c == '-') continue;
+            if (c == '.') continue;
+            return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (!char.IsLetter(c)) return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticLowerClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c < 'a' || c > 'z') return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticUpperClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c < 'A' || c > 'Z') return false;
+        }
+        return true;
+    }
 }

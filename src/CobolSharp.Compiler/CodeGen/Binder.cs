@@ -993,6 +993,13 @@ public sealed class Binder
 
     private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
     {
+        // Class condition: IS NUMERIC, IS ALPHABETIC, etc.
+        if (cond is BoundClassConditionExpression cc)
+        {
+            LowerClassCondition(cc, result, block);
+            return;
+        }
+
         // Level-88 condition name: expand to parent == val1 OR parent == val2 ...
         if (cond is BoundConditionNameExpression cn)
         {
@@ -1167,6 +1174,31 @@ public sealed class Binder
             BoundBinaryOperatorKind.GreaterOrEqual => BoundBinaryOperatorKind.LessOrEqual,
             _ => op // Equal, NotEqual are symmetric
         };
+    }
+
+    // ── Class condition (IS NUMERIC, IS ALPHABETIC, etc.) ──
+
+    private void LowerClassCondition(BoundClassConditionExpression cc, IrValue result, IrBasicBlock block)
+    {
+        if (cc.Subject is not BoundIdentifierExpression id)
+            throw new InvalidOperationException("Class condition subject must be a data item");
+
+        var loc = _semantic.GetStorageLocation(id.Symbol);
+        if (!loc.HasValue)
+            throw new InvalidOperationException($"Cannot resolve storage for {id.Symbol.Name}");
+
+        var tmp = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrClassCondition(loc.Value, (int)cc.ClassKind, tmp));
+
+        if (cc.IsNegated)
+        {
+            block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Not));
+        }
+        else
+        {
+            // Copy tmp to result
+            block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Or));
+        }
     }
 
     // ── Level-88 condition name ──

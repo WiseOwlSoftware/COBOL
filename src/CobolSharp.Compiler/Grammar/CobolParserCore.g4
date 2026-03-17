@@ -1599,7 +1599,15 @@ relationalOperand
     ;
 
 relationalExpression
-    : relationalOperand ( relationalOperator relationalOperand )?
+    : relationalOperand IS? NOT? className                         // class condition
+    | relationalOperand ( relationalOperator relationalOperand )?  // existing relational + bare operand
+    ;
+
+className
+    : NUMERIC
+    | ALPHABETIC
+    | ALPHABETIC_LOWER
+    | ALPHABETIC_UPPER
     ;
 
 relationalOperator

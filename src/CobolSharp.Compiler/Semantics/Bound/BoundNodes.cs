@@ -115,6 +115,33 @@ public sealed class BoundBinaryExpression : BoundExpression
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
 }
 
+// ── Class conditions (IS NUMERIC, IS ALPHABETIC, etc.) ──
+
+public enum ClassConditionKind
+{
+    Numeric,
+    Alphabetic,
+    AlphabeticLower,
+    AlphabeticUpper,
+}
+
+public sealed class BoundClassConditionExpression : BoundExpression
+{
+    public BoundExpression Subject { get; }
+    public ClassConditionKind ClassKind { get; }
+    public bool IsNegated { get; }
+
+    public BoundClassConditionExpression(BoundExpression subject, ClassConditionKind classKind, bool isNegated)
+        : base(CobolCategory.Unknown)
+    {
+        Subject = subject;
+        ClassKind = classKind;
+        IsNegated = isNegated;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression; // reuse
+}
+
 /// <summary>
 /// A level-88 condition name test: expands to parent = value1 OR parent = value2 ...
 /// </summary>

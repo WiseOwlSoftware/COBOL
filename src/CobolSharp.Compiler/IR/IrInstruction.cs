@@ -524,6 +524,23 @@ public sealed class IrComputeStore : IrInstruction
     }
 }
 
+/// <summary>
+/// Class condition: IS NUMERIC, IS ALPHABETIC, etc.
+/// Calls PicRuntime.IsNumericClass / IsAlphabeticClass / etc.
+/// </summary>
+public sealed class IrClassCondition : IrInstruction
+{
+    public CodeGen.StorageLocation Subject { get; }
+    public int ClassKind { get; }  // ClassConditionKind enum value
+
+    public IrClassCondition(CodeGen.StorageLocation subject, int classKind, IrValue result)
+    {
+        Subject = subject;
+        ClassKind = classKind;
+        Result = result;
+    }
+}
+
 public sealed class IrPicCompare : IrInstruction
 {
     public CodeGen.StorageLocation Left { get; }

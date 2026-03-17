@@ -1581,6 +1581,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitRelationalExpression([NotNull] CobolParserCore.RelationalExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.className"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassName([NotNull] CobolParserCore.ClassNameContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalOperator"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

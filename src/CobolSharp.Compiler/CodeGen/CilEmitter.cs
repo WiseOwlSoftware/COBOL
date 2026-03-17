@@ -595,6 +595,10 @@ public sealed class CilEmitter
                 EmitPicDivideLiteral(il, divLit);
                 break;
 
+            case IrClassCondition classInst:
+                EmitClassCondition(il, classInst, getLocal);
+                break;
+
             case IrPicCompare cmp:
                 EmitPicCompare(il, cmp, getLocal);
                 break;
@@ -1098,6 +1102,46 @@ public sealed class CilEmitter
                         typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitClassCondition(ILProcessor il, IrClassCondition inst,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLoadBackingArray(il, inst.Subject.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Subject.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Subject.Length));
+
+        var kind = (Semantics.Bound.ClassConditionKind)inst.ClassKind;
+        string methodName = kind switch
+        {
+            Semantics.Bound.ClassConditionKind.Numeric => "IsNumericClass",
+            Semantics.Bound.ClassConditionKind.Alphabetic => "IsAlphabeticClass",
+            Semantics.Bound.ClassConditionKind.AlphabeticLower => "IsAlphabeticLowerClass",
+            Semantics.Bound.ClassConditionKind.AlphabeticUpper => "IsAlphabeticUpperClass",
+            _ => throw new InvalidOperationException($"Unknown class condition: {kind}")
+        };
+
+        // IsNumericClass takes PicDescriptor; others don't
+        System.Reflection.MethodInfo method;
+        if (kind == Semantics.Bound.ClassConditionKind.Numeric)
+        {
+            EmitLoadPicDescriptor(il, inst.Subject.Pic);
+            method = typeof(Runtime.PicRuntime).GetMethod(methodName,
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!;
+        }
+        else
+        {
+            method = typeof(Runtime.PicRuntime).GetMethod(methodName,
+                new[] { typeof(byte[]), typeof(int), typeof(int) })!;
+        }
+
+        il.Append(il.Create(OpCodes.Call, _module.ImportReference(method)));
+
+        if (inst.Result.HasValue)
+        {
+            var resLocal = getLocal(inst.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
     }
 
     private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,

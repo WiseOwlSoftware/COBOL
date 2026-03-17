@@ -1462,4 +1462,75 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("YES", stdout);
     }
+
+    [Fact]
+    public void ClassCondition_IsNumeric()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CLSNUM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(5) VALUE "12345".
+            01 WS-B PIC X(5) VALUE "12A45".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A IS NUMERIC
+                    DISPLAY "A-NUM"
+                ELSE
+                    DISPLAY "A-NOT"
+                END-IF.
+                IF WS-B IS NUMERIC
+                    DISPLAY "B-NUM"
+                ELSE
+                    DISPLAY "B-NOT"
+                END-IF.
+                IF WS-B IS NOT NUMERIC
+                    DISPLAY "B-NOTNUM"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("A-NUM", lines[0]);
+        Assert.Equal("B-NOT", lines[1]);
+        Assert.Equal("B-NOTNUM", lines[2]);
+    }
+
+    [Fact]
+    public void ClassCondition_IsAlphabetic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CLSALPHA.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(5) VALUE "ABCDE".
+            01 WS-B PIC X(5) VALUE "abcde".
+            01 WS-C PIC X(5) VALUE "AB1DE".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A IS ALPHABETIC
+                    DISPLAY "A-ALPHA"
+                END-IF.
+                IF WS-A IS ALPHABETIC-UPPER
+                    DISPLAY "A-UPPER"
+                END-IF.
+                IF WS-B IS ALPHABETIC-LOWER
+                    DISPLAY "B-LOWER"
+                END-IF.
+                IF WS-C IS NOT ALPHABETIC
+                    DISPLAY "C-NOTALPHA"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("A-ALPHA", lines[0]);
+        Assert.Equal("A-UPPER", lines[1]);
+        Assert.Equal("B-LOWER", lines[2]);
+        Assert.Equal("C-NOTALPHA", lines[3]);
+    }
 }

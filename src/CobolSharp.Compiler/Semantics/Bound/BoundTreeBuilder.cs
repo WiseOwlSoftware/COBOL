@@ -1032,6 +1032,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         var operands = ctx.relationalOperand();
         var relOp = ctx.relationalOperator();
+        var classNameCtx = ctx.className();
+
+        // Class condition: operand IS? NOT? className
+        if (classNameCtx != null && operands.Length >= 1)
+        {
+            var subject = BindRelationalOperand(operands[0]);
+            bool isNegated = ctx.NOT() != null;
+            var kind = classNameCtx.GetText().ToUpperInvariant() switch
+            {
+                "NUMERIC" => ClassConditionKind.Numeric,
+                "ALPHABETIC" => ClassConditionKind.Alphabetic,
+                "ALPHABETIC-LOWER" => ClassConditionKind.AlphabeticLower,
+                "ALPHABETIC-UPPER" => ClassConditionKind.AlphabeticUpper,
+                _ => throw new InvalidOperationException($"Unknown class condition: {classNameCtx.GetText()}")
+            };
+            return new BoundClassConditionExpression(subject, kind, isNegated);
+        }
 
         if (operands.Length == 0)
             return new BoundLiteralExpression(true, CobolCategory.Unknown);

@@ -120,6 +120,9 @@ XML         : 'XML' ;
 
 ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
+ALPHABETIC       : 'ALPHABETIC' ;
+ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;
+ALPHABETIC_UPPER : 'ALPHABETIC-UPPER' ;
 ADVANCING   : 'ADVANCING' ;
 AFTER       : 'AFTER' ;
 ALL         : 'ALL' ;
@@ -193,6 +196,7 @@ METHOD      : 'METHOD' ;
 MODE        : 'MODE' ;
 NEXT        : 'NEXT' ;
 NOT         : 'NOT' ;
+NUMERIC     : 'NUMERIC' ;
 NULL_       : 'NULL' ;
 OCCURS      : 'OCCURS' ;
 OF          : 'OF' ;
