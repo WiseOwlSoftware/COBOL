@@ -6,10 +6,10 @@ set -e
 echo "=== Building ==="
 dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj -v quiet
 
-echo "=== Unit tests (99 expected) ==="
+echo "=== Unit tests (119 expected) ==="
 dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --verbosity quiet
 
-echo "=== Integration tests (30 pass, 7 skip expected) ==="
+echo "=== Integration tests (60 pass, 6 skip expected) ==="
 dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --verbosity quiet
 
 echo "=== NIST regression ==="

@@ -344,7 +344,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("00006", stdout);
     }
 
-    [Fact(Skip = "EVALUATE statement not yet lowered to CIL")]
+    [Fact]
     public void EvaluateStatement_SelectsCorrectBranch()
     {
         var (success, stdout, stderr) = CompileAndRun("""
