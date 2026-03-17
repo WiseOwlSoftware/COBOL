@@ -38,6 +38,14 @@ public static class PicRuntime
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+
+        // ISO §14.19.4: when moving to an unsigned numeric DISPLAY target,
+        // the sign is not preserved; the magnitude is stored.
+        if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
+        {
+            value = Math.Abs(value);
+        }
+
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
     }
@@ -59,6 +67,9 @@ public static class PicRuntime
     /// </summary>
     public static string FormatNumericEdited(decimal value, PicDescriptor pic)
     {
+        if (pic.EditPattern != null)
+            return FormatByEditPattern(value, pic);
+
         if (pic.BlankWhenZero && value == 0m)
             return new string(' ', pic.StorageLength);
 
@@ -156,12 +167,257 @@ public static class PicRuntime
         return new string(chars);
     }
 
+    private static string FormatByEditPattern(decimal value, PicDescriptor pic)
+    {
+        string pattern = pic.EditPattern!;
+        bool negative = value < 0m;
+        decimal absValue = Math.Abs(value);
+
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (scale < 0) scale = 0;
+        decimal scaled = absValue * Pow10(scale);
+        long intValue = (long)scaled;
+        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        if (digits.Length < pic.TotalDigits)
+            digits = digits.PadLeft(pic.TotalDigits, '0');
+        else if (digits.Length > pic.TotalDigits)
+            digits = digits.Substring(digits.Length - pic.TotalDigits);
+
+        // Pre-scan for sign symbols so we can distinguish fixed vs floating
+        int plusCount = 0;
+        int minusCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == '+') plusCount++;
+            else if (p == '-') minusCount++;
+        }
+
+        // Single '-' and no '+' → fixed sign position (e.g. PIC -9(9).9(9))
+        int fixedMinusIndex = -1;
+        if (minusCount == 1 && plusCount == 0)
+        {
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (char.ToUpperInvariant(pattern[i]) == '-')
+                {
+                    fixedMinusIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Pass 1: Fill digit positions right-to-left, place insertion chars
+        var output = new char[pattern.Length];
+        int digitIdx = digits.Length - 1;
+
+        for (int i = pattern.Length - 1; i >= 0; i--)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            switch (p)
+            {
+                case '9':
+                case 'Z':
+                case '*':
+                case '+':
+                case '-':
+                case '$':
+                    if (i == fixedMinusIndex && p == '-')
+                    {
+                        // Fixed sign: do not consume a digit here
+                        output[i] = ' ';
+                    }
+                    else
+                    {
+                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    }
+                    break;
+
+                case '.':
+                    output[i] = '.';
+                    break;
+
+                case ',':
+                    output[i] = ',';
+                    break;
+
+                case 'B':
+                    output[i] = ' ';
+                    break;
+
+                case '/':
+                    output[i] = '/';
+                    break;
+
+                case '0':
+                    output[i] = '0';
+                    break;
+
+                case 'C': // CR
+                    if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'R')
+                    {
+                        output[i] = negative ? 'C' : ' ';
+                        output[i + 1] = negative ? 'R' : ' ';
+                    }
+                    else output[i] = pattern[i];
+                    break;
+
+                case 'R': // second char of CR — already handled
+                    if (i > 0 && char.ToUpperInvariant(pattern[i - 1]) == 'C')
+                        break;
+                    output[i] = pattern[i];
+                    break;
+
+                case 'D': // DB
+                    if (i + 1 < pattern.Length && char.ToUpperInvariant(pattern[i + 1]) == 'B')
+                    {
+                        output[i] = negative ? 'D' : ' ';
+                        output[i + 1] = negative ? 'B' : ' ';
+                    }
+                    else output[i] = pattern[i];
+                    break;
+
+                default:
+                    output[i] = pattern[i];
+                    break;
+            }
+        }
+
+        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols
+        bool suppressing = true;
+        for (int i = 0; i < pattern.Length && suppressing; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            switch (p)
+            {
+                case 'Z':
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
+                    break;
+
+                case '*':
+                    if (output[i] == '0') output[i] = '*';
+                    else suppressing = false;
+                    break;
+
+                case '+':
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
+                    break;
+
+                case '-':
+                    if (i == fixedMinusIndex)
+                        break; // Fixed sign does not participate in floating suppression
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
+                    break;
+
+                case '$':
+                    if (output[i] == '0') output[i] = ' ';
+                    else suppressing = false;
+                    break;
+
+                case ',':
+                    output[i] = ' ';
+                    break;
+
+                case '9':
+                    suppressing = false;
+                    break;
+
+                case '.':
+                    suppressing = false;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // Handle floating sign symbols: find the rightmost suppressed +/- and place sign there
+        bool hasFloatingPlus = plusCount > 0 && (plusCount + minusCount) > 1;
+        bool hasFloatingMinus = minusCount > 0 && (plusCount + minusCount) > 1;
+
+        if (hasFloatingPlus)
+        {
+            int signPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '+' && output[i] == ' ')
+                    signPos = i;
+                else if (p == '+' && output[i] != ' ')
+                    break;
+            }
+            if (signPos >= 0)
+                output[signPos] = negative ? '-' : '+';
+        }
+        else if (hasFloatingMinus)
+        {
+            int signPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '-' && i != fixedMinusIndex && output[i] == ' ')
+                    signPos = i;
+                else if (p == '-' && i != fixedMinusIndex && output[i] != ' ')
+                    break;
+            }
+            if (signPos >= 0)
+                output[signPos] = negative ? '-' : ' ';
+        }
+
+        // Handle floating $: place '$' at rightmost suppressed $ position
+        int dollarCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            if (char.ToUpperInvariant(pattern[i]) == '$') dollarCount++;
+        }
+
+        if (dollarCount > 1)
+        {
+            int dollarPos = -1;
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (p == '$' && output[i] == ' ')
+                    dollarPos = i;
+                else if (p == '$' && output[i] != ' ')
+                    break;
+            }
+            if (dollarPos >= 0)
+                output[dollarPos] = '$';
+        }
+        else if (dollarCount == 1)
+        {
+            // Single $ is a fixed currency symbol, not floating
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                if (char.ToUpperInvariant(pattern[i]) == '$')
+                {
+                    output[i] = '$';
+                    break;
+                }
+            }
+        }
+
+        // Fixed leading '-' (e.g. PIC -9(9).9(9)): show '-' only for negative, space for positive
+        if (fixedMinusIndex >= 0)
+        {
+            output[fixedMinusIndex] = negative ? '-' : ' ';
+        }
+
+        return new string(output);
+    }
+
     public static void MoveNumericToAlphanumeric(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
         decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        // Per ISO §14.19.4: numeric → alphanumeric strips sign (absolute value only)
+        value = Math.Abs(value);
         int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
         string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
         MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
@@ -244,6 +500,154 @@ public static class PicRuntime
     {
         MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Alphanumeric → Numeric
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericToNumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: NumericEdited → Numeric
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveNumericEditedToNumeric(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Replace("*", "").Trim();
+
+        bool negative = raw.Contains('-');
+        raw = raw.Replace("-", "").Replace("+", "");
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        if (negative) value = -value;
+
+        // ISO §14.19.4: unsigned target strips sign
+        if (!dstPic.IsSigned && dstPic.IsNumeric && !dstPic.HasEditing)
+        {
+            value = Math.Abs(value);
+        }
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Alphanumeric → NumericEdited
+    // ══════════════════════════════════════════════════════════
+
+    public static void MoveAlphanumericToNumericEdited(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        string formatted = FormatNumericEdited(value, dstPic);
+        MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // MOVE: Figurative constants (SPACE, ZERO, HIGH-VALUE, etc.)
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// MOVE figurative-constant TO field. Fills the entire destination field
+    /// with the appropriate byte value. For numeric destinations with ZERO,
+    /// encodes numeric zero instead.
+    /// </summary>
+    public static void MoveFigurativeToField(
+        byte[] dstArea, int dstOffset, int dstLength,
+        PicDescriptor dstPic, int figurativeKindInt)
+    {
+        var kind = (FigurativeKind)figurativeKindInt;
+
+        if (dstPic.IsNumeric && kind == FigurativeKind.Zero)
+        {
+            EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
+            return;
+        }
+
+        // Alphanumeric or non-zero figurative: fill entire field with figurative byte
+        byte b = kind switch
+        {
+            FigurativeKind.Zero => (byte)'0',
+            FigurativeKind.Space => (byte)' ',
+            FigurativeKind.HighValue => 0xFF,
+            FigurativeKind.LowValue => 0x00,
+            FigurativeKind.Quote => (byte)'"',
+            FigurativeKind.Null => 0x00,
+            _ => (byte)' '
+        };
+        for (int i = 0; i < dstLength; i++)
+            dstArea[dstOffset + i] = b;
+    }
+
+    /// <summary>
+    /// MOVE ALL "pattern" TO field. Repeats the pattern to fill the entire field.
+    /// </summary>
+    public static void MoveAllLiteralToField(
+        byte[] dstArea, int dstOffset, int dstLength,
+        byte[] pattern)
+    {
+        if (pattern.Length == 0)
+        {
+            for (int i = 0; i < dstLength; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+            return;
+        }
+        int pos = 0;
+        for (int i = 0; i < dstLength; i++)
+        {
+            dstArea[dstOffset + i] = pattern[pos];
+            if (++pos >= pattern.Length) pos = 0;
+        }
     }
 
     // ══════════════════════════════════════════════════════════
@@ -395,6 +799,23 @@ public static class PicRuntime
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest + accumulated;
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
+        if (WouldOverflow(value, destPic))
+        {
+            status.SizeError = true;
+            return;
+        }
+        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+    }
+
+    /// <summary>
+    /// GIVING form: store accumulated value directly into target (target = accumulated).
+    /// Does NOT add to the target's current value.
+    /// </summary>
+    public static void MoveAccumulatedToField(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal accumulated, int roundingMode, ref ArithmeticStatus status)
+    {
+        decimal value = ApplyScalingAndRounding(accumulated, destPic, roundingMode);
         if (WouldOverflow(value, destPic))
         {
             status.SizeError = true;
@@ -715,16 +1136,49 @@ public static class PicRuntime
         s = s.Trim();
         if (string.IsNullOrEmpty(s)) return 0m;
 
-        // Check for sign
+        // Extract sign based on SignStorageKind
         bool negative = false;
-        if (s[0] == '-')
+        switch (pic.SignStorage)
         {
-            negative = true;
-            s = s[1..].Trim();
-        }
-        else if (s[0] == '+')
-        {
-            s = s[1..].Trim();
+            case SignStorageKind.TrailingSeparate:
+                if (s.Length > 0 && s[^1] == '-') { negative = true; s = s[..^1].Trim(); }
+                else if (s.Length > 0 && s[^1] == '+') { s = s[..^1].Trim(); }
+                break;
+
+            case SignStorageKind.LeadingSeparate:
+                if (s[0] == '-') { negative = true; s = s[1..].Trim(); }
+                else if (s[0] == '+') { s = s[1..].Trim(); }
+                break;
+
+            case SignStorageKind.TrailingOverpunch:
+            {
+                // Last byte is an overpunched digit encoding the sign
+                if (s.Length > 0)
+                {
+                    var (digit, neg) = DecodeOverpunch((byte)s[^1]);
+                    negative = neg;
+                    s = s[..^1] + digit;
+                }
+                break;
+            }
+
+            case SignStorageKind.LeadingOverpunch:
+            {
+                // First byte is an overpunched digit encoding the sign
+                if (s.Length > 0)
+                {
+                    var (digit, neg) = DecodeOverpunch((byte)s[0]);
+                    negative = neg;
+                    s = digit + s[1..];
+                }
+                break;
+            }
+
+            default:
+                // Unsigned or None — try leading sign as fallback
+                if (s[0] == '-') { negative = true; s = s[1..].Trim(); }
+                else if (s[0] == '+') { s = s[1..].Trim(); }
+                break;
         }
 
         if (string.IsNullOrEmpty(s)) return 0m;
@@ -825,6 +1279,10 @@ public static class PicRuntime
             scaled /= Pow10(pic.TrailingScaleDigits);
 
         long raw = (long)decimal.Truncate(scaled);
+
+        // Unsigned field: store absolute value (COBOL strips sign on MOVE to unsigned)
+        if (!pic.IsSigned && raw < 0)
+            raw = -raw;
 
         switch (length)
         {
@@ -941,19 +1399,51 @@ public static class PicRuntime
             area[offset + i] = (byte)'0';
 
         // Sign handling
-        if (pic.IsSigned && isNegative)
+        if (pic.IsSigned && separateSign)
         {
-            if (separateSign)
-            {
-                int signPos = pic.SignStorage == SignStorageKind.LeadingSeparate ? 0 : length - 1;
-                area[offset + signPos] = (byte)'-';
-            }
-            else
-            {
-                // Simple leading sign for overpunch (refine later)
-                area[offset] = (byte)'-';
-            }
+            int signPos = pic.SignStorage == SignStorageKind.LeadingSeparate ? 0 : length - 1;
+            area[offset + signPos] = isNegative ? (byte)'-' : (byte)'+';
         }
+        else if (pic.IsSigned && !separateSign)
+        {
+            // Overpunch: encode sign into the zone nibble of a digit
+            int overpunchPos = pic.SignStorage == SignStorageKind.LeadingOverpunch
+                ? offset + digitStart        // first digit
+                : offset + length - 1;       // last digit (default: trailing)
+            byte digit = area[overpunchPos];
+            area[overpunchPos] = EncodeOverpunch(digit, isNegative);
+        }
+    }
+
+    // ── Overpunch tables (IBM ASCII convention) ──
+    // Positive: 0→'{', 1→'A', 2→'B', ... 9→'I'
+    // Negative: 0→'}', 1→'J', 2→'K', ... 9→'R'
+    private static readonly char[] PositiveOverpunch = { '{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I' };
+    private static readonly char[] NegativeOverpunch = { '}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R' };
+
+    private static byte EncodeOverpunch(byte asciiDigit, bool negative)
+    {
+        int d = asciiDigit - '0';
+        if (d < 0 || d > 9) d = 0;
+        return (byte)(negative ? NegativeOverpunch[d] : PositiveOverpunch[d]);
+    }
+
+    /// <summary>
+    /// Decode an overpunched byte back to a digit (0-9) and sign.
+    /// Returns (digit char, isNegative).
+    /// </summary>
+    private static (char digit, bool negative) DecodeOverpunch(byte b)
+    {
+        char c = (char)b;
+        // Positive: { A B C D E F G H I
+        if (c == '{') return ('0', false);
+        if (c >= 'A' && c <= 'I') return ((char)('1' + (c - 'A')), false);
+        // Negative: } J K L M N O P Q R
+        if (c == '}') return ('0', true);
+        if (c >= 'J' && c <= 'R') return ((char)('1' + (c - 'J')), true);
+        // Plain digit (unsigned or already decoded)
+        if (c >= '0' && c <= '9') return (c, false);
+        return ('0', false);
     }
 
     private static void EncodeComp3(byte[] area, int offset, int length, decimal value)
@@ -982,14 +1472,30 @@ public static class PicRuntime
 
     private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
     {
-        // Total fraction scale includes leading P digits (e.g. PIC P(4)9 has scale 5)
-        int scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-        if (scale < 0) scale = 0;
-        decimal factor = 1m;
-        for (int i = 0; i < scale; i++) factor *= 10m;
+        // Fraction scale: FractionDigits + leading P (e.g., PIC P(4)9 has scale 5)
+        int fractionScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+        if (fractionScale < 0) fractionScale = 0;
+
+        // Trailing P: field stores multiples of 10^TrailingScaleDigits
+        // e.g., PIC S99P → TrailingScaleDigits=1 → values are multiples of 10
+        int trailingP = destPic.TrailingScaleDigits;
+
+        if (trailingP > 0)
+        {
+            // Round or truncate to the nearest 10^trailingP
+            decimal pFactor = Pow10(trailingP);
+            return roundingMode switch
+            {
+                1 => Math.Round(value / pFactor, 0, MidpointRounding.AwayFromZero) * pFactor,
+                _ => decimal.Truncate(value / pFactor) * pFactor
+            };
+        }
+
+        // Standard fraction rounding
+        decimal factor = Pow10(fractionScale);
         return roundingMode switch
         {
-            1 => Math.Round(value, scale, MidpointRounding.AwayFromZero),
+            1 => Math.Round(value, fractionScale, MidpointRounding.AwayFromZero),
             _ => decimal.Truncate(value * factor) / factor
         };
     }
@@ -1023,7 +1529,8 @@ public static class PicRuntime
             case UsageKind.Comp:
             case UsageKind.Binary:
             {
-                // Scale to integer (include leading P scaling)
+                // COBOL spec: COMP overflow is based on PIC digit count, not binary capacity.
+                // PIC 99 COMP holds 0-99 (2 digits), not 0-32767 (short.MaxValue).
                 decimal scaled = absValue;
                 int compScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
                 if (compScale > 0)
@@ -1032,12 +1539,8 @@ public static class PicRuntime
                 try { raw = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
 
-                return destPic.StorageLength switch
-                {
-                    2 => raw > short.MaxValue || raw < short.MinValue,
-                    4 => raw > int.MaxValue || raw < int.MinValue,
-                    _ => false // 8-byte long is the max we support
-                };
+                int digits = CountDigits(Math.Abs(raw));
+                return digits > destPic.TotalDigits;
             }
 
             case UsageKind.Comp3:
@@ -1110,6 +1613,16 @@ public static class PicRuntime
     public static string GetDisplayString(
         byte[] area, int offset, int length, PicDescriptor pic)
     {
+        if (pic.Category == CobolCategory.NumericEdited)
+        {
+            // Numeric-edited fields are already formatted — return raw bytes
+            return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        }
+        if (pic.Category == CobolCategory.Numeric && pic.Usage == UsageKind.Display)
+        {
+            // DISPLAY numeric: show the raw field content (preserves sign format)
+            return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        }
         if (pic.Category.IsNumericLike())
         {
             decimal value = DecodeNumeric(area, offset, length, pic);
@@ -1124,5 +1637,56 @@ public static class PicRuntime
         int copyLen = Math.Min(value.Length, length);
         for (int i = 0; i < length; i++)
             area[offset + i] = i < copyLen ? (byte)value[i] : (byte)' ';
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // CLASS CONDITIONS (IS NUMERIC, IS ALPHABETIC, etc.)
+    // ══════════════════════════════════════════════════════════
+
+    public static bool IsNumericClass(byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c >= '0' && c <= '9') continue;
+            if (c == '+' || c == '-') continue;
+            if (c == '.') continue;
+            return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (!char.IsLetter(c)) return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticLowerClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c < 'a' || c > 'z') return false;
+        }
+        return true;
+    }
+
+    public static bool IsAlphabeticUpperClass(byte[] area, int offset, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            char c = (char)area[offset + i];
+            if (c == ' ') continue;
+            if (c < 'A' || c > 'Z') return false;
+        }
+        return true;
     }
 }

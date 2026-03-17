@@ -20,6 +20,12 @@ public sealed class Compilation
     /// <summary>Add a directory to search for COPY copybooks.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
+    /// <summary>
+    /// When set, enables NIST preprocessing: replaces XXXXX### placeholders
+    /// with CobolSharp-appropriate values. The value is the test name (e.g., "NC101A").
+    /// </summary>
+    public string? NistTestName { get; set; }
+
     public CompilationResult Compile(string sourcePath, string? outputPath = null)
     {
         var diagnostics = new DiagnosticBag();
@@ -30,6 +36,10 @@ public sealed class Compilation
 
         // Detect and normalize reference format (fixed-form → free-form)
         string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
+
+        // NIST preprocessing: replace XXXXX### site-specific placeholders
+        if (NistTestName != null)
+            normalizedText = NistPreprocessor.Process(normalizedText, NistTestName);
 
         // Expand COPY statements
         var copyProcessor = new CopyProcessor(_copySearchPaths);
@@ -65,6 +75,7 @@ public sealed class Compilation
 
         // Phase 3a: Resolve deferred REDEFINES (requires all data items registered)
         semanticBuilder.ResolveRedefines();
+        semanticBuilder.PropagateGroupSignClauses();
 
         // Phase 3b: Semantic analysis — Pass 2: reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
@@ -258,7 +269,7 @@ public sealed class Compilation
             {
                 // REDEFINES shares the target's offset and area, but uses its own PIC
                 int size = item.IsElementary ? ComputeFieldSize(item) : targetLoc.Value.Length;
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size);
                 var loc = new CodeGen.StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic);
                 model.RegisterStorageLocation(item, loc);
                 RegisterValue(model, item);
@@ -279,12 +290,14 @@ public sealed class Compilation
         if (item.IsElementary)
         {
             // Elementary: allocate bytes from PIC
-            int size = ComputeFieldSize(item);
-            var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, size);
-            var loc = new CodeGen.StorageLocation(area, offset, size, pic);
+            int elementSize = ComputeFieldSize(item);
+            item.ElementSize = elementSize;
+            int totalSize = elementSize * item.OccursCount;
+            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize);
+            var loc = new CodeGen.StorageLocation(area, offset, totalSize, pic);
             model.RegisterStorageLocation(item, loc);
             RegisterValue(model, item);
-            offset += size;
+            offset += totalSize;
         }
         else
         {
@@ -296,17 +309,21 @@ public sealed class Compilation
                 foreach (var child in item.Children)
                     LayoutItem(child, area, ref offset, model);
 
-                // Group spans all children
-                int groupSize = offset - groupStart;
-                if (groupSize <= 0) groupSize = 1;
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, groupSize);
+                // Group spans all children; OCCURS multiplies the total
+                int childrenSize = offset - groupStart;
+                if (childrenSize <= 0) childrenSize = 1;
+                item.ElementSize = childrenSize;
+                int groupSize = childrenSize * item.OccursCount;
+                if (item.OccursCount > 1)
+                    offset = groupStart + groupSize; // Advance past all occurrences
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize);
                 var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
                 model.RegisterStorageLocation(item, loc);
             }
             else
             {
                 // Empty group (no children found) — allocate minimum
-                var pic = CodeGen.PicDescriptorFactory.FromDataSymbol(item, 1);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, 1);
                 var loc = new CodeGen.StorageLocation(area, offset, 1, pic);
                 model.RegisterStorageLocation(item, loc);
                 offset += 1;
@@ -318,6 +335,15 @@ public sealed class Compilation
 
     private static void RegisterValue(Semantics.SemanticModel model, Semantics.DataSymbol data)
     {
+        // Figurative constant VALUE (SPACE, HIGH-VALUE, etc.): register for field-filling init
+        if (data.FigurativeInit.HasValue)
+        {
+            model.RegisterFigurativeInit(data, data.FigurativeInit.Value);
+            // For ZERO and SPACE, also register the normal InitialValue path
+            // so numeric fields get correct numeric initialization
+            if (data.InitialValue == null) return;
+        }
+
         if (data.InitialValue == null) return;
 
         if (decimal.TryParse(data.InitialValue,
@@ -335,9 +361,27 @@ public sealed class Compilation
     private static int ComputeFieldSize(Semantics.DataSymbol data)
     {
         var pic = data.ResolvedType?.Pic;
-        if (pic != null && pic.Length > 0)
-            return pic.Length + (pic.IsSigned ? 1 : 0);
-        return 1;
+        if (pic == null || pic.Length <= 0) return 1;
+
+        int totalDigits = pic.IntegerDigits + pic.FractionDigits;
+
+        // COMP/BINARY: binary storage size based on digit count
+        if (data.Usage is Runtime.UsageKind.Comp or Runtime.UsageKind.Binary)
+            return totalDigits switch { <= 4 => 2, <= 9 => 4, _ => 8 };
+
+        // COMP-3/PACKED-DECIMAL: BCD packed (2 digits per byte + sign nibble)
+        if (data.Usage is Runtime.UsageKind.Comp3 or Runtime.UsageKind.PackedDecimal)
+            return (totalDigits + 2) / 2;
+
+        // COMP-1 (float) / COMP-2 (double)
+        if (data.Usage == Runtime.UsageKind.Comp1) return 4;
+        if (data.Usage == Runtime.UsageKind.Comp2) return 8;
+
+        // DISPLAY: digit length + sign byte (only for SEPARATE)
+        bool separateSign = data.ExplicitSignStorage is Runtime.SignStorageKind.LeadingSeparate
+            or Runtime.SignStorageKind.TrailingSeparate;
+        int signBytes = separateSign ? 1 : 0;
+        return pic.Length + signBytes;
     }
 
     private static string? ExtractProgramId(CobolParserCore.CompilationUnitContext tree)

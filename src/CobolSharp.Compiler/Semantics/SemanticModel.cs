@@ -62,6 +62,15 @@ public sealed class SemanticModel
 
     public IReadOnlyDictionary<DataSymbol, InitialValue> InitialValues => _initialValues;
 
+    // ── Figurative initial values (field-filling VALUE SPACE, HIGH-VALUE, etc.) ──
+
+    private readonly Dictionary<DataSymbol, int> _figurativeInitValues = new();
+
+    public void RegisterFigurativeInit(DataSymbol symbol, int figurativeKind)
+        => _figurativeInitValues[symbol] = figurativeKind;
+
+    public IReadOnlyDictionary<DataSymbol, int> FigurativeInitValues => _figurativeInitValues;
+
     // ── Parse node → symbol mapping (for binder lookups) ──
 
     private readonly Dictionary<object, Symbol> _nodeToSymbol = new();
@@ -114,4 +123,19 @@ public sealed class SemanticModel
     /// <summary>Resolve a file name.</summary>
     public FileSymbol? ResolveFile(string name)
         => Symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
+
+    /// <summary>Resolve a level-88 condition name.</summary>
+    public ConditionSymbol? ResolveConditionName(string name)
+        => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);
+
+    /// <summary>Find the FileSymbol whose FD record matches the given DataSymbol.</summary>
+    public FileSymbol? ResolveFileForRecord(DataSymbol record)
+    {
+        foreach (var sym in Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
+        {
+            if (sym.Record == record)
+                return sym;
+        }
+        return null;
+    }
 }

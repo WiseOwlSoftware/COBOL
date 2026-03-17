@@ -38,18 +38,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var paraSym = _semantic.ResolveParagraph(name);
         if (paraSym == null) return null;
 
-        var statements = new List<BoundStatement>();
-        foreach (var sentence in ctx.sentence())
+        var sentences = new List<BoundSentence>();
+        foreach (var sentenceCtx in ctx.sentence())
         {
-            foreach (var stmtCtx in sentence.statement())
+            var statements = new List<BoundStatement>();
+            foreach (var stmtCtx in sentenceCtx.statement())
             {
                 var bound = BindStatement(stmtCtx);
                 if (bound != null)
                     statements.Add(bound);
             }
+            if (statements.Count > 0)
+                sentences.Add(new BoundSentence(statements));
         }
 
-        _paragraphs.Add(new BoundParagraph(paraSym, statements));
+        _paragraphs.Add(new BoundParagraph(paraSym, sentences));
         return null;
     }
 
@@ -67,15 +70,31 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.goToStatement() is { } gt) return BindGoTo(gt);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
         if (ctx.gobackStatement() is { }) return new BoundStopStatement();
-        if (ctx.exitStatement() is { }) return new BoundExitStatement();
-        if (ctx.openStatement() is { }) return new BoundOpenStatement();
-        if (ctx.closeStatement() is { }) return new BoundCloseStatement();
+        if (ctx.exitStatement() is { } exitCtx)
+        {
+            if (exitCtx.PERFORM() != null)
+                return new BoundExitPerformStatement();
+            return new BoundExitStatement();
+        }
+        if (ctx.nextSentenceStatement() is { }) return new BoundNextSentenceStatement();
+        if (ctx.openStatement() is { } openCtx) return BindOpen(openCtx);
+        if (ctx.closeStatement() is { } closeCtx) return BindClose(closeCtx);
+        if (ctx.readStatement() is { } readCtx) return BindRead(readCtx);
         if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
         if (ctx.subtractStatement() is { } sub) return BindSubtract(sub);
         if (ctx.multiplyStatement() is { } mult) return BindMultiply(mult);
         if (ctx.divideStatement() is { } div) return BindDivide(div);
         if (ctx.computeStatement() is { } comp) return BindCompute(comp);
         if (ctx.evaluateStatement() is { } evalStmt) return BindEvaluate(evalStmt);
+        if (ctx.rewriteStatement() is { } rewriteCtx) return BindRewrite(rewriteCtx);
+        if (ctx.initializeStatement() is { } initCtx) return BindInitialize(initCtx);
+        if (ctx.setStatement() is { } setCtx) return BindSet(setCtx);
+        if (ctx.inspectStatement() is { } inspCtx) return BindInspect(inspCtx);
+        if (ctx.acceptStatement() is { } accCtx) return BindAccept(accCtx);
+        if (ctx.searchStatement() is { } searchCtx) return BindSearch(searchCtx);
+        if (ctx.searchAllStatement() is { } searchAllCtx) return BindSearchAll(searchAllCtx);
+        if (ctx.stringStatement() is { } stringCtx) return BindString(stringCtx);
+        if (ctx.unstringStatement() is { } unstringCtx) return BindUnstring(unstringCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -98,11 +117,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
             if (child is CobolParserCore.IdentifierContext idCtx)
             {
-                var sym = _semantic.ResolveData(idCtx.GetText());
-                if (sym != null)
-                    operands.Add(new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric));
-                else
-                    operands.Add(new BoundLiteralExpression(idCtx.GetText(), CobolCategory.Alphanumeric));
+                operands.Add(BindIdentifierWithSubscripts(idCtx));
             }
             else if (child is CobolParserCore.LiteralContext litCtx)
             {
@@ -231,7 +246,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return new BoundPerformStatement(paraSym, thruSym, times, untilCondition, varyingOpt);
     }
 
-    private BoundPerformVarying BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
+    private BoundPerformVarying? BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
     {
         // Build innermost AFTER clauses first, then chain outward
         BoundPerformVarying? inner = null;
@@ -242,8 +257,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             for (int i = afterClauses.Length - 1; i >= 0; i--)
             {
                 var afterCtx = afterClauses[i];
-                string afterId = afterCtx.identifier().GetText();
-                var afterSym = _semantic.ResolveData(afterId)!;
+                var afterExpr = BindIdentifierWithSubscripts(afterCtx.identifier());
+                var afterSym = ValidatePerformIndex(afterExpr);
+                if (afterSym == null) continue;
                 var afterExprs = afterCtx.arithmeticExpression();
                 var afterInit = BindFullExpression(afterExprs[0]);
                 var afterStep = BindFullExpression(afterExprs[1]);
@@ -253,14 +269,39 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         // Outer VARYING
-        string idName = ctx.identifier().GetText();
-        var indexSym = _semantic.ResolveData(idName)!;
+        var indexExpr = BindIdentifierWithSubscripts(ctx.identifier());
+        var indexSym = ValidatePerformIndex(indexExpr);
+        if (indexSym == null) return null;
         var arithExprs = ctx.arithmeticExpression();
         var initial = BindFullExpression(arithExprs[0]);  // FROM
         var step = BindFullExpression(arithExprs[1]);      // BY
         var untilCond = BindCondition(ctx.condition());
 
         return new BoundPerformVarying(indexSym, initial, step, untilCond, inner);
+    }
+
+    /// <summary>
+    /// Validate a PERFORM VARYING index expression: must be a non-subscripted
+    /// elementary numeric identifier. Returns the DataSymbol or null on failure.
+    /// </summary>
+    private DataSymbol? ValidatePerformIndex(BoundExpression indexExpr)
+    {
+        if (indexExpr is not BoundIdentifierExpression id)
+        {
+            // CS0860: PERFORM VARYING index must be an identifier
+            // (ref-mod or other expression not allowed)
+            return null;
+        }
+
+        if (id.IsSubscripted)
+        {
+            _diagnostics.ReportError("CS0861",
+                $"PERFORM VARYING index '{id.Symbol.Name}' must not be subscripted.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+        }
+
+        return id.Symbol;
     }
 
     // ── EVALUATE ──
@@ -342,9 +383,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // For EVALUATE TRUE, the WHEN item is a condition
             if (items.Length > 0 && items[0].condition() is { } condCtx)
                 return new BoundEvaluateConditionWhen(BindCondition(condCtx));
-            // Fallback: try as arithmetic expression (bare identifier → condition)
+            // Fallback: try as arithmetic expression (bare identifier → condition name)
             if (items.Length > 0 && items[0].arithmeticExpression().Length > 0)
-                return new BoundEvaluateConditionWhen(BindFullExpression(items[0].arithmeticExpression(0)));
+            {
+                var expr = BindFullExpression(items[0].arithmeticExpression(0));
+                // Check if the result resolves to a condition name
+                expr = TryResolveConditionName(expr);
+                return new BoundEvaluateConditionWhen(expr);
+            }
             return new BoundEvaluateValueCondition(
                 Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: true);
         }
@@ -394,8 +440,843 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var recordSym = _semantic.ResolveData(recordName);
         if (recordSym == null) return null;
 
-        // TODO: resolve file from record → FD relationship
-        return new BoundWriteStatement(null, recordSym, null);
+        // Resolve file from record → FD relationship
+        var fileSym = _semantic.ResolveFileForRecord(recordSym);
+
+        // Parse BEFORE/AFTER ADVANCING clause
+        int? advancingLines = null;
+        bool isAfterAdvancing = true;
+        var advCtx = ctx.writeBeforeAfter();
+        if (advCtx != null)
+        {
+            isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);
+            // Parse the advancing value — integer literal or PAGE
+            var intLit = advCtx.integerLiteral();
+            if (intLit != null)
+            {
+                advancingLines = int.Parse(intLit.GetText());
+            }
+            else
+            {
+                // Could be PAGE or an identifier — for PAGE, use a large value
+                var idCtx = advCtx.identifier();
+                if (idCtx != null && idCtx.IDENTIFIER().GetText().Equals("PAGE", StringComparison.OrdinalIgnoreCase))
+                    advancingLines = 0; // PAGE = no line advance, just form-feed (handled separately)
+                else
+                    advancingLines = 1; // Default: 1 line
+            }
+        }
+
+        return new BoundWriteStatement(fileSym, recordSym, null, advancingLines, isAfterAdvancing);
+    }
+
+    // ── OPEN ──
+
+    private BoundStatement BindOpen(CobolParserCore.OpenStatementContext ctx)
+    {
+        var results = new List<BoundStatement>();
+        foreach (var clause in ctx.openClause())
+        {
+            var modeCtx = clause.openMode();
+            var mode = modeCtx.GetText().ToUpperInvariant() switch
+            {
+                "INPUT" => OpenMode.Input,
+                "OUTPUT" => OpenMode.Output,
+                "EXTEND" => OpenMode.Extend,
+                _ => OpenMode.Output
+            };
+
+            var files = new List<FileSymbol>();
+            foreach (var idCtx in clause.identifier())
+            {
+                string name = idCtx.IDENTIFIER().GetText();
+                var fileSym = _semantic.ResolveFile(name);
+                if (fileSym != null)
+                    files.Add(fileSym);
+            }
+
+            if (files.Count > 0)
+                results.Add(new BoundOpenStatement(mode, files));
+        }
+
+        if (results.Count == 1) return results[0];
+        return results.Count > 0 ? results[0]
+            : new BoundOpenStatement(OpenMode.Output, Array.Empty<FileSymbol>());
+    }
+
+    // ── CLOSE ──
+
+    private BoundStatement BindClose(CobolParserCore.CloseStatementContext ctx)
+    {
+        var idListCtx = ctx.identifierList();
+        var files = new List<FileSymbol>();
+        if (idListCtx != null)
+        {
+            foreach (var idCtx in idListCtx.identifier())
+            {
+                string name = idCtx.IDENTIFIER().GetText();
+                var fileSym = _semantic.ResolveFile(name);
+                if (fileSym != null)
+                    files.Add(fileSym);
+            }
+        }
+        return new BoundCloseStatement(files);
+    }
+
+    // ── READ ──
+
+    private BoundStatement? BindRead(CobolParserCore.ReadStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+
+        string name = fileNameCtx.GetText();
+        var fileSym = _semantic.ResolveFile(name);
+        if (fileSym == null) return null;
+
+        // INTO clause
+        BoundIdentifierExpression? intoId = null;
+        var intoCtx = ctx.readInto();
+        if (intoCtx != null)
+        {
+            var intoExpr = BindIdentifierWithSubscripts(intoCtx.identifier());
+            intoId = intoExpr as BoundIdentifierExpression;
+        }
+
+        // AT END / NOT AT END
+        var atEnd = new List<BoundStatement>();
+        var notAtEnd = new List<BoundStatement>();
+        var atEndCtx = ctx.readAtEnd();
+        if (atEndCtx != null)
+        {
+            var impStmts = atEndCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+            {
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+            }
+            if (impStmts.Length >= 2)
+            {
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notAtEnd.Add(bound);
+                }
+            }
+        }
+
+        return new BoundReadStatement(fileSym, intoId, atEnd, notAtEnd);
+    }
+
+    // ── REWRITE ──
+
+    private BoundStatement? BindRewrite(CobolParserCore.RewriteStatementContext ctx)
+    {
+        var recordCtx = ctx.recordName();
+        if (recordCtx == null) return null;
+
+        string recordName = recordCtx.GetText();
+        var recordSym = _semantic.ResolveData(recordName);
+        if (recordSym == null) return null;
+
+        var fileSym = _semantic.ResolveFileForRecord(recordSym);
+        if (fileSym == null) return null;
+
+        return new BoundRewriteStatement(fileSym, recordSym);
+    }
+
+    // ── ACCEPT ──
+
+    private BoundStatement? BindAccept(CobolParserCore.AcceptStatementContext ctx)
+    {
+        var targetId = BindIdentifierWithSubscripts(ctx.identifier());
+        if (targetId is not BoundIdentifierExpression boundTarget) return null;
+
+        var sourceKind = AcceptSourceKind.None;
+        var sourceCtx = ctx.acceptSource();
+        if (sourceCtx != null)
+        {
+            if (sourceCtx.DATE() != null) sourceKind = AcceptSourceKind.Date;
+            else if (sourceCtx.TIME() != null) sourceKind = AcceptSourceKind.Time;
+            else if (sourceCtx.DAY_OF_WEEK() != null) sourceKind = AcceptSourceKind.DayOfWeek;
+            else if (sourceCtx.DAY() != null) sourceKind = AcceptSourceKind.Day;
+        }
+
+        return new BoundAcceptStatement(boundTarget, sourceKind);
+    }
+
+    // ── INSPECT ──
+
+    private BoundStatement? BindInspect(CobolParserCore.InspectStatementContext ctx)
+    {
+        var targetExpr = BindIdentifierWithSubscripts(ctx.identifier());
+        if (targetExpr is not BoundIdentifierExpression targetId) return null;
+
+        var tallying = new List<BoundInspectTallyingItem>();
+        var replacing = new List<BoundInspectReplacingItem>();
+        BoundInspectConverting? converting = null;
+
+        var tallyPhrase = ctx.inspectTallyingPhrase();
+        if (tallyPhrase != null)
+        {
+            foreach (var item in tallyPhrase.inspectTallyingItem())
+            {
+                var counterExpr = BindIdentifierWithSubscripts(item.identifier());
+                if (counterExpr is not BoundIdentifierExpression counterId) continue;
+
+                foreach (var forPhrase in item.inspectForPhrase())
+                {
+                    InspectTallyKind kind;
+                    string? pattern = null;
+
+                    if (forPhrase.CHARACTERS() != null)
+                    {
+                        kind = InspectTallyKind.Characters;
+                    }
+                    else if (forPhrase.LEADING() != null)
+                    {
+                        kind = InspectTallyKind.Leading;
+                        pattern = ExtractInspectPattern(forPhrase);
+                    }
+                    else
+                    {
+                        kind = InspectTallyKind.All;
+                        pattern = ExtractInspectPattern(forPhrase);
+                    }
+
+                    var region = BindInspectDelimiters(forPhrase.inspectDelimiters());
+                    tallying.Add(new BoundInspectTallyingItem(counterId, kind, pattern, region));
+                }
+            }
+        }
+
+        var replPhrase = ctx.inspectReplacingPhrase();
+        if (replPhrase != null)
+        {
+            foreach (var item in replPhrase.inspectReplacingItem())
+            {
+                InspectReplaceKind kind;
+                if (item.FIRST() != null) kind = InspectReplaceKind.First;
+                else if (item.LEADING() != null) kind = InspectReplaceKind.Leading;
+                else kind = InspectReplaceKind.All;
+
+                string pattern;
+                string replacement;
+
+                if (item.CHARACTERS() != null)
+                {
+                    // CHARACTERS BY x — replace every character
+                    pattern = "";
+                    replacement = ExtractStringValue(item.identifier(), item.literal());
+                }
+                else
+                {
+                    // Pattern BY replacement
+                    var idOrLits = item.identifier();
+                    var lits = item.literal();
+                    // First identifier/literal is pattern, second is replacement (after BY)
+                    pattern = ExtractNthStringValue(idOrLits, lits, 0);
+                    replacement = ExtractNthStringValue(idOrLits, lits, 1);
+                }
+
+                var region = BindInspectDelimiters(item.inspectDelimiters());
+                replacing.Add(new BoundInspectReplacingItem(kind, pattern, replacement, region));
+            }
+        }
+
+        var convPhrase = ctx.inspectConvertingPhrase();
+        if (convPhrase != null)
+        {
+            var idOrLits = convPhrase.identifier();
+            var lits = convPhrase.literal();
+            string fromSet = ExtractNthStringValue(idOrLits, lits, 0);
+            string toSet = ExtractNthStringValue(idOrLits, lits, 1);
+            var region = BindInspectDelimiters(convPhrase.inspectDelimiters());
+            converting = new BoundInspectConverting(fromSet, toSet, region);
+        }
+
+        return new BoundInspectStatement(targetId, tallying, replacing, converting);
+    }
+
+    private string? ExtractInspectPattern(CobolParserCore.InspectForPhraseContext ctx)
+    {
+        var lit = ctx.literal();
+        if (lit != null) return ExtractLiteralString(lit);
+        var id = ctx.identifier();
+        if (id != null) return id.GetText(); // TODO: resolve identifier value at runtime
+        return null;
+    }
+
+    private string ExtractStringValue(
+        CobolParserCore.IdentifierContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits)
+    {
+        // Return the first available literal or identifier text
+        if (lits != null && lits.Length > 0) return ExtractLiteralString(lits[0]);
+        if (ids != null && ids.Length > 0) return ids[0].GetText();
+        return "";
+    }
+
+    private string ExtractNthStringValue(
+        CobolParserCore.IdentifierContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits,
+        int n)
+    {
+        // Combine identifiers and literals in parse order, pick nth
+        // For simplicity: literals first, then identifiers
+        var all = new List<string>();
+        if (ids != null) foreach (var id in ids) all.Add(id.GetText());
+        if (lits != null) foreach (var lit in lits) all.Add(ExtractLiteralString(lit));
+
+        // Actually need to respect parse order. Use child index ordering.
+        // Simpler approach: just use the grammar structure.
+        // For REPLACING: first id/lit pair is pattern, second is replacement
+        // The grammar puts them as separate children: ALL <id|lit> BY <id|lit>
+        // So we need ordered extraction.
+        var ordered = new List<(int index, string value)>();
+        if (ids != null)
+            foreach (var id in ids)
+                ordered.Add((id.SourceInterval.a, id.GetText()));
+        if (lits != null)
+            foreach (var lit in lits)
+                ordered.Add((lit.SourceInterval.a, ExtractLiteralString(lit)));
+        ordered.Sort((a, b) => a.index.CompareTo(b.index));
+
+        return n < ordered.Count ? ordered[n].value : "";
+    }
+
+    private string ExtractLiteralString(CobolParserCore.LiteralContext lit)
+    {
+        var nonNum = lit.nonNumericLiteral();
+        if (nonNum != null)
+        {
+            string raw = nonNum.GetText();
+            if (raw.StartsWith("\"") && raw.EndsWith("\""))
+                return raw.Substring(1, raw.Length - 2);
+            if (raw.StartsWith("'") && raw.EndsWith("'"))
+                return raw.Substring(1, raw.Length - 2);
+            return raw;
+        }
+        return lit.GetText();
+    }
+
+    private BoundInspectRegion BindInspectDelimiters(CobolParserCore.InspectDelimitersContext? ctx)
+    {
+        if (ctx == null) return BoundInspectRegion.Empty;
+
+        string? beforePattern = null;
+        bool beforeInitial = false;
+        string? afterPattern = null;
+        bool afterInitial = false;
+
+        // Walk children in order: BEFORE [INITIAL] <pattern> [AFTER [INITIAL] <pattern>]
+        // or: AFTER [INITIAL] <pattern> [BEFORE [INITIAL] <pattern>]
+        var ids = ctx.identifier();
+        var lits = ctx.literal();
+
+        // Merge identifier and literal values in source order
+        var patterns = new List<(int index, string value)>();
+        foreach (var id in ids)
+            patterns.Add((id.SourceInterval.a, id.GetText()));
+        foreach (var lit in lits)
+            patterns.Add((lit.SourceInterval.a, ExtractLiteralString(lit)));
+        patterns.Sort((a, b) => a.index.CompareTo(b.index));
+
+        // Walk child tokens to determine BEFORE/AFTER associations
+        bool inBefore = false, inAfter = false;
+        bool nextIsInitial = false;
+        int patIdx = 0;
+
+        for (int i = 0; i < ctx.ChildCount; i++)
+        {
+            var child = ctx.GetChild(i);
+            string text = child.GetText();
+
+            if (text.Equals("BEFORE", System.StringComparison.OrdinalIgnoreCase))
+            {
+                inBefore = true; inAfter = false; nextIsInitial = false;
+            }
+            else if (text.Equals("AFTER", System.StringComparison.OrdinalIgnoreCase))
+            {
+                inAfter = true; inBefore = false; nextIsInitial = false;
+            }
+            else if (text.Equals("INITIAL", System.StringComparison.OrdinalIgnoreCase))
+            {
+                nextIsInitial = true;
+            }
+            else if (child is CobolParserCore.IdentifierContext || child is CobolParserCore.LiteralContext)
+            {
+                if (patIdx < patterns.Count)
+                {
+                    if (inBefore)
+                    {
+                        beforePattern = patterns[patIdx++].value;
+                        beforeInitial = nextIsInitial;
+                        inBefore = false;
+                    }
+                    else if (inAfter)
+                    {
+                        afterPattern = patterns[patIdx++].value;
+                        afterInitial = nextIsInitial;
+                        inAfter = false;
+                    }
+                }
+                nextIsInitial = false;
+            }
+        }
+
+        return new BoundInspectRegion(beforePattern, beforeInitial, afterPattern, afterInitial);
+    }
+
+    // ── SEARCH ──
+
+    private BoundStatement? BindSearch(CobolParserCore.SearchStatementContext ctx)
+    {
+        var tableExpr = BindIdentifierWithSubscripts(ctx.identifier());
+        if (tableExpr is not BoundIdentifierExpression tableId) return null;
+
+        // Bind WHEN clauses
+        var whens = new List<BoundSearchWhenClause>();
+        foreach (var whenCtx in ctx.searchWhenClause())
+        {
+            var cond = BindCondition(whenCtx.condition());
+            var stmts = new List<BoundStatement>();
+            foreach (var imp in whenCtx.imperativeStatement())
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) stmts.Add(bound);
+                }
+            whens.Add(new BoundSearchWhenClause(cond, stmts));
+        }
+
+        // Bind AT END
+        var atEnd = new List<BoundStatement>();
+        if (ctx.searchAtEndClause() is { } atEndCtx)
+        {
+            foreach (var imp in atEndCtx.imperativeStatement())
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+        }
+
+        // Extract index: find the first subscript used on a table element in WHEN conditions
+        var index = ExtractSearchIndex(tableId.Symbol, whens);
+
+        return new BoundSearchStatement(tableId, index, whens, atEnd);
+    }
+
+    private BoundStatement? BindSearchAll(CobolParserCore.SearchAllStatementContext ctx)
+    {
+        var tableExpr = BindIdentifierWithSubscripts(ctx.identifier());
+        if (tableExpr is not BoundIdentifierExpression tableId) return null;
+
+        // Bind WHEN clauses
+        var whens = new List<BoundSearchWhenClause>();
+        foreach (var whenCtx in ctx.searchAllWhenClause())
+        {
+            var cond = BindCondition(whenCtx.condition());
+            var stmts = new List<BoundStatement>();
+            foreach (var imp in whenCtx.imperativeStatement())
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) stmts.Add(bound);
+                }
+            whens.Add(new BoundSearchWhenClause(cond, stmts));
+        }
+
+        // Bind AT END
+        var atEnd = new List<BoundStatement>();
+        if (ctx.searchAtEndClause() is { } atEndCtx)
+        {
+            foreach (var imp in atEndCtx.imperativeStatement())
+                foreach (var stmt in imp.statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+        }
+
+        // Extract index from WHEN conditions
+        var index = ExtractSearchIndex(tableId.Symbol, whens);
+
+        return new BoundSearchAllStatement(tableId, index, whens, atEnd);
+    }
+
+    /// <summary>
+    /// Walk WHEN conditions to find the subscript variable used on the table.
+    /// For WHEN TBL(IDX) = 3, extracts IDX as the search index.
+    /// </summary>
+    private BoundIdentifierExpression? ExtractSearchIndex(
+        DataSymbol tableSymbol, List<BoundSearchWhenClause> whens)
+    {
+        foreach (var when in whens)
+        {
+            var idx = FindSubscriptOnTable(tableSymbol, when.Condition);
+            if (idx != null) return idx;
+        }
+        return null;
+    }
+
+    private BoundIdentifierExpression? FindSubscriptOnTable(
+        DataSymbol tableSymbol, BoundExpression expr)
+    {
+        switch (expr)
+        {
+            case BoundIdentifierExpression id when id.IsSubscripted:
+                if (IsTableElement(id.Symbol, tableSymbol))
+                {
+                    // Find which subscript corresponds to the SEARCH table's dimension.
+                    // Walk the parent chain collecting OCCURS levels (outermost first).
+                    // Subscripts are positional: subscripts[0]→outermost, subscripts[N-1]→innermost.
+                    // The SEARCH table's position in the OCCURS list gives the subscript index.
+                    var occursLevels = new List<DataSymbol>();
+                    var current = id.Symbol;
+                    while (current != null)
+                    {
+                        if (current.OccursCount > 1)
+                            occursLevels.Insert(0, current);
+                        current = current.Parent;
+                    }
+
+                    for (int i = 0; i < occursLevels.Count && i < id.Subscripts!.Count; i++)
+                    {
+                        if (occursLevels[i] == tableSymbol
+                            && id.Subscripts[i] is BoundIdentifierExpression subId)
+                            return subId;
+                    }
+                }
+                break;
+
+            case BoundBinaryExpression bin:
+                return FindSubscriptOnTable(tableSymbol, bin.Left)
+                    ?? FindSubscriptOnTable(tableSymbol, bin.Right);
+
+            case BoundReferenceModificationExpression refMod:
+                return FindSubscriptOnTable(tableSymbol, refMod.Base);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Check if sym is the table symbol itself, or a child (subordinate) of it.
+    /// For OCCURS groups like TBL containing VAL and FLAG children,
+    /// a reference to VAL(IDX) should still identify IDX as the table index.
+    /// </summary>
+    private static bool IsTableElement(DataSymbol sym, DataSymbol tableSymbol)
+    {
+        var current = sym;
+        while (current != null)
+        {
+            if (current == tableSymbol) return true;
+            current = current.Parent;
+        }
+        return false;
+    }
+
+    // ── STRING ──
+
+    private BoundStatement? BindString(CobolParserCore.StringStatementContext ctx)
+    {
+        var sendings = new List<BoundStringSending>();
+        foreach (var phrase in ctx.stringSendingPhrase())
+        {
+            // Grammar: (identifier | literal) (DELIMITED BY (ALL)? (identifier | literal | SIZE))?
+            // ANTLR returns identifier() and literal() as arrays across both positions.
+            var identifiers = phrase.identifier();
+            var literals = phrase.literal();
+
+            // First identifier or literal is the value
+            BoundExpression value;
+            int idIdx = 0, litIdx = 0;
+            if (identifiers.Length > 0)
+            {
+                value = BindIdentifierWithSubscripts(identifiers[0]);
+                idIdx = 1;
+            }
+            else if (literals.Length > 0)
+            {
+                value = BindLiteral(literals[0]);
+                litIdx = 1;
+            }
+            else
+                continue;
+
+            BoundExpression? delimiter = null;
+            bool delimitedBySize = false;
+
+            if (phrase.DELIMITED() != null)
+            {
+                if (phrase.SIZE() != null)
+                {
+                    delimitedBySize = true;
+                }
+                else
+                {
+                    // Delimiter is the next unused identifier or literal
+                    if (idIdx < identifiers.Length)
+                        delimiter = BindIdentifierWithSubscripts(identifiers[idIdx]);
+                    else if (litIdx < literals.Length)
+                        delimiter = BindLiteral(literals[litIdx]);
+                }
+            }
+
+            sendings.Add(new BoundStringSending(value, delimiter, delimitedBySize));
+        }
+
+        // INTO
+        var intoPhrase = ctx.stringIntoPhrase();
+        if (intoPhrase == null) return null;
+        var intoExpr = BindIdentifierWithSubscripts(intoPhrase.identifier());
+
+        // POINTER
+        BoundExpression? pointer = null;
+        if (ctx.stringWithPointer() is { } ptrCtx)
+            pointer = BindIdentifierWithSubscripts(ptrCtx.identifier());
+
+        // ON OVERFLOW / NOT ON OVERFLOW
+        var onOverflow = new List<BoundStatement>();
+        var notOnOverflow = new List<BoundStatement>();
+        if (ctx.stringOnOverflow() is { } ovCtx)
+        {
+            var impStmts = ovCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+            {
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onOverflow.Add(bound);
+                }
+            }
+            if (impStmts.Length >= 2)
+            {
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnOverflow.Add(bound);
+                }
+            }
+        }
+
+        return new BoundStringStatement(sendings, intoExpr, pointer, onOverflow, notOnOverflow);
+    }
+
+    // ── UNSTRING ──
+
+    private BoundStatement? BindUnstring(CobolParserCore.UnstringStatementContext ctx)
+    {
+        // Source identifier
+        var sourceExpr = BindIdentifierWithSubscripts(ctx.identifier());
+
+        // DELIMITED BY phrase (optional)
+        BoundExpression? delimiter = null;
+        bool delimitedByAll = false;
+        if (ctx.unstringDelimiterPhrase() is { } delimCtx)
+        {
+            delimitedByAll = delimCtx.ALL() != null;
+            if (delimCtx.identifier() is { } delimId)
+                delimiter = BindIdentifierWithSubscripts(delimId);
+            else if (delimCtx.literal() is { } delimLit)
+                delimiter = BindLiteral(delimLit);
+        }
+
+        // INTO phrases (one or more)
+        var intos = new List<BoundUnstringInto>();
+        foreach (var intoPhrase in ctx.unstringIntoPhrase())
+        {
+            var identifiers = intoPhrase.identifier();
+            int idIdx = 0;
+
+            // First identifier is the INTO target
+            var targetExpr = BindIdentifierWithSubscripts(identifiers[idIdx++]);
+
+            // DELIMITER IN (optional)
+            BoundExpression? delimiterIn = null;
+            if (intoPhrase.DELIMITER() != null && idIdx < identifiers.Length)
+                delimiterIn = BindIdentifierWithSubscripts(identifiers[idIdx++]);
+
+            // COUNT IN (optional)
+            BoundExpression? countIn = null;
+            if (intoPhrase.COUNT() != null && idIdx < identifiers.Length)
+                countIn = BindIdentifierWithSubscripts(identifiers[idIdx++]);
+
+            intos.Add(new BoundUnstringInto(targetExpr, countIn, delimiterIn));
+        }
+
+        // WITH POINTER (optional)
+        BoundExpression? pointer = null;
+        if (ctx.unstringWithPointer() is { } ptrCtx)
+            pointer = BindIdentifierWithSubscripts(ptrCtx.identifier());
+
+        // TALLYING IN (optional)
+        BoundExpression? tallying = null;
+        if (ctx.unstringTallying() is { } tallyCtx)
+            tallying = BindIdentifierWithSubscripts(tallyCtx.identifier());
+
+        // ON OVERFLOW / NOT ON OVERFLOW
+        var onOverflow = new List<BoundStatement>();
+        var notOnOverflow = new List<BoundStatement>();
+        if (ctx.unstringOnOverflow() is { } ovCtx)
+        {
+            var impStmts = ovCtx.imperativeStatement();
+            if (impStmts.Length >= 1)
+            {
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onOverflow.Add(bound);
+                }
+            }
+            if (impStmts.Length >= 2)
+            {
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnOverflow.Add(bound);
+                }
+            }
+        }
+
+        return new BoundUnstringStatement(sourceExpr, delimiter, delimitedByAll,
+            intos, pointer, tallying, onOverflow, notOnOverflow);
+    }
+
+    // ── SET ──
+
+    private BoundStatement? BindSet(CobolParserCore.SetStatementContext ctx)
+    {
+        // SET condition-name TO TRUE/FALSE
+        if (ctx.setBooleanStatement() is { } boolCtx)
+            return BindSetBoolean(boolCtx);
+
+        // SET identifier TO value
+        if (ctx.setToValueStatement() is { } toCtx)
+            return BindSetToValue(toCtx);
+
+        // SET identifier UP/DOWN BY integer
+        if (ctx.setIndexStatement() is { } idxCtx)
+            return BindSetIndex(idxCtx);
+
+        return null;
+    }
+
+    private BoundStatement? BindSetBoolean(CobolParserCore.SetBooleanStatementContext ctx)
+    {
+        string name = ctx.identifier().IDENTIFIER().GetText();
+        var condSym = _semantic.ResolveConditionName(name);
+        if (condSym != null)
+        {
+            bool setToTrue = ctx.TRUE_() != null;
+            return new BoundSetConditionStatement(condSym, setToTrue);
+        }
+
+        // Not a condition name — treat as a data item SET TO TRUE/FALSE (unusual but valid)
+        return null;
+    }
+
+    private BoundStatement? BindSetToValue(CobolParserCore.SetToValueStatementContext ctx)
+    {
+        string name = ctx.identifier().IDENTIFIER().GetText();
+
+        // Check if it's a condition name first
+        var condSym = _semantic.ResolveConditionName(name);
+        if (condSym != null)
+        {
+            // SET condition-name TO TRUE/FALSE can also come through setToValueStatement
+            // if the grammar matched it that way
+            return new BoundSetConditionStatement(condSym, true);
+        }
+
+        // Regular data item: SET identifier TO value
+        var targetId = BindIdentifierWithSubscripts(ctx.identifier());
+        if (targetId is not BoundIdentifierExpression boundTarget) return null;
+
+        var valueExpr = BindArithmeticExpr(ctx.arithmeticExpression());
+        if (valueExpr == null) return null;
+
+        return new BoundSetIndexStatement(boundTarget, SetOperation.Assign, valueExpr);
+    }
+
+    private BoundStatement? BindSetIndex(CobolParserCore.SetIndexStatementContext ctx)
+    {
+        var targetId = BindIdentifierWithSubscripts(ctx.identifier());
+        if (targetId is not BoundIdentifierExpression boundTarget) return null;
+
+        var intLit = ctx.integerLiteral();
+        if (intLit == null) return null;
+
+        if (!int.TryParse(intLit.GetText(), out int delta)) return null;
+        var deltaExpr = new BoundLiteralExpression((decimal)delta, CobolCategory.Numeric);
+
+        var op = ctx.UP() != null ? SetOperation.UpBy : SetOperation.DownBy;
+        return new BoundSetIndexStatement(boundTarget, op, deltaExpr);
+    }
+
+    // ── INITIALIZE ──
+
+    private BoundStatement? BindInitialize(CobolParserCore.InitializeStatementContext ctx)
+    {
+        var targets = new List<DataSymbol>();
+        var idList = ctx.identifierList();
+        if (idList == null) return null;
+
+        foreach (var idCtx in idList.identifier())
+        {
+            var sym = _semantic.ResolveData(idCtx.IDENTIFIER().GetText());
+            if (sym != null) targets.Add(sym);
+        }
+
+        if (targets.Count == 0) return null;
+
+        var categoryReplacements = new List<BoundInitializeCategoryReplacement>();
+        var replacingPhrase = ctx.initializeReplacingPhrase();
+        if (replacingPhrase != null)
+        {
+            foreach (var item in replacingPhrase.initializeReplacingItem())
+            {
+                var category = ClassifyReplacingItem(item);
+                var valueExpr = BindReplacingValue(item);
+                if (valueExpr != null)
+                    categoryReplacements.Add(new BoundInitializeCategoryReplacement(category, valueExpr));
+            }
+        }
+
+        return new BoundInitializeStatement(targets, categoryReplacements);
+    }
+
+    private InitializeCategory ClassifyReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
+    {
+        // The grammar alternatives are ordered:
+        // ALPHANUMERIC DATA BY ... | NUMERIC DATA BY ... | ALPHANUMERIC EDITED DATA BY ... | NUMERIC EDITED DATA BY ...
+        // Check for EDITED presence and ALPHANUMERIC/NUMERIC token
+        if (ctx.EDITED() != null)
+        {
+            if (ctx.ALPHANUMERIC() != null) return InitializeCategory.AlphanumericEdited;
+            return InitializeCategory.NumericEdited;
+        }
+        if (ctx.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
+        return InitializeCategory.Numeric;
+    }
+
+    private BoundExpression? BindReplacingValue(CobolParserCore.InitializeReplacingItemContext ctx)
+    {
+        var litCtx = ctx.literal();
+        if (litCtx != null) return BindLiteral(litCtx);
+
+        var idCtx = ctx.identifier();
+        if (idCtx != null)
+        {
+            var sym = _semantic.ResolveData(idCtx.IDENTIFIER().GetText());
+            if (sym != null) return new BoundIdentifierExpression(sym, sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric);
+        }
+
+        return null;
     }
 
     // ── MULTIPLY ──
@@ -408,38 +1289,38 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // BY targets — each with per-item ROUNDED flag
         var byTargets = ctx.multiplyByTarget();
         if (byTargets.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+            throw new InvalidOperationException($"MULTIPLY statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var bt in byTargets)
         {
-            var sym = _semantic.ResolveData(bt.identifier().GetText());
-            if (sym != null)
-                targets.Add(new BoundArithmeticTarget(sym, bt.ROUNDED() != null));
+            var sym = BindIdentifierWithSubscripts(bt.identifier());
+            if (sym is BoundIdentifierExpression boundBt)
+                targets.Add(new BoundArithmeticTarget(boundBt, bt.ROUNDED() != null));
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.MultiplyStatement);
+            throw new InvalidOperationException($"MULTIPLY statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING targets (if present)
-        DataSymbol? givingTarget = null;
+        BoundIdentifierExpression? givingTarget = null;
         var givingCtx = ctx.multiplyGivingPhrase();
         if (givingCtx != null)
         {
             var givingTargets = givingCtx.multiplyByTarget();
             if (givingTargets.Length > 0)
             {
-                var givingSym = _semantic.ResolveData(givingTargets[0].identifier().GetText());
-                if (givingSym != null)
+                var givingExpr = BindIdentifierWithSubscripts(givingTargets[0].identifier());
+                if (givingExpr is BoundIdentifierExpression boundGiving)
                 {
-                    givingTarget = givingSym;
+                    givingTarget = boundGiving;
                     // Replace targets with GIVING targets (GIVING overrides BY targets as destinations)
                     targets.Clear();
                     foreach (var gt in givingTargets)
                     {
-                        var sym = _semantic.ResolveData(gt.identifier().GetText());
-                        if (sym != null)
-                            targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                        var sym = BindIdentifierWithSubscripts(gt.identifier());
+                        if (sym is BoundIdentifierExpression boundGt2)
+                            targets.Add(new BoundArithmeticTarget(boundGt2, gt.ROUNDED() != null));
                     }
                 }
             }
@@ -456,56 +1337,55 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // ADD operand(s) TO target1 [ROUNDED] target2 [ROUNDED] ...
         var operandList = ctx.addOperandList();
         if (operandList == null)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var addOps = operandList.addOperand();
         if (addOps.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
+            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind all operands
         var operands = new List<BoundExpression>();
         foreach (var op in addOps)
             operands.Add(BindSimpleOperand(op));
 
-        // TO targets (each with per-target ROUNDED)
-        var toPhrase = ctx.addToPhrase();
-        if (toPhrase == null)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
-        var toTargetCtxs = toPhrase.addTarget();
-        if (toTargetCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
+        // TO targets (each with per-target ROUNDED) — optional for GIVING form
         var targets = new List<BoundArithmeticTarget>();
-        foreach (var t in toTargetCtxs)
+        var toPhrase = ctx.addToPhrase();
+        if (toPhrase != null)
         {
-            var sym = _semantic.ResolveData(t.identifier().GetText());
-            if (sym != null)
-                targets.Add(new BoundArithmeticTarget(sym, t.ROUNDED() != null));
+            foreach (var t in toPhrase.addTarget())
+            {
+                var sym = BindIdentifierWithSubscripts(t.identifier());
+                if (sym is BoundIdentifierExpression boundT)
+                    targets.Add(new BoundArithmeticTarget(boundT, t.ROUNDED() != null));
+            }
         }
 
-        if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.AddStatement);
-
         // GIVING phrase overrides TO targets
+        bool isGiving = false;
         var givingPhrase = ctx.addGivingPhrase();
         if (givingPhrase != null)
         {
             var givingTargetCtxs = givingPhrase.addTarget();
             if (givingTargetCtxs.Length > 0)
             {
+                isGiving = true;
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
-                    var sym = _semantic.ResolveData(gt.identifier().GetText());
-                    if (sym != null)
-                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                    var sym = BindIdentifierWithSubscripts(gt.identifier());
+                    if (sym is BoundIdentifierExpression boundGt)
+                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
                 }
             }
         }
 
+        if (targets.Count == 0)
+            throw new InvalidOperationException(
+                $"ADD statement has no targets (line {ctx.Start?.Line})");
+
         var sizeError = BindSizeErrorClause(ctx.addOnSizeError());
-        return new BoundAddStatement(operands, targets, sizeError);
+        return new BoundAddStatement(operands, targets, sizeError, isGiving);
     }
 
     // ── SUBTRACT ──
@@ -516,11 +1396,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Multiple operands: SUBTRACT A B C FROM T → T = T - (A + B + C)
         var operandList = ctx.subtractOperandList();
         if (operandList == null)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var subOperands = operandList.subtractOperand();
         if (subOperands.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind all operands (simple identifiers or literals)
         var operands = new List<BoundExpression>();
@@ -530,42 +1410,51 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // FROM targets (each with per-target ROUNDED)
         var fromPhrase = ctx.subtractFromPhrase();
         if (fromPhrase == null)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var fromTargetCtxs = fromPhrase.subtractTarget();
         if (fromTargetCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var t in fromTargetCtxs)
         {
-            var sym = _semantic.ResolveData(t.identifier().GetText());
-            if (sym != null)
-                targets.Add(new BoundArithmeticTarget(sym, t.ROUNDED() != null));
+            var sym = BindIdentifierWithSubscripts(t.identifier());
+            if (sym is BoundIdentifierExpression boundT2)
+                targets.Add(new BoundArithmeticTarget(boundT2, t.ROUNDED() != null));
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.SubtractStatement);
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
+        bool isGiving = false;
+        BoundExpression? givingMinuend = null;
         var givingPhrase = ctx.subtractGivingPhrase();
         if (givingPhrase != null)
         {
             var givingTargetCtxs = givingPhrase.subtractTarget();
             if (givingTargetCtxs.Length > 0)
             {
+                isGiving = true;
+                // The first FROM target becomes the minuend (b in "SUBTRACT a FROM b GIVING c")
+                if (targets.Count > 0)
+                    givingMinuend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
-                    var sym = _semantic.ResolveData(gt.identifier().GetText());
-                    if (sym != null)
-                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                    var sym = BindIdentifierWithSubscripts(gt.identifier());
+                    if (sym is BoundIdentifierExpression boundGt)
+                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
                 }
             }
         }
 
+        if (targets.Count == 0)
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
+
         var sizeError = BindSizeErrorClause(ctx.subtractOnSizeError());
-        return new BoundSubtractStatement(operands, targets, sizeError);
+        return new BoundSubtractStatement(operands, targets, sizeError, isGiving, givingMinuend);
     }
 
     // ── DIVIDE ──
@@ -575,7 +1464,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // DIVIDE operand INTO/BY ...
         var operandCtx = ctx.divideOperand();
         if (operandCtx == null)
-            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var firstOperand = BindSimpleOperand(operandCtx);
         bool isByForm = ctx.divideByPhrase() != null;
@@ -598,9 +1487,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 foreach (var gt in givingPhrase.divideTarget())
                 {
-                    var sym = _semantic.ResolveData(gt.identifier().GetText());
-                    if (sym != null)
-                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                    var sym = BindIdentifierWithSubscripts(gt.identifier());
+                    if (sym is BoundIdentifierExpression boundGt)
+                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
                 }
             }
         }
@@ -612,9 +1501,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 foreach (var it in intoPhrase.divideTarget())
                 {
-                    var sym = _semantic.ResolveData(it.identifier().GetText());
-                    if (sym != null)
-                        targets.Add(new BoundArithmeticTarget(sym, it.ROUNDED() != null));
+                    var sym = BindIdentifierWithSubscripts(it.identifier());
+                    if (sym is BoundIdentifierExpression boundIt)
+                        targets.Add(new BoundArithmeticTarget(boundIt, it.ROUNDED() != null));
                 }
             }
 
@@ -624,26 +1513,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 // INTO target becomes the dividend, GIVING targets are destinations
                 if (targets.Count > 0)
-                    dividend = new BoundIdentifierExpression(targets[0].Symbol, CobolCategory.Numeric);
+                    dividend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
                 targets.Clear();
                 foreach (var gt in givingPhrase.divideTarget())
                 {
-                    var sym = _semantic.ResolveData(gt.identifier().GetText());
-                    if (sym != null)
-                        targets.Add(new BoundArithmeticTarget(sym, gt.ROUNDED() != null));
+                    var sym = BindIdentifierWithSubscripts(gt.identifier());
+                    if (sym is BoundIdentifierExpression boundGt)
+                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
                 }
             }
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.DivideStatement);
+            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // REMAINDER
-        DataSymbol? remainderTarget = null;
+        BoundIdentifierExpression? remainderTarget = null;
         var remPhrase = ctx.divideRemainderPhrase();
         if (remPhrase != null)
         {
-            remainderTarget = _semantic.ResolveData(remPhrase.identifier().GetText());
+            var remExpr = BindIdentifierWithSubscripts(remPhrase.identifier());
+            remainderTarget = remExpr as BoundIdentifierExpression;
         }
 
         var sizeError = BindSizeErrorClause(ctx.divideOnSizeError());
@@ -658,18 +1548,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // COMPUTE target1 [ROUNDED] target2 [ROUNDED] = expression
         var storeCtxs = ctx.computeStore();
         if (storeCtxs.Length == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var s in storeCtxs)
         {
-            var sym = _semantic.ResolveData(s.identifier().GetText());
-            if (sym != null)
-                targets.Add(new BoundArithmeticTarget(sym, s.ROUNDED() != null));
+            var sym = BindIdentifierWithSubscripts(s.identifier());
+            if (sym is BoundIdentifierExpression boundS)
+                targets.Add(new BoundArithmeticTarget(boundS, s.ROUNDED() != null));
         }
 
         if (targets.Count == 0)
-            return new BoundArithmeticStatement(BoundNodeKind.ComputeStatement);
+            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind the full arithmetic expression (recursive tree walk)
         var expr = BindFullExpression(ctx.arithmeticExpression());
@@ -734,7 +1624,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // and handle at emit time. For now, use a dedicated representation.
             // Simple approach: emit as Math.Pow at runtime
             left = new BoundBinaryExpression(left,
-                (BoundBinaryOperatorKind)99, // Power — extend enum
+                BoundBinaryOperatorKind.Power,
                 right, CobolCategory.Numeric);
         }
         return left;
@@ -766,14 +1656,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (ctx.identifier() != null)
         {
-            string name = ctx.identifier().GetText();
-            var sym = _semantic.ResolveData(name);
-            if (sym != null)
-                return new BoundIdentifierExpression(sym, CobolCategory.Numeric);
-            // Try as numeric literal (e.g., 100)
-            if (decimal.TryParse(name, System.Globalization.CultureInfo.InvariantCulture, out var val))
-                return new BoundLiteralExpression(val, CobolCategory.Numeric);
-            return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
+            return BindIdentifierWithSubscripts(ctx.identifier());
         }
 
         if (ctx.arithmeticExpression() != null)
@@ -827,19 +1710,59 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundGoToStatement? BindGoTo(CobolParserCore.GoToStatementContext ctx)
     {
-        var idCtx = ctx.identifier();
-        if (idCtx == null) return null;
+        var idContexts = ctx.identifier();
+        if (idContexts == null || idContexts.Length == 0) return null;
 
-        string name = idCtx.GetText();
-        var paraSym = _semantic.ResolveParagraph(name);
-        if (paraSym == null) return null;
+        // Check for DEPENDING ON — last identifier after DEPENDING is the selector
+        bool hasDepending = ctx.DEPENDING() != null;
 
-        return new BoundGoToStatement(paraSym);
+        // Target paragraphs: all identifiers except the DEPENDING ON one
+        int targetCount = hasDepending ? idContexts.Length - 1 : idContexts.Length;
+        var targets = new List<ParagraphSymbol>();
+
+        for (int i = 0; i < targetCount; i++)
+        {
+            string name = idContexts[i].IDENTIFIER().GetText();
+            var paraSym = _semantic.ResolveParagraph(name);
+            if (paraSym != null) targets.Add(paraSym);
+        }
+
+        if (targets.Count == 0) return null;
+
+        BoundIdentifierExpression? dependingOn = null;
+        if (hasDepending && idContexts.Length > targetCount)
+        {
+            var depExpr = BindIdentifierWithSubscripts(idContexts[targetCount]);
+            dependingOn = depExpr as BoundIdentifierExpression;
+        }
+
+        return new BoundGoToStatement(targets, dependingOn);
     }
 
     // ═══════════════════════════════════
     // Expression binding
     // ═══════════════════════════════════
+
+    /// <summary>
+    /// If expr is a bare identifier or unresolved string that matches a level-88
+    /// condition name, return a BoundConditionNameExpression; otherwise return expr unchanged.
+    /// </summary>
+    private BoundExpression TryResolveConditionName(BoundExpression expr)
+    {
+        string? name = null;
+        if (expr is BoundIdentifierExpression idExpr)
+            name = idExpr.Symbol.Name;
+        else if (expr is BoundLiteralExpression litExpr && litExpr.Value is string s)
+            name = s;
+
+        if (name != null)
+        {
+            var condSym = _semantic.ResolveConditionName(name);
+            if (condSym != null)
+                return new BoundConditionNameExpression(condSym);
+        }
+        return expr;
+    }
 
     private BoundExpression BindLiteral(CobolParserCore.LiteralContext lit)
     {
@@ -880,19 +1803,46 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
         {
+            // ALL "literal" — extract the string and produce a figurative with AllLiteral
+            if (figCtx.ALL() != null)
+            {
+                string? allText = null;
+                var allStr = figCtx.STRINGLIT();
+                if (allStr != null)
+                {
+                    var raw = allStr.GetText();
+                    if (raw.Length >= 2) allText = raw[1..^1];
+                }
+                var allHex = figCtx.HEXLIT();
+                if (allHex != null)
+                {
+                    var raw = allHex.GetText(); // X"..." or X'...'
+                    if (raw.Length >= 3)
+                    {
+                        var hexBody = raw[2..^1];
+                        var sb = new System.Text.StringBuilder();
+                        for (int i = 0; i + 1 < hexBody.Length; i += 2)
+                            sb.Append((char)Convert.ToByte(hexBody.Substring(i, 2), 16));
+                        allText = sb.ToString();
+                    }
+                }
+                return new BoundFigurativeExpression(
+                    (int)FigurativeKind.None, allText ?? "");
+            }
+
             string figText = figCtx.GetText().ToUpperInvariant();
             return figText switch
             {
                 "SPACE" or "SPACES" =>
-                    new BoundLiteralExpression(" ", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Space),
                 "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundLiteralExpression(0m, CobolCategory.Numeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Zero),
                 "HIGH-VALUE" or "HIGH-VALUES" =>
-                    new BoundLiteralExpression("\xFF", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.HighValue),
                 "LOW-VALUE" or "LOW-VALUES" =>
-                    new BoundLiteralExpression("\x00", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.LowValue),
                 "QUOTE" or "QUOTES" =>
-                    new BoundLiteralExpression("\"", CobolCategory.Alphanumeric),
+                    new BoundFigurativeExpression((int)FigurativeKind.Quote),
                 _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
             };
         }
@@ -903,13 +1853,16 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindIdentifier(CobolParserCore.IdentifierContext idCtx)
     {
-        string name = idCtx.GetText();
-        var sym = _semantic.ResolveData(name);
-        if (sym != null)
-            return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
+        return BindIdentifierWithSubscripts(idCtx);
+    }
 
-        // Unresolved — treat as string literal for now
-        return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
+    /// <summary>
+    /// Extract just the data name from an identifier context (strips subscripts).
+    /// Use this instead of idCtx.IDENTIFIER().GetText() when resolving symbol names.
+    /// </summary>
+    private static string GetIdentifierName(CobolParserCore.IdentifierContext idCtx)
+    {
+        return idCtx.IDENTIFIER().GetText();
     }
 
     /// <summary>
@@ -924,7 +1877,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var orExpr = ctx.logicalOrExpression();
         if (orExpr == null)
             return new BoundLiteralExpression(true, CobolCategory.Unknown);
-        return BindLogicalOr(orExpr);
+        var bound = BindLogicalOr(orExpr);
+        return RewriteAbbreviatedRelations(bound);
     }
 
     private BoundExpression BindLogicalOr(CobolParserCore.LogicalOrExpressionContext ctx)
@@ -937,7 +1891,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // OR is represented as a binary expression; the binder/emitter knows
             // operator kinds > GreaterOrEqual are logical operators
             result = new BoundBinaryExpression(result,
-                (BoundBinaryOperatorKind)20, // OR
+                BoundBinaryOperatorKind.Or,
                 right, CobolCategory.Unknown);
         }
         return result;
@@ -951,7 +1905,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var right = BindLogicalNot(notExprs[i]);
             result = new BoundBinaryExpression(result,
-                (BoundBinaryOperatorKind)21, // AND
+                BoundBinaryOperatorKind.And,
                 right, CobolCategory.Unknown);
         }
         return result;
@@ -959,16 +1913,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindLogicalNot(CobolParserCore.LogicalNotExpressionContext ctx)
     {
-        if (ctx.logicalNotExpression() != null)
-        {
-            // NOT condition → negate
-            var inner = BindLogicalNot(ctx.logicalNotExpression());
-            return new BoundBinaryExpression(
-                inner,
-                (BoundBinaryOperatorKind)22, // NOT (unary, right is dummy)
-                new BoundLiteralExpression(0m, CobolCategory.Unknown),
-                CobolCategory.Unknown);
-        }
+        // logicalNotExpression is a pass-through to relationalExpression.
+        // COBOL-85 has no general logical NOT — NOT lives only inside
+        // relational operators (NOT EQUAL, NOT GREATER, NOT LESS).
+        // Logical NOT for condition-names (IF NOT STATUS-ACTIVE) will be
+        // re-added as a separate production when level-88 is implemented.
         return BindRelational(ctx.relationalExpression());
     }
 
@@ -976,6 +1925,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         var operands = ctx.relationalOperand();
         var relOp = ctx.relationalOperator();
+        var classNameCtx = ctx.className();
+
+        // Class condition: operand IS? NOT? className
+        if (classNameCtx != null && operands.Length >= 1)
+        {
+            var subject = BindRelationalOperand(operands[0]);
+            bool isNegated = ctx.NOT() != null;
+            var kind = classNameCtx.GetText().ToUpperInvariant() switch
+            {
+                "NUMERIC" => ClassConditionKind.Numeric,
+                "ALPHABETIC" => ClassConditionKind.Alphabetic,
+                "ALPHABETIC-LOWER" => ClassConditionKind.AlphabeticLower,
+                "ALPHABETIC-UPPER" => ClassConditionKind.AlphabeticUpper,
+                _ => throw new InvalidOperationException($"Unknown class condition: {classNameCtx.GetText()}")
+            };
+            return new BoundClassConditionExpression(subject, kind, isNegated);
+        }
 
         if (operands.Length == 0)
             return new BoundLiteralExpression(true, CobolCategory.Unknown);
@@ -984,6 +1950,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (operands.Length < 2 || relOp == null)
         {
+            // Check if bare identifier is a level-88 condition name
+            if (left is BoundIdentifierExpression idExpr)
+            {
+                var condSym = _semantic.ResolveConditionName(idExpr.Symbol.Name);
+                if (condSym != null)
+                    return new BoundConditionNameExpression(condSym);
+            }
+            // Also check unresolved identifiers that became string literals
+            if (left is BoundLiteralExpression litExpr && litExpr.Value is string condName)
+            {
+                var condSym = _semantic.ResolveConditionName(condName);
+                if (condSym != null)
+                    return new BoundConditionNameExpression(condSym);
+            }
             // Bare expression: IF A (means A <> 0 for numeric, A <> SPACE for alpha)
             return left;
         }
@@ -1011,6 +1991,110 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         return new BoundBinaryExpression(left, op, right, CobolCategory.Unknown);
     }
+
+    // ═══════════════════════════════════
+    // Abbreviated relation rewriting
+    // ═══════════════════════════════════
+    // COBOL allows abbreviated relational conditions:
+    //   IF A = B OR C         → (A = B) OR (A = C)
+    //   IF A < B AND C        → (A < B) AND (A < C)
+    //   IF A < B < C          → (A < B) AND (B < C)    [chained, not abbreviated]
+    //
+    // After binding, abbreviated forms appear as:
+    //   BoundBinaryExpression(Or/And, relational_expr, bare_operand)
+    // where bare_operand is an identifier or literal with no relational operator.
+    //
+    // The rewrite propagates the left relation's operator and subject to the
+    // bare operand, producing an explicit relational expression.
+
+    /// <summary>
+    /// Rewrite abbreviated relations in a bound condition expression tree.
+    /// Called once after BindCondition to normalize all abbreviated forms into
+    /// explicit relational expressions before lowering.
+    /// </summary>
+    private static BoundExpression RewriteAbbreviatedRelations(BoundExpression expr)
+    {
+        if (expr is not BoundBinaryExpression bin)
+            return expr;
+
+        // Recursively rewrite children first (bottom-up)
+        var left = RewriteAbbreviatedRelations(bin.Left);
+        var right = RewriteAbbreviatedRelations(bin.Right);
+
+        // Only AND/OR can contain abbreviated relations
+        if (bin.OperatorKind is BoundBinaryOperatorKind.Or
+                             or BoundBinaryOperatorKind.And)
+        {
+            return RewriteLogicalWithAbbreviation(bin.OperatorKind, left, right);
+        }
+
+        // Rebuild if children changed
+        if (ReferenceEquals(left, bin.Left) && ReferenceEquals(right, bin.Right))
+            return bin;
+        return new BoundBinaryExpression(left, bin.OperatorKind, right, bin.Category);
+    }
+
+    /// <summary>
+    /// If the right side of a logical AND/OR is a bare operand (not a relational
+    /// or logical expression), expand it using the left side's relational operator
+    /// and subject. Otherwise return the expression unchanged.
+    /// </summary>
+    private static BoundExpression RewriteLogicalWithAbbreviation(
+        BoundBinaryOperatorKind logicalOp,
+        BoundExpression left,
+        BoundExpression right)
+    {
+        // Only rewrite if right is a bare operand (identifier or literal)
+        // and left contains a relational expression we can propagate from.
+        if (!IsBareOperand(right))
+            return new BoundBinaryExpression(left, logicalOp, right, CobolCategory.Unknown);
+
+        // Extract the nearest relational expression from the left side.
+        // For nested AND/OR chains like (A < B AND C AND D), the left may be
+        // another logical expression — we need to find the rightmost relational.
+        var (subject, relOp) = ExtractRelationalContext(left);
+        if (subject == null)
+            return new BoundBinaryExpression(left, logicalOp, right, CobolCategory.Unknown);
+
+        // Expand: bare_operand → subject relOp bare_operand
+        var expandedRight = new BoundBinaryExpression(subject, relOp, right, CobolCategory.Unknown);
+        return new BoundBinaryExpression(left, logicalOp, expandedRight, CobolCategory.Unknown);
+    }
+
+    /// <summary>
+    /// Extract the subject (left operand) and relational operator from an expression.
+    /// For a direct relational (A = B), returns (A, Equal).
+    /// For a logical chain ((A = B) AND (A = C)), walks the rightmost branch
+    /// to find the innermost relational.
+    /// </summary>
+    private static (BoundExpression? Subject, BoundBinaryOperatorKind RelOp) ExtractRelationalContext(
+        BoundExpression expr)
+    {
+        if (expr is BoundBinaryExpression bin)
+        {
+            if (IsRelational(bin.OperatorKind))
+                return (bin.Left, bin.OperatorKind);
+
+            // For logical AND/OR chains, the rightmost child carries the
+            // most recent relational context.
+            if (bin.OperatorKind is BoundBinaryOperatorKind.And
+                                or BoundBinaryOperatorKind.Or)
+                return ExtractRelationalContext(bin.Right);
+        }
+
+        return (null, default);
+    }
+
+    private static bool IsRelational(BoundBinaryOperatorKind kind) =>
+        kind is BoundBinaryOperatorKind.Equal
+            or BoundBinaryOperatorKind.NotEqual
+            or BoundBinaryOperatorKind.Less
+            or BoundBinaryOperatorKind.LessOrEqual
+            or BoundBinaryOperatorKind.Greater
+            or BoundBinaryOperatorKind.GreaterOrEqual;
+
+    private static bool IsBareOperand(BoundExpression expr) =>
+        expr is BoundIdentifierExpression or BoundLiteralExpression;
 
     private BoundExpression BindRelationalOperand(CobolParserCore.RelationalOperandContext ctx)
     {
@@ -1097,28 +2181,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx is CobolParserCore.AddOperandContext addOp)
         {
             if (addOp.identifier() != null)
-                return BindIdentifierOrLiteral(addOp.identifier().GetText());
+                return BindIdentifierWithSubscripts(addOp.identifier());
             if (addOp.literal() != null)
                 return BindLiteral(addOp.literal());
         }
         else if (ctx is CobolParserCore.SubtractOperandContext subOp)
         {
             if (subOp.identifier() != null)
-                return BindIdentifierOrLiteral(subOp.identifier().GetText());
+                return BindIdentifierWithSubscripts(subOp.identifier());
             if (subOp.literal() != null)
                 return BindLiteral(subOp.literal());
         }
         else if (ctx is CobolParserCore.MultiplyOperandContext mulOp)
         {
             if (mulOp.identifier() != null)
-                return BindIdentifierOrLiteral(mulOp.identifier().GetText());
+                return BindIdentifierWithSubscripts(mulOp.identifier());
             if (mulOp.literal() != null)
                 return BindLiteral(mulOp.literal());
         }
         else if (ctx is CobolParserCore.DivideOperandContext divOp)
         {
             if (divOp.identifier() != null)
-                return BindIdentifierOrLiteral(divOp.identifier().GetText());
+                return BindIdentifierWithSubscripts(divOp.identifier());
             if (divOp.literal() != null)
                 return BindLiteral(divOp.literal());
         }
@@ -1145,15 +2229,196 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx == null)
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
-        // primaryExpression now only allows numericLiteral | identifier | functionCall
-        string text = ctx.GetText();
-        if (decimal.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var val))
-            return new BoundLiteralExpression(val, CobolCategory.Numeric);
+        // Walk the expression tree properly
+        return BindAdditiveExpr(ctx.additiveExpression());
+    }
 
-        var sym = _semantic.ResolveData(text);
-        if (sym != null)
-            return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
+    private BoundExpression BindAdditiveExpr(CobolParserCore.AdditiveExpressionContext ctx)
+    {
+        var left = BindMultiplicativeExpr(ctx.multiplicativeExpression(0));
+        for (int i = 0; i < ctx.addOp().Length; i++)
+        {
+            var right = BindMultiplicativeExpr(ctx.multiplicativeExpression(i + 1));
+            var op = ctx.addOp(i).GetText() == "+"
+                ? BoundBinaryOperatorKind.Add : BoundBinaryOperatorKind.Subtract;
+            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
 
-        return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
+    private BoundExpression BindMultiplicativeExpr(CobolParserCore.MultiplicativeExpressionContext ctx)
+    {
+        var left = BindPowerExpr(ctx.powerExpression(0));
+        for (int i = 0; i < ctx.mulOp().Length; i++)
+        {
+            var right = BindPowerExpr(ctx.powerExpression(i + 1));
+            var op = ctx.mulOp(i).GetText() == "*"
+                ? BoundBinaryOperatorKind.Multiply : BoundBinaryOperatorKind.Divide;
+            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression BindPowerExpr(CobolParserCore.PowerExpressionContext ctx)
+    {
+        var left = BindUnaryExpr(ctx.unaryExpression(0));
+        if (ctx.unaryExpression().Length > 1)
+        {
+            var right = BindUnaryExpr(ctx.unaryExpression(1));
+            left = new BoundBinaryExpression(left, BoundBinaryOperatorKind.Power, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression BindUnaryExpr(CobolParserCore.UnaryExpressionContext ctx)
+    {
+        if (ctx.primaryExpression() != null)
+            return BindPrimaryExpr(ctx.primaryExpression());
+
+        // Unary +/-
+        var inner = BindUnaryExpr(ctx.unaryExpression());
+        if (ctx.addOp().GetText() == "-")
+        {
+            return new BoundBinaryExpression(
+                new BoundLiteralExpression(0m, CobolCategory.Numeric),
+                BoundBinaryOperatorKind.Subtract, inner, CobolCategory.Numeric);
+        }
+        return inner; // unary + is identity
+    }
+
+    private BoundExpression BindPrimaryExpr(CobolParserCore.PrimaryExpressionContext ctx)
+    {
+        // numericLiteral
+        var numLit = ctx.numericLiteral();
+        if (numLit != null)
+            return BindNumericLiteral(numLit);
+
+        // functionCall
+        var funcCall = ctx.functionCall();
+        if (funcCall != null)
+        {
+            // TODO: proper function binding
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        }
+
+        // (arithmeticExpression) — parenthesized
+        var parenExpr = ctx.arithmeticExpression();
+        if (parenExpr != null)
+            return BindArithmeticExpr(parenExpr);
+
+        // identifier (possibly subscripted)
+        var idCtx = ctx.identifier();
+        if (idCtx != null)
+            return BindIdentifierWithSubscripts(idCtx);
+
+        return new BoundLiteralExpression(ctx.GetText(), CobolCategory.Alphanumeric);
+    }
+
+    /// <summary>
+    /// Bind an identifier that may have subscripts: IDENTIFIER (LPAREN subscriptList RPAREN)?
+    /// </summary>
+    private BoundExpression BindIdentifierWithSubscripts(CobolParserCore.IdentifierContext idCtx)
+    {
+        string name = idCtx.IDENTIFIER().GetText();
+        var sym = _semantic.ResolveData(name);
+        if (sym == null)
+            return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
+
+        var cat = sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
+
+        var subList = idCtx.subscriptList();
+        if (subList == null)
+        {
+            var plainId = new BoundIdentifierExpression(sym, cat);
+            var refModCtxNoSub = idCtx.refModSpec();
+            if (refModCtxNoSub != null)
+                return BindReferenceModification(plainId, refModCtxNoSub);
+            return plainId;
+        }
+
+        // Parse subscript expressions
+        var subs = new List<BoundExpression>();
+        foreach (var arithCtx in subList.arithmeticExpression())
+            subs.Add(BindArithmeticExpr(arithCtx));
+
+        // ── Subscript validation (COBOL-85 semantic rules) ──
+
+        // Compute OCCURS depth: how many OCCURS levels this item is under
+        int occursDepth = 0;
+        var current = sym;
+        while (current != null)
+        {
+            if (current.OccursCount > 1)
+                occursDepth++;
+            current = current.Parent;
+        }
+
+        int subscriptCount = subs.Count;
+        int line = idCtx.Start?.Line ?? 0;
+        var loc = new Common.SourceLocation("<source>", 0, line, 0);
+        var span = new Common.TextSpan(0, 0);
+
+        // CS0850: Subscripted a non-OCCURS item
+        if (subscriptCount > 0 && occursDepth == 0)
+        {
+            _diagnostics.ReportError("CS0850",
+                $"Item '{sym.Name}' is not defined with OCCURS and cannot be subscripted.",
+                loc, span);
+        }
+
+        // CS0851: Too many subscripts for the OCCURS depth
+        if (subscriptCount > occursDepth && occursDepth > 0)
+        {
+            _diagnostics.ReportError("CS0851",
+                $"Item '{sym.Name}' has {occursDepth} OCCURS level(s) but was referenced with {subscriptCount} subscript(s).",
+                loc, span);
+        }
+
+        // CS0852: More than 3 OCCURS levels (COBOL-85 limit)
+        if (occursDepth > 3)
+        {
+            _diagnostics.ReportError("CS0852",
+                $"Item '{sym.Name}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {occursDepth}).",
+                loc, span);
+        }
+
+        // CS0853: More than 3 subscripts supplied
+        if (subscriptCount > 3)
+        {
+            _diagnostics.ReportError("CS0853",
+                $"A maximum of 3 subscripts is permitted in COBOL-85; found {subscriptCount}.",
+                loc, span);
+        }
+
+        // CS0854: Too few subscripts for elementary item under OCCURS
+        if (sym.IsElementary && occursDepth > 0 && subscriptCount > 0 && subscriptCount < occursDepth)
+        {
+            _diagnostics.ReportError("CS0854",
+                $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.",
+                loc, span);
+        }
+
+        var baseId = new BoundIdentifierExpression(sym, cat, subs);
+
+        // Reference modification: identifier(start:length)
+        var refModCtx = idCtx.refModSpec();
+        if (refModCtx != null)
+            return BindReferenceModification(baseId, refModCtx);
+
+        return baseId;
+    }
+
+    private BoundExpression BindReferenceModification(
+        BoundIdentifierExpression baseId,
+        CobolParserCore.RefModSpecContext ctx)
+    {
+        var arithExprs = ctx.arithmeticExpression();
+        var startExpr = BindArithmeticExpr(arithExprs[0]);
+
+        BoundExpression? lengthExpr = null;
+        if (arithExprs.Length > 1)
+            lengthExpr = BindArithmeticExpr(arithExprs[1]);
+
+        return new BoundReferenceModificationExpression(baseId, startExpr, lengthExpr);
     }
 }

@@ -20,6 +20,24 @@ public sealed class DataSymbol : Symbol
     public bool IsElementary => PicString != null;
     public CodeGen.StorageAreaKind Area { get; set; }
 
+    /// <summary>
+    /// Sign storage from explicit SIGN clause. Null means no explicit clause
+    /// (default is trailing overpunch for signed DISPLAY fields).
+    /// </summary>
+    public SignStorageKind? ExplicitSignStorage { get; set; }
+
+    /// <summary>
+    /// If non-null, the VALUE clause specified a figurative constant.
+    /// Used for field-filling initialization instead of InitialValue string.
+    /// </summary>
+    public int? FigurativeInit { get; set; }  // Runtime.FigurativeKind enum value, or null
+
+    /// <summary>OCCURS count (1 = no OCCURS, >1 = array).</summary>
+    public int OccursCount { get; set; } = 1;
+
+    /// <summary>Size of one element in bytes (set by RecordLayoutBuilder).</summary>
+    public int ElementSize { get; set; }
+
     public DataSymbol? Redefines { get; set; }
 
     /// <summary>Unresolved REDEFINES target name (for deferred resolution).</summary>

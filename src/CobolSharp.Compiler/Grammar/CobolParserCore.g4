@@ -269,7 +269,8 @@ organizationClause
     ;
 
 organizationType
-    : SEQUENTIAL
+    : LINE SEQUENTIAL
+    | SEQUENTIAL
     | RELATIVE
     | INDEXED
     ;
@@ -405,7 +406,6 @@ dataName
 dataDescriptionBody
     : dataDescriptionClauses
     | renamesClause
-    | conditionEntry88
     ;
 
 // ==========================================
@@ -447,18 +447,26 @@ pictureClause
 
 // USAGE Clause
 usageClause
-    : USAGE IS? usageKeyword
-    ;
-
-usageKeyword
-    : DISPLAY
+    : USAGE IS? usageKeyword        // full form: USAGE IS DISPLAY
+    | DISPLAY                        // bare keyword forms (no USAGE prefix)
+    | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
-    | IDENTIFIER        // for 2023 types, OO types, generics
+    ;
+
+usageKeyword
+    : DISPLAY
+    | COMPUTATIONAL
+    | COMP
+    | COMP_1
+    | COMP_2
+    | COMP_3
+    | BINARY
+    | PACKED_DECIMAL
     ;
 
 // OCCURS Clause
@@ -487,14 +495,18 @@ renamesClause
     ;
 
 // VALUE Clause — IS is optional noise word
+// For level-88 condition entries, valueItem supports THRU ranges.
 valueClause
-    : VALUE IS? literal
-    | VALUES IS? literal (literal)*
+    : (VALUE | VALUES) IS? valueItem (COMMA? valueItem)*
+    ;
+
+valueItem
+    : literal (THRU literal)?
     ;
 
 // SIGN Clause
 signClause
-    : SIGN IS? (LEADING | TRAILING) (SEPARATE CHARACTER)?
+    : (SIGN IS?)? (LEADING | TRAILING) (SEPARATE CHARACTER?)?
     ;
 
 // JUSTIFIED / SYNCHRONIZED
@@ -511,22 +523,10 @@ blankWhenZeroClause
     : BLANK WHEN ZERO
     ;
 
-// 88-LEVEL CONDITION ENTRIES
-conditionEntry88
-    : INTEGERLIT conditionName valueSet
-    ;
-
-conditionName
-    : IDENTIFIER
-    ;
-
-valueSet
-    : valueRange (COMMA valueRange)*
-    ;
-
-valueRange
-    : literal (THRU literal)?
-    ;
+// 88-LEVEL CONDITION ENTRIES — handled through valueClause with THRU support.
+// Level number and condition name are already consumed by dataDescriptionEntry.
+// The conditionEntry88 / valueSet / valueRange rules have been removed;
+// valueClause now supports THRU ranges via valueItem for level-88 entries.
 
 // ==========================================
 // PROCEDURE DIVISION
@@ -552,6 +552,16 @@ identifierList
 
 identifier
     : IDENTIFIER
+      (LPAREN subscriptList RPAREN)?
+      (LPAREN refModSpec RPAREN)?
+    ;
+
+refModSpec
+    : arithmeticExpression COLON arithmeticExpression?
+    ;
+
+subscriptList
+    : arithmeticExpression (COMMA? arithmeticExpression)*
     ;
 
 fileName
@@ -1438,7 +1448,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : GO TO? identifier
+    : GO TO? identifier (identifier)* (DEPENDING ON? identifier)?
     ;
 
 // ==========================================
@@ -1446,7 +1456,14 @@ goToStatement
 // ==========================================
 
 acceptStatement
-    : ACCEPT identifier (FROM identifier)?
+    : ACCEPT identifier (FROM acceptSource)?
+    ;
+
+acceptSource
+    : DATE
+    | TIME
+    | DAY
+    | DAY_OF_WEEK
     ;
 
 // ==========================================
@@ -1462,7 +1479,18 @@ displayStatement
 // ==========================================
 
 initializeStatement
-    : INITIALIZE identifierList
+    : INITIALIZE identifierList initializeReplacingPhrase?
+    ;
+
+initializeReplacingPhrase
+    : REPLACING initializeReplacingItem+
+    ;
+
+initializeReplacingItem
+    : ALPHANUMERIC DATA BY (identifier | literal)
+    | NUMERIC DATA BY (identifier | literal)
+    | ALPHANUMERIC EDITED DATA BY (identifier | literal)
+    | NUMERIC EDITED DATA BY (identifier | literal)
     ;
 
 // ==========================================
@@ -1474,7 +1502,6 @@ inspectStatement
       inspectTallyingPhrase?
       inspectReplacingPhrase?
       inspectConvertingPhrase?
-     
     ;
 
 inspectTallyingPhrase
@@ -1486,10 +1513,9 @@ inspectTallyingItem
     ;
 
 inspectForPhrase
-    : ALL literal
-    | LEADING literal
-    | FIRST literal
-    | BEFORE INITIAL_? literal
+    : CHARACTERS inspectDelimiters?
+    | ALL (identifier | literal) inspectDelimiters?
+    | LEADING (identifier | literal) inspectDelimiters?
     ;
 
 inspectReplacingPhrase
@@ -1497,16 +1523,19 @@ inspectReplacingPhrase
     ;
 
 inspectReplacingItem
-    : ALL literal BY (identifier | literal)
-    | LEADING literal BY (identifier | literal)
-    | FIRST literal BY (identifier | literal)
-    | BEFORE INITIAL_? literal BY (identifier | literal)
+    : CHARACTERS BY (identifier | literal) inspectDelimiters?
+    | ALL (identifier | literal) BY (identifier | literal) inspectDelimiters?
+    | LEADING (identifier | literal) BY (identifier | literal) inspectDelimiters?
+    | FIRST (identifier | literal) BY (identifier | literal) inspectDelimiters?
     ;
 
 inspectConvertingPhrase
-    : CONVERTING identifier
-      FROM (identifier | literal)
-      TO   (identifier | literal)
+    : CONVERTING (identifier | literal) TO (identifier | literal) inspectDelimiters?
+    ;
+
+inspectDelimiters
+    : BEFORE INITIAL_? (identifier | literal) (AFTER INITIAL_? (identifier | literal))?
+    | AFTER INITIAL_? (identifier | literal) (BEFORE INITIAL_? (identifier | literal))?
     ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)
@@ -1532,22 +1561,19 @@ searchAtEndClause
 // ==========================================
 // SEARCH ALL (§14.9.37 — Binary Search)
 // ==========================================
+// Semantic restrictions (single WHEN, relational operator, sorted table)
+// are enforced in the binder, not the grammar. The parser accepts the
+// same condition grammar as IF/EVALUATE/SEARCH.
 
 searchAllStatement
     : SEARCH ALL identifier
-      searchAllAtEndClause?
+      searchAtEndClause?
       searchAllWhenClause+
       END_SEARCH?
-     
     ;
 
 searchAllWhenClause
-    : WHEN relationalExpression
-    ;
-
-searchAllAtEndClause
-    : AT END imperativeStatement
-      (NOT AT END imperativeStatement)?
+    : WHEN condition imperativeStatement*
     ;
 // (setStatement, sortStatement, startStatement, stopStatement are fully expanded above)
 
@@ -1578,8 +1604,7 @@ logicalAndExpression
     ;
 
 logicalNotExpression
-    : 'NOT' logicalNotExpression
-    | relationalExpression
+    : relationalExpression
     ;
 
 // =========================
@@ -1592,7 +1617,15 @@ relationalOperand
     ;
 
 relationalExpression
-    : relationalOperand ( relationalOperator relationalOperand )?
+    : relationalOperand IS? NOT? className                         // class condition
+    | relationalOperand ( relationalOperator relationalOperand )?  // existing relational + bare operand
+    ;
+
+className
+    : NUMERIC
+    | ALPHABETIC
+    | ALPHABETIC_LOWER
+    | ALPHABETIC_UPPER
     ;
 
 relationalOperator

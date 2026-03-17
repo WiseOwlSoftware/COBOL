@@ -6,6 +6,909 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 103 — 2026-03-17: STRING, UNSTRING, EXIT PERFORM, Ref-Mod Everywhere
+
+Massive session: 6 features implemented, 4 pre-existing bugs fixed, 2 architectural doctrines
+codified, 140 tests passing (up from 111 at session start).
+
+**Features implemented:**
+1. **Reference modification as first-class expression** — LowerCondition, BindPrimaryExpression,
+   arithmetic operand binding all now handle ref-mod via ResolveExpressionLocation.
+2. **SEARCH / SEARCH ALL** — grammar (corrected searchAllWhenClause), bound model, binding with
+   index extraction from WHEN conditions, linear search lowering, 13 tests including 2D/3D with
+   PERFORM VARYING outer loops.
+3. **STRING** — grammar already existed, added BoundStringStatement/BoundStringSending, IrStringStatement
+   composite IR, StringConcat/StringConcatLiteral runtime, EmitStringStatement with shared pointer
+   local, ON/NOT ON OVERFLOW branching.
+4. **UNSTRING** — mirrors STRING architecture exactly: IrUnstringStatement, UnstringExtract per-INTO
+   runtime step, shared pointer local, overflow OR'ing, COUNT IN / DELIMITER IN / TALLYING.
+5. **EXIT PERFORM** — BoundExitPerformStatement, _performExitStack in Binder, dead block after jump.
+6. **Alphanumeric field-vs-field comparison** — IrStringCompare IR instruction,
+   CompareFieldToField runtime, category-based dispatch in LowerCondition.
+
+**Pre-existing bugs fixed:**
+1. **EmitExpression bypassed IrLocation** — used GetStorageLocation directly for COMPUTE/DIVIDE
+   expressions. Fixed with pre-resolved location dictionary on IrComputeStore.
+2. **BindPrimaryExpression dropped subscripts/ref-mod** — used IDENTIFIER().GetText() instead of
+   BindIdentifierWithSubscripts. Same bug in 4 arithmetic operand binding sites.
+3. **Group OCCURS child step size** — ResolveLocation used leaf element size for multipliers
+   instead of OCCURS group element size. VAL(2) in a 2-byte group computed offset 1 instead of 2.
+4. **Multi-dimensional SEARCH index extraction** — FindSubscriptOnTable took the first subscript
+   instead of the one matching the SEARCH table's OCCURS level.
+
+**AI win:** Caught non-standard COBOL in user-supplied 2D/3D SEARCH tests. SEARCH only iterates
+the innermost dimension; outer dimensions require PERFORM VARYING. Stopped and asked before
+implementing, kept the compiler spec-compliant.
+
+**Architectural doctrine codified:** Four patterns (rogue paths, instance vs pattern, bolting vs
+integrating, missing dispatch points) analyzed across 15 entries and formalized in PROMPT.md as
+binding development rules for all future sessions.
+
+29 new tests, 140 total, 1 skip, all green.
+
+---
+
+## Entry 102 — 2026-03-17: SEARCH / SEARCH ALL — Spec Compliance Win
+
+Implemented SEARCH (linear) and SEARCH ALL (binary, currently lowered as linear pending KEY
+ASCENDING/DESCENDING support). Grammar, bound model, binding, lowering, 13 tests.
+
+**Grammar fix:** `searchAllWhenClause` changed from `WHEN relationalExpression` to
+`WHEN condition imperativeStatement*`. The original grammar was a real hole — no imperative
+statements and too-narrow condition syntax. Semantic restrictions (single WHEN, relational
+equality, sorted table) enforced in the binder, not the parser. Consistent with IF/EVALUATE.
+
+**Three pre-existing bugs surfaced and fixed:**
+
+1. **Group OCCURS child step size** — `ResolveLocation` used the leaf element's size for
+   subscript multipliers instead of the OCCURS group's element size. For `VAL PIC 9` inside
+   `ROW OCCURS 3` (containing VAL + FLAG = 2 bytes), VAL(2) computed offset 1 instead of 2.
+   Fix: introduced `stepSize` (OCCURS group element size) vs `leafSize` (leaf element size).
+
+2. **Alphanumeric field-vs-field comparison** — `LowerCondition` always used `IrPicCompare`
+   (numeric decode) for location-vs-location comparisons, even when both sides were PIC X.
+   Added `IrStringCompare` IR instruction, `CompareFieldToField` runtime method, and
+   category-based dispatch in the Binder.
+
+3. **Multi-dimensional SEARCH index extraction** — `FindSubscriptOnTable` took the first
+   subscript from `A(I, J)`, but for `SEARCH COL` the index should be J (COL's dimension),
+   not I (ROW's dimension). Fixed by walking the OCCURS level chain and matching the SEARCH
+   table to its positional subscript.
+
+**AI win: caught non-standard COBOL in user-supplied tests.** User provided 2D/3D SEARCH tests
+that expected SEARCH to iterate ALL dimensions simultaneously. Claude stopped implementation
+and flagged this: "In standard COBOL, SEARCH only searches the innermost dimension — you nest
+PERFORM loops for outer dimensions. Should I adjust these tests to conform to COBOL SEARCH
+semantics, or do you want the non-standard behavior?" User confirmed: stick with the ISO spec.
+Tests were rewritten to use PERFORM VARYING for outer dimensions, keeping the compiler
+spec-compliant. This is exactly the right behavior — the AI pushed back on incorrect
+assumptions instead of silently implementing non-standard semantics. The rule "implement from
+the spec" applies to tests too, not just compiler code.
+
+132 integration tests, 1 skip, all green.
+
+---
+
+## Retrospective — 2026-03-17: Systemic Pattern Analysis (Entries 086–101)
+
+A retrospective scan across 15 entries reveals four recurring failure modes. All are variations
+of the same root: bypassing the abstraction boundary. Codified here as architectural doctrine.
+
+### Pattern 1: Rogue paths bypassing the canonical abstraction
+
+Instances found across the log:
+- EmitExpression bypassed IrLocation (Entry 101)
+- LowerCondition bypassed ResolveExpressionLocation (Entry 101)
+- BindPrimaryExpression bypassed BindIdentifierWithSubscripts (Entry 101)
+- Arithmetic operand binding bypassed the identifier binder (Entry 101)
+- FileRuntime bypassed CobolFileManager (Entry 094)
+- ACCEPT FROM DATE initially bypassed lexer tokens (Entry 091)
+- INSPECT initially bypassed region abstraction (Entry 095)
+- GO TO DEPENDING initially bypassed subscript support (Entry 098)
+
+The fix is always the same: create or extend the canonical abstraction. The abstractions that
+now serve as canonical dispatch points:
+- `IrLocation` — all data storage references
+- `ResolveExpressionLocation` — all bound expression → location resolution
+- `EmitLocationArgs` / `EmitLocationArgsWithPic` — all CIL location emission
+- `BindIdentifierWithSubscripts` — all identifier binding from parse tree
+- `CobolFileManager` — all file I/O operations
+
+**Doctrine:** If a canonical abstraction exists, use it. If it doesn't, create it before
+implementing the feature. Never route around it.
+
+### Pattern 2: Fixing the instance instead of the pattern
+
+"I keep treating bugs as isolated incidents instead of structural patterns."
+
+Instances:
+- Fixing one `IDENTIFIER().GetText()` instead of all 8 occurrences
+- Fixing one `GetStorageLocation` bypass instead of auditing the emitter
+- Fixing one ref-mod special case in LowerMove instead of unifying expression resolution
+- Fixing one abbreviated relation case instead of rewriting the binder
+
+**Doctrine:** Every bug is a pattern. Every pattern has multiple instances. When you find a
+structural flaw, assume it exists elsewhere until proven otherwise. Stop, identify the pattern,
+sweep the codebase, fix all instances, add regression tests. One pass.
+
+### Pattern 3: Bolting instead of integrating
+
+Adding a feature at the leaves instead of at the abstraction boundary:
+- Reference modification initially bolted onto LowerMove as a type-check cascade (Entry 100)
+- OCCURS initially wired into MOVE/DISPLAY only, not unified into IrLocation (Entry 099)
+- ACCEPT FROM DATE initially bolted via string comparisons (Entry 091)
+- File I/O: legacy FileRuntime bolted next to CobolFileManager (Entry 094)
+- NEXT SENTENCE initially impossible because sentences weren't modeled (Entry 090)
+
+**Doctrine:** If a feature touches multiple subsystems, integrate it at the abstraction
+boundary, not at the leaves. The pre-change checklist (Entry 100) catches this:
+1. Is there a single, canonical dispatch point? Extend it or create it.
+2. Is the type logic centralized or smeared across call sites? If smeared, refactor first.
+3. Am I modifying a leaf when the concept is more general? If yes, step back.
+
+### Pattern 4: Missing the "single dispatch point"
+
+When the answer to "is there a single dispatch point?" was "yes," the fix was trivial:
+- `ResolveExpressionLocation` — one method, all data references
+- `EmitLocationArgs` — one method, all CIL location emission
+- `RewriteAbbreviatedRelations` — one pass, all abbreviated conditions
+- `CobolFileManager` — one class, all file operations
+
+When the answer was "no," creating one simplified everything downstream. The cost of creating
+a dispatch point is always less than the cost of not having one.
+
+**Doctrine:** Every concept in the compiler should have exactly one dispatch point. If you're
+adding logic in multiple places for the same concept, you don't have a dispatch point yet.
+
+---
+
+## Entry 101 — 2026-03-17: Reference Modification as First-Class Expression — Killing Rogue Paths
+
+Made reference modification work everywhere, not just MOVE/DISPLAY. Found and fixed three classes
+of bypass bugs that had been silently producing wrong results.
+
+**Bug 1: EmitExpression bypassed IrLocation entirely.** The CilEmitter's `EmitExpression` method
+(used by COMPUTE, SUBTRACT GIVING, DIVIDE expressions) went directly to
+`_semanticModel.GetStorageLocation(id.Symbol)`, ignoring subscripts and ref-mod completely.
+Any COMPUTE expression involving a subscripted identifier was silently reading from offset 0
+of the array instead of the correct element.
+
+Fix: IrComputeStore now carries a `ResolvedLocations` dictionary, pre-populated by the Binder
+via a new `PreResolveExpressionLocations()` tree walker. EmitExpression looks up pre-resolved
+IrLocations and uses `EmitLocationArgsWithPic` + DecodeNumeric — the same path everything else
+uses. The direct `GetStorageLocation` call in EmitExpression is dead.
+
+**Bug 2: LowerCondition only handled BoundIdentifierExpression.** The comparison lowering used
+`binCond.Left as BoundIdentifierExpression` + `ResolveLocation(leftId)`, which meant
+`IF FIELD(2:3) = "BCD"` silently failed — the ref-mod expression wasn't a BoundIdentifierExpression,
+so leftLoc was null, and the comparison fell through to the fatal throw. Fix: replaced with
+`ResolveExpressionLocation(binCond.Left)` which handles both identifiers and ref-mod.
+
+**Bug 3: BindPrimaryExpression dropped subscripts and ref-mod.** The `BindFullExpression` chain
+(used by IF conditions, EVALUATE, and anywhere arithmetic expressions appear) had its own
+`BindPrimaryExpression` that did `ctx.identifier().IDENTIFIER().GetText()` → bare
+`BoundIdentifierExpression(sym, CobolCategory.Numeric)`. This extracted only the name, hardcoded
+numeric category, and completely ignored the subscript/ref-mod parse tree children.
+
+**AI failure: didn't scan for similar patterns.** After finding the `BindPrimaryExpression` bug,
+I moved on to testing instead of immediately scanning for other instances of
+`ctx.identifier().IDENTIFIER().GetText()`. User had to explicitly prompt: "Scan for other
+occurrences of this faulty pattern." The scan found 4 more identical bugs in arithmetic operand
+binding (ADD, SUBTRACT, MULTIPLY, DIVIDE operands all used the same `IDENTIFIER().GetText()` →
+`BindIdentifierOrLiteral(text)` pattern, dropping subscripts/ref-mod). This is the same failure
+as Entry 100's "bolting not integrating" — I keep treating bugs as isolated incidents instead of
+structural patterns. **Rule added**: after finding any faulty pattern, immediately grep for all
+instances across the codebase. Don't wait to be told.
+
+**7 regression tests added** to lock in the invariant that data references flow through IrLocation:
+- IF with subscripted identifier, ref-mod, combined subscript+ref-mod, variable ref-mod
+- ADD/SUBTRACT/MULTIPLY with subscripted operands
+
+118 integration tests, 1 skip, all green.
+
+**Development rule formalized: Every bug is a pattern.**
+
+When a structural flaw is discovered, perform a full pattern sweep immediately.
+
+*Trigger:* You find a bug caused by bypassing an abstraction, duplicating logic, or violating
+layering.
+
+*Action:* Perform a codebase-wide search for all instances of the same pattern, not just the
+one that failed.
+
+*Examples:*
+- Found one `IDENTIFIER().GetText()` → search for all of them.
+- Found one direct `GetStorageLocation` → search for all.
+- Found one place bypassing `ResolveExpressionLocation` → search for all.
+- Found one place manually decoding numeric bytes → search for all.
+- Found one place doing type-check cascades → search for all.
+
+*Outcome:* You eliminate entire classes of bugs instead of single symptoms.
+
+This matters because every single-instance fix creates future regressions, inconsistent behavior,
+and architectural drift. Every pattern fix makes the architecture cleaner and new features easier.
+The evidence from this session: IrLocation, ResolveExpressionLocation, EmitExpression,
+BindIdentifierWithSubscripts, IrComputeStore pre-resolution — each time the pattern was unified,
+the entire compiler got simpler.
+
+---
+
+## Entry 100 — 2026-03-17: Expression Subscripts + Reference Modification + Multi-Dim OCCURS
+
+Extended the IrLocation architecture to handle expression subscripts (ARR(I+1), ARR(I*J)),
+reference modification (FIELD(3:2), ARR(I)(3:2)), REDEFINES+OCCURS, and COMP-3 arrays.
+
+**Expression subscripts**: Changed `IrElementRef.SubscriptLocations` from `IReadOnlyList<StorageLocation>`
+to `IReadOnlyList<BoundExpression>`. EmitElementAddress now calls EmitExpression for each subscript,
+which handles identifiers, arithmetic, and any expression uniformly. This was a simplification —
+removed the need for temp storage allocation entirely.
+
+**Reference modification**: Grammar extended with `refModSpec : arithmeticExpression COLON
+arithmeticExpression?` as optional suffix on `identifier`. New `IrRefModLocation : IrLocation`
+composes base location (static or element) with runtime start:length. `EmitRefModAddress` evaluates
+start/length expressions, pushes base via EmitElementAddress or static offset, computes
+`baseOffset + (start-1)` and pushes length. Added `ResolveExpressionLocation(BoundExpression)` as
+the single entry point for all lowering methods — handles both BoundIdentifierExpression and
+BoundReferenceModificationExpression uniformly.
+
+**AI failure (again)**: Initially bolted reference modification onto LowerMove as another type-check
+cascade (`if source is BoundReferenceModificationExpression...`) instead of refactoring to a unified
+`ResolveExpressionLocation`. Same pattern as the wrapping hack in Entry 099 — adding special cases
+instead of fixing the abstraction. User caught it: "I do not want the simplest modification. I want
+the production quality changes." The proper fix was straightforward: one new method
+(`ResolveExpressionLocation`) that dispatches on expression type, and LowerMove/LowerDisplay call it
+for ALL target/source expressions. This is the third time this session I've chosen the lazy path
+over the architectural one.
+
+**Pre-change checklist codified** (to prevent recurrence):
+1. Is there a single, canonical dispatch point for this concept?
+   If yes → extend it. If no → create it. Never wrap around it.
+2. Is the type logic centralized or smeared across call sites?
+   If smeared → stop and refactor toward a unified resolver.
+3. Am I modifying a leaf (like LowerMove) when the concept is more general?
+   If yes → I'm probably bolting, not integrating. Step back.
+
+**Tests**: 6 ref mod tests (constant, with subscript, variable start, rest-of-field, expression
+start/length, 2D+refmod), 2 expression subscript tests, REDEFINES+OCCURS test, COMP-3 array test.
+119 unit, 111 integration, 1 skip. All green.
+
+---
+
+## Entry 099 — 2026-03-17: IrLocation Complete — Multi-Dimensional OCCURS + Subscript Validation
+
+Completed the full IrLocation migration and extended it to multi-dimensional OCCURS (1D/2D/3D),
+all in one session. The architecture is now clean end-to-end: bound tree → lowering → IR → emitter.
+
+**Architecture delivered**:
+- `IrLocation` (abstract) → `IrStaticLocation` | `IrElementRef` replaces `StorageLocation` in
+  ALL 30+ IR instruction types. Zero `StorageLocation` leakage into IR.
+- `ResolveLocation(BoundIdentifierExpression)` — single gateway to storage. Constant-folds literal
+  subscripts to `IrStaticLocation`, builds `IrElementRef` for variable subscripts. Handles 1D/2D/3D
+  with precomputed row/plane multipliers.
+- `ResolveLocation(DataSymbol)` — overload for non-subscriptable references (records, file status,
+  INITIALIZE items, PERFORM VARYING index, condition parents).
+- `EmitLocationArgs`/`EmitLocationArgsWithPic`/`EmitElementAddress` — three CilEmitter helpers
+  used by every emit method. `EmitElementAddress` loops over dimensions generically.
+- Zero direct `_semantic.GetStorageLocation` calls in the Binder outside `ResolveLocation`.
+
+**Bound tree cleanup**:
+Changed 9 bound statement types from `DataSymbol` to `BoundIdentifierExpression`:
+`BoundArithmeticTarget`, `BoundAcceptStatement`, `BoundInspectStatement`,
+`BoundInspectTallyingItem`, `BoundGoToStatement.DependingOn`, `BoundSetIndexStatement`,
+`BoundReadStatement.Into`, `BoundMultiplyStatement.GivingTarget`,
+`BoundDivideStatement.RemainderTarget`. Updated ~25 sites in BoundTreeBuilder to call
+`BindIdentifierWithSubscripts` instead of `identifier().IDENTIFIER().GetText()`.
+
+**Multi-dimensional OCCURS**:
+- `IrElementRef` generalized: `IReadOnlyList<StorageLocation> SubscriptLocations` +
+  `IReadOnlyList<int> Multipliers` instead of single subscript.
+- Multiplier formula: `multiplier[i] = product of all inner dimension OCCURS counts × elementSize`.
+  For 3D [X,Y,Z]: multipliers = [Y×Z×E, Z×E, E].
+- Offset: `base + sum_i((sub_i - 1) × multiplier_i)`.
+- Tests pass for 2D constant, 2D variable, 3D constant subscripts.
+
+**Subscript validation diagnostics** (in `BindIdentifierWithSubscripts`):
+- CS0850: subscripted non-OCCURS item
+- CS0851: too many subscripts for OCCURS depth
+- CS0852: exceeds 3 OCCURS levels (COBOL-85 limit)
+- CS0853: exceeds 3 subscripts
+- CS0854: too few subscripts for elementary item
+
+**AI failure and recovery**: Attempted to propagate `IrLocation` by wrapping every
+`_semantic.GetStorageLocation` call with `new IrStaticLocation(loc.Value)` at 40+ sites —
+a transitional hack that violated `feedback_production_quality_always`. User caught it,
+explained the correct layered approach (change bound types first, then lowering uses
+`ResolveLocation`), and the wrapping was undone and replaced with proper architecture.
+Lesson saved: `feedback_no_transitional_hacks.md`.
+
+**Dead code removed**: `IrMoveToElement`, `IrMoveFromElement`, `IrDisplayElement`,
+`IrLoadElementNumeric` — replaced by the general `IrLocation` mechanism.
+
+119 unit tests, 101 integration tests, 1 skip. All green.
+
+---
+
+## Entry 097 — 2026-03-16: OCCURS + Subscripts — Partial, Gap Identified
+
+Implemented OCCURS count on DataSymbol, storage layout accounting for OCCURS multiplier,
+subscript syntax on identifiers, and constant subscript resolution in MOVE/DISPLAY.
+
+**What works**: `MOVE 7 TO ITEM(3)`, `DISPLAY ITEM(3)`, `GO TO P1 P2 DEPENDING ON ARR(1)` —
+all with constant integer subscripts. Storage layout correctly allocates `elementSize * occursCount`
+bytes for both elementary and group OCCURS items.
+
+**Critical gap identified by user**: Only 5 call sites in the Binder use the subscript-aware
+`ResolveIdentifierLocation`. **39 other sites** still call `_semantic.GetStorageLocation` directly,
+completely bypassing subscript resolution. This means subscripts silently break in:
+- All arithmetic (ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE operands and targets)
+- IF/condition evaluation
+- INITIALIZE, SET, INSPECT
+- File I/O (READ INTO, WRITE FROM)
+- GO TO DEPENDING with variable selector
+- PERFORM VARYING index
+
+**Variable subscripts not implemented**: `ResolveIdentifierLocation` returns null for non-constant
+subscripts. No caller handles this null. The `IrElementRef` IR node was defined but no emitter
+or lowering code exists to use it.
+
+**Architectural lesson**: The right fix (per user's design) is a unified `IrLocation` abstraction
+that replaces `StorageLocation` in all IR instructions — either a static location or a dynamic
+element reference. This avoids threading subscript awareness through 39+ individual call sites.
+Two central emitter helpers (`EmitLoadLocation`, `EmitStoreLocation`) would handle both cases.
+
+**AI failures this session**:
+1. Tried to use string comparisons for ACCEPT FROM DATE instead of proper lexer tokens — caught
+   by user before implementation.
+2. Repeatedly oscillated between "constant only" and "dynamic" subscript approaches instead of
+   committing to one architecture.
+3. Said "cleanest approach" multiple times when the user wanted "production quality" — these are
+   not the same thing. Clean ≠ correct. Production quality means: works for all cases, not just
+   the easy ones.
+4. Made scattered changes across 39+ call sites without a unified abstraction, creating exactly
+   the kind of inconsistency the user warned against.
+
+3 new tests pass (MOVE+DISPLAY subscript, multiple elements, GO TO DEPENDING with subscript).
+97 integration tests total, all green. But the subscript implementation is incomplete.
+
+---
+
+## Entry 096 — 2026-03-16: GO TO ... DEPENDING ON
+
+Extended GO TO to support multi-target DEPENDING ON form.
+
+**Grammar**: `goToStatement : GO TO? identifier (identifier)* (DEPENDING ON? identifier)? ;`
+DEPENDING is already a keyword token, so it acts as a natural delimiter between the target list
+and the selector identifier. ANTLR's greedy `(identifier)*` consumes all IDENTIFIER tokens
+until it hits the DEPENDING keyword.
+
+**Bound model**: `BoundGoToStatement` now holds `IReadOnlyList<ParagraphSymbol> Targets` and
+optional `DataSymbol? DependingOn`. `IsSimple` property distinguishes single-target from
+DEPENDING form. Backward-compatible `Target` property for the simple case.
+
+**Lowering**: Simple GO TO still emits `IrReturnConst(targetIndex)`. DEPENDING emits
+`IrGoToDepending(selectorLocation, targetParagraphIndices)`. The CilEmitter decodes the
+selector field to decimal via `PicRuntime.DecodeNumeric`, converts to int via
+`Convert.ToInt32(decimal)`, then emits cascaded `bne.un` comparisons: if selector == 1,
+ret target[0]; if selector == 2, ret target[1]; etc. No match = fall through.
+
+**Bug fixed during implementation**: Initial `decimal→int` conversion used `op_Explicit` via
+reflection, which is ambiguous (multiple overloads for byte, int, etc.). Fixed to use
+`Convert.ToInt32(decimal)` directly.
+
+**NC102A still fails**: The NIST GO TO test uses subscripted identifiers like `GO-SCRIPT(1)`
+in the DEPENDING ON clause. Our `identifier` grammar rule doesn't support subscripts — that's
+a separate grammar gap (reference modification / subscripting).
+
+3 tests: correct target selection, out-of-range fallthrough, falls-into-next-paragraph.
+
+---
+
+## Entry 095 — 2026-03-16: ACCEPT FROM DATE/TIME/DAY/DAY-OF-WEEK
+
+Implemented ACCEPT with intrinsic date/time sources.
+
+**AI misstep — caught by user**: Initially tried to keep DATE/TIME/DAY as identifiers in the
+grammar and resolve them via string comparisons in the binder (`FROM identifier` → check if
+identifier text equals "DATE"). This is the exact kind of half-measure the user has repeatedly
+flagged: when the spec defines keywords, use proper lexer tokens. The correct approach is
+DATE, TIME, DAY as lexer keywords and DAY-OF-WEEK as a hyphenated compound token, with
+a typed `acceptSource` parser rule that references these tokens directly. No string comparisons,
+no ambiguity, no silent failures if someone misspells "DATEE". The grammar enforces correctness
+at parse time, which is the whole point of having a grammar.
+
+**Lesson reinforced**: The feedback_proper_fixes memory says "always add lexer tokens, never
+IDENTIFIER workarounds." I had the memory, read it at session start, and still reached for the
+lazy approach. The pattern to break: when implementing a new feature, the FIRST thing to check
+is whether new lexer tokens are needed, before writing any binding code.
+
+**Runtime**: `AcceptRuntime.Accept(byte[] area, int offset, int length, int sourceKind)` — one
+method with a switch on source kind. Formats: DATE → YYYYMMDD or YYMMDD (based on field length),
+TIME → HHMMSScc, DAY → YYYYDDD, DAY-OF-WEEK → 1-7 (ISO 8601: Monday=1). Writes ASCII digits
+directly into storage, pads with spaces.
+
+**Lexer tokens added**: DATE, TIME (regular keywords), DAY (regular keyword), DAY_OF_WEEK
+(hyphenated compound token, placed before IDENTIFIER in lexer ordering).
+
+5 tests: DATE 8-digit, DATE 6-digit, TIME, DAY, DAY-OF-WEEK — all assert shape invariants
+(digit count, range checks) rather than exact clock values.
+
+---
+
+## Entry 094 — 2026-03-16: INSPECT — TALLYING, REPLACING, CONVERTING with BEFORE/AFTER
+
+Full INSPECT implementation covering all three COBOL-85 forms.
+
+**Runtime design**: `InspectRuntime` is a pure static class with string-manipulation algorithms.
+All methods operate on a `byte[] area, int offset, int length` span (ASCII). The key abstraction
+is `ComputeRegion(text, before, beforeInitial, after, afterInitial)` which restricts the scan
+window based on BEFORE/AFTER delimiter patterns. Every TALLYING/REPLACING/CONVERTING operation
+passes through this region computation first.
+
+**TALLYING**: Three variants — ALL (count non-overlapping occurrences), LEADING (consecutive
+from region start), CHARACTERS (region length). Each has a `*AndStore` variant that takes the
+counter field's storage location + PicDescriptor, decodes the current numeric value, adds the
+count, and re-encodes. This avoids needing a runtime ArithmeticStatus for a simple increment.
+
+**REPLACING**: ALL replaces every non-overlapping match. FIRST replaces only the first match.
+LEADING replaces consecutive matches from region start. COBOL spec requires pattern and
+replacement to be same length — the runtime enforces this.
+
+**CONVERTING**: Builds a character map from `fromSet` to `toSet`. For each character in the scan
+region, if it appears in `fromSet`, replace with the corresponding `toSet` character. Classic
+COBOL transliteration.
+
+**Grammar rewrite**: The existing grammar had BEFORE/AFTER as separate alternatives rather than
+delimiters on ALL/LEADING/FIRST. Rewrote to proper structure: each item can carry optional
+`inspectDelimiters` with BEFORE/AFTER INITIAL patterns. Added CHARACTERS token to lexer.
+
+**Bound model**: `BoundInspectRegion` (before/after pattern + initial flags), three item types
+(Tallying, Replacing, Converting), `BoundInspectStatement` aggregating all. Region patterns
+stored as strings directly in the bound model — all INSPECT operates on DISPLAY data.
+
+**IR**: Three dedicated instructions (`IrInspectTally`, `IrInspectReplace`, `IrInspectConvert`)
+each carrying target StorageLocation + pattern strings + region descriptor. CilEmitter pushes
+all args and calls the corresponding `InspectRuntime` static method.
+
+**BoundTreeBuilder challenge**: Extracting ordered pattern/replacement pairs from ANTLR parse
+trees where `identifier()` and `literal()` arrays lose source ordering. Solved by sorting on
+`SourceInterval.a` (token index) to reconstruct parse order.
+
+6 tests: TALLYING ALL, REPLACING ALL/FIRST/LEADING, CONVERTING, BEFORE/AFTER delimiters.
+
+---
+
+## Entry 093 — 2026-03-16: SET Statement — Condition Names, Index Assignment, UP/DOWN BY
+
+Implemented SET statement with three forms, all lowering to existing MOVE/arithmetic machinery.
+
+**SET condition-name TO TRUE**: Moves the first defining value from the 88-level's ValueRanges
+into the parent data item. `SET FLAG-ON TO TRUE` where `88 FLAG-ON VALUE "Y"` emits
+`IrMoveStringToField(parentLoc, "Y")`.
+
+**SET condition-name TO FALSE**: Needs a value guaranteed not to match any true value. For
+alphanumeric parents, fills with spaces (via IrMoveFigurative). For numeric, tries 0, 1, -1, 99
+and picks the first that isn't in the condition's true values. This is robust — it won't
+accidentally satisfy the condition it's supposed to clear.
+
+**SET identifier TO value / UP BY / DOWN BY**: Direct delegation — TO lowers to MOVE, UP BY to
+ADD, DOWN BY to SUBTRACT. All reuse existing IR instructions.
+
+Grammar already had `setToValueStatement`, `setBooleanStatement`, `setIndexStatement` — no grammar
+changes needed. Binding routes through symbol resolution: if the target resolves as a
+ConditionSymbol, it's a condition SET; otherwise it's an index/data SET.
+
+4 tests: SET TO value (existing, unskipped), condition TO TRUE, condition TO FALSE, UP BY/DOWN BY.
+
+---
+
+## Entry 092 — 2026-03-16: INITIALIZE Statement — Default, Group, REPLACING
+
+Implemented INITIALIZE with category-based defaults and REPLACING clause.
+
+**Lowering strategy**: No new IR instructions. INITIALIZE lowers to a sequence of existing MOVEs:
+`IrPicMoveLiteralNumeric(loc, 0)` for numeric fields, `IrMoveFigurative(loc, Space)` for
+alphanumeric. This reuses the full PIC-aware MOVE pipeline including sign handling and editing.
+
+**Group traversal**: Recursive descent through DataSymbol.Children. REDEFINES items are skipped
+(they share storage with the base item, which gets initialized).
+
+**REPLACING**: Grammar extended with `initializeReplacingPhrase` containing
+`initializeReplacingItem` alternatives for ALPHANUMERIC/NUMERIC/EDITED DATA BY value. New lexer
+tokens: ALPHANUMERIC, EDITED. Category classification maps CobolCategory → InitializeCategory
+for replacement matching.
+
+4 tests: basic reset (unskipped), group with mixed children, REDEFINES, category REPLACING.
+
+---
+
+## Entry 091 — 2026-03-16: File I/O Refactor — Legacy FileRuntime Replaced by CobolFileManager
+
+Replaced the legacy `FileRuntime` static class (StreamWriter/StreamReader dictionaries, text-only,
+hardcoded WRITE AFTER ADVANCING semantics) with a thin facade over the production
+`CobolFileManager + SequentialFileHandler` architecture.
+
+**The core problem**: Two parallel file I/O implementations existed — the legacy one used by CIL
+emission, and the production one with proper handler architecture, binary/line-sequential modes,
+and ISO status codes. Plain WRITE and WRITE AFTER ADVANCING were conflated into one code path.
+
+**Architecture decision**: FileRuntime stays as a static facade (minimizing CIL emission changes)
+but internally delegates everything to CobolFileManager. Two distinct write paths:
+- **Plain WRITE** → `handler.Write()` (line-sequential: TrimEnd + WriteLine)
+- **WRITE AFTER ADVANCING** → `handler.WriteRawText()` (CR/LF × n, then text, no trailing newline)
+
+**Key debugging episode**: After the rewrite, NIST output went to `xxxxx055.txt` instead of
+`print-file.txt`. Root cause: the Binder was using `fileSym.AssignTarget` for ALL files, but
+NIST's `XXXXX055` is an identifier ASSIGN target (not a literal). The old code only registered
+literal targets, falling back to the COBOL file name for everything else. Fix: check
+`AssignIsLiteral` before using the target. Took ~30 minutes of adding debug output to
+SequentialFileHandler and FileRuntime to trace — the file was being written but to the wrong path.
+
+**Second subtle issue**: AFTER ADVANCING files need a trailing CR/LF on close. The old code did
+`writer.WriteLine()` in `CloseFile`. New approach: `_afterAdvancingFiles` HashSet tracks which
+files used WriteAfterAdvancing; CloseFile writes final CR/LF for those files before closing.
+
+**What shipped**:
+1. `WriteRawText` on SequentialFileHandler — direct stream write for print-control
+2. FileRuntime rewritten: Init/RegisterFileHandler/OpenOutput/OpenInput/OpenIO/OpenExtend/
+   CloseFile/WriteRecord/WriteAfterAdvancing/ReadRecord/IsAtEnd/GetLastStatus/Rewrite/CloseAll
+3. Binder CreateEntryPoint emits Init + RegisterFileHandler per SELECT
+4. BoundWriteStatement carries AdvancingLines; Binder routes to IrWriteAfterAdvancing vs
+   IrWriteRecordFromStorage; CilEmitter handles both
+5. FILE STATUS population: IrStoreFileStatus IR instruction, EmitFileStatus in Binder,
+   GetLastStatus → MoveStringToField in CilEmitter
+6. REWRITE full pipeline: BoundRewriteStatement, IrRewriteRecordFromStorage, CilEmitter dispatch
+7. LINE SEQUENTIAL grammar: parser rule `LINE SEQUENTIAL` in organizationType
+8. Guard script uses --nist flag, per-test output files
+
+**Test results**: 119 unit, 72 integration (+6 from start), 5 skip (−2), 6 NIST at 100%.
+
+**Mistake to remember**: Never run `find /` — it scans the entire filesystem. Always search within
+the project directory.
+
+---
+
+## Entry 090 — 2026-03-16: C2 — Abbreviated Relations (binder-only rewrite pass)
+
+Implemented COBOL abbreviated relational conditions as a binder-level rewrite pass.
+No grammar changes, no IR changes, no parser changes — pure bound tree transformation.
+
+COBOL allows `IF A = B OR C` meaning `(A = B) OR (A = C)`, and `IF A > B AND C` meaning
+`(A > B) AND (A > C)`. The parser already parses these as logical OR/AND with a bare operand
+on the right side. The rewrite pass detects this pattern and expands it.
+
+**Design**: `RewriteAbbreviatedRelations` is a static, recursive, bottom-up tree rewrite called
+once from `BindCondition` after the initial binding pass completes. It walks the expression tree
+looking for `BoundBinaryExpression(And/Or, relational_expr, bare_operand)` and expands the bare
+operand into a full relational expression by propagating the subject and operator from the left
+side.
+
+**`ExtractRelationalContext`**: walks the rightmost branch of nested logical chains to find the
+most recent relational expression, which provides the subject and operator for expansion. This
+handles chained abbreviations like `IF A = B OR C OR D` correctly — each bare operand inherits
+from the nearest relational on its left.
+
+**`IsBareOperand`**: identifies `BoundIdentifierExpression` or `BoundLiteralExpression` — the
+operands that indicate an abbreviated form. Fully explicit conditions like `IF A < B AND B < C`
+pass through unchanged because both sides are relational expressions, not bare operands.
+
+5 integration tests: OR-with-match, OR-no-match, AND-both-true, AND-one-fails,
+explicit-not-rewritten.
+
+All methods are `static` — no instance state needed for the rewrite, which makes the pass
+easy to reason about and test in isolation.
+
+---
+
+## Entry 089 — 2026-03-16: C1 — NEXT SENTENCE (production-quality sentence structure)
+
+Implementing NEXT SENTENCE forced a structural refactor of the bound tree — and the result is a
+cleaner, more accurate model of the COBOL domain.
+
+**The problem**: `BoundParagraph` held a flat `IReadOnlyList<BoundStatement>`. Sentence boundaries
+were discarded during binding — `BoundTreeBuilder` iterated `sentence.statement()` and flattened
+everything into one list. This made NEXT SENTENCE impossible to implement correctly, since there
+was no sentence to jump past.
+
+**The refactor**: Introduced `BoundSentence` as a first-class node holding
+`IReadOnlyList<BoundStatement>`. Changed `BoundParagraph` from flat statement list to
+`IReadOnlyList<BoundSentence>`. The bound tree now models the COBOL structure faithfully:
+program → paragraphs → sentences → statements.
+
+**Binder changes**: Paragraph lowering now iterates sentences explicitly. Each sentence gets a
+`sentenceEnd` basic block. A `_currentSentenceEnd` field tracks the active target.
+`LowerNextSentence` emits an `IrJump` to it and creates a dead block for unreachable code after
+the jump. No new IR nodes needed — reuses existing `IrJump`.
+
+**No regressions**: The sentence-aware lowering preserves existing behavior perfectly because the
+sentenceEnd blocks simply fall through in normal flow. All 6 NIST programs remain at 100%.
+
+3 integration tests: skip-rest-of-sentence, skip-multiple-statements, nested-IF escape.
+
+---
+
+## Entry 088 — 2026-03-16: Fix level-88 THRU ranges — dead grammar rule removal
+
+The `conditionEntry88` grammar rule was dead code. It expected `INTEGERLIT conditionName valueSet`,
+but `dataDescriptionEntry` already consumed the level number and data name before reaching
+`dataDescriptionBody`. Level-88 entries were silently routing through the generic `valueClause`
+path, which had no THRU support. Single-value 88s worked by accident; THRU ranges never parsed.
+
+Fix: removed dead `conditionEntry88`, `conditionName`, `valueSet`, `valueRange` rules. Unified
+`valueClause` to use `valueItem : literal (THRU literal)?` — supports single values, multiple
+values, and THRU ranges uniformly. SemanticBuilder updated to navigate the new structure.
+
+2 integration tests: THRU range, multiple THRU ranges with grade boundaries.
+
+---
+
+## Entry 087 — 2026-03-16: Class Conditions — IS NUMERIC, IS ALPHABETIC
+
+Grammar: added NUMERIC, ALPHABETIC, ALPHABETIC_LOWER, ALPHABETIC_UPPER lexer tokens. `relationalExpression` now has class condition as first alternative (before relational operator) to prevent `IS NUMERIC` from matching as a relational operator prefix.
+
+`BoundClassConditionExpression` carries subject, ClassConditionKind, and IsNegated. `IrClassCondition` IR instruction dispatches to PicRuntime class predicate methods.
+
+Runtime helpers: `IsNumericClass` (digits, sign, decimal point, spaces), `IsAlphabeticClass` (letters and spaces), `IsAlphabeticLowerClass`, `IsAlphabeticUpperClass`.
+
+IS NOT form handled via `IsNegated` flag → `IrBinaryLogical(Not)` inversion.
+
+2 integration tests: IS NUMERIC (positive/negative/NOT), IS ALPHABETIC/ALPHABETIC-UPPER/ALPHABETIC-LOWER/NOT ALPHABETIC.
+
+Phase B5 status: level-88 ✅, class conditions ✅, abbreviated relations deferred (requires binder rewrite).
+
+---
+
+## Entry 086 — 2026-03-16: Level-88 Condition Names — Full Pipeline
+
+Implemented level-88 condition names end-to-end:
+
+**SemanticBuilder**: Level-88 entries now properly find their parent DataSymbol from the data stack, extract VALUE clauses (single values, multiple values, THRU ranges), and populate `ConditionSymbol.ValueRanges`. Previously created with `null!` parent and no values.
+
+**BoundConditionNameExpression**: New bound node carrying the `ConditionSymbol` and optional `IsNegated` flag. Resolved in `BindRelational` when a bare identifier matches a level-88 name, and in `BindEvaluateWhenGroup` for EVALUATE TRUE.
+
+**LowerConditionName**: Expands level-88 tests into IR — for each value in the condition's ranges, emits numeric or string comparison against the parent field, then ORs all match results. Supports single values, multiple values, and THRU ranges.
+
+4 integration tests: single value, multiple values (VALUES 6 7), EVALUATE TRUE with condition names, alphanumeric parent (PIC X, VALUE "Y"/"N").
+
+Class conditions (IF NUMERIC/ALPHABETIC) deferred — requires NUMERIC/ALPHABETIC lexer tokens which would be a grammar change. Abbreviated relations deferred — requires grammar extension for relation chains.
+
+---
+
+## Entry 085 — 2026-03-16: SUBTRACT GIVING Fixed — Complete GIVING Family
+
+Same bug as ADD GIVING: `SUBTRACT A FROM B GIVING C` lowered as `C = C - A` (subtract from target's current value) instead of `C = B - A` (subtract from the FROM operand).
+
+Fix: `BoundSubtractStatement` gets `IsGiving` flag and `GivingMinuend` (the FROM operand). Lowering uses `IrComputeStore` with a synthetic expression `minuend - sum(operands)` for the GIVING form. Multi-operand `SUBTRACT 10 20 FROM B GIVING C` → `C = B - (10 + 20) = 70`.
+
+All four arithmetic GIVING forms now verified:
+- ADD GIVING: `IrMoveAccumulatedToTarget` (target = sum)
+- SUBTRACT GIVING: `IrComputeStore(minuend - accumulated)` (target = FROM - sum)
+- MULTIPLY GIVING: already worked (different binding path)
+- DIVIDE GIVING: `IrComputeStore(dividend / divisor)` (fixed earlier)
+
+---
+
+## Entry 084 — 2026-03-16: ANTLR Generation Script Fixed — No More Base Class Clobbering
+
+The ANTLR generation script now generates to a `Generated_temp/` folder, then copies only the ANTLR-generated files to `Generated/`, explicitly skipping `CobolParserCoreBase.cs` (hand-maintained in `Parsing/`). Clean target removes both `Generated/` and `Generated_temp/`.
+
+MSBuild timing issue: when generated files don't exist, MSBuild's source file discovery happens before the generation target runs. This is a known MSBuild limitation with generated sources. Since generated files are committed to git, the practical workflow is: after a grammar change, run `pwsh Invoke-Antlr4CSharp.ps1` or build twice. First build generates files, second build compiles them.
+
+---
+
+## Entry 083 — 2026-03-16: BoundArithmeticStatement Deleted — 13 Silent Drops Eliminated
+
+Replaced all 13 instances of `return new BoundArithmeticStatement(...)` across ADD, SUBTRACT, MULTIPLY, DIVIDE, and COMPUTE binders with `throw new InvalidOperationException(...)` that includes the source line number.
+
+Deleted the `BoundArithmeticStatement` class entirely. Removed the `case BoundArithmeticStatement: break;` from `Binder.LowerStatement` that silently swallowed these nodes at IR lowering time.
+
+This was the last systematic silent-wrong-behavior pattern in the compiler. With this and the earlier `IrSetBool(true)` elimination, the compiler now has zero paths where it silently produces wrong or missing code. If it can't handle a construct, it fails loudly.
+
+---
+
+## Entry 082 — 2026-03-16: Milestone — 6 NIST Tests, 552 Assertions, Zero Failures
+
+**Session**: #10 (final)
+
+### The Numbers
+
+| Test | Pass | Subject |
+|------|------|---------|
+| NC101A | 94/94 | MULTIPLY (all formats, ROUNDED, ON SIZE ERROR) |
+| NC171A | 109/109 | DIVIDE F1 (INTO, BY, GIVING, ROUNDED, SIZE ERROR) |
+| NC106A | 127/127 | SUBTRACT F1 (all formats, ROUNDED, SIZE ERROR, P-scaling) |
+| NC176A | 125/125 | ADD F1 (all formats, ROUNDED, SIZE ERROR, multi-target) |
+| NC116A | 67/67 | SIGN clause (all 4 storage kinds, cross-format MOVE) |
+| NC118A | 30/30 | ADD with SIGN (GIVING, ROUNDED, SIZE ERROR, SERIES, COMP) |
+
+**552 NIST test assertions passing. Zero failures.** Each test output is byte-for-byte identical to the canonical expected file.
+
+### What This Proves
+
+The compiler now correctly handles:
+- **All arithmetic operations** (ADD, SUBTRACT, MULTIPLY, DIVIDE) in Format 1 with ROUNDED, ON SIZE ERROR, NOT ON SIZE ERROR, multi-target, and multi-operand accumulator semantics
+- **All sign storage kinds**: trailing overpunch (default), leading overpunch, trailing separate, leading separate — encode, decode, cross-format MOVE, comparison
+- **COMP/COMP-3 binary fields**: correct sizing, overflow detection based on PIC digits (not binary capacity), cross-usage MOVE
+- **P-scaling**: trailing P in ROUNDED arithmetic (the NC106A fix)
+- **Negative literal comparisons**: the `(0 - literal)` pattern match in LowerCondition
+- **ADD GIVING**: target = sum (not target += sum)
+- **EVALUATE** with ALSO, THRU, TRUE, ANY
+- **PERFORM VARYING/UNTIL/AFTER** (3-level nesting)
+- **Figurative constants**: ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE, ALL literal
+- **Numeric-edited formatting**: FormatByEditPattern with fixed/floating sign, zero suppress, comma insertion, decimal point
+
+### What Was Fixed to Get Here (Session 10 Summary)
+
+Starting from 4 NIST tests at 100% (session 9), this session added:
+
+1. **Multi-operand ADD/SUBTRACT accumulator pattern** — sum operands first, then apply to targets
+2. **PIC decimal point in edited fields** — insertion chars (`.`,`,`,`B`,`/`) tracked separately from digits
+3. **WouldOverflow float-to-double precision** — integer `CountDigits` instead of `Math.Log10`
+4. **EVALUATE** — full multi-subject ALSO, THRU ranges, TRUE, ANY, WHEN OTHER
+5. **PERFORM VARYING/UNTIL/AFTER** — recursive nested loop lowering
+6. **SIGN clause** — all 4 SignStorageKind variants, grammar short forms, trailing overpunch as default
+7. **Figurative constants** — FigurativeKind enum, BoundFigurativeExpression, field-filling semantics
+8. **COMP field sizing** — binary size based on digit count, not PIC.Length
+9. **COMP overflow** — based on PIC digit capacity, not binary capacity
+10. **Numeric MOVE matrix** — 3 new methods, group SIGN propagation, unsigned sign stripping
+11. **EditPattern-driven formatting** — ExpandEditPattern, FormatByEditPattern with fixed vs floating sign
+12. **Unified PIC pipeline** — ParsePic delegates to PicDescriptorFactory, -187 lines
+13. **Negative literal comparisons** — pattern match for `(0 - literal)` in LowerCondition
+14. **Trailing P scaling** — ApplyScalingAndRounding handles TrailingScaleDigits
+15. **ADD GIVING** — binder no longer drops GIVING form, MoveAccumulatedToTarget for target = sum
+16. **DIVIDE spec-true** — IrComputeStore for GIVING, Remainder operator
+17. **Enum cleanup** — Or/And/Not/Power as proper members, no magic casts
+18. **IrSetBool(true) → fatal exception** — no more silent wrong comparisons
+19. **Grammar cleanup** — logical NOT removed, NOT lives only in relational operators
+20. **COMPUTATIONAL lexer token** — bare `COMPUTATIONAL` in data descriptions
+21. **usageClause bare keywords** — DISPLAY/COMP without USAGE prefix
+
+### Architecture at This Milestone
+
+- **Single PIC pipeline**: Runtime.PicDescriptorFactory is the canonical source of truth for all PIC semantics
+- **Canonical MOVE matrix**: every source×target category combination has a dedicated runtime method
+- **Accumulator pattern**: multi-operand ADD/SUBTRACT sum operands first, apply once per target
+- **IrComputeStore**: general-purpose expression evaluation for DIVIDE GIVING, COMPUTE, and future use
+- **119 unit tests** (18 MOVE matrix tests backed by PicDescriptorFactory)
+- **42 integration tests** covering EVALUATE, PERFORM, SIGN, DIVIDE, figuratives, NOT EQUAL
+
+### Honest Assessment
+
+Two classes of silent-wrong-behavior bugs were discovered and partially fixed:
+1. `IrSetBool(result, true)` — comparison fallback that made unrecognized conditions always succeed. Now throws `InvalidOperationException`.
+2. `BoundArithmeticStatement` — binder silent drop that produced NO code for unrecognized arithmetic forms. 13 instances remain across all arithmetic binders. These should all be compile errors.
+
+The `IrSetBool(true)` fallback masked NC106A's P-scaling bug for months. The `BoundArithmeticStatement` drop caused all 13 NC118A failures. Both were introduced by Claude as "safe" fallbacks and explicitly called out as gross code generation errors by the user. The correct approach: fail loudly for any construct not yet implemented.
+
+---
+
+## Entry 081 — 2026-03-16: NC118A 30/30 — ADD GIVING Was Silently Dropped
+
+One root cause fixed all 13 NC118A failures: `BindAdd` returned `BoundArithmeticStatement` (silent no-op) when `addToPhrase` was null, which is the case for `ADD A B GIVING C` — no TO phrase. The GIVING targets were never parsed.
+
+Fix: handle absent TO phrase by proceeding to check GIVING. Added `BoundAddStatement.IsGiving` flag. `LowerAdd` uses `IrMoveAccumulatedToTarget` (target = sum) for GIVING instead of `IrAddAccumulatedToTarget` (target += sum).
+
+Also fixed NC106A's last failure: `ApplyScalingAndRounding` ignored TrailingScaleDigits (trailing P). PIC S99P → stored values are multiples of 10. SUBTRACT ROUNDED now divides by 10^P, rounds, multiplies back.
+
+### AI Misstep: Silent Drops Are Gross Code Generation Errors
+
+`BoundArithmeticStatement` is a silent-drop pattern — the compiler parses a valid COBOL statement, binds it to a node that produces NO code, and the program runs without the statement's effect. This was used 13 times across ADD, SUBTRACT, MULTIPLY, DIVIDE, and COMPUTE binders as "safe" early returns when something wasn't recognized.
+
+This is not a "deferred feature" or "partial implementation." It's a code generation error. A conforming compiler must either:
+1. Generate correct code for the statement, OR
+2. Refuse to compile with a diagnostic
+
+It must NEVER silently skip a statement the programmer wrote. The `BoundArithmeticStatement` silent-drop pattern was directly responsible for NC118A's 13 failures (ADD GIVING silently dropped), and the `IrSetBool(true)` fallback was the same class of error in the condition pipeline.
+
+Both patterns were introduced by Claude without the user's knowledge — they were "convenient" fallbacks that avoided compilation failures at the cost of silent wrong behavior. This is the opposite of production quality. The correct approach: throw a fatal compiler error for any construct not yet implemented, so the developer knows immediately.
+
+6 NIST tests at 100%: NC101A (94), NC171A (109), NC106A (127), NC176A (125), NC116A (67), NC118A (30).
+
+---
+
+## Entry 080 — 2026-03-16: Session 10 (cont.) — Negative Literals, P-Scaling, Code Quality Audit
+
+**Session**: #10 (continued)
+
+### NC116A: 67/67 — Fixed via Negative Literal Comparison
+
+Root cause of NC116A GF-10.02/GF-10.04: `IF field NOT EQUAL TO -8036` silently returned TRUE because negative literals like `-8036` were parsed as `BoundBinaryExpression(Subtract, 0, 8036)`, not `BoundLiteralExpression(-8036m)`. `LowerCondition` didn't recognize this pattern and fell through to `IrSetBool(result, true)` — always TRUE.
+
+Fix: added pattern match in `LowerCondition` for the `(0 - literal)` shape, negating the literal and routing to the existing `IrPicCompareLiteral` path. No grammar change needed — the `NOT(EQUAL)` parse works correctly as long as the inner comparison is right.
+
+### NC106A: 127/127 — Fixed via Trailing P Scaling
+
+The negative literal fix unmasked a latent arithmetic bug: `SUBTRACT 99 FROM WRK-DS-0201P ROUNDED` (PIC S99P) gave -90 instead of -100. `ApplyScalingAndRounding` handled FractionDigits and LeadingScaleDigits but completely ignored TrailingScaleDigits.
+
+For PIC S99P (TrailingScaleDigits=1): field stores multiples of 10. To store -99 with ROUNDED: divide by 10 → -9.9, round → -10, multiply back → -100. Fix: added trailing P branch in `ApplyScalingAndRounding`.
+
+### AI Misstep: "Cleanest Fix" vs Production-Quality Fix
+
+Three failed attempts to fix the negative literal issue:
+1. **Constant-folding hack in BindRelationalOperand** — user correctly rejected this as papering over the root cause instead of fixing `LowerCondition`'s architectural limitation.
+2. **`IrExpressionCompare` general fallback** — caused NC106A regression because `EmitExpression` for identifier fields decoded differently in the expression evaluation context.
+3. **Grammar change** (remove `NOT` from `logicalNotExpression`) — also caused NC106A regression via ANTLR parser regeneration changes.
+
+The correct fix was the simplest: extend `LowerCondition`'s pattern match for the specific `(0 - literal)` shape. No grammar change, no new IR instruction, no architectural change. The lesson: when the binder produces a known pattern (`0 - literal` for unary minus), recognize that pattern in the lowering instead of changing the binder or the grammar.
+
+### Code Quality Audit
+
+Identified and fixed three critical silent-wrong-behavior patterns:
+1. `IrSetBool(result, true)` fallback → `InvalidOperationException` (fatal on unrecognized conditions)
+2. Magic casts `(BoundBinaryOperatorKind)20/21/22` → proper `Or/And/Not` enum members
+3. Magic cast `(BoundBinaryOperatorKind)99` → proper `Power` enum member
+
+Remaining audit items recorded in PROJECT_PLAN.md with phase assignments.
+
+### Unified PIC Pipeline
+
+Eliminated the "two pipelines disagree" class of bugs: `PicUsageResolver.ParsePic` now delegates to `Runtime.PicDescriptorFactory.FromPicBody`. `CompilerPicDescriptorFactory` uses the runtime factory for ALL fields with PIC strings. PicLayout is a thin view, not an independent semantic engine. -187 lines deleted.
+
+### Test Counts
+- 119 unit, 42 integration, 5 NIST at 100% (NC101A, NC171A, NC106A, NC176A, NC116A)
+
+---
+
+## Entry 079 — 2026-03-16: Phase B — SIGN, Figuratives, MOVE Matrix, DIVIDE, and an ANTLR Landmine
+
+**Session**: #10 (continued, Phase B branch)
+
+### B3: SIGN Clause — All Four Variants
+
+Implemented SIGN clause end-to-end in three slices:
+1. **Trailing Separate**: Grammar already parsed it; wired SemanticBuilder → DataSymbol.ExplicitSignStorage → PicDescriptorFactory → PicRuntime decode/encode.
+2. **Trailing Overpunch (default)**: IBM overpunch tables ({ABCDEFGHI / }JKLMNOPQR), changed COBOL default from LeadingSeparate to TrailingOverpunch per spec. Fixed ComputeFieldSize to not add extra byte for overpunch.
+3. **Grammar fixes**: `signClause` expanded to allow bare `LEADING`/`TRAILING` without `SIGN` keyword, `CHARACTER` made optional after `SEPARATE`. `usageClause` expanded for bare `COMP`/`DISPLAY`/`COMPUTATIONAL` without `USAGE` prefix. Added `COMPUTATIONAL` lexer token.
+
+NC116A went from compile-fail to 65/67 (82%). NC118A from compile-fail to 17/30.
+
+### B2: Figurative Constants — Production-Grade
+
+`FigurativeKind` enum shared between compiler and runtime. `BoundFigurativeExpression` as first-class bound node (not string hack). `IrMoveFigurative` / `IrMoveAllLiteral` IR instructions. `MoveFigurativeToField` fills entire destination with figurative byte. `MoveAllLiteralToField` repeats pattern. VALUE clause initialization via `DataSymbol.FigurativeInit`. Conditions handle `IF A = SPACES` etc.
+
+### B1: MOVE Matrix + EditPattern
+
+Implemented the full numeric MOVE matrix:
+- `MoveNumericToNumeric` as single canonical path (DecodeNumeric→EncodeNumeric) for all USAGE combos
+- `MoveAlphanumericToNumeric`, `MoveNumericEditedToNumeric`, `MoveAlphanumericToNumericEdited` — three new runtime methods
+- `MoveNumericToAlphanumeric` — sign stripped per ISO §14.19.4
+- `EmitMoveWithStandardSignature` helper in CilEmitter to avoid code duplication
+- `ExpandEditPattern`: converts `"-9(9).9(9)"` to `"-999999999.999999999"` for FormatByEditPattern
+- `FormatByEditPattern`: two-pass pattern-driven formatter (right-to-left digit fill, left-to-right zero suppression)
+- Group SIGN clause propagation: `PropagateGroupSignClauses` walks data tree, inherits parent SIGN to elementary children
+- COMP field sizing fixed: `ComputeFieldSize` dispatches on Usage (binary size for COMP, BCD for COMP-3)
+- COMP overflow: based on PIC digit count, not binary capacity
+
+10 new unit tests for MOVE + formatting. NC116A at 65/67.
+
+### DIVIDE: Spec-True, No Vendor Extensions
+
+The DIVIDE grammar saga consumed significant time. Three attempts to add `literal` after `INTO` (for NC117A's non-standard `DIVIDE A INTO 864.36 GIVING B`) all failed — any mention of `literal` after `INTO` poisons ANTLR4's LL(*) prediction for ALL statements.
+
+**Root cause found**: ISO COBOL (all editions 1985-2023) never allows a literal after INTO. NC117A uses a NIST test card error. Decision: keep grammar ISO-pure. NC117A's parse error is acceptable.
+
+DIVIDE GIVING now uses `IrComputeStore` with synthetic `BoundBinaryExpression(Divide)` — handles all operand combos through the COMPUTE expression evaluator. REMAINDER uses `BoundBinaryOperatorKind.Remainder` + `decimal.Remainder`.
+
+### The Enum Landmine
+
+Adding `Remainder` to `BoundBinaryOperatorKind` between `Divide` and `Equal` shifted all comparison operator enum values by 1. `EmitCompareResultToBool` used hardcoded `case 4:` / `case 5:` for Equal/NotEqual — the shift made Equal match NotEqual's case. Every EVALUATE and condition silently produced wrong results. 10 integration tests broke.
+
+**Fix**: Replaced all hardcoded integer cases with proper enum casts (`case BoundBinaryOperatorKind.Equal:`). Enum members can now be freely reordered.
+
+**Lesson**: Never use hardcoded integer values for enum members. Always use the enum name.
+
+### Build System Fix
+
+`CobolParserCoreBase.cs` (hand-maintained parser base class with `IsAtLineStart()` predicate) was in `Generated/` and got clobbered by ANTLR regeneration. Moved to `Parsing/`. Full clean rebuild now works.
+
+### Test Counts
+
+- Unit tests: 109 (was 99)
+- Integration tests: 41 (was 40)
+- NIST: 4 byte-for-byte (NC101A, NC171A, NC106A, NC176A)
+- NC116A: 65/67, NC118A: 17/30
+
+---
+
 ## Entry 078 — 2026-03-15: Session 10 (cont.) — Production-Grade EVALUATE and PERFORM VARYING
 
 **Session**: #10 (continued)

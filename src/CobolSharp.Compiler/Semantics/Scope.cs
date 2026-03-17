@@ -55,4 +55,7 @@ public class Scope
 
     public TSymbol? Resolve<TSymbol>(string name) where TSymbol : Symbol
         => Resolve(name) as TSymbol;
+
+    public IEnumerable<TSymbol> GetAllSymbols<TSymbol>() where TSymbol : Symbol
+        => _symbols.Values.OfType<TSymbol>();
 }

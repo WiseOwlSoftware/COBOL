@@ -23,9 +23,10 @@
     <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
   </ItemGroup>
 
-  <!-- Ensure Generated folder exists and regenerate parser if needed -->
+  <!-- Ensure Generated folder exists and regenerate parser if needed.
+       Uses BeforeTargets="CoreCompile" to guarantee generation completes before compilation starts. -->
   <Target Name="EnsureGeneratedFiles"
-          BeforeTargets="BeforeCompile"
+          BeforeTargets="BeforeBuild"
           Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4"
           Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
 
@@ -37,18 +38,19 @@
     <!-- Create Generated folder if it doesn't exist -->
     <MakeDir Directories="$(MSBuildProjectDirectory)\Generated" Condition="!Exists('$(MSBuildProjectDirectory)\Generated')" />
 
-    <!-- Run parser generation -->
+    <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs) -->
     <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\GenerateIfNewer.ps1&quot;"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 
-  <!-- Clean target to remove generated files -->
+  <!-- Clean target: remove generated files AND temp folder -->
   <Target Name="CleanGenerated" AfterTargets="Clean">
     <ItemGroup>
       <GeneratedFiles Include="$(MSBuildProjectDirectory)\Generated\*.*" />
     </ItemGroup>
     <Delete Files="@(GeneratedFiles)" TreatErrorsAsWarnings="true" />
     <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated" ContinueOnError="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated_temp" ContinueOnError="true" />
   </Target>
 
 </Project>

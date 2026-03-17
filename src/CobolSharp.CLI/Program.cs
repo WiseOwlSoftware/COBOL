@@ -44,6 +44,9 @@ public class Program
         Console.WriteLine("  -o <output>              Output file path (default: <program-id>.dll)");
         Console.WriteLine("  --standard <version>     COBOL standard version (default: cobol85)");
         Console.WriteLine("                           Values: cobol85, cobol2002, cobol2014, cobol2023");
+        Console.WriteLine("  --nist [name]            Enable NIST test suite preprocessing");
+        Console.WriteLine("                           Replaces XXXXX### placeholders; derives test");
+        Console.WriteLine("                           name from source filename if not specified");
         Console.WriteLine("  -h, --help               Show this help message");
     }
 
@@ -94,6 +97,7 @@ public class Program
         string? sourcePath = null;
         string? outputPath = null;
         string standard = "cobol85";
+        string? nistTestName = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -109,6 +113,11 @@ public class Program
                     Console.Error.WriteLine($"Error: unknown standard '{standard}'. Use: cobol85, cobol2002, cobol2014, cobol2023");
                     return 1;
                 }
+            }
+            else if (args[i] == "--nist")
+            {
+                // Enable NIST preprocessing; test name derived from source filename
+                nistTestName = ""; // will be derived from source path later
             }
             else if (!args[i].StartsWith('-'))
             {
@@ -135,6 +144,15 @@ public class Program
 
         // TODO: pass standard to Compilation when grammar overlays are wired up
         var compilation = new Compilation();
+
+        // NIST mode: derive test name from source filename if not explicit
+        if (nistTestName != null)
+        {
+            if (nistTestName == "")
+                nistTestName = Path.GetFileNameWithoutExtension(sourcePath);
+            compilation.NistTestName = nistTestName;
+        }
+
         var result = compilation.Compile(sourcePath, outputPath);
 
         foreach (var diagnostic in result.Diagnostics)

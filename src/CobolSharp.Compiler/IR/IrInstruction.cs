@@ -249,13 +249,43 @@ public sealed class IrPerformThru : IrInstruction
 /// </summary>
 public sealed class IrMoveStringToField : IrInstruction
 {
-    public CodeGen.StorageLocation Target { get; }
+    public IrLocation Target { get; }
     public string Value { get; }  // embedded string — no IrValue dependency
 
-    public IrMoveStringToField(CodeGen.StorageLocation target, string value)
+    public IrMoveStringToField(IrLocation target, string value)
     {
         Target = target;
         Value = value;
+    }
+}
+
+/// <summary>
+/// MOVE figurative-constant TO field — fills entire field with figurative byte value.
+/// </summary>
+public sealed class IrMoveFigurative : IrInstruction
+{
+    public IrLocation Destination { get; }
+    public int FigurativeKind { get; }  // cast to Runtime.FigurativeKind enum at runtime
+
+    public IrMoveFigurative(IrLocation dest, int figurativeKind)
+    {
+        Destination = dest;
+        FigurativeKind = figurativeKind;
+    }
+}
+
+/// <summary>
+/// MOVE ALL "pattern" TO field — repeats pattern to fill entire field.
+/// </summary>
+public sealed class IrMoveAllLiteral : IrInstruction
+{
+    public IrLocation Destination { get; }
+    public string Pattern { get; }
+
+    public IrMoveAllLiteral(IrLocation dest, string pattern)
+    {
+        Destination = dest;
+        Pattern = pattern;
     }
 }
 
@@ -265,12 +295,260 @@ public sealed class IrMoveStringToField : IrInstruction
 public sealed class IrWriteRecordFromStorage : IrInstruction
 {
     public string FileName { get; }
-    public CodeGen.StorageLocation Record { get; }
+    public IrLocation Record { get; }
 
-    public IrWriteRecordFromStorage(string fileName, CodeGen.StorageLocation record)
+    public IrWriteRecordFromStorage(string fileName, IrLocation record)
     {
         FileName = fileName;
         Record = record;
+    }
+}
+
+/// <summary>
+/// REWRITE record — replaces the last-read record in a file.
+/// </summary>
+public sealed class IrRewriteRecordFromStorage : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+
+    public IrRewriteRecordFromStorage(string fileName, IrLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
+/// WRITE AFTER ADVANCING: print-control write with line advance.
+/// </summary>
+public sealed class IrWriteAfterAdvancing : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    public int AdvanceLines { get; }
+
+    public IrWriteAfterAdvancing(string fileName, IrLocation record, int advanceLines)
+    {
+        FileName = fileName;
+        Record = record;
+        AdvanceLines = advanceLines;
+    }
+}
+
+/// <summary>
+/// READ: read next record from file into storage location.
+/// </summary>
+public sealed class IrReadRecordToStorage : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+
+    public IrReadRecordToStorage(string fileName, IrLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
+/// Check if a file is at EOF after a READ. Sets result bool to true if at end.
+/// </summary>
+public sealed class IrCheckFileAtEnd : IrInstruction
+{
+    public string FileName { get; }
+    public new IrValue Result { get; }
+
+    public IrCheckFileAtEnd(string fileName, IrValue result)
+    {
+        FileName = fileName;
+        Result = result;
+    }
+}
+
+/// <summary>
+/// Store the most recent file status code into a FILE STATUS variable.
+/// </summary>
+public sealed class IrStoreFileStatus : IrInstruction
+{
+    public string CobolFileName { get; }
+    public IrLocation StatusVariable { get; }
+
+    public IrStoreFileStatus(string cobolFileName, IrLocation statusVariable)
+    {
+        CobolFileName = cobolFileName;
+        StatusVariable = statusVariable;
+    }
+}
+
+// ── Location abstraction ──
+
+/// <summary>
+/// Base type for "where a value lives": either a compile-time-known static
+/// location or a runtime-computed element within an OCCURS array.
+/// All IR instructions that operate on data items use IrLocation instead of
+/// raw StorageLocation, making subscript handling uniform.
+/// </summary>
+public abstract class IrLocation { }
+
+/// <summary>
+/// A compile-time-known storage location (non-subscripted, or constant-subscript
+/// already folded to a fixed offset).
+/// </summary>
+public sealed class IrStaticLocation : IrLocation
+{
+    public CodeGen.StorageLocation Location { get; }
+
+    public IrStaticLocation(CodeGen.StorageLocation location)
+    {
+        Location = location;
+    }
+}
+
+/// <summary>
+/// A reference to an element within an OCCURS array (1D, 2D, or 3D).
+/// The effective offset is computed at runtime using the general formula:
+///   offset = base + sum_i((subscript_i - 1) * multiplier_i)
+/// where multiplier_i is the product of all inner dimension sizes * element size.
+/// Subscripts are carried as BoundExpressions — the emitter evaluates each one
+/// via EmitExpression (handles identifiers, arithmetic, and any expression).
+/// </summary>
+public sealed class IrElementRef : IrLocation
+{
+    public CodeGen.StorageLocation BaseLocation { get; }
+    public IReadOnlyList<Semantics.Bound.BoundExpression> Subscripts { get; }
+    public IReadOnlyList<int> Multipliers { get; }
+    public int ElementSize { get; }
+    public Runtime.PicDescriptor ElementPic { get; }
+
+    public IrElementRef(CodeGen.StorageLocation baseLocation,
+        IReadOnlyList<Semantics.Bound.BoundExpression> subscripts,
+        IReadOnlyList<int> multipliers,
+        int elementSize, Runtime.PicDescriptor elementPic)
+    {
+        BaseLocation = baseLocation;
+        Subscripts = subscripts;
+        Multipliers = multipliers;
+        ElementSize = elementSize;
+        ElementPic = elementPic;
+    }
+}
+
+/// <summary>
+/// A reference modification: base location + runtime start:length substring.
+/// Composes with IrStaticLocation or IrElementRef as the base.
+/// The effective storage is: (base_area, base_offset + start - 1, length).
+/// </summary>
+public sealed class IrRefModLocation : IrLocation
+{
+    public IrLocation Base { get; }
+    public Semantics.Bound.BoundExpression Start { get; }
+    public Semantics.Bound.BoundExpression? Length { get; }
+    public int BaseFieldLength { get; }
+
+    public IrRefModLocation(IrLocation @base, Semantics.Bound.BoundExpression start,
+        Semantics.Bound.BoundExpression? length, int baseFieldLength)
+    {
+        Base = @base;
+        Start = start;
+        Length = length;
+        BaseFieldLength = baseFieldLength;
+    }
+}
+
+// ── GO TO DEPENDING ──
+
+/// <summary>
+/// GO TO para1 para2 ... DEPENDING ON selector.
+/// Evaluates selector as integer N (1-based). If 1 ≤ N ≤ targets.Count,
+/// returns targets[N-1] as the next PC. Otherwise falls through.
+/// </summary>
+public sealed class IrGoToDepending : IrInstruction
+{
+    public IrLocation Selector { get; }
+    public IReadOnlyList<int> TargetParagraphIndices { get; }
+
+    public IrGoToDepending(IrLocation selector, IReadOnlyList<int> targetParagraphIndices)
+    {
+        Selector = selector;
+        TargetParagraphIndices = targetParagraphIndices;
+    }
+}
+
+// ── ACCEPT ──
+
+public sealed class IrAccept : IrInstruction
+{
+    public IrLocation Target { get; }
+    public Semantics.Bound.AcceptSourceKind Source { get; }
+
+    public IrAccept(IrLocation target, Semantics.Bound.AcceptSourceKind source)
+    {
+        Target = target;
+        Source = source;
+    }
+}
+
+// ── INSPECT ──
+
+public sealed class IrInspectTally : IrInstruction
+{
+    public IrLocation Target { get; }
+    public IrLocation Counter { get; }
+    public Semantics.Bound.InspectTallyKind Kind { get; }
+    public string? Pattern { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectTally(IrLocation target, IrLocation counter,
+        Semantics.Bound.InspectTallyKind kind, string? pattern,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; Counter = counter; Kind = kind; Pattern = pattern;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
+    }
+}
+
+public sealed class IrInspectReplace : IrInstruction
+{
+    public IrLocation Target { get; }
+    public Semantics.Bound.InspectReplaceKind Kind { get; }
+    public string Pattern { get; }
+    public string Replacement { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectReplace(IrLocation target,
+        Semantics.Bound.InspectReplaceKind kind, string pattern, string replacement,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; Kind = kind; Pattern = pattern; Replacement = replacement;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
+    }
+}
+
+public sealed class IrInspectConvert : IrInstruction
+{
+    public IrLocation Target { get; }
+    public string FromSet { get; }
+    public string ToSet { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectConvert(IrLocation target, string fromSet, string toSet,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; FromSet = fromSet; ToSet = toSet;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
     }
 }
 
@@ -278,13 +556,13 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
 
 public sealed class IrPicMultiply : IrInstruction
 {
-    public CodeGen.StorageLocation Left { get; }
-    public CodeGen.StorageLocation Right { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicMultiply(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
-        CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicMultiply(IrLocation left, IrLocation right,
+        IrLocation dest, int rounding = 0)
     {
         Left = left; Right = right; Destination = dest; Rounding = rounding;
     }
@@ -293,12 +571,12 @@ public sealed class IrPicMultiply : IrInstruction
 public sealed class IrPicMultiplyLiteral : IrInstruction
 {
     public decimal Value { get; }
-    public CodeGen.StorageLocation Other { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Other { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicMultiplyLiteral(decimal value, CodeGen.StorageLocation other,
-        CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicMultiplyLiteral(decimal value, IrLocation other,
+        IrLocation dest, int rounding = 0)
     {
         Value = value; Other = other; Destination = dest; Rounding = rounding;
     }
@@ -306,11 +584,11 @@ public sealed class IrPicMultiplyLiteral : IrInstruction
 
 public sealed class IrPicAdd : IrInstruction
 {
-    public CodeGen.StorageLocation Source { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Source { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicAdd(CodeGen.StorageLocation src, CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicAdd(IrLocation src, IrLocation dest, int rounding = 0)
     {
         Source = src; Destination = dest; Rounding = rounding;
     }
@@ -319,10 +597,10 @@ public sealed class IrPicAdd : IrInstruction
 public sealed class IrPicAddLiteral : IrInstruction
 {
     public decimal Value { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicAddLiteral(CodeGen.StorageLocation dest, decimal value, int rounding = 0)
+    public IrPicAddLiteral(IrLocation dest, decimal value, int rounding = 0)
     {
         Destination = dest; Value = value; Rounding = rounding;
     }
@@ -330,11 +608,11 @@ public sealed class IrPicAddLiteral : IrInstruction
 
 public sealed class IrPicSubtract : IrInstruction
 {
-    public CodeGen.StorageLocation Source { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Source { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicSubtract(CodeGen.StorageLocation src, CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicSubtract(IrLocation src, IrLocation dest, int rounding = 0)
     {
         Source = src; Destination = dest; Rounding = rounding;
     }
@@ -343,10 +621,10 @@ public sealed class IrPicSubtract : IrInstruction
 public sealed class IrPicSubtractLiteral : IrInstruction
 {
     public decimal Value { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicSubtractLiteral(CodeGen.StorageLocation dest, decimal value, int rounding = 0)
+    public IrPicSubtractLiteral(IrLocation dest, decimal value, int rounding = 0)
     {
         Destination = dest; Value = value; Rounding = rounding;
     }
@@ -372,9 +650,9 @@ public sealed class IrInitAccumulator : IrInstruction
 public sealed class IrAccumulateField : IrInstruction
 {
     public IrValue Accumulator { get; }
-    public CodeGen.StorageLocation Source { get; }
+    public IrLocation Source { get; }
 
-    public IrAccumulateField(IrValue accumulator, CodeGen.StorageLocation source)
+    public IrAccumulateField(IrValue accumulator, IrLocation source)
     {
         Accumulator = accumulator;
         Source = source;
@@ -402,10 +680,27 @@ public sealed class IrAccumulateLiteral : IrInstruction
 public sealed class IrAddAccumulatedToTarget : IrInstruction
 {
     public IrValue Accumulator { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrAddAccumulatedToTarget(IrValue accumulator, CodeGen.StorageLocation dest, int rounding = 0)
+    public IrAddAccumulatedToTarget(IrValue accumulator, IrLocation dest, int rounding = 0)
+    {
+        Accumulator = accumulator;
+        Destination = dest;
+        Rounding = rounding;
+    }
+}
+
+/// <summary>
+/// target = accumulator (GIVING form: store sum directly, don't add to current value).
+/// </summary>
+public sealed class IrMoveAccumulatedToTarget : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public IrLocation Destination { get; }
+    public int Rounding { get; }
+
+    public IrMoveAccumulatedToTarget(IrValue accumulator, IrLocation dest, int rounding = 0)
     {
         Accumulator = accumulator;
         Destination = dest;
@@ -419,10 +714,10 @@ public sealed class IrAddAccumulatedToTarget : IrInstruction
 public sealed class IrSubtractAccumulatedFromTarget : IrInstruction
 {
     public IrValue Accumulator { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrSubtractAccumulatedFromTarget(IrValue accumulator, CodeGen.StorageLocation dest, int rounding = 0)
+    public IrSubtractAccumulatedFromTarget(IrValue accumulator, IrLocation dest, int rounding = 0)
     {
         Accumulator = accumulator;
         Destination = dest;
@@ -432,13 +727,13 @@ public sealed class IrSubtractAccumulatedFromTarget : IrInstruction
 
 public sealed class IrPicDivide : IrInstruction
 {
-    public CodeGen.StorageLocation Left { get; }
-    public CodeGen.StorageLocation Right { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicDivide(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
-        CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicDivide(IrLocation left, IrLocation right,
+        IrLocation dest, int rounding = 0)
     {
         Left = left; Right = right; Destination = dest; Rounding = rounding;
     }
@@ -447,12 +742,12 @@ public sealed class IrPicDivide : IrInstruction
 public sealed class IrPicDivideLiteral : IrInstruction
 {
     public decimal Value { get; }
-    public CodeGen.StorageLocation Other { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Other { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    public IrPicDivideLiteral(decimal value, CodeGen.StorageLocation other,
-        CodeGen.StorageLocation dest, int rounding = 0)
+    public IrPicDivideLiteral(decimal value, IrLocation other,
+        IrLocation dest, int rounding = 0)
     {
         Value = value; Other = other; Destination = dest; Rounding = rounding;
     }
@@ -465,25 +760,52 @@ public sealed class IrPicDivideLiteral : IrInstruction
 public sealed class IrComputeStore : IrInstruction
 {
     public Semantics.Bound.BoundExpression Expression { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; }
 
+    /// <summary>
+    /// Pre-resolved IrLocations for all data-reference leaf nodes in the Expression tree.
+    /// Populated by the Binder so the emitter never needs to resolve locations itself.
+    /// </summary>
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
+
     public IrComputeStore(Semantics.Bound.BoundExpression expression,
-        CodeGen.StorageLocation dest, int rounding = 0)
+        IrLocation dest, int rounding = 0,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
     {
         Expression = expression;
         Destination = dest;
         Rounding = rounding;
+        ResolvedLocations = resolvedLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
+    }
+}
+
+/// <summary>
+/// Class condition: IS NUMERIC, IS ALPHABETIC, etc.
+/// Calls PicRuntime.IsNumericClass / IsAlphabeticClass / etc.
+/// </summary>
+public sealed class IrClassCondition : IrInstruction
+{
+    public IrLocation Subject { get; }
+    public int ClassKind { get; }  // ClassConditionKind enum value
+
+    public IrClassCondition(IrLocation subject, int classKind, IrValue result)
+    {
+        Subject = subject;
+        ClassKind = classKind;
+        Result = result;
     }
 }
 
 public sealed class IrPicCompare : IrInstruction
 {
-    public CodeGen.StorageLocation Left { get; }
-    public CodeGen.StorageLocation Right { get; }
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
     public int OperatorKind { get; }
 
-    public IrPicCompare(CodeGen.StorageLocation left, CodeGen.StorageLocation right,
+    public IrPicCompare(IrLocation left, IrLocation right,
         IrValue result, int operatorKind)
     {
         Left = left; Right = right; Result = result; OperatorKind = operatorKind;
@@ -492,11 +814,11 @@ public sealed class IrPicCompare : IrInstruction
 
 public sealed class IrPicCompareLiteral : IrInstruction
 {
-    public CodeGen.StorageLocation Left { get; }
+    public IrLocation Left { get; }
     public decimal Value { get; }
     public int OperatorKind { get; }
 
-    public IrPicCompareLiteral(CodeGen.StorageLocation left, decimal value,
+    public IrPicCompareLiteral(IrLocation left, decimal value,
         IrValue result, int operatorKind)
     {
         Left = left; Value = value; Result = result; OperatorKind = operatorKind;
@@ -508,24 +830,130 @@ public sealed class IrPicCompareLiteral : IrInstruction
 /// </summary>
 public sealed class IrStringCompareLiteral : IrInstruction
 {
-    public CodeGen.StorageLocation Left { get; }
+    public IrLocation Left { get; }
     public string Value { get; }
     public int OperatorKind { get; }
 
-    public IrStringCompareLiteral(CodeGen.StorageLocation left, string value,
+    public IrStringCompareLiteral(IrLocation left, string value,
         IrValue result, int operatorKind)
     {
         Left = left; Value = value; Result = result; OperatorKind = operatorKind;
     }
 }
 
+/// <summary>
+/// Alphanumeric field-to-field comparison. Uses StorageHelpers.CompareFieldToField.
+/// </summary>
+public sealed class IrStringCompare : IrInstruction
+{
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
+    public int OperatorKind { get; }
+
+    public IrStringCompare(IrLocation left, IrLocation right,
+        IrValue result, int operatorKind)
+    {
+        Left = left; Right = right; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// One sending item in a STRING statement.
+/// </summary>
+public sealed class IrStringSending
+{
+    /// <summary>Literal value (non-null for literal sendings).</summary>
+    public string? LiteralValue { get; }
+    /// <summary>Field location (non-null for field sendings).</summary>
+    public IrLocation? SourceLocation { get; }
+    public string? Delimiter { get; }
+    public bool DelimitedBySize { get; }
+
+    public IrStringSending(string? literalValue, IrLocation? sourceLocation,
+        string? delimiter, bool delimitedBySize)
+    {
+        LiteralValue = literalValue;
+        SourceLocation = sourceLocation;
+        Delimiter = delimiter;
+        DelimitedBySize = delimitedBySize;
+    }
+}
+
+/// <summary>
+/// STRING statement: concatenate multiple sending items into a destination.
+/// The emitter manages a single pointer local, initializes from PointerLocation
+/// (or 1 if null), calls StringConcatLiteral/StringConcat per sending, and
+/// writes the pointer back to PointerLocation (if non-null).
+/// </summary>
+public sealed class IrStringStatement : IrInstruction
+{
+    public IrLocation Destination { get; }
+    public IReadOnlyList<IrStringSending> Sendings { get; }
+    /// <summary>Null if no WITH POINTER clause.</summary>
+    public IrLocation? PointerLocation { get; }
+
+    public IrStringStatement(IrLocation dest, IReadOnlyList<IrStringSending> sendings,
+        IrLocation? pointerLocation, IrValue overflowResult)
+    {
+        Destination = dest;
+        Sendings = sendings;
+        PointerLocation = pointerLocation;
+        Result = overflowResult;
+    }
+}
+
+/// <summary>
+/// One INTO target in an UNSTRING statement.
+/// </summary>
+public sealed class IrUnstringInto
+{
+    public IrLocation Target { get; }
+    public IrLocation? CountIn { get; }
+    public IrLocation? DelimiterIn { get; }
+
+    public IrUnstringInto(IrLocation target, IrLocation? countIn, IrLocation? delimiterIn)
+    {
+        Target = target;
+        CountIn = countIn;
+        DelimiterIn = delimiterIn;
+    }
+}
+
+/// <summary>
+/// UNSTRING statement: split a source string into multiple destination fields.
+/// The emitter manages a shared pointer local, calls UnstringExtract per INTO,
+/// handles COUNT IN / DELIMITER IN write-back, and writes pointer/tallying back.
+/// </summary>
+public sealed class IrUnstringStatement : IrInstruction
+{
+    public IrLocation Source { get; }
+    public string? LiteralDelimiter { get; }
+    public bool DelimitedByAll { get; }
+    public IReadOnlyList<IrUnstringInto> Intos { get; }
+    public IrLocation? PointerLocation { get; }
+    public IrLocation? TallyingLocation { get; }
+
+    public IrUnstringStatement(IrLocation source, string? literalDelimiter, bool delimitedByAll,
+        IReadOnlyList<IrUnstringInto> intos, IrLocation? pointerLocation, IrLocation? tallyingLocation,
+        IrValue overflowResult)
+    {
+        Source = source;
+        LiteralDelimiter = literalDelimiter;
+        DelimitedByAll = delimitedByAll;
+        Intos = intos;
+        PointerLocation = pointerLocation;
+        TallyingLocation = tallyingLocation;
+        Result = overflowResult;
+    }
+}
+
 public sealed class IrPicMoveLiteralNumeric : IrInstruction
 {
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Destination { get; }
     public decimal Value { get; }
     public int Rounding { get; }
 
-    public IrPicMoveLiteralNumeric(CodeGen.StorageLocation dest, decimal value, int rounding = 0)
+    public IrPicMoveLiteralNumeric(IrLocation dest, decimal value, int rounding = 0)
     {
         Destination = dest; Value = value; Rounding = rounding;
     }
@@ -539,11 +967,11 @@ public sealed class IrPicMoveLiteralNumeric : IrInstruction
 /// </summary>
 public sealed class IrPicMove : IrInstruction
 {
-    public CodeGen.StorageLocation Source { get; }
-    public CodeGen.StorageLocation Destination { get; }
+    public IrLocation Source { get; }
+    public IrLocation Destination { get; }
     public int Rounding { get; } // 0=Truncate, 1=RoundHalfUp
 
-    public IrPicMove(CodeGen.StorageLocation source, CodeGen.StorageLocation destination, int rounding = 0)
+    public IrPicMove(IrLocation source, IrLocation destination, int rounding = 0)
     {
         Source = source;
         Destination = destination;
@@ -566,8 +994,8 @@ public sealed class DisplayLiteralOperand : DisplayOperand
 
 public sealed class DisplayFieldOperand : DisplayOperand
 {
-    public CodeGen.StorageLocation Location { get; }
-    public DisplayFieldOperand(CodeGen.StorageLocation location) => Location = location;
+    public IrLocation Location { get; }
+    public DisplayFieldOperand(IrLocation location) => Location = location;
 }
 
 /// <summary>

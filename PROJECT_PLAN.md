@@ -855,8 +855,34 @@ what was accomplished, and what to pick up next.
 | 2026-03-13 | **Lexer/Parser Spec-Driven Rewrite.** 19 new token kinds, 9 new AST types, PERFORM VARYING, IF THEN, conditions, qualification. 141 unit + 12 integration. | — |
 | 2026-03-13 | **NOP Stub Elimination.** Audit revealed 23/40 statements were silent NOPs. Implemented real code gen for ACCEPT, INITIALIZE, CALL (stub), STRING, UNSTRING, INSPECT, GO TO DEPENDING. File I/O fully wired: OPEN/CLOSE/READ/WRITE through CobolFileManager + SequentialFileHandler with record buffers, AT END branching, FILE STATUS, INTO/FROM clauses. Fixed SemanticAnalyzer to include FILE SECTION and LINKAGE SECTION in symbol table. 28 fully implemented statements, 10 remaining stubs (SORT, SEARCH, START, Report Writer, OO COBOL, exceptions, ALTER). 163 total tests passing. TECHNICAL-DEBT.md tracks all remaining gaps. | Continue: CALL linkage, SEARCH, SORT |
 | 2026-03-15 | **Session 10: Phase A complete + Phase C1/C2.** Three deep bugs fixed (accumulator pattern, PIC decimal point, overflow digit counting). NC106A 127/127, NC176A 125/125 — all 4 arithmetic NIST tests at 100%. EVALUATE implemented: multi-subject ALSO, THRU ranges, TRUE, ANY, WHEN OTHER. PERFORM VARYING/UNTIL: full AFTER nested loops, recursive lowering. 15 new integration tests. 99 unit + 30 integration (7 skipped). Grammar: ALSO, ANY tokens; THRU ranges; AFTER clause. | Phase B: data movement, conditions, SIGN, numeric editing |
+| 2026-03-16 | **File I/O refactor: legacy FileRuntime → CobolFileManager facade.** Replaced static StreamWriter/StreamReader dictionaries with CobolFileManager + SequentialFileHandler delegation. Two distinct write paths: plain WRITE (handler.Write) vs WRITE AFTER ADVANCING (WriteRawText). FILE STATUS variable population (IrStoreFileStatus). REWRITE full pipeline. LINE SEQUENTIAL grammar. BoundWriteStatement carries AdvancingLines. 6 new integration tests, 2 unskipped. Guard uses --nist flag. 119 unit, 72 integration, 5 skip, 6 NIST at 100%. | Tag `file-io-stable` milestone |
+| 2026-03-16 | **INITIALIZE + SET implemented.** INITIALIZE: default (numeric→zero, alpha→spaces), group recursion with REDEFINES skip, category-based REPLACING (ALPHANUMERIC/NUMERIC/EDITED DATA BY). SET: condition-name TO TRUE/FALSE (robust false-value generation), identifier TO value, UP BY/DOWN BY. Both lower to existing MOVE/arithmetic IR — no new runtime surface. New grammar: ALPHANUMERIC, EDITED tokens; initializeReplacingPhrase. 119 unit, 80 integration, 3 skip, 6 NIST at 100%. | 3 remaining skips: ACCEPT, INSPECT, CALL |
+| 2026-03-16 | **INSPECT full implementation.** TALLYING (ALL/LEADING/CHARACTERS), REPLACING (ALL/FIRST/LEADING), CONVERTING — all with BEFORE/AFTER INITIAL delimiter regions. New InspectRuntime with ComputeRegion + string algorithms. Three IR instructions (IrInspectTally/Replace/Convert). Grammar rewritten with proper delimiter structure, CHARACTERS token. 119 unit, 86 integration, 2 skip, 6 NIST at 100%. | 2 remaining skips: ACCEPT FROM DATE, CALL |
+| 2026-03-16 | **ACCEPT FROM DATE/TIME/DAY/DAY-OF-WEEK.** Proper lexer tokens (DATE, TIME, DAY, DAY_OF_WEEK), typed acceptSource parser rule, IrAccept IR, AcceptRuntime with date/time formatting. 119 unit, 91 integration, 1 skip (CALL only), 6 NIST at 100%. | Last skip: CALL statement |
+| 2026-03-16 | **GO TO ... DEPENDING ON.** Grammar extended for multi-target + DEPENDING ON selector. IrGoToDepending IR with cascaded bne.un comparisons in CIL. 1-based index, out-of-range = fallthrough. NC102A still blocked by subscripted identifiers. 119 unit, 94 integration, 1 skip, 6 NIST at 100%. | Subscripted identifiers needed for NC102A |
+| 2026-03-16 | **OCCURS + constant subscripts (partial).** DataSymbol.OccursCount/ElementSize, storage layout multiplies by OCCURS, grammar `identifier(subscriptList)`, BindIdentifierWithSubscripts, ResolveIdentifierLocation for constant subscripts. **GAP: only 5/44 Binder call sites use subscript-aware resolution.** Need unified IrLocation abstraction. 119 unit, 97 integration, 1 skip, 6 NIST at 100%. | IrLocation refactor is next session priority |
 
 ---
+
+## Code Quality Audit (Session 10, Phase B)
+
+Identified during Phase B. Items 1-3 fixed. Remaining deferred.
+
+| # | Location | Issue | Status |
+|---|----------|-------|--------|
+| 1 | Binder.cs LowerCondition | `IrSetBool(true)` fallback silently returned TRUE for unrecognized comparisons | **FIXED** — replaced with fatal `InvalidOperationException` |
+| 2 | BoundTreeBuilder.cs | Magic casts `(BoundBinaryOperatorKind)20/21/22` for OR/AND/NOT | **FIXED** — proper enum members Or, And, Not |
+| 3 | BoundTreeBuilder.cs/CilEmitter.cs | Magic cast `(BoundBinaryOperatorKind)99` for Power | **FIXED** — proper enum member Power |
+| 4 | RecordLayoutBuilder.cs:108 | TODO: extract OCCURS count from data description | Phase D |
+| 5 | BoundTreeBuilder.cs:397 | TODO: resolve file from record → FD relationship | Phase F |
+| 6 | BoundTreeBuilder.cs:782 | Function calls bound as identifiers | Phase K |
+| 7 | BoundTreeBuilder.cs:938 | Unresolved identifiers treated as string literals | Needs diagnostic |
+| 8 | SemanticBuilder.cs:56 | Unresolved REDEFINES silently ignored | Needs diagnostic |
+| 9 | SemanticBuilder.cs:257 | Level-88 condition names skipped | Phase B5c |
+| 10 | CilEmitter.cs:1821 | Runtime calls NOP'd | Known limitation |
+| 11 | RecordLayoutBuilder.cs:182-183 | COMP-1/COMP-2 mapped to Int32/Int64 | Known limitation |
+| 12 | ReferenceResolver.cs:87 | WRITE file validation skipped | Phase F |
+| 13 | PicRuntime.cs:921 | National chars treated as alphanumeric | Phase L |
 
 ## Open Design Questions
 

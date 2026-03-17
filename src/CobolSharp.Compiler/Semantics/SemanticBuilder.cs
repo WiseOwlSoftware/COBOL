@@ -29,6 +29,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     // Temporary: holds the REDEFINES target name during clause parsing
     private string? _deferredRedefinesName;
+    private Runtime.SignStorageKind? _deferredSignStorage;
+    private int? _deferredFigurativeInit;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -53,6 +55,37 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 data.Redefines = target;
             // else: target not found — silently ignore for now (may be in COPY not yet expanded)
         }
+    }
+
+    /// <summary>
+    /// Pass 3: Propagate group-level SIGN clauses to elementary children.
+    /// Per ISO, a SIGN clause on a group item applies to all subordinate
+    /// elementary numeric DISPLAY items that don't have their own SIGN clause.
+    /// </summary>
+    public void PropagateGroupSignClauses()
+    {
+        foreach (var root in _dataItemsInOrder)
+        {
+            if (root.LevelNumber == 1 || root.LevelNumber == 77)
+                PropagateSignRecursive(root, inherited: null);
+        }
+    }
+
+    private void PropagateSignRecursive(DataSymbol sym, Runtime.SignStorageKind? inherited)
+    {
+        var effective = sym.ExplicitSignStorage ?? inherited;
+
+        if (sym.IsElementary &&
+            sym.ResolvedType?.Pic is PicLayout pic &&
+            pic.IsSigned &&
+            sym.Usage == Runtime.UsageKind.Display &&
+            sym.ExplicitSignStorage == null)
+        {
+            sym.ExplicitSignStorage = effective;
+        }
+
+        foreach (var child in sym.Children)
+            PropagateSignRecursive(child, effective);
     }
 
     private void Error(ParserRuleContext ctx, string message)
@@ -86,6 +119,65 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitLinkageSection(ctx);
     }
 
+    // ═══════════════════════════════════
+    // FILE-CONTROL — extract SELECT/ASSIGN/clauses into FileSymbol
+    // ═══════════════════════════════════
+
+    public override object? VisitFileControlEntry(CobolParserCore.FileControlEntryContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return base.VisitFileControlEntry(ctx);
+
+        string name = fileNameCtx.GetText();
+        var fileSym = new FileSymbol(name, fileNameCtx.Start.Line);
+
+        // ASSIGN TO
+        var assignCtx = ctx.assignTarget();
+        if (assignCtx != null)
+        {
+            string assignText = assignCtx.GetText();
+            // String literal → explicit host path; identifier → implementor-defined
+            if (assignText.Length >= 2 &&
+                (assignText[0] == '"' || assignText[0] == '\''))
+            {
+                fileSym.AssignTarget = assignText[1..^1];
+                fileSym.AssignIsLiteral = true;
+            }
+            else
+            {
+                fileSym.AssignTarget = assignText;
+                fileSym.AssignIsLiteral = false;
+            }
+        }
+
+        // Clauses
+        foreach (var clause in ctx.fileControlClauses())
+        {
+            if (clause.organizationClause() is { } orgClause)
+            {
+                var orgType = orgClause.organizationType();
+                // LINE SEQUENTIAL is two tokens; GetText() gives "LINESEQUENTIAL"
+                if (orgType.LINE() != null)
+                    fileSym.Organization = "LINE SEQUENTIAL";
+                else
+                    fileSym.Organization = orgType.GetText().ToUpperInvariant();
+            }
+            if (clause.accessModeClause() is { } accessClause)
+                fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
+            if (clause.recordKeyClause() is { } keyClause)
+                fileSym.RecordKey = keyClause.identifier().GetText();
+            if (clause.fileStatusClause() is { } statusClause)
+                fileSym.FileStatus = statusClause.identifier().GetText();
+        }
+
+        _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+        return base.VisitFileControlEntry(ctx);
+    }
+
+    // ═══════════════════════════════════
+    // FILE SECTION / FD
+    // ═══════════════════════════════════
+
     public override object? VisitFileSection(CobolParserCore.FileSectionContext ctx)
     {
         _dataStack.Clear();
@@ -93,16 +185,29 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitFileSection(ctx);
     }
 
+    /// <summary>Current FD file symbol — set during FD visiting so 01-level records can be linked.</summary>
+    private FileSymbol? _currentFdFile;
+
     public override object? VisitFileDescriptionEntry(CobolParserCore.FileDescriptionEntryContext ctx)
     {
         var nameCtx = ctx.fileName();
         if (nameCtx != null)
         {
-            var fileSym = new FileSymbol(nameCtx.GetText(), nameCtx.Start.Line);
-            _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+            string name = nameCtx.GetText();
+            // Look up existing FileSymbol created by FILE-CONTROL visitor.
+            // If not found (no SELECT), create one as a fallback.
+            var fileSym = _symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
+            if (fileSym == null)
+            {
+                fileSym = new FileSymbol(name, nameCtx.Start.Line);
+                _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+            }
+            _currentFdFile = fileSym;
         }
         _dataStack.Clear();
-        return base.VisitFileDescriptionEntry(ctx);
+        var result = base.VisitFileDescriptionEntry(ctx);
+        _currentFdFile = null;
+        return result;
     }
 
     public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
@@ -135,7 +240,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 var usageClause = clause.usageClause();
                 if (usageClause != null)
-                    usage = UsageMapper.FromUsageKeyword(usageClause.usageKeyword()?.GetText());
+                {
+                    // Full form: USAGE IS? usageKeyword → use usageKeyword text
+                    // Bare form: COMP, BINARY, etc. → use the clause's text directly
+                    var kwText = usageClause.usageKeyword()?.GetText()
+                        ?? usageClause.GetText();
+                    usage = UsageMapper.FromUsageKeyword(kwText);
+                }
 
                 var redefinesClause = clause.redefinesClause();
                 if (redefinesClause != null)
@@ -149,12 +260,26 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (typeClause != null)
                     typeName = typeClause.IDENTIFIER()?.GetText();
 
-                // VALUE clause
+                var signCl = clause.signClause();
+                if (signCl != null)
+                {
+                    bool isLeading = signCl.LEADING() != null;
+                    bool isSeparate = signCl.SEPARATE() != null;
+                    _deferredSignStorage = (isLeading, isSeparate) switch
+                    {
+                        (true, true) => Runtime.SignStorageKind.LeadingSeparate,
+                        (true, false) => Runtime.SignStorageKind.LeadingOverpunch,
+                        (false, true) => Runtime.SignStorageKind.TrailingSeparate,
+                        (false, false) => Runtime.SignStorageKind.TrailingOverpunch,
+                    };
+                }
+
+                // VALUE clause — extract the first literal from the first valueItem
                 var valClause = clause.valueClause();
                 if (valClause != null)
                 {
-                    var literals = valClause.literal();
-                    var litCtx = literals.Length > 0 ? literals[0] : null;
+                    var items = valClause.valueItem();
+                    var litCtx = items.Length > 0 ? items[0].literal()[0] : null;
                     if (litCtx != null)
                     {
                         // literal: numericLiteral | nonNumericLiteral
@@ -174,11 +299,25 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
                                 string figText = fig.GetText().ToUpperInvariant();
+                                // For ZERO, keep as "0" so numeric VALUE parsing still works
                                 initialValue = figText switch
                                 {
                                     "SPACE" or "SPACES" => " ",
                                     "ZERO" or "ZEROS" or "ZEROES" => "0",
+                                    "HIGH-VALUE" or "HIGH-VALUES" => null,
+                                    "LOW-VALUE" or "LOW-VALUES" => null,
+                                    "QUOTE" or "QUOTES" => null,
                                     _ => figText
+                                };
+                                // Store figurative kind for field-filling initialization
+                                _deferredFigurativeInit = figText switch
+                                {
+                                    "SPACE" or "SPACES" => (int)Runtime.FigurativeKind.Space,
+                                    "ZERO" or "ZEROS" or "ZEROES" => (int)Runtime.FigurativeKind.Zero,
+                                    "HIGH-VALUE" or "HIGH-VALUES" => (int)Runtime.FigurativeKind.HighValue,
+                                    "LOW-VALUE" or "LOW-VALUES" => (int)Runtime.FigurativeKind.LowValue,
+                                    "QUOTE" or "QUOTES" => (int)Runtime.FigurativeKind.Quote,
+                                    _ => null
                                 };
                             }
                         }
@@ -187,18 +326,66 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // Skip 88-level condition names for now
+        // Level-88 condition names: attach to parent data item, extract VALUE clauses
         if (level == 88)
         {
-            var condSym = new ConditionSymbol(displayName, null!, line);
+            // Parent is the most recent data item on the stack
+            DataSymbol? parent = _dataStack.Count > 0 ? _dataStack.Peek() : null;
+            if (parent == null)
+                throw new InvalidOperationException(
+                    $"Level-88 condition name '{displayName}' has no parent data item (line {line})");
+
+            var condSym = new ConditionSymbol(displayName, parent, line);
+
+            // Extract values from VALUE clause — now unified with THRU support via valueItem
+            var condBody = ctx.dataDescriptionBody();
+            if (condBody?.dataDescriptionClauses() != null)
+            {
+                foreach (var clause in condBody.dataDescriptionClauses().dataDescriptionClause())
+                {
+                    var valClause = clause.valueClause();
+                    if (valClause != null)
+                    {
+                        foreach (var item in valClause.valueItem())
+                        {
+                            var lits = item.literal();
+                            object fromVal = ParseConditionLiteralValue(lits[0]);
+                            object? toVal = lits.Length >= 2 ? ParseConditionLiteralValue(lits[1]) : null;
+                            condSym.AddRange(fromVal, toVal);
+                        }
+                    }
+                }
+            }
+
             _symbols.Program.DataDivisionScope.TryDeclare(condSym, out _);
             return null;
         }
 
+        // Extract OCCURS count from clauses
+        int occursCount = 1;
+        if (body?.dataDescriptionClauses() != null)
+        {
+            foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
+            {
+                var occClause = clause.occursClause();
+                if (occClause != null)
+                {
+                    var intLits = occClause.integerLiteral();
+                    if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
+                        occursCount = oc;
+                }
+            }
+        }
+
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
+        data.OccursCount = occursCount;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
+        data.ExplicitSignStorage = _deferredSignStorage;
+        _deferredSignStorage = null;
+        data.FigurativeInit = _deferredFigurativeInit;
+        _deferredFigurativeInit = null;
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
@@ -216,6 +403,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // Root-level item
             _dataStack.Clear();
             _dataStack.Push(data);
+
+            // Link 01-level record to FD file symbol (first 01 under an FD)
+            if (_currentFdFile != null && _currentFdFile.Record == null && level == 1)
+            {
+                _currentFdFile.Record = data;
+            }
         }
         else if (level == 66)
         {
@@ -287,5 +480,31 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 Visit(stmt);
 
         return null;
+    }
+
+    /// <summary>
+    /// Parse a literal context into a typed value for level-88 condition entries.
+    /// Returns decimal for numeric literals, string for string literals.
+    /// </summary>
+    private static object ParseConditionLiteralValue(Generated.CobolParserCore.LiteralContext lit)
+    {
+        var numLit = lit.numericLiteral();
+        if (numLit != null)
+        {
+            var text = numLit.GetText();
+            if (decimal.TryParse(text,
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
+                System.Globalization.CultureInfo.InvariantCulture, out var d))
+                return d;
+            return text;
+        }
+        var nonNum = lit.nonNumericLiteral();
+        if (nonNum?.STRINGLIT() is { } slit)
+        {
+            var text = slit.GetText();
+            if (text.Length >= 2) return text[1..^1];
+            return text;
+        }
+        return lit.GetText();
     }
 }

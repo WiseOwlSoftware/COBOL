@@ -41,10 +41,29 @@ public sealed class ParagraphSymbol : Symbol
 
 public sealed class FileSymbol : Symbol
 {
+    /// <summary>External file name from ASSIGN TO clause.</summary>
+    public string? AssignTarget { get; set; }
+
+    /// <summary>True if ASSIGN target was a string literal (explicit path), false if identifier.</summary>
+    public bool AssignIsLiteral { get; set; }
+
+    /// <summary>SEQUENTIAL, RELATIVE, or INDEXED.</summary>
     public string? Organization { get; set; }
+
+    /// <summary>SEQUENTIAL, RANDOM, or DYNAMIC.</summary>
     public string? AccessMode { get; set; }
+
+    /// <summary>RECORD KEY identifier name (for INDEXED).</summary>
     public string? RecordKey { get; set; }
+
+    /// <summary>FILE STATUS identifier name (PIC XX variable).</summary>
     public string? FileStatus { get; set; }
+
+    /// <summary>The 01-level record DataSymbol under this FD.</summary>
+    public DataSymbol? Record { get; set; }
+
+    /// <summary>Record length in bytes (computed from PIC layout).</summary>
+    public int RecordLength { get; set; }
 
     public FileSymbol(string name, int line)
         : base(name, SymbolKind.File, line) { }

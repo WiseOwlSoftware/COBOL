@@ -55,14 +55,17 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitGoToStatement(CobolParserCore.GoToStatementContext ctx)
     {
-        var idCtx = ctx.identifier();
-        if (idCtx != null)
+        var idContexts = ctx.identifier();
+        bool hasDepending = ctx.DEPENDING() != null;
+        int targetCount = hasDepending ? idContexts.Length - 1 : idContexts.Length;
+
+        for (int i = 0; i < targetCount; i++)
         {
-            string name = idCtx.GetText();
+            string name = idContexts[i].GetText();
             var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
 
             if (sym is not (ParagraphSymbol or SectionSymbol))
-                Error(idCtx, $"GO TO target '{name}' is not a paragraph or section.");
+                Error(idContexts[i], $"GO TO target '{name}' is not a paragraph or section.");
         }
 
         return base.VisitGoToStatement(ctx);

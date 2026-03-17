@@ -32,35 +32,75 @@ public readonly struct StorageLocation
 }
 
 /// <summary>
-/// Factory for creating PicDescriptor from compiler DataSymbol.
+/// Compiler-side bridge: creates PicDescriptor from DataSymbol using the canonical
+/// Runtime.PicDescriptorFactory for PIC parsing, plus compiler-specific context
+/// (ExplicitSignStorage, Usage from data description).
 /// </summary>
-public static class PicDescriptorFactory
+public static class CompilerPicDescriptorFactory
 {
     public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
     {
         var pic = symbol.ResolvedType?.Pic;
+        bool isSigned = pic?.IsSigned ?? false;
+        var signStorage = DetermineSignStorage(isSigned, symbol);
+
+        // Single pipeline: all PIC semantics come from the canonical runtime factory.
+        // The compiler only overlays storage length (from layout) and sign storage
+        // (from explicit SIGN clause in data description).
+        if (symbol.PicString != null)
+        {
+            var desc = Runtime.PicDescriptorFactory.FromPicBody(
+                symbol.PicString,
+                usage: symbol.Usage,
+                isSigned: isSigned,
+                signStorage: signStorage,
+                blankWhenZero: false);
+
+            return new PicDescriptor(
+                totalDigits: desc.TotalDigits,
+                fractionDigits: desc.FractionDigits,
+                isSigned: desc.IsSigned,
+                isNumeric: desc.IsNumeric,
+                isAlphanumeric: desc.IsAlphanumeric,
+                hasEditing: desc.HasEditing,
+                storageLength: storageLength,
+                usage: symbol.Usage,
+                category: desc.Category,
+                signStorage: signStorage,
+                editing: desc.Editing,
+                blankWhenZero: desc.BlankWhenZero,
+                leadingScaleDigits: desc.LeadingScaleDigits,
+                trailingScaleDigits: desc.TrailingScaleDigits,
+                editPattern: desc.EditPattern);
+        }
+
+        // Group items (no PIC): alphanumeric DISPLAY
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
-
-        // Determine editing kind from PIC analysis
-        var editingKind = EditingKind.None;
-        if (pic?.IsEdited ?? false)
-            editingKind = EditingKind.ZeroSuppress; // Default; refined later
-
-        // Parameter order matches the single PicDescriptor constructor
         return new PicDescriptor(
-            totalDigits: (pic?.IntegerDigits ?? 0) + (pic?.FractionDigits ?? 0),
-            fractionDigits: pic?.FractionDigits ?? 0,
-            isSigned: pic?.IsSigned ?? false,
-            isNumeric: category.IsNumericLike(),
-            isAlphanumeric: category.IsAlphanumericLike(),
-            hasEditing: pic?.IsEdited ?? false,
+            totalDigits: 0,
+            fractionDigits: 0,
+            isSigned: false,
+            isNumeric: false,
+            isAlphanumeric: true,
+            hasEditing: false,
             storageLength: storageLength,
             usage: symbol.Usage,
             category: category,
-            signStorage: (pic?.IsSigned ?? false) ? SignStorageKind.LeadingSeparate : SignStorageKind.None,
-            editing: editingKind,
+            signStorage: SignStorageKind.None,
+            editing: EditingKind.None,
             blankWhenZero: false,
-            leadingScaleDigits: pic?.LeadingPScaling ?? 0,
-            trailingScaleDigits: pic?.TrailingPScaling ?? 0);
+            leadingScaleDigits: 0,
+            trailingScaleDigits: 0,
+            editPattern: null);
+    }
+
+    private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)
+    {
+        if (!isSigned) return SignStorageKind.None;
+
+        if (symbol.ExplicitSignStorage.HasValue)
+            return symbol.ExplicitSignStorage.Value;
+
+        return SignStorageKind.TrailingOverpunch;
     }
 }
