@@ -560,7 +560,7 @@ public class EndToEndTests : IDisposable
         Assert.StartsWith("2026", stdout);
     }
 
-    [Fact(Skip = "INSPECT REPLACING not yet lowered to CIL")]
+    [Fact]
     public void InspectReplacing_ReplacesCharacters()
     {
         var (success, stdout, stderr) = CompileAndRun("""
@@ -2437,5 +2437,110 @@ public class EndToEndTests : IDisposable
         var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal("004", lines[0]);
         Assert.Equal("003", lines[1]);
+    }
+
+    // ── INSPECT ──
+
+    [Fact]
+    public void Inspect_TallyingAll()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSP1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(10) VALUE "AABBAACCAA".
+            01 WS-COUNT PIC 99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT WS-DATA TALLYING WS-COUNT
+                    FOR ALL "AA".
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("03", stdout);
+    }
+
+    [Fact]
+    public void Inspect_ReplacingFirst()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSP2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(10) VALUE "AABBAACCAA".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT WS-DATA REPLACING FIRST "AA" BY "XX".
+                DISPLAY WS-DATA.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("XXBBAACCAA", stdout);
+    }
+
+    [Fact]
+    public void Inspect_ReplacingLeading()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSP3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(10) VALUE "AAAABBCCAA".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT WS-DATA REPLACING LEADING "AA" BY "XX".
+                DISPLAY WS-DATA.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("XXXXBBCCAA", stdout);
+    }
+
+    [Fact]
+    public void Inspect_Converting()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSP4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(10) VALUE "ABCABCABCA".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT WS-DATA CONVERTING "ABC" TO "XYZ".
+                DISPLAY WS-DATA.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("XYZXYZXYZX", stdout);
+    }
+
+    [Fact]
+    public void Inspect_ReplacingAllBeforeAfter()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSP5.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATA PIC X(12) VALUE "AABBCCAADDAA".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT WS-DATA REPLACING ALL "AA" BY "XX"
+                    AFTER "CC" BEFORE "DD".
+                DISPLAY WS-DATA.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("AABBCCXXDDAA", stdout);
     }
 }

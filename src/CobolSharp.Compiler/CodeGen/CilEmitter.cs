@@ -521,6 +521,18 @@ public sealed class CilEmitter
                 EmitStoreFileStatus(il, sfs);
                 break;
 
+            case IrInspectTally it:
+                EmitInspectTally(il, it);
+                break;
+
+            case IrInspectReplace ir:
+                EmitInspectReplace(il, ir);
+                break;
+
+            case IrInspectConvert ic:
+                EmitInspectConvert(il, ic);
+                break;
+
             case IrPicMove pm:
                 EmitPicMoveFieldToField(il, pm);
                 break;
@@ -1080,6 +1092,114 @@ public sealed class CilEmitter
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
         il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result)));
+    }
+
+    // ── INSPECT emit helpers ──
+
+    private void EmitInspectTally(ILProcessor il, IrInspectTally it)
+    {
+        // Target area/offset/length
+        EmitLoadBackingArray(il, it.Target.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, it.Target.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, it.Target.Length));
+
+        string methodName;
+
+        if (it.Kind == Semantics.Bound.InspectTallyKind.Characters)
+        {
+            methodName = "TallyCharactersAndStore";
+        }
+        else
+        {
+            methodName = it.Kind == Semantics.Bound.InspectTallyKind.Leading
+                ? "TallyLeadingAndStore" : "TallyAllAndStore";
+            il.Append(il.Create(OpCodes.Ldstr, it.Pattern ?? ""));
+        }
+
+        // Counter area/offset/length/pic
+        EmitLoadBackingArray(il, it.Counter.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, it.Counter.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, it.Counter.Length));
+        EmitLoadPicDescriptor(il, it.Counter.Pic);
+
+        // Region args
+        EmitOptionalString(il, it.BeforePattern);
+        il.Append(il.Create(it.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        EmitOptionalString(il, it.AfterPattern);
+        il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+        System.Type[] paramTypes;
+        if (it.Kind == Semantics.Bound.InspectTallyKind.Characters)
+        {
+            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int),
+                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                typeof(string), typeof(bool), typeof(string), typeof(bool) };
+        }
+        else
+        {
+            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
+                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                typeof(string), typeof(bool), typeof(string), typeof(bool) };
+        }
+
+        var method = _module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod(methodName, paramTypes)!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitInspectReplace(ILProcessor il, IrInspectReplace ir)
+    {
+        string methodName = ir.Kind switch
+        {
+            Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
+            Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
+            _ => "ReplaceAll"
+        };
+
+        EmitLoadBackingArray(il, ir.Target.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, ir.Target.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, ir.Target.Length));
+        il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
+        il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
+        EmitOptionalString(il, ir.BeforePattern);
+        il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        EmitOptionalString(il, ir.AfterPattern);
+        il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod(methodName,
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                    typeof(string), typeof(string),
+                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)
+    {
+        EmitLoadBackingArray(il, ic.Target.Area);
+        il.Append(il.Create(OpCodes.Ldc_I4, ic.Target.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, ic.Target.Length));
+        il.Append(il.Create(OpCodes.Ldstr, ic.FromSet));
+        il.Append(il.Create(OpCodes.Ldstr, ic.ToSet));
+        EmitOptionalString(il, ic.BeforePattern);
+        il.Append(il.Create(ic.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        EmitOptionalString(il, ic.AfterPattern);
+        il.Append(il.Create(ic.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+        var method = _module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod("Convert",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                    typeof(string), typeof(string),
+                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    private void EmitOptionalString(ILProcessor il, string? value)
+    {
+        if (value != null)
+            il.Append(il.Create(OpCodes.Ldstr, value));
+        else
+            il.Append(il.Create(OpCodes.Ldnull));
     }
 
     /// <summary>

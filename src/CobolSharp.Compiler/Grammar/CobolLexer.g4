@@ -140,6 +140,7 @@ BINARY      : 'BINARY' ;
 BLANK       : 'BLANK' ;
 BY          : 'BY' ;
 CHARACTER   : 'CHARACTER' ;
+CHARACTERS  : 'CHARACTERS' ;
 CLASS       : 'CLASS' ;
 COMMON      : 'COMMON' ;
 COMP        : 'COMP' ;

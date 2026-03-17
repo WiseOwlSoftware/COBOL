@@ -29,6 +29,7 @@ public enum BoundNodeKind
     RewriteStatement,
     InitializeStatement,
     SetStatement,
+    InspectStatement,
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
@@ -441,6 +442,99 @@ public sealed class BoundSetIndexStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
+// ── INSPECT ──
+
+public sealed class BoundInspectRegion
+{
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public BoundInspectRegion(string? beforePattern, bool beforeInitial,
+        string? afterPattern, bool afterInitial)
+    {
+        BeforePattern = beforePattern;
+        BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern;
+        AfterInitial = afterInitial;
+    }
+
+    public static BoundInspectRegion Empty { get; } = new(null, false, null, false);
+}
+
+public enum InspectTallyKind { All, Leading, Characters }
+public enum InspectReplaceKind { All, First, Leading }
+
+public sealed class BoundInspectTallyingItem
+{
+    public DataSymbol Counter { get; }
+    public InspectTallyKind Kind { get; }
+    public string? Pattern { get; }
+    public BoundInspectRegion Region { get; }
+
+    public BoundInspectTallyingItem(DataSymbol counter, InspectTallyKind kind,
+        string? pattern, BoundInspectRegion region)
+    {
+        Counter = counter;
+        Kind = kind;
+        Pattern = pattern;
+        Region = region;
+    }
+}
+
+public sealed class BoundInspectReplacingItem
+{
+    public InspectReplaceKind Kind { get; }
+    public string Pattern { get; }
+    public string Replacement { get; }
+    public BoundInspectRegion Region { get; }
+
+    public BoundInspectReplacingItem(InspectReplaceKind kind, string pattern,
+        string replacement, BoundInspectRegion region)
+    {
+        Kind = kind;
+        Pattern = pattern;
+        Replacement = replacement;
+        Region = region;
+    }
+}
+
+public sealed class BoundInspectConverting
+{
+    public string FromSet { get; }
+    public string ToSet { get; }
+    public BoundInspectRegion Region { get; }
+
+    public BoundInspectConverting(string fromSet, string toSet, BoundInspectRegion region)
+    {
+        FromSet = fromSet;
+        ToSet = toSet;
+        Region = region;
+    }
+}
+
+public sealed class BoundInspectStatement : BoundStatement
+{
+    public DataSymbol Target { get; }
+    public IReadOnlyList<BoundInspectTallyingItem> Tallying { get; }
+    public IReadOnlyList<BoundInspectReplacingItem> Replacing { get; }
+    public BoundInspectConverting? Converting { get; }
+
+    public BoundInspectStatement(DataSymbol target,
+        IReadOnlyList<BoundInspectTallyingItem> tallying,
+        IReadOnlyList<BoundInspectReplacingItem> replacing,
+        BoundInspectConverting? converting)
+    {
+        Target = target;
+        Tallying = tallying;
+        Replacing = replacing;
+        Converting = converting;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.InspectStatement;
 }
 
 public sealed class BoundAddStatement : BoundStatement

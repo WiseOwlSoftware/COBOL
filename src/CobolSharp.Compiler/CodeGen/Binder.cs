@@ -225,6 +225,9 @@ public sealed class Binder
             case BoundInitializeStatement init:
                 LowerInitialize(init, block);
                 break;
+            case BoundInspectStatement insp:
+                LowerInspect(insp, block);
+                break;
             case BoundSetConditionStatement setCond:
                 LowerSetCondition(setCond, block);
                 break;
@@ -808,6 +811,41 @@ public sealed class Binder
             var srcLoc = _semantic.GetStorageLocation(id.Symbol);
             if (srcLoc.HasValue)
                 block.Instructions.Add(new IrPicMove(srcLoc.Value, dest));
+        }
+    }
+
+    // ── INSPECT ──
+
+    private void LowerInspect(BoundInspectStatement stmt, IrBasicBlock block)
+    {
+        var targetLoc = _semantic.GetStorageLocation(stmt.Target);
+        if (!targetLoc.HasValue) return;
+
+        foreach (var t in stmt.Tallying)
+        {
+            var counterLoc = _semantic.GetStorageLocation(t.Counter);
+            if (!counterLoc.HasValue) continue;
+
+            block.Instructions.Add(new IrInspectTally(
+                targetLoc.Value, counterLoc.Value, t.Kind, t.Pattern,
+                t.Region.BeforePattern, t.Region.BeforeInitial,
+                t.Region.AfterPattern, t.Region.AfterInitial));
+        }
+
+        foreach (var r in stmt.Replacing)
+        {
+            block.Instructions.Add(new IrInspectReplace(
+                targetLoc.Value, r.Kind, r.Pattern, r.Replacement,
+                r.Region.BeforePattern, r.Region.BeforeInitial,
+                r.Region.AfterPattern, r.Region.AfterInitial));
+        }
+
+        if (stmt.Converting != null)
+        {
+            block.Instructions.Add(new IrInspectConvert(
+                targetLoc.Value, stmt.Converting.FromSet, stmt.Converting.ToSet,
+                stmt.Converting.Region.BeforePattern, stmt.Converting.Region.BeforeInitial,
+                stmt.Converting.Region.AfterPattern, stmt.Converting.Region.AfterInitial));
         }
     }
 

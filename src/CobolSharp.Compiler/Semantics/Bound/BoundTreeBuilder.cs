@@ -84,6 +84,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.rewriteStatement() is { } rewriteCtx) return BindRewrite(rewriteCtx);
         if (ctx.initializeStatement() is { } initCtx) return BindInitialize(initCtx);
         if (ctx.setStatement() is { } setCtx) return BindSet(setCtx);
+        if (ctx.inspectStatement() is { } inspCtx) return BindInspect(inspCtx);
 
         // Unrecognized statement — skip
         return null;
@@ -553,6 +554,231 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fileSym == null) return null;
 
         return new BoundRewriteStatement(fileSym, recordSym);
+    }
+
+    // ── INSPECT ──
+
+    private BoundStatement? BindInspect(CobolParserCore.InspectStatementContext ctx)
+    {
+        string targetName = ctx.identifier().GetText();
+        var targetSym = _semantic.ResolveData(targetName);
+        if (targetSym == null) return null;
+
+        var tallying = new List<BoundInspectTallyingItem>();
+        var replacing = new List<BoundInspectReplacingItem>();
+        BoundInspectConverting? converting = null;
+
+        var tallyPhrase = ctx.inspectTallyingPhrase();
+        if (tallyPhrase != null)
+        {
+            foreach (var item in tallyPhrase.inspectTallyingItem())
+            {
+                string counterName = item.identifier().GetText();
+                var counterSym = _semantic.ResolveData(counterName);
+                if (counterSym == null) continue;
+
+                foreach (var forPhrase in item.inspectForPhrase())
+                {
+                    InspectTallyKind kind;
+                    string? pattern = null;
+
+                    if (forPhrase.CHARACTERS() != null)
+                    {
+                        kind = InspectTallyKind.Characters;
+                    }
+                    else if (forPhrase.LEADING() != null)
+                    {
+                        kind = InspectTallyKind.Leading;
+                        pattern = ExtractInspectPattern(forPhrase);
+                    }
+                    else
+                    {
+                        kind = InspectTallyKind.All;
+                        pattern = ExtractInspectPattern(forPhrase);
+                    }
+
+                    var region = BindInspectDelimiters(forPhrase.inspectDelimiters());
+                    tallying.Add(new BoundInspectTallyingItem(counterSym, kind, pattern, region));
+                }
+            }
+        }
+
+        var replPhrase = ctx.inspectReplacingPhrase();
+        if (replPhrase != null)
+        {
+            foreach (var item in replPhrase.inspectReplacingItem())
+            {
+                InspectReplaceKind kind;
+                if (item.FIRST() != null) kind = InspectReplaceKind.First;
+                else if (item.LEADING() != null) kind = InspectReplaceKind.Leading;
+                else kind = InspectReplaceKind.All;
+
+                string pattern;
+                string replacement;
+
+                if (item.CHARACTERS() != null)
+                {
+                    // CHARACTERS BY x — replace every character
+                    pattern = "";
+                    replacement = ExtractStringValue(item.identifier(), item.literal());
+                }
+                else
+                {
+                    // Pattern BY replacement
+                    var idOrLits = item.identifier();
+                    var lits = item.literal();
+                    // First identifier/literal is pattern, second is replacement (after BY)
+                    pattern = ExtractNthStringValue(idOrLits, lits, 0);
+                    replacement = ExtractNthStringValue(idOrLits, lits, 1);
+                }
+
+                var region = BindInspectDelimiters(item.inspectDelimiters());
+                replacing.Add(new BoundInspectReplacingItem(kind, pattern, replacement, region));
+            }
+        }
+
+        var convPhrase = ctx.inspectConvertingPhrase();
+        if (convPhrase != null)
+        {
+            var idOrLits = convPhrase.identifier();
+            var lits = convPhrase.literal();
+            string fromSet = ExtractNthStringValue(idOrLits, lits, 0);
+            string toSet = ExtractNthStringValue(idOrLits, lits, 1);
+            var region = BindInspectDelimiters(convPhrase.inspectDelimiters());
+            converting = new BoundInspectConverting(fromSet, toSet, region);
+        }
+
+        return new BoundInspectStatement(targetSym, tallying, replacing, converting);
+    }
+
+    private string? ExtractInspectPattern(CobolParserCore.InspectForPhraseContext ctx)
+    {
+        var lit = ctx.literal();
+        if (lit != null) return ExtractLiteralString(lit);
+        var id = ctx.identifier();
+        if (id != null) return id.GetText(); // TODO: resolve identifier value at runtime
+        return null;
+    }
+
+    private string ExtractStringValue(
+        CobolParserCore.IdentifierContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits)
+    {
+        // Return the first available literal or identifier text
+        if (lits != null && lits.Length > 0) return ExtractLiteralString(lits[0]);
+        if (ids != null && ids.Length > 0) return ids[0].GetText();
+        return "";
+    }
+
+    private string ExtractNthStringValue(
+        CobolParserCore.IdentifierContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits,
+        int n)
+    {
+        // Combine identifiers and literals in parse order, pick nth
+        // For simplicity: literals first, then identifiers
+        var all = new List<string>();
+        if (ids != null) foreach (var id in ids) all.Add(id.GetText());
+        if (lits != null) foreach (var lit in lits) all.Add(ExtractLiteralString(lit));
+
+        // Actually need to respect parse order. Use child index ordering.
+        // Simpler approach: just use the grammar structure.
+        // For REPLACING: first id/lit pair is pattern, second is replacement
+        // The grammar puts them as separate children: ALL <id|lit> BY <id|lit>
+        // So we need ordered extraction.
+        var ordered = new List<(int index, string value)>();
+        if (ids != null)
+            foreach (var id in ids)
+                ordered.Add((id.SourceInterval.a, id.GetText()));
+        if (lits != null)
+            foreach (var lit in lits)
+                ordered.Add((lit.SourceInterval.a, ExtractLiteralString(lit)));
+        ordered.Sort((a, b) => a.index.CompareTo(b.index));
+
+        return n < ordered.Count ? ordered[n].value : "";
+    }
+
+    private string ExtractLiteralString(CobolParserCore.LiteralContext lit)
+    {
+        var nonNum = lit.nonNumericLiteral();
+        if (nonNum != null)
+        {
+            string raw = nonNum.GetText();
+            if (raw.StartsWith("\"") && raw.EndsWith("\""))
+                return raw.Substring(1, raw.Length - 2);
+            if (raw.StartsWith("'") && raw.EndsWith("'"))
+                return raw.Substring(1, raw.Length - 2);
+            return raw;
+        }
+        return lit.GetText();
+    }
+
+    private BoundInspectRegion BindInspectDelimiters(CobolParserCore.InspectDelimitersContext? ctx)
+    {
+        if (ctx == null) return BoundInspectRegion.Empty;
+
+        string? beforePattern = null;
+        bool beforeInitial = false;
+        string? afterPattern = null;
+        bool afterInitial = false;
+
+        // Walk children in order: BEFORE [INITIAL] <pattern> [AFTER [INITIAL] <pattern>]
+        // or: AFTER [INITIAL] <pattern> [BEFORE [INITIAL] <pattern>]
+        var ids = ctx.identifier();
+        var lits = ctx.literal();
+
+        // Merge identifier and literal values in source order
+        var patterns = new List<(int index, string value)>();
+        foreach (var id in ids)
+            patterns.Add((id.SourceInterval.a, id.GetText()));
+        foreach (var lit in lits)
+            patterns.Add((lit.SourceInterval.a, ExtractLiteralString(lit)));
+        patterns.Sort((a, b) => a.index.CompareTo(b.index));
+
+        // Walk child tokens to determine BEFORE/AFTER associations
+        bool inBefore = false, inAfter = false;
+        bool nextIsInitial = false;
+        int patIdx = 0;
+
+        for (int i = 0; i < ctx.ChildCount; i++)
+        {
+            var child = ctx.GetChild(i);
+            string text = child.GetText();
+
+            if (text.Equals("BEFORE", System.StringComparison.OrdinalIgnoreCase))
+            {
+                inBefore = true; inAfter = false; nextIsInitial = false;
+            }
+            else if (text.Equals("AFTER", System.StringComparison.OrdinalIgnoreCase))
+            {
+                inAfter = true; inBefore = false; nextIsInitial = false;
+            }
+            else if (text.Equals("INITIAL", System.StringComparison.OrdinalIgnoreCase))
+            {
+                nextIsInitial = true;
+            }
+            else if (child is CobolParserCore.IdentifierContext || child is CobolParserCore.LiteralContext)
+            {
+                if (patIdx < patterns.Count)
+                {
+                    if (inBefore)
+                    {
+                        beforePattern = patterns[patIdx++].value;
+                        beforeInitial = nextIsInitial;
+                        inBefore = false;
+                    }
+                    else if (inAfter)
+                    {
+                        afterPattern = patterns[patIdx++].value;
+                        afterInitial = nextIsInitial;
+                        inAfter = false;
+                    }
+                }
+                nextIsInitial = false;
+            }
+        }
+
+        return new BoundInspectRegion(beforePattern, beforeInitial, afterPattern, afterInitial);
     }
 
     // ── SET ──

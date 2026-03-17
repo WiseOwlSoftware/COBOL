@@ -1485,7 +1485,6 @@ inspectStatement
       inspectTallyingPhrase?
       inspectReplacingPhrase?
       inspectConvertingPhrase?
-     
     ;
 
 inspectTallyingPhrase
@@ -1497,10 +1496,9 @@ inspectTallyingItem
     ;
 
 inspectForPhrase
-    : ALL literal
-    | LEADING literal
-    | FIRST literal
-    | BEFORE INITIAL_? literal
+    : CHARACTERS inspectDelimiters?
+    | ALL (identifier | literal) inspectDelimiters?
+    | LEADING (identifier | literal) inspectDelimiters?
     ;
 
 inspectReplacingPhrase
@@ -1508,16 +1506,19 @@ inspectReplacingPhrase
     ;
 
 inspectReplacingItem
-    : ALL literal BY (identifier | literal)
-    | LEADING literal BY (identifier | literal)
-    | FIRST literal BY (identifier | literal)
-    | BEFORE INITIAL_? literal BY (identifier | literal)
+    : CHARACTERS BY (identifier | literal) inspectDelimiters?
+    | ALL (identifier | literal) BY (identifier | literal) inspectDelimiters?
+    | LEADING (identifier | literal) BY (identifier | literal) inspectDelimiters?
+    | FIRST (identifier | literal) BY (identifier | literal) inspectDelimiters?
     ;
 
 inspectConvertingPhrase
-    : CONVERTING identifier
-      FROM (identifier | literal)
-      TO   (identifier | literal)
+    : CONVERTING (identifier | literal) TO (identifier | literal) inspectDelimiters?
+    ;
+
+inspectDelimiters
+    : BEFORE INITIAL_? (identifier | literal) (AFTER INITIAL_? (identifier | literal))?
+    | AFTER INITIAL_? (identifier | literal) (BEFORE INITIAL_? (identifier | literal))?
     ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)

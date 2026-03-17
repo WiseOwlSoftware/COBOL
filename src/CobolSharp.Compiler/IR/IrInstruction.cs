@@ -381,6 +381,69 @@ public sealed class IrStoreFileStatus : IrInstruction
     }
 }
 
+// ── INSPECT ──
+
+public sealed class IrInspectTally : IrInstruction
+{
+    public CodeGen.StorageLocation Target { get; }
+    public CodeGen.StorageLocation Counter { get; }
+    public Semantics.Bound.InspectTallyKind Kind { get; }
+    public string? Pattern { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectTally(CodeGen.StorageLocation target, CodeGen.StorageLocation counter,
+        Semantics.Bound.InspectTallyKind kind, string? pattern,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; Counter = counter; Kind = kind; Pattern = pattern;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
+    }
+}
+
+public sealed class IrInspectReplace : IrInstruction
+{
+    public CodeGen.StorageLocation Target { get; }
+    public Semantics.Bound.InspectReplaceKind Kind { get; }
+    public string Pattern { get; }
+    public string Replacement { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectReplace(CodeGen.StorageLocation target,
+        Semantics.Bound.InspectReplaceKind kind, string pattern, string replacement,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; Kind = kind; Pattern = pattern; Replacement = replacement;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
+    }
+}
+
+public sealed class IrInspectConvert : IrInstruction
+{
+    public CodeGen.StorageLocation Target { get; }
+    public string FromSet { get; }
+    public string ToSet { get; }
+    public string? BeforePattern { get; }
+    public bool BeforeInitial { get; }
+    public string? AfterPattern { get; }
+    public bool AfterInitial { get; }
+
+    public IrInspectConvert(CodeGen.StorageLocation target, string fromSet, string toSet,
+        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    {
+        Target = target; FromSet = fromSet; ToSet = toSet;
+        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
+        AfterPattern = afterPattern; AfterInitial = afterInitial;
+    }
+}
+
 // ── PIC-aware arithmetic ──
 
 public sealed class IrPicMultiply : IrInstruction
