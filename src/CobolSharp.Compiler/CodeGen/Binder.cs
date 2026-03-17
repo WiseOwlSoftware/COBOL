@@ -578,14 +578,36 @@ public sealed class Binder
             }
         }
 
-        // Step 2: For each target, subtract the accumulated sum (rounding applied once)
+        // Step 2: For each target, apply the subtraction
         foreach (var target in sub.Targets)
         {
             var destLoc = _semantic.GetStorageLocation(target.Symbol);
             if (!destLoc.HasValue) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
-            block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, destLoc.Value, roundingMode));
+            if (sub.IsGiving && sub.GivingMinuend != null)
+            {
+                // GIVING: target = minuend - accumulated
+                // Use IrComputeStore with synthetic expression: minuend - accumulated_as_literal
+                // Since accumulated is a runtime value, we build: minuend - (sum of operands)
+                // Reconstruct the subtraction expression from the bound operands
+                BoundExpression sumExpr = sub.Operands[0];
+                for (int i = 1; i < sub.Operands.Count; i++)
+                {
+                    sumExpr = new BoundBinaryExpression(
+                        sumExpr, BoundBinaryOperatorKind.Add, sub.Operands[i],
+                        CobolCategory.Numeric);
+                }
+                var subExpr = new BoundBinaryExpression(
+                    sub.GivingMinuend, BoundBinaryOperatorKind.Subtract, sumExpr,
+                    CobolCategory.Numeric);
+                block.Instructions.Add(new IrComputeStore(subExpr, destLoc.Value, roundingMode));
+            }
+            else
+            {
+                // FROM: target = target - accumulated
+                block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, destLoc.Value, roundingMode));
+            }
         }
 
         return LowerSizeError(sub.SizeError, method, block);

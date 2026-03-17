@@ -547,12 +547,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
+        bool isGiving = false;
+        BoundExpression? givingMinuend = null;
         var givingPhrase = ctx.subtractGivingPhrase();
         if (givingPhrase != null)
         {
             var givingTargetCtxs = givingPhrase.subtractTarget();
             if (givingTargetCtxs.Length > 0)
             {
+                isGiving = true;
+                // The first FROM target becomes the minuend (b in "SUBTRACT a FROM b GIVING c")
+                if (targets.Count > 0)
+                    givingMinuend = new BoundIdentifierExpression(targets[0].Symbol, CobolCategory.Numeric);
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
@@ -563,8 +569,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
+        if (targets.Count == 0)
+            throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
+
         var sizeError = BindSizeErrorClause(ctx.subtractOnSizeError());
-        return new BoundSubtractStatement(operands, targets, sizeError);
+        return new BoundSubtractStatement(operands, targets, sizeError, isGiving, givingMinuend);
     }
 
     // ── DIVIDE ──

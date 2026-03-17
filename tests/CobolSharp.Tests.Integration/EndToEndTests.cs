@@ -1304,4 +1304,37 @@ public class EndToEndTests : IDisposable
         Assert.Equal("NEQ-NO", lines[1]);
         Assert.Equal("DIFF-YES", lines[2]);
     }
+
+    // ═══════════════════════════════════════════
+    // GIVING forms (ADD and SUBTRACT)
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void SubtractGiving_CorrectResult()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUBGIV.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(5) VALUE 30.
+            01 WS-B PIC S9(5) VALUE 100.
+            01 WS-C PIC S9(5) VALUE 0.
+            01 WS-D PIC S9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SUBTRACT WS-A FROM WS-B GIVING WS-C.
+                DISPLAY WS-C.
+                SUBTRACT 10 20 FROM WS-B GIVING WS-D.
+                DISPLAY WS-D.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // 100 - 30 = 70 (overpunch: 0→'{')
+        Assert.Equal("0007{", lines[0]);
+        // 100 - (10+20) = 70
+        Assert.Equal("0007{", lines[1]);
+    }
 }

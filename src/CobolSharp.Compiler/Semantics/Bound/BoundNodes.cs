@@ -337,14 +337,20 @@ public sealed class BoundSubtractStatement : BoundStatement
     public IReadOnlyList<BoundExpression> Operands { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
     public BoundSizeErrorClause? SizeError { get; }
+    public bool IsGiving { get; }
+    public BoundExpression? GivingMinuend { get; }  // the FROM operand for GIVING form
 
     public BoundSubtractStatement(IReadOnlyList<BoundExpression> operands,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null)
+        BoundSizeErrorClause? sizeError = null,
+        bool isGiving = false,
+        BoundExpression? givingMinuend = null)
     {
         Operands = operands;
         Targets = targets;
         SizeError = sizeError;
+        IsGiving = isGiving;
+        GivingMinuend = givingMinuend;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
