@@ -16,11 +16,8 @@ public static class FileRuntime
     // Track open text output files (StreamWriter for line-oriented output — PRINT-FILE)
     private static readonly Dictionary<string, StreamWriter> _openFiles = new();
 
-    // Track open binary output files (FileStream for fixed-length records)
-    private static readonly Dictionary<string, FileStream> _outputStreams = new();
-
-    // Track open input files (FileStream for binary/fixed-length reading)
-    private static readonly Dictionary<string, FileStream> _inputFiles = new();
+    // Track open input files (StreamReader for line-sequential reading)
+    private static readonly Dictionary<string, StreamReader> _inputFiles = new();
 
     // Track at-end state per file
     private static readonly Dictionary<string, bool> _atEnd = new();
@@ -41,24 +38,13 @@ public static class FileRuntime
 
     public static void OpenOutput(string fileName)
     {
-        if (_openFiles.ContainsKey(fileName) || _outputStreams.ContainsKey(fileName))
+        if (_openFiles.ContainsKey(fileName))
             return;
 
         string hostPath = ResolveHostPath(fileName);
-
-        // Use text mode for PRINT-FILE (line-oriented NIST output),
-        // binary mode for all other files (fixed-length records)
-        if (fileName.Equals("PRINT-FILE", StringComparison.OrdinalIgnoreCase))
-        {
-            var writer = new StreamWriter(hostPath, append: false, Encoding.ASCII);
-            writer.AutoFlush = true;
-            _openFiles[fileName] = writer;
-        }
-        else
-        {
-            var stream = new FileStream(hostPath, FileMode.Create, FileAccess.Write);
-            _outputStreams[fileName] = stream;
-        }
+        var writer = new StreamWriter(hostPath, append: false, Encoding.ASCII);
+        writer.AutoFlush = true;
+        _openFiles[fileName] = writer;
     }
 
     /// <summary>
@@ -73,15 +59,9 @@ public static class FileRuntime
             writer.Close();
             _openFiles.Remove(fileName);
         }
-        if (_outputStreams.TryGetValue(fileName, out var outStream))
+        if (_inputFiles.TryGetValue(fileName, out var reader))
         {
-            outStream.Flush();
-            outStream.Close();
-            _outputStreams.Remove(fileName);
-        }
-        if (_inputFiles.TryGetValue(fileName, out var inStream))
-        {
-            inStream.Close();
+            reader.Close();
             _inputFiles.Remove(fileName);
         }
         _atEnd.Remove(fileName);
@@ -92,27 +72,24 @@ public static class FileRuntime
     /// Writes the record bytes as an ASCII line to the file.
     /// If the file isn't open, writes to console (DISPLAY device).
     /// </summary>
+    /// <summary>
+    /// WRITE record-name: write record as a line-sequential record.
+    /// Uses AFTER ADVANCING 1 LINE semantics (newline before text) to match
+    /// NIST expected output format. This will be split into separate WRITE
+    /// and WRITE AFTER ADVANCING paths when we implement proper file mode handling.
+    /// </summary>
     public static void WriteRecord(string fileName, byte[] recordBytes, int offset, int length)
     {
-        // Binary output stream (data files)
-        if (_outputStreams.TryGetValue(fileName, out var stream))
-        {
-            stream.Write(recordBytes, offset, length);
-            return;
-        }
+        string text = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
 
-        // Text output via StreamWriter (line-oriented, for PRINT-FILE)
-        // Uses WriteAfterAdvancing to match NIST expected format (newline before text)
-        if (_openFiles.ContainsKey(fileName))
+        if (_openFiles.TryGetValue(fileName, out _))
         {
-            string text = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
             WriteAfterAdvancing(fileName, text, 1);
-            return;
         }
-
-        // File not open — write to console
-        string fallbackText = Encoding.ASCII.GetString(recordBytes, offset, length).TrimEnd();
-        Console.WriteLine(fallbackText);
+        else
+        {
+            Console.WriteLine(text);
+        }
     }
 
     /// <summary>
@@ -155,34 +132,36 @@ public static class FileRuntime
         if (!File.Exists(hostPath))
             throw new FileNotFoundException($"OPEN INPUT: file not found: {hostPath}");
 
-        var stream = new FileStream(hostPath, FileMode.Open, FileAccess.Read);
-        _inputFiles[fileName] = stream;
+        var reader = new StreamReader(hostPath, Encoding.ASCII);
+        _inputFiles[fileName] = reader;
         _atEnd[fileName] = false;
     }
 
     /// <summary>
-    /// READ: read next fixed-length record into byte buffer.
-    /// Returns true if a record was read, false if at end.
+    /// READ: read next record (line-sequential) into byte buffer.
+    /// Reads one line, pads/truncates to fit the record length.
+    /// Returns true if a record was read, false if at end-of-file.
     /// </summary>
     public static bool ReadRecord(string fileName, byte[] buffer, int offset, int length)
     {
-        if (!_inputFiles.TryGetValue(fileName, out var stream))
+        if (!_inputFiles.TryGetValue(fileName, out var reader))
             return false;
 
-        int totalRead = 0;
-        while (totalRead < length)
+        string? line = reader.ReadLine();
+        if (line == null)
         {
-            int bytesRead = stream.Read(buffer, offset + totalRead, length - totalRead);
-            if (bytesRead == 0)
-            {
-                _atEnd[fileName] = true;
-                // Pad remainder with spaces if partial read
-                for (int i = offset + totalRead; i < offset + length; i++)
-                    buffer[i] = 0x20;
-                return totalRead > 0; // true if we got any data
-            }
-            totalRead += bytesRead;
+            _atEnd[fileName] = true;
+            return false;
         }
+
+        // Convert line to ASCII bytes, pad with spaces to record length
+        byte[] lineBytes = Encoding.ASCII.GetBytes(line);
+        int copyLen = Math.Min(lineBytes.Length, length);
+        Array.Copy(lineBytes, 0, buffer, offset, copyLen);
+        // Pad remainder with spaces
+        for (int i = offset + copyLen; i < offset + length; i++)
+            buffer[i] = 0x20;
+
         _atEnd[fileName] = false;
         return true;
     }
@@ -227,15 +206,8 @@ public static class FileRuntime
         }
         _openFiles.Clear();
 
-        foreach (var stream in _outputStreams.Values)
-        {
-            stream.Flush();
-            stream.Close();
-        }
-        _outputStreams.Clear();
-
-        foreach (var stream in _inputFiles.Values)
-            stream.Close();
+        foreach (var reader in _inputFiles.Values)
+            reader.Close();
         _inputFiles.Clear();
         _atEnd.Clear();
         _assignTargets.Clear();

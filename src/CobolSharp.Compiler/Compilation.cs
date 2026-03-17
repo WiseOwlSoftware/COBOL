@@ -20,6 +20,12 @@ public sealed class Compilation
     /// <summary>Add a directory to search for COPY copybooks.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
+    /// <summary>
+    /// When set, enables NIST preprocessing: replaces XXXXX### placeholders
+    /// with CobolSharp-appropriate values. The value is the test name (e.g., "NC101A").
+    /// </summary>
+    public string? NistTestName { get; set; }
+
     public CompilationResult Compile(string sourcePath, string? outputPath = null)
     {
         var diagnostics = new DiagnosticBag();
@@ -30,6 +36,10 @@ public sealed class Compilation
 
         // Detect and normalize reference format (fixed-form → free-form)
         string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
+
+        // NIST preprocessing: replace XXXXX### site-specific placeholders
+        if (NistTestName != null)
+            normalizedText = NistPreprocessor.Process(normalizedText, NistTestName);
 
         // Expand COPY statements
         var copyProcessor = new CopyProcessor(_copySearchPaths);
