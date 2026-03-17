@@ -254,10 +254,56 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // Skip 88-level condition names for now
+        // Level-88 condition names: attach to parent data item, extract VALUE clauses
         if (level == 88)
         {
-            var condSym = new ConditionSymbol(displayName, null!, line);
+            // Parent is the most recent data item on the stack
+            DataSymbol? parent = _dataStack.Count > 0 ? _dataStack.Peek() : null;
+            if (parent == null)
+                throw new InvalidOperationException(
+                    $"Level-88 condition name '{displayName}' has no parent data item (line {line})");
+
+            var condSym = new ConditionSymbol(displayName, parent, line);
+
+            // Extract values from the VALUE/VALUES clause in dataDescriptionClauses
+            var condBody = ctx.dataDescriptionBody();
+            if (condBody?.dataDescriptionClauses() != null)
+            {
+                foreach (var clause in condBody.dataDescriptionClauses().dataDescriptionClause())
+                {
+                    var valClause = clause.valueClause();
+                    if (valClause != null)
+                    {
+                        var literals = valClause.literal();
+                        foreach (var litCtx in literals)
+                        {
+                            object val = ParseConditionLiteralValue(litCtx);
+                            condSym.AddRange(val);
+                        }
+                    }
+                }
+            }
+
+            // Also check conditionEntry88 path (if grammar routes there)
+            var condEntry = condBody?.conditionEntry88();
+            if (condEntry != null)
+            {
+                var valueSet = condEntry.valueSet();
+                if (valueSet != null)
+                {
+                    foreach (var range in valueSet.valueRange())
+                    {
+                        var lits = range.literal();
+                        if (lits.Length >= 1)
+                        {
+                            object fromVal = ParseConditionLiteralValue(lits[0]);
+                            object? toVal = lits.Length >= 2 ? ParseConditionLiteralValue(lits[1]) : null;
+                            condSym.AddRange(fromVal, toVal);
+                        }
+                    }
+                }
+            }
+
             _symbols.Program.DataDivisionScope.TryDeclare(condSym, out _);
             return null;
         }
@@ -358,5 +404,31 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 Visit(stmt);
 
         return null;
+    }
+
+    /// <summary>
+    /// Parse a literal context into a typed value for level-88 condition entries.
+    /// Returns decimal for numeric literals, string for string literals.
+    /// </summary>
+    private static object ParseConditionLiteralValue(Generated.CobolParserCore.LiteralContext lit)
+    {
+        var numLit = lit.numericLiteral();
+        if (numLit != null)
+        {
+            var text = numLit.GetText();
+            if (decimal.TryParse(text,
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
+                System.Globalization.CultureInfo.InvariantCulture, out var d))
+                return d;
+            return text;
+        }
+        var nonNum = lit.nonNumericLiteral();
+        if (nonNum?.STRINGLIT() is { } slit)
+        {
+            var text = slit.GetText();
+            if (text.Length >= 2) return text[1..^1];
+            return text;
+        }
+        return lit.GetText();
     }
 }

@@ -123,4 +123,8 @@ public sealed class SemanticModel
     /// <summary>Resolve a file name.</summary>
     public FileSymbol? ResolveFile(string name)
         => Symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
+
+    /// <summary>Resolve a level-88 condition name.</summary>
+    public ConditionSymbol? ResolveConditionName(string name)
+        => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);
 }

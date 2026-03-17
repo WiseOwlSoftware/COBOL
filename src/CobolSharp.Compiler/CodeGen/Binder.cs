@@ -993,6 +993,13 @@ public sealed class Binder
 
     private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
     {
+        // Level-88 condition name: expand to parent == val1 OR parent == val2 ...
+        if (cond is BoundConditionNameExpression cn)
+        {
+            LowerConditionName(cn, result, block);
+            return;
+        }
+
         if (cond is BoundBinaryExpression binCond)
         {
             switch (binCond.OperatorKind)
@@ -1160,6 +1167,121 @@ public sealed class Binder
             BoundBinaryOperatorKind.GreaterOrEqual => BoundBinaryOperatorKind.LessOrEqual,
             _ => op // Equal, NotEqual are symmetric
         };
+    }
+
+    // ── Level-88 condition name ──
+
+    private void LowerConditionName(BoundConditionNameExpression cn, IrValue result, IrBasicBlock block)
+    {
+        var parentSym = cn.Condition.ParentDataItem;
+        var parentLoc = _semantic.GetStorageLocation(parentSym);
+        if (!parentLoc.HasValue)
+        {
+            block.Instructions.Add(new IrSetBool(result, false));
+            return;
+        }
+
+        var ranges = cn.Condition.ValueRanges;
+        if (ranges.Count == 0)
+        {
+            block.Instructions.Add(new IrSetBool(result, false));
+            return;
+        }
+
+        var parentCat = parentLoc.Value.Pic.Category;
+
+        // Build a list of individual match results
+        var matchResults = new List<IrValue>();
+
+        foreach (var (from, to) in ranges)
+        {
+            var matchVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
+
+            if (to == null)
+            {
+                // Single value comparison: parent == from
+                if (from is decimal d)
+                {
+                    block.Instructions.Add(new IR.IrPicCompareLiteral(
+                        parentLoc.Value, d, matchVal,
+                        (int)BoundBinaryOperatorKind.Equal));
+                }
+                else if (from is string s)
+                {
+                    if (parentCat.IsNumericLike() && decimal.TryParse(s,
+                        System.Globalization.CultureInfo.InvariantCulture, out var numVal))
+                    {
+                        block.Instructions.Add(new IR.IrPicCompareLiteral(
+                            parentLoc.Value, numVal, matchVal,
+                            (int)BoundBinaryOperatorKind.Equal));
+                    }
+                    else
+                    {
+                        block.Instructions.Add(new IR.IrStringCompareLiteral(
+                            parentLoc.Value, s, matchVal,
+                            (int)BoundBinaryOperatorKind.Equal));
+                    }
+                }
+            }
+            else
+            {
+                // Range: parent >= from AND parent <= to
+                var geVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
+                var leVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
+
+                if (from is decimal dFrom && to is decimal dTo)
+                {
+                    block.Instructions.Add(new IR.IrPicCompareLiteral(
+                        parentLoc.Value, dFrom, geVal,
+                        (int)BoundBinaryOperatorKind.GreaterOrEqual));
+                    block.Instructions.Add(new IR.IrPicCompareLiteral(
+                        parentLoc.Value, dTo, leVal,
+                        (int)BoundBinaryOperatorKind.LessOrEqual));
+                }
+                else if (from is string sFrom && to is string sTo)
+                {
+                    block.Instructions.Add(new IR.IrStringCompareLiteral(
+                        parentLoc.Value, sFrom, geVal,
+                        (int)BoundBinaryOperatorKind.GreaterOrEqual));
+                    block.Instructions.Add(new IR.IrStringCompareLiteral(
+                        parentLoc.Value, sTo, leVal,
+                        (int)BoundBinaryOperatorKind.LessOrEqual));
+                }
+
+                block.Instructions.Add(new IR.IrBinaryLogical(matchVal, geVal, leVal, IR.IrLogicalOp.And));
+            }
+
+            matchResults.Add(matchVal);
+        }
+
+        // OR all match results together
+        if (matchResults.Count == 1)
+        {
+            // Single value — copy directly
+            block.Instructions.Add(new IR.IrBinaryLogical(result, matchResults[0], matchResults[0], IR.IrLogicalOp.Or));
+        }
+        else
+        {
+            // Multiple values — chain ORs
+            var accumulated = matchResults[0];
+            for (int i = 1; i < matchResults.Count; i++)
+            {
+                var orResult = _valueFactory.Next(IR.IrPrimitiveType.Bool);
+                block.Instructions.Add(new IR.IrBinaryLogical(orResult, accumulated, matchResults[i], IR.IrLogicalOp.Or));
+                accumulated = orResult;
+            }
+            // Final result
+            block.Instructions.Add(new IR.IrBinaryLogical(result, accumulated, accumulated, IR.IrLogicalOp.Or));
+        }
+
+        // Handle NOT condition-name
+        if (cn.IsNegated)
+        {
+            var notResult = _valueFactory.Next(IR.IrPrimitiveType.Bool);
+            block.Instructions.Add(new IR.IrBinaryLogical(notResult, result, result, IR.IrLogicalOp.Not));
+            // Copy negated result back
+            block.Instructions.Add(new IR.IrBinaryLogical(result, notResult, notResult, IR.IrLogicalOp.Or));
+        }
     }
 
     // ── GO TO ──

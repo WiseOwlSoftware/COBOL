@@ -1337,4 +1337,129 @@ public class EndToEndTests : IDisposable
         // 100 - (10+20) = 70
         Assert.Equal("0007{", lines[1]);
     }
+
+    // ═══════════════════════════════════════════
+    // Level-88 condition name tests
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void Level88_ConditionName_SingleValue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88TEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-STATUS PIC 9 VALUE 1.
+               88 STATUS-ACTIVE VALUE 1.
+               88 STATUS-INACTIVE VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF STATUS-ACTIVE
+                    DISPLAY "ACTIVE"
+                ELSE
+                    DISPLAY "NOT ACTIVE"
+                END-IF.
+                MOVE 0 TO WS-STATUS.
+                IF STATUS-INACTIVE
+                    DISPLAY "INACTIVE"
+                ELSE
+                    DISPLAY "NOT INACTIVE"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("ACTIVE", lines[0]);
+        Assert.Equal("INACTIVE", lines[1]);
+    }
+
+    [Fact]
+    public void Level88_ConditionName_MultipleValues()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88MULTI.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DAY PIC 9 VALUE 6.
+               88 WEEKEND VALUES 6 7.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WEEKEND
+                    DISPLAY "WEEKEND"
+                ELSE
+                    DISPLAY "WEEKDAY"
+                END-IF.
+                MOVE 3 TO WS-DAY.
+                IF WEEKEND
+                    DISPLAY "WEEKEND"
+                ELSE
+                    DISPLAY "WEEKDAY"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("WEEKEND", lines[0]);
+        Assert.Equal("WEEKDAY", lines[1]);
+    }
+
+    [Fact]
+    public void Level88_ConditionName_InEvaluateTrue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88EVAL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-CODE PIC 9 VALUE 2.
+               88 CODE-A VALUE 1.
+               88 CODE-B VALUE 2.
+               88 CODE-C VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                EVALUATE TRUE
+                    WHEN CODE-A
+                        DISPLAY "A"
+                    WHEN CODE-B
+                        DISPLAY "B"
+                    WHEN CODE-C
+                        DISPLAY "C"
+                    WHEN OTHER
+                        DISPLAY "OTHER"
+                END-EVALUATE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("B", stdout);
+    }
+
+    [Fact]
+    public void Level88_ConditionName_AlphanumericParent()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88ALPHA.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-FLAG PIC X VALUE "Y".
+               88 FLAG-YES VALUE "Y".
+               88 FLAG-NO VALUE "N".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF FLAG-YES
+                    DISPLAY "YES"
+                ELSE
+                    DISPLAY "NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("YES", stdout);
+    }
 }

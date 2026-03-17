@@ -342,9 +342,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // For EVALUATE TRUE, the WHEN item is a condition
             if (items.Length > 0 && items[0].condition() is { } condCtx)
                 return new BoundEvaluateConditionWhen(BindCondition(condCtx));
-            // Fallback: try as arithmetic expression (bare identifier → condition)
+            // Fallback: try as arithmetic expression (bare identifier → condition name)
             if (items.Length > 0 && items[0].arithmeticExpression().Length > 0)
-                return new BoundEvaluateConditionWhen(BindFullExpression(items[0].arithmeticExpression(0)));
+            {
+                var expr = BindFullExpression(items[0].arithmeticExpression(0));
+                // Check if the result resolves to a condition name
+                expr = TryResolveConditionName(expr);
+                return new BoundEvaluateConditionWhen(expr);
+            }
             return new BoundEvaluateValueCondition(
                 Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: true);
         }
@@ -849,6 +854,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     // Expression binding
     // ═══════════════════════════════════
 
+    /// <summary>
+    /// If expr is a bare identifier or unresolved string that matches a level-88
+    /// condition name, return a BoundConditionNameExpression; otherwise return expr unchanged.
+    /// </summary>
+    private BoundExpression TryResolveConditionName(BoundExpression expr)
+    {
+        string? name = null;
+        if (expr is BoundIdentifierExpression idExpr)
+            name = idExpr.Symbol.Name;
+        else if (expr is BoundLiteralExpression litExpr && litExpr.Value is string s)
+            name = s;
+
+        if (name != null)
+        {
+            var condSym = _semantic.ResolveConditionName(name);
+            if (condSym != null)
+                return new BoundConditionNameExpression(condSym);
+        }
+        return expr;
+    }
+
     private BoundExpression BindLiteral(CobolParserCore.LiteralContext lit)
     {
         // literal: numericLiteral | nonNumericLiteral
@@ -1014,6 +1040,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (operands.Length < 2 || relOp == null)
         {
+            // Check if bare identifier is a level-88 condition name
+            if (left is BoundIdentifierExpression idExpr)
+            {
+                var condSym = _semantic.ResolveConditionName(idExpr.Symbol.Name);
+                if (condSym != null)
+                    return new BoundConditionNameExpression(condSym);
+            }
+            // Also check unresolved identifiers that became string literals
+            if (left is BoundLiteralExpression litExpr && litExpr.Value is string condName)
+            {
+                var condSym = _semantic.ResolveConditionName(condName);
+                if (condSym != null)
+                    return new BoundConditionNameExpression(condSym);
+            }
             // Bare expression: IF A (means A <> 0 for numeric, A <> SPACE for alpha)
             return left;
         }

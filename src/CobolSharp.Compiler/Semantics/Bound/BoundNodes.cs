@@ -26,6 +26,7 @@ public enum BoundNodeKind
     LiteralExpression,
     IdentifierExpression,
     BinaryExpression,
+    ConditionNameExpression,
 }
 
 public abstract class BoundNode
@@ -112,6 +113,24 @@ public sealed class BoundBinaryExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
+}
+
+/// <summary>
+/// A level-88 condition name test: expands to parent = value1 OR parent = value2 ...
+/// </summary>
+public sealed class BoundConditionNameExpression : BoundExpression
+{
+    public ConditionSymbol Condition { get; }
+    public bool IsNegated { get; }
+
+    public BoundConditionNameExpression(ConditionSymbol condition, bool isNegated = false)
+        : base(CobolCategory.Unknown)
+    {
+        Condition = condition;
+        IsNegated = isNegated;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ConditionNameExpression;
 }
 
 // ═══════════════════════════════════
