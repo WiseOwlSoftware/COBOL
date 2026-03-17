@@ -31,6 +31,12 @@ public sealed class Binder
         new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _paragraphsByIndex = new();
 
+    /// <summary>
+    /// The block representing the start of the next sentence.
+    /// Set during sentence lowering; NEXT SENTENCE emits a jump to this block.
+    /// </summary>
+    private IrBasicBlock? _currentSentenceEnd;
+
     public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
     {
         _semantic = semantic;
@@ -64,15 +70,34 @@ public sealed class Binder
             paraIndex++;
         }
 
-        // Phase 4: Lower bound statements into IR
+        // Phase 4: Lower bound statements into IR, preserving sentence structure
         foreach (var para in boundProgram.Paragraphs)
         {
             if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var method))
             {
                 int myIndex = _paragraphIndices[para.Symbol.Name];
                 var block = method.Blocks[0];
-                foreach (var stmt in para.Statements)
-                    block = LowerStatement(stmt, method, block);
+
+                for (int si = 0; si < para.Sentences.Count; si++)
+                {
+                    var sentence = para.Sentences[si];
+
+                    // Create the block that represents the start of the next sentence.
+                    // NEXT SENTENCE jumps here; normal flow falls through.
+                    var sentenceEnd = new IrBasicBlock($"{para.Symbol.Name}_sent{si}_end");
+                    _currentSentenceEnd = sentenceEnd;
+
+                    foreach (var stmt in sentence.Statements)
+                        block = LowerStatement(stmt, method, block);
+
+                    // Fall through into the sentence-end block
+                    block.Instructions.Add(new IrJump(sentenceEnd));
+                    method.Blocks.Add(sentenceEnd);
+                    block = sentenceEnd;
+                }
+
+                _currentSentenceEnd = null;
+
                 // Fall-through: return next paragraph index
                 block.Instructions.Add(new IrReturnConst(myIndex + 1));
             }
@@ -151,6 +176,8 @@ public sealed class Binder
             case BoundExitStatement:
                 // EXIT is a no-op; fall-through return handles it
                 break;
+            case BoundNextSentenceStatement:
+                return LowerNextSentence(method, block);
             case BoundOpenStatement:
             {
                 var fnVal = _valueFactory.Next(IrPrimitiveType.String);
@@ -1324,5 +1351,22 @@ public sealed class Binder
         {
             block.Instructions.Add(new IrReturnConst(targetIndex));
         }
+    }
+
+    // ── NEXT SENTENCE ──
+
+    private IrBasicBlock LowerNextSentence(IrMethod method, IrBasicBlock block)
+    {
+        if (_currentSentenceEnd is null)
+            throw new InvalidOperationException("NEXT SENTENCE used outside a sentence context.");
+
+        // Jump to the end of the current sentence
+        block.Instructions.Add(new IrJump(_currentSentenceEnd));
+
+        // Any statements after NEXT SENTENCE in this sentence are unreachable.
+        // Create a dead block so subsequent lowering has somewhere to emit into.
+        var dead = new IrBasicBlock("dead_after_next_sentence");
+        method.Blocks.Add(dead);
+        return dead;
     }
 }

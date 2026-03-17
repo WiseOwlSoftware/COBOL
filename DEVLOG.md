@@ -6,6 +6,48 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 089 — 2026-03-16: C1 — NEXT SENTENCE (production-quality sentence structure)
+
+Implementing NEXT SENTENCE forced a structural refactor of the bound tree — and the result is a
+cleaner, more accurate model of the COBOL domain.
+
+**The problem**: `BoundParagraph` held a flat `IReadOnlyList<BoundStatement>`. Sentence boundaries
+were discarded during binding — `BoundTreeBuilder` iterated `sentence.statement()` and flattened
+everything into one list. This made NEXT SENTENCE impossible to implement correctly, since there
+was no sentence to jump past.
+
+**The refactor**: Introduced `BoundSentence` as a first-class node holding
+`IReadOnlyList<BoundStatement>`. Changed `BoundParagraph` from flat statement list to
+`IReadOnlyList<BoundSentence>`. The bound tree now models the COBOL structure faithfully:
+program → paragraphs → sentences → statements.
+
+**Binder changes**: Paragraph lowering now iterates sentences explicitly. Each sentence gets a
+`sentenceEnd` basic block. A `_currentSentenceEnd` field tracks the active target.
+`LowerNextSentence` emits an `IrJump` to it and creates a dead block for unreachable code after
+the jump. No new IR nodes needed — reuses existing `IrJump`.
+
+**No regressions**: The sentence-aware lowering preserves existing behavior perfectly because the
+sentenceEnd blocks simply fall through in normal flow. All 6 NIST programs remain at 100%.
+
+3 integration tests: skip-rest-of-sentence, skip-multiple-statements, nested-IF escape.
+
+---
+
+## Entry 088 — 2026-03-16: Fix level-88 THRU ranges — dead grammar rule removal
+
+The `conditionEntry88` grammar rule was dead code. It expected `INTEGERLIT conditionName valueSet`,
+but `dataDescriptionEntry` already consumed the level number and data name before reaching
+`dataDescriptionBody`. Level-88 entries were silently routing through the generic `valueClause`
+path, which had no THRU support. Single-value 88s worked by accident; THRU ranges never parsed.
+
+Fix: removed dead `conditionEntry88`, `conditionName`, `valueSet`, `valueRange` rules. Unified
+`valueClause` to use `valueItem : literal (THRU literal)?` — supports single values, multiple
+values, and THRU ranges uniformly. SemanticBuilder updated to navigate the new structure.
+
+2 integration tests: THRU range, multiple THRU ranges with grade boundaries.
+
+---
+
 ## Entry 087 — 2026-03-16: Class Conditions — IS NUMERIC, IS ALPHABETIC
 
 Grammar: added NUMERIC, ALPHABETIC, ALPHABETIC_LOWER, ALPHABETIC_UPPER lexer tokens. `relationalExpression` now has class condition as first alternative (before relational operator) to prevent `IS NUMERIC` from matching as a relational operator prefix.

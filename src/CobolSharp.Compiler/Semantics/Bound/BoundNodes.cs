@@ -7,6 +7,7 @@ public enum BoundNodeKind
 {
     Program,
     Paragraph,
+    Sentence,
     MoveStatement,
     PerformStatement,
     WriteStatement,
@@ -17,6 +18,7 @@ public enum BoundNodeKind
     OpenStatement,
     CloseStatement,
     ExitStatement,
+    NextSentenceStatement,
     AddStatement,
     SubtractStatement,
     MultiplyStatement,
@@ -291,6 +293,11 @@ public sealed class BoundExitStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
 }
 
+public sealed class BoundNextSentenceStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.NextSentenceStatement;
+}
+
 public sealed class BoundOpenStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.OpenStatement;
@@ -553,15 +560,25 @@ public sealed class BoundEvaluateConditionWhen : BoundEvaluateCondition
 // Paragraph / Program
 // ═══════════════════════════════════
 
+public sealed class BoundSentence : BoundNode
+{
+    public IReadOnlyList<BoundStatement> Statements { get; }
+
+    public BoundSentence(IEnumerable<BoundStatement> statements)
+        => Statements = statements.ToList().AsReadOnly();
+
+    public override BoundNodeKind Kind => BoundNodeKind.Sentence;
+}
+
 public sealed class BoundParagraph : BoundNode
 {
     public ParagraphSymbol Symbol { get; }
-    public IReadOnlyList<BoundStatement> Statements { get; }
+    public IReadOnlyList<BoundSentence> Sentences { get; }
 
-    public BoundParagraph(ParagraphSymbol symbol, IEnumerable<BoundStatement> statements)
+    public BoundParagraph(ParagraphSymbol symbol, IEnumerable<BoundSentence> sentences)
     {
         Symbol = symbol;
-        Statements = statements.ToList().AsReadOnly();
+        Sentences = sentences.ToList().AsReadOnly();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.Paragraph;

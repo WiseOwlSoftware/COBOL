@@ -1602,4 +1602,92 @@ public class EndToEndTests : IDisposable
         Assert.Equal("B-LOWER", lines[2]);
         Assert.Equal("C-NOTALPHA", lines[3]);
     }
+
+    // ── NEXT SENTENCE ──
+
+    [Fact]
+    public void NextSentence_SkipsRestOfSentence()
+    {
+        // NEXT SENTENCE jumps to the first statement after the next period.
+        // Sentence 1: IF ... NEXT SENTENCE END-IF MOVE "BAD" TO RESULT.
+        // Sentence 2: MOVE "GOOD" TO RESULT.  (NEXT SENTENCE lands here)
+        // Sentence 3: DISPLAY RESULT STOP RUN.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NEXTSENT1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FLAG PIC 9 VALUE 1.
+            01 RESULT PIC X(10).
+            PROCEDURE DIVISION.
+            SENT-1.
+                IF FLAG = 1
+                    NEXT SENTENCE
+                END-IF
+                MOVE "BAD" TO RESULT.
+                MOVE "GOOD" TO RESULT.
+                DISPLAY RESULT
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("GOOD", stdout);
+    }
+
+    [Fact]
+    public void NextSentence_SkipsMultipleStatements()
+    {
+        // Sentence 1: NEXT SENTENCE MOVE "BAD1" MOVE "BAD2".
+        // Sentence 2 (in SENT-2): MOVE "GOOD" ... DISPLAY ... STOP.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NEXTSENT2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 RESULT PIC X(10).
+            PROCEDURE DIVISION.
+            SENT-1.
+                NEXT SENTENCE
+                MOVE "BAD1" TO RESULT
+                MOVE "BAD2" TO RESULT.
+            SENT-2.
+                MOVE "GOOD" TO RESULT.
+                DISPLAY RESULT
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("GOOD", stdout);
+    }
+
+    [Fact]
+    public void NextSentence_NestedIf()
+    {
+        // NEXT SENTENCE exits both IFs and jumps past the period.
+        // Sentence 1: IF A=1 IF B=1 NEXT SENTENCE END-IF END-IF MOVE "BAD".
+        // Sentence 2: MOVE "OK" ... DISPLAY ... STOP.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NEXTSENT3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 1.
+            01 B PIC 9 VALUE 1.
+            01 RESULT PIC X(10).
+            PROCEDURE DIVISION.
+            SENT-1.
+                IF A = 1
+                    IF B = 1
+                        NEXT SENTENCE
+                    END-IF
+                END-IF
+                MOVE "BAD" TO RESULT.
+                MOVE "OK" TO RESULT.
+                DISPLAY RESULT
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Contains("OK", stdout);
+    }
 }

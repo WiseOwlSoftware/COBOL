@@ -38,18 +38,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var paraSym = _semantic.ResolveParagraph(name);
         if (paraSym == null) return null;
 
-        var statements = new List<BoundStatement>();
-        foreach (var sentence in ctx.sentence())
+        var sentences = new List<BoundSentence>();
+        foreach (var sentenceCtx in ctx.sentence())
         {
-            foreach (var stmtCtx in sentence.statement())
+            var statements = new List<BoundStatement>();
+            foreach (var stmtCtx in sentenceCtx.statement())
             {
                 var bound = BindStatement(stmtCtx);
                 if (bound != null)
                     statements.Add(bound);
             }
+            if (statements.Count > 0)
+                sentences.Add(new BoundSentence(statements));
         }
 
-        _paragraphs.Add(new BoundParagraph(paraSym, statements));
+        _paragraphs.Add(new BoundParagraph(paraSym, sentences));
         return null;
     }
 
@@ -68,6 +71,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
         if (ctx.gobackStatement() is { }) return new BoundStopStatement();
         if (ctx.exitStatement() is { }) return new BoundExitStatement();
+        if (ctx.nextSentenceStatement() is { }) return new BoundNextSentenceStatement();
         if (ctx.openStatement() is { }) return new BoundOpenStatement();
         if (ctx.closeStatement() is { }) return new BoundCloseStatement();
         if (ctx.addStatement() is { } addCtx) return BindAdd(addCtx);
