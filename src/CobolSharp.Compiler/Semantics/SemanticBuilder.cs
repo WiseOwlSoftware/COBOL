@@ -202,12 +202,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     };
                 }
 
-                // VALUE clause
+                // VALUE clause — extract the first literal from the first valueItem
                 var valClause = clause.valueClause();
                 if (valClause != null)
                 {
-                    var literals = valClause.literal();
-                    var litCtx = literals.Length > 0 ? literals[0] : null;
+                    var items = valClause.valueItem();
+                    var litCtx = items.Length > 0 ? items[0].literal()[0] : null;
                     if (litCtx != null)
                     {
                         // literal: numericLiteral | nonNumericLiteral
@@ -265,7 +265,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
             var condSym = new ConditionSymbol(displayName, parent, line);
 
-            // Extract values from the VALUE/VALUES clause in dataDescriptionClauses
+            // Extract values from VALUE clause — now unified with THRU support via valueItem
             var condBody = ctx.dataDescriptionBody();
             if (condBody?.dataDescriptionClauses() != null)
             {
@@ -274,28 +274,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var valClause = clause.valueClause();
                     if (valClause != null)
                     {
-                        var literals = valClause.literal();
-                        foreach (var litCtx in literals)
+                        foreach (var item in valClause.valueItem())
                         {
-                            object val = ParseConditionLiteralValue(litCtx);
-                            condSym.AddRange(val);
-                        }
-                    }
-                }
-            }
-
-            // Also check conditionEntry88 path (if grammar routes there)
-            var condEntry = condBody?.conditionEntry88();
-            if (condEntry != null)
-            {
-                var valueSet = condEntry.valueSet();
-                if (valueSet != null)
-                {
-                    foreach (var range in valueSet.valueRange())
-                    {
-                        var lits = range.literal();
-                        if (lits.Length >= 1)
-                        {
+                            var lits = item.literal();
                             object fromVal = ParseConditionLiteralValue(lits[0]);
                             object? toVal = lits.Length >= 2 ? ParseConditionLiteralValue(lits[1]) : null;
                             condSym.AddRange(fromVal, toVal);

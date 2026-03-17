@@ -405,7 +405,6 @@ dataName
 dataDescriptionBody
     : dataDescriptionClauses
     | renamesClause
-    | conditionEntry88
     ;
 
 // ==========================================
@@ -495,9 +494,13 @@ renamesClause
     ;
 
 // VALUE Clause — IS is optional noise word
+// For level-88 condition entries, valueItem supports THRU ranges.
 valueClause
-    : VALUE IS? literal
-    | VALUES IS? literal (literal)*
+    : (VALUE | VALUES) IS? valueItem (COMMA? valueItem)*
+    ;
+
+valueItem
+    : literal (THRU literal)?
     ;
 
 // SIGN Clause
@@ -519,22 +522,10 @@ blankWhenZeroClause
     : BLANK WHEN ZERO
     ;
 
-// 88-LEVEL CONDITION ENTRIES
-conditionEntry88
-    : INTEGERLIT conditionName valueSet
-    ;
-
-conditionName
-    : IDENTIFIER
-    ;
-
-valueSet
-    : valueRange (COMMA valueRange)*
-    ;
-
-valueRange
-    : literal (THRU literal)?
-    ;
+// 88-LEVEL CONDITION ENTRIES — handled through valueClause with THRU support.
+// Level number and condition name are already consumed by dataDescriptionEntry.
+// The conditionEntry88 / valueSet / valueRange rules have been removed;
+// valueClause now supports THRU ranges via valueItem for level-88 entries.
 
 // ==========================================
 // PROCEDURE DIVISION

@@ -519,6 +519,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitValueClause([NotNull] CobolParserCore.ValueClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueItem([NotNull] CobolParserCore.ValueItemContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.signClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -542,30 +548,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitBlankWhenZeroClause([NotNull] CobolParserCore.BlankWhenZeroClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.conditionEntry88"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitConditionEntry88([NotNull] CobolParserCore.ConditionEntry88Context context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.conditionName"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitConditionName([NotNull] CobolParserCore.ConditionNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueSet"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitValueSet([NotNull] CobolParserCore.ValueSetContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueRange"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitValueRange([NotNull] CobolParserCore.ValueRangeContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureDivision"/>.
 	/// </summary>

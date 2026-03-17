@@ -1464,6 +1464,75 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void Level88_ConditionName_ThruRange()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88THRU.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-SCORE PIC 99 VALUE 75.
+               88 PASSING VALUE 50 THRU 100.
+               88 FAILING VALUE 0 THRU 49.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF PASSING
+                    DISPLAY "PASS"
+                ELSE
+                    DISPLAY "FAIL"
+                END-IF.
+                MOVE 30 TO WS-SCORE.
+                IF FAILING
+                    DISPLAY "LOW"
+                ELSE
+                    DISPLAY "HIGH"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("PASS\r\nLOW", stdout);
+    }
+
+    [Fact]
+    public void Level88_ConditionName_MultipleThruRanges()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. L88MTHR.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GRADE PIC 99 VALUE 85.
+               88 GRADE-A VALUES 90 THRU 100.
+               88 GRADE-B VALUES 80 THRU 89.
+               88 GRADE-F VALUES 0 THRU 59.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF GRADE-B
+                    DISPLAY "B"
+                ELSE
+                    DISPLAY "NOT-B"
+                END-IF.
+                MOVE 95 TO WS-GRADE.
+                IF GRADE-A
+                    DISPLAY "A"
+                ELSE
+                    DISPLAY "NOT-A"
+                END-IF.
+                MOVE 40 TO WS-GRADE.
+                IF GRADE-F
+                    DISPLAY "F"
+                ELSE
+                    DISPLAY "NOT-F"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("B\r\nA\r\nF", stdout);
+    }
+
+    [Fact]
     public void ClassCondition_IsNumeric()
     {
         var (success, stdout, stderr) = CompileAndRun("""
