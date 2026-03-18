@@ -489,6 +489,10 @@ public sealed class CilEmitter
                 EmitPerformTimes(il, perfTimes, _currentMethodDef!);
                 break;
 
+            case IrPerformInlineTimes perfInlineTimes:
+                EmitPerformInlineTimes(il, perfInlineTimes, _currentMethodDef!, getLocal, blockLabels);
+                break;
+
             case IrPerformThru thru:
                 EmitPerformThru(il, thru, _currentMethodDef!);
                 break;
@@ -876,6 +880,53 @@ public sealed class CilEmitter
             var syntheticThru = new IrPerformThru(pt.StartIdx, pt.EndIdx, pt.ThruMethods);
             EmitPerformThru(il, syntheticThru, md);
         }
+
+        // Decrement counter
+        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_1));
+        il.Append(il.Create(OpCodes.Sub));
+        il.Append(il.Create(OpCodes.Stloc, counterLocal));
+
+        // Loop back
+        il.Append(il.Create(OpCodes.Br, loopStart));
+
+        il.Append(loopEnd);
+    }
+
+    /// <summary>
+    /// Inline PERFORM N TIMES: evaluates count expression into a CIL local int,
+    /// then loops over the body instructions that many times.
+    /// The body instructions are emitted inline (no paragraph call).
+    /// </summary>
+    private void EmitPerformInlineTimes(ILProcessor il, IrPerformInlineTimes pit,
+        MethodDefinition md, Func<IrValue, VariableDefinition> getLocal,
+        Dictionary<IrBasicBlock, Instruction> blockLabels)
+    {
+        // Create counter local
+        var counterLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        md.Body.Variables.Add(counterLocal);
+
+        // Evaluate count expression → decimal → int → store in counter
+        EmitExpression(il, pit.CountExpression, pit.ResolvedLocations);
+        var toInt32 = _module.ImportReference(
+            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, toInt32));
+        il.Append(il.Create(OpCodes.Stloc, counterLocal));
+
+        // Loop: while counter > 0
+        var loopStart = il.Create(OpCodes.Nop);
+        var loopEnd = il.Create(OpCodes.Nop);
+
+        il.Append(loopStart);
+
+        // Check: counter > 0
+        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ble, loopEnd));
+
+        // Emit body instructions inline
+        foreach (var bodyInst in pit.BodyInstructions)
+            EmitInstruction(il, bodyInst, getLocal, blockLabels);
 
         // Decrement counter
         il.Append(il.Create(OpCodes.Ldloc, counterLocal));

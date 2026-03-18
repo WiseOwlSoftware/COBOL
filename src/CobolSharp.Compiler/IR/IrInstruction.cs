@@ -10,6 +10,48 @@ public abstract class IrInstruction
     public IrValue? Result { get; protected set; }
 }
 
+// ── Compiler temporaries ──
+
+/// <summary>
+/// A compiler-generated temporary variable. Not addressable from COBOL.
+/// Scoped to the containing method. Lowered to a CIL local by the emitter.
+/// </summary>
+public sealed class IrTemp
+{
+    public string Name { get; }
+    public IrPrimitiveType Type { get; }
+    public int Id { get; }
+
+    public IrTemp(string name, IrPrimitiveType type, int id)
+    {
+        Name = name;
+        Type = type;
+        Id = id;
+    }
+}
+
+/// <summary>
+/// Inline PERFORM N TIMES: execute BodyStatements exactly CountExpression times.
+/// CountExpression is evaluated once at entry into a compiler temp (IrTemp).
+/// The emitter manages the CIL local counter. EXIT PERFORM exits this scope.
+/// </summary>
+public sealed class IrPerformInlineTimes : IrInstruction
+{
+    public Semantics.Bound.BoundExpression CountExpression { get; }
+    public IReadOnlyList<IrInstruction> BodyInstructions { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
+
+    public IrPerformInlineTimes(
+        Semantics.Bound.BoundExpression countExpression,
+        IReadOnlyList<IrInstruction> bodyInstructions,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        CountExpression = countExpression;
+        BodyInstructions = bodyInstructions;
+        ResolvedLocations = resolvedLocations;
+    }
+}
+
 // ── Data movement ──
 
 public sealed class IrLoadField : IrInstruction
