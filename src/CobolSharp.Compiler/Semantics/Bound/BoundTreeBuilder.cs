@@ -67,6 +67,47 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return null;
     }
 
+    /// <summary>
+    /// Resolve a procedure name for THRU end targets.
+    /// For sections, returns the LAST paragraph (end of section range).
+    /// For paragraphs, returns the paragraph itself.
+    /// </summary>
+    private ParagraphSymbol? ResolveProcedureNameForThruEnd(string name)
+    {
+        var para = _semantic.ResolveParagraph(name);
+        var sec = _semantic.ResolveSection(name);
+
+        if (para != null && sec != null)
+        {
+            _diagnostics.ReportWarning("CS0870",
+                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return para;
+        }
+
+        if (para != null) return para;
+
+        if (sec != null)
+        {
+            var sectionParas = _semantic.GetSectionParagraphs(name);
+            if (sectionParas != null && sectionParas.Count > 0)
+                return _semantic.ResolveParagraph(sectionParas[^1]); // LAST paragraph
+
+            _diagnostics.ReportWarning("CS0871",
+                $"Section '{name}' contains no paragraphs.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return null;
+        }
+
+        _diagnostics.ReportError("CS0872",
+            $"Procedure name '{name}' does not refer to a paragraph or section.",
+            new Common.SourceLocation("<source>", 0, 0, 0),
+            new Common.TextSpan(0, 0));
+        return null;
+    }
+
     private (ParagraphSymbol? first, ParagraphSymbol? last) ResolveProcedureNameForPerform(string name)
     {
         var para = _semantic.ResolveParagraph(name);
@@ -337,15 +378,25 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (procNames.Length > 1)
         {
             string thruName = procNames[1].GetText();
-            var thruSym = ResolveProcedureName(thruName);
+            var thruSym = ResolveProcedureNameForThruEnd(thruName);
 
             // Check for options on the THRU form
+            BoundExpression? timesExpr2 = null;
             BoundExpression? untilCond = null;
             BoundPerformVarying? varyOpt = null;
             var options = ctx.performOptions();
             if (options != null && options.Length > 0)
             {
                 var opt = options[0];
+                if (opt.performTimes() is { } thruTimesCtx)
+                {
+                    if (thruTimesCtx.integerLiteral() != null)
+                        timesExpr2 = new BoundLiteralExpression(
+                            decimal.Parse(thruTimesCtx.integerLiteral().GetText()),
+                            CobolCategory.Numeric);
+                    else if (thruTimesCtx.identifier() != null)
+                        timesExpr2 = BindIdentifierWithSubscripts(thruTimesCtx.identifier());
+                }
                 if (opt.performUntil() is { } u)
                     untilCond = BindCondition(u.condition());
                 if (opt.performVarying() is { } v)
@@ -355,7 +406,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 }
             }
 
-            return new BoundPerformStatement(paraSym, thruSym, untilCondition: untilCond, varying: varyOpt);
+            return new BoundPerformStatement(paraSym, thruSym, timesExpr2, untilCond, varyOpt);
         }
 
         // Simple PERFORM para (or PERFORM section → implicit THRU)
