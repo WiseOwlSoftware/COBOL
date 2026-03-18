@@ -782,6 +782,10 @@ public sealed class Binder
             _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
             endIdx = thruIdx;
 
+        // Ensure valid range (section THRU may produce reversed indices)
+        if (endIdx < startIdx)
+            (startIdx, endIdx) = (endIdx, startIdx);
+
         if (startIdx == endIdx)
         {
             var paraName = _paragraphsByIndex[startIdx];

@@ -132,6 +132,7 @@ public sealed class Compilation
         try
         {
             var assembly = CodeGen.CilEmitter.EmitAssembly(irModule, programId, semanticModel);
+
             string dir = Path.GetDirectoryName(outputPath) ?? ".";
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             assembly.Write(outputPath);
@@ -146,7 +147,7 @@ public sealed class Compilation
         }
         catch (Exception ex)
         {
-            diagnostics.ReportError("CIL", $"CIL emission failed: {ex.Message}",
+            diagnostics.ReportError("CIL", $"CIL emission failed: {ex.Message}\n{ex.StackTrace}",
                 new Common.SourceLocation(sourcePath, 0, 0, 0),
                 new Common.TextSpan(0, 0));
             return new CompilationResult(false, outputPath, diagnostics.Diagnostics);
