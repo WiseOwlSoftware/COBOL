@@ -765,11 +765,10 @@ closeStatement
 // ==========================================
 
 ifStatement
-    : IF condition
+    : IF condition THEN?
       imperativeStatement*
       (ELSE imperativeStatement*)?
       END_IF?
-     
     ;
 
 // ==========================================

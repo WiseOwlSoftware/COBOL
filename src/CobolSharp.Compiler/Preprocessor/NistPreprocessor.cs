@@ -30,6 +30,9 @@ public static class NistPreprocessor
         // This makes ASSIGN TO resolve to "<testname>.txt" via our implementor-defined mapping
         source = source.Replace("XXXXX055", $"\"{testName}\"");
 
+        // XXXXX081: Non-COBOL characters value (implementor-defined)
+        source = source.Replace("XXXXX081", "\"!@#$%^&*\"");
+
         // XXXXX082: SOURCE-COMPUTER
         source = source.Replace("XXXXX082", "COBOLSHARP");
 

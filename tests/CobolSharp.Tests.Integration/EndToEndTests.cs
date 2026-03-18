@@ -4232,4 +4232,72 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("A", stdout);
     }
+
+    // ── IF THEN (optional THEN keyword) ──
+
+    [Fact]
+    public void If_Then_OptionalKeyword()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFTHEN1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A = 5 THEN
+                    DISPLAY "YES"
+                ELSE
+                    DISPLAY "NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("YES", stdout);
+    }
+
+    [Fact]
+    public void If_Then_WithElse()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFTHEN2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A = 5 THEN
+                    DISPLAY "YES"
+                ELSE
+                    DISPLAY "NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("NO", stdout);
+    }
+
+    [Fact]
+    public void If_Then_NextSentence()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFTHEN3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF A = 5 THEN NEXT SENTENCE.
+                DISPLAY "AFTER".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("AFTER", stdout);
+    }
 }

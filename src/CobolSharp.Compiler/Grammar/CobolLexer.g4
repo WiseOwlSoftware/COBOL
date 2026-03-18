@@ -248,6 +248,7 @@ SYNC        : 'SYNC' ;
 SYNCHRONIZED: 'SYNCHRONIZED' ;
 TALLYING    : 'TALLYING' ;
 THAN        : 'THAN' ;
+THEN        : 'THEN' ;
 THROUGH     : 'THROUGH' ;
 THRU        : 'THRU' ;
 TIME        : 'TIME' ;
