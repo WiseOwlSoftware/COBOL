@@ -21,6 +21,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Data items in declaration order (preserves all FILLERs)
     private readonly List<DataSymbol> _dataItemsInOrder = new();
 
+    // Current section name (null if paragraphs are orphans)
+    private string? _currentSectionName;
+
+    // Section → paragraph membership (built during visit)
+    private readonly Dictionary<string, List<string>> _sectionParagraphs =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Section-to-paragraph membership map built during parsing.</summary>
+    public IReadOnlyDictionary<string, List<string>> SectionParagraphs => _sectionParagraphs;
+
     // Parent stack for level-number-based tree building
     private readonly Stack<DataSymbol> _dataStack = new();
 
@@ -456,9 +466,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (!_symbols.Program.ProcedureDivisionScope.TryDeclare(section, out var existingSec))
             Error(ctx, $"Duplicate section '{name}'.");
 
+        _currentSectionName = name;
         using var scopeGuard = _symbols.PushScope(section.Scope);
         foreach (var para in ctx.paragraphDeclaration())
             VisitParagraphDeclaration(para);
+        _currentSectionName = null;
 
         return null;
     }
@@ -473,6 +485,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         _symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal);
         _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
+
+        // Track section membership
+        if (_currentSectionName != null)
+        {
+            if (!_sectionParagraphs.TryGetValue(_currentSectionName, out var list))
+            {
+                list = new List<string>();
+                _sectionParagraphs[_currentSectionName] = list;
+            }
+            list.Add(name);
+        }
 
         using var paraScope = _symbols.PushScope(paragraph.Scope);
         foreach (var sentence in ctx.sentence())

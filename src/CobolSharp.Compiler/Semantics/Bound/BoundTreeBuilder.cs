@@ -23,6 +23,55 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         _diagnostics = diagnostics;
     }
 
+    /// <summary>
+    /// Resolve a procedure name (paragraph or section) to a ParagraphSymbol.
+    /// For sections, returns the first paragraph in the section.
+    /// For paragraphs, returns the paragraph directly.
+    /// </summary>
+    private ParagraphSymbol? ResolveProcedureName(string name)
+    {
+        // Try paragraph first
+        var para = _semantic.ResolveParagraph(name);
+        if (para != null) return para;
+
+        // Try section — resolve to its first paragraph
+        var sec = _semantic.ResolveSection(name);
+        if (sec != null)
+        {
+            var sectionParas = _semantic.GetSectionParagraphs(name);
+            if (sectionParas != null && sectionParas.Count > 0)
+                return _semantic.ResolveParagraph(sectionParas[0]);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Resolve a procedure name for PERFORM — returns first and last paragraph
+    /// if the name is a section (for implicit THRU behavior).
+    /// </summary>
+    private (ParagraphSymbol? first, ParagraphSymbol? last) ResolveProcedureNameForPerform(string name)
+    {
+        // Try paragraph first
+        var para = _semantic.ResolveParagraph(name);
+        if (para != null) return (para, null); // single paragraph, no THRU
+
+        // Try section — returns first and last paragraphs for implicit THRU
+        var sec = _semantic.ResolveSection(name);
+        if (sec != null)
+        {
+            var sectionParas = _semantic.GetSectionParagraphs(name);
+            if (sectionParas != null && sectionParas.Count > 0)
+            {
+                var first = _semantic.ResolveParagraph(sectionParas[0]);
+                var last = _semantic.ResolveParagraph(sectionParas[^1]);
+                return (first, sectionParas.Count > 1 ? last : null);
+            }
+        }
+
+        return (null, null);
+    }
+
     public BoundProgram Build(CobolParserCore.CompilationUnitContext tree)
     {
         Visit(tree);
@@ -201,9 +250,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return new BoundPerformStatement(null, null, null, untilCond, varying, inlineStmts);
         }
 
-        // Out-of-line: first procedureName is the target
+        // Out-of-line: first procedureName is the target (paragraph or section)
         string name = procNames[0].GetText();
-        var paraSym = _semantic.ResolveParagraph(name);
+        var (paraSym, sectionLastPara) = ResolveProcedureNameForPerform(name);
         if (paraSym == null) return null;
 
         // PERFORM para N TIMES
@@ -217,21 +266,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             else
                 timesExpr = BindIdentifierWithSubscripts(timesCtx.identifier());
 
-            return new BoundPerformStatement(paraSym, timesExpression: timesExpr);
+            return new BoundPerformStatement(paraSym, sectionLastPara, timesExpression: timesExpr);
         }
 
         // PERFORM para UNTIL cond
         if (ctx.performUntil() is { } untilCtx2)
         {
             var cond = BindCondition(untilCtx2.condition());
-            return new BoundPerformStatement(paraSym, untilCondition: cond);
+            return new BoundPerformStatement(paraSym, sectionLastPara, untilCondition: cond);
         }
 
         // PERFORM para VARYING ...
         if (ctx.performVarying() is { } varyCtx2)
         {
             var varying = BindPerformVaryingOption(varyCtx2);
-            return new BoundPerformStatement(paraSym, varying: varying,
+            return new BoundPerformStatement(paraSym, sectionLastPara, varying: varying,
                 untilCondition: varying?.UntilCondition);
         }
 
@@ -239,7 +288,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (procNames.Length > 1)
         {
             string thruName = procNames[1].GetText();
-            var thruSym = _semantic.ResolveParagraph(thruName);
+            var thruSym = ResolveProcedureName(thruName);
 
             // Check for options on the THRU form
             BoundExpression? untilCond = null;
@@ -260,8 +309,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return new BoundPerformStatement(paraSym, thruSym, untilCondition: untilCond, varying: varyOpt);
         }
 
-        // Simple PERFORM para
-        return new BoundPerformStatement(paraSym);
+        // Simple PERFORM para (or PERFORM section → implicit THRU)
+        return new BoundPerformStatement(paraSym, sectionLastPara);
     }
 
     private BoundPerformVarying? BindPerformVaryingOption(CobolParserCore.PerformVaryingContext ctx)
@@ -1842,7 +1891,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         for (int i = 0; i < targetCount; i++)
         {
             string name = idContexts[i].IDENTIFIER().GetText();
-            var paraSym = _semantic.ResolveParagraph(name);
+            var paraSym = ResolveProcedureName(name);
             if (paraSym != null) targets.Add(paraSym);
         }
 

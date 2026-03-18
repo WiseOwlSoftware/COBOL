@@ -4180,4 +4180,56 @@ public class EndToEndTests : IDisposable
         // Actually: overflow = pointer exceeded source length, which doesn't happen here.
         Assert.Equal("OK", stdout);
     }
+
+    // ── SECTION control flow ──
+
+    [Fact]
+    public void PerformSection_ExecutesAllParagraphsThenReturns()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SECPERF.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM SEC-1.
+                DISPLAY "X".
+                STOP RUN.
+            SEC-1 SECTION.
+            P1.
+                DISPLAY "A".
+            P2.
+                DISPLAY "B".
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("A", lines[0]);
+        Assert.Equal("B", lines[1]);
+        Assert.Equal("X", lines[2]);
+    }
+
+    [Fact]
+    public void GoToSection_JumpsToFirstParagraph()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SECGOTO.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                GO TO SEC-1.
+                DISPLAY "SKIP".
+                STOP RUN.
+            SEC-1 SECTION.
+            P1.
+                DISPLAY "A".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("A", stdout);
+    }
 }

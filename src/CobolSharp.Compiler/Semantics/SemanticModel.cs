@@ -38,6 +38,13 @@ public sealed class SemanticModel
     private readonly List<SectionSymbol> _sectionsInOrder = new();
     public IReadOnlyList<SectionSymbol> SectionsInOrder => _sectionsInOrder;
 
+    // Section → ordered list of paragraph names within that section
+    private readonly Dictionary<string, List<string>> _sectionParagraphs =
+        new(StringComparer.OrdinalIgnoreCase);
+    // Paragraph → section it belongs to (null if orphan)
+    private readonly Dictionary<string, string> _paragraphSection =
+        new(StringComparer.OrdinalIgnoreCase);
+
     // ── PIC descriptors per data symbol ──
 
     private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = new();
@@ -87,6 +94,26 @@ public sealed class SemanticModel
     public void AddDataRecord(DataSymbol record) => _dataRecords.Add(record);
     public void AddParagraph(ParagraphSymbol paragraph) => _paragraphsInOrder.Add(paragraph);
     public void AddSection(SectionSymbol section) => _sectionsInOrder.Add(section);
+
+    /// <summary>Register a paragraph as belonging to a section.</summary>
+    public void RegisterSectionParagraph(string sectionName, string paragraphName)
+    {
+        if (!_sectionParagraphs.TryGetValue(sectionName, out var list))
+        {
+            list = new List<string>();
+            _sectionParagraphs[sectionName] = list;
+        }
+        list.Add(paragraphName);
+        _paragraphSection[paragraphName] = sectionName;
+    }
+
+    /// <summary>Get the ordered paragraph names within a section.</summary>
+    public IReadOnlyList<string>? GetSectionParagraphs(string sectionName)
+        => _sectionParagraphs.TryGetValue(sectionName, out var list) ? list : null;
+
+    /// <summary>Get the section a paragraph belongs to (null if orphan).</summary>
+    public string? GetParagraphSection(string paragraphName)
+        => _paragraphSection.TryGetValue(paragraphName, out var sec) ? sec : null;
 
     public void RegisterPicDescriptor(DataSymbol symbol, PicDescriptor pic)
         => _picDescriptors[symbol] = pic;

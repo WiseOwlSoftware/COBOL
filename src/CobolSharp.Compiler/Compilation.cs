@@ -99,6 +99,13 @@ public sealed class Compilation
             else if (sym is Semantics.SectionSymbol sect)
                 semanticModel.AddSection(sect);
         }
+        // Register section-paragraph membership
+        foreach (var (sectionName, paragraphNames) in semanticBuilder.SectionParagraphs)
+        {
+            foreach (var paraName in paragraphNames)
+                semanticModel.RegisterSectionParagraph(sectionName, paraName);
+        }
+
         // Expose data items in declaration order (from SemanticBuilder's tree)
         foreach (var data in semanticBuilder.DataItemsInOrder)
         {
