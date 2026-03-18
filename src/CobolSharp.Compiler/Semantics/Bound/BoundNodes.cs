@@ -244,19 +244,19 @@ public sealed class BoundPerformStatement : BoundStatement
 {
     public ParagraphSymbol? Target { get; }
     public ParagraphSymbol? ThruTarget { get; }
-    public int Times { get; } // 0 = once (no TIMES phrase)
+    public BoundExpression? TimesExpression { get; } // null = no TIMES phrase
     public BoundExpression? UntilCondition { get; }
     public BoundPerformVarying? Varying { get; }
     public IReadOnlyList<BoundStatement>? InlineStatements { get; }
 
     public BoundPerformStatement(ParagraphSymbol? target, ParagraphSymbol? thruTarget = null,
-        int times = 0, BoundExpression? untilCondition = null,
+        BoundExpression? timesExpression = null, BoundExpression? untilCondition = null,
         BoundPerformVarying? varying = null,
         IReadOnlyList<BoundStatement>? inlineStatements = null)
     {
         Target = target;
         ThruTarget = thruTarget;
-        Times = times;
+        TimesExpression = timesExpression;
         UntilCondition = untilCondition;
         Varying = varying;
         InlineStatements = inlineStatements;
@@ -674,21 +674,30 @@ public sealed class BoundArithmeticTarget
     }
 }
 
+/// <summary>
+/// MULTIPLY statement. Two forms:
+///   MULTIPLY A BY B [ROUNDED] — result = A * B, stored in B
+///   MULTIPLY A BY B GIVING C [ROUNDED] — result = A * B, stored in C
+/// Operand is the first factor (A). ByOperand is the second factor (B).
+/// In non-GIVING form, ByOperand is also the receiving item and appears in Targets.
+/// In GIVING form, ByOperand is just a factor; Targets are the GIVING receiving items.
+/// </summary>
 public sealed class BoundMultiplyStatement : BoundStatement
 {
     public BoundExpression Operand { get; }
+    public BoundExpression ByOperand { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundIdentifierExpression? GivingTarget { get; }
+    public bool IsGiving { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
-    public BoundMultiplyStatement(BoundExpression operand,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundIdentifierExpression? givingTarget = null,
+    public BoundMultiplyStatement(BoundExpression operand, BoundExpression byOperand,
+        IReadOnlyList<BoundArithmeticTarget> targets, bool isGiving = false,
         BoundSizeErrorClause? sizeError = null)
     {
         Operand = operand;
+        ByOperand = byOperand;
         Targets = targets;
-        GivingTarget = givingTarget;
+        IsGiving = isGiving;
         SizeError = sizeError;
     }
 

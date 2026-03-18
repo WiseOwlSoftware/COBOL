@@ -10,6 +10,17 @@ namespace CobolSharp.Compiler.Generated;
 /// </summary>
 public abstract class CobolParserCoreBase : Parser
 {
+    /// <summary>
+    /// Dialect level for gating non-COBOL-85 features.
+    /// Default is COBOL-85 (strict). Set higher to enable later standards.
+    /// </summary>
+    protected int DialectLevel { get; set; } = 85;
+
+    protected bool is85()   => DialectLevel >= 85;
+    protected bool is2002() => DialectLevel >= 2002;
+    protected bool is2014() => DialectLevel >= 2014;
+    protected bool is2023() => DialectLevel >= 2023;
+
     protected CobolParserCoreBase(ITokenStream input) : base(input) { }
     protected CobolParserCoreBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput) { }

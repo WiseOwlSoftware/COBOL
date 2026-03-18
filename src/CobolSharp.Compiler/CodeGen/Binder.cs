@@ -620,6 +620,12 @@ public sealed class Binder
             return varyEnd;
         }
 
+        // PERFORM para N TIMES: expression-based loop count
+        if (perf.TimesExpression != null)
+        {
+            return LowerPerformTimes(perf, method, block);
+        }
+
         // PERFORM UNTIL (no VARYING): simple condition loop
         if (perf.UntilCondition != null)
         {
@@ -763,16 +769,11 @@ public sealed class Binder
             _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
             endIdx = thruIdx;
 
-        int times = perf.Times > 0 ? perf.Times : 1;
-
         if (startIdx == endIdx)
         {
             var paraName = _paragraphsByIndex[startIdx];
             if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
-            {
-                for (int t = 0; t < times; t++)
-                    block.Instructions.Add(new IrPerform(paraMethod));
-            }
+                block.Instructions.Add(new IrPerform(paraMethod));
         }
         else
         {
@@ -785,10 +786,120 @@ public sealed class Binder
                 else
                     methods.Add(null!);
             }
-
-            for (int t = 0; t < times; t++)
-                block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
+            block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
         }
+    }
+
+    /// <summary>
+    /// PERFORM para N TIMES: runtime expression-based loop.
+    /// Evaluates the TIMES expression, loops that many iterations.
+    /// </summary>
+    private IrBasicBlock LowerPerformTimes(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
+    {
+        if (perf.Target == null) return block;
+        if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
+            return block;
+
+        int endIdx = startIdx;
+        if (perf.ThruTarget != null &&
+            _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
+            endIdx = thruIdx;
+
+        // Evaluate TIMES expression to a counter and loop
+        // Lower as: counter = TIMES expr; while counter > 0: body; counter--
+        var loopStart = method.CreateBlock("perf.times.start");
+        var loopBody = method.CreateBlock("perf.times.body");
+        var loopEnd = method.CreateBlock("perf.times.end");
+
+        _performExitStack.Push(loopEnd);
+
+        // Emit TIMES expression as an IrComputeStore target — but we need a temp.
+        // Simpler: use the TIMES expression in a comparison each iteration.
+        // Actually, for PERFORM N TIMES we need a decrementing counter.
+        // Use existing arithmetic: create a synthetic UNTIL loop that counts down.
+
+        // Strategy: convert to PERFORM UNTIL by synthesizing a counter.
+        // The TIMES expression is evaluated once at entry. Then we loop.
+        // For literal times: unroll or simple loop. For identifier: runtime loop.
+
+        // Emit the body N times using IrComputeStore for the count expression,
+        // then a decrementing loop.
+
+        // For now, if it's a literal, unroll. If identifier, emit a counted loop
+        // using existing arithmetic IR.
+        if (perf.TimesExpression is BoundLiteralExpression lit && lit.Value is decimal d)
+        {
+            int times = (int)d;
+            for (int t = 0; t < times; t++)
+            {
+                if (startIdx == endIdx)
+                {
+                    var paraName = _paragraphsByIndex[startIdx];
+                    if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
+                        block.Instructions.Add(new IrPerform(paraMethod));
+                }
+                else
+                {
+                    var methods = new List<IrMethod>();
+                    for (int i = startIdx; i <= endIdx; i++)
+                    {
+                        var pn = _paragraphsByIndex[i];
+                        _paragraphMethods.TryGetValue(pn, out var pm);
+                        methods.Add(pm!);
+                    }
+                    block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
+                }
+            }
+            _performExitStack.Pop();
+            return block;
+        }
+
+        // Identifier/expression TIMES: resolve the count field, build a counted loop.
+        // Evaluate count expression, compare against 0, decrement each iteration.
+        var countLoc = ResolveExpressionLocation(perf.TimesExpression!);
+        if (countLoc == null) { _performExitStack.Pop(); return block; }
+
+        // Use a comparison: while counter > 0
+        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+
+        block.Instructions.Add(new IrJump(loopStart));
+        method.Blocks.Add(loopStart);
+
+        // Check: counter > 0
+        loopStart.Instructions.Add(new IrPicCompareLiteral(
+            countLoc, 0m, condVal,
+            (int)BoundBinaryOperatorKind.Greater));
+        loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
+        loopStart.Instructions.Add(new IrJump(loopEnd));
+
+        // Body: call paragraph(s)
+        method.Blocks.Add(loopBody);
+        if (startIdx == endIdx)
+        {
+            var paraName = _paragraphsByIndex[startIdx];
+            if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
+                loopBody.Instructions.Add(new IrPerform(paraMethod));
+        }
+        else
+        {
+            var methods = new List<IrMethod>();
+            for (int i = startIdx; i <= endIdx; i++)
+            {
+                var pn = _paragraphsByIndex[i];
+                _paragraphMethods.TryGetValue(pn, out var pm);
+                methods.Add(pm!);
+            }
+            loopBody.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
+        }
+
+        // Decrement counter
+        loopBody.Instructions.Add(new IrInitArithmeticStatus());
+        loopBody.Instructions.Add(new IrPicSubtractLiteral(countLoc, 1m));
+        loopBody.Instructions.Add(new IrJump(loopStart));
+
+        method.Blocks.Add(loopEnd);
+        _performExitStack.Pop();
+        return loopEnd;
     }
 
     // ── WRITE ──
@@ -1293,28 +1404,40 @@ public sealed class Binder
 
     private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
     {
-        // One ArithmeticStatus per statement — init once, sticky across all targets
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        // Emit the arithmetic operations
         foreach (var target in mult.Targets)
         {
-            var destLoc = ResolveLocation(target.Target);
+            var destLoc = ResolveExpressionLocation(target.Target);
             if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
 
-            if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+            if (mult.IsGiving)
             {
-                block.Instructions.Add(new IrPicMultiplyLiteral(
-                    d, destLoc, destLoc, roundingMode));
+                // GIVING form: result = Operand * ByOperand → stored in target
+                // Use IrComputeStore with a synthetic multiply expression
+                var mulExpr = new BoundBinaryExpression(
+                    mult.Operand, BoundBinaryOperatorKind.Multiply, mult.ByOperand,
+                    CobolCategory.Numeric);
+                block.Instructions.Add(new IrComputeStore(mulExpr, destLoc, roundingMode,
+                    PreResolveExpressionLocations(mulExpr)));
             }
-            else if (mult.Operand is BoundIdentifierExpression opId)
+            else
             {
-                var opLoc = ResolveLocation(opId);
-                if (opLoc != null)
+                // Non-GIVING: result = Operand * target → stored in target
+                if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
                 {
-                    block.Instructions.Add(new IrPicMultiply(
-                        opLoc, destLoc, destLoc, roundingMode));
+                    block.Instructions.Add(new IrPicMultiplyLiteral(
+                        d, destLoc, destLoc, roundingMode));
+                }
+                else
+                {
+                    var opLoc = ResolveExpressionLocation(mult.Operand);
+                    if (opLoc != null)
+                    {
+                        block.Instructions.Add(new IrPicMultiply(
+                            opLoc, destLoc, destLoc, roundingMode));
+                    }
                 }
             }
         }
