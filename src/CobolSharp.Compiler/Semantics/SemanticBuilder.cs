@@ -483,7 +483,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         string name = nameCtx.GetText();
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
-        _symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal);
+        if (!_symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal))
+            Error(ctx, $"Duplicate paragraph '{name}' in current scope.");
         _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
 
         // Track section membership

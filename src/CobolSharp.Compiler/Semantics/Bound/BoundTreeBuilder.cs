@@ -30,34 +30,59 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     /// </summary>
     private ParagraphSymbol? ResolveProcedureName(string name)
     {
-        // Try paragraph first
         var para = _semantic.ResolveParagraph(name);
+        var sec = _semantic.ResolveSection(name);
+
+        // CS0870: Ambiguous procedure name — used as both section and paragraph
+        if (para != null && sec != null)
+        {
+            _diagnostics.ReportWarning("CS0870",
+                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return para;
+        }
+
         if (para != null) return para;
 
-        // Try section — resolve to its first paragraph
-        var sec = _semantic.ResolveSection(name);
         if (sec != null)
         {
             var sectionParas = _semantic.GetSectionParagraphs(name);
             if (sectionParas != null && sectionParas.Count > 0)
                 return _semantic.ResolveParagraph(sectionParas[0]);
+
+            // CS0871: Section has no paragraphs
+            _diagnostics.ReportWarning("CS0871",
+                $"Section '{name}' contains no paragraphs.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return null;
         }
 
+        // CS0872: Undefined procedure name
+        _diagnostics.ReportError("CS0872",
+            $"Procedure name '{name}' does not refer to a paragraph or section.",
+            new Common.SourceLocation("<source>", 0, 0, 0),
+            new Common.TextSpan(0, 0));
         return null;
     }
 
-    /// <summary>
-    /// Resolve a procedure name for PERFORM — returns first and last paragraph
-    /// if the name is a section (for implicit THRU behavior).
-    /// </summary>
     private (ParagraphSymbol? first, ParagraphSymbol? last) ResolveProcedureNameForPerform(string name)
     {
-        // Try paragraph first
         var para = _semantic.ResolveParagraph(name);
-        if (para != null) return (para, null); // single paragraph, no THRU
-
-        // Try section — returns first and last paragraphs for implicit THRU
         var sec = _semantic.ResolveSection(name);
+
+        if (para != null && sec != null)
+        {
+            _diagnostics.ReportWarning("CS0870",
+                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return (para, null);
+        }
+
+        if (para != null) return (para, null);
+
         if (sec != null)
         {
             var sectionParas = _semantic.GetSectionParagraphs(name);
@@ -67,8 +92,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 var last = _semantic.ResolveParagraph(sectionParas[^1]);
                 return (first, sectionParas.Count > 1 ? last : null);
             }
+
+            _diagnostics.ReportWarning("CS0871",
+                $"Section '{name}' contains no paragraphs.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return (null, null);
         }
 
+        _diagnostics.ReportError("CS0872",
+            $"Procedure name '{name}' does not refer to a paragraph or section.",
+            new Common.SourceLocation("<source>", 0, 0, 0),
+            new Common.TextSpan(0, 0));
         return (null, null);
     }
 
@@ -147,7 +182,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
         if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
 
-        // Unrecognized statement — skip
+        // CS0873: Unrecognized or unimplemented statement
+        _diagnostics.ReportWarning("CS0873",
+            $"Statement not recognized or not yet implemented: '{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...'",
+            new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
+            new Common.TextSpan(0, 0));
         return null;
     }
 

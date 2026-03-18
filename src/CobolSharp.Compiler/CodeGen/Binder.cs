@@ -667,7 +667,14 @@ public sealed class Binder
         IrMethod method, IrBasicBlock block)
     {
         var indexLoc = ResolveLocation(v.Index);
-        if (indexLoc == null) return block;
+        if (indexLoc == null)
+        {
+            _diagnostics.ReportError("CS0875",
+                $"PERFORM VARYING index '{v.Index.Name}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
 
         // 1. Initialize: MOVE initial TO index
         EmitVaryingMove(v.Initial, indexLoc, block);
@@ -762,7 +769,13 @@ public sealed class Binder
     {
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
+        {
+            _diagnostics.ReportError("CS0874",
+                $"PERFORM target paragraph '{perf.Target.Name}' not found in paragraph dispatch table.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
             return;
+        }
 
         int endIdx = startIdx;
         if (perf.ThruTarget != null &&
@@ -2217,15 +2230,33 @@ public sealed class Binder
             // Simple GO TO: unconditional branch to paragraph
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
+            else
+                _diagnostics.ReportError("CS0876",
+                    $"GO TO target '{gt.Target.Name}' not found in paragraph dispatch table.",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
             return;
         }
 
         // GO TO para1 para2 ... DEPENDING ON selector
-        // Evaluate selector, return corresponding paragraph PC (1-based)
-        if (gt.DependingOn == null) return;
+        if (gt.DependingOn == null)
+        {
+            _diagnostics.ReportError("CS0877",
+                "GO TO DEPENDING ON requires a selector variable.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
 
-        var selectorLoc = ResolveLocation(gt.DependingOn);
-        if (selectorLoc == null) return;
+        var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
+        if (selectorLoc == null)
+        {
+            _diagnostics.ReportError("CS0878",
+                $"GO TO DEPENDING ON selector '{gt.DependingOn}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
 
         // Build list of target paragraph indices
         var targetIndices = new List<int>();
@@ -2234,7 +2265,13 @@ public sealed class Binder
             if (_paragraphIndices.TryGetValue(target.Name, out int idx))
                 targetIndices.Add(idx);
             else
-                targetIndices.Add(-1); // shouldn't happen
+            {
+                _diagnostics.ReportError("CS0876",
+                    $"GO TO DEPENDING target '{target.Name}' not found in paragraph dispatch table.",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
+                targetIndices.Add(-1);
+            }
         }
 
         block.Instructions.Add(new IrGoToDepending(selectorLoc, targetIndices));
