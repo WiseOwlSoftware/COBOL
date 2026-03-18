@@ -2012,13 +2012,33 @@ public sealed class Binder
                     }
                     return;
                 }
-                // location vs numeric literal
-                else if (binCond.Right is BoundLiteralExpression litRight
-                         && litRight.Value is decimal d)
+                // location vs literal (numeric or string)
+                else if (binCond.Right is BoundLiteralExpression litRight)
                 {
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        leftLoc, d, result,
-                        (int)binCond.OperatorKind));
+                    if (litRight.Value is decimal d)
+                    {
+                        block.Instructions.Add(new IrPicCompareLiteral(
+                            leftLoc, d, result,
+                            (int)binCond.OperatorKind));
+                    }
+                    else if (litRight.Value is string sRight)
+                    {
+                        // String literal: numeric comparison if field is numeric,
+                        // alphanumeric comparison otherwise
+                        if (leftCat.IsNumericLike() && decimal.TryParse(sRight,
+                            System.Globalization.CultureInfo.InvariantCulture, out var numVal))
+                        {
+                            block.Instructions.Add(new IrPicCompareLiteral(
+                                leftLoc, numVal, result,
+                                (int)binCond.OperatorKind));
+                        }
+                        else
+                        {
+                            block.Instructions.Add(new IrStringCompareLiteral(
+                                leftLoc, sRight, result,
+                                (int)binCond.OperatorKind));
+                        }
+                    }
                     return;
                 }
                 // location vs negative numeric literal: -(literal) encoded as (0 - literal)
@@ -2034,6 +2054,35 @@ public sealed class Binder
                         (int)binCond.OperatorKind));
                     return;
                 }
+            }
+
+            // Handle figurative constant on left side (e.g., IF ZERO = field)
+            if (binCond.Left is BoundFigurativeExpression figLeft && rightLoc != null)
+            {
+                var rightCat = GetPicForLocation(rightLoc).Category;
+                var fk = (Runtime.FigurativeKind)figLeft.FigurativeKind;
+                var flippedOp = FlipComparisonOp(binCond.OperatorKind);
+
+                if (rightCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
+                {
+                    block.Instructions.Add(new IrPicCompareLiteral(
+                        rightLoc, 0m, result, (int)flippedOp));
+                }
+                else
+                {
+                    string figStr = fk switch
+                    {
+                        Runtime.FigurativeKind.Space => " ",
+                        Runtime.FigurativeKind.Zero => "0",
+                        Runtime.FigurativeKind.HighValue => "\xFF",
+                        Runtime.FigurativeKind.LowValue => "\x00",
+                        Runtime.FigurativeKind.Quote => "\"",
+                        _ => figLeft.AllLiteral ?? " "
+                    };
+                    block.Instructions.Add(new IrStringCompareLiteral(
+                        rightLoc, figStr, result, (int)flippedOp));
+                }
+                return;
             }
 
             // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
@@ -2065,7 +2114,9 @@ public sealed class Binder
         // TODO: replace with IrExpressionCompare for production-grade general comparison.
         throw new InvalidOperationException(
             $"Unsupported condition shape in LowerCondition: {cond.GetType().Name} " +
-            $"(operator: {(cond is BoundBinaryExpression bc ? bc.OperatorKind.ToString() : "N/A")})");
+            $"(operator: {(cond is BoundBinaryExpression bc ? bc.OperatorKind.ToString() : "N/A")}, " +
+            $"left: {(cond is BoundBinaryExpression bc2 ? bc2.Left.GetType().Name : "?")}, " +
+            $"right: {(cond is BoundBinaryExpression bc3 ? bc3.Right.GetType().Name : "?")})");
     }
 
     private static BoundBinaryOperatorKind FlipComparisonOp(BoundBinaryOperatorKind op)
