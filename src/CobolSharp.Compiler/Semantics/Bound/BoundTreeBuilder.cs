@@ -199,6 +199,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             if (exitCtx.PERFORM() != null)
                 return new BoundExitPerformStatement();
+            if (exitCtx.PARAGRAPH() != null)
+                return new BoundExitParagraphStatement();
+            if (exitCtx.SECTION() != null)
+                return new BoundExitSectionStatement();
             return new BoundExitStatement();
         }
         if (ctx.nextSentenceStatement() is { }) return new BoundNextSentenceStatement();

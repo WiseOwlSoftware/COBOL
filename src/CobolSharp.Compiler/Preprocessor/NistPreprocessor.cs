@@ -39,6 +39,9 @@ public static class NistPreprocessor
         // XXXXX083: OBJECT-COMPUTER
         source = source.Replace("XXXXX083", "DOTNET");
 
+        // XXXXX084: Implementor-specific label clause value
+        source = source.Replace("XXXXX084", "STANDARD");
+
         return source;
     }
 }

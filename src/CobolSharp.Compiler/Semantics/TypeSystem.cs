@@ -33,6 +33,7 @@ public sealed class PicLayout
     public int TrailingPScaling { get; }  // P digits after real digits (e.g., PIC 99P)
     public bool IsSigned { get; }
     public bool IsEdited { get; }
+    public bool BlankWhenZero { get; }
 
     public PicLayout(
         CobolCategory category,
@@ -42,7 +43,8 @@ public sealed class PicLayout
         int leadingPScaling,
         int trailingPScaling,
         bool isSigned,
-        bool isEdited)
+        bool isEdited,
+        bool blankWhenZero = false)
     {
         Category = category;
         Length = length;
@@ -52,6 +54,7 @@ public sealed class PicLayout
         TrailingPScaling = trailingPScaling;
         IsSigned = isSigned;
         IsEdited = isEdited;
+        BlankWhenZero = blankWhenZero;
     }
 }
 

@@ -835,6 +835,151 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void ExitParagraph_SkipsRemainingStatements()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITPARA1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TRACE PIC X(10) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM TEST-PARA.
+                DISPLAY WS-TRACE.
+                STOP RUN.
+            TEST-PARA.
+                MOVE "A" TO WS-TRACE(1:1)
+                EXIT PARAGRAPH
+                MOVE "B" TO WS-TRACE(2:1).
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // EXIT PARAGRAPH skips MOVE "B", so only "A" followed by spaces
+        Assert.Equal("A", stdout.TrimEnd());
+    }
+
+    [Fact]
+    public void ExitParagraph_InsidePerformVarying()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITPARA2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 I PIC 9(2) VALUE ZERO.
+            01 WS-COUNT PIC 9(2) VALUE ZERO.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM COUNT-PARA
+                    VARYING I FROM 1 BY 1 UNTIL I > 5.
+                DISPLAY WS-COUNT.
+                STOP RUN.
+            COUNT-PARA.
+                ADD 1 TO WS-COUNT
+                EXIT PARAGRAPH
+                ADD 10 TO WS-COUNT.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // EXIT PARAGRAPH skips the ADD 10, so count = 5 (not 55)
+        Assert.Equal("05", stdout);
+    }
+
+    [Fact]
+    public void ExitSection_SkipsRemainingParagraphs()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITSEC1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TRACE PIC X(10) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-SEC SECTION.
+            MAIN-PARA.
+                PERFORM TEST-SEC
+                DISPLAY WS-TRACE
+                STOP RUN.
+            TEST-SEC SECTION.
+            PARA-1.
+                MOVE "A" TO WS-TRACE(1:1)
+                EXIT SECTION
+                MOVE "X" TO WS-TRACE(2:1).
+            PARA-2.
+                MOVE "B" TO WS-TRACE(3:1).
+            AFTER-SEC SECTION.
+            AFTER-PARA.
+                CONTINUE.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // EXIT SECTION in PARA-1 skips rest of PARA-1 and all of PARA-2
+        Assert.Equal("A", stdout.TrimEnd());
+    }
+
+    [Fact]
+    public void ExitSection_PerformSectionStopsAtBoundary()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITSEC2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TRACE PIC X(10) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-SEC SECTION.
+            MAIN-PARA.
+                PERFORM SEC-A
+                DISPLAY WS-TRACE
+                STOP RUN.
+            SEC-A SECTION.
+            PARA-A1.
+                MOVE "1" TO WS-TRACE(1:1).
+            PARA-A2.
+                MOVE "2" TO WS-TRACE(2:1).
+            SEC-B SECTION.
+            PARA-B1.
+                MOVE "3" TO WS-TRACE(3:1).
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // PERFORM SEC-A runs PARA-A1 and PARA-A2 only, not PARA-B1
+        Assert.Equal("12", stdout.TrimEnd());
+    }
+
+    [Fact]
+    public void ExitParagraph_InsideNestedPerform()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXITPARA3.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X VALUE SPACE.
+            01 WS-B PIC X VALUE SPACE.
+            01 WS-C PIC X VALUE SPACE.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM OUTER-PARA
+                DISPLAY WS-A WS-B WS-C
+                STOP RUN.
+            OUTER-PARA.
+                MOVE "O" TO WS-A
+                PERFORM INNER-PARA
+                MOVE "Z" TO WS-C.
+            INNER-PARA.
+                MOVE "I" TO WS-B
+                EXIT PARAGRAPH
+                MOVE "X" TO WS-C.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // INNER-PARA: sets B=I, exits, skips X. OUTER continues: sets C=Z.
+        Assert.Equal("OIZ", stdout);
+    }
+
+    [Fact]
     public void PerformVarying_SumOneToFive()
     {
         var (success, stdout, stderr) = CompileAndRun("""

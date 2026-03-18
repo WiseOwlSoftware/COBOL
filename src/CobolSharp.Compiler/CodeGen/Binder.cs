@@ -44,6 +44,18 @@ public sealed class Binder
     /// </summary>
     private readonly Stack<IrBasicBlock> _performExitStack = new();
 
+    /// <summary>
+    /// The end block for the paragraph currently being lowered.
+    /// EXIT PARAGRAPH jumps here (fall-through semantics).
+    /// </summary>
+    private IrBasicBlock? _paragraphEndBlock;
+
+    /// <summary>
+    /// The return index for EXIT SECTION: first paragraph index after the current section.
+    /// Null if the current paragraph is not in a section.
+    /// </summary>
+    private int? _sectionExitReturnIndex;
+
     public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
     {
         _semantic = semantic;
@@ -85,6 +97,30 @@ public sealed class Binder
                 int myIndex = _paragraphIndices[para.Symbol.Name];
                 var block = method.Blocks[0];
 
+                // Set up EXIT PARAGRAPH target: a block at the end of the paragraph body
+                var paraEnd = method.CreateBlock($"{para.Symbol.Name}_exit");
+                _paragraphEndBlock = paraEnd;
+
+                // Set up EXIT SECTION target: return index of first paragraph after this section
+                var sectionName = _semantic.GetParagraphSection(para.Symbol.Name);
+                if (sectionName != null)
+                {
+                    var sectionParas = _semantic.GetSectionParagraphs(sectionName);
+                    if (sectionParas != null && sectionParas.Count > 0
+                        && _paragraphIndices.TryGetValue(sectionParas[^1], out var lastIdx))
+                    {
+                        _sectionExitReturnIndex = lastIdx + 1;
+                    }
+                    else
+                    {
+                        _sectionExitReturnIndex = null;
+                    }
+                }
+                else
+                {
+                    _sectionExitReturnIndex = null;
+                }
+
                 for (int si = 0; si < para.Sentences.Count; si++)
                 {
                     var sentence = para.Sentences[si];
@@ -104,9 +140,15 @@ public sealed class Binder
                 }
 
                 _currentSentenceEnd = null;
+                _paragraphEndBlock = null;
+                _sectionExitReturnIndex = null;
+
+                // Normal flow: jump to paragraph end block
+                block.Instructions.Add(new IrJump(paraEnd));
+                method.Blocks.Add(paraEnd);
 
                 // Fall-through: return next paragraph index
-                block.Instructions.Add(new IrReturnConst(myIndex + 1));
+                paraEnd.Instructions.Add(new IrReturnConst(myIndex + 1));
             }
         }
 
@@ -255,6 +297,10 @@ public sealed class Binder
                 break;
             case BoundExitPerformStatement:
                 return LowerExitPerform(method, block);
+            case BoundExitParagraphStatement:
+                return LowerExitParagraph(method, block);
+            case BoundExitSectionStatement:
+                return LowerExitSection(method, block);
             case BoundNextSentenceStatement:
                 return LowerNextSentence(method, block);
             case BoundOpenStatement open:
@@ -2440,13 +2486,12 @@ public sealed class Binder
         return dead;
     }
 
-    // ── EXIT PERFORM ──
+    // ── EXIT PERFORM / EXIT PARAGRAPH / EXIT SECTION ──
 
     private IrBasicBlock LowerExitPerform(IrMethod method, IrBasicBlock block)
     {
         if (_performExitStack.Count == 0)
         {
-            // EXIT PERFORM outside any active PERFORM — emit diagnostic, skip
             _diagnostics.ReportError("CS0862",
                 "EXIT PERFORM used outside of any active PERFORM.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
@@ -2457,8 +2502,45 @@ public sealed class Binder
         var exitBlock = _performExitStack.Peek();
         block.Instructions.Add(new IrJump(exitBlock));
 
-        // Any statements after EXIT PERFORM are unreachable.
         var dead = new IrBasicBlock("dead_after_exit_perform");
+        method.Blocks.Add(dead);
+        return dead;
+    }
+
+    private IrBasicBlock LowerExitParagraph(IrMethod method, IrBasicBlock block)
+    {
+        if (_paragraphEndBlock == null)
+        {
+            _diagnostics.ReportError("CS0862",
+                "EXIT PARAGRAPH used outside of any paragraph.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+
+        block.Instructions.Add(new IrJump(_paragraphEndBlock));
+
+        var dead = new IrBasicBlock("dead_after_exit_paragraph");
+        method.Blocks.Add(dead);
+        return dead;
+    }
+
+    private IrBasicBlock LowerExitSection(IrMethod method, IrBasicBlock block)
+    {
+        if (_sectionExitReturnIndex == null)
+        {
+            _diagnostics.ReportError("CS0862",
+                "EXIT SECTION used outside of any section.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+
+        // Return the index of the first paragraph after the section,
+        // causing the dispatcher to skip remaining paragraphs in this section.
+        block.Instructions.Add(new IrReturnConst(_sectionExitReturnIndex.Value));
+
+        var dead = new IrBasicBlock("dead_after_exit_section");
         method.Blocks.Add(dead);
         return dead;
     }

@@ -371,8 +371,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        // Extract OCCURS count from clauses
+        // Extract OCCURS count and BLANK WHEN ZERO from clauses
         int occursCount = 1;
+        bool blankWhenZero = false;
         if (body?.dataDescriptionClauses() != null)
         {
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
@@ -384,6 +385,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
                         occursCount = oc;
                 }
+
+                if (clause.blankWhenZeroClause() != null)
+                    blankWhenZero = true;
             }
         }
 
@@ -400,7 +404,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
         data.ResolvedType = PicUsageResolver.ResolveForDataItem(
-            displayName, picString, usage, diagBag, line);
+            displayName, picString, usage, diagBag, line, blankWhenZero);
         foreach (var d in diagBag.Diagnostics)
             _diagnostics.Add(d);
 

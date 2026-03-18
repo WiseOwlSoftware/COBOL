@@ -1425,7 +1425,45 @@ public sealed class CilEmitter
         var srcCat = srcPic.Category;
         var dstCat = dstPic.Category;
 
-        if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
+        // Destination AlphanumericEdited: must be checked before generic IsNumericLike() rules.
+        if (dstCat == CobolCategory.AlphanumericEdited)
+        {
+            if (srcCat == CobolCategory.Numeric)
+            {
+                // Numeric → AlphanumericEdited: convert to display string, apply edit pattern
+                EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumericEdited");
+            }
+            else
+            {
+                // NumericEdited/Alphanumeric → AlphanumericEdited: source bytes as-is, apply edit pattern
+                EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumericEdited");
+            }
+            return;
+        }
+        // NumericEdited source: specific handling before generic IsNumericLike() rules.
+        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.NumericEdited)
+        {
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
+        }
+        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
+        {
+            EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
+        }
+        else if (srcCat == CobolCategory.NumericEdited && dstCat.IsAlphanumericLike())
+        {
+            // NumericEdited → Alphanumeric: COBOL treats source as alphanumeric (raw byte copy)
+            EmitLocationArgs(il, pm.Destination);
+            EmitLocationArgs(il, pm.Source);
+            var method = _module.ImportReference(
+                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                    "MoveFieldToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+            return;
+        }
+        // Generic numeric source rules.
+        else if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
         {
             EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
         }
@@ -1437,13 +1475,10 @@ public sealed class CilEmitter
         {
             EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumeric");
         }
+        // Alphanumeric source rules.
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
         {
             EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumeric");
-        }
-        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
-        {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
         }
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
         {

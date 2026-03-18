@@ -67,11 +67,11 @@ public static class PicRuntime
     /// </summary>
     public static string FormatNumericEdited(decimal value, PicDescriptor pic)
     {
-        if (pic.EditPattern != null)
-            return FormatByEditPattern(value, pic);
-
         if (pic.BlankWhenZero && value == 0m)
             return new string(' ', pic.StorageLength);
+
+        if (pic.EditPattern != null)
+            return FormatByEditPattern(value, pic);
 
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
@@ -80,8 +80,7 @@ public static class PicRuntime
         if (scale < 0) scale = 0;
 
         decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
 
         if (digits.Length < pic.TotalDigits)
             digits = digits.PadLeft(pic.TotalDigits, '0');
@@ -205,8 +204,7 @@ public static class PicRuntime
         int scale = pic.FractionDigits + pic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
         decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
         if (digits.Length < trueDigitCount)
             digits = digits.PadLeft(trueDigitCount, '0');
         else if (digits.Length > trueDigitCount)
@@ -439,7 +437,22 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+        // Convert numeric to display representation (same as MoveNumericToAlphanumeric)
+        decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        value = Math.Abs(value);
+        int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
+        string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
+
+        // Write display string to a temporary buffer, then apply alphanumeric edit pattern
+        byte[] tempArea = new byte[formatted.Length];
+        for (int i = 0; i < formatted.Length; i++)
+            tempArea[i] = (byte)formatted[i];
+
+        var tempPic = new PicDescriptor(0, 0, false, false, true, false,
+            formatted.Length, UsageKind.Display, CobolCategory.Alphanumeric,
+            SignStorageKind.None, EditingKind.None, false, 0, 0, null);
+
+        MoveAlphanumericToAlphanumericEdited(tempArea, 0, formatted.Length, tempPic,
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
@@ -1471,10 +1484,10 @@ public static class PicRuntime
 
         // Scale to integer: 320.48 with scale=2 → 32048
         decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
 
-        // Digits-only string
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        // Digits-only string (use decimal.Truncate to avoid long overflow
+        // on high-precision fields like PIC 9V9(17) where scaling exceeds Int64)
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
 
         // Determine available width (reserve 1 for separate sign if needed)
         bool separateSign = pic.SignStorage is SignStorageKind.LeadingSeparate

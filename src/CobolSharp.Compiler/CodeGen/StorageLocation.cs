@@ -49,12 +49,13 @@ public static class CompilerPicDescriptorFactory
         // (from explicit SIGN clause in data description).
         if (symbol.PicString != null)
         {
+            bool blankWhenZero = pic?.BlankWhenZero ?? false;
             var desc = Runtime.PicDescriptorFactory.FromPicBody(
                 symbol.PicString,
                 usage: symbol.Usage,
                 isSigned: isSigned,
                 signStorage: signStorage,
-                blankWhenZero: false);
+                blankWhenZero: blankWhenZero);
 
             return new PicDescriptor(
                 totalDigits: desc.TotalDigits,

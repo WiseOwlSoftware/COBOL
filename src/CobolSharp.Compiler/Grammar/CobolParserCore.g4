@@ -345,7 +345,13 @@ fileDescriptionClause
     | recordKeyClause
     | alternateKeyClause
     | fileStatusClause
+    | dataRecordsClause
     | genericFileDescriptionClause
+    ;
+
+// DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
+dataRecordsClause
+    : DATA RECORD IS? IDENTIFIER+
     ;
 
 genericFileDescriptionClause
@@ -520,7 +526,7 @@ syncClause
 
 // BLANK WHEN ZERO
 blankWhenZeroClause
-    : BLANK WHEN ZERO
+    : BLANK_WHEN_ZERO
     ;
 
 // 88-LEVEL CONDITION ENTRIES — handled through valueClause with THRU support.

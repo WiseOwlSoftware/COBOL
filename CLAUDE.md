@@ -8,39 +8,36 @@ Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
-## Session Resume Context (updated 2026-03-17)
+## Session Resume Context (updated 2026-03-18)
 
 ### Current State
 - **Branch**: phase-c
-- **Integration tests**: 148 pass, 1 skip
+- **Integration tests**: 153 pass, 1 skip
 - **NIST kernel tests passing 100%**: NC101A (94/94), NC102A (39/39), NC103A (103/103),
-  NC106A (127/127), NC116A (67/67), NC118A (30/30), NC171A (109/109), NC176A (125/125)
-- **Next NIST test to run**: NC104A
+  NC104A (141/141), NC106A (127/127), NC116A (67/67), NC118A (30/30), NC171A (109/109),
+  NC176A (125/125) — 835 total
+- **Next NIST test to run**: NC105A
 
 ### What was just completed
-- COBOL-85 grammar overhaul with dialect gates (default level 85)
-- Section support (GO TO/PERFORM section-name, implicit THRU)
-- PERFORM TIMES with runtime loop (IrPerformTimes, IrPerformInlineTimes)
-- LowerCondition rewrite: normalize → classify → matrix dispatch
-- PicDescriptorFactory: fixed $, +, -, 0 digit counting for edited fields
-- FormatByEditPattern: fixed vs floating symbol handling
-- MOVE-to-edited fields (alphanumeric-edited and numeric-edited)
-- Comparison classifier: both operands must be strictly Numeric for numeric comparison
-- Pseudo-MOVE sign stripping for mixed numeric/alphanumeric comparisons
-- Complete file I/O (DELETE, START, WRITE FROM, OPEN I-O, org-aware registration)
-- STRING, UNSTRING, SEARCH/SEARCH ALL, EXIT PERFORM
+- EXIT PARAGRAPH / EXIT SECTION: structured exit scopes, orthogonal to PERFORM
+- NC104A 141/141: MOVE Format 1 with all edited-field variants
+- MOVE dispatch overhaul: correct routing for Numeric/NumericEdited/Alphanumeric → edited fields
+- BLANK WHEN ZERO: full pipeline from grammar → SemanticBuilder → PicLayout → runtime PicDescriptor
+- CR/DB insertionChars fix in PicDescriptorFactory (storage length was wrong)
+- PicRuntime: decimal.Truncate instead of (long) cast for high-precision fields
+- Grammar: DATA RECORD IS (obsolete FD clause), BLANK_WHEN_ZERO token fix
+- NIST preprocessor: XXXXX084 → STANDARD
 
 ### Key architectural decisions
-- Sections map to paragraph index ranges via SemanticModel section-paragraph membership
-- ResolveProcedureName: GO TO → first paragraph; THRU end → last paragraph
-- IrPerformInlineTimes uses CIL-local int counter (IrTemp concept) — no unrolling
-- ComparisonOperand normalizes BoundExpressions before matrix dispatch
-- All END-xxx scope terminators are COBOL-85 (ungated)
-- Dialect gates on: TYPE, RETURNING, BY VALUE, DELETE FILE, JSON/XML, INVOKE, FUNCTION
+- EXIT PARAGRAPH: IrJump to paragraph end block (fall-through semantics)
+- EXIT SECTION: IrReturnConst(lastParaInSection + 1) — dispatcher skips remaining section paragraphs
+- MOVE dispatch priority: AlphanumericEdited dest first (split by Numeric vs other source),
+  then NumericEdited source rules, then generic IsNumericLike/IsAlphanumericLike rules
+- NumericEdited → Alphanumeric: raw byte copy (COBOL treats source as alphanumeric)
+- NumericEdited → AlphanumericEdited: raw bytes + edit pattern (not numeric decoding)
 
 ### Known gaps
 - CALL/USING/RETURNING (parse only, not bound/lowered)
 - SORT/MERGE (parse only)
-- EXIT SECTION/EXIT PARAGRAPH (not yet implemented)
 - Alternate keys (not parsed)
 - Some NIST preprocessor placeholders not mapped

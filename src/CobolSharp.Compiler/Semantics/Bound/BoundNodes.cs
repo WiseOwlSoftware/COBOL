@@ -361,6 +361,16 @@ public sealed class BoundExitPerformStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement; // reuse — lowering distinguishes
 }
 
+public sealed class BoundExitParagraphStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
+}
+
+public sealed class BoundExitSectionStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
+}
+
 public sealed class BoundNextSentenceStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.NextSentenceStatement;

@@ -16,13 +16,14 @@ public static class PicUsageResolver
         string? picString,
         UsageKind usage,
         DiagnosticBag diagnostics,
-        int line)
+        int line,
+        bool blankWhenZero = false)
     {
         PicLayout? layout = null;
 
         if (picString != null)
         {
-            layout = ParsePic(picString, diagnostics, line);
+            layout = ParsePic(picString, diagnostics, line, blankWhenZero);
         }
 
         var category = layout?.Category ?? CobolCategory.Unknown;
@@ -53,14 +54,15 @@ public static class PicUsageResolver
     /// Single pipeline: all PIC semantics are defined by PicDescriptorFactory.FromPicBody.
     /// PicLayout is a thin view for the compiler's type system.
     /// </summary>
-    private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line)
+    private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line,
+        bool blankWhenZero = false)
     {
         var desc = Runtime.PicDescriptorFactory.FromPicBody(
             picString.Trim(),
             usage: UsageKind.Display,
             isSigned: false,               // S in the body will flip this
             signStorage: SignStorageKind.None,
-            blankWhenZero: false);
+            blankWhenZero: blankWhenZero);
 
         return new PicLayout(
             category: desc.Category,
@@ -70,7 +72,8 @@ public static class PicUsageResolver
             leadingPScaling: desc.LeadingScaleDigits,
             trailingPScaling: desc.TrailingScaleDigits,
             isSigned: desc.IsSigned,
-            isEdited: desc.HasEditing);
+            isEdited: desc.HasEditing,
+            blankWhenZero: desc.BlankWhenZero);
     }
 }
 

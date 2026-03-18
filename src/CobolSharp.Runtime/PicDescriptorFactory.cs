@@ -212,6 +212,7 @@ public static class PicDescriptorFactory
                     if (pos + 1 < text.Length && text[pos + 1] == 'R')
                     {
                         edited = true;
+                        insertionChars += 2;
                         pos += 2;
                     }
                     else pos++;
@@ -221,6 +222,7 @@ public static class PicDescriptorFactory
                     if (pos + 1 < text.Length && text[pos + 1] == 'B')
                     {
                         edited = true;
+                        insertionChars += 2;
                         pos += 2;
                     }
                     else pos++;
