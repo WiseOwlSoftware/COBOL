@@ -22,6 +22,21 @@ public static class PicDescriptorFactory
         bool blankWhenZero = false)
     {
         var text = picBody.Trim().ToUpperInvariant();
+
+        // Pre-scan: count $, +, - to distinguish fixed (single) vs floating (multiple).
+        // Fixed symbols are literal insertions, NOT digit positions.
+        // Floating symbols act as digit positions for zero suppression.
+        int dollarTotal = 0, plusTotal = 0, minusTotal = 0;
+        foreach (char ch in text)
+        {
+            if (ch == '$') dollarTotal++;
+            else if (ch == '+') plusTotal++;
+            else if (ch == '-') minusTotal++;
+        }
+        bool singleDollar = dollarTotal == 1;
+        bool singlePlus = plusTotal == 1 && minusTotal == 0;
+        bool singleMinus = minusTotal == 1 && plusTotal == 0;
+
         int pos = 0;
 
         int integerDigits = 0;
@@ -124,11 +139,8 @@ public static class PicDescriptorFactory
 
                 case 'Z':
                 case '*':
-                case '+':
-                case '-':
-                case '$':
-                case '0':
                 {
+                    // Always digit positions (floating suppression)
                     edited = true;
                     int count = ParseRepeatCount(text, ref pos);
                     if (pastDecimal)
@@ -137,6 +149,62 @@ public static class PicDescriptorFactory
                         integerDigits += count;
                     hasNumericChars = true;
                     hasRealDigits = true;
+                    break;
+                }
+
+                case '$':
+                {
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    hasNumericChars = true;
+                    hasRealDigits = true;
+                    if (singleDollar)
+                    {
+                        // Fixed currency: literal insertion, NOT a digit position
+                        insertionChars += count;
+                    }
+                    else
+                    {
+                        // Floating currency: digit positions
+                        if (pastDecimal)
+                            fractionDigits += count;
+                        else
+                            integerDigits += count;
+                    }
+                    break;
+                }
+
+                case '+':
+                case '-':
+                {
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    hasNumericChars = true;
+                    hasRealDigits = true;
+                    bool isFixed = (c == '+' && singlePlus) || (c == '-' && singleMinus);
+                    if (isFixed)
+                    {
+                        // Fixed sign: literal insertion, NOT a digit position
+                        insertionChars += count;
+                    }
+                    else
+                    {
+                        // Floating sign: digit positions
+                        if (pastDecimal)
+                            fractionDigits += count;
+                        else
+                            integerDigits += count;
+                    }
+                    break;
+                }
+
+                case '0':
+                {
+                    // Zero insertion character, NOT a digit position
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    insertionChars += count;
+                    hasNumericChars = true;
                     break;
                 }
 

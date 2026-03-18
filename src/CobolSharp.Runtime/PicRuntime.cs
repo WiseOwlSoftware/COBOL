@@ -173,41 +173,46 @@ public static class PicRuntime
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
 
-        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
-        if (scale < 0) scale = 0;
-        decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
-        if (digits.Length < pic.TotalDigits)
-            digits = digits.PadLeft(pic.TotalDigits, '0');
-        else if (digits.Length > pic.TotalDigits)
-            digits = digits.Substring(digits.Length - pic.TotalDigits);
-
-        // Pre-scan for sign symbols so we can distinguish fixed vs floating
-        int plusCount = 0;
-        int minusCount = 0;
+        // Pre-scan: count sign and currency symbols to distinguish fixed vs floating.
+        // Fixed (single occurrence) = literal insertion, NOT a digit position.
+        // Floating (multiple occurrences) = digit positions that get suppressed/replaced.
+        int plusCount = 0, minusCount = 0, dollarPrescan = 0;
         for (int i = 0; i < pattern.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
             if (p == '+') plusCount++;
             else if (p == '-') minusCount++;
+            else if (p == '$') dollarPrescan++;
         }
 
-        // Single '-' and no '+' → fixed sign position (e.g. PIC -9(9).9(9))
-        int fixedMinusIndex = -1;
-        if (minusCount == 1 && plusCount == 0)
+        bool isFixedMinus = (minusCount == 1 && plusCount == 0);
+        bool isFixedPlus = (plusCount == 1 && minusCount == 0);
+        bool isFixedDollar = (dollarPrescan == 1);
+
+        // Count TRUE digit positions: 9, Z, *, plus floating $, +, -.
+        // Fixed $, +, - are NOT digit positions.
+        int trueDigitCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
         {
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                if (char.ToUpperInvariant(pattern[i]) == '-')
-                {
-                    fixedMinusIndex = i;
-                    break;
-                }
-            }
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == '9' || p == 'Z' || p == '*') trueDigitCount++;
+            else if (p == '$' && !isFixedDollar) trueDigitCount++;
+            else if (p == '+' && !isFixedPlus) trueDigitCount++;
+            else if (p == '-' && !isFixedMinus) trueDigitCount++;
         }
 
-        // Pass 1: Fill digit positions right-to-left, place insertion chars
+        // Build digit string based on true digit count
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (scale < 0) scale = 0;
+        decimal scaled = absValue * Pow10(scale);
+        long intValue = (long)scaled;
+        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        if (digits.Length < trueDigitCount)
+            digits = digits.PadLeft(trueDigitCount, '0');
+        else if (digits.Length > trueDigitCount)
+            digits = digits.Substring(digits.Length - trueDigitCount);
+
+        // Pass 1: Fill digit positions right-to-left, place insertion/fixed chars
         var output = new char[pattern.Length];
         int digitIdx = digits.Length - 1;
 
@@ -219,16 +224,45 @@ public static class PicRuntime
                 case '9':
                 case 'Z':
                 case '*':
-                case '+':
-                case '-':
+                    // Always a digit position
+                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    break;
+
                 case '$':
-                    if (i == fixedMinusIndex && p == '-')
+                    if (isFixedDollar)
                     {
-                        // Fixed sign: do not consume a digit here
-                        output[i] = ' ';
+                        // Fixed currency: literal insertion, NOT a digit slot
+                        output[i] = '$';
                     }
                     else
                     {
+                        // Floating currency: acts as digit position
+                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    }
+                    break;
+
+                case '+':
+                    if (isFixedPlus)
+                    {
+                        // Fixed sign: show +/-
+                        output[i] = negative ? '-' : '+';
+                    }
+                    else
+                    {
+                        // Floating sign: acts as digit position
+                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    }
+                    break;
+
+                case '-':
+                    if (isFixedMinus)
+                    {
+                        // Fixed sign: show - or space
+                        output[i] = negative ? '-' : ' ';
+                    }
+                    else
+                    {
+                        // Floating sign: acts as digit position
                         output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
                     }
                     break;
@@ -306,7 +340,7 @@ public static class PicRuntime
                     break;
 
                 case '-':
-                    if (i == fixedMinusIndex)
+                    if (isFixedMinus)
                         break; // Fixed sign does not participate in floating suppression
                     if (output[i] == '0') output[i] = ' ';
                     else suppressing = false;
@@ -358,23 +392,18 @@ public static class PicRuntime
             for (int i = 0; i < pattern.Length; i++)
             {
                 char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '-' && i != fixedMinusIndex && output[i] == ' ')
+                if (p == '-' && !isFixedMinus && output[i] == ' ')
                     signPos = i;
-                else if (p == '-' && i != fixedMinusIndex && output[i] != ' ')
+                else if (p == '-' && !isFixedMinus && output[i] != ' ')
                     break;
             }
             if (signPos >= 0)
                 output[signPos] = negative ? '-' : ' ';
         }
 
-        // Handle floating $: place '$' at rightmost suppressed $ position
-        int dollarCount = 0;
-        for (int i = 0; i < pattern.Length; i++)
-        {
-            if (char.ToUpperInvariant(pattern[i]) == '$') dollarCount++;
-        }
-
-        if (dollarCount > 1)
+        // Handle floating $: place '$' at rightmost suppressed $ position.
+        // Fixed $ was already placed in Pass 1.
+        if (dollarPrescan > 1)
         {
             int dollarPos = -1;
             for (int i = 0; i < pattern.Length; i++)
@@ -387,24 +416,6 @@ public static class PicRuntime
             }
             if (dollarPos >= 0)
                 output[dollarPos] = '$';
-        }
-        else if (dollarCount == 1)
-        {
-            // Single $ is a fixed currency symbol, not floating
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                if (char.ToUpperInvariant(pattern[i]) == '$')
-                {
-                    output[i] = '$';
-                    break;
-                }
-            }
-        }
-
-        // Fixed leading '-' (e.g. PIC -9(9).9(9)): show '-' only for negative, space for positive
-        if (fixedMinusIndex >= 0)
-        {
-            output[fixedMinusIndex] = negative ? '-' : ' ';
         }
 
         return new string(output);
@@ -710,6 +721,17 @@ public static class PicRuntime
         decimal literal, int roundingMode = 0)
     {
         decimal value = ApplyScalingAndRounding(literal, destPic, roundingMode);
+
+        // Numeric-edited targets: format using edit pattern, not raw encode
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(value, destPic);
+            // Write formatted string to destination
+            for (int i = 0; i < destLength; i++)
+                destArea[destOffset + i] = i < formatted.Length ? (byte)formatted[i] : (byte)' ';
+            return;
+        }
+
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
