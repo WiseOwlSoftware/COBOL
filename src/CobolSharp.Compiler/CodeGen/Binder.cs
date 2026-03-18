@@ -1895,6 +1895,101 @@ public sealed class Binder
         LowerCondition(cmpExpr, result, block);
     }
 
+    // ── Comparison subsystem: normalize → classify → matrix dispatch ──
+
+    /// <summary>
+    /// Normalized operand for comparison dispatch.
+    /// Every BoundExpression in a comparison is reduced to one of these.
+    /// </summary>
+    private enum ComparisonOperandKind { Location, NumericLiteral, StringLiteral, Figurative }
+
+    private sealed class ComparisonOperand
+    {
+        public ComparisonOperandKind Kind { get; }
+        public IrLocation? Location { get; init; }
+        public Runtime.CobolCategory Category { get; init; }
+        public decimal NumericValue { get; init; }
+        public string? StringValue { get; init; }
+        public Runtime.FigurativeKind FigurativeKind { get; init; }
+        public string? AllLiteral { get; init; }
+        public int FieldWidth { get; init; }
+
+        private ComparisonOperand(ComparisonOperandKind kind) { Kind = kind; }
+
+        public static ComparisonOperand FromLocation(IrLocation loc, Runtime.CobolCategory cat, int width) =>
+            new(ComparisonOperandKind.Location) { Location = loc, Category = cat, FieldWidth = width };
+        public static ComparisonOperand FromNumeric(decimal value) =>
+            new(ComparisonOperandKind.NumericLiteral) { NumericValue = value, Category = Runtime.CobolCategory.Numeric };
+        public static ComparisonOperand FromString(string value) =>
+            new(ComparisonOperandKind.StringLiteral) { StringValue = value, Category = Runtime.CobolCategory.Alphanumeric };
+        public static ComparisonOperand FromFigurative(Runtime.FigurativeKind kind, string? allLiteral = null) =>
+            new(ComparisonOperandKind.Figurative) { FigurativeKind = kind, AllLiteral = allLiteral };
+    }
+
+    /// <summary>
+    /// Normalize a BoundExpression into a ComparisonOperand.
+    /// </summary>
+    private ComparisonOperand? NormalizeOperand(BoundExpression expr)
+    {
+        switch (expr)
+        {
+            case BoundIdentifierExpression:
+            case BoundReferenceModificationExpression:
+            {
+                var loc = ResolveExpressionLocation(expr);
+                if (loc == null) return null;
+                var pic = GetPicForLocation(loc);
+                return ComparisonOperand.FromLocation(loc, pic.Category, pic.StorageLength);
+            }
+
+            case BoundLiteralExpression lit:
+                if (lit.Value is decimal d) return ComparisonOperand.FromNumeric(d);
+                if (lit.Value is string s) return ComparisonOperand.FromString(s);
+                return null;
+
+            case BoundFigurativeExpression fig:
+                return ComparisonOperand.FromFigurative(
+                    (Runtime.FigurativeKind)fig.FigurativeKind, fig.AllLiteral);
+
+            // Negative numeric: -(literal) encoded as (0 - literal)
+            case BoundBinaryExpression neg
+                when neg.OperatorKind == BoundBinaryOperatorKind.Subtract
+                     && neg.Left is BoundLiteralExpression zl && zl.Value is decimal zd && zd == 0m
+                     && neg.Right is BoundLiteralExpression il && il.Value is decimal id:
+                return ComparisonOperand.FromNumeric(-id);
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Build the string value for a figurative constant, respecting field width.
+    /// </summary>
+    private static string MakeFigurativeString(Runtime.FigurativeKind kind, int width, string? allLiteral)
+    {
+        char fillChar = kind switch
+        {
+            Runtime.FigurativeKind.Space => ' ',
+            Runtime.FigurativeKind.Zero => '0',
+            Runtime.FigurativeKind.HighValue => '\xFF',
+            Runtime.FigurativeKind.LowValue => '\x00',
+            Runtime.FigurativeKind.Quote => '"',
+            _ => ' '
+        };
+
+        if (allLiteral != null)
+        {
+            // ALL "X" — repeat pattern to fill width
+            if (width <= 0) return allLiteral;
+            var sb = new System.Text.StringBuilder(width);
+            while (sb.Length < width) sb.Append(allLiteral);
+            return sb.ToString(0, width);
+        }
+
+        return width > 0 ? new string(fillChar, width) : fillChar.ToString();
+    }
+
     private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
     {
         // Class condition: IS NUMERIC, IS ALPHABETIC, etc.
@@ -1904,7 +1999,7 @@ public sealed class Binder
             return;
         }
 
-        // Level-88 condition name: expand to parent == val1 OR parent == val2 ...
+        // Level-88 condition name
         if (cond is BoundConditionNameExpression cn)
         {
             LowerConditionName(cn, result, block);
@@ -1913,6 +2008,7 @@ public sealed class Binder
 
         if (cond is BoundBinaryExpression binCond)
         {
+            // Boolean composition — recurse
             switch (binCond.OperatorKind)
             {
                 case BoundBinaryOperatorKind.Or:
@@ -1924,7 +2020,6 @@ public sealed class Binder
                     block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Or));
                     return;
                 }
-
                 case BoundBinaryOperatorKind.And:
                 {
                     var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
@@ -1934,7 +2029,6 @@ public sealed class Binder
                     block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
                     return;
                 }
-
                 case BoundBinaryOperatorKind.Not:
                 {
                     var innerVal = _valueFactory.Next(IrPrimitiveType.Bool);
@@ -1944,179 +2038,151 @@ public sealed class Binder
                 }
             }
 
-            // Resolve left and right as data references (identifiers or ref-mod)
-            // via ResolveExpressionLocation — the single entry point for all data references.
-            var leftLoc = ResolveExpressionLocation(binCond.Left);
-            var rightLoc = ResolveExpressionLocation(binCond.Right);
-
-            if (leftLoc != null)
-            {
-                var leftCat = GetPicForLocation(leftLoc).Category;
-
-                // location vs figurative constant (alphanumeric comparison)
-                if (binCond.Right is BoundFigurativeExpression figRight)
-                {
-                    // Convert figurative to single-char string for comparison;
-                    // IrStringCompareLiteral pads with spaces, so SPACE works.
-                    // For ZERO on numeric, use numeric comparison.
-                    var fk = (Runtime.FigurativeKind)figRight.FigurativeKind;
-                    if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
-                    {
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc, 0m, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    else
-                    {
-                        string figStr = fk switch
-                        {
-                            Runtime.FigurativeKind.Space => " ",
-                            Runtime.FigurativeKind.Zero => "0",
-                            Runtime.FigurativeKind.HighValue => "\xFF",
-                            Runtime.FigurativeKind.LowValue => "\x00",
-                            Runtime.FigurativeKind.Quote => "\"",
-                            _ => figRight.AllLiteral ?? " "
-                        };
-                        block.Instructions.Add(new IrStringCompareLiteral(
-                            leftLoc, figStr, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    return;
-                }
-
-                // location vs string literal (alphanumeric comparison)
-                if (binCond.Right is BoundLiteralExpression litStr &&
-                    litStr.Value is string s && leftCat.IsAlphanumericLike())
-                {
-                    block.Instructions.Add(new IrStringCompareLiteral(
-                        leftLoc, s, result,
-                        (int)binCond.OperatorKind));
-                    return;
-                }
-
-                // location vs location
-                if (rightLoc != null)
-                {
-                    var rightCat = GetPicForLocation(rightLoc).Category;
-                    if (leftCat.IsAlphanumericLike() && rightCat.IsAlphanumericLike())
-                    {
-                        block.Instructions.Add(new IrStringCompare(
-                            leftLoc, rightLoc, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    else
-                    {
-                        block.Instructions.Add(new IrPicCompare(
-                            leftLoc, rightLoc, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    return;
-                }
-                // location vs literal (numeric or string)
-                else if (binCond.Right is BoundLiteralExpression litRight)
-                {
-                    if (litRight.Value is decimal d)
-                    {
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc, d, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    else if (litRight.Value is string sRight)
-                    {
-                        // String literal: numeric comparison if field is numeric,
-                        // alphanumeric comparison otherwise
-                        if (leftCat.IsNumericLike() && decimal.TryParse(sRight,
-                            System.Globalization.CultureInfo.InvariantCulture, out var numVal))
-                        {
-                            block.Instructions.Add(new IrPicCompareLiteral(
-                                leftLoc, numVal, result,
-                                (int)binCond.OperatorKind));
-                        }
-                        else
-                        {
-                            block.Instructions.Add(new IrStringCompareLiteral(
-                                leftLoc, sRight, result,
-                                (int)binCond.OperatorKind));
-                        }
-                    }
-                    return;
-                }
-                // location vs negative numeric literal: -(literal) encoded as (0 - literal)
-                else if (binCond.Right is BoundBinaryExpression negExpr
-                         && negExpr.OperatorKind == BoundBinaryOperatorKind.Subtract
-                         && negExpr.Left is BoundLiteralExpression zeroLit
-                         && zeroLit.Value is decimal zd && zd == 0m
-                         && negExpr.Right is BoundLiteralExpression innerLit
-                         && innerLit.Value is decimal innerD)
-                {
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        leftLoc, -innerD, result,
-                        (int)binCond.OperatorKind));
-                    return;
-                }
-            }
-
-            // Handle figurative constant on left side (e.g., IF ZERO = field)
-            if (binCond.Left is BoundFigurativeExpression figLeft && rightLoc != null)
-            {
-                var rightCat = GetPicForLocation(rightLoc).Category;
-                var fk = (Runtime.FigurativeKind)figLeft.FigurativeKind;
-                var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-
-                if (rightCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
-                {
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        rightLoc, 0m, result, (int)flippedOp));
-                }
-                else
-                {
-                    string figStr = fk switch
-                    {
-                        Runtime.FigurativeKind.Space => " ",
-                        Runtime.FigurativeKind.Zero => "0",
-                        Runtime.FigurativeKind.HighValue => "\xFF",
-                        Runtime.FigurativeKind.LowValue => "\x00",
-                        Runtime.FigurativeKind.Quote => "\"",
-                        _ => figLeft.AllLiteral ?? " "
-                    };
-                    block.Instructions.Add(new IrStringCompareLiteral(
-                        rightLoc, figStr, result, (int)flippedOp));
-                }
-                return;
-            }
-
-            // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
-            if (binCond.Left is BoundLiteralExpression litLeft && rightLoc != null)
-            {
-                if (litLeft.Value is decimal dLeft)
-                {
-                    // Flip: compare right field against left literal
-                    // Flip the operator for non-symmetric comparisons
-                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        rightLoc, dLeft, result,
-                        (int)flippedOp));
-                    return;
-                }
-                else if (litLeft.Value is string sLeft)
-                {
-                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                    block.Instructions.Add(new IrStringCompareLiteral(
-                        rightLoc, sLeft, result,
-                        (int)flippedOp));
-                    return;
-                }
-            }
+            // Relational comparison — normalize and dispatch
+            LowerComparison(binCond, result, block);
+            return;
         }
 
-        // Fatal: unrecognized condition shape. Never silently return true —
-        // that masks bugs (e.g., NC106A SUB-TEST-F1-7 passed for months with wrong arithmetic).
-        // TODO: replace with IrExpressionCompare for production-grade general comparison.
-        throw new InvalidOperationException(
-            $"Unsupported condition shape in LowerCondition: {cond.GetType().Name} " +
-            $"(operator: {(cond is BoundBinaryExpression bc ? bc.OperatorKind.ToString() : "N/A")}, " +
-            $"left: {(cond is BoundBinaryExpression bc2 ? bc2.Left.GetType().Name : "?")}, " +
-            $"right: {(cond is BoundBinaryExpression bc3 ? bc3.Right.GetType().Name : "?")})");
+        _diagnostics.ReportError("CS0881",
+            $"Unsupported condition shape: {cond.GetType().Name}",
+            new Common.SourceLocation("<source>", 0, 0, 0),
+            new Common.TextSpan(0, 0));
+    }
+
+    /// <summary>
+    /// Lower a binary relational comparison via normalize → classify → matrix dispatch.
+    /// </summary>
+    private void LowerComparison(BoundBinaryExpression binCond, IrValue result, IrBasicBlock block)
+    {
+        var left = NormalizeOperand(binCond.Left);
+        var right = NormalizeOperand(binCond.Right);
+
+        if (left == null || right == null)
+        {
+            _diagnostics.ReportError("CS0882",
+                $"Cannot normalize comparison operands: " +
+                $"left={binCond.Left.GetType().Name}, right={binCond.Right.GetType().Name}",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
+
+        int op = (int)binCond.OperatorKind;
+
+        // Canonicalize: ensure location is on the left when possible.
+        // If left is non-location and right is location, swap and flip operator.
+        if (left.Kind != ComparisonOperandKind.Location && right.Kind == ComparisonOperandKind.Location)
+        {
+            (left, right) = (right, left);
+            op = (int)FlipComparisonOp(binCond.OperatorKind);
+        }
+
+        // Determine comparison category: numeric or alphanumeric.
+        // COBOL rule: if either operand is numeric AND the other can be treated as numeric,
+        // use numeric comparison. Otherwise use alphanumeric.
+        bool useNumeric = IsNumericComparison(left, right);
+
+        // Matrix dispatch on (left.Kind, right.Kind)
+        switch (left.Kind, right.Kind)
+        {
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.Location):
+                if (useNumeric)
+                    block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                else
+                    block.Instructions.Add(new IrStringCompare(left.Location!, right.Location!, result, op));
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.NumericLiteral):
+                block.Instructions.Add(new IrPicCompareLiteral(left.Location!, right.NumericValue, result, op));
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.StringLiteral):
+                if (useNumeric && decimal.TryParse(right.StringValue,
+                    System.Globalization.CultureInfo.InvariantCulture, out var numFromStr))
+                    block.Instructions.Add(new IrPicCompareLiteral(left.Location!, numFromStr, result, op));
+                else
+                    block.Instructions.Add(new IrStringCompareLiteral(left.Location!, right.StringValue!, result, op));
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.Figurative):
+                EmitLocationVsFigurative(left, right, result, op, block);
+                break;
+
+            case (ComparisonOperandKind.NumericLiteral, ComparisonOperandKind.NumericLiteral):
+                // Compile-time constant comparison
+                int cmp = Math.Sign(left.NumericValue.CompareTo(right.NumericValue));
+                bool constResult = EvaluateComparisonResult(cmp, (BoundBinaryOperatorKind)op);
+                block.Instructions.Add(new IrSetBool(result, constResult));
+                break;
+
+            case (ComparisonOperandKind.StringLiteral, ComparisonOperandKind.StringLiteral):
+                int strCmp = string.Compare(left.StringValue, right.StringValue, StringComparison.Ordinal);
+                bool strResult = EvaluateComparisonResult(Math.Sign(strCmp), (BoundBinaryOperatorKind)op);
+                block.Instructions.Add(new IrSetBool(result, strResult));
+                break;
+
+            default:
+                _diagnostics.ReportError("CS0883",
+                    $"Unhandled comparison combination: {left.Kind} vs {right.Kind}",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Determine if a comparison should use numeric semantics.
+    /// </summary>
+    private static bool IsNumericComparison(ComparisonOperand left, ComparisonOperand right)
+    {
+        // If either side is a location, use its category
+        if (left.Kind == ComparisonOperandKind.Location && left.Category.IsNumericLike()) return true;
+        if (right.Kind == ComparisonOperandKind.Location && right.Category.IsNumericLike()) return true;
+        // Both numeric literals
+        if (left.Kind == ComparisonOperandKind.NumericLiteral && right.Kind == ComparisonOperandKind.NumericLiteral) return true;
+        // Figurative ZERO in numeric context
+        if (left.Kind == ComparisonOperandKind.Figurative && left.FigurativeKind == Runtime.FigurativeKind.Zero) return true;
+        if (right.Kind == ComparisonOperandKind.Figurative && right.FigurativeKind == Runtime.FigurativeKind.Zero) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Emit comparison: location vs figurative constant.
+    /// </summary>
+    private void EmitLocationVsFigurative(ComparisonOperand loc, ComparisonOperand fig,
+        IrValue result, int op, IrBasicBlock block)
+    {
+        var fk = fig.FigurativeKind;
+        bool isNumeric = loc.Category.IsNumericLike();
+
+        // ZERO on numeric field → numeric comparison against 0
+        if (isNumeric && fk == Runtime.FigurativeKind.Zero)
+        {
+            block.Instructions.Add(new IrPicCompareLiteral(loc.Location!, 0m, result, op));
+            return;
+        }
+
+        // All other figuratives → alphanumeric string comparison
+        // Fill to field width for correct multi-byte comparison
+        string figStr = MakeFigurativeString(fk, loc.FieldWidth, fig.AllLiteral);
+        block.Instructions.Add(new IrStringCompareLiteral(loc.Location!, figStr, result, op));
+    }
+
+    /// <summary>
+    /// Evaluate a compile-time comparison result from a sign value (-1, 0, +1).
+    /// </summary>
+    private static bool EvaluateComparisonResult(int sign, BoundBinaryOperatorKind op)
+    {
+        return op switch
+        {
+            BoundBinaryOperatorKind.Equal => sign == 0,
+            BoundBinaryOperatorKind.NotEqual => sign != 0,
+            BoundBinaryOperatorKind.Less => sign < 0,
+            BoundBinaryOperatorKind.LessOrEqual => sign <= 0,
+            BoundBinaryOperatorKind.Greater => sign > 0,
+            BoundBinaryOperatorKind.GreaterOrEqual => sign >= 0,
+            _ => false
+        };
     }
 
     private static BoundBinaryOperatorKind FlipComparisonOp(BoundBinaryOperatorKind op)
