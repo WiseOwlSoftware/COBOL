@@ -826,93 +826,33 @@ public sealed class Binder
 
         _performExitStack.Push(loopEnd);
 
-        // Emit TIMES expression as an IrComputeStore target — but we need a temp.
-        // Simpler: use the TIMES expression in a comparison each iteration.
-        // Actually, for PERFORM N TIMES we need a decrementing counter.
-        // Use existing arithmetic: create a synthetic UNTIL loop that counts down.
-
-        // Strategy: convert to PERFORM UNTIL by synthesizing a counter.
-        // The TIMES expression is evaluated once at entry. Then we loop.
-        // For literal times: unroll or simple loop. For identifier: runtime loop.
-
-        // Emit the body N times using IrComputeStore for the count expression,
-        // then a decrementing loop.
-
-        // For now, if it's a literal, unroll. If identifier, emit a counted loop
-        // using existing arithmetic IR.
-        if (perf.TimesExpression is BoundLiteralExpression lit && lit.Value is decimal d)
-        {
-            int times = (int)d;
-            for (int t = 0; t < times; t++)
-            {
-                if (startIdx == endIdx)
-                {
-                    var paraName = _paragraphsByIndex[startIdx];
-                    if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
-                        block.Instructions.Add(new IrPerform(paraMethod));
-                }
-                else
-                {
-                    var methods = new List<IrMethod>();
-                    for (int i = startIdx; i <= endIdx; i++)
-                    {
-                        var pn = _paragraphsByIndex[i];
-                        _paragraphMethods.TryGetValue(pn, out var pm);
-                        methods.Add(pm!);
-                    }
-                    block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
-                }
-            }
-            _performExitStack.Pop();
-            return block;
-        }
-
-        // Identifier/expression TIMES: resolve the count field, build a counted loop.
-        // Evaluate count expression, compare against 0, decrement each iteration.
-        var countLoc = ResolveExpressionLocation(perf.TimesExpression!);
-        if (countLoc == null) { _performExitStack.Pop(); return block; }
-
-        // Use a comparison: while counter > 0
-        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-
-        block.Instructions.Add(new IrJump(loopStart));
-        method.Blocks.Add(loopStart);
-
-        // Check: counter > 0 → continue looping; counter <= 0 → exit
-        loopStart.Instructions.Add(new IrPicCompareLiteral(
-            countLoc, 0m, condVal,
-            (int)BoundBinaryOperatorKind.Greater));
-        loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopEnd));
-        // Fall through to loopBody when counter > 0
-
-        // Body: call paragraph(s)
-        method.Blocks.Add(loopBody);
+        // Emit a single IrPerformTimes instruction. The emitter manages the
+        // CIL loop counter as a local int, evaluates CountExpression once at entry,
+        // and calls the paragraph method(s) in a loop.
+        var methods = new List<IrMethod>();
+        IrMethod? singleMethod = null;
         if (startIdx == endIdx)
         {
             var paraName = _paragraphsByIndex[startIdx];
-            if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
-                loopBody.Instructions.Add(new IrPerform(paraMethod));
+            _paragraphMethods.TryGetValue(paraName, out singleMethod);
         }
         else
         {
-            var methods = new List<IrMethod>();
             for (int i = startIdx; i <= endIdx; i++)
             {
                 var pn = _paragraphsByIndex[i];
                 _paragraphMethods.TryGetValue(pn, out var pm);
                 methods.Add(pm!);
             }
-            loopBody.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
         }
 
-        // Decrement counter
-        loopBody.Instructions.Add(new IrInitArithmeticStatus());
-        loopBody.Instructions.Add(new IrPicSubtractLiteral(countLoc, 1m));
-        loopBody.Instructions.Add(new IrJump(loopStart));
+        var resolvedLocs = PreResolveExpressionLocations(perf.TimesExpression!);
+        block.Instructions.Add(new IrPerformTimes(
+            singleMethod ?? methods[0], startIdx, endIdx, methods,
+            perf.TimesExpression!, resolvedLocs));
 
-        method.Blocks.Add(loopEnd);
         _performExitStack.Pop();
-        return loopEnd;
+        return block;
     }
 
     // ── WRITE ──

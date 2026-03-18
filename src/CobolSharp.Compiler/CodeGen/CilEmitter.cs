@@ -485,6 +485,10 @@ public sealed class CilEmitter
                 EmitPerform(il, perf);
                 break;
 
+            case IrPerformTimes perfTimes:
+                EmitPerformTimes(il, perfTimes, _currentMethodDef!);
+                break;
+
             case IrPerformThru thru:
                 EmitPerformThru(il, thru, _currentMethodDef!);
                 break;
@@ -829,6 +833,60 @@ public sealed class CilEmitter
         // Paragraph methods return int (next PC); discard in PERFORM context
         if (target.ReturnType != _module.TypeSystem.Void)
             il.Append(il.Create(OpCodes.Pop));
+    }
+
+    /// <summary>
+    /// PERFORM N TIMES: evaluates count expression into a CIL local int,
+    /// then loops calling the paragraph method(s) that many times.
+    /// </summary>
+    private void EmitPerformTimes(ILProcessor il, IrPerformTimes pt, MethodDefinition md)
+    {
+        // Evaluate count expression → decimal → int → store in local
+        var counterLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        md.Body.Variables.Add(counterLocal);
+
+        EmitExpression(il, pt.CountExpression, pt.ResolvedLocations);
+        var toInt32 = _module.ImportReference(
+            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, toInt32));
+        il.Append(il.Create(OpCodes.Stloc, counterLocal));
+
+        // Loop: while counter > 0
+        var loopStart = il.Create(OpCodes.Nop);
+        var loopEnd = il.Create(OpCodes.Nop);
+
+        il.Append(loopStart);
+
+        // Check: counter > 0
+        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ble, loopEnd));
+
+        // Body: call paragraph(s)
+        if (pt.StartIdx == pt.EndIdx)
+        {
+            var target = _methodMap[pt.Target];
+            il.Append(il.Create(OpCodes.Call, target));
+            if (target.ReturnType != _module.TypeSystem.Void)
+                il.Append(il.Create(OpCodes.Pop));
+        }
+        else
+        {
+            // THRU: reuse EmitPerformThru with a synthetic IrPerformThru
+            var syntheticThru = new IrPerformThru(pt.StartIdx, pt.EndIdx, pt.ThruMethods);
+            EmitPerformThru(il, syntheticThru, md);
+        }
+
+        // Decrement counter
+        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_1));
+        il.Append(il.Create(OpCodes.Sub));
+        il.Append(il.Create(OpCodes.Stloc, counterLocal));
+
+        // Loop back
+        il.Append(il.Create(OpCodes.Br, loopStart));
+
+        il.Append(loopEnd);
     }
 
     /// <summary>

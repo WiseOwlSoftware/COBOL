@@ -224,6 +224,34 @@ public sealed class IrPerform : IrInstruction
 }
 
 /// <summary>
+/// PERFORM para N TIMES: calls Target method Count times using a CIL local counter.
+/// Count is a BoundExpression (literal or identifier) evaluated once at entry.
+/// The emitter manages the loop counter as a CIL local int.
+/// </summary>
+public sealed class IrPerformTimes : IrInstruction
+{
+    public IrMethod Target { get; }
+    public int StartIdx { get; }
+    public int EndIdx { get; }
+    public IReadOnlyList<IrMethod> ThruMethods { get; }
+    public Semantics.Bound.BoundExpression CountExpression { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
+
+    public IrPerformTimes(IrMethod target, int startIdx, int endIdx,
+        IReadOnlyList<IrMethod> thruMethods,
+        Semantics.Bound.BoundExpression countExpression,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        Target = target;
+        StartIdx = startIdx;
+        EndIdx = endIdx;
+        ThruMethods = thruMethods;
+        CountExpression = countExpression;
+        ResolvedLocations = resolvedLocations;
+    }
+}
+
+/// <summary>
 /// PERFORM para-a THRU para-b: dynamic dispatch loop that respects GO TO returns.
 /// Calls paragraphs startIdx..endIdx, but if a paragraph returns a PC within the
 /// range, skips forward to that PC. If it returns outside the range or negative, exits.
