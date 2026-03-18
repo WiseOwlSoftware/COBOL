@@ -209,7 +209,7 @@ public static class PicDescriptorFactory
                 editingKind = EditingKind.Custom;
         }
 
-        // Expanded edit pattern for numeric-edited only (no S, V, P)
+        // Expanded edit pattern (for numeric-edited and alphanumeric-edited)
         string? editPattern = null;
         if (category == CobolCategory.NumericEdited)
         {
@@ -218,6 +218,10 @@ public static class PicDescriptorFactory
                 .Replace("S", string.Empty)
                 .Replace("V", string.Empty)
                 .Replace("P", string.Empty);
+        }
+        else if (category == CobolCategory.AlphanumericEdited)
+        {
+            editPattern = ExpandPattern(text);
         }
 
         return new PicDescriptor(

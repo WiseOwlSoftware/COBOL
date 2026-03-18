@@ -1027,15 +1027,34 @@ public sealed class CilEmitter
     private void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        // Call StorageHelpers.MoveStringToField(byte[] area, int offset, int size, string value)
-        EmitLocationArgs(il, ms.Target);
-        il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+        var pic = GetPicForLocation(ms.Target);
 
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "MoveStringToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, method));
+        // Alphanumeric-edited targets: apply edit pattern (B→space, 0→zero, etc.)
+        if (pic.Category == Runtime.CobolCategory.AlphanumericEdited && pic.EditPattern != null)
+        {
+            EmitLocationArgs(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+            il.Append(il.Create(OpCodes.Ldstr, pic.EditPattern));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToEditedField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(string), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
+        else
+        {
+            // Plain alphanumeric: left-justified, space-padded
+            EmitLocationArgs(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
     }
 
     /// <summary>

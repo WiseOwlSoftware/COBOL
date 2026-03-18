@@ -42,6 +42,41 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// MOVE string TO alphanumeric-edited field. Applies edit pattern:
+    /// A/X = data position (takes next input character), B = space, 0 = zero, / = slash.
+    /// </summary>
+    public static void MoveStringToEditedField(byte[] area, int offset, int size,
+        string value, string editPattern)
+    {
+        int srcIdx = 0;
+        for (int i = 0; i < editPattern.Length && i < size; i++)
+        {
+            char editChar = editPattern[i];
+            switch (editChar)
+            {
+                case 'A':
+                case 'X':
+                    area[offset + i] = srcIdx < value.Length ? (byte)value[srcIdx++] : (byte)' ';
+                    break;
+                case 'B':
+                    area[offset + i] = (byte)' ';
+                    break;
+                case '0':
+                    area[offset + i] = (byte)'0';
+                    break;
+                case '/':
+                    area[offset + i] = (byte)'/';
+                    break;
+                default:
+                    area[offset + i] = srcIdx < value.Length ? (byte)value[srcIdx++] : (byte)' ';
+                    break;
+            }
+        }
+        for (int i = editPattern.Length; i < size; i++)
+            area[offset + i] = (byte)' ';
+    }
+
+    /// <summary>
     /// MOVE field TO field. Left-justified, space-padded (alphanumeric).
     /// </summary>
     public static void MoveFieldToField(

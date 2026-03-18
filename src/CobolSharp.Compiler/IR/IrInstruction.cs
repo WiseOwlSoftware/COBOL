@@ -317,10 +317,17 @@ public sealed class IrPerformThru : IrInstruction
 /// <summary>
 /// MOVE "literal" TO field — writes string bytes into ProgramState backing array.
 /// </summary>
+/// <summary>
+/// MOVE string literal TO field. Uses PIC-aware MOVE semantics:
+/// plain alphanumeric fields get left-justified space-padded copy,
+/// alphanumeric-edited fields get edit pattern applied (B→space, 0→zero, etc.).
+/// The emitter passes the destination PIC to the runtime so the correct
+/// MOVE method is selected.
+/// </summary>
 public sealed class IrMoveStringToField : IrInstruction
 {
     public IrLocation Target { get; }
-    public string Value { get; }  // embedded string — no IrValue dependency
+    public string Value { get; }
 
     public IrMoveStringToField(IrLocation target, string value)
     {

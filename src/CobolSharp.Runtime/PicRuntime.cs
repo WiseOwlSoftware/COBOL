@@ -453,8 +453,59 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        if (dstPic.EditPattern == null)
+        {
+            // No edit pattern — fall back to plain alphanumeric move
+            MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+                dstArea, dstOffset, dstLength, dstPic, roundingMode);
+            return;
+        }
+
+        // Apply alphanumeric edit pattern:
+        // A = takes next input character (alphabetic position)
+        // X = takes next input character (any character position)
+        // B = inserts space
+        // 0 = inserts zero
+        // / = inserts slash
+        string pattern = dstPic.EditPattern;
+        int srcIdx = 0;
+        for (int i = 0; i < pattern.Length && i < dstLength; i++)
+        {
+            char editChar = pattern[i];
+            switch (editChar)
+            {
+                case 'A':
+                case 'X':
+                    // Data position — take next source character
+                    if (srcIdx < srcLength)
+                        dstArea[dstOffset + i] = srcArea[srcOffset + srcIdx++];
+                    else
+                        dstArea[dstOffset + i] = (byte)' ';
+                    break;
+                case 'B':
+                    // Insert space
+                    dstArea[dstOffset + i] = (byte)' ';
+                    break;
+                case '0':
+                    // Insert zero
+                    dstArea[dstOffset + i] = (byte)'0';
+                    break;
+                case '/':
+                    // Insert slash
+                    dstArea[dstOffset + i] = (byte)'/';
+                    break;
+                default:
+                    // Unknown edit character — treat as data position
+                    if (srcIdx < srcLength)
+                        dstArea[dstOffset + i] = srcArea[srcOffset + srcIdx++];
+                    else
+                        dstArea[dstOffset + i] = (byte)' ';
+                    break;
+            }
+        }
+        // Pad remaining destination with spaces
+        for (int i = pattern.Length; i < dstLength; i++)
+            dstArea[dstOffset + i] = (byte)' ';
     }
 
     // ══════════════════════════════════════════════════════════
