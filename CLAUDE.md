@@ -40,4 +40,3 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - CALL/USING/RETURNING (parse only, not bound/lowered)
 - SORT/MERGE (parse only)
 - Alternate keys (not parsed)
-- Some NIST preprocessor placeholders not mapped
