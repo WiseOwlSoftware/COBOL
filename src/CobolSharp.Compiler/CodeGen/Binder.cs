@@ -865,12 +865,12 @@ public sealed class Binder
         block.Instructions.Add(new IrJump(loopStart));
         method.Blocks.Add(loopStart);
 
-        // Check: counter > 0
+        // Check: counter > 0 → continue looping; counter <= 0 → exit
         loopStart.Instructions.Add(new IrPicCompareLiteral(
             countLoc, 0m, condVal,
             (int)BoundBinaryOperatorKind.Greater));
-        loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
-        loopStart.Instructions.Add(new IrJump(loopEnd));
+        loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopEnd));
+        // Fall through to loopBody when counter > 0
 
         // Body: call paragraph(s)
         method.Blocks.Add(loopBody);
