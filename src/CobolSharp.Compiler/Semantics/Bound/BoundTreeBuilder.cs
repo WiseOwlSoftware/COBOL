@@ -263,11 +263,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             BoundExpression? untilCond = null;
             BoundPerformVarying? varying = null;
 
+            BoundExpression? timesExpr = null;
             var options = ctx.performOptions();
             if (options != null)
             {
                 foreach (var opt in options)
                 {
+                    if (opt.performTimes() is { } inlineTimesCtx)
+                    {
+                        if (inlineTimesCtx.integerLiteral() != null)
+                            timesExpr = new BoundLiteralExpression(
+                                decimal.Parse(inlineTimesCtx.integerLiteral().GetText()),
+                                CobolCategory.Numeric);
+                        else if (inlineTimesCtx.identifier() != null)
+                            timesExpr = BindIdentifierWithSubscripts(inlineTimesCtx.identifier());
+                    }
                     if (opt.performUntil() is { } untilCtx)
                         untilCond = BindCondition(untilCtx.condition());
                     if (opt.performVarying() is { } varyCtx)
@@ -286,7 +296,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (varying != null)
                 untilCond = varying.UntilCondition;
 
-            return new BoundPerformStatement(null, null, null, untilCond, varying, inlineStmts);
+            return new BoundPerformStatement(null, null, timesExpr, untilCond, varying, inlineStmts);
         }
 
         // Out-of-line: first procedureName is the target (paragraph or section)
