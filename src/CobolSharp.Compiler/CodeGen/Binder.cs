@@ -2087,9 +2087,22 @@ public sealed class Binder
         {
             case (ComparisonOperandKind.Location, ComparisonOperandKind.Location):
                 if (useNumeric)
+                {
                     block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                }
                 else
-                    block.Instructions.Add(new IrStringCompare(left.Location!, right.Location!, result, op));
+                {
+                    // Use IrPicCompare (with PIC descriptors) when either side is numeric
+                    // so the runtime can do the pseudo-MOVE (sign stripping) for
+                    // numeric DISPLAY vs alphanumeric comparisons.
+                    // Use IrStringCompare only when both sides are truly alphanumeric.
+                    bool eitherNumeric = left.Category == Runtime.CobolCategory.Numeric
+                                     || right.Category == Runtime.CobolCategory.Numeric;
+                    if (eitherNumeric)
+                        block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                    else
+                        block.Instructions.Add(new IrStringCompare(left.Location!, right.Location!, result, op));
+                }
                 break;
 
             case (ComparisonOperandKind.Location, ComparisonOperandKind.NumericLiteral):
@@ -2132,18 +2145,35 @@ public sealed class Binder
 
     /// <summary>
     /// Determine if a comparison should use numeric semantics.
+    /// COBOL-85 rule: numeric comparison ONLY when both operands are numeric
+    /// (PIC 9, COMP, etc.). If either operand is alphanumeric, alphanumeric-edited,
+    /// or numeric-edited, use alphanumeric comparison. Numeric-edited fields
+    /// participate in alphanumeric comparison using their displayed form.
     /// </summary>
     private static bool IsNumericComparison(ComparisonOperand left, ComparisonOperand right)
     {
-        // If either side is a location, use its category
-        if (left.Kind == ComparisonOperandKind.Location && left.Category.IsNumericLike()) return true;
-        if (right.Kind == ComparisonOperandKind.Location && right.Category.IsNumericLike()) return true;
-        // Both numeric literals
-        if (left.Kind == ComparisonOperandKind.NumericLiteral && right.Kind == ComparisonOperandKind.NumericLiteral) return true;
-        // Figurative ZERO in numeric context
-        if (left.Kind == ComparisonOperandKind.Figurative && left.FigurativeKind == Runtime.FigurativeKind.Zero) return true;
-        if (right.Kind == ComparisonOperandKind.Figurative && right.FigurativeKind == Runtime.FigurativeKind.Zero) return true;
-        return false;
+        bool leftIsNumeric = IsStrictlyNumeric(left);
+        bool rightIsNumeric = IsStrictlyNumeric(right);
+
+        // Both must be numeric (or numeric-compatible) for numeric comparison
+        return leftIsNumeric && rightIsNumeric;
+    }
+
+    /// <summary>
+    /// Returns true if the operand is strictly numeric (not edited, not alphanumeric).
+    /// </summary>
+    private static bool IsStrictlyNumeric(ComparisonOperand op)
+    {
+        return op.Kind switch
+        {
+            ComparisonOperandKind.Location =>
+                op.Category == Runtime.CobolCategory.Numeric,
+            ComparisonOperandKind.NumericLiteral => true,
+            ComparisonOperandKind.Figurative =>
+                op.FigurativeKind == Runtime.FigurativeKind.Zero,
+            ComparisonOperandKind.StringLiteral => false,
+            _ => false
+        };
     }
 
     /// <summary>

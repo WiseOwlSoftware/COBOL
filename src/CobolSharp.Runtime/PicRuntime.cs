@@ -897,9 +897,34 @@ public static class PicRuntime
         byte[] leftArea, int leftOffset, int leftLength, PicDescriptor leftPic,
         byte[] rightArea, int rightOffset, int rightLength, PicDescriptor rightPic)
     {
-        decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
-        decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
-        return Math.Sign(left - right);
+        // Mixed numeric-vs-alphanumeric: COBOL-85 pseudo-MOVE comparison.
+        // The numeric operand is treated as if moved to an alphanumeric field
+        // (sign stripped, formatted as unsigned DISPLAY), then compared as strings.
+        bool leftIsNumeric = leftPic.Category == CobolCategory.Numeric;
+        bool rightIsNumeric = rightPic.Category == CobolCategory.Numeric;
+
+        if (leftIsNumeric && !rightIsNumeric)
+        {
+            // Left is numeric, right is alphanumeric — pseudo-MOVE left
+            decimal val = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
+            string unsigned = FormatNumericForDisplay(Math.Abs(val), leftPic.FractionDigits, leftPic.TotalDigits);
+            string rightStr = System.Text.Encoding.ASCII.GetString(rightArea, rightOffset, rightLength).TrimEnd();
+            return string.Compare(unsigned, rightStr, StringComparison.Ordinal);
+        }
+
+        if (!leftIsNumeric && rightIsNumeric)
+        {
+            // Right is numeric, left is alphanumeric — pseudo-MOVE right
+            decimal val = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
+            string unsigned = FormatNumericForDisplay(Math.Abs(val), rightPic.FractionDigits, rightPic.TotalDigits);
+            string leftStr = System.Text.Encoding.ASCII.GetString(leftArea, leftOffset, leftLength).TrimEnd();
+            return string.Compare(leftStr, unsigned, StringComparison.Ordinal);
+        }
+
+        // Both numeric — standard numeric comparison
+        decimal leftVal = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
+        decimal rightVal = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
+        return Math.Sign(leftVal - rightVal);
     }
 
     public static int CompareNumericToLiteral(
