@@ -1000,7 +1000,7 @@ subtractGivingPhrase
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY multiplyOperand BY multiplyByOperand multiplyGivingPhrase? arithmeticOnSizeError? END_MULTIPLY?
+    : MULTIPLY multiplyOperand BY multiplyByOperand+ multiplyGivingPhrase? arithmeticOnSizeError? END_MULTIPLY?
     ;
 
 multiplyOperand

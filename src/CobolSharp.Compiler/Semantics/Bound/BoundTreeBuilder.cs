@@ -1542,18 +1542,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         var operand = BindSimpleOperand(ctx.multiplyOperand());
 
-        var byCtx = ctx.multiplyByOperand();
-        if (byCtx == null)
+        var byCtxs = ctx.multiplyByOperand();
+        if (byCtxs.Length == 0)
             throw new InvalidOperationException(
                 $"MULTIPLY statement has no BY operand (line {ctx.Start?.Line})");
 
-        // BY operand: givingReceiver (identifier | literal) with optional ROUNDED
-        var byReceiver = byCtx.givingReceiver();
+        // First BY operand is always the second factor
+        var firstByReceiver = byCtxs[0].givingReceiver();
         BoundExpression byOperand;
-        if (byReceiver.identifier() != null)
-            byOperand = BindIdentifierWithSubscripts(byReceiver.identifier());
+        if (firstByReceiver.identifier() != null)
+            byOperand = BindIdentifierWithSubscripts(firstByReceiver.identifier());
         else
-            byOperand = BindLiteral(byReceiver.literal());
+            byOperand = BindLiteral(firstByReceiver.literal());
 
         var givingCtx = ctx.multiplyGivingPhrase();
         bool isGiving = givingCtx != null;
@@ -1570,12 +1570,16 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
         else
         {
-            // Non-GIVING: BY operand is both factor and receiving item
-            if (byReceiver.identifier() != null)
+            // Non-GIVING: each BY operand is both factor and receiving item
+            foreach (var byCtx in byCtxs)
             {
-                var sym = BindIdentifierWithSubscripts(byReceiver.identifier());
-                if (sym is BoundIdentifierExpression boundBt)
-                    targets.Add(new BoundArithmeticTarget(boundBt, byCtx.ROUNDED() != null));
+                var receiver = byCtx.givingReceiver();
+                if (receiver.identifier() != null)
+                {
+                    var sym = BindIdentifierWithSubscripts(receiver.identifier());
+                    if (sym is BoundIdentifierExpression boundBt)
+                        targets.Add(new BoundArithmeticTarget(boundBt, byCtx.ROUNDED() != null));
+                }
             }
         }
 
