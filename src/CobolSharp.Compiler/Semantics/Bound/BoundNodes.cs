@@ -20,11 +20,7 @@ public enum BoundNodeKind
     ReadStatement,
     ExitStatement,
     NextSentenceStatement,
-    AddStatement,
-    SubtractStatement,
-    MultiplyStatement,
-    DivideStatement,
-    ComputeStatement,
+    ArithmeticStatement,
     EvaluateStatement,
     RewriteStatement,
     InitializeStatement,
@@ -626,26 +622,68 @@ public sealed class BoundInspectStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.InspectStatement;
 }
 
-public sealed class BoundAddStatement : BoundStatement
+/// <summary>
+/// Unified arithmetic statement. All five COBOL arithmetic statements
+/// (ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE) converge to this single type.
+/// ArithmeticKind discriminates the operation. No per-statement subclasses.
+/// </summary>
+public sealed class BoundArithmeticStatement : BoundStatement
 {
-    public IReadOnlyList<BoundExpression> Operands { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-    public bool IsGiving { get; }  // true for ADD ... GIVING (target = sum, not target += sum)
+    /// <summary>ADD, SUBTRACT, MULTIPLY, DIVIDE, or COMPUTE.</summary>
+    public ArithmeticKind ArithmeticKind { get; }
 
-    public BoundAddStatement(IReadOnlyList<BoundExpression> operands,
+    /// <summary>Source operands: the values being added/subtracted/multiplied/divided/computed.</summary>
+    public IReadOnlyList<BoundExpression> Operands { get; }
+
+    /// <summary>
+    /// The TO/FROM/BY/INTO receiving operand (identifier or literal in GIVING forms).
+    /// - SUBTRACT A FROM B: Receiver = null (B is in Targets); SUBTRACT A FROM 100 GIVING C: Receiver = literal(100)
+    /// - MULTIPLY A BY B: Receiver = B; MULTIPLY A BY 2 GIVING C: Receiver = literal(2)
+    /// - DIVIDE A INTO B: Receiver = null (B in Targets); DIVIDE A INTO 864 GIVING C: Receiver = literal(864)
+    /// - COMPUTE X = expr: Receiver = null (expr is in Operands)
+    /// - ADD: Receiver = null (TO targets are in Targets)
+    /// </summary>
+    public BoundExpression? Receiver { get; }
+
+    /// <summary>Receiving targets (always identifiers). In non-GIVING forms, also accumulators.</summary>
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
+
+    /// <summary>True when GIVING keyword was used (target = result, not target op= result).</summary>
+    public bool IsGiving { get; }
+
+    /// <summary>DIVIDE-specific: true for BY form, false for INTO form.</summary>
+    public bool IsByForm { get; }
+
+    /// <summary>DIVIDE-specific: REMAINDER target identifier.</summary>
+    public BoundIdentifierExpression? RemainderTarget { get; }
+
+    /// <summary>ON SIZE ERROR / NOT ON SIZE ERROR clause.</summary>
+    public BoundSizeErrorClause? SizeError { get; }
+
+    public BoundArithmeticStatement(
+        ArithmeticKind arithmeticKind,
+        IReadOnlyList<BoundExpression> operands,
+        BoundExpression? receiver,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null,
-        bool isGiving = false)
+        bool isGiving = false,
+        bool isByForm = false,
+        BoundIdentifierExpression? remainderTarget = null,
+        BoundSizeErrorClause? sizeError = null)
     {
+        ArithmeticKind = arithmeticKind;
         Operands = operands;
+        Receiver = receiver;
         Targets = targets;
-        SizeError = sizeError;
         IsGiving = isGiving;
+        IsByForm = isByForm;
+        RemainderTarget = remainderTarget;
+        SizeError = sizeError;
     }
 
-    public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
+    public override BoundNodeKind Kind => BoundNodeKind.ArithmeticStatement;
 }
+
+public enum ArithmeticKind { Add, Subtract, Multiply, Divide, Compute }
 
 /// <summary>
 /// ON SIZE ERROR / NOT ON SIZE ERROR clause, shared by all arithmetic statements.
@@ -668,7 +706,6 @@ public sealed class BoundSizeErrorClause
 
 /// <summary>
 /// A single receiving item in an arithmetic statement, with per-item ROUNDED flag.
-/// Used by MULTIPLY, SUBTRACT, DIVIDE, ADD.
 /// </summary>
 public sealed class BoundArithmeticTarget
 {
@@ -681,110 +718,6 @@ public sealed class BoundArithmeticTarget
         IsRounded = isRounded;
     }
 }
-
-/// <summary>
-/// MULTIPLY statement. Two forms:
-///   MULTIPLY A BY B [ROUNDED] — result = A * B, stored in B
-///   MULTIPLY A BY B GIVING C [ROUNDED] — result = A * B, stored in C
-/// Operand is the first factor (A). ByOperand is the second factor (B).
-/// In non-GIVING form, ByOperand is also the receiving item and appears in Targets.
-/// In GIVING form, ByOperand is just a factor; Targets are the GIVING receiving items.
-/// </summary>
-public sealed class BoundMultiplyStatement : BoundStatement
-{
-    public BoundExpression Operand { get; }
-    public BoundExpression ByOperand { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public bool IsGiving { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundMultiplyStatement(BoundExpression operand, BoundExpression byOperand,
-        IReadOnlyList<BoundArithmeticTarget> targets, bool isGiving = false,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Operand = operand;
-        ByOperand = byOperand;
-        Targets = targets;
-        IsGiving = isGiving;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;
-}
-
-public sealed class BoundSubtractStatement : BoundStatement
-{
-    public IReadOnlyList<BoundExpression> Operands { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-    public bool IsGiving { get; }
-    public BoundExpression? GivingMinuend { get; }  // the FROM operand for GIVING form
-
-    public BoundSubtractStatement(IReadOnlyList<BoundExpression> operands,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null,
-        bool isGiving = false,
-        BoundExpression? givingMinuend = null)
-    {
-        Operands = operands;
-        Targets = targets;
-        SizeError = sizeError;
-        IsGiving = isGiving;
-        GivingMinuend = givingMinuend;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
-}
-
-public sealed class BoundDivideStatement : BoundStatement
-{
-    public BoundExpression Divisor { get; }
-    public BoundExpression? Dividend { get; }
-    public bool IsByForm { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundIdentifierExpression? RemainderTarget { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundDivideStatement(
-        BoundExpression divisor,
-        BoundExpression? dividend,
-        bool isByForm,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundIdentifierExpression? remainderTarget = null,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Divisor = divisor;
-        Dividend = dividend;
-        IsByForm = isByForm;
-        Targets = targets;
-        RemainderTarget = remainderTarget;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.DivideStatement;
-}
-
-public sealed class BoundComputeStatement : BoundStatement
-{
-    public BoundExpression Expression { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundComputeStatement(BoundExpression expression,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Expression = expression;
-        Targets = targets;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.ComputeStatement;
-}
-
-// BoundArithmeticStatement DELETED — it was a silent-drop pattern that produced NO code.
-// All arithmetic binders now throw InvalidOperationException if they can't produce a
-// proper bound statement. A compiler must never silently skip a statement.
 
 // ═══════════════════════════════════
 // EVALUATE

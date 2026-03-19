@@ -1584,7 +1584,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 $"MULTIPLY statement has no valid receiving items (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundMultiplyStatement(operand, byOperand, targets, isGiving, sizeError);
+        return new BoundArithmeticStatement(ArithmeticKind.Multiply, new[] { operand }, byOperand, targets, isGiving, sizeError: sizeError);
     }
 
     // ── ADD ──
@@ -1642,7 +1642,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 $"ADD statement has no targets (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundAddStatement(operands, targets, sizeError, isGiving);
+        return new BoundArithmeticStatement(ArithmeticKind.Add, operands, null, targets, isGiving, sizeError: sizeError);
     }
 
     // ── SUBTRACT ──
@@ -1727,7 +1727,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundSubtractStatement(operands, targets, sizeError, isGiving, givingMinuend);
+        return new BoundArithmeticStatement(ArithmeticKind.Subtract, operands, givingMinuend, targets, isGiving, sizeError: sizeError);
     }
 
     // ── DIVIDE ──
@@ -1817,8 +1817,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundDivideStatement(firstOperand, dividend, isByForm, targets,
-            remainderTarget, sizeError);
+        return new BoundArithmeticStatement(ArithmeticKind.Divide, new[] { firstOperand }, dividend, targets,
+            isGiving: dividend != null, isByForm: isByForm, remainderTarget: remainderTarget, sizeError: sizeError);
     }
 
     // ── COMPUTE ──
@@ -1845,7 +1845,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var expr = BindFullExpression(ctx.arithmeticExpression());
 
         var sizeError = BindSizeErrorClause(ctx.computeOnSizeError());
-        return new BoundComputeStatement(expr, targets, sizeError);
+        return new BoundArithmeticStatement(ArithmeticKind.Compute, new[] { expr }, null, targets, sizeError: sizeError);
     }
 
     /// <summary>

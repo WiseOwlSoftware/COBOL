@@ -282,10 +282,8 @@ public sealed class Binder
                 break;
             case BoundIfStatement iff:
                 return LowerIf(iff, method, block);
-            case BoundMultiplyStatement mult:
-                return LowerMultiply(mult, method, block);
-            case BoundAddStatement add:
-                return LowerAdd(add, method, block);
+            case BoundArithmeticStatement arith:
+                return LowerArithmetic(arith, method, block);
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
                 break;
@@ -329,12 +327,7 @@ public sealed class Binder
             case BoundSetIndexStatement setIdx:
                 LowerSetIndex(setIdx, block);
                 break;
-            case BoundSubtractStatement sub:
-                return LowerSubtract(sub, method, block);
-            case BoundDivideStatement div:
-                return LowerDivide(div, method, block);
-            case BoundComputeStatement comp:
-                return LowerCompute(comp, method, block);
+            // Subtract, Divide, Compute handled by BoundArithmeticStatement above
             case BoundSearchStatement search:
                 return LowerSearch(search, method, block);
             case BoundSearchAllStatement searchAll:
@@ -1505,7 +1498,18 @@ public sealed class Binder
 
     // ── MULTIPLY ──
 
-    private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerArithmetic(BoundArithmeticStatement arith, IrMethod method, IrBasicBlock block)
+        => arith.ArithmeticKind switch
+        {
+            ArithmeticKind.Add => LowerAdd(arith, method, block),
+            ArithmeticKind.Subtract => LowerSubtract(arith, method, block),
+            ArithmeticKind.Multiply => LowerMultiply(arith, method, block),
+            ArithmeticKind.Divide => LowerDivide(arith, method, block),
+            ArithmeticKind.Compute => LowerCompute(arith, method, block),
+            _ => throw new InvalidOperationException($"Unknown arithmetic kind: {arith.ArithmeticKind}")
+        };
+
+    private IrBasicBlock LowerMultiply(BoundArithmeticStatement mult, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1520,7 +1524,7 @@ public sealed class Binder
                 // GIVING form: result = Operand * ByOperand → stored in target
                 // Use IrComputeStore with a synthetic multiply expression
                 var mulExpr = new BoundBinaryExpression(
-                    mult.Operand, BoundBinaryOperatorKind.Multiply, mult.ByOperand,
+                    mult.Operands[0], BoundBinaryOperatorKind.Multiply, mult.Receiver!,
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(mulExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(mulExpr)));
@@ -1528,14 +1532,14 @@ public sealed class Binder
             else
             {
                 // Non-GIVING: result = Operand * target → stored in target
-                if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+                if (mult.Operands[0] is BoundLiteralExpression lit && lit.Value is decimal d)
                 {
                     block.Instructions.Add(new IrPicMultiplyLiteral(
                         d, destLoc, destLoc, roundingMode));
                 }
                 else
                 {
-                    var opLoc = ResolveExpressionLocation(mult.Operand);
+                    var opLoc = ResolveExpressionLocation(mult.Operands[0]);
                     if (opLoc != null)
                     {
                         block.Instructions.Add(new IrPicMultiply(
@@ -1550,7 +1554,7 @@ public sealed class Binder
 
     // ── SUBTRACT ──
 
-    private IrBasicBlock LowerSubtract(BoundSubtractStatement sub, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerSubtract(BoundArithmeticStatement sub, IrMethod method, IrBasicBlock block)
     {
         // One ArithmeticStatus per statement — init once, sticky across all targets
         block.Instructions.Add(new IrInitArithmeticStatus());
@@ -1583,7 +1587,7 @@ public sealed class Binder
             var destLoc = ResolveLocation(target.Target);
             if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
-            if (sub.IsGiving && sub.GivingMinuend != null)
+            if (sub.IsGiving && sub.Receiver != null)
             {
                 // GIVING: target = minuend - accumulated
                 // Use IrComputeStore with synthetic expression: minuend - accumulated_as_literal
@@ -1597,7 +1601,7 @@ public sealed class Binder
                         CobolCategory.Numeric);
                 }
                 var subExpr = new BoundBinaryExpression(
-                    sub.GivingMinuend, BoundBinaryOperatorKind.Subtract, sumExpr,
+                    sub.Receiver, BoundBinaryOperatorKind.Subtract, sumExpr,
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(subExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(subExpr)));
@@ -1614,7 +1618,7 @@ public sealed class Binder
 
     // ── DIVIDE ──
 
-    private IrBasicBlock LowerDivide(BoundDivideStatement div, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerDivide(BoundArithmeticStatement div, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1625,21 +1629,21 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
 
-            if (div.Dividend != null)
+            if (div.Receiver != null)
             {
                 var divExpr = new BoundBinaryExpression(
-                    div.Dividend, BoundBinaryOperatorKind.Divide, div.Divisor,
+                    div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(divExpr)));
             }
             else
             {
-                if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                 {
                     block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
                 }
-                else if (div.Divisor is BoundIdentifierExpression divisorId)
+                else if (div.Operands[0] is BoundIdentifierExpression divisorId)
                 {
                     var divisorLoc = ResolveLocation(divisorId);
                     if (divisorLoc != null)
@@ -1651,13 +1655,13 @@ public sealed class Binder
         }
 
         // REMAINDER: dividend MOD divisor
-        if (div.RemainderTarget != null && div.Dividend != null)
+        if (div.RemainderTarget != null && div.Receiver != null)
         {
             var remLoc = ResolveLocation(div.RemainderTarget);
             if (remLoc != null)
             {
                 var remExpr = new BoundBinaryExpression(
-                    div.Dividend, BoundBinaryOperatorKind.Remainder, div.Divisor,
+                    div.Receiver, BoundBinaryOperatorKind.Remainder, div.Operands[0],
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0,
                     PreResolveExpressionLocations(remExpr)));
@@ -1669,7 +1673,7 @@ public sealed class Binder
 
     // ── COMPUTE ──
 
-    private IrBasicBlock LowerCompute(BoundComputeStatement comp, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerCompute(BoundArithmeticStatement comp, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1681,8 +1685,8 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
             block.Instructions.Add(new IrComputeStore(
-                comp.Expression, destLoc, roundingMode,
-                PreResolveExpressionLocations(comp.Expression)));
+                comp.Operands[0], destLoc, roundingMode,
+                PreResolveExpressionLocations(comp.Operands[0])));
         }
 
         return LowerSizeError(comp.SizeError, method, block);
@@ -1690,7 +1694,7 @@ public sealed class Binder
 
     // ── ADD ──
 
-    private IrBasicBlock LowerAdd(BoundAddStatement add, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerAdd(BoundArithmeticStatement add, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
