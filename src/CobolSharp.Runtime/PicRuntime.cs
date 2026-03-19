@@ -199,6 +199,10 @@ public static class PicRuntime
         bool hasFloating = (currencyPrescan > 1) || (plusCount > 1) || (minusCount > 1);
         int effectiveDigitCount = hasFloating ? trueDigitCount - 1 : trueDigitCount;
 
+        // Apply trailing P scaling (same as EncodeDisplay): divide by 10^trailingP
+        if (pic.TrailingScaleDigits > 0)
+            absValue /= Pow10(pic.TrailingScaleDigits);
+
         // Build digit string based on effective digit count
         int scale = pic.FractionDigits + pic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
