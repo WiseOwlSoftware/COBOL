@@ -129,12 +129,44 @@ public static class ReferenceFormatProcessor
                     break;
 
                 default:
-                    result.AppendLine(sourceArea.TrimEnd());
+                    // Preserve trailing spaces when inside an unclosed string literal —
+                    // these spaces are part of the literal content and must survive for
+                    // continuation line joining (ISO §6.2.2).
+                    result.AppendLine(HasUnclosedString(sourceArea)
+                        ? sourceArea : sourceArea.TrimEnd());
                     break;
             }
         }
 
         return result.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if the source area ends with an unclosed string literal
+    /// (odd number of unescaped quotes). Trailing spaces after an unclosed literal
+    /// are part of the literal content and must not be trimmed.
+    /// </summary>
+    private static bool HasUnclosedString(string line)
+    {
+        bool inString = false;
+        char quoteChar = '\0';
+        for (int i = 0; i < line.Length; i++)
+        {
+            char c = line[i];
+            if (!inString && c is '"' or '\'')
+            {
+                inString = true;
+                quoteChar = c;
+            }
+            else if (inString && c == quoteChar)
+            {
+                if (i + 1 < line.Length && line[i + 1] == quoteChar)
+                    i++; // skip escaped (doubled) quote
+                else
+                    inString = false;
+            }
+        }
+        return inString;
     }
 
     private static void HandleContinuation(StringBuilder result, string sourceArea)

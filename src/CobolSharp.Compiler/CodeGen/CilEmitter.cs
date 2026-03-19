@@ -1886,26 +1886,22 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// COMPUTE: evaluate expression tree to decimal on stack, then store to target.
-    /// Emits: area, offset, length, pic, [expression result as decimal], rounding, ref status
-    /// Calls MoveNumericLiteral which handles scaling, rounding, and overflow.
+    /// COMPUTE/GIVING store: evaluate expression tree to decimal, then store to target.
+    /// Routes through MoveAccumulatedToField — the unified "store decimal with overflow
+    /// detection" path shared by all arithmetic operations.
     /// </summary>
     private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
     {
-        // Push target storage args
         EmitLocationArgsWithPic(il, cs.Destination);
-
-        // Evaluate expression — pushes decimal onto stack
         EmitExpression(il, cs.Expression, cs.ResolvedLocations);
-
-        // Rounding mode
         il.Append(il.Create(OpCodes.Ldc_I4, cs.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
-        // Call MoveNumericLiteral(area, offset, length, pic, value, rounding)
         var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
+            typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int) })!);
+                        typeof(decimal), typeof(int),
+                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

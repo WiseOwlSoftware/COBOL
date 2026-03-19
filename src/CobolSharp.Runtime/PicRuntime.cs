@@ -823,6 +823,9 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
+    // ComputeAndStore removed — MoveAccumulatedToField provides the identical
+    // "store decimal with overflow detection" behavior for all arithmetic paths.
+
     // ══════════════════════════════════════════════════════════
     // MOVE: Legacy aliases (keep CIL emitter working during transition)
     // ══════════════════════════════════════════════════════════
