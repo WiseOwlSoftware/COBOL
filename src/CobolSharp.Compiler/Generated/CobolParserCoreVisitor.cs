@@ -963,6 +963,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSubtractFromPhrase([NotNull] CobolParserCore.SubtractFromPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractFromOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubtractFromOperand([NotNull] CobolParserCore.SubtractFromOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractTarget"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

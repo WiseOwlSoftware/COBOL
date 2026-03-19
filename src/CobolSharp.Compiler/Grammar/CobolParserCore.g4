@@ -971,7 +971,12 @@ subtractOperand
     ;
 
 subtractFromPhrase
-    : FROM subtractTarget (subtractTarget)*
+    : FROM subtractFromOperand
+    ;
+
+subtractFromOperand
+    : subtractTarget (subtractTarget)*
+    | literal
     ;
 
 subtractTarget
@@ -1521,9 +1526,9 @@ initializeReplacingItem
 
 inspectStatement
     : INSPECT identifier
-      (inspectTallyingPhrase
+      ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
-      | inspectConvertingPhrase)
+      | inspectConvertingPhrase )
     ;
 
 // ----- TALLYING -----

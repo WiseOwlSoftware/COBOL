@@ -1679,24 +1679,33 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var op in subOperands)
             operands.Add(BindSimpleOperand(op));
 
-        // FROM targets (each with per-target ROUNDED)
+        // FROM targets or literal (subtractFromPhrase → subtractFromOperand)
         var fromPhrase = ctx.subtractFromPhrase();
         if (fromPhrase == null)
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
-        var fromTargetCtxs = fromPhrase.subtractTarget();
-        if (fromTargetCtxs.Length == 0)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
-
+        var fromOperand = fromPhrase.subtractFromOperand();
+        var fromTargetCtxs = fromOperand.subtractTarget();
         var targets = new List<BoundArithmeticTarget>();
-        foreach (var t in fromTargetCtxs)
+
+        if (fromTargetCtxs.Length > 0)
         {
-            var sym = BindIdentifierWithSubscripts(t.identifier());
-            if (sym is BoundIdentifierExpression boundT2)
-                targets.Add(new BoundArithmeticTarget(boundT2, t.ROUNDED() != null));
+            // FROM identifier [ROUNDED] ... (Format 1)
+            foreach (var t in fromTargetCtxs)
+            {
+                var sym = BindIdentifierWithSubscripts(t.identifier());
+                if (sym is BoundIdentifierExpression boundT2)
+                    targets.Add(new BoundArithmeticTarget(boundT2, t.ROUNDED() != null));
+            }
+        }
+        else if (fromOperand.literal() != null)
+        {
+            // FROM literal (Format 2 — requires GIVING)
+            // The literal becomes the minuend; handled in the GIVING path below
         }
 
-        if (targets.Count == 0)
+        // If no targets and no GIVING, it's an error
+        if (targets.Count == 0 && ctx.subtractGivingPhrase() == null)
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
@@ -1709,9 +1718,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (givingTargetCtxs.Length > 0)
             {
                 isGiving = true;
-                // The first FROM target becomes the minuend (b in "SUBTRACT a FROM b GIVING c")
-                if (targets.Count > 0)
+                // The FROM operand becomes the minuend (b in "SUBTRACT a FROM b GIVING c")
+                if (fromOperand.literal() != null)
+                {
+                    // FROM literal: the literal is the minuend
+                    givingMinuend = BindLiteral(fromOperand.literal());
+                }
+                else if (targets.Count > 0)
+                {
+                    // FROM identifier: the first target is the minuend
                     givingMinuend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
+                }
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
