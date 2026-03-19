@@ -42,6 +42,46 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// MOVE "literal" TO JUSTIFIED RIGHT field. Right-justified, left-padded/left-truncated.
+    /// ISO §13.16.35: when source > target, truncate from the left (keep rightmost chars).
+    /// </summary>
+    public static void MoveStringToJustifiedField(byte[] area, int offset, int size, string value)
+    {
+        if (value.Length > size)
+        {
+            int skipLeft = value.Length - size;
+            for (int i = 0; i < size; i++)
+                area[offset + i] = (byte)value[skipLeft + i];
+        }
+        else
+        {
+            int pad = size - value.Length;
+            for (int i = 0; i < pad; i++)
+                area[offset + i] = (byte)' ';
+            for (int i = 0; i < value.Length; i++)
+                area[offset + pad + i] = (byte)value[i];
+        }
+    }
+
+    /// <summary>
+    /// Initialize all occurrences of an OCCURS field with the same VALUE.
+    /// Replicates the value into each element slot: baseOffset, baseOffset+elementSize, etc.
+    /// For non-OCCURS items (occursCount=1), behaves identically to MoveStringToField.
+    /// </summary>
+    public static void MoveStringToOccursField(
+        byte[] area, int baseOffset, int elementSize, int occursCount, string value)
+    {
+        int copyLen = Math.Min(value.Length, elementSize);
+
+        for (int occ = 0; occ < occursCount; occ++)
+        {
+            int offset = baseOffset + occ * elementSize;
+            for (int i = 0; i < elementSize; i++)
+                area[offset + i] = i < copyLen ? (byte)value[i] : (byte)' ';
+        }
+    }
+
+    /// <summary>
     /// MOVE string TO alphanumeric-edited field. Applies edit pattern:
     /// A/X = data position (takes next input character), B = space, 0 = zero, / = slash.
     /// </summary>

@@ -1725,6 +1725,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSignedNumericLiteral([NotNull] CobolParserCore.SignedNumericLiteralContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteralCore"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNumericLiteralCore([NotNull] CobolParserCore.NumericLiteralCoreContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.figurativeConstant"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

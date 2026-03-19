@@ -276,7 +276,9 @@ LOW_VALUE   : 'LOW-VALUE' | 'LOW-VALUES' ;
 QUOTE_      : 'QUOTE' | 'QUOTES' ;
 
 // ── Numeric literals (must come BEFORE IDENTIFIER) ──
-// Option A: ordering guarantees "01" → INTEGERLIT, not IDENTIFIER
+// DECIMALLIT handles DOT-based decimals in the lexer (maximal munch resolves
+// DOT-as-decimal vs DOT-as-sentence-terminator). COMMA-based decimals for
+// DECIMAL-POINT IS COMMA are handled in the parser via numericLiteralCore.
 
 DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 INTEGERLIT  : [0-9]+ ;
@@ -310,7 +312,10 @@ GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
 DOT         : '.' ;
-COMMA       : ',' -> skip ;   // §8.3.5: comma-space is equivalent to space
+// §8.3.5: comma followed by whitespace is a separator (equivalent to space).
+// Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
+COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
+COMMA       : ',' ;
 LPAREN      : '(' ;
 RPAREN      : ')' ;
 LT          : '<' ;

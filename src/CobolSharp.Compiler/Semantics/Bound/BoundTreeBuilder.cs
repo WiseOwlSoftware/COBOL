@@ -1982,29 +1982,25 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundGoToStatement? BindGoTo(CobolParserCore.GoToStatementContext ctx)
     {
-        var idContexts = ctx.identifier();
-        if (idContexts == null || idContexts.Length == 0) return null;
+        var procNames = ctx.procedureName();
+        if (procNames == null || procNames.Length == 0) return null;
 
-        // Check for DEPENDING ON — last identifier after DEPENDING is the selector
-        bool hasDepending = ctx.DEPENDING() != null;
-
-        // Target paragraphs: all identifiers except the DEPENDING ON one
-        int targetCount = hasDepending ? idContexts.Length - 1 : idContexts.Length;
         var targets = new List<ParagraphSymbol>();
 
-        for (int i = 0; i < targetCount; i++)
+        foreach (var pn in procNames)
         {
-            string name = idContexts[i].IDENTIFIER().GetText();
+            string name = pn.GetText();
             var paraSym = ResolveProcedureName(name);
             if (paraSym != null) targets.Add(paraSym);
         }
 
         if (targets.Count == 0) return null;
 
+        // DEPENDING ON identifier (optional)
         BoundIdentifierExpression? dependingOn = null;
-        if (hasDepending && idContexts.Length > targetCount)
+        if (ctx.DEPENDING() != null && ctx.identifier() != null)
         {
-            var depExpr = BindIdentifierWithSubscripts(idContexts[targetCount]);
+            var depExpr = BindIdentifierWithSubscripts(ctx.identifier());
             dependingOn = depExpr as BoundIdentifierExpression;
         }
 
@@ -2053,10 +2049,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindNumericLiteral(CobolParserCore.NumericLiteralContext numLit)
     {
-        var raw = numLit.GetText();
-        if (decimal.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture, out var val))
-            return new BoundLiteralExpression(val, CobolCategory.Numeric, originalText: raw);
-        return new BoundLiteralExpression(raw, CobolCategory.Alphanumeric);
+        var normalized = SemanticBuilder.NormalizeNumericLiteralText(numLit);
+        var originalText = numLit.GetText();
+        if (decimal.TryParse(normalized, System.Globalization.CultureInfo.InvariantCulture, out var val))
+            return new BoundLiteralExpression(val, CobolCategory.Numeric, originalText: originalText);
+        return new BoundLiteralExpression(originalText, CobolCategory.Alphanumeric);
     }
 
     private BoundExpression BindNonNumericLiteral(CobolParserCore.NonNumericLiteralContext nonNum)

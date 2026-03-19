@@ -159,16 +159,49 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Call, moveFigMethod));
             }
 
+            var moveStringToOccursMethod = _module.ImportReference(
+                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToOccursField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+
             foreach (var kvp in _semanticModel.InitialValues)
             {
                 // Skip symbols that have a figurative init — already handled above
                 if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
                     continue;
 
-                var loc = _semanticModel.GetStorageLocation(kvp.Key);
+                var data = kvp.Key;
+                var loc = _semanticModel.GetStorageLocation(data);
                 if (!loc.HasValue) continue;
 
                 var init = kvp.Value;
+
+                // Compute OCCURS-aware element size and total occurrences.
+                // For nested OCCURS where elements are contiguous across parent boundaries,
+                // flatten to a single totalOccurs covering all dimensions.
+                int directOccurs = data.OccursCount <= 0 ? 1 : data.OccursCount;
+                int totalSize = loc.Value.Length;
+                int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
+                int totalOccurs = directOccurs;
+
+                // Walk parent chain: if parent has OCCURS and child fills the entire
+                // parent occurrence (contiguous), multiply totalOccurs and adjust sizes.
+                for (var parent = data.Parent; parent != null; parent = parent.Parent)
+                {
+                    if (parent.OccursCount <= 1) continue;
+                    var parentLoc = _semanticModel.GetStorageLocation(parent);
+                    if (!parentLoc.HasValue) break;
+                    int parentPerOccurrence = parentLoc.Value.Length / parent.OccursCount;
+                    // Contiguous check: child's span fills exactly one parent occurrence
+                    if (totalOccurs * elementSize == parentPerOccurrence)
+                    {
+                        totalOccurs *= parent.OccursCount;
+                    }
+                    else
+                    {
+                        break; // Non-contiguous — stop flattening
+                    }
+                }
 
                 // Load backing array
                 il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
@@ -178,15 +211,14 @@ public sealed class CilEmitter
                             ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
                 il.Append(il.Create(OpCodes.Callvirt, getter));
 
-                // offset + size
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
-
                 if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
                 {
                     // Numeric VALUE → PicRuntime.MoveNumericLiteral
-                    // Stack already has: byte[] area, int offset, int length
-                    EmitLoadPicDescriptor(il, loc.Value.Pic);
+                    // suppressBlankWhenZero: VALUE clause stores raw digits,
+                    // BLANK WHEN ZERO only applies on MOVE/DISPLAY output.
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalSize));
+                    EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
                     EmitLoadDecimal(il, d);
                     il.Append(il.Create(OpCodes.Ldc_I4_0)); // rounding = truncate
 
@@ -200,16 +232,22 @@ public sealed class CilEmitter
                 }
                 else if (init.Value is string s)
                 {
-                    // String VALUE → MoveStringToField
+                    // String VALUE → MoveStringToOccursField (handles OCCURS replication)
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                     il.Append(il.Create(OpCodes.Ldstr, s));
-                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
                 }
                 else if (init.Value is decimal d2)
                 {
                     // Numeric VALUE on non-numeric field → treat as string
                     string numStr = d2.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                     il.Append(il.Create(OpCodes.Ldstr, numStr));
-                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
                 }
             }
         }
@@ -1057,6 +1095,18 @@ public sealed class CilEmitter
                             typeof(string), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, method));
         }
+        else if (pic.IsJustifiedRight)
+        {
+            // JUSTIFIED RIGHT alphanumeric: right-justified, left-padded/left-truncated
+            EmitLocationArgs(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToJustifiedField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
         else
         {
             // Plain alphanumeric: left-justified, space-padded
@@ -1591,7 +1641,8 @@ public sealed class CilEmitter
     /// <summary>
     /// Construct a PicDescriptor on the CIL stack.
     /// </summary>
-    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic)
+    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic,
+        bool suppressBlankWhenZero = false)
     {
         // Must match the CIL-emitted constructor parameter order in PicDescriptor
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TotalDigits));
@@ -1605,7 +1656,8 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Category));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.SignStorage));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Editing));
-        il.Append(il.Create(pic.BlankWhenZero ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        bool emitBlank = pic.BlankWhenZero && !suppressBlankWhenZero;
+        il.Append(il.Create(emitBlank ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.LeadingScaleDigits));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TrailingScaleDigits));
 

@@ -491,19 +491,28 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        int copyLen = Math.Min(srcLength, dstLength);
-
         if (dstPic.IsJustifiedRight)
         {
-            // Right-justified, left-padded with spaces
-            int pad = dstLength - copyLen;
-            for (int i = 0; i < pad; i++)
-                dstArea[dstOffset + i] = (byte)' ';
-            Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, copyLen);
+            // ISO §13.16.35: JUSTIFIED RIGHT — right-justify receiving field.
+            // When source > target: truncate from the LEFT (keep rightmost chars).
+            // When source < target: pad on the LEFT with spaces.
+            if (srcLength > dstLength)
+            {
+                int skipLeft = srcLength - dstLength;
+                Array.Copy(srcArea, srcOffset + skipLeft, dstArea, dstOffset, dstLength);
+            }
+            else
+            {
+                int pad = dstLength - srcLength;
+                for (int i = 0; i < pad; i++)
+                    dstArea[dstOffset + i] = (byte)' ';
+                Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, srcLength);
+            }
         }
         else
         {
             // Left-justified, space-padded
+            int copyLen = Math.Min(srcLength, dstLength);
             Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
             for (int i = copyLen; i < dstLength; i++)
                 dstArea[dstOffset + i] = (byte)' ';

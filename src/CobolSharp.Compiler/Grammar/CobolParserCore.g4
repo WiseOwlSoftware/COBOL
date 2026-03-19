@@ -620,7 +620,7 @@ sectionDeclaration
     ;
 
 sectionName
-    : IDENTIFIER
+    : procedureName
     ;
 
 paragraphDeclaration
@@ -628,7 +628,7 @@ paragraphDeclaration
     ;
 
 paragraphName
-    : {IsAtLineStart()}? IDENTIFIER
+    : {IsAtLineStart()}? procedureName
     ;
 
 // ==========================================
@@ -809,6 +809,7 @@ performTarget
 
 procedureName
     : IDENTIFIER
+    | INTEGERLIT
     ;
 
 performOptions
@@ -1469,7 +1470,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : GO TO? identifier (identifier)* (DEPENDING ON? identifier)?
+    : GO TO? procedureName (procedureName)* (DEPENDING ON? identifier)?
     ;
 
 // ==========================================
@@ -1764,7 +1765,18 @@ nonNumericLiteral
     ;
 
 signedNumericLiteral
-    : (PLUS | MINUS)? (INTEGERLIT | DECIMALLIT)
+    : (PLUS | MINUS)? numericLiteralCore
+    ;
+
+// Numeric literal assembly.
+// DOT-based decimals use DECIMALLIT from the lexer (maximal munch resolves
+// DOT-as-decimal vs DOT-as-sentence-terminator unambiguously).
+// COMMA-based decimals for DECIMAL-POINT IS COMMA are assembled here in the parser.
+numericLiteralCore
+    : DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
+    | INTEGERLIT COMMA INTEGERLIT          // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
+    | COMMA INTEGERLIT                     // ,45 (leading comma decimal)
+    | INTEGERLIT                           // 123 (integer)
     ;
 
 figurativeConstant

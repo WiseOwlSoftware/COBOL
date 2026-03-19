@@ -274,6 +274,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract PIC, USAGE, VALUE from clauses
         string? picString = null;
         var usage = UsageKind.Display;
+        bool hasExplicitUsage = false;
         string? typeName = null;
         string? initialValue = null;
         var body = ctx.dataDescriptionBody();
@@ -293,6 +294,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var kwText = usageClause.usageKeyword()?.GetText()
                         ?? usageClause.GetText();
                     usage = UsageMapper.FromUsageKeyword(kwText);
+                    hasExplicitUsage = true;
                 }
 
                 var redefinesClause = clause.redefinesClause();
@@ -333,7 +335,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         var numLit = litCtx.numericLiteral();
                         if (numLit != null)
                         {
-                            initialValue = numLit.GetText();
+                            initialValue = NormalizeNumericLiteralText(numLit);
                         }
                         else
                         {
@@ -434,6 +436,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
+        data.HasExplicitUsage = hasExplicitUsage;
         data.OccursCount = occursCount;
         data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
@@ -562,7 +565,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var numLit = lit.numericLiteral();
         if (numLit != null)
         {
-            var text = numLit.GetText();
+            var text = NormalizeNumericLiteralText(numLit);
             if (decimal.TryParse(text,
                 System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
                 System.Globalization.CultureInfo.InvariantCulture, out var d))
@@ -577,5 +580,30 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return text;
         }
         return lit.GetText();
+    }
+
+    /// <summary>
+    /// Normalize a numericLiteral parse tree into a string suitable for decimal.Parse
+    /// with InvariantCulture. Replaces comma decimal points with dots.
+    /// </summary>
+    internal static string NormalizeNumericLiteralText(Generated.CobolParserCore.NumericLiteralContext numLit)
+    {
+        var signed = numLit.signedNumericLiteral();
+        var core = signed.numericLiteralCore();
+        var sign = signed.MINUS() != null ? "-" : "";
+
+        // DECIMALLIT from the lexer (dot-based: 123.45 or .45)
+        if (core.DECIMALLIT() != null)
+            return sign + core.DECIMALLIT().GetText();
+
+        // COMMA-based decimals (for DECIMAL-POINT IS COMMA)
+        var integers = core.INTEGERLIT();
+        if (core.COMMA() != null && integers.Length == 2)
+            return sign + integers[0].GetText() + "." + integers[1].GetText();
+        if (core.COMMA() != null && integers.Length == 1)
+            return sign + "." + integers[0].GetText();
+
+        // Plain integer
+        return sign + integers[0].GetText();
     }
 }
