@@ -243,6 +243,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSpecialNameEntry([NotNull] CobolParserCore.SpecialNameEntryContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCurrencySignClause([NotNull] CobolParserCore.CurrencySignClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.decimalPointClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDecimalPointClause([NotNull] CobolParserCore.DecimalPointClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.genericConfigurationParagraph"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

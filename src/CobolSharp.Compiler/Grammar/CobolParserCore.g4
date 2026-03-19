@@ -219,8 +219,18 @@ specialNamesParagraph
     ;
 
 specialNameEntry
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : currencySignClause DOT?
+    | decimalPointClause DOT?
+    | IDENTIFIER (IDENTIFIER | literal)*
       DOT?
+    ;
+
+currencySignClause
+    : CURRENCY SIGN IS? literal
+    ;
+
+decimalPointClause
+    : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
 // fallback for vendor extensions

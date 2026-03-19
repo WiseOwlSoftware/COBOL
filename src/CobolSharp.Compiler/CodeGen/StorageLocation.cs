@@ -38,8 +38,10 @@ public readonly struct StorageLocation
 /// </summary>
 public static class CompilerPicDescriptorFactory
 {
-    public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength)
+    public static PicDescriptor FromDataSymbol(DataSymbol symbol, int storageLength,
+        Runtime.PicEnvironment? environment = null)
     {
+        var env = environment ?? Runtime.PicEnvironment.Default;
         var pic = symbol.ResolvedType?.Pic;
         bool isSigned = pic?.IsSigned ?? false;
         var signStorage = DetermineSignStorage(isSigned, symbol);
@@ -55,7 +57,8 @@ public static class CompilerPicDescriptorFactory
                 usage: symbol.Usage,
                 isSigned: isSigned,
                 signStorage: signStorage,
-                blankWhenZero: blankWhenZero);
+                blankWhenZero: blankWhenZero,
+                environment: env);
 
             return new PicDescriptor(
                 totalDigits: desc.TotalDigits,
@@ -73,7 +76,8 @@ public static class CompilerPicDescriptorFactory
                 leadingScaleDigits: desc.LeadingScaleDigits,
                 trailingScaleDigits: desc.TrailingScaleDigits,
                 editPattern: desc.EditPattern,
-                isJustifiedRight: symbol.IsJustifiedRight);
+                isJustifiedRight: symbol.IsJustifiedRight,
+                environment: env);
         }
 
         // Group items (no PIC): alphanumeric DISPLAY
@@ -93,7 +97,8 @@ public static class CompilerPicDescriptorFactory
             blankWhenZero: false,
             leadingScaleDigits: 0,
             trailingScaleDigits: 0,
-            editPattern: null) { IsGroup = true };
+            editPattern: null,
+            environment: env) { IsGroup = true };
     }
 
     private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)

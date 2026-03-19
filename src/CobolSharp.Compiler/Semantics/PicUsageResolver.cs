@@ -17,13 +17,14 @@ public static class PicUsageResolver
         UsageKind usage,
         DiagnosticBag diagnostics,
         int line,
-        bool blankWhenZero = false)
+        bool blankWhenZero = false,
+        PicEnvironment? environment = null)
     {
         PicLayout? layout = null;
 
         if (picString != null)
         {
-            layout = ParsePic(picString, diagnostics, line, blankWhenZero);
+            layout = ParsePic(picString, diagnostics, line, blankWhenZero, environment);
         }
 
         var category = layout?.Category ?? CobolCategory.Unknown;
@@ -55,14 +56,15 @@ public static class PicUsageResolver
     /// PicLayout is a thin view for the compiler's type system.
     /// </summary>
     private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line,
-        bool blankWhenZero = false)
+        bool blankWhenZero = false, PicEnvironment? environment = null)
     {
         var desc = Runtime.PicDescriptorFactory.FromPicBody(
             picString.Trim(),
             usage: UsageKind.Display,
             isSigned: false,               // S in the body will flip this
             signStorage: SignStorageKind.None,
-            blankWhenZero: blankWhenZero);
+            blankWhenZero: blankWhenZero,
+            environment: environment);
 
         return new PicLayout(
             category: desc.Category,

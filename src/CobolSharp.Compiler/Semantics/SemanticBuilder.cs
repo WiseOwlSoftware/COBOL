@@ -108,6 +108,43 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
     }
 
+    // ── SPECIAL-NAMES ──
+
+    private char _currencySign = '$';
+    private bool _decimalPointIsComma = false;
+
+    public char CurrencySign => _currencySign;
+    public bool DecimalPointIsComma => _decimalPointIsComma;
+
+    public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
+    {
+        foreach (var entry in ctx.specialNameEntry())
+        {
+            // CURRENCY SIGN IS "W"
+            if (entry.currencySignClause() is { } currClause)
+            {
+                var lit = currClause.literal();
+                var nonNum = lit?.nonNumericLiteral();
+                if (nonNum?.STRINGLIT() is { } slit)
+                {
+                    var text = slit.GetText();
+                    if (text.Length >= 3)
+                        _currencySign = text[1];
+                }
+            }
+
+            // DECIMAL-POINT IS COMMA
+            if (entry.decimalPointClause() is { } dpClause)
+            {
+                var word = dpClause.IDENTIFIER()?.GetText();
+                if (string.Equals(word, "COMMA", StringComparison.OrdinalIgnoreCase))
+                    _decimalPointIsComma = true;
+            }
+        }
+
+        return base.VisitSpecialNamesParagraph(ctx);
+    }
+
     // ── Data Division ──
 
     public override object? VisitWorkingStorageSection(CobolParserCore.WorkingStorageSectionContext ctx)
@@ -408,8 +445,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
+        var picEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
         data.ResolvedType = PicUsageResolver.ResolveForDataItem(
-            displayName, picString, usage, diagBag, line, blankWhenZero);
+            displayName, picString, usage, diagBag, line, blankWhenZero, picEnv);
         foreach (var d in diagBag.Diagnostics)
             _diagnostics.Add(d);
 

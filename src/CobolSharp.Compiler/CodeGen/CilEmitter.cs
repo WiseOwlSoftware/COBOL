@@ -1615,6 +1615,15 @@ public sealed class CilEmitter
 
         il.Append(il.Create(pic.IsJustifiedRight ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
+        // Emit PicEnvironment: new PicEnvironment(currencySign, decimalPointIsComma)
+        var env = pic.Environment;
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)env.CurrencySign));
+        il.Append(il.Create(env.DecimalPointIsComma ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        var envCtor = _module.ImportReference(
+            typeof(Runtime.PicEnvironment).GetConstructor(
+                new[] { typeof(char), typeof(bool) })!);
+        il.Append(il.Create(OpCodes.Newobj, envCtor));
+
         var ctor = _module.ImportReference(
             typeof(Runtime.PicDescriptor).GetConstructor(
                 new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
@@ -1622,7 +1631,7 @@ public sealed class CilEmitter
                         typeof(Runtime.CobolCategory),
                         typeof(Runtime.SignStorageKind), typeof(Runtime.EditingKind),
                         typeof(bool), typeof(int), typeof(int), typeof(string),
-                        typeof(bool) })!);
+                        typeof(bool), typeof(Runtime.PicEnvironment) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
     }
 

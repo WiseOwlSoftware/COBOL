@@ -7,6 +7,9 @@ namespace CobolSharp.Runtime;
 /// <summary>
 /// Canonical factory for creating PicDescriptor from a PIC clause string.
 /// Shared between compiler (for layout/analysis) and runtime (for tests).
+///
+/// All PIC interpretation depends on PicEnvironment, which carries the program's
+/// CURRENCY SIGN and DECIMAL-POINT IS COMMA settings.
 /// </summary>
 public static class PicDescriptorFactory
 {
@@ -19,21 +22,23 @@ public static class PicDescriptorFactory
         UsageKind usage = UsageKind.Display,
         bool isSigned = false,
         SignStorageKind signStorage = SignStorageKind.None,
-        bool blankWhenZero = false)
+        bool blankWhenZero = false,
+        PicEnvironment? environment = null)
     {
+        var env = environment ?? PicEnvironment.Default;
         var text = picBody.Trim().ToUpperInvariant();
+        char currencyChar = char.ToUpperInvariant(env.CurrencySign);
+        bool decimalPointIsComma = env.DecimalPointIsComma;
 
-        // Pre-scan: count $, +, - to distinguish fixed (single) vs floating (multiple).
-        // Fixed symbols are literal insertions, NOT digit positions.
-        // Floating symbols act as digit positions for zero suppression.
-        int dollarTotal = 0, plusTotal = 0, minusTotal = 0;
+        // Pre-scan: count currency, +, - to distinguish fixed (single) vs floating (multiple).
+        int currencyTotal = 0, plusTotal = 0, minusTotal = 0;
         foreach (char ch in text)
         {
-            if (ch == '$') dollarTotal++;
+            if (ch == currencyChar) currencyTotal++;
             else if (ch == '+') plusTotal++;
             else if (ch == '-') minusTotal++;
         }
-        bool singleDollar = dollarTotal == 1;
+        bool singleCurrency = currencyTotal == 1;
         bool singlePlus = plusTotal == 1 && minusTotal == 0;
         bool singleMinus = minusTotal == 1 && plusTotal == 0;
 
@@ -56,6 +61,29 @@ public static class PicDescriptorFactory
         while (pos < text.Length)
         {
             char c = text[pos];
+
+            // Currency character (env-dependent, not hardcoded '$')
+            if (c == currencyChar)
+            {
+                edited = true;
+                int count = ParseRepeatCount(text, ref pos);
+                hasNumericChars = true;
+                hasRealDigits = true;
+                if (singleCurrency)
+                {
+                    // Fixed currency: literal insertion, NOT a digit position
+                    insertionChars += count;
+                }
+                else
+                {
+                    // Floating currency: digit positions
+                    if (pastDecimal)
+                        fractionDigits += count;
+                    else
+                        integerDigits += count;
+                }
+                continue;
+            }
 
             switch (c)
             {
@@ -121,13 +149,39 @@ public static class PicDescriptorFactory
                 case '.':
                 {
                     edited = true;
-                    pastDecimal = true;
-                    insertionChars++;
+                    if (decimalPointIsComma)
+                    {
+                        // DECIMAL-POINT IS COMMA: '.' is thousands separator (insertion)
+                        insertionChars++;
+                    }
+                    else
+                    {
+                        // Default: '.' is decimal point
+                        pastDecimal = true;
+                        insertionChars++;
+                    }
                     pos++;
                     break;
                 }
 
                 case ',':
+                {
+                    edited = true;
+                    if (decimalPointIsComma)
+                    {
+                        // DECIMAL-POINT IS COMMA: ',' is decimal point
+                        pastDecimal = true;
+                        insertionChars++;
+                    }
+                    else
+                    {
+                        // Default: ',' is thousands separator (insertion)
+                        insertionChars++;
+                    }
+                    pos++;
+                    break;
+                }
+
                 case '/':
                 {
                     edited = true;
@@ -157,28 +211,6 @@ public static class PicDescriptorFactory
                         integerDigits += count;
                     hasNumericChars = true;
                     hasRealDigits = true;
-                    break;
-                }
-
-                case '$':
-                {
-                    edited = true;
-                    int count = ParseRepeatCount(text, ref pos);
-                    hasNumericChars = true;
-                    hasRealDigits = true;
-                    if (singleDollar)
-                    {
-                        // Fixed currency: literal insertion, NOT a digit position
-                        insertionChars += count;
-                    }
-                    else
-                    {
-                        // Floating currency: digit positions
-                        if (pastDecimal)
-                            fractionDigits += count;
-                        else
-                            integerDigits += count;
-                    }
                     break;
                 }
 
@@ -273,13 +305,13 @@ public static class PicDescriptorFactory
             isSigned,
             signStorage);
 
-        // Editing kind
+        // Editing kind — use env.CurrencySign instead of hardcoded '$'
         var editingKind = EditingKind.None;
         if (edited)
         {
             if (text.Contains("CR") || text.Contains("DB"))
                 editingKind = EditingKind.CreditDebit;
-            else if (text.Contains('$'))
+            else if (text.Contains(currencyChar))
                 editingKind = EditingKind.Currency;
             else if (text.Contains('Z') || text.Contains('*') || blankWhenZero)
                 editingKind = EditingKind.ZeroSuppress;
@@ -317,7 +349,8 @@ public static class PicDescriptorFactory
             blankWhenZero: blankWhenZero,
             leadingScaleDigits: leadingPScaling,
             trailingScaleDigits: trailingPScaling,
-            editPattern: editPattern);
+            editPattern: editPattern,
+            environment: env);
     }
 
     /// <summary>

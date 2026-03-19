@@ -56,7 +56,9 @@ public enum EditingKind
 /// <summary>
 /// Canonical descriptor for a COBOL data item's PIC semantics.
 /// Shared between compiler (for layout/analysis) and runtime (for PicRuntime).
-/// See docs/CATEGORY-RULES.md for the full category lattice.
+///
+/// Each descriptor carries its PicEnvironment so the runtime can format/interpret
+/// the field without reaching back to program-level state.
 /// </summary>
 public sealed class PicDescriptor
 {
@@ -89,6 +91,12 @@ public sealed class PicDescriptor
     // Raw PIC string for numeric-edited fields (null for non-edited)
     public string? EditPattern { get; init; }
 
+    /// <summary>
+    /// Program-level PIC formatting environment (CURRENCY SIGN, DECIMAL-POINT IS COMMA).
+    /// Every descriptor is self-contained: runtime formatting reads this, never SemanticModel.
+    /// </summary>
+    public PicEnvironment Environment { get; init; } = PicEnvironment.Default;
+
     public PicDescriptor() { }
 
     /// <summary>
@@ -102,7 +110,8 @@ public sealed class PicDescriptor
         SignStorageKind signStorage, EditingKind editing, bool blankWhenZero,
         int leadingScaleDigits, int trailingScaleDigits,
         string? editPattern = null,
-        bool isJustifiedRight = false)
+        bool isJustifiedRight = false,
+        PicEnvironment? environment = null)
     {
         TotalDigits = totalDigits;
         FractionDigits = fractionDigits;
@@ -120,6 +129,7 @@ public sealed class PicDescriptor
         TrailingScaleDigits = trailingScaleDigits;
         EditPattern = editPattern;
         IsJustifiedRight = isJustifiedRight;
+        Environment = environment ?? PicEnvironment.Default;
     }
 }
 

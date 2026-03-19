@@ -91,6 +91,9 @@ public sealed class Compilation
             semanticBuilder.Symbols,
             diagnostics);
 
+        // Wire SPECIAL-NAMES PIC environment into semantic model
+        semanticModel.SetPicEnvironment(semanticBuilder.CurrencySign, semanticBuilder.DecimalPointIsComma);
+
         // Populate paragraphs, sections, and data records from symbol table
         foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)
         {
@@ -277,7 +280,7 @@ public sealed class Compilation
             {
                 // REDEFINES shares the target's offset and area, but uses its own PIC
                 int size = item.IsElementary ? ComputeFieldSize(item) : targetLoc.Value.Length;
-                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, size, model.PicEnvironment);
                 var loc = new CodeGen.StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic);
                 model.RegisterStorageLocation(item, loc);
                 RegisterValue(model, item);
@@ -301,7 +304,7 @@ public sealed class Compilation
             int elementSize = ComputeFieldSize(item);
             item.ElementSize = elementSize;
             int totalSize = elementSize * item.OccursCount;
-            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize);
+            var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize, model.PicEnvironment);
             var loc = new CodeGen.StorageLocation(area, offset, totalSize, pic);
             model.RegisterStorageLocation(item, loc);
             RegisterValue(model, item);
@@ -324,14 +327,14 @@ public sealed class Compilation
                 int groupSize = childrenSize * item.OccursCount;
                 if (item.OccursCount > 1)
                     offset = groupStart + groupSize; // Advance past all occurrences
-                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize, model.PicEnvironment);
                 var loc = new CodeGen.StorageLocation(area, groupStart, groupSize, pic);
                 model.RegisterStorageLocation(item, loc);
             }
             else
             {
                 // Empty group (no children found) — allocate minimum
-                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, 1);
+                var pic = CodeGen.CompilerPicDescriptorFactory.FromDataSymbol(item, 1, model.PicEnvironment);
                 var loc = new CodeGen.StorageLocation(area, offset, 1, pic);
                 model.RegisterStorageLocation(item, loc);
                 offset += 1;

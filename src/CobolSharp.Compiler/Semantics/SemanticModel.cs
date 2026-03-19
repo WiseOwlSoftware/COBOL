@@ -17,6 +17,15 @@ public sealed class SemanticModel
     public SymbolTable Symbols { get; }
     public DiagnosticBag Diagnostics { get; }
 
+    /// <summary>
+    /// Program-level PIC formatting environment (CURRENCY SIGN, DECIMAL-POINT IS COMMA).
+    /// Set from SPECIAL-NAMES during semantic analysis. Default: '$', period as decimal.
+    /// </summary>
+    public Runtime.PicEnvironment PicEnvironment { get; private set; } = Runtime.PicEnvironment.Default;
+
+    public void SetPicEnvironment(char currencySign, bool decimalPointIsComma)
+        => PicEnvironment = new Runtime.PicEnvironment(currencySign, decimalPointIsComma);
+
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
     private IReadOnlyList<DataSymbol> _dataItemsInOrder = Array.Empty<DataSymbol>();

@@ -118,9 +118,10 @@ public static class PicRuntime
         }
         pos += intFieldWidth;
 
-        // Decimal point
+        // Decimal point (respects DECIMAL-POINT IS COMMA)
+        char decimalChar = pic.Environment.DecimalPointIsComma ? ',' : '.';
         if (hasDecimalPoint && pos < chars.Length)
-            chars[pos++] = '.';
+            chars[pos++] = decimalChar;
 
         // Fraction digits
         for (int i = 0; i < fracPart.Length && pos + i < chars.Length; i++)
@@ -142,10 +143,10 @@ public static class PicRuntime
             }
 
             case EditingKind.Currency:
-                // Place $ before first non-space digit
+                // Place currency symbol before first non-space digit
                 for (int i = 0; i < chars.Length; i++)
                 {
-                    if (chars[i] != ' ') { chars[i] = '$'; break; }
+                    if (chars[i] != ' ') { chars[i] = pic.Environment.CurrencySign; break; }
                 }
                 break;
 
@@ -171,22 +172,23 @@ public static class PicRuntime
         string pattern = pic.EditPattern!;
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
+        var env = pic.Environment;
+        char currencyChar = char.ToUpperInvariant(env.CurrencySign);
+        bool decimalPointIsComma = env.DecimalPointIsComma;
 
         // Pre-scan: count sign and currency symbols to distinguish fixed vs floating.
-        // Fixed (single occurrence) = literal insertion, NOT a digit position.
-        // Floating (multiple occurrences) = digit positions that get suppressed/replaced.
-        int plusCount = 0, minusCount = 0, dollarPrescan = 0;
+        int plusCount = 0, minusCount = 0, currencyPrescan = 0;
         for (int i = 0; i < pattern.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
             if (p == '+') plusCount++;
             else if (p == '-') minusCount++;
-            else if (p == '$') dollarPrescan++;
+            else if (p == currencyChar) currencyPrescan++;
         }
 
         bool isFixedMinus = (minusCount == 1 && plusCount == 0);
         bool isFixedPlus = (plusCount == 1 && minusCount == 0);
-        bool isFixedDollar = (dollarPrescan == 1);
+        bool isFixedCurrency = (currencyPrescan == 1);
 
         // Count TRUE digit positions: 9, Z, *, plus floating $, +, -.
         // Fixed $, +, - are NOT digit positions.
@@ -195,7 +197,7 @@ public static class PicRuntime
         {
             char p = char.ToUpperInvariant(pattern[i]);
             if (p == '9' || p == 'Z' || p == '*') trueDigitCount++;
-            else if (p == '$' && !isFixedDollar) trueDigitCount++;
+            else if (p == currencyChar && !isFixedCurrency) trueDigitCount++;
             else if (p == '+' && !isFixedPlus) trueDigitCount++;
             else if (p == '-' && !isFixedMinus) trueDigitCount++;
         }
@@ -217,6 +219,17 @@ public static class PicRuntime
         for (int i = pattern.Length - 1; i >= 0; i--)
         {
             char p = char.ToUpperInvariant(pattern[i]);
+
+            // Currency character (env-dependent, checked before switch)
+            if (p == currencyChar)
+            {
+                if (isFixedCurrency)
+                    output[i] = env.CurrencySign;
+                else
+                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                continue;
+            }
+
             switch (p)
             {
                 case '9':
@@ -224,19 +237,6 @@ public static class PicRuntime
                 case '*':
                     // Always a digit position
                     output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
-                    break;
-
-                case '$':
-                    if (isFixedDollar)
-                    {
-                        // Fixed currency: literal insertion, NOT a digit slot
-                        output[i] = '$';
-                    }
-                    else
-                    {
-                        // Floating currency: acts as digit position
-                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
-                    }
                     break;
 
                 case '+':
@@ -266,11 +266,13 @@ public static class PicRuntime
                     break;
 
                 case '.':
-                    output[i] = '.';
+                    // DECIMAL-POINT IS COMMA: '.' in pattern → thousands separator
+                    output[i] = decimalPointIsComma ? '.' : '.';
                     break;
 
                 case ',':
-                    output[i] = ',';
+                    // DECIMAL-POINT IS COMMA: ',' in pattern → decimal point
+                    output[i] = decimalPointIsComma ? ',' : ',';
                     break;
 
                 case 'B':
@@ -347,9 +349,13 @@ public static class PicRuntime
                     else suppressing = false;
                     break;
 
-                case '$':
-                    if (output[i] == '0') output[i] = ' ';
-                    else suppressing = false;
+                default:
+                    // Currency char in suppression zone
+                    if (p == currencyChar)
+                    {
+                        if (output[i] == '0') output[i] = ' ';
+                        else suppressing = false;
+                    }
                     break;
 
                 case ',':
@@ -362,9 +368,6 @@ public static class PicRuntime
 
                 case '.':
                     suppressing = false;
-                    break;
-
-                default:
                     break;
             }
         }
@@ -388,12 +391,12 @@ public static class PicRuntime
                 output[signPos] = negative ? '-' : ' ';
         }
 
-        // Handle floating $: place '$' at rightmost suppressed position in floating zone.
-        if (dollarPrescan > 1)
+        // Handle floating currency: place symbol at rightmost suppressed position.
+        if (currencyPrescan > 1)
         {
-            int dollarPos = FindFloatingPlacement(pattern, output, '$');
-            if (dollarPos >= 0)
-                output[dollarPos] = '$';
+            int currencyPos = FindFloatingPlacement(pattern, output, currencyChar);
+            if (currencyPos >= 0)
+                output[currencyPos] = env.CurrencySign;
         }
 
         return new string(output);
