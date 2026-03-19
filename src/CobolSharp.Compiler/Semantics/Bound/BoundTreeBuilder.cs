@@ -846,7 +846,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             if (sourceCtx.DATE() != null) sourceKind = AcceptSourceKind.Date;
             else if (sourceCtx.TIME() != null) sourceKind = AcceptSourceKind.Time;
-            else if (sourceCtx.DAY_OF_WEEK() != null) sourceKind = AcceptSourceKind.DayOfWeek;
+            else if (sourceCtx.DAY_OF_WEEK() != null) sourceKind = Runtime.AcceptSourceKind.DayOfWeek;
             else if (sourceCtx.DAY() != null) sourceKind = AcceptSourceKind.Day;
         }
 
@@ -1031,10 +1031,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (nonNum != null)
         {
             string raw = nonNum.GetText();
-            if (raw.StartsWith("\"") && raw.EndsWith("\""))
-                return raw.Substring(1, raw.Length - 2);
-            if (raw.StartsWith("'") && raw.EndsWith("'"))
-                return raw.Substring(1, raw.Length - 2);
+            if (raw.StartsWith('"') && raw.EndsWith('"'))
+                return raw[1..^1];
+            if (raw.StartsWith('\'') && raw.EndsWith('\''))
+                return raw[1..^1];
             return raw;
         }
         return lit.GetText();
@@ -2094,27 +2094,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                         var hexBody = raw[2..^1];
                         var sb = new System.Text.StringBuilder();
                         for (int i = 0; i + 1 < hexBody.Length; i += 2)
-                            sb.Append((char)Convert.ToByte(hexBody.Substring(i, 2), 16));
+                            sb.Append((char)Convert.ToByte(hexBody[i..(i + 2)], 16));
                         allText = sb.ToString();
                     }
                 }
                 return new BoundFigurativeExpression(
-                    (int)FigurativeKind.None, allText ?? "");
+                    FigurativeKind.None, allText ?? "");
             }
 
             string figText = figCtx.GetText().ToUpperInvariant();
             return figText switch
             {
                 "SPACE" or "SPACES" =>
-                    new BoundFigurativeExpression((int)FigurativeKind.Space),
+                    new BoundFigurativeExpression(FigurativeKind.Space),
                 "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundFigurativeExpression((int)FigurativeKind.Zero),
+                    new BoundFigurativeExpression(FigurativeKind.Zero),
                 "HIGH-VALUE" or "HIGH-VALUES" =>
-                    new BoundFigurativeExpression((int)FigurativeKind.HighValue),
+                    new BoundFigurativeExpression(FigurativeKind.HighValue),
                 "LOW-VALUE" or "LOW-VALUES" =>
-                    new BoundFigurativeExpression((int)FigurativeKind.LowValue),
+                    new BoundFigurativeExpression(FigurativeKind.LowValue),
                 "QUOTE" or "QUOTES" =>
-                    new BoundFigurativeExpression((int)FigurativeKind.Quote),
+                    new BoundFigurativeExpression(FigurativeKind.Quote),
                 _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
             };
         }

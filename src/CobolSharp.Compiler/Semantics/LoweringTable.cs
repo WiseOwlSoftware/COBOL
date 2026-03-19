@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Frozen;
 using System.Reflection;
 using CobolSharp.Runtime;
 
@@ -126,6 +127,10 @@ public static class LoweringTable
         return null;
     }
 
-    private static MethodInfo Get(string name)
-        => typeof(PicRuntime).GetMethod(name, BindingFlags.Public | BindingFlags.Static)!;
+    private static readonly FrozenDictionary<string, MethodInfo> MethodCache =
+        typeof(PicRuntime)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .ToFrozenDictionary(m => m.Name);
+
+    private static MethodInfo Get(string name) => MethodCache[name];
 }

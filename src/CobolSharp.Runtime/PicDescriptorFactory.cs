@@ -370,7 +370,7 @@ public static class PicDescriptorFactory
                 while (end < pic.Length && char.IsDigit(pic[end])) end++;
                 if (end < pic.Length && pic[end] == ')' && end > start)
                 {
-                    int count = int.Parse(pic.Substring(start, end - start));
+                    int count = int.Parse(pic[start..end]);
                     for (int k = 0; k < count; k++)
                         sb.Append(c);
                     i = end;
@@ -402,7 +402,7 @@ public static class PicDescriptorFactory
         if (pos >= text.Length || text[pos] != ')')
             return 1;
 
-        var numText = text.Substring(start, pos - start);
+        var numText = text[start..pos];
         pos++; // skip ')'
 
         return int.TryParse(numText, out var n) && n > 0 ? n : 1;

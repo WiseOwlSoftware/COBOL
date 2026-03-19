@@ -3,6 +3,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
+using CobolSharp.Compiler.Semantics;
 using CobolSharp.Runtime;
 
 namespace CobolSharp.Compiler.CodeGen;
@@ -154,7 +155,7 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
                 EmitLoadPicDescriptor(il, loc.Value.Pic);
-                il.Append(il.Create(OpCodes.Ldc_I4, kvp.Value));
+                il.Append(il.Create(OpCodes.Ldc_I4, (int)kvp.Value));
                 il.Append(il.Create(OpCodes.Call, moveFigMethod));
             }
 
@@ -448,10 +449,10 @@ public sealed class CilEmitter
             case IrLoadSizeError lse:
             {
                 var statusLocal = EnsureArithmeticStatusLocal(_currentMethodDef!);
-                il.Append(il.Create(OpCodes.Ldloc, statusLocal));
-                var sizeErrorField = _module.ImportReference(
-                    typeof(ArithmeticStatus).GetField("SizeError")!);
-                il.Append(il.Create(OpCodes.Ldfld, sizeErrorField));
+                il.Append(il.Create(OpCodes.Ldloca, statusLocal));
+                var sizeErrorGetter = _module.ImportReference(
+                    typeof(ArithmeticStatus).GetProperty("SizeError")!.GetGetMethod()!);
+                il.Append(il.Create(OpCodes.Call, sizeErrorGetter));
                 if (lse.Result.HasValue)
                 {
                     var local = getLocal(lse.Result.Value);
@@ -1094,7 +1095,7 @@ public sealed class CilEmitter
     private void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
         EmitLocationArgsWithPic(il, mf.Destination);
-        il.Append(il.Create(OpCodes.Ldc_I4, mf.FigurativeKind));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)mf.FigurativeKind));
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod(
@@ -1324,7 +1325,7 @@ public sealed class CilEmitter
 
         var method = _module.ImportReference(
             typeof(Runtime.AcceptRuntime).GetMethod("Accept",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.AcceptSourceKind) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

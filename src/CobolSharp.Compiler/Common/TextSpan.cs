@@ -5,29 +5,22 @@ namespace CobolSharp.Compiler.Common;
 /// <summary>
 /// A contiguous region in source text, defined by start position and length.
 /// </summary>
-public readonly struct TextSpan : IEquatable<TextSpan>
+/// <param name="Start">Zero-based absolute character offset of the span's first character.</param>
+/// <param name="Length">Number of characters in the span.</param>
+public readonly record struct TextSpan(int Start, int Length)
 {
-    public int Start { get; }
-    public int Length { get; }
+    /// <summary>Exclusive end position (Start + Length).</summary>
     public int End => Start + Length;
 
-    public TextSpan(int start, int length)
-    {
-        Start = start;
-        Length = length;
-    }
-
+    /// <summary>Creates a span from inclusive start and exclusive end positions.</summary>
     public static TextSpan FromBounds(int start, int end) => new(start, end - start);
 
+    /// <summary>Tests whether a zero-based position falls within this span (exclusive of <see cref="End"/>).</summary>
     public bool Contains(int position) => position >= Start && position < End;
+
+    /// <summary>Tests whether this span and <paramref name="other"/> share at least one position.</summary>
     public bool OverlapsWith(TextSpan other) => Start < other.End && other.Start < End;
 
+    /// <summary>Formats as a half-open interval, e.g. "[0..5)".</summary>
     public override string ToString() => $"[{Start}..{End})";
-
-    public bool Equals(TextSpan other) => Start == other.Start && Length == other.Length;
-    public override bool Equals(object? obj) => obj is TextSpan other && Equals(other);
-    public override int GetHashCode() => HashCode.Combine(Start, Length);
-
-    public static bool operator ==(TextSpan left, TextSpan right) => left.Equals(right);
-    public static bool operator !=(TextSpan left, TextSpan right) => !left.Equals(right);
 }

@@ -83,10 +83,10 @@ public sealed class BoundLiteralExpression : BoundExpression
 /// </summary>
 public sealed class BoundFigurativeExpression : BoundExpression
 {
-    public int FigurativeKind { get; }   // Runtime.FigurativeKind enum value
+    public Runtime.FigurativeKind FigurativeKind { get; }
     public string? AllLiteral { get; }   // non-null for ALL "X"
 
-    public BoundFigurativeExpression(int figurativeKind, string? allLiteral = null)
+    public BoundFigurativeExpression(Runtime.FigurativeKind figurativeKind, string? allLiteral = null)
         : base(CobolCategory.Alphanumeric)
     {
         FigurativeKind = figurativeKind;
@@ -518,15 +518,6 @@ public sealed class BoundSetIndexStatement : BoundStatement
 }
 
 // ── ACCEPT ──
-
-public enum AcceptSourceKind
-{
-    None,
-    Date,
-    Time,
-    Day,
-    DayOfWeek
-}
 
 public sealed class BoundAcceptStatement : BoundStatement
 {

@@ -1327,7 +1327,7 @@ public sealed class Binder
         }
         else
         {
-            block.Instructions.Add(new IrMoveFigurative(loc, (int)FigurativeKind.Space));
+            block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Space));
         }
     }
 
@@ -1452,7 +1452,7 @@ public sealed class Binder
             }
             else
             {
-                block.Instructions.Add(new IrMoveFigurative(parentLoc, (int)FigurativeKind.Space));
+                block.Instructions.Add(new IrMoveFigurative(parentLoc, FigurativeKind.Space));
             }
         }
     }

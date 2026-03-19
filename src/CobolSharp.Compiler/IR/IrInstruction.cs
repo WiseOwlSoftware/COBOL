@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolSharp.Runtime;
+
 namespace CobolSharp.Compiler.IR;
 
 /// <summary>
@@ -16,19 +18,7 @@ public abstract class IrInstruction
 /// A compiler-generated temporary variable. Not addressable from COBOL.
 /// Scoped to the containing method. Lowered to a CIL local by the emitter.
 /// </summary>
-public sealed class IrTemp
-{
-    public string Name { get; }
-    public IrPrimitiveType Type { get; }
-    public int Id { get; }
-
-    public IrTemp(string name, IrPrimitiveType type, int id)
-    {
-        Name = name;
-        Type = type;
-        Id = id;
-    }
-}
+public sealed record IrTemp(string Name, IrPrimitiveType Type, int Id);
 
 /// <summary>
 /// Inline PERFORM N TIMES: execute BodyStatements exactly CountExpression times.
@@ -342,9 +332,9 @@ public sealed class IrMoveStringToField : IrInstruction
 public sealed class IrMoveFigurative : IrInstruction
 {
     public IrLocation Destination { get; }
-    public int FigurativeKind { get; }  // cast to Runtime.FigurativeKind enum at runtime
+    public FigurativeKind FigurativeKind { get; }
 
-    public IrMoveFigurative(IrLocation dest, int figurativeKind)
+    public IrMoveFigurative(IrLocation dest, FigurativeKind figurativeKind)
     {
         Destination = dest;
         FigurativeKind = figurativeKind;
@@ -599,9 +589,9 @@ public sealed class IrGoToDepending : IrInstruction
 public sealed class IrAccept : IrInstruction
 {
     public IrLocation Target { get; }
-    public Semantics.Bound.AcceptSourceKind Source { get; }
+    public AcceptSourceKind Source { get; }
 
-    public IrAccept(IrLocation target, Semantics.Bound.AcceptSourceKind source)
+    public IrAccept(IrLocation target, AcceptSourceKind source)
     {
         Target = target;
         Source = source;

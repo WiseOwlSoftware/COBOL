@@ -1,0 +1,383 @@
+# COBOL-80 Compiler Modernization -- Migration Ledger
+
+## Project metadata
+- Current target framework: net9.0
+- Current C# language version/features: C# 13, nullable reference types enabled, implicit usings
+- Last updated: 2026-03-18
+- Current phase: Phase 9 -- Final consolidation and cleanup
+- Overall status: Green -- All 9 phases + documentation complete, all tests passing
+
+## Phase overview
+- Phase 1 -- Project and build modernization: Complete
+- Phase 2 -- Lexer and tokenization: Complete
+- Phase 3 -- Parser and grammar: Complete
+- Phase 4 -- Semantic model and symbol tables: Complete
+- Phase 5 -- IR and lowering: Complete
+- Phase 6 -- Code generation and runtime: Complete
+- Phase 7 -- Numeric, PIC, and editing subsystems: Complete
+- Phase 8 -- Diagnostics, logging, and tooling: Complete
+- Phase 9 -- Final consolidation and cleanup: Complete
+
+## Session log
+
+### Session 2026-03-18 -- Phase 1: .NET 9 migration and build modernization
+- Phase focus: Phase 1 -- Project and build modernization
+- Files/modules touched:
+  - Directory.Build.props -- net8.0 -> net9.0, LangVersion 12 -> 13
+  - global.json -- Created; pins SDK 9.0.312, rollForward latestPatch
+  - Directory.Packages.props -- Created; central package management for all 5 NuGet refs
+  - CobolSharp.Compiler.csproj -- Removed Version attributes from PackageReferences
+  - CobolSharp.Tests.Unit.csproj -- Removed Version attributes from PackageReferences
+  - CobolSharp.Tests.Integration.csproj -- Removed Version attributes from PackageReferences
+  - Compilation.cs -- Dynamic runtime version in EmitRuntimeConfig
+  - CONSTRAINTS.md -- Created; anti-pattern catalog, migration phases, session rituals
+  - PROMPT.md -- Added section 8 referencing CONSTRAINTS.md and MIGRATION_LEDGER.md
+- Anti-patterns addressed:
+  - [MagicValues] Hardcoded "net8.0" and "8.0.0" in Compilation.EmitRuntimeConfig (line 166-169)
+    -- replaced with Environment.Version-derived values
+- Refactors and improvements:
+  - Central package management eliminates version duplication across 4 .csproj files
+  - global.json pins SDK version for reproducible builds
+  - Runtime config generation now adapts to whatever .NET version the compiler runs on
+- Tests run:
+  - Baseline (net8.0): 272 passed, 1 skipped, 0 failed
+  - After migration (net9.0): 272 passed, 1 skipped, 0 failed
+- Regressions found:
+  - Initial net9.0 run: 153 integration test failures due to hardcoded net8.0 runtimeconfig
+  - Root cause: Compilation.EmitRuntimeConfig wrote "net8.0" / "8.0.0" unconditionally
+  - Fix: Use Environment.Version to derive tfm and framework version dynamically
+  - After fix: all tests pass, regression eliminated
+- Decisions and rationale:
+  - Environment.Version for runtimeconfig: simplest correct approach; no build-time constants needed
+  - Central package management: single source of truth for dependency versions
+  - global.json rollForward=latestPatch: stable patch updates without breaking changes
+- Open TODOs:
+  - Begin Phase 3: Parser and grammar audit
+  - Continue C# 13 adoption in remaining source files
+  - Consider updating NuGet packages to latest compatible versions
+
+### Session 2026-03-18 -- Phase 2: Lexer, tokenization, and preprocessor modernization
+- Phase focus: Phase 2 -- Lexer and tokenization
+- Files/modules touched:
+  - Common/TextSpan.cs -- Converted from manual struct to record struct (33 -> 17 lines)
+  - Diagnostics/Diagnostic.cs -- Converted from sealed class to sealed record (42 -> 27 lines)
+  - Diagnostics/DiagnosticBag.cs -- Collection expression, List.Exists over LINQ .Any()
+  - CompilationResult.cs -- Extracted from Compilation.cs, converted to sealed record (13 lines)
+  - Parsing/CobolErrorListener.cs -- Extracted from Compilation.cs, primary constructor
+  - Preprocessor/ReferenceFormatProcessor.cs -- Named constants for all magic column numbers
+  - Preprocessor/CopyProcessor.cs -- Primary constructor, named constants, collection expression
+  - Common/SourceText.cs -- Range slicing, pattern matching
+  - Compilation.cs -- FrozenSet for suspicious paragraph names, collection expression, removed extracted types
+- Anti-patterns addressed:
+  - [GodObject] Compilation.cs contained CobolErrorListener and CompilationResult (extracted to own files)
+  - [PrimitiveObsession] TextSpan: manual struct boilerplate -> record struct
+  - [PrimitiveObsession] CompilationResult: manual class -> sealed record
+  - [Duplication] Diagnostic: manual class boilerplate -> sealed record
+  - [MagicValues] ReferenceFormatProcessor: raw 6/7/65/60 -> named constants (SequenceAreaLength, IndicatorColumn, SourceAreaStart, SourceAreaWidth, FixedFormThresholdPercent)
+  - [MagicValues] CopyProcessor: raw 20 -> MaxCopyDepth constant
+  - [HotAlloc] Compilation.ValidateParagraphs: per-call HashSet -> static FrozenSet
+  - [HotAlloc] DiagnosticBag.HasErrors: LINQ .Any() -> List.Exists() (avoids enumerator alloc)
+- Refactors and improvements:
+  - Primary constructors on CopyProcessor, CobolErrorListener (C# 12+)
+  - Collection expressions ([]) replacing new List<>() and Array.Empty<>()
+  - Pattern matching (is 'x' or 'y') replacing multi-condition checks
+  - Extracted HandleContinuation method from ConvertFixedToFree for clarity
+  - Consolidated FindCopyStatement and FindReplaceStatement into generic FindKeywordAtLineStart
+- Tests run:
+  - After all changes: 272 passed, 1 skipped, 0 failed (net9.0)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - SourceLocation NOT converted to record struct: has intentionally partial equality (FileName+Position only), record struct would include Line+Column
+  - TextSpan safe for record struct: End is computed property (not included in record equality), so equality remains Start+Length only
+  - CopyProcessor extensions array made static readonly: shared across all instances, never changes
+- Open TODOs:
+  - Begin Phase 4: Semantic model and symbol tables audit
+
+### Session 2026-03-18 -- Phase 3: Parser pipeline and type modernization
+- Phase focus: Phase 3 -- Parser and grammar
+- Files/modules touched:
+  - Compilation.cs -- Rewritten as thin pipeline orchestrator (425 -> 195 lines, -54%)
+  - Semantics/StorageLayoutComputer.cs -- Extracted from Compilation.cs (new file, 157 lines)
+  - Semantics/ParagraphValidator.cs -- Extracted from Compilation.cs (new file, 36 lines)
+  - Semantics/FieldSizeCalculator.cs -- New shared field size computation (eliminates duplication)
+  - CodeGen/StorageLocation.cs -- StorageLocation struct -> record struct
+  - CodeGen/RecordLayoutBuilder.cs -- RecordLayout -> record; uses shared FieldSizeCalculator
+  - Semantics/TypeSystem.cs -- PicLayout -> sealed record, DataTypeSymbol -> sealed record
+  - Semantics/PicUsageResolver.cs -- Updated PicLayout construction for record parameters
+- Anti-patterns addressed:
+  - [GodObject] Compilation.cs contained storage layout (4 methods, ~170 lines), paragraph validation, and value registration -- extracted into 3 focused classes
+  - [Duplication] ComputeFieldSize (Compilation) and ComputeStorageSize (RecordLayoutBuilder) were near-identical -- consolidated into FieldSizeCalculator.ComputeElementSize
+  - [PrimitiveObsession] StorageLocation manual struct -> record struct (32 -> 7 lines)
+  - [PrimitiveObsession] RecordLayout manual class -> record (10 -> 4 lines)
+  - [PrimitiveObsession] PicLayout manual class -> sealed record (33 -> 10 lines)
+  - [PrimitiveObsession] DataTypeSymbol manual class -> sealed record (29 -> 10 lines)
+- Refactors and improvements:
+  - Compilation.Compile now has clear phases: Preprocess -> LexAndParse -> BuildSemanticModel -> Validate -> Bind -> Emit
+  - Each phase is a separate private method, making the pipeline visible at a glance
+  - FieldSizeCalculator is the single source of truth for COBOL storage size computation
+  - ExtractProgramId simplified from 8 null checks to 4 using null-conditional chaining
+- Tests run:
+  - Unit tests: 119 passed (net9.0)
+  - Integration tests: 153 passed, 1 skipped (net9.0)
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - guard.sh updated: net8.0 -> net9.0 runtime path, test count 145 -> 153
+  - StorageLayoutComputer placed in Semantics/ (not CodeGen/) because it populates SemanticModel, not IR
+  - FieldSizeCalculator is also in Semantics/ as it operates on DataSymbol (semantic layer)
+  - PicLayout as record: all fields are read-only and value-semantic, perfect fit
+  - DataTypeSymbol as record: implements ITypeSymbol interface, so uses record class (not struct)
+- Open TODOs:
+  - Begin Phase 5: IR and lowering audit
+
+### Session 2026-03-18 -- Phase 4: Semantic model and symbol tables
+- Phase focus: Phase 4 -- Semantic model and symbol tables
+- Files/modules touched:
+  - Semantics/StorageAreaKind.cs -- New file; moved enum from CodeGen to Semantics
+  - Semantics/DataSymbol.cs -- Removed CodeGen dependency; FigurativeInit int? -> FigurativeKind?; collection expression
+  - Semantics/SemanticModel.cs -- FigurativeInitValues int -> FigurativeKind; collection expressions throughout
+  - Semantics/SemanticBuilder.cs -- FigurativeKind typed; removed (int) casts
+  - Semantics/CategoryCompatibility.cs -- HashSets -> FrozenSet; simplified arithmetic predicates to direct checks
+  - Semantics/LoweringTable.cs -- Cached reflection in FrozenDictionary (per-call GetMethod -> one-time cache)
+  - Semantics/StorageLayoutComputer.cs -- FigurativeKind typed
+  - CodeGen/StorageLocation.cs -- Removed StorageAreaKind enum (moved to Semantics)
+  - CodeGen/CilEmitter.cs -- Added Semantics using; cast FigurativeKind to int for CIL
+  - scripts/guard.sh -- net8.0 -> net9.0 runtime path
+- Anti-patterns addressed:
+  - [LayerViolation] DataSymbol imported CodeGen.StorageAreaKind -- moved enum to Semantics where it belongs
+  - [PrimitiveObsession] FigurativeInit was int? with comment "FigurativeKind enum value" -- now FigurativeKind?
+  - [HotAlloc] CategoryCompatibility used HashSet for static sets -- now FrozenSet
+  - [HotAlloc] LoweringTable.Get() called GetMethod via reflection on every invocation -- cached in FrozenDictionary
+  - [HotAlloc] CategoryCompatibility.IsArithmeticOperand/Result used HashSet.Contains for single-value check -- replaced with direct == and is pattern
+- Refactors and improvements:
+  - Collection expressions [] replacing new() throughout SemanticModel, DataSymbol
+  - Semantic layer is now self-contained -- no upward dependencies on CodeGen
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - StorageAreaKind in Semantics: it describes where a data item lives (semantic concept), not how it's emitted
+  - FigurativeKind as proper enum: eliminates int-boxing and makes the domain explicit; CIL emitter casts to int at the boundary
+  - FrozenDictionary for LoweringTable: reflection results never change, so cache once at static init
+- Open TODOs:
+  - Begin Phase 6: Code generation and runtime audit
+
+### Session 2026-03-18 -- Phase 5: IR and lowering modernization
+- Phase focus: Phase 5 -- IR and lowering
+- Files/modules touched:
+  - IR/IrType.cs -- IrType/IrRecordType primary constructors; IrField -> sealed record; collection expressions
+  - IR/IrModule.cs -- IrModule primary constructor; IrGlobal -> sealed record; collection expressions
+  - IR/IrMethod.cs -- IrMethod/IrBasicBlock primary constructors; IrParameter/IrLocal -> sealed records; IrValue -> record struct; collection expressions
+  - IR/IrInstruction.cs -- IrTemp -> sealed record; IrMoveFigurative.FigurativeKind int -> FigurativeKind enum
+  - Semantics/Bound/BoundNodes.cs -- BoundFigurativeExpression.FigurativeKind int -> FigurativeKind enum
+  - Semantics/Bound/BoundTreeBuilder.cs -- Removed (int) casts for FigurativeKind construction
+  - CodeGen/Binder.cs -- Removed (int) casts for FigurativeKind.Space
+  - CodeGen/CilEmitter.cs -- Added (int) cast at CIL emission boundary for FigurativeKind
+- Anti-patterns addressed:
+  - [PrimitiveObsession] IrField, IrGlobal, IrParameter, IrLocal, IrTemp: manual classes -> sealed records
+  - [PrimitiveObsession] IrValue: manual struct -> record struct (eliminated IEquatable boilerplate)
+  - [PrimitiveObsession] IrMoveFigurative.FigurativeKind: int with comment -> proper FigurativeKind enum
+  - [PrimitiveObsession] BoundFigurativeExpression.FigurativeKind: int with comment -> proper FigurativeKind enum (traced through entire pipeline: BoundTreeBuilder -> Binder -> IR -> CilEmitter)
+- Refactors and improvements:
+  - Primary constructors on IrType, IrRecordType, IrModule, IrMethod, IrBasicBlock
+  - Collection expressions [] replacing new() in all IR container types
+  - FigurativeKind enum now flows type-safely from BoundTreeBuilder through Binder and IR, with (int) cast only at the CIL emission boundary
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - IR instruction classes left as classes (not records): they use abstract base with mutable Result property; converting all ~40 subclasses to records would be a massive change with unclear benefit
+  - FigurativeKind cast at CIL boundary: CIL opcodes need int, so the cast is at the right layer (codegen, not semantic)
+- Open TODOs:
+  - Begin Phase 7: Numeric, PIC, and editing subsystems audit
+
+### Session 2026-03-18 -- Phase 6: Code generation and runtime
+- Phase focus: Phase 6 -- Code generation and runtime
+- Files/modules touched:
+  - Runtime/PicEnvironment.cs -- Manual class -> sealed record (29 -> 15 lines)
+  - CodeGen/RecordLayoutBuilder.cs -- Removed trivial GetOccursCount wrapper; direct property access
+  - Semantics/ProgramSymbol.cs -- Collection expression for ConditionSymbol._ranges
+  - Semantics/SemanticBuilder.cs -- Collection expressions throughout (4 occurrences)
+- Anti-patterns addressed:
+  - [PrimitiveObsession] PicEnvironment: manual class with constructor -> sealed record
+  - [Duplication] RecordLayoutBuilder.GetOccursCount: trivial 3-line wrapper for s.OccursCount -> inlined
+- Refactors and improvements:
+  - Collection expressions [] throughout SemanticBuilder and ProgramSymbol
+  - Identified CobolProgram and CobolField as legacy runtime types not used by the compiler pipeline (flagged for Phase 9 cleanup)
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - CobolProgram/CobolField NOT removed: unit tests still reference them; defer to Phase 9
+  - ProgramState left as manual class: constructor has initialization logic (Array.Fill) that can't be a primary constructor
+- Open TODOs:
+  - Begin Phase 8: Diagnostics, logging, and tooling audit
+
+### Session 2026-03-18 -- Phase 7: Numeric, PIC, and editing subsystems
+- Phase focus: Phase 7 -- Numeric, PIC, and editing subsystems
+- Files/modules touched:
+  - Runtime/PicRuntime.cs -- Removed dead MoveStatus; ArithmeticStatus.SizeError field -> property; modern string slicing
+  - Runtime/PicDescriptorFactory.cs -- Modern string slicing (Substring -> range operator)
+  - CodeGen/CilEmitter.cs -- ArithmeticStatus: GetField -> GetProperty, Ldloc -> Ldloca + Call getter
+  - Semantics/Scope.cs -- Compact dictionary initialization
+- Anti-patterns addressed:
+  - [DeadCode] MoveStatus struct: defined but never referenced anywhere -- removed
+  - [PrimitiveObsession] ArithmeticStatus.SizeError: public field -> property (encapsulation)
+  - [MagicValues] CilEmitter reflected SizeError as field via GetField("SizeError") -- updated to GetProperty with proper getter call
+- Refactors and improvements:
+  - 5 Substring calls modernized to range slicing (digits[^n..], text[start..end])
+  - CilEmitter ArithmeticStatus access: Ldloc + Ldfld -> Ldloca + Call getter (correct CIL for struct properties)
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - PicDescriptor left as-is: 17-parameter constructor is used by CIL newobj emission -- changing it would break compiled programs
+  - ArithmeticStatus remains a struct (not record struct): passed by ref throughout runtime, mutable by design
+  - CIL change from Ldfld to Call: struct properties require ldloca (address) + call getter, not ldloc + ldfld
+- Open TODOs:
+  - Begin Phase 9: Final consolidation and cleanup
+
+### Session 2026-03-18 -- Phase 8: Diagnostics, logging, and tooling
+- Phase focus: Phase 8 -- Diagnostics, logging, and tooling
+- Files/modules touched:
+  - Runtime/AcceptSourceKind.cs -- New file; moved enum from Compiler to Runtime (shared type)
+  - Runtime/AcceptRuntime.cs -- Accept() parameter int -> AcceptSourceKind enum; magic 0x20 -> (byte)' '
+  - Semantics/Bound/BoundNodes.cs -- Removed AcceptSourceKind enum (now in Runtime); use shared type
+  - Semantics/Bound/BoundTreeBuilder.cs -- Use Runtime AcceptSourceKind directly
+  - IR/IrInstruction.cs -- IrAccept.Source: Bound.AcceptSourceKind -> Runtime.AcceptSourceKind
+  - CodeGen/CilEmitter.cs -- AcceptRuntime.Accept signature updated to use AcceptSourceKind
+  - CLI/Program.cs -- Collection expression for CopyProcessor construction
+- Anti-patterns addressed:
+  - [PrimitiveObsession] AcceptRuntime.Accept sourceKind: int with comment -> AcceptSourceKind enum (traced through entire pipeline: BoundTreeBuilder -> BoundNodes -> IR -> CilEmitter -> Runtime)
+  - [LayerViolation] AcceptSourceKind was in Compiler.Semantics.Bound but used by Runtime -- moved to Runtime as shared type
+  - [MagicValues] AcceptRuntime: 0x20 replaced with (byte)' '
+- Refactors and improvements:
+  - AcceptSourceKind now flows type-safely from BoundTreeBuilder through IR to AcceptRuntime
+  - CLI preprocess command uses collection expression
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - AcceptSourceKind in Runtime project: it's needed by AcceptRuntime (runtime) and BoundTreeBuilder (compiler), so it belongs in the shared Runtime layer
+- Open TODOs:
+  - Documentation phase complete
+
+### Session 2026-03-18 -- Phase 10: Documentation pass
+- Phase focus: Comprehensive XML doc comments and meaningful code comments
+- Files/modules touched:
+  - CLI/Program.cs -- Added class-level summary
+  - Common/SourceLocation.cs -- Added property-level docs (FileName, Position, Line, Column)
+  - Common/SourceText.cs -- Added docs for From, FromFile, indexer, LineCount
+  - Common/TextSpan.cs -- Added param tags and member docs (End, FromBounds, Contains, OverlapsWith)
+  - Runtime/PicDescriptor.cs -- Documented all enum members (CobolCategory 7 members, SignStorageKind 5, EditingKind 5, UsageKind 11), all 17 PicDescriptor properties, CobolCategoryExtensions
+  - Runtime/IO/IFileHandler.cs -- Documented FileOpenMode (4 members), StartCondition (5 members)
+  - Runtime/IO/FileStatus.cs -- Documented all 14 status code constants
+  - Runtime/FigurativeKind.cs -- Documented all 7 enum members with COBOL keywords and fill byte values
+  - Runtime/AcceptSourceKind.cs -- Documented all 5 enum members with COBOL format strings
+  - Semantics/Symbol.cs -- Documented SymbolKind (12 members), Symbol class (4 properties)
+  - Semantics/Scope.cs -- Documented ScopeKind (12 members), Scope class (all methods with param tags)
+  - Semantics/SymbolTable.cs -- Documented class, PushScope, Declare, Resolve overloads
+  - Semantics/ProgramSymbol.cs -- Documented ProgramSymbol (3 scope properties), SectionSymbol, ParagraphSymbol, FileSymbol, ConditionSymbol (ValueRanges, AddRange)
+  - Semantics/DataSymbol.cs -- Documented all 18 public properties with COBOL semantics
+  - Semantics/StorageAreaKind.cs -- Documented both members
+  - Semantics/TypeSystem.cs -- Documented ITypeSymbol (7 members), PicLayout (9 param tags), DataTypeSymbol.Category, BuiltinTypes (4 fields)
+  - IR/IrType.cs -- Enhanced IrType, IrRecordType, IrPrimitiveType, IrField (4 param tags)
+  - IR/IrModule.cs -- Enhanced IrModule (3 property docs), IrGlobal (2 param tags)
+  - IR/IrMethod.cs -- Documented IrMethod, IrParameter, IrLocal, IrBasicBlock, IrValue (2 param tags), IrValueFactory
+  - CodeGen/StorageLocation.cs -- Added 4 param tags, enhanced CompilerPicDescriptorFactory and DetermineSignStorage
+  - CodeGen/RecordLayoutBuilder.cs -- Enhanced RecordLayout (param tag), RecordLayoutBuilder (Build, LayoutChildren, LayoutOne, FindFieldOffset, MapToIrType)
+  - Semantics/FieldSizeCalculator.cs -- Enhanced class doc (cross-references), ComputeElementSize (paramref), ComputeDisplaySize
+  - Semantics/StorageLayoutComputer.cs -- Added ComputeLayout summary (describes full walk algorithm)
+  - Semantics/ParagraphValidator.cs -- Enhanced class and SuspiciousNames docs
+- Documentation approach:
+  - Every public type has a /// summary explaining its role in the compiler pipeline
+  - Every public method/property has a /// summary unless entirely self-documenting
+  - Record parameters documented via /// param tags
+  - Enum members documented with COBOL-specific meaning and ISO references
+  - Inline comments explain WHY (e.g., "trailing overpunch is the COBOL default"), not WHAT
+  - No useless comments like "Gets the X" or "Increments the counter"
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+
+### Session 2026-03-18 -- Phase 9: Final consolidation and cleanup
+- Phase focus: Phase 9 -- Final consolidation and cleanup
+- Files/modules touched:
+  - FlowAnalysis/BasicBlock.cs -- BasicBlock primary constructor; ControlFlowGraph -> sealed record; collection expressions
+  - FlowAnalysis/ParagraphReachabilityAnalyzer.cs -- Primary constructor; explicit using directives
+  - FlowAnalysis/PerformRangeChecker.cs -- Primary constructor; explicit using directives
+  - Semantics/Bound/BoundTreeBuilder.cs -- Substring -> range slicing (3 occurrences); StartsWith char overload
+- Anti-patterns addressed:
+  - [PrimitiveObsession] ControlFlowGraph: manual class -> sealed record
+  - [PrimitiveObsession] BasicBlock: manual constructor -> primary constructor; collection expressions
+  - Remaining Substring calls modernized to range slicing throughout BoundTreeBuilder
+- Refactors and improvements:
+  - Primary constructors on ParagraphReachabilityAnalyzer, PerformRangeChecker, BasicBlock
+  - StartsWith(string) -> StartsWith(char) for single-character checks (avoids string alloc)
+  - Full codebase sweep confirmed: no remaining new() field initializers, no remaining Substring calls in src/
+- Tests run:
+  - Unit tests: 119 passed
+  - Integration tests: 153 passed, 1 skipped
+  - NIST regression (guard.sh): all 10 tests MATCH (NC101A-NC118A, 964 test cases)
+- Regressions found:
+  - None
+- Decisions and rationale:
+  - CobolProgram/CobolField/Types/ left in place: unit tests depend on them; removing would require rewriting 119 unit tests (out of scope for modernization)
+  - new List<T>() in method locals left as-is: collection expressions for local variables are a style preference, not an anti-pattern; the new() calls with capacity hints (e.g., new List<int>(count)) cannot use []
+- Open TODOs:
+  - None -- all 9 phases complete
+
+## Outstanding TODOs (global)
+- None -- all modernization phases complete
+- Future consideration: remove legacy CobolProgram/CobolField/Types when unit tests are migrated to ProgramState/PicRuntime
+
+## Architectural notes
+- Invariants:
+  - Compiled COBOL assemblies target the same .NET version as the compiler's host runtime
+  - All package versions are managed centrally in Directory.Packages.props
+  - All projects share TargetFramework and LangVersion via Directory.Build.props
+  - Field size computation uses FieldSizeCalculator as single source of truth
+  - Compilation.cs is a thin orchestrator -- all logic lives in focused components
+  - FigurativeKind and AcceptSourceKind flow as typed enums through entire pipeline (cast to int only at CIL boundary)
+  - StorageAreaKind lives in Semantics (not CodeGen) -- semantic layer is self-contained
+- Dialect and feature gating:
+  - CobolParserCoreBase has DialectLevel (85/2002/2014/2023) gating via semantic predicates
+- Known constraints:
+  - ANTLR4 runtime (4.13.1) and Mono.Cecil (0.11.6) are compatible with net9.0
+  - Generated parser files (CobolLexer.cs, CobolParserCore.cs) are auto-generated from .g4 grammars
+  - PicDescriptor 17-parameter constructor is used by CIL newobj emission -- signature is frozen
+- Continue C# 13 adoption in remaining source files (IR, codegen, runtime)
+- Consider package updates (xunit, Microsoft.NET.Test.Sdk, Mono.Cecil)
+
+## Architectural notes
+- Invariants:
+  - Compiled COBOL assemblies target the same .NET version as the compiler's host runtime
+  - All package versions are managed centrally in Directory.Packages.props
+  - All projects share TargetFramework and LangVersion via Directory.Build.props
+  - Field size computation uses FieldSizeCalculator as single source of truth
+  - Compilation.cs is a thin orchestrator -- all logic lives in focused components
+- Dialect and feature gating:
+  - CobolParserCoreBase has DialectLevel (85/2002/2014/2023) gating via semantic predicates
+- Known constraints:
+  - ANTLR4 runtime (4.13.1) and Mono.Cecil (0.11.6) are compatible with net9.0
+  - Generated parser files (CobolLexer.cs, CobolParserCore.cs) are auto-generated from .g4 grammars

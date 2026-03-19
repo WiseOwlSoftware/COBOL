@@ -15,11 +15,11 @@ namespace CobolSharp.Compiler.Semantics;
 public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SymbolTable _symbols;
-    private readonly List<Diagnostic> _diagnostics = new();
+    private readonly List<Diagnostic> _diagnostics = [];
     private int _fillerCounter;
 
     // Data items in declaration order (preserves all FILLERs)
-    private readonly List<DataSymbol> _dataItemsInOrder = new();
+    private readonly List<DataSymbol> _dataItemsInOrder = [];
 
     // Current section name (null if paragraphs are orphans)
     private string? _currentSectionName;
@@ -32,7 +32,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public IReadOnlyDictionary<string, List<string>> SectionParagraphs => _sectionParagraphs;
 
     // Parent stack for level-number-based tree building
-    private readonly Stack<DataSymbol> _dataStack = new();
+    private readonly Stack<DataSymbol> _dataStack = [];
 
     // Tracks which data division section we're currently visiting
     private StorageAreaKind _currentArea = StorageAreaKind.WorkingStorage;
@@ -40,7 +40,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Temporary: holds the REDEFINES target name during clause parsing
     private string? _deferredRedefinesName;
     private Runtime.SignStorageKind? _deferredSignStorage;
-    private int? _deferredFigurativeInit;
+    private FigurativeKind? _deferredFigurativeInit;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -359,11 +359,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                 // Store figurative kind for field-filling initialization
                                 _deferredFigurativeInit = figText switch
                                 {
-                                    "SPACE" or "SPACES" => (int)Runtime.FigurativeKind.Space,
-                                    "ZERO" or "ZEROS" or "ZEROES" => (int)Runtime.FigurativeKind.Zero,
-                                    "HIGH-VALUE" or "HIGH-VALUES" => (int)Runtime.FigurativeKind.HighValue,
-                                    "LOW-VALUE" or "LOW-VALUES" => (int)Runtime.FigurativeKind.LowValue,
-                                    "QUOTE" or "QUOTES" => (int)Runtime.FigurativeKind.Quote,
+                                    "SPACE" or "SPACES" => FigurativeKind.Space,
+                                    "ZERO" or "ZEROS" or "ZEROES" => FigurativeKind.Zero,
+                                    "HIGH-VALUE" or "HIGH-VALUES" => FigurativeKind.HighValue,
+                                    "LOW-VALUE" or "LOW-VALUES" => FigurativeKind.LowValue,
+                                    "QUOTE" or "QUOTES" => FigurativeKind.Quote,
                                     _ => null
                                 };
                             }

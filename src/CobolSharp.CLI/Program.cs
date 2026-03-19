@@ -5,6 +5,9 @@ using CobolSharp.Compiler.Preprocessor;
 
 namespace CobolSharp.CLI;
 
+/// <summary>
+/// Entry point for the CobolSharp CLI. Dispatches to compile (default) or preprocess subcommands.
+/// </summary>
 public class Program
 {
     public static int Main(string[] args)
@@ -76,7 +79,7 @@ public class Program
         string normalized = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
 
         // Phase 0b: COPY/REPLACE expansion
-        var copyProcessor = new CopyProcessor(new List<string>());
+        var copyProcessor = new CopyProcessor([]);
         string processed = copyProcessor.Process(normalized, sourceDir);
 
         if (outputPath != null)

@@ -9,11 +9,11 @@ dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj -v quiet
 echo "=== Unit tests ==="
 dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --verbosity quiet
 
-echo "=== Integration tests (145 pass, 1 skip expected) ==="
+echo "=== Integration tests (153 pass, 1 skip expected) ==="
 dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --verbosity quiet
 
 echo "=== NIST regression ==="
-cp src/CobolSharp.Runtime/bin/Debug/net8.0/CobolSharp.Runtime.dll tests/nist/output/
+cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
 for test in NC101A NC102A NC103A NC104A NC105A NC171A NC106A NC176A NC116A NC118A; do
     dotnet run --project src/CobolSharp.CLI -- --nist tests/nist/programs/$test.cob -o tests/nist/output/$test.dll 2>/dev/null
     # NIST output goes to <testname>.txt when using --nist flag

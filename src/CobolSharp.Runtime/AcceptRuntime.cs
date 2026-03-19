@@ -18,15 +18,14 @@ public static class AcceptRuntime
     /// <param name="area">Backing byte array.</param>
     /// <param name="offset">Field offset within the array.</param>
     /// <param name="length">Field length in bytes.</param>
-    /// <param name="sourceKind">0=None, 1=Date, 2=Time, 3=Day, 4=DayOfWeek</param>
-    public static void Accept(byte[] area, int offset, int length, int sourceKind)
+    public static void Accept(byte[] area, int offset, int length, AcceptSourceKind sourceKind)
     {
         string text = sourceKind switch
         {
-            1 => FormatDate(DateTime.Now, length),
-            2 => FormatTime(DateTime.Now, length),
-            3 => FormatDay(DateTime.Now, length),
-            4 => FormatDayOfWeek(DateTime.Now, length),
+            AcceptSourceKind.Date => FormatDate(DateTime.Now, length),
+            AcceptSourceKind.Time => FormatTime(DateTime.Now, length),
+            AcceptSourceKind.Day => FormatDay(DateTime.Now, length),
+            AcceptSourceKind.DayOfWeek => FormatDayOfWeek(DateTime.Now, length),
             _ => new string(' ', length) // Plain ACCEPT: blank fill (console input stub)
         };
 
@@ -36,7 +35,7 @@ public static class AcceptRuntime
 
         // Pad remainder with spaces
         for (int i = offset + copyLen; i < offset + length; i++)
-            area[i] = 0x20;
+            area[i] = (byte)' ';
     }
 
     /// <summary>

@@ -9,10 +9,10 @@ namespace CobolSharp.Compiler.Diagnostics;
 /// </summary>
 public sealed class DiagnosticBag
 {
-    private readonly List<Diagnostic> _diagnostics = new();
+    private readonly List<Diagnostic> _diagnostics = [];
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
-    public bool HasErrors => _diagnostics.Any(d => d.IsError);
+    public bool HasErrors => _diagnostics.Exists(d => d.IsError);
 
     public void Report(string code, DiagnosticSeverity severity, string message,
         SourceLocation location, TextSpan span)
@@ -30,8 +30,5 @@ public sealed class DiagnosticBag
         Report(code, DiagnosticSeverity.Warning, message, location, span);
     }
 
-    public void Add(Diagnostic diagnostic)
-    {
-        _diagnostics.Add(diagnostic);
-    }
+    public void Add(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
 }

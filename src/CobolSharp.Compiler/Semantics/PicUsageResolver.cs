@@ -67,15 +67,15 @@ public static class PicUsageResolver
             environment: environment);
 
         return new PicLayout(
-            category: desc.Category,
-            length: desc.StorageLength,
-            integerDigits: desc.TotalDigits - desc.FractionDigits,
-            fractionDigits: desc.FractionDigits,
-            leadingPScaling: desc.LeadingScaleDigits,
-            trailingPScaling: desc.TrailingScaleDigits,
-            isSigned: desc.IsSigned,
-            isEdited: desc.HasEditing,
-            blankWhenZero: desc.BlankWhenZero);
+            Category: desc.Category,
+            Length: desc.StorageLength,
+            IntegerDigits: desc.TotalDigits - desc.FractionDigits,
+            FractionDigits: desc.FractionDigits,
+            LeadingPScaling: desc.LeadingScaleDigits,
+            TrailingPScaling: desc.TrailingScaleDigits,
+            IsSigned: desc.IsSigned,
+            IsEdited: desc.HasEditing,
+            BlankWhenZero: desc.BlankWhenZero);
     }
 }
 

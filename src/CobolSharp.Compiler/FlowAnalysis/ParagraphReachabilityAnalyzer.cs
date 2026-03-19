@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Semantics;
 
@@ -9,22 +10,11 @@ namespace CobolSharp.Compiler.FlowAnalysis;
 /// Checks which paragraphs are reachable from the entry point.
 /// Unreachable paragraphs are flagged as warnings.
 /// </summary>
-public sealed class ParagraphReachabilityAnalyzer
+public sealed class ParagraphReachabilityAnalyzer(
+    IReadOnlyList<ParagraphSymbol> paragraphs,
+    Dictionary<ParagraphSymbol, List<ParagraphSymbol>> edges,
+    DiagnosticBag diagnostics)
 {
-    private readonly IReadOnlyList<ParagraphSymbol> _paragraphs;
-    private readonly Dictionary<ParagraphSymbol, List<ParagraphSymbol>> _edges;
-    private readonly DiagnosticBag _diagnostics;
-
-    public ParagraphReachabilityAnalyzer(
-        IReadOnlyList<ParagraphSymbol> paragraphs,
-        Dictionary<ParagraphSymbol, List<ParagraphSymbol>> edges,
-        DiagnosticBag diagnostics)
-    {
-        _paragraphs = paragraphs;
-        _edges = edges;
-        _diagnostics = diagnostics;
-    }
-
     public void Analyze(ParagraphSymbol entry)
     {
         var visited = new HashSet<ParagraphSymbol>();
@@ -37,22 +27,22 @@ public sealed class ParagraphReachabilityAnalyzer
             if (!visited.Add(p))
                 continue;
 
-            if (_edges.TryGetValue(p, out var succs))
+            if (edges.TryGetValue(p, out var succs))
             {
                 foreach (var s in succs)
                     stack.Push(s);
             }
         }
 
-        foreach (var p in _paragraphs)
+        foreach (var p in paragraphs)
         {
             if (!visited.Contains(p))
             {
-                _diagnostics.ReportWarning(
+                diagnostics.ReportWarning(
                     "FLOW",
                     $"Paragraph '{p.Name}' is unreachable.",
-                    new Common.SourceLocation("<source>", 0, p.Line, 0),
-                    new Common.TextSpan(0, 0));
+                    new SourceLocation("<source>", 0, p.Line, 0),
+                    new TextSpan(0, 0));
             }
         }
     }

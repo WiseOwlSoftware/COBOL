@@ -28,7 +28,7 @@ public sealed class SemanticModel
 
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
-    private IReadOnlyList<DataSymbol> _dataItemsInOrder = Array.Empty<DataSymbol>();
+    private IReadOnlyList<DataSymbol> _dataItemsInOrder = [];
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
     public void SetDataItemsInOrder(IReadOnlyList<DataSymbol> items)
@@ -36,15 +36,15 @@ public sealed class SemanticModel
 
     // ── Data records (01/77-level items) ──
 
-    private readonly List<DataSymbol> _dataRecords = new();
+    private readonly List<DataSymbol> _dataRecords = [];
     public IReadOnlyList<DataSymbol> DataRecords => _dataRecords;
 
     // ── Procedure structure (declaration order) ──
 
-    private readonly List<ParagraphSymbol> _paragraphsInOrder = new();
+    private readonly List<ParagraphSymbol> _paragraphsInOrder = [];
     public IReadOnlyList<ParagraphSymbol> ParagraphsInOrder => _paragraphsInOrder;
 
-    private readonly List<SectionSymbol> _sectionsInOrder = new();
+    private readonly List<SectionSymbol> _sectionsInOrder = [];
     public IReadOnlyList<SectionSymbol> SectionsInOrder => _sectionsInOrder;
 
     // Section → ordered list of paragraph names within that section
@@ -56,7 +56,7 @@ public sealed class SemanticModel
 
     // ── PIC descriptors per data symbol ──
 
-    private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = new();
+    private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = [];
 
     // ── Storage sizes (set by ComputeStorageLayout) ──
 
@@ -65,13 +65,13 @@ public sealed class SemanticModel
 
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
-    private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = new();
+    private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = [];
 
     // ── Initial VALUE clauses (typed) ──
 
     public sealed record InitialValue(object Value, Runtime.CobolCategory Category);
 
-    private readonly Dictionary<DataSymbol, InitialValue> _initialValues = new();
+    private readonly Dictionary<DataSymbol, InitialValue> _initialValues = [];
 
     public void RegisterInitialValue(DataSymbol symbol, object value, Runtime.CobolCategory category)
         => _initialValues[symbol] = new InitialValue(value, category);
@@ -80,16 +80,16 @@ public sealed class SemanticModel
 
     // ── Figurative initial values (field-filling VALUE SPACE, HIGH-VALUE, etc.) ──
 
-    private readonly Dictionary<DataSymbol, int> _figurativeInitValues = new();
+    private readonly Dictionary<DataSymbol, FigurativeKind> _figurativeInitValues = [];
 
-    public void RegisterFigurativeInit(DataSymbol symbol, int figurativeKind)
+    public void RegisterFigurativeInit(DataSymbol symbol, FigurativeKind figurativeKind)
         => _figurativeInitValues[symbol] = figurativeKind;
 
-    public IReadOnlyDictionary<DataSymbol, int> FigurativeInitValues => _figurativeInitValues;
+    public IReadOnlyDictionary<DataSymbol, FigurativeKind> FigurativeInitValues => _figurativeInitValues;
 
     // ── Parse node → symbol mapping (for binder lookups) ──
 
-    private readonly Dictionary<object, Symbol> _nodeToSymbol = new();
+    private readonly Dictionary<object, Symbol> _nodeToSymbol = [];
 
     public SemanticModel(ProgramSymbol program, SymbolTable symbols, DiagnosticBag diagnostics)
     {

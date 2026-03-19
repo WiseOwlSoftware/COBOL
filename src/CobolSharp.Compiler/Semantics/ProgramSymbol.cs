@@ -2,10 +2,17 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolSharp.Compiler.Semantics;
 
+/// <summary>
+/// Represents a COBOL PROGRAM-ID and owns the three top-level scopes
+/// (global, data division, procedure division) that structure all symbol declarations.
+/// </summary>
 public sealed class ProgramSymbol : Symbol
 {
+    /// <summary>Root scope for program-wide declarations (e.g., the program name itself).</summary>
     public Scope GlobalScope { get; }
+    /// <summary>Scope for all DATA DIVISION items (WORKING-STORAGE, FILE SECTION, etc.).</summary>
     public Scope DataDivisionScope { get; }
+    /// <summary>Scope for PROCEDURE DIVISION sections and paragraphs.</summary>
     public Scope ProcedureDivisionScope { get; }
 
     public ProgramSymbol(string name, int line)
@@ -17,8 +24,13 @@ public sealed class ProgramSymbol : Symbol
     }
 }
 
+/// <summary>
+/// A named SECTION in the PROCEDURE DIVISION. Sections group paragraphs and
+/// serve as PERFORM targets (PERFORM section-name THRU ...).
+/// </summary>
 public sealed class SectionSymbol : Symbol
 {
+    /// <summary>The scope owned by this section, containing its paragraph symbols.</summary>
     public Scope Scope { get; }
 
     public SectionSymbol(string name, Scope parentScope, int line)
@@ -28,8 +40,13 @@ public sealed class SectionSymbol : Symbol
     }
 }
 
+/// <summary>
+/// A named paragraph in the PROCEDURE DIVISION. Paragraphs are the basic
+/// unit of control flow and the target of PERFORM and GO TO statements.
+/// </summary>
 public sealed class ParagraphSymbol : Symbol
 {
+    /// <summary>The scope owned by this paragraph (currently unused but available for nested declarations).</summary>
     public Scope Scope { get; }
 
     public ParagraphSymbol(string name, Scope parentScope, int line)
@@ -39,6 +56,10 @@ public sealed class ParagraphSymbol : Symbol
     }
 }
 
+/// <summary>
+/// Represents an FD (file descriptor) from the FILE SECTION.
+/// Captures SELECT/ASSIGN metadata and the associated record layout.
+/// </summary>
 public sealed class FileSymbol : Symbol
 {
     /// <summary>External file name from ASSIGN TO clause.</summary>
@@ -69,11 +90,22 @@ public sealed class FileSymbol : Symbol
         : base(name, SymbolKind.File, line) { }
 }
 
+/// <summary>
+/// A level-88 condition-name. Bound to a parent data item and carries one or more
+/// VALUE ranges (e.g., <c>88 IS-VALID VALUE 1 THRU 9.</c>). Used for boolean tests
+/// that compare the parent item against the declared values.
+/// </summary>
 public sealed class ConditionSymbol : Symbol
 {
+    /// <summary>The data item this condition tests against.</summary>
     public DataSymbol ParentDataItem { get; }
+
+    /// <summary>
+    /// Value ranges declared in the level-88 VALUE clause.
+    /// Each entry is a single value (To is null) or an inclusive THRU range.
+    /// </summary>
     public IReadOnlyList<(object From, object? To)> ValueRanges => _ranges;
-    private readonly List<(object From, object? To)> _ranges = new();
+    private readonly List<(object From, object? To)> _ranges = [];
 
     public ConditionSymbol(string name, DataSymbol parent, int line)
         : base(name, SymbolKind.Condition88, line)
@@ -81,6 +113,7 @@ public sealed class ConditionSymbol : Symbol
         ParentDataItem = parent;
     }
 
+    /// <summary>Adds a single value or inclusive THRU range to this condition.</summary>
     public void AddRange(object from, object? to = null)
         => _ranges.Add((from, to));
 }

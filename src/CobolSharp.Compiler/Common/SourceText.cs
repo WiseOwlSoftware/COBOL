@@ -10,7 +10,10 @@ public sealed class SourceText
     private readonly string _text;
     private readonly int[] _lineStarts;
 
+    /// <summary>Path or name of the source file.</summary>
     public string FileName { get; }
+
+    /// <summary>Total character count of the source text.</summary>
     public int Length => _text.Length;
 
     private SourceText(string text, string fileName)
@@ -20,30 +23,34 @@ public sealed class SourceText
         _lineStarts = ComputeLineStarts(text);
     }
 
+    /// <summary>Creates a <see cref="SourceText"/> from an in-memory string.</summary>
     public static SourceText From(string text, string fileName = "<anonymous>")
     {
         return new SourceText(text, fileName);
     }
 
+    /// <summary>Reads a file from disk and wraps it as a <see cref="SourceText"/>.</summary>
     public static SourceText FromFile(string path)
     {
         var text = File.ReadAllText(path);
         return new SourceText(text, path);
     }
 
+    /// <summary>Returns the character at the given zero-based absolute position.</summary>
     public char this[int index] => _text[index];
 
+    /// <summary>Number of lines in the source text.</summary>
     public int LineCount => _lineStarts.Length;
 
     /// <summary>
     /// Returns a substring of the source text.
     /// </summary>
-    public string GetText(int start, int length) => _text.Substring(start, length);
+    public string GetText(int start, int length) => _text[start..(start + length)];
 
     /// <summary>
     /// Returns the text within a span.
     /// </summary>
-    public string GetText(TextSpan span) => _text.Substring(span.Start, span.Length);
+    public string GetText(TextSpan span) => _text[span.Start..(span.Start + span.Length)];
 
     /// <summary>
     /// Gets the zero-based line number for an absolute position.
@@ -92,7 +99,7 @@ public sealed class SourceText
             : _text.Length;
 
         // Trim trailing \r\n
-        while (end > start && (_text[end - 1] == '\n' || _text[end - 1] == '\r'))
+        while (end > start && _text[end - 1] is '\n' or '\r')
             end--;
 
         return _text[start..end];

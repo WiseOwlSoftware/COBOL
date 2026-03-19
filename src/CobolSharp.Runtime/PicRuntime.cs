@@ -6,19 +6,11 @@ using System.Text;
 namespace CobolSharp.Runtime;
 
 /// <summary>
-/// Status returned by MOVE operations.
-/// </summary>
-public struct MoveStatus
-{
-    public bool Truncated { get; set; }
-}
-
-/// <summary>
 /// Status returned by arithmetic operations (for ON SIZE ERROR).
 /// </summary>
 public struct ArithmeticStatus
 {
-    public bool SizeError;
+    public bool SizeError { get; set; }
 }
 
 /// <summary>
@@ -85,12 +77,12 @@ public static class PicRuntime
         if (digits.Length < pic.TotalDigits)
             digits = digits.PadLeft(pic.TotalDigits, '0');
         else if (digits.Length > pic.TotalDigits)
-            digits = digits.Substring(digits.Length - pic.TotalDigits);
+            digits = digits[^pic.TotalDigits..];
 
         // Split digits into integer and fraction parts
         int intDigits = pic.TotalDigits - pic.FractionDigits;
-        string intPart = digits.Substring(0, intDigits);
-        string fracPart = pic.FractionDigits > 0 ? digits.Substring(intDigits) : "";
+        string intPart = digits[..intDigits];
+        string fracPart = pic.FractionDigits > 0 ? digits[intDigits..] : "";
 
         // Determine if decimal point insertion is needed
         // StorageLength > TotalDigits + sign chars means there's room for a decimal point
@@ -210,7 +202,7 @@ public static class PicRuntime
         if (digits.Length < trueDigitCount)
             digits = digits.PadLeft(trueDigitCount, '0');
         else if (digits.Length > trueDigitCount)
-            digits = digits.Substring(digits.Length - trueDigitCount);
+            digits = digits[^trueDigitCount..];
 
         // Pass 1: Fill digit positions right-to-left, place insertion/fixed chars
         var output = new char[pattern.Length];
@@ -1578,7 +1570,7 @@ public static class PicRuntime
 
         // Truncate from left if too long (SIZE ERROR should be handled separately)
         if (digits.Length > availableLength)
-            digits = digits.Substring(digits.Length - availableLength);
+            digits = digits[^availableLength..];
 
         // Right-justify digits
         int digitStart = (pic.IsSigned && separateSign &&

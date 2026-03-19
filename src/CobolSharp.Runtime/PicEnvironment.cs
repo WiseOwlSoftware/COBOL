@@ -10,20 +10,8 @@ namespace CobolSharp.Runtime;
 /// Every PicDescriptor carries a reference to the environment it was parsed under,
 /// making each descriptor self-contained for runtime formatting.
 /// </summary>
-public sealed class PicEnvironment
+public sealed record PicEnvironment(char CurrencySign = '$', bool DecimalPointIsComma = false)
 {
-    /// <summary>Currency symbol used in PIC editing (default '$').</summary>
-    public char CurrencySign { get; }
-
-    /// <summary>When true, ',' is the decimal point and '.' is the thousands separator.</summary>
-    public bool DecimalPointIsComma { get; }
-
-    public PicEnvironment(char currencySign = '$', bool decimalPointIsComma = false)
-    {
-        CurrencySign = currencySign;
-        DecimalPointIsComma = decimalPointIsComma;
-    }
-
     /// <summary>Default environment: $ currency, . decimal point.</summary>
-    public static readonly PicEnvironment Default = new('$', false);
+    public static readonly PicEnvironment Default = new();
 }
