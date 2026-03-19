@@ -2055,7 +2055,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         var raw = numLit.GetText();
         if (decimal.TryParse(raw, System.Globalization.CultureInfo.InvariantCulture, out var val))
-            return new BoundLiteralExpression(val, CobolCategory.Numeric);
+            return new BoundLiteralExpression(val, CobolCategory.Numeric, originalText: raw);
         return new BoundLiteralExpression(raw, CobolCategory.Alphanumeric);
     }
 
@@ -2487,7 +2487,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private BoundExpression BindIdentifierOrLiteral(string text)
     {
         if (decimal.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var val))
-            return new BoundLiteralExpression(val, CobolCategory.Numeric);
+            return new BoundLiteralExpression(val, CobolCategory.Numeric, originalText: text);
 
         var sym = _semantic.ResolveData(text);
         if (sym != null)

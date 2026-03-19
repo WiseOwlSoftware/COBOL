@@ -315,8 +315,10 @@ public static class PicRuntime
             }
         }
 
-        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols
+        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols.
+        // Track whether we're in asterisk-fill mode (commas → '*') vs space-fill (commas → ' ').
         bool suppressing = true;
+        bool asteriskFill = false;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
@@ -328,6 +330,7 @@ public static class PicRuntime
                     break;
 
                 case '*':
+                    asteriskFill = true;
                     if (output[i] == '0') output[i] = '*';
                     else suppressing = false;
                     break;
@@ -350,7 +353,7 @@ public static class PicRuntime
                     break;
 
                 case ',':
-                    output[i] = ' ';
+                    output[i] = asteriskFill ? '*' : ' ';
                     break;
 
                 case '9':
@@ -366,57 +369,69 @@ public static class PicRuntime
             }
         }
 
-        // Handle floating sign symbols: find the rightmost suppressed +/- and place sign there
+        // Handle floating symbols: place at rightmost suppressed position in the floating zone.
+        // The floating zone includes the symbol positions AND any insertion chars (,/B)
+        // between the last floating symbol and the first non-floating digit position.
         bool hasFloatingPlus = plusCount > 0 && (plusCount + minusCount) > 1;
         bool hasFloatingMinus = minusCount > 0 && (plusCount + minusCount) > 1;
 
         if (hasFloatingPlus)
         {
-            int signPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '+' && output[i] == ' ')
-                    signPos = i;
-                else if (p == '+' && output[i] != ' ')
-                    break;
-            }
+            int signPos = FindFloatingPlacement(pattern, output, '+');
             if (signPos >= 0)
                 output[signPos] = negative ? '-' : '+';
         }
         else if (hasFloatingMinus)
         {
-            int signPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '-' && !isFixedMinus && output[i] == ' ')
-                    signPos = i;
-                else if (p == '-' && !isFixedMinus && output[i] != ' ')
-                    break;
-            }
+            int signPos = FindFloatingPlacement(pattern, output, '-');
             if (signPos >= 0)
                 output[signPos] = negative ? '-' : ' ';
         }
 
-        // Handle floating $: place '$' at rightmost suppressed $ position.
-        // Fixed $ was already placed in Pass 1.
+        // Handle floating $: place '$' at rightmost suppressed position in floating zone.
         if (dollarPrescan > 1)
         {
-            int dollarPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '$' && output[i] == ' ')
-                    dollarPos = i;
-                else if (p == '$' && output[i] != ' ')
-                    break;
-            }
+            int dollarPos = FindFloatingPlacement(pattern, output, '$');
             if (dollarPos >= 0)
                 output[dollarPos] = '$';
         }
 
         return new string(output);
+    }
+
+    /// <summary>
+    /// Find the rightmost suppressed position within the floating zone for a floating symbol.
+    /// The floating zone includes the symbol's own positions AND any insertion chars
+    /// (comma, B) that appear between the last floating symbol and the first digit.
+    /// </summary>
+    private static int FindFloatingPlacement(string pattern, char[] output, char floatChar)
+    {
+        char floatUpper = char.ToUpperInvariant(floatChar);
+        int lastSuppressed = -1;
+        bool inFloatingZone = false;
+
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == floatUpper)
+            {
+                inFloatingZone = true;
+                if (output[i] == ' ')
+                    lastSuppressed = i;
+                else
+                    break; // hit a non-suppressed floating symbol → zone ends
+            }
+            else if (inFloatingZone && (p == ',' || p == 'B') && output[i] == ' ')
+            {
+                // Suppressed insertion char within the floating zone
+                lastSuppressed = i;
+            }
+            else if (inFloatingZone)
+            {
+                break; // hit a non-floating char → zone ends
+            }
+        }
+        return lastSuppressed;
     }
 
     public static void MoveNumericToAlphanumeric(
@@ -460,16 +475,44 @@ public static class PicRuntime
     // MOVE: Alphanumeric → …
     // ══════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// MOVE string literal TO numeric field. Converts the string to a byte buffer
+    /// and delegates to MoveAlphanumericToNumeric for proper right-justified digit extraction.
+    /// </summary>
+    public static void MoveStringLiteralToNumeric(
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        string value)
+    {
+        byte[] srcBuf = Encoding.ASCII.GetBytes(value);
+        var srcPic = new PicDescriptor(0, 0, false, false, true, false,
+            srcBuf.Length, UsageKind.Display, CobolCategory.Alphanumeric,
+            SignStorageKind.None, EditingKind.None, false, 0, 0, null);
+        MoveAlphanumericToNumeric(srcBuf, 0, srcBuf.Length, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, 0);
+    }
+
     public static void MoveAlphanumericToAlphanumeric(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        // Left-justified, space-padded
         int copyLen = Math.Min(srcLength, dstLength);
-        Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
-        for (int i = copyLen; i < dstLength; i++)
-            dstArea[dstOffset + i] = (byte)' ';
+
+        if (dstPic.IsJustifiedRight)
+        {
+            // Right-justified, left-padded with spaces
+            int pad = dstLength - copyLen;
+            for (int i = 0; i < pad; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+            Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, copyLen);
+        }
+        else
+        {
+            // Left-justified, space-padded
+            Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
+            for (int i = copyLen; i < dstLength; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+        }
     }
 
     public static void MoveAlphanumericToAlphanumericEdited(
@@ -683,26 +726,54 @@ public static class PicRuntime
     {
         var kind = (FigurativeKind)figurativeKindInt;
 
+        // Numeric-edited destination with ZERO: format 0 through the edit pattern
+        if (dstPic.Category == CobolCategory.NumericEdited && kind == FigurativeKind.Zero)
+        {
+            string formatted = FormatNumericEdited(0m, dstPic);
+            MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+            return;
+        }
+
+        // Alphanumeric-edited destination: fill with figurative byte then apply edit pattern
+        if (dstPic.Category == CobolCategory.AlphanumericEdited && dstPic.EditPattern != null)
+        {
+            byte figurativeByte = FigurativeToByte(kind);
+
+            // Create a source buffer filled with the figurative byte
+            byte[] srcBuf = new byte[dstLength];
+            for (int i = 0; i < srcBuf.Length; i++)
+                srcBuf[i] = figurativeByte;
+
+            var dummyPic = new PicDescriptor();
+            MoveAlphanumericToAlphanumericEdited(
+                srcBuf, 0, srcBuf.Length, dummyPic,
+                dstArea, dstOffset, dstLength, dstPic, 0);
+            return;
+        }
+
+        // Plain numeric destination with ZERO: encode numeric zero
         if (dstPic.IsNumeric && kind == FigurativeKind.Zero)
         {
             EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
             return;
         }
 
-        // Alphanumeric or non-zero figurative: fill entire field with figurative byte
-        byte b = kind switch
-        {
-            FigurativeKind.Zero => (byte)'0',
-            FigurativeKind.Space => (byte)' ',
-            FigurativeKind.HighValue => 0xFF,
-            FigurativeKind.LowValue => 0x00,
-            FigurativeKind.Quote => (byte)'"',
-            FigurativeKind.Null => 0x00,
-            _ => (byte)' '
-        };
+        // Default: fill entire field with figurative byte
+        byte b = FigurativeToByte(kind);
         for (int i = 0; i < dstLength; i++)
             dstArea[dstOffset + i] = b;
     }
+
+    private static byte FigurativeToByte(FigurativeKind kind) => kind switch
+    {
+        FigurativeKind.Zero => (byte)'0',
+        FigurativeKind.Space => (byte)' ',
+        FigurativeKind.HighValue => 0xFF,
+        FigurativeKind.LowValue => 0x00,
+        FigurativeKind.Quote => (byte)'"',
+        FigurativeKind.Null => 0x00,
+        _ => (byte)' '
+    };
 
     /// <summary>
     /// MOVE ALL "pattern" TO field. Repeats the pattern to fill the entire field.
@@ -1390,6 +1461,14 @@ public static class PicRuntime
             scaled /= Pow10(pic.TrailingScaleDigits);
 
         long raw = (long)decimal.Truncate(scaled);
+
+        // COBOL truncation: by PIC digit count, not by binary capacity.
+        // PIC 9 COMP → 1 digit → mod 10; PIC S999 COMP → 3 digits → mod 1000.
+        if (pic.TotalDigits > 0 && pic.TotalDigits < 18)
+        {
+            long modBase = (long)Pow10(pic.TotalDigits);
+            raw = raw % modBase;
+        }
 
         // Unsigned field: store absolute value (COBOL strips sign on MOVE to unsigned)
         if (!pic.IsSigned && raw < 0)

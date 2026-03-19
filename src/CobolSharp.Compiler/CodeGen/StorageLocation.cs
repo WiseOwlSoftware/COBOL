@@ -72,7 +72,8 @@ public static class CompilerPicDescriptorFactory
                 blankWhenZero: desc.BlankWhenZero,
                 leadingScaleDigits: desc.LeadingScaleDigits,
                 trailingScaleDigits: desc.TrailingScaleDigits,
-                editPattern: desc.EditPattern);
+                editPattern: desc.EditPattern,
+                isJustifiedRight: symbol.IsJustifiedRight);
         }
 
         // Group items (no PIC): alphanumeric DISPLAY
@@ -92,7 +93,7 @@ public static class CompilerPicDescriptorFactory
             blankWhenZero: false,
             leadingScaleDigits: 0,
             trailingScaleDigits: 0,
-            editPattern: null);
+            editPattern: null) { IsGroup = true };
     }
 
     private static SignStorageKind DetermineSignStorage(bool isSigned, DataSymbol symbol)

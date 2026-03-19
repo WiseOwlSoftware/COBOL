@@ -374,6 +374,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract OCCURS count and BLANK WHEN ZERO from clauses
         int occursCount = 1;
         bool blankWhenZero = false;
+        bool justifiedRight = false;
         if (body?.dataDescriptionClauses() != null)
         {
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
@@ -388,12 +389,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 if (clause.blankWhenZeroClause() != null)
                     blankWhenZero = true;
+
+                if (clause.justifiedClause() != null)
+                    justifiedRight = true;
             }
         }
 
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.OccursCount = occursCount;
+        data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
         data.ExplicitSignStorage = _deferredSignStorage;

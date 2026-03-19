@@ -521,6 +521,30 @@ public sealed class Binder
     }
 
     /// <summary>
+    /// Format a numeric literal for MOVE to alphanumeric field.
+    /// Per ISO §14.19.4: the literal is treated as an unsigned integer field
+    /// whose size is the number of digits specified in the literal.
+    /// </summary>
+    private static string FormatLiteralForAlphanumeric(string originalText)
+    {
+        // Strip sign and decimal point, keep all digits (preserves leading zeros)
+        var sb = new System.Text.StringBuilder(originalText.Length);
+        foreach (char c in originalText)
+        {
+            if (char.IsDigit(c))
+                sb.Append(c);
+        }
+        return sb.Length > 0 ? sb.ToString() : "0";
+    }
+
+    private static string FormatLiteralForAlphanumeric(decimal d)
+    {
+        decimal abs = Math.Abs(d);
+        string raw = abs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return raw.Replace(".", "");
+    }
+
+    /// <summary>
     /// Walk a BoundExpression tree and pre-resolve all data-reference leaf nodes
     /// (identifiers, ref-mod) to IrLocations. Used when embedding BoundExpression
     /// trees inside IR instructions (IrComputeStore) so the emitter never needs
@@ -622,7 +646,20 @@ public sealed class Binder
                 var destPic = GetPicForLocation(destLoc);
                 if (lit.Value is string s)
                 {
-                    block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    if (destPic.Category == Runtime.CobolCategory.NumericEdited)
+                    {
+                        // String literal to numeric-edited: parse as numeric, format with edit pattern
+                        if (decimal.TryParse(s, System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var numVal))
+                            block.Instructions.Add(new IrPicMoveLiteralNumeric(destLoc, numVal));
+                        else
+                            block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    }
+                    else
+                    {
+                        // AlphanumericEdited: CilEmitter handles edit pattern dispatch
+                        block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    }
                 }
                 else if (lit.Value is decimal d)
                 {
@@ -630,8 +667,16 @@ public sealed class Binder
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(
                             destLoc, d, mv.IsRounded ? 1 : 0));
                     else
-                        block.Instructions.Add(new IrMoveStringToField(destLoc,
-                            d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                    {
+                        // Numeric literal to alphanumeric: use display representation.
+                        // Per ISO §14.19.4: "the literal is treated as if it were an
+                        // unsigned integer field whose size is the number of digits
+                        // specified in the literal." OriginalText preserves leading zeros.
+                        string display = lit.OriginalText != null
+                            ? FormatLiteralForAlphanumeric(lit.OriginalText)
+                            : FormatLiteralForAlphanumeric(d);
+                        block.Instructions.Add(new IrMoveStringToField(destLoc, display));
+                    }
                 }
             }
             else

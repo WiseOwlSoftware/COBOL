@@ -32,6 +32,9 @@ public sealed class DataSymbol : Symbol
     /// </summary>
     public int? FigurativeInit { get; set; }  // Runtime.FigurativeKind enum value, or null
 
+    /// <summary>JUSTIFIED RIGHT clause present on this data item.</summary>
+    public bool IsJustifiedRight { get; set; }
+
     /// <summary>OCCURS count (1 = no OCCURS, >1 = array).</summary>
     public int OccursCount { get; set; } = 1;
 

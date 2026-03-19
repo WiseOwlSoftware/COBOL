@@ -128,12 +128,20 @@ public static class PicDescriptorFactory
                 }
 
                 case ',':
-                case 'B':
                 case '/':
                 {
                     edited = true;
                     insertionChars++;
                     pos++;
+                    break;
+                }
+
+                case 'B':
+                {
+                    // B supports repeat notation: B(15) = 15 space insertions
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    insertionChars += count;
                     break;
                 }
 

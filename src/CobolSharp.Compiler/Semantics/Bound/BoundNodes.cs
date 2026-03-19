@@ -63,8 +63,15 @@ public sealed class BoundLiteralExpression : BoundExpression
 {
     public object Value { get; }
 
-    public BoundLiteralExpression(object value, CobolCategory category)
-        : base(category) => Value = value;
+    /// <summary>
+    /// Original source text of the literal (e.g., "00000" for numeric literal 00000).
+    /// Used for MOVE to alphanumeric fields where display digit count matters.
+    /// Null for string literals (Value is already the original text).
+    /// </summary>
+    public string? OriginalText { get; }
+
+    public BoundLiteralExpression(object value, CobolCategory category, string? originalText = null)
+        : base(category) => (Value, OriginalText) = (value, originalText);
 
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
 }

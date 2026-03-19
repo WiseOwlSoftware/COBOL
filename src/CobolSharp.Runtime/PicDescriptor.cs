@@ -83,6 +83,8 @@ public sealed class PicDescriptor
 
     // Display options
     public bool BlankWhenZero { get; init; }
+    public bool IsJustifiedRight { get; init; }
+    public bool IsGroup { get; init; }
 
     // Raw PIC string for numeric-edited fields (null for non-edited)
     public string? EditPattern { get; init; }
@@ -99,7 +101,8 @@ public sealed class PicDescriptor
         int storageLength, UsageKind usage, CobolCategory category,
         SignStorageKind signStorage, EditingKind editing, bool blankWhenZero,
         int leadingScaleDigits, int trailingScaleDigits,
-        string? editPattern = null)
+        string? editPattern = null,
+        bool isJustifiedRight = false)
     {
         TotalDigits = totalDigits;
         FractionDigits = fractionDigits;
@@ -116,6 +119,7 @@ public sealed class PicDescriptor
         LeadingScaleDigits = leadingScaleDigits;
         TrailingScaleDigits = trailingScaleDigits;
         EditPattern = editPattern;
+        IsJustifiedRight = isJustifiedRight;
     }
 }
 

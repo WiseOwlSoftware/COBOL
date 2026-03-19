@@ -1029,8 +1029,21 @@ public sealed class CilEmitter
     {
         var pic = GetPicForLocation(ms.Target);
 
+        // Numeric targets: right-justified numeric MOVE (rightmost digits taken)
+        if (pic.Category == Runtime.CobolCategory.Numeric)
+        {
+            EmitLocationArgsWithPic(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.PicRuntime).GetMethod(
+                    "MoveStringLiteralToNumeric",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(Runtime.PicDescriptor), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
         // Alphanumeric-edited targets: apply edit pattern (B→space, 0→zero, etc.)
-        if (pic.Category == Runtime.CobolCategory.AlphanumericEdited && pic.EditPattern != null)
+        else if (pic.Category == Runtime.CobolCategory.AlphanumericEdited && pic.EditPattern != null)
         {
             EmitLocationArgs(il, ms.Target);
             il.Append(il.Create(OpCodes.Ldstr, ms.Value));
@@ -1425,6 +1438,13 @@ public sealed class CilEmitter
         var srcCat = srcPic.Category;
         var dstCat = dstPic.Category;
 
+        // Group items are always alphanumeric for MOVE: raw byte copy, no formatting/editing.
+        if (srcPic.IsGroup || dstPic.IsGroup)
+        {
+            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
+            return;
+        }
+
         // Destination AlphanumericEdited: must be checked before generic IsNumericLike() rules.
         if (dstCat == CobolCategory.AlphanumericEdited)
         {
@@ -1486,16 +1506,8 @@ public sealed class CilEmitter
         }
         else
         {
-            // Alpha/group MOVE: raw byte copy
-            EmitLocationArgs(il, pm.Destination);
-            EmitLocationArgs(il, pm.Source);
-
-            var method = _module.ImportReference(
-                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                    "MoveFieldToField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(byte[]), typeof(int), typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, method));
+            // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT)
+            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
         }
     }
 
@@ -1601,13 +1613,16 @@ public sealed class CilEmitter
         else
             il.Append(il.Create(OpCodes.Ldnull));
 
+        il.Append(il.Create(pic.IsJustifiedRight ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
         var ctor = _module.ImportReference(
             typeof(Runtime.PicDescriptor).GetConstructor(
                 new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
                         typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind),
                         typeof(Runtime.CobolCategory),
                         typeof(Runtime.SignStorageKind), typeof(Runtime.EditingKind),
-                        typeof(bool), typeof(int), typeof(int), typeof(string) })!);
+                        typeof(bool), typeof(int), typeof(int), typeof(string),
+                        typeof(bool) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
     }
 
