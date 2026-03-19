@@ -42,6 +42,41 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// MOVE string TO alphanumeric-edited field. Applies edit pattern:
+    /// A/X = data position (takes next input character), B = space, 0 = zero, / = slash.
+    /// </summary>
+    public static void MoveStringToEditedField(byte[] area, int offset, int size,
+        string value, string editPattern)
+    {
+        int srcIdx = 0;
+        for (int i = 0; i < editPattern.Length && i < size; i++)
+        {
+            char editChar = editPattern[i];
+            switch (editChar)
+            {
+                case 'A':
+                case 'X':
+                    area[offset + i] = srcIdx < value.Length ? (byte)value[srcIdx++] : (byte)' ';
+                    break;
+                case 'B':
+                    area[offset + i] = (byte)' ';
+                    break;
+                case '0':
+                    area[offset + i] = (byte)'0';
+                    break;
+                case '/':
+                    area[offset + i] = (byte)'/';
+                    break;
+                default:
+                    area[offset + i] = srcIdx < value.Length ? (byte)value[srcIdx++] : (byte)' ';
+                    break;
+            }
+        }
+        for (int i = editPattern.Length; i < size; i++)
+            area[offset + i] = (byte)' ';
+    }
+
+    /// <summary>
     /// MOVE field TO field. Left-justified, space-padded (alphanumeric).
     /// </summary>
     public static void MoveFieldToField(
@@ -82,12 +117,14 @@ public static class StorageHelpers
     }
 
     /// <summary>
-    /// Compare a field's bytes (as ASCII) to a string literal.
+    /// Compare a field's bytes to a string literal.
     /// Returns -1/0/1 like string.Compare. Trailing spaces ignored (COBOL semantics).
+    /// Uses Latin1 encoding to preserve the full byte range 0x00-0xFF
+    /// (ASCII only handles 0x00-0x7F, replacing 0x80-0xFF with '?').
     /// </summary>
     public static int CompareFieldToString(byte[] area, int offset, int length, string value)
     {
-        var field = Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+        var field = Encoding.Latin1.GetString(area, offset, length).TrimEnd();
         var trimmedValue = value.TrimEnd();
         return string.Compare(field, trimmedValue, StringComparison.Ordinal);
     }
@@ -329,8 +366,8 @@ public static class StorageHelpers
         byte[] leftArea, int leftOffset, int leftLength,
         byte[] rightArea, int rightOffset, int rightLength)
     {
-        var left = Encoding.ASCII.GetString(leftArea, leftOffset, leftLength).TrimEnd();
-        var right = Encoding.ASCII.GetString(rightArea, rightOffset, rightLength).TrimEnd();
+        var left = Encoding.Latin1.GetString(leftArea, leftOffset, leftLength).TrimEnd();
+        var right = Encoding.Latin1.GetString(rightArea, rightOffset, rightLength).TrimEnd();
         return string.Compare(left, right, StringComparison.Ordinal);
     }
 }

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolSharp.Runtime;
+
 namespace CobolSharp.Compiler.IR;
 
 /// <summary>
@@ -8,6 +10,36 @@ namespace CobolSharp.Compiler.IR;
 public abstract class IrInstruction
 {
     public IrValue? Result { get; protected set; }
+}
+
+// ── Compiler temporaries ──
+
+/// <summary>
+/// A compiler-generated temporary variable. Not addressable from COBOL.
+/// Scoped to the containing method. Lowered to a CIL local by the emitter.
+/// </summary>
+public sealed record IrTemp(string Name, IrPrimitiveType Type, int Id);
+
+/// <summary>
+/// Inline PERFORM N TIMES: execute BodyStatements exactly CountExpression times.
+/// CountExpression is evaluated once at entry into a compiler temp (IrTemp).
+/// The emitter manages the CIL local counter. EXIT PERFORM exits this scope.
+/// </summary>
+public sealed class IrPerformInlineTimes : IrInstruction
+{
+    public Semantics.Bound.BoundExpression CountExpression { get; }
+    public IReadOnlyList<IrInstruction> BodyInstructions { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
+
+    public IrPerformInlineTimes(
+        Semantics.Bound.BoundExpression countExpression,
+        IReadOnlyList<IrInstruction> bodyInstructions,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        CountExpression = countExpression;
+        BodyInstructions = bodyInstructions;
+        ResolvedLocations = resolvedLocations;
+    }
 }
 
 // ── Data movement ──
@@ -224,6 +256,34 @@ public sealed class IrPerform : IrInstruction
 }
 
 /// <summary>
+/// PERFORM para N TIMES: calls Target method Count times using a CIL local counter.
+/// Count is a BoundExpression (literal or identifier) evaluated once at entry.
+/// The emitter manages the loop counter as a CIL local int.
+/// </summary>
+public sealed class IrPerformTimes : IrInstruction
+{
+    public IrMethod Target { get; }
+    public int StartIdx { get; }
+    public int EndIdx { get; }
+    public IReadOnlyList<IrMethod> ThruMethods { get; }
+    public Semantics.Bound.BoundExpression CountExpression { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
+
+    public IrPerformTimes(IrMethod target, int startIdx, int endIdx,
+        IReadOnlyList<IrMethod> thruMethods,
+        Semantics.Bound.BoundExpression countExpression,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        Target = target;
+        StartIdx = startIdx;
+        EndIdx = endIdx;
+        ThruMethods = thruMethods;
+        CountExpression = countExpression;
+        ResolvedLocations = resolvedLocations;
+    }
+}
+
+/// <summary>
 /// PERFORM para-a THRU para-b: dynamic dispatch loop that respects GO TO returns.
 /// Calls paragraphs startIdx..endIdx, but if a paragraph returns a PC within the
 /// range, skips forward to that PC. If it returns outside the range or negative, exits.
@@ -247,10 +307,17 @@ public sealed class IrPerformThru : IrInstruction
 /// <summary>
 /// MOVE "literal" TO field — writes string bytes into ProgramState backing array.
 /// </summary>
+/// <summary>
+/// MOVE string literal TO field. Uses PIC-aware MOVE semantics:
+/// plain alphanumeric fields get left-justified space-padded copy,
+/// alphanumeric-edited fields get edit pattern applied (B→space, 0→zero, etc.).
+/// The emitter passes the destination PIC to the runtime so the correct
+/// MOVE method is selected.
+/// </summary>
 public sealed class IrMoveStringToField : IrInstruction
 {
     public IrLocation Target { get; }
-    public string Value { get; }  // embedded string — no IrValue dependency
+    public string Value { get; }
 
     public IrMoveStringToField(IrLocation target, string value)
     {
@@ -265,9 +332,9 @@ public sealed class IrMoveStringToField : IrInstruction
 public sealed class IrMoveFigurative : IrInstruction
 {
     public IrLocation Destination { get; }
-    public int FigurativeKind { get; }  // cast to Runtime.FigurativeKind enum at runtime
+    public FigurativeKind FigurativeKind { get; }
 
-    public IrMoveFigurative(IrLocation dest, int figurativeKind)
+    public IrMoveFigurative(IrLocation dest, FigurativeKind figurativeKind)
     {
         Destination = dest;
         FigurativeKind = figurativeKind;
@@ -348,6 +415,48 @@ public sealed class IrReadRecordToStorage : IrInstruction
     {
         FileName = fileName;
         Record = record;
+    }
+}
+
+/// <summary>
+/// DELETE: delete the current record from an indexed/relative file.
+/// </summary>
+public sealed class IrDeleteRecord : IrInstruction
+{
+    public string FileName { get; }
+    public IrDeleteRecord(string fileName) { FileName = fileName; }
+}
+
+/// <summary>
+/// START: position an indexed file for subsequent READ NEXT.
+/// Condition maps to Runtime.IO.StartCondition enum.
+/// </summary>
+public sealed class IrStartFile : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation KeyLocation { get; }
+    public int Condition { get; }
+
+    public IrStartFile(string fileName, IrLocation keyLocation, int condition)
+    {
+        FileName = fileName;
+        KeyLocation = keyLocation;
+        Condition = condition;
+    }
+}
+
+/// <summary>
+/// Check if the last file operation was successful (status == "00").
+/// Sets result bool to true if the operation failed (invalid key / error).
+/// </summary>
+public sealed class IrCheckFileInvalidKey : IrInstruction
+{
+    public string FileName { get; }
+
+    public IrCheckFileInvalidKey(string fileName, IrValue result)
+    {
+        FileName = fileName;
+        Result = result;
     }
 }
 
@@ -480,9 +589,9 @@ public sealed class IrGoToDepending : IrInstruction
 public sealed class IrAccept : IrInstruction
 {
     public IrLocation Target { get; }
-    public Semantics.Bound.AcceptSourceKind Source { get; }
+    public AcceptSourceKind Source { get; }
 
-    public IrAccept(IrLocation target, Semantics.Bound.AcceptSourceKind source)
+    public IrAccept(IrLocation target, AcceptSourceKind source)
     {
         Target = target;
         Source = source;

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text;
+
 namespace CobolSharp.Compiler.Preprocessor;
 
 /// <summary>
@@ -9,14 +11,27 @@ namespace CobolSharp.Compiler.Preprocessor;
 /// </summary>
 public static class ReferenceFormatProcessor
 {
+    /// <summary>Length of the sequence number area (columns 1-6).</summary>
+    private const int SequenceAreaLength = 6;
+
+    /// <summary>Column index of the indicator area (column 7, zero-based index 6).</summary>
+    private const int IndicatorColumn = 6;
+
+    /// <summary>Column index where the source area begins (column 8, zero-based index 7).</summary>
+    private const int SourceAreaStart = 7;
+
+    /// <summary>Maximum width of the source area (columns 8-72 = 65 characters).</summary>
+    private const int SourceAreaWidth = 65;
+
+    /// <summary>Minimum percentage of lines that must match fixed-form pattern for detection.</summary>
+    private const int FixedFormThresholdPercent = 60;
+
     /// <summary>
     /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText)
     {
-        if (IsFixedForm(sourceText))
-            return ConvertFixedToFree(sourceText);
-        return sourceText;
+        return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText) : sourceText;
     }
 
     /// <summary>
@@ -27,14 +42,13 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static bool IsFixedForm(string sourceText)
     {
-        // Quick check: if source contains *> (free-form comment), it's free-form
         if (sourceText.Contains("*>"))
             return false;
 
         var lines = sourceText.Split('\n');
         int fixedIndicators = 0;
         int totalLines = 0;
-        bool hasNumericSequence = false; // at least one line must have digits in cols 1-6
+        bool hasNumericSequence = false;
 
         foreach (var rawLine in lines)
         {
@@ -42,16 +56,13 @@ public static class ReferenceFormatProcessor
             if (string.IsNullOrWhiteSpace(line)) continue;
             totalLines++;
 
-            if (line.Length >= 7)
+            if (line.Length > IndicatorColumn)
             {
-                char indicator = line[6];
-                // Column 7 is typically space, *, /, D, or -
-                if (indicator == ' ' || indicator == '*' || indicator == '/' ||
-                    indicator == 'D' || indicator == 'd' || indicator == '-')
+                char indicator = line[IndicatorColumn];
+                if (indicator is ' ' or '*' or '/' or 'D' or 'd' or '-')
                 {
-                    // Check columns 1-6 are digits or spaces
                     bool seqOk = true;
-                    for (int i = 0; i < 6 && i < line.Length; i++)
+                    for (int i = 0; i < SequenceAreaLength && i < line.Length; i++)
                     {
                         if (!char.IsDigit(line[i]) && line[i] != ' ')
                         {
@@ -62,8 +73,7 @@ public static class ReferenceFormatProcessor
                     if (seqOk)
                     {
                         fixedIndicators++;
-                        // Check if any digit appears in columns 1-6 (not all spaces)
-                        for (int i = 0; i < 6 && i < line.Length; i++)
+                        for (int i = 0; i < SequenceAreaLength && i < line.Length; i++)
                         {
                             if (char.IsDigit(line[i]))
                             {
@@ -76,10 +86,8 @@ public static class ReferenceFormatProcessor
             }
         }
 
-        // Must have at least one line with numeric sequence numbers AND
-        // > 60% of lines matching fixed-form pattern
         return totalLines > 0 && hasNumericSequence &&
-               fixedIndicators * 100 / totalLines > 60;
+               fixedIndicators * 100 / totalLines > FixedFormThresholdPercent;
     }
 
     /// <summary>
@@ -89,87 +97,64 @@ public static class ReferenceFormatProcessor
     public static string ConvertFixedToFree(string sourceText)
     {
         var lines = sourceText.Split('\n');
-        var result = new System.Text.StringBuilder();
+        var result = new StringBuilder();
 
-        for (int i = 0; i < lines.Length; i++)
+        foreach (var rawLine in lines)
         {
-            var line = lines[i].TrimEnd('\r');
+            var line = rawLine.TrimEnd('\r');
 
-            if (line.Length < 7)
+            if (line.Length < SourceAreaStart)
             {
-                result.AppendLine(); // blank/short line
+                result.AppendLine();
                 continue;
             }
 
-            char indicator = line[6];
+            char indicator = line[IndicatorColumn];
+            string sourceArea = line[SourceAreaStart..];
+            if (sourceArea.Length > SourceAreaWidth)
+                sourceArea = sourceArea[..SourceAreaWidth];
 
             switch (indicator)
             {
-                case '*':
-                case '/':
-                    // Comment line — convert to free-form comment
-                    string commentText = line.Length > 7 ? line[7..].TrimEnd() : "";
-                    result.AppendLine($"*> {commentText}");
+                case '*' or '/':
+                    result.AppendLine($"*> {sourceArea.TrimEnd()}");
                     break;
 
-                case 'D':
-                case 'd':
-                case 'S':
-                case 's':
-                case 'Y':
-                case 'y':
-                    // Debug/conditional line — treat as comment
-                    string debugText = line.Length > 7 ? line[7..].TrimEnd() : "";
-                    result.AppendLine($"*> DEBUG: {debugText}");
+                case 'D' or 'd' or 'S' or 's' or 'Y' or 'y':
+                    result.AppendLine($"*> DEBUG: {sourceArea.TrimEnd()}");
                     break;
 
                 case '-':
-                    // Continuation line (§6.2.2): append to previous line
-                    string contText = line.Length > 7 ? line[7..] : "";
-                    // Truncate at column 72 (65 chars of source area)
-                    if (contText.Length > 65) contText = contText[..65];
-
-                    // Remove the last newline from result
-                    if (result.Length > 0)
-                    {
-                        while (result.Length > 0 && (result[result.Length - 1] == '\n' || result[result.Length - 1] == '\r'))
-                            result.Length--;
-                    }
-
-                    // Per §6.2.2: if the continuation starts with a quote (after spaces),
-                    // it's continuing a non-numeric literal. The opening quote on the
-                    // continuation line replaces the continuation point — strip leading
-                    // spaces but keep the first quote as the join point.
-                    string trimmedCont = contText.TrimStart();
-                    if (trimmedCont.Length > 0 && (trimmedCont[0] == '"' || trimmedCont[0] == '\''))
-                    {
-                        // String literal continuation: the previous line's content up to
-                        // the last character before the sequence area is part of the string.
-                        // Remove trailing spaces from prev line that are inside the string.
-                        // The continuation quote replaces these — skip it and join directly.
-                        // Previous: ...DOGS AND K
-                        // Continuation: "IDS CAN NOT BE ALL BAD."
-                        // Result: ...DOGS AND KIDS CAN NOT BE ALL BAD."
-                        result.Append(trimmedCont[1..]); // skip the opening quote
-                        result.AppendLine();
-                    }
-                    else
-                    {
-                        // Non-literal continuation: just join with trimmed content
-                        result.AppendLine(trimmedCont);
-                    }
+                    HandleContinuation(result, sourceArea);
                     break;
 
                 default:
-                    // Normal line — extract columns 8-72
-                    string sourceArea = line.Length > 7 ? line[7..] : "";
-                    // Truncate at column 72 (index 71, which is char 65 in the source area)
-                    if (sourceArea.Length > 65) sourceArea = sourceArea[..65];
                     result.AppendLine(sourceArea.TrimEnd());
                     break;
             }
         }
 
         return result.ToString();
+    }
+
+    private static void HandleContinuation(StringBuilder result, string sourceArea)
+    {
+        // Remove the last newline from result
+        while (result.Length > 0 && result[result.Length - 1] is '\n' or '\r')
+            result.Length--;
+
+        // Per ISO 6.2.2: if continuation starts with a quote (after spaces),
+        // it's continuing a non-numeric literal. The opening quote on the
+        // continuation line replaces the continuation point.
+        string trimmedCont = sourceArea.TrimStart();
+        if (trimmedCont.Length > 0 && trimmedCont[0] is '"' or '\'')
+        {
+            result.Append(trimmedCont[1..]);
+            result.AppendLine();
+        }
+        else
+        {
+            result.AppendLine(trimmedCont);
+        }
     }
 }

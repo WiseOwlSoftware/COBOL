@@ -219,8 +219,18 @@ specialNamesParagraph
     ;
 
 specialNameEntry
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : currencySignClause DOT?
+    | decimalPointClause DOT?
+    | IDENTIFIER (IDENTIFIER | literal)*
       DOT?
+    ;
+
+currencySignClause
+    : CURRENCY SIGN IS? literal
+    ;
+
+decimalPointClause
+    : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
 // fallback for vendor extensions
@@ -345,7 +355,13 @@ fileDescriptionClause
     | recordKeyClause
     | alternateKeyClause
     | fileStatusClause
+    | dataRecordsClause
     | genericFileDescriptionClause
+    ;
+
+// DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
+dataRecordsClause
+    : DATA RECORD IS? IDENTIFIER+
     ;
 
 genericFileDescriptionClause
@@ -375,7 +391,7 @@ linkageEntry
 
 // Procedure parameters (COBOL 2002+)
 linkageProcedureParameter
-    : levelNumber dataName? parameterDescriptionBody DOT
+    : {is2002()}? levelNumber dataName? parameterDescriptionBody DOT
     ;
 
 parameterDescriptionBody
@@ -432,7 +448,7 @@ dataDescriptionClause
 
 // TYPE clause (COBOL-2023 — threaded from CobolParserGenerics)
 typeClause
-    : TYPE IS? IDENTIFIER
+    : {is2023()}? TYPE IS? IDENTIFIER
     ;
 
 genericDataClause
@@ -520,7 +536,7 @@ syncClause
 
 // BLANK WHEN ZERO
 blankWhenZeroClause
-    : BLANK WHEN ZERO
+    : BLANK_WHEN_ZERO
     ;
 
 // 88-LEVEL CONDITION ENTRIES — handled through valueClause with THRU support.
@@ -533,7 +549,7 @@ blankWhenZeroClause
 // ==========================================
 
 procedureDivision
-    : PROCEDURE DIVISION usingClause? returningClause? DOT
+    : PROCEDURE DIVISION usingClause? ({is2002()}? returningClause)? DOT
       declarativePart*
       procedureSectionOrParagraph*
     ;
@@ -627,7 +643,7 @@ statement
     | closeStatement
     | computeStatement
     | deleteStatement
-    | deleteFileStatement
+    | {is2023()}? deleteFileStatement
     | displayStatement
     | divideStatement
     | evaluateStatement
@@ -656,10 +672,10 @@ statement
     | subtractStatement
     | unstringStatement
     | writeStatement
-    | jsonStatement
-    | xmlStatement
-    | invokeStatement
-    | inlineMethodInvocationStatement
+    | {is2014()}? jsonStatement
+    | {is2014()}? xmlStatement
+    | {is2002()}? invokeStatement
+    | {is2023()}? inlineMethodInvocationStatement
     | continueStatement
     | nextSentenceStatement
     ;
@@ -752,6 +768,7 @@ openClause
 openMode
     : INPUT
     | OUTPUT
+    | I_O
     | EXTEND
     ;
 
@@ -764,11 +781,10 @@ closeStatement
 // ==========================================
 
 ifStatement
-    : IF condition
+    : IF condition THEN?
       imperativeStatement*
       (ELSE imperativeStatement*)?
       END_IF?
-     
     ;
 
 // ==========================================
@@ -776,10 +792,15 @@ ifStatement
 // ==========================================
 
 performStatement
-    // Out-of-line: PERFORM PARA [THRU PARA] [options] [END-PERFORM] .
-    : PERFORM performTarget performOptions* END_PERFORM?
-    // Inline: PERFORM [options]+ statements END-PERFORM .
-    | PERFORM performOptions+ imperativeStatement* END_PERFORM
+    // Out-of-line: explicit forms to avoid greedy "PERFORM target" swallowing options
+    : PERFORM procedureName performTimes                                       // PERFORM para N TIMES
+    | PERFORM procedureName performUntil                                       // PERFORM para UNTIL cond
+    | PERFORM procedureName performVarying                                     // PERFORM para VARYING ...
+    | PERFORM procedureName (THRU | THROUGH) procedureName performOptions?     // PERFORM para THRU para [options]
+    | PERFORM procedureName                                                    // PERFORM para (simple)
+    // Inline forms
+    | PERFORM performOptions+ imperativeStatement* END_PERFORM                 // PERFORM UNTIL/VARYING ... END-PERFORM
+    | PERFORM imperativeStatement+ END_PERFORM                                 // PERFORM ... END-PERFORM (block)
     ;
 
 performTarget
@@ -797,7 +818,7 @@ performOptions
     ;
 
 performTimes
-    : integerLiteral TIMES
+    : (integerLiteral | identifier) TIMES
     ;
 
 performUntil
@@ -980,7 +1001,7 @@ multiplyOperand
     ;
 
 multiplyByTarget
-    : identifier ROUNDED?
+    : (identifier | literal) ROUNDED?
     ;
 
 multiplyGivingPhrase
@@ -1043,7 +1064,7 @@ moveStatement
 
 moveSource
     : literal
-    | arithmeticExpression
+    | identifier
     ;
 
 moveTarget
@@ -1060,8 +1081,8 @@ stringStatement
     ;
 
 stringSendingPhrase
-    : (identifier | literal)
-      (DELIMITED BY (ALL)? (identifier | literal | SIZE))?
+    : (identifier | literal | figurativeConstant)
+      (DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE))?
     ;
 
 stringIntoPhrase
@@ -1093,7 +1114,7 @@ unstringStatement
     ;
 
 unstringDelimiterPhrase
-    : DELIMITED BY (ALL)? (identifier | literal)
+    : DELIMITED BY (ALL)? (identifier | literal | figurativeConstant)
     ;
 
 unstringIntoPhrase
@@ -1152,7 +1173,7 @@ callByReference
     ;
 
 callByValue
-    : BY VALUE arithmeticExpression
+    : {is2002()}? BY VALUE arithmeticExpression
     ;
 
 callByContent
@@ -1205,7 +1226,7 @@ setAddressStatement
 
 // SET object-reference TO class/object reference (OO)
 setObjectReferenceStatement
-    : SET identifier TO objectReference
+    : {is2002()}? SET identifier TO objectReference
     ;
 
 objectReference
@@ -1302,7 +1323,7 @@ mergeOutputProcedurePhrase
 // ==========================================
 
 returnStatement
-    : RETURN fileName
+    : RETURN fileName RECORD
       (INTO identifier)?
       returnAtEndPhrase?
       END_RETURN?
@@ -1403,7 +1424,7 @@ notOnExceptionPhrase
 // ==========================================
 
 stopStatement
-    : STOP (RUN | literal | identifier)?
+    : STOP RUN
     ;
 
 // ==========================================
@@ -1494,48 +1515,74 @@ initializeReplacingItem
     ;
 
 // ==========================================
-// INSPECT (§14.9.21 — LL(1)-safe, keyword-discriminated)
+// INSPECT (§14.9.21 — COBOL-85)
 // ==========================================
 
 inspectStatement
     : INSPECT identifier
-      inspectTallyingPhrase?
-      inspectReplacingPhrase?
-      inspectConvertingPhrase?
+      (inspectTallyingPhrase
+      | inspectReplacingPhrase
+      | inspectConvertingPhrase)
     ;
+
+// ----- TALLYING -----
 
 inspectTallyingPhrase
     : TALLYING inspectTallyingItem+
     ;
 
 inspectTallyingItem
-    : identifier FOR inspectForPhrase+
+    : identifier inspectForClause+
     ;
 
-inspectForPhrase
-    : CHARACTERS inspectDelimiters?
-    | ALL (identifier | literal) inspectDelimiters?
-    | LEADING (identifier | literal) inspectDelimiters?
+inspectForClause
+    : FOR inspectCountPhrase
     ;
+
+inspectCountPhrase
+    : CHARACTERS inspectDelimiters?
+    | ALL inspectChar inspectDelimiters?
+    | LEADING inspectChar inspectDelimiters?
+    | FIRST inspectChar inspectDelimiters?
+    | TRAILING inspectChar inspectDelimiters?
+    ;
+
+inspectChar
+    : identifier
+    | literal
+    | figurativeConstant
+    ;
+
+// ----- REPLACING -----
 
 inspectReplacingPhrase
     : REPLACING inspectReplacingItem+
     ;
 
 inspectReplacingItem
-    : CHARACTERS BY (identifier | literal) inspectDelimiters?
-    | ALL (identifier | literal) BY (identifier | literal) inspectDelimiters?
-    | LEADING (identifier | literal) BY (identifier | literal) inspectDelimiters?
-    | FIRST (identifier | literal) BY (identifier | literal) inspectDelimiters?
+    : CHARACTERS BY inspectChar inspectDelimiters?
+    | ALL inspectChar BY inspectChar inspectDelimiters?
+    | LEADING inspectChar BY inspectChar inspectDelimiters?
+    | FIRST inspectChar BY inspectChar inspectDelimiters?
+    | TRAILING inspectChar BY inspectChar inspectDelimiters?
     ;
 
+// ----- CONVERTING -----
+
 inspectConvertingPhrase
-    : CONVERTING (identifier | literal) TO (identifier | literal) inspectDelimiters?
+    : CONVERTING inspectChar
+      TO inspectChar
+      inspectBeforeAfterPhrase*
+    ;
+
+inspectBeforeAfterPhrase
+    : BEFORE INITIAL_? inspectChar
+    | AFTER INITIAL_? inspectChar
     ;
 
 inspectDelimiters
-    : BEFORE INITIAL_? (identifier | literal) (AFTER INITIAL_? (identifier | literal))?
-    | AFTER INITIAL_? (identifier | literal) (BEFORE INITIAL_? (identifier | literal))?
+    : BEFORE INITIAL_? inspectChar (AFTER INITIAL_? inspectChar)?
+    | AFTER INITIAL_? inspectChar (BEFORE INITIAL_? inspectChar)?
     ;
 // ==========================================
 // SEARCH (§14.9.37 — Linear Search)
@@ -1546,7 +1593,6 @@ searchStatement
       searchAtEndClause?
       searchWhenClause+
       END_SEARCH?
-     
     ;
 
 searchWhenClause
@@ -1561,15 +1607,17 @@ searchAtEndClause
 // ==========================================
 // SEARCH ALL (§14.9.37 — Binary Search)
 // ==========================================
-// Semantic restrictions (single WHEN, relational operator, sorted table)
-// are enforced in the binder, not the grammar. The parser accepts the
-// same condition grammar as IF/EVALUATE/SEARCH.
 
 searchAllStatement
     : SEARCH ALL identifier
+      searchAllKeyPhrase?
       searchAtEndClause?
-      searchAllWhenClause+
+      searchAllWhenClause
       END_SEARCH?
+    ;
+
+searchAllKeyPhrase
+    : KEY IS identifier
     ;
 
 searchAllWhenClause
@@ -1693,7 +1741,7 @@ primaryExpression
 
 // FUNCTION calls (ISO 2002+)
 functionCall
-    : FUNCTION identifier (LPAREN argumentList? RPAREN)?
+    : {is2002()}? FUNCTION identifier (LPAREN argumentList? RPAREN)?
     ;
 
 // =========================

@@ -44,6 +44,18 @@ public sealed class Binder
     /// </summary>
     private readonly Stack<IrBasicBlock> _performExitStack = new();
 
+    /// <summary>
+    /// The end block for the paragraph currently being lowered.
+    /// EXIT PARAGRAPH jumps here (fall-through semantics).
+    /// </summary>
+    private IrBasicBlock? _paragraphEndBlock;
+
+    /// <summary>
+    /// The return index for EXIT SECTION: first paragraph index after the current section.
+    /// Null if the current paragraph is not in a section.
+    /// </summary>
+    private int? _sectionExitReturnIndex;
+
     public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
     {
         _semantic = semantic;
@@ -85,6 +97,30 @@ public sealed class Binder
                 int myIndex = _paragraphIndices[para.Symbol.Name];
                 var block = method.Blocks[0];
 
+                // Set up EXIT PARAGRAPH target: a block at the end of the paragraph body
+                var paraEnd = method.CreateBlock($"{para.Symbol.Name}_exit");
+                _paragraphEndBlock = paraEnd;
+
+                // Set up EXIT SECTION target: return index of first paragraph after this section
+                var sectionName = _semantic.GetParagraphSection(para.Symbol.Name);
+                if (sectionName != null)
+                {
+                    var sectionParas = _semantic.GetSectionParagraphs(sectionName);
+                    if (sectionParas != null && sectionParas.Count > 0
+                        && _paragraphIndices.TryGetValue(sectionParas[^1], out var lastIdx))
+                    {
+                        _sectionExitReturnIndex = lastIdx + 1;
+                    }
+                    else
+                    {
+                        _sectionExitReturnIndex = null;
+                    }
+                }
+                else
+                {
+                    _sectionExitReturnIndex = null;
+                }
+
                 for (int si = 0; si < para.Sentences.Count; si++)
                 {
                     var sentence = para.Sentences[si];
@@ -104,9 +140,15 @@ public sealed class Binder
                 }
 
                 _currentSentenceEnd = null;
+                _paragraphEndBlock = null;
+                _sectionExitReturnIndex = null;
+
+                // Normal flow: jump to paragraph end block
+                block.Instructions.Add(new IrJump(paraEnd));
+                method.Blocks.Add(paraEnd);
 
                 // Fall-through: return next paragraph index
-                block.Instructions.Add(new IrReturnConst(myIndex + 1));
+                paraEnd.Instructions.Add(new IrReturnConst(myIndex + 1));
             }
         }
 
@@ -148,6 +190,12 @@ public sealed class Binder
             string externalPath = FileRuntime.ResolveHostPath(externalName);
 
             int recordLength = fileSym.RecordLength;
+            if (recordLength == 0 && fileSym.Record != null)
+            {
+                var recLoc = _semantic.GetStorageLocation(fileSym.Record);
+                if (recLoc.HasValue)
+                    recordLength = recLoc.Value.Length;
+            }
             if (recordLength == 0) recordLength = 132; // Default for print files
 
             // Line-sequential for SEQUENTIAL org (default) and LINE SEQUENTIAL
@@ -155,16 +203,47 @@ public sealed class Binder
                 || fileSym.Organization == "SEQUENTIAL"
                 || fileSym.Organization == "LINE SEQUENTIAL";
 
+            string org = fileSym.Organization ?? "SEQUENTIAL";
+            int keyOffset = 0, keyLength = 0;
+
+            // For INDEXED files, resolve RECORD KEY to get offset/length
+            if (org == "INDEXED" && fileSym.RecordKey != null)
+            {
+                var keySym = _semantic.ResolveData(fileSym.RecordKey);
+                if (keySym != null)
+                {
+                    var keyLoc = _semantic.GetStorageLocation(keySym);
+                    if (keyLoc.HasValue)
+                    {
+                        // Key offset is relative to the record's start
+                        var recordSym = fileSym.Record;
+                        if (recordSym != null)
+                        {
+                            var recordLoc = _semantic.GetStorageLocation(recordSym);
+                            if (recordLoc.HasValue)
+                                keyOffset = keyLoc.Value.Offset - recordLoc.Value.Offset;
+                        }
+                        keyLength = keyLoc.Value.Length;
+                    }
+                }
+            }
+
             var nameVal = _valueFactory.Next(IrPrimitiveType.String);
             var pathVal = _valueFactory.Next(IrPrimitiveType.String);
             var recLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
             var lineSeqVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            var orgVal = _valueFactory.Next(IrPrimitiveType.String);
+            var keyOffVal = _valueFactory.Next(IrPrimitiveType.Int32);
+            var keyLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
             block.Instructions.Add(new IrLoadConst(nameVal, fileSym.Name));
             block.Instructions.Add(new IrLoadConst(pathVal, externalPath));
             block.Instructions.Add(new IrLoadConst(recLenVal, recordLength));
             block.Instructions.Add(new IrLoadConst(lineSeqVal, lineSequential));
-            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandler",
-                new[] { nameVal, pathVal, recLenVal, lineSeqVal }));
+            block.Instructions.Add(new IrLoadConst(orgVal, org));
+            block.Instructions.Add(new IrLoadConst(keyOffVal, keyOffset));
+            block.Instructions.Add(new IrLoadConst(keyLenVal, keyLength));
+            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandlerWithOrg",
+                new[] { nameVal, pathVal, recLenVal, lineSeqVal, orgVal, keyOffVal, keyLenVal }));
         }
 
         // Collect paragraph methods in declaration order
@@ -218,6 +297,10 @@ public sealed class Binder
                 break;
             case BoundExitPerformStatement:
                 return LowerExitPerform(method, block);
+            case BoundExitParagraphStatement:
+                return LowerExitParagraph(method, block);
+            case BoundExitSectionStatement:
+                return LowerExitSection(method, block);
             case BoundNextSentenceStatement:
                 return LowerNextSentence(method, block);
             case BoundOpenStatement open:
@@ -260,6 +343,10 @@ public sealed class Binder
                 return LowerString(str, method, block);
             case BoundUnstringStatement unstr:
                 return LowerUnstring(unstr, method, block);
+            case BoundDeleteStatement del:
+                return LowerDelete(del, method, block);
+            case BoundStartStatement start:
+                return LowerStart(start, method, block);
         }
         return block;
     }
@@ -434,6 +521,30 @@ public sealed class Binder
     }
 
     /// <summary>
+    /// Format a numeric literal for MOVE to alphanumeric field.
+    /// Per ISO §14.19.4: the literal is treated as an unsigned integer field
+    /// whose size is the number of digits specified in the literal.
+    /// </summary>
+    private static string FormatLiteralForAlphanumeric(string originalText)
+    {
+        // Strip sign and decimal point, keep all digits (preserves leading zeros)
+        var sb = new System.Text.StringBuilder(originalText.Length);
+        foreach (char c in originalText)
+        {
+            if (char.IsDigit(c))
+                sb.Append(c);
+        }
+        return sb.Length > 0 ? sb.ToString() : "0";
+    }
+
+    private static string FormatLiteralForAlphanumeric(decimal d)
+    {
+        decimal abs = Math.Abs(d);
+        string raw = abs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return raw.Replace(".", "");
+    }
+
+    /// <summary>
     /// Walk a BoundExpression tree and pre-resolve all data-reference leaf nodes
     /// (identifiers, ref-mod) to IrLocations. Used when embedding BoundExpression
     /// trees inside IR instructions (IrComputeStore) so the emitter never needs
@@ -535,7 +646,20 @@ public sealed class Binder
                 var destPic = GetPicForLocation(destLoc);
                 if (lit.Value is string s)
                 {
-                    block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    if (destPic.Category == Runtime.CobolCategory.NumericEdited)
+                    {
+                        // String literal to numeric-edited: parse as numeric, format with edit pattern
+                        if (decimal.TryParse(s, System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var numVal))
+                            block.Instructions.Add(new IrPicMoveLiteralNumeric(destLoc, numVal));
+                        else
+                            block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    }
+                    else
+                    {
+                        // AlphanumericEdited: CilEmitter handles edit pattern dispatch
+                        block.Instructions.Add(new IrMoveStringToField(destLoc, s));
+                    }
                 }
                 else if (lit.Value is decimal d)
                 {
@@ -543,8 +667,16 @@ public sealed class Binder
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(
                             destLoc, d, mv.IsRounded ? 1 : 0));
                     else
-                        block.Instructions.Add(new IrMoveStringToField(destLoc,
-                            d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                    {
+                        // Numeric literal to alphanumeric: use display representation.
+                        // Per ISO §14.19.4: "the literal is treated as if it were an
+                        // unsigned integer field whose size is the number of digits
+                        // specified in the literal." OriginalText preserves leading zeros.
+                        string display = lit.OriginalText != null
+                            ? FormatLiteralForAlphanumeric(lit.OriginalText)
+                            : FormatLiteralForAlphanumeric(d);
+                        block.Instructions.Add(new IrMoveStringToField(destLoc, display));
+                    }
                 }
             }
             else
@@ -579,6 +711,12 @@ public sealed class Binder
             return varyEnd;
         }
 
+        // PERFORM para N TIMES: expression-based loop count
+        if (perf.TimesExpression != null)
+        {
+            return LowerPerformTimes(perf, method, block);
+        }
+
         // PERFORM UNTIL (no VARYING): simple condition loop
         if (perf.UntilCondition != null)
         {
@@ -605,6 +743,15 @@ public sealed class Binder
             return loopEnd;
         }
 
+        // Inline PERFORM (no options, no target): execute block once
+        if (perf.InlineStatements is { Count: > 0 })
+        {
+            var current = block;
+            foreach (var stmt in perf.InlineStatements)
+                current = LowerStatement(stmt, method, current);
+            return current;
+        }
+
         // Simple PERFORM (no UNTIL/VARYING): just call paragraphs
         LowerPerformSimple(perf, block);
         return block;
@@ -620,7 +767,14 @@ public sealed class Binder
         IrMethod method, IrBasicBlock block)
     {
         var indexLoc = ResolveLocation(v.Index);
-        if (indexLoc == null) return block;
+        if (indexLoc == null)
+        {
+            _diagnostics.ReportError("CS0875",
+                $"PERFORM VARYING index '{v.Index.Name}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
 
         // 1. Initialize: MOVE initial TO index
         EmitVaryingMove(v.Initial, indexLoc, block);
@@ -715,23 +869,28 @@ public sealed class Binder
     {
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
+        {
+            _diagnostics.ReportError("CS0874",
+                $"PERFORM target paragraph '{perf.Target.Name}' not found in paragraph dispatch table.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
             return;
+        }
 
         int endIdx = startIdx;
         if (perf.ThruTarget != null &&
             _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
             endIdx = thruIdx;
 
-        int times = perf.Times > 0 ? perf.Times : 1;
+        // Ensure valid range (section THRU may produce reversed indices)
+        if (endIdx < startIdx)
+            (startIdx, endIdx) = (endIdx, startIdx);
 
         if (startIdx == endIdx)
         {
             var paraName = _paragraphsByIndex[startIdx];
             if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
-            {
-                for (int t = 0; t < times; t++)
-                    block.Instructions.Add(new IrPerform(paraMethod));
-            }
+                block.Instructions.Add(new IrPerform(paraMethod));
         }
         else
         {
@@ -744,10 +903,106 @@ public sealed class Binder
                 else
                     methods.Add(null!);
             }
-
-            for (int t = 0; t < times; t++)
-                block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
+            block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
         }
+    }
+
+    /// <summary>
+    /// PERFORM para N TIMES: runtime expression-based loop.
+    /// Evaluates the TIMES expression, loops that many iterations.
+    /// </summary>
+    private IrBasicBlock LowerPerformTimes(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
+    {
+        // Inline PERFORM N TIMES: loop over inline statements
+        if (perf.Target == null && perf.InlineStatements is { Count: > 0 })
+        {
+            return LowerInlinePerformTimes(perf, method, block);
+        }
+
+        if (perf.Target == null)
+        {
+            _diagnostics.ReportError("CS0879",
+                "PERFORM TIMES has no target paragraph and no inline statements.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+        if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
+            return block;
+
+        int endIdx = startIdx;
+        if (perf.ThruTarget != null &&
+            _paragraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
+            endIdx = thruIdx;
+
+        // Evaluate TIMES expression to a counter and loop
+        // Lower as: counter = TIMES expr; while counter > 0: body; counter--
+        var loopStart = method.CreateBlock("perf.times.start");
+        var loopBody = method.CreateBlock("perf.times.body");
+        var loopEnd = method.CreateBlock("perf.times.end");
+
+        _performExitStack.Push(loopEnd);
+
+        // Emit a single IrPerformTimes instruction. The emitter manages the
+        // CIL loop counter as a local int, evaluates CountExpression once at entry,
+        // and calls the paragraph method(s) in a loop.
+        var methods = new List<IrMethod>();
+        IrMethod? singleMethod = null;
+        if (startIdx == endIdx)
+        {
+            var paraName = _paragraphsByIndex[startIdx];
+            _paragraphMethods.TryGetValue(paraName, out singleMethod);
+        }
+        else
+        {
+            for (int i = startIdx; i <= endIdx; i++)
+            {
+                var pn = _paragraphsByIndex[i];
+                _paragraphMethods.TryGetValue(pn, out var pm);
+                methods.Add(pm!);
+            }
+        }
+
+        var resolvedLocs = PreResolveExpressionLocations(perf.TimesExpression!);
+        block.Instructions.Add(new IrPerformTimes(
+            singleMethod ?? methods[0], startIdx, endIdx, methods,
+            perf.TimesExpression!, resolvedLocs));
+
+        _performExitStack.Pop();
+        return block;
+    }
+
+    /// <summary>
+    /// Inline PERFORM N TIMES: loop over inline statements N times.
+    /// Uses PERFORM UNTIL pattern with a synthetic counter condition.
+    /// </summary>
+    /// <summary>
+    /// Inline PERFORM N TIMES: emits IrPerformInlineTimes.
+    /// The emitter manages a CIL-local int counter, evaluates CountExpression
+    /// once at entry, then loops over the lowered body instructions.
+    /// Works for both literal and identifier count expressions.
+    /// </summary>
+    private IrBasicBlock LowerInlinePerformTimes(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
+    {
+        // Lower inline body into a temporary block to collect its IR instructions
+        var tempBlock = new IrBasicBlock("perf.inline.times.temp");
+        var bodyCurrent = tempBlock;
+        foreach (var stmt in perf.InlineStatements!)
+            bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
+
+        // Collect body instructions from tempBlock (single block for simple bodies)
+        var bodyInstructions = new List<IrInstruction>(tempBlock.Instructions);
+
+        // Pre-resolve data references in the count expression
+        var resolvedLocs = PreResolveExpressionLocations(perf.TimesExpression!);
+
+        // Emit IrPerformInlineTimes — the emitter:
+        //   1. Evaluates CountExpression → CIL local int counter
+        //   2. Loops: while counter > 0, execute body, counter--
+        block.Instructions.Add(new IrPerformInlineTimes(
+            perf.TimesExpression!, bodyInstructions, resolvedLocs));
+
+        return block;
     }
 
     // ── WRITE ──
@@ -760,6 +1015,14 @@ public sealed class Binder
         var recordLoc = ResolveLocation(wr.Record);
         if (recordLoc != null)
         {
+            // WRITE FROM: MOVE source TO record before writing
+            if (wr.From != null)
+            {
+                var fromLoc = ResolveExpressionLocation(wr.From);
+                if (fromLoc != null)
+                    block.Instructions.Add(new IrPicMove(fromLoc, recordLoc));
+            }
+
             if (wr.AdvancingLines.HasValue)
             {
                 block.Instructions.Add(new IrWriteAfterAdvancing(
@@ -922,6 +1185,103 @@ public sealed class Binder
         EmitFileStatus(rw.File, block);
     }
 
+    // ── DELETE ──
+
+    private IrBasicBlock LowerDelete(BoundDeleteStatement del, IrMethod method, IrBasicBlock block)
+    {
+        string cobolName = del.File.Name;
+        block.Instructions.Add(new IrDeleteRecord(cobolName));
+        EmitFileStatus(del.File, block);
+
+        // INVALID KEY / NOT INVALID KEY branching
+        if (del.InvalidKey.Count > 0 || del.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+
+            var invalidBlock = method.CreateBlock("delete.invalid");
+            var notInvalidBlock = method.CreateBlock("delete.not.invalid");
+            var afterBlock = method.CreateBlock("delete.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
+            block.Instructions.Add(new IrJump(invalidBlock));
+
+            method.Blocks.Add(invalidBlock);
+            var ikCurrent = invalidBlock;
+            foreach (var stmt in del.InvalidKey)
+                ikCurrent = LowerStatement(stmt, method, ikCurrent);
+            ikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notInvalidBlock);
+            var nikCurrent = notInvalidBlock;
+            foreach (var stmt in del.NotInvalidKey)
+                nikCurrent = LowerStatement(stmt, method, nikCurrent);
+            nikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
+    // ── START ──
+
+    private IrBasicBlock LowerStart(BoundStartStatement start, IrMethod method, IrBasicBlock block)
+    {
+        string cobolName = start.File.Name;
+
+        // Resolve key from the file's RECORD KEY
+        var recordKey = start.File.RecordKey;
+        if (recordKey != null)
+        {
+            var keySym = _semantic.ResolveData(recordKey);
+            if (keySym != null)
+            {
+                var keyLoc = ResolveLocation(keySym);
+                if (keyLoc != null)
+                {
+                    // Default to Equal if no KEY IS clause
+                    int condition = 0; // StartCondition.Equal
+                    block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition));
+                }
+            }
+        }
+
+        EmitFileStatus(start.File, block);
+
+        // INVALID KEY / NOT INVALID KEY branching
+        if (start.InvalidKey.Count > 0 || start.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+
+            var invalidBlock = method.CreateBlock("start.invalid");
+            var notInvalidBlock = method.CreateBlock("start.not.invalid");
+            var afterBlock = method.CreateBlock("start.after");
+
+            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
+            block.Instructions.Add(new IrJump(invalidBlock));
+
+            method.Blocks.Add(invalidBlock);
+            var ikCurrent = invalidBlock;
+            foreach (var stmt in start.InvalidKey)
+                ikCurrent = LowerStatement(stmt, method, ikCurrent);
+            ikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(notInvalidBlock);
+            var nikCurrent = notInvalidBlock;
+            foreach (var stmt in start.NotInvalidKey)
+                nikCurrent = LowerStatement(stmt, method, nikCurrent);
+            nikCurrent.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
+        }
+
+        return block;
+    }
+
     // ── INITIALIZE ──
 
     private void LowerInitialize(BoundInitializeStatement stmt, IrBasicBlock block)
@@ -967,7 +1327,7 @@ public sealed class Binder
         }
         else
         {
-            block.Instructions.Add(new IrMoveFigurative(loc, (int)FigurativeKind.Space));
+            block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Space));
         }
     }
 
@@ -1092,7 +1452,7 @@ public sealed class Binder
             }
             else
             {
-                block.Instructions.Add(new IrMoveFigurative(parentLoc, (int)FigurativeKind.Space));
+                block.Instructions.Add(new IrMoveFigurative(parentLoc, FigurativeKind.Space));
             }
         }
     }
@@ -1147,28 +1507,40 @@ public sealed class Binder
 
     private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
     {
-        // One ArithmeticStatus per statement — init once, sticky across all targets
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        // Emit the arithmetic operations
         foreach (var target in mult.Targets)
         {
-            var destLoc = ResolveLocation(target.Target);
+            var destLoc = ResolveExpressionLocation(target.Target);
             if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
 
-            if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+            if (mult.IsGiving)
             {
-                block.Instructions.Add(new IrPicMultiplyLiteral(
-                    d, destLoc, destLoc, roundingMode));
+                // GIVING form: result = Operand * ByOperand → stored in target
+                // Use IrComputeStore with a synthetic multiply expression
+                var mulExpr = new BoundBinaryExpression(
+                    mult.Operand, BoundBinaryOperatorKind.Multiply, mult.ByOperand,
+                    CobolCategory.Numeric);
+                block.Instructions.Add(new IrComputeStore(mulExpr, destLoc, roundingMode,
+                    PreResolveExpressionLocations(mulExpr)));
             }
-            else if (mult.Operand is BoundIdentifierExpression opId)
+            else
             {
-                var opLoc = ResolveLocation(opId);
-                if (opLoc != null)
+                // Non-GIVING: result = Operand * target → stored in target
+                if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
                 {
-                    block.Instructions.Add(new IrPicMultiply(
-                        opLoc, destLoc, destLoc, roundingMode));
+                    block.Instructions.Add(new IrPicMultiplyLiteral(
+                        d, destLoc, destLoc, roundingMode));
+                }
+                else
+                {
+                    var opLoc = ResolveExpressionLocation(mult.Operand);
+                    if (opLoc != null)
+                    {
+                        block.Instructions.Add(new IrPicMultiply(
+                            opLoc, destLoc, destLoc, roundingMode));
+                    }
                 }
             }
         }
@@ -1614,6 +1986,101 @@ public sealed class Binder
         LowerCondition(cmpExpr, result, block);
     }
 
+    // ── Comparison subsystem: normalize → classify → matrix dispatch ──
+
+    /// <summary>
+    /// Normalized operand for comparison dispatch.
+    /// Every BoundExpression in a comparison is reduced to one of these.
+    /// </summary>
+    private enum ComparisonOperandKind { Location, NumericLiteral, StringLiteral, Figurative }
+
+    private sealed class ComparisonOperand
+    {
+        public ComparisonOperandKind Kind { get; }
+        public IrLocation? Location { get; init; }
+        public Runtime.CobolCategory Category { get; init; }
+        public decimal NumericValue { get; init; }
+        public string? StringValue { get; init; }
+        public Runtime.FigurativeKind FigurativeKind { get; init; }
+        public string? AllLiteral { get; init; }
+        public int FieldWidth { get; init; }
+
+        private ComparisonOperand(ComparisonOperandKind kind) { Kind = kind; }
+
+        public static ComparisonOperand FromLocation(IrLocation loc, Runtime.CobolCategory cat, int width) =>
+            new(ComparisonOperandKind.Location) { Location = loc, Category = cat, FieldWidth = width };
+        public static ComparisonOperand FromNumeric(decimal value) =>
+            new(ComparisonOperandKind.NumericLiteral) { NumericValue = value, Category = Runtime.CobolCategory.Numeric };
+        public static ComparisonOperand FromString(string value) =>
+            new(ComparisonOperandKind.StringLiteral) { StringValue = value, Category = Runtime.CobolCategory.Alphanumeric };
+        public static ComparisonOperand FromFigurative(Runtime.FigurativeKind kind, string? allLiteral = null) =>
+            new(ComparisonOperandKind.Figurative) { FigurativeKind = kind, AllLiteral = allLiteral };
+    }
+
+    /// <summary>
+    /// Normalize a BoundExpression into a ComparisonOperand.
+    /// </summary>
+    private ComparisonOperand? NormalizeOperand(BoundExpression expr)
+    {
+        switch (expr)
+        {
+            case BoundIdentifierExpression:
+            case BoundReferenceModificationExpression:
+            {
+                var loc = ResolveExpressionLocation(expr);
+                if (loc == null) return null;
+                var pic = GetPicForLocation(loc);
+                return ComparisonOperand.FromLocation(loc, pic.Category, pic.StorageLength);
+            }
+
+            case BoundLiteralExpression lit:
+                if (lit.Value is decimal d) return ComparisonOperand.FromNumeric(d);
+                if (lit.Value is string s) return ComparisonOperand.FromString(s);
+                return null;
+
+            case BoundFigurativeExpression fig:
+                return ComparisonOperand.FromFigurative(
+                    (Runtime.FigurativeKind)fig.FigurativeKind, fig.AllLiteral);
+
+            // Negative numeric: -(literal) encoded as (0 - literal)
+            case BoundBinaryExpression neg
+                when neg.OperatorKind == BoundBinaryOperatorKind.Subtract
+                     && neg.Left is BoundLiteralExpression zl && zl.Value is decimal zd && zd == 0m
+                     && neg.Right is BoundLiteralExpression il && il.Value is decimal id:
+                return ComparisonOperand.FromNumeric(-id);
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Build the string value for a figurative constant, respecting field width.
+    /// </summary>
+    private static string MakeFigurativeString(Runtime.FigurativeKind kind, int width, string? allLiteral)
+    {
+        char fillChar = kind switch
+        {
+            Runtime.FigurativeKind.Space => ' ',
+            Runtime.FigurativeKind.Zero => '0',
+            Runtime.FigurativeKind.HighValue => '\xFF',
+            Runtime.FigurativeKind.LowValue => '\x00',
+            Runtime.FigurativeKind.Quote => '"',
+            _ => ' '
+        };
+
+        if (allLiteral != null)
+        {
+            // ALL "X" — repeat pattern to fill width
+            if (width <= 0) return allLiteral;
+            var sb = new System.Text.StringBuilder(width);
+            while (sb.Length < width) sb.Append(allLiteral);
+            return sb.ToString(0, width);
+        }
+
+        return width > 0 ? new string(fillChar, width) : fillChar.ToString();
+    }
+
     private void LowerCondition(BoundExpression cond, IrValue result, IrBasicBlock block)
     {
         // Class condition: IS NUMERIC, IS ALPHABETIC, etc.
@@ -1623,7 +2090,7 @@ public sealed class Binder
             return;
         }
 
-        // Level-88 condition name: expand to parent == val1 OR parent == val2 ...
+        // Level-88 condition name
         if (cond is BoundConditionNameExpression cn)
         {
             LowerConditionName(cn, result, block);
@@ -1632,6 +2099,7 @@ public sealed class Binder
 
         if (cond is BoundBinaryExpression binCond)
         {
+            // Boolean composition — recurse
             switch (binCond.OperatorKind)
             {
                 case BoundBinaryOperatorKind.Or:
@@ -1643,7 +2111,6 @@ public sealed class Binder
                     block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Or));
                     return;
                 }
-
                 case BoundBinaryOperatorKind.And:
                 {
                     var leftVal = _valueFactory.Next(IrPrimitiveType.Bool);
@@ -1653,7 +2120,6 @@ public sealed class Binder
                     block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
                     return;
                 }
-
                 case BoundBinaryOperatorKind.Not:
                 {
                     var innerVal = _valueFactory.Next(IrPrimitiveType.Bool);
@@ -1663,128 +2129,181 @@ public sealed class Binder
                 }
             }
 
-            // Resolve left and right as data references (identifiers or ref-mod)
-            // via ResolveExpressionLocation — the single entry point for all data references.
-            var leftLoc = ResolveExpressionLocation(binCond.Left);
-            var rightLoc = ResolveExpressionLocation(binCond.Right);
-
-            if (leftLoc != null)
-            {
-                var leftCat = GetPicForLocation(leftLoc).Category;
-
-                // location vs figurative constant (alphanumeric comparison)
-                if (binCond.Right is BoundFigurativeExpression figRight)
-                {
-                    // Convert figurative to single-char string for comparison;
-                    // IrStringCompareLiteral pads with spaces, so SPACE works.
-                    // For ZERO on numeric, use numeric comparison.
-                    var fk = (Runtime.FigurativeKind)figRight.FigurativeKind;
-                    if (leftCat.IsNumericLike() && fk == Runtime.FigurativeKind.Zero)
-                    {
-                        block.Instructions.Add(new IrPicCompareLiteral(
-                            leftLoc, 0m, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    else
-                    {
-                        string figStr = fk switch
-                        {
-                            Runtime.FigurativeKind.Space => " ",
-                            Runtime.FigurativeKind.Zero => "0",
-                            Runtime.FigurativeKind.HighValue => "\xFF",
-                            Runtime.FigurativeKind.LowValue => "\x00",
-                            Runtime.FigurativeKind.Quote => "\"",
-                            _ => figRight.AllLiteral ?? " "
-                        };
-                        block.Instructions.Add(new IrStringCompareLiteral(
-                            leftLoc, figStr, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    return;
-                }
-
-                // location vs string literal (alphanumeric comparison)
-                if (binCond.Right is BoundLiteralExpression litStr &&
-                    litStr.Value is string s && leftCat.IsAlphanumericLike())
-                {
-                    block.Instructions.Add(new IrStringCompareLiteral(
-                        leftLoc, s, result,
-                        (int)binCond.OperatorKind));
-                    return;
-                }
-
-                // location vs location
-                if (rightLoc != null)
-                {
-                    var rightCat = GetPicForLocation(rightLoc).Category;
-                    if (leftCat.IsAlphanumericLike() && rightCat.IsAlphanumericLike())
-                    {
-                        block.Instructions.Add(new IrStringCompare(
-                            leftLoc, rightLoc, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    else
-                    {
-                        block.Instructions.Add(new IrPicCompare(
-                            leftLoc, rightLoc, result,
-                            (int)binCond.OperatorKind));
-                    }
-                    return;
-                }
-                // location vs numeric literal
-                else if (binCond.Right is BoundLiteralExpression litRight
-                         && litRight.Value is decimal d)
-                {
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        leftLoc, d, result,
-                        (int)binCond.OperatorKind));
-                    return;
-                }
-                // location vs negative numeric literal: -(literal) encoded as (0 - literal)
-                else if (binCond.Right is BoundBinaryExpression negExpr
-                         && negExpr.OperatorKind == BoundBinaryOperatorKind.Subtract
-                         && negExpr.Left is BoundLiteralExpression zeroLit
-                         && zeroLit.Value is decimal zd && zd == 0m
-                         && negExpr.Right is BoundLiteralExpression innerLit
-                         && innerLit.Value is decimal innerD)
-                {
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        leftLoc, -innerD, result,
-                        (int)binCond.OperatorKind));
-                    return;
-                }
-            }
-
-            // Handle literal on left side (e.g., from EVALUATE comparison: literal == identifier)
-            if (binCond.Left is BoundLiteralExpression litLeft && rightLoc != null)
-            {
-                if (litLeft.Value is decimal dLeft)
-                {
-                    // Flip: compare right field against left literal
-                    // Flip the operator for non-symmetric comparisons
-                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                    block.Instructions.Add(new IrPicCompareLiteral(
-                        rightLoc, dLeft, result,
-                        (int)flippedOp));
-                    return;
-                }
-                else if (litLeft.Value is string sLeft)
-                {
-                    var flippedOp = FlipComparisonOp(binCond.OperatorKind);
-                    block.Instructions.Add(new IrStringCompareLiteral(
-                        rightLoc, sLeft, result,
-                        (int)flippedOp));
-                    return;
-                }
-            }
+            // Relational comparison — normalize and dispatch
+            LowerComparison(binCond, result, block);
+            return;
         }
 
-        // Fatal: unrecognized condition shape. Never silently return true —
-        // that masks bugs (e.g., NC106A SUB-TEST-F1-7 passed for months with wrong arithmetic).
-        // TODO: replace with IrExpressionCompare for production-grade general comparison.
-        throw new InvalidOperationException(
-            $"Unsupported condition shape in LowerCondition: {cond.GetType().Name} " +
-            $"(operator: {(cond is BoundBinaryExpression bc ? bc.OperatorKind.ToString() : "N/A")})");
+        _diagnostics.ReportError("CS0881",
+            $"Unsupported condition shape: {cond.GetType().Name}",
+            new Common.SourceLocation("<source>", 0, 0, 0),
+            new Common.TextSpan(0, 0));
+    }
+
+    /// <summary>
+    /// Lower a binary relational comparison via normalize → classify → matrix dispatch.
+    /// </summary>
+    private void LowerComparison(BoundBinaryExpression binCond, IrValue result, IrBasicBlock block)
+    {
+        var left = NormalizeOperand(binCond.Left);
+        var right = NormalizeOperand(binCond.Right);
+
+        if (left == null || right == null)
+        {
+            _diagnostics.ReportError("CS0882",
+                $"Cannot normalize comparison operands: " +
+                $"left={binCond.Left.GetType().Name}, right={binCond.Right.GetType().Name}",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
+
+        int op = (int)binCond.OperatorKind;
+
+        // Canonicalize: ensure location is on the left when possible.
+        // If left is non-location and right is location, swap and flip operator.
+        if (left.Kind != ComparisonOperandKind.Location && right.Kind == ComparisonOperandKind.Location)
+        {
+            (left, right) = (right, left);
+            op = (int)FlipComparisonOp(binCond.OperatorKind);
+        }
+
+        // Determine comparison category: numeric or alphanumeric.
+        // COBOL rule: if either operand is numeric AND the other can be treated as numeric,
+        // use numeric comparison. Otherwise use alphanumeric.
+        bool useNumeric = IsNumericComparison(left, right);
+
+        // Matrix dispatch on (left.Kind, right.Kind)
+        switch (left.Kind, right.Kind)
+        {
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.Location):
+                if (useNumeric)
+                {
+                    block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                }
+                else
+                {
+                    // Use IrPicCompare (with PIC descriptors) when either side is numeric
+                    // so the runtime can do the pseudo-MOVE (sign stripping) for
+                    // numeric DISPLAY vs alphanumeric comparisons.
+                    // Use IrStringCompare only when both sides are truly alphanumeric.
+                    bool eitherNumeric = left.Category == Runtime.CobolCategory.Numeric
+                                     || right.Category == Runtime.CobolCategory.Numeric;
+                    if (eitherNumeric)
+                        block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                    else
+                        block.Instructions.Add(new IrStringCompare(left.Location!, right.Location!, result, op));
+                }
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.NumericLiteral):
+                block.Instructions.Add(new IrPicCompareLiteral(left.Location!, right.NumericValue, result, op));
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.StringLiteral):
+                if (useNumeric && decimal.TryParse(right.StringValue,
+                    System.Globalization.CultureInfo.InvariantCulture, out var numFromStr))
+                    block.Instructions.Add(new IrPicCompareLiteral(left.Location!, numFromStr, result, op));
+                else
+                    block.Instructions.Add(new IrStringCompareLiteral(left.Location!, right.StringValue!, result, op));
+                break;
+
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.Figurative):
+                EmitLocationVsFigurative(left, right, result, op, block);
+                break;
+
+            case (ComparisonOperandKind.NumericLiteral, ComparisonOperandKind.NumericLiteral):
+                // Compile-time constant comparison
+                int cmp = Math.Sign(left.NumericValue.CompareTo(right.NumericValue));
+                bool constResult = EvaluateComparisonResult(cmp, (BoundBinaryOperatorKind)op);
+                block.Instructions.Add(new IrSetBool(result, constResult));
+                break;
+
+            case (ComparisonOperandKind.StringLiteral, ComparisonOperandKind.StringLiteral):
+                int strCmp = string.Compare(left.StringValue, right.StringValue, StringComparison.Ordinal);
+                bool strResult = EvaluateComparisonResult(Math.Sign(strCmp), (BoundBinaryOperatorKind)op);
+                block.Instructions.Add(new IrSetBool(result, strResult));
+                break;
+
+            default:
+                _diagnostics.ReportError("CS0883",
+                    $"Unhandled comparison combination: {left.Kind} vs {right.Kind}",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Determine if a comparison should use numeric semantics.
+    /// COBOL-85 rule: numeric comparison ONLY when both operands are numeric
+    /// (PIC 9, COMP, etc.). If either operand is alphanumeric, alphanumeric-edited,
+    /// or numeric-edited, use alphanumeric comparison. Numeric-edited fields
+    /// participate in alphanumeric comparison using their displayed form.
+    /// </summary>
+    private static bool IsNumericComparison(ComparisonOperand left, ComparisonOperand right)
+    {
+        bool leftIsNumeric = IsStrictlyNumeric(left);
+        bool rightIsNumeric = IsStrictlyNumeric(right);
+
+        // Both must be numeric (or numeric-compatible) for numeric comparison
+        return leftIsNumeric && rightIsNumeric;
+    }
+
+    /// <summary>
+    /// Returns true if the operand is strictly numeric (not edited, not alphanumeric).
+    /// </summary>
+    private static bool IsStrictlyNumeric(ComparisonOperand op)
+    {
+        return op.Kind switch
+        {
+            ComparisonOperandKind.Location =>
+                op.Category == Runtime.CobolCategory.Numeric,
+            ComparisonOperandKind.NumericLiteral => true,
+            ComparisonOperandKind.Figurative =>
+                op.FigurativeKind == Runtime.FigurativeKind.Zero,
+            ComparisonOperandKind.StringLiteral => false,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Emit comparison: location vs figurative constant.
+    /// </summary>
+    private void EmitLocationVsFigurative(ComparisonOperand loc, ComparisonOperand fig,
+        IrValue result, int op, IrBasicBlock block)
+    {
+        var fk = fig.FigurativeKind;
+        bool isNumeric = loc.Category.IsNumericLike();
+
+        // ZERO on numeric field → numeric comparison against 0
+        if (isNumeric && fk == Runtime.FigurativeKind.Zero)
+        {
+            block.Instructions.Add(new IrPicCompareLiteral(loc.Location!, 0m, result, op));
+            return;
+        }
+
+        // All other figuratives → alphanumeric string comparison
+        // Fill to field width for correct multi-byte comparison
+        string figStr = MakeFigurativeString(fk, loc.FieldWidth, fig.AllLiteral);
+        block.Instructions.Add(new IrStringCompareLiteral(loc.Location!, figStr, result, op));
+    }
+
+    /// <summary>
+    /// Evaluate a compile-time comparison result from a sign value (-1, 0, +1).
+    /// </summary>
+    private static bool EvaluateComparisonResult(int sign, BoundBinaryOperatorKind op)
+    {
+        return op switch
+        {
+            BoundBinaryOperatorKind.Equal => sign == 0,
+            BoundBinaryOperatorKind.NotEqual => sign != 0,
+            BoundBinaryOperatorKind.Less => sign < 0,
+            BoundBinaryOperatorKind.LessOrEqual => sign <= 0,
+            BoundBinaryOperatorKind.Greater => sign > 0,
+            BoundBinaryOperatorKind.GreaterOrEqual => sign >= 0,
+            _ => false
+        };
     }
 
     private static BoundBinaryOperatorKind FlipComparisonOp(BoundBinaryOperatorKind op)
@@ -1948,15 +2467,33 @@ public sealed class Binder
             // Simple GO TO: unconditional branch to paragraph
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
+            else
+                _diagnostics.ReportError("CS0876",
+                    $"GO TO target '{gt.Target.Name}' not found in paragraph dispatch table.",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
             return;
         }
 
         // GO TO para1 para2 ... DEPENDING ON selector
-        // Evaluate selector, return corresponding paragraph PC (1-based)
-        if (gt.DependingOn == null) return;
+        if (gt.DependingOn == null)
+        {
+            _diagnostics.ReportError("CS0877",
+                "GO TO DEPENDING ON requires a selector variable.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
 
-        var selectorLoc = ResolveLocation(gt.DependingOn);
-        if (selectorLoc == null) return;
+        var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
+        if (selectorLoc == null)
+        {
+            _diagnostics.ReportError("CS0878",
+                $"GO TO DEPENDING ON selector '{gt.DependingOn}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
 
         // Build list of target paragraph indices
         var targetIndices = new List<int>();
@@ -1965,7 +2502,13 @@ public sealed class Binder
             if (_paragraphIndices.TryGetValue(target.Name, out int idx))
                 targetIndices.Add(idx);
             else
-                targetIndices.Add(-1); // shouldn't happen
+            {
+                _diagnostics.ReportError("CS0876",
+                    $"GO TO DEPENDING target '{target.Name}' not found in paragraph dispatch table.",
+                    new Common.SourceLocation("<source>", 0, 0, 0),
+                    new Common.TextSpan(0, 0));
+                targetIndices.Add(-1);
+            }
         }
 
         block.Instructions.Add(new IrGoToDepending(selectorLoc, targetIndices));
@@ -1988,13 +2531,12 @@ public sealed class Binder
         return dead;
     }
 
-    // ── EXIT PERFORM ──
+    // ── EXIT PERFORM / EXIT PARAGRAPH / EXIT SECTION ──
 
     private IrBasicBlock LowerExitPerform(IrMethod method, IrBasicBlock block)
     {
         if (_performExitStack.Count == 0)
         {
-            // EXIT PERFORM outside any active PERFORM — emit diagnostic, skip
             _diagnostics.ReportError("CS0862",
                 "EXIT PERFORM used outside of any active PERFORM.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
@@ -2005,8 +2547,45 @@ public sealed class Binder
         var exitBlock = _performExitStack.Peek();
         block.Instructions.Add(new IrJump(exitBlock));
 
-        // Any statements after EXIT PERFORM are unreachable.
         var dead = new IrBasicBlock("dead_after_exit_perform");
+        method.Blocks.Add(dead);
+        return dead;
+    }
+
+    private IrBasicBlock LowerExitParagraph(IrMethod method, IrBasicBlock block)
+    {
+        if (_paragraphEndBlock == null)
+        {
+            _diagnostics.ReportError("CS0862",
+                "EXIT PARAGRAPH used outside of any paragraph.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+
+        block.Instructions.Add(new IrJump(_paragraphEndBlock));
+
+        var dead = new IrBasicBlock("dead_after_exit_paragraph");
+        method.Blocks.Add(dead);
+        return dead;
+    }
+
+    private IrBasicBlock LowerExitSection(IrMethod method, IrBasicBlock block)
+    {
+        if (_sectionExitReturnIndex == null)
+        {
+            _diagnostics.ReportError("CS0862",
+                "EXIT SECTION used outside of any section.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return block;
+        }
+
+        // Return the index of the first paragraph after the section,
+        // causing the dispatcher to skip remaining paragraphs in this section.
+        block.Instructions.Add(new IrReturnConst(_sectionExitReturnIndex.Value));
+
+        var dead = new IrBasicBlock("dead_after_exit_section");
         method.Blocks.Add(dead);
         return dead;
     }

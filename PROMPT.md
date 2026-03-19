@@ -1,209 +1,246 @@
-# CobolSharp — Architectural Doctrine & Development Rules
-
-This document governs all AI-assisted development on this project. Every rule exists because
-it was violated, caught by the user, and corrected — often more than once. These are not
-suggestions. They are hard requirements derived from 13+ sessions of building a production
-COBOL compiler.
-
-Read this file in full before making any code change.
-
----
-
-## The Project
-
-CobolSharp is a production COBOL compiler (ISO/IEC 1989:2023) targeting .NET 8+ CIL, implemented
-in C#. The compiler pipeline is:
-
-```
-Source → Preprocessor → Lexer → Parser (ANTLR4) → BoundTree → IR (Lowering) → CIL (Mono.Cecil)
-```
-
-Key architectural layers:
-- **BoundTreeBuilder** — Binds parse tree to typed, symbol-resolved bound nodes
-- **Binder** — Lowers bound nodes to IR instructions (never emits IR directly from parse tree)
-- **CilEmitter** — Emits .NET CIL from IR instructions
-
-The canonical dispatch points (use these, never bypass them):
-- `BindIdentifierWithSubscripts` — all identifier binding from parse tree
-- `ResolveExpressionLocation` — all bound expression → IrLocation resolution
-- `EmitLocationArgs` / `EmitLocationArgsWithPic` — all CIL location emission
-- `IrLocation` hierarchy — all data storage references (IrStaticLocation, IrElementRef, IrRefModLocation)
-
----
-
-## Architectural Doctrine
-
-These four patterns have appeared repeatedly across the project's history. They are the primary
-failure modes. Memorize them.
-
-### Doctrine 1: Use the canonical abstraction — never route around it
-
-When a canonical abstraction exists for a concept, every code path that touches that concept
-MUST go through it. No exceptions. No shortcuts. No "just this once."
-
-**Violations found in this project:**
-- `EmitExpression` called `GetStorageLocation` directly instead of using `IrLocation`
-- `LowerCondition` used `as BoundIdentifierExpression` instead of `ResolveExpressionLocation`
-- `BindPrimaryExpression` extracted `IDENTIFIER().GetText()` instead of `BindIdentifierWithSubscripts`
-- Arithmetic operand binding bypassed the identifier binder entirely
-- `ACCEPT FROM DATE` initially bypassed lexer tokens
-- `INSPECT` initially bypassed region abstraction
-
-**The fix is always the same:** extend the canonical abstraction to handle the new case.
-If no abstraction exists, create one before implementing the feature.
-
-**The invariant:** "If something touches data bytes, it either already has an IrLocation,
-or calls ResolveExpressionLocation first." This invariant applies to every abstraction in the
-compiler — substitute the relevant concept.
-
-### Doctrine 2: Every bug is a pattern — fix the pattern, not the instance
-
-When you find a structural flaw in one place, assume it exists elsewhere until proven otherwise.
-Compilers are systems. Systems repeat patterns.
-
-**Procedure:**
-1. Stop.
-2. Identify the pattern (e.g., "direct identifier extraction bypassing binding").
-3. Search the entire codebase for all instances (`grep`, `Grep` tool, etc.).
-4. Replace every instance with the canonical abstraction.
-5. Add regression tests that would catch any future recurrence.
-
-Do all of this in ONE sweep. Never fix a single instance and move on.
-
-**Violations found in this project:**
-- Fixed one `IDENTIFIER().GetText()`, four more existed in arithmetic operand binding
-- Fixed one `GetStorageLocation` bypass, others existed in emitter init code
-- Fixed `FractionDigits` in one place, four more needed fixing
-- Fixed ref-mod in `LowerMove` only, all other lowering methods needed it too
-
-**The cost of single-instance fixes:** future regressions, inconsistent behavior, architectural
-drift, tests that pass for the wrong reasons.
-
-### Doctrine 3: Integrate at the abstraction boundary, never bolt onto leaves
-
-When a feature touches multiple subsystems, integrate it at the abstraction layer, not at each
-consuming leaf.
-
-**Wrong:** Adding `if (source is BoundReferenceModificationExpression)` to LowerMove,
-LowerDisplay, LowerAccept, LowerInspect, etc.
-
-**Right:** Adding `BoundReferenceModificationExpression` handling to `ResolveExpressionLocation`
-(one place), then all consumers get it for free.
-
-**Violations found in this project:**
-- Reference modification initially bolted onto LowerMove as a type-check cascade
-- OCCURS initially wired into MOVE/DISPLAY only, not unified into IrLocation
-- File I/O had legacy FileRuntime bolted next to CobolFileManager
-- NEXT SENTENCE was impossible because sentences weren't modeled in the IR
-
-### Doctrine 4: Every concept has exactly one dispatch point
-
-Before making any code change, ask three questions:
-
-1. **Is there a single, canonical dispatch point for this concept?**
-   If yes: extend it. If no: create it. Never wrap around it.
-
-2. **Is the type logic centralized or smeared across call sites?**
-   If smeared: stop and refactor toward a unified resolver before adding the new case.
-
-3. **Am I modifying a leaf when the concept is more general?**
-   If yes: I'm bolting, not integrating. Step back and find the right abstraction layer.
-
-If any answer is "yes, but I'll fix it later" — fix it now. "Later" is how technical debt
-accumulates and wrappers rot.
-
----
-
-## Development Rules
-
-### Code Quality
-
-- **Production quality always.** Never choose "simplest", "minimal blast radius", or "good
-  enough for now." This compiler will be maintained for 5+ years. There is no existing user
-  base requiring backward compatibility. Refactor anything, rewrite anything.
-
-- **Never change valid COBOL source to work around compiler bugs.** If valid source fails to
-  compile, the compiler is broken. Fix the compiler.
-
-- **Implement from the spec.** When the user provides a spec, implement it exactly. Don't
-  investigate whether existing code covers it, don't optimize by skipping parts, don't prove
-  the spec is unnecessary.
-
-- **Never claim spec compatibility without a citation.** Every output diff vs expected is a
-  bug until an ISO spec section says otherwise.
-
-### Layer Discipline
-
-- **Binder produces bound nodes only, never IR.** Lowering turns bound nodes into IR. The
-  CilEmitter turns IR into CIL. Don't skip layers.
-
-- **When changing a type, propagate through ALL layers at once.** Never wrap the old type in
-  the new type at call sites as a "transitional" step. Trace the data flow end-to-end, change
-  all layers in one pass.
-
-- **When adding a new variant, refactor the dispatch generically first.** Never add another
-  `if (source is NewType)` branch to each caller. Add the case to the canonical dispatch
-  method, and all callers get it for free.
-
-### Grammar & Parsing
-
-- **Never change grammar without explaining the problem and proposed solution to the user
-  first and getting approval.**
-
-- **Always make proper fixes.** If a token is needed, add it to the lexer. Never use
-  `IDENTIFIER` as a catch-all.
-
-- **Keep grammar documentation in sync** when changing ANTLR4 grammar files.
-
-- **ANTLR picks the first matching alternative.** Put literals before `arithmeticExpression`
-  in ambiguous rules.
-
-### Testing
-
-- **Every new statement must ship with parser + CIL emitter + output-verifying test together.**
-  No partial implementations. All in the same commit.
-
-- **Compile and test after every change, no exceptions.** Even if a change "shouldn't" affect
-  behavior.
-
-- **Every output diff vs expected is a bug** until a spec citation says otherwise. "Close
-  enough" is never acceptable.
-
-- **When debugging failures, do ONE test at a time.** Don't keep retrying batch approaches
-  that fail.
-
-### Process
-
-- **Maintain DEVLOG.md** with narrative of decisions, failures, dead ends, and breakthroughs.
-  This is source material for an article series on human-AI collaboration in compiler
-  construction.
-
-- **Log all AI missteps honestly** in DEVLOG.md. Be radically transparent. When you make a
-  wrong decision, go down a dead end, or cause frustration — log it clinically. This is data
-  collection, not self-flagellation.
-
-- **Update PROJECT_PLAN.md** with progress after each session.
-
-- **Write detailed, forensically-traceable git commit messages** describing all
-  adds/changes/removals.
-
-- **Manage context wisely.** Keep external docs updated for quick session resumption. Flag
-  context drift early.
-
-- **Never run unbounded filesystem searches.** Kill stale background tasks.
-
----
-
-## The Meta-Rule
-
-All four doctrines reduce to one principle:
-
-**Respect the abstraction boundary.**
-
-When you bypass it, you create a rogue path. When you fix one rogue path without scanning for
-others, you leave landmines. When you bolt a feature onto leaves instead of integrating at the
-boundary, you create N rogue paths at once. When you don't have a single dispatch point, you
-don't have an abstraction boundary at all.
-
-The compiler gets simpler every time you unify a pattern. It gets harder every time you add a
-special case. Choose unification every time.
+C# 12+, .NET 9, Multi‑Session Continuity, Explicit Anti‑Patterns
+You are tasked with performing a full‑scale, multi‑stage modernization of an existing COBOL‑80 compiler codebase written in C#.
+Your mission is to transform the entire codebase into the cleanest, most maintainable, most comprehensible, most efficient, and most production‑quality compiler implementation possible, suitable for decades of maintenance.
+This is not a compatibility‑preserving refactor.
+This is a ground‑truth architectural audit and rewrite, performed in stages, with correctness verified at every step.
+You must stay focused on this mission and never drift into unrelated tasks.
+
+0. Multi‑Session Continuity Requirement (Critical)
+This modernization will occur across multiple Claude sessions.
+You must:
+A. Persist the architectural plan across sessions
+- Remember the long‑term goals
+- Remember the modernization stages
+- Remember the architectural direction
+- Remember the constraints and principles
+- Remember the current stage of the migration
+- Remember what has been completed and what remains
+B. Reconstruct context at the start of each new session
+When a new session begins, you must:
+- Re‑establish the modernization plan
+- Re‑state the current stage
+- Re‑state the next required actions
+- Re‑state any pending regressions or unresolved issues
+- Re‑state the architectural principles guiding the rewrite
+C. Never regress or contradict earlier architectural decisions
+- Never undo previous improvements
+- Never reintroduce anti‑patterns
+- Never forget the modernization direction
+- Never revert to legacy constraints
+D. Maintain a consistent, long‑term memory of the migration
+Even if the user does not provide context, you must:
+- Rebuild the plan
+- Rebuild the stage
+- Rebuild the architectural constraints
+- Rebuild the modernization goals
+- Rebuild the compiler design principles
+This is essential for a multi‑session rewrite.
+
+1. Core Mission
+Analyze the entire C# source code base of the COBOL‑80 compiler.
+Identify:
+- Architectural anti‑patterns
+- Code smells
+- Redundant abstractions
+- Overly complex or fragile logic
+- Violations of single‑responsibility
+- Leaky abstractions
+- Inconsistent naming or layering
+- Areas where modern compiler design patterns should replace ad‑hoc logic
+- Any place where the code can be simplified, clarified, or made more robust
+Your goal is to produce a modern, clean, principled compiler architecture that:
+- Is easy to understand
+- Is easy to maintain
+- Is easy to extend
+- Has clear, well‑defined boundaries between phases
+- Uses canonical compiler patterns (AST, IR, lowering, passes, visitors, etc.)
+- Eliminates unnecessary complexity
+- Eliminates hacks, workarounds, and technical debt
+- Uses modern C# language features (C# 12+)
+- Targets .NET 9
+- Has zero dead code
+- Has zero duplicated logic
+- Has zero hidden coupling
+Backward compatibility is not required.
+This is a new product, and you are free to redesign anything.
+
+2. Required Architectural Principles
+You must enforce:
+- Single pipeline for PIC semantics
+- Clear separation of compiler phases
+- No semantic logic in the parser
+- No codegen logic in semantic analysis
+- No runtime logic in compile‑time structures
+- No duplicated logic across passes
+- No global state unless explicitly justified
+- No hidden side effects
+- No ad‑hoc string manipulation where structured data is appropriate
+- No magic numbers or magic strings
+- No deeply nested conditionals where pattern matching or polymorphism is appropriate
+- No monolithic classes
+- No “god objects”
+- No circular dependencies
+- No mutable shared state across phases
+Replace anti‑patterns with:
+- Clean, composposable abstractions
+- Immutable data structures where appropriate
+- Clear ownership and lifetime rules
+- Canonical compiler patterns
+- Well‑factored modules
+- Strong typing
+- Exhaustive pattern matching
+- Declarative logic where possible
+- Modern C# features (records, spans, switch expressions, primary constructors, required members, file‑scoped types, etc.)
+- .NET 9 APIs and performance primitives
+
+3. Explicit Anti‑Patterns to Seek and Eliminate
+(This list is not exhaustive — you must eliminate all anti‑patterns you find.)
+A. Architectural Anti‑Patterns
+- Parser performing semantic analysis
+- Semantic analysis performing codegen
+- Runtime logic embedded in compile‑time structures
+- IR that mirrors AST too closely (no lowering)
+- IR that is too low‑level (no structured operations)
+- Codegen that depends on AST shape
+- Cyclic dependencies between compiler layers
+- Global mutable state
+- Static singletons
+- “Manager” classes with unclear responsibilities
+- “Kitchen sink” modules with mixed concerns
+B. Code Smells
+- Deeply nested if/else chains
+- Switch statements that should be polymorphism
+- Repeated string parsing
+- Repeated PIC parsing logic
+- Repeated MOVE semantics logic
+- Repeated numeric formatting logic
+- Repeated error‑handling logic
+- Repeated symbol‑table lookups
+- Repeated type‑checking logic
+- Repeated codegen patterns
+C. Data Structure Anti‑Patterns
+- Dictionaries used as ad‑hoc structs
+- Tuples used where named types are needed
+- Arrays used where spans or slices are appropriate
+- Mutable shared collections
+- Unbounded lists that should be immutable
+D. C# Anti‑Patterns
+- Old C# patterns that should be replaced with:
+- record / record struct
+- required members
+- primary constructors
+- pattern matching
+- switch expressions
+- file‑scoped types
+- Span<T> / ReadOnlySpan<T>
+- Memory<T>
+- using declarations
+- async streams
+- IAsyncEnumerable<T>
+- sealed classes where appropriate
+- static abstract members in interfaces
+- source generators (if beneficial)
+E. .NET Anti‑Patterns
+- Manual buffer management where Span<T> is appropriate
+- Manual string slicing where AsSpan() is appropriate
+- Reflection where generic constraints or interfaces suffice
+- Exceptions used for control flow
+- Blocking I/O where async is appropriate
+F. Testing Anti‑Patterns
+- Tests that depend on global state
+- Tests that depend on ordering
+- Tests that depend on side effects
+- Tests that do not cover error paths
+- Tests that do not cover edge cases
+
+4. Required Process: Staged Migration With Regression Gates
+You must perform the modernization in stages, not all at once.
+For each stage:
+- Analyze the subsystem
+- Identify anti‑patterns and architectural issues
+- Propose the improvements
+- Apply the changes
+- Run all regression tests, integration tests, and NIST tests
+- If any test fails, STOP
+- Diagnose and fix the regression
+- Only proceed when the codebase is fully green
+You must not proceed to the next stage until the current stage is 100% correct.
+You must never introduce new regressions.
+You must never skip tests.
+You must never hand‑wave correctness.
+
+5. Required Output Format
+For each stage, produce:
+A. Analysis
+- What is wrong
+- Why it is wrong
+- What patterns should replace it
+- What the new architecture should look like
+B. Proposed Changes
+- File‑by‑file
+- Class‑by‑class
+- Function‑by‑function
+- With clear justification
+C. Updated Code
+- Only the relevant diffs
+- Clean, modern, idiomatic C#
+- Using C# 12+ features where appropriate
+- Targeting .NET 9
+- No partial edits that leave the system in an inconsistent state
+D. Regression Report
+- Which tests were run
+- Which passed
+- Which failed
+- How failures were fixed
+E. Next Steps
+- What the next stage should address
+- Why it matters
+- How it improves the architecture
+
+6. Guardrails (Do Not Deviate)
+You must not:
+- Drift into unrelated topics
+- Add features not requested
+- Remove features unless they are anti‑patterns
+- Produce incomplete refactors
+- Leave dead code
+- Leave TODOs
+- Leave partial migrations
+- Skip tests
+- Proceed with failing tests
+- Produce speculative or hypothetical code
+- Produce pseudocode instead of real code
+- Produce code that does not compile
+- Produce code that does not integrate cleanly
+You must stay focused on:
+- Code quality
+- Architecture
+- Maintainability
+- Correctness
+- Long‑term sustainability
+- Modern C#
+- .NET 9
+- Multi‑session continuity
+
+7. Final Objective
+At the end of the multi‑stage migration, the codebase must be:
+- Clean
+- Modern
+- Canonical
+- Well‑architected
+- Fully tested
+- Fully maintainable
+- Free of legacy constraints
+- Free of anti‑patterns
+- Using modern C#
+- Targeting .NET 9
+- Ready for decades of evolution
+- And the modernization plan must remain consistent across sessions
+This is your mission.
+Do not deviate from it.
+
+8. Supplementary Documents
+Read CONSTRAINTS.md for the full anti-pattern catalog (with labels), migration phase breakdown,
+session rituals (start and end), and behavioral constraints.
+Read MIGRATION_LEDGER.md for the current migration state, phase status, session history,
+and outstanding TODOs. Update it at the end of every session.

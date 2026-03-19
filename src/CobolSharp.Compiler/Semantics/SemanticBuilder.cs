@@ -15,14 +15,24 @@ namespace CobolSharp.Compiler.Semantics;
 public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SymbolTable _symbols;
-    private readonly List<Diagnostic> _diagnostics = new();
+    private readonly List<Diagnostic> _diagnostics = [];
     private int _fillerCounter;
 
     // Data items in declaration order (preserves all FILLERs)
-    private readonly List<DataSymbol> _dataItemsInOrder = new();
+    private readonly List<DataSymbol> _dataItemsInOrder = [];
+
+    // Current section name (null if paragraphs are orphans)
+    private string? _currentSectionName;
+
+    // Section → paragraph membership (built during visit)
+    private readonly Dictionary<string, List<string>> _sectionParagraphs =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Section-to-paragraph membership map built during parsing.</summary>
+    public IReadOnlyDictionary<string, List<string>> SectionParagraphs => _sectionParagraphs;
 
     // Parent stack for level-number-based tree building
-    private readonly Stack<DataSymbol> _dataStack = new();
+    private readonly Stack<DataSymbol> _dataStack = [];
 
     // Tracks which data division section we're currently visiting
     private StorageAreaKind _currentArea = StorageAreaKind.WorkingStorage;
@@ -30,7 +40,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Temporary: holds the REDEFINES target name during clause parsing
     private string? _deferredRedefinesName;
     private Runtime.SignStorageKind? _deferredSignStorage;
-    private int? _deferredFigurativeInit;
+    private FigurativeKind? _deferredFigurativeInit;
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
@@ -96,6 +106,43 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             message,
             new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column),
             new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
+    }
+
+    // ── SPECIAL-NAMES ──
+
+    private char _currencySign = '$';
+    private bool _decimalPointIsComma = false;
+
+    public char CurrencySign => _currencySign;
+    public bool DecimalPointIsComma => _decimalPointIsComma;
+
+    public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
+    {
+        foreach (var entry in ctx.specialNameEntry())
+        {
+            // CURRENCY SIGN IS "W"
+            if (entry.currencySignClause() is { } currClause)
+            {
+                var lit = currClause.literal();
+                var nonNum = lit?.nonNumericLiteral();
+                if (nonNum?.STRINGLIT() is { } slit)
+                {
+                    var text = slit.GetText();
+                    if (text.Length >= 3)
+                        _currencySign = text[1];
+                }
+            }
+
+            // DECIMAL-POINT IS COMMA
+            if (entry.decimalPointClause() is { } dpClause)
+            {
+                var word = dpClause.IDENTIFIER()?.GetText();
+                if (string.Equals(word, "COMMA", StringComparison.OrdinalIgnoreCase))
+                    _decimalPointIsComma = true;
+            }
+        }
+
+        return base.VisitSpecialNamesParagraph(ctx);
     }
 
     // ── Data Division ──
@@ -312,11 +359,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                 // Store figurative kind for field-filling initialization
                                 _deferredFigurativeInit = figText switch
                                 {
-                                    "SPACE" or "SPACES" => (int)Runtime.FigurativeKind.Space,
-                                    "ZERO" or "ZEROS" or "ZEROES" => (int)Runtime.FigurativeKind.Zero,
-                                    "HIGH-VALUE" or "HIGH-VALUES" => (int)Runtime.FigurativeKind.HighValue,
-                                    "LOW-VALUE" or "LOW-VALUES" => (int)Runtime.FigurativeKind.LowValue,
-                                    "QUOTE" or "QUOTES" => (int)Runtime.FigurativeKind.Quote,
+                                    "SPACE" or "SPACES" => FigurativeKind.Space,
+                                    "ZERO" or "ZEROS" or "ZEROES" => FigurativeKind.Zero,
+                                    "HIGH-VALUE" or "HIGH-VALUES" => FigurativeKind.HighValue,
+                                    "LOW-VALUE" or "LOW-VALUES" => FigurativeKind.LowValue,
+                                    "QUOTE" or "QUOTES" => FigurativeKind.Quote,
                                     _ => null
                                 };
                             }
@@ -361,8 +408,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        // Extract OCCURS count from clauses
+        // Extract OCCURS count and BLANK WHEN ZERO from clauses
         int occursCount = 1;
+        bool blankWhenZero = false;
+        bool justifiedRight = false;
         if (body?.dataDescriptionClauses() != null)
         {
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
@@ -374,12 +423,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
                         occursCount = oc;
                 }
+
+                if (clause.blankWhenZeroClause() != null)
+                    blankWhenZero = true;
+
+                if (clause.justifiedClause() != null)
+                    justifiedRight = true;
             }
         }
 
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.OccursCount = occursCount;
+        data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
         data.ExplicitSignStorage = _deferredSignStorage;
@@ -389,8 +445,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
+        var picEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
         data.ResolvedType = PicUsageResolver.ResolveForDataItem(
-            displayName, picString, usage, diagBag, line);
+            displayName, picString, usage, diagBag, line, blankWhenZero, picEnv);
         foreach (var d in diagBag.Diagnostics)
             _diagnostics.Add(d);
 
@@ -456,9 +513,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (!_symbols.Program.ProcedureDivisionScope.TryDeclare(section, out var existingSec))
             Error(ctx, $"Duplicate section '{name}'.");
 
+        _currentSectionName = name;
         using var scopeGuard = _symbols.PushScope(section.Scope);
         foreach (var para in ctx.paragraphDeclaration())
             VisitParagraphDeclaration(para);
+        _currentSectionName = null;
 
         return null;
     }
@@ -471,8 +530,20 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         string name = nameCtx.GetText();
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
-        _symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal);
+        if (!_symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal))
+            Error(ctx, $"Duplicate paragraph '{name}' in current scope.");
         _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
+
+        // Track section membership
+        if (_currentSectionName != null)
+        {
+            if (!_sectionParagraphs.TryGetValue(_currentSectionName, out var list))
+            {
+                list = new List<string>();
+                _sectionParagraphs[_currentSectionName] = list;
+            }
+            list.Add(name);
+        }
 
         using var paraScope = _symbols.PushScope(paragraph.Scope);
         foreach (var sentence in ctx.sentence())

@@ -39,19 +39,35 @@ public interface IFileHandler : IDisposable
     string Start(byte[] keyValue, StartCondition condition);
 }
 
+/// <summary>
+/// COBOL OPEN statement modes (ISO §6.6.38).
+/// </summary>
 public enum FileOpenMode
 {
+    /// <summary>OPEN INPUT — read-only sequential or random access.</summary>
     Input,
+    /// <summary>OPEN OUTPUT — creates or replaces the file for writing.</summary>
     Output,
+    /// <summary>OPEN I-O — read and rewrite/delete access.</summary>
     InputOutput,
+    /// <summary>OPEN EXTEND — append records to the end of an existing file.</summary>
     Extend,
 }
 
+/// <summary>
+/// Key comparison condition for the COBOL START statement (ISO §6.6.54).
+/// Positions the file cursor relative to the supplied key value.
+/// </summary>
 public enum StartCondition
 {
+    /// <summary>Position at the first record whose key equals the supplied value.</summary>
     Equal,
+    /// <summary>Position at the first record whose key is greater than the supplied value.</summary>
     GreaterThan,
+    /// <summary>Position at the first record whose key is greater than or equal to the supplied value.</summary>
     GreaterThanOrEqual,
+    /// <summary>Position at the first record whose key is less than the supplied value.</summary>
     LessThan,
+    /// <summary>Position at the first record whose key is less than or equal to the supplied value.</summary>
     LessThanOrEqual,
 }

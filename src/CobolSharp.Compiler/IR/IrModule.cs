@@ -3,30 +3,30 @@
 namespace CobolSharp.Compiler.IR;
 
 /// <summary>
-/// One IR module per COBOL program/class. Contains types (records),
-/// methods (paragraphs/sections), and globals (working-storage).
+/// Top-level IR container for a single COBOL program. Corresponds 1:1 to
+/// a .NET assembly. Aggregates the record types (01-level groups),
+/// methods (paragraphs/sections), and globals (WORKING-STORAGE / FILE SECTION records)
+/// produced by the lowering pass.
 /// </summary>
-public sealed class IrModule
+public sealed class IrModule(string name)
 {
-    public string Name { get; }
-    public List<IrType> Types { get; } = new();
-    public List<IrMethod> Methods { get; } = new();
-    public List<IrGlobal> Globals { get; } = new();
+    /// <summary>PROGRAM-ID or class name, used as the assembly and type name.</summary>
+    public string Name { get; } = name;
 
-    public IrModule(string name) => Name = name;
+    /// <summary>Record types emitted as explicit-layout structs.</summary>
+    public List<IrType> Types { get; } = [];
+
+    /// <summary>Methods emitted as static methods on the program class.</summary>
+    public List<IrMethod> Methods { get; } = [];
+
+    /// <summary>Global byte-array fields representing COBOL storage areas.</summary>
+    public List<IrGlobal> Globals { get; } = [];
 }
 
 /// <summary>
-/// A global variable (WORKING-STORAGE, FILE SECTION record, etc.)
+/// A module-level storage area (WORKING-STORAGE, FILE SECTION, etc.)
+/// backed by a byte array in the emitted ProgramState.
 /// </summary>
-public sealed class IrGlobal
-{
-    public string Name { get; }
-    public IrType Type { get; }
-
-    public IrGlobal(string name, IrType type)
-    {
-        Name = name;
-        Type = type;
-    }
-}
+/// <param name="Name">Storage area identifier (e.g., "WorkingStorage").</param>
+/// <param name="Type">Always <see cref="IrPrimitiveType.ByteArray"/> in current usage.</param>
+public sealed record IrGlobal(string Name, IrType Type);

@@ -9,11 +9,18 @@ namespace CobolSharp.Runtime;
 /// </summary>
 public enum FigurativeKind
 {
+    /// <summary>Not a figurative constant.</summary>
     None = 0,
+    /// <summary>ZERO / ZEROS / ZEROES — fills with '0' (0x30) for alphanumeric, numeric zero for numeric.</summary>
     Zero,
+    /// <summary>SPACE / SPACES — fills with ' ' (0x20).</summary>
     Space,
+    /// <summary>HIGH-VALUE / HIGH-VALUES — fills with 0xFF (highest value in collating sequence).</summary>
     HighValue,
+    /// <summary>LOW-VALUE / LOW-VALUES — fills with 0x00 (lowest value in collating sequence).</summary>
     LowValue,
+    /// <summary>QUOTE / QUOTES — fills with '"' (0x22).</summary>
     Quote,
+    /// <summary>NULL / NULLS — fills with 0x00 (address context, semantically distinct from LOW-VALUE).</summary>
     Null
 }

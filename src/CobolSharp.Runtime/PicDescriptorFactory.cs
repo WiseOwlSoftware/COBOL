@@ -7,6 +7,9 @@ namespace CobolSharp.Runtime;
 /// <summary>
 /// Canonical factory for creating PicDescriptor from a PIC clause string.
 /// Shared between compiler (for layout/analysis) and runtime (for tests).
+///
+/// All PIC interpretation depends on PicEnvironment, which carries the program's
+/// CURRENCY SIGN and DECIMAL-POINT IS COMMA settings.
 /// </summary>
 public static class PicDescriptorFactory
 {
@@ -19,9 +22,26 @@ public static class PicDescriptorFactory
         UsageKind usage = UsageKind.Display,
         bool isSigned = false,
         SignStorageKind signStorage = SignStorageKind.None,
-        bool blankWhenZero = false)
+        bool blankWhenZero = false,
+        PicEnvironment? environment = null)
     {
+        var env = environment ?? PicEnvironment.Default;
         var text = picBody.Trim().ToUpperInvariant();
+        char currencyChar = char.ToUpperInvariant(env.CurrencySign);
+        bool decimalPointIsComma = env.DecimalPointIsComma;
+
+        // Pre-scan: count currency, +, - to distinguish fixed (single) vs floating (multiple).
+        int currencyTotal = 0, plusTotal = 0, minusTotal = 0;
+        foreach (char ch in text)
+        {
+            if (ch == currencyChar) currencyTotal++;
+            else if (ch == '+') plusTotal++;
+            else if (ch == '-') minusTotal++;
+        }
+        bool singleCurrency = currencyTotal == 1;
+        bool singlePlus = plusTotal == 1 && minusTotal == 0;
+        bool singleMinus = minusTotal == 1 && plusTotal == 0;
+
         int pos = 0;
 
         int integerDigits = 0;
@@ -41,6 +61,29 @@ public static class PicDescriptorFactory
         while (pos < text.Length)
         {
             char c = text[pos];
+
+            // Currency character (env-dependent, not hardcoded '$')
+            if (c == currencyChar)
+            {
+                edited = true;
+                int count = ParseRepeatCount(text, ref pos);
+                hasNumericChars = true;
+                hasRealDigits = true;
+                if (singleCurrency)
+                {
+                    // Fixed currency: literal insertion, NOT a digit position
+                    insertionChars += count;
+                }
+                else
+                {
+                    // Floating currency: digit positions
+                    if (pastDecimal)
+                        fractionDigits += count;
+                    else
+                        integerDigits += count;
+                }
+                continue;
+            }
 
             switch (c)
             {
@@ -106,14 +149,39 @@ public static class PicDescriptorFactory
                 case '.':
                 {
                     edited = true;
-                    pastDecimal = true;
-                    insertionChars++;
+                    if (decimalPointIsComma)
+                    {
+                        // DECIMAL-POINT IS COMMA: '.' is thousands separator (insertion)
+                        insertionChars++;
+                    }
+                    else
+                    {
+                        // Default: '.' is decimal point
+                        pastDecimal = true;
+                        insertionChars++;
+                    }
                     pos++;
                     break;
                 }
 
                 case ',':
-                case 'B':
+                {
+                    edited = true;
+                    if (decimalPointIsComma)
+                    {
+                        // DECIMAL-POINT IS COMMA: ',' is decimal point
+                        pastDecimal = true;
+                        insertionChars++;
+                    }
+                    else
+                    {
+                        // Default: ',' is thousands separator (insertion)
+                        insertionChars++;
+                    }
+                    pos++;
+                    break;
+                }
+
                 case '/':
                 {
                     edited = true;
@@ -122,13 +190,19 @@ public static class PicDescriptorFactory
                     break;
                 }
 
+                case 'B':
+                {
+                    // B supports repeat notation: B(15) = 15 space insertions
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    insertionChars += count;
+                    break;
+                }
+
                 case 'Z':
                 case '*':
-                case '+':
-                case '-':
-                case '$':
-                case '0':
                 {
+                    // Always digit positions (floating suppression)
                     edited = true;
                     int count = ParseRepeatCount(text, ref pos);
                     if (pastDecimal)
@@ -140,10 +214,45 @@ public static class PicDescriptorFactory
                     break;
                 }
 
+                case '+':
+                case '-':
+                {
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    hasNumericChars = true;
+                    hasRealDigits = true;
+                    bool isFixed = (c == '+' && singlePlus) || (c == '-' && singleMinus);
+                    if (isFixed)
+                    {
+                        // Fixed sign: literal insertion, NOT a digit position
+                        insertionChars += count;
+                    }
+                    else
+                    {
+                        // Floating sign: digit positions
+                        if (pastDecimal)
+                            fractionDigits += count;
+                        else
+                            integerDigits += count;
+                    }
+                    break;
+                }
+
+                case '0':
+                {
+                    // Zero insertion character, NOT a digit position
+                    edited = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    insertionChars += count;
+                    hasNumericChars = true;
+                    break;
+                }
+
                 case 'C':
                     if (pos + 1 < text.Length && text[pos + 1] == 'R')
                     {
                         edited = true;
+                        insertionChars += 2;
                         pos += 2;
                     }
                     else pos++;
@@ -153,6 +262,7 @@ public static class PicDescriptorFactory
                     if (pos + 1 < text.Length && text[pos + 1] == 'B')
                     {
                         edited = true;
+                        insertionChars += 2;
                         pos += 2;
                     }
                     else pos++;
@@ -195,13 +305,13 @@ public static class PicDescriptorFactory
             isSigned,
             signStorage);
 
-        // Editing kind
+        // Editing kind — use env.CurrencySign instead of hardcoded '$'
         var editingKind = EditingKind.None;
         if (edited)
         {
             if (text.Contains("CR") || text.Contains("DB"))
                 editingKind = EditingKind.CreditDebit;
-            else if (text.Contains('$'))
+            else if (text.Contains(currencyChar))
                 editingKind = EditingKind.Currency;
             else if (text.Contains('Z') || text.Contains('*') || blankWhenZero)
                 editingKind = EditingKind.ZeroSuppress;
@@ -209,7 +319,7 @@ public static class PicDescriptorFactory
                 editingKind = EditingKind.Custom;
         }
 
-        // Expanded edit pattern for numeric-edited only (no S, V, P)
+        // Expanded edit pattern (for numeric-edited and alphanumeric-edited)
         string? editPattern = null;
         if (category == CobolCategory.NumericEdited)
         {
@@ -218,6 +328,10 @@ public static class PicDescriptorFactory
                 .Replace("S", string.Empty)
                 .Replace("V", string.Empty)
                 .Replace("P", string.Empty);
+        }
+        else if (category == CobolCategory.AlphanumericEdited)
+        {
+            editPattern = ExpandPattern(text);
         }
 
         return new PicDescriptor(
@@ -235,7 +349,8 @@ public static class PicDescriptorFactory
             blankWhenZero: blankWhenZero,
             leadingScaleDigits: leadingPScaling,
             trailingScaleDigits: trailingPScaling,
-            editPattern: editPattern);
+            editPattern: editPattern,
+            environment: env);
     }
 
     /// <summary>
@@ -255,7 +370,7 @@ public static class PicDescriptorFactory
                 while (end < pic.Length && char.IsDigit(pic[end])) end++;
                 if (end < pic.Length && pic[end] == ')' && end > start)
                 {
-                    int count = int.Parse(pic.Substring(start, end - start));
+                    int count = int.Parse(pic[start..end]);
                     for (int k = 0; k < count; k++)
                         sb.Append(c);
                     i = end;
@@ -287,7 +402,7 @@ public static class PicDescriptorFactory
         if (pos >= text.Length || text[pos] != ')')
             return 1;
 
-        var numText = text.Substring(start, pos - start);
+        var numText = text[start..pos];
         pos++; // skip ')'
 
         return int.TryParse(numText, out var n) && n > 0 ? n : 1;

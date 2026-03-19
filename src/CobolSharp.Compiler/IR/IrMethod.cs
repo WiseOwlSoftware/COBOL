@@ -3,88 +3,76 @@
 namespace CobolSharp.Compiler.IR;
 
 /// <summary>
-/// IR method — one per COBOL paragraph/section. Contains basic blocks
-/// with linear instruction sequences and explicit control flow.
+/// IR method -- one per COBOL paragraph, section, or compiler-generated entry point.
+/// Uses a basic-block CFG: each block holds a linear instruction sequence
+/// terminated by an explicit branch, jump, or return.
 /// </summary>
-public sealed class IrMethod
+public sealed class IrMethod(string name, IrType? returnType)
 {
-    public string Name { get; }
-    public IrType? ReturnType { get; }
-    public List<IrParameter> Parameters { get; } = new();
-    public List<IrLocal> Locals { get; } = new();
-    public List<IrBasicBlock> Blocks { get; } = new();
+    /// <summary>CIL method name (paragraph/section name or synthetic like "Main").</summary>
+    public string Name { get; } = name;
 
+    /// <summary>Null for void methods (most COBOL paragraphs).</summary>
+    public IrType? ReturnType { get; } = returnType;
+    public List<IrParameter> Parameters { get; } = [];
+    public List<IrLocal> Locals { get; } = [];
+    public List<IrBasicBlock> Blocks { get; } = [];
+
+    /// <summary>The first block in the list, which is the method entry point.</summary>
     public IrBasicBlock Entry => Blocks[0];
 
     private int _blockCounter;
-    public IrBasicBlock CreateBlock(string name) => new IrBasicBlock($"{name}_{_blockCounter++}");
 
-    public IrMethod(string name, IrType? returnType)
-    {
-        Name = name;
-        ReturnType = returnType;
-    }
-}
-
-public sealed class IrParameter
-{
-    public string Name { get; }
-    public IrType Type { get; }
-
-    public IrParameter(string name, IrType type)
-    {
-        Name = name;
-        Type = type;
-    }
-}
-
-public sealed class IrLocal
-{
-    public string Name { get; }
-    public IrType Type { get; }
-
-    public IrLocal(string name, IrType type)
-    {
-        Name = name;
-        Type = type;
-    }
+    /// <summary>Creates a new basic block with a unique suffix to avoid CIL label collisions.</summary>
+    public IrBasicBlock CreateBlock(string name) => new($"{name}_{_blockCounter++}");
 }
 
 /// <summary>
-/// Basic block in IR — linear sequence of instructions, terminated
-/// by a branch, jump, or return.
+/// A formal parameter of an <see cref="IrMethod"/> (e.g., ProgramState reference).
 /// </summary>
-public sealed class IrBasicBlock
-{
-    public string Name { get; }
-    public List<IrInstruction> Instructions { get; } = new();
+/// <param name="Name">Parameter name used in CIL.</param>
+/// <param name="Type">The IR type of the parameter.</param>
+public sealed record IrParameter(string Name, IrType Type);
 
-    public IrBasicBlock(string name) => Name = name;
+/// <summary>
+/// A method-local variable in the IR, emitted as a CIL local.
+/// </summary>
+/// <param name="Name">Local variable name (used for debugging metadata).</param>
+/// <param name="Type">The IR type of the local.</param>
+public sealed record IrLocal(string Name, IrType Type);
+
+/// <summary>
+/// A basic block in the control-flow graph. Contains a straight-line sequence of
+/// IR instructions with no internal branches. The last instruction is always a
+/// terminator (branch, conditional branch, or return).
+/// </summary>
+public sealed class IrBasicBlock(string name)
+{
+    /// <summary>Unique label used as the CIL branch target.</summary>
+    public string Name { get; } = name;
+    public List<IrInstruction> Instructions { get; } = [];
 }
 
 /// <summary>
-/// SSA-ish virtual register. Each instruction result gets a unique ID.
+/// A virtual register in the IR. Each instruction that produces a result
+/// is assigned a unique IrValue. Not full SSA -- values can be reassigned
+/// in lowering -- but IDs are unique within a method for readability.
 /// </summary>
-public readonly struct IrValue
+/// <param name="Id">Monotonically increasing identifier, unique per method.</param>
+/// <param name="Type">The IR type of the value this register holds.</param>
+public readonly record struct IrValue(int Id, IrType Type)
 {
-    public int Id { get; }
-    public IrType Type { get; }
-
-    public IrValue(int id, IrType type)
-    {
-        Id = id;
-        Type = type;
-    }
-
     public override string ToString() => $"%{Id}";
 }
 
 /// <summary>
-/// Hands out monotonically increasing IrValue IDs per method.
+/// Allocator for <see cref="IrValue"/> registers. One instance per method ensures
+/// IDs are unique within that method's scope.
 /// </summary>
 public sealed class IrValueFactory
 {
     private int _nextId;
 
-    public IrValue Next(IrType type) => new IrValue(_nextId++, type);
+    /// <summary>Allocates the next virtual register with the given type.</summary>
+    public IrValue Next(IrType type) => new(_nextId++, type);
 }

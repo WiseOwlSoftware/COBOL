@@ -17,9 +17,18 @@ public sealed class SemanticModel
     public SymbolTable Symbols { get; }
     public DiagnosticBag Diagnostics { get; }
 
+    /// <summary>
+    /// Program-level PIC formatting environment (CURRENCY SIGN, DECIMAL-POINT IS COMMA).
+    /// Set from SPECIAL-NAMES during semantic analysis. Default: '$', period as decimal.
+    /// </summary>
+    public Runtime.PicEnvironment PicEnvironment { get; private set; } = Runtime.PicEnvironment.Default;
+
+    public void SetPicEnvironment(char currencySign, bool decimalPointIsComma)
+        => PicEnvironment = new Runtime.PicEnvironment(currencySign, decimalPointIsComma);
+
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
-    private IReadOnlyList<DataSymbol> _dataItemsInOrder = Array.Empty<DataSymbol>();
+    private IReadOnlyList<DataSymbol> _dataItemsInOrder = [];
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
     public void SetDataItemsInOrder(IReadOnlyList<DataSymbol> items)
@@ -27,20 +36,27 @@ public sealed class SemanticModel
 
     // ── Data records (01/77-level items) ──
 
-    private readonly List<DataSymbol> _dataRecords = new();
+    private readonly List<DataSymbol> _dataRecords = [];
     public IReadOnlyList<DataSymbol> DataRecords => _dataRecords;
 
     // ── Procedure structure (declaration order) ──
 
-    private readonly List<ParagraphSymbol> _paragraphsInOrder = new();
+    private readonly List<ParagraphSymbol> _paragraphsInOrder = [];
     public IReadOnlyList<ParagraphSymbol> ParagraphsInOrder => _paragraphsInOrder;
 
-    private readonly List<SectionSymbol> _sectionsInOrder = new();
+    private readonly List<SectionSymbol> _sectionsInOrder = [];
     public IReadOnlyList<SectionSymbol> SectionsInOrder => _sectionsInOrder;
+
+    // Section → ordered list of paragraph names within that section
+    private readonly Dictionary<string, List<string>> _sectionParagraphs =
+        new(StringComparer.OrdinalIgnoreCase);
+    // Paragraph → section it belongs to (null if orphan)
+    private readonly Dictionary<string, string> _paragraphSection =
+        new(StringComparer.OrdinalIgnoreCase);
 
     // ── PIC descriptors per data symbol ──
 
-    private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = new();
+    private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = [];
 
     // ── Storage sizes (set by ComputeStorageLayout) ──
 
@@ -49,13 +65,13 @@ public sealed class SemanticModel
 
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
-    private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = new();
+    private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = [];
 
     // ── Initial VALUE clauses (typed) ──
 
     public sealed record InitialValue(object Value, Runtime.CobolCategory Category);
 
-    private readonly Dictionary<DataSymbol, InitialValue> _initialValues = new();
+    private readonly Dictionary<DataSymbol, InitialValue> _initialValues = [];
 
     public void RegisterInitialValue(DataSymbol symbol, object value, Runtime.CobolCategory category)
         => _initialValues[symbol] = new InitialValue(value, category);
@@ -64,16 +80,16 @@ public sealed class SemanticModel
 
     // ── Figurative initial values (field-filling VALUE SPACE, HIGH-VALUE, etc.) ──
 
-    private readonly Dictionary<DataSymbol, int> _figurativeInitValues = new();
+    private readonly Dictionary<DataSymbol, FigurativeKind> _figurativeInitValues = [];
 
-    public void RegisterFigurativeInit(DataSymbol symbol, int figurativeKind)
+    public void RegisterFigurativeInit(DataSymbol symbol, FigurativeKind figurativeKind)
         => _figurativeInitValues[symbol] = figurativeKind;
 
-    public IReadOnlyDictionary<DataSymbol, int> FigurativeInitValues => _figurativeInitValues;
+    public IReadOnlyDictionary<DataSymbol, FigurativeKind> FigurativeInitValues => _figurativeInitValues;
 
     // ── Parse node → symbol mapping (for binder lookups) ──
 
-    private readonly Dictionary<object, Symbol> _nodeToSymbol = new();
+    private readonly Dictionary<object, Symbol> _nodeToSymbol = [];
 
     public SemanticModel(ProgramSymbol program, SymbolTable symbols, DiagnosticBag diagnostics)
     {
@@ -87,6 +103,26 @@ public sealed class SemanticModel
     public void AddDataRecord(DataSymbol record) => _dataRecords.Add(record);
     public void AddParagraph(ParagraphSymbol paragraph) => _paragraphsInOrder.Add(paragraph);
     public void AddSection(SectionSymbol section) => _sectionsInOrder.Add(section);
+
+    /// <summary>Register a paragraph as belonging to a section.</summary>
+    public void RegisterSectionParagraph(string sectionName, string paragraphName)
+    {
+        if (!_sectionParagraphs.TryGetValue(sectionName, out var list))
+        {
+            list = new List<string>();
+            _sectionParagraphs[sectionName] = list;
+        }
+        list.Add(paragraphName);
+        _paragraphSection[paragraphName] = sectionName;
+    }
+
+    /// <summary>Get the ordered paragraph names within a section.</summary>
+    public IReadOnlyList<string>? GetSectionParagraphs(string sectionName)
+        => _sectionParagraphs.TryGetValue(sectionName, out var list) ? list : null;
+
+    /// <summary>Get the section a paragraph belongs to (null if orphan).</summary>
+    public string? GetParagraphSection(string paragraphName)
+        => _paragraphSection.TryGetValue(paragraphName, out var sec) ? sec : null;
 
     public void RegisterPicDescriptor(DataSymbol symbol, PicDescriptor pic)
         => _picDescriptors[symbol] = pic;

@@ -16,13 +16,15 @@ public static class PicUsageResolver
         string? picString,
         UsageKind usage,
         DiagnosticBag diagnostics,
-        int line)
+        int line,
+        bool blankWhenZero = false,
+        PicEnvironment? environment = null)
     {
         PicLayout? layout = null;
 
         if (picString != null)
         {
-            layout = ParsePic(picString, diagnostics, line);
+            layout = ParsePic(picString, diagnostics, line, blankWhenZero, environment);
         }
 
         var category = layout?.Category ?? CobolCategory.Unknown;
@@ -53,24 +55,27 @@ public static class PicUsageResolver
     /// Single pipeline: all PIC semantics are defined by PicDescriptorFactory.FromPicBody.
     /// PicLayout is a thin view for the compiler's type system.
     /// </summary>
-    private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line)
+    private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line,
+        bool blankWhenZero = false, PicEnvironment? environment = null)
     {
         var desc = Runtime.PicDescriptorFactory.FromPicBody(
             picString.Trim(),
             usage: UsageKind.Display,
             isSigned: false,               // S in the body will flip this
             signStorage: SignStorageKind.None,
-            blankWhenZero: false);
+            blankWhenZero: blankWhenZero,
+            environment: environment);
 
         return new PicLayout(
-            category: desc.Category,
-            length: desc.StorageLength,
-            integerDigits: desc.TotalDigits - desc.FractionDigits,
-            fractionDigits: desc.FractionDigits,
-            leadingPScaling: desc.LeadingScaleDigits,
-            trailingPScaling: desc.TrailingScaleDigits,
-            isSigned: desc.IsSigned,
-            isEdited: desc.HasEditing);
+            Category: desc.Category,
+            Length: desc.StorageLength,
+            IntegerDigits: desc.TotalDigits - desc.FractionDigits,
+            FractionDigits: desc.FractionDigits,
+            LeadingPScaling: desc.LeadingScaleDigits,
+            TrailingPScaling: desc.TrailingScaleDigits,
+            IsSigned: desc.IsSigned,
+            IsEdited: desc.HasEditing,
+            BlankWhenZero: desc.BlankWhenZero);
     }
 }
 

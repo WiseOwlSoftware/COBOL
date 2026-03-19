@@ -6,19 +6,11 @@ using System.Text;
 namespace CobolSharp.Runtime;
 
 /// <summary>
-/// Status returned by MOVE operations.
-/// </summary>
-public struct MoveStatus
-{
-    public bool Truncated { get; set; }
-}
-
-/// <summary>
 /// Status returned by arithmetic operations (for ON SIZE ERROR).
 /// </summary>
 public struct ArithmeticStatus
 {
-    public bool SizeError;
+    public bool SizeError { get; set; }
 }
 
 /// <summary>
@@ -67,11 +59,11 @@ public static class PicRuntime
     /// </summary>
     public static string FormatNumericEdited(decimal value, PicDescriptor pic)
     {
-        if (pic.EditPattern != null)
-            return FormatByEditPattern(value, pic);
-
         if (pic.BlankWhenZero && value == 0m)
             return new string(' ', pic.StorageLength);
+
+        if (pic.EditPattern != null)
+            return FormatByEditPattern(value, pic);
 
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
@@ -80,18 +72,17 @@ public static class PicRuntime
         if (scale < 0) scale = 0;
 
         decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
 
         if (digits.Length < pic.TotalDigits)
             digits = digits.PadLeft(pic.TotalDigits, '0');
         else if (digits.Length > pic.TotalDigits)
-            digits = digits.Substring(digits.Length - pic.TotalDigits);
+            digits = digits[^pic.TotalDigits..];
 
         // Split digits into integer and fraction parts
         int intDigits = pic.TotalDigits - pic.FractionDigits;
-        string intPart = digits.Substring(0, intDigits);
-        string fracPart = pic.FractionDigits > 0 ? digits.Substring(intDigits) : "";
+        string intPart = digits[..intDigits];
+        string fracPart = pic.FractionDigits > 0 ? digits[intDigits..] : "";
 
         // Determine if decimal point insertion is needed
         // StorageLength > TotalDigits + sign chars means there's room for a decimal point
@@ -119,9 +110,10 @@ public static class PicRuntime
         }
         pos += intFieldWidth;
 
-        // Decimal point
+        // Decimal point (respects DECIMAL-POINT IS COMMA)
+        char decimalChar = pic.Environment.DecimalPointIsComma ? ',' : '.';
         if (hasDecimalPoint && pos < chars.Length)
-            chars[pos++] = '.';
+            chars[pos++] = decimalChar;
 
         // Fraction digits
         for (int i = 0; i < fracPart.Length && pos + i < chars.Length; i++)
@@ -143,10 +135,10 @@ public static class PicRuntime
             }
 
             case EditingKind.Currency:
-                // Place $ before first non-space digit
+                // Place currency symbol before first non-space digit
                 for (int i = 0; i < chars.Length; i++)
                 {
-                    if (chars[i] != ' ') { chars[i] = '$'; break; }
+                    if (chars[i] != ' ') { chars[i] = pic.Environment.CurrencySign; break; }
                 }
                 break;
 
@@ -172,73 +164,107 @@ public static class PicRuntime
         string pattern = pic.EditPattern!;
         bool negative = value < 0m;
         decimal absValue = Math.Abs(value);
+        var env = pic.Environment;
+        char currencyChar = char.ToUpperInvariant(env.CurrencySign);
+        bool decimalPointIsComma = env.DecimalPointIsComma;
 
-        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
-        if (scale < 0) scale = 0;
-        decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
-        if (digits.Length < pic.TotalDigits)
-            digits = digits.PadLeft(pic.TotalDigits, '0');
-        else if (digits.Length > pic.TotalDigits)
-            digits = digits.Substring(digits.Length - pic.TotalDigits);
-
-        // Pre-scan for sign symbols so we can distinguish fixed vs floating
-        int plusCount = 0;
-        int minusCount = 0;
+        // Pre-scan: count sign and currency symbols to distinguish fixed vs floating.
+        int plusCount = 0, minusCount = 0, currencyPrescan = 0;
         for (int i = 0; i < pattern.Length; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
             if (p == '+') plusCount++;
             else if (p == '-') minusCount++;
+            else if (p == currencyChar) currencyPrescan++;
         }
 
-        // Single '-' and no '+' → fixed sign position (e.g. PIC -9(9).9(9))
-        int fixedMinusIndex = -1;
-        if (minusCount == 1 && plusCount == 0)
+        bool isFixedMinus = (minusCount == 1 && plusCount == 0);
+        bool isFixedPlus = (plusCount == 1 && minusCount == 0);
+        bool isFixedCurrency = (currencyPrescan == 1);
+
+        // Count TRUE digit positions: 9, Z, *, plus floating $, +, -.
+        // Fixed $, +, - are NOT digit positions.
+        int trueDigitCount = 0;
+        for (int i = 0; i < pattern.Length; i++)
         {
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                if (char.ToUpperInvariant(pattern[i]) == '-')
-                {
-                    fixedMinusIndex = i;
-                    break;
-                }
-            }
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == '9' || p == 'Z' || p == '*') trueDigitCount++;
+            else if (p == currencyChar && !isFixedCurrency) trueDigitCount++;
+            else if (p == '+' && !isFixedPlus) trueDigitCount++;
+            else if (p == '-' && !isFixedMinus) trueDigitCount++;
         }
 
-        // Pass 1: Fill digit positions right-to-left, place insertion chars
+        // Build digit string based on true digit count
+        int scale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (scale < 0) scale = 0;
+        decimal scaled = absValue * Pow10(scale);
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
+        if (digits.Length < trueDigitCount)
+            digits = digits.PadLeft(trueDigitCount, '0');
+        else if (digits.Length > trueDigitCount)
+            digits = digits[^trueDigitCount..];
+
+        // Pass 1: Fill digit positions right-to-left, place insertion/fixed chars
         var output = new char[pattern.Length];
         int digitIdx = digits.Length - 1;
 
         for (int i = pattern.Length - 1; i >= 0; i--)
         {
             char p = char.ToUpperInvariant(pattern[i]);
+
+            // Currency character (env-dependent, checked before switch)
+            if (p == currencyChar)
+            {
+                if (isFixedCurrency)
+                    output[i] = env.CurrencySign;
+                else
+                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                continue;
+            }
+
             switch (p)
             {
                 case '9':
                 case 'Z':
                 case '*':
+                    // Always a digit position
+                    output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    break;
+
                 case '+':
-                case '-':
-                case '$':
-                    if (i == fixedMinusIndex && p == '-')
+                    if (isFixedPlus)
                     {
-                        // Fixed sign: do not consume a digit here
-                        output[i] = ' ';
+                        // Fixed sign: show +/-
+                        output[i] = negative ? '-' : '+';
                     }
                     else
                     {
+                        // Floating sign: acts as digit position
+                        output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
+                    }
+                    break;
+
+                case '-':
+                    if (isFixedMinus)
+                    {
+                        // Fixed sign: show - or space
+                        output[i] = negative ? '-' : ' ';
+                    }
+                    else
+                    {
+                        // Floating sign: acts as digit position
                         output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
                     }
                     break;
 
                 case '.':
-                    output[i] = '.';
+                    // DECIMAL-POINT IS COMMA: '.' in pattern → thousands separator
+                    output[i] = decimalPointIsComma ? '.' : '.';
                     break;
 
                 case ',':
-                    output[i] = ',';
+                    // DECIMAL-POINT IS COMMA: ',' in pattern → decimal point
+                    output[i] = decimalPointIsComma ? ',' : ',';
                     break;
 
                 case 'B':
@@ -283,8 +309,10 @@ public static class PicRuntime
             }
         }
 
-        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols
+        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols.
+        // Track whether we're in asterisk-fill mode (commas → '*') vs space-fill (commas → ' ').
         bool suppressing = true;
+        bool asteriskFill = false;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
@@ -296,6 +324,7 @@ public static class PicRuntime
                     break;
 
                 case '*':
+                    asteriskFill = true;
                     if (output[i] == '0') output[i] = '*';
                     else suppressing = false;
                     break;
@@ -306,19 +335,23 @@ public static class PicRuntime
                     break;
 
                 case '-':
-                    if (i == fixedMinusIndex)
+                    if (isFixedMinus)
                         break; // Fixed sign does not participate in floating suppression
                     if (output[i] == '0') output[i] = ' ';
                     else suppressing = false;
                     break;
 
-                case '$':
-                    if (output[i] == '0') output[i] = ' ';
-                    else suppressing = false;
+                default:
+                    // Currency char in suppression zone
+                    if (p == currencyChar)
+                    {
+                        if (output[i] == '0') output[i] = ' ';
+                        else suppressing = false;
+                    }
                     break;
 
                 case ',':
-                    output[i] = ' ';
+                    output[i] = asteriskFill ? '*' : ' ';
                     break;
 
                 case '9':
@@ -328,86 +361,72 @@ public static class PicRuntime
                 case '.':
                     suppressing = false;
                     break;
-
-                default:
-                    break;
             }
         }
 
-        // Handle floating sign symbols: find the rightmost suppressed +/- and place sign there
+        // Handle floating symbols: place at rightmost suppressed position in the floating zone.
+        // The floating zone includes the symbol positions AND any insertion chars (,/B)
+        // between the last floating symbol and the first non-floating digit position.
         bool hasFloatingPlus = plusCount > 0 && (plusCount + minusCount) > 1;
         bool hasFloatingMinus = minusCount > 0 && (plusCount + minusCount) > 1;
 
         if (hasFloatingPlus)
         {
-            int signPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '+' && output[i] == ' ')
-                    signPos = i;
-                else if (p == '+' && output[i] != ' ')
-                    break;
-            }
+            int signPos = FindFloatingPlacement(pattern, output, '+');
             if (signPos >= 0)
                 output[signPos] = negative ? '-' : '+';
         }
         else if (hasFloatingMinus)
         {
-            int signPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '-' && i != fixedMinusIndex && output[i] == ' ')
-                    signPos = i;
-                else if (p == '-' && i != fixedMinusIndex && output[i] != ' ')
-                    break;
-            }
+            int signPos = FindFloatingPlacement(pattern, output, '-');
             if (signPos >= 0)
                 output[signPos] = negative ? '-' : ' ';
         }
 
-        // Handle floating $: place '$' at rightmost suppressed $ position
-        int dollarCount = 0;
-        for (int i = 0; i < pattern.Length; i++)
+        // Handle floating currency: place symbol at rightmost suppressed position.
+        if (currencyPrescan > 1)
         {
-            if (char.ToUpperInvariant(pattern[i]) == '$') dollarCount++;
-        }
-
-        if (dollarCount > 1)
-        {
-            int dollarPos = -1;
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                char p = char.ToUpperInvariant(pattern[i]);
-                if (p == '$' && output[i] == ' ')
-                    dollarPos = i;
-                else if (p == '$' && output[i] != ' ')
-                    break;
-            }
-            if (dollarPos >= 0)
-                output[dollarPos] = '$';
-        }
-        else if (dollarCount == 1)
-        {
-            // Single $ is a fixed currency symbol, not floating
-            for (int i = 0; i < pattern.Length; i++)
-            {
-                if (char.ToUpperInvariant(pattern[i]) == '$')
-                {
-                    output[i] = '$';
-                    break;
-                }
-            }
-        }
-
-        // Fixed leading '-' (e.g. PIC -9(9).9(9)): show '-' only for negative, space for positive
-        if (fixedMinusIndex >= 0)
-        {
-            output[fixedMinusIndex] = negative ? '-' : ' ';
+            int currencyPos = FindFloatingPlacement(pattern, output, currencyChar);
+            if (currencyPos >= 0)
+                output[currencyPos] = env.CurrencySign;
         }
 
         return new string(output);
+    }
+
+    /// <summary>
+    /// Find the rightmost suppressed position within the floating zone for a floating symbol.
+    /// The floating zone includes the symbol's own positions AND any insertion chars
+    /// (comma, B) that appear between the last floating symbol and the first digit.
+    /// </summary>
+    private static int FindFloatingPlacement(string pattern, char[] output, char floatChar)
+    {
+        char floatUpper = char.ToUpperInvariant(floatChar);
+        int lastSuppressed = -1;
+        bool inFloatingZone = false;
+
+        for (int i = 0; i < pattern.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            if (p == floatUpper)
+            {
+                inFloatingZone = true;
+                if (output[i] == ' ')
+                    lastSuppressed = i;
+                else
+                    break; // hit a non-suppressed floating symbol → zone ends
+            }
+            else if (inFloatingZone && (p == ',' || p == 'B') && output[i] == ' ')
+            {
+                // Suppressed insertion char within the floating zone
+                lastSuppressed = i;
+            }
+            else if (inFloatingZone)
+            {
+                break; // hit a non-floating char → zone ends
+            }
+        }
+        return lastSuppressed;
     }
 
     public static void MoveNumericToAlphanumeric(
@@ -428,7 +447,22 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+        // Convert numeric to display representation (same as MoveNumericToAlphanumeric)
+        decimal value = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
+        value = Math.Abs(value);
+        int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
+        string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
+
+        // Write display string to a temporary buffer, then apply alphanumeric edit pattern
+        byte[] tempArea = new byte[formatted.Length];
+        for (int i = 0; i < formatted.Length; i++)
+            tempArea[i] = (byte)formatted[i];
+
+        var tempPic = new PicDescriptor(0, 0, false, false, true, false,
+            formatted.Length, UsageKind.Display, CobolCategory.Alphanumeric,
+            SignStorageKind.None, EditingKind.None, false, 0, 0, null);
+
+        MoveAlphanumericToAlphanumericEdited(tempArea, 0, formatted.Length, tempPic,
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
@@ -436,16 +470,44 @@ public static class PicRuntime
     // MOVE: Alphanumeric → …
     // ══════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// MOVE string literal TO numeric field. Converts the string to a byte buffer
+    /// and delegates to MoveAlphanumericToNumeric for proper right-justified digit extraction.
+    /// </summary>
+    public static void MoveStringLiteralToNumeric(
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        string value)
+    {
+        byte[] srcBuf = Encoding.ASCII.GetBytes(value);
+        var srcPic = new PicDescriptor(0, 0, false, false, true, false,
+            srcBuf.Length, UsageKind.Display, CobolCategory.Alphanumeric,
+            SignStorageKind.None, EditingKind.None, false, 0, 0, null);
+        MoveAlphanumericToNumeric(srcBuf, 0, srcBuf.Length, srcPic,
+            dstArea, dstOffset, dstLength, dstPic, 0);
+    }
+
     public static void MoveAlphanumericToAlphanumeric(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        // Left-justified, space-padded
         int copyLen = Math.Min(srcLength, dstLength);
-        Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
-        for (int i = copyLen; i < dstLength; i++)
-            dstArea[dstOffset + i] = (byte)' ';
+
+        if (dstPic.IsJustifiedRight)
+        {
+            // Right-justified, left-padded with spaces
+            int pad = dstLength - copyLen;
+            for (int i = 0; i < pad; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+            Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, copyLen);
+        }
+        else
+        {
+            // Left-justified, space-padded
+            Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
+            for (int i = copyLen; i < dstLength; i++)
+                dstArea[dstOffset + i] = (byte)' ';
+        }
     }
 
     public static void MoveAlphanumericToAlphanumericEdited(
@@ -453,8 +515,59 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        if (dstPic.EditPattern == null)
+        {
+            // No edit pattern — fall back to plain alphanumeric move
+            MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+                dstArea, dstOffset, dstLength, dstPic, roundingMode);
+            return;
+        }
+
+        // Apply alphanumeric edit pattern:
+        // A = takes next input character (alphabetic position)
+        // X = takes next input character (any character position)
+        // B = inserts space
+        // 0 = inserts zero
+        // / = inserts slash
+        string pattern = dstPic.EditPattern;
+        int srcIdx = 0;
+        for (int i = 0; i < pattern.Length && i < dstLength; i++)
+        {
+            char editChar = pattern[i];
+            switch (editChar)
+            {
+                case 'A':
+                case 'X':
+                    // Data position — take next source character
+                    if (srcIdx < srcLength)
+                        dstArea[dstOffset + i] = srcArea[srcOffset + srcIdx++];
+                    else
+                        dstArea[dstOffset + i] = (byte)' ';
+                    break;
+                case 'B':
+                    // Insert space
+                    dstArea[dstOffset + i] = (byte)' ';
+                    break;
+                case '0':
+                    // Insert zero
+                    dstArea[dstOffset + i] = (byte)'0';
+                    break;
+                case '/':
+                    // Insert slash
+                    dstArea[dstOffset + i] = (byte)'/';
+                    break;
+                default:
+                    // Unknown edit character — treat as data position
+                    if (srcIdx < srcLength)
+                        dstArea[dstOffset + i] = srcArea[srcOffset + srcIdx++];
+                    else
+                        dstArea[dstOffset + i] = (byte)' ';
+                    break;
+            }
+        }
+        // Pad remaining destination with spaces
+        for (int i = pattern.Length; i < dstLength; i++)
+            dstArea[dstOffset + i] = (byte)' ';
     }
 
     // ══════════════════════════════════════════════════════════
@@ -608,26 +721,54 @@ public static class PicRuntime
     {
         var kind = (FigurativeKind)figurativeKindInt;
 
+        // Numeric-edited destination with ZERO: format 0 through the edit pattern
+        if (dstPic.Category == CobolCategory.NumericEdited && kind == FigurativeKind.Zero)
+        {
+            string formatted = FormatNumericEdited(0m, dstPic);
+            MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
+            return;
+        }
+
+        // Alphanumeric-edited destination: fill with figurative byte then apply edit pattern
+        if (dstPic.Category == CobolCategory.AlphanumericEdited && dstPic.EditPattern != null)
+        {
+            byte figurativeByte = FigurativeToByte(kind);
+
+            // Create a source buffer filled with the figurative byte
+            byte[] srcBuf = new byte[dstLength];
+            for (int i = 0; i < srcBuf.Length; i++)
+                srcBuf[i] = figurativeByte;
+
+            var dummyPic = new PicDescriptor();
+            MoveAlphanumericToAlphanumericEdited(
+                srcBuf, 0, srcBuf.Length, dummyPic,
+                dstArea, dstOffset, dstLength, dstPic, 0);
+            return;
+        }
+
+        // Plain numeric destination with ZERO: encode numeric zero
         if (dstPic.IsNumeric && kind == FigurativeKind.Zero)
         {
             EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, 0m);
             return;
         }
 
-        // Alphanumeric or non-zero figurative: fill entire field with figurative byte
-        byte b = kind switch
-        {
-            FigurativeKind.Zero => (byte)'0',
-            FigurativeKind.Space => (byte)' ',
-            FigurativeKind.HighValue => 0xFF,
-            FigurativeKind.LowValue => 0x00,
-            FigurativeKind.Quote => (byte)'"',
-            FigurativeKind.Null => 0x00,
-            _ => (byte)' '
-        };
+        // Default: fill entire field with figurative byte
+        byte b = FigurativeToByte(kind);
         for (int i = 0; i < dstLength; i++)
             dstArea[dstOffset + i] = b;
     }
+
+    private static byte FigurativeToByte(FigurativeKind kind) => kind switch
+    {
+        FigurativeKind.Zero => (byte)'0',
+        FigurativeKind.Space => (byte)' ',
+        FigurativeKind.HighValue => 0xFF,
+        FigurativeKind.LowValue => 0x00,
+        FigurativeKind.Quote => (byte)'"',
+        FigurativeKind.Null => 0x00,
+        _ => (byte)' '
+    };
 
     /// <summary>
     /// MOVE ALL "pattern" TO field. Repeats the pattern to fill the entire field.
@@ -659,6 +800,17 @@ public static class PicRuntime
         decimal literal, int roundingMode = 0)
     {
         decimal value = ApplyScalingAndRounding(literal, destPic, roundingMode);
+
+        // Numeric-edited targets: format using edit pattern, not raw encode
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(value, destPic);
+            // Write formatted string to destination
+            for (int i = 0; i < destLength; i++)
+                destArea[destOffset + i] = i < formatted.Length ? (byte)formatted[i] : (byte)' ';
+            return;
+        }
+
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
@@ -897,9 +1049,34 @@ public static class PicRuntime
         byte[] leftArea, int leftOffset, int leftLength, PicDescriptor leftPic,
         byte[] rightArea, int rightOffset, int rightLength, PicDescriptor rightPic)
     {
-        decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
-        decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
-        return Math.Sign(left - right);
+        // Mixed numeric-vs-alphanumeric: COBOL-85 pseudo-MOVE comparison.
+        // The numeric operand is treated as if moved to an alphanumeric field
+        // (sign stripped, formatted as unsigned DISPLAY), then compared as strings.
+        bool leftIsNumeric = leftPic.Category == CobolCategory.Numeric;
+        bool rightIsNumeric = rightPic.Category == CobolCategory.Numeric;
+
+        if (leftIsNumeric && !rightIsNumeric)
+        {
+            // Left is numeric, right is alphanumeric — pseudo-MOVE left
+            decimal val = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
+            string unsigned = FormatNumericForDisplay(Math.Abs(val), leftPic.FractionDigits, leftPic.TotalDigits);
+            string rightStr = System.Text.Encoding.ASCII.GetString(rightArea, rightOffset, rightLength).TrimEnd();
+            return string.Compare(unsigned, rightStr, StringComparison.Ordinal);
+        }
+
+        if (!leftIsNumeric && rightIsNumeric)
+        {
+            // Right is numeric, left is alphanumeric — pseudo-MOVE right
+            decimal val = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
+            string unsigned = FormatNumericForDisplay(Math.Abs(val), rightPic.FractionDigits, rightPic.TotalDigits);
+            string leftStr = System.Text.Encoding.ASCII.GetString(leftArea, leftOffset, leftLength).TrimEnd();
+            return string.Compare(leftStr, unsigned, StringComparison.Ordinal);
+        }
+
+        // Both numeric — standard numeric comparison
+        decimal leftVal = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
+        decimal rightVal = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
+        return Math.Sign(leftVal - rightVal);
     }
 
     public static int CompareNumericToLiteral(
@@ -1280,6 +1457,14 @@ public static class PicRuntime
 
         long raw = (long)decimal.Truncate(scaled);
 
+        // COBOL truncation: by PIC digit count, not by binary capacity.
+        // PIC 9 COMP → 1 digit → mod 10; PIC S999 COMP → 3 digits → mod 1000.
+        if (pic.TotalDigits > 0 && pic.TotalDigits < 18)
+        {
+            long modBase = (long)Pow10(pic.TotalDigits);
+            raw = raw % modBase;
+        }
+
         // Unsigned field: store absolute value (COBOL strips sign on MOVE to unsigned)
         if (!pic.IsSigned && raw < 0)
             raw = -raw;
@@ -1373,10 +1558,10 @@ public static class PicRuntime
 
         // Scale to integer: 320.48 with scale=2 → 32048
         decimal scaled = absValue * Pow10(scale);
-        long intValue = (long)scaled;
 
-        // Digits-only string
-        string digits = intValue.ToString(CultureInfo.InvariantCulture);
+        // Digits-only string (use decimal.Truncate to avoid long overflow
+        // on high-precision fields like PIC 9V9(17) where scaling exceeds Int64)
+        string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
 
         // Determine available width (reserve 1 for separate sign if needed)
         bool separateSign = pic.SignStorage is SignStorageKind.LeadingSeparate
@@ -1385,7 +1570,7 @@ public static class PicRuntime
 
         // Truncate from left if too long (SIZE ERROR should be handled separately)
         if (digits.Length > availableLength)
-            digits = digits.Substring(digits.Length - availableLength);
+            digits = digits[^availableLength..];
 
         // Right-justify digits
         int digitStart = (pic.IsSigned && separateSign &&

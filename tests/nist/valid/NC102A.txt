@@ -1,0 +1,66 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC102A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ GO TO                PASS  GO--TEST-F1-1
+ GO TO DEPENDING            GO--TEST-F2-1
+                      PASS  GO--A
+                      PASS  GO--B
+                      PASS  GO--C
+                      PASS  GO--D
+                      PASS  GO--E
+ GO TO                PASS  GO--TEST-F1-2
+ GO TO DEPENDING      PASS  GO--TEST-F2-2
+ GO TO DEPENDING      PASS  GO--TEST-F2-3
+ GO TO DEPENDING      PASS  GO--TEST-F2-4
+ GO TO DEPENDING      PASS  GO--TEST-F2-5
+ GO TO DEPENDING      PASS  GO--TEST-F2-6
+ GO TO DEPENDING      PASS  GO--TEST-F2-7
+ GO - NO OPTIONAL TO  PASS  GOTO-TEST-F1-3
+ EXIT                 PASS  EXIT-TEST-GF-1
+ PERFORM              PASS  PFM-TEST-F1-1
+ PERFORM              PASS  PFM-TEST-F1-2
+ PERFORM TIMES        PASS  PFM-TEST-F2-1
+ NESTED PERFORM THRU  PASS  PFM-TEST-F1-3
+ NESTED PERFORM       PASS  PFM-TEST-F1-4
+ PERFORM SECTION-NAME PASS  PFM-TEST-F1-5
+ PERFORM EXIT PARAS   PASS  PFM-TEST-F2-2
+ PERFORM              PASS  PFM-TEST-F1-6
+ PERFORM TIMES        PASS  PFM-TEST-F2-3
+ PERFORM THRU         PASS  PFM-TEST-F1-7
+ PERFORM THRU, TIMES  PASS  PFM-TEST-F2-4
+ NESTED PERFORM       PASS  PFM-TEST-F1-8
+ PERFORM ... TIMES    PASS  PFM-TEST-F2-6
+ PERFORM ... TIMES    PASS  PFM-TEST-F1-11-1
+ PERFORM ... TIMES    PASS  PFM-TEST-F1-11-2
+ PERFORM .... TIMES   PASS  PFM-TEST-F2-7-1
+ PERFORM .... TIMES   PASS  PFM-TEST-F2-7-2
+ PERFORM .... TIMES   PASS  PFM-TEST-F2-8-1
+ PERFORM .... TIMES   PASS  PFM-TEST-F2-8-2
+ PERFORM UNTIL        PASS  PFM-TEST-F3-1
+ PERFORM UNTIL        PASS  PFM-TEST-F3-2
+ PERFORM UNTIL        PASS  PFM-TEST-F3-3
+ PERFORM UNTIL        PASS  PFM-TEST-F3-4
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC102A
+
+                                                    039 OF 039  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

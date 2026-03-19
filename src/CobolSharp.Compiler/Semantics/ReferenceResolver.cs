@@ -35,10 +35,10 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
     {
-        var target = ctx.performTarget();
-        if (target != null)
+        var procNames = ctx.procedureName();
+        if (procNames.Length > 0)
         {
-            foreach (var procName in target.procedureName())
+            foreach (var procName in procNames)
             {
                 string name = procName.GetText();
                 var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);

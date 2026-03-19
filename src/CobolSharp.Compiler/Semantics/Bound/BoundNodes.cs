@@ -40,6 +40,8 @@ public enum BoundNodeKind
     SearchAllStatement,
     StringStatement,
     UnstringStatement,
+    DeleteStatement,
+    StartStatement,
 }
 
 public abstract class BoundNode
@@ -61,8 +63,15 @@ public sealed class BoundLiteralExpression : BoundExpression
 {
     public object Value { get; }
 
-    public BoundLiteralExpression(object value, CobolCategory category)
-        : base(category) => Value = value;
+    /// <summary>
+    /// Original source text of the literal (e.g., "00000" for numeric literal 00000).
+    /// Used for MOVE to alphanumeric fields where display digit count matters.
+    /// Null for string literals (Value is already the original text).
+    /// </summary>
+    public string? OriginalText { get; }
+
+    public BoundLiteralExpression(object value, CobolCategory category, string? originalText = null)
+        : base(category) => (Value, OriginalText) = (value, originalText);
 
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
 }
@@ -74,10 +83,10 @@ public sealed class BoundLiteralExpression : BoundExpression
 /// </summary>
 public sealed class BoundFigurativeExpression : BoundExpression
 {
-    public int FigurativeKind { get; }   // Runtime.FigurativeKind enum value
+    public Runtime.FigurativeKind FigurativeKind { get; }
     public string? AllLiteral { get; }   // non-null for ALL "X"
 
-    public BoundFigurativeExpression(int figurativeKind, string? allLiteral = null)
+    public BoundFigurativeExpression(Runtime.FigurativeKind figurativeKind, string? allLiteral = null)
         : base(CobolCategory.Alphanumeric)
     {
         FigurativeKind = figurativeKind;
@@ -242,19 +251,19 @@ public sealed class BoundPerformStatement : BoundStatement
 {
     public ParagraphSymbol? Target { get; }
     public ParagraphSymbol? ThruTarget { get; }
-    public int Times { get; } // 0 = once (no TIMES phrase)
+    public BoundExpression? TimesExpression { get; } // null = no TIMES phrase
     public BoundExpression? UntilCondition { get; }
     public BoundPerformVarying? Varying { get; }
     public IReadOnlyList<BoundStatement>? InlineStatements { get; }
 
     public BoundPerformStatement(ParagraphSymbol? target, ParagraphSymbol? thruTarget = null,
-        int times = 0, BoundExpression? untilCondition = null,
+        BoundExpression? timesExpression = null, BoundExpression? untilCondition = null,
         BoundPerformVarying? varying = null,
         IReadOnlyList<BoundStatement>? inlineStatements = null)
     {
         Target = target;
         ThruTarget = thruTarget;
-        Times = times;
+        TimesExpression = timesExpression;
         UntilCondition = untilCondition;
         Varying = varying;
         InlineStatements = inlineStatements;
@@ -357,6 +366,16 @@ public sealed class BoundExitStatement : BoundStatement
 public sealed class BoundExitPerformStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement; // reuse — lowering distinguishes
+}
+
+public sealed class BoundExitParagraphStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
+}
+
+public sealed class BoundExitSectionStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
 }
 
 public sealed class BoundNextSentenceStatement : BoundStatement
@@ -499,15 +518,6 @@ public sealed class BoundSetIndexStatement : BoundStatement
 }
 
 // ── ACCEPT ──
-
-public enum AcceptSourceKind
-{
-    None,
-    Date,
-    Time,
-    Day,
-    DayOfWeek
-}
 
 public sealed class BoundAcceptStatement : BoundStatement
 {
@@ -672,21 +682,30 @@ public sealed class BoundArithmeticTarget
     }
 }
 
+/// <summary>
+/// MULTIPLY statement. Two forms:
+///   MULTIPLY A BY B [ROUNDED] — result = A * B, stored in B
+///   MULTIPLY A BY B GIVING C [ROUNDED] — result = A * B, stored in C
+/// Operand is the first factor (A). ByOperand is the second factor (B).
+/// In non-GIVING form, ByOperand is also the receiving item and appears in Targets.
+/// In GIVING form, ByOperand is just a factor; Targets are the GIVING receiving items.
+/// </summary>
 public sealed class BoundMultiplyStatement : BoundStatement
 {
     public BoundExpression Operand { get; }
+    public BoundExpression ByOperand { get; }
     public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundIdentifierExpression? GivingTarget { get; }
+    public bool IsGiving { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
-    public BoundMultiplyStatement(BoundExpression operand,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundIdentifierExpression? givingTarget = null,
+    public BoundMultiplyStatement(BoundExpression operand, BoundExpression byOperand,
+        IReadOnlyList<BoundArithmeticTarget> targets, bool isGiving = false,
         BoundSizeErrorClause? sizeError = null)
     {
         Operand = operand;
+        ByOperand = byOperand;
         Targets = targets;
-        GivingTarget = givingTarget;
+        IsGiving = isGiving;
         SizeError = sizeError;
     }
 
@@ -1083,5 +1102,45 @@ public sealed class BoundUnstringStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.UnstringStatement;
+}
+
+// ═══════════════════════════════════
+// DELETE / START
+// ═══════════════════════════════════
+
+public sealed class BoundDeleteStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
+
+    public BoundDeleteStatement(FileSymbol file,
+        IReadOnlyList<BoundStatement> invalidKey, IReadOnlyList<BoundStatement> notInvalidKey)
+    {
+        File = file;
+        InvalidKey = invalidKey;
+        NotInvalidKey = notInvalidKey;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.DeleteStatement;
+}
+
+public sealed class BoundStartStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public BoundExpression? KeyCondition { get; }
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
+
+    public BoundStartStatement(FileSymbol file, BoundExpression? keyCondition,
+        IReadOnlyList<BoundStatement> invalidKey, IReadOnlyList<BoundStatement> notInvalidKey)
+    {
+        File = file;
+        KeyCondition = keyCondition;
+        InvalidKey = invalidKey;
+        NotInvalidKey = notInvalidKey;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.StartStatement;
 }
 
