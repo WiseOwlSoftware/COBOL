@@ -919,11 +919,33 @@ argument
     ;
 
 // ==========================================
+// SHARED ARITHMETIC RULES
+// ==========================================
+
+// Unified GIVING-form receiving operand.
+// COBOL-85: in any arithmetic GIVING form, the receiving operand may be
+// either an identifier or a literal. One rule, one source of truth.
+givingReceiver
+    : identifier
+    | literal
+    ;
+
+arithmeticTarget
+    : identifier ROUNDED?
+    ;
+
+arithmeticOnSizeError
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
+    ;
+
+// ==========================================
 // ADD (§14.9.1)
 // ==========================================
 
 addStatement
-    : ADD addOperandList addToPhrase? addGivingPhrase? addOnSizeError? END_ADD?
+    : ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
 addOperandList
@@ -936,21 +958,11 @@ addOperand
     ;
 
 addToPhrase
-    : TO addTarget+
-    ;
-
-addTarget
-    : identifier ROUNDED?
+    : TO arithmeticTarget+
     ;
 
 addGivingPhrase
-    : GIVING addTarget+
-    ;
-
-addOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget+
     ;
 
 // ==========================================
@@ -958,7 +970,7 @@ addOnSizeError
 // ==========================================
 
 subtractStatement
-    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? END_SUBTRACT?
+    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 
 subtractOperandList
@@ -975,22 +987,12 @@ subtractFromPhrase
     ;
 
 subtractFromOperand
-    : subtractTarget (subtractTarget)*
-    | literal
-    ;
-
-subtractTarget
-    : identifier ROUNDED?
+    : arithmeticTarget (arithmeticTarget)*
+    | givingReceiver
     ;
 
 subtractGivingPhrase
-    : GIVING subtractTarget (subtractTarget)*
-    ;
-
-subtractOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget (arithmeticTarget)*
     ;
 
 // ==========================================
@@ -998,7 +1000,7 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY multiplyOperand BY multiplyByTarget+ multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    : MULTIPLY multiplyOperand BY multiplyByOperand multiplyGivingPhrase? arithmeticOnSizeError? END_MULTIPLY?
     ;
 
 multiplyOperand
@@ -1006,18 +1008,12 @@ multiplyOperand
     | literal
     ;
 
-multiplyByTarget
-    : (identifier | literal) ROUNDED?
+multiplyByOperand
+    : givingReceiver ROUNDED?
     ;
 
 multiplyGivingPhrase
-    : GIVING multiplyByTarget+
-    ;
-
-multiplyOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget+
     ;
 
 // ==========================================
@@ -1026,7 +1022,7 @@ multiplyOnSizeError
 
 divideStatement
     : DIVIDE divideOperand (divideIntoPhrase | divideByPhrase)
-      divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
+      divideGivingPhrase? divideRemainderPhrase? arithmeticOnSizeError? END_DIVIDE?
     ;
 
 divideOperand
@@ -1035,29 +1031,24 @@ divideOperand
     ;
 
 divideIntoPhrase
-    : INTO divideTarget+
+    : INTO divideIntoOperand
+    ;
+
+divideIntoOperand
+    : arithmeticTarget    // identifier ROUNDED? (non-GIVING form)
+    | literal             // numeric literal (GIVING form only)
     ;
 
 divideByPhrase
     : BY divideOperand
     ;
 
-divideTarget
-    : identifier ROUNDED?
-    ;
-
 divideGivingPhrase
-    : GIVING divideTarget+
+    : GIVING arithmeticTarget+
     ;
 
 divideRemainderPhrase
     : REMAINDER identifier
-    ;
-
-divideOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================

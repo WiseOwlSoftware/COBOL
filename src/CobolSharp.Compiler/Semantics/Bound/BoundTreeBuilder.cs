@@ -1540,42 +1540,29 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
     {
-        // MULTIPLY has two forms:
-        //   MULTIPLY A BY B [ROUNDED]          — result = A * B, stored in B
-        //   MULTIPLY A BY B GIVING C [ROUNDED] — result = A * B, stored in C
-        // In both forms, A is the first factor (Operand) and the first BY item
-        // is the second factor (ByOperand). In the non-GIVING form, the BY item
-        // is also the receiving item. In the GIVING form, it's just a factor.
-
         var operand = BindSimpleOperand(ctx.multiplyOperand());
 
-        var byTargets = ctx.multiplyByTarget();
-        if (byTargets.Length == 0)
+        var byCtx = ctx.multiplyByOperand();
+        if (byCtx == null)
             throw new InvalidOperationException(
                 $"MULTIPLY statement has no BY operand (line {ctx.Start?.Line})");
 
-        // The first BY item is always the second factor
+        // BY operand: givingReceiver (identifier | literal) with optional ROUNDED
+        var byReceiver = byCtx.givingReceiver();
         BoundExpression byOperand;
-        var firstBy = byTargets[0];
-        if (firstBy.identifier() != null)
-            byOperand = BindIdentifierWithSubscripts(firstBy.identifier());
-        else if (firstBy.literal() != null)
-            byOperand = BindLiteral(firstBy.literal());
+        if (byReceiver.identifier() != null)
+            byOperand = BindIdentifierWithSubscripts(byReceiver.identifier());
         else
-            throw new InvalidOperationException(
-                $"MULTIPLY BY operand is neither identifier nor literal (line {ctx.Start?.Line})");
+            byOperand = BindLiteral(byReceiver.literal());
 
         var givingCtx = ctx.multiplyGivingPhrase();
         bool isGiving = givingCtx != null;
-
         var targets = new List<BoundArithmeticTarget>();
 
         if (isGiving)
         {
-            // GIVING form: targets are the GIVING items, not the BY items
-            foreach (var gt in givingCtx!.multiplyByTarget())
+            foreach (var gt in givingCtx!.arithmeticTarget())
             {
-                if (gt.identifier() == null) continue;
                 var sym = BindIdentifierWithSubscripts(gt.identifier());
                 if (sym is BoundIdentifierExpression boundGt)
                     targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
@@ -1583,14 +1570,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
         else
         {
-            // Non-GIVING form: BY items are both factors and receiving items.
-            // Each BY item gets: result = operand * byItem, stored in byItem.
-            foreach (var bt in byTargets)
+            // Non-GIVING: BY operand is both factor and receiving item
+            if (byReceiver.identifier() != null)
             {
-                if (bt.identifier() == null) continue;
-                var sym = BindIdentifierWithSubscripts(bt.identifier());
+                var sym = BindIdentifierWithSubscripts(byReceiver.identifier());
                 if (sym is BoundIdentifierExpression boundBt)
-                    targets.Add(new BoundArithmeticTarget(boundBt, bt.ROUNDED() != null));
+                    targets.Add(new BoundArithmeticTarget(boundBt, byCtx.ROUNDED() != null));
             }
         }
 
@@ -1598,7 +1583,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException(
                 $"MULTIPLY statement has no valid receiving items (line {ctx.Start?.Line})");
 
-        var sizeError = BindSizeErrorClause(ctx.multiplyOnSizeError());
+        var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return new BoundMultiplyStatement(operand, byOperand, targets, isGiving, sizeError);
     }
 
@@ -1625,7 +1610,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var toPhrase = ctx.addToPhrase();
         if (toPhrase != null)
         {
-            foreach (var t in toPhrase.addTarget())
+            foreach (var t in toPhrase.arithmeticTarget())
             {
                 var sym = BindIdentifierWithSubscripts(t.identifier());
                 if (sym is BoundIdentifierExpression boundT)
@@ -1638,7 +1623,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var givingPhrase = ctx.addGivingPhrase();
         if (givingPhrase != null)
         {
-            var givingTargetCtxs = givingPhrase.addTarget();
+            var givingTargetCtxs = givingPhrase.arithmeticTarget();
             if (givingTargetCtxs.Length > 0)
             {
                 isGiving = true;
@@ -1656,7 +1641,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException(
                 $"ADD statement has no targets (line {ctx.Start?.Line})");
 
-        var sizeError = BindSizeErrorClause(ctx.addOnSizeError());
+        var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return new BoundAddStatement(operands, targets, sizeError, isGiving);
     }
 
@@ -1685,8 +1670,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         var fromOperand = fromPhrase.subtractFromOperand();
-        var fromTargetCtxs = fromOperand.subtractTarget();
+        var fromTargetCtxs = fromOperand.arithmeticTarget();
         var targets = new List<BoundArithmeticTarget>();
+        bool fromIsLiteral = false;
 
         if (fromTargetCtxs.Length > 0)
         {
@@ -1698,10 +1684,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     targets.Add(new BoundArithmeticTarget(boundT2, t.ROUNDED() != null));
             }
         }
-        else if (fromOperand.literal() != null)
+        else if (fromOperand.givingReceiver() != null)
         {
             // FROM literal (Format 2 — requires GIVING)
-            // The literal becomes the minuend; handled in the GIVING path below
+            fromIsLiteral = true;
         }
 
         // If no targets and no GIVING, it's an error
@@ -1714,19 +1700,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var givingPhrase = ctx.subtractGivingPhrase();
         if (givingPhrase != null)
         {
-            var givingTargetCtxs = givingPhrase.subtractTarget();
+            var givingTargetCtxs = givingPhrase.arithmeticTarget();
             if (givingTargetCtxs.Length > 0)
             {
                 isGiving = true;
                 // The FROM operand becomes the minuend (b in "SUBTRACT a FROM b GIVING c")
-                if (fromOperand.literal() != null)
+                if (fromIsLiteral)
                 {
-                    // FROM literal: the literal is the minuend
-                    givingMinuend = BindLiteral(fromOperand.literal());
+                    givingMinuend = BindGivingReceiver(fromOperand.givingReceiver());
                 }
                 else if (targets.Count > 0)
                 {
-                    // FROM identifier: the first target is the minuend
                     givingMinuend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
                 }
                 targets.Clear();
@@ -1742,7 +1726,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (targets.Count == 0)
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
 
-        var sizeError = BindSizeErrorClause(ctx.subtractOnSizeError());
+        var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return new BoundSubtractStatement(operands, targets, sizeError, isGiving, givingMinuend);
     }
 
@@ -1765,16 +1749,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (isByForm)
         {
             // DIVIDE a BY b GIVING c → divisor=b, dividend=a, target=c
-            // The BY phrase contains the second operand
             var byOperand = ctx.divideByPhrase().divideOperand();
-            dividend = firstOperand; // a is the dividend
-            firstOperand = BindSimpleOperand(byOperand); // b is the divisor
+            dividend = firstOperand;
+            firstOperand = BindSimpleOperand(byOperand);
 
-            // GIVING targets
             var givingPhrase = ctx.divideGivingPhrase();
             if (givingPhrase != null)
             {
-                foreach (var gt in givingPhrase.divideTarget())
+                foreach (var gt in givingPhrase.arithmeticTarget())
                 {
                     var sym = BindIdentifierWithSubscripts(gt.identifier());
                     if (sym is BoundIdentifierExpression boundGt)
@@ -1785,14 +1767,22 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         else
         {
             // DIVIDE a INTO b → divisor=a, target=b (b = b / a)
+            // INTO operand: givingReceiver (identifier | literal)
             var intoPhrase = ctx.divideIntoPhrase();
+            BoundExpression? intoLiteral = null;
             if (intoPhrase != null)
             {
-                foreach (var it in intoPhrase.divideTarget())
+                var intoOp = intoPhrase.divideIntoOperand();
+                if (intoOp.arithmeticTarget() != null)
                 {
-                    var sym = BindIdentifierWithSubscripts(it.identifier());
+                    var at = intoOp.arithmeticTarget();
+                    var sym = BindIdentifierWithSubscripts(at.identifier());
                     if (sym is BoundIdentifierExpression boundIt)
-                        targets.Add(new BoundArithmeticTarget(boundIt, it.ROUNDED() != null));
+                        targets.Add(new BoundArithmeticTarget(boundIt, at.ROUNDED() != null));
+                }
+                else if (intoOp.literal() != null)
+                {
+                    intoLiteral = BindLiteral(intoOp.literal());
                 }
             }
 
@@ -1800,11 +1790,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             var givingPhrase = ctx.divideGivingPhrase();
             if (givingPhrase != null)
             {
-                // INTO target becomes the dividend, GIVING targets are destinations
-                if (targets.Count > 0)
+                if (intoLiteral != null)
+                    dividend = intoLiteral;
+                else if (targets.Count > 0)
                     dividend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
                 targets.Clear();
-                foreach (var gt in givingPhrase.divideTarget())
+                foreach (var gt in givingPhrase.arithmeticTarget())
                 {
                     var sym = BindIdentifierWithSubscripts(gt.identifier());
                     if (sym is BoundIdentifierExpression boundGt)
@@ -1825,7 +1816,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             remainderTarget = remExpr as BoundIdentifierExpression;
         }
 
-        var sizeError = BindSizeErrorClause(ctx.divideOnSizeError());
+        var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return new BoundDivideStatement(firstOperand, dividend, isByForm, targets,
             remainderTarget, sizeError);
     }
@@ -2454,6 +2445,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
 
         return new BoundSizeErrorClause(onSizeError, notOnSizeError);
+    }
+
+    /// <summary>
+    /// Bind a givingReceiver (identifier | literal) — unified GIVING-form operand.
+    /// </summary>
+    private BoundExpression BindGivingReceiver(CobolParserCore.GivingReceiverContext ctx)
+    {
+        if (ctx.identifier() != null)
+            return BindIdentifierWithSubscripts(ctx.identifier());
+        if (ctx.literal() != null)
+            return BindLiteral(ctx.literal());
+        throw new InvalidOperationException("givingReceiver has neither identifier nor literal");
     }
 
     /// <summary>
