@@ -14,10 +14,10 @@ public sealed class CobolErrorStrategyTests
 {
     private const string NistProgramsDir = "tests/nist/programs";
 
-    // ── Missing space before string literal ──
+    // ── BLANK WHEN ZERO not parsed in data description ──
 
     [Theory]
-    [InlineData("NC134A.cob", "BLANK")]  // BLANK WHEN ZERO not parsed in data description
+    [InlineData("NC134A.cob", "BLANK")]
     public void Detects_UnrecognizedClause(string file, string expectedFragment)
     {
         var diagnostics = CompileWithDiagnostics(file);
@@ -77,6 +77,73 @@ public sealed class CobolErrorStrategyTests
         Assert.True(
             HasDiagnosticContaining(diagnostics, expectedFragment),
             $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
+    }
+
+    // ── NOT = abbreviated condition ──
+
+    [Theory]
+    [InlineData("NC172A.cob", "abbreviated condition")]
+    [InlineData("NC203A.cob", "abbreviated condition")]
+    public void Detects_AbbreviatedCondition(string file, string expectedFragment)
+    {
+        var diagnostics = CompileWithDiagnostics(file);
+        Assert.True(
+            HasDiagnosticContaining(diagnostics, expectedFragment),
+            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
+    }
+
+    // ── Multi-target SET ──
+
+    [Theory]
+    [InlineData("NC131A.cob", "Multi-target SET")]
+    [InlineData("NC140A.cob", "Multi-target SET")]
+    public void Detects_MultiTargetSet(string file, string expectedFragment)
+    {
+        var diagnostics = CompileWithDiagnostics(file);
+        Assert.True(
+            HasDiagnosticContaining(diagnostics, expectedFragment),
+            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
+    }
+
+    // ── Diagnostic code prefix assertions ──
+
+    [Fact]
+    public void AscendingKey_HasUnsupportedFeatureCode()
+    {
+        var diagnostics = CompileWithDiagnostics("NC233A.cob");
+        Assert.Contains(diagnostics, d => d.Code.StartsWith("COBOL01"));
+    }
+
+    [Fact]
+    public void AbbreviatedCondition_HasCode0311()
+    {
+        var diagnostics = CompileWithDiagnostics("NC172A.cob");
+        Assert.Contains(diagnostics, d => d.Code == "COBOL0311");
+    }
+
+    [Fact]
+    public void MultiTargetSet_HasCode0108()
+    {
+        var diagnostics = CompileWithDiagnostics("NC131A.cob");
+        Assert.Contains(diagnostics, d => d.Code == "COBOL0108");
+    }
+
+    [Fact]
+    public void StatusReserved_HasCode0200()
+    {
+        var diagnostics = CompileWithDiagnostics("NC211A.cob");
+        Assert.Contains(diagnostics, d => d.Code == "COBOL0200");
+    }
+
+    // ── Error count cap ──
+
+    [Fact]
+    public void ErrorCountCap_NC203A_AtMost20()
+    {
+        var diagnostics = CompileWithDiagnostics("NC203A.cob");
+        Assert.True(
+            diagnostics.Length <= 20,
+            $"Expected at most 20 diagnostics for NC203A, got {diagnostics.Length}");
     }
 
     // ── Helpers ──

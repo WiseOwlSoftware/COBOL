@@ -33,10 +33,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var para = _semantic.ResolveParagraph(name);
         var sec = _semantic.ResolveSection(name);
 
-        // CS0870: Ambiguous procedure name — used as both section and paragraph
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("CS0870",
+            _diagnostics.ReportWarning("COBOL0400",
                 $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -51,17 +50,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (sectionParas != null && sectionParas.Count > 0)
                 return _semantic.ResolveParagraph(sectionParas[0]);
 
-            // CS0871: Section has no paragraphs
-            _diagnostics.ReportWarning("CS0871",
+            _diagnostics.ReportWarning("COBOL0401",
                 $"Section '{name}' contains no paragraphs.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
             return null;
         }
 
-        // CS0872: Undefined procedure name
-        _diagnostics.ReportError("CS0872",
-            $"Procedure name '{name}' does not refer to a paragraph or section.",
+        _diagnostics.ReportError("COBOL0402",
+            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
             new Common.SourceLocation("<source>", 0, 0, 0),
             new Common.TextSpan(0, 0));
         return null;
@@ -79,7 +76,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("CS0870",
+            _diagnostics.ReportWarning("COBOL0400",
                 $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -94,15 +91,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (sectionParas != null && sectionParas.Count > 0)
                 return _semantic.ResolveParagraph(sectionParas[^1]); // LAST paragraph
 
-            _diagnostics.ReportWarning("CS0871",
+            _diagnostics.ReportWarning("COBOL0401",
                 $"Section '{name}' contains no paragraphs.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
             return null;
         }
 
-        _diagnostics.ReportError("CS0872",
-            $"Procedure name '{name}' does not refer to a paragraph or section.",
+        _diagnostics.ReportError("COBOL0402",
+            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
             new Common.SourceLocation("<source>", 0, 0, 0),
             new Common.TextSpan(0, 0));
         return null;
@@ -115,7 +112,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("CS0870",
+            _diagnostics.ReportWarning("COBOL0400",
                 $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -134,15 +131,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 return (first, sectionParas.Count > 1 ? last : null);
             }
 
-            _diagnostics.ReportWarning("CS0871",
+            _diagnostics.ReportWarning("COBOL0401",
                 $"Section '{name}' contains no paragraphs.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
             return (null, null);
         }
 
-        _diagnostics.ReportError("CS0872",
-            $"Procedure name '{name}' does not refer to a paragraph or section.",
+        _diagnostics.ReportError("COBOL0402",
+            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
             new Common.SourceLocation("<source>", 0, 0, 0),
             new Common.TextSpan(0, 0));
         return (null, null);
@@ -227,8 +224,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
         if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
 
-        // CS0873: Unrecognized or unimplemented statement
-        _diagnostics.ReportWarning("CS0873",
+        _diagnostics.ReportWarning("COBOL0110",
             $"Statement not recognized or not yet implemented: '{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...'",
             new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
             new Common.TextSpan(0, 0));
@@ -314,7 +310,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Source must be a group item
         if (srcSym.IsElementary)
         {
-            _diagnostics.ReportError("CS0880",
+            _diagnostics.ReportError("COBOL0403",
                 $"{kindName} CORRESPONDING: source '{srcSym.DisplayName}' must be a group item.",
                 loc, span);
             hasError = true;
@@ -323,7 +319,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Target must be a group item
         if (dstSym.IsElementary)
         {
-            _diagnostics.ReportError("CS0880",
+            _diagnostics.ReportError("COBOL0403",
                 $"{kindName} CORRESPONDING: target '{dstSym.DisplayName}' must be a group item.",
                 loc, span);
             hasError = true;
@@ -519,7 +515,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (id.IsSubscripted)
         {
-            _diagnostics.ReportError("CS0861",
+            _diagnostics.ReportError("COBOL0404",
                 $"PERFORM VARYING index '{id.Symbol.Name}' must not be subscripted.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2810,23 +2806,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var span = new Common.TextSpan(0, 0);
 
         if (subscriptCount > 0 && occursDepth == 0)
-            _diagnostics.ReportError("CS0850",
+            _diagnostics.ReportError("COBOL0405",
                 $"Item '{sym.Name}' is not defined with OCCURS and cannot be subscripted.", loc, span);
 
         if (subscriptCount > occursDepth && occursDepth > 0)
-            _diagnostics.ReportError("CS0851",
+            _diagnostics.ReportError("COBOL0406",
                 $"Item '{sym.Name}' has {occursDepth} OCCURS level(s) but was referenced with {subscriptCount} subscript(s).", loc, span);
 
         if (occursDepth > 3)
-            _diagnostics.ReportError("CS0852",
+            _diagnostics.ReportError("COBOL0407",
                 $"Item '{sym.Name}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {occursDepth}).", loc, span);
 
         if (subscriptCount > 3)
-            _diagnostics.ReportError("CS0853",
+            _diagnostics.ReportError("COBOL0408",
                 $"A maximum of 3 subscripts is permitted in COBOL-85; found {subscriptCount}.", loc, span);
 
         if (sym.IsElementary && occursDepth > 0 && subscriptCount > 0 && subscriptCount < occursDepth)
-            _diagnostics.ReportError("CS0854",
+            _diagnostics.ReportError("COBOL0409",
                 $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.", loc, span);
 
         var baseId = new BoundIdentifierExpression(sym, cat, subs);

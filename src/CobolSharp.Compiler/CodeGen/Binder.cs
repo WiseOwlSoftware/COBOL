@@ -812,7 +812,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(v.Index);
         if (indexLoc == null)
         {
-            _diagnostics.ReportError("CS0875",
+            _diagnostics.ReportError("COBOL0500",
                 $"PERFORM VARYING index '{v.Index.Name}' has no storage location.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -915,7 +915,7 @@ public sealed class Binder
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
         {
-            _diagnostics.ReportError("CS0874",
+            _diagnostics.ReportError("COBOL0501",
                 $"PERFORM target paragraph '{perf.Target.Name}' not found in paragraph dispatch table.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -966,7 +966,7 @@ public sealed class Binder
 
         if (perf.Target == null)
         {
-            _diagnostics.ReportError("CS0879",
+            _diagnostics.ReportError("COBOL0502",
                 "PERFORM TIMES has no target paragraph and no inline statements.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2233,7 +2233,7 @@ public sealed class Binder
             return;
         }
 
-        _diagnostics.ReportError("CS0881",
+        _diagnostics.ReportError("COBOL0503",
             $"Unsupported condition shape: {cond.GetType().Name}",
             new Common.SourceLocation("<source>", 0, 0, 0),
             new Common.TextSpan(0, 0));
@@ -2249,7 +2249,7 @@ public sealed class Binder
 
         if (left == null || right == null)
         {
-            _diagnostics.ReportError("CS0882",
+            _diagnostics.ReportError("COBOL0504",
                 $"Cannot normalize comparison operands: " +
                 $"left={binCond.Left.GetType().Name}, right={binCond.Right.GetType().Name}",
                 new Common.SourceLocation("<source>", 0, 0, 0),
@@ -2325,7 +2325,7 @@ public sealed class Binder
                 break;
 
             default:
-                _diagnostics.ReportError("CS0883",
+                _diagnostics.ReportError("COBOL0505",
                     $"Unhandled comparison combination: {left.Kind} vs {right.Kind}",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2569,7 +2569,7 @@ public sealed class Binder
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
             else
-                _diagnostics.ReportError("CS0876",
+                _diagnostics.ReportError("COBOL0506",
                     $"GO TO target '{gt.Target.Name}' not found in paragraph dispatch table.",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2579,7 +2579,7 @@ public sealed class Binder
         // GO TO para1 para2 ... DEPENDING ON selector
         if (gt.DependingOn == null)
         {
-            _diagnostics.ReportError("CS0877",
+            _diagnostics.ReportError("COBOL0507",
                 "GO TO DEPENDING ON requires a selector variable.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2589,7 +2589,7 @@ public sealed class Binder
         var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
         if (selectorLoc == null)
         {
-            _diagnostics.ReportError("CS0878",
+            _diagnostics.ReportError("COBOL0508",
                 $"GO TO DEPENDING ON selector '{gt.DependingOn}' has no storage location.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2604,7 +2604,7 @@ public sealed class Binder
                 targetIndices.Add(idx);
             else
             {
-                _diagnostics.ReportError("CS0876",
+                _diagnostics.ReportError("COBOL0506",
                     $"GO TO DEPENDING target '{target.Name}' not found in paragraph dispatch table.",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2638,7 +2638,7 @@ public sealed class Binder
     {
         if (_performExitStack.Count == 0)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT PERFORM used outside of any active PERFORM.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2657,7 +2657,7 @@ public sealed class Binder
     {
         if (_paragraphEndBlock == null)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT PARAGRAPH used outside of any paragraph.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2675,7 +2675,7 @@ public sealed class Binder
     {
         if (_sectionExitReturnIndex == null)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT SECTION used outside of any section.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));

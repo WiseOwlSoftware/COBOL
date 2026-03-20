@@ -173,7 +173,8 @@ public sealed class Compilation
         }
         catch (Exception ex)
         {
-            diagnostics.ReportError("CIL", $"CIL emission failed: {ex.Message}\n{ex.StackTrace}",
+            diagnostics.ReportError("COBOL0600",
+                $"Internal compiler error while generating code for '{programId}': {ex.Message}. Please report this.",
                 new SourceLocation(sourcePath, 0, 0, 0),
                 new TextSpan(0, 0));
             return new CompilationResult(false, outputPath, diagnostics.Diagnostics);
