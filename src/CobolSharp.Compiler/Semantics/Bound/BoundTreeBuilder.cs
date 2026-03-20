@@ -1679,7 +1679,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // GIVING phrase overrides TO targets
+        // GIVING phrase: ADD A TO B GIVING C → C = A + B.
+        // The TO items become additional operands (sources), not targets.
         bool isGiving = false;
         var givingPhrase = ctx.addGivingPhrase();
         if (givingPhrase != null)
@@ -1688,6 +1689,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (givingTargetCtxs.Length > 0)
             {
                 isGiving = true;
+                // Move TO items to operands (they're addends in GIVING form)
+                foreach (var t in targets)
+                    operands.Add(t.Target);
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
                 {
