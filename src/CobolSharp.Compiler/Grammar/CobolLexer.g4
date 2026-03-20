@@ -215,6 +215,7 @@ NUMERIC     : 'NUMERIC' ;
 NULL_       : 'NULL' ;
 OCCURS      : 'OCCURS' ;
 OF          : 'OF' ;
+OFF         : 'OFF' ;
 ON          : 'ON' ;
 OR          : 'OR' ;
 ORGANIZATION: 'ORGANIZATION' ;
@@ -295,10 +296,10 @@ DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 // Pure digits remain INTEGERLIT (level numbers, paragraph numbers, etc.).
 
 IDENTIFIER
-    : [0-9]+ '-' [A-Za-z0-9] [A-Za-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
-    | [0-9]+ [A-Za-z] [A-Za-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
-    | [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]      // alpha-start: WRK-DS-01V00
-    | [A-Za-z]                                  // single letter: A
+    : [0-9]+ '-' [a-z0-9] [a-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
+    | [0-9]+ [a-z] [a-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
+    | [a-z] [a-z0-9-]* [a-z0-9]         // alpha-start: WRK-DS-01V00
+    | [a-z]                               // single letter: A
     ;
 
 INTEGERLIT  : [0-9]+ ;
@@ -308,8 +309,8 @@ INTEGERLIT  : [0-9]+ ;
 STRINGLIT   : '"' (~["\r\n] | '""')* '"'
             | '\'' (~['\r\n] | '\'\'')* '\''
             ;
-HEXLIT      : [Xx] '"' [0-9A-Fa-f]+ '"'
-            | [Xx] '\'' [0-9A-Fa-f]+ '\''
+HEXLIT      : [x] '"' [0-9a-f]+ '"'
+            | [x] '\'' [0-9a-f]+ '\''
             ;
 
 // ── Operators (multi-char before single-char) ──

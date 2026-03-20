@@ -112,9 +112,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     private char _currencySign = '$';
     private bool _decimalPointIsComma = false;
+    private readonly List<ImplementorSwitch> _implementorSwitches = [];
 
     public char CurrencySign => _currencySign;
     public bool DecimalPointIsComma => _decimalPointIsComma;
+    public IReadOnlyList<ImplementorSwitch> ImplementorSwitches => _implementorSwitches;
 
     public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
     {
@@ -139,6 +141,32 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var word = dpClause.IDENTIFIER()?.GetText();
                 if (string.Equals(word, "COMMA", StringComparison.OrdinalIgnoreCase))
                     _decimalPointIsComma = true;
+            }
+
+            // Implementor switch: IDENTIFIER IS IDENTIFIER (ON name)? (OFF IS? name)?
+            if (entry.implementorSwitchEntry() is { } swClause)
+            {
+                var ids = swClause.IDENTIFIER();
+                if (ids.Length >= 2)
+                {
+                    string implName = ids[0].GetText();
+                    string mnemonicName = ids[1].GetText();
+                    string? onName = null;
+                    string? offName = null;
+
+                    if (swClause.ON() != null && ids.Length >= 3)
+                        onName = ids[2].GetText();
+
+                    if (swClause.OFF() != null)
+                    {
+                        int idx = swClause.ON() != null ? 3 : 2;
+                        if (ids.Length > idx)
+                            offName = ids[idx].GetText();
+                    }
+
+                    _implementorSwitches.Add(
+                        new ImplementorSwitch(mnemonicName, implName, onName, offName));
+                }
             }
         }
 

@@ -600,8 +600,8 @@ public sealed class CilEmitter
                 EmitCheckFileInvalidKey(il, cik, getLocal);
                 break;
 
-            case IrPicMove pm:
-                EmitPicMoveFieldToField(il, pm);
+            case IrMoveFieldToField mf:
+                EmitMoveFieldToField(il, mf);
                 break;
 
             case IrPicMultiply mul:
@@ -1127,12 +1127,13 @@ public sealed class CilEmitter
     /// <summary>
     /// Emit a MOVE call with the standard (src, dst, rounding) signature used by most PicRuntime MOVE methods.
     /// </summary>
-    private void EmitMoveWithStandardSignature(ILProcessor il, IrPicMove pm, string methodName)
+    private void EmitMoveWithStandardSignature(
+        ILProcessor il, IrLocation source, IrLocation destination, int rounding, string methodName)
     {
-        EmitLocationArgsWithPic(il, pm.Source);
-        EmitLocationArgsWithPic(il, pm.Destination);
+        EmitLocationArgsWithPic(il, source);
+        EmitLocationArgsWithPic(il, destination);
 
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
+        il.Append(il.Create(OpCodes.Ldc_I4, rounding));
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod(methodName,
@@ -1536,17 +1537,18 @@ public sealed class CilEmitter
     /// MOVE field TO field: routes numeric→numeric through PicRuntime.MoveNumeric,
     /// alpha→alpha through StorageHelpers.MoveFieldToField.
     /// </summary>
-    private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
+    private void EmitMoveFieldToField(ILProcessor il, IrMoveFieldToField mf)
     {
-        var srcPic = GetPicForLocation(pm.Source);
-        var dstPic = GetPicForLocation(pm.Destination);
+        var srcPic = mf.SourcePic;
+        var dstPic = mf.DestinationPic;
         var srcCat = srcPic.Category;
         var dstCat = dstPic.Category;
+        int rounding = mf.IsRounded ? 1 : 0;
 
         // Group items are always alphanumeric for MOVE: raw byte copy, no formatting/editing.
         if (srcPic.IsGroup || dstPic.IsGroup)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
             return;
         }
 
@@ -1554,31 +1556,25 @@ public sealed class CilEmitter
         if (dstCat == CobolCategory.AlphanumericEdited)
         {
             if (srcCat == CobolCategory.Numeric)
-            {
-                // Numeric → AlphanumericEdited: convert to display string, apply edit pattern
-                EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumericEdited");
-            }
+                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumericEdited");
             else
-            {
-                // NumericEdited/Alphanumeric → AlphanumericEdited: source bytes as-is, apply edit pattern
-                EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumericEdited");
-            }
+                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumericEdited");
             return;
         }
         // NumericEdited source: specific handling before generic IsNumericLike() rules.
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericEditedToNumeric");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat.IsAlphanumericLike())
         {
             // NumericEdited → Alphanumeric: COBOL treats source as alphanumeric (raw byte copy)
-            EmitLocationArgs(il, pm.Destination);
-            EmitLocationArgs(il, pm.Source);
+            EmitLocationArgs(il, mf.Destination);
+            EmitLocationArgs(il, mf.Source);
             var method = _module.ImportReference(
                 typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
                     "MoveFieldToField",
@@ -1590,29 +1586,29 @@ public sealed class CilEmitter
         // Generic numeric source rules.
         else if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsNumericLike())
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumeric");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsAlphanumericLike())
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumeric");
         }
         // Alphanumeric source rules.
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumeric");
         }
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumericEdited");
         }
         else
         {
             // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT)
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
         }
     }
 

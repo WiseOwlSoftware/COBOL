@@ -120,6 +120,9 @@ public sealed class Compilation
 
         model.SetPicEnvironment(semanticBuilder.CurrencySign, semanticBuilder.DecimalPointIsComma);
 
+        foreach (var sw in semanticBuilder.ImplementorSwitches)
+            model.RegisterImplementorSwitch(sw);
+
         // Populate procedure symbols
         foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)
         {

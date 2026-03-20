@@ -265,8 +265,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     // ── MOVE ──
 
-    private BoundMoveStatement? BindMove(CobolParserCore.MoveStatementContext ctx)
+    private BoundStatement? BindMove(CobolParserCore.MoveStatementContext ctx)
     {
+        // MOVE CORRESPONDING source TO target
+        if (ctx.CORRESPONDING() != null)
+            return BindCorresponding(CorrespondingKind.Move, ctx.identifier(), ctx);
+
         var moveSource = ctx.moveSource();
         var moveTarget = ctx.moveTarget();
         if (moveSource == null || moveTarget == null) return null;
@@ -282,6 +286,55 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundMoveStatement(source, targets, isRounded: false);
+    }
+
+    private BoundCorrespondingStatement? BindCorresponding(
+        CorrespondingKind kind,
+        CobolParserCore.IdentifierContext[] ids,
+        Antlr4.Runtime.ParserRuleContext ctx,
+        bool isRounded = false,
+        BoundSizeErrorClause? sizeError = null)
+    {
+        if (ids.Length < 2) return null;
+
+        var srcExpr = BindIdentifierWithSubscripts(ids[0]);
+        var dstExpr = BindIdentifierWithSubscripts(ids[1]);
+
+        if (srcExpr is not BoundIdentifierExpression srcId ||
+            dstExpr is not BoundIdentifierExpression dstId)
+            return null;
+
+        var srcSym = srcId.Symbol;
+        var dstSym = dstId.Symbol;
+        var loc = new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+        var span = new Common.TextSpan(0, 0);
+        var kindName = kind.ToString().ToUpperInvariant();
+        bool hasError = false;
+
+        // Source must be a group item
+        if (srcSym.IsElementary)
+        {
+            _diagnostics.ReportError("CS0880",
+                $"{kindName} CORRESPONDING: source '{srcSym.DisplayName}' must be a group item.",
+                loc, span);
+            hasError = true;
+        }
+
+        // Target must be a group item
+        if (dstSym.IsElementary)
+        {
+            _diagnostics.ReportError("CS0880",
+                $"{kindName} CORRESPONDING: target '{dstSym.DisplayName}' must be a group item.",
+                loc, span);
+            hasError = true;
+        }
+
+        if (hasError)
+            return new BoundCorrespondingStatement(kind, srcSym, dstSym, []);
+
+        var pairs = CorrespondingMatcher.ComputeCorrespondingPairs(
+            srcSym, dstSym, kindName, _diagnostics, loc);
+        return new BoundCorrespondingStatement(kind, srcSym, dstSym, pairs, isRounded, sizeError);
     }
 
     private BoundExpression BindMoveSource(CobolParserCore.MoveSourceContext ctx)
@@ -1286,43 +1339,37 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var sendings = new List<BoundStringSending>();
         foreach (var phrase in ctx.stringSendingPhrase())
         {
-            // Grammar: (identifier | literal) (DELIMITED BY (ALL)? (identifier | literal | SIZE))?
-            // ANTLR returns identifier() and literal() as arrays across both positions.
-            var identifiers = phrase.identifier();
-            var literals = phrase.literal();
-
-            // First identifier or literal is the value
+            // Grammar: (identifier | literal | figurativeConstant) delimitedByPhrase?
             BoundExpression value;
-            int idIdx = 0, litIdx = 0;
-            if (identifiers.Length > 0)
-            {
-                value = BindIdentifierWithSubscripts(identifiers[0]);
-                idIdx = 1;
-            }
-            else if (literals.Length > 0)
-            {
-                value = BindLiteral(literals[0]);
-                litIdx = 1;
-            }
+            if (phrase.identifier() is { } valId)
+                value = BindIdentifierWithSubscripts(valId);
+            else if (phrase.literal() is { } valLit)
+                value = BindLiteral(valLit);
+            else if (phrase.figurativeConstant() is { } valFig)
+                value = BindFigurativeConstantExpression(valFig);
             else
                 continue;
 
             BoundExpression? delimiter = null;
             bool delimitedBySize = false;
 
-            if (phrase.DELIMITED() != null)
+            if (phrase.delimitedByPhrase() is { } delim)
             {
-                if (phrase.SIZE() != null)
+                if (delim.SIZE() != null)
                 {
                     delimitedBySize = true;
                 }
-                else
+                else if (delim.identifier() is { } delimId)
                 {
-                    // Delimiter is the next unused identifier or literal
-                    if (idIdx < identifiers.Length)
-                        delimiter = BindIdentifierWithSubscripts(identifiers[idIdx]);
-                    else if (litIdx < literals.Length)
-                        delimiter = BindLiteral(literals[litIdx]);
+                    delimiter = BindIdentifierWithSubscripts(delimId);
+                }
+                else if (delim.literal() is { } delimLit)
+                {
+                    delimiter = BindLiteral(delimLit);
+                }
+                else if (delim.figurativeConstant() is { } delimFig)
+                {
+                    delimiter = BindFigurativeConstantExpression(delimFig);
                 }
             }
 
@@ -1637,6 +1684,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindAdd(CobolParserCore.AddStatementContext ctx)
     {
+        // ADD CORRESPONDING source TO target [ROUNDED] [ON SIZE ERROR ...]
+        if (ctx.CORRESPONDING() != null)
+        {
+            return BindCorresponding(CorrespondingKind.Add, ctx.identifier(), ctx,
+                ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
+                ?? throw new InvalidOperationException(
+                    $"ADD CORRESPONDING: could not resolve operands (line {ctx.Start?.Line})");
+        }
+
         // ADD operand(s) TO target1 [ROUNDED] target2 [ROUNDED] ...
         var operandList = ctx.addOperandList();
         if (operandList == null)
@@ -1699,6 +1755,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindSubtract(CobolParserCore.SubtractStatementContext ctx)
     {
+        // SUBTRACT CORRESPONDING source FROM target [ROUNDED] [ON SIZE ERROR ...]
+        if (ctx.CORRESPONDING() != null)
+        {
+            return BindCorresponding(CorrespondingKind.Subtract, ctx.identifier(), ctx,
+                ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
+                ?? throw new InvalidOperationException(
+                    $"SUBTRACT CORRESPONDING: could not resolve operands (line {ctx.Start?.Line})");
+        }
+
         // SUBTRACT operand(s) FROM target1 [ROUNDED] target2 [ROUNDED] ...
         // Multiple operands: SUBTRACT A B C FROM T → T = T - (A + B + C)
         var operandList = ctx.subtractOperandList();
@@ -2138,53 +2203,49 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
-        {
-            // ALL "literal" — extract the string and produce a figurative with AllLiteral
-            if (figCtx.ALL() != null)
-            {
-                string? allText = null;
-                var allStr = figCtx.STRINGLIT();
-                if (allStr != null)
-                {
-                    var raw = allStr.GetText();
-                    if (raw.Length >= 2) allText = raw[1..^1];
-                }
-                var allHex = figCtx.HEXLIT();
-                if (allHex != null)
-                {
-                    var raw = allHex.GetText(); // X"..." or X'...'
-                    if (raw.Length >= 3)
-                    {
-                        var hexBody = raw[2..^1];
-                        var sb = new System.Text.StringBuilder();
-                        for (int i = 0; i + 1 < hexBody.Length; i += 2)
-                            sb.Append((char)Convert.ToByte(hexBody[i..(i + 2)], 16));
-                        allText = sb.ToString();
-                    }
-                }
-                return new BoundFigurativeExpression(
-                    FigurativeKind.None, allText ?? "");
-            }
-
-            string figText = figCtx.GetText().ToUpperInvariant();
-            return figText switch
-            {
-                "SPACE" or "SPACES" =>
-                    new BoundFigurativeExpression(FigurativeKind.Space),
-                "ZERO" or "ZEROS" or "ZEROES" =>
-                    new BoundFigurativeExpression(FigurativeKind.Zero),
-                "HIGH-VALUE" or "HIGH-VALUES" =>
-                    new BoundFigurativeExpression(FigurativeKind.HighValue),
-                "LOW-VALUE" or "LOW-VALUES" =>
-                    new BoundFigurativeExpression(FigurativeKind.LowValue),
-                "QUOTE" or "QUOTES" =>
-                    new BoundFigurativeExpression(FigurativeKind.Quote),
-                _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
-            };
-        }
+            return BindFigurativeConstantExpression(figCtx);
 
         // HEXLIT, etc.
         return new BoundLiteralExpression(nonNum.GetText(), CobolCategory.Alphanumeric);
+    }
+
+    private BoundExpression BindFigurativeConstantExpression(CobolParserCore.FigurativeConstantContext figCtx)
+    {
+        if (figCtx.ALL() != null)
+        {
+            string? allText = null;
+            var allStr = figCtx.STRINGLIT();
+            if (allStr != null)
+            {
+                var raw = allStr.GetText();
+                if (raw.Length >= 2) allText = raw[1..^1];
+            }
+            var allHex = figCtx.HEXLIT();
+            if (allHex != null)
+            {
+                var raw = allHex.GetText();
+                if (raw.Length >= 3)
+                {
+                    var hexBody = raw[2..^1];
+                    var sb = new System.Text.StringBuilder();
+                    for (int i = 0; i + 1 < hexBody.Length; i += 2)
+                        sb.Append((char)Convert.ToByte(hexBody[i..(i + 2)], 16));
+                    allText = sb.ToString();
+                }
+            }
+            return new BoundFigurativeExpression(FigurativeKind.None, allText ?? "");
+        }
+
+        string figText = figCtx.GetText().ToUpperInvariant();
+        return figText switch
+        {
+            "SPACE" or "SPACES" => new BoundFigurativeExpression(FigurativeKind.Space),
+            "ZERO" or "ZEROS" or "ZEROES" => new BoundFigurativeExpression(FigurativeKind.Zero),
+            "HIGH-VALUE" or "HIGH-VALUES" => new BoundFigurativeExpression(FigurativeKind.HighValue),
+            "LOW-VALUE" or "LOW-VALUES" => new BoundFigurativeExpression(FigurativeKind.LowValue),
+            "QUOTE" or "QUOTES" => new BoundFigurativeExpression(FigurativeKind.Quote),
+            _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
+        };
     }
 
     private BoundExpression BindIdentifier(CobolParserCore.IdentifierContext idCtx)

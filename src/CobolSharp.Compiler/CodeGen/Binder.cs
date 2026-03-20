@@ -273,6 +273,8 @@ public sealed class Binder
             case BoundMoveStatement mv:
                 LowerMove(mv, block);
                 break;
+            case BoundCorrespondingStatement corr:
+                return LowerCorresponding(corr, method, block);
             case BoundPerformStatement perf:
                 return LowerPerform(perf, method, block);
             case BoundEvaluateStatement eval:
@@ -617,6 +619,50 @@ public sealed class Binder
         block.Instructions.Add(new IR.IrPicDisplay(operands));
     }
 
+    // ── CORRESPONDING (MOVE, ADD, SUBTRACT) ──
+
+    private IrBasicBlock LowerCorresponding(BoundCorrespondingStatement corr, IrMethod method, IrBasicBlock block)
+    {
+        if (corr.CorrespondingKind == CorrespondingKind.Move)
+        {
+            // MOVE CORRESPONDING: PIC-aware field-to-field move per pair
+            foreach (var (src, dst) in corr.Pairs)
+            {
+                var srcLoc = ResolveLocation(src);
+                var dstLoc = ResolveLocation(dst);
+                if (srcLoc == null || dstLoc == null) continue;
+
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dstLoc,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
+            }
+            return block;
+        }
+
+        // ADD/SUBTRACT CORRESPONDING: accumulator pattern per pair,
+        // consistent with scalar ADD/SUBTRACT lowering.
+        block.Instructions.Add(new IrInitArithmeticStatus());
+        int rounding = corr.IsRounded ? 1 : 0;
+
+        foreach (var (src, dst) in corr.Pairs)
+        {
+            var srcLoc = ResolveLocation(src);
+            var dstLoc = ResolveLocation(dst);
+            if (srcLoc == null || dstLoc == null) continue;
+
+            var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+            block.Instructions.Add(new IrInitAccumulator(accum));
+            block.Instructions.Add(new IrAccumulateField(accum, srcLoc));
+
+            if (corr.CorrespondingKind == CorrespondingKind.Add)
+                block.Instructions.Add(new IrAddAccumulatedToTarget(accum, dstLoc, rounding));
+            else
+                block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, dstLoc, rounding));
+        }
+
+        return LowerSizeError(corr.SizeError, method, block);
+    }
+
     // ── MOVE ──
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
@@ -678,8 +724,10 @@ public sealed class Binder
                 var srcLoc = ResolveExpressionLocation(mv.Source);
                 if (srcLoc != null)
                 {
-                    block.Instructions.Add(new IrPicMove(
-                        srcLoc, destLoc, mv.IsRounded ? 1 : 0));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        srcLoc, destLoc,
+                        GetPicForLocation(srcLoc), GetPicForLocation(destLoc),
+                        mv.IsRounded));
                 }
             }
         }
@@ -820,7 +868,9 @@ public sealed class Binder
         {
             var srcLoc = ResolveLocation(id);
             if (srcLoc != null)
-                block.Instructions.Add(new IrPicMove(srcLoc, dest, 0));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dest,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
         }
     }
 
@@ -1013,7 +1063,9 @@ public sealed class Binder
             {
                 var fromLoc = ResolveExpressionLocation(wr.From);
                 if (fromLoc != null)
-                    block.Instructions.Add(new IrPicMove(fromLoc, recordLoc));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        fromLoc, recordLoc,
+                        GetPicForLocation(fromLoc), GetPicForLocation(recordLoc)));
             }
 
             if (wr.AdvancingLines.HasValue)
@@ -1110,7 +1162,9 @@ public sealed class Binder
             var dstLoc = ResolveLocation(read.Into);
             if (srcLoc != null && dstLoc != null)
             {
-                block.Instructions.Add(new IrPicMove(srcLoc, dstLoc));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dstLoc,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
             }
         }
 
@@ -1357,7 +1411,9 @@ public sealed class Binder
         {
             var srcLoc = ResolveLocation(id);
             if (srcLoc != null)
-                block.Instructions.Add(new IrPicMove(srcLoc, dest));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dest,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
         }
     }
 
@@ -1501,7 +1557,9 @@ public sealed class Binder
                 {
                     var srcLoc = ResolveLocation(id);
                     if (srcLoc != null)
-                        block.Instructions.Add(new IrPicMove(srcLoc, targetLoc));
+                        block.Instructions.Add(new IrMoveFieldToField(
+                            srcLoc, targetLoc,
+                            GetPicForLocation(srcLoc), GetPicForLocation(targetLoc)));
                 }
                 break;
 

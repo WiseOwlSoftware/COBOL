@@ -119,6 +119,19 @@ public sealed class ConditionSymbol : Symbol
 }
 
 /// <summary>
+/// An implementor switch defined in SPECIAL-NAMES.
+/// Maps an implementor-defined name to a mnemonic with optional ON/OFF conditions.
+/// </summary>
+public sealed class ImplementorSwitch(
+    string name, string implementorName, string? onValueName, string? offValueName)
+{
+    public string Name { get; } = name;
+    public string ImplementorName { get; } = implementorName;
+    public string? OnValueName { get; } = onValueName;
+    public string? OffValueName { get; } = offValueName;
+}
+
+/// <summary>
 /// A typed condition value: either a decimal (numeric) or a string (alphanumeric).
 /// Replaces untyped object in level-88 VALUE clause processing.
 /// </summary>

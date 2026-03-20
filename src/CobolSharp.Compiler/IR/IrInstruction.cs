@@ -1099,20 +1099,29 @@ public sealed class IrPicMoveLiteralNumeric : IrInstruction
 // ── PIC-aware data movement ──
 
 /// <summary>
-/// PIC-aware MOVE: the emitter calls the appropriate PicRuntime helper
-/// based on source/destination PIC descriptors.
+/// PIC-aware field-to-field MOVE. Canonical primitive for all identifier→identifier
+/// moves: regular MOVE, MOVE CORRESPONDING pairs, and SET TRUE/FALSE.
+/// Carries resolved PIC descriptors — the emitter dispatches to the appropriate
+/// PicRuntime helper based on source/destination categories.
 /// </summary>
-public sealed class IrPicMove : IrInstruction
+public sealed class IrMoveFieldToField : IrInstruction
 {
     public IrLocation Source { get; }
     public IrLocation Destination { get; }
-    public int Rounding { get; } // 0=Truncate, 1=RoundHalfUp
+    public Runtime.PicDescriptor SourcePic { get; }
+    public Runtime.PicDescriptor DestinationPic { get; }
+    public bool IsRounded { get; }
 
-    public IrPicMove(IrLocation source, IrLocation destination, int rounding = 0)
+    public IrMoveFieldToField(
+        IrLocation source, IrLocation destination,
+        Runtime.PicDescriptor sourcePic, Runtime.PicDescriptor destinationPic,
+        bool isRounded = false)
     {
         Source = source;
         Destination = destination;
-        Rounding = rounding;
+        SourcePic = sourcePic;
+        DestinationPic = destinationPic;
+        IsRounded = isRounded;
     }
 }
 

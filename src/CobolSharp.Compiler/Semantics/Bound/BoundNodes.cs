@@ -38,6 +38,7 @@ public enum BoundNodeKind
     UnstringStatement,
     DeleteStatement,
     StartStatement,
+    CorrespondingStatement,
 }
 
 public abstract class BoundNode
@@ -241,6 +242,40 @@ public sealed class BoundMoveStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MoveStatement;
+}
+
+/// <summary>
+/// Unified CORRESPONDING statement: MOVE, ADD, or SUBTRACT CORRESPONDING.
+/// CorrespondingKind discriminates the operation. Pairs computed at bind time
+/// via CorrespondingMatcher.
+/// </summary>
+public enum CorrespondingKind { Move, Add, Subtract }
+
+public sealed class BoundCorrespondingStatement : BoundStatement
+{
+    public CorrespondingKind CorrespondingKind { get; }
+    public DataSymbol SourceGroup { get; }
+    public DataSymbol TargetGroup { get; }
+    public IReadOnlyList<(DataSymbol Source, DataSymbol Target)> Pairs { get; }
+    public bool IsRounded { get; }
+    public BoundSizeErrorClause? SizeError { get; }
+
+    public BoundCorrespondingStatement(
+        CorrespondingKind kind,
+        DataSymbol sourceGroup, DataSymbol targetGroup,
+        IReadOnlyList<(DataSymbol Source, DataSymbol Target)> pairs,
+        bool isRounded = false,
+        BoundSizeErrorClause? sizeError = null)
+    {
+        CorrespondingKind = kind;
+        SourceGroup = sourceGroup;
+        TargetGroup = targetGroup;
+        Pairs = pairs;
+        IsRounded = isRounded;
+        SizeError = sizeError;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.CorrespondingStatement;
 }
 
 public sealed class BoundPerformStatement : BoundStatement

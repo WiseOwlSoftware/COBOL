@@ -243,6 +243,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSpecialNameEntry([NotNull] CobolParserCore.SpecialNameEntryContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.implementorSwitchEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitImplementorSwitchEntry([NotNull] CobolParserCore.ImplementorSwitchEntryContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1100,6 +1106,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStringSendingPhrase([NotNull] CobolParserCore.StringSendingPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.delimitedByPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDelimitedByPhrase([NotNull] CobolParserCore.DelimitedByPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.stringIntoPhrase"/>.
 	/// </summary>
