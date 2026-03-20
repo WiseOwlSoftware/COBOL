@@ -905,7 +905,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             foreach (var item in replPhrase.inspectReplacingItem())
             {
                 InspectReplaceKind kind;
-                if (item.FIRST() != null) kind = InspectReplaceKind.First;
+                if (item.CHARACTERS() != null) kind = InspectReplaceKind.Characters;
+                else if (item.FIRST() != null) kind = InspectReplaceKind.First;
                 else if (item.LEADING() != null) kind = InspectReplaceKind.Leading;
                 else kind = InspectReplaceKind.All;
 
@@ -1030,12 +1031,33 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var nonNum = lit.nonNumericLiteral();
         if (nonNum != null)
         {
-            string raw = nonNum.GetText();
-            if (raw.StartsWith('"') && raw.EndsWith('"'))
-                return raw[1..^1];
-            if (raw.StartsWith('\'') && raw.EndsWith('\''))
-                return raw[1..^1];
-            return raw;
+            // Handle figurative constants (SPACE, ZERO, etc.) inside nonNumericLiteral
+            var fig = nonNum.figurativeConstant();
+            if (fig != null)
+            {
+                if (fig.SPACE() != null) return " ";
+                if (fig.ZERO() != null) return "0";
+                if (fig.HIGH_VALUE() != null) return "\xFF";
+                if (fig.LOW_VALUE() != null) return "\x00";
+                if (fig.QUOTE_() != null) return "\"";
+                // ALL "literal" — extract the literal string
+                if (fig.STRINGLIT() != null)
+                {
+                    string raw = fig.STRINGLIT().GetText();
+                    if (raw.Length >= 2) return raw[1..^1];
+                }
+                return fig.GetText();
+            }
+
+            string text = nonNum.GetText();
+            if (text.Length >= 2 &&
+                ((text[0] == '"' && text[^1] == '"') ||
+                 (text[0] == '\'' && text[^1] == '\'')))
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
+            return text;
         }
         return lit.GetText();
     }

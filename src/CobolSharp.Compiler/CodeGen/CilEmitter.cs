@@ -1429,27 +1429,47 @@ public sealed class CilEmitter
 
     private void EmitInspectReplace(ILProcessor il, IrInspectReplace ir)
     {
-        string methodName = ir.Kind switch
-        {
-            Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
-            Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
-            _ => "ReplaceAll"
-        };
-
         EmitLocationArgs(il, ir.Target);
-        il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
-        il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
-        EmitOptionalString(il, ir.BeforePattern);
-        il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitOptionalString(il, ir.AfterPattern);
-        il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
-        var method = _module.ImportReference(
-            typeof(Runtime.InspectRuntime).GetMethod(methodName,
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                    typeof(string), typeof(string),
-                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Call, method));
+        if (ir.Kind == Semantics.Bound.InspectReplaceKind.Characters)
+        {
+            // REPLACING CHARACTERS BY x — no pattern, just replacement
+            il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
+            EmitOptionalString(il, ir.BeforePattern);
+            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            EmitOptionalString(il, ir.AfterPattern);
+            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+            var charsMethod = _module.ImportReference(
+                typeof(Runtime.InspectRuntime).GetMethod("ReplaceCharacters",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(string),
+                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, charsMethod));
+        }
+        else
+        {
+            string methodName = ir.Kind switch
+            {
+                Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
+                Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
+                _ => "ReplaceAll"
+            };
+
+            il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
+            il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
+            EmitOptionalString(il, ir.BeforePattern);
+            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            EmitOptionalString(il, ir.AfterPattern);
+            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.InspectRuntime).GetMethod(methodName,
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(string), typeof(string),
+                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
     }
 
     private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)

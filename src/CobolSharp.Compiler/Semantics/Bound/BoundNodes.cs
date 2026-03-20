@@ -551,7 +551,7 @@ public sealed class BoundInspectRegion
 }
 
 public enum InspectTallyKind { All, Leading, Characters }
-public enum InspectReplaceKind { All, First, Leading }
+public enum InspectReplaceKind { All, First, Leading, Characters }
 
 public sealed class BoundInspectTallyingItem
 {

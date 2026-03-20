@@ -256,6 +256,28 @@ public static class InspectRuntime
         Array.Copy(result, 0, area, offset, length);
     }
 
+    /// <summary>
+    /// INSPECT target REPLACING CHARACTERS BY replacement [BEFORE/AFTER].
+    /// Replaces every character in the scan region with the replacement character.
+    /// </summary>
+    public static void ReplaceCharacters(
+        byte[] area, int offset, int length,
+        string replacement,
+        string? beforePattern, bool beforeInitial,
+        string? afterPattern, bool afterInitial)
+    {
+        string text = Encoding.ASCII.GetString(area, offset, length);
+        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
+
+        char replChar = replacement.Length > 0 ? replacement[0] : ' ';
+        var chars = text.ToCharArray();
+        for (int i = start; i < end; i++)
+            chars[i] = replChar;
+
+        byte[] result = Encoding.ASCII.GetBytes(chars);
+        Array.Copy(result, 0, area, offset, length);
+    }
+
     // ── CONVERTING ──
 
     /// <summary>
