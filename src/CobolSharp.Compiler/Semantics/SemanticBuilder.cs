@@ -343,7 +343,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             if (nonNum?.STRINGLIT() is { } slit)
                             {
                                 var text = slit.GetText();
-                                if (text.Length >= 2) initialValue = text[1..^1];
+                                if (text.Length >= 2)
+                                {
+                                    char q = text[0];
+                                    initialValue = text[1..^1].Replace(new string(q, 2), new string(q, 1));
+                                }
                             }
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
@@ -576,7 +580,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (nonNum?.STRINGLIT() is { } slit)
         {
             var text = slit.GetText();
-            if (text.Length >= 2) return text[1..^1];
+            if (text.Length >= 2)
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
             return text;
         }
         return lit.GetText();

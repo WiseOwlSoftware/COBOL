@@ -2080,7 +2080,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (text.Length >= 2 &&
                 ((text[0] == '"' && text[^1] == '"') ||
                  (text[0] == '\'' && text[^1] == '\'')))
+            {
+                char quoteChar = text[0];
                 text = text[1..^1];
+                // Un-escape doubled quotes: "" → " (ISO §8.3.1.2)
+                text = text.Replace(new string(quoteChar, 2), new string(quoteChar, 1));
+            }
             return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
         }
 
