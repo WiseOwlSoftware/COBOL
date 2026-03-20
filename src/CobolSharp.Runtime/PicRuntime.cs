@@ -321,7 +321,8 @@ public static class PicRuntime
         // Pass 2: Left-to-right zero suppression for floating symbols (Z, *, +, -, $).
         // Stops at fixed digit positions (9) or decimal point (.).
         bool suppressing = true;
-        bool asteriskFill = false;
+        // Asterisk fill: detect from pattern (not just suppression pass — * may appear after decimal)
+        bool asteriskFill = pattern.Contains('*', StringComparison.OrdinalIgnoreCase);
         bool allIntegerSuppressed = true;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
