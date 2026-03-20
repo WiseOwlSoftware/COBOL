@@ -472,6 +472,7 @@ usageClause
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
+    | INDEX
     ;
 
 usageKeyword
@@ -483,6 +484,7 @@ usageKeyword
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
+    | INDEX
     ;
 
 // OCCURS Clause
@@ -513,7 +515,7 @@ renamesClause
 // VALUE Clause — IS is optional noise word
 // For level-88 condition entries, valueItem supports THRU ranges.
 valueClause
-    : (VALUE | VALUES) IS? valueItem (COMMA? valueItem)*
+    : (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
     ;
 
 valueItem
@@ -961,7 +963,8 @@ arithmeticOnSizeError
 // ==========================================
 
 addStatement
-    : ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
+    : ADD CORRESPONDING identifier TO identifier arithmeticOnSizeError? END_ADD?
+    | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
 addOperandList
@@ -1799,4 +1802,9 @@ figurativeConstant
     | QUOTE_
     | ALL STRINGLIT
     | ALL HEXLIT
+    | ALL ZERO
+    | ALL SPACE
+    | ALL HIGH_VALUE
+    | ALL LOW_VALUE
+    | ALL QUOTE_
     ;
