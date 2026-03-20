@@ -3,6 +3,10 @@
 
 lexer grammar CobolLexer;
 
+options {
+    caseInsensitive = true;
+}
+
 // ==========================================
 // DEFAULT MODE
 // ==========================================

@@ -221,8 +221,14 @@ specialNamesParagraph
 specialNameEntry
     : currencySignClause DOT?
     | decimalPointClause DOT?
-    | IDENTIFIER (IDENTIFIER | literal)*
-      DOT?
+    | implementorSwitchEntry DOT?
+    | IDENTIFIER (IDENTIFIER | literal)* DOT?
+    ;
+
+implementorSwitchEntry
+    : IDENTIFIER IS IDENTIFIER
+      (ON IDENTIFIER)?
+      (OFF IS? IDENTIFIER)?
     ;
 
 currencySignClause
@@ -417,6 +423,7 @@ levelNumber
 dataName
     : IDENTIFIER
     | FILLER
+    | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     ;
 
 dataDescriptionBody
@@ -826,8 +833,8 @@ performTarget
     ;
 
 procedureName
-    : IDENTIFIER
-    | INTEGERLIT
+    : (IDENTIFIER | INTEGERLIT)
+      ((OF | IN) (IDENTIFIER | INTEGERLIT))?
     ;
 
 performOptions
@@ -1100,7 +1107,11 @@ stringStatement
 
 stringSendingPhrase
     : (identifier | literal | figurativeConstant)
-      (DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE))?
+      delimitedByPhrase?
+    ;
+
+delimitedByPhrase
+    : DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE)
     ;
 
 stringIntoPhrase
