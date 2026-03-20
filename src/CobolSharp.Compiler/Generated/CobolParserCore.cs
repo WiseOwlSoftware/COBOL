@@ -88,7 +88,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		RULE_compilationUnit = 0, RULE_compilationGroup = 1, RULE_programUnit = 2, 
 		RULE_identificationDivision = 3, RULE_identificationBody = 4, RULE_programIdParagraph = 5, 
 		RULE_programName = 6, RULE_programIdAttributes = 7, RULE_programIdAttribute = 8, 
-		RULE_commonProgramAttribute = 9, RULE_literalAttribute = 10, RULE_identifierAttribute = 11, 
+		RULE_commonProgramAttribute = 9, RULE_literalAttribute = 10, RULE_dataReferenceAttribute = 11, 
 		RULE_identificationParagraph = 12, RULE_authorParagraph = 13, RULE_authorContent = 14, 
 		RULE_installationParagraph = 15, RULE_installationContent = 16, RULE_dateWrittenParagraph = 17, 
 		RULE_dateWrittenContent = 18, RULE_dateCompiledParagraph = 19, RULE_dateCompiledContent = 20, 
@@ -97,12 +97,12 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		RULE_configurationSection = 27, RULE_configurationParagraph = 28, RULE_sourceComputerParagraph = 29, 
 		RULE_objectComputerParagraph = 30, RULE_computerName = 31, RULE_computerAttributes = 32, 
 		RULE_specialNamesParagraph = 33, RULE_specialNameEntry = 34, RULE_implementorSwitchEntry = 35, 
-		RULE_currencySignClause = 36, RULE_decimalPointClause = 37, RULE_genericConfigurationParagraph = 38, 
-		RULE_inputOutputSection = 39, RULE_fileControlParagraph = 40, RULE_fileControlEntry = 41, 
+		RULE_currencySignClause = 36, RULE_decimalPointClause = 37, RULE_vendorConfigurationParagraph = 38, 
+		RULE_inputOutputSection = 39, RULE_fileControlParagraph = 40, RULE_fileControlClauseGroup = 41, 
 		RULE_assignTarget = 42, RULE_fileControlClauses = 43, RULE_organizationClause = 44, 
 		RULE_organizationType = 45, RULE_accessModeClause = 46, RULE_accessMode = 47, 
 		RULE_recordKeyClause = 48, RULE_alternateKeyClause = 49, RULE_fileStatusClause = 50, 
-		RULE_genericFileControlClause = 51, RULE_ioControlParagraph = 52, RULE_ioControlEntry = 53, 
+		RULE_vendorFileControlClause = 51, RULE_ioControlParagraph = 52, RULE_ioControlEntry = 53, 
 		RULE_dataDivision = 54, RULE_fileSection = 55, RULE_fileDescriptionEntry = 56, 
 		RULE_fileDescriptionClauses = 57, RULE_fileDescriptionClause = 58, RULE_dataRecordsClause = 59, 
 		RULE_genericFileDescriptionClause = 60, RULE_workingStorageSection = 61, 
@@ -116,13 +116,13 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		RULE_redefinesClause = 82, RULE_renamesClause = 83, RULE_valueClause = 84, 
 		RULE_valueItem = 85, RULE_signClause = 86, RULE_justifiedClause = 87, 
 		RULE_syncClause = 88, RULE_blankWhenZeroClause = 89, RULE_procedureDivision = 90, 
-		RULE_usingClause = 91, RULE_returningClause = 92, RULE_identifierList = 93, 
-		RULE_identifier = 94, RULE_dataNameTail = 95, RULE_qualification = 96, 
+		RULE_usingClause = 91, RULE_returningClause = 92, RULE_dataReferenceList = 93, 
+		RULE_dataReference = 94, RULE_dataReferenceSuffix = 95, RULE_qualification = 96, 
 		RULE_subscriptPart = 97, RULE_refModPart = 98, RULE_refModSpec = 99, RULE_subscriptList = 100, 
 		RULE_fileName = 101, RULE_declarativePart = 102, RULE_declarativeSection = 103, 
-		RULE_declarativeParagraph = 104, RULE_sentence = 105, RULE_procedureSectionOrParagraph = 106, 
-		RULE_sectionDeclaration = 107, RULE_sectionName = 108, RULE_paragraphDeclaration = 109, 
-		RULE_paragraphName = 110, RULE_statement = 111, RULE_imperativeStatement = 112, 
+		RULE_declarativeParagraph = 104, RULE_sentence = 105, RULE_procedureUnit = 106, 
+		RULE_sectionDefinition = 107, RULE_sectionName = 108, RULE_paragraphDefinition = 109, 
+		RULE_paragraphName = 110, RULE_statement = 111, RULE_statementBlock = 112, 
 		RULE_readStatement = 113, RULE_readDirection = 114, RULE_readInto = 115, 
 		RULE_readKey = 116, RULE_readAtEnd = 117, RULE_readInvalidKey = 118, RULE_writeStatement = 119, 
 		RULE_writeFrom = 120, RULE_writeBeforeAfter = 121, RULE_writeInvalidKey = 122, 
@@ -134,58 +134,58 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		RULE_evaluateWhenClause = 138, RULE_evaluateWhenGroup = 139, RULE_evaluateWhenItem = 140, 
 		RULE_computeStatement = 141, RULE_computeStore = 142, RULE_computeOnSizeError = 143, 
 		RULE_continueStatement = 144, RULE_nextSentenceStatement = 145, RULE_inlineMethodInvocationStatement = 146, 
-		RULE_argumentList = 147, RULE_argument = 148, RULE_givingReceiver = 149, 
-		RULE_arithmeticTarget = 150, RULE_arithmeticOnSizeError = 151, RULE_addStatement = 152, 
-		RULE_addOperandList = 153, RULE_addOperand = 154, RULE_addToPhrase = 155, 
-		RULE_addGivingPhrase = 156, RULE_subtractStatement = 157, RULE_subtractOperandList = 158, 
-		RULE_subtractOperand = 159, RULE_subtractFromPhrase = 160, RULE_subtractFromOperand = 161, 
-		RULE_subtractGivingPhrase = 162, RULE_multiplyStatement = 163, RULE_multiplyOperand = 164, 
-		RULE_multiplyByOperand = 165, RULE_multiplyGivingPhrase = 166, RULE_divideStatement = 167, 
-		RULE_divideOperand = 168, RULE_divideIntoPhrase = 169, RULE_divideIntoOperand = 170, 
-		RULE_divideByPhrase = 171, RULE_divideGivingPhrase = 172, RULE_divideRemainderPhrase = 173, 
-		RULE_moveStatement = 174, RULE_moveSource = 175, RULE_moveTarget = 176, 
-		RULE_stringStatement = 177, RULE_stringSendingPhrase = 178, RULE_delimitedByPhrase = 179, 
-		RULE_stringIntoPhrase = 180, RULE_stringWithPointer = 181, RULE_stringOnOverflow = 182, 
-		RULE_unstringStatement = 183, RULE_unstringDelimiterPhrase = 184, RULE_unstringIntoPhrase = 185, 
-		RULE_unstringWithPointer = 186, RULE_unstringTallying = 187, RULE_unstringOnOverflow = 188, 
-		RULE_callStatement = 189, RULE_callTarget = 190, RULE_callUsingPhrase = 191, 
-		RULE_callArgument = 192, RULE_callByReference = 193, RULE_callByValue = 194, 
-		RULE_callByContent = 195, RULE_callReturningPhrase = 196, RULE_callOnExceptionPhrase = 197, 
-		RULE_cancelStatement = 198, RULE_setStatement = 199, RULE_setToValueStatement = 200, 
-		RULE_setBooleanStatement = 201, RULE_setAddressStatement = 202, RULE_setObjectReferenceStatement = 203, 
-		RULE_objectReference = 204, RULE_setIndexStatement = 205, RULE_sortStatement = 206, 
-		RULE_sortFileName = 207, RULE_sortKeyPhrase = 208, RULE_sortUsingPhrase = 209, 
-		RULE_sortGivingPhrase = 210, RULE_sortInputProcedurePhrase = 211, RULE_sortOutputProcedurePhrase = 212, 
-		RULE_mergeStatement = 213, RULE_mergeFileName = 214, RULE_mergeKeyPhrase = 215, 
-		RULE_mergeUsingPhrase = 216, RULE_mergeGivingPhrase = 217, RULE_mergeOutputProcedurePhrase = 218, 
-		RULE_returnStatement = 219, RULE_returnAtEndPhrase = 220, RULE_releaseStatement = 221, 
-		RULE_rewriteStatement = 222, RULE_recordName = 223, RULE_rewriteInvalidKeyPhrase = 224, 
-		RULE_deleteFileStatement = 225, RULE_deleteFileOnException = 226, RULE_deleteStatement = 227, 
-		RULE_deleteInvalidKeyPhrase = 228, RULE_exceptionPhrase = 229, RULE_onExceptionPhrase = 230, 
-		RULE_notOnExceptionPhrase = 231, RULE_stopStatement = 232, RULE_gobackStatement = 233, 
-		RULE_exitStatement = 234, RULE_startStatement = 235, RULE_startKeyPhrase = 236, 
-		RULE_startInvalidKeyPhrase = 237, RULE_goToStatement = 238, RULE_acceptStatement = 239, 
-		RULE_acceptSource = 240, RULE_displayStatement = 241, RULE_initializeStatement = 242, 
-		RULE_initializeReplacingPhrase = 243, RULE_initializeReplacingItem = 244, 
-		RULE_inspectStatement = 245, RULE_inspectTallyingPhrase = 246, RULE_inspectTallyingItem = 247, 
-		RULE_inspectForClause = 248, RULE_inspectCountPhrase = 249, RULE_inspectChar = 250, 
-		RULE_inspectReplacingPhrase = 251, RULE_inspectReplacingItem = 252, RULE_inspectConvertingPhrase = 253, 
-		RULE_inspectBeforeAfterPhrase = 254, RULE_inspectDelimiters = 255, RULE_searchStatement = 256, 
-		RULE_searchWhenClause = 257, RULE_searchAtEndClause = 258, RULE_searchAllStatement = 259, 
-		RULE_searchAllKeyPhrase = 260, RULE_searchAllWhenClause = 261, RULE_jsonStatement = 262, 
-		RULE_xmlStatement = 263, RULE_invokeStatement = 264, RULE_condition = 265, 
-		RULE_logicalOrExpression = 266, RULE_logicalAndExpression = 267, RULE_logicalNotExpression = 268, 
-		RULE_relationalOperand = 269, RULE_relationalExpression = 270, RULE_className = 271, 
-		RULE_relationalOperator = 272, RULE_arithmeticExpression = 273, RULE_additiveExpression = 274, 
-		RULE_addOp = 275, RULE_multiplicativeExpression = 276, RULE_mulOp = 277, 
-		RULE_powerExpression = 278, RULE_unaryExpression = 279, RULE_primaryExpression = 280, 
-		RULE_functionCall = 281, RULE_literal = 282, RULE_numericLiteral = 283, 
-		RULE_nonNumericLiteral = 284, RULE_signedNumericLiteral = 285, RULE_numericLiteralCore = 286, 
-		RULE_figurativeConstant = 287;
+		RULE_argumentList = 147, RULE_argument = 148, RULE_receivingOperand = 149, 
+		RULE_receivingArithmeticOperand = 150, RULE_arithmeticOnSizeError = 151, 
+		RULE_addStatement = 152, RULE_addOperandList = 153, RULE_addOperand = 154, 
+		RULE_addToPhrase = 155, RULE_addGivingPhrase = 156, RULE_subtractStatement = 157, 
+		RULE_subtractOperandList = 158, RULE_subtractOperand = 159, RULE_subtractFromPhrase = 160, 
+		RULE_subtractFromOperand = 161, RULE_subtractGivingPhrase = 162, RULE_multiplyStatement = 163, 
+		RULE_multiplyOperand = 164, RULE_multiplyByOperand = 165, RULE_multiplyGivingPhrase = 166, 
+		RULE_divideStatement = 167, RULE_divideOperand = 168, RULE_divideIntoPhrase = 169, 
+		RULE_divideIntoOperand = 170, RULE_divideByPhrase = 171, RULE_divideGivingPhrase = 172, 
+		RULE_divideRemainderPhrase = 173, RULE_moveStatement = 174, RULE_moveSendingOperand = 175, 
+		RULE_moveReceivingPhrase = 176, RULE_stringStatement = 177, RULE_stringSendingPhrase = 178, 
+		RULE_delimitedByPhrase = 179, RULE_stringIntoPhrase = 180, RULE_stringWithPointer = 181, 
+		RULE_stringOnOverflow = 182, RULE_unstringStatement = 183, RULE_unstringDelimiterPhrase = 184, 
+		RULE_unstringIntoPhrase = 185, RULE_unstringWithPointer = 186, RULE_unstringTallying = 187, 
+		RULE_unstringOnOverflow = 188, RULE_callStatement = 189, RULE_callTarget = 190, 
+		RULE_callUsingPhrase = 191, RULE_callArgument = 192, RULE_callByReference = 193, 
+		RULE_callByValue = 194, RULE_callByContent = 195, RULE_callReturningPhrase = 196, 
+		RULE_callOnExceptionPhrase = 197, RULE_cancelStatement = 198, RULE_setStatement = 199, 
+		RULE_setToValueStatement = 200, RULE_setBooleanStatement = 201, RULE_setAddressStatement = 202, 
+		RULE_setObjectReferenceStatement = 203, RULE_objectReference = 204, RULE_setIndexStatement = 205, 
+		RULE_sortStatement = 206, RULE_sortFileName = 207, RULE_sortKeyPhrase = 208, 
+		RULE_sortUsingPhrase = 209, RULE_sortGivingPhrase = 210, RULE_sortInputProcedurePhrase = 211, 
+		RULE_sortOutputProcedurePhrase = 212, RULE_mergeStatement = 213, RULE_mergeFileName = 214, 
+		RULE_mergeKeyPhrase = 215, RULE_mergeUsingPhrase = 216, RULE_mergeGivingPhrase = 217, 
+		RULE_mergeOutputProcedurePhrase = 218, RULE_returnStatement = 219, RULE_returnAtEndPhrase = 220, 
+		RULE_releaseStatement = 221, RULE_rewriteStatement = 222, RULE_recordName = 223, 
+		RULE_rewriteInvalidKeyPhrase = 224, RULE_deleteFileStatement = 225, RULE_deleteFileOnException = 226, 
+		RULE_deleteStatement = 227, RULE_deleteInvalidKeyPhrase = 228, RULE_exceptionPhrase = 229, 
+		RULE_onExceptionPhrase = 230, RULE_notOnExceptionPhrase = 231, RULE_stopStatement = 232, 
+		RULE_gobackStatement = 233, RULE_exitStatement = 234, RULE_startStatement = 235, 
+		RULE_startKeyPhrase = 236, RULE_startInvalidKeyPhrase = 237, RULE_goToStatement = 238, 
+		RULE_acceptStatement = 239, RULE_acceptSource = 240, RULE_displayStatement = 241, 
+		RULE_initializeStatement = 242, RULE_initializeReplacingPhrase = 243, 
+		RULE_initializeReplacingItem = 244, RULE_inspectStatement = 245, RULE_inspectTallyingPhrase = 246, 
+		RULE_inspectTallyingItem = 247, RULE_inspectForClause = 248, RULE_inspectCountPhrase = 249, 
+		RULE_inspectChar = 250, RULE_inspectReplacingPhrase = 251, RULE_inspectReplacingItem = 252, 
+		RULE_inspectConvertingPhrase = 253, RULE_inspectBeforeAfterPhrase = 254, 
+		RULE_inspectDelimiters = 255, RULE_searchStatement = 256, RULE_searchWhenClause = 257, 
+		RULE_searchAtEndClause = 258, RULE_searchAllStatement = 259, RULE_searchAllKeyPhrase = 260, 
+		RULE_searchAllWhenClause = 261, RULE_jsonStatement = 262, RULE_xmlStatement = 263, 
+		RULE_invokeStatement = 264, RULE_condition = 265, RULE_logicalOrExpression = 266, 
+		RULE_logicalAndExpression = 267, RULE_unaryLogicalExpression = 268, RULE_comparisonOperand = 269, 
+		RULE_comparisonExpression = 270, RULE_className = 271, RULE_comparisonOperator = 272, 
+		RULE_arithmeticExpression = 273, RULE_additiveExpression = 274, RULE_addOp = 275, 
+		RULE_multiplicativeExpression = 276, RULE_mulOp = 277, RULE_powerExpression = 278, 
+		RULE_unaryExpression = 279, RULE_primaryExpression = 280, RULE_functionCall = 281, 
+		RULE_literal = 282, RULE_numericLiteral = 283, RULE_nonNumericLiteral = 284, 
+		RULE_signedNumericLiteral = 285, RULE_numericLiteralCore = 286, RULE_figurativeConstant = 287;
 	public static readonly string[] ruleNames = {
 		"compilationUnit", "compilationGroup", "programUnit", "identificationDivision", 
 		"identificationBody", "programIdParagraph", "programName", "programIdAttributes", 
-		"programIdAttribute", "commonProgramAttribute", "literalAttribute", "identifierAttribute", 
+		"programIdAttribute", "commonProgramAttribute", "literalAttribute", "dataReferenceAttribute", 
 		"identificationParagraph", "authorParagraph", "authorContent", "installationParagraph", 
 		"installationContent", "dateWrittenParagraph", "dateWrittenContent", "dateCompiledParagraph", 
 		"dateCompiledContent", "securityParagraph", "securityContent", "remarksParagraph", 
@@ -193,68 +193,68 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		"configurationSection", "configurationParagraph", "sourceComputerParagraph", 
 		"objectComputerParagraph", "computerName", "computerAttributes", "specialNamesParagraph", 
 		"specialNameEntry", "implementorSwitchEntry", "currencySignClause", "decimalPointClause", 
-		"genericConfigurationParagraph", "inputOutputSection", "fileControlParagraph", 
-		"fileControlEntry", "assignTarget", "fileControlClauses", "organizationClause", 
+		"vendorConfigurationParagraph", "inputOutputSection", "fileControlParagraph", 
+		"fileControlClauseGroup", "assignTarget", "fileControlClauses", "organizationClause", 
 		"organizationType", "accessModeClause", "accessMode", "recordKeyClause", 
-		"alternateKeyClause", "fileStatusClause", "genericFileControlClause", 
-		"ioControlParagraph", "ioControlEntry", "dataDivision", "fileSection", 
-		"fileDescriptionEntry", "fileDescriptionClauses", "fileDescriptionClause", 
-		"dataRecordsClause", "genericFileDescriptionClause", "workingStorageSection", 
-		"localStorageSection", "linkageSection", "linkageEntry", "linkageProcedureParameter", 
-		"parameterDescriptionBody", "parameterPassingClause", "dataDescriptionEntry", 
-		"levelNumber", "dataName", "dataDescriptionBody", "dataDescriptionClauses", 
-		"dataDescriptionClause", "typeClause", "genericDataClause", "pictureClause", 
-		"usageClause", "usageKeyword", "occursClause", "timesKeyword", "integerLiteral", 
-		"redefinesClause", "renamesClause", "valueClause", "valueItem", "signClause", 
-		"justifiedClause", "syncClause", "blankWhenZeroClause", "procedureDivision", 
-		"usingClause", "returningClause", "identifierList", "identifier", "dataNameTail", 
-		"qualification", "subscriptPart", "refModPart", "refModSpec", "subscriptList", 
-		"fileName", "declarativePart", "declarativeSection", "declarativeParagraph", 
-		"sentence", "procedureSectionOrParagraph", "sectionDeclaration", "sectionName", 
-		"paragraphDeclaration", "paragraphName", "statement", "imperativeStatement", 
-		"readStatement", "readDirection", "readInto", "readKey", "readAtEnd", 
-		"readInvalidKey", "writeStatement", "writeFrom", "writeBeforeAfter", "writeInvalidKey", 
-		"openStatement", "openClause", "openMode", "closeStatement", "ifStatement", 
-		"performStatement", "performTarget", "procedureName", "performOptions", 
-		"performTimes", "performUntil", "performVarying", "performVaryingAfter", 
-		"evaluateStatement", "evaluateSubject", "evaluateWhenClause", "evaluateWhenGroup", 
-		"evaluateWhenItem", "computeStatement", "computeStore", "computeOnSizeError", 
-		"continueStatement", "nextSentenceStatement", "inlineMethodInvocationStatement", 
-		"argumentList", "argument", "givingReceiver", "arithmeticTarget", "arithmeticOnSizeError", 
-		"addStatement", "addOperandList", "addOperand", "addToPhrase", "addGivingPhrase", 
-		"subtractStatement", "subtractOperandList", "subtractOperand", "subtractFromPhrase", 
-		"subtractFromOperand", "subtractGivingPhrase", "multiplyStatement", "multiplyOperand", 
-		"multiplyByOperand", "multiplyGivingPhrase", "divideStatement", "divideOperand", 
-		"divideIntoPhrase", "divideIntoOperand", "divideByPhrase", "divideGivingPhrase", 
-		"divideRemainderPhrase", "moveStatement", "moveSource", "moveTarget", 
-		"stringStatement", "stringSendingPhrase", "delimitedByPhrase", "stringIntoPhrase", 
-		"stringWithPointer", "stringOnOverflow", "unstringStatement", "unstringDelimiterPhrase", 
-		"unstringIntoPhrase", "unstringWithPointer", "unstringTallying", "unstringOnOverflow", 
-		"callStatement", "callTarget", "callUsingPhrase", "callArgument", "callByReference", 
-		"callByValue", "callByContent", "callReturningPhrase", "callOnExceptionPhrase", 
-		"cancelStatement", "setStatement", "setToValueStatement", "setBooleanStatement", 
-		"setAddressStatement", "setObjectReferenceStatement", "objectReference", 
-		"setIndexStatement", "sortStatement", "sortFileName", "sortKeyPhrase", 
-		"sortUsingPhrase", "sortGivingPhrase", "sortInputProcedurePhrase", "sortOutputProcedurePhrase", 
-		"mergeStatement", "mergeFileName", "mergeKeyPhrase", "mergeUsingPhrase", 
-		"mergeGivingPhrase", "mergeOutputProcedurePhrase", "returnStatement", 
-		"returnAtEndPhrase", "releaseStatement", "rewriteStatement", "recordName", 
-		"rewriteInvalidKeyPhrase", "deleteFileStatement", "deleteFileOnException", 
-		"deleteStatement", "deleteInvalidKeyPhrase", "exceptionPhrase", "onExceptionPhrase", 
-		"notOnExceptionPhrase", "stopStatement", "gobackStatement", "exitStatement", 
-		"startStatement", "startKeyPhrase", "startInvalidKeyPhrase", "goToStatement", 
-		"acceptStatement", "acceptSource", "displayStatement", "initializeStatement", 
-		"initializeReplacingPhrase", "initializeReplacingItem", "inspectStatement", 
-		"inspectTallyingPhrase", "inspectTallyingItem", "inspectForClause", "inspectCountPhrase", 
-		"inspectChar", "inspectReplacingPhrase", "inspectReplacingItem", "inspectConvertingPhrase", 
+		"alternateKeyClause", "fileStatusClause", "vendorFileControlClause", "ioControlParagraph", 
+		"ioControlEntry", "dataDivision", "fileSection", "fileDescriptionEntry", 
+		"fileDescriptionClauses", "fileDescriptionClause", "dataRecordsClause", 
+		"genericFileDescriptionClause", "workingStorageSection", "localStorageSection", 
+		"linkageSection", "linkageEntry", "linkageProcedureParameter", "parameterDescriptionBody", 
+		"parameterPassingClause", "dataDescriptionEntry", "levelNumber", "dataName", 
+		"dataDescriptionBody", "dataDescriptionClauses", "dataDescriptionClause", 
+		"typeClause", "genericDataClause", "pictureClause", "usageClause", "usageKeyword", 
+		"occursClause", "timesKeyword", "integerLiteral", "redefinesClause", "renamesClause", 
+		"valueClause", "valueItem", "signClause", "justifiedClause", "syncClause", 
+		"blankWhenZeroClause", "procedureDivision", "usingClause", "returningClause", 
+		"dataReferenceList", "dataReference", "dataReferenceSuffix", "qualification", 
+		"subscriptPart", "refModPart", "refModSpec", "subscriptList", "fileName", 
+		"declarativePart", "declarativeSection", "declarativeParagraph", "sentence", 
+		"procedureUnit", "sectionDefinition", "sectionName", "paragraphDefinition", 
+		"paragraphName", "statement", "statementBlock", "readStatement", "readDirection", 
+		"readInto", "readKey", "readAtEnd", "readInvalidKey", "writeStatement", 
+		"writeFrom", "writeBeforeAfter", "writeInvalidKey", "openStatement", "openClause", 
+		"openMode", "closeStatement", "ifStatement", "performStatement", "performTarget", 
+		"procedureName", "performOptions", "performTimes", "performUntil", "performVarying", 
+		"performVaryingAfter", "evaluateStatement", "evaluateSubject", "evaluateWhenClause", 
+		"evaluateWhenGroup", "evaluateWhenItem", "computeStatement", "computeStore", 
+		"computeOnSizeError", "continueStatement", "nextSentenceStatement", "inlineMethodInvocationStatement", 
+		"argumentList", "argument", "receivingOperand", "receivingArithmeticOperand", 
+		"arithmeticOnSizeError", "addStatement", "addOperandList", "addOperand", 
+		"addToPhrase", "addGivingPhrase", "subtractStatement", "subtractOperandList", 
+		"subtractOperand", "subtractFromPhrase", "subtractFromOperand", "subtractGivingPhrase", 
+		"multiplyStatement", "multiplyOperand", "multiplyByOperand", "multiplyGivingPhrase", 
+		"divideStatement", "divideOperand", "divideIntoPhrase", "divideIntoOperand", 
+		"divideByPhrase", "divideGivingPhrase", "divideRemainderPhrase", "moveStatement", 
+		"moveSendingOperand", "moveReceivingPhrase", "stringStatement", "stringSendingPhrase", 
+		"delimitedByPhrase", "stringIntoPhrase", "stringWithPointer", "stringOnOverflow", 
+		"unstringStatement", "unstringDelimiterPhrase", "unstringIntoPhrase", 
+		"unstringWithPointer", "unstringTallying", "unstringOnOverflow", "callStatement", 
+		"callTarget", "callUsingPhrase", "callArgument", "callByReference", "callByValue", 
+		"callByContent", "callReturningPhrase", "callOnExceptionPhrase", "cancelStatement", 
+		"setStatement", "setToValueStatement", "setBooleanStatement", "setAddressStatement", 
+		"setObjectReferenceStatement", "objectReference", "setIndexStatement", 
+		"sortStatement", "sortFileName", "sortKeyPhrase", "sortUsingPhrase", "sortGivingPhrase", 
+		"sortInputProcedurePhrase", "sortOutputProcedurePhrase", "mergeStatement", 
+		"mergeFileName", "mergeKeyPhrase", "mergeUsingPhrase", "mergeGivingPhrase", 
+		"mergeOutputProcedurePhrase", "returnStatement", "returnAtEndPhrase", 
+		"releaseStatement", "rewriteStatement", "recordName", "rewriteInvalidKeyPhrase", 
+		"deleteFileStatement", "deleteFileOnException", "deleteStatement", "deleteInvalidKeyPhrase", 
+		"exceptionPhrase", "onExceptionPhrase", "notOnExceptionPhrase", "stopStatement", 
+		"gobackStatement", "exitStatement", "startStatement", "startKeyPhrase", 
+		"startInvalidKeyPhrase", "goToStatement", "acceptStatement", "acceptSource", 
+		"displayStatement", "initializeStatement", "initializeReplacingPhrase", 
+		"initializeReplacingItem", "inspectStatement", "inspectTallyingPhrase", 
+		"inspectTallyingItem", "inspectForClause", "inspectCountPhrase", "inspectChar", 
+		"inspectReplacingPhrase", "inspectReplacingItem", "inspectConvertingPhrase", 
 		"inspectBeforeAfterPhrase", "inspectDelimiters", "searchStatement", "searchWhenClause", 
 		"searchAtEndClause", "searchAllStatement", "searchAllKeyPhrase", "searchAllWhenClause", 
 		"jsonStatement", "xmlStatement", "invokeStatement", "condition", "logicalOrExpression", 
-		"logicalAndExpression", "logicalNotExpression", "relationalOperand", "relationalExpression", 
-		"className", "relationalOperator", "arithmeticExpression", "additiveExpression", 
-		"addOp", "multiplicativeExpression", "mulOp", "powerExpression", "unaryExpression", 
-		"primaryExpression", "functionCall", "literal", "numericLiteral", "nonNumericLiteral", 
-		"signedNumericLiteral", "numericLiteralCore", "figurativeConstant"
+		"logicalAndExpression", "unaryLogicalExpression", "comparisonOperand", 
+		"comparisonExpression", "className", "comparisonOperator", "arithmeticExpression", 
+		"additiveExpression", "addOp", "multiplicativeExpression", "mulOp", "powerExpression", 
+		"unaryExpression", "primaryExpression", "functionCall", "literal", "numericLiteral", 
+		"nonNumericLiteral", "signedNumericLiteral", "numericLiteralCore", "figurativeConstant"
 	};
 
 	private static readonly string[] _LiteralNames = {
@@ -848,8 +848,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralAttributeContext literalAttribute() {
 			return GetRuleContext<LiteralAttributeContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierAttributeContext identifierAttribute() {
-			return GetRuleContext<IdentifierAttributeContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceAttributeContext dataReferenceAttribute() {
+			return GetRuleContext<DataReferenceAttributeContext>(0);
 		}
 		public ProgramIdAttributeContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -894,7 +894,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 3);
 				{
 				State = 628;
-				identifierAttribute();
+				dataReferenceAttribute();
 				}
 				break;
 			default:
@@ -1006,25 +1006,25 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class IdentifierAttributeContext : ParserRuleContext {
+	public partial class DataReferenceAttributeContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(CobolParserCore.IDENTIFIER, 0); }
-		public IdentifierAttributeContext(ParserRuleContext parent, int invokingState)
+		public DataReferenceAttributeContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_identifierAttribute; } }
+		public override int RuleIndex { get { return RULE_dataReferenceAttribute; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitIdentifierAttribute(this);
+			if (typedVisitor != null) return typedVisitor.VisitDataReferenceAttribute(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public IdentifierAttributeContext identifierAttribute() {
-		IdentifierAttributeContext _localctx = new IdentifierAttributeContext(Context, State);
-		EnterRule(_localctx, 22, RULE_identifierAttribute);
+	public DataReferenceAttributeContext dataReferenceAttribute() {
+		DataReferenceAttributeContext _localctx = new DataReferenceAttributeContext(Context, State);
+		EnterRule(_localctx, 22, RULE_dataReferenceAttribute);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
@@ -2076,8 +2076,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public SpecialNamesParagraphContext specialNamesParagraph() {
 			return GetRuleContext<SpecialNamesParagraphContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public GenericConfigurationParagraphContext genericConfigurationParagraph() {
-			return GetRuleContext<GenericConfigurationParagraphContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public VendorConfigurationParagraphContext vendorConfigurationParagraph() {
+			return GetRuleContext<VendorConfigurationParagraphContext>(0);
 		}
 		public ConfigurationParagraphContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -2125,7 +2125,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 4);
 				{
 				State = 729;
-				genericConfigurationParagraph();
+				vendorConfigurationParagraph();
 				}
 				break;
 			default:
@@ -2795,7 +2795,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class GenericConfigurationParagraphContext : ParserRuleContext {
+	public partial class VendorConfigurationParagraphContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] IDENTIFIER() { return GetTokens(CobolParserCore.IDENTIFIER); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER(int i) {
 			return GetToken(CobolParserCore.IDENTIFIER, i);
@@ -2809,23 +2809,23 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INTEGERLIT(int i) {
 			return GetToken(CobolParserCore.INTEGERLIT, i);
 		}
-		public GenericConfigurationParagraphContext(ParserRuleContext parent, int invokingState)
+		public VendorConfigurationParagraphContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_genericConfigurationParagraph; } }
+		public override int RuleIndex { get { return RULE_vendorConfigurationParagraph; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitGenericConfigurationParagraph(this);
+			if (typedVisitor != null) return typedVisitor.VisitVendorConfigurationParagraph(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public GenericConfigurationParagraphContext genericConfigurationParagraph() {
-		GenericConfigurationParagraphContext _localctx = new GenericConfigurationParagraphContext(Context, State);
-		EnterRule(_localctx, 76, RULE_genericConfigurationParagraph);
+	public VendorConfigurationParagraphContext vendorConfigurationParagraph() {
+		VendorConfigurationParagraphContext _localctx = new VendorConfigurationParagraphContext(Context, State);
+		EnterRule(_localctx, 76, RULE_vendorConfigurationParagraph);
 		int _la;
 		try {
 			int _alt;
@@ -2944,11 +2944,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class FileControlParagraphContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FILE_CONTROL() { return GetToken(CobolParserCore.FILE_CONTROL, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DOT() { return GetToken(CobolParserCore.DOT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public FileControlEntryContext[] fileControlEntry() {
-			return GetRuleContexts<FileControlEntryContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public FileControlClauseGroupContext[] fileControlClauseGroup() {
+			return GetRuleContexts<FileControlClauseGroupContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public FileControlEntryContext fileControlEntry(int i) {
-			return GetRuleContext<FileControlEntryContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public FileControlClauseGroupContext fileControlClauseGroup(int i) {
+			return GetRuleContext<FileControlClauseGroupContext>(i);
 		}
 		public FileControlParagraphContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -2982,7 +2982,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				{
 				{
 				State = 831;
-				fileControlEntry();
+				fileControlClauseGroup();
 				}
 				}
 				State = 834;
@@ -3002,7 +3002,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class FileControlEntryContext : ParserRuleContext {
+	public partial class FileControlClauseGroupContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SELECT() { return GetToken(CobolParserCore.SELECT, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public FileNameContext fileName() {
 			return GetRuleContext<FileNameContext>(0);
@@ -3019,23 +3019,23 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public FileControlClausesContext fileControlClauses(int i) {
 			return GetRuleContext<FileControlClausesContext>(i);
 		}
-		public FileControlEntryContext(ParserRuleContext parent, int invokingState)
+		public FileControlClauseGroupContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_fileControlEntry; } }
+		public override int RuleIndex { get { return RULE_fileControlClauseGroup; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitFileControlEntry(this);
+			if (typedVisitor != null) return typedVisitor.VisitFileControlClauseGroup(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public FileControlEntryContext fileControlEntry() {
-		FileControlEntryContext _localctx = new FileControlEntryContext(Context, State);
-		EnterRule(_localctx, 82, RULE_fileControlEntry);
+	public FileControlClauseGroupContext fileControlClauseGroup() {
+		FileControlClauseGroupContext _localctx = new FileControlClauseGroupContext(Context, State);
+		EnterRule(_localctx, 82, RULE_fileControlClauseGroup);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
@@ -3149,8 +3149,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public FileStatusClauseContext fileStatusClause() {
 			return GetRuleContext<FileStatusClauseContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public GenericFileControlClauseContext genericFileControlClause() {
-			return GetRuleContext<GenericFileControlClauseContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public VendorFileControlClauseContext vendorFileControlClause() {
+			return GetRuleContext<VendorFileControlClauseContext>(0);
 		}
 		public FileControlClausesContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -3212,7 +3212,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 6);
 				{
 				State = 858;
-				genericFileControlClause();
+				vendorFileControlClause();
 				}
 				break;
 			default:
@@ -3471,8 +3471,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RECORD() { return GetToken(CobolParserCore.RECORD, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public RecordKeyClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -3501,7 +3501,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 887;
 			Match(IS);
 			State = 888;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -3519,8 +3519,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ALTERNATE() { return GetToken(CobolParserCore.ALTERNATE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DUPLICATES() { return GetToken(CobolParserCore.DUPLICATES, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode WITH() { return GetToken(CobolParserCore.WITH, 0); }
@@ -3552,7 +3552,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 892;
 			Match(IS);
 			State = 893;
-			identifier();
+			dataReference();
 			State = 898;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -3590,8 +3590,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FILE() { return GetToken(CobolParserCore.FILE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STATUS() { return GetToken(CobolParserCore.STATUS, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public FileStatusClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -3620,7 +3620,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 902;
 			Match(IS);
 			State = 903;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -3634,7 +3634,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class GenericFileControlClauseContext : ParserRuleContext {
+	public partial class VendorFileControlClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] IDENTIFIER() { return GetTokens(CobolParserCore.IDENTIFIER); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER(int i) {
 			return GetToken(CobolParserCore.IDENTIFIER, i);
@@ -3645,23 +3645,23 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal(int i) {
 			return GetRuleContext<LiteralContext>(i);
 		}
-		public GenericFileControlClauseContext(ParserRuleContext parent, int invokingState)
+		public VendorFileControlClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_genericFileControlClause; } }
+		public override int RuleIndex { get { return RULE_vendorFileControlClause; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitGenericFileControlClause(this);
+			if (typedVisitor != null) return typedVisitor.VisitVendorFileControlClause(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public GenericFileControlClauseContext genericFileControlClause() {
-		GenericFileControlClauseContext _localctx = new GenericFileControlClauseContext(Context, State);
-		EnterRule(_localctx, 102, RULE_genericFileControlClause);
+	public VendorFileControlClauseContext vendorFileControlClause() {
+		VendorFileControlClauseContext _localctx = new VendorFileControlClauseContext(Context, State);
+		EnterRule(_localctx, 102, RULE_vendorFileControlClause);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
@@ -4829,8 +4829,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class ParameterPassingClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode USING() { return GetToken(CobolParserCore.USING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY_REFERENCE() { return GetToken(CobolParserCore.BY_REFERENCE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY_VALUE() { return GetToken(CobolParserCore.BY_VALUE, 0); }
@@ -4876,7 +4876,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			}
 
 			State = 1049;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -5675,13 +5675,13 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEPENDING() { return GetToken(CobolParserCore.DEPENDING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ON() { return GetToken(CobolParserCore.ON, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INDEXED() { return GetToken(CobolParserCore.INDEXED, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public OccursClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -5739,7 +5739,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1131;
 				Match(ON);
 				State = 1132;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -5753,7 +5753,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1136;
 				Match(BY);
 				State = 1137;
-				identifierList();
+				dataReferenceList();
 				}
 				break;
 			}
@@ -5846,8 +5846,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class RedefinesClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode REDEFINES() { return GetToken(CobolParserCore.REDEFINES, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public RedefinesClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -5872,7 +5872,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1144;
 			Match(REDEFINES);
 			State = 1145;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -5888,11 +5888,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class RenamesClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RENAMES() { return GetToken(CobolParserCore.RENAMES, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode THRU() { return GetToken(CobolParserCore.THRU, 0); }
 		public RenamesClauseContext(ParserRuleContext parent, int invokingState)
@@ -5919,7 +5919,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1147;
 			Match(RENAMES);
 			State = 1148;
-			identifier();
+			dataReference();
 			State = 1151;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -5928,7 +5928,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1149;
 				Match(THRU);
 				State = 1150;
-				identifier();
+				dataReference();
 				}
 			}
 
@@ -6369,11 +6369,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public DeclarativePartContext declarativePart(int i) {
 			return GetRuleContext<DeclarativePartContext>(i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ProcedureSectionOrParagraphContext[] procedureSectionOrParagraph() {
-			return GetRuleContexts<ProcedureSectionOrParagraphContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ProcedureUnitContext[] procedureUnit() {
+			return GetRuleContexts<ProcedureUnitContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ProcedureSectionOrParagraphContext procedureSectionOrParagraph(int i) {
-			return GetRuleContext<ProcedureSectionOrParagraphContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ProcedureUnitContext procedureUnit(int i) {
+			return GetRuleContext<ProcedureUnitContext>(i);
 		}
 		public ProcedureDivisionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -6448,7 +6448,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1211;
-					procedureSectionOrParagraph();
+					procedureUnit();
 					}
 					} 
 				}
@@ -6471,8 +6471,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class UsingClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode USING() { return GetToken(CobolParserCore.USING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public UsingClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -6497,7 +6497,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1217;
 			Match(USING);
 			State = 1218;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -6513,8 +6513,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class ReturningClauseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RETURNING() { return GetToken(CobolParserCore.RETURNING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public ReturningClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -6539,7 +6539,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1220;
 			Match(RETURNING);
 			State = 1221;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -6553,41 +6553,41 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class IdentifierListContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+	public partial class DataReferenceListContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] COMMA() { return GetTokens(CobolParserCore.COMMA); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COMMA(int i) {
 			return GetToken(CobolParserCore.COMMA, i);
 		}
-		public IdentifierListContext(ParserRuleContext parent, int invokingState)
+		public DataReferenceListContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_identifierList; } }
+		public override int RuleIndex { get { return RULE_dataReferenceList; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitIdentifierList(this);
+			if (typedVisitor != null) return typedVisitor.VisitDataReferenceList(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public IdentifierListContext identifierList() {
-		IdentifierListContext _localctx = new IdentifierListContext(Context, State);
-		EnterRule(_localctx, 186, RULE_identifierList);
+	public DataReferenceListContext dataReferenceList() {
+		DataReferenceListContext _localctx = new DataReferenceListContext(Context, State);
+		EnterRule(_localctx, 186, RULE_dataReferenceList);
 		int _la;
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 1223;
-			identifier();
+			dataReference();
 			State = 1230;
 			ErrorHandler.Sync(this);
 			_alt = Interpreter.AdaptivePredict(TokenStream,104,Context);
@@ -6606,7 +6606,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					}
 
 					State = 1227;
-					identifier();
+					dataReference();
 					}
 					} 
 				}
@@ -6627,31 +6627,31 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class IdentifierContext : ParserRuleContext {
+	public partial class DataReferenceContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IDENTIFIER() { return GetToken(CobolParserCore.IDENTIFIER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public DataNameTailContext[] dataNameTail() {
-			return GetRuleContexts<DataNameTailContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceSuffixContext[] dataReferenceSuffix() {
+			return GetRuleContexts<DataReferenceSuffixContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public DataNameTailContext dataNameTail(int i) {
-			return GetRuleContext<DataNameTailContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceSuffixContext dataReferenceSuffix(int i) {
+			return GetRuleContext<DataReferenceSuffixContext>(i);
 		}
-		public IdentifierContext(ParserRuleContext parent, int invokingState)
+		public DataReferenceContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_identifier; } }
+		public override int RuleIndex { get { return RULE_dataReference; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitIdentifier(this);
+			if (typedVisitor != null) return typedVisitor.VisitDataReference(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public IdentifierContext identifier() {
-		IdentifierContext _localctx = new IdentifierContext(Context, State);
-		EnterRule(_localctx, 188, RULE_identifier);
+	public DataReferenceContext dataReference() {
+		DataReferenceContext _localctx = new DataReferenceContext(Context, State);
+		EnterRule(_localctx, 188, RULE_dataReference);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
@@ -6666,7 +6666,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1234;
-					dataNameTail();
+					dataReferenceSuffix();
 					}
 					} 
 				}
@@ -6687,7 +6687,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class DataNameTailContext : ParserRuleContext {
+	public partial class DataReferenceSuffixContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public SubscriptPartContext subscriptPart() {
 			return GetRuleContext<SubscriptPartContext>(0);
 		}
@@ -6697,23 +6697,23 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public QualificationContext qualification() {
 			return GetRuleContext<QualificationContext>(0);
 		}
-		public DataNameTailContext(ParserRuleContext parent, int invokingState)
+		public DataReferenceSuffixContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_dataNameTail; } }
+		public override int RuleIndex { get { return RULE_dataReferenceSuffix; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitDataNameTail(this);
+			if (typedVisitor != null) return typedVisitor.VisitDataReferenceSuffix(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public DataNameTailContext dataNameTail() {
-		DataNameTailContext _localctx = new DataNameTailContext(Context, State);
-		EnterRule(_localctx, 190, RULE_dataNameTail);
+	public DataReferenceSuffixContext dataReferenceSuffix() {
+		DataReferenceSuffixContext _localctx = new DataReferenceSuffixContext(Context, State);
+		EnterRule(_localctx, 190, RULE_dataReferenceSuffix);
 		try {
 			State = 1243;
 			ErrorHandler.Sync(this);
@@ -7372,30 +7372,30 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class ProcedureSectionOrParagraphContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public SectionDeclarationContext sectionDeclaration() {
-			return GetRuleContext<SectionDeclarationContext>(0);
+	public partial class ProcedureUnitContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public SectionDefinitionContext sectionDefinition() {
+			return GetRuleContext<SectionDefinitionContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDeclarationContext paragraphDeclaration() {
-			return GetRuleContext<ParagraphDeclarationContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDefinitionContext paragraphDefinition() {
+			return GetRuleContext<ParagraphDefinitionContext>(0);
 		}
-		public ProcedureSectionOrParagraphContext(ParserRuleContext parent, int invokingState)
+		public ProcedureUnitContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_procedureSectionOrParagraph; } }
+		public override int RuleIndex { get { return RULE_procedureUnit; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitProcedureSectionOrParagraph(this);
+			if (typedVisitor != null) return typedVisitor.VisitProcedureUnit(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public ProcedureSectionOrParagraphContext procedureSectionOrParagraph() {
-		ProcedureSectionOrParagraphContext _localctx = new ProcedureSectionOrParagraphContext(Context, State);
-		EnterRule(_localctx, 212, RULE_procedureSectionOrParagraph);
+	public ProcedureUnitContext procedureUnit() {
+		ProcedureUnitContext _localctx = new ProcedureUnitContext(Context, State);
+		EnterRule(_localctx, 212, RULE_procedureUnit);
 		try {
 			State = 1315;
 			ErrorHandler.Sync(this);
@@ -7404,14 +7404,14 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1313;
-				sectionDeclaration();
+				sectionDefinition();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 1314;
-				paragraphDeclaration();
+				paragraphDefinition();
 				}
 				break;
 			}
@@ -7427,35 +7427,35 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class SectionDeclarationContext : ParserRuleContext {
+	public partial class SectionDefinitionContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public SectionNameContext sectionName() {
 			return GetRuleContext<SectionNameContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SECTION() { return GetToken(CobolParserCore.SECTION, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DOT() { return GetToken(CobolParserCore.DOT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDeclarationContext[] paragraphDeclaration() {
-			return GetRuleContexts<ParagraphDeclarationContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDefinitionContext[] paragraphDefinition() {
+			return GetRuleContexts<ParagraphDefinitionContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDeclarationContext paragraphDeclaration(int i) {
-			return GetRuleContext<ParagraphDeclarationContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ParagraphDefinitionContext paragraphDefinition(int i) {
+			return GetRuleContext<ParagraphDefinitionContext>(i);
 		}
-		public SectionDeclarationContext(ParserRuleContext parent, int invokingState)
+		public SectionDefinitionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_sectionDeclaration; } }
+		public override int RuleIndex { get { return RULE_sectionDefinition; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitSectionDeclaration(this);
+			if (typedVisitor != null) return typedVisitor.VisitSectionDefinition(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public SectionDeclarationContext sectionDeclaration() {
-		SectionDeclarationContext _localctx = new SectionDeclarationContext(Context, State);
-		EnterRule(_localctx, 214, RULE_sectionDeclaration);
+	public SectionDefinitionContext sectionDefinition() {
+		SectionDefinitionContext _localctx = new SectionDefinitionContext(Context, State);
+		EnterRule(_localctx, 214, RULE_sectionDefinition);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
@@ -7474,7 +7474,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1320;
-					paragraphDeclaration();
+					paragraphDefinition();
 					}
 					} 
 				}
@@ -7534,7 +7534,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class ParagraphDeclarationContext : ParserRuleContext {
+	public partial class ParagraphDefinitionContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ParagraphNameContext paragraphName() {
 			return GetRuleContext<ParagraphNameContext>(0);
 		}
@@ -7545,23 +7545,23 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public SentenceContext sentence(int i) {
 			return GetRuleContext<SentenceContext>(i);
 		}
-		public ParagraphDeclarationContext(ParserRuleContext parent, int invokingState)
+		public ParagraphDefinitionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_paragraphDeclaration; } }
+		public override int RuleIndex { get { return RULE_paragraphDefinition; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitParagraphDeclaration(this);
+			if (typedVisitor != null) return typedVisitor.VisitParagraphDefinition(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public ParagraphDeclarationContext paragraphDeclaration() {
-		ParagraphDeclarationContext _localctx = new ParagraphDeclarationContext(Context, State);
-		EnterRule(_localctx, 218, RULE_paragraphDeclaration);
+	public ParagraphDefinitionContext paragraphDefinition() {
+		ParagraphDefinitionContext _localctx = new ParagraphDefinitionContext(Context, State);
+		EnterRule(_localctx, 218, RULE_paragraphDefinition);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
@@ -8105,30 +8105,30 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class ImperativeStatementContext : ParserRuleContext {
+	public partial class StatementBlockContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public StatementContext[] statement() {
 			return GetRuleContexts<StatementContext>();
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public StatementContext statement(int i) {
 			return GetRuleContext<StatementContext>(i);
 		}
-		public ImperativeStatementContext(ParserRuleContext parent, int invokingState)
+		public StatementBlockContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_imperativeStatement; } }
+		public override int RuleIndex { get { return RULE_statementBlock; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitImperativeStatement(this);
+			if (typedVisitor != null) return typedVisitor.VisitStatementBlock(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public ImperativeStatementContext imperativeStatement() {
-		ImperativeStatementContext _localctx = new ImperativeStatementContext(Context, State);
-		EnterRule(_localctx, 224, RULE_imperativeStatement);
+	public StatementBlockContext statementBlock() {
+		StatementBlockContext _localctx = new StatementBlockContext(Context, State);
+		EnterRule(_localctx, 224, RULE_statementBlock);
 		try {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
@@ -8335,8 +8335,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class ReadIntoContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INTO() { return GetToken(CobolParserCore.INTO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public ReadIntoContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -8361,7 +8361,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1416;
 			Match(INTO);
 			State = 1417;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -8378,8 +8378,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class ReadKeyContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public ReadKeyContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -8406,7 +8406,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1420;
 			Match(IS);
 			State = 1421;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -8429,11 +8429,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode END(int i) {
 			return GetToken(CobolParserCore.END, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public ReadAtEndContext(ParserRuleContext parent, int invokingState)
@@ -8461,7 +8461,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1424;
 			Match(END);
 			State = 1425;
-			imperativeStatement();
+			statementBlock();
 			State = 1430;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,127,Context) ) {
@@ -8474,7 +8474,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1428;
 				Match(END);
 				State = 1429;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -8500,11 +8500,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY(int i) {
 			return GetToken(CobolParserCore.KEY, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public ReadInvalidKeyContext(ParserRuleContext parent, int invokingState)
@@ -8532,7 +8532,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1433;
 			Match(KEY);
 			State = 1434;
-			imperativeStatement();
+			statementBlock();
 			State = 1439;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,128,Context) ) {
@@ -8545,7 +8545,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1437;
 				Match(KEY);
 				State = 1438;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -8656,8 +8656,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class WriteFromContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public WriteFromContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -8682,7 +8682,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1455;
 			Match(FROM);
 			State = 1456;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -8700,8 +8700,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ADVANCING() { return GetToken(CobolParserCore.ADVANCING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BEFORE() { return GetToken(CobolParserCore.BEFORE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode AFTER() { return GetToken(CobolParserCore.AFTER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public IntegerLiteralContext integerLiteral() {
 			return GetRuleContext<IntegerLiteralContext>(0);
@@ -8749,7 +8749,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 1:
 				{
 				State = 1460;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -8804,11 +8804,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY(int i) {
 			return GetToken(CobolParserCore.KEY, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public WriteInvalidKeyContext(ParserRuleContext parent, int invokingState)
@@ -8836,7 +8836,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1469;
 			Match(KEY);
 			State = 1470;
-			imperativeStatement();
+			statementBlock();
 			State = 1475;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,135,Context) ) {
@@ -8849,7 +8849,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1473;
 				Match(KEY);
 				State = 1474;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -8934,11 +8934,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public OpenModeContext openMode() {
 			return GetRuleContext<OpenModeContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		public OpenClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -8972,7 +8972,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1484;
-					identifier();
+					dataReference();
 					}
 					}
 					break;
@@ -9046,8 +9046,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class CloseStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CLOSE() { return GetToken(CobolParserCore.CLOSE, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public CloseStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -9072,7 +9072,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1491;
 			Match(CLOSE);
 			State = 1492;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -9092,11 +9092,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			return GetRuleContext<ConditionContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode THEN() { return GetToken(CobolParserCore.THEN, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ELSE() { return GetToken(CobolParserCore.ELSE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode END_IF() { return GetToken(CobolParserCore.END_IF, 0); }
@@ -9143,7 +9143,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1499;
-					imperativeStatement();
+					statementBlock();
 					}
 					} 
 				}
@@ -9166,7 +9166,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1506;
-						imperativeStatement();
+						statementBlock();
 						}
 						} 
 					}
@@ -9226,11 +9226,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			return GetRuleContext<PerformOptionsContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode END_PERFORM() { return GetToken(CobolParserCore.END_PERFORM, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		public PerformStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -9360,7 +9360,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1544;
-						imperativeStatement();
+						statementBlock();
 						}
 						} 
 					}
@@ -9386,7 +9386,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1553;
-						imperativeStatement();
+						statementBlock();
 						}
 						}
 						break;
@@ -9631,8 +9631,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public IntegerLiteralContext integerLiteral() {
 			return GetRuleContext<IntegerLiteralContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public PerformTimesContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -9666,7 +9666,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case IDENTIFIER:
 				{
 				State = 1578;
-				identifier();
+				dataReference();
 				}
 				break;
 			default:
@@ -9731,8 +9731,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class PerformVaryingContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode VARYING() { return GetToken(CobolParserCore.VARYING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticExpressionContext[] arithmeticExpression() {
@@ -9776,7 +9776,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1586;
 			Match(VARYING);
 			State = 1587;
-			identifier();
+			dataReference();
 			State = 1588;
 			Match(FROM);
 			State = 1589;
@@ -9820,8 +9820,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class PerformVaryingAfterContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode AFTER() { return GetToken(CobolParserCore.AFTER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticExpressionContext[] arithmeticExpression() {
@@ -9858,7 +9858,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1600;
 			Match(AFTER);
 			State = 1601;
-			identifier();
+			dataReference();
 			State = 1602;
 			Match(FROM);
 			State = 1603;
@@ -10053,11 +10053,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ALSO(int i) {
 			return GetToken(CobolParserCore.ALSO, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OTHER() { return GetToken(CobolParserCore.OTHER, 0); }
 		public EvaluateWhenClauseContext(ParserRuleContext parent, int invokingState)
@@ -10115,7 +10115,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1639;
-						imperativeStatement();
+						statementBlock();
 						}
 						} 
 					}
@@ -10140,7 +10140,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1647;
-						imperativeStatement();
+						statementBlock();
 						}
 						} 
 					}
@@ -10402,8 +10402,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class ComputeStoreContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
 		public ComputeStoreContext(ParserRuleContext parent, int invokingState)
@@ -10428,7 +10428,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 1683;
-			identifier();
+			dataReference();
 			State = 1685;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -10465,11 +10465,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR(int i) {
 			return GetToken(CobolParserCore.ERROR, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public ComputeOnSizeErrorContext(ParserRuleContext parent, int invokingState)
@@ -10503,7 +10503,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1689;
 				Match(ERROR);
 				State = 1690;
-				imperativeStatement();
+				statementBlock();
 				State = 1696;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,167,Context) ) {
@@ -10518,7 +10518,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					State = 1694;
 					Match(ERROR);
 					State = 1695;
-					imperativeStatement();
+					statementBlock();
 					}
 					break;
 				}
@@ -10536,7 +10536,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1701;
 				Match(ERROR);
 				State = 1702;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			default:
@@ -10629,8 +10629,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class InlineMethodInvocationStatementContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LPAREN() { return GetToken(CobolParserCore.LPAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(CobolParserCore.RPAREN, 0); }
@@ -10658,7 +10658,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 1709;
-			identifier();
+			dataReference();
 			State = 1710;
 			Match(LPAREN);
 			State = 1712;
@@ -10756,8 +10756,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public ArgumentContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -10798,7 +10798,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 3);
 				{
 				State = 1726;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -10814,30 +10814,30 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class GivingReceiverContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+	public partial class ReceivingOperandContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
 		}
-		public GivingReceiverContext(ParserRuleContext parent, int invokingState)
+		public ReceivingOperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_givingReceiver; } }
+		public override int RuleIndex { get { return RULE_receivingOperand; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitGivingReceiver(this);
+			if (typedVisitor != null) return typedVisitor.VisitReceivingOperand(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public GivingReceiverContext givingReceiver() {
-		GivingReceiverContext _localctx = new GivingReceiverContext(Context, State);
-		EnterRule(_localctx, 298, RULE_givingReceiver);
+	public ReceivingOperandContext receivingOperand() {
+		ReceivingOperandContext _localctx = new ReceivingOperandContext(Context, State);
+		EnterRule(_localctx, 298, RULE_receivingOperand);
 		try {
 			State = 1731;
 			ErrorHandler.Sync(this);
@@ -10846,7 +10846,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1729;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -10883,33 +10883,33 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class ArithmeticTargetContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+	public partial class ReceivingArithmeticOperandContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
-		public ArithmeticTargetContext(ParserRuleContext parent, int invokingState)
+		public ReceivingArithmeticOperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_arithmeticTarget; } }
+		public override int RuleIndex { get { return RULE_receivingArithmeticOperand; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitArithmeticTarget(this);
+			if (typedVisitor != null) return typedVisitor.VisitReceivingArithmeticOperand(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public ArithmeticTargetContext arithmeticTarget() {
-		ArithmeticTargetContext _localctx = new ArithmeticTargetContext(Context, State);
-		EnterRule(_localctx, 300, RULE_arithmeticTarget);
+	public ReceivingArithmeticOperandContext receivingArithmeticOperand() {
+		ReceivingArithmeticOperandContext _localctx = new ReceivingArithmeticOperandContext(Context, State);
+		EnterRule(_localctx, 300, RULE_receivingArithmeticOperand);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 1733;
-			identifier();
+			dataReference();
 			State = 1735;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,173,Context) ) {
@@ -10946,11 +10946,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR(int i) {
 			return GetToken(CobolParserCore.ERROR, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public ArithmeticOnSizeErrorContext(ParserRuleContext parent, int invokingState)
@@ -10984,7 +10984,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1739;
 				Match(ERROR);
 				State = 1740;
-				imperativeStatement();
+				statementBlock();
 				State = 1746;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,174,Context) ) {
@@ -10999,7 +10999,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					State = 1744;
 					Match(ERROR);
 					State = 1745;
-					imperativeStatement();
+					statementBlock();
 					}
 					break;
 				}
@@ -11017,7 +11017,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1751;
 				Match(ERROR);
 				State = 1752;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			default:
@@ -11038,11 +11038,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class AddStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ADD() { return GetToken(CobolParserCore.ADD, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
@@ -11088,11 +11088,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1756;
 				Match(CORRESPONDING);
 				State = 1757;
-				identifier();
+				dataReference();
 				State = 1758;
 				Match(TO);
 				State = 1759;
-				identifier();
+				dataReference();
 				State = 1761;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,176,Context) ) {
@@ -11249,8 +11249,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class AddOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -11280,7 +11280,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1790;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -11319,11 +11319,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class AddToPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		public AddToPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -11357,7 +11357,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1795;
-					arithmeticTarget();
+					receivingArithmeticOperand();
 					}
 					}
 					break;
@@ -11383,11 +11383,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class AddGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		public AddGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -11421,7 +11421,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1801;
-					arithmeticTarget();
+					receivingArithmeticOperand();
 					}
 					}
 					break;
@@ -11448,11 +11448,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class SubtractStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SUBTRACT() { return GetToken(CobolParserCore.SUBTRACT, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
@@ -11498,11 +11498,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1807;
 				Match(CORRESPONDING);
 				State = 1808;
-				identifier();
+				dataReference();
 				State = 1809;
 				Match(FROM);
 				State = 1810;
-				identifier();
+				dataReference();
 				State = 1812;
 				ErrorHandler.Sync(this);
 				switch ( Interpreter.AdaptivePredict(TokenStream,188,Context) ) {
@@ -11659,8 +11659,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class SubtractOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -11690,7 +11690,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1841;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -11770,14 +11770,14 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class SubtractFromOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public GivingReceiverContext givingReceiver() {
-			return GetRuleContext<GivingReceiverContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingOperandContext receivingOperand() {
+			return GetRuleContext<ReceivingOperandContext>(0);
 		}
 		public SubtractFromOperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -11805,7 +11805,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1848;
-				arithmeticTarget();
+				receivingArithmeticOperand();
 				State = 1852;
 				ErrorHandler.Sync(this);
 				_alt = Interpreter.AdaptivePredict(TokenStream,198,Context);
@@ -11814,7 +11814,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1849;
-						arithmeticTarget();
+						receivingArithmeticOperand();
 						}
 						} 
 					}
@@ -11828,7 +11828,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 1855;
-				givingReceiver();
+				receivingOperand();
 				}
 				break;
 			}
@@ -11846,11 +11846,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SubtractGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		public SubtractGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -11876,7 +11876,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1858;
 			Match(GIVING);
 			State = 1859;
-			arithmeticTarget();
+			receivingArithmeticOperand();
 			State = 1863;
 			ErrorHandler.Sync(this);
 			_alt = Interpreter.AdaptivePredict(TokenStream,200,Context);
@@ -11885,7 +11885,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1860;
-					arithmeticTarget();
+					receivingArithmeticOperand();
 					}
 					} 
 				}
@@ -12016,8 +12016,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class MultiplyOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -12047,7 +12047,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1883;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -12085,8 +12085,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class MultiplyByOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public GivingReceiverContext givingReceiver() {
-			return GetRuleContext<GivingReceiverContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingOperandContext receivingOperand() {
+			return GetRuleContext<ReceivingOperandContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
 		public MultiplyByOperandContext(ParserRuleContext parent, int invokingState)
@@ -12110,7 +12110,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 1887;
-			givingReceiver();
+			receivingOperand();
 			State = 1889;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,206,Context) ) {
@@ -12136,11 +12136,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class MultiplyGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		public MultiplyGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -12174,7 +12174,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1892;
-					arithmeticTarget();
+					receivingArithmeticOperand();
 					}
 					}
 					break;
@@ -12315,8 +12315,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class DivideOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -12346,7 +12346,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1915;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -12426,11 +12426,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class DivideIntoOperandContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -12469,7 +12469,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 						{
 						{
 						State = 1922;
-						arithmeticTarget();
+						receivingArithmeticOperand();
 						}
 						}
 						break;
@@ -12560,11 +12560,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class DivideGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext[] arithmeticTarget() {
-			return GetRuleContexts<ArithmeticTargetContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext[] receivingArithmeticOperand() {
+			return GetRuleContexts<ReceivingArithmeticOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticTargetContext arithmeticTarget(int i) {
-			return GetRuleContext<ArithmeticTargetContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ReceivingArithmeticOperandContext receivingArithmeticOperand(int i) {
+			return GetRuleContext<ReceivingArithmeticOperandContext>(i);
 		}
 		public DivideGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -12598,7 +12598,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 1934;
-					arithmeticTarget();
+					receivingArithmeticOperand();
 					}
 					}
 					break;
@@ -12624,8 +12624,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class DivideRemainderPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode REMAINDER() { return GetToken(CobolParserCore.REMAINDER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public DivideRemainderPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -12650,7 +12650,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 1939;
 			Match(REMAINDER);
 			State = 1940;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -12667,18 +12667,18 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class MoveStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode MOVE() { return GetToken(CobolParserCore.MOVE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public MoveSourceContext moveSource() {
-			return GetRuleContext<MoveSourceContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public MoveSendingOperandContext moveSendingOperand() {
+			return GetRuleContext<MoveSendingOperandContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public MoveTargetContext moveTarget() {
-			return GetRuleContext<MoveTargetContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public MoveReceivingPhraseContext moveReceivingPhrase() {
+			return GetRuleContext<MoveReceivingPhraseContext>(0);
 		}
 		public MoveStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -12709,11 +12709,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1943;
 				Match(CORRESPONDING);
 				State = 1944;
-				identifier();
+				dataReference();
 				State = 1945;
 				Match(TO);
 				State = 1946;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -12722,9 +12722,9 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1948;
 				Match(MOVE);
 				State = 1949;
-				moveSource();
+				moveSendingOperand();
 				State = 1950;
-				moveTarget();
+				moveReceivingPhrase();
 				}
 				break;
 			}
@@ -12740,30 +12740,30 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class MoveSourceContext : ParserRuleContext {
+	public partial class MoveSendingOperandContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
-		public MoveSourceContext(ParserRuleContext parent, int invokingState)
+		public MoveSendingOperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_moveSource; } }
+		public override int RuleIndex { get { return RULE_moveSendingOperand; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitMoveSource(this);
+			if (typedVisitor != null) return typedVisitor.VisitMoveSendingOperand(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public MoveSourceContext moveSource() {
-		MoveSourceContext _localctx = new MoveSourceContext(Context, State);
-		EnterRule(_localctx, 350, RULE_moveSource);
+	public MoveSendingOperandContext moveSendingOperand() {
+		MoveSendingOperandContext _localctx = new MoveSendingOperandContext(Context, State);
+		EnterRule(_localctx, 350, RULE_moveSendingOperand);
 		try {
 			State = 1956;
 			ErrorHandler.Sync(this);
@@ -12791,7 +12791,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 1955;
-				identifier();
+				dataReference();
 				}
 				break;
 			default:
@@ -12809,35 +12809,35 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class MoveTargetContext : ParserRuleContext {
+	public partial class MoveReceivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
-		public MoveTargetContext(ParserRuleContext parent, int invokingState)
+		public MoveReceivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_moveTarget; } }
+		public override int RuleIndex { get { return RULE_moveReceivingPhrase; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitMoveTarget(this);
+			if (typedVisitor != null) return typedVisitor.VisitMoveReceivingPhrase(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public MoveTargetContext moveTarget() {
-		MoveTargetContext _localctx = new MoveTargetContext(Context, State);
-		EnterRule(_localctx, 352, RULE_moveTarget);
+	public MoveReceivingPhraseContext moveReceivingPhrase() {
+		MoveReceivingPhraseContext _localctx = new MoveReceivingPhraseContext(Context, State);
+		EnterRule(_localctx, 352, RULE_moveReceivingPhrase);
 		try {
 			State = 1965;
 			ErrorHandler.Sync(this);
@@ -12848,7 +12848,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1958;
 				Match(TO);
 				State = 1959;
-				identifierList();
+				dataReferenceList();
 				}
 				break;
 			case CORRESPONDING:
@@ -12857,11 +12857,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1960;
 				Match(CORRESPONDING);
 				State = 1961;
-				identifier();
+				dataReference();
 				State = 1962;
 				Match(TO);
 				State = 1963;
-				identifier();
+				dataReference();
 				}
 				break;
 			default:
@@ -12980,8 +12980,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class StringSendingPhraseContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -13019,7 +13019,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 1:
 				{
 				State = 1983;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -13061,8 +13061,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class DelimitedByPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DELIMITED() { return GetToken(CobolParserCore.DELIMITED, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -13112,7 +13112,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 1:
 				{
 				State = 1996;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -13149,8 +13149,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class StringIntoPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INTO() { return GetToken(CobolParserCore.INTO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public StringIntoPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -13175,7 +13175,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2002;
 			Match(INTO);
 			State = 2003;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -13192,8 +13192,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class StringWithPointerContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode WITH() { return GetToken(CobolParserCore.WITH, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode POINTER() { return GetToken(CobolParserCore.POINTER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public StringWithPointerContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -13220,7 +13220,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2006;
 			Match(POINTER);
 			State = 2007;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -13243,11 +13243,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OVERFLOW(int i) {
 			return GetToken(CobolParserCore.OVERFLOW, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public StringOnOverflowContext(ParserRuleContext parent, int invokingState)
@@ -13275,7 +13275,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2010;
 			Match(OVERFLOW);
 			State = 2011;
-			imperativeStatement();
+			statementBlock();
 			State = 2016;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,228,Context) ) {
@@ -13288,7 +13288,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2014;
 				Match(OVERFLOW);
 				State = 2015;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -13307,8 +13307,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class UnstringStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode UNSTRING() { return GetToken(CobolParserCore.UNSTRING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public UnstringDelimiterPhraseContext unstringDelimiterPhrase() {
 			return GetRuleContext<UnstringDelimiterPhraseContext>(0);
@@ -13354,7 +13354,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2018;
 			Match(UNSTRING);
 			State = 2019;
-			identifier();
+			dataReference();
 			State = 2021;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -13441,8 +13441,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class UnstringDelimiterPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DELIMITED() { return GetToken(CobolParserCore.DELIMITED, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -13491,7 +13491,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 1:
 				{
 				State = 2045;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -13522,11 +13522,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class UnstringIntoPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INTO() { return GetToken(CobolParserCore.INTO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DELIMITER() { return GetToken(CobolParserCore.DELIMITER, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] IN() { return GetTokens(CobolParserCore.IN); }
@@ -13557,7 +13557,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2050;
 			Match(INTO);
 			State = 2051;
-			identifier();
+			dataReference();
 			State = 2055;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,237,Context) ) {
@@ -13568,7 +13568,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2053;
 				Match(IN);
 				State = 2054;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -13582,7 +13582,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2058;
 				Match(IN);
 				State = 2059;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -13602,8 +13602,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class UnstringWithPointerContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode WITH() { return GetToken(CobolParserCore.WITH, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode POINTER() { return GetToken(CobolParserCore.POINTER, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public UnstringWithPointerContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -13630,7 +13630,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2063;
 			Match(POINTER);
 			State = 2064;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -13647,8 +13647,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class UnstringTallyingContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TALLYING() { return GetToken(CobolParserCore.TALLYING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IN() { return GetToken(CobolParserCore.IN, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public UnstringTallyingContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -13675,7 +13675,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2067;
 			Match(IN);
 			State = 2068;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -13698,11 +13698,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OVERFLOW(int i) {
 			return GetToken(CobolParserCore.OVERFLOW, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public UnstringOnOverflowContext(ParserRuleContext parent, int invokingState)
@@ -13730,7 +13730,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2071;
 			Match(OVERFLOW);
 			State = 2072;
-			imperativeStatement();
+			statementBlock();
 			State = 2077;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,239,Context) ) {
@@ -13743,7 +13743,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2075;
 				Match(OVERFLOW);
 				State = 2076;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -13856,8 +13856,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public CallTargetContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -13903,7 +13903,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 2094;
-				identifier();
+				dataReference();
 				}
 				break;
 			default:
@@ -14052,8 +14052,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class CallByReferenceContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode REFERENCE() { return GetToken(CobolParserCore.REFERENCE, 0); }
 		public CallByReferenceContext(ParserRuleContext parent, int invokingState)
@@ -14090,7 +14090,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			}
 
 			State = 2112;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -14154,8 +14154,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class CallByContentContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CONTENT() { return GetToken(CobolParserCore.CONTENT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -14190,7 +14190,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case IDENTIFIER:
 				{
 				State = 2121;
-				identifier();
+				dataReference();
 				}
 				break;
 			case ALL:
@@ -14229,8 +14229,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class CallReturningPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RETURNING() { return GetToken(CobolParserCore.RETURNING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public CallReturningPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -14255,7 +14255,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2125;
 			Match(RETURNING);
 			State = 2126;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -14278,11 +14278,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode EXCEPTION(int i) {
 			return GetToken(CobolParserCore.EXCEPTION, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public CallOnExceptionPhraseContext(ParserRuleContext parent, int invokingState)
@@ -14310,7 +14310,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2129;
 			Match(EXCEPTION);
 			State = 2130;
-			imperativeStatement();
+			statementBlock();
 			State = 2135;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,249,Context) ) {
@@ -14323,7 +14323,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2133;
 				Match(EXCEPTION);
 				State = 2134;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -14342,8 +14342,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class CancelStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CANCEL() { return GetToken(CobolParserCore.CANCEL, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public CancelStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -14368,7 +14368,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2137;
 			Match(CANCEL);
 			State = 2138;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -14473,11 +14473,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticExpressionContext arithmeticExpression() {
 			return GetRuleContext<ArithmeticExpressionContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		public SetToValueStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -14509,7 +14509,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				{
 				{
 				State = 2148;
-				identifier();
+				dataReference();
 				}
 				}
 				State = 2151;
@@ -14538,11 +14538,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TRUE_() { return GetToken(CobolParserCore.TRUE_, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FALSE_() { return GetToken(CobolParserCore.FALSE_, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		public SetBooleanStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -14574,7 +14574,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				{
 				{
 				State = 2157;
-				identifier();
+				dataReference();
 				}
 				}
 				State = 2160;
@@ -14609,11 +14609,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SET() { return GetToken(CobolParserCore.SET, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ADDRESS() { return GetToken(CobolParserCore.ADDRESS, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode OF() { return GetToken(CobolParserCore.OF, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		public SetAddressStatementContext(ParserRuleContext parent, int invokingState)
@@ -14643,11 +14643,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2167;
 			Match(OF);
 			State = 2168;
-			identifier();
+			dataReference();
 			State = 2169;
 			Match(TO);
 			State = 2170;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -14663,8 +14663,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SetObjectReferenceStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SET() { return GetToken(CobolParserCore.SET, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ObjectReferenceContext objectReference() {
@@ -14695,7 +14695,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2173;
 			Match(SET);
 			State = 2174;
-			identifier();
+			dataReference();
 			State = 2175;
 			Match(TO);
 			State = 2176;
@@ -14714,8 +14714,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class ObjectReferenceContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NULL_() { return GetToken(CobolParserCore.NULL_, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SELF() { return GetToken(CobolParserCore.SELF, 0); }
@@ -14745,7 +14745,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 2178;
-				identifier();
+				dataReference();
 				}
 				break;
 			case NULL_:
@@ -14792,11 +14792,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode UP() { return GetToken(CobolParserCore.UP, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DOWN() { return GetToken(CobolParserCore.DOWN, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		public SetIndexStatementContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -14828,7 +14828,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				{
 				{
 				State = 2185;
-				identifier();
+				dataReference();
 				}
 				}
 				State = 2188;
@@ -14990,8 +14990,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class SortFileNameContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public SortFileNameContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15014,7 +15014,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 2217;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15030,8 +15030,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SortKeyPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ASCENDING() { return GetToken(CobolParserCore.ASCENDING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DESCENDING() { return GetToken(CobolParserCore.DESCENDING, 0); }
@@ -15068,7 +15068,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2220;
 			Match(KEY);
 			State = 2221;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15084,8 +15084,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SortUsingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode USING() { return GetToken(CobolParserCore.USING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public SortUsingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15110,7 +15110,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2223;
 			Match(USING);
 			State = 2224;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15126,8 +15126,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SortGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public SortGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15152,7 +15152,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2226;
 			Match(GIVING);
 			State = 2227;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15368,8 +15368,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class MergeFileNameContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public MergeFileNameContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15392,7 +15392,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 2256;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15408,8 +15408,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class MergeKeyPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ASCENDING() { return GetToken(CobolParserCore.ASCENDING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DESCENDING() { return GetToken(CobolParserCore.DESCENDING, 0); }
@@ -15446,7 +15446,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2259;
 			Match(KEY);
 			State = 2260;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15462,8 +15462,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class MergeUsingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode USING() { return GetToken(CobolParserCore.USING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public MergeUsingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15488,7 +15488,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2262;
 			Match(USING);
 			State = 2263;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15504,8 +15504,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class MergeGivingPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GIVING() { return GetToken(CobolParserCore.GIVING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		public MergeGivingPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15530,7 +15530,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2265;
 			Match(GIVING);
 			State = 2266;
-			identifierList();
+			dataReferenceList();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15599,8 +15599,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RECORD() { return GetToken(CobolParserCore.RECORD, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INTO() { return GetToken(CobolParserCore.INTO, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ReturnAtEndPhraseContext returnAtEndPhrase() {
 			return GetRuleContext<ReturnAtEndPhraseContext>(0);
@@ -15640,7 +15640,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2276;
 				Match(INTO);
 				State = 2277;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -15686,11 +15686,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode END(int i) {
 			return GetToken(CobolParserCore.END, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public ReturnAtEndPhraseContext(ParserRuleContext parent, int invokingState)
@@ -15718,7 +15718,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2287;
 			Match(END);
 			State = 2288;
-			imperativeStatement();
+			statementBlock();
 			State = 2293;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,268,Context) ) {
@@ -15731,7 +15731,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2291;
 				Match(END);
 				State = 2292;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -15750,11 +15750,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class ReleaseStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RELEASE() { return GetToken(CobolParserCore.RELEASE, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		public ReleaseStatementContext(ParserRuleContext parent, int invokingState)
@@ -15780,7 +15780,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2295;
 			Match(RELEASE);
 			State = 2296;
-			identifier();
+			dataReference();
 			State = 2299;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,269,Context) ) {
@@ -15789,7 +15789,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2297;
 				Match(FROM);
 				State = 2298;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -15812,8 +15812,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			return GetRuleContext<RecordNameContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public RewriteInvalidKeyPhraseContext rewriteInvalidKeyPhrase() {
 			return GetRuleContext<RewriteInvalidKeyPhraseContext>(0);
@@ -15851,7 +15851,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2303;
 				Match(FROM);
 				State = 2304;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -15889,8 +15889,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class RecordNameContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public RecordNameContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -15913,7 +15913,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 2313;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -15936,11 +15936,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY(int i) {
 			return GetToken(CobolParserCore.KEY, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public RewriteInvalidKeyPhraseContext(ParserRuleContext parent, int invokingState)
@@ -15968,7 +15968,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2316;
 			Match(KEY);
 			State = 2317;
-			imperativeStatement();
+			statementBlock();
 			State = 2322;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,273,Context) ) {
@@ -15981,7 +15981,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2320;
 				Match(KEY);
 				State = 2321;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -16076,11 +16076,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode EXCEPTION(int i) {
 			return GetToken(CobolParserCore.EXCEPTION, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public DeleteFileOnExceptionContext(ParserRuleContext parent, int invokingState)
@@ -16108,7 +16108,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2334;
 			Match(EXCEPTION);
 			State = 2335;
-			imperativeStatement();
+			statementBlock();
 			State = 2340;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,276,Context) ) {
@@ -16121,7 +16121,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2338;
 				Match(EXCEPTION);
 				State = 2339;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -16224,11 +16224,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY(int i) {
 			return GetToken(CobolParserCore.KEY, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public DeleteInvalidKeyPhraseContext(ParserRuleContext parent, int invokingState)
@@ -16256,7 +16256,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2354;
 			Match(KEY);
 			State = 2355;
-			imperativeStatement();
+			statementBlock();
 			State = 2360;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,280,Context) ) {
@@ -16269,7 +16269,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2358;
 				Match(KEY);
 				State = 2359;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -16346,8 +16346,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class OnExceptionPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ON() { return GetToken(CobolParserCore.ON, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode EXCEPTION() { return GetToken(CobolParserCore.EXCEPTION, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement() {
-			return GetRuleContext<ImperativeStatementContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock() {
+			return GetRuleContext<StatementBlockContext>(0);
 		}
 		public OnExceptionPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -16374,7 +16374,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2367;
 			Match(EXCEPTION);
 			State = 2368;
-			imperativeStatement();
+			statementBlock();
 			}
 		}
 		catch (RecognitionException re) {
@@ -16392,8 +16392,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ON() { return GetToken(CobolParserCore.ON, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode EXCEPTION() { return GetToken(CobolParserCore.EXCEPTION, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement() {
-			return GetRuleContext<ImperativeStatementContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock() {
+			return GetRuleContext<StatementBlockContext>(0);
 		}
 		public NotOnExceptionPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -16422,7 +16422,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2372;
 			Match(EXCEPTION);
 			State = 2373;
-			imperativeStatement();
+			statementBlock();
 			}
 		}
 		catch (RecognitionException re) {
@@ -16656,8 +16656,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class StartKeyPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public RelationalExpressionContext relationalExpression() {
-			return GetRuleContext<RelationalExpressionContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonExpressionContext comparisonExpression() {
+			return GetRuleContext<ComparisonExpressionContext>(0);
 		}
 		public StartKeyPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -16684,7 +16684,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2396;
 			Match(IS);
 			State = 2397;
-			relationalExpression();
+			comparisonExpression();
 			}
 		}
 		catch (RecognitionException re) {
@@ -16707,11 +16707,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY(int i) {
 			return GetToken(CobolParserCore.KEY, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public StartInvalidKeyPhraseContext(ParserRuleContext parent, int invokingState)
@@ -16739,7 +16739,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2400;
 			Match(KEY);
 			State = 2401;
-			imperativeStatement();
+			statementBlock();
 			State = 2406;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,286,Context) ) {
@@ -16752,7 +16752,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2404;
 				Match(KEY);
 				State = 2405;
-				imperativeStatement();
+				statementBlock();
 				}
 				break;
 			}
@@ -16779,8 +16779,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEPENDING() { return GetToken(CobolParserCore.DEPENDING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ON() { return GetToken(CobolParserCore.ON, 0); }
 		public GoToStatementContext(ParserRuleContext parent, int invokingState)
@@ -16853,7 +16853,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				}
 
 				State = 2423;
-				identifier();
+				dataReference();
 				}
 				break;
 			}
@@ -16872,8 +16872,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class AcceptStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ACCEPT() { return GetToken(CobolParserCore.ACCEPT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public AcceptSourceContext acceptSource() {
@@ -16902,7 +16902,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2426;
 			Match(ACCEPT);
 			State = 2427;
-			identifier();
+			dataReference();
 			State = 2430;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,291,Context) ) {
@@ -16978,11 +16978,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class DisplayStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DISPLAY() { return GetToken(CobolParserCore.DISPLAY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext[] literal() {
 			return GetRuleContexts<LiteralContext>();
@@ -17026,7 +17026,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					case IDENTIFIER:
 						{
 						State = 2435;
-						identifier();
+						dataReference();
 						}
 						break;
 					case ALL:
@@ -17074,8 +17074,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class InitializeStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INITIALIZE() { return GetToken(CobolParserCore.INITIALIZE, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierListContext identifierList() {
-			return GetRuleContext<IdentifierListContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceListContext dataReferenceList() {
+			return GetRuleContext<DataReferenceListContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public InitializeReplacingPhraseContext initializeReplacingPhrase() {
 			return GetRuleContext<InitializeReplacingPhraseContext>(0);
@@ -17103,7 +17103,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2441;
 			Match(INITIALIZE);
 			State = 2442;
-			identifierList();
+			dataReferenceList();
 			State = 2444;
 			ErrorHandler.Sync(this);
 			switch ( Interpreter.AdaptivePredict(TokenStream,294,Context) ) {
@@ -17195,8 +17195,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ALPHANUMERIC() { return GetToken(CobolParserCore.ALPHANUMERIC, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DATA() { return GetToken(CobolParserCore.DATA, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode BY() { return GetToken(CobolParserCore.BY, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -17239,7 +17239,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case IDENTIFIER:
 					{
 					State = 2455;
-					identifier();
+					dataReference();
 					}
 					break;
 				case ALL:
@@ -17280,7 +17280,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case IDENTIFIER:
 					{
 					State = 2462;
-					identifier();
+					dataReference();
 					}
 					break;
 				case ALL:
@@ -17323,7 +17323,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case IDENTIFIER:
 					{
 					State = 2470;
-					identifier();
+					dataReference();
 					}
 					break;
 				case ALL:
@@ -17366,7 +17366,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case IDENTIFIER:
 					{
 					State = 2478;
-					identifier();
+					dataReference();
 					}
 					break;
 				case ALL:
@@ -17407,8 +17407,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class InspectStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INSPECT() { return GetToken(CobolParserCore.INSPECT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public InspectTallyingPhraseContext inspectTallyingPhrase() {
 			return GetRuleContext<InspectTallyingPhraseContext>(0);
@@ -17442,7 +17442,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2484;
 			Match(INSPECT);
 			State = 2485;
-			identifier();
+			dataReference();
 			State = 2492;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
@@ -17555,8 +17555,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class InspectTallyingItemContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public InspectForClauseContext[] inspectForClause() {
 			return GetRuleContexts<InspectForClauseContext>();
@@ -17586,7 +17586,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 2500;
-			identifier();
+			dataReference();
 			State = 2502;
 			ErrorHandler.Sync(this);
 			_alt = 1;
@@ -17804,8 +17804,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class InspectCharContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext literal() {
 			return GetRuleContext<LiteralContext>(0);
@@ -17838,7 +17838,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 2535;
-				identifier();
+				dataReference();
 				}
 				break;
 			case 2:
@@ -18386,8 +18386,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class SearchStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEARCH() { return GetToken(CobolParserCore.SEARCH, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public SearchAtEndClauseContext searchAtEndClause() {
 			return GetRuleContext<SearchAtEndClauseContext>(0);
@@ -18424,7 +18424,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2630;
 			Match(SEARCH);
 			State = 2631;
-			identifier();
+			dataReference();
 			State = 2633;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -18483,11 +18483,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ConditionContext condition() {
 			return GetRuleContext<ConditionContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		public SearchWhenClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -18522,7 +18522,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 2645;
-					imperativeStatement();
+					statementBlock();
 					}
 					} 
 				}
@@ -18552,11 +18552,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode END(int i) {
 			return GetToken(CobolParserCore.END, i);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
 		public SearchAtEndClauseContext(ParserRuleContext parent, int invokingState)
@@ -18585,7 +18585,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2652;
 			Match(END);
 			State = 2653;
-			imperativeStatement();
+			statementBlock();
 			State = 2658;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -18598,7 +18598,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 2656;
 				Match(END);
 				State = 2657;
-				imperativeStatement();
+				statementBlock();
 				}
 			}
 
@@ -18618,8 +18618,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class SearchAllStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SEARCH() { return GetToken(CobolParserCore.SEARCH, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ALL() { return GetToken(CobolParserCore.ALL, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public SearchAllWhenClauseContext searchAllWhenClause() {
 			return GetRuleContext<SearchAllWhenClauseContext>(0);
@@ -18657,7 +18657,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2661;
 			Match(ALL);
 			State = 2662;
-			identifier();
+			dataReference();
 			State = 2664;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
@@ -18706,8 +18706,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	public partial class SearchAllKeyPhraseContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode KEY() { return GetToken(CobolParserCore.KEY, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		public SearchAllKeyPhraseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -18734,7 +18734,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			State = 2674;
 			Match(IS);
 			State = 2675;
-			identifier();
+			dataReference();
 			}
 		}
 		catch (RecognitionException re) {
@@ -18753,11 +18753,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ConditionContext condition() {
 			return GetRuleContext<ConditionContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext[] imperativeStatement() {
-			return GetRuleContexts<ImperativeStatementContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext[] statementBlock() {
+			return GetRuleContexts<StatementBlockContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public ImperativeStatementContext imperativeStatement(int i) {
-			return GetRuleContext<ImperativeStatementContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public StatementBlockContext statementBlock(int i) {
+			return GetRuleContext<StatementBlockContext>(i);
 		}
 		public SearchAllWhenClauseContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -18792,7 +18792,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					{
 					{
 					State = 2679;
-					imperativeStatement();
+					statementBlock();
 					}
 					} 
 				}
@@ -18815,11 +18815,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class JsonStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode JSON() { return GetToken(CobolParserCore.JSON, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext[] literal() {
 			return GetRuleContexts<LiteralContext>();
@@ -18863,7 +18863,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					case IDENTIFIER:
 						{
 						State = 2686;
-						identifier();
+						dataReference();
 						}
 						break;
 					case ALL:
@@ -18911,11 +18911,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class XmlStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode XML() { return GetToken(CobolParserCore.XML, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext[] literal() {
 			return GetRuleContexts<LiteralContext>();
@@ -18959,7 +18959,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					case IDENTIFIER:
 						{
 						State = 2693;
-						identifier();
+						dataReference();
 						}
 						break;
 					case ALL:
@@ -19007,11 +19007,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class InvokeStatementContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INVOKE() { return GetToken(CobolParserCore.INVOKE, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext[] identifier() {
-			return GetRuleContexts<IdentifierContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext[] dataReference() {
+			return GetRuleContexts<DataReferenceContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier(int i) {
-			return GetRuleContext<IdentifierContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference(int i) {
+			return GetRuleContext<DataReferenceContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public LiteralContext[] literal() {
 			return GetRuleContexts<LiteralContext>();
@@ -19055,7 +19055,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					case IDENTIFIER:
 						{
 						State = 2700;
-						identifier();
+						dataReference();
 						}
 						break;
 					case ALL:
@@ -19206,11 +19206,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class LogicalAndExpressionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public LogicalNotExpressionContext[] logicalNotExpression() {
-			return GetRuleContexts<LogicalNotExpressionContext>();
+		[System.Diagnostics.DebuggerNonUserCode] public UnaryLogicalExpressionContext[] unaryLogicalExpression() {
+			return GetRuleContexts<UnaryLogicalExpressionContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public LogicalNotExpressionContext logicalNotExpression(int i) {
-			return GetRuleContext<LogicalNotExpressionContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public UnaryLogicalExpressionContext unaryLogicalExpression(int i) {
+			return GetRuleContext<UnaryLogicalExpressionContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] AND() { return GetTokens(CobolParserCore.AND); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode AND(int i) {
@@ -19238,7 +19238,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 2716;
-			logicalNotExpression();
+			unaryLogicalExpression();
 			State = 2721;
 			ErrorHandler.Sync(this);
 			_alt = Interpreter.AdaptivePredict(TokenStream,346,Context);
@@ -19249,7 +19249,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 					State = 2717;
 					Match(AND);
 					State = 2718;
-					logicalNotExpression();
+					unaryLogicalExpression();
 					}
 					} 
 				}
@@ -19270,32 +19270,51 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class LogicalNotExpressionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public RelationalExpressionContext relationalExpression() {
-			return GetRuleContext<RelationalExpressionContext>(0);
+	public partial class UnaryLogicalExpressionContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public UnaryLogicalExpressionContext unaryLogicalExpression() {
+			return GetRuleContext<UnaryLogicalExpressionContext>(0);
 		}
-		public LogicalNotExpressionContext(ParserRuleContext parent, int invokingState)
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonExpressionContext comparisonExpression() {
+			return GetRuleContext<ComparisonExpressionContext>(0);
+		}
+		public UnaryLogicalExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_logicalNotExpression; } }
+		public override int RuleIndex { get { return RULE_unaryLogicalExpression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitLogicalNotExpression(this);
+			if (typedVisitor != null) return typedVisitor.VisitUnaryLogicalExpression(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public LogicalNotExpressionContext logicalNotExpression() {
-		LogicalNotExpressionContext _localctx = new LogicalNotExpressionContext(Context, State);
-		EnterRule(_localctx, 536, RULE_logicalNotExpression);
+	public UnaryLogicalExpressionContext unaryLogicalExpression() {
+		UnaryLogicalExpressionContext _localctx = new UnaryLogicalExpressionContext(Context, State);
+		EnterRule(_localctx, 536, RULE_unaryLogicalExpression);
 		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 2724;
-			relationalExpression();
+			State = 2727;
+			ErrorHandler.Sync(this);
+			switch ( Interpreter.AdaptivePredict(TokenStream,347,Context) ) {
+			case 1:
+				EnterOuterAlt(_localctx, 1);
+				{
+				State = 2724;
+				Match(NOT);
+				State = 2725;
+				unaryLogicalExpression();
+				}
+				break;
+			case 2:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 2726;
+				comparisonExpression();
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -19309,45 +19328,45 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class RelationalOperandContext : ParserRuleContext {
+	public partial class ComparisonOperandContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticExpressionContext arithmeticExpression() {
 			return GetRuleContext<ArithmeticExpressionContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public NonNumericLiteralContext nonNumericLiteral() {
 			return GetRuleContext<NonNumericLiteralContext>(0);
 		}
-		public RelationalOperandContext(ParserRuleContext parent, int invokingState)
+		public ComparisonOperandContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_relationalOperand; } }
+		public override int RuleIndex { get { return RULE_comparisonOperand; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitRelationalOperand(this);
+			if (typedVisitor != null) return typedVisitor.VisitComparisonOperand(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public RelationalOperandContext relationalOperand() {
-		RelationalOperandContext _localctx = new RelationalOperandContext(Context, State);
-		EnterRule(_localctx, 538, RULE_relationalOperand);
+	public ComparisonOperandContext comparisonOperand() {
+		ComparisonOperandContext _localctx = new ComparisonOperandContext(Context, State);
+		EnterRule(_localctx, 538, RULE_comparisonOperand);
 		try {
-			State = 2728;
+			State = 2731;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,347,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,348,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2726;
+				State = 2729;
 				arithmeticExpression();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2727;
+				State = 2730;
 				nonNumericLiteral();
 				}
 				break;
@@ -19364,86 +19383,86 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class RelationalExpressionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public RelationalOperandContext[] relationalOperand() {
-			return GetRuleContexts<RelationalOperandContext>();
+	public partial class ComparisonExpressionContext : ParserRuleContext {
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonOperandContext[] comparisonOperand() {
+			return GetRuleContexts<ComparisonOperandContext>();
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public RelationalOperandContext relationalOperand(int i) {
-			return GetRuleContext<RelationalOperandContext>(i);
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonOperandContext comparisonOperand(int i) {
+			return GetRuleContext<ComparisonOperandContext>(i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ClassNameContext className() {
 			return GetRuleContext<ClassNameContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode IS() { return GetToken(CobolParserCore.IS, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public RelationalOperatorContext relationalOperator() {
-			return GetRuleContext<RelationalOperatorContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonOperatorContext comparisonOperator() {
+			return GetRuleContext<ComparisonOperatorContext>(0);
 		}
-		public RelationalExpressionContext(ParserRuleContext parent, int invokingState)
+		public ComparisonExpressionContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_relationalExpression; } }
+		public override int RuleIndex { get { return RULE_comparisonExpression; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitRelationalExpression(this);
+			if (typedVisitor != null) return typedVisitor.VisitComparisonExpression(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public RelationalExpressionContext relationalExpression() {
-		RelationalExpressionContext _localctx = new RelationalExpressionContext(Context, State);
-		EnterRule(_localctx, 540, RULE_relationalExpression);
+	public ComparisonExpressionContext comparisonExpression() {
+		ComparisonExpressionContext _localctx = new ComparisonExpressionContext(Context, State);
+		EnterRule(_localctx, 540, RULE_comparisonExpression);
 		int _la;
 		try {
-			State = 2745;
+			State = 2748;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,351,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,352,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2730;
-				relationalOperand();
-				State = 2732;
+				State = 2733;
+				comparisonOperand();
+				State = 2735;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2731;
+					State = 2734;
 					Match(IS);
 					}
 				}
 
-				State = 2735;
+				State = 2738;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==NOT) {
 					{
-					State = 2734;
+					State = 2737;
 					Match(NOT);
 					}
 				}
 
-				State = 2737;
+				State = 2740;
 				className();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2739;
-				relationalOperand();
-				State = 2743;
+				State = 2742;
+				comparisonOperand();
+				State = 2746;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,350,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,351,Context) ) {
 				case 1:
 					{
-					State = 2740;
-					relationalOperator();
-					State = 2741;
-					relationalOperand();
+					State = 2743;
+					comparisonOperator();
+					State = 2744;
+					comparisonOperand();
 					}
 					break;
 				}
@@ -19488,7 +19507,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2747;
+			State = 2750;
 			_la = TokenStream.LA(1);
 			if ( !(((((_la - 100)) & ~0x3f) == 0 && ((1L << (_la - 100)) & 7L) != 0) || _la==NUMERIC) ) {
 			ErrorHandler.RecoverInline(this);
@@ -19510,7 +19529,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		return _localctx;
 	}
 
-	public partial class RelationalOperatorContext : ParserRuleContext {
+	public partial class ComparisonOperatorContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode EQUALS() { return GetToken(CobolParserCore.EQUALS, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOTEQUAL() { return GetToken(CobolParserCore.NOTEQUAL, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LTEQUAL() { return GetToken(CobolParserCore.LTEQUAL, 0); }
@@ -19524,136 +19543,136 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode THAN() { return GetToken(CobolParserCore.THAN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GREATER() { return GetToken(CobolParserCore.GREATER, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LESS() { return GetToken(CobolParserCore.LESS, 0); }
-		public RelationalOperatorContext(ParserRuleContext parent, int invokingState)
+		public ComparisonOperatorContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_relationalOperator; } }
+		public override int RuleIndex { get { return RULE_comparisonOperator; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			ICobolParserCoreVisitor<TResult> typedVisitor = visitor as ICobolParserCoreVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitRelationalOperator(this);
+			if (typedVisitor != null) return typedVisitor.VisitComparisonOperator(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public RelationalOperatorContext relationalOperator() {
-		RelationalOperatorContext _localctx = new RelationalOperatorContext(Context, State);
-		EnterRule(_localctx, 544, RULE_relationalOperator);
+	public ComparisonOperatorContext comparisonOperator() {
+		ComparisonOperatorContext _localctx = new ComparisonOperatorContext(Context, State);
+		EnterRule(_localctx, 544, RULE_comparisonOperator);
 		int _la;
 		try {
-			State = 2810;
+			State = 2813;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,364,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,365,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2749;
+				State = 2752;
 				Match(EQUALS);
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2750;
+				State = 2753;
 				Match(NOTEQUAL);
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 2751;
+				State = 2754;
 				Match(LTEQUAL);
 				}
 				break;
 			case 4:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 2752;
+				State = 2755;
 				Match(GTEQUAL);
 				}
 				break;
 			case 5:
 				EnterOuterAlt(_localctx, 5);
 				{
-				State = 2753;
+				State = 2756;
 				Match(LT);
 				}
 				break;
 			case 6:
 				EnterOuterAlt(_localctx, 6);
 				{
-				State = 2754;
+				State = 2757;
 				Match(GT);
 				}
 				break;
 			case 7:
 				EnterOuterAlt(_localctx, 7);
 				{
-				State = 2755;
+				State = 2758;
 				Match(NOT);
-				State = 2756;
+				State = 2759;
 				Match(EQUALS);
 				}
 				break;
 			case 8:
 				EnterOuterAlt(_localctx, 8);
 				{
-				State = 2757;
+				State = 2760;
 				Match(NOT);
-				State = 2758;
+				State = 2761;
 				Match(GT);
 				}
 				break;
 			case 9:
 				EnterOuterAlt(_localctx, 9);
 				{
-				State = 2759;
+				State = 2762;
 				Match(NOT);
-				State = 2760;
+				State = 2763;
 				Match(LT);
 				}
 				break;
 			case 10:
 				EnterOuterAlt(_localctx, 10);
 				{
-				State = 2761;
+				State = 2764;
 				Match(NOT);
-				State = 2762;
+				State = 2765;
 				Match(GTEQUAL);
 				}
 				break;
 			case 11:
 				EnterOuterAlt(_localctx, 11);
 				{
-				State = 2763;
+				State = 2766;
 				Match(NOT);
-				State = 2764;
+				State = 2767;
 				Match(LTEQUAL);
 				}
 				break;
 			case 12:
 				EnterOuterAlt(_localctx, 12);
 				{
-				State = 2766;
+				State = 2769;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2765;
+					State = 2768;
 					Match(IS);
 					}
 				}
 
-				State = 2768;
+				State = 2771;
 				Match(EQUAL);
-				State = 2770;
+				State = 2773;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,353,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,354,Context) ) {
 				case 1:
 					{
-					State = 2769;
+					State = 2772;
 					_la = TokenStream.LA(1);
 					if ( !(_la==THAN || _la==TO) ) {
 					ErrorHandler.RecoverInline(this);
@@ -19670,26 +19689,26 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 13:
 				EnterOuterAlt(_localctx, 13);
 				{
-				State = 2773;
+				State = 2776;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2772;
+					State = 2775;
 					Match(IS);
 					}
 				}
 
-				State = 2775;
-				Match(NOT);
-				State = 2776;
-				Match(EQUAL);
 				State = 2778;
+				Match(NOT);
+				State = 2779;
+				Match(EQUAL);
+				State = 2781;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,355,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,356,Context) ) {
 				case 1:
 					{
-					State = 2777;
+					State = 2780;
 					_la = TokenStream.LA(1);
 					if ( !(_la==THAN || _la==TO) ) {
 					ErrorHandler.RecoverInline(this);
@@ -19706,24 +19725,24 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 14:
 				EnterOuterAlt(_localctx, 14);
 				{
-				State = 2781;
+				State = 2784;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2780;
+					State = 2783;
 					Match(IS);
 					}
 				}
 
-				State = 2783;
+				State = 2786;
 				Match(GREATER);
-				State = 2785;
+				State = 2788;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,357,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,358,Context) ) {
 				case 1:
 					{
-					State = 2784;
+					State = 2787;
 					Match(THAN);
 					}
 					break;
@@ -19733,26 +19752,26 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 15:
 				EnterOuterAlt(_localctx, 15);
 				{
-				State = 2788;
+				State = 2791;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2787;
+					State = 2790;
 					Match(IS);
 					}
 				}
 
-				State = 2790;
-				Match(NOT);
-				State = 2791;
-				Match(GREATER);
 				State = 2793;
+				Match(NOT);
+				State = 2794;
+				Match(GREATER);
+				State = 2796;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,359,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,360,Context) ) {
 				case 1:
 					{
-					State = 2792;
+					State = 2795;
 					Match(THAN);
 					}
 					break;
@@ -19762,24 +19781,24 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 16:
 				EnterOuterAlt(_localctx, 16);
 				{
-				State = 2796;
+				State = 2799;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2795;
+					State = 2798;
 					Match(IS);
 					}
 				}
 
-				State = 2798;
+				State = 2801;
 				Match(LESS);
-				State = 2800;
+				State = 2803;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,361,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,362,Context) ) {
 				case 1:
 					{
-					State = 2799;
+					State = 2802;
 					Match(THAN);
 					}
 					break;
@@ -19789,26 +19808,26 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case 17:
 				EnterOuterAlt(_localctx, 17);
 				{
-				State = 2803;
+				State = 2806;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
 				if (_la==IS) {
 					{
-					State = 2802;
+					State = 2805;
 					Match(IS);
 					}
 				}
 
-				State = 2805;
-				Match(NOT);
-				State = 2806;
-				Match(LESS);
 				State = 2808;
+				Match(NOT);
+				State = 2809;
+				Match(LESS);
+				State = 2811;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,363,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,364,Context) ) {
 				case 1:
 					{
-					State = 2807;
+					State = 2810;
 					Match(THAN);
 					}
 					break;
@@ -19852,7 +19871,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2812;
+			State = 2815;
 			additiveExpression();
 			}
 		}
@@ -19901,25 +19920,25 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2814;
+			State = 2817;
 			multiplicativeExpression();
-			State = 2820;
+			State = 2823;
 			ErrorHandler.Sync(this);
-			_alt = Interpreter.AdaptivePredict(TokenStream,365,Context);
+			_alt = Interpreter.AdaptivePredict(TokenStream,366,Context);
 			while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					State = 2815;
+					State = 2818;
 					addOp();
-					State = 2816;
+					State = 2819;
 					multiplicativeExpression();
 					}
 					} 
 				}
-				State = 2822;
+				State = 2825;
 				ErrorHandler.Sync(this);
-				_alt = Interpreter.AdaptivePredict(TokenStream,365,Context);
+				_alt = Interpreter.AdaptivePredict(TokenStream,366,Context);
 			}
 			}
 		}
@@ -19958,7 +19977,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2823;
+			State = 2826;
 			_la = TokenStream.LA(1);
 			if ( !(_la==PLUS || _la==MINUS) ) {
 			ErrorHandler.RecoverInline(this);
@@ -20014,25 +20033,25 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			int _alt;
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2825;
+			State = 2828;
 			powerExpression();
-			State = 2831;
+			State = 2834;
 			ErrorHandler.Sync(this);
-			_alt = Interpreter.AdaptivePredict(TokenStream,366,Context);
+			_alt = Interpreter.AdaptivePredict(TokenStream,367,Context);
 			while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					State = 2826;
+					State = 2829;
 					mulOp();
-					State = 2827;
+					State = 2830;
 					powerExpression();
 					}
 					} 
 				}
-				State = 2833;
+				State = 2836;
 				ErrorHandler.Sync(this);
-				_alt = Interpreter.AdaptivePredict(TokenStream,366,Context);
+				_alt = Interpreter.AdaptivePredict(TokenStream,367,Context);
 			}
 			}
 		}
@@ -20071,7 +20090,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2834;
+			State = 2837;
 			_la = TokenStream.LA(1);
 			if ( !(_la==STAR || _la==SLASH) ) {
 			ErrorHandler.RecoverInline(this);
@@ -20121,16 +20140,16 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2836;
-			unaryExpression();
 			State = 2839;
+			unaryExpression();
+			State = 2842;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,367,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,368,Context) ) {
 			case 1:
 				{
-				State = 2837;
+				State = 2840;
 				Match(POWER);
-				State = 2838;
+				State = 2841;
 				unaryExpression();
 				}
 				break;
@@ -20176,22 +20195,22 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		UnaryExpressionContext _localctx = new UnaryExpressionContext(Context, State);
 		EnterRule(_localctx, 558, RULE_unaryExpression);
 		try {
-			State = 2845;
+			State = 2848;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,368,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,369,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2841;
+				State = 2844;
 				addOp();
-				State = 2842;
+				State = 2845;
 				unaryExpression();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2844;
+				State = 2847;
 				primaryExpression();
 				}
 				break;
@@ -20215,8 +20234,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public FunctionCallContext functionCall() {
 			return GetRuleContext<FunctionCallContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LPAREN() { return GetToken(CobolParserCore.LPAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticExpressionContext arithmeticExpression() {
@@ -20241,38 +20260,38 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		PrimaryExpressionContext _localctx = new PrimaryExpressionContext(Context, State);
 		EnterRule(_localctx, 560, RULE_primaryExpression);
 		try {
-			State = 2854;
+			State = 2857;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,369,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,370,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2847;
+				State = 2850;
 				numericLiteral();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2848;
+				State = 2851;
 				functionCall();
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 2849;
-				identifier();
+				State = 2852;
+				dataReference();
 				}
 				break;
 			case 4:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 2850;
+				State = 2853;
 				Match(LPAREN);
-				State = 2851;
+				State = 2854;
 				arithmeticExpression();
-				State = 2852;
+				State = 2855;
 				Match(RPAREN);
 				}
 				break;
@@ -20291,8 +20310,8 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class FunctionCallContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FUNCTION() { return GetToken(CobolParserCore.FUNCTION, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public IdentifierContext identifier() {
-			return GetRuleContext<IdentifierContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public DataReferenceContext dataReference() {
+			return GetRuleContext<DataReferenceContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LPAREN() { return GetToken(CobolParserCore.LPAREN, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode RPAREN() { return GetToken(CobolParserCore.RPAREN, 0); }
@@ -20319,30 +20338,30 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2856;
+			State = 2859;
 			if (!(is2002())) throw new FailedPredicateException(this, "is2002()");
-			State = 2857;
+			State = 2860;
 			Match(FUNCTION);
-			State = 2858;
-			identifier();
-			State = 2864;
+			State = 2861;
+			dataReference();
+			State = 2867;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,371,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,372,Context) ) {
 			case 1:
 				{
-				State = 2859;
+				State = 2862;
 				Match(LPAREN);
-				State = 2861;
+				State = 2864;
 				ErrorHandler.Sync(this);
-				switch ( Interpreter.AdaptivePredict(TokenStream,370,Context) ) {
+				switch ( Interpreter.AdaptivePredict(TokenStream,371,Context) ) {
 				case 1:
 					{
-					State = 2860;
+					State = 2863;
 					argumentList();
 					}
 					break;
 				}
-				State = 2863;
+				State = 2866;
 				Match(RPAREN);
 				}
 				break;
@@ -20385,7 +20404,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		LiteralContext _localctx = new LiteralContext(Context, State);
 		EnterRule(_localctx, 564, RULE_literal);
 		try {
-			State = 2868;
+			State = 2871;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case DECIMALLIT:
@@ -20395,7 +20414,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case MINUS:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2866;
+				State = 2869;
 				numericLiteral();
 				}
 				break;
@@ -20409,7 +20428,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case HEXLIT:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2867;
+				State = 2870;
 				nonNumericLiteral();
 				}
 				break;
@@ -20452,7 +20471,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2870;
+			State = 2873;
 			signedNumericLiteral();
 			}
 		}
@@ -20491,20 +20510,20 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		NonNumericLiteralContext _localctx = new NonNumericLiteralContext(Context, State);
 		EnterRule(_localctx, 568, RULE_nonNumericLiteral);
 		try {
-			State = 2875;
+			State = 2878;
 			ErrorHandler.Sync(this);
 			switch (TokenStream.LA(1)) {
 			case STRINGLIT:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2872;
+				State = 2875;
 				Match(STRINGLIT);
 				}
 				break;
 			case HEXLIT:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2873;
+				State = 2876;
 				Match(HEXLIT);
 				}
 				break;
@@ -20516,7 +20535,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			case QUOTE_:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 2874;
+				State = 2877;
 				figurativeConstant();
 				}
 				break;
@@ -20562,12 +20581,12 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 2878;
+			State = 2881;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			if (_la==PLUS || _la==MINUS) {
 				{
-				State = 2877;
+				State = 2880;
 				_la = TokenStream.LA(1);
 				if ( !(_la==PLUS || _la==MINUS) ) {
 				ErrorHandler.RecoverInline(this);
@@ -20579,7 +20598,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				}
 			}
 
-			State = 2880;
+			State = 2883;
 			numericLiteralCore();
 			}
 		}
@@ -20619,40 +20638,40 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		NumericLiteralCoreContext _localctx = new NumericLiteralCoreContext(Context, State);
 		EnterRule(_localctx, 572, RULE_numericLiteralCore);
 		try {
-			State = 2889;
+			State = 2892;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,375,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,376,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2882;
+				State = 2885;
 				Match(DECIMALLIT);
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2883;
+				State = 2886;
 				Match(INTEGERLIT);
-				State = 2884;
+				State = 2887;
 				Match(COMMA);
-				State = 2885;
+				State = 2888;
 				Match(INTEGERLIT);
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 2886;
+				State = 2889;
 				Match(COMMA);
-				State = 2887;
+				State = 2890;
 				Match(INTEGERLIT);
 				}
 				break;
 			case 4:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 2888;
+				State = 2891;
 				Match(INTEGERLIT);
 				}
 				break;
@@ -20696,104 +20715,104 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		FigurativeConstantContext _localctx = new FigurativeConstantContext(Context, State);
 		EnterRule(_localctx, 574, RULE_figurativeConstant);
 		try {
-			State = 2910;
+			State = 2913;
 			ErrorHandler.Sync(this);
-			switch ( Interpreter.AdaptivePredict(TokenStream,376,Context) ) {
+			switch ( Interpreter.AdaptivePredict(TokenStream,377,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 2891;
+				State = 2894;
 				Match(ZERO);
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 2892;
+				State = 2895;
 				Match(SPACE);
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 2893;
+				State = 2896;
 				Match(HIGH_VALUE);
 				}
 				break;
 			case 4:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 2894;
+				State = 2897;
 				Match(LOW_VALUE);
 				}
 				break;
 			case 5:
 				EnterOuterAlt(_localctx, 5);
 				{
-				State = 2895;
+				State = 2898;
 				Match(QUOTE_);
 				}
 				break;
 			case 6:
 				EnterOuterAlt(_localctx, 6);
 				{
-				State = 2896;
+				State = 2899;
 				Match(ALL);
-				State = 2897;
+				State = 2900;
 				Match(STRINGLIT);
 				}
 				break;
 			case 7:
 				EnterOuterAlt(_localctx, 7);
 				{
-				State = 2898;
+				State = 2901;
 				Match(ALL);
-				State = 2899;
+				State = 2902;
 				Match(HEXLIT);
 				}
 				break;
 			case 8:
 				EnterOuterAlt(_localctx, 8);
 				{
-				State = 2900;
+				State = 2903;
 				Match(ALL);
-				State = 2901;
+				State = 2904;
 				Match(ZERO);
 				}
 				break;
 			case 9:
 				EnterOuterAlt(_localctx, 9);
 				{
-				State = 2902;
+				State = 2905;
 				Match(ALL);
-				State = 2903;
+				State = 2906;
 				Match(SPACE);
 				}
 				break;
 			case 10:
 				EnterOuterAlt(_localctx, 10);
 				{
-				State = 2904;
+				State = 2907;
 				Match(ALL);
-				State = 2905;
+				State = 2908;
 				Match(HIGH_VALUE);
 				}
 				break;
 			case 11:
 				EnterOuterAlt(_localctx, 11);
 				{
-				State = 2906;
+				State = 2909;
 				Match(ALL);
-				State = 2907;
+				State = 2910;
 				Match(LOW_VALUE);
 				}
 				break;
 			case 12:
 				EnterOuterAlt(_localctx, 12);
 				{
-				State = 2908;
+				State = 2911;
 				Match(ALL);
-				State = 2909;
+				State = 2912;
 				Match(QUOTE_);
 				}
 				break;
@@ -20877,7 +20896,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	private static int[] _serializedATN = {
-		4,1,281,2913,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+		4,1,281,2916,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
 		7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,
 		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,
 		2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,28,
@@ -21125,310 +21144,310 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		4,263,2696,8,263,11,263,12,263,2697,1,264,1,264,1,264,4,264,2703,8,264,
 		11,264,12,264,2704,1,265,1,265,1,266,1,266,1,266,5,266,2712,8,266,10,266,
 		12,266,2715,9,266,1,267,1,267,1,267,5,267,2720,8,267,10,267,12,267,2723,
-		9,267,1,268,1,268,1,269,1,269,3,269,2729,8,269,1,270,1,270,3,270,2733,
-		8,270,1,270,3,270,2736,8,270,1,270,1,270,1,270,1,270,1,270,1,270,3,270,
-		2744,8,270,3,270,2746,8,270,1,271,1,271,1,272,1,272,1,272,1,272,1,272,
+		9,267,1,268,1,268,1,268,3,268,2728,8,268,1,269,1,269,3,269,2732,8,269,
+		1,270,1,270,3,270,2736,8,270,1,270,3,270,2739,8,270,1,270,1,270,1,270,
+		1,270,1,270,1,270,3,270,2747,8,270,3,270,2749,8,270,1,271,1,271,1,272,
 		1,272,1,272,1,272,1,272,1,272,1,272,1,272,1,272,1,272,1,272,1,272,1,272,
-		3,272,2767,8,272,1,272,1,272,3,272,2771,8,272,1,272,3,272,2774,8,272,1,
-		272,1,272,1,272,3,272,2779,8,272,1,272,3,272,2782,8,272,1,272,1,272,3,
-		272,2786,8,272,1,272,3,272,2789,8,272,1,272,1,272,1,272,3,272,2794,8,272,
-		1,272,3,272,2797,8,272,1,272,1,272,3,272,2801,8,272,1,272,3,272,2804,8,
-		272,1,272,1,272,1,272,3,272,2809,8,272,3,272,2811,8,272,1,273,1,273,1,
-		274,1,274,1,274,1,274,5,274,2819,8,274,10,274,12,274,2822,9,274,1,275,
-		1,275,1,276,1,276,1,276,1,276,5,276,2830,8,276,10,276,12,276,2833,9,276,
-		1,277,1,277,1,278,1,278,1,278,3,278,2840,8,278,1,279,1,279,1,279,1,279,
-		3,279,2846,8,279,1,280,1,280,1,280,1,280,1,280,1,280,1,280,3,280,2855,
-		8,280,1,281,1,281,1,281,1,281,1,281,3,281,2862,8,281,1,281,3,281,2865,
-		8,281,1,282,1,282,3,282,2869,8,282,1,283,1,283,1,284,1,284,1,284,3,284,
-		2876,8,284,1,285,3,285,2879,8,285,1,285,1,285,1,286,1,286,1,286,1,286,
-		1,286,1,286,1,286,3,286,2890,8,286,1,287,1,287,1,287,1,287,1,287,1,287,
+		1,272,1,272,1,272,1,272,3,272,2770,8,272,1,272,1,272,3,272,2774,8,272,
+		1,272,3,272,2777,8,272,1,272,1,272,1,272,3,272,2782,8,272,1,272,3,272,
+		2785,8,272,1,272,1,272,3,272,2789,8,272,1,272,3,272,2792,8,272,1,272,1,
+		272,1,272,3,272,2797,8,272,1,272,3,272,2800,8,272,1,272,1,272,3,272,2804,
+		8,272,1,272,3,272,2807,8,272,1,272,1,272,1,272,3,272,2812,8,272,3,272,
+		2814,8,272,1,273,1,273,1,274,1,274,1,274,1,274,5,274,2822,8,274,10,274,
+		12,274,2825,9,274,1,275,1,275,1,276,1,276,1,276,1,276,5,276,2833,8,276,
+		10,276,12,276,2836,9,276,1,277,1,277,1,278,1,278,1,278,3,278,2843,8,278,
+		1,279,1,279,1,279,1,279,3,279,2849,8,279,1,280,1,280,1,280,1,280,1,280,
+		1,280,1,280,3,280,2858,8,280,1,281,1,281,1,281,1,281,1,281,3,281,2865,
+		8,281,1,281,3,281,2868,8,281,1,282,1,282,3,282,2872,8,282,1,283,1,283,
+		1,284,1,284,1,284,3,284,2879,8,284,1,285,3,285,2882,8,285,1,285,1,285,
+		1,286,1,286,1,286,1,286,1,286,1,286,1,286,3,286,2893,8,286,1,287,1,287,
 		1,287,1,287,1,287,1,287,1,287,1,287,1,287,1,287,1,287,1,287,1,287,1,287,
-		1,287,3,287,2911,8,287,1,287,0,0,288,0,2,4,6,8,10,12,14,16,18,20,22,24,
-		26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,
-		74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,
-		116,118,120,122,124,126,128,130,132,134,136,138,140,142,144,146,148,150,
-		152,154,156,158,160,162,164,166,168,170,172,174,176,178,180,182,184,186,
-		188,190,192,194,196,198,200,202,204,206,208,210,212,214,216,218,220,222,
-		224,226,228,230,232,234,236,238,240,242,244,246,248,250,252,254,256,258,
-		260,262,264,266,268,270,272,274,276,278,280,282,284,286,288,290,292,294,
-		296,298,300,302,304,306,308,310,312,314,316,318,320,322,324,326,328,330,
-		332,334,336,338,340,342,344,346,348,350,352,354,356,358,360,362,364,366,
-		368,370,372,374,376,378,380,382,384,386,388,390,392,394,396,398,400,402,
-		404,406,408,410,412,414,416,418,420,422,424,426,428,430,432,434,436,438,
-		440,442,444,446,448,450,452,454,456,458,460,462,464,466,468,470,472,474,
-		476,478,480,482,484,486,488,490,492,494,496,498,500,502,504,506,508,510,
-		512,514,516,518,520,522,524,526,528,530,532,534,536,538,540,542,544,546,
-		548,550,552,554,556,558,560,562,564,566,568,570,572,574,0,30,4,0,123,123,
-		162,162,167,167,204,204,1,0,255,256,2,0,254,254,256,256,1,0,254,256,3,
-		0,144,144,202,202,220,220,1,0,36,38,3,0,54,54,157,157,254,254,5,0,47,47,
-		68,68,117,117,124,128,165,165,1,0,243,244,2,0,113,113,172,172,2,0,176,
-		176,235,235,1,0,173,174,1,0,225,226,2,0,177,177,214,214,2,0,164,164,188,
-		188,2,0,183,183,200,200,2,0,104,104,116,116,1,0,179,180,4,0,46,46,151,
-		151,168,168,194,194,1,0,230,231,1,0,254,255,2,0,155,155,236,236,2,0,142,
-		142,240,240,2,0,111,111,141,141,6,0,55,55,83,83,159,159,181,181,197,197,
-		201,201,3,0,49,49,135,136,232,232,2,0,100,102,185,185,2,0,228,228,234,
-		234,1,0,270,271,1,0,272,273,3140,0,579,1,0,0,0,2,585,1,0,0,0,4,589,1,0,
-		0,0,6,599,1,0,0,0,8,604,1,0,0,0,10,611,1,0,0,0,12,619,1,0,0,0,14,622,1,
-		0,0,0,16,629,1,0,0,0,18,631,1,0,0,0,20,633,1,0,0,0,22,635,1,0,0,0,24,644,
-		1,0,0,0,26,646,1,0,0,0,28,651,1,0,0,0,30,655,1,0,0,0,32,660,1,0,0,0,34,
-		664,1,0,0,0,36,669,1,0,0,0,38,673,1,0,0,0,40,678,1,0,0,0,42,682,1,0,0,
-		0,44,687,1,0,0,0,46,691,1,0,0,0,48,696,1,0,0,0,50,700,1,0,0,0,52,708,1,
-		0,0,0,54,717,1,0,0,0,56,730,1,0,0,0,58,732,1,0,0,0,60,740,1,0,0,0,62,748,
-		1,0,0,0,64,751,1,0,0,0,66,755,1,0,0,0,68,785,1,0,0,0,70,787,1,0,0,0,72,
-		801,1,0,0,0,74,808,1,0,0,0,76,812,1,0,0,0,78,820,1,0,0,0,80,829,1,0,0,
-		0,82,836,1,0,0,0,84,851,1,0,0,0,86,859,1,0,0,0,88,861,1,0,0,0,90,872,1,
-		0,0,0,92,874,1,0,0,0,94,883,1,0,0,0,96,885,1,0,0,0,98,890,1,0,0,0,100,
-		900,1,0,0,0,102,905,1,0,0,0,104,913,1,0,0,0,106,920,1,0,0,0,108,930,1,
-		0,0,0,110,945,1,0,0,0,112,954,1,0,0,0,114,967,1,0,0,0,116,978,1,0,0,0,
-		118,980,1,0,0,0,120,990,1,0,0,0,122,998,1,0,0,0,124,1007,1,0,0,0,126,1016,
-		1,0,0,0,128,1027,1,0,0,0,130,1029,1,0,0,0,132,1037,1,0,0,0,134,1045,1,
-		0,0,0,136,1051,1,0,0,0,138,1058,1,0,0,0,140,1060,1,0,0,0,142,1064,1,0,
-		0,0,144,1069,1,0,0,0,146,1083,1,0,0,0,148,1085,1,0,0,0,150,1092,1,0,0,
-		0,152,1100,1,0,0,0,154,1117,1,0,0,0,156,1119,1,0,0,0,158,1121,1,0,0,0,
-		160,1140,1,0,0,0,162,1142,1,0,0,0,164,1144,1,0,0,0,166,1147,1,0,0,0,168,
-		1153,1,0,0,0,170,1167,1,0,0,0,172,1176,1,0,0,0,174,1185,1,0,0,0,176,1189,
-		1,0,0,0,178,1193,1,0,0,0,180,1195,1,0,0,0,182,1217,1,0,0,0,184,1220,1,
-		0,0,0,186,1223,1,0,0,0,188,1233,1,0,0,0,190,1243,1,0,0,0,192,1245,1,0,
-		0,0,194,1254,1,0,0,0,196,1258,1,0,0,0,198,1262,1,0,0,0,200,1267,1,0,0,
-		0,202,1277,1,0,0,0,204,1279,1,0,0,0,206,1290,1,0,0,0,208,1298,1,0,0,0,
-		210,1307,1,0,0,0,212,1315,1,0,0,0,214,1317,1,0,0,0,216,1326,1,0,0,0,218,
-		1328,1,0,0,0,220,1336,1,0,0,0,222,1386,1,0,0,0,224,1389,1,0,0,0,226,1393,
-		1,0,0,0,228,1413,1,0,0,0,230,1416,1,0,0,0,232,1419,1,0,0,0,234,1423,1,
-		0,0,0,236,1432,1,0,0,0,238,1441,1,0,0,0,240,1455,1,0,0,0,242,1458,1,0,
-		0,0,244,1468,1,0,0,0,246,1477,1,0,0,0,248,1483,1,0,0,0,250,1489,1,0,0,
-		0,252,1491,1,0,0,0,254,1494,1,0,0,0,256,1560,1,0,0,0,258,1562,1,0,0,0,
-		260,1567,1,0,0,0,262,1575,1,0,0,0,264,1579,1,0,0,0,266,1583,1,0,0,0,268,
-		1586,1,0,0,0,270,1600,1,0,0,0,272,1609,1,0,0,0,274,1628,1,0,0,0,276,1653,
-		1,0,0,0,278,1656,1,0,0,0,280,1667,1,0,0,0,282,1669,1,0,0,0,284,1683,1,
-		0,0,0,286,1703,1,0,0,0,288,1705,1,0,0,0,290,1707,1,0,0,0,292,1709,1,0,
-		0,0,294,1716,1,0,0,0,296,1727,1,0,0,0,298,1731,1,0,0,0,300,1733,1,0,0,
-		0,302,1753,1,0,0,0,304,1783,1,0,0,0,306,1786,1,0,0,0,308,1792,1,0,0,0,
-		310,1794,1,0,0,0,312,1800,1,0,0,0,314,1834,1,0,0,0,316,1837,1,0,0,0,318,
-		1843,1,0,0,0,320,1845,1,0,0,0,322,1856,1,0,0,0,324,1858,1,0,0,0,326,1866,
-		1,0,0,0,328,1885,1,0,0,0,330,1887,1,0,0,0,332,1891,1,0,0,0,334,1897,1,
-		0,0,0,336,1917,1,0,0,0,338,1919,1,0,0,0,340,1928,1,0,0,0,342,1930,1,0,
-		0,0,344,1933,1,0,0,0,346,1939,1,0,0,0,348,1952,1,0,0,0,350,1956,1,0,0,
-		0,352,1965,1,0,0,0,354,1967,1,0,0,0,356,1986,1,0,0,0,358,1991,1,0,0,0,
-		360,2002,1,0,0,0,362,2005,1,0,0,0,364,2009,1,0,0,0,366,2018,1,0,0,0,368,
-		2040,1,0,0,0,370,2050,1,0,0,0,372,2062,1,0,0,0,374,2066,1,0,0,0,376,2070,
-		1,0,0,0,378,2079,1,0,0,0,380,2095,1,0,0,0,382,2097,1,0,0,0,384,2106,1,
-		0,0,0,386,2108,1,0,0,0,388,2114,1,0,0,0,390,2119,1,0,0,0,392,2125,1,0,
-		0,0,394,2128,1,0,0,0,396,2137,1,0,0,0,398,2145,1,0,0,0,400,2147,1,0,0,
-		0,402,2156,1,0,0,0,404,2165,1,0,0,0,406,2172,1,0,0,0,408,2182,1,0,0,0,
-		410,2184,1,0,0,0,412,2194,1,0,0,0,414,2217,1,0,0,0,416,2219,1,0,0,0,418,
-		2223,1,0,0,0,420,2226,1,0,0,0,422,2229,1,0,0,0,424,2234,1,0,0,0,426,2239,
-		1,0,0,0,428,2256,1,0,0,0,430,2258,1,0,0,0,432,2262,1,0,0,0,434,2265,1,
-		0,0,0,436,2268,1,0,0,0,438,2273,1,0,0,0,440,2286,1,0,0,0,442,2295,1,0,
-		0,0,444,2301,1,0,0,0,446,2313,1,0,0,0,448,2315,1,0,0,0,450,2324,1,0,0,
-		0,452,2333,1,0,0,0,454,2342,1,0,0,0,456,2353,1,0,0,0,458,2364,1,0,0,0,
-		460,2366,1,0,0,0,462,2370,1,0,0,0,464,2375,1,0,0,0,466,2378,1,0,0,0,468,
-		2380,1,0,0,0,470,2384,1,0,0,0,472,2395,1,0,0,0,474,2399,1,0,0,0,476,2408,
-		1,0,0,0,478,2426,1,0,0,0,480,2432,1,0,0,0,482,2434,1,0,0,0,484,2441,1,
-		0,0,0,486,2446,1,0,0,0,488,2482,1,0,0,0,490,2484,1,0,0,0,492,2494,1,0,
-		0,0,494,2500,1,0,0,0,496,2506,1,0,0,0,498,2533,1,0,0,0,500,2538,1,0,0,
-		0,502,2540,1,0,0,0,504,2580,1,0,0,0,506,2582,1,0,0,0,508,2602,1,0,0,0,
-		510,2628,1,0,0,0,512,2630,1,0,0,0,514,2643,1,0,0,0,516,2651,1,0,0,0,518,
-		2660,1,0,0,0,520,2673,1,0,0,0,522,2677,1,0,0,0,524,2685,1,0,0,0,526,2692,
-		1,0,0,0,528,2699,1,0,0,0,530,2706,1,0,0,0,532,2708,1,0,0,0,534,2716,1,
-		0,0,0,536,2724,1,0,0,0,538,2728,1,0,0,0,540,2745,1,0,0,0,542,2747,1,0,
-		0,0,544,2810,1,0,0,0,546,2812,1,0,0,0,548,2814,1,0,0,0,550,2823,1,0,0,
-		0,552,2825,1,0,0,0,554,2834,1,0,0,0,556,2836,1,0,0,0,558,2845,1,0,0,0,
-		560,2854,1,0,0,0,562,2856,1,0,0,0,564,2868,1,0,0,0,566,2870,1,0,0,0,568,
-		2875,1,0,0,0,570,2878,1,0,0,0,572,2889,1,0,0,0,574,2910,1,0,0,0,576,578,
-		3,2,1,0,577,576,1,0,0,0,578,581,1,0,0,0,579,577,1,0,0,0,579,580,1,0,0,
-		0,580,582,1,0,0,0,581,579,1,0,0,0,582,583,5,0,0,1,583,1,1,0,0,0,584,586,
-		3,4,2,0,585,584,1,0,0,0,586,587,1,0,0,0,587,585,1,0,0,0,587,588,1,0,0,
-		0,588,3,1,0,0,0,589,591,3,6,3,0,590,592,3,52,26,0,591,590,1,0,0,0,591,
-		592,1,0,0,0,592,594,1,0,0,0,593,595,3,108,54,0,594,593,1,0,0,0,594,595,
-		1,0,0,0,595,597,1,0,0,0,596,598,3,180,90,0,597,596,1,0,0,0,597,598,1,0,
-		0,0,598,5,1,0,0,0,599,600,5,50,0,0,600,601,5,51,0,0,601,602,5,262,0,0,
-		602,603,3,8,4,0,603,7,1,0,0,0,604,608,3,10,5,0,605,607,3,24,12,0,606,605,
-		1,0,0,0,607,610,1,0,0,0,608,606,1,0,0,0,608,609,1,0,0,0,609,9,1,0,0,0,
-		610,608,1,0,0,0,611,612,5,29,0,0,612,613,5,262,0,0,613,615,3,12,6,0,614,
-		616,3,14,7,0,615,614,1,0,0,0,615,616,1,0,0,0,616,617,1,0,0,0,617,618,5,
-		262,0,0,618,11,1,0,0,0,619,620,5,254,0,0,620,13,1,0,0,0,621,623,3,16,8,
-		0,622,621,1,0,0,0,623,624,1,0,0,0,624,622,1,0,0,0,624,625,1,0,0,0,625,
-		15,1,0,0,0,626,630,3,18,9,0,627,630,3,20,10,0,628,630,3,22,11,0,629,626,
-		1,0,0,0,629,627,1,0,0,0,629,628,1,0,0,0,630,17,1,0,0,0,631,632,7,0,0,0,
-		632,19,1,0,0,0,633,634,7,1,0,0,634,21,1,0,0,0,635,636,5,254,0,0,636,23,
-		1,0,0,0,637,645,3,26,13,0,638,645,3,30,15,0,639,645,3,34,17,0,640,645,
-		3,38,19,0,641,645,3,42,21,0,642,645,3,46,23,0,643,645,3,50,25,0,644,637,
-		1,0,0,0,644,638,1,0,0,0,644,639,1,0,0,0,644,640,1,0,0,0,644,641,1,0,0,
-		0,644,642,1,0,0,0,644,643,1,0,0,0,645,25,1,0,0,0,646,647,5,115,0,0,647,
-		648,5,262,0,0,648,649,3,28,14,0,649,27,1,0,0,0,650,652,7,2,0,0,651,650,
-		1,0,0,0,652,653,1,0,0,0,653,651,1,0,0,0,653,654,1,0,0,0,654,29,1,0,0,0,
-		655,656,5,169,0,0,656,657,5,262,0,0,657,658,3,32,16,0,658,31,1,0,0,0,659,
-		661,7,2,0,0,660,659,1,0,0,0,661,662,1,0,0,0,662,660,1,0,0,0,662,663,1,
-		0,0,0,663,33,1,0,0,0,664,665,5,39,0,0,665,666,5,262,0,0,666,667,3,36,18,
-		0,667,35,1,0,0,0,668,670,7,3,0,0,669,668,1,0,0,0,670,671,1,0,0,0,671,669,
-		1,0,0,0,671,672,1,0,0,0,672,37,1,0,0,0,673,674,5,40,0,0,674,675,5,262,
-		0,0,675,676,3,40,20,0,676,39,1,0,0,0,677,679,7,3,0,0,678,677,1,0,0,0,679,
-		680,1,0,0,0,680,678,1,0,0,0,680,681,1,0,0,0,681,41,1,0,0,0,682,683,5,216,
-		0,0,683,684,5,262,0,0,684,685,3,44,22,0,685,43,1,0,0,0,686,688,7,2,0,0,
-		687,686,1,0,0,0,688,689,1,0,0,0,689,687,1,0,0,0,689,690,1,0,0,0,690,45,
-		1,0,0,0,691,692,5,210,0,0,692,693,5,262,0,0,693,694,3,48,24,0,694,47,1,
-		0,0,0,695,697,7,2,0,0,696,695,1,0,0,0,697,698,1,0,0,0,698,696,1,0,0,0,
-		698,699,1,0,0,0,699,49,1,0,0,0,700,701,5,254,0,0,701,705,5,262,0,0,702,
-		704,7,3,0,0,703,702,1,0,0,0,704,707,1,0,0,0,705,703,1,0,0,0,705,706,1,
-		0,0,0,706,51,1,0,0,0,707,705,1,0,0,0,708,709,5,52,0,0,709,710,5,51,0,0,
-		710,712,5,262,0,0,711,713,3,54,27,0,712,711,1,0,0,0,712,713,1,0,0,0,713,
-		715,1,0,0,0,714,716,3,78,39,0,715,714,1,0,0,0,715,716,1,0,0,0,716,53,1,
-		0,0,0,717,718,5,254,0,0,718,719,5,55,0,0,719,723,5,262,0,0,720,722,3,56,
-		28,0,721,720,1,0,0,0,722,725,1,0,0,0,723,721,1,0,0,0,723,724,1,0,0,0,724,
-		55,1,0,0,0,725,723,1,0,0,0,726,731,3,58,29,0,727,731,3,60,30,0,728,731,
-		3,66,33,0,729,731,3,76,38,0,730,726,1,0,0,0,730,727,1,0,0,0,730,728,1,
-		0,0,0,730,729,1,0,0,0,731,57,1,0,0,0,732,733,5,41,0,0,733,734,5,262,0,
-		0,734,736,3,62,31,0,735,737,3,64,32,0,736,735,1,0,0,0,736,737,1,0,0,0,
-		737,738,1,0,0,0,738,739,5,262,0,0,739,59,1,0,0,0,740,741,5,42,0,0,741,
-		742,5,262,0,0,742,744,3,62,31,0,743,745,3,64,32,0,744,743,1,0,0,0,744,
-		745,1,0,0,0,745,746,1,0,0,0,746,747,5,262,0,0,747,61,1,0,0,0,748,749,5,
-		254,0,0,749,63,1,0,0,0,750,752,7,3,0,0,751,750,1,0,0,0,752,753,1,0,0,0,
-		753,751,1,0,0,0,753,754,1,0,0,0,754,65,1,0,0,0,755,756,5,43,0,0,756,758,
-		5,262,0,0,757,759,3,68,34,0,758,757,1,0,0,0,759,760,1,0,0,0,760,758,1,
-		0,0,0,760,761,1,0,0,0,761,67,1,0,0,0,762,764,3,72,36,0,763,765,5,262,0,
-		0,764,763,1,0,0,0,764,765,1,0,0,0,765,786,1,0,0,0,766,768,3,74,37,0,767,
-		769,5,262,0,0,768,767,1,0,0,0,768,769,1,0,0,0,769,786,1,0,0,0,770,772,
-		3,70,35,0,771,773,5,262,0,0,772,771,1,0,0,0,772,773,1,0,0,0,773,786,1,
-		0,0,0,774,779,5,254,0,0,775,778,5,254,0,0,776,778,3,564,282,0,777,775,
-		1,0,0,0,777,776,1,0,0,0,778,781,1,0,0,0,779,777,1,0,0,0,779,780,1,0,0,
-		0,780,783,1,0,0,0,781,779,1,0,0,0,782,784,5,262,0,0,783,782,1,0,0,0,783,
-		784,1,0,0,0,784,786,1,0,0,0,785,762,1,0,0,0,785,766,1,0,0,0,785,770,1,
-		0,0,0,785,774,1,0,0,0,786,69,1,0,0,0,787,788,5,254,0,0,788,789,5,172,0,
-		0,789,792,5,254,0,0,790,791,5,190,0,0,791,793,5,254,0,0,792,790,1,0,0,
-		0,792,793,1,0,0,0,793,799,1,0,0,0,794,796,5,189,0,0,795,797,5,172,0,0,
-		796,795,1,0,0,0,796,797,1,0,0,0,797,798,1,0,0,0,798,800,5,254,0,0,799,
-		794,1,0,0,0,799,800,1,0,0,0,800,71,1,0,0,0,801,802,5,131,0,0,802,804,5,
-		221,0,0,803,805,5,172,0,0,804,803,1,0,0,0,804,805,1,0,0,0,805,806,1,0,
-		0,0,806,807,3,564,282,0,807,73,1,0,0,0,808,809,5,132,0,0,809,810,5,172,
-		0,0,810,811,5,254,0,0,811,75,1,0,0,0,812,813,5,254,0,0,813,817,5,262,0,
-		0,814,816,7,3,0,0,815,814,1,0,0,0,816,819,1,0,0,0,817,815,1,0,0,0,817,
-		818,1,0,0,0,818,77,1,0,0,0,819,817,1,0,0,0,820,821,5,254,0,0,821,822,5,
-		55,0,0,822,824,5,262,0,0,823,825,3,80,40,0,824,823,1,0,0,0,824,825,1,0,
-		0,0,825,827,1,0,0,0,826,828,3,104,52,0,827,826,1,0,0,0,827,828,1,0,0,0,
-		828,79,1,0,0,0,829,830,5,44,0,0,830,832,5,262,0,0,831,833,3,82,41,0,832,
-		831,1,0,0,0,833,834,1,0,0,0,834,832,1,0,0,0,834,835,1,0,0,0,835,81,1,0,
-		0,0,836,837,5,217,0,0,837,841,3,202,101,0,838,839,5,112,0,0,839,840,5,
-		234,0,0,840,842,3,84,42,0,841,838,1,0,0,0,841,842,1,0,0,0,842,846,1,0,
-		0,0,843,845,3,86,43,0,844,843,1,0,0,0,845,848,1,0,0,0,846,844,1,0,0,0,
-		846,847,1,0,0,0,847,849,1,0,0,0,848,846,1,0,0,0,849,850,5,262,0,0,850,
-		83,1,0,0,0,851,852,7,2,0,0,852,85,1,0,0,0,853,860,3,88,44,0,854,860,3,
-		92,46,0,855,860,3,96,48,0,856,860,3,98,49,0,857,860,3,100,50,0,858,860,
-		3,102,51,0,859,853,1,0,0,0,859,854,1,0,0,0,859,855,1,0,0,0,859,856,1,0,
-		0,0,859,857,1,0,0,0,859,858,1,0,0,0,860,87,1,0,0,0,861,863,5,192,0,0,862,
-		864,5,172,0,0,863,862,1,0,0,0,863,864,1,0,0,0,864,865,1,0,0,0,865,866,
-		3,90,45,0,866,89,1,0,0,0,867,868,5,179,0,0,868,873,5,220,0,0,869,873,5,
-		220,0,0,870,873,5,208,0,0,871,873,5,166,0,0,872,867,1,0,0,0,872,869,1,
-		0,0,0,872,870,1,0,0,0,872,871,1,0,0,0,873,91,1,0,0,0,874,876,5,98,0,0,
-		875,877,5,182,0,0,876,875,1,0,0,0,876,877,1,0,0,0,877,879,1,0,0,0,878,
-		880,5,172,0,0,879,878,1,0,0,0,879,880,1,0,0,0,880,881,1,0,0,0,881,882,
-		3,94,47,0,882,93,1,0,0,0,883,884,7,4,0,0,884,95,1,0,0,0,885,886,5,203,
-		0,0,886,887,5,175,0,0,887,888,5,172,0,0,888,889,3,188,94,0,889,97,1,0,
-		0,0,890,891,5,108,0,0,891,892,5,175,0,0,892,893,5,172,0,0,893,898,3,188,
-		94,0,894,896,5,247,0,0,895,894,1,0,0,0,895,896,1,0,0,0,896,897,1,0,0,0,
-		897,899,5,143,0,0,898,895,1,0,0,0,898,899,1,0,0,0,899,99,1,0,0,0,900,901,
-		5,156,0,0,901,902,5,223,0,0,902,903,5,172,0,0,903,904,3,188,94,0,904,101,
-		1,0,0,0,905,910,5,254,0,0,906,909,5,254,0,0,907,909,3,564,282,0,908,906,
-		1,0,0,0,908,907,1,0,0,0,909,912,1,0,0,0,910,908,1,0,0,0,910,911,1,0,0,
-		0,911,103,1,0,0,0,912,910,1,0,0,0,913,914,5,45,0,0,914,916,5,262,0,0,915,
-		917,3,106,53,0,916,915,1,0,0,0,917,918,1,0,0,0,918,916,1,0,0,0,918,919,
-		1,0,0,0,919,105,1,0,0,0,920,925,5,254,0,0,921,924,5,254,0,0,922,924,3,
-		564,282,0,923,921,1,0,0,0,923,922,1,0,0,0,924,927,1,0,0,0,925,923,1,0,
-		0,0,925,926,1,0,0,0,926,928,1,0,0,0,927,925,1,0,0,0,928,929,5,262,0,0,
-		929,107,1,0,0,0,930,931,5,53,0,0,931,932,5,51,0,0,932,934,5,262,0,0,933,
-		935,3,110,55,0,934,933,1,0,0,0,934,935,1,0,0,0,935,937,1,0,0,0,936,938,
-		3,122,61,0,937,936,1,0,0,0,937,938,1,0,0,0,938,940,1,0,0,0,939,941,3,124,
-		62,0,940,939,1,0,0,0,940,941,1,0,0,0,941,943,1,0,0,0,942,944,3,126,63,
-		0,943,942,1,0,0,0,943,944,1,0,0,0,944,109,1,0,0,0,945,946,5,156,0,0,946,
-		947,5,55,0,0,947,951,5,262,0,0,948,950,3,112,56,0,949,948,1,0,0,0,950,
-		953,1,0,0,0,951,949,1,0,0,0,951,952,1,0,0,0,952,111,1,0,0,0,953,951,1,
-		0,0,0,954,955,5,57,0,0,955,957,3,202,101,0,956,958,3,114,57,0,957,956,
-		1,0,0,0,957,958,1,0,0,0,958,959,1,0,0,0,959,963,5,262,0,0,960,962,3,136,
-		68,0,961,960,1,0,0,0,962,965,1,0,0,0,963,961,1,0,0,0,963,964,1,0,0,0,964,
-		113,1,0,0,0,965,963,1,0,0,0,966,968,3,116,58,0,967,966,1,0,0,0,968,969,
-		1,0,0,0,969,967,1,0,0,0,969,970,1,0,0,0,970,115,1,0,0,0,971,979,3,88,44,
-		0,972,979,3,92,46,0,973,979,3,96,48,0,974,979,3,98,49,0,975,979,3,100,
-		50,0,976,979,3,118,59,0,977,979,3,120,60,0,978,971,1,0,0,0,978,972,1,0,
-		0,0,978,973,1,0,0,0,978,974,1,0,0,0,978,975,1,0,0,0,978,976,1,0,0,0,978,
-		977,1,0,0,0,979,117,1,0,0,0,980,981,5,53,0,0,981,983,5,203,0,0,982,984,
-		5,172,0,0,983,982,1,0,0,0,983,984,1,0,0,0,984,986,1,0,0,0,985,987,5,254,
-		0,0,986,985,1,0,0,0,987,988,1,0,0,0,988,986,1,0,0,0,988,989,1,0,0,0,989,
-		119,1,0,0,0,990,995,5,254,0,0,991,994,5,254,0,0,992,994,3,564,282,0,993,
-		991,1,0,0,0,993,992,1,0,0,0,994,997,1,0,0,0,995,993,1,0,0,0,995,996,1,
-		0,0,0,996,121,1,0,0,0,997,995,1,0,0,0,998,999,5,33,0,0,999,1000,5,55,0,
-		0,1000,1004,5,262,0,0,1001,1003,3,136,68,0,1002,1001,1,0,0,0,1003,1006,
-		1,0,0,0,1004,1002,1,0,0,0,1004,1005,1,0,0,0,1005,123,1,0,0,0,1006,1004,
-		1,0,0,0,1007,1008,5,34,0,0,1008,1009,5,55,0,0,1009,1013,5,262,0,0,1010,
-		1012,3,136,68,0,1011,1010,1,0,0,0,1012,1015,1,0,0,0,1013,1011,1,0,0,0,
-		1013,1014,1,0,0,0,1014,125,1,0,0,0,1015,1013,1,0,0,0,1016,1017,5,56,0,
-		0,1017,1018,5,55,0,0,1018,1022,5,262,0,0,1019,1021,3,128,64,0,1020,1019,
-		1,0,0,0,1021,1024,1,0,0,0,1022,1020,1,0,0,0,1022,1023,1,0,0,0,1023,127,
-		1,0,0,0,1024,1022,1,0,0,0,1025,1028,3,136,68,0,1026,1028,3,130,65,0,1027,
-		1025,1,0,0,0,1027,1026,1,0,0,0,1028,129,1,0,0,0,1029,1030,4,65,0,0,1030,
-		1032,3,138,69,0,1031,1033,3,140,70,0,1032,1031,1,0,0,0,1032,1033,1,0,0,
-		0,1033,1034,1,0,0,0,1034,1035,3,132,66,0,1035,1036,5,262,0,0,1036,131,
-		1,0,0,0,1037,1043,3,134,67,0,1038,1040,3,146,73,0,1039,1038,1,0,0,0,1040,
-		1041,1,0,0,0,1041,1039,1,0,0,0,1041,1042,1,0,0,0,1042,1044,1,0,0,0,1043,
-		1039,1,0,0,0,1043,1044,1,0,0,0,1044,133,1,0,0,0,1045,1047,5,242,0,0,1046,
-		1048,7,5,0,0,1047,1046,1,0,0,0,1047,1048,1,0,0,0,1048,1049,1,0,0,0,1049,
-		1050,3,188,94,0,1050,135,1,0,0,0,1051,1053,3,138,69,0,1052,1054,3,140,
-		70,0,1053,1052,1,0,0,0,1053,1054,1,0,0,0,1054,1055,1,0,0,0,1055,1056,3,
-		142,71,0,1056,1057,5,262,0,0,1057,137,1,0,0,0,1058,1059,5,255,0,0,1059,
-		139,1,0,0,0,1060,1061,7,6,0,0,1061,141,1,0,0,0,1062,1065,3,144,72,0,1063,
-		1065,3,166,83,0,1064,1062,1,0,0,0,1064,1063,1,0,0,0,1065,143,1,0,0,0,1066,
-		1068,3,146,73,0,1067,1066,1,0,0,0,1068,1071,1,0,0,0,1069,1067,1,0,0,0,
-		1069,1070,1,0,0,0,1070,145,1,0,0,0,1071,1069,1,0,0,0,1072,1084,3,152,76,
-		0,1073,1084,3,154,77,0,1074,1084,3,158,79,0,1075,1084,3,164,82,0,1076,
-		1084,3,168,84,0,1077,1084,3,172,86,0,1078,1084,3,176,88,0,1079,1084,3,
-		174,87,0,1080,1084,3,178,89,0,1081,1084,3,148,74,0,1082,1084,3,150,75,
-		0,1083,1072,1,0,0,0,1083,1073,1,0,0,0,1083,1074,1,0,0,0,1083,1075,1,0,
-		0,0,1083,1076,1,0,0,0,1083,1077,1,0,0,0,1083,1078,1,0,0,0,1083,1079,1,
-		0,0,0,1083,1080,1,0,0,0,1083,1081,1,0,0,0,1083,1082,1,0,0,0,1084,147,1,
-		0,0,0,1085,1086,4,74,1,0,1086,1088,5,237,0,0,1087,1089,5,172,0,0,1088,
-		1087,1,0,0,0,1088,1089,1,0,0,0,1089,1090,1,0,0,0,1090,1091,5,254,0,0,1091,
-		149,1,0,0,0,1092,1097,5,254,0,0,1093,1096,5,254,0,0,1094,1096,3,564,282,
-		0,1095,1093,1,0,0,0,1095,1094,1,0,0,0,1096,1099,1,0,0,0,1097,1095,1,0,
-		0,0,1097,1098,1,0,0,0,1098,151,1,0,0,0,1099,1097,1,0,0,0,1100,1101,5,198,
-		0,0,1101,1102,5,279,0,0,1102,153,1,0,0,0,1103,1105,5,241,0,0,1104,1106,
-		5,172,0,0,1105,1104,1,0,0,0,1105,1106,1,0,0,0,1106,1107,1,0,0,0,1107,1118,
-		3,156,78,0,1108,1118,5,68,0,0,1109,1118,5,128,0,0,1110,1118,5,124,0,0,
-		1111,1118,5,125,0,0,1112,1118,5,126,0,0,1113,1118,5,127,0,0,1114,1118,
-		5,117,0,0,1115,1118,5,47,0,0,1116,1118,5,165,0,0,1117,1103,1,0,0,0,1117,
-		1108,1,0,0,0,1117,1109,1,0,0,0,1117,1110,1,0,0,0,1117,1111,1,0,0,0,1117,
-		1112,1,0,0,0,1117,1113,1,0,0,0,1117,1114,1,0,0,0,1117,1115,1,0,0,0,1117,
-		1116,1,0,0,0,1118,155,1,0,0,0,1119,1120,7,7,0,0,1120,157,1,0,0,0,1121,
-		1122,5,187,0,0,1122,1125,3,162,81,0,1123,1124,5,234,0,0,1124,1126,3,162,
-		81,0,1125,1123,1,0,0,0,1125,1126,1,0,0,0,1126,1128,1,0,0,0,1127,1129,3,
-		160,80,0,1128,1127,1,0,0,0,1128,1129,1,0,0,0,1129,1133,1,0,0,0,1130,1131,
-		5,140,0,0,1131,1132,5,190,0,0,1132,1134,3,188,94,0,1133,1130,1,0,0,0,1133,
-		1134,1,0,0,0,1134,1138,1,0,0,0,1135,1136,5,166,0,0,1136,1137,5,119,0,0,
-		1137,1139,3,186,93,0,1138,1135,1,0,0,0,1138,1139,1,0,0,0,1139,159,1,0,
-		0,0,1140,1141,5,233,0,0,1141,161,1,0,0,0,1142,1143,5,255,0,0,1143,163,
-		1,0,0,0,1144,1145,5,205,0,0,1145,1146,3,188,94,0,1146,165,1,0,0,0,1147,
-		1148,5,211,0,0,1148,1151,3,188,94,0,1149,1150,5,231,0,0,1150,1152,3,188,
-		94,0,1151,1149,1,0,0,0,1151,1152,1,0,0,0,1152,167,1,0,0,0,1153,1155,7,
-		8,0,0,1154,1156,7,9,0,0,1155,1154,1,0,0,0,1155,1156,1,0,0,0,1156,1157,
-		1,0,0,0,1157,1164,3,170,85,0,1158,1160,5,264,0,0,1159,1158,1,0,0,0,1159,
-		1160,1,0,0,0,1160,1161,1,0,0,0,1161,1163,3,170,85,0,1162,1159,1,0,0,0,
-		1163,1166,1,0,0,0,1164,1162,1,0,0,0,1164,1165,1,0,0,0,1165,169,1,0,0,0,
-		1166,1164,1,0,0,0,1167,1170,3,564,282,0,1168,1169,5,231,0,0,1169,1171,
-		3,564,282,0,1170,1168,1,0,0,0,1170,1171,1,0,0,0,1171,171,1,0,0,0,1172,
-		1174,5,221,0,0,1173,1175,5,172,0,0,1174,1173,1,0,0,0,1174,1175,1,0,0,0,
-		1175,1177,1,0,0,0,1176,1172,1,0,0,0,1176,1177,1,0,0,0,1177,1178,1,0,0,
-		0,1178,1183,7,10,0,0,1179,1181,5,219,0,0,1180,1182,5,120,0,0,1181,1180,
-		1,0,0,0,1181,1182,1,0,0,0,1182,1184,1,0,0,0,1183,1179,1,0,0,0,1183,1184,
-		1,0,0,0,1184,173,1,0,0,0,1185,1187,7,11,0,0,1186,1188,5,214,0,0,1187,1186,
-		1,0,0,0,1187,1188,1,0,0,0,1188,175,1,0,0,0,1189,1191,7,12,0,0,1190,1192,
-		7,13,0,0,1191,1190,1,0,0,0,1191,1192,1,0,0,0,1192,177,1,0,0,0,1193,1194,
-		5,48,0,0,1194,179,1,0,0,0,1195,1196,5,54,0,0,1196,1198,5,51,0,0,1197,1199,
-		3,182,91,0,1198,1197,1,0,0,0,1198,1199,1,0,0,0,1199,1202,1,0,0,0,1200,
-		1201,4,90,2,0,1201,1203,3,184,92,0,1202,1200,1,0,0,0,1202,1203,1,0,0,0,
-		1203,1204,1,0,0,0,1204,1208,5,262,0,0,1205,1207,3,204,102,0,1206,1205,
-		1,0,0,0,1207,1210,1,0,0,0,1208,1206,1,0,0,0,1208,1209,1,0,0,0,1209,1214,
-		1,0,0,0,1210,1208,1,0,0,0,1211,1213,3,212,106,0,1212,1211,1,0,0,0,1213,
-		1216,1,0,0,0,1214,1212,1,0,0,0,1214,1215,1,0,0,0,1215,181,1,0,0,0,1216,
-		1214,1,0,0,0,1217,1218,5,242,0,0,1218,1219,3,186,93,0,1219,183,1,0,0,0,
-		1220,1221,5,212,0,0,1221,1222,3,188,94,0,1222,185,1,0,0,0,1223,1230,3,
-		188,94,0,1224,1226,5,264,0,0,1225,1224,1,0,0,0,1225,1226,1,0,0,0,1226,
+		1,287,1,287,1,287,1,287,1,287,3,287,2914,8,287,1,287,0,0,288,0,2,4,6,8,
+		10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,
+		58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,
+		104,106,108,110,112,114,116,118,120,122,124,126,128,130,132,134,136,138,
+		140,142,144,146,148,150,152,154,156,158,160,162,164,166,168,170,172,174,
+		176,178,180,182,184,186,188,190,192,194,196,198,200,202,204,206,208,210,
+		212,214,216,218,220,222,224,226,228,230,232,234,236,238,240,242,244,246,
+		248,250,252,254,256,258,260,262,264,266,268,270,272,274,276,278,280,282,
+		284,286,288,290,292,294,296,298,300,302,304,306,308,310,312,314,316,318,
+		320,322,324,326,328,330,332,334,336,338,340,342,344,346,348,350,352,354,
+		356,358,360,362,364,366,368,370,372,374,376,378,380,382,384,386,388,390,
+		392,394,396,398,400,402,404,406,408,410,412,414,416,418,420,422,424,426,
+		428,430,432,434,436,438,440,442,444,446,448,450,452,454,456,458,460,462,
+		464,466,468,470,472,474,476,478,480,482,484,486,488,490,492,494,496,498,
+		500,502,504,506,508,510,512,514,516,518,520,522,524,526,528,530,532,534,
+		536,538,540,542,544,546,548,550,552,554,556,558,560,562,564,566,568,570,
+		572,574,0,30,4,0,123,123,162,162,167,167,204,204,1,0,255,256,2,0,254,254,
+		256,256,1,0,254,256,3,0,144,144,202,202,220,220,1,0,36,38,3,0,54,54,157,
+		157,254,254,5,0,47,47,68,68,117,117,124,128,165,165,1,0,243,244,2,0,113,
+		113,172,172,2,0,176,176,235,235,1,0,173,174,1,0,225,226,2,0,177,177,214,
+		214,2,0,164,164,188,188,2,0,183,183,200,200,2,0,104,104,116,116,1,0,179,
+		180,4,0,46,46,151,151,168,168,194,194,1,0,230,231,1,0,254,255,2,0,155,
+		155,236,236,2,0,142,142,240,240,2,0,111,111,141,141,6,0,55,55,83,83,159,
+		159,181,181,197,197,201,201,3,0,49,49,135,136,232,232,2,0,100,102,185,
+		185,2,0,228,228,234,234,1,0,270,271,1,0,272,273,3144,0,579,1,0,0,0,2,585,
+		1,0,0,0,4,589,1,0,0,0,6,599,1,0,0,0,8,604,1,0,0,0,10,611,1,0,0,0,12,619,
+		1,0,0,0,14,622,1,0,0,0,16,629,1,0,0,0,18,631,1,0,0,0,20,633,1,0,0,0,22,
+		635,1,0,0,0,24,644,1,0,0,0,26,646,1,0,0,0,28,651,1,0,0,0,30,655,1,0,0,
+		0,32,660,1,0,0,0,34,664,1,0,0,0,36,669,1,0,0,0,38,673,1,0,0,0,40,678,1,
+		0,0,0,42,682,1,0,0,0,44,687,1,0,0,0,46,691,1,0,0,0,48,696,1,0,0,0,50,700,
+		1,0,0,0,52,708,1,0,0,0,54,717,1,0,0,0,56,730,1,0,0,0,58,732,1,0,0,0,60,
+		740,1,0,0,0,62,748,1,0,0,0,64,751,1,0,0,0,66,755,1,0,0,0,68,785,1,0,0,
+		0,70,787,1,0,0,0,72,801,1,0,0,0,74,808,1,0,0,0,76,812,1,0,0,0,78,820,1,
+		0,0,0,80,829,1,0,0,0,82,836,1,0,0,0,84,851,1,0,0,0,86,859,1,0,0,0,88,861,
+		1,0,0,0,90,872,1,0,0,0,92,874,1,0,0,0,94,883,1,0,0,0,96,885,1,0,0,0,98,
+		890,1,0,0,0,100,900,1,0,0,0,102,905,1,0,0,0,104,913,1,0,0,0,106,920,1,
+		0,0,0,108,930,1,0,0,0,110,945,1,0,0,0,112,954,1,0,0,0,114,967,1,0,0,0,
+		116,978,1,0,0,0,118,980,1,0,0,0,120,990,1,0,0,0,122,998,1,0,0,0,124,1007,
+		1,0,0,0,126,1016,1,0,0,0,128,1027,1,0,0,0,130,1029,1,0,0,0,132,1037,1,
+		0,0,0,134,1045,1,0,0,0,136,1051,1,0,0,0,138,1058,1,0,0,0,140,1060,1,0,
+		0,0,142,1064,1,0,0,0,144,1069,1,0,0,0,146,1083,1,0,0,0,148,1085,1,0,0,
+		0,150,1092,1,0,0,0,152,1100,1,0,0,0,154,1117,1,0,0,0,156,1119,1,0,0,0,
+		158,1121,1,0,0,0,160,1140,1,0,0,0,162,1142,1,0,0,0,164,1144,1,0,0,0,166,
+		1147,1,0,0,0,168,1153,1,0,0,0,170,1167,1,0,0,0,172,1176,1,0,0,0,174,1185,
+		1,0,0,0,176,1189,1,0,0,0,178,1193,1,0,0,0,180,1195,1,0,0,0,182,1217,1,
+		0,0,0,184,1220,1,0,0,0,186,1223,1,0,0,0,188,1233,1,0,0,0,190,1243,1,0,
+		0,0,192,1245,1,0,0,0,194,1254,1,0,0,0,196,1258,1,0,0,0,198,1262,1,0,0,
+		0,200,1267,1,0,0,0,202,1277,1,0,0,0,204,1279,1,0,0,0,206,1290,1,0,0,0,
+		208,1298,1,0,0,0,210,1307,1,0,0,0,212,1315,1,0,0,0,214,1317,1,0,0,0,216,
+		1326,1,0,0,0,218,1328,1,0,0,0,220,1336,1,0,0,0,222,1386,1,0,0,0,224,1389,
+		1,0,0,0,226,1393,1,0,0,0,228,1413,1,0,0,0,230,1416,1,0,0,0,232,1419,1,
+		0,0,0,234,1423,1,0,0,0,236,1432,1,0,0,0,238,1441,1,0,0,0,240,1455,1,0,
+		0,0,242,1458,1,0,0,0,244,1468,1,0,0,0,246,1477,1,0,0,0,248,1483,1,0,0,
+		0,250,1489,1,0,0,0,252,1491,1,0,0,0,254,1494,1,0,0,0,256,1560,1,0,0,0,
+		258,1562,1,0,0,0,260,1567,1,0,0,0,262,1575,1,0,0,0,264,1579,1,0,0,0,266,
+		1583,1,0,0,0,268,1586,1,0,0,0,270,1600,1,0,0,0,272,1609,1,0,0,0,274,1628,
+		1,0,0,0,276,1653,1,0,0,0,278,1656,1,0,0,0,280,1667,1,0,0,0,282,1669,1,
+		0,0,0,284,1683,1,0,0,0,286,1703,1,0,0,0,288,1705,1,0,0,0,290,1707,1,0,
+		0,0,292,1709,1,0,0,0,294,1716,1,0,0,0,296,1727,1,0,0,0,298,1731,1,0,0,
+		0,300,1733,1,0,0,0,302,1753,1,0,0,0,304,1783,1,0,0,0,306,1786,1,0,0,0,
+		308,1792,1,0,0,0,310,1794,1,0,0,0,312,1800,1,0,0,0,314,1834,1,0,0,0,316,
+		1837,1,0,0,0,318,1843,1,0,0,0,320,1845,1,0,0,0,322,1856,1,0,0,0,324,1858,
+		1,0,0,0,326,1866,1,0,0,0,328,1885,1,0,0,0,330,1887,1,0,0,0,332,1891,1,
+		0,0,0,334,1897,1,0,0,0,336,1917,1,0,0,0,338,1919,1,0,0,0,340,1928,1,0,
+		0,0,342,1930,1,0,0,0,344,1933,1,0,0,0,346,1939,1,0,0,0,348,1952,1,0,0,
+		0,350,1956,1,0,0,0,352,1965,1,0,0,0,354,1967,1,0,0,0,356,1986,1,0,0,0,
+		358,1991,1,0,0,0,360,2002,1,0,0,0,362,2005,1,0,0,0,364,2009,1,0,0,0,366,
+		2018,1,0,0,0,368,2040,1,0,0,0,370,2050,1,0,0,0,372,2062,1,0,0,0,374,2066,
+		1,0,0,0,376,2070,1,0,0,0,378,2079,1,0,0,0,380,2095,1,0,0,0,382,2097,1,
+		0,0,0,384,2106,1,0,0,0,386,2108,1,0,0,0,388,2114,1,0,0,0,390,2119,1,0,
+		0,0,392,2125,1,0,0,0,394,2128,1,0,0,0,396,2137,1,0,0,0,398,2145,1,0,0,
+		0,400,2147,1,0,0,0,402,2156,1,0,0,0,404,2165,1,0,0,0,406,2172,1,0,0,0,
+		408,2182,1,0,0,0,410,2184,1,0,0,0,412,2194,1,0,0,0,414,2217,1,0,0,0,416,
+		2219,1,0,0,0,418,2223,1,0,0,0,420,2226,1,0,0,0,422,2229,1,0,0,0,424,2234,
+		1,0,0,0,426,2239,1,0,0,0,428,2256,1,0,0,0,430,2258,1,0,0,0,432,2262,1,
+		0,0,0,434,2265,1,0,0,0,436,2268,1,0,0,0,438,2273,1,0,0,0,440,2286,1,0,
+		0,0,442,2295,1,0,0,0,444,2301,1,0,0,0,446,2313,1,0,0,0,448,2315,1,0,0,
+		0,450,2324,1,0,0,0,452,2333,1,0,0,0,454,2342,1,0,0,0,456,2353,1,0,0,0,
+		458,2364,1,0,0,0,460,2366,1,0,0,0,462,2370,1,0,0,0,464,2375,1,0,0,0,466,
+		2378,1,0,0,0,468,2380,1,0,0,0,470,2384,1,0,0,0,472,2395,1,0,0,0,474,2399,
+		1,0,0,0,476,2408,1,0,0,0,478,2426,1,0,0,0,480,2432,1,0,0,0,482,2434,1,
+		0,0,0,484,2441,1,0,0,0,486,2446,1,0,0,0,488,2482,1,0,0,0,490,2484,1,0,
+		0,0,492,2494,1,0,0,0,494,2500,1,0,0,0,496,2506,1,0,0,0,498,2533,1,0,0,
+		0,500,2538,1,0,0,0,502,2540,1,0,0,0,504,2580,1,0,0,0,506,2582,1,0,0,0,
+		508,2602,1,0,0,0,510,2628,1,0,0,0,512,2630,1,0,0,0,514,2643,1,0,0,0,516,
+		2651,1,0,0,0,518,2660,1,0,0,0,520,2673,1,0,0,0,522,2677,1,0,0,0,524,2685,
+		1,0,0,0,526,2692,1,0,0,0,528,2699,1,0,0,0,530,2706,1,0,0,0,532,2708,1,
+		0,0,0,534,2716,1,0,0,0,536,2727,1,0,0,0,538,2731,1,0,0,0,540,2748,1,0,
+		0,0,542,2750,1,0,0,0,544,2813,1,0,0,0,546,2815,1,0,0,0,548,2817,1,0,0,
+		0,550,2826,1,0,0,0,552,2828,1,0,0,0,554,2837,1,0,0,0,556,2839,1,0,0,0,
+		558,2848,1,0,0,0,560,2857,1,0,0,0,562,2859,1,0,0,0,564,2871,1,0,0,0,566,
+		2873,1,0,0,0,568,2878,1,0,0,0,570,2881,1,0,0,0,572,2892,1,0,0,0,574,2913,
+		1,0,0,0,576,578,3,2,1,0,577,576,1,0,0,0,578,581,1,0,0,0,579,577,1,0,0,
+		0,579,580,1,0,0,0,580,582,1,0,0,0,581,579,1,0,0,0,582,583,5,0,0,1,583,
+		1,1,0,0,0,584,586,3,4,2,0,585,584,1,0,0,0,586,587,1,0,0,0,587,585,1,0,
+		0,0,587,588,1,0,0,0,588,3,1,0,0,0,589,591,3,6,3,0,590,592,3,52,26,0,591,
+		590,1,0,0,0,591,592,1,0,0,0,592,594,1,0,0,0,593,595,3,108,54,0,594,593,
+		1,0,0,0,594,595,1,0,0,0,595,597,1,0,0,0,596,598,3,180,90,0,597,596,1,0,
+		0,0,597,598,1,0,0,0,598,5,1,0,0,0,599,600,5,50,0,0,600,601,5,51,0,0,601,
+		602,5,262,0,0,602,603,3,8,4,0,603,7,1,0,0,0,604,608,3,10,5,0,605,607,3,
+		24,12,0,606,605,1,0,0,0,607,610,1,0,0,0,608,606,1,0,0,0,608,609,1,0,0,
+		0,609,9,1,0,0,0,610,608,1,0,0,0,611,612,5,29,0,0,612,613,5,262,0,0,613,
+		615,3,12,6,0,614,616,3,14,7,0,615,614,1,0,0,0,615,616,1,0,0,0,616,617,
+		1,0,0,0,617,618,5,262,0,0,618,11,1,0,0,0,619,620,5,254,0,0,620,13,1,0,
+		0,0,621,623,3,16,8,0,622,621,1,0,0,0,623,624,1,0,0,0,624,622,1,0,0,0,624,
+		625,1,0,0,0,625,15,1,0,0,0,626,630,3,18,9,0,627,630,3,20,10,0,628,630,
+		3,22,11,0,629,626,1,0,0,0,629,627,1,0,0,0,629,628,1,0,0,0,630,17,1,0,0,
+		0,631,632,7,0,0,0,632,19,1,0,0,0,633,634,7,1,0,0,634,21,1,0,0,0,635,636,
+		5,254,0,0,636,23,1,0,0,0,637,645,3,26,13,0,638,645,3,30,15,0,639,645,3,
+		34,17,0,640,645,3,38,19,0,641,645,3,42,21,0,642,645,3,46,23,0,643,645,
+		3,50,25,0,644,637,1,0,0,0,644,638,1,0,0,0,644,639,1,0,0,0,644,640,1,0,
+		0,0,644,641,1,0,0,0,644,642,1,0,0,0,644,643,1,0,0,0,645,25,1,0,0,0,646,
+		647,5,115,0,0,647,648,5,262,0,0,648,649,3,28,14,0,649,27,1,0,0,0,650,652,
+		7,2,0,0,651,650,1,0,0,0,652,653,1,0,0,0,653,651,1,0,0,0,653,654,1,0,0,
+		0,654,29,1,0,0,0,655,656,5,169,0,0,656,657,5,262,0,0,657,658,3,32,16,0,
+		658,31,1,0,0,0,659,661,7,2,0,0,660,659,1,0,0,0,661,662,1,0,0,0,662,660,
+		1,0,0,0,662,663,1,0,0,0,663,33,1,0,0,0,664,665,5,39,0,0,665,666,5,262,
+		0,0,666,667,3,36,18,0,667,35,1,0,0,0,668,670,7,3,0,0,669,668,1,0,0,0,670,
+		671,1,0,0,0,671,669,1,0,0,0,671,672,1,0,0,0,672,37,1,0,0,0,673,674,5,40,
+		0,0,674,675,5,262,0,0,675,676,3,40,20,0,676,39,1,0,0,0,677,679,7,3,0,0,
+		678,677,1,0,0,0,679,680,1,0,0,0,680,678,1,0,0,0,680,681,1,0,0,0,681,41,
+		1,0,0,0,682,683,5,216,0,0,683,684,5,262,0,0,684,685,3,44,22,0,685,43,1,
+		0,0,0,686,688,7,2,0,0,687,686,1,0,0,0,688,689,1,0,0,0,689,687,1,0,0,0,
+		689,690,1,0,0,0,690,45,1,0,0,0,691,692,5,210,0,0,692,693,5,262,0,0,693,
+		694,3,48,24,0,694,47,1,0,0,0,695,697,7,2,0,0,696,695,1,0,0,0,697,698,1,
+		0,0,0,698,696,1,0,0,0,698,699,1,0,0,0,699,49,1,0,0,0,700,701,5,254,0,0,
+		701,705,5,262,0,0,702,704,7,3,0,0,703,702,1,0,0,0,704,707,1,0,0,0,705,
+		703,1,0,0,0,705,706,1,0,0,0,706,51,1,0,0,0,707,705,1,0,0,0,708,709,5,52,
+		0,0,709,710,5,51,0,0,710,712,5,262,0,0,711,713,3,54,27,0,712,711,1,0,0,
+		0,712,713,1,0,0,0,713,715,1,0,0,0,714,716,3,78,39,0,715,714,1,0,0,0,715,
+		716,1,0,0,0,716,53,1,0,0,0,717,718,5,254,0,0,718,719,5,55,0,0,719,723,
+		5,262,0,0,720,722,3,56,28,0,721,720,1,0,0,0,722,725,1,0,0,0,723,721,1,
+		0,0,0,723,724,1,0,0,0,724,55,1,0,0,0,725,723,1,0,0,0,726,731,3,58,29,0,
+		727,731,3,60,30,0,728,731,3,66,33,0,729,731,3,76,38,0,730,726,1,0,0,0,
+		730,727,1,0,0,0,730,728,1,0,0,0,730,729,1,0,0,0,731,57,1,0,0,0,732,733,
+		5,41,0,0,733,734,5,262,0,0,734,736,3,62,31,0,735,737,3,64,32,0,736,735,
+		1,0,0,0,736,737,1,0,0,0,737,738,1,0,0,0,738,739,5,262,0,0,739,59,1,0,0,
+		0,740,741,5,42,0,0,741,742,5,262,0,0,742,744,3,62,31,0,743,745,3,64,32,
+		0,744,743,1,0,0,0,744,745,1,0,0,0,745,746,1,0,0,0,746,747,5,262,0,0,747,
+		61,1,0,0,0,748,749,5,254,0,0,749,63,1,0,0,0,750,752,7,3,0,0,751,750,1,
+		0,0,0,752,753,1,0,0,0,753,751,1,0,0,0,753,754,1,0,0,0,754,65,1,0,0,0,755,
+		756,5,43,0,0,756,758,5,262,0,0,757,759,3,68,34,0,758,757,1,0,0,0,759,760,
+		1,0,0,0,760,758,1,0,0,0,760,761,1,0,0,0,761,67,1,0,0,0,762,764,3,72,36,
+		0,763,765,5,262,0,0,764,763,1,0,0,0,764,765,1,0,0,0,765,786,1,0,0,0,766,
+		768,3,74,37,0,767,769,5,262,0,0,768,767,1,0,0,0,768,769,1,0,0,0,769,786,
+		1,0,0,0,770,772,3,70,35,0,771,773,5,262,0,0,772,771,1,0,0,0,772,773,1,
+		0,0,0,773,786,1,0,0,0,774,779,5,254,0,0,775,778,5,254,0,0,776,778,3,564,
+		282,0,777,775,1,0,0,0,777,776,1,0,0,0,778,781,1,0,0,0,779,777,1,0,0,0,
+		779,780,1,0,0,0,780,783,1,0,0,0,781,779,1,0,0,0,782,784,5,262,0,0,783,
+		782,1,0,0,0,783,784,1,0,0,0,784,786,1,0,0,0,785,762,1,0,0,0,785,766,1,
+		0,0,0,785,770,1,0,0,0,785,774,1,0,0,0,786,69,1,0,0,0,787,788,5,254,0,0,
+		788,789,5,172,0,0,789,792,5,254,0,0,790,791,5,190,0,0,791,793,5,254,0,
+		0,792,790,1,0,0,0,792,793,1,0,0,0,793,799,1,0,0,0,794,796,5,189,0,0,795,
+		797,5,172,0,0,796,795,1,0,0,0,796,797,1,0,0,0,797,798,1,0,0,0,798,800,
+		5,254,0,0,799,794,1,0,0,0,799,800,1,0,0,0,800,71,1,0,0,0,801,802,5,131,
+		0,0,802,804,5,221,0,0,803,805,5,172,0,0,804,803,1,0,0,0,804,805,1,0,0,
+		0,805,806,1,0,0,0,806,807,3,564,282,0,807,73,1,0,0,0,808,809,5,132,0,0,
+		809,810,5,172,0,0,810,811,5,254,0,0,811,75,1,0,0,0,812,813,5,254,0,0,813,
+		817,5,262,0,0,814,816,7,3,0,0,815,814,1,0,0,0,816,819,1,0,0,0,817,815,
+		1,0,0,0,817,818,1,0,0,0,818,77,1,0,0,0,819,817,1,0,0,0,820,821,5,254,0,
+		0,821,822,5,55,0,0,822,824,5,262,0,0,823,825,3,80,40,0,824,823,1,0,0,0,
+		824,825,1,0,0,0,825,827,1,0,0,0,826,828,3,104,52,0,827,826,1,0,0,0,827,
+		828,1,0,0,0,828,79,1,0,0,0,829,830,5,44,0,0,830,832,5,262,0,0,831,833,
+		3,82,41,0,832,831,1,0,0,0,833,834,1,0,0,0,834,832,1,0,0,0,834,835,1,0,
+		0,0,835,81,1,0,0,0,836,837,5,217,0,0,837,841,3,202,101,0,838,839,5,112,
+		0,0,839,840,5,234,0,0,840,842,3,84,42,0,841,838,1,0,0,0,841,842,1,0,0,
+		0,842,846,1,0,0,0,843,845,3,86,43,0,844,843,1,0,0,0,845,848,1,0,0,0,846,
+		844,1,0,0,0,846,847,1,0,0,0,847,849,1,0,0,0,848,846,1,0,0,0,849,850,5,
+		262,0,0,850,83,1,0,0,0,851,852,7,2,0,0,852,85,1,0,0,0,853,860,3,88,44,
+		0,854,860,3,92,46,0,855,860,3,96,48,0,856,860,3,98,49,0,857,860,3,100,
+		50,0,858,860,3,102,51,0,859,853,1,0,0,0,859,854,1,0,0,0,859,855,1,0,0,
+		0,859,856,1,0,0,0,859,857,1,0,0,0,859,858,1,0,0,0,860,87,1,0,0,0,861,863,
+		5,192,0,0,862,864,5,172,0,0,863,862,1,0,0,0,863,864,1,0,0,0,864,865,1,
+		0,0,0,865,866,3,90,45,0,866,89,1,0,0,0,867,868,5,179,0,0,868,873,5,220,
+		0,0,869,873,5,220,0,0,870,873,5,208,0,0,871,873,5,166,0,0,872,867,1,0,
+		0,0,872,869,1,0,0,0,872,870,1,0,0,0,872,871,1,0,0,0,873,91,1,0,0,0,874,
+		876,5,98,0,0,875,877,5,182,0,0,876,875,1,0,0,0,876,877,1,0,0,0,877,879,
+		1,0,0,0,878,880,5,172,0,0,879,878,1,0,0,0,879,880,1,0,0,0,880,881,1,0,
+		0,0,881,882,3,94,47,0,882,93,1,0,0,0,883,884,7,4,0,0,884,95,1,0,0,0,885,
+		886,5,203,0,0,886,887,5,175,0,0,887,888,5,172,0,0,888,889,3,188,94,0,889,
+		97,1,0,0,0,890,891,5,108,0,0,891,892,5,175,0,0,892,893,5,172,0,0,893,898,
+		3,188,94,0,894,896,5,247,0,0,895,894,1,0,0,0,895,896,1,0,0,0,896,897,1,
+		0,0,0,897,899,5,143,0,0,898,895,1,0,0,0,898,899,1,0,0,0,899,99,1,0,0,0,
+		900,901,5,156,0,0,901,902,5,223,0,0,902,903,5,172,0,0,903,904,3,188,94,
+		0,904,101,1,0,0,0,905,910,5,254,0,0,906,909,5,254,0,0,907,909,3,564,282,
+		0,908,906,1,0,0,0,908,907,1,0,0,0,909,912,1,0,0,0,910,908,1,0,0,0,910,
+		911,1,0,0,0,911,103,1,0,0,0,912,910,1,0,0,0,913,914,5,45,0,0,914,916,5,
+		262,0,0,915,917,3,106,53,0,916,915,1,0,0,0,917,918,1,0,0,0,918,916,1,0,
+		0,0,918,919,1,0,0,0,919,105,1,0,0,0,920,925,5,254,0,0,921,924,5,254,0,
+		0,922,924,3,564,282,0,923,921,1,0,0,0,923,922,1,0,0,0,924,927,1,0,0,0,
+		925,923,1,0,0,0,925,926,1,0,0,0,926,928,1,0,0,0,927,925,1,0,0,0,928,929,
+		5,262,0,0,929,107,1,0,0,0,930,931,5,53,0,0,931,932,5,51,0,0,932,934,5,
+		262,0,0,933,935,3,110,55,0,934,933,1,0,0,0,934,935,1,0,0,0,935,937,1,0,
+		0,0,936,938,3,122,61,0,937,936,1,0,0,0,937,938,1,0,0,0,938,940,1,0,0,0,
+		939,941,3,124,62,0,940,939,1,0,0,0,940,941,1,0,0,0,941,943,1,0,0,0,942,
+		944,3,126,63,0,943,942,1,0,0,0,943,944,1,0,0,0,944,109,1,0,0,0,945,946,
+		5,156,0,0,946,947,5,55,0,0,947,951,5,262,0,0,948,950,3,112,56,0,949,948,
+		1,0,0,0,950,953,1,0,0,0,951,949,1,0,0,0,951,952,1,0,0,0,952,111,1,0,0,
+		0,953,951,1,0,0,0,954,955,5,57,0,0,955,957,3,202,101,0,956,958,3,114,57,
+		0,957,956,1,0,0,0,957,958,1,0,0,0,958,959,1,0,0,0,959,963,5,262,0,0,960,
+		962,3,136,68,0,961,960,1,0,0,0,962,965,1,0,0,0,963,961,1,0,0,0,963,964,
+		1,0,0,0,964,113,1,0,0,0,965,963,1,0,0,0,966,968,3,116,58,0,967,966,1,0,
+		0,0,968,969,1,0,0,0,969,967,1,0,0,0,969,970,1,0,0,0,970,115,1,0,0,0,971,
+		979,3,88,44,0,972,979,3,92,46,0,973,979,3,96,48,0,974,979,3,98,49,0,975,
+		979,3,100,50,0,976,979,3,118,59,0,977,979,3,120,60,0,978,971,1,0,0,0,978,
+		972,1,0,0,0,978,973,1,0,0,0,978,974,1,0,0,0,978,975,1,0,0,0,978,976,1,
+		0,0,0,978,977,1,0,0,0,979,117,1,0,0,0,980,981,5,53,0,0,981,983,5,203,0,
+		0,982,984,5,172,0,0,983,982,1,0,0,0,983,984,1,0,0,0,984,986,1,0,0,0,985,
+		987,5,254,0,0,986,985,1,0,0,0,987,988,1,0,0,0,988,986,1,0,0,0,988,989,
+		1,0,0,0,989,119,1,0,0,0,990,995,5,254,0,0,991,994,5,254,0,0,992,994,3,
+		564,282,0,993,991,1,0,0,0,993,992,1,0,0,0,994,997,1,0,0,0,995,993,1,0,
+		0,0,995,996,1,0,0,0,996,121,1,0,0,0,997,995,1,0,0,0,998,999,5,33,0,0,999,
+		1000,5,55,0,0,1000,1004,5,262,0,0,1001,1003,3,136,68,0,1002,1001,1,0,0,
+		0,1003,1006,1,0,0,0,1004,1002,1,0,0,0,1004,1005,1,0,0,0,1005,123,1,0,0,
+		0,1006,1004,1,0,0,0,1007,1008,5,34,0,0,1008,1009,5,55,0,0,1009,1013,5,
+		262,0,0,1010,1012,3,136,68,0,1011,1010,1,0,0,0,1012,1015,1,0,0,0,1013,
+		1011,1,0,0,0,1013,1014,1,0,0,0,1014,125,1,0,0,0,1015,1013,1,0,0,0,1016,
+		1017,5,56,0,0,1017,1018,5,55,0,0,1018,1022,5,262,0,0,1019,1021,3,128,64,
+		0,1020,1019,1,0,0,0,1021,1024,1,0,0,0,1022,1020,1,0,0,0,1022,1023,1,0,
+		0,0,1023,127,1,0,0,0,1024,1022,1,0,0,0,1025,1028,3,136,68,0,1026,1028,
+		3,130,65,0,1027,1025,1,0,0,0,1027,1026,1,0,0,0,1028,129,1,0,0,0,1029,1030,
+		4,65,0,0,1030,1032,3,138,69,0,1031,1033,3,140,70,0,1032,1031,1,0,0,0,1032,
+		1033,1,0,0,0,1033,1034,1,0,0,0,1034,1035,3,132,66,0,1035,1036,5,262,0,
+		0,1036,131,1,0,0,0,1037,1043,3,134,67,0,1038,1040,3,146,73,0,1039,1038,
+		1,0,0,0,1040,1041,1,0,0,0,1041,1039,1,0,0,0,1041,1042,1,0,0,0,1042,1044,
+		1,0,0,0,1043,1039,1,0,0,0,1043,1044,1,0,0,0,1044,133,1,0,0,0,1045,1047,
+		5,242,0,0,1046,1048,7,5,0,0,1047,1046,1,0,0,0,1047,1048,1,0,0,0,1048,1049,
+		1,0,0,0,1049,1050,3,188,94,0,1050,135,1,0,0,0,1051,1053,3,138,69,0,1052,
+		1054,3,140,70,0,1053,1052,1,0,0,0,1053,1054,1,0,0,0,1054,1055,1,0,0,0,
+		1055,1056,3,142,71,0,1056,1057,5,262,0,0,1057,137,1,0,0,0,1058,1059,5,
+		255,0,0,1059,139,1,0,0,0,1060,1061,7,6,0,0,1061,141,1,0,0,0,1062,1065,
+		3,144,72,0,1063,1065,3,166,83,0,1064,1062,1,0,0,0,1064,1063,1,0,0,0,1065,
+		143,1,0,0,0,1066,1068,3,146,73,0,1067,1066,1,0,0,0,1068,1071,1,0,0,0,1069,
+		1067,1,0,0,0,1069,1070,1,0,0,0,1070,145,1,0,0,0,1071,1069,1,0,0,0,1072,
+		1084,3,152,76,0,1073,1084,3,154,77,0,1074,1084,3,158,79,0,1075,1084,3,
+		164,82,0,1076,1084,3,168,84,0,1077,1084,3,172,86,0,1078,1084,3,176,88,
+		0,1079,1084,3,174,87,0,1080,1084,3,178,89,0,1081,1084,3,148,74,0,1082,
+		1084,3,150,75,0,1083,1072,1,0,0,0,1083,1073,1,0,0,0,1083,1074,1,0,0,0,
+		1083,1075,1,0,0,0,1083,1076,1,0,0,0,1083,1077,1,0,0,0,1083,1078,1,0,0,
+		0,1083,1079,1,0,0,0,1083,1080,1,0,0,0,1083,1081,1,0,0,0,1083,1082,1,0,
+		0,0,1084,147,1,0,0,0,1085,1086,4,74,1,0,1086,1088,5,237,0,0,1087,1089,
+		5,172,0,0,1088,1087,1,0,0,0,1088,1089,1,0,0,0,1089,1090,1,0,0,0,1090,1091,
+		5,254,0,0,1091,149,1,0,0,0,1092,1097,5,254,0,0,1093,1096,5,254,0,0,1094,
+		1096,3,564,282,0,1095,1093,1,0,0,0,1095,1094,1,0,0,0,1096,1099,1,0,0,0,
+		1097,1095,1,0,0,0,1097,1098,1,0,0,0,1098,151,1,0,0,0,1099,1097,1,0,0,0,
+		1100,1101,5,198,0,0,1101,1102,5,279,0,0,1102,153,1,0,0,0,1103,1105,5,241,
+		0,0,1104,1106,5,172,0,0,1105,1104,1,0,0,0,1105,1106,1,0,0,0,1106,1107,
+		1,0,0,0,1107,1118,3,156,78,0,1108,1118,5,68,0,0,1109,1118,5,128,0,0,1110,
+		1118,5,124,0,0,1111,1118,5,125,0,0,1112,1118,5,126,0,0,1113,1118,5,127,
+		0,0,1114,1118,5,117,0,0,1115,1118,5,47,0,0,1116,1118,5,165,0,0,1117,1103,
+		1,0,0,0,1117,1108,1,0,0,0,1117,1109,1,0,0,0,1117,1110,1,0,0,0,1117,1111,
+		1,0,0,0,1117,1112,1,0,0,0,1117,1113,1,0,0,0,1117,1114,1,0,0,0,1117,1115,
+		1,0,0,0,1117,1116,1,0,0,0,1118,155,1,0,0,0,1119,1120,7,7,0,0,1120,157,
+		1,0,0,0,1121,1122,5,187,0,0,1122,1125,3,162,81,0,1123,1124,5,234,0,0,1124,
+		1126,3,162,81,0,1125,1123,1,0,0,0,1125,1126,1,0,0,0,1126,1128,1,0,0,0,
+		1127,1129,3,160,80,0,1128,1127,1,0,0,0,1128,1129,1,0,0,0,1129,1133,1,0,
+		0,0,1130,1131,5,140,0,0,1131,1132,5,190,0,0,1132,1134,3,188,94,0,1133,
+		1130,1,0,0,0,1133,1134,1,0,0,0,1134,1138,1,0,0,0,1135,1136,5,166,0,0,1136,
+		1137,5,119,0,0,1137,1139,3,186,93,0,1138,1135,1,0,0,0,1138,1139,1,0,0,
+		0,1139,159,1,0,0,0,1140,1141,5,233,0,0,1141,161,1,0,0,0,1142,1143,5,255,
+		0,0,1143,163,1,0,0,0,1144,1145,5,205,0,0,1145,1146,3,188,94,0,1146,165,
+		1,0,0,0,1147,1148,5,211,0,0,1148,1151,3,188,94,0,1149,1150,5,231,0,0,1150,
+		1152,3,188,94,0,1151,1149,1,0,0,0,1151,1152,1,0,0,0,1152,167,1,0,0,0,1153,
+		1155,7,8,0,0,1154,1156,7,9,0,0,1155,1154,1,0,0,0,1155,1156,1,0,0,0,1156,
+		1157,1,0,0,0,1157,1164,3,170,85,0,1158,1160,5,264,0,0,1159,1158,1,0,0,
+		0,1159,1160,1,0,0,0,1160,1161,1,0,0,0,1161,1163,3,170,85,0,1162,1159,1,
+		0,0,0,1163,1166,1,0,0,0,1164,1162,1,0,0,0,1164,1165,1,0,0,0,1165,169,1,
+		0,0,0,1166,1164,1,0,0,0,1167,1170,3,564,282,0,1168,1169,5,231,0,0,1169,
+		1171,3,564,282,0,1170,1168,1,0,0,0,1170,1171,1,0,0,0,1171,171,1,0,0,0,
+		1172,1174,5,221,0,0,1173,1175,5,172,0,0,1174,1173,1,0,0,0,1174,1175,1,
+		0,0,0,1175,1177,1,0,0,0,1176,1172,1,0,0,0,1176,1177,1,0,0,0,1177,1178,
+		1,0,0,0,1178,1183,7,10,0,0,1179,1181,5,219,0,0,1180,1182,5,120,0,0,1181,
+		1180,1,0,0,0,1181,1182,1,0,0,0,1182,1184,1,0,0,0,1183,1179,1,0,0,0,1183,
+		1184,1,0,0,0,1184,173,1,0,0,0,1185,1187,7,11,0,0,1186,1188,5,214,0,0,1187,
+		1186,1,0,0,0,1187,1188,1,0,0,0,1188,175,1,0,0,0,1189,1191,7,12,0,0,1190,
+		1192,7,13,0,0,1191,1190,1,0,0,0,1191,1192,1,0,0,0,1192,177,1,0,0,0,1193,
+		1194,5,48,0,0,1194,179,1,0,0,0,1195,1196,5,54,0,0,1196,1198,5,51,0,0,1197,
+		1199,3,182,91,0,1198,1197,1,0,0,0,1198,1199,1,0,0,0,1199,1202,1,0,0,0,
+		1200,1201,4,90,2,0,1201,1203,3,184,92,0,1202,1200,1,0,0,0,1202,1203,1,
+		0,0,0,1203,1204,1,0,0,0,1204,1208,5,262,0,0,1205,1207,3,204,102,0,1206,
+		1205,1,0,0,0,1207,1210,1,0,0,0,1208,1206,1,0,0,0,1208,1209,1,0,0,0,1209,
+		1214,1,0,0,0,1210,1208,1,0,0,0,1211,1213,3,212,106,0,1212,1211,1,0,0,0,
+		1213,1216,1,0,0,0,1214,1212,1,0,0,0,1214,1215,1,0,0,0,1215,181,1,0,0,0,
+		1216,1214,1,0,0,0,1217,1218,5,242,0,0,1218,1219,3,186,93,0,1219,183,1,
+		0,0,0,1220,1221,5,212,0,0,1221,1222,3,188,94,0,1222,185,1,0,0,0,1223,1230,
+		3,188,94,0,1224,1226,5,264,0,0,1225,1224,1,0,0,0,1225,1226,1,0,0,0,1226,
 		1227,1,0,0,0,1227,1229,3,188,94,0,1228,1225,1,0,0,0,1229,1232,1,0,0,0,
 		1230,1228,1,0,0,0,1230,1231,1,0,0,0,1231,187,1,0,0,0,1232,1230,1,0,0,0,
 		1233,1237,5,254,0,0,1234,1236,3,190,95,0,1235,1234,1,0,0,0,1236,1239,1,
@@ -21915,99 +21934,100 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		0,0,0,2712,2715,1,0,0,0,2713,2711,1,0,0,0,2713,2714,1,0,0,0,2714,533,1,
 		0,0,0,2715,2713,1,0,0,0,2716,2721,3,536,268,0,2717,2718,5,109,0,0,2718,
 		2720,3,536,268,0,2719,2717,1,0,0,0,2720,2723,1,0,0,0,2721,2719,1,0,0,0,
-		2721,2722,1,0,0,0,2722,535,1,0,0,0,2723,2721,1,0,0,0,2724,2725,3,540,270,
-		0,2725,537,1,0,0,0,2726,2729,3,546,273,0,2727,2729,3,568,284,0,2728,2726,
-		1,0,0,0,2728,2727,1,0,0,0,2729,539,1,0,0,0,2730,2732,3,538,269,0,2731,
-		2733,5,172,0,0,2732,2731,1,0,0,0,2732,2733,1,0,0,0,2733,2735,1,0,0,0,2734,
-		2736,5,184,0,0,2735,2734,1,0,0,0,2735,2736,1,0,0,0,2736,2737,1,0,0,0,2737,
-		2738,3,542,271,0,2738,2746,1,0,0,0,2739,2743,3,538,269,0,2740,2741,3,544,
-		272,0,2741,2742,3,538,269,0,2742,2744,1,0,0,0,2743,2740,1,0,0,0,2743,2744,
-		1,0,0,0,2744,2746,1,0,0,0,2745,2730,1,0,0,0,2745,2739,1,0,0,0,2746,541,
-		1,0,0,0,2747,2748,7,26,0,0,2748,543,1,0,0,0,2749,2811,5,269,0,0,2750,2811,
-		5,261,0,0,2751,2811,5,259,0,0,2752,2811,5,260,0,0,2753,2811,5,267,0,0,
-		2754,2811,5,268,0,0,2755,2756,5,184,0,0,2756,2811,5,269,0,0,2757,2758,
-		5,184,0,0,2758,2811,5,268,0,0,2759,2760,5,184,0,0,2760,2811,5,267,0,0,
-		2761,2762,5,184,0,0,2762,2811,5,260,0,0,2763,2764,5,184,0,0,2764,2811,
-		5,259,0,0,2765,2767,5,172,0,0,2766,2765,1,0,0,0,2766,2767,1,0,0,0,2767,
-		2768,1,0,0,0,2768,2770,5,148,0,0,2769,2771,7,27,0,0,2770,2769,1,0,0,0,
-		2770,2771,1,0,0,0,2771,2811,1,0,0,0,2772,2774,5,172,0,0,2773,2772,1,0,
-		0,0,2773,2774,1,0,0,0,2774,2775,1,0,0,0,2775,2776,5,184,0,0,2776,2778,
-		5,148,0,0,2777,2779,7,27,0,0,2778,2777,1,0,0,0,2778,2779,1,0,0,0,2779,
-		2811,1,0,0,0,2780,2782,5,172,0,0,2781,2780,1,0,0,0,2781,2782,1,0,0,0,2782,
-		2783,1,0,0,0,2783,2785,5,163,0,0,2784,2786,5,228,0,0,2785,2784,1,0,0,0,
-		2785,2786,1,0,0,0,2786,2811,1,0,0,0,2787,2789,5,172,0,0,2788,2787,1,0,
-		0,0,2788,2789,1,0,0,0,2789,2790,1,0,0,0,2790,2791,5,184,0,0,2791,2793,
-		5,163,0,0,2792,2794,5,228,0,0,2793,2792,1,0,0,0,2793,2794,1,0,0,0,2794,
-		2811,1,0,0,0,2795,2797,5,172,0,0,2796,2795,1,0,0,0,2796,2797,1,0,0,0,2797,
-		2798,1,0,0,0,2798,2800,5,178,0,0,2799,2801,5,228,0,0,2800,2799,1,0,0,0,
-		2800,2801,1,0,0,0,2801,2811,1,0,0,0,2802,2804,5,172,0,0,2803,2802,1,0,
-		0,0,2803,2804,1,0,0,0,2804,2805,1,0,0,0,2805,2806,5,184,0,0,2806,2808,
-		5,178,0,0,2807,2809,5,228,0,0,2808,2807,1,0,0,0,2808,2809,1,0,0,0,2809,
-		2811,1,0,0,0,2810,2749,1,0,0,0,2810,2750,1,0,0,0,2810,2751,1,0,0,0,2810,
-		2752,1,0,0,0,2810,2753,1,0,0,0,2810,2754,1,0,0,0,2810,2755,1,0,0,0,2810,
-		2757,1,0,0,0,2810,2759,1,0,0,0,2810,2761,1,0,0,0,2810,2763,1,0,0,0,2810,
-		2766,1,0,0,0,2810,2773,1,0,0,0,2810,2781,1,0,0,0,2810,2788,1,0,0,0,2810,
-		2796,1,0,0,0,2810,2803,1,0,0,0,2811,545,1,0,0,0,2812,2813,3,548,274,0,
-		2813,547,1,0,0,0,2814,2820,3,552,276,0,2815,2816,3,550,275,0,2816,2817,
-		3,552,276,0,2817,2819,1,0,0,0,2818,2815,1,0,0,0,2819,2822,1,0,0,0,2820,
-		2818,1,0,0,0,2820,2821,1,0,0,0,2821,549,1,0,0,0,2822,2820,1,0,0,0,2823,
-		2824,7,28,0,0,2824,551,1,0,0,0,2825,2831,3,556,278,0,2826,2827,3,554,277,
-		0,2827,2828,3,556,278,0,2828,2830,1,0,0,0,2829,2826,1,0,0,0,2830,2833,
-		1,0,0,0,2831,2829,1,0,0,0,2831,2832,1,0,0,0,2832,553,1,0,0,0,2833,2831,
-		1,0,0,0,2834,2835,7,29,0,0,2835,555,1,0,0,0,2836,2839,3,558,279,0,2837,
-		2838,5,258,0,0,2838,2840,3,558,279,0,2839,2837,1,0,0,0,2839,2840,1,0,0,
-		0,2840,557,1,0,0,0,2841,2842,3,550,275,0,2842,2843,3,558,279,0,2843,2846,
-		1,0,0,0,2844,2846,3,560,280,0,2845,2841,1,0,0,0,2845,2844,1,0,0,0,2846,
-		559,1,0,0,0,2847,2855,3,566,283,0,2848,2855,3,562,281,0,2849,2855,3,188,
-		94,0,2850,2851,5,265,0,0,2851,2852,3,546,273,0,2852,2853,5,266,0,0,2853,
-		2855,1,0,0,0,2854,2847,1,0,0,0,2854,2848,1,0,0,0,2854,2849,1,0,0,0,2854,
-		2850,1,0,0,0,2855,561,1,0,0,0,2856,2857,4,281,11,0,2857,2858,5,159,0,0,
-		2858,2864,3,188,94,0,2859,2861,5,265,0,0,2860,2862,3,294,147,0,2861,2860,
-		1,0,0,0,2861,2862,1,0,0,0,2862,2863,1,0,0,0,2863,2865,5,266,0,0,2864,2859,
-		1,0,0,0,2864,2865,1,0,0,0,2865,563,1,0,0,0,2866,2869,3,566,283,0,2867,
-		2869,3,568,284,0,2868,2866,1,0,0,0,2868,2867,1,0,0,0,2869,565,1,0,0,0,
-		2870,2871,3,570,285,0,2871,567,1,0,0,0,2872,2876,5,256,0,0,2873,2876,5,
-		257,0,0,2874,2876,3,574,287,0,2875,2872,1,0,0,0,2875,2873,1,0,0,0,2875,
-		2874,1,0,0,0,2876,569,1,0,0,0,2877,2879,7,28,0,0,2878,2877,1,0,0,0,2878,
-		2879,1,0,0,0,2879,2880,1,0,0,0,2880,2881,3,572,286,0,2881,571,1,0,0,0,
-		2882,2890,5,253,0,0,2883,2884,5,255,0,0,2884,2885,5,264,0,0,2885,2890,
-		5,255,0,0,2886,2887,5,264,0,0,2887,2890,5,255,0,0,2888,2890,5,255,0,0,
-		2889,2882,1,0,0,0,2889,2883,1,0,0,0,2889,2886,1,0,0,0,2889,2888,1,0,0,
-		0,2890,573,1,0,0,0,2891,2911,5,248,0,0,2892,2911,5,249,0,0,2893,2911,5,
-		250,0,0,2894,2911,5,251,0,0,2895,2911,5,252,0,0,2896,2897,5,105,0,0,2897,
-		2911,5,256,0,0,2898,2899,5,105,0,0,2899,2911,5,257,0,0,2900,2901,5,105,
-		0,0,2901,2911,5,248,0,0,2902,2903,5,105,0,0,2903,2911,5,249,0,0,2904,2905,
-		5,105,0,0,2905,2911,5,250,0,0,2906,2907,5,105,0,0,2907,2911,5,251,0,0,
-		2908,2909,5,105,0,0,2909,2911,5,252,0,0,2910,2891,1,0,0,0,2910,2892,1,
-		0,0,0,2910,2893,1,0,0,0,2910,2894,1,0,0,0,2910,2895,1,0,0,0,2910,2896,
-		1,0,0,0,2910,2898,1,0,0,0,2910,2900,1,0,0,0,2910,2902,1,0,0,0,2910,2904,
-		1,0,0,0,2910,2906,1,0,0,0,2910,2908,1,0,0,0,2911,575,1,0,0,0,377,579,587,
-		591,594,597,608,615,624,629,644,653,662,671,680,689,698,705,712,715,723,
-		730,736,744,753,760,764,768,772,777,779,783,785,792,796,799,804,817,824,
-		827,834,841,846,859,863,872,876,879,895,898,908,910,918,923,925,934,937,
-		940,943,951,957,963,969,978,983,988,993,995,1004,1013,1022,1027,1032,1041,
-		1043,1047,1053,1064,1069,1083,1088,1095,1097,1105,1117,1125,1128,1133,
-		1138,1151,1155,1159,1164,1170,1174,1176,1181,1183,1187,1191,1198,1202,
-		1208,1214,1225,1230,1237,1243,1249,1251,1265,1269,1274,1284,1296,1303,
-		1309,1315,1323,1333,1386,1391,1396,1399,1402,1405,1408,1411,1430,1439,
-		1444,1447,1450,1453,1463,1466,1475,1481,1487,1497,1502,1509,1512,1515,
-		1534,1542,1547,1556,1560,1565,1570,1575,1579,1597,1615,1621,1624,1628,
-		1636,1642,1650,1653,1658,1667,1673,1678,1681,1685,1696,1703,1712,1721,
-		1727,1731,1735,1746,1753,1761,1764,1767,1772,1775,1778,1781,1783,1788,
-		1792,1798,1804,1812,1815,1818,1823,1826,1829,1832,1834,1839,1843,1852,
-		1856,1863,1872,1875,1878,1881,1885,1889,1895,1901,1904,1907,1910,1913,
-		1917,1925,1928,1937,1952,1956,1965,1971,1975,1978,1981,1986,1989,1994,
-		2000,2016,2021,2026,2029,2032,2035,2038,2043,2048,2055,2060,2077,2082,
-		2085,2088,2091,2095,2101,2106,2110,2123,2135,2145,2151,2160,2182,2188,
-		2199,2203,2206,2209,2212,2215,2244,2248,2251,2254,2278,2281,2284,2293,
-		2299,2305,2308,2311,2322,2328,2331,2340,2345,2348,2351,2360,2364,2382,
-		2387,2390,2393,2406,2410,2416,2421,2424,2430,2437,2439,2444,2450,2457,
-		2464,2472,2480,2482,2488,2492,2498,2504,2511,2516,2521,2526,2531,2533,
-		2538,2544,2550,2557,2564,2571,2578,2580,2589,2594,2599,2602,2606,2611,
-		2614,2618,2623,2626,2628,2633,2638,2641,2648,2658,2664,2667,2671,2682,
-		2688,2690,2695,2697,2702,2704,2713,2721,2728,2732,2735,2743,2745,2766,
-		2770,2773,2778,2781,2785,2788,2793,2796,2800,2803,2808,2810,2820,2831,
-		2839,2845,2854,2861,2864,2868,2875,2878,2889,2910
+		2721,2722,1,0,0,0,2722,535,1,0,0,0,2723,2721,1,0,0,0,2724,2725,5,184,0,
+		0,2725,2728,3,536,268,0,2726,2728,3,540,270,0,2727,2724,1,0,0,0,2727,2726,
+		1,0,0,0,2728,537,1,0,0,0,2729,2732,3,546,273,0,2730,2732,3,568,284,0,2731,
+		2729,1,0,0,0,2731,2730,1,0,0,0,2732,539,1,0,0,0,2733,2735,3,538,269,0,
+		2734,2736,5,172,0,0,2735,2734,1,0,0,0,2735,2736,1,0,0,0,2736,2738,1,0,
+		0,0,2737,2739,5,184,0,0,2738,2737,1,0,0,0,2738,2739,1,0,0,0,2739,2740,
+		1,0,0,0,2740,2741,3,542,271,0,2741,2749,1,0,0,0,2742,2746,3,538,269,0,
+		2743,2744,3,544,272,0,2744,2745,3,538,269,0,2745,2747,1,0,0,0,2746,2743,
+		1,0,0,0,2746,2747,1,0,0,0,2747,2749,1,0,0,0,2748,2733,1,0,0,0,2748,2742,
+		1,0,0,0,2749,541,1,0,0,0,2750,2751,7,26,0,0,2751,543,1,0,0,0,2752,2814,
+		5,269,0,0,2753,2814,5,261,0,0,2754,2814,5,259,0,0,2755,2814,5,260,0,0,
+		2756,2814,5,267,0,0,2757,2814,5,268,0,0,2758,2759,5,184,0,0,2759,2814,
+		5,269,0,0,2760,2761,5,184,0,0,2761,2814,5,268,0,0,2762,2763,5,184,0,0,
+		2763,2814,5,267,0,0,2764,2765,5,184,0,0,2765,2814,5,260,0,0,2766,2767,
+		5,184,0,0,2767,2814,5,259,0,0,2768,2770,5,172,0,0,2769,2768,1,0,0,0,2769,
+		2770,1,0,0,0,2770,2771,1,0,0,0,2771,2773,5,148,0,0,2772,2774,7,27,0,0,
+		2773,2772,1,0,0,0,2773,2774,1,0,0,0,2774,2814,1,0,0,0,2775,2777,5,172,
+		0,0,2776,2775,1,0,0,0,2776,2777,1,0,0,0,2777,2778,1,0,0,0,2778,2779,5,
+		184,0,0,2779,2781,5,148,0,0,2780,2782,7,27,0,0,2781,2780,1,0,0,0,2781,
+		2782,1,0,0,0,2782,2814,1,0,0,0,2783,2785,5,172,0,0,2784,2783,1,0,0,0,2784,
+		2785,1,0,0,0,2785,2786,1,0,0,0,2786,2788,5,163,0,0,2787,2789,5,228,0,0,
+		2788,2787,1,0,0,0,2788,2789,1,0,0,0,2789,2814,1,0,0,0,2790,2792,5,172,
+		0,0,2791,2790,1,0,0,0,2791,2792,1,0,0,0,2792,2793,1,0,0,0,2793,2794,5,
+		184,0,0,2794,2796,5,163,0,0,2795,2797,5,228,0,0,2796,2795,1,0,0,0,2796,
+		2797,1,0,0,0,2797,2814,1,0,0,0,2798,2800,5,172,0,0,2799,2798,1,0,0,0,2799,
+		2800,1,0,0,0,2800,2801,1,0,0,0,2801,2803,5,178,0,0,2802,2804,5,228,0,0,
+		2803,2802,1,0,0,0,2803,2804,1,0,0,0,2804,2814,1,0,0,0,2805,2807,5,172,
+		0,0,2806,2805,1,0,0,0,2806,2807,1,0,0,0,2807,2808,1,0,0,0,2808,2809,5,
+		184,0,0,2809,2811,5,178,0,0,2810,2812,5,228,0,0,2811,2810,1,0,0,0,2811,
+		2812,1,0,0,0,2812,2814,1,0,0,0,2813,2752,1,0,0,0,2813,2753,1,0,0,0,2813,
+		2754,1,0,0,0,2813,2755,1,0,0,0,2813,2756,1,0,0,0,2813,2757,1,0,0,0,2813,
+		2758,1,0,0,0,2813,2760,1,0,0,0,2813,2762,1,0,0,0,2813,2764,1,0,0,0,2813,
+		2766,1,0,0,0,2813,2769,1,0,0,0,2813,2776,1,0,0,0,2813,2784,1,0,0,0,2813,
+		2791,1,0,0,0,2813,2799,1,0,0,0,2813,2806,1,0,0,0,2814,545,1,0,0,0,2815,
+		2816,3,548,274,0,2816,547,1,0,0,0,2817,2823,3,552,276,0,2818,2819,3,550,
+		275,0,2819,2820,3,552,276,0,2820,2822,1,0,0,0,2821,2818,1,0,0,0,2822,2825,
+		1,0,0,0,2823,2821,1,0,0,0,2823,2824,1,0,0,0,2824,549,1,0,0,0,2825,2823,
+		1,0,0,0,2826,2827,7,28,0,0,2827,551,1,0,0,0,2828,2834,3,556,278,0,2829,
+		2830,3,554,277,0,2830,2831,3,556,278,0,2831,2833,1,0,0,0,2832,2829,1,0,
+		0,0,2833,2836,1,0,0,0,2834,2832,1,0,0,0,2834,2835,1,0,0,0,2835,553,1,0,
+		0,0,2836,2834,1,0,0,0,2837,2838,7,29,0,0,2838,555,1,0,0,0,2839,2842,3,
+		558,279,0,2840,2841,5,258,0,0,2841,2843,3,558,279,0,2842,2840,1,0,0,0,
+		2842,2843,1,0,0,0,2843,557,1,0,0,0,2844,2845,3,550,275,0,2845,2846,3,558,
+		279,0,2846,2849,1,0,0,0,2847,2849,3,560,280,0,2848,2844,1,0,0,0,2848,2847,
+		1,0,0,0,2849,559,1,0,0,0,2850,2858,3,566,283,0,2851,2858,3,562,281,0,2852,
+		2858,3,188,94,0,2853,2854,5,265,0,0,2854,2855,3,546,273,0,2855,2856,5,
+		266,0,0,2856,2858,1,0,0,0,2857,2850,1,0,0,0,2857,2851,1,0,0,0,2857,2852,
+		1,0,0,0,2857,2853,1,0,0,0,2858,561,1,0,0,0,2859,2860,4,281,11,0,2860,2861,
+		5,159,0,0,2861,2867,3,188,94,0,2862,2864,5,265,0,0,2863,2865,3,294,147,
+		0,2864,2863,1,0,0,0,2864,2865,1,0,0,0,2865,2866,1,0,0,0,2866,2868,5,266,
+		0,0,2867,2862,1,0,0,0,2867,2868,1,0,0,0,2868,563,1,0,0,0,2869,2872,3,566,
+		283,0,2870,2872,3,568,284,0,2871,2869,1,0,0,0,2871,2870,1,0,0,0,2872,565,
+		1,0,0,0,2873,2874,3,570,285,0,2874,567,1,0,0,0,2875,2879,5,256,0,0,2876,
+		2879,5,257,0,0,2877,2879,3,574,287,0,2878,2875,1,0,0,0,2878,2876,1,0,0,
+		0,2878,2877,1,0,0,0,2879,569,1,0,0,0,2880,2882,7,28,0,0,2881,2880,1,0,
+		0,0,2881,2882,1,0,0,0,2882,2883,1,0,0,0,2883,2884,3,572,286,0,2884,571,
+		1,0,0,0,2885,2893,5,253,0,0,2886,2887,5,255,0,0,2887,2888,5,264,0,0,2888,
+		2893,5,255,0,0,2889,2890,5,264,0,0,2890,2893,5,255,0,0,2891,2893,5,255,
+		0,0,2892,2885,1,0,0,0,2892,2886,1,0,0,0,2892,2889,1,0,0,0,2892,2891,1,
+		0,0,0,2893,573,1,0,0,0,2894,2914,5,248,0,0,2895,2914,5,249,0,0,2896,2914,
+		5,250,0,0,2897,2914,5,251,0,0,2898,2914,5,252,0,0,2899,2900,5,105,0,0,
+		2900,2914,5,256,0,0,2901,2902,5,105,0,0,2902,2914,5,257,0,0,2903,2904,
+		5,105,0,0,2904,2914,5,248,0,0,2905,2906,5,105,0,0,2906,2914,5,249,0,0,
+		2907,2908,5,105,0,0,2908,2914,5,250,0,0,2909,2910,5,105,0,0,2910,2914,
+		5,251,0,0,2911,2912,5,105,0,0,2912,2914,5,252,0,0,2913,2894,1,0,0,0,2913,
+		2895,1,0,0,0,2913,2896,1,0,0,0,2913,2897,1,0,0,0,2913,2898,1,0,0,0,2913,
+		2899,1,0,0,0,2913,2901,1,0,0,0,2913,2903,1,0,0,0,2913,2905,1,0,0,0,2913,
+		2907,1,0,0,0,2913,2909,1,0,0,0,2913,2911,1,0,0,0,2914,575,1,0,0,0,378,
+		579,587,591,594,597,608,615,624,629,644,653,662,671,680,689,698,705,712,
+		715,723,730,736,744,753,760,764,768,772,777,779,783,785,792,796,799,804,
+		817,824,827,834,841,846,859,863,872,876,879,895,898,908,910,918,923,925,
+		934,937,940,943,951,957,963,969,978,983,988,993,995,1004,1013,1022,1027,
+		1032,1041,1043,1047,1053,1064,1069,1083,1088,1095,1097,1105,1117,1125,
+		1128,1133,1138,1151,1155,1159,1164,1170,1174,1176,1181,1183,1187,1191,
+		1198,1202,1208,1214,1225,1230,1237,1243,1249,1251,1265,1269,1274,1284,
+		1296,1303,1309,1315,1323,1333,1386,1391,1396,1399,1402,1405,1408,1411,
+		1430,1439,1444,1447,1450,1453,1463,1466,1475,1481,1487,1497,1502,1509,
+		1512,1515,1534,1542,1547,1556,1560,1565,1570,1575,1579,1597,1615,1621,
+		1624,1628,1636,1642,1650,1653,1658,1667,1673,1678,1681,1685,1696,1703,
+		1712,1721,1727,1731,1735,1746,1753,1761,1764,1767,1772,1775,1778,1781,
+		1783,1788,1792,1798,1804,1812,1815,1818,1823,1826,1829,1832,1834,1839,
+		1843,1852,1856,1863,1872,1875,1878,1881,1885,1889,1895,1901,1904,1907,
+		1910,1913,1917,1925,1928,1937,1952,1956,1965,1971,1975,1978,1981,1986,
+		1989,1994,2000,2016,2021,2026,2029,2032,2035,2038,2043,2048,2055,2060,
+		2077,2082,2085,2088,2091,2095,2101,2106,2110,2123,2135,2145,2151,2160,
+		2182,2188,2199,2203,2206,2209,2212,2215,2244,2248,2251,2254,2278,2281,
+		2284,2293,2299,2305,2308,2311,2322,2328,2331,2340,2345,2348,2351,2360,
+		2364,2382,2387,2390,2393,2406,2410,2416,2421,2424,2430,2437,2439,2444,
+		2450,2457,2464,2472,2480,2482,2488,2492,2498,2504,2511,2516,2521,2526,
+		2531,2533,2538,2544,2550,2557,2564,2571,2578,2580,2589,2594,2599,2602,
+		2606,2611,2614,2618,2623,2626,2628,2633,2638,2641,2648,2658,2664,2667,
+		2671,2682,2688,2690,2695,2697,2702,2704,2713,2721,2727,2731,2735,2738,
+		2746,2748,2769,2773,2776,2781,2784,2788,2791,2796,2799,2803,2806,2811,
+		2813,2823,2834,2842,2848,2857,2864,2867,2871,2878,2881,2892,2913
 	};
 
 	public static readonly ATN _ATN =

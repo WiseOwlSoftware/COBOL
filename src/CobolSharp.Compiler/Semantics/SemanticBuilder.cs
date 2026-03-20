@@ -198,10 +198,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // FILE-CONTROL — extract SELECT/ASSIGN/clauses into FileSymbol
     // ═══════════════════════════════════
 
-    public override object? VisitFileControlEntry(CobolParserCore.FileControlEntryContext ctx)
+    public override object? VisitFileControlClauseGroup(CobolParserCore.FileControlClauseGroupContext ctx)
     {
         var fileNameCtx = ctx.fileName();
-        if (fileNameCtx == null) return base.VisitFileControlEntry(ctx);
+        if (fileNameCtx == null) return base.VisitFileControlClauseGroup(ctx);
 
         string name = fileNameCtx.GetText();
         var fileSym = new FileSymbol(name, fileNameCtx.Start.Line);
@@ -240,13 +240,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (clause.accessModeClause() is { } accessClause)
                 fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
             if (clause.recordKeyClause() is { } keyClause)
-                fileSym.RecordKey = keyClause.identifier().GetText();
+                fileSym.RecordKey = keyClause.dataReference().GetText();
             if (clause.fileStatusClause() is { } statusClause)
-                fileSym.FileStatus = statusClause.identifier().GetText();
+                fileSym.FileStatus = statusClause.dataReference().GetText();
         }
 
         _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
-        return base.VisitFileControlEntry(ctx);
+        return base.VisitFileControlClauseGroup(ctx);
     }
 
     // ═══════════════════════════════════
@@ -330,7 +330,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     // Store the unresolved name; actual resolution happens in pass 2
                     // after all data items are registered in the symbol table
-                    _deferredRedefinesName = redefinesClause.identifier()?.GetText() ?? "";
+                    _deferredRedefinesName = redefinesClause.dataReference()?.GetText() ?? "";
                 }
 
                 var typeClause = clause.typeClause();
@@ -546,9 +546,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
             {
                 var occClause = clause.occursClause();
-                if (occClause?.identifierList() is { } indexList)
+                if (occClause?.dataReferenceList() is { } indexList)
                 {
-                    foreach (var idCtx in indexList.identifier())
+                    foreach (var idCtx in indexList.dataReference())
                     {
                         string indexName = idCtx.IDENTIFIER().GetText();
                         var indexSym = new DataSymbol(indexName, indexName, 77,
@@ -578,10 +578,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitProcedureDivision(ctx);
     }
 
-    public override object? VisitSectionDeclaration(CobolParserCore.SectionDeclarationContext ctx)
+    public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
     {
         var nameCtx = ctx.sectionName();
-        if (nameCtx == null) return base.VisitSectionDeclaration(ctx);
+        if (nameCtx == null) return base.VisitSectionDefinition(ctx);
 
         string name = nameCtx.GetText();
         var section = new SectionSymbol(name,
@@ -592,17 +592,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         _currentSectionName = name;
         using var scopeGuard = _symbols.PushScope(section.Scope);
-        foreach (var para in ctx.paragraphDeclaration())
-            VisitParagraphDeclaration(para);
+        foreach (var para in ctx.paragraphDefinition())
+            VisitParagraphDefinition(para);
         _currentSectionName = null;
 
         return null;
     }
 
-    public override object? VisitParagraphDeclaration(CobolParserCore.ParagraphDeclarationContext ctx)
+    public override object? VisitParagraphDefinition(CobolParserCore.ParagraphDefinitionContext ctx)
     {
         var nameCtx = ctx.paragraphName();
-        if (nameCtx == null) return base.VisitParagraphDeclaration(ctx);
+        if (nameCtx == null) return base.VisitParagraphDefinition(ctx);
 
         string name = nameCtx.GetText();
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);

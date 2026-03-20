@@ -79,7 +79,7 @@ programIdAttributes
 programIdAttribute
     : commonProgramAttribute
     | literalAttribute
-    | identifierAttribute
+    | dataReferenceAttribute
     ;
 
 commonProgramAttribute
@@ -94,7 +94,7 @@ literalAttribute
     | INTEGERLIT
     ;
 
-identifierAttribute
+dataReferenceAttribute
     : IDENTIFIER
     ;
 
@@ -193,7 +193,7 @@ configurationParagraph
     : sourceComputerParagraph
     | objectComputerParagraph
     | specialNamesParagraph
-    | genericConfigurationParagraph
+    | vendorConfigurationParagraph
     ;
 
 // SOURCE-COMPUTER.
@@ -240,7 +240,7 @@ decimalPointClause
     ;
 
 // fallback for vendor extensions
-genericConfigurationParagraph
+vendorConfigurationParagraph
     : IDENTIFIER DOT (IDENTIFIER | STRINGLIT | INTEGERLIT)*
     ;
 
@@ -256,10 +256,10 @@ inputOutputSection
 
 // FILE-CONTROL.
 fileControlParagraph
-    : FILE_CONTROL DOT fileControlEntry+
+    : FILE_CONTROL DOT fileControlClauseGroup+
     ;
 
-fileControlEntry
+fileControlClauseGroup
     : SELECT fileName
       ( ASSIGN TO assignTarget )?
       fileControlClauses*
@@ -277,7 +277,7 @@ fileControlClauses
     | recordKeyClause
     | alternateKeyClause
     | fileStatusClause
-    | genericFileControlClause
+    | vendorFileControlClause
     ;
 
 organizationClause
@@ -302,19 +302,19 @@ accessMode
     ;
 
 recordKeyClause
-    : 'RECORD' KEY IS identifier
+    : 'RECORD' KEY IS dataReference
     ;
 
 alternateKeyClause
-    : ALTERNATE KEY IS identifier
+    : ALTERNATE KEY IS dataReference
       (WITH? DUPLICATES)?
     ;
 
 fileStatusClause
-    : FILE STATUS IS identifier
+    : FILE STATUS IS dataReference
     ;
 
-genericFileControlClause
+vendorFileControlClause
     : IDENTIFIER (IDENTIFIER | literal)*
     ;
 
@@ -405,7 +405,7 @@ parameterDescriptionBody
     ;
 
 parameterPassingClause
-    : USING (BY_REFERENCE | BY_VALUE | BY_CONTENT)? identifier
+    : USING (BY_REFERENCE | BY_VALUE | BY_CONTENT)? dataReference
     ;
 
 // ==========================================
@@ -497,8 +497,8 @@ usageKeyword
 // OCCURS Clause
 occursClause
     : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
-      (DEPENDING ON identifier)?
-      (INDEXED BY identifierList)?
+      (DEPENDING ON dataReference)?
+      (INDEXED BY dataReferenceList)?
     ;
 
 timesKeyword
@@ -511,12 +511,12 @@ integerLiteral
 
 // REDEFINES Clause
 redefinesClause
-    : REDEFINES identifier
+    : REDEFINES dataReference
     ;
 
 // RENAMES (Level 66)
 renamesClause
-    : RENAMES identifier (THRU identifier)?
+    : RENAMES dataReference (THRU dataReference)?
     ;
 
 // VALUE Clause — IS is optional noise word
@@ -560,26 +560,26 @@ blankWhenZeroClause
 procedureDivision
     : PROCEDURE DIVISION usingClause? ({is2002()}? returningClause)? DOT
       declarativePart*
-      procedureSectionOrParagraph*
+      procedureUnit*
     ;
 
 usingClause
-    : USING identifierList
+    : USING dataReferenceList
     ;
 
 returningClause
-    : RETURNING identifier
+    : RETURNING dataReference
     ;
 
-identifierList
-    : identifier (COMMA? identifier)*
+dataReferenceList
+    : dataReference (COMMA? dataReference)*
     ;
 
-identifier
-    : IDENTIFIER dataNameTail*
+dataReference
+    : IDENTIFIER dataReferenceSuffix*
     ;
 
-dataNameTail
+dataReferenceSuffix
     : subscriptPart
     | refModPart
     | qualification
@@ -635,20 +635,20 @@ sentence
     : statement+ DOT
     ;
 
-procedureSectionOrParagraph
-    : sectionDeclaration
-    | paragraphDeclaration
+procedureUnit
+    : sectionDefinition
+    | paragraphDefinition
     ;
 
-sectionDeclaration
-    : sectionName SECTION DOT paragraphDeclaration*
+sectionDefinition
+    : sectionName SECTION DOT paragraphDefinition*
     ;
 
 sectionName
     : procedureName
     ;
 
-paragraphDeclaration
+paragraphDefinition
     : paragraphName DOT sentence*
     ;
 
@@ -711,7 +711,7 @@ statement
 //     ;
 
 // Imperative statement (used by AT END, ON EXCEPTION, etc.)
-imperativeStatement
+statementBlock
     : statement+
     ;
 
@@ -735,21 +735,21 @@ readDirection
     ;
 
 readInto
-    : INTO identifier
+    : INTO dataReference
     ;
 
 readKey
-    : KEY IS identifier
+    : KEY IS dataReference
     ;
 
 readAtEnd
-    : AT END imperativeStatement
-      (NOT AT END imperativeStatement)?
+    : AT END statementBlock
+      (NOT AT END statementBlock)?
     ;
 
 readInvalidKey
-    : INVALID KEY imperativeStatement
-      (NOT INVALID KEY imperativeStatement)?
+    : INVALID KEY statementBlock
+      (NOT INVALID KEY statementBlock)?
     ;
 
 // ==========================================
@@ -766,16 +766,16 @@ writeStatement
     ;
 
 writeFrom
-    : FROM identifier
+    : FROM dataReference
     ;
 
 writeBeforeAfter
-    : ('BEFORE' | 'AFTER') ADVANCING (identifier | integerLiteral | literal) (LINE | LINES)?
+    : ('BEFORE' | 'AFTER') ADVANCING (dataReference | integerLiteral | literal) (LINE | LINES)?
     ;
 
 writeInvalidKey
-    : INVALID KEY imperativeStatement
-      (NOT INVALID KEY imperativeStatement)?
+    : INVALID KEY statementBlock
+      (NOT INVALID KEY statementBlock)?
     ;
 
 // ==========================================
@@ -787,7 +787,7 @@ openStatement
     ;
 
 openClause
-    : openMode identifier+
+    : openMode dataReference+
     ;
 
 openMode
@@ -798,7 +798,7 @@ openMode
     ;
 
 closeStatement
-    : CLOSE identifierList
+    : CLOSE dataReferenceList
     ;
 
 // ==========================================
@@ -807,8 +807,8 @@ closeStatement
 
 ifStatement
     : IF condition THEN?
-      imperativeStatement*
-      (ELSE imperativeStatement*)?
+      statementBlock*
+      (ELSE statementBlock*)?
       END_IF?
     ;
 
@@ -824,8 +824,8 @@ performStatement
     | PERFORM procedureName (THRU | THROUGH) procedureName performOptions?     // PERFORM para THRU para [options]
     | PERFORM procedureName                                                    // PERFORM para (simple)
     // Inline forms
-    | PERFORM performOptions+ imperativeStatement* END_PERFORM                 // PERFORM UNTIL/VARYING ... END-PERFORM
-    | PERFORM imperativeStatement+ END_PERFORM                                 // PERFORM ... END-PERFORM (block)
+    | PERFORM performOptions+ statementBlock* END_PERFORM                 // PERFORM UNTIL/VARYING ... END-PERFORM
+    | PERFORM statementBlock+ END_PERFORM                                 // PERFORM ... END-PERFORM (block)
     ;
 
 performTarget
@@ -844,7 +844,7 @@ performOptions
     ;
 
 performTimes
-    : (integerLiteral | identifier) TIMES
+    : (integerLiteral | dataReference) TIMES
     ;
 
 performUntil
@@ -852,14 +852,14 @@ performUntil
     ;
 
 performVarying
-    : VARYING identifier FROM arithmeticExpression
+    : VARYING dataReference FROM arithmeticExpression
       BY arithmeticExpression
       UNTIL condition
       performVaryingAfter*
     ;
 
 performVaryingAfter
-    : AFTER identifier FROM arithmeticExpression
+    : AFTER dataReference FROM arithmeticExpression
       BY arithmeticExpression
       UNTIL condition
     ;
@@ -880,8 +880,8 @@ evaluateSubject
     ;
 
 evaluateWhenClause
-    : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)* imperativeStatement*
-    | WHEN OTHER imperativeStatement*
+    : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)* statementBlock*
+    | WHEN OTHER statementBlock*
     ;
 
 evaluateWhenGroup
@@ -904,13 +904,13 @@ computeStatement
     ;
 
 computeStore
-    : identifier ROUNDED?
+    : dataReference ROUNDED?
     ;
 
 computeOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : ON SIZE ERROR statementBlock
+      (NOT ON SIZE ERROR statementBlock)?
+    | NOT ON SIZE ERROR statementBlock
     ;
 
 // ==========================================
@@ -930,7 +930,7 @@ nextSentenceStatement
 // ==========================================
 
 inlineMethodInvocationStatement
-    : identifier LPAREN argumentList? RPAREN
+    : dataReference LPAREN argumentList? RPAREN
     ;
 
 argumentList
@@ -940,7 +940,7 @@ argumentList
 argument
     : arithmeticExpression
     | literal
-    | identifier
+    | dataReference
     ;
 
 // ==========================================
@@ -949,20 +949,20 @@ argument
 
 // Unified GIVING-form receiving operand.
 // COBOL-85: in any arithmetic GIVING form, the receiving operand may be
-// either an identifier or a literal. One rule, one source of truth.
-givingReceiver
-    : identifier
+// either an dataReference or a literal. One rule, one source of truth.
+receivingOperand
+    : dataReference
     | literal
     ;
 
-arithmeticTarget
-    : identifier ROUNDED?
+receivingArithmeticOperand
+    : dataReference ROUNDED?
     ;
 
 arithmeticOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : ON SIZE ERROR statementBlock
+      (NOT ON SIZE ERROR statementBlock)?
+    | NOT ON SIZE ERROR statementBlock
     ;
 
 // ==========================================
@@ -970,7 +970,7 @@ arithmeticOnSizeError
 // ==========================================
 
 addStatement
-    : ADD CORRESPONDING identifier TO identifier ROUNDED? arithmeticOnSizeError? END_ADD?
+    : ADD CORRESPONDING dataReference TO dataReference ROUNDED? arithmeticOnSizeError? END_ADD?
     | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
@@ -979,16 +979,16 @@ addOperandList
     ;
 
 addOperand
-    : identifier
+    : dataReference
     | literal
     ;
 
 addToPhrase
-    : TO arithmeticTarget+
+    : TO receivingArithmeticOperand+
     ;
 
 addGivingPhrase
-    : GIVING arithmeticTarget+
+    : GIVING receivingArithmeticOperand+
     ;
 
 // ==========================================
@@ -996,7 +996,7 @@ addGivingPhrase
 // ==========================================
 
 subtractStatement
-    : SUBTRACT CORRESPONDING identifier FROM identifier ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
+    : SUBTRACT CORRESPONDING dataReference FROM dataReference ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
     | SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 
@@ -1005,7 +1005,7 @@ subtractOperandList
     ;
 
 subtractOperand
-    : identifier
+    : dataReference
     | literal
     ;
 
@@ -1014,12 +1014,12 @@ subtractFromPhrase
     ;
 
 subtractFromOperand
-    : arithmeticTarget (arithmeticTarget)*
-    | givingReceiver
+    : receivingArithmeticOperand (receivingArithmeticOperand)*
+    | receivingOperand
     ;
 
 subtractGivingPhrase
-    : GIVING arithmeticTarget (arithmeticTarget)*
+    : GIVING receivingArithmeticOperand (receivingArithmeticOperand)*
     ;
 
 // ==========================================
@@ -1031,16 +1031,16 @@ multiplyStatement
     ;
 
 multiplyOperand
-    : identifier
+    : dataReference
     | literal
     ;
 
 multiplyByOperand
-    : givingReceiver ROUNDED?
+    : receivingOperand ROUNDED?
     ;
 
 multiplyGivingPhrase
-    : GIVING arithmeticTarget+
+    : GIVING receivingArithmeticOperand+
     ;
 
 // ==========================================
@@ -1053,7 +1053,7 @@ divideStatement
     ;
 
 divideOperand
-    : identifier
+    : dataReference
     | literal
     ;
 
@@ -1062,7 +1062,7 @@ divideIntoPhrase
     ;
 
 divideIntoOperand
-    : arithmeticTarget+   // identifier ROUNDED? (non-GIVING form, multiple targets)
+    : receivingArithmeticOperand+   // dataReference ROUNDED? (non-GIVING form, multiple targets)
     | literal             // numeric literal (GIVING form only)
     ;
 
@@ -1071,11 +1071,11 @@ divideByPhrase
     ;
 
 divideGivingPhrase
-    : GIVING arithmeticTarget+
+    : GIVING receivingArithmeticOperand+
     ;
 
 divideRemainderPhrase
-    : REMAINDER identifier
+    : REMAINDER dataReference
     ;
 
 // ==========================================
@@ -1083,18 +1083,18 @@ divideRemainderPhrase
 // ==========================================
 
 moveStatement
-    : MOVE CORRESPONDING identifier TO identifier
-    | MOVE moveSource moveTarget
+    : MOVE CORRESPONDING dataReference TO dataReference
+    | MOVE moveSendingOperand moveReceivingPhrase
     ;
 
-moveSource
+moveSendingOperand
     : literal
-    | identifier
+    | dataReference
     ;
 
-moveTarget
-    : TO identifierList
-    | CORRESPONDING identifier TO identifier
+moveReceivingPhrase
+    : TO dataReferenceList
+    | CORRESPONDING dataReference TO dataReference
     ;
 
 // ==========================================
@@ -1106,25 +1106,25 @@ stringStatement
     ;
 
 stringSendingPhrase
-    : (identifier | literal | figurativeConstant)
+    : (dataReference | literal | figurativeConstant)
       delimitedByPhrase?
     ;
 
 delimitedByPhrase
-    : DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE)
+    : DELIMITED BY (ALL)? (dataReference | literal | figurativeConstant | SIZE)
     ;
 
 stringIntoPhrase
-    : INTO identifier
+    : INTO dataReference
     ;
 
 stringWithPointer
-    : WITH POINTER identifier
+    : WITH POINTER dataReference
     ;
 
 stringOnOverflow
-    : ON OVERFLOW imperativeStatement
-      (NOT ON OVERFLOW imperativeStatement)?
+    : ON OVERFLOW statementBlock
+      (NOT ON OVERFLOW statementBlock)?
     ;
 
 // ==========================================
@@ -1132,7 +1132,7 @@ stringOnOverflow
 // ==========================================
 
 unstringStatement
-    : UNSTRING identifier
+    : UNSTRING dataReference
       unstringDelimiterPhrase?
       unstringIntoPhrase+
       unstringWithPointer?
@@ -1143,26 +1143,26 @@ unstringStatement
     ;
 
 unstringDelimiterPhrase
-    : DELIMITED BY (ALL)? (identifier | literal | figurativeConstant)
+    : DELIMITED BY (ALL)? (dataReference | literal | figurativeConstant)
     ;
 
 unstringIntoPhrase
-    : INTO identifier
-      (DELIMITER IN identifier)?
-      (COUNT IN identifier)?
+    : INTO dataReference
+      (DELIMITER IN dataReference)?
+      (COUNT IN dataReference)?
     ;
 
 unstringWithPointer
-    : WITH POINTER identifier
+    : WITH POINTER dataReference
     ;
 
 unstringTallying
-    : TALLYING IN identifier
+    : TALLYING IN dataReference
     ;
 
 unstringOnOverflow
-    : ON OVERFLOW imperativeStatement
-      (NOT ON OVERFLOW imperativeStatement)?
+    : ON OVERFLOW statementBlock
+      (NOT ON OVERFLOW statementBlock)?
     ;
 
 // ==========================================
@@ -1184,7 +1184,7 @@ callStatement
 
 callTarget
     : literal
-    | identifier
+    | dataReference
     ;
 
 callUsingPhrase
@@ -1198,7 +1198,7 @@ callArgument
     ;
 
 callByReference
-    : BY 'REFERENCE'? identifier
+    : BY 'REFERENCE'? dataReference
     ;
 
 callByValue
@@ -1206,16 +1206,16 @@ callByValue
     ;
 
 callByContent
-    : BY 'CONTENT' (identifier | literal)
+    : BY 'CONTENT' (dataReference | literal)
     ;
 
 callReturningPhrase
-    : RETURNING identifier
+    : RETURNING dataReference
     ;
 
 callOnExceptionPhrase
-    : ON EXCEPTION imperativeStatement
-      (NOT ON EXCEPTION imperativeStatement)?
+    : ON EXCEPTION statementBlock
+      (NOT ON EXCEPTION statementBlock)?
     ;
 
 // ==========================================
@@ -1223,7 +1223,7 @@ callOnExceptionPhrase
 // ==========================================
 
 cancelStatement
-    : CANCEL identifierList
+    : CANCEL dataReferenceList
     ;
 
 // ==========================================
@@ -1238,36 +1238,36 @@ setStatement
     | setIndexStatement
     ;
 
-// SET identifier+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
+// SET dataReference+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
 setToValueStatement
-    : SET identifier+ TO arithmeticExpression
+    : SET dataReference+ TO arithmeticExpression
     ;
 
-// SET identifier+ TO TRUE/FALSE (COBOL-85 §14.9.39 Format 5)
+// SET dataReference+ TO TRUE/FALSE (COBOL-85 §14.9.39 Format 5)
 setBooleanStatement
-    : SET identifier+ TO (TRUE_ | FALSE_)
+    : SET dataReference+ TO (TRUE_ | FALSE_)
     ;
 
-// SET ADDRESS OF identifier TO identifier
+// SET ADDRESS OF dataReference TO dataReference
 setAddressStatement
-    : SET ADDRESS OF identifier TO identifier
+    : SET ADDRESS OF dataReference TO dataReference
     ;
 
 // SET object-reference TO class/object reference (OO)
 setObjectReferenceStatement
-    : {is2002()}? SET identifier TO objectReference
+    : {is2002()}? SET dataReference TO objectReference
     ;
 
 objectReference
-    : identifier
+    : dataReference
     | NULL_
     | SELF
     | SUPER
     ;
 
-// SET identifier+ UP/DOWN BY arithmeticExpression (COBOL-85 §14.9.39 Format 2)
+// SET dataReference+ UP/DOWN BY arithmeticExpression (COBOL-85 §14.9.39 Format 2)
 setIndexStatement
-    : SET identifier+ ( UP | DOWN ) BY arithmeticExpression
+    : SET dataReference+ ( UP | DOWN ) BY arithmeticExpression
     ;
 
 // ==========================================
@@ -1290,19 +1290,19 @@ sortStatement
     ;
 
 sortFileName
-    : identifier
+    : dataReference
     ;
 
 sortKeyPhrase
-    : (ASCENDING | DESCENDING) KEY identifierList
+    : (ASCENDING | DESCENDING) KEY dataReferenceList
     ;
 
 sortUsingPhrase
-    : USING identifierList
+    : USING dataReferenceList
     ;
 
 sortGivingPhrase
-    : GIVING identifierList
+    : GIVING dataReferenceList
     ;
 
 sortInputProcedurePhrase
@@ -1328,19 +1328,19 @@ mergeStatement
     ;
 
 mergeFileName
-    : identifier
+    : dataReference
     ;
 
 mergeKeyPhrase
-    : (ASCENDING | DESCENDING) KEY identifierList
+    : (ASCENDING | DESCENDING) KEY dataReferenceList
     ;
 
 mergeUsingPhrase
-    : USING identifierList
+    : USING dataReferenceList
     ;
 
 mergeGivingPhrase
-    : GIVING identifierList
+    : GIVING dataReferenceList
     ;
 
 mergeOutputProcedurePhrase
@@ -1353,15 +1353,15 @@ mergeOutputProcedurePhrase
 
 returnStatement
     : RETURN fileName RECORD
-      (INTO identifier)?
+      (INTO dataReference)?
       returnAtEndPhrase?
       END_RETURN?
      
     ;
 
 returnAtEndPhrase
-    : AT END imperativeStatement
-      (NOT AT END imperativeStatement)?
+    : AT END statementBlock
+      (NOT AT END statementBlock)?
     ;
 
 // ==========================================
@@ -1369,8 +1369,8 @@ returnAtEndPhrase
 // ==========================================
 
 releaseStatement
-    : RELEASE identifier
-      (FROM identifier)?
+    : RELEASE dataReference
+      (FROM dataReference)?
      
     ;
 
@@ -1380,19 +1380,19 @@ releaseStatement
 
 rewriteStatement
     : REWRITE recordName
-      (FROM identifier)?
+      (FROM dataReference)?
       rewriteInvalidKeyPhrase?
       END_REWRITE?
      
     ;
 
 recordName
-    : identifier
+    : dataReference
     ;
 
 rewriteInvalidKeyPhrase
-    : INVALID KEY imperativeStatement
-      (NOT INVALID KEY imperativeStatement)?
+    : INVALID KEY statementBlock
+      (NOT INVALID KEY statementBlock)?
     ;
 
 // ==========================================
@@ -1407,8 +1407,8 @@ deleteFileStatement
     ;
 
 deleteFileOnException
-    : ON EXCEPTION imperativeStatement
-      (NOT ON EXCEPTION imperativeStatement)?
+    : ON EXCEPTION statementBlock
+      (NOT ON EXCEPTION statementBlock)?
     ;
 
 // ==========================================
@@ -1423,8 +1423,8 @@ deleteStatement
     ;
 
 deleteInvalidKeyPhrase
-    : INVALID KEY imperativeStatement
-      (NOT INVALID KEY imperativeStatement)?
+    : INVALID KEY statementBlock
+      (NOT INVALID KEY statementBlock)?
     ;
 
 // ==========================================
@@ -1437,11 +1437,11 @@ exceptionPhrase
     ;
 
 onExceptionPhrase
-    : ON EXCEPTION imperativeStatement
+    : ON EXCEPTION statementBlock
     ;
 
 notOnExceptionPhrase
-    : NOT ON EXCEPTION imperativeStatement
+    : NOT ON EXCEPTION statementBlock
     ;
 
 // ==========================================
@@ -1485,12 +1485,12 @@ startStatement
     ;
 
 startKeyPhrase
-    : KEY IS relationalExpression
+    : KEY IS comparisonExpression
     ;
 
 startInvalidKeyPhrase
-    : INVALID KEY imperativeStatement
-      (NOT INVALID KEY imperativeStatement)?
+    : INVALID KEY statementBlock
+      (NOT INVALID KEY statementBlock)?
     ;
 
 // ==========================================
@@ -1498,7 +1498,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : GO TO? procedureName (procedureName)* (DEPENDING ON? identifier)?
+    : GO TO? procedureName (procedureName)* (DEPENDING ON? dataReference)?
     ;
 
 // ==========================================
@@ -1506,7 +1506,7 @@ goToStatement
 // ==========================================
 
 acceptStatement
-    : ACCEPT identifier (FROM acceptSource)?
+    : ACCEPT dataReference (FROM acceptSource)?
     ;
 
 acceptSource
@@ -1521,7 +1521,7 @@ acceptSource
 // ==========================================
 
 displayStatement
-    : DISPLAY (identifier | literal)+
+    : DISPLAY (dataReference | literal)+
     ;
 
 // ==========================================
@@ -1529,7 +1529,7 @@ displayStatement
 // ==========================================
 
 initializeStatement
-    : INITIALIZE identifierList initializeReplacingPhrase?
+    : INITIALIZE dataReferenceList initializeReplacingPhrase?
     ;
 
 initializeReplacingPhrase
@@ -1537,10 +1537,10 @@ initializeReplacingPhrase
     ;
 
 initializeReplacingItem
-    : ALPHANUMERIC DATA BY (identifier | literal)
-    | NUMERIC DATA BY (identifier | literal)
-    | ALPHANUMERIC EDITED DATA BY (identifier | literal)
-    | NUMERIC EDITED DATA BY (identifier | literal)
+    : ALPHANUMERIC DATA BY (dataReference | literal)
+    | NUMERIC DATA BY (dataReference | literal)
+    | ALPHANUMERIC EDITED DATA BY (dataReference | literal)
+    | NUMERIC EDITED DATA BY (dataReference | literal)
     ;
 
 // ==========================================
@@ -1548,7 +1548,7 @@ initializeReplacingItem
 // ==========================================
 
 inspectStatement
-    : INSPECT identifier
+    : INSPECT dataReference
       ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
       | inspectConvertingPhrase )
@@ -1561,7 +1561,7 @@ inspectTallyingPhrase
     ;
 
 inspectTallyingItem
-    : identifier inspectForClause+
+    : dataReference inspectForClause+
     ;
 
 inspectForClause
@@ -1577,7 +1577,7 @@ inspectCountPhrase
     ;
 
 inspectChar
-    : identifier
+    : dataReference
     | literal
     | figurativeConstant
     ;
@@ -1618,19 +1618,19 @@ inspectDelimiters
 // ==========================================
 
 searchStatement
-    : SEARCH identifier
+    : SEARCH dataReference
       searchAtEndClause?
       searchWhenClause+
       END_SEARCH?
     ;
 
 searchWhenClause
-    : WHEN condition imperativeStatement*
+    : WHEN condition statementBlock*
     ;
 
 searchAtEndClause
-    : AT END imperativeStatement
-      (NOT AT END imperativeStatement)?
+    : AT END statementBlock
+      (NOT AT END statementBlock)?
     ;
 
 // ==========================================
@@ -1638,7 +1638,7 @@ searchAtEndClause
 // ==========================================
 
 searchAllStatement
-    : SEARCH ALL identifier
+    : SEARCH ALL dataReference
       searchAllKeyPhrase?
       searchAtEndClause?
       searchAllWhenClause
@@ -1646,11 +1646,11 @@ searchAllStatement
     ;
 
 searchAllKeyPhrase
-    : KEY IS identifier
+    : KEY IS dataReference
     ;
 
 searchAllWhenClause
-    : WHEN condition imperativeStatement*
+    : WHEN condition statementBlock*
     ;
 // (setStatement, sortStatement, startStatement, stopStatement are fully expanded above)
 
@@ -1660,9 +1660,9 @@ searchAllWhenClause
 // These are defined here as stubs so CobolParserCore compiles standalone.
 // CobolParserOO, CobolParserJsonXml override them with full implementations.
 
-jsonStatement     : JSON (identifier | literal)+ ;
-xmlStatement      : XML (identifier | literal)+ ;
-invokeStatement   : INVOKE (identifier | literal)+ ;
+jsonStatement     : JSON (dataReference | literal)+ ;
+xmlStatement      : XML (dataReference | literal)+ ;
+invokeStatement   : INVOKE (dataReference | literal)+ ;
 
 // =========================
 // Conditions (boolean)
@@ -1677,25 +1677,26 @@ logicalOrExpression
     ;
 
 logicalAndExpression
-    : logicalNotExpression ( 'AND' logicalNotExpression )*
+    : unaryLogicalExpression ( 'AND' unaryLogicalExpression )*
     ;
 
-logicalNotExpression
-    : relationalExpression
+unaryLogicalExpression
+    : NOT unaryLogicalExpression
+    | comparisonExpression
     ;
 
 // =========================
 // Relational
 // =========================
 
-relationalOperand
+comparisonOperand
     : arithmeticExpression
     | nonNumericLiteral
     ;
 
-relationalExpression
-    : relationalOperand IS? NOT? className                         // class condition
-    | relationalOperand ( relationalOperator relationalOperand )?  // existing relational + bare operand
+comparisonExpression
+    : comparisonOperand IS? NOT? className                         // class condition
+    | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
 
 className
@@ -1705,7 +1706,7 @@ className
     | ALPHABETIC_UPPER
     ;
 
-relationalOperator
+comparisonOperator
     // Symbolic
     : EQUALS
     | NOTEQUAL
@@ -1770,13 +1771,13 @@ unaryExpression
 primaryExpression
     : numericLiteral
     | functionCall
-    | identifier
+    | dataReference
     | LPAREN arithmeticExpression RPAREN
     ;
 
 // FUNCTION calls (ISO 2002+)
 functionCall
-    : {is2002()}? FUNCTION identifier (LPAREN argumentList? RPAREN)?
+    : {is2002()}? FUNCTION dataReference (LPAREN argumentList? RPAREN)?
     ;
 
 // =========================

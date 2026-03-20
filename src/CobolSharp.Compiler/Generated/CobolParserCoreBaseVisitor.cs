@@ -146,7 +146,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitLiteralAttribute([NotNull] CobolParserCore.LiteralAttributeContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.identifierAttribute"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataReferenceAttribute"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -154,7 +154,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitIdentifierAttribute([NotNull] CobolParserCore.IdentifierAttributeContext context) { return VisitChildren(context); }
+	public virtual Result VisitDataReferenceAttribute([NotNull] CobolParserCore.DataReferenceAttributeContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.identificationParagraph"/>.
 	/// <para>
@@ -416,7 +416,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitDecimalPointClause([NotNull] CobolParserCore.DecimalPointClauseContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericConfigurationParagraph"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorConfigurationParagraph"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -424,7 +424,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitGenericConfigurationParagraph([NotNull] CobolParserCore.GenericConfigurationParagraphContext context) { return VisitChildren(context); }
+	public virtual Result VisitVendorConfigurationParagraph([NotNull] CobolParserCore.VendorConfigurationParagraphContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.inputOutputSection"/>.
 	/// <para>
@@ -446,7 +446,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitFileControlParagraph([NotNull] CobolParserCore.FileControlParagraphContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlEntry"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlClauseGroup"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -454,7 +454,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitFileControlEntry([NotNull] CobolParserCore.FileControlEntryContext context) { return VisitChildren(context); }
+	public virtual Result VisitFileControlClauseGroup([NotNull] CobolParserCore.FileControlClauseGroupContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.assignTarget"/>.
 	/// <para>
@@ -546,7 +546,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitFileStatusClause([NotNull] CobolParserCore.FileStatusClauseContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericFileControlClause"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorFileControlClause"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -554,7 +554,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitGenericFileControlClause([NotNull] CobolParserCore.GenericFileControlClauseContext context) { return VisitChildren(context); }
+	public virtual Result VisitVendorFileControlClause([NotNull] CobolParserCore.VendorFileControlClauseContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlParagraph"/>.
 	/// <para>
@@ -966,7 +966,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitReturningClause([NotNull] CobolParserCore.ReturningClauseContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.identifierList"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataReferenceList"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -974,9 +974,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitIdentifierList([NotNull] CobolParserCore.IdentifierListContext context) { return VisitChildren(context); }
+	public virtual Result VisitDataReferenceList([NotNull] CobolParserCore.DataReferenceListContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.identifier"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataReference"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -984,9 +984,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context) { return VisitChildren(context); }
+	public virtual Result VisitDataReference([NotNull] CobolParserCore.DataReferenceContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataNameTail"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataReferenceSuffix"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -994,7 +994,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitDataNameTail([NotNull] CobolParserCore.DataNameTailContext context) { return VisitChildren(context); }
+	public virtual Result VisitDataReferenceSuffix([NotNull] CobolParserCore.DataReferenceSuffixContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.qualification"/>.
 	/// <para>
@@ -1096,7 +1096,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitSentence([NotNull] CobolParserCore.SentenceContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureSectionOrParagraph"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureUnit"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1104,9 +1104,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitProcedureSectionOrParagraph([NotNull] CobolParserCore.ProcedureSectionOrParagraphContext context) { return VisitChildren(context); }
+	public virtual Result VisitProcedureUnit([NotNull] CobolParserCore.ProcedureUnitContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.sectionDeclaration"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sectionDefinition"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1114,7 +1114,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitSectionDeclaration([NotNull] CobolParserCore.SectionDeclarationContext context) { return VisitChildren(context); }
+	public virtual Result VisitSectionDefinition([NotNull] CobolParserCore.SectionDefinitionContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.sectionName"/>.
 	/// <para>
@@ -1126,7 +1126,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitSectionName([NotNull] CobolParserCore.SectionNameContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.paragraphDeclaration"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.paragraphDefinition"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1134,7 +1134,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitParagraphDeclaration([NotNull] CobolParserCore.ParagraphDeclarationContext context) { return VisitChildren(context); }
+	public virtual Result VisitParagraphDefinition([NotNull] CobolParserCore.ParagraphDefinitionContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.paragraphName"/>.
 	/// <para>
@@ -1156,7 +1156,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitStatement([NotNull] CobolParserCore.StatementContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.imperativeStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.statementBlock"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1164,7 +1164,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitImperativeStatement([NotNull] CobolParserCore.ImperativeStatementContext context) { return VisitChildren(context); }
+	public virtual Result VisitStatementBlock([NotNull] CobolParserCore.StatementBlockContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.readStatement"/>.
 	/// <para>
@@ -1526,7 +1526,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitArgument([NotNull] CobolParserCore.ArgumentContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.givingReceiver"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.receivingOperand"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1534,9 +1534,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitGivingReceiver([NotNull] CobolParserCore.GivingReceiverContext context) { return VisitChildren(context); }
+	public virtual Result VisitReceivingOperand([NotNull] CobolParserCore.ReceivingOperandContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticTarget"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.receivingArithmeticOperand"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1544,7 +1544,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitArithmeticTarget([NotNull] CobolParserCore.ArithmeticTargetContext context) { return VisitChildren(context); }
+	public virtual Result VisitReceivingArithmeticOperand([NotNull] CobolParserCore.ReceivingArithmeticOperandContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticOnSizeError"/>.
 	/// <para>
@@ -1786,7 +1786,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitMoveStatement([NotNull] CobolParserCore.MoveStatementContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.moveSource"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.moveSendingOperand"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1794,9 +1794,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitMoveSource([NotNull] CobolParserCore.MoveSourceContext context) { return VisitChildren(context); }
+	public virtual Result VisitMoveSendingOperand([NotNull] CobolParserCore.MoveSendingOperandContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.moveTarget"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.moveReceivingPhrase"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -1804,7 +1804,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitMoveTarget([NotNull] CobolParserCore.MoveTargetContext context) { return VisitChildren(context); }
+	public virtual Result VisitMoveReceivingPhrase([NotNull] CobolParserCore.MoveReceivingPhraseContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.stringStatement"/>.
 	/// <para>
@@ -2716,7 +2716,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitLogicalAndExpression([NotNull] CobolParserCore.LogicalAndExpressionContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalNotExpression"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryLogicalExpression"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -2724,9 +2724,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitLogicalNotExpression([NotNull] CobolParserCore.LogicalNotExpressionContext context) { return VisitChildren(context); }
+	public virtual Result VisitUnaryLogicalExpression([NotNull] CobolParserCore.UnaryLogicalExpressionContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalOperand"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperand"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -2734,9 +2734,9 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitRelationalOperand([NotNull] CobolParserCore.RelationalOperandContext context) { return VisitChildren(context); }
+	public virtual Result VisitComparisonOperand([NotNull] CobolParserCore.ComparisonOperandContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalExpression"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonExpression"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -2744,7 +2744,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitRelationalExpression([NotNull] CobolParserCore.RelationalExpressionContext context) { return VisitChildren(context); }
+	public virtual Result VisitComparisonExpression([NotNull] CobolParserCore.ComparisonExpressionContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.className"/>.
 	/// <para>
@@ -2756,7 +2756,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// <return>The visitor result.</return>
 	public virtual Result VisitClassName([NotNull] CobolParserCore.ClassNameContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.relationalOperator"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperator"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -2764,7 +2764,7 @@ public partial class CobolParserCoreBaseVisitor<Result> : AbstractParseTreeVisit
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitRelationalOperator([NotNull] CobolParserCore.RelationalOperatorContext context) { return VisitChildren(context); }
+	public virtual Result VisitComparisonOperator([NotNull] CobolParserCore.ComparisonOperatorContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticExpression"/>.
 	/// <para>
