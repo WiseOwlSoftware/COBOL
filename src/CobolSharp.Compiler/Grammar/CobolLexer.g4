@@ -283,19 +283,21 @@ QUOTE_      : 'QUOTE' | 'QUOTES' ;
 // DECIMAL-POINT IS COMMA are handled in the parser via numericLiteralCore.
 
 DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
-INTEGERLIT  : [0-9]+ ;
 
-// ── IDENTIFIER (must come AFTER all keywords AND numeric literals) ──
+// ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
 // COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},
 // must contain at least one letter, no leading/trailing hyphen.
-// Letter constraint enforced in semantic layer, not lexer.
-// Digit-start with hyphen (e.g., 42-DATANAMES) is the key case.
+// Digit-start forms: 42-DATANAMES (hyphen), 11A/25COUNT/80PARTS (letter).
+// Pure digits remain INTEGERLIT (level numbers, paragraph numbers, etc.).
 
 IDENTIFIER
-    : [0-9]+ '-' [A-Za-z0-9] [A-Za-z0-9-]*   // digit-start: 42-DATANAMES
+    : [0-9]+ '-' [A-Za-z0-9] [A-Za-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
+    | [0-9]+ [A-Za-z] [A-Za-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
     | [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]      // alpha-start: WRK-DS-01V00
     | [A-Za-z]                                  // single letter: A
     ;
+
+INTEGERLIT  : [0-9]+ ;
 
 // ── String literals ──
 

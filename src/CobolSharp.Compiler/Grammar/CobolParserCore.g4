@@ -1076,7 +1076,8 @@ divideRemainderPhrase
 // ==========================================
 
 moveStatement
-    : MOVE moveSource moveTarget
+    : MOVE CORRESPONDING identifier TO identifier
+    | MOVE moveSource moveTarget
     ;
 
 moveSource
