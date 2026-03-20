@@ -567,9 +567,25 @@ identifierList
     ;
 
 identifier
-    : IDENTIFIER
-      (LPAREN subscriptList RPAREN)?
-      (LPAREN refModSpec RPAREN)?
+    : IDENTIFIER dataNameTail*
+    ;
+
+dataNameTail
+    : subscriptPart
+    | refModPart
+    | qualification
+    ;
+
+qualification
+    : (OF | IN) IDENTIFIER (subscriptPart | refModPart)*
+    ;
+
+subscriptPart
+    : LPAREN subscriptList RPAREN
+    ;
+
+refModPart
+    : LPAREN refModSpec RPAREN
     ;
 
 refModSpec

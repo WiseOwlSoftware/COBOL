@@ -2616,24 +2616,59 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     /// <summary>
-    /// Bind an identifier that may have subscripts: IDENTIFIER (LPAREN subscriptList RPAREN)?
+    /// Bind a data reference: IDENTIFIER with optional qualification (OF/IN),
+    /// subscripts, and reference modification.
+    /// Qualified names are resolved right-to-left: A OF B OF C → resolve C, then B in C, then A in B.
     /// </summary>
     private BoundExpression BindIdentifierWithSubscripts(CobolParserCore.IdentifierContext idCtx)
     {
         string name = idCtx.IDENTIFIER().GetText();
-        var sym = _semantic.ResolveData(name);
+        var tails = idCtx.dataNameTail();
+
+        // Extract qualifications, subscripts, and refmod from dataNameTail*
+        var qualifiers = new List<string>();
+        CobolParserCore.SubscriptListContext? subList = null;
+        CobolParserCore.RefModSpecContext? refModCtx = null;
+
+        foreach (var tail in tails)
+        {
+            if (tail.qualification() != null)
+            {
+                qualifiers.Add(tail.qualification().IDENTIFIER().GetText());
+            }
+            else if (tail.subscriptPart() != null && subList == null)
+            {
+                subList = tail.subscriptPart().subscriptList();
+            }
+            else if (tail.refModPart() != null && refModCtx == null)
+            {
+                refModCtx = tail.refModPart().refModSpec();
+            }
+        }
+
+        // Resolve the data symbol — qualified or unqualified
+        DataSymbol? sym;
+        if (qualifiers.Count > 0)
+        {
+            // Right-to-left narrowing: resolve outermost qualifier first,
+            // then walk inward to the leftmost identifier.
+            sym = ResolveQualifiedName(name, qualifiers);
+        }
+        else
+        {
+            sym = _semantic.ResolveData(name);
+        }
+
         if (sym == null)
             return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
 
         var cat = sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
 
-        var subList = idCtx.subscriptList();
         if (subList == null)
         {
             var plainId = new BoundIdentifierExpression(sym, cat);
-            var refModCtxNoSub = idCtx.refModSpec();
-            if (refModCtxNoSub != null)
-                return BindReferenceModification(plainId, refModCtxNoSub);
+            if (refModCtx != null)
+                return BindReferenceModification(plainId, refModCtx);
             return plainId;
         }
 
@@ -2644,7 +2679,6 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // ── Subscript validation (COBOL-85 semantic rules) ──
 
-        // Compute OCCURS depth: how many OCCURS levels this item is under
         int occursDepth = 0;
         var current = sym;
         while (current != null)
@@ -2659,54 +2693,70 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var loc = new Common.SourceLocation("<source>", 0, line, 0);
         var span = new Common.TextSpan(0, 0);
 
-        // CS0850: Subscripted a non-OCCURS item
         if (subscriptCount > 0 && occursDepth == 0)
-        {
             _diagnostics.ReportError("CS0850",
-                $"Item '{sym.Name}' is not defined with OCCURS and cannot be subscripted.",
-                loc, span);
-        }
+                $"Item '{sym.Name}' is not defined with OCCURS and cannot be subscripted.", loc, span);
 
-        // CS0851: Too many subscripts for the OCCURS depth
         if (subscriptCount > occursDepth && occursDepth > 0)
-        {
             _diagnostics.ReportError("CS0851",
-                $"Item '{sym.Name}' has {occursDepth} OCCURS level(s) but was referenced with {subscriptCount} subscript(s).",
-                loc, span);
-        }
+                $"Item '{sym.Name}' has {occursDepth} OCCURS level(s) but was referenced with {subscriptCount} subscript(s).", loc, span);
 
-        // CS0852: More than 3 OCCURS levels (COBOL-85 limit)
         if (occursDepth > 3)
-        {
             _diagnostics.ReportError("CS0852",
-                $"Item '{sym.Name}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {occursDepth}).",
-                loc, span);
-        }
+                $"Item '{sym.Name}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {occursDepth}).", loc, span);
 
-        // CS0853: More than 3 subscripts supplied
         if (subscriptCount > 3)
-        {
             _diagnostics.ReportError("CS0853",
-                $"A maximum of 3 subscripts is permitted in COBOL-85; found {subscriptCount}.",
-                loc, span);
-        }
+                $"A maximum of 3 subscripts is permitted in COBOL-85; found {subscriptCount}.", loc, span);
 
-        // CS0854: Too few subscripts for elementary item under OCCURS
         if (sym.IsElementary && occursDepth > 0 && subscriptCount > 0 && subscriptCount < occursDepth)
-        {
             _diagnostics.ReportError("CS0854",
-                $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.",
-                loc, span);
-        }
+                $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.", loc, span);
 
         var baseId = new BoundIdentifierExpression(sym, cat, subs);
 
-        // Reference modification: identifier(start:length)
-        var refModCtx = idCtx.refModSpec();
         if (refModCtx != null)
             return BindReferenceModification(baseId, refModCtx);
 
         return baseId;
+    }
+
+    /// <summary>
+    /// Resolve a qualified name using right-to-left narrowing.
+    /// A OF B OF C → resolve C (outermost), then B within C, then A within B.
+    /// </summary>
+    private DataSymbol? ResolveQualifiedName(string name, List<string> qualifiers)
+    {
+        // Start from the rightmost (outermost) qualifier
+        DataSymbol? context = _semantic.ResolveData(qualifiers[^1]);
+        if (context == null) return null;
+
+        // Walk qualifiers right-to-left (skip the last one, already resolved)
+        for (int i = qualifiers.Count - 2; i >= 0; i--)
+        {
+            context = FindChild(context, qualifiers[i]);
+            if (context == null) return null;
+        }
+
+        // Resolve the target name within the final context
+        return FindChild(context, name);
+    }
+
+    /// <summary>
+    /// Find a child data symbol by name within a group item.
+    /// Searches recursively through the group's children.
+    /// </summary>
+    private static DataSymbol? FindChild(DataSymbol parent, string name)
+    {
+        foreach (var child in parent.Children)
+        {
+            if (string.Equals(child.DisplayName, name, StringComparison.OrdinalIgnoreCase))
+                return child;
+            // Search deeper (intermediate groups)
+            var deep = FindChild(child, name);
+            if (deep != null) return deep;
+        }
+        return null;
     }
 
     private BoundExpression BindReferenceModification(

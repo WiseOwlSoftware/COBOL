@@ -597,6 +597,30 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataNameTail"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataNameTail([NotNull] CobolParserCore.DataNameTailContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.qualification"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQualification([NotNull] CobolParserCore.QualificationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptPart"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptPart([NotNull] CobolParserCore.SubscriptPartContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.refModPart"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRefModPart([NotNull] CobolParserCore.RefModPartContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.refModSpec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
