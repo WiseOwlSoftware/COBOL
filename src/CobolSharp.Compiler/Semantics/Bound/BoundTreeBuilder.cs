@@ -2634,7 +2634,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             if (tail.qualification() != null)
             {
-                qualifiers.Add(tail.qualification().IDENTIFIER().GetText());
+                var qual = tail.qualification();
+                qualifiers.Add(qual.IDENTIFIER().GetText());
+                // Extract subscripts/refmods attached to the qualifier (e.g., AX-2 IN AX(I))
+                var qualSubs = qual.subscriptPart();
+                if (qualSubs.Length > 0 && subList == null)
+                    subList = qualSubs[0].subscriptList();
+                var qualRefMods = qual.refModPart();
+                if (qualRefMods.Length > 0 && refModCtx == null)
+                    refModCtx = qualRefMods[0].refModSpec();
             }
             else if (tail.subscriptPart() != null && subList == null)
             {
