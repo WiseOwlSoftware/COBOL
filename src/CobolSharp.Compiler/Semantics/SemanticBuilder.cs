@@ -469,6 +469,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
+        // Standalone elementary USAGE INDEX with no PIC: normalize to S9(9) COMP
+        // (same representation as INDEXED BY items) for consistent storage and comparison.
+        // Only for level 77 (always elementary). Group items with USAGE INDEX propagate
+        // usage to children — they must not get a synthetic PIC.
+        if (usage == Runtime.UsageKind.Index && picString == null && level == 77)
+        {
+            picString = "S9(9)";
+            usage = Runtime.UsageKind.Comp;
+        }
+
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.HasExplicitUsage = hasExplicitUsage;

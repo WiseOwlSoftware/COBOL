@@ -1538,49 +1538,108 @@ public sealed class Binder
     private void LowerSetIndex(BoundSetIndexStatement stmt, IrBasicBlock block)
     {
         var targetLoc = ResolveLocation(stmt.Target);
-        if (targetLoc == null) return;
+        if (targetLoc == null)
+        {
+            _diagnostics.ReportError("COBOL0510",
+                $"SET target '{stmt.Target.Symbol.Name}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
+
+        // Resolve the value expression to either a decimal literal or a field location.
+        // Handles literal, identifier, and computed expressions (e.g., unary -5, +5).
+        decimal? literalValue = TryEvalConstant(stmt.Value);
+        IrLocation? valueLoc = null;
+        if (literalValue == null && stmt.Value is BoundIdentifierExpression valId)
+            valueLoc = ResolveLocation(valId);
 
         switch (stmt.Operation)
         {
             case SetOperation.Assign:
-                // SET identifier TO value — reuse MOVE machinery
-                if (stmt.Value is BoundLiteralExpression lit)
+                if (literalValue.HasValue)
                 {
-                    if (lit.Value is decimal d)
-                    {
-                        if (GetPicForLocation(targetLoc).Category.IsNumericLike())
-                            block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, d));
-                        else
-                            block.Instructions.Add(new IrMoveStringToField(targetLoc,
-                                d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-                    }
-                    else if (lit.Value is string s)
-                    {
-                        block.Instructions.Add(new IrMoveStringToField(targetLoc, s));
-                    }
+                    if (GetPicForLocation(targetLoc).Category.IsNumericLike())
+                        block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, literalValue.Value));
+                    else
+                        block.Instructions.Add(new IrMoveStringToField(targetLoc,
+                            literalValue.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if (stmt.Value is BoundIdentifierExpression id)
+                else if (valueLoc != null)
                 {
-                    var srcLoc = ResolveLocation(id);
-                    if (srcLoc != null)
-                        block.Instructions.Add(new IrMoveFieldToField(
-                            srcLoc, targetLoc,
-                            GetPicForLocation(srcLoc), GetPicForLocation(targetLoc)));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        valueLoc, targetLoc,
+                        GetPicForLocation(valueLoc), GetPicForLocation(targetLoc)));
+                }
+                else
+                {
+                    _diagnostics.ReportError("COBOL0511",
+                        $"SET '{stmt.Target.Symbol.Name}' TO: cannot resolve value expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
                 }
                 break;
 
             case SetOperation.UpBy:
-                // SET identifier UP BY n → ADD n TO identifier
-                if (stmt.Value is BoundLiteralExpression upLit && upLit.Value is decimal upVal)
-                    block.Instructions.Add(new IrPicAddLiteral(targetLoc, upVal));
+                if (literalValue.HasValue)
+                    block.Instructions.Add(new IrPicAddLiteral(targetLoc, literalValue.Value));
+                else if (valueLoc != null)
+                    block.Instructions.Add(new IrPicAdd(valueLoc, targetLoc));
+                else
+                {
+                    _diagnostics.ReportError("COBOL0512",
+                        $"SET '{stmt.Target.Symbol.Name}' UP BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
+                }
                 break;
 
             case SetOperation.DownBy:
-                // SET identifier DOWN BY n → SUBTRACT n FROM identifier
-                if (stmt.Value is BoundLiteralExpression downLit && downLit.Value is decimal downVal)
-                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc, downVal));
+                if (literalValue.HasValue)
+                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc, literalValue.Value));
+                else if (valueLoc != null)
+                    block.Instructions.Add(new IrPicSubtract(valueLoc, targetLoc));
+                else
+                {
+                    _diagnostics.ReportError("COBOL0513",
+                        $"SET '{stmt.Target.Symbol.Name}' DOWN BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
+                }
                 break;
         }
+    }
+
+    /// <summary>
+    /// Try to evaluate a bound expression as a compile-time decimal constant.
+    /// Handles literals, unary +/-, and simple constant arithmetic.
+    /// Returns null if the expression is not a compile-time constant.
+    /// </summary>
+    private static decimal? TryEvalConstant(BoundExpression expr)
+    {
+        if (expr is BoundLiteralExpression lit && lit.Value is decimal d)
+            return d;
+
+        // Unary +/- on a literal: the binder produces BoundBinaryExpression(0, +/-, literal)
+        // or the arithmetic parser produces a negated literal
+        if (expr is BoundBinaryExpression bin)
+        {
+            var left = TryEvalConstant(bin.Left);
+            var right = TryEvalConstant(bin.Right);
+            if (left.HasValue && right.HasValue)
+            {
+                return bin.OperatorKind switch
+                {
+                    BoundBinaryOperatorKind.Add => left.Value + right.Value,
+                    BoundBinaryOperatorKind.Subtract => left.Value - right.Value,
+                    BoundBinaryOperatorKind.Multiply => left.Value * right.Value,
+                    BoundBinaryOperatorKind.Divide when right.Value != 0 => left.Value / right.Value,
+                    _ => (decimal?)null
+                };
+            }
+        }
+
+        return null;
     }
 
     // ── MULTIPLY ──
