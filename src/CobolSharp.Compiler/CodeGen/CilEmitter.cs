@@ -683,6 +683,11 @@ public sealed class CilEmitter
                 EmitComputeStore(il, compStore);
                 break;
 
+            case IrComputeIntoAccumulator compAccum:
+                EmitExpression(il, compAccum.Expression, compAccum.ResolvedLocations);
+                il.Append(il.Create(OpCodes.Stloc, getLocal(compAccum.Accumulator)));
+                break;
+
             case IrPicDivide divInst:
                 EmitPicDivide(il, divInst);
                 break;

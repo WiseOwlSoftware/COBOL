@@ -703,13 +703,24 @@ public static class PicRuntime
             return;
         }
 
-        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Trim();
+        // Detect sign from CR/DB suffixes and leading/trailing minus before stripping
+        bool negative = raw.Contains('-') ||
+                         raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
+                         raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+        raw = raw.Replace(",", "").Replace("$", "")
+                 .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("*", "").Replace("/", "").Replace(" ", "")
+                 .Replace("-", "").Replace("+", "").Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
                               CultureInfo.InvariantCulture, out var value))
         {
             value = 0m;
         }
+
+        if (negative) value = -value;
 
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
@@ -732,10 +743,16 @@ public static class PicRuntime
             return;
         }
 
-        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Replace("*", "").Trim();
+        // Detect sign from CR/DB suffixes and leading/trailing minus before stripping
+        bool negative = raw.Contains('-') ||
+                         raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
+                         raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        bool negative = raw.Contains('-');
-        raw = raw.Replace("-", "").Replace("+", "");
+        raw = raw.Replace(",", "").Replace("$", "")
+                 .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("*", "").Replace("/", "").Replace(" ", "")
+                 .Replace("-", "").Replace("+", "").Trim();
 
         if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
                               CultureInfo.InvariantCulture, out var value))

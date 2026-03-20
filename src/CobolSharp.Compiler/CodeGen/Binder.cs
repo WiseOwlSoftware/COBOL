@@ -444,16 +444,18 @@ public sealed class Binder
     /// Compute row/plane/element multipliers for multi-dimensional OCCURS.
     /// multiplier[i] = product of all OCCURS counts at dimensions > i, times elementSize.
     /// </summary>
+    /// <summary>
+    /// Compute per-dimension multipliers for multi-dimensional OCCURS.
+    /// Each multiplier is the ElementSize of the OCCURS group at that level —
+    /// this correctly accounts for non-OCCURS siblings (e.g., ENTRY-1 alongside
+    /// GRP2-ENTRY OCCURS 10) that occupy space within each occurrence.
+    /// </summary>
     private static List<int> ComputeMultipliers(
         List<(Semantics.DataSymbol sym, int count)> occursLevels, int elementSize)
     {
         var multipliers = new List<int>(occursLevels.Count);
-        int acc = elementSize;
-        for (int i = occursLevels.Count - 1; i >= 0; i--)
-        {
-            multipliers.Insert(0, acc);
-            acc *= occursLevels[i].count;
-        }
+        for (int i = 0; i < occursLevels.Count; i++)
+            multipliers.Add(occursLevels[i].sym.ElementSize);
         return multipliers;
     }
 
@@ -1703,23 +1705,35 @@ public sealed class Binder
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        foreach (var target in div.Targets)
+        if (div.Receiver != null)
         {
-            var destLoc = ResolveLocation(target.Target);
-            if (destLoc == null) continue;
+            // DIVIDE BY GIVING: compute quotient ONCE into accumulator, store to all targets.
+            // Critical: the dividend (Receiver) may also be a GIVING target,
+            // so we must evaluate the expression before any target is written.
+            var divExpr = new BoundBinaryExpression(
+                div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
+                CobolCategory.Numeric);
+            var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+            block.Instructions.Add(new IrComputeIntoAccumulator(accum, divExpr,
+                PreResolveExpressionLocations(divExpr)));
 
-            int roundingMode = target.IsRounded ? 1 : 0;
-
-            if (div.Receiver != null)
+            foreach (var target in div.Targets)
             {
-                var divExpr = new BoundBinaryExpression(
-                    div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
-                    CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode,
-                    PreResolveExpressionLocations(divExpr)));
+                var destLoc = ResolveLocation(target.Target);
+                if (destLoc == null) continue;
+                int roundingMode = target.IsRounded ? 1 : 0;
+                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc, roundingMode));
             }
-            else
+        }
+        else
+        {
+            // DIVIDE INTO (non-GIVING): each target is dividend / divisor
+            foreach (var target in div.Targets)
             {
+                var destLoc = ResolveLocation(target.Target);
+                if (destLoc == null) continue;
+                int roundingMode = target.IsRounded ? 1 : 0;
+
                 if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                 {
                     block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));

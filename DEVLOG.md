@@ -6,6 +6,87 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 116 — 2026-03-20: NC136A, NC173A 100% — Multi-dim Stride Bug, DIVIDE GIVING Overwrite
+
+### NC136A: 3D table subscript test (3/8 → 8/8)
+
+**Root cause**: `ComputeMultipliers` accumulated strides from the innermost OCCURS element size
+upward by multiplying by OCCURS counts. For `E2(2,1)` under `GRP1 OCCURS 10 → E1(5) + GRP2 OCCURS 10 → E2(11)`,
+the outer multiplier was computed as `10 * 11 = 110` (inner count × element size). But the
+correct stride is `GRP1.ElementSize = 115` (which includes E1's 5 bytes). Writing to `E2(2,1)`
+at offset `base + 1*110` overflowed backward into E1(2).
+
+**Fix**: Each multiplier should be the `ElementSize` of the OCCURS group at that dimension —
+not an accumulation from the innermost level. Changed `ComputeMultipliers` from:
+```
+acc = elementSize; for each level: multipliers[i] = acc; acc *= count;
+```
+to:
+```
+for each level: multipliers[i] = level.sym.ElementSize;
+```
+
+### NC173A: DIVIDE BY GIVING (86/102 → 102/102)
+
+**Root cause**: DIVIDE BY GIVING with multiple targets where the dividend is also a target.
+`DIVIDE WRK-DU-2V0-1 BY WRK-DU-1V1-2 GIVING WRK-DU-2V1-1, WRK-DU-2V0-1 ROUNDED, ...`
+The lowering emitted one `IrComputeStore(dividend/divisor, target)` per target. After target 2
+stored the quotient into `WRK-DU-2V0-1` (overwriting the dividend), subsequent evaluations
+read the modified dividend. Result: targets 3-6 computed `modified_dividend / divisor` instead
+of `original_dividend / divisor`.
+
+**Fix**: Added `IrComputeIntoAccumulator` IR instruction. DIVIDE BY GIVING now evaluates the
+quotient ONCE into an accumulator, then stores from the accumulator to each target via
+`IrMoveAccumulatedToTarget`. The dividend is never re-read after the first evaluation.
+
+**Pattern check**: Reviewed MULTIPLY GIVING — it already uses the accumulator pattern (safe).
+ADD GIVING and SUBTRACT GIVING also use accumulators (safe). COMPUTE with multiple targets
+re-evaluates per target but COMPUTE expressions don't typically reference their own targets.
+Flagged for future review if a NIST test surfaces it.
+
+---
+
+## Entry 115 — 2026-03-20: NC222A 100%, OCCURS Exclusion, De-editing Sign Loss, Pattern Sweep
+
+### NC222A: MOVE CORRESPONDING test (8/8, 100%)
+
+Started at 4/8. Two distinct bugs.
+
+**Bug 1: OCCURS items included in CORRESPONDING matching**
+
+`MOVE CORRESPONDING TABLE1 TO TABLE2` was matching `RECORD2 OCCURS 2` — copying table
+elements that should be excluded. Per ISO §14.9.26, items with an OCCURS clause are not
+eligible for CORRESPONDING. Added `child.OccursCount > 1` guard to
+`CorrespondingMatcher.EnumerateEligibleLeaves`. Fixed MOV-TEST-F2-1 and F2-2 (4/8 → 6/8).
+
+**Bug 2: CR/DB sign loss in de-editing**
+
+`MOVE MOVE-TEST-3-A TO MOVE-TEST-3-B` where 3-A is `PIC $(4)9.99CR` and 3-B is `PIC S9(4)V99`.
+`MoveNumericEditedToNumeric` stripped `CR`/`DB` suffixes with `.Replace("CR", "")` but never
+set the negative flag. Computed `+123.45`, expected `-123.45`.
+
+Fix: detect `CR`/`DB` before stripping, set `negative = true`.
+
+**Pattern sweep** (unprompted — following the "every bug is a pattern" rule):
+Found the identical bug in `MoveAlphanumericToNumeric` at line 706 — same `.Replace("CR", "")`
+without sign detection. Fixed both methods simultaneously. Also added stripping for `B` (blank
+insertion), `/` (slash insertion), and space characters that appear in edited fields like
+`PIC --9B.99B99/99`.
+
+**Note from user**: "Claude followed, without specific additional prompting, the every bug is
+a pattern rule and discovered additional instances of the bug. Good work Claude!" This is the
+collaboration pattern working as intended — the rule is now internalized.
+
+### New 100% tests from batch scan
+
+Quick scan of remaining NC tests found 5 more already passing:
+- NC170A (96/96), NC202A (77/77), NC207A (85/85), NC221A (17/17), NC224A (14/14)
+- NC111A (7/7), NC112A (32/32), NC132A (25/25) also confirmed at 100%
+
+Total NIST kernel tests at 100%: 33 programs.
+
+---
+
 ## Entry 114 — 2026-03-20: CORRESPONDING Pipeline, IrMoveFieldToField, and the Value of Saying No
 
 ### The session

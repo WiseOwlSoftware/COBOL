@@ -80,7 +80,10 @@ internal static class CorrespondingMatcher
 
     /// <summary>
     /// Enumerates elementary items eligible for CORRESPONDING matching.
-    /// Excludes FILLER items and items subordinate to a REDEFINES.
+    /// Per ISO §14.9.26, excludes:
+    /// - FILLER items
+    /// - Items subordinate to a REDEFINES
+    /// - Items with an OCCURS clause (table elements are not individually corresponding)
     /// </summary>
     private static IEnumerable<DataSymbol> EnumerateEligibleLeaves(DataSymbol group)
     {
@@ -88,6 +91,7 @@ internal static class CorrespondingMatcher
         {
             if (child.IsFiller) continue;
             if (child.Redefines != null) continue; // skip REDEFINES and all subordinates
+            if (child.OccursCount > 1) continue;   // skip OCCURS items per ISO §14.9.26
 
             if (child.IsElementary)
                 yield return child;

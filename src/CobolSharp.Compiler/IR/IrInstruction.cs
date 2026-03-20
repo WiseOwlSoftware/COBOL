@@ -812,6 +812,29 @@ public sealed class IrAccumulateLiteral : IrInstruction
 }
 
 /// <summary>
+/// Evaluate a BoundExpression and store the decimal result into an accumulator.
+/// Used for DIVIDE BY GIVING with multiple targets: evaluate quotient once,
+/// then store from the accumulator to each target.
+/// </summary>
+public sealed class IrComputeIntoAccumulator : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public Semantics.Bound.BoundExpression Expression { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
+
+    public IrComputeIntoAccumulator(IrValue accumulator,
+        Semantics.Bound.BoundExpression expression,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        Accumulator = accumulator;
+        Expression = expression;
+        ResolvedLocations = resolvedLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
+    }
+}
+
+/// <summary>
 /// target = target + accumulator, with rounding and overflow detection.
 /// </summary>
 public sealed class IrAddAccumulatedToTarget : IrInstruction
