@@ -605,14 +605,14 @@ public sealed class IrInspectTally : IrInstruction
     public IrLocation Target { get; }
     public IrLocation Counter { get; }
     public Semantics.Bound.InspectTallyKind Kind { get; }
-    public string? Pattern { get; }
+    public Semantics.Bound.InspectPatternValue? Pattern { get; }
     public string? BeforePattern { get; }
     public bool BeforeInitial { get; }
     public string? AfterPattern { get; }
     public bool AfterInitial { get; }
 
     public IrInspectTally(IrLocation target, IrLocation counter,
-        Semantics.Bound.InspectTallyKind kind, string? pattern,
+        Semantics.Bound.InspectTallyKind kind, Semantics.Bound.InspectPatternValue? pattern,
         string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
     {
         Target = target; Counter = counter; Kind = kind; Pattern = pattern;
@@ -625,15 +625,16 @@ public sealed class IrInspectReplace : IrInstruction
 {
     public IrLocation Target { get; }
     public Semantics.Bound.InspectReplaceKind Kind { get; }
-    public string Pattern { get; }
-    public string Replacement { get; }
+    public Semantics.Bound.InspectPatternValue Pattern { get; }
+    public Semantics.Bound.InspectPatternValue Replacement { get; }
     public string? BeforePattern { get; }
     public bool BeforeInitial { get; }
     public string? AfterPattern { get; }
     public bool AfterInitial { get; }
 
     public IrInspectReplace(IrLocation target,
-        Semantics.Bound.InspectReplaceKind kind, string pattern, string replacement,
+        Semantics.Bound.InspectReplaceKind kind,
+        Semantics.Bound.InspectPatternValue pattern, Semantics.Bound.InspectPatternValue replacement,
         string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
     {
         Target = target; Kind = kind; Pattern = pattern; Replacement = replacement;

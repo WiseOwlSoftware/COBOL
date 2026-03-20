@@ -553,15 +553,37 @@ public sealed class BoundInspectRegion
 public enum InspectTallyKind { All, Leading, Characters }
 public enum InspectReplaceKind { All, First, Leading, Characters }
 
+/// <summary>
+/// An INSPECT pattern value: either a compile-time literal string or a runtime data reference.
+/// For data references, the pattern bytes are read from the field at runtime.
+/// </summary>
+public sealed class InspectPatternValue
+{
+    public string? Literal { get; }
+    public BoundIdentifierExpression? DataRef { get; }
+
+    public bool IsLiteral => Literal != null;
+    public bool IsDataRef => DataRef != null;
+
+    private InspectPatternValue(string? literal, BoundIdentifierExpression? dataRef)
+    {
+        Literal = literal;
+        DataRef = dataRef;
+    }
+
+    public static InspectPatternValue FromLiteral(string value) => new(value, null);
+    public static InspectPatternValue FromDataRef(BoundIdentifierExpression expr) => new(null, expr);
+}
+
 public sealed class BoundInspectTallyingItem
 {
     public BoundIdentifierExpression Counter { get; }
     public InspectTallyKind Kind { get; }
-    public string? Pattern { get; }
+    public InspectPatternValue? Pattern { get; }
     public BoundInspectRegion Region { get; }
 
     public BoundInspectTallyingItem(BoundIdentifierExpression counter, InspectTallyKind kind,
-        string? pattern, BoundInspectRegion region)
+        InspectPatternValue? pattern, BoundInspectRegion region)
     {
         Counter = counter;
         Kind = kind;
@@ -573,12 +595,12 @@ public sealed class BoundInspectTallyingItem
 public sealed class BoundInspectReplacingItem
 {
     public InspectReplaceKind Kind { get; }
-    public string Pattern { get; }
-    public string Replacement { get; }
+    public InspectPatternValue Pattern { get; }
+    public InspectPatternValue Replacement { get; }
     public BoundInspectRegion Region { get; }
 
-    public BoundInspectReplacingItem(InspectReplaceKind kind, string pattern,
-        string replacement, BoundInspectRegion region)
+    public BoundInspectReplacingItem(InspectReplaceKind kind, InspectPatternValue pattern,
+        InspectPatternValue replacement, BoundInspectRegion region)
     {
         Kind = kind;
         Pattern = pattern;

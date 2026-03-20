@@ -1381,6 +1381,37 @@ public sealed class CilEmitter
 
     // ── INSPECT emit helpers ──
 
+    /// <summary>
+    /// Emit an InspectPatternValue onto the CIL stack as a string.
+    /// Literals: Ldstr. Data references: ReadFieldAsString(area, offset, length).
+    /// </summary>
+    private void EmitInspectPatternValue(ILProcessor il, Semantics.Bound.InspectPatternValue? pv)
+    {
+        if (pv == null || pv.IsLiteral)
+        {
+            il.Append(il.Create(OpCodes.Ldstr, pv?.Literal ?? ""));
+        }
+        else if (pv.IsDataRef)
+        {
+            // Read the data field at runtime to get the pattern string
+            var sym = pv.DataRef!.Symbol;
+            var loc = _semanticModel?.GetStorageLocation(sym);
+            if (loc.HasValue)
+            {
+                var irLoc = new IR.IrStaticLocation(loc.Value);
+                EmitLocationArgs(il, irLoc);
+                var readMethod = _module.ImportReference(
+                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+                il.Append(il.Create(OpCodes.Call, readMethod));
+            }
+            else
+            {
+                il.Append(il.Create(OpCodes.Ldstr, ""));
+            }
+        }
+    }
+
     private void EmitInspectTally(ILProcessor il, IrInspectTally it)
     {
         // Target area/offset/length
@@ -1396,7 +1427,7 @@ public sealed class CilEmitter
         {
             methodName = it.Kind == Semantics.Bound.InspectTallyKind.Leading
                 ? "TallyLeadingAndStore" : "TallyAllAndStore";
-            il.Append(il.Create(OpCodes.Ldstr, it.Pattern ?? ""));
+            EmitInspectPatternValue(il, it.Pattern);
         }
 
         // Counter area/offset/length/pic
@@ -1434,7 +1465,7 @@ public sealed class CilEmitter
         if (ir.Kind == Semantics.Bound.InspectReplaceKind.Characters)
         {
             // REPLACING CHARACTERS BY x — no pattern, just replacement
-            il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
+            EmitInspectPatternValue(il, ir.Replacement);
             EmitOptionalString(il, ir.BeforePattern);
             il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
             EmitOptionalString(il, ir.AfterPattern);
@@ -1456,8 +1487,8 @@ public sealed class CilEmitter
                 _ => "ReplaceAll"
             };
 
-            il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
-            il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
+            EmitInspectPatternValue(il, ir.Pattern);
+            EmitInspectPatternValue(il, ir.Replacement);
             EmitOptionalString(il, ir.BeforePattern);
             il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
             EmitOptionalString(il, ir.AfterPattern);

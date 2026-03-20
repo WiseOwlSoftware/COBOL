@@ -876,7 +876,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     var countPhrase = forClause.inspectCountPhrase();
                     InspectTallyKind kind;
-                    string? pattern = null;
+                    InspectPatternValue? pattern = null;
 
                     if (countPhrase.CHARACTERS() != null)
                     {
@@ -885,12 +885,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     else if (countPhrase.LEADING() != null)
                     {
                         kind = InspectTallyKind.Leading;
-                        pattern = ExtractInspectChar(countPhrase.inspectChar());
+                        pattern = ExtractInspectPattern(countPhrase.inspectChar());
                     }
                     else
                     {
                         kind = InspectTallyKind.All;
-                        pattern = ExtractInspectChar(countPhrase.inspectChar());
+                        pattern = ExtractInspectPattern(countPhrase.inspectChar());
                     }
 
                     var region = BindInspectDelimiters(countPhrase.inspectDelimiters());
@@ -910,21 +910,25 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 else if (item.LEADING() != null) kind = InspectReplaceKind.Leading;
                 else kind = InspectReplaceKind.All;
 
-                string pattern;
-                string replacement;
+                InspectPatternValue pattern;
+                InspectPatternValue replacement;
 
                 var inspChars = item.inspectChar();
                 if (item.CHARACTERS() != null)
                 {
-                    // CHARACTERS BY x — replace every character
-                    pattern = "";
-                    replacement = inspChars.Length > 0 ? ExtractInspectChar(inspChars[0]) ?? "" : "";
+                    pattern = InspectPatternValue.FromLiteral("");
+                    replacement = inspChars.Length > 0
+                        ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
                 }
                 else
                 {
-                    // Pattern BY replacement (two inspectChar nodes)
-                    pattern = inspChars.Length > 0 ? ExtractInspectChar(inspChars[0]) ?? "" : "";
-                    replacement = inspChars.Length > 1 ? ExtractInspectChar(inspChars[1]) ?? "" : "";
+                    pattern = inspChars.Length > 0
+                        ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
+                    replacement = inspChars.Length > 1
+                        ? ExtractInspectPattern(inspChars[1]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
                 }
 
                 var region = BindInspectDelimiters(item.inspectDelimiters());
@@ -936,8 +940,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (convPhrase != null)
         {
             var inspChars = convPhrase.inspectChar();
-            string fromSet = inspChars.Length > 0 ? ExtractInspectChar(inspChars[0]) ?? "" : "";
-            string toSet = inspChars.Length > 1 ? ExtractInspectChar(inspChars[1]) ?? "" : "";
+            string fromSet = inspChars.Length > 0 ? ExtractInspectString(inspChars[0]) ?? "" : "";
+            string toSet = inspChars.Length > 1 ? ExtractInspectString(inspChars[1]) ?? "" : "";
             // CONVERTING uses inspectBeforeAfterPhrase*, map to BoundInspectRegion
             var region = BindInspectBeforeAfter(convPhrase.inspectBeforeAfterPhrase());
             converting = new BoundInspectConverting(fromSet, toSet, region);
@@ -946,16 +950,47 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return new BoundInspectStatement(targetId, tallying, replacing, converting);
     }
 
-    private string? ExtractInspectChar(CobolParserCore.InspectCharContext? ctx)
+    private InspectPatternValue? ExtractInspectPattern(CobolParserCore.InspectCharContext? ctx)
     {
         if (ctx == null) return null;
-        if (ctx.literal() != null) return ExtractLiteralString(ctx.literal());
-        if (ctx.identifier() != null) return ctx.identifier().IDENTIFIER().GetText();
+        if (ctx.literal() != null)
+            return InspectPatternValue.FromLiteral(ExtractLiteralString(ctx.literal()));
+        if (ctx.identifier() != null)
+        {
+            var bound = BindIdentifierWithSubscripts(ctx.identifier());
+            if (bound is BoundIdentifierExpression idExpr)
+                return InspectPatternValue.FromDataRef(idExpr);
+            // Fallback: unresolved identifier → use name as literal
+            return InspectPatternValue.FromLiteral(ctx.identifier().IDENTIFIER().GetText());
+        }
         if (ctx.figurativeConstant() != null)
         {
-            if (ctx.figurativeConstant().SPACE() != null) return " ";
-            if (ctx.figurativeConstant().ZERO() != null) return "0";
-            return ctx.figurativeConstant().GetText();
+            if (ctx.figurativeConstant().SPACE() != null) return InspectPatternValue.FromLiteral(" ");
+            if (ctx.figurativeConstant().ZERO() != null) return InspectPatternValue.FromLiteral("0");
+            if (ctx.figurativeConstant().HIGH_VALUE() != null) return InspectPatternValue.FromLiteral("\xFF");
+            if (ctx.figurativeConstant().LOW_VALUE() != null) return InspectPatternValue.FromLiteral("\x00");
+            if (ctx.figurativeConstant().QUOTE_() != null) return InspectPatternValue.FromLiteral("\"");
+            return InspectPatternValue.FromLiteral(ctx.figurativeConstant().GetText());
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Extract an INSPECT pattern as a plain string (for BEFORE/AFTER delimiters and CONVERTING).
+    /// For data references, returns the data name as a fallback — these should ideally also
+    /// be runtime-resolved, but BEFORE/AFTER and CONVERTING are string-based in the current model.
+    /// </summary>
+    private string? ExtractInspectString(CobolParserCore.InspectCharContext? ctx)
+    {
+        var pv = ExtractInspectPattern(ctx);
+        if (pv == null) return null;
+        if (pv.IsLiteral) return pv.Literal;
+        // Data reference: read the field's initial value if available, otherwise use name
+        if (pv.IsDataRef)
+        {
+            var sym = pv.DataRef!.Symbol;
+            if (sym.InitialValue != null) return sym.InitialValue;
+            return sym.DisplayName;
         }
         return null;
     }
@@ -975,12 +1010,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             if (p.BEFORE() != null)
             {
-                beforePattern = ExtractInspectChar(p.inspectChar());
+                beforePattern = ExtractInspectString(p.inspectChar());
                 beforeInitial = p.INITIAL_() != null;
             }
             else if (p.AFTER() != null)
             {
-                afterPattern = ExtractInspectChar(p.inspectChar());
+                afterPattern = ExtractInspectString(p.inspectChar());
                 afterInitial = p.INITIAL_() != null;
             }
         }
@@ -1081,27 +1116,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // Both present — first matches the leading keyword
             if (ctx.BEFORE().Symbol.TokenIndex < ctx.AFTER().Symbol.TokenIndex)
             {
-                beforePattern = chars.Length > 0 ? ExtractInspectChar(chars[0]) : null;
+                beforePattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
                 beforeInitial = initials.Length > 0;
-                afterPattern = chars.Length > 1 ? ExtractInspectChar(chars[1]) : null;
+                afterPattern = chars.Length > 1 ? ExtractInspectString(chars[1]) : null;
                 afterInitial = initials.Length > 1;
             }
             else
             {
-                afterPattern = chars.Length > 0 ? ExtractInspectChar(chars[0]) : null;
+                afterPattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
                 afterInitial = initials.Length > 0;
-                beforePattern = chars.Length > 1 ? ExtractInspectChar(chars[1]) : null;
+                beforePattern = chars.Length > 1 ? ExtractInspectString(chars[1]) : null;
                 beforeInitial = initials.Length > 1;
             }
         }
         else if (ctx.BEFORE() != null)
         {
-            beforePattern = chars.Length > 0 ? ExtractInspectChar(chars[0]) : null;
+            beforePattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
             beforeInitial = initials.Length > 0;
         }
         else if (ctx.AFTER() != null)
         {
-            afterPattern = chars.Length > 0 ? ExtractInspectChar(chars[0]) : null;
+            afterPattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
             afterInitial = initials.Length > 0;
         }
 
