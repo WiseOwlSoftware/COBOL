@@ -940,8 +940,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (convPhrase != null)
         {
             var inspChars = convPhrase.inspectChar();
-            string fromSet = inspChars.Length > 0 ? ExtractInspectString(inspChars[0]) ?? "" : "";
-            string toSet = inspChars.Length > 1 ? ExtractInspectString(inspChars[1]) ?? "" : "";
+            var fromSet = inspChars.Length > 0
+                ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                : InspectPatternValue.FromLiteral("");
+            var toSet = inspChars.Length > 1
+                ? ExtractInspectPattern(inspChars[1]) ?? InspectPatternValue.FromLiteral("")
+                : InspectPatternValue.FromLiteral("");
             // CONVERTING uses inspectBeforeAfterPhrase*, map to BoundInspectRegion
             var region = BindInspectBeforeAfter(convPhrase.inspectBeforeAfterPhrase());
             converting = new BoundInspectConverting(fromSet, toSet, region);
@@ -976,46 +980,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     /// <summary>
-    /// Extract an INSPECT pattern as a plain string (for BEFORE/AFTER delimiters and CONVERTING).
-    /// For data references, returns the data name as a fallback — these should ideally also
-    /// be runtime-resolved, but BEFORE/AFTER and CONVERTING are string-based in the current model.
-    /// </summary>
-    private string? ExtractInspectString(CobolParserCore.InspectCharContext? ctx)
-    {
-        var pv = ExtractInspectPattern(ctx);
-        if (pv == null) return null;
-        if (pv.IsLiteral) return pv.Literal;
-        // Data reference: read the field's initial value if available, otherwise use name
-        if (pv.IsDataRef)
-        {
-            var sym = pv.DataRef!.Symbol;
-            if (sym.InitialValue != null) return sym.InitialValue;
-            return sym.DisplayName;
-        }
-        return null;
-    }
-
     private BoundInspectRegion BindInspectBeforeAfter(
         CobolParserCore.InspectBeforeAfterPhraseContext[]? phrases)
     {
         if (phrases == null || phrases.Length == 0)
             return BoundInspectRegion.Empty;
 
-        string? beforePattern = null;
+        InspectPatternValue? beforePattern = null;
         bool beforeInitial = false;
-        string? afterPattern = null;
+        InspectPatternValue? afterPattern = null;
         bool afterInitial = false;
 
         foreach (var p in phrases)
         {
             if (p.BEFORE() != null)
             {
-                beforePattern = ExtractInspectString(p.inspectChar());
+                beforePattern = ExtractInspectPattern(p.inspectChar());
                 beforeInitial = p.INITIAL_() != null;
             }
             else if (p.AFTER() != null)
             {
-                afterPattern = ExtractInspectString(p.inspectChar());
+                afterPattern = ExtractInspectPattern(p.inspectChar());
                 afterInitial = p.INITIAL_() != null;
             }
         }
@@ -1101,9 +1086,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (ctx == null) return BoundInspectRegion.Empty;
 
-        string? beforePattern = null;
+        InspectPatternValue? beforePattern = null;
         bool beforeInitial = false;
-        string? afterPattern = null;
+        InspectPatternValue? afterPattern = null;
         bool afterInitial = false;
 
         // Grammar: BEFORE INITIAL? inspectChar (AFTER INITIAL? inspectChar)?
@@ -1116,27 +1101,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // Both present — first matches the leading keyword
             if (ctx.BEFORE().Symbol.TokenIndex < ctx.AFTER().Symbol.TokenIndex)
             {
-                beforePattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
+                beforePattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
                 beforeInitial = initials.Length > 0;
-                afterPattern = chars.Length > 1 ? ExtractInspectString(chars[1]) : null;
+                afterPattern = chars.Length > 1 ? ExtractInspectPattern(chars[1]) : null;
                 afterInitial = initials.Length > 1;
             }
             else
             {
-                afterPattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
+                afterPattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
                 afterInitial = initials.Length > 0;
-                beforePattern = chars.Length > 1 ? ExtractInspectString(chars[1]) : null;
+                beforePattern = chars.Length > 1 ? ExtractInspectPattern(chars[1]) : null;
                 beforeInitial = initials.Length > 1;
             }
         }
         else if (ctx.BEFORE() != null)
         {
-            beforePattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
+            beforePattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
             beforeInitial = initials.Length > 0;
         }
         else if (ctx.AFTER() != null)
         {
-            afterPattern = chars.Length > 0 ? ExtractInspectString(chars[0]) : null;
+            afterPattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
             afterInitial = initials.Length > 0;
         }
 

@@ -1382,6 +1382,7 @@ public sealed class Binder
             var counterLoc = ResolveLocation(t.Counter);
             if (counterLoc == null) continue;
 
+            PreResolveInspectPatterns(t.Pattern, t.Region);
             block.Instructions.Add(new IrInspectTally(
                 targetLoc, counterLoc, t.Kind, t.Pattern,
                 t.Region.BeforePattern, t.Region.BeforeInitial,
@@ -1390,6 +1391,7 @@ public sealed class Binder
 
         foreach (var r in stmt.Replacing)
         {
+            PreResolveInspectPatterns(r.Pattern, r.Replacement, r.Region);
             block.Instructions.Add(new IrInspectReplace(
                 targetLoc, r.Kind, r.Pattern, r.Replacement,
                 r.Region.BeforePattern, r.Region.BeforeInitial,
@@ -1398,10 +1400,32 @@ public sealed class Binder
 
         if (stmt.Converting != null)
         {
+            PreResolveInspectPatterns(stmt.Converting.FromSet, stmt.Converting.ToSet,
+                stmt.Converting.Region);
             block.Instructions.Add(new IrInspectConvert(
                 targetLoc, stmt.Converting.FromSet, stmt.Converting.ToSet,
                 stmt.Converting.Region.BeforePattern, stmt.Converting.Region.BeforeInitial,
                 stmt.Converting.Region.AfterPattern, stmt.Converting.Region.AfterInitial));
+        }
+    }
+
+    /// <summary>
+    /// Pre-resolve IrLocations for data-ref INSPECT patterns so the CIL emitter
+    /// can emit subscripted element addresses at runtime.
+    /// </summary>
+    private void PreResolveInspectPatterns(params object?[] items)
+    {
+        foreach (var item in items)
+        {
+            if (item is InspectPatternValue pv && pv.IsDataRef && pv.ResolvedLocation == null)
+                pv.ResolvedLocation = ResolveExpressionLocation(pv.DataRef!);
+            else if (item is BoundInspectRegion region)
+            {
+                if (region.BeforePattern is { IsDataRef: true, ResolvedLocation: null } bp)
+                    bp.ResolvedLocation = ResolveExpressionLocation(bp.DataRef!);
+                if (region.AfterPattern is { IsDataRef: true, ResolvedLocation: null } ap)
+                    ap.ResolvedLocation = ResolveExpressionLocation(ap.DataRef!);
+            }
         }
     }
 

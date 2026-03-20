@@ -533,13 +533,13 @@ public sealed class BoundAcceptStatement : BoundStatement
 
 public sealed class BoundInspectRegion
 {
-    public string? BeforePattern { get; }
+    public InspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
-    public string? AfterPattern { get; }
+    public InspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
 
-    public BoundInspectRegion(string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+    public BoundInspectRegion(InspectPatternValue? beforePattern, bool beforeInitial,
+        InspectPatternValue? afterPattern, bool afterInitial)
     {
         BeforePattern = beforePattern;
         BeforeInitial = beforeInitial;
@@ -561,6 +561,13 @@ public sealed class InspectPatternValue
 {
     public string? Literal { get; }
     public BoundIdentifierExpression? DataRef { get; }
+
+    /// <summary>
+    /// Pre-resolved location for data-ref patterns. Set during lowering (Binder)
+    /// so the CIL emitter can emit the correct address for subscripted patterns.
+    /// Typed as object to avoid bound→IR layer dependency; cast to IrLocation in emitter.
+    /// </summary>
+    public object? ResolvedLocation { get; set; }
 
     public bool IsLiteral => Literal != null;
     public bool IsDataRef => DataRef != null;
@@ -611,11 +618,12 @@ public sealed class BoundInspectReplacingItem
 
 public sealed class BoundInspectConverting
 {
-    public string FromSet { get; }
-    public string ToSet { get; }
+    public InspectPatternValue FromSet { get; }
+    public InspectPatternValue ToSet { get; }
     public BoundInspectRegion Region { get; }
 
-    public BoundInspectConverting(string fromSet, string toSet, BoundInspectRegion region)
+    public BoundInspectConverting(InspectPatternValue fromSet, InspectPatternValue toSet,
+        BoundInspectRegion region)
     {
         FromSet = fromSet;
         ToSet = toSet;
