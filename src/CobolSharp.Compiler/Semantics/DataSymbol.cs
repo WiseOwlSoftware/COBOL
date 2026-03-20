@@ -18,7 +18,7 @@ public sealed class DataSymbol : Symbol
     public string? PicString { get; }
 
     /// <summary>USAGE clause: DISPLAY, COMP, COMP-3, INDEX, etc.</summary>
-    public UsageKind Usage { get; }
+    public UsageKind Usage { get; set; }
 
     /// <summary>Type resolved from PIC/USAGE analysis; set during type resolution, null before.</summary>
     public ITypeSymbol? ResolvedType { get; set; }
@@ -58,6 +58,9 @@ public sealed class DataSymbol : Symbol
 
     /// <summary>JUSTIFIED RIGHT clause present on this data item.</summary>
     public bool IsJustifiedRight { get; set; }
+
+    /// <summary>True if USAGE was explicitly specified on this item (not inherited from parent).</summary>
+    public bool HasExplicitUsage { get; set; }
 
     /// <summary>OCCURS count (1 = no OCCURS, >1 = array).</summary>
     public int OccursCount { get; set; } = 1;
@@ -100,6 +103,12 @@ public sealed class DataSymbol : Symbol
     internal void AddChild(DataSymbol child)
     {
         child.Parent = this;
+
+        // ISO §13.16.56: USAGE on a group applies to all subordinate items
+        // that do not have their own explicit USAGE clause.
+        if (!child.HasExplicitUsage && Usage != UsageKind.Display)
+            child.Usage = Usage;
+
         Children.Add(child);
     }
 }

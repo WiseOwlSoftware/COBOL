@@ -3,6 +3,10 @@
 
 lexer grammar CobolLexer;
 
+options {
+    caseInsensitive = true;
+}
+
 // ==========================================
 // DEFAULT MODE
 // ==========================================
@@ -135,6 +139,7 @@ AND         : 'AND' ;
 ANY         : 'ANY' ;
 ASCENDING   : 'ASCENDING' ;
 ASSIGN      : 'ASSIGN' ;
+ARE         : 'ARE' ;
 AT          : 'AT' ;
 AUTHOR      : 'AUTHOR' ;
 BEFORE      : 'BEFORE' ;
@@ -186,6 +191,7 @@ GIVING      : 'GIVING' ;
 GLOBAL      : 'GLOBAL' ;
 GREATER     : 'GREATER' ;
 IN          : 'IN' ;
+INDEX       : 'INDEX' ;
 INDEXED     : 'INDEXED' ;
 INITIAL_    : 'INITIAL' ;
 INPUT       : 'INPUT' ;
@@ -209,6 +215,7 @@ NUMERIC     : 'NUMERIC' ;
 NULL_       : 'NULL' ;
 OCCURS      : 'OCCURS' ;
 OF          : 'OF' ;
+OFF         : 'OFF' ;
 ON          : 'ON' ;
 OR          : 'OR' ;
 ORGANIZATION: 'ORGANIZATION' ;
@@ -276,30 +283,34 @@ LOW_VALUE   : 'LOW-VALUE' | 'LOW-VALUES' ;
 QUOTE_      : 'QUOTE' | 'QUOTES' ;
 
 // ── Numeric literals (must come BEFORE IDENTIFIER) ──
-// Option A: ordering guarantees "01" → INTEGERLIT, not IDENTIFIER
+// DECIMALLIT handles DOT-based decimals in the lexer (maximal munch resolves
+// DOT-as-decimal vs DOT-as-sentence-terminator). COMMA-based decimals for
+// DECIMAL-POINT IS COMMA are handled in the parser via numericLiteralCore.
 
 DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
-INTEGERLIT  : [0-9]+ ;
 
-// ── IDENTIFIER (must come AFTER all keywords AND numeric literals) ──
+// ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
 // COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},
 // must contain at least one letter, no leading/trailing hyphen.
-// Letter constraint enforced in semantic layer, not lexer.
-// Digit-start with hyphen (e.g., 42-DATANAMES) is the key case.
+// Digit-start forms: 42-DATANAMES (hyphen), 11A/25COUNT/80PARTS (letter).
+// Pure digits remain INTEGERLIT (level numbers, paragraph numbers, etc.).
 
 IDENTIFIER
-    : [0-9]+ '-' [A-Za-z0-9] [A-Za-z0-9-]*   // digit-start: 42-DATANAMES
-    | [A-Za-z] [A-Za-z0-9-]* [A-Za-z0-9]      // alpha-start: WRK-DS-01V00
-    | [A-Za-z]                                  // single letter: A
+    : [0-9]+ '-' [a-z0-9] [a-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
+    | [0-9]+ [a-z] [a-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
+    | [a-z] [a-z0-9-]* [a-z0-9]         // alpha-start: WRK-DS-01V00
+    | [a-z]                               // single letter: A
     ;
+
+INTEGERLIT  : [0-9]+ ;
 
 // ── String literals ──
 
 STRINGLIT   : '"' (~["\r\n] | '""')* '"'
             | '\'' (~['\r\n] | '\'\'')* '\''
             ;
-HEXLIT      : [Xx] '"' [0-9A-Fa-f]+ '"'
-            | [Xx] '\'' [0-9A-Fa-f]+ '\''
+HEXLIT      : [x] '"' [0-9a-f]+ '"'
+            | [x] '\'' [0-9a-f]+ '\''
             ;
 
 // ── Operators (multi-char before single-char) ──
@@ -310,7 +321,10 @@ GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
 DOT         : '.' ;
-COMMA       : ',' -> skip ;   // §8.3.5: comma-space is equivalent to space
+// §8.3.5: comma followed by whitespace is a separator (equivalent to space).
+// Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
+COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
+COMMA       : ',' ;
 LPAREN      : '(' ;
 RPAREN      : ')' ;
 LT          : '<' ;

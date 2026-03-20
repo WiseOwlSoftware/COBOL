@@ -600,20 +600,44 @@ public sealed class IrAccept : IrInstruction
 
 // ── INSPECT ──
 
+/// <summary>
+/// IR-level INSPECT pattern: either a compile-time literal string or a pre-resolved
+/// runtime location. The Binder resolves BoundInspectPatternValue → IrInspectPatternValue
+/// during lowering, converting data-ref patterns to IrLocations.
+/// </summary>
+public sealed class IrInspectPatternValue
+{
+    public string? Literal { get; }
+    public IrLocation? Location { get; }
+
+    public bool IsLiteral => Literal != null;
+    public bool IsLocation => Location != null;
+
+    private IrInspectPatternValue(string? literal, IrLocation? location)
+    {
+        Literal = literal;
+        Location = location;
+    }
+
+    public static IrInspectPatternValue FromLiteral(string value) => new(value, null);
+    public static IrInspectPatternValue FromLocation(IrLocation loc) => new(null, loc);
+}
+
 public sealed class IrInspectTally : IrInstruction
 {
     public IrLocation Target { get; }
     public IrLocation Counter { get; }
     public Semantics.Bound.InspectTallyKind Kind { get; }
-    public string? Pattern { get; }
-    public string? BeforePattern { get; }
+    public IrInspectPatternValue? Pattern { get; }
+    public IrInspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
-    public string? AfterPattern { get; }
+    public IrInspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
 
     public IrInspectTally(IrLocation target, IrLocation counter,
-        Semantics.Bound.InspectTallyKind kind, string? pattern,
-        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+        Semantics.Bound.InspectTallyKind kind, IrInspectPatternValue? pattern,
+        IrInspectPatternValue? beforePattern, bool beforeInitial,
+        IrInspectPatternValue? afterPattern, bool afterInitial)
     {
         Target = target; Counter = counter; Kind = kind; Pattern = pattern;
         BeforePattern = beforePattern; BeforeInitial = beforeInitial;
@@ -625,16 +649,18 @@ public sealed class IrInspectReplace : IrInstruction
 {
     public IrLocation Target { get; }
     public Semantics.Bound.InspectReplaceKind Kind { get; }
-    public string Pattern { get; }
-    public string Replacement { get; }
-    public string? BeforePattern { get; }
+    public IrInspectPatternValue Pattern { get; }
+    public IrInspectPatternValue Replacement { get; }
+    public IrInspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
-    public string? AfterPattern { get; }
+    public IrInspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
 
     public IrInspectReplace(IrLocation target,
-        Semantics.Bound.InspectReplaceKind kind, string pattern, string replacement,
-        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+        Semantics.Bound.InspectReplaceKind kind,
+        IrInspectPatternValue pattern, IrInspectPatternValue replacement,
+        IrInspectPatternValue? beforePattern, bool beforeInitial,
+        IrInspectPatternValue? afterPattern, bool afterInitial)
     {
         Target = target; Kind = kind; Pattern = pattern; Replacement = replacement;
         BeforePattern = beforePattern; BeforeInitial = beforeInitial;
@@ -645,15 +671,17 @@ public sealed class IrInspectReplace : IrInstruction
 public sealed class IrInspectConvert : IrInstruction
 {
     public IrLocation Target { get; }
-    public string FromSet { get; }
-    public string ToSet { get; }
-    public string? BeforePattern { get; }
+    public IrInspectPatternValue FromSet { get; }
+    public IrInspectPatternValue ToSet { get; }
+    public IrInspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
-    public string? AfterPattern { get; }
+    public IrInspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
 
-    public IrInspectConvert(IrLocation target, string fromSet, string toSet,
-        string? beforePattern, bool beforeInitial, string? afterPattern, bool afterInitial)
+    public IrInspectConvert(IrLocation target,
+        IrInspectPatternValue fromSet, IrInspectPatternValue toSet,
+        IrInspectPatternValue? beforePattern, bool beforeInitial,
+        IrInspectPatternValue? afterPattern, bool afterInitial)
     {
         Target = target; FromSet = fromSet; ToSet = toSet;
         BeforePattern = beforePattern; BeforeInitial = beforeInitial;
@@ -1071,20 +1099,29 @@ public sealed class IrPicMoveLiteralNumeric : IrInstruction
 // ── PIC-aware data movement ──
 
 /// <summary>
-/// PIC-aware MOVE: the emitter calls the appropriate PicRuntime helper
-/// based on source/destination PIC descriptors.
+/// PIC-aware field-to-field MOVE. Canonical primitive for all identifier→identifier
+/// moves: regular MOVE, MOVE CORRESPONDING pairs, and SET TRUE/FALSE.
+/// Carries resolved PIC descriptors — the emitter dispatches to the appropriate
+/// PicRuntime helper based on source/destination categories.
 /// </summary>
-public sealed class IrPicMove : IrInstruction
+public sealed class IrMoveFieldToField : IrInstruction
 {
     public IrLocation Source { get; }
     public IrLocation Destination { get; }
-    public int Rounding { get; } // 0=Truncate, 1=RoundHalfUp
+    public Runtime.PicDescriptor SourcePic { get; }
+    public Runtime.PicDescriptor DestinationPic { get; }
+    public bool IsRounded { get; }
 
-    public IrPicMove(IrLocation source, IrLocation destination, int rounding = 0)
+    public IrMoveFieldToField(
+        IrLocation source, IrLocation destination,
+        Runtime.PicDescriptor sourcePic, Runtime.PicDescriptor destinationPic,
+        bool isRounded = false)
     {
         Source = source;
         Destination = destination;
-        Rounding = rounding;
+        SourcePic = sourcePic;
+        DestinationPic = destinationPic;
+        IsRounded = isRounded;
     }
 }
 

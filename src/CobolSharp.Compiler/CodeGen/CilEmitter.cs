@@ -159,16 +159,49 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Call, moveFigMethod));
             }
 
+            var moveStringToOccursMethod = _module.ImportReference(
+                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToOccursField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+
             foreach (var kvp in _semanticModel.InitialValues)
             {
                 // Skip symbols that have a figurative init — already handled above
                 if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
                     continue;
 
-                var loc = _semanticModel.GetStorageLocation(kvp.Key);
+                var data = kvp.Key;
+                var loc = _semanticModel.GetStorageLocation(data);
                 if (!loc.HasValue) continue;
 
                 var init = kvp.Value;
+
+                // Compute OCCURS-aware element size and total occurrences.
+                // For nested OCCURS where elements are contiguous across parent boundaries,
+                // flatten to a single totalOccurs covering all dimensions.
+                int directOccurs = data.OccursCount <= 0 ? 1 : data.OccursCount;
+                int totalSize = loc.Value.Length;
+                int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
+                int totalOccurs = directOccurs;
+
+                // Walk parent chain: if parent has OCCURS and child fills the entire
+                // parent occurrence (contiguous), multiply totalOccurs and adjust sizes.
+                for (var parent = data.Parent; parent != null; parent = parent.Parent)
+                {
+                    if (parent.OccursCount <= 1) continue;
+                    var parentLoc = _semanticModel.GetStorageLocation(parent);
+                    if (!parentLoc.HasValue) break;
+                    int parentPerOccurrence = parentLoc.Value.Length / parent.OccursCount;
+                    // Contiguous check: child's span fills exactly one parent occurrence
+                    if (totalOccurs * elementSize == parentPerOccurrence)
+                    {
+                        totalOccurs *= parent.OccursCount;
+                    }
+                    else
+                    {
+                        break; // Non-contiguous — stop flattening
+                    }
+                }
 
                 // Load backing array
                 il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
@@ -178,15 +211,14 @@ public sealed class CilEmitter
                             ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
                 il.Append(il.Create(OpCodes.Callvirt, getter));
 
-                // offset + size
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
-
                 if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
                 {
                     // Numeric VALUE → PicRuntime.MoveNumericLiteral
-                    // Stack already has: byte[] area, int offset, int length
-                    EmitLoadPicDescriptor(il, loc.Value.Pic);
+                    // suppressBlankWhenZero: VALUE clause stores raw digits,
+                    // BLANK WHEN ZERO only applies on MOVE/DISPLAY output.
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalSize));
+                    EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
                     EmitLoadDecimal(il, d);
                     il.Append(il.Create(OpCodes.Ldc_I4_0)); // rounding = truncate
 
@@ -200,16 +232,22 @@ public sealed class CilEmitter
                 }
                 else if (init.Value is string s)
                 {
-                    // String VALUE → MoveStringToField
+                    // String VALUE → MoveStringToOccursField (handles OCCURS replication)
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                     il.Append(il.Create(OpCodes.Ldstr, s));
-                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
                 }
                 else if (init.Value is decimal d2)
                 {
                     // Numeric VALUE on non-numeric field → treat as string
                     string numStr = d2.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                     il.Append(il.Create(OpCodes.Ldstr, numStr));
-                    il.Append(il.Create(OpCodes.Call, moveStringMethod));
+                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
                 }
             }
         }
@@ -562,8 +600,8 @@ public sealed class CilEmitter
                 EmitCheckFileInvalidKey(il, cik, getLocal);
                 break;
 
-            case IrPicMove pm:
-                EmitPicMoveFieldToField(il, pm);
+            case IrMoveFieldToField mf:
+                EmitMoveFieldToField(il, mf);
                 break;
 
             case IrPicMultiply mul:
@@ -1057,6 +1095,18 @@ public sealed class CilEmitter
                             typeof(string), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, method));
         }
+        else if (pic.IsJustifiedRight)
+        {
+            // JUSTIFIED RIGHT alphanumeric: right-justified, left-padded/left-truncated
+            EmitLocationArgs(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod(
+                    "MoveStringToJustifiedField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
         else
         {
             // Plain alphanumeric: left-justified, space-padded
@@ -1077,12 +1127,13 @@ public sealed class CilEmitter
     /// <summary>
     /// Emit a MOVE call with the standard (src, dst, rounding) signature used by most PicRuntime MOVE methods.
     /// </summary>
-    private void EmitMoveWithStandardSignature(ILProcessor il, IrPicMove pm, string methodName)
+    private void EmitMoveWithStandardSignature(
+        ILProcessor il, IrLocation source, IrLocation destination, int rounding, string methodName)
     {
-        EmitLocationArgsWithPic(il, pm.Source);
-        EmitLocationArgsWithPic(il, pm.Destination);
+        EmitLocationArgsWithPic(il, source);
+        EmitLocationArgsWithPic(il, destination);
 
-        il.Append(il.Create(OpCodes.Ldc_I4, pm.Rounding));
+        il.Append(il.Create(OpCodes.Ldc_I4, rounding));
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod(methodName,
@@ -1331,6 +1382,40 @@ public sealed class CilEmitter
 
     // ── INSPECT emit helpers ──
 
+    /// <summary>
+    /// Emit an IrInspectPatternValue onto the CIL stack as a string.
+    /// Literals: Ldstr. Locations: ReadFieldAsRawString(area, offset, length).
+    /// </summary>
+    private void EmitIrInspectPatternValue(ILProcessor il, IR.IrInspectPatternValue? pv)
+    {
+        if (pv == null || pv.IsLiteral)
+        {
+            il.Append(il.Create(OpCodes.Ldstr, pv?.Literal ?? ""));
+        }
+        else if (pv.IsLocation)
+        {
+            EmitLocationArgs(il, pv.Location!);
+            var readMethod = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, readMethod));
+        }
+    }
+
+    /// <summary>
+    /// Emit an InspectPatternValue as a nullable string for BEFORE/AFTER/CONVERTING args.
+    /// Literals use Ldstr (compile-time). Data refs use ReadFieldAsRawString (runtime).
+    /// Null patterns emit Ldnull.
+    /// </summary>
+    private void EmitIrInspectPatternValueAsOptionalString(ILProcessor il,
+        IR.IrInspectPatternValue? pv)
+    {
+        if (pv == null)
+            il.Append(il.Create(OpCodes.Ldnull));
+        else
+            EmitIrInspectPatternValue(il, pv);
+    }
+
     private void EmitInspectTally(ILProcessor il, IrInspectTally it)
     {
         // Target area/offset/length
@@ -1346,16 +1431,16 @@ public sealed class CilEmitter
         {
             methodName = it.Kind == Semantics.Bound.InspectTallyKind.Leading
                 ? "TallyLeadingAndStore" : "TallyAllAndStore";
-            il.Append(il.Create(OpCodes.Ldstr, it.Pattern ?? ""));
+            EmitIrInspectPatternValue(il, it.Pattern);
         }
 
         // Counter area/offset/length/pic
         EmitLocationArgsWithPic(il, it.Counter);
 
         // Region args
-        EmitOptionalString(il, it.BeforePattern);
+        EmitIrInspectPatternValueAsOptionalString(il, it.BeforePattern);
         il.Append(il.Create(it.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitOptionalString(il, it.AfterPattern);
+        EmitIrInspectPatternValueAsOptionalString(il, it.AfterPattern);
         il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         System.Type[] paramTypes;
@@ -1379,37 +1464,57 @@ public sealed class CilEmitter
 
     private void EmitInspectReplace(ILProcessor il, IrInspectReplace ir)
     {
-        string methodName = ir.Kind switch
-        {
-            Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
-            Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
-            _ => "ReplaceAll"
-        };
-
         EmitLocationArgs(il, ir.Target);
-        il.Append(il.Create(OpCodes.Ldstr, ir.Pattern));
-        il.Append(il.Create(OpCodes.Ldstr, ir.Replacement));
-        EmitOptionalString(il, ir.BeforePattern);
-        il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitOptionalString(il, ir.AfterPattern);
-        il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
-        var method = _module.ImportReference(
-            typeof(Runtime.InspectRuntime).GetMethod(methodName,
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                    typeof(string), typeof(string),
-                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Call, method));
+        if (ir.Kind == Semantics.Bound.InspectReplaceKind.Characters)
+        {
+            // REPLACING CHARACTERS BY x — no pattern, just replacement
+            EmitIrInspectPatternValue(il, ir.Replacement);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
+            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
+            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+            var charsMethod = _module.ImportReference(
+                typeof(Runtime.InspectRuntime).GetMethod("ReplaceCharacters",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(string),
+                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, charsMethod));
+        }
+        else
+        {
+            string methodName = ir.Kind switch
+            {
+                Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
+                Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
+                _ => "ReplaceAll"
+            };
+
+            EmitIrInspectPatternValue(il, ir.Pattern);
+            EmitIrInspectPatternValue(il, ir.Replacement);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
+            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
+            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+
+            var method = _module.ImportReference(
+                typeof(Runtime.InspectRuntime).GetMethod(methodName,
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(string), typeof(string),
+                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
     }
 
     private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)
     {
         EmitLocationArgs(il, ic.Target);
-        il.Append(il.Create(OpCodes.Ldstr, ic.FromSet));
-        il.Append(il.Create(OpCodes.Ldstr, ic.ToSet));
-        EmitOptionalString(il, ic.BeforePattern);
+        EmitIrInspectPatternValue(il, ic.FromSet);
+        EmitIrInspectPatternValue(il, ic.ToSet);
+        EmitIrInspectPatternValueAsOptionalString(il, ic.BeforePattern);
         il.Append(il.Create(ic.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitOptionalString(il, ic.AfterPattern);
+        EmitIrInspectPatternValueAsOptionalString(il, ic.AfterPattern);
         il.Append(il.Create(ic.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         var method = _module.ImportReference(
@@ -1432,17 +1537,18 @@ public sealed class CilEmitter
     /// MOVE field TO field: routes numeric→numeric through PicRuntime.MoveNumeric,
     /// alpha→alpha through StorageHelpers.MoveFieldToField.
     /// </summary>
-    private void EmitPicMoveFieldToField(ILProcessor il, IrPicMove pm)
+    private void EmitMoveFieldToField(ILProcessor il, IrMoveFieldToField mf)
     {
-        var srcPic = GetPicForLocation(pm.Source);
-        var dstPic = GetPicForLocation(pm.Destination);
+        var srcPic = mf.SourcePic;
+        var dstPic = mf.DestinationPic;
         var srcCat = srcPic.Category;
         var dstCat = dstPic.Category;
+        int rounding = mf.IsRounded ? 1 : 0;
 
         // Group items are always alphanumeric for MOVE: raw byte copy, no formatting/editing.
         if (srcPic.IsGroup || dstPic.IsGroup)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
             return;
         }
 
@@ -1450,31 +1556,25 @@ public sealed class CilEmitter
         if (dstCat == CobolCategory.AlphanumericEdited)
         {
             if (srcCat == CobolCategory.Numeric)
-            {
-                // Numeric → AlphanumericEdited: convert to display string, apply edit pattern
-                EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumericEdited");
-            }
+                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumericEdited");
             else
-            {
-                // NumericEdited/Alphanumeric → AlphanumericEdited: source bytes as-is, apply edit pattern
-                EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumericEdited");
-            }
+                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumericEdited");
             return;
         }
         // NumericEdited source: specific handling before generic IsNumericLike() rules.
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericEditedToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericEditedToNumeric");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat.IsAlphanumericLike())
         {
             // NumericEdited → Alphanumeric: COBOL treats source as alphanumeric (raw byte copy)
-            EmitLocationArgs(il, pm.Destination);
-            EmitLocationArgs(il, pm.Source);
+            EmitLocationArgs(il, mf.Destination);
+            EmitLocationArgs(il, mf.Source);
             var method = _module.ImportReference(
                 typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
                     "MoveFieldToField",
@@ -1486,29 +1586,29 @@ public sealed class CilEmitter
         // Generic numeric source rules.
         else if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsNumericLike())
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumeric");
         }
         else if (srcCat.IsNumericLike() && dstCat.IsAlphanumericLike())
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveNumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumeric");
         }
         // Alphanumeric source rules.
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumeric");
         }
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumericEdited");
         }
         else
         {
             // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT)
-            EmitMoveWithStandardSignature(il, pm, "MoveAlphanumericToAlphanumeric");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
         }
     }
 
@@ -1591,7 +1691,8 @@ public sealed class CilEmitter
     /// <summary>
     /// Construct a PicDescriptor on the CIL stack.
     /// </summary>
-    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic)
+    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic,
+        bool suppressBlankWhenZero = false)
     {
         // Must match the CIL-emitted constructor parameter order in PicDescriptor
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TotalDigits));
@@ -1605,7 +1706,8 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Category));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.SignStorage));
         il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Editing));
-        il.Append(il.Create(pic.BlankWhenZero ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        bool emitBlank = pic.BlankWhenZero && !suppressBlankWhenZero;
+        il.Append(il.Create(emitBlank ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.LeadingScaleDigits));
         il.Append(il.Create(OpCodes.Ldc_I4, pic.TrailingScaleDigits));
 
@@ -1834,26 +1936,22 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// COMPUTE: evaluate expression tree to decimal on stack, then store to target.
-    /// Emits: area, offset, length, pic, [expression result as decimal], rounding, ref status
-    /// Calls MoveNumericLiteral which handles scaling, rounding, and overflow.
+    /// COMPUTE/GIVING store: evaluate expression tree to decimal, then store to target.
+    /// Routes through MoveAccumulatedToField — the unified "store decimal with overflow
+    /// detection" path shared by all arithmetic operations.
     /// </summary>
     private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
     {
-        // Push target storage args
         EmitLocationArgsWithPic(il, cs.Destination);
-
-        // Evaluate expression — pushes decimal onto stack
         EmitExpression(il, cs.Expression, cs.ResolvedLocations);
-
-        // Rounding mode
         il.Append(il.Create(OpCodes.Ldc_I4, cs.Rounding));
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
-        // Call MoveNumericLiteral(area, offset, length, pic, value, rounding)
         var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
+            typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int) })!);
+                        typeof(decimal), typeof(int),
+                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
@@ -1943,9 +2041,13 @@ public sealed class CilEmitter
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Divide:
+                        // Use SafeDivide instead of op_Division to handle divide-by-zero
+                        // as SIZE ERROR instead of crashing with DivideByZeroException.
+                        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
                         il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("op_Division",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
+                            _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeDivide",
+                                new[] { typeof(decimal), typeof(decimal),
+                                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Remainder:
                         il.Append(il.Create(OpCodes.Call,

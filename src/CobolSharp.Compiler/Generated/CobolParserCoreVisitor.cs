@@ -243,6 +243,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSpecialNameEntry([NotNull] CobolParserCore.SpecialNameEntryContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.implementorSwitchEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitImplementorSwitchEntry([NotNull] CobolParserCore.ImplementorSwitchEntryContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -597,6 +603,30 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdentifier([NotNull] CobolParserCore.IdentifierContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataNameTail"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataNameTail([NotNull] CobolParserCore.DataNameTailContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.qualification"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitQualification([NotNull] CobolParserCore.QualificationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptPart"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptPart([NotNull] CobolParserCore.SubscriptPartContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.refModPart"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRefModPart([NotNull] CobolParserCore.RefModPartContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.refModSpec"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -897,6 +927,24 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitArgument([NotNull] CobolParserCore.ArgumentContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.givingReceiver"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGivingReceiver([NotNull] CobolParserCore.GivingReceiverContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArithmeticTarget([NotNull] CobolParserCore.ArithmeticTargetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticOnSizeError"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArithmeticOnSizeError([NotNull] CobolParserCore.ArithmeticOnSizeErrorContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.addStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -921,23 +969,11 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAddToPhrase([NotNull] CobolParserCore.AddToPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.addTarget"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAddTarget([NotNull] CobolParserCore.AddTargetContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.addGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitAddGivingPhrase([NotNull] CobolParserCore.AddGivingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.addOnSizeError"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAddOnSizeError([NotNull] CobolParserCore.AddOnSizeErrorContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractStatement"/>.
 	/// </summary>
@@ -963,23 +999,17 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSubtractFromPhrase([NotNull] CobolParserCore.SubtractFromPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractTarget"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractFromOperand"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitSubtractTarget([NotNull] CobolParserCore.SubtractTargetContext context);
+	Result VisitSubtractFromOperand([NotNull] CobolParserCore.SubtractFromOperandContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSubtractGivingPhrase([NotNull] CobolParserCore.SubtractGivingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.subtractOnSizeError"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSubtractOnSizeError([NotNull] CobolParserCore.SubtractOnSizeErrorContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyStatement"/>.
 	/// </summary>
@@ -993,23 +1023,17 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMultiplyOperand([NotNull] CobolParserCore.MultiplyOperandContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyByTarget"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyByOperand"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitMultiplyByTarget([NotNull] CobolParserCore.MultiplyByTargetContext context);
+	Result VisitMultiplyByOperand([NotNull] CobolParserCore.MultiplyByOperandContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyGivingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitMultiplyGivingPhrase([NotNull] CobolParserCore.MultiplyGivingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplyOnSizeError"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitMultiplyOnSizeError([NotNull] CobolParserCore.MultiplyOnSizeErrorContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.divideStatement"/>.
 	/// </summary>
@@ -1029,17 +1053,17 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDivideIntoPhrase([NotNull] CobolParserCore.DivideIntoPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.divideIntoOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDivideIntoOperand([NotNull] CobolParserCore.DivideIntoOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.divideByPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDivideByPhrase([NotNull] CobolParserCore.DivideByPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.divideTarget"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDivideTarget([NotNull] CobolParserCore.DivideTargetContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.divideGivingPhrase"/>.
 	/// </summary>
@@ -1052,12 +1076,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDivideRemainderPhrase([NotNull] CobolParserCore.DivideRemainderPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.divideOnSizeError"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDivideOnSizeError([NotNull] CobolParserCore.DivideOnSizeErrorContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.moveStatement"/>.
 	/// </summary>
@@ -1088,6 +1106,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStringSendingPhrase([NotNull] CobolParserCore.StringSendingPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.delimitedByPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDelimitedByPhrase([NotNull] CobolParserCore.DelimitedByPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.stringIntoPhrase"/>.
 	/// </summary>
@@ -1724,6 +1748,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSignedNumericLiteral([NotNull] CobolParserCore.SignedNumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteralCore"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNumericLiteralCore([NotNull] CobolParserCore.NumericLiteralCoreContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.figurativeConstant"/>.
 	/// </summary>

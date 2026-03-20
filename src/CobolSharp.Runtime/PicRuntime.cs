@@ -194,15 +194,24 @@ public static class PicRuntime
             else if (p == '-' && !isFixedMinus) trueDigitCount++;
         }
 
-        // Build digit string based on true digit count
+        // Floating symbols reserve one position for the symbol itself.
+        // Effective digit capacity = trueDigitCount - 1 when floating.
+        bool hasFloating = (currencyPrescan > 1) || (plusCount > 1) || (minusCount > 1);
+        int effectiveDigitCount = hasFloating ? trueDigitCount - 1 : trueDigitCount;
+
+        // Apply trailing P scaling (same as EncodeDisplay): divide by 10^trailingP
+        if (pic.TrailingScaleDigits > 0)
+            absValue /= Pow10(pic.TrailingScaleDigits);
+
+        // Build digit string based on effective digit count
         int scale = pic.FractionDigits + pic.LeadingScaleDigits;
         if (scale < 0) scale = 0;
         decimal scaled = absValue * Pow10(scale);
         string digits = decimal.Truncate(scaled).ToString("F0", CultureInfo.InvariantCulture);
-        if (digits.Length < trueDigitCount)
-            digits = digits.PadLeft(trueDigitCount, '0');
-        else if (digits.Length > trueDigitCount)
-            digits = digits[^trueDigitCount..];
+        if (digits.Length < effectiveDigitCount)
+            digits = digits.PadLeft(effectiveDigitCount, '0');
+        else if (digits.Length > effectiveDigitCount)
+            digits = digits[^effectiveDigitCount..];
 
         // Pass 1: Fill digit positions right-to-left, place insertion/fixed chars
         var output = new char[pattern.Length];
@@ -309,10 +318,11 @@ public static class PicRuntime
             }
         }
 
-        // Pass 2: Left-to-right zero suppression for Z, *, +, -, $ floating symbols.
-        // Track whether we're in asterisk-fill mode (commas → '*') vs space-fill (commas → ' ').
+        // Pass 2: Left-to-right zero suppression for floating symbols (Z, *, +, -, $).
+        // Stops at fixed digit positions (9) or decimal point (.).
         bool suppressing = true;
         bool asteriskFill = false;
+        bool allIntegerSuppressed = true;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
             char p = char.ToUpperInvariant(pattern[i]);
@@ -320,49 +330,82 @@ public static class PicRuntime
             {
                 case 'Z':
                     if (output[i] == '0') output[i] = ' ';
-                    else suppressing = false;
+                    else { suppressing = false; allIntegerSuppressed = false; }
                     break;
 
                 case '*':
                     asteriskFill = true;
                     if (output[i] == '0') output[i] = '*';
-                    else suppressing = false;
+                    else { suppressing = false; allIntegerSuppressed = false; }
                     break;
 
                 case '+':
+                    if (isFixedPlus) break;
                     if (output[i] == '0') output[i] = ' ';
-                    else suppressing = false;
+                    else { suppressing = false; allIntegerSuppressed = false; }
                     break;
 
                 case '-':
-                    if (isFixedMinus)
-                        break; // Fixed sign does not participate in floating suppression
+                    if (isFixedMinus) break;
                     if (output[i] == '0') output[i] = ' ';
-                    else suppressing = false;
+                    else { suppressing = false; allIntegerSuppressed = false; }
                     break;
 
                 default:
-                    // Currency char in suppression zone
-                    if (p == currencyChar)
+                    if (p == currencyChar && !isFixedCurrency)
                     {
                         if (output[i] == '0') output[i] = ' ';
-                        else suppressing = false;
+                        else { suppressing = false; allIntegerSuppressed = false; }
                     }
                     break;
 
                 case ',':
+                case 'B':
                     output[i] = asteriskFill ? '*' : ' ';
-                    break;
-
-                case '9':
-                    suppressing = false;
                     break;
 
                 case '.':
                     suppressing = false;
                     break;
+
+                case '9':
+                    suppressing = false;
+                    allIntegerSuppressed = false; // fixed 9 in integer → no full-field blanking
+                    break;
             }
         }
+
+        // Post-pass: if entire integer part was suppressed AND value is zero AND
+        // the field has no fixed '9' positions anywhere (entire field is floating),
+        // suppress the fraction too. Insertion chars (.) stay in asterisk-fill mode.
+        bool hasFixed9 = pattern.Contains('9');
+        bool fullFieldBlanked = false;
+        if (allIntegerSuppressed && value == 0m && !hasFixed9)
+        {
+            fullFieldBlanked = true;
+            for (int i = 0; i < output.Length; i++)
+            {
+                char p = char.ToUpperInvariant(pattern[i]);
+                if (asteriskFill)
+                {
+                    // Asterisk fill: replace digit positions with *, keep . as .
+                    if (p == '.' || p == ',')
+                        output[i] = p == '.' ? '.' : '*';
+                    else
+                        output[i] = '*';
+                }
+                else
+                {
+                    output[i] = ' ';
+                }
+            }
+        }
+
+        // Skip floating symbol placement when the entire field was blanked to spaces
+        // (value is zero and all positions suppressed). Floating symbols only make sense
+        // when there's a non-zero value to display.
+        if (fullFieldBlanked && !asteriskFill)
+            return new string(output);
 
         // Handle floating symbols: place at rightmost suppressed position in the floating zone.
         // The floating zone includes the symbol positions AND any insertion chars (,/B)
@@ -392,6 +435,25 @@ public static class PicRuntime
         }
 
         return new string(output);
+    }
+
+    /// <summary>
+    /// Returns true if all digit characters in the output from startIndex onward are '0'.
+    /// Used to decide whether the decimal point and fraction can be suppressed when
+    /// the entire integer part was already suppressed.
+    /// </summary>
+    private static bool AllFractionZero(char[] output, int startIndex, string pattern)
+    {
+        for (int i = startIndex; i < output.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            // Only check actual digit positions (9, Z, *, +, -, currency)
+            if (p == '9' || p == 'Z' || p == '*' || p == '+' || p == '-')
+            {
+                if (output[i] != '0') return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>
@@ -491,19 +553,28 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        int copyLen = Math.Min(srcLength, dstLength);
-
         if (dstPic.IsJustifiedRight)
         {
-            // Right-justified, left-padded with spaces
-            int pad = dstLength - copyLen;
-            for (int i = 0; i < pad; i++)
-                dstArea[dstOffset + i] = (byte)' ';
-            Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, copyLen);
+            // ISO §13.16.35: JUSTIFIED RIGHT — right-justify receiving field.
+            // When source > target: truncate from the LEFT (keep rightmost chars).
+            // When source < target: pad on the LEFT with spaces.
+            if (srcLength > dstLength)
+            {
+                int skipLeft = srcLength - dstLength;
+                Array.Copy(srcArea, srcOffset + skipLeft, dstArea, dstOffset, dstLength);
+            }
+            else
+            {
+                int pad = dstLength - srcLength;
+                for (int i = 0; i < pad; i++)
+                    dstArea[dstOffset + i] = (byte)' ';
+                Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, srcLength);
+            }
         }
         else
         {
             // Left-justified, space-padded
+            int copyLen = Math.Min(srcLength, dstLength);
             Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
             for (int i = copyLen; i < dstLength; i++)
                 dstArea[dstOffset + i] = (byte)' ';
@@ -814,6 +885,9 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
+    // ComputeAndStore removed — MoveAccumulatedToField provides the identical
+    // "store decimal with overflow detection" behavior for all arithmetic paths.
+
     // ══════════════════════════════════════════════════════════
     // MOVE: Legacy aliases (keep CIL emitter working during transition)
     // ══════════════════════════════════════════════════════════
@@ -950,13 +1024,7 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest + accumulated;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     /// <summary>
@@ -967,13 +1035,7 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal accumulated, int roundingMode, ref ArithmeticStatus status)
     {
-        decimal value = ApplyScalingAndRounding(accumulated, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, accumulated, roundingMode, ref status);
     }
 
     public static void SubtractAccumulatedFromField(
@@ -982,13 +1044,50 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest - accumulated;
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
+    }
+
+    /// <summary>
+    /// Unified arithmetic result storage: scale, check overflow, encode.
+    /// Routes numeric-edited targets through FormatNumericEdited.
+    /// All arithmetic operations (ADD/SUB/MUL/DIV/COMPUTE GIVING) converge here.
+    /// </summary>
+    private static void StoreArithmeticResult(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal value, int roundingMode, ref ArithmeticStatus status)
+    {
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
         if (WouldOverflow(value, destPic))
         {
             status.SizeError = true;
             return;
         }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(value, destPic);
+            MoveStringToBytes(destArea, destOffset, destLength, formatted);
+        }
+        else
+        {
+            EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        }
+    }
+
+    /// <summary>
+    /// Safe decimal division for COMPUTE/GIVING expression evaluation.
+    /// Returns 0 and sets SizeError on divide-by-zero instead of throwing.
+    /// Called from CIL-emitted expression trees where decimal.op_Division
+    /// would throw DivideByZeroException before ON SIZE ERROR can fire.
+    /// </summary>
+    public static decimal SafeDivide(decimal left, decimal right, ref ArithmeticStatus status)
+    {
+        if (right == 0m)
+        {
+            status.SizeError = true;
+            return 0m;
+        }
+        return left / right;
     }
 
     // ══════════════════════════════════════════════════════════

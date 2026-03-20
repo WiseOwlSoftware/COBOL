@@ -62,10 +62,13 @@ function Invoke-Antlr4CSharp {
         foreach ($g in $grammars) {
             Write-Host "Generating C# from: $g" -ForegroundColor Cyan
 
+            # Use -lib to point at the temp dir so the parser grammar can find
+            # the freshly-generated CobolLexer.tokens from the lexer step.
             $antlrOutput = & java -jar $JarPath `
                 -Dlanguage=CSharp `
                 -no-listener -visitor `
                 -package $PackageName `
+                -lib ../Generated_temp `
                 -o ../Generated_temp `
                 $g 2>&1
             $exitCode = $LASTEXITCODE

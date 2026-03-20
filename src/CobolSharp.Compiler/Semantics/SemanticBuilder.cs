@@ -112,9 +112,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     private char _currencySign = '$';
     private bool _decimalPointIsComma = false;
+    private readonly List<ImplementorSwitch> _implementorSwitches = [];
 
     public char CurrencySign => _currencySign;
     public bool DecimalPointIsComma => _decimalPointIsComma;
+    public IReadOnlyList<ImplementorSwitch> ImplementorSwitches => _implementorSwitches;
 
     public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
     {
@@ -139,6 +141,32 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var word = dpClause.IDENTIFIER()?.GetText();
                 if (string.Equals(word, "COMMA", StringComparison.OrdinalIgnoreCase))
                     _decimalPointIsComma = true;
+            }
+
+            // Implementor switch: IDENTIFIER IS IDENTIFIER (ON name)? (OFF IS? name)?
+            if (entry.implementorSwitchEntry() is { } swClause)
+            {
+                var ids = swClause.IDENTIFIER();
+                if (ids.Length >= 2)
+                {
+                    string implName = ids[0].GetText();
+                    string mnemonicName = ids[1].GetText();
+                    string? onName = null;
+                    string? offName = null;
+
+                    if (swClause.ON() != null && ids.Length >= 3)
+                        onName = ids[2].GetText();
+
+                    if (swClause.OFF() != null)
+                    {
+                        int idx = swClause.ON() != null ? 3 : 2;
+                        if (ids.Length > idx)
+                            offName = ids[idx].GetText();
+                    }
+
+                    _implementorSwitches.Add(
+                        new ImplementorSwitch(mnemonicName, implName, onName, offName));
+                }
             }
         }
 
@@ -274,6 +302,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract PIC, USAGE, VALUE from clauses
         string? picString = null;
         var usage = UsageKind.Display;
+        bool hasExplicitUsage = false;
         string? typeName = null;
         string? initialValue = null;
         var body = ctx.dataDescriptionBody();
@@ -293,6 +322,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var kwText = usageClause.usageKeyword()?.GetText()
                         ?? usageClause.GetText();
                     usage = UsageMapper.FromUsageKeyword(kwText);
+                    hasExplicitUsage = true;
                 }
 
                 var redefinesClause = clause.redefinesClause();
@@ -333,7 +363,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         var numLit = litCtx.numericLiteral();
                         if (numLit != null)
                         {
-                            initialValue = numLit.GetText();
+                            initialValue = NormalizeNumericLiteralText(numLit);
                         }
                         else
                         {
@@ -341,7 +371,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             if (nonNum?.STRINGLIT() is { } slit)
                             {
                                 var text = slit.GetText();
-                                if (text.Length >= 2) initialValue = text[1..^1];
+                                if (text.Length >= 2)
+                                {
+                                    char q = text[0];
+                                    initialValue = text[1..^1].Replace(new string(q, 2), new string(q, 1));
+                                }
                             }
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
@@ -396,8 +430,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         foreach (var item in valClause.valueItem())
                         {
                             var lits = item.literal();
-                            object fromVal = ParseConditionLiteralValue(lits[0]);
-                            object? toVal = lits.Length >= 2 ? ParseConditionLiteralValue(lits[1]) : null;
+                            var fromVal = ConditionValue.FromObject(ParseConditionLiteralValue(lits[0]));
+                            var toVal = lits.Length >= 2
+                                ? ConditionValue.FromObject(ParseConditionLiteralValue(lits[1]))
+                                : null;
                             condSym.AddRange(fromVal, toVal);
                         }
                     }
@@ -422,6 +458,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var intLits = occClause.integerLiteral();
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
                         occursCount = oc;
+                    // INDEXED BY names deferred until after DataSymbol creation (below)
                 }
 
                 if (clause.blankWhenZeroClause() != null)
@@ -434,6 +471,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
+        data.HasExplicitUsage = hasExplicitUsage;
         data.OccursCount = occursCount;
         data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
@@ -489,6 +527,35 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Declare in scope (for name resolution)
         _symbols.Program.DataDivisionScope.TryDeclare(data, out _);
+
+        // Declare INDEXED BY index-names from OCCURS clause.
+        // INDEX items are implicit level-77 items stored as PIC S9(9) COMP
+        // holding 1-based element numbers.
+        if (body?.dataDescriptionClauses() != null)
+        {
+            foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
+            {
+                var occClause = clause.occursClause();
+                if (occClause?.identifierList() is { } indexList)
+                {
+                    foreach (var idCtx in indexList.identifier())
+                    {
+                        string indexName = idCtx.IDENTIFIER().GetText();
+                        var indexSym = new DataSymbol(indexName, indexName, 77,
+                            "S9(9)", Runtime.UsageKind.Comp, null, null, ctx.Start.Line);
+                        indexSym.HasExplicitUsage = true;
+                        indexSym.Area = _currentArea;
+                        // Resolve PIC for the INDEX item so it gets proper storage layout
+                        var idxDiagBag = new DiagnosticBag();
+                        var idxPicEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
+                        indexSym.ResolvedType = PicUsageResolver.ResolveForDataItem(
+                            indexName, "S9(9)", Runtime.UsageKind.Comp, idxDiagBag, ctx.Start.Line, false, idxPicEnv);
+                        _dataItemsInOrder.Add(indexSym);
+                        _symbols.Program.DataDivisionScope.TryDeclare(indexSym, out _);
+                    }
+                }
+            }
+        }
 
         return null;
     }
@@ -562,7 +629,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var numLit = lit.numericLiteral();
         if (numLit != null)
         {
-            var text = numLit.GetText();
+            var text = NormalizeNumericLiteralText(numLit);
             if (decimal.TryParse(text,
                 System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
                 System.Globalization.CultureInfo.InvariantCulture, out var d))
@@ -573,9 +640,38 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (nonNum?.STRINGLIT() is { } slit)
         {
             var text = slit.GetText();
-            if (text.Length >= 2) return text[1..^1];
+            if (text.Length >= 2)
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
             return text;
         }
         return lit.GetText();
+    }
+
+    /// <summary>
+    /// Normalize a numericLiteral parse tree into a string suitable for decimal.Parse
+    /// with InvariantCulture. Replaces comma decimal points with dots.
+    /// </summary>
+    internal static string NormalizeNumericLiteralText(Generated.CobolParserCore.NumericLiteralContext numLit)
+    {
+        var signed = numLit.signedNumericLiteral();
+        var core = signed.numericLiteralCore();
+        var sign = signed.MINUS() != null ? "-" : "";
+
+        // DECIMALLIT from the lexer (dot-based: 123.45 or .45)
+        if (core.DECIMALLIT() != null)
+            return sign + core.DECIMALLIT().GetText();
+
+        // COMMA-based decimals (for DECIMAL-POINT IS COMMA)
+        var integers = core.INTEGERLIT();
+        if (core.COMMA() != null && integers.Length == 2)
+            return sign + integers[0].GetText() + "." + integers[1].GetText();
+        if (core.COMMA() != null && integers.Length == 1)
+            return sign + "." + integers[0].GetText();
+
+        // Plain integer
+        return sign + integers[0].GetText();
     }
 }

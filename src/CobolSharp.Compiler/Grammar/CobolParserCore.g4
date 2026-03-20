@@ -221,8 +221,14 @@ specialNamesParagraph
 specialNameEntry
     : currencySignClause DOT?
     | decimalPointClause DOT?
-    | IDENTIFIER (IDENTIFIER | literal)*
-      DOT?
+    | implementorSwitchEntry DOT?
+    | IDENTIFIER (IDENTIFIER | literal)* DOT?
+    ;
+
+implementorSwitchEntry
+    : IDENTIFIER IS IDENTIFIER
+      (ON IDENTIFIER)?
+      (OFF IS? IDENTIFIER)?
     ;
 
 currencySignClause
@@ -417,6 +423,7 @@ levelNumber
 dataName
     : IDENTIFIER
     | FILLER
+    | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     ;
 
 dataDescriptionBody
@@ -472,6 +479,7 @@ usageClause
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
+    | INDEX
     ;
 
 usageKeyword
@@ -483,6 +491,7 @@ usageKeyword
     | COMP_3
     | BINARY
     | PACKED_DECIMAL
+    | INDEX
     ;
 
 // OCCURS Clause
@@ -513,7 +522,7 @@ renamesClause
 // VALUE Clause — IS is optional noise word
 // For level-88 condition entries, valueItem supports THRU ranges.
 valueClause
-    : (VALUE | VALUES) IS? valueItem (COMMA? valueItem)*
+    : (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
     ;
 
 valueItem
@@ -567,9 +576,25 @@ identifierList
     ;
 
 identifier
-    : IDENTIFIER
-      (LPAREN subscriptList RPAREN)?
-      (LPAREN refModSpec RPAREN)?
+    : IDENTIFIER dataNameTail*
+    ;
+
+dataNameTail
+    : subscriptPart
+    | refModPart
+    | qualification
+    ;
+
+qualification
+    : (OF | IN) IDENTIFIER (subscriptPart | refModPart)*
+    ;
+
+subscriptPart
+    : LPAREN subscriptList RPAREN
+    ;
+
+refModPart
+    : LPAREN refModSpec RPAREN
     ;
 
 refModSpec
@@ -620,7 +645,7 @@ sectionDeclaration
     ;
 
 sectionName
-    : IDENTIFIER
+    : procedureName
     ;
 
 paragraphDeclaration
@@ -628,7 +653,7 @@ paragraphDeclaration
     ;
 
 paragraphName
-    : {IsAtLineStart()}? IDENTIFIER
+    : {IsAtLineStart()}? procedureName
     ;
 
 // ==========================================
@@ -808,7 +833,8 @@ performTarget
     ;
 
 procedureName
-    : IDENTIFIER
+    : (IDENTIFIER | INTEGERLIT)
+      ((OF | IN) (IDENTIFIER | INTEGERLIT))?
     ;
 
 performOptions
@@ -918,11 +944,34 @@ argument
     ;
 
 // ==========================================
+// SHARED ARITHMETIC RULES
+// ==========================================
+
+// Unified GIVING-form receiving operand.
+// COBOL-85: in any arithmetic GIVING form, the receiving operand may be
+// either an identifier or a literal. One rule, one source of truth.
+givingReceiver
+    : identifier
+    | literal
+    ;
+
+arithmeticTarget
+    : identifier ROUNDED?
+    ;
+
+arithmeticOnSizeError
+    : ON SIZE ERROR imperativeStatement
+      (NOT ON SIZE ERROR imperativeStatement)?
+    | NOT ON SIZE ERROR imperativeStatement
+    ;
+
+// ==========================================
 // ADD (§14.9.1)
 // ==========================================
 
 addStatement
-    : ADD addOperandList addToPhrase? addGivingPhrase? addOnSizeError? END_ADD?
+    : ADD CORRESPONDING identifier TO identifier ROUNDED? arithmeticOnSizeError? END_ADD?
+    | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
 addOperandList
@@ -935,21 +984,11 @@ addOperand
     ;
 
 addToPhrase
-    : TO addTarget+
-    ;
-
-addTarget
-    : identifier ROUNDED?
+    : TO arithmeticTarget+
     ;
 
 addGivingPhrase
-    : GIVING addTarget+
-    ;
-
-addOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget+
     ;
 
 // ==========================================
@@ -957,7 +996,8 @@ addOnSizeError
 // ==========================================
 
 subtractStatement
-    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? subtractOnSizeError? END_SUBTRACT?
+    : SUBTRACT CORRESPONDING identifier FROM identifier ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
+    | SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 
 subtractOperandList
@@ -970,21 +1010,16 @@ subtractOperand
     ;
 
 subtractFromPhrase
-    : FROM subtractTarget (subtractTarget)*
+    : FROM subtractFromOperand
     ;
 
-subtractTarget
-    : identifier ROUNDED?
+subtractFromOperand
+    : arithmeticTarget (arithmeticTarget)*
+    | givingReceiver
     ;
 
 subtractGivingPhrase
-    : GIVING subtractTarget (subtractTarget)*
-    ;
-
-subtractOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget (arithmeticTarget)*
     ;
 
 // ==========================================
@@ -992,7 +1027,7 @@ subtractOnSizeError
 // ==========================================
 
 multiplyStatement
-    : MULTIPLY multiplyOperand BY multiplyByTarget+ multiplyGivingPhrase? multiplyOnSizeError? END_MULTIPLY?
+    : MULTIPLY multiplyOperand BY multiplyByOperand+ multiplyGivingPhrase? arithmeticOnSizeError? END_MULTIPLY?
     ;
 
 multiplyOperand
@@ -1000,18 +1035,12 @@ multiplyOperand
     | literal
     ;
 
-multiplyByTarget
-    : (identifier | literal) ROUNDED?
+multiplyByOperand
+    : givingReceiver ROUNDED?
     ;
 
 multiplyGivingPhrase
-    : GIVING multiplyByTarget+
-    ;
-
-multiplyOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
+    : GIVING arithmeticTarget+
     ;
 
 // ==========================================
@@ -1020,7 +1049,7 @@ multiplyOnSizeError
 
 divideStatement
     : DIVIDE divideOperand (divideIntoPhrase | divideByPhrase)
-      divideGivingPhrase? divideRemainderPhrase? divideOnSizeError? END_DIVIDE?
+      divideGivingPhrase? divideRemainderPhrase? arithmeticOnSizeError? END_DIVIDE?
     ;
 
 divideOperand
@@ -1029,29 +1058,24 @@ divideOperand
     ;
 
 divideIntoPhrase
-    : INTO divideTarget+
+    : INTO divideIntoOperand
+    ;
+
+divideIntoOperand
+    : arithmeticTarget+   // identifier ROUNDED? (non-GIVING form, multiple targets)
+    | literal             // numeric literal (GIVING form only)
     ;
 
 divideByPhrase
     : BY divideOperand
     ;
 
-divideTarget
-    : identifier ROUNDED?
-    ;
-
 divideGivingPhrase
-    : GIVING divideTarget+
+    : GIVING arithmeticTarget+
     ;
 
 divideRemainderPhrase
     : REMAINDER identifier
-    ;
-
-divideOnSizeError
-    : ON SIZE ERROR imperativeStatement
-      (NOT ON SIZE ERROR imperativeStatement)?
-    | NOT ON SIZE ERROR imperativeStatement
     ;
 
 // ==========================================
@@ -1059,7 +1083,8 @@ divideOnSizeError
 // ==========================================
 
 moveStatement
-    : MOVE moveSource moveTarget
+    : MOVE CORRESPONDING identifier TO identifier
+    | MOVE moveSource moveTarget
     ;
 
 moveSource
@@ -1082,7 +1107,11 @@ stringStatement
 
 stringSendingPhrase
     : (identifier | literal | figurativeConstant)
-      (DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE))?
+      delimitedByPhrase?
+    ;
+
+delimitedByPhrase
+    : DELIMITED BY (ALL)? (identifier | literal | figurativeConstant | SIZE)
     ;
 
 stringIntoPhrase
@@ -1469,7 +1498,7 @@ startInvalidKeyPhrase
 // ==========================================
 
 goToStatement
-    : GO TO? identifier (identifier)* (DEPENDING ON? identifier)?
+    : GO TO? procedureName (procedureName)* (DEPENDING ON? identifier)?
     ;
 
 // ==========================================
@@ -1520,9 +1549,9 @@ initializeReplacingItem
 
 inspectStatement
     : INSPECT identifier
-      (inspectTallyingPhrase
+      ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
-      | inspectConvertingPhrase)
+      | inspectConvertingPhrase )
     ;
 
 // ----- TALLYING -----
@@ -1764,7 +1793,18 @@ nonNumericLiteral
     ;
 
 signedNumericLiteral
-    : (PLUS | MINUS)? (INTEGERLIT | DECIMALLIT)
+    : (PLUS | MINUS)? numericLiteralCore
+    ;
+
+// Numeric literal assembly.
+// DOT-based decimals use DECIMALLIT from the lexer (maximal munch resolves
+// DOT-as-decimal vs DOT-as-sentence-terminator unambiguously).
+// COMMA-based decimals for DECIMAL-POINT IS COMMA are assembled here in the parser.
+numericLiteralCore
+    : DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
+    | INTEGERLIT COMMA INTEGERLIT          // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
+    | COMMA INTEGERLIT                     // ,45 (leading comma decimal)
+    | INTEGERLIT                           // 123 (integer)
     ;
 
 figurativeConstant
@@ -1775,4 +1815,9 @@ figurativeConstant
     | QUOTE_
     | ALL STRINGLIT
     | ALL HEXLIT
+    | ALL ZERO
+    | ALL SPACE
+    | ALL HIGH_VALUE
+    | ALL LOW_VALUE
+    | ALL QUOTE_
     ;

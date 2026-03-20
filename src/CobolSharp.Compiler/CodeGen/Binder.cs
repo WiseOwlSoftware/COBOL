@@ -273,6 +273,8 @@ public sealed class Binder
             case BoundMoveStatement mv:
                 LowerMove(mv, block);
                 break;
+            case BoundCorrespondingStatement corr:
+                return LowerCorresponding(corr, method, block);
             case BoundPerformStatement perf:
                 return LowerPerform(perf, method, block);
             case BoundEvaluateStatement eval:
@@ -282,10 +284,8 @@ public sealed class Binder
                 break;
             case BoundIfStatement iff:
                 return LowerIf(iff, method, block);
-            case BoundMultiplyStatement mult:
-                return LowerMultiply(mult, method, block);
-            case BoundAddStatement add:
-                return LowerAdd(add, method, block);
+            case BoundArithmeticStatement arith:
+                return LowerArithmetic(arith, method, block);
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
                 break;
@@ -329,12 +329,7 @@ public sealed class Binder
             case BoundSetIndexStatement setIdx:
                 LowerSetIndex(setIdx, block);
                 break;
-            case BoundSubtractStatement sub:
-                return LowerSubtract(sub, method, block);
-            case BoundDivideStatement div:
-                return LowerDivide(div, method, block);
-            case BoundComputeStatement comp:
-                return LowerCompute(comp, method, block);
+            // Subtract, Divide, Compute handled by BoundArithmeticStatement above
             case BoundSearchStatement search:
                 return LowerSearch(search, method, block);
             case BoundSearchAllStatement searchAll:
@@ -624,6 +619,50 @@ public sealed class Binder
         block.Instructions.Add(new IR.IrPicDisplay(operands));
     }
 
+    // ── CORRESPONDING (MOVE, ADD, SUBTRACT) ──
+
+    private IrBasicBlock LowerCorresponding(BoundCorrespondingStatement corr, IrMethod method, IrBasicBlock block)
+    {
+        if (corr.CorrespondingKind == CorrespondingKind.Move)
+        {
+            // MOVE CORRESPONDING: PIC-aware field-to-field move per pair
+            foreach (var (src, dst) in corr.Pairs)
+            {
+                var srcLoc = ResolveLocation(src);
+                var dstLoc = ResolveLocation(dst);
+                if (srcLoc == null || dstLoc == null) continue;
+
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dstLoc,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
+            }
+            return block;
+        }
+
+        // ADD/SUBTRACT CORRESPONDING: accumulator pattern per pair,
+        // consistent with scalar ADD/SUBTRACT lowering.
+        block.Instructions.Add(new IrInitArithmeticStatus());
+        int rounding = corr.IsRounded ? 1 : 0;
+
+        foreach (var (src, dst) in corr.Pairs)
+        {
+            var srcLoc = ResolveLocation(src);
+            var dstLoc = ResolveLocation(dst);
+            if (srcLoc == null || dstLoc == null) continue;
+
+            var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+            block.Instructions.Add(new IrInitAccumulator(accum));
+            block.Instructions.Add(new IrAccumulateField(accum, srcLoc));
+
+            if (corr.CorrespondingKind == CorrespondingKind.Add)
+                block.Instructions.Add(new IrAddAccumulatedToTarget(accum, dstLoc, rounding));
+            else
+                block.Instructions.Add(new IrSubtractAccumulatedFromTarget(accum, dstLoc, rounding));
+        }
+
+        return LowerSizeError(corr.SizeError, method, block);
+    }
+
     // ── MOVE ──
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
@@ -685,8 +724,10 @@ public sealed class Binder
                 var srcLoc = ResolveExpressionLocation(mv.Source);
                 if (srcLoc != null)
                 {
-                    block.Instructions.Add(new IrPicMove(
-                        srcLoc, destLoc, mv.IsRounded ? 1 : 0));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        srcLoc, destLoc,
+                        GetPicForLocation(srcLoc), GetPicForLocation(destLoc),
+                        mv.IsRounded));
                 }
             }
         }
@@ -827,7 +868,9 @@ public sealed class Binder
         {
             var srcLoc = ResolveLocation(id);
             if (srcLoc != null)
-                block.Instructions.Add(new IrPicMove(srcLoc, dest, 0));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dest,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
         }
     }
 
@@ -1020,7 +1063,9 @@ public sealed class Binder
             {
                 var fromLoc = ResolveExpressionLocation(wr.From);
                 if (fromLoc != null)
-                    block.Instructions.Add(new IrPicMove(fromLoc, recordLoc));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        fromLoc, recordLoc,
+                        GetPicForLocation(fromLoc), GetPicForLocation(recordLoc)));
             }
 
             if (wr.AdvancingLines.HasValue)
@@ -1117,7 +1162,9 @@ public sealed class Binder
             var dstLoc = ResolveLocation(read.Into);
             if (srcLoc != null && dstLoc != null)
             {
-                block.Instructions.Add(new IrPicMove(srcLoc, dstLoc));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dstLoc,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
             }
         }
 
@@ -1364,7 +1411,9 @@ public sealed class Binder
         {
             var srcLoc = ResolveLocation(id);
             if (srcLoc != null)
-                block.Instructions.Add(new IrPicMove(srcLoc, dest));
+                block.Instructions.Add(new IrMoveFieldToField(
+                    srcLoc, dest,
+                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
         }
     }
 
@@ -1390,26 +1439,49 @@ public sealed class Binder
             if (counterLoc == null) continue;
 
             block.Instructions.Add(new IrInspectTally(
-                targetLoc, counterLoc, t.Kind, t.Pattern,
-                t.Region.BeforePattern, t.Region.BeforeInitial,
-                t.Region.AfterPattern, t.Region.AfterInitial));
+                targetLoc, counterLoc, t.Kind,
+                LowerInspectPattern(t.Pattern),
+                LowerInspectPattern(t.Region.BeforePattern), t.Region.BeforeInitial,
+                LowerInspectPattern(t.Region.AfterPattern), t.Region.AfterInitial));
         }
 
         foreach (var r in stmt.Replacing)
         {
             block.Instructions.Add(new IrInspectReplace(
-                targetLoc, r.Kind, r.Pattern, r.Replacement,
-                r.Region.BeforePattern, r.Region.BeforeInitial,
-                r.Region.AfterPattern, r.Region.AfterInitial));
+                targetLoc, r.Kind,
+                LowerInspectPattern(r.Pattern)!,
+                LowerInspectPattern(r.Replacement)!,
+                LowerInspectPattern(r.Region.BeforePattern), r.Region.BeforeInitial,
+                LowerInspectPattern(r.Region.AfterPattern), r.Region.AfterInitial));
         }
 
         if (stmt.Converting != null)
         {
             block.Instructions.Add(new IrInspectConvert(
-                targetLoc, stmt.Converting.FromSet, stmt.Converting.ToSet,
-                stmt.Converting.Region.BeforePattern, stmt.Converting.Region.BeforeInitial,
-                stmt.Converting.Region.AfterPattern, stmt.Converting.Region.AfterInitial));
+                targetLoc,
+                LowerInspectPattern(stmt.Converting.FromSet)!,
+                LowerInspectPattern(stmt.Converting.ToSet)!,
+                LowerInspectPattern(stmt.Converting.Region.BeforePattern),
+                stmt.Converting.Region.BeforeInitial,
+                LowerInspectPattern(stmt.Converting.Region.AfterPattern),
+                stmt.Converting.Region.AfterInitial));
         }
+    }
+
+    /// <summary>
+    /// Convert a bound InspectPatternValue to an IR IrInspectPatternValue.
+    /// Literals pass through. Data refs are resolved to IrLocations.
+    /// </summary>
+    private IR.IrInspectPatternValue? LowerInspectPattern(InspectPatternValue? pv)
+    {
+        if (pv == null) return null;
+        if (pv.IsLiteral) return IR.IrInspectPatternValue.FromLiteral(pv.Literal!);
+        if (pv.IsDataRef)
+        {
+            var loc = ResolveExpressionLocation(pv.DataRef!);
+            if (loc != null) return IR.IrInspectPatternValue.FromLocation(loc);
+        }
+        return IR.IrInspectPatternValue.FromLiteral("");
     }
 
     // ── SET ──
@@ -1427,10 +1499,10 @@ public sealed class Binder
             if (ranges.Count == 0) return;
 
             var firstVal = ranges[0].From;
-            if (firstVal is decimal d)
-                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, d));
-            else if (firstVal is string s)
-                block.Instructions.Add(new IrMoveStringToField(parentLoc, s));
+            if (firstVal.IsNumeric)
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, firstVal.NumericValue!.Value));
+            else if (firstVal.IsString)
+                block.Instructions.Add(new IrMoveStringToField(parentLoc, firstVal.StringValue!));
         }
         else
         {
@@ -1442,7 +1514,7 @@ public sealed class Binder
                 decimal falseVal = 0m;
                 foreach (var candidate in new[] { 0m, 1m, -1m, 99m })
                 {
-                    if (!trueVals.Any(v => v is decimal d && d == candidate))
+                    if (!trueVals.Any(v => v.IsNumeric && v.NumericValue == candidate))
                     {
                         falseVal = candidate;
                         break;
@@ -1485,7 +1557,9 @@ public sealed class Binder
                 {
                     var srcLoc = ResolveLocation(id);
                     if (srcLoc != null)
-                        block.Instructions.Add(new IrPicMove(srcLoc, targetLoc));
+                        block.Instructions.Add(new IrMoveFieldToField(
+                            srcLoc, targetLoc,
+                            GetPicForLocation(srcLoc), GetPicForLocation(targetLoc)));
                 }
                 break;
 
@@ -1505,7 +1579,18 @@ public sealed class Binder
 
     // ── MULTIPLY ──
 
-    private IrBasicBlock LowerMultiply(BoundMultiplyStatement mult, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerArithmetic(BoundArithmeticStatement arith, IrMethod method, IrBasicBlock block)
+        => arith.ArithmeticKind switch
+        {
+            ArithmeticKind.Add => LowerAdd(arith, method, block),
+            ArithmeticKind.Subtract => LowerSubtract(arith, method, block),
+            ArithmeticKind.Multiply => LowerMultiply(arith, method, block),
+            ArithmeticKind.Divide => LowerDivide(arith, method, block),
+            ArithmeticKind.Compute => LowerCompute(arith, method, block),
+            _ => throw new InvalidOperationException($"Unknown arithmetic kind: {arith.ArithmeticKind}")
+        };
+
+    private IrBasicBlock LowerMultiply(BoundArithmeticStatement mult, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1520,7 +1605,7 @@ public sealed class Binder
                 // GIVING form: result = Operand * ByOperand → stored in target
                 // Use IrComputeStore with a synthetic multiply expression
                 var mulExpr = new BoundBinaryExpression(
-                    mult.Operand, BoundBinaryOperatorKind.Multiply, mult.ByOperand,
+                    mult.Operands[0], BoundBinaryOperatorKind.Multiply, mult.Receiver!,
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(mulExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(mulExpr)));
@@ -1528,14 +1613,14 @@ public sealed class Binder
             else
             {
                 // Non-GIVING: result = Operand * target → stored in target
-                if (mult.Operand is BoundLiteralExpression lit && lit.Value is decimal d)
+                if (mult.Operands[0] is BoundLiteralExpression lit && lit.Value is decimal d)
                 {
                     block.Instructions.Add(new IrPicMultiplyLiteral(
                         d, destLoc, destLoc, roundingMode));
                 }
                 else
                 {
-                    var opLoc = ResolveExpressionLocation(mult.Operand);
+                    var opLoc = ResolveExpressionLocation(mult.Operands[0]);
                     if (opLoc != null)
                     {
                         block.Instructions.Add(new IrPicMultiply(
@@ -1550,7 +1635,7 @@ public sealed class Binder
 
     // ── SUBTRACT ──
 
-    private IrBasicBlock LowerSubtract(BoundSubtractStatement sub, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerSubtract(BoundArithmeticStatement sub, IrMethod method, IrBasicBlock block)
     {
         // One ArithmeticStatus per statement — init once, sticky across all targets
         block.Instructions.Add(new IrInitArithmeticStatus());
@@ -1583,7 +1668,7 @@ public sealed class Binder
             var destLoc = ResolveLocation(target.Target);
             if (destLoc == null) continue;
             int roundingMode = target.IsRounded ? 1 : 0;
-            if (sub.IsGiving && sub.GivingMinuend != null)
+            if (sub.IsGiving && sub.Receiver != null)
             {
                 // GIVING: target = minuend - accumulated
                 // Use IrComputeStore with synthetic expression: minuend - accumulated_as_literal
@@ -1597,7 +1682,7 @@ public sealed class Binder
                         CobolCategory.Numeric);
                 }
                 var subExpr = new BoundBinaryExpression(
-                    sub.GivingMinuend, BoundBinaryOperatorKind.Subtract, sumExpr,
+                    sub.Receiver, BoundBinaryOperatorKind.Subtract, sumExpr,
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(subExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(subExpr)));
@@ -1614,7 +1699,7 @@ public sealed class Binder
 
     // ── DIVIDE ──
 
-    private IrBasicBlock LowerDivide(BoundDivideStatement div, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerDivide(BoundArithmeticStatement div, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1625,21 +1710,21 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
 
-            if (div.Dividend != null)
+            if (div.Receiver != null)
             {
                 var divExpr = new BoundBinaryExpression(
-                    div.Dividend, BoundBinaryOperatorKind.Divide, div.Divisor,
+                    div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode,
                     PreResolveExpressionLocations(divExpr)));
             }
             else
             {
-                if (div.Divisor is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                 {
                     block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
                 }
-                else if (div.Divisor is BoundIdentifierExpression divisorId)
+                else if (div.Operands[0] is BoundIdentifierExpression divisorId)
                 {
                     var divisorLoc = ResolveLocation(divisorId);
                     if (divisorLoc != null)
@@ -1651,13 +1736,13 @@ public sealed class Binder
         }
 
         // REMAINDER: dividend MOD divisor
-        if (div.RemainderTarget != null && div.Dividend != null)
+        if (div.RemainderTarget != null && div.Receiver != null)
         {
             var remLoc = ResolveLocation(div.RemainderTarget);
             if (remLoc != null)
             {
                 var remExpr = new BoundBinaryExpression(
-                    div.Dividend, BoundBinaryOperatorKind.Remainder, div.Divisor,
+                    div.Receiver, BoundBinaryOperatorKind.Remainder, div.Operands[0],
                     CobolCategory.Numeric);
                 block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0,
                     PreResolveExpressionLocations(remExpr)));
@@ -1669,7 +1754,7 @@ public sealed class Binder
 
     // ── COMPUTE ──
 
-    private IrBasicBlock LowerCompute(BoundComputeStatement comp, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerCompute(BoundArithmeticStatement comp, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -1681,8 +1766,8 @@ public sealed class Binder
 
             int roundingMode = target.IsRounded ? 1 : 0;
             block.Instructions.Add(new IrComputeStore(
-                comp.Expression, destLoc, roundingMode,
-                PreResolveExpressionLocations(comp.Expression)));
+                comp.Operands[0], destLoc, roundingMode,
+                PreResolveExpressionLocations(comp.Operands[0])));
         }
 
         return LowerSizeError(comp.SizeError, method, block);
@@ -1690,7 +1775,7 @@ public sealed class Binder
 
     // ── ADD ──
 
-    private IrBasicBlock LowerAdd(BoundAddStatement add, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerAdd(BoundArithmeticStatement add, IrMethod method, IrBasicBlock block)
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
@@ -2367,22 +2452,24 @@ public sealed class Binder
         // Build a list of individual match results
         var matchResults = new List<IrValue>();
 
-        foreach (var (from, to) in ranges)
+        foreach (var range in ranges)
         {
+            var from = range.From;
+            var to = range.To;
             var matchVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
 
             if (to == null)
             {
                 // Single value comparison: parent == from
-                if (from is decimal d)
+                if (from.IsNumeric)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, d, matchVal,
+                        parentLoc, from.NumericValue!.Value, matchVal,
                         (int)BoundBinaryOperatorKind.Equal));
                 }
-                else if (from is string s)
+                else if (from.IsString)
                 {
-                    if (parentCat.IsNumericLike() && decimal.TryParse(s,
+                    if (parentCat.IsNumericLike() && decimal.TryParse(from.StringValue!,
                         System.Globalization.CultureInfo.InvariantCulture, out var numVal))
                     {
                         block.Instructions.Add(new IR.IrPicCompareLiteral(
@@ -2392,7 +2479,7 @@ public sealed class Binder
                     else
                     {
                         block.Instructions.Add(new IR.IrStringCompareLiteral(
-                            parentLoc, s, matchVal,
+                            parentLoc, from.StringValue!, matchVal,
                             (int)BoundBinaryOperatorKind.Equal));
                     }
                 }
@@ -2403,22 +2490,22 @@ public sealed class Binder
                 var geVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
                 var leVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
 
-                if (from is decimal dFrom && to is decimal dTo)
+                if (from.IsNumeric && to.IsNumeric)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, dFrom, geVal,
+                        parentLoc, from.NumericValue!.Value, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, dTo, leVal,
+                        parentLoc, to.NumericValue!.Value, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
-                else if (from is string sFrom && to is string sTo)
+                else if (from.IsString && to.IsString)
                 {
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc, sFrom, geVal,
+                        parentLoc, from.StringValue!, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc, sTo, leVal,
+                        parentLoc, to.StringValue!, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
 

@@ -20,11 +20,7 @@ public enum BoundNodeKind
     ReadStatement,
     ExitStatement,
     NextSentenceStatement,
-    AddStatement,
-    SubtractStatement,
-    MultiplyStatement,
-    DivideStatement,
-    ComputeStatement,
+    ArithmeticStatement,
     EvaluateStatement,
     RewriteStatement,
     InitializeStatement,
@@ -42,6 +38,7 @@ public enum BoundNodeKind
     UnstringStatement,
     DeleteStatement,
     StartStatement,
+    CorrespondingStatement,
 }
 
 public abstract class BoundNode
@@ -245,6 +242,40 @@ public sealed class BoundMoveStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MoveStatement;
+}
+
+/// <summary>
+/// Unified CORRESPONDING statement: MOVE, ADD, or SUBTRACT CORRESPONDING.
+/// CorrespondingKind discriminates the operation. Pairs computed at bind time
+/// via CorrespondingMatcher.
+/// </summary>
+public enum CorrespondingKind { Move, Add, Subtract }
+
+public sealed class BoundCorrespondingStatement : BoundStatement
+{
+    public CorrespondingKind CorrespondingKind { get; }
+    public DataSymbol SourceGroup { get; }
+    public DataSymbol TargetGroup { get; }
+    public IReadOnlyList<(DataSymbol Source, DataSymbol Target)> Pairs { get; }
+    public bool IsRounded { get; }
+    public BoundSizeErrorClause? SizeError { get; }
+
+    public BoundCorrespondingStatement(
+        CorrespondingKind kind,
+        DataSymbol sourceGroup, DataSymbol targetGroup,
+        IReadOnlyList<(DataSymbol Source, DataSymbol Target)> pairs,
+        bool isRounded = false,
+        BoundSizeErrorClause? sizeError = null)
+    {
+        CorrespondingKind = kind;
+        SourceGroup = sourceGroup;
+        TargetGroup = targetGroup;
+        Pairs = pairs;
+        IsRounded = isRounded;
+        SizeError = sizeError;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.CorrespondingStatement;
 }
 
 public sealed class BoundPerformStatement : BoundStatement
@@ -537,13 +568,13 @@ public sealed class BoundAcceptStatement : BoundStatement
 
 public sealed class BoundInspectRegion
 {
-    public string? BeforePattern { get; }
+    public InspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
-    public string? AfterPattern { get; }
+    public InspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
 
-    public BoundInspectRegion(string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+    public BoundInspectRegion(InspectPatternValue? beforePattern, bool beforeInitial,
+        InspectPatternValue? afterPattern, bool afterInitial)
     {
         BeforePattern = beforePattern;
         BeforeInitial = beforeInitial;
@@ -555,17 +586,39 @@ public sealed class BoundInspectRegion
 }
 
 public enum InspectTallyKind { All, Leading, Characters }
-public enum InspectReplaceKind { All, First, Leading }
+public enum InspectReplaceKind { All, First, Leading, Characters }
+
+/// <summary>
+/// An INSPECT pattern value: either a compile-time literal string or a runtime data reference.
+/// For data references, the pattern bytes are read from the field at runtime.
+/// </summary>
+public sealed class InspectPatternValue
+{
+    public string? Literal { get; }
+    public BoundIdentifierExpression? DataRef { get; }
+
+    public bool IsLiteral => Literal != null;
+    public bool IsDataRef => DataRef != null;
+
+    private InspectPatternValue(string? literal, BoundIdentifierExpression? dataRef)
+    {
+        Literal = literal;
+        DataRef = dataRef;
+    }
+
+    public static InspectPatternValue FromLiteral(string value) => new(value, null);
+    public static InspectPatternValue FromDataRef(BoundIdentifierExpression expr) => new(null, expr);
+}
 
 public sealed class BoundInspectTallyingItem
 {
     public BoundIdentifierExpression Counter { get; }
     public InspectTallyKind Kind { get; }
-    public string? Pattern { get; }
+    public InspectPatternValue? Pattern { get; }
     public BoundInspectRegion Region { get; }
 
     public BoundInspectTallyingItem(BoundIdentifierExpression counter, InspectTallyKind kind,
-        string? pattern, BoundInspectRegion region)
+        InspectPatternValue? pattern, BoundInspectRegion region)
     {
         Counter = counter;
         Kind = kind;
@@ -577,12 +630,12 @@ public sealed class BoundInspectTallyingItem
 public sealed class BoundInspectReplacingItem
 {
     public InspectReplaceKind Kind { get; }
-    public string Pattern { get; }
-    public string Replacement { get; }
+    public InspectPatternValue Pattern { get; }
+    public InspectPatternValue Replacement { get; }
     public BoundInspectRegion Region { get; }
 
-    public BoundInspectReplacingItem(InspectReplaceKind kind, string pattern,
-        string replacement, BoundInspectRegion region)
+    public BoundInspectReplacingItem(InspectReplaceKind kind, InspectPatternValue pattern,
+        InspectPatternValue replacement, BoundInspectRegion region)
     {
         Kind = kind;
         Pattern = pattern;
@@ -593,11 +646,12 @@ public sealed class BoundInspectReplacingItem
 
 public sealed class BoundInspectConverting
 {
-    public string FromSet { get; }
-    public string ToSet { get; }
+    public InspectPatternValue FromSet { get; }
+    public InspectPatternValue ToSet { get; }
     public BoundInspectRegion Region { get; }
 
-    public BoundInspectConverting(string fromSet, string toSet, BoundInspectRegion region)
+    public BoundInspectConverting(InspectPatternValue fromSet, InspectPatternValue toSet,
+        BoundInspectRegion region)
     {
         FromSet = fromSet;
         ToSet = toSet;
@@ -626,26 +680,68 @@ public sealed class BoundInspectStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.InspectStatement;
 }
 
-public sealed class BoundAddStatement : BoundStatement
+/// <summary>
+/// Unified arithmetic statement. All five COBOL arithmetic statements
+/// (ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE) converge to this single type.
+/// ArithmeticKind discriminates the operation. No per-statement subclasses.
+/// </summary>
+public sealed class BoundArithmeticStatement : BoundStatement
 {
-    public IReadOnlyList<BoundExpression> Operands { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-    public bool IsGiving { get; }  // true for ADD ... GIVING (target = sum, not target += sum)
+    /// <summary>ADD, SUBTRACT, MULTIPLY, DIVIDE, or COMPUTE.</summary>
+    public ArithmeticKind ArithmeticKind { get; }
 
-    public BoundAddStatement(IReadOnlyList<BoundExpression> operands,
+    /// <summary>Source operands: the values being added/subtracted/multiplied/divided/computed.</summary>
+    public IReadOnlyList<BoundExpression> Operands { get; }
+
+    /// <summary>
+    /// The TO/FROM/BY/INTO receiving operand (identifier or literal in GIVING forms).
+    /// - SUBTRACT A FROM B: Receiver = null (B is in Targets); SUBTRACT A FROM 100 GIVING C: Receiver = literal(100)
+    /// - MULTIPLY A BY B: Receiver = B; MULTIPLY A BY 2 GIVING C: Receiver = literal(2)
+    /// - DIVIDE A INTO B: Receiver = null (B in Targets); DIVIDE A INTO 864 GIVING C: Receiver = literal(864)
+    /// - COMPUTE X = expr: Receiver = null (expr is in Operands)
+    /// - ADD: Receiver = null (TO targets are in Targets)
+    /// </summary>
+    public BoundExpression? Receiver { get; }
+
+    /// <summary>Receiving targets (always identifiers). In non-GIVING forms, also accumulators.</summary>
+    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
+
+    /// <summary>True when GIVING keyword was used (target = result, not target op= result).</summary>
+    public bool IsGiving { get; }
+
+    /// <summary>DIVIDE-specific: true for BY form, false for INTO form.</summary>
+    public bool IsByForm { get; }
+
+    /// <summary>DIVIDE-specific: REMAINDER target identifier.</summary>
+    public BoundIdentifierExpression? RemainderTarget { get; }
+
+    /// <summary>ON SIZE ERROR / NOT ON SIZE ERROR clause.</summary>
+    public BoundSizeErrorClause? SizeError { get; }
+
+    public BoundArithmeticStatement(
+        ArithmeticKind arithmeticKind,
+        IReadOnlyList<BoundExpression> operands,
+        BoundExpression? receiver,
         IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null,
-        bool isGiving = false)
+        bool isGiving = false,
+        bool isByForm = false,
+        BoundIdentifierExpression? remainderTarget = null,
+        BoundSizeErrorClause? sizeError = null)
     {
+        ArithmeticKind = arithmeticKind;
         Operands = operands;
+        Receiver = receiver;
         Targets = targets;
-        SizeError = sizeError;
         IsGiving = isGiving;
+        IsByForm = isByForm;
+        RemainderTarget = remainderTarget;
+        SizeError = sizeError;
     }
 
-    public override BoundNodeKind Kind => BoundNodeKind.AddStatement;
+    public override BoundNodeKind Kind => BoundNodeKind.ArithmeticStatement;
 }
+
+public enum ArithmeticKind { Add, Subtract, Multiply, Divide, Compute }
 
 /// <summary>
 /// ON SIZE ERROR / NOT ON SIZE ERROR clause, shared by all arithmetic statements.
@@ -668,7 +764,6 @@ public sealed class BoundSizeErrorClause
 
 /// <summary>
 /// A single receiving item in an arithmetic statement, with per-item ROUNDED flag.
-/// Used by MULTIPLY, SUBTRACT, DIVIDE, ADD.
 /// </summary>
 public sealed class BoundArithmeticTarget
 {
@@ -681,110 +776,6 @@ public sealed class BoundArithmeticTarget
         IsRounded = isRounded;
     }
 }
-
-/// <summary>
-/// MULTIPLY statement. Two forms:
-///   MULTIPLY A BY B [ROUNDED] — result = A * B, stored in B
-///   MULTIPLY A BY B GIVING C [ROUNDED] — result = A * B, stored in C
-/// Operand is the first factor (A). ByOperand is the second factor (B).
-/// In non-GIVING form, ByOperand is also the receiving item and appears in Targets.
-/// In GIVING form, ByOperand is just a factor; Targets are the GIVING receiving items.
-/// </summary>
-public sealed class BoundMultiplyStatement : BoundStatement
-{
-    public BoundExpression Operand { get; }
-    public BoundExpression ByOperand { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public bool IsGiving { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundMultiplyStatement(BoundExpression operand, BoundExpression byOperand,
-        IReadOnlyList<BoundArithmeticTarget> targets, bool isGiving = false,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Operand = operand;
-        ByOperand = byOperand;
-        Targets = targets;
-        IsGiving = isGiving;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.MultiplyStatement;
-}
-
-public sealed class BoundSubtractStatement : BoundStatement
-{
-    public IReadOnlyList<BoundExpression> Operands { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-    public bool IsGiving { get; }
-    public BoundExpression? GivingMinuend { get; }  // the FROM operand for GIVING form
-
-    public BoundSubtractStatement(IReadOnlyList<BoundExpression> operands,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null,
-        bool isGiving = false,
-        BoundExpression? givingMinuend = null)
-    {
-        Operands = operands;
-        Targets = targets;
-        SizeError = sizeError;
-        IsGiving = isGiving;
-        GivingMinuend = givingMinuend;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.SubtractStatement;
-}
-
-public sealed class BoundDivideStatement : BoundStatement
-{
-    public BoundExpression Divisor { get; }
-    public BoundExpression? Dividend { get; }
-    public bool IsByForm { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundIdentifierExpression? RemainderTarget { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundDivideStatement(
-        BoundExpression divisor,
-        BoundExpression? dividend,
-        bool isByForm,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundIdentifierExpression? remainderTarget = null,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Divisor = divisor;
-        Dividend = dividend;
-        IsByForm = isByForm;
-        Targets = targets;
-        RemainderTarget = remainderTarget;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.DivideStatement;
-}
-
-public sealed class BoundComputeStatement : BoundStatement
-{
-    public BoundExpression Expression { get; }
-    public IReadOnlyList<BoundArithmeticTarget> Targets { get; }
-    public BoundSizeErrorClause? SizeError { get; }
-
-    public BoundComputeStatement(BoundExpression expression,
-        IReadOnlyList<BoundArithmeticTarget> targets,
-        BoundSizeErrorClause? sizeError = null)
-    {
-        Expression = expression;
-        Targets = targets;
-        SizeError = sizeError;
-    }
-
-    public override BoundNodeKind Kind => BoundNodeKind.ComputeStatement;
-}
-
-// BoundArithmeticStatement DELETED — it was a silent-drop pattern that produced NO code.
-// All arithmetic binders now throw InvalidOperationException if they can't produce a
-// proper bound statement. A compiler must never silently skip a statement.
 
 // ═══════════════════════════════════
 // EVALUATE

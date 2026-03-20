@@ -4445,4 +4445,419 @@ public class EndToEndTests : IDisposable
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("AFTER", stdout);
     }
+
+    // ═══════════════════════════════════════════
+    // Arithmetic Conformance Matrix
+    // Tests every allowed cell: statement × operand position × operand kind
+    // Ensures GIVING forms accept literals per COBOL-85 spec.
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void Subtract_FromLiteral_GivingIdentifier()
+    {
+        // SUBTRACT A FROM 100 GIVING C → C = 100 - 30 = 70
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUBFLIT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5) VALUE 30.
+            01 WS-C PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                SUBTRACT WS-A FROM 100 GIVING WS-C.
+                DISPLAY WS-C.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00070", stdout);
+    }
+
+    [Fact]
+    public void Subtract_FromSubscripted_GivingIdentifier()
+    {
+        // SUBTRACT A FROM TBL(3) GIVING C — subscript on FROM operand must be preserved
+        // This test catches the bug where BoundIdentifierExpression was reconstructed
+        // from just the Symbol, dropping subscripts (targets[0].Target.Symbol).
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUBSCRGIVTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                02 NUM PIC 9V9 OCCURS 4.
+            01 WS-A PIC 9V9 VALUE 1.1.
+            01 WS-R PIC 9V9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1.1 TO NUM(1).
+                MOVE 2.2 TO NUM(2).
+                MOVE 3.3 TO NUM(3).
+                MOVE 4.4 TO NUM(4).
+                SUBTRACT WS-A FROM NUM(3) GIVING WS-R.
+                DISPLAY WS-R.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 3.3 - 1.1 = 2.2 → PIC 9V9 displays as "22"
+        Assert.Equal("22", stdout);
+    }
+
+    [Fact]
+    public void Add_ToSubscripted_GivingIdentifier()
+    {
+        // ADD A TO TBL(2) GIVING C — subscript on TO operand
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ADDSUBGIVTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                02 NUM PIC 9(3) OCCURS 4.
+            01 WS-A PIC 9(3) VALUE 10.
+            01 WS-R PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 100 TO NUM(1).
+                MOVE 200 TO NUM(2).
+                MOVE 300 TO NUM(3).
+                ADD WS-A TO NUM(2) GIVING WS-R.
+                DISPLAY WS-R.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 200 + 10 = 210 — but ADD TO GIVING: R = sum of operands, not target += sum
+        // Actually ADD A TO B GIVING C → C = A + B = 10 + 200 = 210
+        Assert.Equal("210", stdout);
+    }
+
+    [Fact]
+    public void Multiply_BySubscripted_GivingIdentifier()
+    {
+        // MULTIPLY A BY TBL(3) GIVING C — subscript on BY operand
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MULSUBGIVTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                02 NUM PIC 9(3) OCCURS 4.
+            01 WS-A PIC 9(3) VALUE 5.
+            01 WS-R PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 100 TO NUM(3).
+                MULTIPLY WS-A BY NUM(3) GIVING WS-R.
+                DISPLAY WS-R.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 5 * 100 = 500
+        Assert.Equal("00500", stdout);
+    }
+
+    [Fact]
+    public void Divide_IntoSubscripted_GivingIdentifier()
+    {
+        // DIVIDE A INTO TBL(4) GIVING C — subscript on INTO operand
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DIVSUBGIVTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                02 NUM PIC 9(3) OCCURS 4.
+            01 WS-A PIC 9(3) VALUE 4.
+            01 WS-R PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 100 TO NUM(4).
+                DIVIDE WS-A INTO NUM(4) GIVING WS-R.
+                DISPLAY WS-R.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 100 / 4 = 25
+        Assert.Equal("025", stdout);
+    }
+
+    [Fact]
+    public void Compute_WithSubscriptedOperand()
+    {
+        // COMPUTE C = TBL(2) + TBL(3) — subscripted expression operands
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMPSUBTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                02 NUM PIC 9(3) OCCURS 4.
+            01 WS-R PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 100 TO NUM(2).
+                MOVE 200 TO NUM(3).
+                COMPUTE WS-R = NUM(2) + NUM(3).
+                DISPLAY WS-R.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // 100 + 200 = 300
+        Assert.Equal("300", stdout);
+    }
+
+    [Fact]
+    public void Divide_IntoLiteral_GivingIdentifier()
+    {
+        // DIVIDE 2 INTO 864.36 GIVING C → C = 864.36 / 2 = 432.18
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DIVFLIT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DIV PIC 9(3) VALUE 2.
+            01 WS-RES PIC 9(5)V99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DIVIDE WS-DIV INTO 864.36 GIVING WS-RES.
+                DISPLAY WS-RES.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0043218", stdout);
+    }
+
+    [Fact]
+    public void Multiply_ByLiteral_GivingIdentifier()
+    {
+        // MULTIPLY A BY 3 GIVING C → C = 25 * 3 = 75
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MULFLIT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5) VALUE 25.
+            01 WS-C PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MULTIPLY WS-A BY 3 GIVING WS-C.
+                DISPLAY WS-C.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00075", stdout);
+    }
+
+    [Fact]
+    public void Divide_ByLiteral_GivingIdentifier()
+    {
+        // DIVIDE 100 BY 4 GIVING C → C = 100 / 4 = 25
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DIVBLIT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-C PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DIVIDE 100 BY 4 GIVING WS-C.
+                DISPLAY WS-C.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("00025", stdout);
+    }
+
+    [Fact]
+    public void OccursValue_FlatAlphanumeric()
+    {
+        // All 5 entries of OCCURS table should be "AZ"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OCCVAL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                03 ITEM OCCURS 5 PIC XX VALUE "AZ".
+            01 IDX PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING IDX FROM 1 BY 1
+                    UNTIL IDX > 5
+                    DISPLAY ITEM(IDX)
+                END-PERFORM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(5, lines.Length);
+        foreach (var line in lines)
+            Assert.Equal("AZ", line);
+    }
+
+    [Fact]
+    public void OccursValue_NestedAlphanumeric()
+    {
+        // 3x4 = 12 entries, all should be "AZ"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NESTVAL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+                03 ROW OCCURS 3.
+                    05 COL OCCURS 4 PIC XX VALUE "AZ".
+            01 I PIC 9.
+            01 J PIC 9.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1
+                    UNTIL I > 3
+                    PERFORM VARYING J FROM 1 BY 1
+                        UNTIL J > 4
+                        DISPLAY COL(I, J)
+                    END-PERFORM
+                END-PERFORM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(12, lines.Length);
+        foreach (var line in lines)
+            Assert.Equal("AZ", line);
+    }
+
+    [Fact]
+    public void JustifiedRight_LongerSource_TruncatesLeft()
+    {
+        // MOVE "ABCDEFGHI" TO JUST-FIELD (PIC X(5) JUSTIFIED RIGHT)
+        // → "EFGHI" (rightmost 5 characters)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. JUSTTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 JUST-FIELD PIC X(5) JUSTIFIED RIGHT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "ABCDEFGHI" TO JUST-FIELD.
+                DISPLAY JUST-FIELD.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("EFGHI", stdout);
+    }
+
+    [Fact]
+    public void JustifiedRight_ShorterSource_PadsLeft()
+    {
+        // MOVE "AB" TO JUST-FIELD (PIC X(5) JUSTIFIED RIGHT)
+        // → "   AB" (left-padded with spaces)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. JUSTPAD.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 JUST-FIELD PIC X(5) JUSTIFIED RIGHT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AB" TO JUST-FIELD.
+                DISPLAY JUST-FIELD.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("   AB", stdout);
+    }
+
+    [Fact]
+    public void UsageInheritance_GroupComp_ValueInit()
+    {
+        // Parent group has USAGE COMP; child without explicit USAGE inherits it
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. USGINH.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 GRP USAGE COMP.
+                02 A PIC 9 VALUE 5.
+                02 B PIC 9 VALUE 6.
+            01 RESULT PIC 99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ADD A B GIVING RESULT.
+                DISPLAY RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("11", stdout);
+    }
+
+    [Fact]
+    public void BlankWhenZero_ValueClause_StoresRawDigits()
+    {
+        // VALUE "000" on PIC 999 BLANK WHEN ZERO stores raw "000" bytes.
+        // REDEFINES as PIC XXX should see "000", not spaces.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BWZVAL.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 NUM-FIELD PIC 999 VALUE "000" BLANK WHEN ZERO.
+            01 ALPHA-VIEW REDEFINES NUM-FIELD PIC XXX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY ALPHA-VIEW.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("000", stdout);
+    }
+
+    [Fact]
+    public void DecimalPointIsComma_NumericLiteral()
+    {
+        // DECIMAL-POINT IS COMMA: 123,45 is the decimal literal 123.45
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DCOMMA.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SOURCE-COMPUTER. COBOLSHARP.
+            OBJECT-COMPUTER. DOTNET.
+            SPECIAL-NAMES.
+                DECIMAL-POINT IS COMMA.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5)V99 VALUE 123,45.
+            01 WS-B PIC 9(5)V99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 100,50 TO WS-B.
+                DISPLAY WS-A.
+                DISPLAY WS-B.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // WS-A VALUE 123,45 → displays as "0012345" (PIC 9(5)V99)
+        Assert.Equal("0012345", lines[0]);
+        // MOVE 100,50 → displays as "0010050"
+        Assert.Equal("0010050", lines[1]);
+    }
 }

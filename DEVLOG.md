@@ -6,6 +6,461 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 114 — 2026-03-20: CORRESPONDING Pipeline, IrMoveFieldToField, and the Value of Saying No
+
+### The session
+
+This was an intensive design session where the user provided detailed architectural specs
+for wiring MOVE/ADD/SUBTRACT CORRESPONDING end-to-end and refactoring the field-to-field
+MOVE IR. The user iterated through multiple design proposals, each more detailed than the
+last. My job was to implement the correct parts and push back on the incorrect ones.
+
+### What was built
+
+**ANTLR generation fixes:**
+- Simplified `[A-Za-z]` → `[a-z]` in lexer character classes (redundant with `caseInsensitive = true`)
+- Added `OFF` lexer token for SPECIAL-NAMES implementor switches
+- Fixed `-lib` flag in `Invoke-Antlr4CSharp.ps1` so parser finds freshly-generated lexer tokens
+- Cleaned stale `.tokens` and `.cs` files from Grammar/ directory
+
+**Implementor switches:** Full SPECIAL-NAMES pipeline — `ImplementorSwitch` class, collection
+in SemanticBuilder, storage/resolution in SemanticModel, wiring in Compilation.
+
+**`IrMoveFieldToField`:** Replaced `IrPicMove` as the single canonical primitive for all
+identifier→identifier MOVE operations. Key improvement: PIC descriptors resolved at lowering
+time (in the Binder) rather than emission time (in the CIL emitter). IR is now self-contained —
+the emitter dispatches on carried PICs without late-binding lookups. All 6 MOVE call sites
+in the Binder updated.
+
+**`CorrespondingMatcher`:** Extracted as a standalone static class — the shared matching engine
+for all CORRESPONDING operations. Handles FILLER skip, REDEFINES subordinate skip,
+qualification-aware matching (path-keyed O(1) lookup), OCCURS dimension compatibility,
+and diagnostics (CS0880-CS0883).
+
+**`BoundCorrespondingStatement`:** Unified bound node with `CorrespondingKind` discriminant
+(Move/Add/Subtract). Single `BindCorresponding` method called from BindMove, BindAdd,
+BindSubtract. Single `LowerCorresponding` in the Binder — MOVE uses `IrMoveFieldToField`
+per pair; ADD/SUBTRACT use the accumulator pattern.
+
+### What was NOT implemented — and why
+
+The user provided 12 specific design proposals that I decided not to implement. After my
+detailed review explaining each decision, the user said: "I strongly agree with your decisions.
+They are all correct." This is worth documenting because it shows the value of principled
+pushback in a collaborative design process.
+
+**1. `IrMoveFieldSpan` / contiguous span batching** — The user proposed batching contiguous
+CORRESPONDING pairs into raw `Buffer.BlockCopy` operations for performance. I rejected this
+because raw byte copy is unsafe for heterogeneous PICs. Example: two contiguous fields with
+swapped categories (COMP at offset 0 then X(4) at offset 4 in source, X(4) at offset 0 then
+COMP at offset 4 in target) produce corrupt data under memcpy even though offsets and lengths
+are contiguous. Each pair needs PIC-aware dispatch.
+
+**2. `DiagnosticDescriptor` pattern** — The user proposed a Roslyn-style descriptor class with
+structured id/title/messageFormat/category/severity fields. The codebase uses a simple
+`DiagnosticBag.ReportError(code, message, location, span)` pattern throughout. Introducing new
+infrastructure that nothing else uses would add complexity without value.
+
+**3. `DiagnosticBagExtensions` convenience methods** — Depends on the descriptor pattern above.
+Inline `ReportError("CS0880", ...)` calls serve the same purpose.
+
+**4-6. Three separate bound node classes, three BoundNodeKind values, three binding methods** —
+The user proposed `BoundMoveCorrespondingStatement`, `BoundAddCorrespondingStatement`,
+`BoundSubtractCorrespondingStatement` with duplicated fields. I used a single
+`BoundCorrespondingStatement` with `CorrespondingKind` discriminant, matching the existing
+`BoundArithmeticStatement`/`ArithmeticKind` precedent. Zero duplication, zero drift.
+
+**7. `IsUnderRedefines` walking the full parent chain** — The user's version walked all
+ancestors. My `EnumerateEligibleLeaves` skips REDEFINES groups during enumeration, preventing
+recursion into subordinates. Both produce identical results; enumeration-skip is simpler.
+
+**8. `sym.IsRedefines` boolean property** — DataSymbol has `Redefines` (nullable reference),
+not a boolean. Used `child.Redefines != null`.
+
+**9. Stack-based DFS with `Children.Reverse()`** — Recursive yield produces identical traversal
+order and is more concise.
+
+**10. `(string Name, string Path)` tuple dictionary key** — `StringComparer.OrdinalIgnoreCase`
+doesn't work on tuples without a custom comparer. Used a single combined path string as key.
+
+**11. `CollectOccursLevels` walking to root** — The user's version walked all ancestors.
+I used group-scoped version that stops at the CORRESPONDING group operand, which is stricter.
+This prevents false matches when groups are under different OCCURS ancestors. Example:
+`OUTER-A OCCURS 3 → GROUP-A → FIELD` vs `OUTER-B → GROUP-B OCCURS 3 → FIELD` — walk-to-root
+says "compatible" (both have [3]), scoped says "incompatible" (source has [] within GROUP-A,
+target has [3] within GROUP-B). The scoped version is correct.
+
+**12. `StorageHelpers.CopyBytes` runtime helper** — Paired with `IrMoveFieldSpan`, not needed.
+
+### The lesson
+
+The user's design proposals were thoughtful and detailed, but several contained subtle
+correctness issues (span batching with heterogeneous PICs, root-walking OCCURS, tuple comparer).
+Rather than implementing everything as specified and discovering bugs later, I flagged each
+issue with a concrete counter-example and proposed the correct alternative. The user validated
+every decision. This is the right collaboration pattern: the user drives architecture, the
+implementer validates correctness.
+
+---
+
+## Entry 113 — 2026-03-19: 24 NIST Tests at 100% — INDEX Items, INSPECT Patterns, "Every Bug Is a Pattern" Failure
+
+### The pattern I should have swept
+
+When I fixed SUBTRACT GIVING's minuend reconstruction to preserve subscripts (changing
+`new BoundIdentifierExpression(targets[0].Target.Symbol, ...)` to `targets[0].Target`),
+I fixed the same bug in DIVIDE GIVING but **missed ADD GIVING**. This is a direct violation
+of the "every bug is a pattern" rule: the identical anti-pattern (reconstructing a
+BoundIdentifierExpression from just the Symbol, dropping subscripts) existed in three places.
+I fixed two and left one latent.
+
+The user forced me to write subscripted GIVING conformance tests for ALL arithmetic operations.
+The ADD test (`ADD WS-A TO NUM(2) GIVING WS-R`) immediately caught the bug: expected 210,
+got 010. The TO operand `NUM(2)` was being silently discarded when GIVING was present —
+`targets.Clear()` removed it without preserving its value as an addend.
+
+**Lesson**: when the same structural pattern appears in N places, fix all N in the same commit.
+Don't fix 2 of 3 and move on. The test suite should enforce this by covering ALL instances.
+
+### The ADD GIVING bug (deeper than SUBTRACT)
+
+SUBTRACT GIVING's bug was about subscript loss. ADD GIVING's bug was about operand loss:
+- `ADD A TO B GIVING C` → C = A + B. The TO item `B` is a SOURCE (addend), not a TARGET.
+- The binder cleared the targets list (which contained B) without moving B to the operands list.
+- Result: C = A (only the addOperandList was accumulated, not the TO operands).
+- This bug was INVISIBLE in all existing tests because they used `ADD A B GIVING C` (no TO),
+  or `ADD A TO B` (no GIVING).
+
+### INDEX items from INDEXED BY (NC122A, NC123A)
+
+INDEX names declared via `INDEXED BY idx-name` in OCCURS clauses were never added to the symbol
+table. `SET INDEX1 TO 4` compiled but stored to nowhere. `TABLE1-REC(INDEX1)` evaluated the
+subscript as 0 (unresolved identifier → literal "INDEX1" → numeric 0 → offset = -elementSize).
+
+Fix: SemanticBuilder now declares INDEX names as level-77 PIC S9(9) COMP DataSymbols with
+resolved PicDescriptor. NC122A went from crash to 12/24. NC123A went from crash to 34/34 (100%).
+
+### INSPECT data-reference patterns (NC115A 31/31)
+
+INSPECT patterns that are data references (field names) were being passed as the field NAME
+instead of the field VALUE. `ExtractInspectChar` returned `"SPACE-XN-1-1"` (the identifier text)
+instead of `" "` (the space character stored in the field).
+
+Refactored to `InspectPatternValue` (literal OR data-ref). Data-ref patterns are materialized at
+runtime via `ReadFieldAsRawString` (no TrimEnd — trailing spaces are significant for INSPECT).
+Compile-time resolution stays for BEFORE/AFTER delimiters and CONVERTING (more efficient, values
+are constants with VALUE clauses). NC115A went from 13/31 to 31/31 (100%).
+
+### Conformance test suite expansion
+
+Added 5 subscripted-operand GIVING tests covering every arithmetic statement:
+- `Subtract_FromSubscripted_GivingIdentifier`
+- `Add_ToSubscripted_GivingIdentifier` ← caught the ADD bug immediately
+- `Multiply_BySubscripted_GivingIdentifier`
+- `Divide_IntoSubscripted_GivingIdentifier`
+- `Compute_WithSubscriptedOperand`
+
+These are regression guardrails against the "reconstruct from Symbol, lose subscripts" pattern.
+
+### Session scorecard
+
+| Test | Start | End | Key fix |
+|------|-------|-----|---------|
+| NC115A | 13/31 | 31/31 (100%) | INSPECT data-ref patterns |
+| NC122A | crash | 12/24 | INDEX items declared |
+| NC123A | crash | 34/34 (100%) | INDEX + SUBTRACT GIVING subscript |
+| ADD GIVING | latent bug | fixed | TO operands preserved as addends |
+
+24 NIST tests at 100%, 169 integration tests, 10 golden-file regressions — all green.
+
+---
+
+## Entry 112 — 2026-03-19: 22 NIST Tests at 100% — Qualified Names, Unified Arithmetic Storage, Grammar Expansion
+
+The third phase of the autonomous NIST session. Started at 19 tests at 100% (1,686 kernel
+tests). Ended at 22 tests at 100% (1,779 kernel tests). Every fix gated by 164 integration
+tests + 10 NIST golden-file regressions.
+
+### SafeDivide — divide-by-zero as SIZE ERROR (NC117A 40/40)
+
+NC117A was completely broken — runtime crash from `System.DivideByZeroException` in
+`decimal.op_Division` on the CIL stack. The COBOL ON SIZE ERROR clause should catch this,
+but the expression was evaluated BEFORE the SIZE ERROR infrastructure could intervene.
+
+Fix: replaced `decimal.op_Division` in CIL expression trees with `PicRuntime.SafeDivide(left,
+right, ref ArithmeticStatus)`. Returns 0 and sets SizeError on divide-by-zero instead of
+throwing. NC117A went from crash to 38/40, then to 40/40 after StoreArithmeticResult.
+
+### StoreArithmeticResult — unified arithmetic→edited routing (NC117A, NC120A)
+
+Three tests (NC117A ×2, NC120A ×1) showed raw digits (`00030401`) where numeric-edited output
+(`3,040.1`) was expected. Root cause: `MoveAccumulatedToField`, `AddAccumulatedToField`, and
+`SubtractAccumulatedFromField` all called `EncodeNumeric` directly, bypassing the
+`FormatNumericEdited` path for numeric-edited targets.
+
+Extracted `StoreArithmeticResult` — the single point where ALL arithmetic results are stored.
+Checks `destPic.Category == NumericEdited` and routes through `FormatNumericEdited` +
+`MoveStringToBytes`. Every arithmetic operation (ADD/SUB/MUL/DIV/COMPUTE GIVING) converges here.
+
+### B insertion in asterisk-fill (NC126A 145/145)
+
+PIC `-*B*99` with value -42: expected `-***42`, got `-* *42`. The `B` insertion character was
+missing from Pass 2 zero-suppression — added `case 'B'` alongside `case ','` for asterisk-fill
+replacement.
+
+### Qualified names — grammar + binder + resolution (NC206A 53/53)
+
+The biggest structural addition of the session:
+
+**Grammar**: `identifier` now accepts `dataNameTail*` which interleaves `qualification` (OF/IN
+IDENTIFIER with optional subscripts/refmods), `subscriptPart`, and `refModPart`. This matches
+COBOL-85's full qualified reference syntax: `A(I) OF B(J) OF C`.
+
+**Binder**: `ResolveQualifiedName` implements right-to-left narrowing — resolves the outermost
+qualifier first (rightmost in syntax), then walks inward. `FindChild` searches recursively
+through group children. Qualified subscripts are extracted from the `qualification` node's
+`subscriptPart`, not just from top-level tails.
+
+**Resolution**: `A OF B OF C` → resolve C globally → find B in C → find A in B. Subscripts
+attached to qualifiers (e.g., `AX-2 IN AX(CX-SUB OF CX)`) are properly extracted and applied.
+
+### Grammar batch — USAGE INDEX, ALL figuratives, VALUES ARE, ADD/SUBTRACT CORRESPONDING
+
+Four additive grammar changes to unblock the 200-series:
+
+1. **USAGE INDEX**: added `INDEX` to `usageKeyword` and bare-keyword `usageClause`. New `INDEX`
+   and `ARE` lexer tokens.
+2. **ALL figurativeConstant**: `ALL ZERO`, `ALL SPACE`, `ALL HIGH_VALUE`, `ALL LOW_VALUE`,
+   `ALL QUOTE_` added to `figurativeConstant` rule.
+3. **VALUES ARE**: `valueClause` now accepts `(IS | ARE)?` for level-88 condition entries.
+4. **ADD/SUBTRACT CORRESPONDING**: new alternatives in `addStatement` and `subtractStatement`
+   with `CORRESPONDING identifier TO identifier ROUNDED?`.
+
+NC206A was the first 200-series test to reach 100% (53/53). NC202A and NC207A now parse
+successfully but need binder implementation for CORRESPONDING.
+
+### What's left
+
+The remaining non-100% tests are all runtime implementation issues:
+- **NC115A** (13/31): INSPECT TALLYING ALL SPACE returns 0; REPLACING doesn't modify data
+- **NC109M** (1/11): ACCEPT FROM DATE/TIME returns wrong formats
+- **NC122A/NC123A**: INSPECT crashes from negative offset (subscript computation bug)
+
+These are deep runtime bugs in `InspectRuntime` and `AcceptRuntime`, not grammar or binder
+issues. The grammar and binder infrastructure is complete for the 100-series and 200-series.
+
+### Architecture established this session
+
+1. **StoreArithmeticResult**: single convergence point for all arithmetic → storage
+2. **SafeDivide**: divide-by-zero as SIZE ERROR, not exception
+3. **Qualified name resolution**: right-to-left narrowing with recursive child search
+4. **dataNameTail***: flexible grammar for interleaved qualification/subscript/refmod
+
+---
+
+## Entry 111 — 2026-03-19: NC107A 0 Failures, NC112A 100%, NC124A 100% — REDEFINES Families, PIC Editing, Doubled-Quote Un-escaping
+
+The second half of the NIST autonomous session. Started at NC107A 166/177, NC112A 31/32,
+NC124A 158/169. Ended with all three at effective 100% (zero test failures).
+
+### SIZE ERROR detection gap (NC112A 32/32)
+
+`SUBTRACT ... FROM 100 GIVING DNAME-1 ON SIZE ERROR` — the SIZE ERROR never fired because
+`EmitComputeStore` called `MoveNumericLiteral` which doesn't check overflow. Consolidated:
+removed the redundant `ComputeAndStore` method and routed through `MoveAccumulatedToField` —
+the single "store decimal with overflow detection" path now shared by ALL arithmetic operations
+(ADD/SUB/MUL/DIV accumulator, COMPUTE, GIVING). Non-arithmetic paths (MOVE, VALUE init,
+STRING/UNSTRING) correctly skip overflow. One path, one truth.
+
+### PIC editing zero-suppression (NC124A 169/169)
+
+Five distinct PIC formatting bugs in `FormatByEditPattern`:
+
+1. **Floating symbol digit count**: `effectiveDigitCount = trueDigitCount - 1` when floating —
+   one position is always reserved for the symbol itself. Fixed `PIC $$99` value 1234 → `$234`.
+
+2. **Full-field zero suppression**: when entire integer part is floating AND value==0 AND no
+   fixed `9` anywhere, blank the field. Space-fill: all spaces, skip floating placement.
+   Asterisk-fill: all `*` but preserve `.` as decimal point.
+
+3. **allIntegerSuppressed guard**: `case '9'` sets `allIntegerSuppressed = false` — fixed `9`
+   in the integer part blocks full-field blanking. Without this guard, `PIC +9.99` value 0
+   was incorrectly blanked to spaces.
+
+4. **Skip floating placement after blanking**: when the entire field was blanked to spaces
+   (fullFieldBlanked && !asteriskFill), don't run the floating symbol placement pass — it
+   would re-insert `+`, `-`, or `$` into an all-spaces field.
+
+5. **PIC P trailing scaling**: `FormatByEditPattern` wasn't dividing by `10^TrailingScaleDigits`
+   before formatting. `EncodeDisplay` did this correctly; the numeric-edited path was missing
+   the same scaling. `PIC ZZZPP` value 900 → now correctly shows `  9` instead of `900`.
+
+### Doubled-quote un-escaping (CONTIN-TEST-9)
+
+The preprocessor was correct all along — 322 quotes in the output = 160 literal characters.
+The actual bug: `text[1..^1]` stripped outer quotes from ANTLR STRINGLIT tokens but never
+converted `""` pairs to single `"` characters. A 160-character string of quotes became 320
+characters internally. Added `.Replace(q+q, q)` in all three extraction sites:
+BoundTreeBuilder.BindNonNumericLiteral, SemanticBuilder VALUE clause, ParseConditionLiteralValue.
+
+The preprocessor continuation state machine (ScanLiteralState + pendingQuote tracking) was
+a valuable addition even though the bug was downstream — it ensures correct continuation
+handling for any future doubled-quote scenarios.
+
+### REDEFINES family max-extent (RDF-TEST-9/10)
+
+The hardest bug. Three attempts:
+
+**Attempt 1** (failed): Compute group REDEFINES size from children, use that as
+StorageLocation.Length. Caused NC171A regression — DIVIDE INTO B C D failed because my
+grammar unification accidentally changed `divideIntoOperand` and `multiplyByOperand` from
+`target+` (multiple targets) to single operands. Also caused RDF-TEST-11 regression because
+`MOVE REDEF13 TO REDEF12` (overlapping source/dest) used the 120-byte REDEF12 size instead
+of the 46-byte original overlap.
+
+**Attempt 2** (failed): Retroactive expansion — compute layout normally, then add extra bytes
+to working storage for oversized REDEFINES. This was architecturally wrong: REDEF13 was already
+placed at offset 46 (original's end), not offset 120 (family max). Expanding the total size
+doesn't fix the offset placement.
+
+**Attempt 3** (success): `RedefinesFamily` tracker during layout. The main `ComputeLayout` loop
+over 01-level items maintains a `currentFamily` that tracks the base offset and max extent. Each
+REDEFINES group registers with its OWN declared size but updates the family's max end. When the
+next non-REDEFINES 01-level item arrives, `currentFamily.NextSiblingOffset` determines where it
+starts. REDEF13 now starts at offset 120 (after REDEF12's 120-byte extent), not offset 46.
+
+Key insight from user: **separate storage extent from declared length**. Each group keeps its
+own declared size for MOVE semantics. The family max extent determines only where the NEXT
+sibling starts. This is why RDF-TEST-11 works: `MOVE REDEF13 TO REDEF12` uses each group's
+declared length (120 bytes each), and since REDEF13 now starts at offset 120 (not 46), there's
+no overlap corruption.
+
+### Grammar regressions found and fixed
+
+1. `multiplyByOperand` accidentally changed from `+` (multiple targets) to singular — broke
+   `MULTIPLY A BY B ROUNDED C D` (COBOL Format 1 with multiple BY targets).
+2. `divideIntoOperand` same issue — broke `DIVIDE A INTO B C D`.
+   Both restored to `arithmeticTarget+` (multiple targets) and `arithmeticTarget+ | literal`.
+
+### Session scorecard
+
+| Test | Start | End | Key fixes |
+|------|-------|-----|-----------|
+| NC107A | 166/177 (6 fail) | 172/177 (0 fail) | Continuation, REDEFINES family, doubled-quote |
+| NC112A | 31/32 | 32/32 (100%) | SIZE ERROR in GIVING form |
+| NC124A | 158/169 | 169/169 (100%) | PIC editing: suppression, floating, scaling |
+
+Total: 119 unit + 164 integration + 10 NIST golden-file (964 kernel). All green.
+
+---
+
+## Entry 110 — 2026-03-19: NC107A + Autonomous NIST Bug Elimination — DECIMAL-POINT IS COMMA, Unified Arithmetic Architecture
+
+The first session driven by PROMPT2.md — autonomous NIST test-driven bug elimination with minimal
+user intervention. Started on NC107A (the hardest kernel test so far), then swept through NC108M–NC125A.
+Every bug fix was gated by guard.sh (119 unit + 164 integration + 10 NIST golden-file = 964 kernel tests).
+
+### NC107A: From 0/177 to 166/177
+
+NC107A tests figurative constants, continuation lines, separators, JUSTIFIED RIGHT, SYNCHRONIZED,
+BLANK WHEN ZERO, max-length names/literals, REDEFINES, USAGE, VALUE for OCCURS, CURRENCY SIGN IS "W",
+DECIMAL-POINT IS COMMA, numeric paragraph names, and CONTINUE. The hardest NIST kernel test yet.
+
+**DECIMAL-POINT IS COMMA** — the classic COBOL chicken-and-egg problem. SPECIAL-NAMES configures
+how numeric literals are lexed, but SPECIAL-NAMES is parsed *after* lexing. My first attempt
+followed the user's purist guidance: remove DECIMALLIT from the lexer entirely, parse numeric
+literals in the parser via `numericLiteralCore: INTEGERLIT decimalPoint INTEGERLIT`. This was
+architecturally clean but **catastrophically wrong** — DOT is ambiguous between decimal point
+and sentence terminator, and ANTLR's greedy matching consumed `30.01` across statement boundaries
+(the DOT after `VALUE 30` was swallowed as a decimal point with the `01` on the next line).
+44 integration tests failed instantly.
+
+**The fix**: keep DECIMALLIT in the lexer for DOT-based decimals (maximal munch resolves the
+ambiguity correctly) but handle COMMA-based decimals in the parser. Split the lexer COMMA rule:
+`COMMA_SEP: ',' [ \t\r\n]+ -> skip` (comma-space separator) and `COMMA: ','` (standalone comma
+visible to parser). Parser rule `numericLiteralCore: DECIMALLIT | INTEGERLIT COMMA INTEGERLIT |
+COMMA INTEGERLIT | INTEGERLIT`. This is the pragmatic hybrid: DOT disambiguation stays in the
+lexer where it works, COMMA disambiguation lives in the parser where DECIMAL-POINT IS COMMA
+requires it. Zero regressions.
+
+**Numeric paragraph names** — NC107A uses `3.`, `4.`, `5.`, and 25-digit numeric section names.
+Added `procedureName: IDENTIFIER | INTEGERLIT` and propagated through paragraphName, sectionName,
+GO TO, PERFORM, PERFORM THRU. The scope of the change was larger than expected — goToStatement
+had to switch from `identifier` to `procedureName` for targets while keeping `identifier` for the
+DEPENDING ON selector.
+
+**OCCURS VALUE initialization** — 99 of 177 failures were from a single bug: VALUE clauses on
+OCCURS items only initialized the first element. `MoveStringToField(area, 0, 20, "AZ")` wrote "AZ"
+at bytes 0-1 and spaces at 2-19 instead of replicating "AZ" across all 10 slots. Added
+`MoveStringToOccursField` runtime helper and OCCURS-aware CIL emission with nested parent
+flattening (walks parent chain, multiplies contiguous OCCURS counts for 2D+ tables).
+
+**JUSTIFIED RIGHT truncation** — two bugs. Field-to-field MOVE kept leftmost chars when source >
+target (should keep rightmost per ISO §13.16.35). String-literal MOVE bypassed JUSTIFIED entirely
+via `StorageHelpers.MoveStringToField`. Fixed both: `MoveAlphanumericToAlphanumeric` now handles
+source > target correctly, and added `MoveStringToJustifiedField` + CilEmitter routing.
+
+**USAGE inheritance** — `02 U5 USAGE IS COMPUTATIONAL` didn't propagate to children without
+explicit USAGE. Added `HasExplicitUsage` flag on DataSymbol, inheritance in `AddChild`.
+
+**BLANK WHEN ZERO + VALUE clause** — `EncodeDisplay` applied BLANK WHEN ZERO during VALUE
+initialization, blanking `PIC 999 VALUE "000"` to spaces. Added `suppressBlankWhenZero` parameter
+to `EmitLoadPicDescriptor` for VALUE init path.
+
+### Unified Arithmetic Grammar
+
+The user drove a production-grade grammar refactoring across all arithmetic statements. Key insight:
+COBOL-85 has a single rule — "in any GIVING form, the receiving operand may be a literal" — that
+applies uniformly to ADD, SUBTRACT, MULTIPLY, and DIVIDE. Instead of patching each statement:
+
+- `givingReceiver: identifier | literal` — one rule, one source of truth
+- `arithmeticTarget: identifier ROUNDED?` — replaces addTarget, subtractTarget, divideTarget
+- `arithmeticOnSizeError` — replaces 4 identical per-statement SIZE ERROR rules
+
+`divideIntoOperand` is the one exception: uses `arithmeticTarget | literal` (not `givingReceiver`)
+because the non-GIVING INTO form needs ROUNDED support.
+
+### Unified BoundArithmeticStatement
+
+Replaced 5 separate bound node types (BoundAddStatement, BoundSubtractStatement,
+BoundMultiplyStatement, BoundDivideStatement, BoundComputeStatement) with a single
+`BoundArithmeticStatement` discriminated by `ArithmeticKind`. Net -63 lines. Properties:
+Operands, Receiver (the TO/FROM/BY/INTO operand), Targets, IsGiving, IsByForm, RemainderTarget,
+SizeError. Binder's `LowerArithmetic` dispatches by kind to existing per-op lowering methods.
+
+### Conformance Test Suite
+
+Added 11 integration tests covering the arithmetic GIVING-form literal matrix plus OCCURS VALUE,
+JUSTIFIED RIGHT, USAGE inheritance, BLANK WHEN ZERO, and DECIMAL-POINT IS COMMA. These prevent
+regression on every fix from this session.
+
+### What Broke and Why
+
+1. **Removing DECIMALLIT** — DOT ambiguity. ANTLR's greedy `INTEGERLIT DOT INTEGERLIT` consumed
+   sentence-terminating DOTs as decimal points. Reverted to hybrid: DECIMALLIT for DOT, parser for COMMA.
+2. **goToStatement identifier → procedureName** — broke ReferenceResolver and BoundTreeBuilder which
+   expected `ctx.identifier()` arrays. Fixed by switching to `ctx.procedureName()` and separating
+   the DEPENDING ON identifier.
+3. **divideIntoOperand: givingReceiver** — lost ROUNDED support for non-GIVING `DIVIDE INTO B ROUNDED`.
+   Fixed: `arithmeticTarget | literal` instead of `givingReceiver`.
+
+### NIST Sweep Results
+
+| Test | Pass/Total | Notes |
+|------|-----------|-------|
+| NC107A | 166/177 | 6 remaining: 4 continuation, 2 REDEFINES size |
+| NC111A | 7/7 | 100% |
+| NC112A | 31/32 | SUBTRACT FROM literal works |
+| NC119A | 30/36 | |
+| NC120A | 31/39 | |
+| NC124A | 158/169 | |
+| NC117A | compile ok, runtime divide-by-zero (pre-existing SIZE ERROR gap) |
+| NC108M | skip — needs implementor switch names |
+| NC109M | 1/11 — ACCEPT FROM DATE issues |
+| NC115A | 13/31 — INSPECT TALLYING+REPLACING combined runtime issues |
+
+---
+
 ## Entry 109 — 2026-03-18: Full-Scale Codebase Modernization — .NET 9, C# 13, Architectural Overhaul
 
 A 10-phase modernization of the entire compiler codebase, driven by a comprehensive anti-pattern

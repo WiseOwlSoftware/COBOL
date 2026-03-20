@@ -8,6 +8,12 @@ namespace CobolSharp.Compiler.Semantics;
 /// <summary>
 /// Assigns byte offsets to all data items in working-storage and file section.
 /// Populates SemanticModel.StorageLocations for the binder and codegen to use.
+///
+/// REDEFINES family handling:
+/// Each REDEFINES group gets its OWN declared size (computed from children).
+/// A RedefinesFamily tracks the max extent across the original + all REDEFINES.
+/// The NEXT sibling starts at the family's max extent, not the original's end.
+/// This ensures REDEFINES larger than the original don't overlap with subsequent items.
 /// </summary>
 public static class StorageLayoutComputer
 {
@@ -15,21 +21,77 @@ public static class StorageLayoutComputer
     private const int MinimumAreaSize = 256;
 
     /// <summary>
-    /// Walks all data items in declaration order and assigns each a
-    /// <see cref="StorageLocation"/> (area, offset, length, PIC descriptor).
-    /// Also records initial values and figurative constants for the initializer.
-    /// File-section records share offset 0 (implicit REDEFINES per COBOL spec).
+    /// Tracks a REDEFINES family during layout: the original item and all items
+    /// that REDEFINE it. Computes the max extent so the next sibling starts
+    /// after the largest member.
     /// </summary>
+    private sealed class RedefinesFamily
+    {
+        public DataSymbol Original { get; }
+        public int BaseOffset { get; }
+        private int _maxEnd;
+
+        public RedefinesFamily(DataSymbol original, int baseOffset, int originalLength)
+        {
+            Original = original;
+            BaseOffset = baseOffset;
+            _maxEnd = baseOffset + originalLength;
+        }
+
+        public void AddMember(int declaredLength)
+        {
+            int end = BaseOffset + declaredLength;
+            if (end > _maxEnd)
+                _maxEnd = end;
+        }
+
+        /// <summary>Offset where the next sibling after this family must start.</summary>
+        public int NextSiblingOffset => _maxEnd;
+    }
+
     public static void ComputeLayout(SemanticModel model)
     {
+        // Working storage: layout 01/77-level items with REDEFINES family tracking
         int wsOffset = 0;
-        int fsOffset = 0;
+        RedefinesFamily? currentFamily = null;
 
         foreach (var data in model.DataItemsInOrder)
         {
-            if (data.LevelNumber is 1 or 77 && data.Area == StorageAreaKind.WorkingStorage)
+            if (data.LevelNumber is not (1 or 77) || data.Area != StorageAreaKind.WorkingStorage)
+                continue;
+
+            if (data.Redefines != null)
+            {
+                // This item REDEFINES another — add to current family
+                LayoutRedefines(data, StorageAreaKind.WorkingStorage, ref wsOffset, model);
+                var selfLoc = model.GetStorageLocation(data);
+                if (selfLoc.HasValue)
+                    currentFamily?.AddMember(selfLoc.Value.Length);
+            }
+            else
+            {
+                // Not a REDEFINES — close any open family first
+                if (currentFamily != null)
+                {
+                    wsOffset = currentFamily.NextSiblingOffset;
+                    currentFamily = null;
+                }
+
+                int itemStart = wsOffset;
                 LayoutItem(data, StorageAreaKind.WorkingStorage, ref wsOffset, model);
+                int itemSize = wsOffset - itemStart;
+
+                // Check if subsequent items might REDEFINE this one — start a family
+                // We always start a family for 01-level groups; if no REDEFINES follow,
+                // CloseFamily just returns the same offset.
+                if (data.LevelNumber == 1)
+                    currentFamily = new RedefinesFamily(data, itemStart, itemSize);
+            }
         }
+
+        // Close any trailing family
+        if (currentFamily != null)
+            wsOffset = currentFamily.NextSiblingOffset;
 
         // File section: all 01-level records under the same FD share the same record buffer
         // (implicit REDEFINES). Layout each at offset 0 and take the max size.
@@ -43,10 +105,9 @@ public static class StorageLayoutComputer
                 maxRecordSize = Math.Max(maxRecordSize, recOffset);
             }
         }
-        fsOffset = maxRecordSize;
 
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : MinimumAreaSize;
-        model.FileSectionSize = fsOffset > 0 ? fsOffset : MinimumAreaSize;
+        model.FileSectionSize = maxRecordSize > 0 ? maxRecordSize : MinimumAreaSize;
     }
 
     private static void LayoutItem(
@@ -76,18 +137,28 @@ public static class StorageLayoutComputer
         var targetLoc = model.GetStorageLocation(item.Redefines!);
         if (!targetLoc.HasValue) return;
 
-        int size = item.IsElementary ? FieldSizeCalculator.ComputeElementSize(item) : targetLoc.Value.Length;
-        var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, size, model.PicEnvironment);
-        model.RegisterStorageLocation(item, new StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic));
-        RegisterValue(model, item);
-
-        // For group REDEFINES, recurse so nested items get storage locations
-        if (item.Children.Count > 0)
+        if (item.IsElementary)
         {
+            int size = FieldSizeCalculator.ComputeElementSize(item);
+            var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, size, model.PicEnvironment);
+            model.RegisterStorageLocation(item,
+                new StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, size, pic));
+        }
+        else
+        {
+            // Group REDEFINES: compute OWN declared size from children.
             int childOffset = targetLoc.Value.Offset;
             foreach (var child in item.Children)
                 LayoutItem(child, area, ref childOffset, model);
+
+            int groupSize = Math.Max(childOffset - targetLoc.Value.Offset, 1);
+            item.ElementSize = groupSize;
+            var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize, model.PicEnvironment);
+            model.RegisterStorageLocation(item,
+                new StorageLocation(targetLoc.Value.Area, targetLoc.Value.Offset, groupSize, pic));
         }
+
+        RegisterValue(model, item);
     }
 
     private static void LayoutElementary(

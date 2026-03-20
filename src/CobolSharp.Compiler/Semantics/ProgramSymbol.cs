@@ -104,8 +104,8 @@ public sealed class ConditionSymbol : Symbol
     /// Value ranges declared in the level-88 VALUE clause.
     /// Each entry is a single value (To is null) or an inclusive THRU range.
     /// </summary>
-    public IReadOnlyList<(object From, object? To)> ValueRanges => _ranges;
-    private readonly List<(object From, object? To)> _ranges = [];
+    public IReadOnlyList<ConditionValueRange> ValueRanges => _ranges;
+    private readonly List<ConditionValueRange> _ranges = [];
 
     public ConditionSymbol(string name, DataSymbol parent, int line)
         : base(name, SymbolKind.Condition88, line)
@@ -114,6 +114,54 @@ public sealed class ConditionSymbol : Symbol
     }
 
     /// <summary>Adds a single value or inclusive THRU range to this condition.</summary>
-    public void AddRange(object from, object? to = null)
-        => _ranges.Add((from, to));
+    public void AddRange(ConditionValue from, ConditionValue? to = null)
+        => _ranges.Add(new ConditionValueRange(from, to));
 }
+
+/// <summary>
+/// An implementor switch defined in SPECIAL-NAMES.
+/// Maps an implementor-defined name to a mnemonic with optional ON/OFF conditions.
+/// </summary>
+public sealed class ImplementorSwitch(
+    string name, string implementorName, string? onValueName, string? offValueName)
+{
+    public string Name { get; } = name;
+    public string ImplementorName { get; } = implementorName;
+    public string? OnValueName { get; } = onValueName;
+    public string? OffValueName { get; } = offValueName;
+}
+
+/// <summary>
+/// A typed condition value: either a decimal (numeric) or a string (alphanumeric).
+/// Replaces untyped object in level-88 VALUE clause processing.
+/// </summary>
+public sealed class ConditionValue
+{
+    public decimal? NumericValue { get; }
+    public string? StringValue { get; }
+
+    public bool IsNumeric => NumericValue.HasValue;
+    public bool IsString => StringValue != null;
+
+    private ConditionValue(decimal? numeric, string? str)
+    {
+        NumericValue = numeric;
+        StringValue = str;
+    }
+
+    public static ConditionValue FromNumeric(decimal value) => new(value, null);
+    public static ConditionValue FromString(string value) => new(null, value);
+
+    /// <summary>Convert from the legacy untyped value.</summary>
+    public static ConditionValue FromObject(object value) => value switch
+    {
+        decimal d => FromNumeric(d),
+        string s => FromString(s),
+        _ => throw new ArgumentException($"Unsupported condition value type: {value.GetType()}")
+    };
+}
+
+/// <summary>
+/// A single value or inclusive THRU range in a level-88 VALUE clause.
+/// </summary>
+public sealed record ConditionValueRange(ConditionValue From, ConditionValue? To);

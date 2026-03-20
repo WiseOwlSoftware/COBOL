@@ -26,6 +26,19 @@ public sealed class SemanticModel
     public void SetPicEnvironment(char currencySign, bool decimalPointIsComma)
         => PicEnvironment = new Runtime.PicEnvironment(currencySign, decimalPointIsComma);
 
+    // ── Implementor switches from SPECIAL-NAMES ──
+
+    private readonly Dictionary<string, ImplementorSwitch> _implementorSwitches =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, ImplementorSwitch> ImplementorSwitches => _implementorSwitches;
+
+    internal void RegisterImplementorSwitch(ImplementorSwitch sw)
+        => _implementorSwitches[sw.Name] = sw;
+
+    public ImplementorSwitch? ResolveImplementorSwitch(string name)
+        => _implementorSwitches.TryGetValue(name, out var sw) ? sw : null;
+
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
     private IReadOnlyList<DataSymbol> _dataItemsInOrder = [];
