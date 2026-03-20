@@ -963,7 +963,7 @@ arithmeticOnSizeError
 // ==========================================
 
 addStatement
-    : ADD CORRESPONDING identifier TO identifier arithmeticOnSizeError? END_ADD?
+    : ADD CORRESPONDING identifier TO identifier ROUNDED? arithmeticOnSizeError? END_ADD?
     | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
@@ -989,7 +989,8 @@ addGivingPhrase
 // ==========================================
 
 subtractStatement
-    : SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
+    : SUBTRACT CORRESPONDING identifier FROM identifier ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
+    | SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 
 subtractOperandList
