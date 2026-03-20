@@ -138,6 +138,15 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// Read a field as a raw ASCII string WITHOUT trimming. Used by INSPECT
+    /// where trailing spaces in patterns are significant.
+    /// </summary>
+    public static string ReadFieldAsRawString(byte[] area, int offset, int size)
+    {
+        return Encoding.ASCII.GetString(area, offset, size);
+    }
+
+    /// <summary>
     /// WRITE record: write record bytes to file.
     /// Routes through FileRuntime.WriteRecord which handles both binary (data files)
     /// and text (PRINT-FILE) modes.

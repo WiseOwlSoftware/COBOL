@@ -428,6 +428,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var intLits = occClause.integerLiteral();
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
                         occursCount = oc;
+                    // INDEXED BY names deferred until after DataSymbol creation (below)
                 }
 
                 if (clause.blankWhenZeroClause() != null)
@@ -496,6 +497,35 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Declare in scope (for name resolution)
         _symbols.Program.DataDivisionScope.TryDeclare(data, out _);
+
+        // Declare INDEXED BY index-names from OCCURS clause.
+        // INDEX items are implicit level-77 items stored as PIC S9(9) COMP
+        // holding 1-based element numbers.
+        if (body?.dataDescriptionClauses() != null)
+        {
+            foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
+            {
+                var occClause = clause.occursClause();
+                if (occClause?.identifierList() is { } indexList)
+                {
+                    foreach (var idCtx in indexList.identifier())
+                    {
+                        string indexName = idCtx.IDENTIFIER().GetText();
+                        var indexSym = new DataSymbol(indexName, indexName, 77,
+                            "S9(9)", Runtime.UsageKind.Comp, null, null, ctx.Start.Line);
+                        indexSym.HasExplicitUsage = true;
+                        indexSym.Area = _currentArea;
+                        // Resolve PIC for the INDEX item so it gets proper storage layout
+                        var idxDiagBag = new DiagnosticBag();
+                        var idxPicEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
+                        indexSym.ResolvedType = PicUsageResolver.ResolveForDataItem(
+                            indexName, "S9(9)", Runtime.UsageKind.Comp, idxDiagBag, ctx.Start.Line, false, idxPicEnv);
+                        _dataItemsInOrder.Add(indexSym);
+                        _symbols.Program.DataDivisionScope.TryDeclare(indexSym, out _);
+                    }
+                }
+            }
+        }
 
         return null;
     }

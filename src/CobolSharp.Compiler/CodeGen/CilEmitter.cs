@@ -1400,8 +1400,10 @@ public sealed class CilEmitter
             {
                 var irLoc = new IR.IrStaticLocation(loc.Value);
                 EmitLocationArgs(il, irLoc);
+                // Use ReadFieldAsRawString (no TrimEnd) — trailing spaces in
+                // INSPECT patterns are significant (e.g., PIC X VALUE SPACE).
                 var readMethod = _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
                         new[] { typeof(byte[]), typeof(int), typeof(int) })!);
                 il.Append(il.Create(OpCodes.Call, readMethod));
             }
