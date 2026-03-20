@@ -88,6 +88,7 @@ public sealed class Compilation
 
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));
+        parser.ErrorHandler = new CobolErrorStrategy();
 
         var tree = parser.compilationUnit();
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;
