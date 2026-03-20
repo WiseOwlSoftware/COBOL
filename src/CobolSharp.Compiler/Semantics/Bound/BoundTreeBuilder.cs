@@ -1772,7 +1772,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 }
                 else if (targets.Count > 0)
                 {
-                    givingMinuend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
+                    // Use the original BoundIdentifierExpression (preserves subscripts)
+                    givingMinuend = targets[0].Target;
                 }
                 targets.Clear();
                 foreach (var gt in givingTargetCtxs)
