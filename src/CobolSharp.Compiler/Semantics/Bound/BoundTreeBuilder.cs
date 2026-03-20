@@ -1777,12 +1777,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (intoPhrase != null)
             {
                 var intoOp = intoPhrase.divideIntoOperand();
-                if (intoOp.arithmeticTarget() != null)
+                var intoTargets = intoOp.arithmeticTarget();
+                if (intoTargets.Length > 0)
                 {
-                    var at = intoOp.arithmeticTarget();
-                    var sym = BindIdentifierWithSubscripts(at.identifier());
-                    if (sym is BoundIdentifierExpression boundIt)
-                        targets.Add(new BoundArithmeticTarget(boundIt, at.ROUNDED() != null));
+                    foreach (var at in intoTargets)
+                    {
+                        var sym = BindIdentifierWithSubscripts(at.identifier());
+                        if (sym is BoundIdentifierExpression boundIt)
+                            targets.Add(new BoundArithmeticTarget(boundIt, at.ROUNDED() != null));
+                    }
                 }
                 else if (intoOp.literal() != null)
                 {

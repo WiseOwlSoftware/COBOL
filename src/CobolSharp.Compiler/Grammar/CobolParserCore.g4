@@ -1035,7 +1035,7 @@ divideIntoPhrase
     ;
 
 divideIntoOperand
-    : arithmeticTarget    // identifier ROUNDED? (non-GIVING form)
+    : arithmeticTarget+   // identifier ROUNDED? (non-GIVING form, multiple targets)
     | literal             // numeric literal (GIVING form only)
     ;
 
