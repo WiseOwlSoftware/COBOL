@@ -1382,51 +1382,50 @@ public sealed class Binder
             var counterLoc = ResolveLocation(t.Counter);
             if (counterLoc == null) continue;
 
-            PreResolveInspectPatterns(t.Pattern, t.Region);
             block.Instructions.Add(new IrInspectTally(
-                targetLoc, counterLoc, t.Kind, t.Pattern,
-                t.Region.BeforePattern, t.Region.BeforeInitial,
-                t.Region.AfterPattern, t.Region.AfterInitial));
+                targetLoc, counterLoc, t.Kind,
+                LowerInspectPattern(t.Pattern),
+                LowerInspectPattern(t.Region.BeforePattern), t.Region.BeforeInitial,
+                LowerInspectPattern(t.Region.AfterPattern), t.Region.AfterInitial));
         }
 
         foreach (var r in stmt.Replacing)
         {
-            PreResolveInspectPatterns(r.Pattern, r.Replacement, r.Region);
             block.Instructions.Add(new IrInspectReplace(
-                targetLoc, r.Kind, r.Pattern, r.Replacement,
-                r.Region.BeforePattern, r.Region.BeforeInitial,
-                r.Region.AfterPattern, r.Region.AfterInitial));
+                targetLoc, r.Kind,
+                LowerInspectPattern(r.Pattern)!,
+                LowerInspectPattern(r.Replacement)!,
+                LowerInspectPattern(r.Region.BeforePattern), r.Region.BeforeInitial,
+                LowerInspectPattern(r.Region.AfterPattern), r.Region.AfterInitial));
         }
 
         if (stmt.Converting != null)
         {
-            PreResolveInspectPatterns(stmt.Converting.FromSet, stmt.Converting.ToSet,
-                stmt.Converting.Region);
             block.Instructions.Add(new IrInspectConvert(
-                targetLoc, stmt.Converting.FromSet, stmt.Converting.ToSet,
-                stmt.Converting.Region.BeforePattern, stmt.Converting.Region.BeforeInitial,
-                stmt.Converting.Region.AfterPattern, stmt.Converting.Region.AfterInitial));
+                targetLoc,
+                LowerInspectPattern(stmt.Converting.FromSet)!,
+                LowerInspectPattern(stmt.Converting.ToSet)!,
+                LowerInspectPattern(stmt.Converting.Region.BeforePattern),
+                stmt.Converting.Region.BeforeInitial,
+                LowerInspectPattern(stmt.Converting.Region.AfterPattern),
+                stmt.Converting.Region.AfterInitial));
         }
     }
 
     /// <summary>
-    /// Pre-resolve IrLocations for data-ref INSPECT patterns so the CIL emitter
-    /// can emit subscripted element addresses at runtime.
+    /// Convert a bound InspectPatternValue to an IR IrInspectPatternValue.
+    /// Literals pass through. Data refs are resolved to IrLocations.
     /// </summary>
-    private void PreResolveInspectPatterns(params object?[] items)
+    private IR.IrInspectPatternValue? LowerInspectPattern(InspectPatternValue? pv)
     {
-        foreach (var item in items)
+        if (pv == null) return null;
+        if (pv.IsLiteral) return IR.IrInspectPatternValue.FromLiteral(pv.Literal!);
+        if (pv.IsDataRef)
         {
-            if (item is InspectPatternValue pv && pv.IsDataRef && pv.ResolvedLocation == null)
-                pv.ResolvedLocation = ResolveExpressionLocation(pv.DataRef!);
-            else if (item is BoundInspectRegion region)
-            {
-                if (region.BeforePattern is { IsDataRef: true, ResolvedLocation: null } bp)
-                    bp.ResolvedLocation = ResolveExpressionLocation(bp.DataRef!);
-                if (region.AfterPattern is { IsDataRef: true, ResolvedLocation: null } ap)
-                    ap.ResolvedLocation = ResolveExpressionLocation(ap.DataRef!);
-            }
+            var loc = ResolveExpressionLocation(pv.DataRef!);
+            if (loc != null) return IR.IrInspectPatternValue.FromLocation(loc);
         }
+        return IR.IrInspectPatternValue.FromLiteral("");
     }
 
     // ── SET ──

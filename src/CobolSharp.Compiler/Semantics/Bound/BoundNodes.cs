@@ -562,13 +562,6 @@ public sealed class InspectPatternValue
     public string? Literal { get; }
     public BoundIdentifierExpression? DataRef { get; }
 
-    /// <summary>
-    /// Pre-resolved location for data-ref patterns. Set during lowering (Binder)
-    /// so the CIL emitter can emit the correct address for subscripted patterns.
-    /// Typed as object to avoid bound→IR layer dependency; cast to IrLocation in emitter.
-    /// </summary>
-    public object? ResolvedLocation { get; set; }
-
     public bool IsLiteral => Literal != null;
     public bool IsDataRef => DataRef != null;
 

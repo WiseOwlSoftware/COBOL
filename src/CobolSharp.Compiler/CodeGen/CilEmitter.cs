@@ -1382,40 +1382,22 @@ public sealed class CilEmitter
     // ── INSPECT emit helpers ──
 
     /// <summary>
-    /// Emit an InspectPatternValue onto the CIL stack as a string.
-    /// Literals: Ldstr. Data references: ReadFieldAsString(area, offset, length).
+    /// Emit an IrInspectPatternValue onto the CIL stack as a string.
+    /// Literals: Ldstr. Locations: ReadFieldAsRawString(area, offset, length).
     /// </summary>
-    private void EmitInspectPatternValue(ILProcessor il, Semantics.Bound.InspectPatternValue? pv)
+    private void EmitIrInspectPatternValue(ILProcessor il, IR.IrInspectPatternValue? pv)
     {
         if (pv == null || pv.IsLiteral)
         {
             il.Append(il.Create(OpCodes.Ldstr, pv?.Literal ?? ""));
         }
-        else if (pv.IsDataRef)
+        else if (pv.IsLocation)
         {
-            // Read the data field at runtime to get the pattern string.
-            // Use pre-resolved IrLocation (supports subscripted refs) if available,
-            // otherwise fall back to base storage location (non-subscripted).
-            IR.IrLocation? irLoc = pv.ResolvedLocation as IR.IrLocation;
-            if (irLoc == null)
-            {
-                var loc = _semanticModel?.GetStorageLocation(pv.DataRef!.Symbol);
-                if (loc.HasValue)
-                    irLoc = new IR.IrStaticLocation(loc.Value);
-            }
-
-            if (irLoc != null)
-            {
-                EmitLocationArgs(il, irLoc);
-                var readMethod = _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
-                        new[] { typeof(byte[]), typeof(int), typeof(int) })!);
-                il.Append(il.Create(OpCodes.Call, readMethod));
-            }
-            else
-            {
-                il.Append(il.Create(OpCodes.Ldstr, ""));
-            }
+            EmitLocationArgs(il, pv.Location!);
+            var readMethod = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, readMethod));
         }
     }
 
@@ -1424,13 +1406,13 @@ public sealed class CilEmitter
     /// Literals use Ldstr (compile-time). Data refs use ReadFieldAsRawString (runtime).
     /// Null patterns emit Ldnull.
     /// </summary>
-    private void EmitInspectPatternValueAsOptionalString(ILProcessor il,
-        Semantics.Bound.InspectPatternValue? pv)
+    private void EmitIrInspectPatternValueAsOptionalString(ILProcessor il,
+        IR.IrInspectPatternValue? pv)
     {
         if (pv == null)
             il.Append(il.Create(OpCodes.Ldnull));
         else
-            EmitInspectPatternValue(il, pv);
+            EmitIrInspectPatternValue(il, pv);
     }
 
     private void EmitInspectTally(ILProcessor il, IrInspectTally it)
@@ -1448,16 +1430,16 @@ public sealed class CilEmitter
         {
             methodName = it.Kind == Semantics.Bound.InspectTallyKind.Leading
                 ? "TallyLeadingAndStore" : "TallyAllAndStore";
-            EmitInspectPatternValue(il, it.Pattern);
+            EmitIrInspectPatternValue(il, it.Pattern);
         }
 
         // Counter area/offset/length/pic
         EmitLocationArgsWithPic(il, it.Counter);
 
         // Region args
-        EmitInspectPatternValueAsOptionalString(il, it.BeforePattern);
+        EmitIrInspectPatternValueAsOptionalString(il, it.BeforePattern);
         il.Append(il.Create(it.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitInspectPatternValueAsOptionalString(il, it.AfterPattern);
+        EmitIrInspectPatternValueAsOptionalString(il, it.AfterPattern);
         il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         System.Type[] paramTypes;
@@ -1486,10 +1468,10 @@ public sealed class CilEmitter
         if (ir.Kind == Semantics.Bound.InspectReplaceKind.Characters)
         {
             // REPLACING CHARACTERS BY x — no pattern, just replacement
-            EmitInspectPatternValue(il, ir.Replacement);
-            EmitInspectPatternValueAsOptionalString(il, ir.BeforePattern);
+            EmitIrInspectPatternValue(il, ir.Replacement);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
             il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitInspectPatternValueAsOptionalString(il, ir.AfterPattern);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
             il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
             var charsMethod = _module.ImportReference(
@@ -1508,11 +1490,11 @@ public sealed class CilEmitter
                 _ => "ReplaceAll"
             };
 
-            EmitInspectPatternValue(il, ir.Pattern);
-            EmitInspectPatternValue(il, ir.Replacement);
-            EmitInspectPatternValueAsOptionalString(il, ir.BeforePattern);
+            EmitIrInspectPatternValue(il, ir.Pattern);
+            EmitIrInspectPatternValue(il, ir.Replacement);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
             il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitInspectPatternValueAsOptionalString(il, ir.AfterPattern);
+            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
             il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
             var method = _module.ImportReference(
@@ -1527,11 +1509,11 @@ public sealed class CilEmitter
     private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)
     {
         EmitLocationArgs(il, ic.Target);
-        EmitInspectPatternValue(il, ic.FromSet);
-        EmitInspectPatternValue(il, ic.ToSet);
-        EmitInspectPatternValueAsOptionalString(il, ic.BeforePattern);
+        EmitIrInspectPatternValue(il, ic.FromSet);
+        EmitIrInspectPatternValue(il, ic.ToSet);
+        EmitIrInspectPatternValueAsOptionalString(il, ic.BeforePattern);
         il.Append(il.Create(ic.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitInspectPatternValueAsOptionalString(il, ic.AfterPattern);
+        EmitIrInspectPatternValueAsOptionalString(il, ic.AfterPattern);
         il.Append(il.Create(ic.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         var method = _module.ImportReference(
