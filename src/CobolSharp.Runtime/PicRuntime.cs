@@ -360,6 +360,7 @@ public static class PicRuntime
                     break;
 
                 case ',':
+                case 'B':
                     output[i] = asteriskFill ? '*' : ' ';
                     break;
 
@@ -1023,13 +1024,7 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest + accumulated;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     /// <summary>
@@ -1040,13 +1035,7 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal accumulated, int roundingMode, ref ArithmeticStatus status)
     {
-        decimal value = ApplyScalingAndRounding(accumulated, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, accumulated, roundingMode, ref status);
     }
 
     public static void SubtractAccumulatedFromField(
@@ -1055,13 +1044,34 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest - accumulated;
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
+    }
+
+    /// <summary>
+    /// Unified arithmetic result storage: scale, check overflow, encode.
+    /// Routes numeric-edited targets through FormatNumericEdited.
+    /// All arithmetic operations (ADD/SUB/MUL/DIV/COMPUTE GIVING) converge here.
+    /// </summary>
+    private static void StoreArithmeticResult(
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        decimal value, int roundingMode, ref ArithmeticStatus status)
+    {
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
         if (WouldOverflow(value, destPic))
         {
             status.SizeError = true;
             return;
         }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(value, destPic);
+            MoveStringToBytes(destArea, destOffset, destLength, formatted);
+        }
+        else
+        {
+            EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        }
     }
 
     /// <summary>
