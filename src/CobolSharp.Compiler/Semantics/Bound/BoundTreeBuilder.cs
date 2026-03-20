@@ -223,6 +223,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.unstringStatement() is { } unstringCtx) return BindUnstring(unstringCtx);
         if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
         if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
+        if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
 
         _diagnostics.ReportWarning("COBOL0110",
             $"Statement not recognized or not yet implemented: '{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...'",
@@ -1510,54 +1511,68 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement? BindSetBoolean(CobolParserCore.SetBooleanStatementContext ctx)
     {
-        string name = ctx.identifier().IDENTIFIER().GetText();
-        var condSym = _semantic.ResolveConditionName(name);
-        if (condSym != null)
+        bool setToTrue = ctx.TRUE_() != null;
+        var stmts = new List<BoundStatement>();
+
+        foreach (var idCtx in ctx.identifier())
         {
-            bool setToTrue = ctx.TRUE_() != null;
-            return new BoundSetConditionStatement(condSym, setToTrue);
+            string name = idCtx.IDENTIFIER().GetText();
+            var condSym = _semantic.ResolveConditionName(name);
+            if (condSym != null)
+                stmts.Add(new BoundSetConditionStatement(condSym, setToTrue));
         }
 
-        // Not a condition name — treat as a data item SET TO TRUE/FALSE (unusual but valid)
-        return null;
+        if (stmts.Count == 0) return null;
+        if (stmts.Count == 1) return stmts[0];
+        return new BoundCompoundStatement(stmts);
     }
 
     private BoundStatement? BindSetToValue(CobolParserCore.SetToValueStatementContext ctx)
     {
-        string name = ctx.identifier().IDENTIFIER().GetText();
-
-        // Check if it's a condition name first
-        var condSym = _semantic.ResolveConditionName(name);
-        if (condSym != null)
-        {
-            // SET condition-name TO TRUE/FALSE can also come through setToValueStatement
-            // if the grammar matched it that way
-            return new BoundSetConditionStatement(condSym, true);
-        }
-
-        // Regular data item: SET identifier TO value
-        var targetId = BindIdentifierWithSubscripts(ctx.identifier());
-        if (targetId is not BoundIdentifierExpression boundTarget) return null;
-
+        var identifiers = ctx.identifier();
         var valueExpr = BindArithmeticExpr(ctx.arithmeticExpression());
         if (valueExpr == null) return null;
 
-        return new BoundSetIndexStatement(boundTarget, SetOperation.Assign, valueExpr);
+        var stmts = new List<BoundStatement>();
+        foreach (var idCtx in identifiers)
+        {
+            // Check if it's a condition name first
+            string name = idCtx.IDENTIFIER().GetText();
+            var condSym = _semantic.ResolveConditionName(name);
+            if (condSym != null)
+            {
+                stmts.Add(new BoundSetConditionStatement(condSym, true));
+                continue;
+            }
+
+            // Regular data item: SET identifier TO value
+            var targetId = BindIdentifierWithSubscripts(idCtx);
+            if (targetId is not BoundIdentifierExpression boundTarget) continue;
+            stmts.Add(new BoundSetIndexStatement(boundTarget, SetOperation.Assign, valueExpr));
+        }
+
+        if (stmts.Count == 0) return null;
+        if (stmts.Count == 1) return stmts[0];
+        return new BoundCompoundStatement(stmts);
     }
 
     private BoundStatement? BindSetIndex(CobolParserCore.SetIndexStatementContext ctx)
     {
-        var targetId = BindIdentifierWithSubscripts(ctx.identifier());
-        if (targetId is not BoundIdentifierExpression boundTarget) return null;
-
-        var intLit = ctx.integerLiteral();
-        if (intLit == null) return null;
-
-        if (!int.TryParse(intLit.GetText(), out int delta)) return null;
-        var deltaExpr = new BoundLiteralExpression((decimal)delta, CobolCategory.Numeric);
-
         var op = ctx.UP() != null ? SetOperation.UpBy : SetOperation.DownBy;
-        return new BoundSetIndexStatement(boundTarget, op, deltaExpr);
+        var deltaExpr = BindArithmeticExpr(ctx.arithmeticExpression());
+        if (deltaExpr == null) return null;
+
+        var stmts = new List<BoundStatement>();
+        foreach (var idCtx in ctx.identifier())
+        {
+            var targetId = BindIdentifierWithSubscripts(idCtx);
+            if (targetId is not BoundIdentifierExpression boundTarget) continue;
+            stmts.Add(new BoundSetIndexStatement(boundTarget, op, deltaExpr));
+        }
+
+        if (stmts.Count == 0) return null;
+        if (stmts.Count == 1) return stmts[0];
+        return new BoundCompoundStatement(stmts);
     }
 
     // ── INITIALIZE ──
@@ -2368,11 +2383,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var op = opText switch
         {
             "=" or "EQUAL" => BoundBinaryOperatorKind.Equal,
-            "NOT=" or "NOTEQUAL" => BoundBinaryOperatorKind.NotEqual,
+            "NOT=" or "NOTEQUAL" or "<>" => BoundBinaryOperatorKind.NotEqual,
             ">" or "GREATER" => BoundBinaryOperatorKind.Greater,
             ">=" or "GREATEROREQUAL" => BoundBinaryOperatorKind.GreaterOrEqual,
             "<" or "LESS" => BoundBinaryOperatorKind.Less,
             "<=" or "LESSOREQUAL" => BoundBinaryOperatorKind.LessOrEqual,
+            "NOT>" => BoundBinaryOperatorKind.LessOrEqual,       // NOT > means <=
+            "NOT<" => BoundBinaryOperatorKind.GreaterOrEqual,    // NOT < means >=
+            "NOT>=" => BoundBinaryOperatorKind.Less,             // NOT >= means <
+            "NOT<=" => BoundBinaryOperatorKind.Greater,          // NOT <= means >
             _ when opText.Contains("NOT") && opText.Contains("GREATER") => BoundBinaryOperatorKind.LessOrEqual,
             _ when opText.Contains("NOT") && opText.Contains("LESS") => BoundBinaryOperatorKind.GreaterOrEqual,
             _ when opText.Contains("NOT") && opText.Contains("EQUAL") => BoundBinaryOperatorKind.NotEqual,

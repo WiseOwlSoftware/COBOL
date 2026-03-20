@@ -1238,14 +1238,14 @@ setStatement
     | setIndexStatement
     ;
 
-// SET identifier TO arithmeticExpression
+// SET identifier+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
 setToValueStatement
-    : SET identifier TO arithmeticExpression
+    : SET identifier+ TO arithmeticExpression
     ;
 
-// SET identifier TO TRUE/FALSE
+// SET identifier+ TO TRUE/FALSE (COBOL-85 §14.9.39 Format 5)
 setBooleanStatement
-    : SET identifier TO (TRUE_ | FALSE_)
+    : SET identifier+ TO (TRUE_ | FALSE_)
     ;
 
 // SET ADDRESS OF identifier TO identifier
@@ -1265,9 +1265,9 @@ objectReference
     | SUPER
     ;
 
-// SET index UP/DOWN BY integer
+// SET identifier+ UP/DOWN BY arithmeticExpression (COBOL-85 §14.9.39 Format 2)
 setIndexStatement
-    : SET identifier ( UP | DOWN ) BY integerLiteral
+    : SET identifier+ ( UP | DOWN ) BY arithmeticExpression
     ;
 
 // ==========================================
@@ -1713,6 +1713,12 @@ relationalOperator
     | GTEQUAL
     | LT
     | GT
+    // Abbreviated NOT + symbolic (COBOL-85 §6.3.4.2)
+    | NOT EQUALS       // NOT =
+    | NOT GT            // NOT >
+    | NOT LT            // NOT <
+    | NOT GTEQUAL       // NOT >=
+    | NOT LTEQUAL       // NOT <=
     // Word forms with optional IS and optional THAN
     | IS? EQUAL (TO | THAN)?
     | IS? NOT EQUAL (TO | THAN)?

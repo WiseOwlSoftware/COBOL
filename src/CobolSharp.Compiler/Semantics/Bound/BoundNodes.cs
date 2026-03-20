@@ -39,6 +39,7 @@ public enum BoundNodeKind
     DeleteStatement,
     StartStatement,
     CorrespondingStatement,
+    CompoundStatement,
 }
 
 public abstract class BoundNode
@@ -217,6 +218,18 @@ public sealed class BoundConditionNameExpression : BoundExpression
 // ═══════════════════════════════════
 
 public abstract class BoundStatement : BoundNode { }
+
+/// <summary>
+/// A sequence of statements produced by multi-target SET desugaring.
+/// The binder lowers each target into a separate statement; the lowering
+/// phase flattens BoundCompoundStatement into sequential IR.
+/// </summary>
+public sealed class BoundCompoundStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.CompoundStatement;
+    public IReadOnlyList<BoundStatement> Statements { get; }
+    public BoundCompoundStatement(IReadOnlyList<BoundStatement> statements) => Statements = statements;
+}
 
 public sealed class BoundDisplayStatement : BoundStatement
 {

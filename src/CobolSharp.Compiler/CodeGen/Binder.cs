@@ -267,6 +267,10 @@ public sealed class Binder
     {
         switch (stmt)
         {
+            case BoundCompoundStatement compound:
+                foreach (var s in compound.Statements)
+                    block = LowerStatement(s, method, block);
+                return block;
             case BoundDisplayStatement disp:
                 LowerDisplay(disp, block);
                 break;

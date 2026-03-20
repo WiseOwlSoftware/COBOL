@@ -79,32 +79,6 @@ public sealed class CobolErrorStrategyTests
             $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
     }
 
-    // ── NOT = abbreviated condition ──
-
-    [Theory]
-    [InlineData("NC172A.cob", "abbreviated condition")]
-    [InlineData("NC203A.cob", "abbreviated condition")]
-    public void Detects_AbbreviatedCondition(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
-    // ── Multi-target SET ──
-
-    [Theory]
-    [InlineData("NC131A.cob", "Multi-target SET")]
-    [InlineData("NC140A.cob", "Multi-target SET")]
-    public void Detects_MultiTargetSet(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
     // ── Diagnostic code prefix assertions ──
 
     [Fact]
@@ -112,20 +86,6 @@ public sealed class CobolErrorStrategyTests
     {
         var diagnostics = CompileWithDiagnostics("NC233A.cob");
         Assert.Contains(diagnostics, d => d.Code.StartsWith("COBOL01"));
-    }
-
-    [Fact]
-    public void AbbreviatedCondition_HasCode0311()
-    {
-        var diagnostics = CompileWithDiagnostics("NC172A.cob");
-        Assert.Contains(diagnostics, d => d.Code == "COBOL0311");
-    }
-
-    [Fact]
-    public void MultiTargetSet_HasCode0108()
-    {
-        var diagnostics = CompileWithDiagnostics("NC131A.cob");
-        Assert.Contains(diagnostics, d => d.Code == "COBOL0108");
     }
 
     [Fact]
