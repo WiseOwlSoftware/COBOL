@@ -1443,10 +1443,10 @@ public sealed class Binder
             if (ranges.Count == 0) return;
 
             var firstVal = ranges[0].From;
-            if (firstVal is decimal d)
-                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, d));
-            else if (firstVal is string s)
-                block.Instructions.Add(new IrMoveStringToField(parentLoc, s));
+            if (firstVal.IsNumeric)
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(parentLoc, firstVal.NumericValue!.Value));
+            else if (firstVal.IsString)
+                block.Instructions.Add(new IrMoveStringToField(parentLoc, firstVal.StringValue!));
         }
         else
         {
@@ -1458,7 +1458,7 @@ public sealed class Binder
                 decimal falseVal = 0m;
                 foreach (var candidate in new[] { 0m, 1m, -1m, 99m })
                 {
-                    if (!trueVals.Any(v => v is decimal d && d == candidate))
+                    if (!trueVals.Any(v => v.IsNumeric && v.NumericValue == candidate))
                     {
                         falseVal = candidate;
                         break;
@@ -2394,22 +2394,24 @@ public sealed class Binder
         // Build a list of individual match results
         var matchResults = new List<IrValue>();
 
-        foreach (var (from, to) in ranges)
+        foreach (var range in ranges)
         {
+            var from = range.From;
+            var to = range.To;
             var matchVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
 
             if (to == null)
             {
                 // Single value comparison: parent == from
-                if (from is decimal d)
+                if (from.IsNumeric)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, d, matchVal,
+                        parentLoc, from.NumericValue!.Value, matchVal,
                         (int)BoundBinaryOperatorKind.Equal));
                 }
-                else if (from is string s)
+                else if (from.IsString)
                 {
-                    if (parentCat.IsNumericLike() && decimal.TryParse(s,
+                    if (parentCat.IsNumericLike() && decimal.TryParse(from.StringValue!,
                         System.Globalization.CultureInfo.InvariantCulture, out var numVal))
                     {
                         block.Instructions.Add(new IR.IrPicCompareLiteral(
@@ -2419,7 +2421,7 @@ public sealed class Binder
                     else
                     {
                         block.Instructions.Add(new IR.IrStringCompareLiteral(
-                            parentLoc, s, matchVal,
+                            parentLoc, from.StringValue!, matchVal,
                             (int)BoundBinaryOperatorKind.Equal));
                     }
                 }
@@ -2430,22 +2432,22 @@ public sealed class Binder
                 var geVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
                 var leVal = _valueFactory.Next(IR.IrPrimitiveType.Bool);
 
-                if (from is decimal dFrom && to is decimal dTo)
+                if (from.IsNumeric && to.IsNumeric)
                 {
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, dFrom, geVal,
+                        parentLoc, from.NumericValue!.Value, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrPicCompareLiteral(
-                        parentLoc, dTo, leVal,
+                        parentLoc, to.NumericValue!.Value, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
-                else if (from is string sFrom && to is string sTo)
+                else if (from.IsString && to.IsString)
                 {
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc, sFrom, geVal,
+                        parentLoc, from.StringValue!, geVal,
                         (int)BoundBinaryOperatorKind.GreaterOrEqual));
                     block.Instructions.Add(new IR.IrStringCompareLiteral(
-                        parentLoc, sTo, leVal,
+                        parentLoc, to.StringValue!, leVal,
                         (int)BoundBinaryOperatorKind.LessOrEqual));
                 }
 

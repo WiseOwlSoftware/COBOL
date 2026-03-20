@@ -402,8 +402,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         foreach (var item in valClause.valueItem())
                         {
                             var lits = item.literal();
-                            object fromVal = ParseConditionLiteralValue(lits[0]);
-                            object? toVal = lits.Length >= 2 ? ParseConditionLiteralValue(lits[1]) : null;
+                            var fromVal = ConditionValue.FromObject(ParseConditionLiteralValue(lits[0]));
+                            var toVal = lits.Length >= 2
+                                ? ConditionValue.FromObject(ParseConditionLiteralValue(lits[1]))
+                                : null;
                             condSym.AddRange(fromVal, toVal);
                         }
                     }
