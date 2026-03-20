@@ -1064,6 +1064,22 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
+    /// <summary>
+    /// Safe decimal division for COMPUTE/GIVING expression evaluation.
+    /// Returns 0 and sets SizeError on divide-by-zero instead of throwing.
+    /// Called from CIL-emitted expression trees where decimal.op_Division
+    /// would throw DivideByZeroException before ON SIZE ERROR can fire.
+    /// </summary>
+    public static decimal SafeDivide(decimal left, decimal right, ref ArithmeticStatus status)
+    {
+        if (right == 0m)
+        {
+            status.SizeError = true;
+            return 0m;
+        }
+        return left / right;
+    }
+
     // ══════════════════════════════════════════════════════════
     // DIVIDE
     // ══════════════════════════════════════════════════════════

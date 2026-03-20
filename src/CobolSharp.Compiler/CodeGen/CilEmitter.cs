@@ -1991,9 +1991,13 @@ public sealed class CilEmitter
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Divide:
+                        // Use SafeDivide instead of op_Division to handle divide-by-zero
+                        // as SIZE ERROR instead of crashing with DivideByZeroException.
+                        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
                         il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("op_Division",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
+                            _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeDivide",
+                                new[] { typeof(decimal), typeof(decimal),
+                                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Remainder:
                         il.Append(il.Create(OpCodes.Call,
