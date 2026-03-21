@@ -52,7 +52,7 @@ dataRecordsClause
     ;
 
 genericFileDescriptionClause
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : genericClause
     ;
 
 // ==========================================
@@ -140,7 +140,7 @@ typeClause
     ;
 
 genericDataClause
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : genericClause
     ;
 
 // PIC Clause — PIC/PICTURE triggers PICMODE in the lexer,

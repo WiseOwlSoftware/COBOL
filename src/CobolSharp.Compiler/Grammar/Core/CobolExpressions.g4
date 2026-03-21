@@ -6,6 +6,12 @@
 
 parser grammar CobolExpressions;
 
+// Generic clause pattern for vendor/extension hooks.
+// Shared across all grammars — one rule, one source of truth.
+genericClause
+    : IDENTIFIER (IDENTIFIER | literal)*
+    ;
+
 // =========================
 // Value operands and ranges
 // =========================

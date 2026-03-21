@@ -28,7 +28,7 @@ reportDescriptionClauses
 
 // For now, accept standard/vendor clauses generically; binder interprets.
 reportDescriptionClause
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : genericClause
     ;
 
 reportGroupEntry
@@ -64,5 +64,5 @@ sumItem
     ;
 
 genericReportGroupClause
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : genericClause
     ;

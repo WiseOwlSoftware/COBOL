@@ -705,6 +705,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitNotOnExceptionPhrase([NotNull] CobolParserCore.NotOnExceptionPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.genericClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGenericClause([NotNull] CobolParserCore.GenericClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.valueOperand"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

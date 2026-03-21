@@ -22,7 +22,7 @@ specialNameEntry
     | channelClause DOT?
     | reserveClause DOT?
     | implementorSwitchEntry DOT?
-    | IDENTIFIER (IDENTIFIER | literal)* DOT?
+    | genericClause DOT?
     ;
 
 implementorSwitchEntry
@@ -92,5 +92,5 @@ reserveClause
 
 // fallback for vendor extensions
 vendorConfigurationParagraph
-    : IDENTIFIER DOT (IDENTIFIER | STRINGLIT | INTEGERLIT)*
+    : genericClause DOT
     ;

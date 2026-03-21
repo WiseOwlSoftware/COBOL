@@ -77,7 +77,7 @@ fileStatusClause
     ;
 
 vendorFileControlClause
-    : IDENTIFIER (IDENTIFIER | literal)*
+    : genericClause
     ;
 
 // I-O-CONTROL.
@@ -86,7 +86,7 @@ ioControlParagraph
     ;
 
 ioControlEntry
-    : IDENTIFIER (IDENTIFIER | literal)* DOT
+    : genericClause DOT
     ;
 
 // ==========================================

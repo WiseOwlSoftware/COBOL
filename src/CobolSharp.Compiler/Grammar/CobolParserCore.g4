@@ -170,7 +170,7 @@ remarksContent
 
 // Fallback for vendor extensions
 genericIdentificationParagraph
-    : IDENTIFIER DOT (IDENTIFIER | STRINGLIT | INTEGERLIT)*
+    : genericClause DOT
     ;
 
 // ==========================================
