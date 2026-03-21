@@ -39,6 +39,12 @@ public sealed class SemanticModel
     public ImplementorSwitch? ResolveImplementorSwitch(string name)
         => _implementorSwitches.TryGetValue(name, out var sw) ? sw : null;
 
+    // ── Generic clauses (vendor extensions, unrecognized clauses) ──
+
+    private readonly List<GenericClauseNode> _genericClauses = new();
+    public IReadOnlyList<GenericClauseNode> GenericClauses => _genericClauses;
+    internal void AddGenericClause(GenericClauseNode clause) => _genericClauses.Add(clause);
+
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
     private IReadOnlyList<DataSymbol> _dataItemsInOrder = [];

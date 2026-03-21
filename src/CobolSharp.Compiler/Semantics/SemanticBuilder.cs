@@ -42,6 +42,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private Runtime.SignStorageKind? _deferredSignStorage;
     private FigurativeKind? _deferredFigurativeInit;
 
+    // Generic clauses captured during parsing (vendor extensions, unrecognized clauses)
+    private readonly List<GenericClauseNode> _genericClauses = [];
+    public IReadOnlyList<GenericClauseNode> GenericClauses => _genericClauses;
+
+    private void CaptureGenericClause(CobolParserCore.GenericClauseContext? ctx, GenericClauseContext context)
+    {
+        if (ctx == null) return;
+        _genericClauses.Add(GenericClauseNode.FromParseTree(ctx, context, "<source>"));
+    }
+
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
@@ -168,6 +178,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         new ImplementorSwitch(mnemonicName, implName, onName, offName));
                 }
             }
+
+            // Capture generic/vendor extensions
+            if (entry.genericClause() is { } genCtx)
+                CaptureGenericClause(genCtx, GenericClauseContext.SpecialNames);
         }
 
         return base.VisitSpecialNamesParagraph(ctx);
@@ -754,5 +768,58 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Plain integer
         return sign + integers[0].GetText();
+    }
+
+    // ═══════════════════════════════════
+    // Generic clause capture (vendor extensions)
+    // ═══════════════════════════════════
+
+    public override object? VisitGenericIdentificationParagraph(
+        CobolParserCore.GenericIdentificationParagraphContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IdentificationParagraph);
+        return base.VisitGenericIdentificationParagraph(ctx);
+    }
+
+    public override object? VisitVendorConfigurationParagraph(
+        CobolParserCore.VendorConfigurationParagraphContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ConfigurationVendor);
+        return base.VisitVendorConfigurationParagraph(ctx);
+    }
+
+    public override object? VisitGenericFileDescriptionClause(
+        CobolParserCore.GenericFileDescriptionClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileDescription);
+        return base.VisitGenericFileDescriptionClause(ctx);
+    }
+
+    public override object? VisitGenericDataClause(
+        CobolParserCore.GenericDataClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.DataDescription);
+        return base.VisitGenericDataClause(ctx);
+    }
+
+    public override object? VisitGenericReportGroupClause(
+        CobolParserCore.GenericReportGroupClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ReportGroup);
+        return base.VisitGenericReportGroupClause(ctx);
+    }
+
+    public override object? VisitVendorFileControlClause(
+        CobolParserCore.VendorFileControlClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileControl);
+        return base.VisitVendorFileControlClause(ctx);
+    }
+
+    public override object? VisitIoControlEntry(
+        CobolParserCore.IoControlEntryContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
+        return base.VisitIoControlEntry(ctx);
     }
 }
