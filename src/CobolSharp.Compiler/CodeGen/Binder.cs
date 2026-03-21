@@ -1768,6 +1768,9 @@ public sealed class Binder
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
+        // Quotient accumulator — used by REMAINDER if present
+        IrValue? accum = null;
+
         if (div.Receiver != null)
         {
             // DIVIDE BY GIVING: compute quotient ONCE into accumulator, store to all targets.
@@ -1776,8 +1779,8 @@ public sealed class Binder
             var divExpr = new BoundBinaryExpression(
                 div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
                 CobolCategory.Numeric);
-            var accum = _valueFactory.Next(IrPrimitiveType.Decimal);
-            block.Instructions.Add(new IrComputeIntoAccumulator(accum, divExpr,
+            accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+            block.Instructions.Add(new IrComputeIntoAccumulator(accum.Value, divExpr,
                 PreResolveExpressionLocations(divExpr)));
 
             foreach (var target in div.Targets)
@@ -1785,7 +1788,7 @@ public sealed class Binder
                 var destLoc = ResolveLocation(target.Target);
                 if (destLoc == null) continue;
                 int roundingMode = target.IsRounded ? 1 : 0;
-                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc, roundingMode));
+                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
             }
         }
         else
@@ -1812,17 +1815,23 @@ public sealed class Binder
             }
         }
 
-        // REMAINDER: dividend MOD divisor
-        if (div.RemainderTarget != null && div.Receiver != null)
+        // REMAINDER: dividend - truncatedQuotient × divisor
+        // COBOL-85 §14.9.11: the remainder uses the quotient truncated to the
+        // GIVING field's precision, not mathematical modulo.
+        if (div.RemainderTarget != null && div.Receiver != null && div.Targets.Count > 0 && accum != null)
         {
             var remLoc = ResolveLocation(div.RemainderTarget);
             if (remLoc != null)
             {
-                var remExpr = new BoundBinaryExpression(
-                    div.Receiver, BoundBinaryOperatorKind.Remainder, div.Operands[0],
-                    CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0,
-                    PreResolveExpressionLocations(remExpr)));
+                // Determine GIVING field's fraction digits for quotient truncation
+                var givingLoc = ResolveLocation(div.Targets[0].Target);
+                int givingFracDigits = givingLoc != null
+                    ? GetPicForLocation(givingLoc).FractionDigits : 0;
+
+                block.Instructions.Add(new IrCobolRemainder(
+                    div.Receiver, div.Operands[0], accum.Value, givingFracDigits, remLoc,
+                    PreResolveExpressionLocations(div.Receiver),
+                    PreResolveExpressionLocations(div.Operands[0])));
             }
         }
 

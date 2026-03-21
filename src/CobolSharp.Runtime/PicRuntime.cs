@@ -1108,6 +1108,57 @@ public static class PicRuntime
         return left / right;
     }
 
+    public static decimal SafeRemainder(decimal left, decimal right, ref ArithmeticStatus status)
+    {
+        if (right == 0m)
+        {
+            status.SizeError = true;
+            return 0m;
+        }
+        return decimal.Remainder(left, right);
+    }
+
+    /// <summary>
+    /// COBOL DIVIDE REMAINDER: R = dividend - truncatedQuotient × divisor.
+    /// The quotient is truncated to the GIVING field's precision (fractionDigits)
+    /// per COBOL-85 §14.9.11 GR4. This differs from mathematical modulo which uses
+    /// the exact quotient.
+    /// </summary>
+    public static void ComputeCobolRemainder(
+        decimal dividend, decimal divisor, decimal rawQuotient,
+        int givingFractionDigits,
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        ref ArithmeticStatus status)
+    {
+        if (divisor == 0m)
+        {
+            status.SizeError = true;
+            return;
+        }
+
+        // Truncate quotient to the GIVING field's precision (no rounding)
+        decimal truncatedQuotient = rawQuotient;
+        if (givingFractionDigits >= 0)
+        {
+            decimal scale = Pow10(givingFractionDigits);
+            truncatedQuotient = decimal.Truncate(rawQuotient * scale) / scale;
+        }
+
+        decimal remainder = dividend - truncatedQuotient * divisor;
+        remainder = ApplyScalingAndRounding(remainder, destPic, 0);
+
+        // Numeric edited destinations: format with edit pattern, not raw encode
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(remainder, destPic);
+            MoveStringToBytes(destArea, destOffset, destLength, formatted);
+        }
+        else
+        {
+            EncodeNumeric(destArea, destOffset, destLength, destPic, remainder);
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     // DIVIDE
     // ══════════════════════════════════════════════════════════

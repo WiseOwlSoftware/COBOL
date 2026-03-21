@@ -943,6 +943,43 @@ public sealed class IrComputeStore : IrInstruction
 }
 
 /// <summary>
+/// COBOL DIVIDE REMAINDER: R = dividend - truncatedQuotient × divisor.
+/// Uses the quotient accumulator value truncated to the GIVING field's precision.
+/// </summary>
+public sealed class IrCobolRemainder : IrInstruction
+{
+    public Semantics.Bound.BoundExpression Dividend { get; }
+    public Semantics.Bound.BoundExpression Divisor { get; }
+    public IrValue QuotientAccumulator { get; }
+    public int GivingFractionDigits { get; }
+    public IrLocation Destination { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> DividendLocations { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> DivisorLocations { get; }
+
+    public IrCobolRemainder(
+        Semantics.Bound.BoundExpression dividend,
+        Semantics.Bound.BoundExpression divisor,
+        IrValue quotientAccumulator,
+        int givingFractionDigits,
+        IrLocation destination,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? dividendLocations = null,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? divisorLocations = null)
+    {
+        Dividend = dividend;
+        Divisor = divisor;
+        QuotientAccumulator = quotientAccumulator;
+        GivingFractionDigits = givingFractionDigits;
+        Destination = destination;
+        DividendLocations = dividendLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
+        DivisorLocations = divisorLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
+    }
+}
+
+/// <summary>
 /// Class condition: IS NUMERIC, IS ALPHABETIC, etc.
 /// Calls PicRuntime.IsNumericClass / IsAlphabeticClass / etc.
 /// </summary>
