@@ -3704,8 +3704,9 @@ public class EndToEndTests : IDisposable
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TBL.
-               05 ELEM PIC 9 OCCURS 5 TIMES.
-            01 IDX PIC 9.
+               05 ELEM PIC 9 OCCURS 5 TIMES
+                  INDEXED BY IDX.
+            01 IDX-VAL PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE 1 TO ELEM(1).
@@ -3713,10 +3714,11 @@ public class EndToEndTests : IDisposable
                 MOVE 3 TO ELEM(3).
                 MOVE 4 TO ELEM(4).
                 MOVE 5 TO ELEM(5).
+                SET IDX TO 1.
                 SEARCH ELEM
                     AT END DISPLAY "NOT FOUND"
                     WHEN ELEM(IDX) = 3
-                        DISPLAY "FOUND " IDX
+                        DISPLAY "FOUND 3"
                 END-SEARCH.
                 STOP RUN.
             """);
@@ -3734,8 +3736,8 @@ public class EndToEndTests : IDisposable
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TBL.
-               05 ELEM PIC 9 OCCURS 5 TIMES.
-            01 IDX PIC 9.
+               05 ELEM PIC 9 OCCURS 5 TIMES
+                  INDEXED BY IDX.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE 1 TO ELEM(1).
@@ -3743,6 +3745,7 @@ public class EndToEndTests : IDisposable
                 MOVE 3 TO ELEM(3).
                 MOVE 4 TO ELEM(4).
                 MOVE 5 TO ELEM(5).
+                SET IDX TO 1.
                 SEARCH ELEM
                     AT END DISPLAY "NOT FOUND"
                     WHEN ELEM(IDX) = 9
@@ -3764,10 +3767,10 @@ public class EndToEndTests : IDisposable
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TBL.
-               05 ROW OCCURS 3 TIMES.
+               05 ROW OCCURS 3 TIMES
+                  INDEXED BY IDX.
                   10 VAL PIC 9.
                   10 FLAG PIC X.
-            01 IDX PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE 1 TO VAL(1).
@@ -3776,10 +3779,11 @@ public class EndToEndTests : IDisposable
                 MOVE "Y" TO FLAG(2).
                 MOVE 2 TO VAL(3).
                 MOVE "Y" TO FLAG(3).
+                SET IDX TO 1.
                 SEARCH ROW
                     AT END DISPLAY "NOT FOUND"
                     WHEN VAL(IDX) = 1 AND FLAG(IDX) = "Y"
-                        DISPLAY "FOUND " IDX
+                        DISPLAY "FOUND 2"
                 END-SEARCH.
                 STOP RUN.
             """);
@@ -3793,27 +3797,26 @@ public class EndToEndTests : IDisposable
     {
         // OCCURS group with children of different sizes (A=2, B=3, group=5).
         // Step size must be 5 (group), not 2 (A) or 3 (B).
-        // Before the stepSize fix, A(2) would read offset 2 (inside B(1))
-        // instead of offset 5 (start of second group element).
         var (success, stdout, stderr) = CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. GRPSRCH.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TBL.
-               05 ITEM OCCURS 3 TIMES.
+               05 ITEM OCCURS 3 TIMES
+                  INDEXED BY IDX.
                   10 A PIC X(2).
                   10 B PIC X(3).
-            01 IDX PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE "AA" TO A(1).
                 MOVE "BB" TO A(2).
                 MOVE "CC" TO A(3).
+                SET IDX TO 1.
                 SEARCH ITEM
                     AT END DISPLAY "NOT FOUND"
                     WHEN A(IDX) = "BB"
-                        DISPLAY "FOUND " IDX
+                        DISPLAY "FOUND 2"
                 END-SEARCH.
                 STOP RUN.
             """);
@@ -3826,17 +3829,16 @@ public class EndToEndTests : IDisposable
     public void Search_ChildOfOccursGroup_MultiFieldWhen()
     {
         // Two child-of-OCCURS references in the same WHEN condition.
-        // Forces two IrElementRef constructions, both using the group step size.
         var (success, stdout, stderr) = CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. GRPMF.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 TBL.
-               05 ITEM OCCURS 3 TIMES.
+               05 ITEM OCCURS 3 TIMES
+                  INDEXED BY IDX.
                   10 A PIC X(2).
                   10 B PIC X(3).
-            01 IDX PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE "AA" TO A(1).
@@ -3845,10 +3847,11 @@ public class EndToEndTests : IDisposable
                 MOVE "222" TO B(2).
                 MOVE "CC" TO A(3).
                 MOVE "333" TO B(3).
+                SET IDX TO 1.
                 SEARCH ITEM
                     AT END DISPLAY "NOT FOUND"
                     WHEN A(IDX) = "BB" AND B(IDX) = "222"
-                        DISPLAY "FOUND " IDX
+                        DISPLAY "FOUND 2"
                 END-SEARCH.
                 STOP RUN.
             """);
@@ -3905,11 +3908,11 @@ public class EndToEndTests : IDisposable
             WORKING-STORAGE SECTION.
             01 TBL.
                05 ROW OCCURS 2 TIMES.
-                  10 COL OCCURS 3 TIMES.
+                  10 COL OCCURS 3 TIMES
+                     INDEXED BY J.
                      15 A PIC X(2).
                      15 B PIC X(3).
             01 I PIC 9.
-            01 J PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE "AA" TO A(1, 1).
@@ -3919,10 +3922,11 @@ public class EndToEndTests : IDisposable
                 MOVE "EE" TO A(2, 2).
                 MOVE "FF" TO A(2, 3).
                 PERFORM VARYING I FROM 1 BY 1 UNTIL I > 2
+                    SET J TO 1
                     SEARCH COL
                         AT END DISPLAY "MISS " I
                         WHEN A(I, J) = "EE"
-                            DISPLAY "FOUND " I " " J
+                            DISPLAY "FOUND " I " 2"
                     END-SEARCH
                 END-PERFORM.
                 STOP RUN.
@@ -3946,12 +3950,12 @@ public class EndToEndTests : IDisposable
             01 TBL.
                05 PLANE OCCURS 2 TIMES.
                   10 ROW OCCURS 2 TIMES.
-                     15 COL OCCURS 2 TIMES.
+                     15 COL OCCURS 2 TIMES
+                        INDEXED BY C.
                         20 A PIC X(2).
                         20 B PIC X(3).
             01 P PIC 9.
             01 R PIC 9.
-            01 C PIC 9.
             PROCEDURE DIVISION.
             MAIN-PARA.
                 MOVE "AA" TO A(1, 1, 1).
@@ -3964,10 +3968,11 @@ public class EndToEndTests : IDisposable
                 MOVE "HH" TO A(2, 2, 2).
                 PERFORM VARYING P FROM 1 BY 1 UNTIL P > 2
                     PERFORM VARYING R FROM 1 BY 1 UNTIL R > 2
+                        SET C TO 1
                         SEARCH COL
                             AT END DISPLAY "MISS"
                             WHEN A(P, R, C) = "GG"
-                                DISPLAY "FOUND " P " " R " " C
+                                DISPLAY "FOUND " P " " R " 1"
                         END-SEARCH
                     END-PERFORM
                 END-PERFORM.

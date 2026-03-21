@@ -2947,8 +2947,9 @@ public sealed class Binder
 
         int upperBound = search.Table.Symbol.OccursCount;
 
-        // Initialize index to 1
-        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, 1m));
+        // COBOL-85 §14.9.38: SEARCH uses the CURRENT index value.
+        // If the index already exceeds the table, AT END is triggered immediately.
+        // The index is NOT reset — the programmer must SET it before SEARCH.
 
         // Loop structure
         var loopHeader = method.CreateBlock("search.loop");
