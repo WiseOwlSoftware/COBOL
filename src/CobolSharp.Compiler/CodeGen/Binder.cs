@@ -1793,37 +1793,71 @@ public sealed class Binder
         }
         else
         {
-            // DIVIDE INTO (non-GIVING): each target is dividend / divisor
-            foreach (var target in div.Targets)
-            {
-                var destLoc = ResolveLocation(target.Target);
-                if (destLoc == null) continue;
-                int roundingMode = target.IsRounded ? 1 : 0;
+            // DIVIDE INTO (non-GIVING): target = target / divisor.
+            // For REMAINDER: must use accumulator pattern to preserve original dividend
+            // before the divide overwrites the target.
+            bool needRemainder = div.RemainderTarget != null && div.Targets.Count > 0;
 
-                if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+            if (needRemainder)
+            {
+                // Use accumulator pattern: evaluate dividend/divisor into decimals,
+                // compute quotient, store to target, then compute remainder.
+                var target0 = div.Targets[0];
+                var divExpr = new BoundBinaryExpression(
+                    target0.Target, BoundBinaryOperatorKind.Divide, div.Operands[0],
+                    CobolCategory.Numeric);
+                accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+                block.Instructions.Add(new IrComputeIntoAccumulator(accum.Value, divExpr,
+                    PreResolveExpressionLocations(divExpr)));
+
+                var destLoc = ResolveLocation(target0.Target);
+                if (destLoc != null)
                 {
-                    block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
-                }
-                else if (div.Operands[0] is BoundIdentifierExpression divisorId)
-                {
-                    var divisorLoc = ResolveLocation(divisorId);
-                    if (divisorLoc != null)
+                    int roundingMode = target0.IsRounded ? 1 : 0;
+                    block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
+
+                    // Remainder uses the target's fraction digits (quotient stored in target)
+                    int givingFracDigits = GetPicForLocation(destLoc).FractionDigits;
+                    var remLoc = ResolveLocation(div.RemainderTarget!);
+                    if (remLoc != null)
                     {
-                        block.Instructions.Add(new IrPicDivide(destLoc, divisorLoc, destLoc, roundingMode));
+                        block.Instructions.Add(new IrCobolRemainder(
+                            target0.Target, div.Operands[0], accum.Value, givingFracDigits, remLoc,
+                            PreResolveExpressionLocations(target0.Target),
+                            PreResolveExpressionLocations(div.Operands[0])));
+                    }
+                }
+            }
+            else
+            {
+                foreach (var target in div.Targets)
+                {
+                    var destLoc = ResolveLocation(target.Target);
+                    if (destLoc == null) continue;
+                    int roundingMode = target.IsRounded ? 1 : 0;
+
+                    if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                    {
+                        block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
+                    }
+                    else if (div.Operands[0] is BoundIdentifierExpression divisorId)
+                    {
+                        var divisorLoc = ResolveLocation(divisorId);
+                        if (divisorLoc != null)
+                        {
+                            block.Instructions.Add(new IrPicDivide(destLoc, divisorLoc, destLoc, roundingMode));
+                        }
                     }
                 }
             }
         }
 
-        // REMAINDER: dividend - truncatedQuotient × divisor
-        // COBOL-85 §14.9.11: the remainder uses the quotient truncated to the
-        // GIVING field's precision, not mathematical modulo.
+        // REMAINDER for GIVING form: dividend - truncatedQuotient × divisor
         if (div.RemainderTarget != null && div.Receiver != null && div.Targets.Count > 0 && accum != null)
         {
             var remLoc = ResolveLocation(div.RemainderTarget);
             if (remLoc != null)
             {
-                // Determine GIVING field's fraction digits for quotient truncation
                 var givingLoc = ResolveLocation(div.Targets[0].Target);
                 int givingFracDigits = givingLoc != null
                     ? GetPicForLocation(givingLoc).FractionDigits : 0;
