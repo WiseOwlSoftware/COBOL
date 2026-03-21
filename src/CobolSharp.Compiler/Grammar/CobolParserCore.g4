@@ -882,9 +882,9 @@ evaluateStatement
     ;
 
 evaluateSubject
-    : TRUE_                        // EVALUATE TRUE (condition-only mode)
-    | arithmeticExpression
-    | classCondition               // EVALUATE WRK-FIELD NUMERIC
+    : TRUE_                                              // EVALUATE TRUE
+    | FALSE_                                             // EVALUATE FALSE
+    | arithmeticExpression (IS? NOT? classCondition)?     // EVALUATE X [NUMERIC]
     ;
 
 classCondition
@@ -901,13 +901,13 @@ evaluateWhenClause
     ;
 
 evaluateWhenGroup
-    : evaluateWhenItem+
+    : NOT? evaluateWhenItem+
     ;
 
 evaluateWhenItem
     : arithmeticExpression (THRU | THROUGH) arithmeticExpression   // range
     | arithmeticExpression                                          // single value
-    | condition                                                     // for EVALUATE TRUE
+    | condition                                                     // for EVALUATE TRUE / class tests
     | ANY                                                           // match anything
     ;
 
@@ -1553,10 +1553,11 @@ initializeReplacingPhrase
     ;
 
 initializeReplacingItem
-    : ALPHANUMERIC DATA BY (dataReference | literal)
-    | NUMERIC DATA BY (dataReference | literal)
-    | ALPHANUMERIC EDITED DATA BY (dataReference | literal)
-    | NUMERIC EDITED DATA BY (dataReference | literal)
+    : ALPHABETIC DATA? BY (dataReference | literal)
+    | ALPHANUMERIC DATA? BY (dataReference | literal)
+    | NUMERIC DATA? BY (dataReference | literal)
+    | (ALPHANUMERIC EDITED | ALPHANUMERIC_EDITED) DATA? BY (dataReference | literal)
+    | (NUMERIC EDITED | NUMERIC_EDITED) DATA? BY (dataReference | literal)
     ;
 
 // ==========================================
@@ -1687,6 +1688,8 @@ invokeStatement   : INVOKE (dataReference | literal)+ ;
 
 condition
     : logicalOrExpression
+    | TRUE_
+    | FALSE_
     ;
 
 logicalOrExpression
@@ -1740,6 +1743,10 @@ comparisonOperator
     // Word forms with optional IS and optional THAN
     | IS? EQUAL (TO | THAN)?
     | IS? NOT EQUAL (TO | THAN)?
+    | IS? GREATER THAN? OR EQUAL TO?
+    | IS? NOT GREATER THAN? OR EQUAL TO?
+    | IS? LESS THAN? OR EQUAL TO?
+    | IS? NOT LESS THAN? OR EQUAL TO?
     | IS? GREATER THAN?
     | IS? NOT GREATER THAN?
     | IS? LESS THAN?
