@@ -1923,7 +1923,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 if (intoLiteral != null)
                     dividend = intoLiteral;
                 else if (targets.Count > 0)
-                    dividend = new BoundIdentifierExpression(targets[0].Target.Symbol, CobolCategory.Numeric);
+                    dividend = targets[0].Target;  // preserve subscripts from INTO operand
                 targets.Clear();
                 foreach (var gt in givingPhrase.receivingArithmeticOperand())
                 {

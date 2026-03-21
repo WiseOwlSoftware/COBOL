@@ -1,0 +1,84 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC203A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ DIVIDE               PASS  DIV-TEST-F4-1
+ DIVIDE               PASS  DIV-TEST-F4-2
+ DIVIDE               PASS  DIV-TEST-F4-3
+ DIVIDE               PASS  DIV-TEST-F4-4-0    .01
+ DIVIDE               PASS  DIV-TEST-F4-4-1    .02
+ DIVIDE               PASS  DIV-TEST-F4-4-2    .03
+ DIVIDE               PASS  DIV-TEST-F4-5-0    .01
+ DIVIDE               PASS  DIV-TEST-F4-5-1    .02
+ DIVIDE               PASS  DIV-TEST-F4-5-2    .03
+ DIVIDE               PASS  DIV-TEST-F4-6-0    .01
+ DIVIDE               PASS  DIV-TEST-F4-6-1    .02
+ DIVIDE               PASS  DIV-TEST-F4-6-2    .03
+ DIVIDE               PASS  DIV-TEST-F4-7-1    .01
+ DIVIDE               PASS  DIV-TEST-F4-7-2    .02
+ DIVIDE               PASS  DIV-TEST-F4-8-1    .01
+ DIVIDE               PASS  DIV-TEST-F4-8-2    .02
+ DIVIDE               PASS  DIV-TEST-F4-9-0    .01
+ DIVIDE               PASS  DIV-TEST-F4-9-1    .02
+ DIVIDE               PASS  DIV-TEST-F4-9-2    .03
+ DIVIDE               PASS  DIV-TEST-F4-10-0   .01
+ DIVIDE               PASS  DIV-TEST-F4-10-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-10-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-11-0   .01
+ DIVIDE               PASS  DIV-TEST-F4-11-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-11-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-12-0   .01
+ DIVIDE               PASS  DIV-TEST-F4-12-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-12-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-13-1   .01
+ DIVIDE               PASS  DIV-TEST-F4-13-2   .02
+ DIVIDE               PASS  DIV-TEST-F4-13-3   .03
+ DIVIDE               PASS  DIV-TEST-F4-13-4   .04
+ DIVIDE               PASS  DIV-TEST-F4-14-1   .01
+ DIVIDE               PASS  DIV-TEST-F4-14-2   .02
+ DIVIDE               PASS  DIV-TEST-F4-14-3   .03
+ DIVIDE               PASS  DIV-TEST-F4-14-4   .04
+ DIVIDE               PASS  DIV-TEST-F4-15-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-15-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-15-3   .04
+ DIVIDE               PASS  DIV-TEST-F4-15-4   .05
+ DIVIDE               PASS  DIV-TEST-F4-16-1   .01
+ DIVIDE               PASS  DIV-TEST-F4-16-2   .02
+ DIVIDE               PASS  DIV-TEST-F4-16-3   .03
+ DIVIDE               PASS  DIV-TEST-F4-16-4   .04
+ DIVIDE               PASS  DIV-TEST-F4-17-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-17-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-17-3   .04
+ DIVIDE               PASS  DIV-TEST-F4-17-4   .05
+ DIVIDE               PASS  DIV-TEST-F4-18-1   .01
+ DIVIDE               PASS  DIV-TEST-F4-18-2   .02
+ DIVIDE               PASS  DIV-TEST-F4-18-3   .03
+ DIVIDE               PASS  DIV-TEST-F4-18-4   .04
+ DIVIDE               PASS  DIV-TEST-F4-19-0   .01
+ DIVIDE               PASS  DIV-TEST-F4-19-1   .02
+ DIVIDE               PASS  DIV-TEST-F4-19-2   .03
+ DIVIDE               PASS  DIV-TEST-F4-20-1   .01
+ DIVIDE               PASS  DIV-TEST-F4-20-2   .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC203A
+
+                                                    057 OF 057  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
