@@ -221,6 +221,13 @@ specialNamesParagraph
 specialNameEntry
     : currencySignClause DOT?
     | decimalPointClause DOT?
+    | classDefinitionClause DOT?
+    | symbolicCharactersClause DOT?
+    | alphabetClause DOT?
+    | crtStatusClause DOT?
+    | cursorClause DOT?
+    | channelClause DOT?
+    | reserveClause DOT?
     | implementorSwitchEntry DOT?
     | IDENTIFIER (IDENTIFIER | literal)* DOT?
     ;
@@ -237,6 +244,57 @@ currencySignClause
 
 decimalPointClause
     : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
+    ;
+
+// CLASS name IS literal [THRU literal] [, literal [THRU literal]]...
+classDefinitionClause
+    : CLASS IDENTIFIER IS classValueSet
+    ;
+
+classValueSet
+    : classValueItem (COMMA classValueItem)*
+    ;
+
+classValueItem
+    : literal ((THRU | THROUGH) literal)?
+    ;
+
+// SYMBOLIC CHARACTERS name IS literal [, name IS literal]...
+symbolicCharactersClause
+    : SYMBOLIC CHARACTERS symbolicCharacterEntry (COMMA symbolicCharacterEntry)*
+    ;
+
+symbolicCharacterEntry
+    : IDENTIFIER IS literal
+    ;
+
+// ALPHABET name IS ...
+alphabetClause
+    : ALPHABET IDENTIFIER IS alphabetDefinition
+    ;
+
+alphabetDefinition
+    : (IDENTIFIER | literal)+
+    ;
+
+// CRT STATUS IS data-name
+crtStatusClause
+    : CRT STATUS IS dataReference
+    ;
+
+// CURSOR IS data-name
+cursorClause
+    : CURSOR IS dataReference
+    ;
+
+// CHANNEL integer IS data-name
+channelClause
+    : CHANNEL integerLiteral IS dataReference
+    ;
+
+// RESERVE integer [CHANNELS]
+reserveClause
+    : RESERVE integerLiteral IDENTIFIER?
     ;
 
 // fallback for vendor extensions
@@ -337,6 +395,7 @@ dataDivision
       workingStorageSection?
       localStorageSection?
       linkageSection?
+      reportSection?
     ;
 
 // ==========================================
@@ -349,6 +408,67 @@ fileSection
 
 fileDescriptionEntry
     : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
+    ;
+
+// ==========================================
+// REPORT SECTION (COBOL-85)
+// ==========================================
+
+reportSection
+    : REPORT SECTION DOT reportDescriptionEntry*
+    ;
+
+reportDescriptionEntry
+    : RD reportName reportDescriptionClauses? DOT reportGroupEntry*
+    ;
+
+reportName
+    : IDENTIFIER
+    ;
+
+reportDescriptionClauses
+    : reportDescriptionClause+
+    ;
+
+// For now, accept standard/vendor clauses generically; binder interprets.
+reportDescriptionClause
+    : IDENTIFIER (IDENTIFIER | literal)*
+    ;
+
+reportGroupEntry
+    : levelNumber reportGroupName? reportGroupBody DOT
+    ;
+
+reportGroupName
+    : IDENTIFIER
+    ;
+
+reportGroupBody
+    : reportGroupClause*
+    ;
+
+reportGroupClause
+    : reportTypeClause
+    | reportSumClause
+    | genericReportGroupClause
+    ;
+
+// TYPE DETAIL / TYPE CONTROL FOOTING / TYPE PAGE HEADING / etc.
+reportTypeClause
+    : TYPE IDENTIFIER (IDENTIFIER)*
+    ;
+
+// SUM data-name [OF report-name] [, data-name [OF report-name]]...
+reportSumClause
+    : SUM sumItem (COMMA sumItem)*
+    ;
+
+sumItem
+    : dataReference (OF reportName)?
+    ;
+
+genericReportGroupClause
+    : IDENTIFIER (IDENTIFIER | literal)*
     ;
 
 fileDescriptionClauses
@@ -531,8 +651,8 @@ valueClause
     ;
 
 valueItem
-    : literal ((THRU | THROUGH) literal)?
-    | literal+
+    : valueRange
+    | valueOperand+
     ;
 
 // SIGN Clause
@@ -669,6 +789,8 @@ paragraphName
 statement
     : acceptStatement
     | addStatement
+    | alterStatement
+    | useStatement
     | callStatement
     | cancelStatement
     | closeStatement
@@ -719,6 +841,29 @@ statement
 // Imperative statement (used by AT END, ON EXCEPTION, etc.)
 statementBlock
     : statement+
+    ;
+
+// ==========================================
+// ALTER (§14.9.2)
+// ==========================================
+
+alterStatement
+    : ALTER alterEntry+
+    ;
+
+alterEntry
+    : procedureName TO PROCEED TO procedureName
+    ;
+
+// ==========================================
+// USE (§14.9.45, declaratives/reporting)
+// ==========================================
+
+useStatement
+    // USE BEFORE REPORTING report-name
+    : USE BEFORE REPORTING procedureName
+    // USE AFTER STANDARD ERROR PROCEDURE ON file-name+
+    | USE AFTER STANDARD ERROR PROCEDURE ON fileName+
     ;
 
 // ==========================================
@@ -882,9 +1027,8 @@ evaluateStatement
     ;
 
 evaluateSubject
-    : TRUE_                                              // EVALUATE TRUE
-    | FALSE_                                             // EVALUATE FALSE
-    | arithmeticExpression (IS? NOT? classCondition)?     // EVALUATE X [NUMERIC]
+    : booleanLiteral                                     // EVALUATE TRUE / FALSE
+    | valueOperand (IS? NOT? classCondition)?            // EVALUATE X [NUMERIC / class test]
     ;
 
 classCondition
@@ -905,10 +1049,10 @@ evaluateWhenGroup
     ;
 
 evaluateWhenItem
-    : arithmeticExpression (THRU | THROUGH) arithmeticExpression   // range
-    | arithmeticExpression                                          // single value
-    | condition                                                     // for EVALUATE TRUE / class tests
-    | ANY                                                           // match anything
+    : valueRange                         // WHEN A THRU N, WHEN 1 THRU 10
+    | valueOperand                       // single value: "A", 1, VAR
+    | condition                          // for EVALUATE TRUE / complex WHEN
+    | ANY                                // match anything
     ;
 
 // ==========================================
@@ -1683,26 +1827,56 @@ xmlStatement      : XML (dataReference | literal)+ ;
 invokeStatement   : INVOKE (dataReference | literal)+ ;
 
 // =========================
+// Value operands and ranges
+// =========================
+
+// A "value" in COBOL terms: numeric expression or non-numeric literal.
+valueOperand
+    : arithmeticExpression
+    | nonNumericLiteral
+    ;
+
+// Shared range form: used by VALUE THRU and EVALUATE WHEN ranges.
+valueRange
+    : valueOperand (THRU | THROUGH) valueOperand
+    ;
+
+// =========================
 // Conditions (boolean)
 // =========================
 
-condition
-    : logicalOrExpression
-    | TRUE_
+booleanLiteral
+    : TRUE_
     | FALSE_
     ;
 
+// COBOL sign conditions: IS [NOT] POSITIVE/NEGATIVE/ZERO.
+signCondition
+    : valueOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)
+    ;
+
+condition
+    : logicalOrExpression
+    ;
+
 logicalOrExpression
-    : logicalAndExpression ( 'OR' logicalAndExpression )*
+    : logicalAndExpression ( OR logicalAndExpression )*
     ;
 
 logicalAndExpression
-    : unaryLogicalExpression ( 'AND' unaryLogicalExpression )*
+    : unaryLogicalExpression ( AND unaryLogicalExpression )*
     ;
 
 unaryLogicalExpression
     : NOT unaryLogicalExpression
-    | comparisonExpression
+    | primaryCondition
+    ;
+
+primaryCondition
+    : comparisonExpression
+    | signCondition
+    | booleanLiteral
+    | LPAREN condition RPAREN
     ;
 
 // =========================
@@ -1710,8 +1884,7 @@ unaryLogicalExpression
 // =========================
 
 comparisonOperand
-    : arithmeticExpression
-    | nonNumericLiteral
+    : valueOperand
     ;
 
 comparisonExpression

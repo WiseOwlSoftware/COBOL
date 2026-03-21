@@ -535,13 +535,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         foreach (var subCtx in ctx.evaluateSubject())
         {
-            if (subCtx.TRUE_() != null)
+            if (subCtx.booleanLiteral()?.TRUE_() != null)
             {
                 isEvaluateTrue = true;
                 continue;
             }
-            if (subCtx.arithmeticExpression() is { } arithCtx)
+            if (subCtx.valueOperand()?.arithmeticExpression() is { } arithCtx)
                 subjects.Add(BindFullExpression(arithCtx));
+            else if (subCtx.valueOperand()?.nonNumericLiteral() is { } nonNumCtx)
+                subjects.Add(BindNonNumericLiteral(nonNumCtx));
         }
 
         int subjectCount = isEvaluateTrue ? 1 : subjects.Count;
@@ -604,10 +606,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // For EVALUATE TRUE, the WHEN item is a condition
             if (items.Length > 0 && items[0].condition() is { } condCtx)
                 return new BoundEvaluateConditionWhen(BindCondition(condCtx));
-            // Fallback: try as arithmetic expression (bare identifier → condition name)
-            if (items.Length > 0 && items[0].arithmeticExpression().Length > 0)
+            // Fallback: try as valueOperand (bare identifier → condition name)
+            if (items.Length > 0 && items[0].valueOperand()?.arithmeticExpression() is { } arithFallback)
             {
-                var expr = BindFullExpression(items[0].arithmeticExpression(0));
+                var expr = BindFullExpression(arithFallback);
                 // Check if the result resolves to a condition name
                 expr = TryResolveConditionName(expr);
                 return new BoundEvaluateConditionWhen(expr);
@@ -629,17 +631,16 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 continue;
             }
 
-            var arithExprs = item.arithmeticExpression();
-            if (arithExprs.Length == 2)
+            if (item.valueRange() is { } rangeCtx)
             {
                 // Range: value THRU value
-                var from = BindFullExpression(arithExprs[0]);
-                var to = BindFullExpression(arithExprs[1]);
+                var from = BindValueOperand(rangeCtx.valueOperand(0));
+                var to = BindValueOperand(rangeCtx.valueOperand(1));
                 ranges.Add(new BoundEvaluateRange(from, to));
             }
-            else if (arithExprs.Length == 1)
+            else if (item.valueOperand() is { } voCtx)
             {
-                values.Add(BindFullExpression(arithExprs[0]));
+                values.Add(BindValueOperand(voCtx));
             }
             else if (item.condition() is { } condCtx)
             {
@@ -648,6 +649,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundEvaluateValueCondition(values, ranges, isAny);
+    }
+
+    private BoundExpression BindValueOperand(CobolParserCore.ValueOperandContext vo)
+    {
+        if (vo.nonNumericLiteral() is { } nonNumCtx)
+            return BindNonNumericLiteral(nonNumCtx);
+        return BindFullExpression(vo.arithmeticExpression());
     }
 
     // ── WRITE ──
@@ -2325,7 +2333,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // relational operators (NOT EQUAL, NOT GREATER, NOT LESS).
         // Logical NOT for condition-names (IF NOT STATUS-ACTIVE) will be
         // re-added as a separate production when level-88 is implemented.
-        return BindComparison(ctx.comparisonExpression());
+        return BindComparison(ctx.primaryCondition().comparisonExpression());
     }
 
     private BoundExpression BindComparison(CobolParserCore.ComparisonExpressionContext ctx)
@@ -2509,17 +2517,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindComparisonOperand(CobolParserCore.ComparisonOperandContext ctx)
     {
-        // relationalOperand: arithmeticExpression | nonNumericLiteral
-        var nonNumLit = ctx.nonNumericLiteral();
+        // comparisonOperand: valueOperand (arithmeticExpression | nonNumericLiteral)
+        var vo = ctx.valueOperand();
+        var nonNumLit = vo.nonNumericLiteral();
         if (nonNumLit != null)
             return BindNonNumericLiteral(nonNumLit);
 
-        // Use the recursive expression binder for full expression support
-        var arithExpr = ctx.arithmeticExpression();
-        if (arithExpr != null)
-            return BindFullExpression(arithExpr);
-
-        return BindArithmeticExpr(ctx.arithmeticExpression());
+        return BindFullExpression(vo.arithmeticExpression());
     }
 
     /// <summary>
