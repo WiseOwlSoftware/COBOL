@@ -169,7 +169,7 @@ public static class StorageLayoutComputer
     {
         int elementSize = FieldSizeCalculator.ComputeElementSize(item);
         item.ElementSize = elementSize;
-        int totalSize = elementSize * item.OccursCount;
+        int totalSize = elementSize * (item.Occurs?.MaxOccurs ?? 1);
         var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize, model.PicEnvironment);
         model.RegisterStorageLocation(item, new StorageLocation(area, offset, totalSize, pic));
         RegisterValue(model, item);
@@ -191,8 +191,9 @@ public static class StorageLayoutComputer
 
             int childrenSize = Math.Max(offset - groupStart, 1);
             item.ElementSize = childrenSize;
-            int groupSize = childrenSize * item.OccursCount;
-            if (item.OccursCount > 1)
+            int maxOccurs = item.Occurs?.MaxOccurs ?? 1;
+            int groupSize = childrenSize * maxOccurs;
+            if (maxOccurs > 1)
                 offset = groupStart + groupSize;
             var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, groupSize, model.PicEnvironment);
             model.RegisterStorageLocation(item, new StorageLocation(area, groupStart, groupSize, pic));

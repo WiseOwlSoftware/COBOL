@@ -24,6 +24,38 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     /// <summary>
+    /// Attach an ExpressionType to a bound expression based on its category and symbol.
+    /// </summary>
+    private static T Typed<T>(T expr) where T : BoundExpression
+    {
+        expr.ResultType = expr switch
+        {
+            BoundIdentifierExpression id => ExpressionType.FromDataSymbol(id.Symbol),
+            BoundReferenceModificationExpression => ExpressionType.Alphanumeric,
+            BoundConditionNameExpression => ExpressionType.Boolean,
+            BoundClassConditionExpression => ExpressionType.Boolean,
+            BoundFigurativeExpression => ExpressionType.Alphanumeric,
+            BoundBinaryExpression bin => bin.OperatorKind switch
+            {
+                BoundBinaryOperatorKind.Equal or BoundBinaryOperatorKind.NotEqual
+                    or BoundBinaryOperatorKind.Less or BoundBinaryOperatorKind.LessOrEqual
+                    or BoundBinaryOperatorKind.Greater or BoundBinaryOperatorKind.GreaterOrEqual
+                    or BoundBinaryOperatorKind.And or BoundBinaryOperatorKind.Or
+                    or BoundBinaryOperatorKind.Not
+                    => ExpressionType.Boolean,
+                _ => (bin.Left.ResultType != null && bin.Right.ResultType != null)
+                    ? ExpressionType.Promote(bin.Left.ResultType, bin.Right.ResultType)
+                    : ExpressionType.MakeNumeric(NumericType.Integer(18, true)),
+            },
+            BoundLiteralExpression lit => lit.Category == CobolCategory.Numeric
+                ? ExpressionType.MakeNumeric(NumericType.Integer(18, true))
+                : ExpressionType.Alphanumeric,
+            _ => ExpressionType.Unknown,
+        };
+        return expr;
+    }
+
+    /// <summary>
     /// Resolve a procedure name (paragraph or section) to a ParagraphSymbol.
     /// For sections, returns the first paragraph in the section.
     /// For paragraphs, returns the paragraph directly.
@@ -280,6 +312,43 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             foreach (var id in idList.dataReference())
                 targets.Add(BindDataReference(id));
+        }
+
+        // MOVE type enforcement
+        {
+            var moveLoc = new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0);
+            var moveSpan = new Common.TextSpan(0, 0);
+            foreach (var tgt in targets)
+            {
+                var tgtCat = tgt.Category;
+                // Skip enforcement for group items (treated as alphanumeric byte move)
+                if (tgt is BoundIdentifierExpression tgtId && tgtId.Symbol.IsGroup)
+                    continue;
+                // Skip enforcement for unknown categories
+                if (tgtCat == CobolCategory.Unknown)
+                    continue;
+
+                // Determine effective source category for the MOVE check
+                var effectiveSrcCat = source switch
+                {
+                    // ZERO/ZEROS/ZEROES is numerically compatible — treat as Numeric
+                    BoundFigurativeExpression fig when fig.FigurativeKind == FigurativeKind.Zero
+                        => CobolCategory.Numeric,
+                    // Other figuratives (SPACE, HIGH-VALUE, etc.) are alphanumeric
+                    BoundFigurativeExpression => CobolCategory.Alphanumeric,
+                    // Numeric literals → Numeric
+                    BoundLiteralExpression lit when lit.Category == CobolCategory.Numeric
+                        => CobolCategory.Numeric,
+                    // Other literals → their declared category
+                    _ => source.Category,
+                };
+
+                if (effectiveSrcCat == CobolCategory.Unknown)
+                    continue;
+
+                if (!CategoryCompatibility.IsMoveLegal(effectiveSrcCat, tgtCat))
+                    _diagnostics.Report(DiagnosticDescriptors.CBL0901, moveLoc, moveSpan, effectiveSrcCat, tgtCat);
+            }
         }
 
         return new BoundMoveStatement(source, targets, isRounded: false);
@@ -1296,7 +1365,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     var current = id.Symbol;
                     while (current != null)
                     {
-                        if (current.OccursCount > 1)
+                        if (current.Occurs != null)
                             occursLevels.Insert(0, current);
                         current = current.Parent;
                     }
@@ -1695,7 +1764,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 $"MULTIPLY statement has no valid receiving items (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundArithmeticStatement(ArithmeticKind.Multiply, new[] { operand }, byOperand, targets, isGiving, sizeError: sizeError);
+        return ValidatedArithmetic(ArithmeticKind.Multiply, new[] { operand }, byOperand, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
     }
 
     // ── ADD ──
@@ -1766,7 +1835,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 $"ADD statement has no targets (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundArithmeticStatement(ArithmeticKind.Add, operands, null, targets, isGiving, sizeError: sizeError);
+        return ValidatedArithmetic(ArithmeticKind.Add, operands, null, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
     }
 
     // ── SUBTRACT ──
@@ -1861,7 +1930,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundArithmeticStatement(ArithmeticKind.Subtract, operands, givingMinuend, targets, isGiving, sizeError: sizeError);
+        return ValidatedArithmetic(ArithmeticKind.Subtract, operands, givingMinuend, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
     }
 
     // ── DIVIDE ──
@@ -1954,8 +2023,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
-        return new BoundArithmeticStatement(ArithmeticKind.Divide, new[] { firstOperand }, dividend, targets,
-            isGiving: dividend != null, isByForm: isByForm, remainderTarget: remainderTarget, sizeError: sizeError);
+        return ValidatedArithmetic(ArithmeticKind.Divide, new[] { firstOperand }, dividend, targets,
+            isGiving: dividend != null, isByForm: isByForm, remainderTarget: remainderTarget, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
     }
 
     // ── COMPUTE ──
@@ -1982,7 +2051,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var expr = BindFullExpression(ctx.arithmeticExpression());
 
         var sizeError = BindSizeErrorClause(ctx.computeOnSizeError());
-        return new BoundArithmeticStatement(ArithmeticKind.Compute, new[] { expr }, null, targets, sizeError: sizeError);
+        return ValidatedArithmetic(ArithmeticKind.Compute, new[] { expr }, null, targets, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
     }
 
     /// <summary>
@@ -2586,6 +2655,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     /// <summary>
+    /// Construct and validate an arithmetic statement, emitting diagnostics for type violations.
+    /// </summary>
+    private BoundArithmeticStatement ValidatedArithmetic(
+        ArithmeticKind kind,
+        IReadOnlyList<BoundExpression> operands,
+        BoundExpression? receiver,
+        IReadOnlyList<BoundArithmeticTarget> targets,
+        bool isGiving = false,
+        bool isByForm = false,
+        BoundIdentifierExpression? remainderTarget = null,
+        BoundSizeErrorClause? sizeError = null,
+        int line = 0)
+    {
+        var stmt = new BoundArithmeticStatement(kind, operands, receiver, targets,
+            isGiving, isByForm, remainderTarget, sizeError);
+        var loc = new Common.SourceLocation("<source>", 0, line, 0);
+        var span = new Common.TextSpan(0, 0);
+        ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, _diagnostics, loc, span);
+        return stmt;
+    }
+
+    /// <summary>
     /// Bind a givingReceiver (identifier | literal) — unified GIVING-form operand.
     /// </summary>
     private BoundExpression BindReceivingOperand(CobolParserCore.ReceivingOperandContext ctx)
@@ -2800,9 +2891,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (subList == null)
         {
-            var plainId = new BoundIdentifierExpression(sym, cat);
+            var plainId = Typed(new BoundIdentifierExpression(sym, cat));
             if (refModCtx != null)
-                return BindReferenceModification(plainId, refModCtx);
+                return Typed(BindReferenceModification(plainId, refModCtx));
             return plainId;
         }
 
@@ -2817,7 +2908,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var current = sym;
         while (current != null)
         {
-            if (current.OccursCount > 1)
+            if (current.Occurs != null)
                 occursDepth++;
             current = current.Parent;
         }
@@ -2847,10 +2938,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             _diagnostics.ReportError("COBOL0409",
                 $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.", loc, span);
 
-        var baseId = new BoundIdentifierExpression(sym, cat, subs);
+        var baseId = Typed(new BoundIdentifierExpression(sym, cat, subs));
 
         if (refModCtx != null)
-            return BindReferenceModification(baseId, refModCtx);
+            return Typed(BindReferenceModification(baseId, refModCtx));
 
         return baseId;
     }

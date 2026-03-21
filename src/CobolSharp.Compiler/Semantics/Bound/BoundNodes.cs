@@ -54,6 +54,7 @@ public abstract class BoundNode
 public abstract class BoundExpression : BoundNode
 {
     public CobolCategory Category { get; }
+    public ExpressionType? ResultType { get; set; }
     protected BoundExpression(CobolCategory category) => Category = category;
 }
 

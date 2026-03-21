@@ -179,7 +179,7 @@ public sealed class CilEmitter
                 // Compute OCCURS-aware element size and total occurrences.
                 // For nested OCCURS where elements are contiguous across parent boundaries,
                 // flatten to a single totalOccurs covering all dimensions.
-                int directOccurs = data.OccursCount <= 0 ? 1 : data.OccursCount;
+                int directOccurs = data.Occurs?.MaxOccurs ?? 1;
                 int totalSize = loc.Value.Length;
                 int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
                 int totalOccurs = directOccurs;
@@ -188,14 +188,15 @@ public sealed class CilEmitter
                 // parent occurrence (contiguous), multiply totalOccurs and adjust sizes.
                 for (var parent = data.Parent; parent != null; parent = parent.Parent)
                 {
-                    if (parent.OccursCount <= 1) continue;
+                    int parentMaxOccurs = parent.Occurs?.MaxOccurs ?? 1;
+                    if (parentMaxOccurs <= 1) continue;
                     var parentLoc = _semanticModel.GetStorageLocation(parent);
                     if (!parentLoc.HasValue) break;
-                    int parentPerOccurrence = parentLoc.Value.Length / parent.OccursCount;
+                    int parentPerOccurrence = parentLoc.Value.Length / parentMaxOccurs;
                     // Contiguous check: child's span fills exactly one parent occurrence
                     if (totalOccurs * elementSize == parentPerOccurrence)
                     {
-                        totalOccurs *= parent.OccursCount;
+                        totalOccurs *= parentMaxOccurs;
                     }
                     else
                     {

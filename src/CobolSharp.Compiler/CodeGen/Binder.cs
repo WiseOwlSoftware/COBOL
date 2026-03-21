@@ -375,8 +375,8 @@ public sealed class Binder
         var current = id.Symbol;
         while (current != null)
         {
-            if (current.OccursCount > 1)
-                occursLevels.Insert(0, (current, current.OccursCount));
+            if (current.Occurs != null)
+                occursLevels.Insert(0, (current, current.Occurs.MaxOccurs));
             current = current.Parent;
         }
 
@@ -2945,7 +2945,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(search.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = search.Table.Symbol.OccursCount;
+        int upperBound = search.Table.Symbol.Occurs?.MaxOccurs ?? 1;
 
         // COBOL-85 §14.9.38: SEARCH uses the CURRENT index value.
         // If the index already exceeds the table, AT END is triggered immediately.
@@ -3018,7 +3018,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(searchAll.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = searchAll.Table.Symbol.OccursCount;
+        int upperBound = searchAll.Table.Symbol.Occurs?.MaxOccurs ?? 1;
         var when = searchAll.Whens[0]; // SEARCH ALL allows exactly one WHEN
 
         // Create temp variables for low, high, mid

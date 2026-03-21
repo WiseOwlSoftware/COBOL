@@ -91,7 +91,7 @@ internal static class CorrespondingMatcher
         {
             if (child.IsFiller) continue;
             if (child.Redefines != null) continue; // skip REDEFINES and all subordinates
-            if (child.OccursCount > 1) continue;   // skip OCCURS items per ISO §14.9.26
+            if (child.Occurs != null) continue;   // skip OCCURS items per ISO §14.9.26
 
             if (child.IsElementary)
                 yield return child;
@@ -170,8 +170,8 @@ internal static class CorrespondingMatcher
 
         foreach (var sym in path)
         {
-            if (sym.OccursCount > 1)
-                result.Add(sym.OccursCount);
+            if (sym.Occurs != null)
+                result.Add(sym.Occurs.MaxOccurs);
         }
         return result;
     }

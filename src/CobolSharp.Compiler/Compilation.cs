@@ -49,6 +49,9 @@ public sealed class Compilation
         // Phase 4: Validate and compute layout
         Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);
         Semantics.StorageLayoutComputer.ComputeLayout(semanticModel);
+        Semantics.DataItemClassifier.Validate(semanticModel, diagnostics);
+        Semantics.FileStatusValidator.Validate(semanticModel, diagnostics);
+        Semantics.SymbolValidator.Validate(semanticModel, diagnostics);
 
         // Phase 5: Bind -> IR
         var binder = new CodeGen.Binder(semanticModel, diagnostics);

@@ -85,15 +85,16 @@ public sealed class RecordLayoutBuilder
         {
             int groupSize = LayoutChildren(symbol, irRecord, offset);
             symbol.ElementSize = groupSize;
-            if (symbol.OccursCount > 1)
-                groupSize *= symbol.OccursCount;
+            int maxOccurs = symbol.Occurs?.MaxOccurs ?? 1;
+            if (maxOccurs > 1)
+                groupSize *= maxOccurs;
             return groupSize;
         }
 
         // Elementary item
         int elemSize = FieldSizeCalculator.ComputeElementSize(symbol);
         symbol.ElementSize = elemSize;
-        int totalSize = elemSize * Math.Max(1, symbol.OccursCount);
+        int totalSize = elemSize * (symbol.Occurs?.MaxOccurs ?? 1);
 
         var fieldType = MapToIrType(symbol, elemSize);
         var field = new IrField(symbol.Name, fieldType, offset, totalSize);

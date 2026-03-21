@@ -199,12 +199,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public override object? VisitLocalStorageSection(CobolParserCore.LocalStorageSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.LocalStorage;
         return base.VisitLocalStorageSection(ctx);
     }
 
     public override object? VisitLinkageSection(CobolParserCore.LinkageSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.LinkageSection;
         return base.VisitLinkageSection(ctx);
     }
 
@@ -472,8 +474,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        // Extract OCCURS count and BLANK WHEN ZERO from clauses
-        int occursCount = 1;
+        // Extract OCCURS clause, BLANK WHEN ZERO, JUSTIFIED from clauses
+        OccursInfo? occursInfo = null;
         bool blankWhenZero = false;
         bool justifiedRight = false;
         if (body?.dataDescriptionClauses() != null)
@@ -484,9 +486,58 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (occClause != null)
                 {
                     var intLits = occClause.integerLiteral();
+                    int maxOccurs = 1;
+                    int minOccurs = 0;
+                    string? dependingOn = null;
+
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
-                        occursCount = oc;
-                    // INDEXED BY names deferred until after DataSymbol creation (below)
+                        maxOccurs = oc;
+
+                    // OCCURS m TO n DEPENDING ON: first int = min, second int = max
+                    if (intLits.Length > 1 && int.TryParse(intLits[1].GetText(), out int oc2))
+                    {
+                        minOccurs = maxOccurs;
+                        maxOccurs = oc2;
+                    }
+                    else
+                    {
+                        minOccurs = maxOccurs;
+                    }
+
+                    // DEPENDING ON data-name
+                    var depRef = occClause.dataReference();
+                    if (depRef != null)
+                        dependingOn = depRef.GetText();
+
+                    // ASCENDING/DESCENDING KEY data-names
+                    var ascKeys = new List<string>();
+                    var descKeys = new List<string>();
+                    foreach (var keyClause in occClause.occursKeyClause())
+                    {
+                        bool isAscending = keyClause.ASCENDING() != null;
+                        foreach (var keyRef in keyClause.dataReference())
+                        {
+                            string keyName = keyRef.GetText();
+                            if (isAscending)
+                                ascKeys.Add(keyName);
+                            else
+                                descKeys.Add(keyName);
+                        }
+                    }
+
+                    // INDEXED BY names (captured here; index DataSymbols created below)
+                    var indexNames = new List<string>();
+                    if (occClause.dataReferenceList() is { } indexList)
+                    {
+                        foreach (var idCtx in indexList.dataReference())
+                            indexNames.Add(idCtx.GetText());
+                    }
+
+                    occursInfo = new OccursInfo(
+                        minOccurs, maxOccurs, dependingOn,
+                        ascKeys.Count > 0 ? ascKeys : null,
+                        descKeys.Count > 0 ? descKeys : null,
+                        indexNames.Count > 0 ? indexNames : null);
                 }
 
                 if (clause.blankWhenZeroClause() != null)
@@ -509,7 +560,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.HasExplicitUsage = hasExplicitUsage;
-        data.OccursCount = occursCount;
+        data.Occurs = occursInfo;
         data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
