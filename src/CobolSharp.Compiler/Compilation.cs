@@ -124,8 +124,8 @@ public sealed class Compilation
         foreach (var sw in semanticBuilder.ImplementorSwitches)
             model.RegisterImplementorSwitch(sw);
 
-        foreach (var gc in semanticBuilder.GenericClauses)
-            model.AddGenericClause(gc);
+        foreach (var ext in semanticBuilder.ExtensionClauses)
+            model.AddExtensionClause(ext);
 
         // Populate procedure symbols
         foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)

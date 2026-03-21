@@ -42,14 +42,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private Runtime.SignStorageKind? _deferredSignStorage;
     private FigurativeKind? _deferredFigurativeInit;
 
-    // Generic clauses captured during parsing (vendor extensions, unrecognized clauses)
-    private readonly List<GenericClauseNode> _genericClauses = [];
-    public IReadOnlyList<GenericClauseNode> GenericClauses => _genericClauses;
+    // Extension clauses captured during parsing (vendor extensions, unrecognized clauses)
+    private readonly List<ExtensionClauseNode> _extensionClauses = [];
+    public IReadOnlyList<ExtensionClauseNode> ExtensionClauses => _extensionClauses;
 
     private void CaptureGenericClause(CobolParserCore.GenericClauseContext? ctx, GenericClauseContext context)
     {
         if (ctx == null) return;
-        _genericClauses.Add(GenericClauseNode.FromParseTree(ctx, context, "<source>"));
+        _extensionClauses.Add(ExtensionClauseNode.FromParseTree(ctx, context, "<source>"));
     }
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
