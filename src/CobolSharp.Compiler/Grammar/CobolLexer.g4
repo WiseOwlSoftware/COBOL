@@ -256,6 +256,7 @@ SUPER       : 'SUPER' ;
 SYNC        : 'SYNC' ;
 SYNCHRONIZED: 'SYNCHRONIZED' ;
 TALLYING    : 'TALLYING' ;
+TEST        : 'TEST' ;
 THAN        : 'THAN' ;
 THEN        : 'THEN' ;
 THROUGH     : 'THROUGH' ;

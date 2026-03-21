@@ -867,6 +867,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitEvaluateSubject([NotNull] CobolParserCore.EvaluateSubjectContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classCondition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassCondition([NotNull] CobolParserCore.ClassConditionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

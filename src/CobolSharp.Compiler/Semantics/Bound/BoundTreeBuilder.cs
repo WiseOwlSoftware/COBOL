@@ -1225,10 +1225,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (tableExpr is not BoundIdentifierExpression tableId) return null;
 
         // Bind WHEN clauses
-        // SEARCH ALL has exactly one WHEN clause (spec-enforced in grammar)
         var whens = new List<BoundSearchWhenClause>();
-        var whenCtx = ctx.searchAllWhenClause();
-        if (whenCtx != null)
+        foreach (var whenCtx in ctx.searchAllWhenClause())
         {
             var cond = BindCondition(whenCtx.condition());
             var stmts = new List<BoundStatement>();

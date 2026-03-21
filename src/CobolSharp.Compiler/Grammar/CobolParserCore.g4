@@ -497,7 +497,7 @@ usageKeyword
 // OCCURS Clause
 occursClause
     : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
-      (DEPENDING ON dataReference)?
+      (DEPENDING ON? dataReference)?
       occursKeyClause*
       (INDEXED BY? dataReferenceList)?
     ;
@@ -854,11 +854,12 @@ performTimes
     ;
 
 performUntil
-    : UNTIL condition
+    : (WITH? TEST (BEFORE | AFTER))? UNTIL condition
     ;
 
 performVarying
-    : VARYING dataReference FROM arithmeticExpression
+    : (WITH? TEST (BEFORE | AFTER))?
+      VARYING dataReference FROM arithmeticExpression
       BY arithmeticExpression
       UNTIL condition
       performVaryingAfter*
@@ -883,6 +884,15 @@ evaluateStatement
 evaluateSubject
     : TRUE_                        // EVALUATE TRUE (condition-only mode)
     | arithmeticExpression
+    | classCondition               // EVALUATE WRK-FIELD NUMERIC
+    ;
+
+classCondition
+    : NUMERIC
+    | ALPHABETIC
+    | ALPHABETIC_LOWER
+    | ALPHABETIC_UPPER
+    | ALPHANUMERIC
     ;
 
 evaluateWhenClause
@@ -1648,7 +1658,7 @@ searchAllStatement
     : SEARCH ALL dataReference
       searchAllKeyPhrase?
       searchAtEndClause?
-      searchAllWhenClause
+      searchAllWhenClause+
       END_SEARCH?
     ;
 
