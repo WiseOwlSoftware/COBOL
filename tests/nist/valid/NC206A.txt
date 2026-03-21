@@ -1,0 +1,90 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC206A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ QUAL LIMITS          PASS  QAL-TEST-F1-1
+ QUAL LIMITS          PASS  QAL-TEST-F1-2
+ QUAL LIMITS          PASS  QAL-TEST-F1-3
+ QUAL LIMITS          PASS  QAL-TEST-F1-4
+ QUAL LIMITS          PASS  QAL-TEST-F1-5
+ QUAL LIMITS          PASS  QAL-TEST-F1-6
+ QUAL LIMITS          PASS  QAL-TEST-F1-7
+ QUAL LIMITS          PASS  QAL-TEST-F1-8
+ QUAL LIMITS          PASS  QAL-TEST-F1-9
+ QUAL LIMITS          PASS  QAL-TEST-F1-10
+ QUAL LIMITS          PASS  QAL-TEST-F1-11
+ QUAL LIMITS          PASS  QAL-TEST-F1-12
+ QUAL LIMITS          PASS  QAL-TEST-F1-13
+ QUAL LIMITS          PASS  QAL-TEST-F1-14
+ QUAL LIMITS          PASS  QAL-TEST-F1-15
+ QUAL LIMITS          PASS  QAL-TEST-F1-16
+ QUAL LIMITS          PASS  QAL-TEST-F1-17
+ QUAL LIMITS          PASS  QAL-TEST-F1-18
+ QUAL LIMITS          PASS  QAL-TEST-F1-19
+ QUAL LIMITS          PASS  QAL-TEST-F1-20
+ QUAL LIMITS          PASS  QAL-TEST-F1-21
+ QUAL LIMITS          PASS  QAL-TEST-F1-22
+ QUAL LIMITS          PASS  QAL-TEST-F1-23
+ QUAL LIMITS          PASS  QAL-TEST-F1-24
+ QUAL LIMITS          PASS  QAL-TEST-F1-25
+ QUAL LIMITS          PASS  QAL-TEST-F1-26
+ QUAL LIMITS          PASS  QAL-TEST-F1-27
+ QUAL LIMITS          PASS  QAL-TEST-F1-28
+ QUAL LIMITS          PASS  QAL-TEST-F1-29
+ QUAL LIMITS          PASS  QAL-TEST-F1-30
+ QUAL LIMITS          PASS  QAL-TEST-F1-31
+ QUAL LIMITS          PASS  QAL-TEST-F1-32
+ QUAL LIMITS          PASS  QAL-TEST-F1-33
+ QUAL LIMITS          PASS  QAL-TEST-F1-34
+ QUAL LIMITS          PASS  QAL-TEST-F1-35
+ QUAL LIMITS          PASS  QAL-TEST-F1-36
+ QUAL LIMITS          PASS  QAL-TEST-F1-37
+ QUAL LIMITS          PASS  QAL-TEST-F1-38
+ QUAL LIMITS          PASS  QAL-TEST-F1-39
+ QUAL LIMITS          PASS  QAL-TEST-F1-40
+ QUAL LIMITS          PASS  QAL-TEST-F1-41
+ QUAL LIMITS          PASS  QAL-TEST-F1-42
+ QUAL LIMITS          PASS  QAL-TEST-F1-43
+ QUAL LIMITS          PASS  QAL-TEST-F1-44
+ QUAL LIMITS          PASS  QAL-TEST-F1-45
+ QUAL LIMITS          PASS  QAL-TEST-F1-46
+ QUAL LIMITS          PASS  QAL-TEST-F1-47
+ QUAL LIMITS          PASS  QAL-TEST-F1-48
+ QUAL LIMITS          PASS  QAL-TEST-F1-49
+ ***********************************************************************************************************************
+
+
+
+
+ ***********************************************************************************************************************
+
+
+
+
+ QUALIFIED SUBSCRIPTS PASS  SUB-TEST-F1-1
+ QUALIFIED SUBSCRIPTS PASS  SUB-TEST-F1-2
+ QUALIFIED SUBSCRIPTS PASS  SUB-TEST-F1-3
+ QUALIFIED SUBSCRIPTS PASS  SUB-TEST-F1-4
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC206A
+
+                                                    053 OF 053  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

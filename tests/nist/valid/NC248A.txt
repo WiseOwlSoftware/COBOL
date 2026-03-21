@@ -1,0 +1,38 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC248A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SET ... TO           PASS  SET-TEST-F1-1
+ SET ... UP BY        PASS  SET-TEST-F2-2
+ SET ... DOWN BY      PASS  SET-TEST-F2-3
+ SET ... TO           PASS  SET-TEST-F1-4
+ SET ... UP BY        PASS  SET-TEST-F2-5
+ SET ... DOWN BY      PASS  SET-TEST-F2-6
+ SET ... DOWN BY      PASS  SET-TEST-F2-7
+ SET ... DOWN BY      PASS  SET-TEST-F2-8
+ SET ... DOWN BY      PASS  SET-TEST-F2-9      .01
+ SET ... DOWN BY      PASS  SET-TEST-F2-9      .02
+ SET ... DOWN BY      PASS  SET-TEST-F2-9      .03
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC248A
+
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
