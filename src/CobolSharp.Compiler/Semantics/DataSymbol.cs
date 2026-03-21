@@ -35,11 +35,12 @@ public sealed class DataSymbol : Symbol
     /// <summary>True if this item was declared as FILLER (unnamed placeholder for record layout).</summary>
     public bool IsFiller { get; }
 
-    /// <summary>True if this is a group item (has subordinate items, no PIC clause).</summary>
-    public bool IsGroup => PicString == null;
+    /// <summary>True if this is a group item (has subordinate items, no PIC clause).
+    /// USAGE INDEX items without children are elementary, not groups.</summary>
+    public bool IsGroup => PicString == null && !(Usage == Runtime.UsageKind.Index && Children.Count == 0);
 
-    /// <summary>True if this is an elementary item (has a PIC clause, no subordinates).</summary>
-    public bool IsElementary => PicString != null;
+    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX without children).</summary>
+    public bool IsElementary => PicString != null || (Usage == Runtime.UsageKind.Index && Children.Count == 0);
 
     /// <summary>Which DATA DIVISION storage area this item belongs to (WORKING-STORAGE, FILE SECTION, etc.).</summary>
     public StorageAreaKind Area { get; set; }

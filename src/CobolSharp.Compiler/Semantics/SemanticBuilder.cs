@@ -469,10 +469,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // Standalone elementary USAGE INDEX with no PIC: normalize to S9(9) COMP
-        // (same representation as INDEXED BY items) for consistent storage and comparison.
-        // Only for level 77 (always elementary). Group items with USAGE INDEX propagate
-        // usage to children — they must not get a synthetic PIC.
+        // Level-77 USAGE INDEX with no PIC: normalize to S9(9) COMP here (always elementary).
+        // Sub-level USAGE INDEX items are handled at layout time by FieldSizeCalculator +
+        // CompilerPicDescriptorFactory, since we don't know here whether they'll be groups.
         if (usage == Runtime.UsageKind.Index && picString == null && level == 77)
         {
             picString = "S9(9)";
