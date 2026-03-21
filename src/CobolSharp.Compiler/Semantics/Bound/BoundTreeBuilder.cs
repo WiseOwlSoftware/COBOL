@@ -1182,7 +1182,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement? BindSearch(CobolParserCore.SearchStatementContext ctx)
     {
-        var tableExpr = BindDataReferenceWithSubscripts(ctx.dataReference());
+        var dataRefs = ctx.dataReference();
+        var tableExpr = BindDataReferenceWithSubscripts(dataRefs[0]);
         if (tableExpr is not BoundIdentifierExpression tableId) return null;
 
         // Bind WHEN clauses

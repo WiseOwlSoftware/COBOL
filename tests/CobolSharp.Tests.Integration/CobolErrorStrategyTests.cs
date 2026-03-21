@@ -54,39 +54,7 @@ public sealed class CobolErrorStrategyTests
 
     // ── ASCENDING/DESCENDING KEY not supported ──
 
-    [Theory]
-    [InlineData("NC233A.cob", "ASCENDING")]
-    [InlineData("NC237A.cob", "ASCENDING")]
-    [InlineData("NC247A.cob", "ASCENDING")]
-    public void Detects_AscendingKeyNotSupported(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
-    // ── THROUGH/THRU not recognized ──
-
-    [Theory]
-    [InlineData("NC201A.cob", "THROUGH")]
-    [InlineData("NC250A.cob", "THROUGH")]
-    public void Detects_ThroughNotRecognized(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
     // ── Diagnostic code prefix assertions ──
-
-    [Fact]
-    public void AscendingKey_HasUnsupportedFeatureCode()
-    {
-        var diagnostics = CompileWithDiagnostics("NC233A.cob");
-        Assert.Contains(diagnostics, d => d.Code.StartsWith("COBOL01"));
-    }
 
     [Fact]
     public void StatusReserved_HasCode0200()

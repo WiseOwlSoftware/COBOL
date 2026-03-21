@@ -513,6 +513,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOccursClause([NotNull] CobolParserCore.OccursClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.occursKeyClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOccursKeyClause([NotNull] CobolParserCore.OccursKeyClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.timesKeyword"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

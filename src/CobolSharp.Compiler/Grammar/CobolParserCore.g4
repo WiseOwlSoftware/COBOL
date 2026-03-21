@@ -498,7 +498,12 @@ usageKeyword
 occursClause
     : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
       (DEPENDING ON dataReference)?
+      occursKeyClause*
       (INDEXED BY dataReferenceList)?
+    ;
+
+occursKeyClause
+    : (ASCENDING | DESCENDING) KEY? IS? dataReference+
     ;
 
 timesKeyword
@@ -526,7 +531,8 @@ valueClause
     ;
 
 valueItem
-    : literal (THRU literal)?
+    : literal ((THRU | THROUGH) literal)?
+    | literal+
     ;
 
 // SIGN Clause
@@ -1618,7 +1624,7 @@ inspectDelimiters
 // ==========================================
 
 searchStatement
-    : SEARCH dataReference
+    : SEARCH dataReference (VARYING dataReference)?
       searchAtEndClause?
       searchWhenClause+
       END_SEARCH?
