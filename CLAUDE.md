@@ -8,37 +8,42 @@ Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
-## Session Resume Context (updated 2026-03-18)
+## Session Resume Context (updated 2026-03-20)
 
 ### Current State
-- **Branch**: main
-- **Integration tests**: 169 pass, 1 skip
+- **Branch**: nist-phase-d
+- **Integration tests**: 182 pass, 1 skip
 - **Unit tests**: 119 pass
-- **NIST kernel tests passing 100%**: NC101A (94/94), NC102A (39/39), NC103A (103/103),
-  NC104A (141/141), NC105A (129/129), NC106A (127/127), NC116A (67/67), NC118A (30/30),
-  NC171A (109/109), NC176A (125/125) — 964 total
-- **Next NIST test to run**: NC107A
+- **NIST tests at 100%** (39 tests): NC101A-NC107A, NC111A, NC112A, NC115A-NC120A,
+  NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A,
+  NC170A-NC173A, NC175A-NC177A, NC202A, NC203A, NC206A, NC207A, NC210A, NC221A,
+  NC222A, NC224A, NC239A, NC240A, NC241A, NC248A, NC251A, NC253A
+- **Next**: Continue NIST sweep, fix NC121M subscripted DIVIDE, NC220M hang
 
-### What was just completed (2026-03-20)
-- ANTLR: caseInsensitive character class fix, OFF token, -lib tokenVocab fix
-- Implementor switches: full SPECIAL-NAMES pipeline (ImplementorSwitch → SemanticModel)
-- IrMoveFieldToField: canonical field-to-field MOVE primitive with carried PICs (replaces IrPicMove)
-- CorrespondingMatcher: extracted shared matching engine (FILLER, REDEFINES, qualification, OCCURS)
-- BoundCorrespondingStatement: unified node for MOVE/ADD/SUBTRACT CORRESPONDING
-- ADD/SUBTRACT CORRESPONDING: full pipeline through accumulator IR pattern
-- STRING binding: updated for delimitedByPhrase grammar, BindFigurativeConstantExpression extracted
+### What was done this session (2026-03-20)
+- Unified COBOLxxxx diagnostic codes across all compiler phases
+- Grammar: NOT=/NOT>/NOT<, multi-target SET, SET BY arithmeticExpression
+- Grammar rename: 17 production-quality rule names (dataReference, comparisonExpression, etc.)
+- CONTINUE statement bound as no-op
+- SET BY expression: TryEvalConstant for compile-time folding (-5, +5)
+- Silent fallthrough elimination in LowerSetIndex (COBOL05xx diagnostics)
+- USAGE INDEX: IsElementary/IsGroup fix, FieldSizeCalculator, CompilerPicDescriptorFactory
+- DIVIDE: SafeRemainder (div/0), COBOL REMAINDER semantics (stored quotient truncation),
+  IrCobolRemainder instruction, numeric edited formatting, non-GIVING accumulator pattern
+- Error listener: 20-error cap, [COBOLxxxx] code extraction
 
 ### Key architectural decisions
-- IrMoveFieldToField carries resolved PICs — emitter uses carried PICs, no late-binding lookups
-- CorrespondingMatcher is a standalone static class reusable by all CORRESPONDING operations
-- BoundCorrespondingStatement uses CorrespondingKind discriminant (not 3 separate classes)
-- Group-scoped OCCURS checking (stops at CORRESPONDING group operand, not root)
-- No IrMoveFieldSpan batching — raw byte copy unsafe for heterogeneous PICs
-- Accumulator pattern for ADD/SUBTRACT CORRESPONDING (consistent with scalar arithmetic)
-- Group items are ALWAYS alphanumeric for MOVE and COMPARE (ISO §6.4.2)
-- Encoding.Latin1 for byte↔string in comparisons (not ASCII)
+- IrCobolRemainder carries quotient accumulator + GIVING fraction digits (no read-back from edited fields)
+- BoundCompoundStatement for multi-target SET desugaring
+- TryEvalConstant for compile-time decimal constant folding in expressions
+- USAGE INDEX normalized to S9(9) COMP: level-77 in SemanticBuilder, sub-level in layout layer
 
 ### Known gaps
 - CALL/USING/RETURNING (parse only, not bound/lowered)
 - SORT/MERGE (parse only)
 - Alternate keys (not parsed)
+- VALUE THRU in level-88 (grammar gap — NC201A, NC250A, NC252A)
+- ASCENDING/DESCENDING KEY in OCCURS (NC233A, NC237A, NC238A, NC247A)
+- STATUS/PROGRAM as paragraph names (reserved word conflicts)
+- Subscripted operands in DIVIDE GIVING (NC121M)
+- NC220M infinite loop at runtime
