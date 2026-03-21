@@ -1,0 +1,52 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC133A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ INDEXING             PASS  TABLE BUILD                   TABLE CREATED CORRECTLY
+ INDEXING             PASS  IDX-TEST-1
+ INDEXING             PASS  IDX-TEST-2
+ INDEXING             PASS  IDX-TEST-3
+ INDEXING             PASS  IDX-TEST-4
+ INDEXING             PASS  IDX-TEST-5
+ SET STATEMENT        PASS  IDX-TEST-6
+ SET STATEMENT        PASS  IDX-TEST-7
+ SET STATEMENT        PASS  IDX-TEST-8
+ SET STATEMENT        PASS  IDX-TEST-9
+ SET STATEMENT        PASS  IDX-TEST-10
+ SET STATEMENT        PASS  IDX-TEST-11
+ SET STATEMENT        PASS  IDX-TEST-12
+ SET STATEMENT        PASS  IDX-TEST-13
+ SET STATEMENT        PASS  IDX-TEST-14
+ SET STATEMENT        PASS  IDX-TEST-15
+ SET STATEMENT        PASS  IDX-TEST-16
+ SET STATEMENT        PASS  IDX-TEST-17
+ SET STATEMENT        PASS  IDX-TEST-18
+ SET STATEMENT        PASS  IDX-TEST-19
+ SET STATEMENT        PASS  IDX-TEST-20
+ SET STATEMENT        PASS  IDX-TEST-21
+ SET STATEMENT        PASS  IDX-TEST-22
+ SET STATEMENT        PASS  IDX-TEST-23
+ SET STATEMENT        PASS  IDX-TEST-24
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC133A
+
+                                                    025 OF 025  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

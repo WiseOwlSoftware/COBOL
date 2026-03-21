@@ -499,7 +499,7 @@ occursClause
     : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
       (DEPENDING ON dataReference)?
       occursKeyClause*
-      (INDEXED BY dataReferenceList)?
+      (INDEXED BY? dataReferenceList)?
     ;
 
 occursKeyClause
@@ -1637,6 +1637,7 @@ searchWhenClause
 searchAtEndClause
     : AT END statementBlock
       (NOT AT END statementBlock)?
+    | END statementBlock        // NIST / IBM extension: AT-less END
     ;
 
 // ==========================================

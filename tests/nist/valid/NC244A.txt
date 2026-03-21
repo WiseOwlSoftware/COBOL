@@ -1,0 +1,33 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC244A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ RELATIVE INDEXING    PASS  IDX-TEST-F1-1
+ SET DN BY COMP ITEM  PASS  IDX-TEST-F2-2
+ SET UP BY COMP ITEM  PASS  IDX-TEST-F2-3
+ MULT OPERND SET STMT PASS  IDX-TEST-F2-4
+ PFM VARYNG COMP ITEM PASS  IDX-TEST-F2-5
+ PFM VARYNG COMP ITEM PASS  IDX-TEST-F2-6
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC244A
+
+                                                    006 OF 006  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
