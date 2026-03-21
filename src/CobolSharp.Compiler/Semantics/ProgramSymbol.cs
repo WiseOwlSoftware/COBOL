@@ -165,3 +165,48 @@ public sealed class ConditionValue
 /// A single value or inclusive THRU range in a level-88 VALUE clause.
 /// </summary>
 public sealed record ConditionValueRange(ConditionValue From, ConditionValue? To);
+
+/// <summary>
+/// Parameter passing mode for CALL USING arguments.
+/// </summary>
+public enum ParameterMode
+{
+    ByReference,
+    ByContent,
+    ByValue,
+}
+
+/// <summary>
+/// Represents a callable procedure prototype for static CALL validation.
+/// </summary>
+public sealed class ProcedureSymbol : Symbol
+{
+    public IReadOnlyList<ProcedureParameter> Parameters { get; }
+    public DataSymbol? Returning { get; }
+
+    public ProcedureSymbol(string name, int line,
+        IReadOnlyList<ProcedureParameter>? parameters = null,
+        DataSymbol? returning = null)
+        : base(name, SymbolKind.Program, line)
+    {
+        Parameters = parameters ?? [];
+        Returning = returning;
+    }
+}
+
+/// <summary>
+/// One parameter in a ProcedureSymbol's USING list.
+/// </summary>
+public sealed class ProcedureParameter
+{
+    public string Name { get; }
+    public ParameterMode Mode { get; }
+    public DataSymbol? DataItem { get; }
+
+    public ProcedureParameter(string name, ParameterMode mode, DataSymbol? dataItem = null)
+    {
+        Name = name;
+        Mode = mode;
+        DataItem = dataItem;
+    }
+}

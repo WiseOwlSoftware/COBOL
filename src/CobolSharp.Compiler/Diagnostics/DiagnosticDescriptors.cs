@@ -65,7 +65,7 @@ public static partial class DiagnosticDescriptors
         "SEARCH ALL on non-table item '{0}'");
     public static readonly DiagnosticDescriptor CBL1203 = new("CBL1203", DiagnosticSeverity.Error,
         "KEY '{0}' not an OCCURS key of table '{1}'");
-    public static readonly DiagnosticDescriptor CBL1204 = new("CBL1204", DiagnosticSeverity.Error,
+    public static readonly DiagnosticDescriptor CBL1204 = new("CBL1204", DiagnosticSeverity.Warning,
         "SEARCH ALL requires KEY phrase or OCCURS key for '{0}'");
     public static readonly DiagnosticDescriptor CBL1205 = new("CBL1205", DiagnosticSeverity.Error,
         "SEARCH ALL WHEN must be simple key comparison");

@@ -72,6 +72,9 @@ public sealed class Binder
         var builder = new BoundTreeBuilder(_semantic, _diagnostics);
         var boundProgram = builder.Build(tree);
 
+        // Phase 1.5: Flow analysis on bound program
+        Semantics.ProcedureGraph.Analyze(boundProgram, _semantic, _diagnostics);
+
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);

@@ -22,6 +22,7 @@ public static class DataItemClassifier
             ValidateOccurs(data, loc, span, diagnostics, model);
             ValidateBlankWhenZero(data, loc, span, diagnostics);
             ValidateJustified(data, loc, span, diagnostics);
+            ValidateValueClause(data, loc, span, diagnostics);
         }
     }
 
@@ -116,6 +117,35 @@ public static class DataItemClassifier
         if (!data.IsElementary || data.ResolvedType?.IsAlphanumeric != true)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0803, loc, span, data.DisplayName);
+        }
+    }
+
+    private static void ValidateValueClause(DataSymbol data, SourceLocation loc, TextSpan span,
+        DiagnosticBag diagnostics)
+    {
+        if (data.InitialValue == null && data.FigurativeInit == null) return;
+        if (data.LevelNumber == 88) return; // Condition values validated separately
+
+        // VALUE on group item → warning (ISO allows it but it's an extension)
+        if (data.IsGroup)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL1001, loc, span, data.DisplayName);
+            return;
+        }
+
+        // VALUE type vs data category compatibility
+        if (data.InitialValue != null && data.ResolvedType != null)
+        {
+            bool isNumericValue = decimal.TryParse(data.InitialValue,
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
+                System.Globalization.CultureInfo.InvariantCulture, out _);
+            bool isNumericItem = data.ResolvedType.IsNumeric;
+
+            // String value on numeric item (not figurative zero)
+            if (!isNumericValue && isNumericItem && data.FigurativeInit == null)
+            {
+                diagnostics.Report(DiagnosticDescriptors.CBL1002, loc, span, data.DisplayName);
+            }
         }
     }
 }

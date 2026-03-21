@@ -1078,7 +1078,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             converting = new BoundInspectConverting(fromSet, toSet, region);
         }
 
-        return new BoundInspectStatement(targetId, tallying, replacing, converting);
+        var inspectStmt = new BoundInspectStatement(targetId, tallying, replacing, converting);
+        ValidateInspectStatement(inspectStmt, ctx.Start?.Line ?? 0);
+        return inspectStmt;
     }
 
     private InspectPatternValue? ExtractInspectPattern(CobolParserCore.InspectCharContext? ctx)
@@ -1293,7 +1295,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract index: find the first subscript used on a table element in WHEN conditions
         var index = ExtractSearchIndex(tableId.Symbol, whens);
 
-        return new BoundSearchStatement(tableId, index, whens, atEnd);
+        var searchStmt = new BoundSearchStatement(tableId, index, whens, atEnd);
+        ValidateSearchStatement(searchStmt, ctx.Start?.Line ?? 0);
+        return searchStmt;
     }
 
     private BoundStatement? BindSearchAll(CobolParserCore.SearchAllStatementContext ctx)
@@ -1331,7 +1335,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract index from WHEN conditions
         var index = ExtractSearchIndex(tableId.Symbol, whens);
 
-        return new BoundSearchAllStatement(tableId, index, whens, atEnd);
+        var searchAllStmt = new BoundSearchAllStatement(tableId, index, whens, atEnd);
+        ValidateSearchAllStatement(searchAllStmt, ctx.Start?.Line ?? 0);
+        return searchAllStmt;
     }
 
     /// <summary>
@@ -1483,7 +1489,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundStringStatement(sendings, intoExpr, pointer, onOverflow, notOnOverflow);
+        var stringStmt = new BoundStringStatement(sendings, intoExpr, pointer, onOverflow, notOnOverflow);
+        ValidateStringStatement(stringStmt, ctx.Start?.Line ?? 0);
+        return stringStmt;
     }
 
     // ── UNSTRING ──
@@ -1562,8 +1570,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundUnstringStatement(sourceExpr, delimiter, delimitedByAll,
+        var unstringStmt = new BoundUnstringStatement(sourceExpr, delimiter, delimitedByAll,
             intos, pointer, tallying, onOverflow, notOnOverflow);
+        ValidateUnstringStatement(unstringStmt, ctx.Start?.Line ?? 0);
+        return unstringStmt;
     }
 
     // ── SET ──
@@ -2674,6 +2684,81 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var span = new Common.TextSpan(0, 0);
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, _diagnostics, loc, span);
         return stmt;
+    }
+
+    // ═══════════════════════════════════
+    // Statement-level semantic validation
+    // ═══════════════════════════════════
+
+    private (Common.SourceLocation loc, Common.TextSpan span) DiagAt(int line)
+        => (new Common.SourceLocation("<source>", 0, line, 0), new Common.TextSpan(0, 0));
+
+    private void ValidateStringStatement(BoundStringStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // INTO must be alphanumeric or group
+        if (stmt.Into is BoundIdentifierExpression intoId && !intoId.Symbol.IsGroup
+            && intoId.Category != CobolCategory.Alphanumeric
+            && intoId.Category != CobolCategory.AlphanumericEdited)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1301, loc, span);
+        // POINTER must be integer numeric
+        if (stmt.Pointer is BoundIdentifierExpression ptrId
+            && !CategoryCompatibility.IsNumericFamily(ptrId.Category))
+            _diagnostics.Report(DiagnosticDescriptors.CBL1304, loc, span);
+    }
+
+    private void ValidateUnstringStatement(BoundUnstringStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Source must be alphanumeric or group
+        if (stmt.Source is BoundIdentifierExpression srcId && !srcId.Symbol.IsGroup
+            && srcId.Category != CobolCategory.Alphanumeric
+            && srcId.Category != CobolCategory.AlphanumericEdited)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1401, loc, span);
+        // POINTER must be integer numeric
+        if (stmt.Pointer is BoundIdentifierExpression ptrId
+            && !CategoryCompatibility.IsNumericFamily(ptrId.Category))
+            _diagnostics.Report(DiagnosticDescriptors.CBL1405, loc, span);
+        // TALLYING must be integer numeric
+        if (stmt.Tallying is BoundIdentifierExpression tallyId
+            && !CategoryCompatibility.IsNumericFamily(tallyId.Category))
+            _diagnostics.Report(DiagnosticDescriptors.CBL1406, loc, span);
+    }
+
+    private void ValidateInspectStatement(BoundInspectStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Target must be alphanumeric or group
+        if (stmt.Target.Symbol.IsElementary
+            && stmt.Target.Category != CobolCategory.Alphanumeric
+            && stmt.Target.Category != CobolCategory.AlphanumericEdited)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1501, loc, span);
+        // TALLYING counters must be integer numeric
+        foreach (var item in stmt.Tallying)
+        {
+            if (!CategoryCompatibility.IsNumericFamily(item.Counter.Category))
+                _diagnostics.Report(DiagnosticDescriptors.CBL1502, loc, span);
+        }
+    }
+
+    private void ValidateSearchStatement(BoundSearchStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Table must have OCCURS
+        if (stmt.Table.Symbol.Occurs == null)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1105, loc, span, stmt.Table.Symbol.DisplayName);
+    }
+
+    private void ValidateSearchAllStatement(BoundSearchAllStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Table must have OCCURS
+        if (stmt.Table.Symbol.Occurs == null)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1202, loc, span, stmt.Table.Symbol.DisplayName);
+        // Table must have KEY clause
+        var occurs = stmt.Table.Symbol.Occurs;
+        if (occurs != null && occurs.AscendingKeys.Count == 0 && occurs.DescendingKeys.Count == 0)
+            _diagnostics.Report(DiagnosticDescriptors.CBL1204, loc, span, stmt.Table.Symbol.DisplayName);
     }
 
     /// <summary>
