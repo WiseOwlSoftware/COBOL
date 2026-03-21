@@ -231,498 +231,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitComputerAttributes([NotNull] CobolParserCore.ComputerAttributesContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.specialNamesParagraph"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSpecialNamesParagraph([NotNull] CobolParserCore.SpecialNamesParagraphContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.specialNameEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSpecialNameEntry([NotNull] CobolParserCore.SpecialNameEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.implementorSwitchEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitImplementorSwitchEntry([NotNull] CobolParserCore.ImplementorSwitchEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCurrencySignClause([NotNull] CobolParserCore.CurrencySignClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.decimalPointClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDecimalPointClause([NotNull] CobolParserCore.DecimalPointClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.classDefinitionClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitClassDefinitionClause([NotNull] CobolParserCore.ClassDefinitionClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.classValueSet"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitClassValueSet([NotNull] CobolParserCore.ClassValueSetContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.classValueItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitClassValueItem([NotNull] CobolParserCore.ClassValueItemContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.symbolicCharactersClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSymbolicCharactersClause([NotNull] CobolParserCore.SymbolicCharactersClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.symbolicCharacterEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSymbolicCharacterEntry([NotNull] CobolParserCore.SymbolicCharacterEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.alphabetClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlphabetClause([NotNull] CobolParserCore.AlphabetClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.alphabetDefinition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlphabetDefinition([NotNull] CobolParserCore.AlphabetDefinitionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.crtStatusClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCrtStatusClause([NotNull] CobolParserCore.CrtStatusClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.cursorClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCursorClause([NotNull] CobolParserCore.CursorClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.channelClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitChannelClause([NotNull] CobolParserCore.ChannelClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reserveClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReserveClause([NotNull] CobolParserCore.ReserveClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorConfigurationParagraph"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitVendorConfigurationParagraph([NotNull] CobolParserCore.VendorConfigurationParagraphContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.inputOutputSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInputOutputSection([NotNull] CobolParserCore.InputOutputSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlParagraph"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileControlParagraph([NotNull] CobolParserCore.FileControlParagraphContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlClauseGroup"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileControlClauseGroup([NotNull] CobolParserCore.FileControlClauseGroupContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.assignTarget"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAssignTarget([NotNull] CobolParserCore.AssignTargetContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlClauses"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileControlClauses([NotNull] CobolParserCore.FileControlClausesContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.organizationClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOrganizationClause([NotNull] CobolParserCore.OrganizationClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.organizationType"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOrganizationType([NotNull] CobolParserCore.OrganizationTypeContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.accessModeClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAccessModeClause([NotNull] CobolParserCore.AccessModeClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.accessMode"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAccessMode([NotNull] CobolParserCore.AccessModeContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.recordKeyClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitRecordKeyClause([NotNull] CobolParserCore.RecordKeyClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.alternateKeyClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlternateKeyClause([NotNull] CobolParserCore.AlternateKeyClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileStatusClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileStatusClause([NotNull] CobolParserCore.FileStatusClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorFileControlClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitVendorFileControlClause([NotNull] CobolParserCore.VendorFileControlClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlParagraph"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIoControlParagraph([NotNull] CobolParserCore.IoControlParagraphContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIoControlEntry([NotNull] CobolParserCore.IoControlEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDivision"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataDivision([NotNull] CobolParserCore.DataDivisionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileSection([NotNull] CobolParserCore.FileSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileDescriptionEntry([NotNull] CobolParserCore.FileDescriptionEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportSection([NotNull] CobolParserCore.ReportSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportDescriptionEntry([NotNull] CobolParserCore.ReportDescriptionEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportName"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportName([NotNull] CobolParserCore.ReportNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClauses"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportDescriptionClauses([NotNull] CobolParserCore.ReportDescriptionClausesContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportDescriptionClause([NotNull] CobolParserCore.ReportDescriptionClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportGroupEntry([NotNull] CobolParserCore.ReportGroupEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupName"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportGroupName([NotNull] CobolParserCore.ReportGroupNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupBody"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportGroupBody([NotNull] CobolParserCore.ReportGroupBodyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportGroupClause([NotNull] CobolParserCore.ReportGroupClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportTypeClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportTypeClause([NotNull] CobolParserCore.ReportTypeClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSumClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportSumClause([NotNull] CobolParserCore.ReportSumClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.sumItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSumItem([NotNull] CobolParserCore.SumItemContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericReportGroupClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGenericReportGroupClause([NotNull] CobolParserCore.GenericReportGroupClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionClauses"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileDescriptionClauses([NotNull] CobolParserCore.FileDescriptionClausesContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFileDescriptionClause([NotNull] CobolParserCore.FileDescriptionClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataRecordsClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataRecordsClause([NotNull] CobolParserCore.DataRecordsClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericFileDescriptionClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGenericFileDescriptionClause([NotNull] CobolParserCore.GenericFileDescriptionClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.workingStorageSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWorkingStorageSection([NotNull] CobolParserCore.WorkingStorageSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.localStorageSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLocalStorageSection([NotNull] CobolParserCore.LocalStorageSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageSection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLinkageSection([NotNull] CobolParserCore.LinkageSectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLinkageEntry([NotNull] CobolParserCore.LinkageEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageProcedureParameter"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLinkageProcedureParameter([NotNull] CobolParserCore.LinkageProcedureParameterContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.parameterDescriptionBody"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitParameterDescriptionBody([NotNull] CobolParserCore.ParameterDescriptionBodyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.parameterPassingClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitParameterPassingClause([NotNull] CobolParserCore.ParameterPassingClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataDescriptionEntry([NotNull] CobolParserCore.DataDescriptionEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.levelNumber"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLevelNumber([NotNull] CobolParserCore.LevelNumberContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataName"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataName([NotNull] CobolParserCore.DataNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionBody"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataDescriptionBody([NotNull] CobolParserCore.DataDescriptionBodyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionClauses"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataDescriptionClauses([NotNull] CobolParserCore.DataDescriptionClausesContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDataDescriptionClause([NotNull] CobolParserCore.DataDescriptionClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.typeClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitTypeClause([NotNull] CobolParserCore.TypeClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericDataClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGenericDataClause([NotNull] CobolParserCore.GenericDataClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.pictureClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPictureClause([NotNull] CobolParserCore.PictureClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.usageClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUsageClause([NotNull] CobolParserCore.UsageClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.usageKeyword"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUsageKeyword([NotNull] CobolParserCore.UsageKeywordContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.occursClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOccursClause([NotNull] CobolParserCore.OccursClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.occursKeyClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOccursKeyClause([NotNull] CobolParserCore.OccursKeyClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.timesKeyword"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitTimesKeyword([NotNull] CobolParserCore.TimesKeywordContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.integerLiteral"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIntegerLiteral([NotNull] CobolParserCore.IntegerLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.redefinesClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitRedefinesClause([NotNull] CobolParserCore.RedefinesClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.renamesClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitRenamesClause([NotNull] CobolParserCore.RenamesClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitValueClause([NotNull] CobolParserCore.ValueClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitValueItem([NotNull] CobolParserCore.ValueItemContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.signClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSignClause([NotNull] CobolParserCore.SignClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.justifiedClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitJustifiedClause([NotNull] CobolParserCore.JustifiedClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.syncClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSyncClause([NotNull] CobolParserCore.SyncClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.blankWhenZeroClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitBlankWhenZeroClause([NotNull] CobolParserCore.BlankWhenZeroClauseContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureDivision"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -849,6 +357,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitParagraphName([NotNull] CobolParserCore.ParagraphNameContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitProcedureName([NotNull] CobolParserCore.ProcedureNameContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.statement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -860,246 +374,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStatementBlock([NotNull] CobolParserCore.StatementBlockContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.alterStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlterStatement([NotNull] CobolParserCore.AlterStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.alterEntry"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAlterEntry([NotNull] CobolParserCore.AlterEntryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.useStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUseStatement([NotNull] CobolParserCore.UseStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadStatement([NotNull] CobolParserCore.ReadStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readDirection"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadDirection([NotNull] CobolParserCore.ReadDirectionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readInto"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadInto([NotNull] CobolParserCore.ReadIntoContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readKey"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadKey([NotNull] CobolParserCore.ReadKeyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readAtEnd"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadAtEnd([NotNull] CobolParserCore.ReadAtEndContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.readInvalidKey"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReadInvalidKey([NotNull] CobolParserCore.ReadInvalidKeyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.writeStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWriteStatement([NotNull] CobolParserCore.WriteStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.writeFrom"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWriteFrom([NotNull] CobolParserCore.WriteFromContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.writeBeforeAfter"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWriteBeforeAfter([NotNull] CobolParserCore.WriteBeforeAfterContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.writeInvalidKey"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWriteInvalidKey([NotNull] CobolParserCore.WriteInvalidKeyContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.openStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOpenStatement([NotNull] CobolParserCore.OpenStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.openClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOpenClause([NotNull] CobolParserCore.OpenClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.openMode"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitOpenMode([NotNull] CobolParserCore.OpenModeContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.closeStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCloseStatement([NotNull] CobolParserCore.CloseStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.ifStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIfStatement([NotNull] CobolParserCore.IfStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformStatement([NotNull] CobolParserCore.PerformStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performTarget"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformTarget([NotNull] CobolParserCore.PerformTargetContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.procedureName"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitProcedureName([NotNull] CobolParserCore.ProcedureNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performOptions"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformOptions([NotNull] CobolParserCore.PerformOptionsContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performTimes"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformTimes([NotNull] CobolParserCore.PerformTimesContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performUntil"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformUntil([NotNull] CobolParserCore.PerformUntilContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performVarying"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformVarying([NotNull] CobolParserCore.PerformVaryingContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.performVaryingAfter"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPerformVaryingAfter([NotNull] CobolParserCore.PerformVaryingAfterContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEvaluateStatement([NotNull] CobolParserCore.EvaluateStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateSubject"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEvaluateSubject([NotNull] CobolParserCore.EvaluateSubjectContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.classCondition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitClassCondition([NotNull] CobolParserCore.ClassConditionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenClause"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEvaluateWhenClause([NotNull] CobolParserCore.EvaluateWhenClauseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenGroup"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEvaluateWhenGroup([NotNull] CobolParserCore.EvaluateWhenGroupContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEvaluateWhenItem([NotNull] CobolParserCore.EvaluateWhenItemContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComputeStatement([NotNull] CobolParserCore.ComputeStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStore"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComputeStore([NotNull] CobolParserCore.ComputeStoreContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.computeOnSizeError"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComputeOnSizeError([NotNull] CobolParserCore.ComputeOnSizeErrorContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.continueStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitContinueStatement([NotNull] CobolParserCore.ContinueStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.nextSentenceStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitNextSentenceStatement([NotNull] CobolParserCore.NextSentenceStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.inlineMethodInvocationStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInlineMethodInvocationStatement([NotNull] CobolParserCore.InlineMethodInvocationStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.argumentList"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitArgumentList([NotNull] CobolParserCore.ArgumentListContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.argument"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitArgument([NotNull] CobolParserCore.ArgumentContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.receivingOperand"/>.
 	/// </summary>
@@ -1251,6 +525,24 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDivideRemainderPhrase([NotNull] CobolParserCore.DivideRemainderPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComputeStatement([NotNull] CobolParserCore.ComputeStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.computeStore"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComputeStore([NotNull] CobolParserCore.ComputeStoreContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.computeOnSizeError"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComputeOnSizeError([NotNull] CobolParserCore.ComputeOnSizeErrorContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.moveStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1268,78 +560,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitMoveReceivingPhrase([NotNull] CobolParserCore.MoveReceivingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stringStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStringStatement([NotNull] CobolParserCore.StringStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stringSendingPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStringSendingPhrase([NotNull] CobolParserCore.StringSendingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.delimitedByPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDelimitedByPhrase([NotNull] CobolParserCore.DelimitedByPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stringIntoPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStringIntoPhrase([NotNull] CobolParserCore.StringIntoPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stringWithPointer"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStringWithPointer([NotNull] CobolParserCore.StringWithPointerContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stringOnOverflow"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStringOnOverflow([NotNull] CobolParserCore.StringOnOverflowContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringStatement([NotNull] CobolParserCore.UnstringStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringDelimiterPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringDelimiterPhrase([NotNull] CobolParserCore.UnstringDelimiterPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringIntoPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringIntoPhrase([NotNull] CobolParserCore.UnstringIntoPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringWithPointer"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringWithPointer([NotNull] CobolParserCore.UnstringWithPointerContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringTallying"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringTallying([NotNull] CobolParserCore.UnstringTallyingContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringOnOverflow"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnstringOnOverflow([NotNull] CobolParserCore.UnstringOnOverflowContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.callStatement"/>.
 	/// </summary>
@@ -1443,6 +663,888 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSetIndexStatement([NotNull] CobolParserCore.SetIndexStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.acceptStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAcceptStatement([NotNull] CobolParserCore.AcceptStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.acceptSource"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAcceptSource([NotNull] CobolParserCore.AcceptSourceContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.displayStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDisplayStatement([NotNull] CobolParserCore.DisplayStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.gobackStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGobackStatement([NotNull] CobolParserCore.GobackStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.exceptionPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExceptionPhrase([NotNull] CobolParserCore.ExceptionPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.onExceptionPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOnExceptionPhrase([NotNull] CobolParserCore.OnExceptionPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.notOnExceptionPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNotOnExceptionPhrase([NotNull] CobolParserCore.NotOnExceptionPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueOperand([NotNull] CobolParserCore.ValueOperandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueRange"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueRange([NotNull] CobolParserCore.ValueRangeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.booleanLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBooleanLiteral([NotNull] CobolParserCore.BooleanLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.signCondition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSignCondition([NotNull] CobolParserCore.SignConditionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.condition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCondition([NotNull] CobolParserCore.ConditionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalOrExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLogicalOrExpression([NotNull] CobolParserCore.LogicalOrExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalAndExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLogicalAndExpression([NotNull] CobolParserCore.LogicalAndExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryLogicalExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUnaryLogicalExpression([NotNull] CobolParserCore.UnaryLogicalExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.primaryCondition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPrimaryCondition([NotNull] CobolParserCore.PrimaryConditionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComparisonOperand([NotNull] CobolParserCore.ComparisonOperandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComparisonExpression([NotNull] CobolParserCore.ComparisonExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.className"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassName([NotNull] CobolParserCore.ClassNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classCondition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassCondition([NotNull] CobolParserCore.ClassConditionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperator"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitComparisonOperator([NotNull] CobolParserCore.ComparisonOperatorContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArithmeticExpression([NotNull] CobolParserCore.ArithmeticExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.additiveExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAdditiveExpression([NotNull] CobolParserCore.AdditiveExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.addOp"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAddOp([NotNull] CobolParserCore.AddOpContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplicativeExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultiplicativeExpression([NotNull] CobolParserCore.MultiplicativeExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.mulOp"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMulOp([NotNull] CobolParserCore.MulOpContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.powerExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPowerExpression([NotNull] CobolParserCore.PowerExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUnaryExpression([NotNull] CobolParserCore.UnaryExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.primaryExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPrimaryExpression([NotNull] CobolParserCore.PrimaryExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.functionCall"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunctionCall([NotNull] CobolParserCore.FunctionCallContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.argumentList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArgumentList([NotNull] CobolParserCore.ArgumentListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.argument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArgument([NotNull] CobolParserCore.ArgumentContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.literal"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLiteral([NotNull] CobolParserCore.LiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNumericLiteral([NotNull] CobolParserCore.NumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.nonNumericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNonNumericLiteral([NotNull] CobolParserCore.NonNumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.signedNumericLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSignedNumericLiteral([NotNull] CobolParserCore.SignedNumericLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteralCore"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNumericLiteralCore([NotNull] CobolParserCore.NumericLiteralCoreContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.integerLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIntegerLiteral([NotNull] CobolParserCore.IntegerLiteralContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.figurativeConstant"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFigurativeConstant([NotNull] CobolParserCore.FigurativeConstantContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDivision"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataDivision([NotNull] CobolParserCore.DataDivisionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileSection([NotNull] CobolParserCore.FileSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileDescriptionEntry([NotNull] CobolParserCore.FileDescriptionEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionClauses"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileDescriptionClauses([NotNull] CobolParserCore.FileDescriptionClausesContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileDescriptionClause([NotNull] CobolParserCore.FileDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataRecordsClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataRecordsClause([NotNull] CobolParserCore.DataRecordsClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.genericFileDescriptionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGenericFileDescriptionClause([NotNull] CobolParserCore.GenericFileDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.workingStorageSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWorkingStorageSection([NotNull] CobolParserCore.WorkingStorageSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.localStorageSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLocalStorageSection([NotNull] CobolParserCore.LocalStorageSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinkageSection([NotNull] CobolParserCore.LinkageSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinkageEntry([NotNull] CobolParserCore.LinkageEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linkageProcedureParameter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinkageProcedureParameter([NotNull] CobolParserCore.LinkageProcedureParameterContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.parameterDescriptionBody"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitParameterDescriptionBody([NotNull] CobolParserCore.ParameterDescriptionBodyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.parameterPassingClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitParameterPassingClause([NotNull] CobolParserCore.ParameterPassingClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataDescriptionEntry([NotNull] CobolParserCore.DataDescriptionEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.levelNumber"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLevelNumber([NotNull] CobolParserCore.LevelNumberContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataName([NotNull] CobolParserCore.DataNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionBody"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataDescriptionBody([NotNull] CobolParserCore.DataDescriptionBodyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionClauses"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataDescriptionClauses([NotNull] CobolParserCore.DataDescriptionClausesContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.dataDescriptionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDataDescriptionClause([NotNull] CobolParserCore.DataDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.typeClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTypeClause([NotNull] CobolParserCore.TypeClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.genericDataClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGenericDataClause([NotNull] CobolParserCore.GenericDataClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.pictureClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPictureClause([NotNull] CobolParserCore.PictureClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.usageClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUsageClause([NotNull] CobolParserCore.UsageClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.usageKeyword"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUsageKeyword([NotNull] CobolParserCore.UsageKeywordContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.occursClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOccursClause([NotNull] CobolParserCore.OccursClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.occursKeyClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOccursKeyClause([NotNull] CobolParserCore.OccursKeyClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.timesKeyword"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitTimesKeyword([NotNull] CobolParserCore.TimesKeywordContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.redefinesClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRedefinesClause([NotNull] CobolParserCore.RedefinesClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.renamesClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRenamesClause([NotNull] CobolParserCore.RenamesClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueClause([NotNull] CobolParserCore.ValueClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueItem([NotNull] CobolParserCore.ValueItemContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.signClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSignClause([NotNull] CobolParserCore.SignClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.justifiedClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitJustifiedClause([NotNull] CobolParserCore.JustifiedClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.syncClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSyncClause([NotNull] CobolParserCore.SyncClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.blankWhenZeroClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBlankWhenZeroClause([NotNull] CobolParserCore.BlankWhenZeroClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInitializeStatement([NotNull] CobolParserCore.InitializeStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeReplacingPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInitializeReplacingPhrase([NotNull] CobolParserCore.InitializeReplacingPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeReplacingItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInitializeReplacingItem([NotNull] CobolParserCore.InitializeReplacingItemContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.specialNamesParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSpecialNamesParagraph([NotNull] CobolParserCore.SpecialNamesParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.specialNameEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSpecialNameEntry([NotNull] CobolParserCore.SpecialNameEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.implementorSwitchEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitImplementorSwitchEntry([NotNull] CobolParserCore.ImplementorSwitchEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCurrencySignClause([NotNull] CobolParserCore.CurrencySignClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.decimalPointClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDecimalPointClause([NotNull] CobolParserCore.DecimalPointClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classDefinitionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassDefinitionClause([NotNull] CobolParserCore.ClassDefinitionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classValueSet"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassValueSet([NotNull] CobolParserCore.ClassValueSetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classValueItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassValueItem([NotNull] CobolParserCore.ClassValueItemContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.symbolicCharactersClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSymbolicCharactersClause([NotNull] CobolParserCore.SymbolicCharactersClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.symbolicCharacterEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSymbolicCharacterEntry([NotNull] CobolParserCore.SymbolicCharacterEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alphabetClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlphabetClause([NotNull] CobolParserCore.AlphabetClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alphabetDefinition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlphabetDefinition([NotNull] CobolParserCore.AlphabetDefinitionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.crtStatusClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCrtStatusClause([NotNull] CobolParserCore.CrtStatusClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.cursorClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCursorClause([NotNull] CobolParserCore.CursorClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.channelClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitChannelClause([NotNull] CobolParserCore.ChannelClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reserveClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReserveClause([NotNull] CobolParserCore.ReserveClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorConfigurationParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitVendorConfigurationParagraph([NotNull] CobolParserCore.VendorConfigurationParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportSection([NotNull] CobolParserCore.ReportSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportDescriptionEntry([NotNull] CobolParserCore.ReportDescriptionEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportName([NotNull] CobolParserCore.ReportNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClauses"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportDescriptionClauses([NotNull] CobolParserCore.ReportDescriptionClausesContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportDescriptionClause([NotNull] CobolParserCore.ReportDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupEntry([NotNull] CobolParserCore.ReportGroupEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupName([NotNull] CobolParserCore.ReportGroupNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupBody"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupBody([NotNull] CobolParserCore.ReportGroupBodyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupClause([NotNull] CobolParserCore.ReportGroupClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportTypeClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportTypeClause([NotNull] CobolParserCore.ReportTypeClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSumClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportSumClause([NotNull] CobolParserCore.ReportSumClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sumItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSumItem([NotNull] CobolParserCore.SumItemContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.genericReportGroupClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGenericReportGroupClause([NotNull] CobolParserCore.GenericReportGroupClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.inputOutputSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInputOutputSection([NotNull] CobolParserCore.InputOutputSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileControlParagraph([NotNull] CobolParserCore.FileControlParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlClauseGroup"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileControlClauseGroup([NotNull] CobolParserCore.FileControlClauseGroupContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.assignTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAssignTarget([NotNull] CobolParserCore.AssignTargetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileControlClauses"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileControlClauses([NotNull] CobolParserCore.FileControlClausesContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.organizationClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOrganizationClause([NotNull] CobolParserCore.OrganizationClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.organizationType"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOrganizationType([NotNull] CobolParserCore.OrganizationTypeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.accessModeClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAccessModeClause([NotNull] CobolParserCore.AccessModeClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.accessMode"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAccessMode([NotNull] CobolParserCore.AccessModeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.recordKeyClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRecordKeyClause([NotNull] CobolParserCore.RecordKeyClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alternateKeyClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlternateKeyClause([NotNull] CobolParserCore.AlternateKeyClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.fileStatusClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFileStatusClause([NotNull] CobolParserCore.FileStatusClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorFileControlClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitVendorFileControlClause([NotNull] CobolParserCore.VendorFileControlClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIoControlParagraph([NotNull] CobolParserCore.IoControlParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIoControlEntry([NotNull] CobolParserCore.IoControlEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenStatement([NotNull] CobolParserCore.OpenStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenClause([NotNull] CobolParserCore.OpenClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openMode"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenMode([NotNull] CobolParserCore.OpenModeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.closeStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCloseStatement([NotNull] CobolParserCore.CloseStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadStatement([NotNull] CobolParserCore.ReadStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readDirection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadDirection([NotNull] CobolParserCore.ReadDirectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readInto"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadInto([NotNull] CobolParserCore.ReadIntoContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readKey"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadKey([NotNull] CobolParserCore.ReadKeyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readAtEnd"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadAtEnd([NotNull] CobolParserCore.ReadAtEndContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.readInvalidKey"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReadInvalidKey([NotNull] CobolParserCore.ReadInvalidKeyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.writeStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWriteStatement([NotNull] CobolParserCore.WriteStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.writeFrom"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWriteFrom([NotNull] CobolParserCore.WriteFromContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.writeBeforeAfter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWriteBeforeAfter([NotNull] CobolParserCore.WriteBeforeAfterContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.writeInvalidKey"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWriteInvalidKey([NotNull] CobolParserCore.WriteInvalidKeyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.recordName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRecordName([NotNull] CobolParserCore.RecordNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.rewriteStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRewriteStatement([NotNull] CobolParserCore.RewriteStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.rewriteInvalidKeyPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRewriteInvalidKeyPhrase([NotNull] CobolParserCore.RewriteInvalidKeyPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDeleteStatement([NotNull] CobolParserCore.DeleteStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteInvalidKeyPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDeleteInvalidKeyPhrase([NotNull] CobolParserCore.DeleteInvalidKeyPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteFileStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDeleteFileStatement([NotNull] CobolParserCore.DeleteFileStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteFileOnException"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDeleteFileOnException([NotNull] CobolParserCore.DeleteFileOnExceptionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.startStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStartStatement([NotNull] CobolParserCore.StartStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.startKeyPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStartKeyPhrase([NotNull] CobolParserCore.StartKeyPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.startInvalidKeyPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStartInvalidKeyPhrase([NotNull] CobolParserCore.StartInvalidKeyPhraseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.sortStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1539,143 +1641,77 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitReleaseStatement([NotNull] CobolParserCore.ReleaseStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.rewriteStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stringStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitRewriteStatement([NotNull] CobolParserCore.RewriteStatementContext context);
+	Result VisitStringStatement([NotNull] CobolParserCore.StringStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.recordName"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stringSendingPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitRecordName([NotNull] CobolParserCore.RecordNameContext context);
+	Result VisitStringSendingPhrase([NotNull] CobolParserCore.StringSendingPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.rewriteInvalidKeyPhrase"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.delimitedByPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitRewriteInvalidKeyPhrase([NotNull] CobolParserCore.RewriteInvalidKeyPhraseContext context);
+	Result VisitDelimitedByPhrase([NotNull] CobolParserCore.DelimitedByPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteFileStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stringIntoPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitDeleteFileStatement([NotNull] CobolParserCore.DeleteFileStatementContext context);
+	Result VisitStringIntoPhrase([NotNull] CobolParserCore.StringIntoPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteFileOnException"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stringWithPointer"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitDeleteFileOnException([NotNull] CobolParserCore.DeleteFileOnExceptionContext context);
+	Result VisitStringWithPointer([NotNull] CobolParserCore.StringWithPointerContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stringOnOverflow"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitDeleteStatement([NotNull] CobolParserCore.DeleteStatementContext context);
+	Result VisitStringOnOverflow([NotNull] CobolParserCore.StringOnOverflowContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.deleteInvalidKeyPhrase"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitDeleteInvalidKeyPhrase([NotNull] CobolParserCore.DeleteInvalidKeyPhraseContext context);
+	Result VisitUnstringStatement([NotNull] CobolParserCore.UnstringStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.exceptionPhrase"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringDelimiterPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitExceptionPhrase([NotNull] CobolParserCore.ExceptionPhraseContext context);
+	Result VisitUnstringDelimiterPhrase([NotNull] CobolParserCore.UnstringDelimiterPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.onExceptionPhrase"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringIntoPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitOnExceptionPhrase([NotNull] CobolParserCore.OnExceptionPhraseContext context);
+	Result VisitUnstringIntoPhrase([NotNull] CobolParserCore.UnstringIntoPhraseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.notOnExceptionPhrase"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringWithPointer"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitNotOnExceptionPhrase([NotNull] CobolParserCore.NotOnExceptionPhraseContext context);
+	Result VisitUnstringWithPointer([NotNull] CobolParserCore.UnstringWithPointerContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.stopStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringTallying"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitStopStatement([NotNull] CobolParserCore.StopStatementContext context);
+	Result VisitUnstringTallying([NotNull] CobolParserCore.UnstringTallyingContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.gobackStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringOnOverflow"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitGobackStatement([NotNull] CobolParserCore.GobackStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.exitStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExitStatement([NotNull] CobolParserCore.ExitStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.startStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStartStatement([NotNull] CobolParserCore.StartStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.startKeyPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStartKeyPhrase([NotNull] CobolParserCore.StartKeyPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.startInvalidKeyPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitStartInvalidKeyPhrase([NotNull] CobolParserCore.StartInvalidKeyPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.goToStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitGoToStatement([NotNull] CobolParserCore.GoToStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.acceptStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAcceptStatement([NotNull] CobolParserCore.AcceptStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.acceptSource"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAcceptSource([NotNull] CobolParserCore.AcceptSourceContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.displayStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitDisplayStatement([NotNull] CobolParserCore.DisplayStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeStatement"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInitializeStatement([NotNull] CobolParserCore.InitializeStatementContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeReplacingPhrase"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInitializeReplacingPhrase([NotNull] CobolParserCore.InitializeReplacingPhraseContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.initializeReplacingItem"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitInitializeReplacingItem([NotNull] CobolParserCore.InitializeReplacingItemContext context);
+	Result VisitUnstringOnOverflow([NotNull] CobolParserCore.UnstringOnOverflowContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.inspectStatement"/>.
 	/// </summary>
@@ -1743,6 +1779,90 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitInspectDelimiters([NotNull] CobolParserCore.InspectDelimitersContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformStatement([NotNull] CobolParserCore.PerformStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformTarget([NotNull] CobolParserCore.PerformTargetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performOptions"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformOptions([NotNull] CobolParserCore.PerformOptionsContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performTimes"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformTimes([NotNull] CobolParserCore.PerformTimesContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performUntil"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformUntil([NotNull] CobolParserCore.PerformUntilContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performVarying"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformVarying([NotNull] CobolParserCore.PerformVaryingContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.performVaryingAfter"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPerformVaryingAfter([NotNull] CobolParserCore.PerformVaryingAfterContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.ifStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIfStatement([NotNull] CobolParserCore.IfStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateStatement([NotNull] CobolParserCore.EvaluateStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateSubject"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateSubject([NotNull] CobolParserCore.EvaluateSubjectContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateWhenClause([NotNull] CobolParserCore.EvaluateWhenClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenGroup"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateWhenGroup([NotNull] CobolParserCore.EvaluateWhenGroupContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateWhenItem([NotNull] CobolParserCore.EvaluateWhenItemContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.goToStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGoToStatement([NotNull] CobolParserCore.GoToStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.searchStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1779,6 +1899,48 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSearchAllWhenClause([NotNull] CobolParserCore.SearchAllWhenClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alterStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlterStatement([NotNull] CobolParserCore.AlterStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alterEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlterEntry([NotNull] CobolParserCore.AlterEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.useStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUseStatement([NotNull] CobolParserCore.UseStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.exitStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExitStatement([NotNull] CobolParserCore.ExitStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stopStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStopStatement([NotNull] CobolParserCore.StopStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.continueStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitContinueStatement([NotNull] CobolParserCore.ContinueStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.nextSentenceStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNextSentenceStatement([NotNull] CobolParserCore.NextSentenceStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.jsonStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1797,172 +1959,10 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitInvokeStatement([NotNull] CobolParserCore.InvokeStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueOperand"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.inlineMethodInvocationStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitValueOperand([NotNull] CobolParserCore.ValueOperandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.valueRange"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitValueRange([NotNull] CobolParserCore.ValueRangeContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.booleanLiteral"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitBooleanLiteral([NotNull] CobolParserCore.BooleanLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.signCondition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSignCondition([NotNull] CobolParserCore.SignConditionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.condition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCondition([NotNull] CobolParserCore.ConditionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalOrExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLogicalOrExpression([NotNull] CobolParserCore.LogicalOrExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalAndExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLogicalAndExpression([NotNull] CobolParserCore.LogicalAndExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryLogicalExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnaryLogicalExpression([NotNull] CobolParserCore.UnaryLogicalExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.primaryCondition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPrimaryCondition([NotNull] CobolParserCore.PrimaryConditionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperand"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComparisonOperand([NotNull] CobolParserCore.ComparisonOperandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComparisonExpression([NotNull] CobolParserCore.ComparisonExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.className"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitClassName([NotNull] CobolParserCore.ClassNameContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.comparisonOperator"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComparisonOperator([NotNull] CobolParserCore.ComparisonOperatorContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitArithmeticExpression([NotNull] CobolParserCore.ArithmeticExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.additiveExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAdditiveExpression([NotNull] CobolParserCore.AdditiveExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.addOp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAddOp([NotNull] CobolParserCore.AddOpContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.multiplicativeExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitMultiplicativeExpression([NotNull] CobolParserCore.MultiplicativeExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.mulOp"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitMulOp([NotNull] CobolParserCore.MulOpContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.powerExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPowerExpression([NotNull] CobolParserCore.PowerExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnaryExpression([NotNull] CobolParserCore.UnaryExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.primaryExpression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPrimaryExpression([NotNull] CobolParserCore.PrimaryExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.functionCall"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFunctionCall([NotNull] CobolParserCore.FunctionCallContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.literal"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLiteral([NotNull] CobolParserCore.LiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteral"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitNumericLiteral([NotNull] CobolParserCore.NumericLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.nonNumericLiteral"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitNonNumericLiteral([NotNull] CobolParserCore.NonNumericLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.signedNumericLiteral"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSignedNumericLiteral([NotNull] CobolParserCore.SignedNumericLiteralContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.numericLiteralCore"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitNumericLiteralCore([NotNull] CobolParserCore.NumericLiteralCoreContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.figurativeConstant"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFigurativeConstant([NotNull] CobolParserCore.FigurativeConstantContext context);
+	Result VisitInlineMethodInvocationStatement([NotNull] CobolParserCore.InlineMethodInvocationStatementContext context);
 }
 } // namespace CobolSharp.Compiler.Generated

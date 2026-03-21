@@ -5,6 +5,7 @@
   - Expects:
       - antlr-4.13.2-complete.jar in ANTLR4/
       - CobolLexer.g4 and CobolParserCore.g4 in Grammar/ subdirectory
+      - Imported sub-grammars in Grammar/Core/ subdirectory
   - Generates into a temp folder, then copies only the files we need to Generated/
   - CobolParserCoreBase.cs is hand-maintained in Parsing/ and is NEVER overwritten
 #>
@@ -18,13 +19,8 @@ function Invoke-Antlr4CSharp {
     )
 
     $grammarDir = Join-Path $PSScriptRoot 'Grammar'
+    $coreDir = Join-Path $grammarDir 'Core'
     $tempDir = Join-Path $PSScriptRoot 'Generated_temp'
-
-    # Grammar files to process
-    $grammars = @(
-        'CobolLexer.g4',
-        'CobolParserCore.g4'
-    )
 
     # Files we NEVER overwrite (hand-maintained in Parsing/)
     $protectedFiles = @(
@@ -36,7 +32,7 @@ function Invoke-Antlr4CSharp {
         Write-Error "ANTLR JAR not found at: $JarPath"
         return 1
     }
-    foreach ($g in $grammars) {
+    foreach ($g in @('CobolLexer.g4', 'CobolParserCore.g4')) {
         $gPath = Join-Path $grammarDir $g
         if (-not (Test-Path $gPath)) {
             Write-Error "Grammar file not found at: $gPath"
@@ -59,38 +55,81 @@ function Invoke-Antlr4CSharp {
     Push-Location $grammarDir
 
     try {
-        foreach ($g in $grammars) {
-            Write-Host "Generating C# from: $g" -ForegroundColor Cyan
+        # --- Step 1: Generate lexer ---
+        Write-Host "Generating C# from: CobolLexer.g4" -ForegroundColor Cyan
 
-            # Use -lib to point at the temp dir so the parser grammar can find
-            # the freshly-generated CobolLexer.tokens from the lexer step.
-            $antlrOutput = & java -jar $JarPath `
-                -Dlanguage=CSharp `
-                -no-listener -visitor `
-                -package $PackageName `
-                -lib ../Generated_temp `
-                -o ../Generated_temp `
-                $g 2>&1
-            $exitCode = $LASTEXITCODE
-            $hadDiag = $false
+        $antlrOutput = & java -jar $JarPath `
+            -Dlanguage=CSharp `
+            -no-listener -visitor `
+            -package $PackageName `
+            -lib ../Generated_temp `
+            -o ../Generated_temp `
+            CobolLexer.g4 2>&1
+        $exitCode = $LASTEXITCODE
+        $hadDiag = $false
 
-            foreach ($line in $antlrOutput) {
-                $text = $line.ToString().Trim()
-                if ($text -match '^(warning|error)\(') {
-                    $hadDiag = $true
-                    Write-Error $text
-                } elseif ($text) {
-                    Write-Host $text
-                }
+        foreach ($line in $antlrOutput) {
+            $text = $line.ToString().Trim()
+            if ($text -match '^(warning|error)\(') {
+                $hadDiag = $true
+                Write-Error $text
+            } elseif ($text) {
+                Write-Host $text
             }
-
-            if ($exitCode -ne 0 -or $hadDiag) {
-                Write-Error "Generation failed for $g (exit code $exitCode)."
-                return 1
-            }
-
-            Write-Host "$g generation succeeded." -ForegroundColor Green
         }
+
+        if ($exitCode -ne 0 -or $hadDiag) {
+            Write-Error "Generation failed for CobolLexer.g4 (exit code $exitCode)."
+            return 1
+        }
+
+        Write-Host "CobolLexer.g4 generation succeeded." -ForegroundColor Green
+
+        # --- Step 2: Copy CobolLexer.tokens to Core/ so parser import resolution finds it ---
+        # ANTLR's -lib accepts one directory. The parser grammar uses:
+        #   - tokenVocab = CobolLexer (needs CobolLexer.tokens)
+        #   - import CobolExpressions, ... (needs Core/*.g4)
+        # We use -lib Core so imports resolve. Copy tokens there temporarily.
+        $tokensFile = Join-Path $tempDir 'CobolLexer.tokens'
+        $tokensCopy = Join-Path $coreDir 'CobolLexer.tokens'
+        if (Test-Path $tokensFile) {
+            Copy-Item -Path $tokensFile -Destination $tokensCopy -Force
+        }
+
+        # --- Step 3: Generate parser (with -lib Core for imports + tokens) ---
+        Write-Host "Generating C# from: CobolParserCore.g4" -ForegroundColor Cyan
+
+        $antlrOutput = & java -jar $JarPath `
+            -Dlanguage=CSharp `
+            -no-listener -visitor `
+            -package $PackageName `
+            -lib Core `
+            -o ../Generated_temp `
+            CobolParserCore.g4 2>&1
+        $exitCode = $LASTEXITCODE
+        $hadDiag = $false
+
+        foreach ($line in $antlrOutput) {
+            $text = $line.ToString().Trim()
+            if ($text -match '^(warning|error)\(') {
+                $hadDiag = $true
+                Write-Error $text
+            } elseif ($text) {
+                Write-Host $text
+            }
+        }
+
+        # Clean up temporary tokens copy from Core/
+        if (Test-Path $tokensCopy) {
+            Remove-Item -Path $tokensCopy -Force
+        }
+
+        if ($exitCode -ne 0 -or $hadDiag) {
+            Write-Error "Generation failed for CobolParserCore.g4 (exit code $exitCode)."
+            return 1
+        }
+
+        Write-Host "CobolParserCore.g4 generation succeeded." -ForegroundColor Green
 
         # Copy generated files to output, skipping protected files
         $copiedCount = 0
