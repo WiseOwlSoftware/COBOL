@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC221A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TALLY FOR LEADING    PASS  INS-TEST-F1-1
+ TALLY FOR CHAR AFTER PASS  INS-TEST-F1-2
+ TALLY FOR ALL BEFORE PASS  INS-TEST-F1-3
+ REPLACE BEFORE FIRST PASS  INS-TEST-F2-4
+ REPLACE LEAD AFTER   PASS  INS-TEST-F2-5
+ REPLACE FIRST BEFORE PASS  INS-TEST-F2-6
+ REPLACE ALL AFTER    PASS  INS-TEST-F2-7
+ TALLY REPLACE CHARS  PASS  INS-TEST-F3-8      .01
+ TALLY REPLACE CHARS  PASS  INS-TEST-F3-8      .02
+ TALLY BEFORE REPLACE PASS  INS-TEST-F3-9      .01
+ TALLY BEFORE REPLACE PASS  INS-TEST-F3-9      .02
+ TALLY LEAD REPL LEAD PASS  INS-TEST-F3-10     .01
+ TALLY LEAD REPL LEAD PASS  INS-TEST-F3-10     .02
+ TALLY REPL FIRST AFT PASS  INS-TEST-F3-11     .01
+ TALLY REPL FIRST AFT PASS  INS-TEST-F3-11     .02
+ TALLY CHARS REPL BEF PASS  INS-TEST-F3-12     .01
+ TALLY CHARS REPL BEF PASS  INS-TEST-F3-12     .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC221A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

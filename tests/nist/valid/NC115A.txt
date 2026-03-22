@@ -1,0 +1,58 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC115A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TALLY FOR CHARACTERS PASS  INSP-TEST-F1-1
+ TALLY ALL LITERAL    PASS  INSP-TEST-F1-2
+ TALLY FOR ALL SPACE  PASS  INSP-TEST-F1-3
+ TALLY LEADING LIT    PASS  INSP-TEST-F1-4
+ FOR CHARS AFTER LIT  PASS  INSP-TEST-F1-5
+ ALL BEFORE INITIAL   PASS  INSP-TEST-F1-6
+ LEAD LIT INITIAL FIG PASS  INSP-TEST-F1-7
+ REP CHARS BY SPACE   PASS  INSP-TEST-F2-1
+ CHARS BEFORE INITIAL PASS  INSP-TEST-F2-2
+ LEAD AFTER INIT ID   PASS  INSP-TEST-F2-3
+ FIRST BY ID BEFORE   PASS  INSP-TEST-F2-4
+ ALL ID BY LIT AFTER  PASS  INSP-TEST-F2-5
+ TALLY-REPLACE CHARS  PASS  INSP-TEST-F3-1     .01
+ TALLY-REPLACE CHARS  PASS  INSP-TEST-F3-1     .02
+ LIT BY BEFORE INIT   PASS  INSP-TEST-F3-2     .01
+ LIT BY BEFORE INIT   PASS  INSP-TEST-F3-2     .02
+ REPL FIRST AFTER     PASS  INSP-TEST-F3-3     .01
+ REPL FIRST AFTER     PASS  INSP-TEST-F3-3     .02
+ FOR LEADING          PASS  INSP-TEST-F3-4     .01
+ FOR LEADING          PASS  INSP-TEST-F3-4     .02
+ LIT BY AFTER INIT    PASS  INSP-TEST-F3-5     .01
+ LIT BY AFTER INIT    PASS  INSP-TEST-F3-5     .02
+ CHAR AFTER ALL BEF   PASS  INSP-TEST-F3-6     .01
+ CHAR AFTER ALL BEF   PASS  INSP-TEST-F3-6     .02
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .01
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .02
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .03
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .04
+ TALLY SERIES         PASS  INSP-TEST-F3-7     .05
+ REPLACE SERIES       PASS  INSP-TEST-F3-8     .01
+ REPLACE SERIES       PASS  INSP-TEST-F3-8     .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC115A
+
+                                                    031 OF 031  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

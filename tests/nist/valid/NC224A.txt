@@ -1,0 +1,41 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC224A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-1-1    .01
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-1-2    .02
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-1-3    .03
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-2-1    .01
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-2-2    .02
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-2-3    .03
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-3-1    .01
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-3-2    .02
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-3-3    .03
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-4-1    .01
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-4-2    .02
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-4-3    .03
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-5-1    .01
+ REFERENCE MODIFICATI PASS  REF-TEST-GF-6-1    .01
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC224A
+
+                                                    014 OF 014  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

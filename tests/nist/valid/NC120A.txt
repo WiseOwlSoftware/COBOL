@@ -1,0 +1,71 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC120A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-14
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-15
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-16-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-16-2
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-1-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-1-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-3
+ MULTIPLY BY          PASS  SIG-TEST-GF-4-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-4-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-5-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-5-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-6
+ MULTIPLY BY          PASS  SIG-TEST-GF-7
+ MULTIPLY BY          PASS  SIG-TEST-GF-8-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-8-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-9-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-9-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-10-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-10-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-11-1
+ MULTIPLY BY          PASS  SIG-TEST-GF-11-2
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-17
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-18
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-19-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-19-2
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-20-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-20-2
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-21-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-21-2
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-22-1
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-22-2
+ MULTIPLY BY          PASS  SIG-TEST-GF-12
+ MULTIPLY BY          PASS  SIG-TEST-GF-13
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-23
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-24
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-25
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-26
+ MULTIPLY BY GIVING   PASS  SIG-TEST-GF-27
+ ***********************************************************************************************************************
+
+
+
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC120A
+
+                                                    039 OF 039  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

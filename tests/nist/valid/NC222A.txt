@@ -1,0 +1,35 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC222A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ADD - QUALIFICATION  PASS  ADD-TEST-F2-1
+ SUBTRACT - QUAL.     PASS  SUBTRACT-TEST-F2-1
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-1
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-2
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-3-1    .01
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-3-2    .02
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-4-1    .01
+ MOVE CORRESPONDING   PASS  MOV-TEST-F2-4-2    .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC222A
+
+                                                    008 OF 008  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

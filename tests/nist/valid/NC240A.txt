@@ -1,0 +1,38 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC240A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ PERFORM VARYING LEV1 PASS  TH1-TEST-GF-2
+ PERFORM VARYING LEV1 PASS  TH1-TEST-GF-3
+ PERFORM VARYING LEV1 PASS  TH1-TEST-GF-4
+ PERFORM VARYING LEV2 PASS  TH2-TEST-GF-1
+ PERFORM VARYING LEV2 PASS  TH2-TEST-GF-2
+ PERFORM VARYING LEV2 PASS  TH2-TEST-GF-3
+ PERFORM VARYING LEV2 PASS  TH2-TEST-GF-4
+ PERFORM VARYING LEV3 PASS  TH3-TEST-GF-1
+ PERFORM VARYING LEV3 PASS  TH3-TEST-GF-2
+ PERFORM VARYING LEV3 PASS  TH3-TEST-GF-3
+ PERFORM VARYING LEV3 PASS  TH3-TEST-GF-4
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC240A
+
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

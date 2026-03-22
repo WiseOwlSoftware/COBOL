@@ -1,0 +1,67 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC117A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ DIVIDE INTO          PASS  SIG-TEST-GF-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-3-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-3-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-4-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-4-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-5-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-5-2
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-11
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-12
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-13-1
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-13-2
+ DIVIDE BY            PASS  SIG-TEST-GF-19
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-20
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-21-1
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-21-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-6
+ DIVIDE INTO          PASS  SIG-TEST-GF-7
+ DIVIDE INTO          PASS  SIG-TEST-GF-8-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-8-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-9-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-9-2
+ DIVIDE INTO          PASS  SIG-TEST-GF-10-1
+ DIVIDE INTO          PASS  SIG-TEST-GF-10-2
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-14
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-15
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-16-1
+ DIVIDE INTO GIVING   PASS  SIG-TEST-32
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-17-1
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-17-2
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-18-1
+ DIVIDE INTO GIVING   PASS  SIG-TEST-GF-18-2
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-22
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-23
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-24-1
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-24-2
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-25-1
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-25-2
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-26-1
+ DIVIDE BY GIVING     PASS  SIG-TEST-GF-26-2
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC117A
+
+                                                    040 OF 040  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
