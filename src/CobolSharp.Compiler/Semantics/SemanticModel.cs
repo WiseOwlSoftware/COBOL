@@ -39,6 +39,24 @@ public sealed class SemanticModel
     public ImplementorSwitch? ResolveImplementorSwitch(string name)
         => _implementorSwitches.TryGetValue(name, out var sw) ? sw : null;
 
+    // ── Extension clauses (vendor extensions, unrecognized clauses) ──
+
+    private readonly List<ExtensionClauseNode> _extensionClauses = new();
+
+    /// <summary>All extension/vendor clauses captured during parsing, classified by context.</summary>
+    public IReadOnlyList<ExtensionClauseNode> ExtensionClauses => _extensionClauses;
+
+    internal void AddExtensionClause(ExtensionClauseNode clause) => _extensionClauses.Add(clause);
+
+    /// <summary>Get extension clauses for a specific context.</summary>
+    public IEnumerable<ExtensionClauseNode> GetExtensionClauses(GenericClauseContext context)
+        => _extensionClauses.Where(c => c.Context == context);
+
+    /// <summary>Get extension clauses of a specific typed subclass.</summary>
+    public IEnumerable<T> GetExtensionClauses<T>() where T : ExtensionClauseNode
+        => _extensionClauses.OfType<T>();
+
+
     // ── Data items in declaration order (all levels, preserves FILLERs) ──
 
     private IReadOnlyList<DataSymbol> _dataItemsInOrder = [];

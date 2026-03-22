@@ -134,19 +134,19 @@ invokeUsing
 
 invokeArgument
     : 'BY' 'VALUE' arithmeticExpression
-    | 'BY' 'REFERENCE' identifier
-    | 'BY' 'CONTENT' (identifier | literal)
-    | identifier
+    | 'BY' 'REFERENCE' dataReference
+    | 'BY' 'CONTENT' (dataReference | literal)
+    | dataReference
     | literal
     ;
 
 invokeReturning
-    : RETURNING identifier
+    : RETURNING dataReference
     ;
 
 invokeOnException
-    : ON EXCEPTION imperativeStatement
-      (NOT ON EXCEPTION imperativeStatement)?
+    : ON EXCEPTION statementBlock
+      (NOT ON EXCEPTION statementBlock)?
     ;
 
 // ==========================================
@@ -154,7 +154,7 @@ invokeOnException
 // ==========================================
 
 objectReference
-    : identifier
+    : dataReference
     | 'SELF'
     | 'SUPER'
     | 'NULL'

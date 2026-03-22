@@ -42,6 +42,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private Runtime.SignStorageKind? _deferredSignStorage;
     private FigurativeKind? _deferredFigurativeInit;
 
+    // Extension clauses captured during parsing (vendor extensions, unrecognized clauses)
+    private readonly List<ExtensionClauseNode> _extensionClauses = [];
+    public IReadOnlyList<ExtensionClauseNode> ExtensionClauses => _extensionClauses;
+
+    private void CaptureGenericClause(CobolParserCore.GenericClauseContext? ctx, GenericClauseContext context)
+    {
+        if (ctx == null) return;
+        _extensionClauses.Add(ExtensionClauseNode.FromParseTree(ctx, context, "<source>"));
+    }
+
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
     public SymbolTable Symbols => _symbols;
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
@@ -168,6 +178,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         new ImplementorSwitch(mnemonicName, implName, onName, offName));
                 }
             }
+
+            // Capture generic/vendor extensions
+            if (entry.genericClause() is { } genCtx)
+                CaptureGenericClause(genCtx, GenericClauseContext.SpecialNames);
         }
 
         return base.VisitSpecialNamesParagraph(ctx);
@@ -185,12 +199,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public override object? VisitLocalStorageSection(CobolParserCore.LocalStorageSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.LocalStorage;
         return base.VisitLocalStorageSection(ctx);
     }
 
     public override object? VisitLinkageSection(CobolParserCore.LinkageSectionContext ctx)
     {
         _dataStack.Clear();
+        _currentArea = StorageAreaKind.LinkageSection;
         return base.VisitLinkageSection(ctx);
     }
 
@@ -198,10 +214,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // FILE-CONTROL — extract SELECT/ASSIGN/clauses into FileSymbol
     // ═══════════════════════════════════
 
-    public override object? VisitFileControlEntry(CobolParserCore.FileControlEntryContext ctx)
+    public override object? VisitFileControlClauseGroup(CobolParserCore.FileControlClauseGroupContext ctx)
     {
         var fileNameCtx = ctx.fileName();
-        if (fileNameCtx == null) return base.VisitFileControlEntry(ctx);
+        if (fileNameCtx == null) return base.VisitFileControlClauseGroup(ctx);
 
         string name = fileNameCtx.GetText();
         var fileSym = new FileSymbol(name, fileNameCtx.Start.Line);
@@ -240,13 +256,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (clause.accessModeClause() is { } accessClause)
                 fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
             if (clause.recordKeyClause() is { } keyClause)
-                fileSym.RecordKey = keyClause.identifier().GetText();
+                fileSym.RecordKey = keyClause.dataReference().GetText();
             if (clause.fileStatusClause() is { } statusClause)
-                fileSym.FileStatus = statusClause.identifier().GetText();
+                fileSym.FileStatus = statusClause.dataReference().GetText();
         }
 
         _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
-        return base.VisitFileControlEntry(ctx);
+        return base.VisitFileControlClauseGroup(ctx);
     }
 
     // ═══════════════════════════════════
@@ -270,12 +286,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         {
             string name = nameCtx.GetText();
             // Look up existing FileSymbol created by FILE-CONTROL visitor.
-            // If not found (no SELECT), create one as a fallback.
+            // If not found (no SELECT), create one as a fallback with a warning.
             var fileSym = _symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
             if (fileSym == null)
             {
                 fileSym = new FileSymbol(name, nameCtx.Start.Line);
                 _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+                _diagnostics.Add(new Diagnostic(
+                    DiagnosticDescriptors.CBL0601.Code,
+                    DiagnosticDescriptors.CBL0601.DefaultSeverity,
+                    string.Format(DiagnosticDescriptors.CBL0601.MessageTemplate, name),
+                    new Common.SourceLocation("<source>", 0, nameCtx.Start.Line, nameCtx.Start.Column),
+                    new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex)));
             }
             _currentFdFile = fileSym;
         }
@@ -330,7 +352,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     // Store the unresolved name; actual resolution happens in pass 2
                     // after all data items are registered in the symbol table
-                    _deferredRedefinesName = redefinesClause.identifier()?.GetText() ?? "";
+                    _deferredRedefinesName = redefinesClause.dataReference()?.GetText() ?? "";
                 }
 
                 var typeClause = clause.typeClause();
@@ -356,18 +378,23 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (valClause != null)
                 {
                     var items = valClause.valueItem();
-                    var litCtx = items.Length > 0 ? items[0].literal()[0] : null;
-                    if (litCtx != null)
+                    var voCtx = items.Length > 0
+                        ? (items[0].valueRange()?.valueOperand(0) ?? items[0].valueOperand(0))
+                        : null;
+                    if (voCtx != null)
                     {
-                        // literal: numericLiteral | nonNumericLiteral
-                        var numLit = litCtx.numericLiteral();
+                        // valueOperand: arithmeticExpression | nonNumericLiteral
+                        // For numeric VALUE, find numericLiteral and detect unary minus
+                        var arithCtx = voCtx.arithmeticExpression();
+                        var (numLit, isNegated) = FindNumericLiteralInArith(arithCtx);
                         if (numLit != null)
                         {
-                            initialValue = NormalizeNumericLiteralText(numLit);
+                            var text = NormalizeNumericLiteralText(numLit);
+                            initialValue = isNegated ? "-" + text : text;
                         }
                         else
                         {
-                            var nonNum = litCtx.nonNumericLiteral();
+                            var nonNum = voCtx.nonNumericLiteral();
                             if (nonNum?.STRINGLIT() is { } slit)
                             {
                                 var text = slit.GetText();
@@ -429,12 +456,21 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     {
                         foreach (var item in valClause.valueItem())
                         {
-                            var lits = item.literal();
-                            var fromVal = ConditionValue.FromObject(ParseConditionLiteralValue(lits[0]));
-                            var toVal = lits.Length >= 2
-                                ? ConditionValue.FromObject(ParseConditionLiteralValue(lits[1]))
-                                : null;
-                            condSym.AddRange(fromVal, toVal);
+                            var rangeCtx = item.valueRange();
+                            if (rangeCtx != null)
+                            {
+                                var fromVal = ConditionValue.FromObject(ParseConditionValueOperand(rangeCtx.valueOperand(0)));
+                                var toVal = ConditionValue.FromObject(ParseConditionValueOperand(rangeCtx.valueOperand(1)));
+                                condSym.AddRange(fromVal, toVal);
+                            }
+                            else
+                            {
+                                foreach (var vo in item.valueOperand())
+                                {
+                                    var fromVal = ConditionValue.FromObject(ParseConditionValueOperand(vo));
+                                    condSym.AddRange(fromVal, null);
+                                }
+                            }
                         }
                     }
                 }
@@ -444,8 +480,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        // Extract OCCURS count and BLANK WHEN ZERO from clauses
-        int occursCount = 1;
+        // Extract OCCURS clause, BLANK WHEN ZERO, JUSTIFIED from clauses
+        OccursInfo? occursInfo = null;
         bool blankWhenZero = false;
         bool justifiedRight = false;
         if (body?.dataDescriptionClauses() != null)
@@ -456,9 +492,58 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (occClause != null)
                 {
                     var intLits = occClause.integerLiteral();
+                    int maxOccurs = 1;
+                    int minOccurs = 0;
+                    string? dependingOn = null;
+
                     if (intLits.Length > 0 && int.TryParse(intLits[0].GetText(), out int oc))
-                        occursCount = oc;
-                    // INDEXED BY names deferred until after DataSymbol creation (below)
+                        maxOccurs = oc;
+
+                    // OCCURS m TO n DEPENDING ON: first int = min, second int = max
+                    if (intLits.Length > 1 && int.TryParse(intLits[1].GetText(), out int oc2))
+                    {
+                        minOccurs = maxOccurs;
+                        maxOccurs = oc2;
+                    }
+                    else
+                    {
+                        minOccurs = maxOccurs;
+                    }
+
+                    // DEPENDING ON data-name
+                    var depRef = occClause.dataReference();
+                    if (depRef != null)
+                        dependingOn = depRef.GetText();
+
+                    // ASCENDING/DESCENDING KEY data-names
+                    var ascKeys = new List<string>();
+                    var descKeys = new List<string>();
+                    foreach (var keyClause in occClause.occursKeyClause())
+                    {
+                        bool isAscending = keyClause.ASCENDING() != null;
+                        foreach (var keyRef in keyClause.dataReference())
+                        {
+                            string keyName = keyRef.GetText();
+                            if (isAscending)
+                                ascKeys.Add(keyName);
+                            else
+                                descKeys.Add(keyName);
+                        }
+                    }
+
+                    // INDEXED BY names (captured here; index DataSymbols created below)
+                    var indexNames = new List<string>();
+                    if (occClause.dataReferenceList() is { } indexList)
+                    {
+                        foreach (var idCtx in indexList.dataReference())
+                            indexNames.Add(idCtx.GetText());
+                    }
+
+                    occursInfo = new OccursInfo(
+                        minOccurs, maxOccurs, dependingOn,
+                        ascKeys.Count > 0 ? ascKeys : null,
+                        descKeys.Count > 0 ? descKeys : null,
+                        indexNames.Count > 0 ? indexNames : null);
                 }
 
                 if (clause.blankWhenZeroClause() != null)
@@ -469,10 +554,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
+        // Level-77 USAGE INDEX with no PIC: normalize to S9(9) COMP here (always elementary).
+        // Sub-level USAGE INDEX items are handled at layout time by FieldSizeCalculator +
+        // CompilerPicDescriptorFactory, since we don't know here whether they'll be groups.
+        if (usage == Runtime.UsageKind.Index && picString == null && level == 77)
+        {
+            picString = "S9(9)";
+            usage = Runtime.UsageKind.Comp;
+        }
+
         // Create DataSymbol (REDEFINES resolved in pass 2 after all items registered)
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.HasExplicitUsage = hasExplicitUsage;
-        data.OccursCount = occursCount;
+        data.Occurs = occursInfo;
         data.IsJustifiedRight = justifiedRight;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
@@ -536,9 +630,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
             {
                 var occClause = clause.occursClause();
-                if (occClause?.identifierList() is { } indexList)
+                if (occClause?.dataReferenceList() is { } indexList)
                 {
-                    foreach (var idCtx in indexList.identifier())
+                    foreach (var idCtx in indexList.dataReference())
                     {
                         string indexName = idCtx.IDENTIFIER().GetText();
                         var indexSym = new DataSymbol(indexName, indexName, 77,
@@ -568,38 +662,39 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitProcedureDivision(ctx);
     }
 
-    public override object? VisitSectionDeclaration(CobolParserCore.SectionDeclarationContext ctx)
+    public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
     {
         var nameCtx = ctx.sectionName();
-        if (nameCtx == null) return base.VisitSectionDeclaration(ctx);
+        if (nameCtx == null) return base.VisitSectionDefinition(ctx);
 
         string name = nameCtx.GetText();
         var section = new SectionSymbol(name,
             _symbols.Program.ProcedureDivisionScope, ctx.Start.Line);
 
-        if (!_symbols.Program.ProcedureDivisionScope.TryDeclare(section, out var existingSec))
-            Error(ctx, $"Duplicate section '{name}'.");
+        _symbols.Program.ProcedureDivisionScope.TryDeclare(section, out _);
 
         _currentSectionName = name;
         using var scopeGuard = _symbols.PushScope(section.Scope);
-        foreach (var para in ctx.paragraphDeclaration())
-            VisitParagraphDeclaration(para);
+        foreach (var para in ctx.paragraphDefinition())
+            VisitParagraphDefinition(para);
         _currentSectionName = null;
 
         return null;
     }
 
-    public override object? VisitParagraphDeclaration(CobolParserCore.ParagraphDeclarationContext ctx)
+    public override object? VisitParagraphDefinition(CobolParserCore.ParagraphDefinitionContext ctx)
     {
         var nameCtx = ctx.paragraphName();
-        if (nameCtx == null) return base.VisitParagraphDeclaration(ctx);
+        if (nameCtx == null) return base.VisitParagraphDefinition(ctx);
 
         string name = nameCtx.GetText();
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
-        if (!_symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal))
-            Error(ctx, $"Duplicate paragraph '{name}' in current scope.");
-        _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
+        _symbols.CurrentScope.TryDeclare(paragraph, out _);
+        // Also declare in ProcedureDivisionScope for global resolution,
+        // but only if CurrentScope is a section scope (not already ProcedureDivisionScope)
+        if (_symbols.CurrentScope != _symbols.Program.ProcedureDivisionScope)
+            _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out _);
 
         // Track section membership
         if (_currentSectionName != null)
@@ -651,6 +746,64 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     /// <summary>
+    /// Parse a valueOperand context into a typed value for level-88 condition entries.
+    /// Navigates through the arithmeticExpression chain to reach numericLiteral for numeric values.
+    /// </summary>
+    private static object ParseConditionValueOperand(Generated.CobolParserCore.ValueOperandContext vo)
+    {
+        var nonNum = vo.nonNumericLiteral();
+        if (nonNum?.STRINGLIT() is { } slit)
+        {
+            var text = slit.GetText();
+            if (text.Length >= 2)
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
+            return text;
+        }
+        if (nonNum?.figurativeConstant() != null)
+            return nonNum.GetText();
+
+        // Navigate arithmeticExpression chain to reach numericLiteral (handles unary minus)
+        var (numLit, isNegated) = FindNumericLiteralInArith(vo.arithmeticExpression());
+        if (numLit != null)
+        {
+            var text = NormalizeNumericLiteralText(numLit);
+            if (isNegated) text = "-" + text;
+            if (decimal.TryParse(text,
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
+                System.Globalization.CultureInfo.InvariantCulture, out var d))
+                return d;
+            return text;
+        }
+        return vo.GetText();
+    }
+
+    /// <summary>
+    /// Navigate the arithmeticExpression chain to find a numericLiteral in a VALUE clause context.
+    /// Returns the numericLiteral and whether a unary MINUS wraps it (for signed VALUE like -42).
+    /// </summary>
+    private static (Generated.CobolParserCore.NumericLiteralContext? numLit, bool isNegated)
+        FindNumericLiteralInArith(Generated.CobolParserCore.ArithmeticExpressionContext? arith)
+    {
+        if (arith == null) return (null, false);
+        var unary = arith.additiveExpression()?.multiplicativeExpression(0)
+            ?.powerExpression(0)?.unaryExpression(0);
+        if (unary == null) return (null, false);
+
+        // Check for unary minus: addOp unaryExpression
+        bool negated = false;
+        if (unary.addOp()?.MINUS() != null)
+        {
+            negated = true;
+            unary = unary.unaryExpression(); // descend into the inner unaryExpression
+        }
+        var numLit = unary?.primaryExpression()?.numericLiteral();
+        return (numLit, negated);
+    }
+
+    /// <summary>
     /// Normalize a numericLiteral parse tree into a string suitable for decimal.Parse
     /// with InvariantCulture. Replaces comma decimal points with dots.
     /// </summary>
@@ -673,5 +826,58 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Plain integer
         return sign + integers[0].GetText();
+    }
+
+    // ═══════════════════════════════════
+    // Generic clause capture (vendor extensions)
+    // ═══════════════════════════════════
+
+    public override object? VisitGenericIdentificationParagraph(
+        CobolParserCore.GenericIdentificationParagraphContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IdentificationParagraph);
+        return base.VisitGenericIdentificationParagraph(ctx);
+    }
+
+    public override object? VisitVendorConfigurationParagraph(
+        CobolParserCore.VendorConfigurationParagraphContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ConfigurationVendor);
+        return base.VisitVendorConfigurationParagraph(ctx);
+    }
+
+    public override object? VisitGenericFileDescriptionClause(
+        CobolParserCore.GenericFileDescriptionClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileDescription);
+        return base.VisitGenericFileDescriptionClause(ctx);
+    }
+
+    public override object? VisitGenericDataClause(
+        CobolParserCore.GenericDataClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.DataDescription);
+        return base.VisitGenericDataClause(ctx);
+    }
+
+    public override object? VisitGenericReportGroupClause(
+        CobolParserCore.GenericReportGroupClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ReportGroup);
+        return base.VisitGenericReportGroupClause(ctx);
+    }
+
+    public override object? VisitVendorFileControlClause(
+        CobolParserCore.VendorFileControlClauseContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.FileControl);
+        return base.VisitVendorFileControlClause(ctx);
+    }
+
+    public override object? VisitIoControlEntry(
+        CobolParserCore.IoControlEntryContext ctx)
+    {
+        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
+        return base.VisitIoControlEntry(ctx);
     }
 }

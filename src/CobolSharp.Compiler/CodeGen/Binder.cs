@@ -72,6 +72,12 @@ public sealed class Binder
         var builder = new BoundTreeBuilder(_semantic, _diagnostics);
         var boundProgram = builder.Build(tree);
 
+        // Phase 1.5: Flow analysis on bound program
+        Semantics.ProcedureGraph.Analyze(boundProgram, _semantic, _diagnostics);
+
+        // Phase 1.6: Expression type enforcement on bound tree
+        Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics);
+
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);
@@ -267,6 +273,10 @@ public sealed class Binder
     {
         switch (stmt)
         {
+            case BoundCompoundStatement compound:
+                foreach (var s in compound.Statements)
+                    block = LowerStatement(s, method, block);
+                return block;
             case BoundDisplayStatement disp:
                 LowerDisplay(disp, block);
                 break;
@@ -342,6 +352,10 @@ public sealed class Binder
                 return LowerDelete(del, method, block);
             case BoundStartStatement start:
                 return LowerStart(start, method, block);
+            case BoundReturnStatement ret:
+                return LowerReturn(ret, method, block);
+            case BoundCallStatement call:
+                return LowerCall(call, method, block);
         }
         return block;
     }
@@ -371,8 +385,8 @@ public sealed class Binder
         var current = id.Symbol;
         while (current != null)
         {
-            if (current.OccursCount > 1)
-                occursLevels.Insert(0, (current, current.OccursCount));
+            if (current.Occurs != null)
+                occursLevels.Insert(0, (current, current.Occurs.MaxOccurs));
             current = current.Parent;
         }
 
@@ -444,16 +458,18 @@ public sealed class Binder
     /// Compute row/plane/element multipliers for multi-dimensional OCCURS.
     /// multiplier[i] = product of all OCCURS counts at dimensions > i, times elementSize.
     /// </summary>
+    /// <summary>
+    /// Compute per-dimension multipliers for multi-dimensional OCCURS.
+    /// Each multiplier is the ElementSize of the OCCURS group at that level —
+    /// this correctly accounts for non-OCCURS siblings (e.g., ENTRY-1 alongside
+    /// GRP2-ENTRY OCCURS 10) that occupy space within each occurrence.
+    /// </summary>
     private static List<int> ComputeMultipliers(
         List<(Semantics.DataSymbol sym, int count)> occursLevels, int elementSize)
     {
         var multipliers = new List<int>(occursLevels.Count);
-        int acc = elementSize;
-        for (int i = occursLevels.Count - 1; i >= 0; i--)
-        {
-            multipliers.Insert(0, acc);
-            acc *= occursLevels[i].count;
-        }
+        for (int i = 0; i < occursLevels.Count; i++)
+            multipliers.Add(occursLevels[i].sym.ElementSize);
         return multipliers;
     }
 
@@ -810,7 +826,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(v.Index);
         if (indexLoc == null)
         {
-            _diagnostics.ReportError("CS0875",
+            _diagnostics.ReportError("COBOL0500",
                 $"PERFORM VARYING index '{v.Index.Name}' has no storage location.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -913,7 +929,7 @@ public sealed class Binder
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
         {
-            _diagnostics.ReportError("CS0874",
+            _diagnostics.ReportError("COBOL0501",
                 $"PERFORM target paragraph '{perf.Target.Name}' not found in paragraph dispatch table.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -964,7 +980,7 @@ public sealed class Binder
 
         if (perf.Target == null)
         {
-            _diagnostics.ReportError("CS0879",
+            _diagnostics.ReportError("COBOL0502",
                 "PERFORM TIMES has no target paragraph and no inline statements.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -1329,6 +1345,44 @@ public sealed class Binder
         return block;
     }
 
+    // ── RETURN (sort/merge) ──
+
+    private IrBasicBlock LowerReturn(BoundReturnStatement ret, IrMethod method, IrBasicBlock block)
+    {
+        // RETURN is for sort/merge, not yet supported — emit stub warning
+        block.Instructions.Add(new IR.IrPicDisplay(
+            [new IR.DisplayLiteralOperand($"RETURN not implemented: {ret.File.Name}")]));
+
+        // Lower AT END / NOT AT END for structural completeness
+        if (ret.AtEnd.Count > 0 || ret.NotAtEnd.Count > 0)
+        {
+            // Always take the AT END path (stub behavior)
+            foreach (var stmt in ret.AtEnd)
+                block = LowerStatement(stmt, method, block);
+        }
+
+        return block;
+    }
+
+    // ── CALL ──
+
+    private IrBasicBlock LowerCall(BoundCallStatement call, IrMethod method, IrBasicBlock block)
+    {
+        // CALL inter-program linkage not yet supported — emit stub warning
+        block.Instructions.Add(new IR.IrPicDisplay(
+            [new IR.DisplayLiteralOperand($"CALL not implemented: {call.TargetName}")]));
+
+        // Lower ON EXCEPTION / NOT ON EXCEPTION for structural completeness
+        if (call.OnException.Count > 0 || call.NotOnException.Count > 0)
+        {
+            // Always take the ON EXCEPTION path (stub behavior)
+            foreach (var stmt in call.OnException)
+                block = LowerStatement(stmt, method, block);
+        }
+
+        return block;
+    }
+
     // ── INITIALIZE ──
 
     private void LowerInitialize(BoundInitializeStatement stmt, IrBasicBlock block)
@@ -1532,49 +1586,108 @@ public sealed class Binder
     private void LowerSetIndex(BoundSetIndexStatement stmt, IrBasicBlock block)
     {
         var targetLoc = ResolveLocation(stmt.Target);
-        if (targetLoc == null) return;
+        if (targetLoc == null)
+        {
+            _diagnostics.ReportError("COBOL0510",
+                $"SET target '{stmt.Target.Symbol.Name}' has no storage location.",
+                new Common.SourceLocation("<source>", 0, 0, 0),
+                new Common.TextSpan(0, 0));
+            return;
+        }
+
+        // Resolve the value expression to either a decimal literal or a field location.
+        // Handles literal, identifier, and computed expressions (e.g., unary -5, +5).
+        decimal? literalValue = TryEvalConstant(stmt.Value);
+        IrLocation? valueLoc = null;
+        if (literalValue == null && stmt.Value is BoundIdentifierExpression valId)
+            valueLoc = ResolveLocation(valId);
 
         switch (stmt.Operation)
         {
             case SetOperation.Assign:
-                // SET identifier TO value — reuse MOVE machinery
-                if (stmt.Value is BoundLiteralExpression lit)
+                if (literalValue.HasValue)
                 {
-                    if (lit.Value is decimal d)
-                    {
-                        if (GetPicForLocation(targetLoc).Category.IsNumericLike())
-                            block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, d));
-                        else
-                            block.Instructions.Add(new IrMoveStringToField(targetLoc,
-                                d.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-                    }
-                    else if (lit.Value is string s)
-                    {
-                        block.Instructions.Add(new IrMoveStringToField(targetLoc, s));
-                    }
+                    if (GetPicForLocation(targetLoc).Category.IsNumericLike())
+                        block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, literalValue.Value));
+                    else
+                        block.Instructions.Add(new IrMoveStringToField(targetLoc,
+                            literalValue.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if (stmt.Value is BoundIdentifierExpression id)
+                else if (valueLoc != null)
                 {
-                    var srcLoc = ResolveLocation(id);
-                    if (srcLoc != null)
-                        block.Instructions.Add(new IrMoveFieldToField(
-                            srcLoc, targetLoc,
-                            GetPicForLocation(srcLoc), GetPicForLocation(targetLoc)));
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        valueLoc, targetLoc,
+                        GetPicForLocation(valueLoc), GetPicForLocation(targetLoc)));
+                }
+                else
+                {
+                    _diagnostics.ReportError("COBOL0511",
+                        $"SET '{stmt.Target.Symbol.Name}' TO: cannot resolve value expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
                 }
                 break;
 
             case SetOperation.UpBy:
-                // SET identifier UP BY n → ADD n TO identifier
-                if (stmt.Value is BoundLiteralExpression upLit && upLit.Value is decimal upVal)
-                    block.Instructions.Add(new IrPicAddLiteral(targetLoc, upVal));
+                if (literalValue.HasValue)
+                    block.Instructions.Add(new IrPicAddLiteral(targetLoc, literalValue.Value));
+                else if (valueLoc != null)
+                    block.Instructions.Add(new IrPicAdd(valueLoc, targetLoc));
+                else
+                {
+                    _diagnostics.ReportError("COBOL0512",
+                        $"SET '{stmt.Target.Symbol.Name}' UP BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
+                }
                 break;
 
             case SetOperation.DownBy:
-                // SET identifier DOWN BY n → SUBTRACT n FROM identifier
-                if (stmt.Value is BoundLiteralExpression downLit && downLit.Value is decimal downVal)
-                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc, downVal));
+                if (literalValue.HasValue)
+                    block.Instructions.Add(new IrPicSubtractLiteral(targetLoc, literalValue.Value));
+                else if (valueLoc != null)
+                    block.Instructions.Add(new IrPicSubtract(valueLoc, targetLoc));
+                else
+                {
+                    _diagnostics.ReportError("COBOL0513",
+                        $"SET '{stmt.Target.Symbol.Name}' DOWN BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
+                        new Common.SourceLocation("<source>", 0, 0, 0),
+                        new Common.TextSpan(0, 0));
+                }
                 break;
         }
+    }
+
+    /// <summary>
+    /// Try to evaluate a bound expression as a compile-time decimal constant.
+    /// Handles literals, unary +/-, and simple constant arithmetic.
+    /// Returns null if the expression is not a compile-time constant.
+    /// </summary>
+    private static decimal? TryEvalConstant(BoundExpression expr)
+    {
+        if (expr is BoundLiteralExpression lit && lit.Value is decimal d)
+            return d;
+
+        // Unary +/- on a literal: the binder produces BoundBinaryExpression(0, +/-, literal)
+        // or the arithmetic parser produces a negated literal
+        if (expr is BoundBinaryExpression bin)
+        {
+            var left = TryEvalConstant(bin.Left);
+            var right = TryEvalConstant(bin.Right);
+            if (left.HasValue && right.HasValue)
+            {
+                return bin.OperatorKind switch
+                {
+                    BoundBinaryOperatorKind.Add => left.Value + right.Value,
+                    BoundBinaryOperatorKind.Subtract => left.Value - right.Value,
+                    BoundBinaryOperatorKind.Multiply => left.Value * right.Value,
+                    BoundBinaryOperatorKind.Divide when right.Value != 0 => left.Value / right.Value,
+                    _ => (decimal?)null
+                };
+            }
+        }
+
+        return null;
     }
 
     // ── MULTIPLY ──
@@ -1703,49 +1816,104 @@ public sealed class Binder
     {
         block.Instructions.Add(new IrInitArithmeticStatus());
 
-        foreach (var target in div.Targets)
+        // Quotient accumulator — used by REMAINDER if present
+        IrValue? accum = null;
+
+        if (div.Receiver != null)
         {
-            var destLoc = ResolveLocation(target.Target);
-            if (destLoc == null) continue;
+            // DIVIDE BY GIVING: compute quotient ONCE into accumulator, store to all targets.
+            // Critical: the dividend (Receiver) may also be a GIVING target,
+            // so we must evaluate the expression before any target is written.
+            var divExpr = new BoundBinaryExpression(
+                div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
+                CobolCategory.Numeric);
+            accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+            block.Instructions.Add(new IrComputeIntoAccumulator(accum.Value, divExpr,
+                PreResolveExpressionLocations(divExpr)));
 
-            int roundingMode = target.IsRounded ? 1 : 0;
-
-            if (div.Receiver != null)
+            foreach (var target in div.Targets)
             {
+                var destLoc = ResolveLocation(target.Target);
+                if (destLoc == null) continue;
+                int roundingMode = target.IsRounded ? 1 : 0;
+                block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
+            }
+        }
+        else
+        {
+            // DIVIDE INTO (non-GIVING): target = target / divisor.
+            // For REMAINDER: must use accumulator pattern to preserve original dividend
+            // before the divide overwrites the target.
+            bool needRemainder = div.RemainderTarget != null && div.Targets.Count > 0;
+
+            if (needRemainder)
+            {
+                // Use accumulator pattern: evaluate dividend/divisor into decimals,
+                // compute quotient, store to target, then compute remainder.
+                var target0 = div.Targets[0];
                 var divExpr = new BoundBinaryExpression(
-                    div.Receiver, BoundBinaryOperatorKind.Divide, div.Operands[0],
+                    target0.Target, BoundBinaryOperatorKind.Divide, div.Operands[0],
                     CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(divExpr, destLoc, roundingMode,
+                accum = _valueFactory.Next(IrPrimitiveType.Decimal);
+                block.Instructions.Add(new IrComputeIntoAccumulator(accum.Value, divExpr,
                     PreResolveExpressionLocations(divExpr)));
+
+                var destLoc = ResolveLocation(target0.Target);
+                if (destLoc != null)
+                {
+                    int roundingMode = target0.IsRounded ? 1 : 0;
+                    block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
+
+                    // Remainder uses the target's fraction digits (quotient stored in target)
+                    int givingFracDigits = GetPicForLocation(destLoc).FractionDigits;
+                    var remLoc = ResolveLocation(div.RemainderTarget!);
+                    if (remLoc != null)
+                    {
+                        block.Instructions.Add(new IrCobolRemainder(
+                            target0.Target, div.Operands[0], accum.Value, givingFracDigits, remLoc,
+                            PreResolveExpressionLocations(target0.Target),
+                            PreResolveExpressionLocations(div.Operands[0])));
+                    }
+                }
             }
             else
             {
-                if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
+                foreach (var target in div.Targets)
                 {
-                    block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
-                }
-                else if (div.Operands[0] is BoundIdentifierExpression divisorId)
-                {
-                    var divisorLoc = ResolveLocation(divisorId);
-                    if (divisorLoc != null)
+                    var destLoc = ResolveLocation(target.Target);
+                    if (destLoc == null) continue;
+                    int roundingMode = target.IsRounded ? 1 : 0;
+
+                    if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                     {
-                        block.Instructions.Add(new IrPicDivide(destLoc, divisorLoc, destLoc, roundingMode));
+                        block.Instructions.Add(new IrPicDivideLiteral(d, destLoc, destLoc, roundingMode));
+                    }
+                    else if (div.Operands[0] is BoundIdentifierExpression divisorId)
+                    {
+                        var divisorLoc = ResolveLocation(divisorId);
+                        if (divisorLoc != null)
+                        {
+                            block.Instructions.Add(new IrPicDivide(destLoc, divisorLoc, destLoc, roundingMode));
+                        }
                     }
                 }
             }
         }
 
-        // REMAINDER: dividend MOD divisor
-        if (div.RemainderTarget != null && div.Receiver != null)
+        // REMAINDER for GIVING form: dividend - truncatedQuotient × divisor
+        if (div.RemainderTarget != null && div.Receiver != null && div.Targets.Count > 0 && accum != null)
         {
             var remLoc = ResolveLocation(div.RemainderTarget);
             if (remLoc != null)
             {
-                var remExpr = new BoundBinaryExpression(
-                    div.Receiver, BoundBinaryOperatorKind.Remainder, div.Operands[0],
-                    CobolCategory.Numeric);
-                block.Instructions.Add(new IrComputeStore(remExpr, remLoc, 0,
-                    PreResolveExpressionLocations(remExpr)));
+                var givingLoc = ResolveLocation(div.Targets[0].Target);
+                int givingFracDigits = givingLoc != null
+                    ? GetPicForLocation(givingLoc).FractionDigits : 0;
+
+                block.Instructions.Add(new IrCobolRemainder(
+                    div.Receiver, div.Operands[0], accum.Value, givingFracDigits, remLoc,
+                    PreResolveExpressionLocations(div.Receiver),
+                    PreResolveExpressionLocations(div.Operands[0])));
             }
         }
 
@@ -2219,7 +2387,7 @@ public sealed class Binder
             return;
         }
 
-        _diagnostics.ReportError("CS0881",
+        _diagnostics.ReportError("COBOL0503",
             $"Unsupported condition shape: {cond.GetType().Name}",
             new Common.SourceLocation("<source>", 0, 0, 0),
             new Common.TextSpan(0, 0));
@@ -2235,7 +2403,7 @@ public sealed class Binder
 
         if (left == null || right == null)
         {
-            _diagnostics.ReportError("CS0882",
+            _diagnostics.ReportError("COBOL0504",
                 $"Cannot normalize comparison operands: " +
                 $"left={binCond.Left.GetType().Name}, right={binCond.Right.GetType().Name}",
                 new Common.SourceLocation("<source>", 0, 0, 0),
@@ -2311,7 +2479,7 @@ public sealed class Binder
                 break;
 
             default:
-                _diagnostics.ReportError("CS0883",
+                _diagnostics.ReportError("COBOL0505",
                     $"Unhandled comparison combination: {left.Kind} vs {right.Kind}",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2555,7 +2723,7 @@ public sealed class Binder
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
             else
-                _diagnostics.ReportError("CS0876",
+                _diagnostics.ReportError("COBOL0506",
                     $"GO TO target '{gt.Target.Name}' not found in paragraph dispatch table.",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2565,7 +2733,7 @@ public sealed class Binder
         // GO TO para1 para2 ... DEPENDING ON selector
         if (gt.DependingOn == null)
         {
-            _diagnostics.ReportError("CS0877",
+            _diagnostics.ReportError("COBOL0507",
                 "GO TO DEPENDING ON requires a selector variable.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2575,7 +2743,7 @@ public sealed class Binder
         var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
         if (selectorLoc == null)
         {
-            _diagnostics.ReportError("CS0878",
+            _diagnostics.ReportError("COBOL0508",
                 $"GO TO DEPENDING ON selector '{gt.DependingOn}' has no storage location.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2590,7 +2758,7 @@ public sealed class Binder
                 targetIndices.Add(idx);
             else
             {
-                _diagnostics.ReportError("CS0876",
+                _diagnostics.ReportError("COBOL0506",
                     $"GO TO DEPENDING target '{target.Name}' not found in paragraph dispatch table.",
                     new Common.SourceLocation("<source>", 0, 0, 0),
                     new Common.TextSpan(0, 0));
@@ -2624,7 +2792,7 @@ public sealed class Binder
     {
         if (_performExitStack.Count == 0)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT PERFORM used outside of any active PERFORM.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2643,7 +2811,7 @@ public sealed class Binder
     {
         if (_paragraphEndBlock == null)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT PARAGRAPH used outside of any paragraph.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2661,7 +2829,7 @@ public sealed class Binder
     {
         if (_sectionExitReturnIndex == null)
         {
-            _diagnostics.ReportError("CS0862",
+            _diagnostics.ReportError("COBOL0509",
                 "EXIT SECTION used outside of any section.",
                 new Common.SourceLocation("<source>", 0, 0, 0),
                 new Common.TextSpan(0, 0));
@@ -2825,10 +2993,11 @@ public sealed class Binder
         var indexLoc = ResolveLocation(search.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = search.Table.Symbol.OccursCount;
+        int upperBound = search.Table.Symbol.Occurs?.MaxOccurs ?? 1;
 
-        // Initialize index to 1
-        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, 1m));
+        // COBOL-85 §14.9.38: SEARCH uses the CURRENT index value.
+        // If the index already exceeds the table, AT END is triggered immediately.
+        // The index is NOT reset — the programmer must SET it before SEARCH.
 
         // Loop structure
         var loopHeader = method.CreateBlock("search.loop");
@@ -2897,7 +3066,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(searchAll.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = searchAll.Table.Symbol.OccursCount;
+        int upperBound = searchAll.Table.Symbol.Occurs?.MaxOccurs ?? 1;
         var when = searchAll.Whens[0]; // SEARCH ALL allows exactly one WHEN
 
         // Create temp variables for low, high, mid

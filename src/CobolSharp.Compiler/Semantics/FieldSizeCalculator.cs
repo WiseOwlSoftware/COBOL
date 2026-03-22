@@ -19,6 +19,11 @@ public static class FieldSizeCalculator
     /// </summary>
     public static int ComputeElementSize(DataSymbol data)
     {
+        // USAGE INDEX elementary items have no PIC — store occurrence number as 4-byte binary
+        // (same layout as INDEXED BY items which are S9(9) COMP = 4 bytes)
+        if (data.Usage == UsageKind.Index)
+            return 4;
+
         var pic = data.ResolvedType?.Pic;
         if (pic == null || pic.Length <= 0) return 1;
 

@@ -1,0 +1,72 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC121M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MULTIPLY BY          PASS  IND-TEST-GF-1
+ MULTIPLY ROUNDED     PASS  IND-TEST-GF-2
+ MULTIPLY ON SIZE ERR PASS  IND-TEST-GF-3-1
+ MULTIPLY ON SIZE ERR PASS  IND-TEST-GF-3-2
+ MULTIPLY BY          PASS  IND-TEST-GF-4
+ MULTIPLY ROUNDED     PASS  IND-TEST-GF-5
+ MULTIPLY ON SIZE ERR PASS  IND-TEST-GF-6-1
+ MULTIPLY ON SIZE ERR PASS  IND-TEST-GF-6-2
+ MULTIPLY BY GIVING   PASS  IND-TEST-GF-7
+ MULTIPLY BY GIVING   PASS  IND-TEST-GF-8
+ MULTIPLY BY GIVING   PASS  IND-TEST-GF-9
+ MULTIPLY BY          PASS  IND-TEST-GF-10
+ MULTIPLY BY          PASS  IND-TEST-GF-11
+ MULTIPLY BY GIVING   PASS  IND-TEST-GF-12
+ MULTIPLY BY GIVING   PASS  IND-TEST-GF-13
+ DIVIDE INTO          PASS  IND-TEST-GF-14
+ DIVIDE ROUNDED       PASS  IND-TEST-GF-15
+ DIVIDE ON SIZE ERROR PASS  IND-TEST-GF-16-1
+ DIVIDE ON SIZE ERROR PASS  IND-TEST-GF-16-2
+ DIVIDE INTO          PASS  IND-TEST-GF-17
+ DIVIDE ROUNDED       PASS  IND-TEST-GF-18
+ DIVIDE ON SIZE ERROR PASS  IND-TEST-GF-19-1
+ DIVIDE ON SIZE ERROR PASS  IND-TEST-GF-19-2
+ DIVIDE INTO GIVING   PASS  IND-TEST-GF-22
+ DIVIDE INTO GIVING   PASS  IND-TEST-GF-23
+ DIVIDE INTO GIVING   PASS  IND-TEST-GF-24
+ DIVIDE INTO          PASS  IND-TEST-GF-25
+ DIVIDE INTO          PASS  IND-TEST-GF-20
+ DIVIDE INTO          PASS  IND-TEST-GF-21
+ DIVIDE INTO GIVING   PASS  IND-TEST-GF-26
+ DIVIDE INTO GIVING   PASS  IND-TEST-GF-27
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-28
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-29
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-30
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-31
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-32
+ DIVIDE BY GIVING     PASS  IND-TEST-GF-33
+ PERFORM              PASS  IND-TEST-GF-34
+ PERFORM THRU         PASS  IND-TEST-GF-35
+ DISPLAY              INSPT IND-TEST-GF-36                RESULTS MUST BE
+*** INFORMATION ***                                 LITERAL-01          IV-21 4.3.8.2.3/4
+
+ DISPLAY              INSPT IND-TEST-GF-37                VISUALLY CHECKED
+*** INFORMATION ***                                 0123456789          IV-21 4.3.8.2.3/4
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC121M
+
+                                                    039 OF 041  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    002 TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

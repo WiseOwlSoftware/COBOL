@@ -12,4 +12,8 @@ public enum StorageAreaKind
     WorkingStorage,
     /// <summary>FILE SECTION: record buffers associated with FD file descriptors.</summary>
     FileSection,
+    /// <summary>LINKAGE SECTION: data items passed by reference from calling programs.</summary>
+    LinkageSection,
+    /// <summary>LOCAL-STORAGE SECTION: data allocated fresh per invocation.</summary>
+    LocalStorage,
 }

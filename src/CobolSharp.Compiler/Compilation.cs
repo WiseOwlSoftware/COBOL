@@ -49,6 +49,9 @@ public sealed class Compilation
         // Phase 4: Validate and compute layout
         Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);
         Semantics.StorageLayoutComputer.ComputeLayout(semanticModel);
+        Semantics.DataItemClassifier.Validate(semanticModel, diagnostics);
+        Semantics.FileStatusValidator.Validate(semanticModel, diagnostics);
+        Semantics.SymbolValidator.Validate(semanticModel, diagnostics);
 
         // Phase 5: Bind -> IR
         var binder = new CodeGen.Binder(semanticModel, diagnostics);
@@ -88,6 +91,7 @@ public sealed class Compilation
 
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));
+        parser.ErrorHandler = new CobolErrorStrategy();
 
         var tree = parser.compilationUnit();
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;
@@ -122,6 +126,9 @@ public sealed class Compilation
 
         foreach (var sw in semanticBuilder.ImplementorSwitches)
             model.RegisterImplementorSwitch(sw);
+
+        foreach (var ext in semanticBuilder.ExtensionClauses)
+            model.AddExtensionClause(ext);
 
         // Populate procedure symbols
         foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)
@@ -172,7 +179,8 @@ public sealed class Compilation
         }
         catch (Exception ex)
         {
-            diagnostics.ReportError("CIL", $"CIL emission failed: {ex.Message}\n{ex.StackTrace}",
+            diagnostics.ReportError("COBOL0600",
+                $"Internal compiler error while generating code for '{programId}': {ex.Message}. Please report this.",
                 new SourceLocation(sourcePath, 0, 0, 0),
                 new TextSpan(0, 0));
             return new CompilationResult(false, outputPath, diagnostics.Diagnostics);

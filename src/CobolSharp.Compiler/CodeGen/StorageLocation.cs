@@ -76,6 +76,30 @@ public static class CompilerPicDescriptorFactory
                 environment: env);
         }
 
+        // Elementary USAGE INDEX with no PIC: synthesize S9(9) COMP descriptor
+        // (same as INDEXED BY items) so comparisons and arithmetic work correctly.
+        // Group items with USAGE INDEX must NOT get this — they keep the group descriptor.
+        if (symbol.Usage == UsageKind.Index && symbol.Children.Count == 0)
+        {
+            return new PicDescriptor(
+                totalDigits: 9,
+                fractionDigits: 0,
+                isSigned: true,
+                isNumeric: true,
+                isAlphanumeric: false,
+                hasEditing: false,
+                storageLength: storageLength,
+                usage: UsageKind.Comp,
+                category: CobolCategory.Numeric,
+                signStorage: SignStorageKind.None,
+                editing: EditingKind.None,
+                blankWhenZero: false,
+                leadingScaleDigits: 0,
+                trailingScaleDigits: 0,
+                editPattern: null,
+                environment: env);
+        }
+
         // Group items (no PIC): alphanumeric DISPLAY
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
         return new PicDescriptor(

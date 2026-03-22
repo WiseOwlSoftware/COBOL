@@ -5,6 +5,73 @@ using CobolSharp.Runtime;
 namespace CobolSharp.Compiler.Semantics;
 
 /// <summary>
+/// Structured OCCURS clause information: min/max, DEPENDING ON, KEY, INDEXED BY.
+/// </summary>
+public sealed class OccursInfo
+{
+    /// <summary>Minimum occurrence count (for OCCURS m TO n DEPENDING ON).</summary>
+    public int MinOccurs { get; }
+
+    /// <summary>Maximum occurrence count (fixed OCCURS n, or max in DEPENDING ON).</summary>
+    public int MaxOccurs { get; }
+
+    /// <summary>DEPENDING ON data-name (unresolved text; resolved via ResolveDeferred).</summary>
+    public string? DependingOnName { get; }
+
+    /// <summary>Resolved DEPENDING ON symbol (set during deferred resolution).</summary>
+    public DataSymbol? DependingOnSymbol { get; set; }
+
+    /// <summary>ASCENDING KEY data-names from the OCCURS clause.</summary>
+    public IReadOnlyList<string> AscendingKeys { get; }
+
+    /// <summary>DESCENDING KEY data-names from the OCCURS clause.</summary>
+    public IReadOnlyList<string> DescendingKeys { get; }
+
+    /// <summary>INDEXED BY index-names from the OCCURS clause.</summary>
+    public IReadOnlyList<string> IndexNames { get; }
+
+    public OccursInfo(
+        int minOccurs,
+        int maxOccurs,
+        string? dependingOnName = null,
+        IReadOnlyList<string>? ascendingKeys = null,
+        IReadOnlyList<string>? descendingKeys = null,
+        IReadOnlyList<string>? indexNames = null)
+    {
+        MinOccurs = minOccurs;
+        MaxOccurs = maxOccurs;
+        DependingOnName = dependingOnName;
+        AscendingKeys = ascendingKeys ?? [];
+        DescendingKeys = descendingKeys ?? [];
+        IndexNames = indexNames ?? [];
+    }
+}
+
+/// <summary>
+/// Level-66 RENAMES clause information: FROM [THRU] data-name references.
+/// </summary>
+public sealed class RenamesInfo
+{
+    /// <summary>RENAMES source data-name (FROM).</summary>
+    public string FromName { get; }
+
+    /// <summary>RENAMES THRU target data-name (null if no THRU).</summary>
+    public string? ThruName { get; }
+
+    /// <summary>Resolved FROM symbol (set during deferred resolution).</summary>
+    public DataSymbol? FromSymbol { get; set; }
+
+    /// <summary>Resolved THRU symbol (set during deferred resolution).</summary>
+    public DataSymbol? ThruSymbol { get; set; }
+
+    public RenamesInfo(string fromName, string? thruName = null)
+    {
+        FromName = fromName;
+        ThruName = thruName;
+    }
+}
+
+/// <summary>
 /// Represents a DATA DIVISION item at any level (01-49, 66, 77, 88).
 /// Carries the raw PIC string, USAGE, VALUE, and structural parent/child
 /// relationships that mirror the COBOL level-number hierarchy.
@@ -35,11 +102,12 @@ public sealed class DataSymbol : Symbol
     /// <summary>True if this item was declared as FILLER (unnamed placeholder for record layout).</summary>
     public bool IsFiller { get; }
 
-    /// <summary>True if this is a group item (has subordinate items, no PIC clause).</summary>
-    public bool IsGroup => PicString == null;
+    /// <summary>True if this is a group item (has subordinate items, no PIC clause).
+    /// USAGE INDEX items without children are elementary, not groups.</summary>
+    public bool IsGroup => PicString == null && !(Usage == Runtime.UsageKind.Index && Children.Count == 0);
 
-    /// <summary>True if this is an elementary item (has a PIC clause, no subordinates).</summary>
-    public bool IsElementary => PicString != null;
+    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX without children).</summary>
+    public bool IsElementary => PicString != null || (Usage == Runtime.UsageKind.Index && Children.Count == 0);
 
     /// <summary>Which DATA DIVISION storage area this item belongs to (WORKING-STORAGE, FILE SECTION, etc.).</summary>
     public StorageAreaKind Area { get; set; }
@@ -62,8 +130,11 @@ public sealed class DataSymbol : Symbol
     /// <summary>True if USAGE was explicitly specified on this item (not inherited from parent).</summary>
     public bool HasExplicitUsage { get; set; }
 
-    /// <summary>OCCURS count (1 = no OCCURS, >1 = array).</summary>
-    public int OccursCount { get; set; } = 1;
+    /// <summary>Structured OCCURS clause information; null if no OCCURS clause.</summary>
+    public OccursInfo? Occurs { get; set; }
+
+    /// <summary>Level-66 RENAMES clause information; null if not a RENAMES item.</summary>
+    public RenamesInfo? Renames { get; set; }
 
     /// <summary>Size of one element in bytes (set by RecordLayoutBuilder).</summary>
     public int ElementSize { get; set; }

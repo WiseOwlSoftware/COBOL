@@ -179,7 +179,7 @@ public sealed class CilEmitter
                 // Compute OCCURS-aware element size and total occurrences.
                 // For nested OCCURS where elements are contiguous across parent boundaries,
                 // flatten to a single totalOccurs covering all dimensions.
-                int directOccurs = data.OccursCount <= 0 ? 1 : data.OccursCount;
+                int directOccurs = data.Occurs?.MaxOccurs ?? 1;
                 int totalSize = loc.Value.Length;
                 int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
                 int totalOccurs = directOccurs;
@@ -188,14 +188,15 @@ public sealed class CilEmitter
                 // parent occurrence (contiguous), multiply totalOccurs and adjust sizes.
                 for (var parent = data.Parent; parent != null; parent = parent.Parent)
                 {
-                    if (parent.OccursCount <= 1) continue;
+                    int parentMaxOccurs = parent.Occurs?.MaxOccurs ?? 1;
+                    if (parentMaxOccurs <= 1) continue;
                     var parentLoc = _semanticModel.GetStorageLocation(parent);
                     if (!parentLoc.HasValue) break;
-                    int parentPerOccurrence = parentLoc.Value.Length / parent.OccursCount;
+                    int parentPerOccurrence = parentLoc.Value.Length / parentMaxOccurs;
                     // Contiguous check: child's span fills exactly one parent occurrence
                     if (totalOccurs * elementSize == parentPerOccurrence)
                     {
-                        totalOccurs *= parent.OccursCount;
+                        totalOccurs *= parentMaxOccurs;
                     }
                     else
                     {
@@ -681,6 +682,15 @@ public sealed class CilEmitter
 
             case IrComputeStore compStore:
                 EmitComputeStore(il, compStore);
+                break;
+
+            case IrCobolRemainder rem:
+                EmitCobolRemainder(il, rem, getLocal);
+                break;
+
+            case IrComputeIntoAccumulator compAccum:
+                EmitExpression(il, compAccum.Expression, compAccum.ResolvedLocations);
+                il.Append(il.Create(OpCodes.Stloc, getLocal(compAccum.Accumulator)));
                 break;
 
             case IrPicDivide divInst:
@@ -1955,6 +1965,29 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    private void EmitCobolRemainder(ILProcessor il, IrCobolRemainder rem,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Push: dividend(decimal), divisor(decimal), rawQuotient(decimal),
+        //        givingFractionDigits(int), dest(area,off,len,pic), ref status
+        EmitExpression(il, rem.Dividend, rem.DividendLocations);
+        EmitExpression(il, rem.Divisor, rem.DivisorLocations);
+        il.Append(il.Create(OpCodes.Ldloc, getLocal(rem.QuotientAccumulator)));
+        il.Append(il.Create(OpCodes.Ldc_I4, rem.GivingFractionDigits));
+        EmitLocationArgsWithPic(il, rem.Destination);
+        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("ComputeCobolRemainder",
+                new[] {
+                    typeof(decimal), typeof(decimal), typeof(decimal),
+                    typeof(int),
+                    typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                    typeof(Runtime.ArithmeticStatus).MakeByRefType()
+                })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     /// <summary>
     /// Recursively emit a bound expression tree, leaving a decimal on the IL stack.
     /// Data-reference leaves (identifiers, ref-mod) are resolved via the pre-resolved
@@ -2050,9 +2083,11 @@ public sealed class CilEmitter
                                         typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Remainder:
+                        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
                         il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("Remainder",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
+                            _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeRemainder",
+                                new[] { typeof(decimal), typeof(decimal),
+                                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
                     case Semantics.Bound.BoundBinaryOperatorKind.Power:
                     {

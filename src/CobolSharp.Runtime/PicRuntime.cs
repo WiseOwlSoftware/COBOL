@@ -321,7 +321,8 @@ public static class PicRuntime
         // Pass 2: Left-to-right zero suppression for floating symbols (Z, *, +, -, $).
         // Stops at fixed digit positions (9) or decimal point (.).
         bool suppressing = true;
-        bool asteriskFill = false;
+        // Asterisk fill: detect from pattern (not just suppression pass — * may appear after decimal)
+        bool asteriskFill = pattern.Contains('*', StringComparison.OrdinalIgnoreCase);
         bool allIntegerSuppressed = true;
         for (int i = 0; i < pattern.Length && suppressing; i++)
         {
@@ -703,13 +704,24 @@ public static class PicRuntime
             return;
         }
 
-        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Trim();
+        // Detect sign from CR/DB suffixes and leading/trailing minus before stripping
+        bool negative = raw.Contains('-') ||
+                         raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
+                         raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        if (!decimal.TryParse(raw, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+        raw = raw.Replace(",", "").Replace("$", "")
+                 .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("*", "").Replace("/", "").Replace(" ", "")
+                 .Replace("-", "").Replace("+", "").Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
                               CultureInfo.InvariantCulture, out var value))
         {
             value = 0m;
         }
+
+        if (negative) value = -value;
 
         value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
@@ -732,10 +744,16 @@ public static class PicRuntime
             return;
         }
 
-        raw = raw.Replace(",", "").Replace("$", "").Replace("CR", "").Replace("DB", "").Replace("*", "").Trim();
+        // Detect sign from CR/DB suffixes and leading/trailing minus before stripping
+        bool negative = raw.Contains('-') ||
+                         raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
+                         raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        bool negative = raw.Contains('-');
-        raw = raw.Replace("-", "").Replace("+", "");
+        raw = raw.Replace(",", "").Replace("$", "")
+                 .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("*", "").Replace("/", "").Replace(" ", "")
+                 .Replace("-", "").Replace("+", "").Trim();
 
         if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
                               CultureInfo.InvariantCulture, out var value))
@@ -1088,6 +1106,57 @@ public static class PicRuntime
             return 0m;
         }
         return left / right;
+    }
+
+    public static decimal SafeRemainder(decimal left, decimal right, ref ArithmeticStatus status)
+    {
+        if (right == 0m)
+        {
+            status.SizeError = true;
+            return 0m;
+        }
+        return decimal.Remainder(left, right);
+    }
+
+    /// <summary>
+    /// COBOL DIVIDE REMAINDER: R = dividend - truncatedQuotient × divisor.
+    /// The quotient is truncated to the GIVING field's precision (fractionDigits)
+    /// per COBOL-85 §14.9.11 GR4. This differs from mathematical modulo which uses
+    /// the exact quotient.
+    /// </summary>
+    public static void ComputeCobolRemainder(
+        decimal dividend, decimal divisor, decimal rawQuotient,
+        int givingFractionDigits,
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
+        ref ArithmeticStatus status)
+    {
+        if (divisor == 0m)
+        {
+            status.SizeError = true;
+            return;
+        }
+
+        // Truncate quotient to the GIVING field's precision (no rounding)
+        decimal truncatedQuotient = rawQuotient;
+        if (givingFractionDigits >= 0)
+        {
+            decimal scale = Pow10(givingFractionDigits);
+            truncatedQuotient = decimal.Truncate(rawQuotient * scale) / scale;
+        }
+
+        decimal remainder = dividend - truncatedQuotient * divisor;
+        remainder = ApplyScalingAndRounding(remainder, destPic, 0);
+
+        // Numeric edited destinations: format with edit pattern, not raw encode
+        if (destPic.Category == CobolCategory.NumericEdited)
+        {
+            string formatted = FormatNumericEdited(remainder, destPic);
+            MoveStringToBytes(destArea, destOffset, destLength, formatted);
+        }
+        else
+        {
+            EncodeNumeric(destArea, destOffset, destLength, destPic, remainder);
+        }
     }
 
     // ══════════════════════════════════════════════════════════

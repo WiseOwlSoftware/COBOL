@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC234A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SEARCH VARYING LEV 1 PASS  CHECK-ENTRIES
+ SEARCH VARYING LEV 1 PASS  TH1-TEST-F1-2
+ SEARCH VARYING LEV 2 PASS  TH1-TEST-F1-3
+ SEARCH VARYING LEV 1 PASS  TH1-TEST-F1-4
+ SEARCH VARYING LEV 2 PASS  TH2-TEST-F1-1
+ SEARCH VARYING LEV 2 PASS  TH2-TEST-F1-2
+ SEARCH VARYING LEV 2 PASS  TH2-TEST-F1-3
+ SEARCH VARYING LEV 2 PASS  TH2-TEST-F1-4
+ SEARCH VARYING LEV 3 PASS  TH3-TEST-F1-1
+ SEARCH VARYING LEV 3 PASS  TH3-TEST-F1-2
+ SEARCH VARYING LEV 3 PASS  TH3-TEST-F1-3
+ SEARCH VARYING LEV 3 PASS  TH3-TEST-F1-4
+ MULTIPLE SEARCH STMT PASS  MLT-TEST-F1-1
+ MULTIPLE SEARCH STMT PASS  MLT-TEST-F1-2
+ SEARCH WITH HI INDEX PASS  SPC-TEST-F1-1
+ SEARCH WITH HI INDEX PASS  SP2-TEST-F1-1
+ SEARCH WITH HI INDEX PASS  SP3-TEST-F1-1
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC234A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

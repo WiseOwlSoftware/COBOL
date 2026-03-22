@@ -28,11 +28,11 @@ jsonParseStatement
     ;
 
 jsonSource
-    : identifier
+    : dataReference
     ;
 
 jsonTarget
-    : identifier
+    : dataReference
     ;
 
 jsonWithDetail
@@ -40,8 +40,8 @@ jsonWithDetail
     ;
 
 jsonOnException
-    : ON EXCEPTION imperativeStatement
-      (NOT ON EXCEPTION imperativeStatement)?
+    : ON EXCEPTION statementBlock
+      (NOT ON EXCEPTION statementBlock)?
     ;
 
 // ---------- JSON GENERATE ----------
@@ -56,11 +56,11 @@ jsonGenerateStatement
     ;
 
 jsonOutput
-    : identifier
+    : dataReference
     ;
 
 jsonInput
-    : identifier
+    : dataReference
     ;
 
 jsonSuppressSpaces
@@ -87,12 +87,12 @@ xmlParseStatement
     ;
 
 xmlSource
-    : identifier
+    : dataReference
     ;
 
 xmlOnException
-    : ON EXCEPTION imperativeStatement
-      (NOT ON EXCEPTION imperativeStatement)?
+    : ON EXCEPTION statementBlock
+      (NOT ON EXCEPTION statementBlock)?
     ;
 
 // ---------- XML GENERATE ----------
@@ -107,13 +107,13 @@ xmlGenerateStatement
     ;
 
 xmlOutput
-    : identifier
+    : dataReference
     ;
 
 xmlInput
-    : identifier
+    : dataReference
     ;
 
 xmlCountIn
-    : 'COUNT' 'IN' identifier
+    : 'COUNT' 'IN' dataReference
     ;

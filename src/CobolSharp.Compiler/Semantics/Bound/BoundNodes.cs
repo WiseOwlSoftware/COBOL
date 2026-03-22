@@ -39,6 +39,9 @@ public enum BoundNodeKind
     DeleteStatement,
     StartStatement,
     CorrespondingStatement,
+    CompoundStatement,
+    ReturnStatement,
+    CallStatement,
 }
 
 public abstract class BoundNode
@@ -53,6 +56,7 @@ public abstract class BoundNode
 public abstract class BoundExpression : BoundNode
 {
     public CobolCategory Category { get; }
+    public ExpressionType? ResultType { get; set; }
     protected BoundExpression(CobolCategory category) => Category = category;
 }
 
@@ -217,6 +221,18 @@ public sealed class BoundConditionNameExpression : BoundExpression
 // ═══════════════════════════════════
 
 public abstract class BoundStatement : BoundNode { }
+
+/// <summary>
+/// A sequence of statements produced by multi-target SET desugaring.
+/// The binder lowers each target into a separate statement; the lowering
+/// phase flattens BoundCompoundStatement into sequential IR.
+/// </summary>
+public sealed class BoundCompoundStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.CompoundStatement;
+    public IReadOnlyList<BoundStatement> Statements { get; }
+    public BoundCompoundStatement(IReadOnlyList<BoundStatement> statements) => Statements = statements;
+}
 
 public sealed class BoundDisplayStatement : BoundStatement
 {
@@ -444,17 +460,25 @@ public sealed class BoundReadStatement : BoundStatement
 {
     public FileSymbol File { get; }
     public BoundIdentifierExpression? Into { get; }
+    /// <summary>True if READ NEXT or READ PREVIOUS was specified.</summary>
+    public bool IsNext { get; }
+    /// <summary>The KEY IS data-name, if specified (for indexed files).</summary>
+    public string? KeyDataName { get; }
     public IReadOnlyList<BoundStatement> AtEnd { get; }
     public IReadOnlyList<BoundStatement> NotAtEnd { get; }
 
     public BoundReadStatement(
         FileSymbol file,
         BoundIdentifierExpression? into,
+        bool isNext,
+        string? keyDataName,
         IReadOnlyList<BoundStatement> atEnd,
         IReadOnlyList<BoundStatement> notAtEnd)
     {
         File = file;
         Into = into;
+        IsNext = isNext;
+        KeyDataName = keyDataName;
         AtEnd = atEnd;
         NotAtEnd = notAtEnd;
     }
@@ -466,11 +490,13 @@ public sealed class BoundRewriteStatement : BoundStatement
 {
     public FileSymbol File { get; }
     public DataSymbol Record { get; }
+    public BoundExpression? From { get; }
 
-    public BoundRewriteStatement(FileSymbol file, DataSymbol record)
+    public BoundRewriteStatement(FileSymbol file, DataSymbol record, BoundExpression? from = null)
     {
         File = file;
         Record = record;
+        From = from;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.RewriteStatement;
@@ -1133,5 +1159,71 @@ public sealed class BoundStartStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.StartStatement;
+}
+
+// ═══════════════════════════════════
+// RETURN (sort/merge)
+// ═══════════════════════════════════
+
+public sealed class BoundReturnStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+    public BoundIdentifierExpression? Into { get; }
+    public IReadOnlyList<BoundStatement> AtEnd { get; }
+    public IReadOnlyList<BoundStatement> NotAtEnd { get; }
+
+    public BoundReturnStatement(FileSymbol file, BoundIdentifierExpression? into,
+        IReadOnlyList<BoundStatement> atEnd, IReadOnlyList<BoundStatement> notAtEnd)
+    {
+        File = file;
+        Into = into;
+        AtEnd = atEnd;
+        NotAtEnd = notAtEnd;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ReturnStatement;
+}
+
+// ═══════════════════════════════════
+// CALL
+// ═══════════════════════════════════
+
+public sealed class BoundCallArgument
+{
+    public ParameterMode Mode { get; }
+    public BoundExpression Expression { get; }
+
+    public BoundCallArgument(ParameterMode mode, BoundExpression expression)
+    {
+        Mode = mode;
+        Expression = expression;
+    }
+}
+
+public sealed class BoundCallStatement : BoundStatement
+{
+    public string TargetName { get; }
+    public bool IsDynamic { get; }
+    public IReadOnlyList<BoundCallArgument> Arguments { get; }
+    public BoundIdentifierExpression? ReturningTarget { get; }
+    public IReadOnlyList<BoundStatement> OnException { get; }
+    public IReadOnlyList<BoundStatement> NotOnException { get; }
+
+    public BoundCallStatement(
+        string targetName, bool isDynamic,
+        IReadOnlyList<BoundCallArgument> arguments,
+        BoundIdentifierExpression? returningTarget,
+        IReadOnlyList<BoundStatement> onException,
+        IReadOnlyList<BoundStatement> notOnException)
+    {
+        TargetName = targetName;
+        IsDynamic = isDynamic;
+        Arguments = arguments;
+        ReturningTarget = returningTarget;
+        OnException = onException;
+        NotOnException = notOnException;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.CallStatement;
 }
 

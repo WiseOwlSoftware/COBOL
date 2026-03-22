@@ -93,7 +93,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
     {
         foreach (var clause in ctx.openClause())
         {
-            foreach (var id in clause.identifier())
+            foreach (var id in clause.dataReference())
             {
                 string name = id.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
@@ -105,10 +105,10 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitCloseStatement(CobolParserCore.CloseStatementContext ctx)
     {
-        var idList = ctx.identifierList();
+        var idList = ctx.dataReferenceList();
         if (idList != null)
         {
-            foreach (var id in idList.identifier())
+            foreach (var id in idList.dataReference())
             {
                 string name = id.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)

@@ -1,0 +1,112 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC210A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                      PASS  IF-TEST-GF-01
+                      PASS  IF-TEST-GF-02
+                      PASS  IF-TEST-GF-03
+                      PASS  IF-TEST-GF-04
+                      PASS  IF-TEST-GF-05
+                      PASS  IF-TEST-GF-06
+                      PASS  IF-TEST-GF-07
+                      PASS  IF-TEST-GF-08
+                      PASS  IF-TEST-GF-09
+                      PASS  IF-TEST-GF-10
+                      PASS  IF-TEST-GF-11
+                      PASS  IF-TEST-GF-12
+                      PASS  IF-TEST-GF-13
+                      PASS  IF-TEST-GF-14
+                      PASS  IF-TEST-GF-15
+                      PASS  IF-TEST-GF-16
+                      PASS  IF-TEST-GF-17
+                      PASS  IF-TEST-GF-18
+                      PASS  IF-TEST-GF-19
+                      PASS  IF-TEST-GF-20
+                      PASS  IF-TEST-GF-21
+                      PASS  IF-TEST-GF-22
+                      PASS  IF-TEST-GF-23
+                      PASS  IF-TEST-GF-24
+                      PASS  IF-TEST-GF-25
+                      PASS  IF-TEST-GF-26
+                      PASS  IF-TEST-GF-27
+                      PASS  IF-TEST-GF-28
+                      PASS  IF-TEST-GF-29
+                      PASS  IF-TEST-GF-30
+                      PASS  IF-TEST-GF-31
+                      PASS  IF-TEST-GF-32
+                      PASS  IF-TEST-GF-33
+                      PASS  IF-TEST-GF-34
+                      PASS  IF-TEST-GF-35
+                      PASS  IF-TEST-GF-36
+                      PASS  IF-TEST-GF-37
+                      PASS  IF-TEST-GF-38
+                      PASS  IF-TEST-GF-39
+                      PASS  IF-TEST-GF-40
+                      PASS  IF-TEST-GF-41
+                      PASS  IF-TEST-GF-42
+                      PASS  IF-TEST-GF-43
+                      PASS  IF-TEST-GF-44
+                      PASS  IF-TEST-GF-45
+                      PASS  IF-TEST-GF-46
+                      PASS  IF-TEST-GF-47
+                      PASS  IF-TEST-GF-48
+                      PASS  IF-TEST-GF-49
+                      PASS  IF-TEST-GF-50
+                      PASS  IF-TEST-GF-51
+                      PASS  IF-TEST-GF-52
+                      PASS  IF-TEST-GF-53
+                      PASS  IF-TEST-GF-54
+                      PASS  IF-TEST-GF-55
+                      PASS  IF-TEST-GF-56
+                      PASS  IF-TEST-GF-57
+                      PASS  IF-TEST-GF-58
+                      PASS  IF-TEST-GF-59
+                      PASS  IF-TEST-GF-60
+                      PASS  IF-TEST-GF-61
+                      PASS  IF-TEST-GF-62
+                      PASS  IF-TEST-GF-63
+                      PASS  IF-TEST-GF-64
+                      PASS  IF-TEST-GF-65
+                      PASS  IF-TEST-GF-66
+                      PASS  IF-TEST-GF-67
+                      PASS  IF-TEST-GF-68
+                      PASS  IF-TEST-GF-69
+                      PASS  IF-TEST-GF-70
+                      PASS  IF-TEST-GF-71
+                      PASS  IF-TEST-GF-72
+                      PASS  IF-TEST-GF-73
+                      PASS  IF-TEST-GF-74
+                      PASS  IF-TEST-GF-75
+                      PASS  IF-TEST-GF-76
+                      PASS  IF-TEST-GF-77
+                      PASS  IF-TEST-GF-78
+                      PASS  IF-TEST-GF-79
+                      PASS  IF-TEST-GF-80
+                      PASS  IF-TEST-GF-81
+                      PASS  IF-TEST-GF-82
+                      PASS  IF-TEST-GF-83
+                      PASS  IF-TEST-GF-84
+                      PASS  IF-TEST-GF-85
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC210A
+
+                                                    085 OF 085  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,142 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC131A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SET  OPT 1           PASS  TEST-1
+ SET  OPT 2           PASS  TEST-2
+ SET  OPT 3           PASS  TEST-3
+ SET  OPT 4           PASS  TEST-4
+ SET  OPT 5           PASS  TEST-5
+ SET  OPT 6           PASS  TEST-6
+
+
+                                                          ASCENDING NUMBER LIST
+
+                                                          01
+                                                          02
+                                                          03
+                                                          04
+                                                          05
+                                                          06
+                                                          07
+                                                          08
+                                                          09
+                                                          10
+                                                          11
+                                                          12
+                                                          13
+                                                          14
+                                                          15
+                                                          16
+                                                          17
+                                                          18
+                                                          19
+                                                          20
+                                                          21
+                                                          22
+                                                          23
+                                                          24
+                                                          25
+                                                          26
+                                                          27
+                                                          28
+                                                          29
+                                                          30
+                                                          31
+                                                          32
+                                                          33
+                                                          34
+                                                          35
+                                                          36
+                                                          37
+                                                          38
+                                                          39
+                                                          40
+                                                          41
+                                                          42
+                                                          43
+                                                          44
+                                                          45
+                                                          46
+                                                          47
+                                                          48
+                                                          49
+                                                          50
+                                                          51
+                                                          52
+                                                          53
+                                                          54
+                                                          55
+                                                          56
+                                                          57
+                                                          58
+                                                          59
+                                                          60
+                                                          61
+                                                          62
+                                                          63
+                                                          64
+                                                          65
+                                                          66
+                                                          67
+                                                          68
+                                                          69
+                                                          70
+                                                          71
+                                                          72
+                                                          73
+                                                          74
+                                                          75
+                                                          76
+                                                          77
+                                                          78
+                                                          79
+                                                          80
+                                                          81
+                                                          82
+                                                          83
+                                                          84
+                                                          85
+                                                          86
+                                                          87
+                                                          88
+                                                          89
+                                                          90
+                                                          91
+                                                          92
+                                                          93
+                                                          94
+                                                          95
+                                                          96
+                                                          97
+                                                          98
+                                                          99
+
+                                                          END OF TABLE LIST
+                      PASS  IDX-TEST-8-1
+                      PASS  IDX-TEST-8-2
+                      PASS  IDX-TEST-9-1
+                      PASS  IDX-TEST-9-2
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC131A
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,37 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC236A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SEARCH               ***** SCH-TEST-F1-1                 ****TEST DELETED****
+ SEARCH               ***** SCH-TEST-F1-2                 ****TEST DELETED****
+ SEARCH               PASS  SCH-TEST-F1-3
+ SEARCH               PASS  SCH-TEST-F1-4
+ SEARCH               ***** SCH-TEST-F1-5                 ****TEST DELETED****
+ SEARCH               PASS  SCH-TEST-F1-6
+ SEARCH               PASS  SCH-TEST-F1-7
+ SEARCH               ***** SCH-TEST-F1-8                 ****TEST DELETED****
+ SEARCH               PASS  SCH-TEST-F1-9
+ SEARCH               ***** SCH-TEST-F1-10                ****TEST DELETED****
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC236A
+
+                                                    005 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    005 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,37 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC238A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SEARCH               PASS  SCH-TEST-F1-1                 IMPLIED VARYING OPTION
+ SEARCH WHEN SERIES   PASS  SCH-TEST-F1-2                 FORMAT 1 W/0 VARYING
+ SEARCH WHEN SERIES   PASS  SCH-TEST-F1-3
+ SEARCH VARYING       PASS  SCH-TEST-F1-4                 WHEN-COMPOUND CONDITION
+ SEARCH WHEN SERIES   PASS  SCH-TEST-F1-5
+ SEARCH ALL           PASS  SCH-TEST-F2-6                 WHEN-COMPOUND CONDITION
+ SEARCH ALL           PASS  SCH-TEST-F2-7
+ SEARCH ALL           PASS  SCH-TEST-F2-8
+ SEARCH ALL           PASS  SCH-TEST-F2-9
+ SEARCH ALL           PASS  SCH-TEST-F2-10                ARITHMETIC EXPRESSION OF ZERO
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC238A
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
