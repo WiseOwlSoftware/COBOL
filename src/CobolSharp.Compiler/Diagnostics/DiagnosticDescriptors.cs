@@ -261,6 +261,12 @@ public static partial class DiagnosticDescriptors
         "VALUE not allowed in LINKAGE item '{0}'");
     public static readonly DiagnosticDescriptor CBL3111 = new("CBL3111", DiagnosticSeverity.Error,
         "REDEFINES not allowed for LINKAGE item '{0}'");
+    public static readonly DiagnosticDescriptor CBL3112 = new("CBL3112", DiagnosticSeverity.Error,
+        "REDEFINES level mismatch: '{0}' is level {1}, target '{2}' is level {3}");
+    public static readonly DiagnosticDescriptor CBL3113 = new("CBL3113", DiagnosticSeverity.Error,
+        "Cannot REDEFINES special-level item '{0}' (level {1})");
+    public static readonly DiagnosticDescriptor CBL3114 = new("CBL3114", DiagnosticSeverity.Error,
+        "REDEFINES target '{0}' is subordinate to OCCURS item '{1}'");
 
     // ══════════════════════════════════════
     // CBL3201–3206: File status
@@ -317,6 +323,18 @@ public static partial class DiagnosticDescriptors
         "Feature not allowed in strict COBOL-85 mode");
     public static readonly DiagnosticDescriptor CBL3502 = new("CBL3502", DiagnosticSeverity.Warning,
         "Feature not part of COBOL-85");
+
+    // ══════════════════════════════════════
+    // CBL0601–0602: SELECT/FD consistency
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0601 = new("CBL0601", DiagnosticSeverity.Warning,
+        "FD '{0}' has no matching SELECT in FILE-CONTROL");
+
+    // ══════════════════════════════════════
+    // CBL0701: OPEN enforcement
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0701 = new("CBL0701", DiagnosticSeverity.Error,
+        "OPEN EXTEND not allowed on non-sequential file '{0}'");
 
     // ══════════════════════════════════════
     // Data item classification (Phase 1.1)

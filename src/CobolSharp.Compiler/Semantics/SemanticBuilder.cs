@@ -286,12 +286,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         {
             string name = nameCtx.GetText();
             // Look up existing FileSymbol created by FILE-CONTROL visitor.
-            // If not found (no SELECT), create one as a fallback.
+            // If not found (no SELECT), create one as a fallback with a warning.
             var fileSym = _symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
             if (fileSym == null)
             {
                 fileSym = new FileSymbol(name, nameCtx.Start.Line);
                 _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+                _diagnostics.Add(new Diagnostic(
+                    DiagnosticDescriptors.CBL0601.Code,
+                    DiagnosticDescriptors.CBL0601.DefaultSeverity,
+                    string.Format(DiagnosticDescriptors.CBL0601.MessageTemplate, name),
+                    new Common.SourceLocation("<source>", 0, nameCtx.Start.Line, nameCtx.Start.Column),
+                    new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex)));
             }
             _currentFdFile = fileSym;
         }
@@ -665,8 +671,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var section = new SectionSymbol(name,
             _symbols.Program.ProcedureDivisionScope, ctx.Start.Line);
 
-        if (!_symbols.Program.ProcedureDivisionScope.TryDeclare(section, out var existingSec))
-            Error(ctx, $"Duplicate section '{name}'.");
+        _symbols.Program.ProcedureDivisionScope.TryDeclare(section, out _);
 
         _currentSectionName = name;
         using var scopeGuard = _symbols.PushScope(section.Scope);
@@ -685,9 +690,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         string name = nameCtx.GetText();
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
-        if (!_symbols.CurrentScope.TryDeclare(paragraph, out var existingLocal))
-            Error(ctx, $"Duplicate paragraph '{name}' in current scope.");
-        _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out var existingGlobal);
+        _symbols.CurrentScope.TryDeclare(paragraph, out _);
+        // Also declare in ProcedureDivisionScope for global resolution,
+        // but only if CurrentScope is a section scope (not already ProcedureDivisionScope)
+        if (_symbols.CurrentScope != _symbols.Program.ProcedureDivisionScope)
+            _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out _);
 
         // Track section membership
         if (_currentSectionName != null)

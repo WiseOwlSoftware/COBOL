@@ -255,6 +255,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.unstringStatement() is { } unstringCtx) return BindUnstring(unstringCtx);
         if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
         if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
+        if (ctx.returnStatement() is { } retCtx) return BindReturn(retCtx);
+        if (ctx.callStatement() is { } callCtx) return BindCall(callCtx);
         if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
 
         _diagnostics.ReportWarning("COBOL0110",
@@ -837,6 +839,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var fileSym = _semantic.ResolveFile(name);
         if (fileSym == null) return null;
 
+        // NEXT/PREVIOUS direction
+        bool isNext = ctx.readDirection() != null;
+
+        // KEY IS data-name
+        string? keyDataName = null;
+        if (ctx.readKey() is { } keyCtx)
+            keyDataName = keyCtx.dataReference().IDENTIFIER().GetText();
+
         // INTO clause
         BoundIdentifierExpression? intoId = null;
         var intoCtx = ctx.readInto();
@@ -871,7 +881,25 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundReadStatement(fileSym, intoId, atEnd, notAtEnd);
+        // INVALID KEY / NOT INVALID KEY
+        if (ctx.readInvalidKey() is { } ikCtx)
+        {
+            var impStmts = ikCtx.statementBlock();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notAtEnd.Add(bound);
+                }
+        }
+
+        return new BoundReadStatement(fileSym, intoId, isNext, keyDataName, atEnd, notAtEnd);
     }
 
     // ── REWRITE ──
@@ -888,7 +916,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var fileSym = _semantic.ResolveFileForRecord(recordSym);
         if (fileSym == null) return null;
 
-        return new BoundRewriteStatement(fileSym, recordSym);
+        // FROM clause
+        BoundExpression? from = null;
+        var fromCtx = ctx.dataReference();
+        if (fromCtx != null)
+            from = BindDataReferenceWithSubscripts(fromCtx);
+
+        return new BoundRewriteStatement(fileSym, recordSym, from);
     }
 
     // ── DELETE ──
@@ -958,6 +992,136 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundStartStatement(fileSym, keyCondition, invalidKey, notInvalidKey);
+    }
+
+    // ── RETURN ──
+
+    private BoundStatement? BindReturn(CobolParserCore.ReturnStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+
+        var fileSym = _semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+
+        // INTO clause
+        BoundIdentifierExpression? intoId = null;
+        var intoCtx = ctx.dataReference();
+        if (intoCtx != null)
+        {
+            var intoExpr = BindDataReferenceWithSubscripts(intoCtx);
+            intoId = intoExpr as BoundIdentifierExpression;
+        }
+
+        // AT END / NOT AT END
+        var atEnd = new List<BoundStatement>();
+        var notAtEnd = new List<BoundStatement>();
+        if (ctx.returnAtEndPhrase() is { } atEndCtx)
+        {
+            var impStmts = atEndCtx.statementBlock();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) atEnd.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notAtEnd.Add(bound);
+                }
+        }
+
+        return new BoundReturnStatement(fileSym, intoId, atEnd, notAtEnd);
+    }
+
+    // ── CALL ──
+
+    private BoundStatement? BindCall(CobolParserCore.CallStatementContext ctx)
+    {
+        var targetCtx = ctx.callTarget();
+        if (targetCtx == null) return null;
+
+        // Extract target name: literal or data reference
+        string targetName;
+        bool isDynamic;
+        if (targetCtx.literal() is { } litCtx)
+        {
+            targetName = litCtx.GetText().Trim('"', '\'');
+            isDynamic = true;
+        }
+        else if (targetCtx.dataReference() is { } dataRefCtx)
+        {
+            targetName = dataRefCtx.IDENTIFIER().GetText();
+            isDynamic = false;
+        }
+        else
+        {
+            return null;
+        }
+
+        // USING arguments
+        var arguments = new List<BoundCallArgument>();
+        if (ctx.callUsingPhrase() is { } usingCtx)
+        {
+            foreach (var argCtx in usingCtx.callArgument())
+            {
+                if (argCtx.callByReference() is { } byRef)
+                {
+                    var expr = BindDataReferenceWithSubscripts(byRef.dataReference());
+                    if (expr != null)
+                        arguments.Add(new BoundCallArgument(ParameterMode.ByReference, expr));
+                }
+                else if (argCtx.callByContent() is { } byContent)
+                {
+                    BoundExpression? expr = null;
+                    if (byContent.dataReference() is { } dr)
+                        expr = BindDataReferenceWithSubscripts(dr);
+                    else if (byContent.literal() is { } lit)
+                        expr = BindLiteral(lit);
+                    if (expr != null)
+                        arguments.Add(new BoundCallArgument(ParameterMode.ByContent, expr));
+                }
+                else if (argCtx.callByValue() is { } byValue)
+                {
+                    var expr = BindFullExpression(byValue.arithmeticExpression());
+                    if (expr != null)
+                        arguments.Add(new BoundCallArgument(ParameterMode.ByValue, expr));
+                }
+            }
+        }
+
+        // RETURNING
+        BoundIdentifierExpression? returningTarget = null;
+        if (ctx.callReturningPhrase() is { } retCtx)
+        {
+            var retExpr = BindDataReferenceWithSubscripts(retCtx.dataReference());
+            returningTarget = retExpr as BoundIdentifierExpression;
+        }
+
+        // ON EXCEPTION / NOT ON EXCEPTION
+        var onException = new List<BoundStatement>();
+        var notOnException = new List<BoundStatement>();
+        if (ctx.callOnExceptionPhrase() is { } excCtx)
+        {
+            var impStmts = excCtx.statementBlock();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) onException.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notOnException.Add(bound);
+                }
+        }
+
+        return new BoundCallStatement(targetName, isDynamic, arguments, returningTarget,
+            onException, notOnException);
     }
 
     // ── ACCEPT ──

@@ -75,6 +75,9 @@ public sealed class Binder
         // Phase 1.5: Flow analysis on bound program
         Semantics.ProcedureGraph.Analyze(boundProgram, _semantic, _diagnostics);
 
+        // Phase 1.6: Expression type enforcement on bound tree
+        Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics);
+
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);
@@ -349,6 +352,10 @@ public sealed class Binder
                 return LowerDelete(del, method, block);
             case BoundStartStatement start:
                 return LowerStart(start, method, block);
+            case BoundReturnStatement ret:
+                return LowerReturn(ret, method, block);
+            case BoundCallStatement call:
+                return LowerCall(call, method, block);
         }
         return block;
     }
@@ -1333,6 +1340,44 @@ public sealed class Binder
 
             method.Blocks.Add(afterBlock);
             return afterBlock;
+        }
+
+        return block;
+    }
+
+    // ── RETURN (sort/merge) ──
+
+    private IrBasicBlock LowerReturn(BoundReturnStatement ret, IrMethod method, IrBasicBlock block)
+    {
+        // RETURN is for sort/merge, not yet supported — emit stub warning
+        block.Instructions.Add(new IR.IrPicDisplay(
+            [new IR.DisplayLiteralOperand($"RETURN not implemented: {ret.File.Name}")]));
+
+        // Lower AT END / NOT AT END for structural completeness
+        if (ret.AtEnd.Count > 0 || ret.NotAtEnd.Count > 0)
+        {
+            // Always take the AT END path (stub behavior)
+            foreach (var stmt in ret.AtEnd)
+                block = LowerStatement(stmt, method, block);
+        }
+
+        return block;
+    }
+
+    // ── CALL ──
+
+    private IrBasicBlock LowerCall(BoundCallStatement call, IrMethod method, IrBasicBlock block)
+    {
+        // CALL inter-program linkage not yet supported — emit stub warning
+        block.Instructions.Add(new IR.IrPicDisplay(
+            [new IR.DisplayLiteralOperand($"CALL not implemented: {call.TargetName}")]));
+
+        // Lower ON EXCEPTION / NOT ON EXCEPTION for structural completeness
+        if (call.OnException.Count > 0 || call.NotOnException.Count > 0)
+        {
+            // Always take the ON EXCEPTION path (stub behavior)
+            foreach (var stmt in call.OnException)
+                block = LowerStatement(stmt, method, block);
         }
 
         return block;
