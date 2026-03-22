@@ -47,6 +47,11 @@ public abstract class Symbol
     public Scope? DeclaringScope { get; internal set; }
     /// <summary>Source line number where this symbol was declared (1-based).</summary>
     public int Line { get; }
+    /// <summary>
+    /// False if this symbol was rejected during declaration (e.g., duplicate name).
+    /// Invalid symbols remain in diagnostic tracking but are excluded from resolution.
+    /// </summary>
+    public bool IsValid { get; internal set; } = true;
 
     protected Symbol(string name, SymbolKind kind, int line)
     {

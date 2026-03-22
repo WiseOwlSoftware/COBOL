@@ -1,0 +1,69 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC112A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ADD LIMITS TESTS     PASS  ADD-TEST-F1-1
+ ADD LIMITS TESTS     PASS  ADD-TEST-F1-2
+ ADD LIMITS TESTS     PASS  ADD-TEST-F2-1
+ ADD LIMITS TESTS     PASS  ADD-TEST-F2-2
+ ADD LIMITS TESTS     PASS  ADD-TEST-F1-3
+ ADD LIMITS TESTS     PASS  ADD-TEST-F2-3
+ ***********************************************************************************************************************
+
+
+
+
+ SUBTRACT LIMITS      PASS  SUB-TEST-F1-1
+ SUBTRACT LIMITS      PASS  SUB-TEST-F2-1
+ SUBTRACT LIMITS      PASS  SUB-TEST-F2-2
+ SUBTRACT LIMITS      PASS  SUB-TEST-F2-3
+ SUBTRACT LIMITS      PASS  SUB-TEST-F1-2
+ SUBTRACT LIMITS      PASS  SUB-TEST-F2-4
+ ***********************************************************************************************************************
+
+
+
+
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-1
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-2
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-3
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-4
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-5
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-6
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-7
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-8
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-9
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-1-10
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-1
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-2
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-3
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-4
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-5
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-6
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-7
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-8
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-9
+ MOVE LIMITS TESTS    PASS  MOVE-TEST-F1-2-10
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC112A
+
+                                                    032 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

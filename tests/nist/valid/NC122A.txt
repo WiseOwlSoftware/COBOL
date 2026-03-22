@@ -1,0 +1,51 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC122A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TALLY FOR CHARACTERS PASS  IND-TEST-GF-1
+ TALLY FOR LITERAL    PASS  IND-TEST-GF-2
+ TALLY FOR ALL SPACE  PASS  IND-TEST-GF-3
+ TALLY LEADING LIT.   PASS  IND-TEST-GF-4
+ FOR CHARS AFTER LIT. PASS  IND-TEST-GF-5
+ ALL BEFORE INITIAL   PASS  IND-TEST-GF-6
+ LEAD. LIT. INITIAL   PASS  IND-TEST-GF-7
+ REP. CHARS BY SPACE  PASS  IND-TEST-GF-8
+ CHARS BEFORE INITIAL PASS  IND-TEST-GF-9
+ LEAD. AFTER INIT. ID PASS  IND-TEST-GF-10
+ FIRST BY ID BEFORE   PASS  IND-TEST-GF-11
+ ALL ID BY LIT. AFTER PASS  IND-TEST-GF-12
+ TALLY REPLACE CHARS  PASS  IND-TEST-GF-13     .01
+ TALLY REPLACE CHARS  PASS  IND-TEST-GF-13     .02
+ LIT. BY BEFORE INIT. PASS  IND-TEST-GF-14     .01
+ LIT. BY BEFORE INIT. PASS  IND-TEST-GF-14     .02
+ REPL. FIRST AFTER    PASS  IND-TEST-GF-15     .01
+ REPL. FIRST AFTER    PASS  IND-TEST-GF-15     .02
+ FOR LEADING          PASS  IND-TEST-GF-16     .01
+ FOR LEADING          PASS  IND-TEST-GF-16     .02
+ LIT. BY AFTER INIT.  PASS  IND-TEST-GF-17     .01
+ LIT. BY AFTER INIT.  PASS  IND-TEST-GF-17     .02
+ CHARS AFTER ALL BEF. PASS  IND-TEST-GF-18     .01
+ CHARS AFTER ALL BEF. PASS  IND-TEST-GF-18     .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC122A
+
+                                                    024 OF 024  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

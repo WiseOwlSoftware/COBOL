@@ -47,9 +47,17 @@ public class Scope
     /// <summary>Enclosing scope, or null for the top-level GlobalProgram scope.</summary>
     public Scope? Parent { get; }
     private readonly Dictionary<string, Symbol> _symbols = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<(Symbol Rejected, Symbol Existing)> _rejections = [];
 
     /// <summary>All symbols declared directly in this scope (not inherited from parents).</summary>
     public IReadOnlyDictionary<string, Symbol> Symbols => _symbols;
+
+    /// <summary>
+    /// Symbols that were rejected by <see cref="TryDeclare"/> because a symbol with the same
+    /// name already existed in this scope. Each entry pairs the rejected symbol with the
+    /// existing symbol that blocked it.
+    /// </summary>
+    public IReadOnlyList<(Symbol Rejected, Symbol Existing)> Rejections => _rejections;
 
     public Scope(ScopeKind kind, Scope? parent)
     {
@@ -65,7 +73,10 @@ public class Scope
     public bool TryDeclare(Symbol symbol, out Symbol? existing)
     {
         if (_symbols.TryGetValue(symbol.Name, out existing))
+        {
+            _rejections.Add((symbol, existing));
             return false;
+        }
 
         symbol.DeclaringScope = this;
         _symbols.Add(symbol.Name, symbol);

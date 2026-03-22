@@ -1,0 +1,61 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC123A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ADD TO               PASS  IND-TEST-GF-1
+ ADD ROUNDED          PASS  IND-TEST-GF-2
+ ADD ON SIZE ERROR    PASS  IND-TEST-GF-3-1
+ ADD ON SIZE ERROR    PASS  IND-TEST-GF-3-2
+ ADD TO               PASS  IND-TEST-GF-4
+ ADD ROUNDED          PASS  IND-TEST-GF-5
+ ADD ON SIZE ERROR    PASS  IND-TEST-GF-6-1
+ ADD ON SIZE ERROR    PASS  IND-TEST-GF-6-2
+ ADD GIVING           PASS  IND-TEST-GF-10
+ ADD GIVING           PASS  IND-TEST-GF-11
+ ADD GIVING           PASS  IND-TEST-GF-12
+ ADD TO               PASS  IND-TEST-GF-7
+ ADD TO               PASS  IND-TEST-GF-8
+ ADD TO               PASS  IND-TEST-GF-9
+ ADD GIVING           PASS  IND-TEST-GF-13
+ ADD GIVING           PASS  IND-TEST-GF-14
+ SUBTRACT FROM        PASS  IND-TEST-GF-15
+ SUBTRACT ROUNDED     PASS  IND-TEST-GF-16
+ SUBTRACT ON SIZE ERR PASS  IND-TEST-GF-17-1
+ SUBTRACT ON SIZE ERR PASS  IND-TEST-GF-17-2
+ SUBTRACT FROM        PASS  IND-TEST-GF-18
+ SUBTRACT ROUNDED     PASS  IND-TEST-GF-19
+ SUBTRACT ON SIZE ERR PASS  IND-TEST-GF-20-1
+ SUBTRACT ON SIZE ERR PASS  IND-TEST-GF-20-2
+ SUBTRACT GIVING      PASS  IND-TEST-GF-24
+ SUBTRACT GIVING      PASS  IND-TEST-GF-25
+ SUBTRACT GIVING      PASS  IND-TEST-GF-26
+ SUBTRACT FROM        PASS  SUBTRCT-TEST-GF-21
+ SUBTRACT FROM        PASS  SUBTRCT-TEST-GF-22
+ SUBTRACT FROM        PASS  SUBTRCT-TEST-GF-23
+ SUBTRACT GIVING      PASS  SUBTRCT-TEST-GF-27
+ SUBTRACT GIVING      PASS  SUBTRCT-TEST-GF-28
+ GO TO DEPENDING ON   PASS  IND-TEST-GF-29
+ GO TO DEPENDING ON   PASS  IND-TEST-GF-30
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC123A
+
+                                                    034 OF 034  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
