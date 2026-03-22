@@ -1,290 +1,321 @@
-# Section 3: Code Quality & Patterns
+# Section 3: Non-production-quality and Duplication Findings
 
-## 3.1 C# Language Version and .NET Target
+Audit date: 2026-03-22
+Branch: nist-phase-d
+Codebase: 97 C# source files (excluding generated ANTLR code)
 
-The project targets **.NET 9.0** with **C# 13** (`LangVersion 13`), configured centrally via
-`/Directory.Build.props`. The SDK version is pinned in `/global.json` to `9.0.312` with
-`rollForward: latestPatch`.
+---
 
-Key build settings applied solution-wide:
+## 1. Meaningless Wrappers
 
-| Setting                   | Value    | Assessment |
-|---------------------------|----------|------------|
-| `TargetFramework`         | net9.0   | Current LTS-adjacent (good) |
-| `LangVersion`             | 13       | Latest stable for .NET 9 |
-| `Nullable`                | enable   | Full nullable reference type enforcement |
-| `TreatWarningsAsErrors`   | true     | Strict — forces clean compilation |
-| `ImplicitUsings`          | enable   | Reduces boilerplate |
+### 1.1 `BindDataReference` delegates to `BindDataReferenceWithSubscripts`
 
-Central package management is used via `/Directory.Packages.props`, with version pinning for all
-five dependencies (Antlr4.Runtime.Standard 4.13.1, Mono.Cecil 0.11.6, xunit 2.9.2, etc.).
+- **Location**: `src/CobolSharp.Compiler/Semantics/Bound/BoundTreeBuilder.cs:2512`
+- **Delegates to**: `BindDataReferenceWithSubscripts(idCtx)` on the same object
+- **Callers**: 1 (line 316, in `BindMove`)
+- **Assessment**: Pure delegation with no added invariants, no null check, no error handling. Inline at the call site and delete.
 
-**Assessment**: The build configuration follows modern .NET best practices. Nullable annotations
-combined with warnings-as-errors creates a strong compile-time safety net. Central version
-management avoids dependency version drift across the five projects.
+### 1.2 `BindFullExpression` delegates to `BindAdditiveExpression`
 
-## 3.2 Modern C# Feature Adoption
+- **Location**: `src/CobolSharp.Compiler/Semantics/Bound/BoundTreeBuilder.cs:2236`
+- **Body**: `return BindAdditiveExpression(ctx.additiveExpression());`
+- **Callers**: 12 (PERFORM, EVALUATE, COMPUTE, condition contexts)
+- **Assessment**: This is the "good" expression walker. It could be inlined, but the name provides abstraction value by marking the entry point into the recursive expression grammar. **Borderline** -- retain for readability but document that it is a structural entry point, not a semantic layer.
 
-The codebase makes meaningful use of modern C# features across all compiler phases.
+### 1.3 `DiagnosticBag.ReportError` / `ReportWarning` wrap `Report`
 
-### Records (19 usages in hand-written code)
+- **Location**: `src/CobolSharp.Compiler/Diagnostics/DiagnosticBag.cs:23-30`
+- **Assessment**: These are convenience overloads that set the severity enum. They serve their purpose -- **not a finding**. Mentioned only for completeness.
 
-Records are used for immutable value types throughout the compiler and runtime:
+### 1.4 `SymbolTable.Declare` wraps `Scope.TryDeclare`
 
-- `sealed record DiagnosticDescriptor`, `sealed record Diagnostic` (`Diagnostics/`)
-- `sealed record IrTemp`, `sealed record IrField`, `sealed record IrGlobal` (`IR/`)
-- `readonly record struct TextSpan`, `readonly record struct IrValue`, `readonly record struct StorageLocation` (value-semantic types)
-- `sealed record CompilationResult`, `sealed record PicLayout`, `sealed record DataTypeSymbol`
-- `sealed record PicEnvironment` (Runtime)
+- **Location**: `src/CobolSharp.Compiler/Semantics/SymbolTable.cs:55-56`
+- **Delegates to**: `CurrentScope.TryDeclare(symbol, out existing)`
+- **Assessment**: Forwards to current scope without adding validation. However, it provides the convenience of not requiring callers to hold a scope reference. **Borderline** -- acceptable as API convenience.
 
-Records are chosen appropriately: value-semantic types that benefit from structural equality get
-`record struct`, reference types with identity get `sealed record`. No misuse of records for
-mutable state was observed.
+### 1.5 `SymbolTable.Resolve` / `Resolve<T>` wrap `Scope.Resolve`
 
-### Switch Expressions (6 usages)
+- **Location**: `src/CobolSharp.Compiler/Semantics/SymbolTable.cs:58-63`
+- **Assessment**: Same pattern as 1.4. Acceptable API surface.
 
-Switch expressions appear in appropriate contexts:
+---
 
-- `BoundTreeBuilder.cs` line 31: `Typed<T>()` method uses nested switch expression for expression
-  type assignment — a 20-line switch expression that cleanly maps bound node types to result types.
-- `RecordLayoutBuilder.cs` line 144: Binary size selection by USAGE kind.
-- `FieldSizeCalculator.cs` line 45: `ComputeBinarySize()` maps digit counts to byte sizes.
-- `PicRuntime.cs` line 851: `FigurativeToByte()` maps figurative constants to byte values.
-- `CilEmitter.cs` line 2599: `GetPicForLocation()` pattern-matches on `IrLocation` subtypes.
+## 2. Duplicated Logic
 
-### Pattern Matching (~190 `is` pattern usages)
+### 2.1 CRITICAL: Two complete expression binding implementations
 
-Pattern matching is used extensively, particularly in `BoundTreeBuilder.cs` (111 occurrences)
-and `Binder.cs` (41 occurrences). Common patterns include:
+- **Location A** ("full expression" path): `BoundTreeBuilder.cs:2236-2330`
+  - `BindFullExpression` -> `BindAdditiveExpression` -> `BindMultiplicativeExpression` -> `BindPowerExpression` -> `BindUnaryExpression` -> `BindPrimaryExpression`
+- **Location B** ("arithmetic expr" path): `BoundTreeBuilder.cs:2994-3082`
+  - `BindArithmeticExpr` -> `BindAdditiveExpr` -> `BindMultiplicativeExpr` -> `BindPowerExpr` -> `BindUnaryExpr` -> `BindPrimaryExpr`
 
-- Declaration patterns: `ctx.dataReference() is { } delimId` (null-check with binding)
-- Type patterns in switch statements: `case BoundPerformStatement perf:` (BoundTreeValidator)
-- Property patterns in the CilEmitter for IR instruction dispatch
+**Both implementations** walk the same grammar rule (`arithmeticExpression -> additiveExpression -> multiplicativeExpression -> powerExpression -> unaryExpression -> primaryExpression`), produce the same `BoundBinaryExpression` trees, and handle the same operator mapping. The only difference: path B accepts nullable input and returns a zero literal for null.
 
-### Primary Constructors (18 usages)
+- **Path A callers**: COMPUTE, PERFORM, EVALUATE, condition contexts (12 sites)
+- **Path B callers**: SET, subscripts, reference modification (6 sites)
 
-Used for lightweight classes with injected dependencies:
-
-- `BasicBlock(int id, bool isExit = false)` (`FlowAnalysis/`)
-- `IrMethod(string name, IrType? returnType)`, `IrBasicBlock(string name)` (`IR/`)
-- `PerformRangeChecker(SymbolTable symbols, DiagnosticBag diagnostics)` (`FlowAnalysis/`)
-- `CobolErrorListener(DiagnosticBag diagnostics, string sourcePath)` (`Parsing/`)
-- `CopyProcessor(IEnumerable<string>? searchPaths = null)` (`Preprocessor/`)
-- Several `GenericClauseNode` subtypes (`Semantics/`)
-
-### Collection Expressions
-
-The C# 12 collection expression syntax `[]` is used for field initializers throughout the
-codebase (e.g., `private readonly List<DataSymbol> _dataItemsInOrder = [];` in
-`SemanticBuilder.cs` line 22). The `new List<T>()` form still appears in 107 locations —
-predominantly in `BoundTreeBuilder.cs` (63) where local lists are constructed inside methods.
-This is a minor inconsistency but not a quality concern.
-
-### Features Not Used
-
-- **Spans/stackalloc**: Only a single `ReadOnlySpan<byte>` usage in `CobolField.cs` line 42.
-  The runtime does extensive `byte[]` manipulation (PicRuntime at 2045 lines) without Span-based
-  APIs. This is a potential performance optimization opportunity, though the current approach is
-  correct.
-- **File-scoped types**: Not used (not needed given the project structure).
-- **Raw string literals**: Not observed; string interpolation is used consistently.
-
-## 3.3 Code Style Consistency
-
-### Naming Conventions
-
-Naming is highly consistent across all 55,000+ lines of hand-written code:
-
-| Element            | Convention           | Adherence |
-|--------------------|----------------------|-----------|
-| Classes            | PascalCase           | 100% (`BoundTreeBuilder`, `CilEmitter`, `PicRuntime`) |
-| Interfaces         | IPascalCase          | 100% (`IFileHandler`) |
-| Public properties  | PascalCase           | 100% |
-| Private fields     | `_camelCase`         | 100% (`_semantic`, `_diagnostics`, `_paragraphMethods`) |
-| Local variables    | camelCase            | 100% |
-| Methods            | PascalCase           | 100% |
-| Enums              | PascalCase members   | 100% (`BoundNodeKind`, `OpenMode`, `IrBinaryOp`) |
-| Constants          | PascalCase           | 100% (diagnostics: `CBL0901`, `CBL1001`, etc.) |
-| Type parameters    | T prefix             | 100% (`Typed<T>()`) |
-| Namespaces         | Dot-separated Pascal | 100% (`CobolSharp.Compiler.Semantics.Bound`) |
-
-COBOL is case-insensitive, and the codebase correctly handles this via
-`StringComparer.OrdinalIgnoreCase` on all symbol-lookup dictionaries (50 usages across 17
-files). Zero instances of `.ToUpper()` or `.ToLower()` for case normalization were found --
-the correct `OrdinalIgnoreCase` approach is used universally.
-
-### Sealed Class Discipline
-
-Classes are marked `sealed` by default (201 occurrences across 35 files). The only unsealed
-classes are abstract base types (`BoundNode`, `BoundExpression`, `BoundStatement`,
-`IrInstruction`, `IrType`, `IrLocation`) and the ANTLR-generated code. This prevents
-unintended inheritance and enables JIT devirtualization.
-
-### File-Scoped Namespaces
-
-All hand-written source files use the C# 10 file-scoped namespace syntax (`namespace X;`).
-No block-scoped namespace declarations were found outside the ANTLR-generated code.
-
-### XML Documentation
-
-Key public APIs have XML doc comments. Coverage is strong on:
-- All IR instruction classes (purpose and semantics documented)
-- BoundNode subtypes (especially where COBOL semantics are non-obvious)
-- Runtime methods (PicRuntime operations document ISO standard references)
-- Diagnostic descriptors (each carries a code, severity, and message template)
-
-### Copyright Headers
-
-Every hand-written source file begins with the standard copyright header:
-```
-// Copyright (c) 2026 Brent Rector. All rights reserved.
-// Licensed under the Business Source License 1.1.
+**Recommendation**: Delete path B entirely. Replace `BindArithmeticExpr` with a null-guarded call to `BindFullExpression`:
+```csharp
+private BoundExpression BindArithmeticExpr(ArithmeticExpressionContext? ctx)
+    => ctx != null ? BindFullExpression(ctx) : new BoundLiteralExpression(0m, ...);
 ```
 
-## 3.4 Complexity Hotspots
+### 2.2 `GetPicForLocation` duplicated between Binder and CilEmitter
 
-### Largest Files (excluding generated ANTLR code)
+- **Binder copy**: `src/CobolSharp.Compiler/CodeGen/Binder.cs:523-532`
+- **CilEmitter copy**: `src/CobolSharp.Compiler/CodeGen/CilEmitter.cs:2597-2606`
 
-| File | Lines | Role | Assessment |
-|------|-------|------|------------|
-| `BoundTreeBuilder.cs` | 3,249 | Parse tree to bound tree | Large but inherently driven by COBOL grammar breadth |
-| `Binder.cs` | 3,148 | Bound tree to IR lowering | Same justification — one method per COBOL statement type |
-| `CilEmitter.cs` | 2,894 | IR to CIL emission | One handler per IR instruction type |
-| `PicRuntime.cs` | 2,045 | COBOL data movement/arithmetic | COBOL PIC semantics are inherently complex |
-| `IrInstruction.cs` | 1,233 | IR instruction definitions | Many small sealed classes; low per-class complexity |
-| `BoundNodes.cs` | 1,229 | Bound node definitions | Same pattern as IrInstruction.cs |
-| `SemanticBuilder.cs` | 883 | Symbol table construction | Moderate size, well-structured |
+Both are `static` methods with identical logic (switch on `IrStaticLocation`, `IrElementRef`, `IrRefModLocation`). The only difference is the exception type (`InvalidOperationException` vs `NotSupportedException`).
 
-**Analysis of the top 3 files:**
+**Recommendation**: Move to `IrLocation` as a static method or an instance property, or to a shared `IrLocationExtensions` utility class.
 
-`BoundTreeBuilder.cs` (3,249 lines) is a visitor over the ANTLR parse tree with one `Visit*`
-or `Bind*` method per COBOL statement type. Each method is 20-80 lines. The complexity is
-inherent to COBOL's grammar breadth (MOVE, PERFORM, IF, EVALUATE, STRING, UNSTRING, INSPECT,
-SEARCH, etc.). There is no god-class issue here — the class has a single responsibility
-(syntax-to-bound-tree translation) with a wide but shallow method surface.
+### 2.3 INVALID KEY branching pattern duplicated 3x in Binder
 
-`Binder.cs` (3,148 lines) mirrors this pattern: one `Lower*` method per bound statement type.
-The dispatch is clean via a single `LowerStatement` switch. Methods are individually small.
+The following three methods contain structurally identical branching logic:
+- `LowerDelete`: `Binder.cs:1260-1286`
+- `LowerStart`: `Binder.cs:1317-1343`
+- `LowerRead` (AT END variant): `Binder.cs:1188-1216`
 
-`CilEmitter.cs` (2,894 lines) follows the same one-handler-per-instruction pattern. The main
-`EmitInstruction` method at line ~660 is a large `switch` (30+ cases), but each case delegates
-to a focused `Emit*` method. This is the standard pattern for instruction emitters.
+Pattern in each:
+```
+var result = _valueFactory.Next(IrPrimitiveType.Bool);
+block.Instructions.Add(new IrCheckFile<Status>(name, result));
+var trueBlock = method.CreateBlock("...");
+var falseBlock = method.CreateBlock("...");
+var afterBlock = method.CreateBlock("...");
+block.Instructions.Add(new IrBranchIfFalse(result, falseBlock));
+block.Instructions.Add(new IrJump(trueBlock));
+// Lower true-path statements
+// Lower false-path statements
+// Both jump to afterBlock
+```
 
-**Verdict**: The large files reflect the breadth of COBOL language features, not poor
-decomposition. Each follows the Visitor or Emitter pattern where a single class must handle
-all node types. The per-method complexity is reasonable.
+**Recommendation**: Extract a `LowerConditionalBranch(IrInstruction checkInst, IReadOnlyList<BoundStatement> truePath, IReadOnlyList<BoundStatement> falsePath, IrMethod method, IrBasicBlock block, string label)` helper.
 
-### Deepest Nesting
+### 2.4 Receiving arithmetic target binding pattern repeated 6x
 
-The deepest nesting observed is 4-5 levels in `BoundTreeBuilder.cs` methods that handle
-compound COBOL statements (STRING/UNSTRING with multiple optional clauses). This is acceptable
-given the grammar structure.
+The pattern:
+```csharp
+foreach (var gt in givingPhrase.receivingArithmeticOperand())
+{
+    var sym = BindDataReferenceWithSubscripts(gt.dataReference());
+    if (sym is BoundIdentifierExpression boundGt)
+        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
+}
+```
+appears in:
+- `BindMultiply`: `BoundTreeBuilder.cs:1914-1919`
+- `BindAdd`: `BoundTreeBuilder.cs:1976-1981, 1998-2003`
+- `BindSubtract`: `BoundTreeBuilder.cs:2056-2061, 2094-2098`
+- `BindDivide`: `BoundTreeBuilder.cs:2136-2141, 2178-2183`
+- `BindCompute`: `BoundTreeBuilder.cs:2214-2218`
 
-## 3.5 Anti-Pattern Assessment
+**Recommendation**: Extract `BindArithmeticTargets(receivingArithmeticOperand[])` returning `List<BoundArithmeticTarget>`.
 
-### Patterns Observed (Positive)
+### 2.5 `BindSimpleOperand` uses type-dispatch with identical bodies
 
-1. **Immutable data flow**: Bound nodes and IR instructions are constructed once and not mutated.
-   Properties are get-only throughout BoundNodes.cs and IrInstruction.cs.
+- **Location**: `BoundTreeBuilder.cs:2944-2980`
 
-2. **Diagnostic descriptor registry**: All diagnostic codes are centralized in
-   `DiagnosticDescriptors.cs` (348 lines) as `static readonly` fields with structured codes
-   (CBL0901, CBL1001, etc.). No magic strings for error codes.
+The method dispatches on `AddOperandContext`, `SubtractOperandContext`, `MultiplyOperandContext`, `DivideOperandContext` -- but each branch does exactly the same thing: check `dataReference()`, then check `literal()`. The only reason for the dispatch is that each grammar rule is a separate type despite having identical structure.
 
-3. **Type-safe dispatch**: Statement lowering uses exhaustive type-pattern switches rather than
-   string-based or enum-based dispatch. The `default` case in `CilEmitter.EmitInstruction`
-   throws `NotSupportedException`, catching unhandled instruction types at compile-test time.
+**Recommendation**: Use a common grammar interface or extract a `BindIdentifierOrLiteral(ParserRuleContext)` that uses reflection or the ANTLR tree API to find `dataReference()` / `literal()` children generically.
 
-4. **Clean phase separation**: The `Compilation.cs` facade (239 lines) orchestrates six phases
-   (Preprocess, Lex/Parse, Grammar validation, Semantic analysis, Bind/IR, CIL emit) with
-   each phase delegated to a dedicated class. No phase leaks into another.
+### 2.6 Fake source location construction repeated 69+ times
 
-5. **No mutable shared state**: Each compilation creates fresh instances of `DiagnosticBag`,
-   `SemanticModel`, `Binder`, and `CilEmitter`. No static mutable state outside of ANTLR
-   generated code.
+- `new Common.SourceLocation("<source>", 0, 0, 0)` with `new Common.TextSpan(0, 0)`: **36 occurrences** across Binder.cs (17), BoundTreeBuilder.cs (16), and others
+- The `BoundTreeValidator` has its own `Report` helper (line 433) that constructs the same pair
+- `BoundTreeBuilder` has `DiagAt(int line)` (line 2857) that wraps the same pattern
 
-6. **Correct COBOL case handling**: All 50 uses of `StringComparer.OrdinalIgnoreCase` are on
-   symbol dictionaries and lookup maps. Zero `.ToUpper()/.ToLower()` calls.
+**Recommendation**: Create a static factory `SourceLocation.None` or `SourceLocation.Unknown` and `TextSpan.Empty` to eliminate the repeated construction. Propagate actual source locations from parse tree nodes where possible.
 
-### Potential Concerns
+---
 
-1. **Console.Error debug output in CilEmitter**: `CilEmitter.cs` lines 82-84 contain
-   `Console.Error.WriteLine` calls that emit diagnostic information about IR methods during
-   compilation. There are 6 such calls in CilEmitter and 25 in the CLI. These should ideally
-   be behind a verbosity flag or use a proper logging abstraction. Not a bug, but a polish item.
+## 3. Ad-hoc and Hacky Code Paths
 
-2. **`object Value` in `BoundLiteralExpression`**: The `Value` property at `BoundNodes.cs` line
-   65 is typed as `object`, requiring runtime type checks at consumption sites (e.g.,
-   `IrLoadConst.Value` at `IrInstruction.cs` line 88, and `CilEmitter.EmitLoadConst` at line
-   755 which switches on `int`, `long`, `string`, `bool`). A discriminated union or generic
-   approach would be more type-safe, though this is a common pragmatic choice in compilers.
+### 3.1 Ad-hoc diagnostic codes (magic strings)
 
-3. **Three duplicate XML doc comment blocks**: `CilEmitter.cs` lines 2651-2658 have three
-   consecutive `<summary>` blocks for what appears to be a single method
-   (`EmitElementAddress`). These look like leftover revisions that were not cleaned up.
+The Binder (`Binder.cs`) uses 17 ad-hoc diagnostic codes (`COBOL0500`-`COBOL0513`) as inline string literals, while the rest of the compiler uses the structured `DiagnosticDescriptors` registry:
 
-4. **`new` keyword hiding base property**: `IrCheckFileAtEnd` at `IrInstruction.cs` line 469
-   declares `public new IrValue Result { get; }`, which hides the base class `Result` property.
-   This is a code smell — it means the base and derived `Result` can diverge. The
-   `TreatWarningsAsErrors` setting means this was intentional (the `new` keyword suppresses
-   CS0108), but it deserves a comment explaining why.
+| Code | Location | Description |
+|------|----------|-------------|
+| COBOL0500 | Binder.cs:829 | PERFORM VARYING index no storage |
+| COBOL0501 | Binder.cs:932 | PERFORM target not found |
+| COBOL0502 | Binder.cs:983 | PERFORM TIMES no target |
+| COBOL0503 | Binder.cs:2390 | MOVE target no storage |
+| COBOL0504 | Binder.cs:2406 | MOVE source no storage |
+| COBOL0505 | Binder.cs:2482 | Computed expression no location |
+| COBOL0506 | Binder.cs:2726,2761 | ADD/SUB accumulator no location |
+| COBOL0507 | Binder.cs:2736 | Arithmetic target no storage |
+| COBOL0508 | Binder.cs:2746 | COMPUTE store target no storage |
+| COBOL0509 | Binder.cs:2795,2814,2832 | Operand resolution failed |
+| COBOL0510-0513 | Binder.cs:1591-1652 | SET target/value resolution |
+| COBOL0600 | Compilation.cs:182 | Internal compiler error |
 
-### No Anti-Patterns Found
+Similarly, `BoundTreeBuilder.cs` uses 13 ad-hoc codes (`COBOL0400`-`COBOL0412`), and `CobolErrorStrategy.cs` uses 20+ ad-hoc codes (`COBOL0001`, `COBOL0100`-`COBOL0312`).
 
-- No god classes (each class has a focused responsibility)
-- No deeply nested conditionals beyond 5 levels
-- No magic numbers (constants like storage sizes have documented defaults)
-- No string concatenation in hot paths (string interpolation used correctly)
-- No `#region` blocks or `#if` directives in hand-written code
-- No `#pragma warning disable` in hand-written code (only in ANTLR-generated files)
+**Total**: 50+ diagnostic codes as inline string literals outside the DiagnosticDescriptors registry.
 
-## 3.6 Technical Debt Markers
+**Recommendation**: Migrate all ad-hoc codes to `DiagnosticDescriptors` with format templates. This enables centralized documentation, severity management, and diagnostic suppression.
 
-### TODO Comments (2 instances)
+### 3.2 IR stubs for RETURN and CALL
 
-1. `/src/CobolSharp.CLI/Program.cs` line 148:
-   `// TODO: pass standard to Compilation when grammar overlays are wired up`
-   — Minor: deferred standards-version configuration.
+- **RETURN stub**: `Binder.cs:1350-1364` -- emits a DISPLAY message and always takes the AT END path
+- **CALL stub**: `Binder.cs:1369-1383` -- emits a DISPLAY message and always takes the ON EXCEPTION path
 
-2. `/src/CobolSharp.Compiler/Semantics/Bound/BoundTreeBuilder.cs` line 3067:
-   `// TODO: proper function binding`
-   — The `BindPrimaryExpr` method returns a placeholder `BoundLiteralExpression(0m)` for
-   function calls. This means intrinsic functions like `FUNCTION LENGTH` return zero in
-   arithmetic expressions.
+These stubs produce incorrect runtime behavior: CALL always fails, RETURN always signals end-of-file. Any test that uses CALL or RETURN will produce wrong results.
 
-### Stub Implementations (5 instances)
+**Recommendation**: At minimum, emit a runtime-level diagnostic/warning. For CALL, consider implementing the inter-program dispatch table (the bound tree already has `BoundCallStatement` with `BoundCallArgument` list and `ParameterMode`). For RETURN, block until SORT/MERGE is implemented.
 
-1. **RETURN statement** (`Binder.cs` lines 1352-1364): Emits a display message and always takes
-   the AT END path. Documented as "sort/merge, not yet supported."
+### 3.3 Function calls return constant zero
 
-2. **CALL statement** (`Binder.cs` lines 1371-1383): Emits a display message and always takes
-   the ON EXCEPTION path. Documented as "inter-program linkage not yet supported."
+- **Location**: `BoundTreeBuilder.cs:3067-3068`
+- **Current behavior**: `// TODO: proper function binding` followed by `return new BoundLiteralExpression(0m, CobolCategory.Numeric);`
+- **Impact**: Any COBOL intrinsic function call (FUNCTION LENGTH, FUNCTION CURRENT-DATE, etc.) is silently replaced with zero. No diagnostic is emitted.
 
-3. **ReportWriterValidator** (`Semantics/ReportWriterValidator.cs` line 10): Entire class is a
-   documented stub — "full validation deferred until Report Writer codegen is implemented."
+**Recommendation**: At minimum, emit a diagnostic warning. Better: implement the most common intrinsic functions (LENGTH, WHEN-COMPILED, CURRENT-DATE) since the runtime already has `IntrinsicFunctions.cs`.
 
-4. **National data type stubs** (`PicRuntime.cs` lines 1303, 1378): MOVE operations involving
-   National (UTF-16) data types are stubbed.
+### 3.4 Power operator uses `BoundBinaryOperatorKind.Power` with no CIL binary op mapping
 
-5. **Console input** (`AcceptRuntime.cs` line 29): Plain ACCEPT fills with spaces rather than
-   reading console input.
+- **Location**: `BoundTreeBuilder.cs:2283-2288`
+- **Comment in code**: "Power is not a standard BoundBinaryOperatorKind; use Multiply as placeholder"
+- **Impact**: The `Power` enum value is produced by the bound tree builder. The CilEmitter's `EmitBinary` (line 818-829) does **not** handle `Power` -- it falls through to `throw new NotSupportedException`. COMPUTE expressions with `**` may work if routed through `EmitExpression` rather than `EmitBinary`, but this is a latent crash for some code paths.
 
-### Dead Code
+### 3.5 `StartCondition` is a magic number
 
-No dead code was identified. All classes, methods, and types sampled are referenced from active
-compilation paths. The `InternalsVisibleTo` attribute on the Compiler project enables unit test
-access to internal types without exposing them publicly.
+- **Location**: `Binder.cs:1308`
+- **Code**: `int condition = 0; // StartCondition.Equal`
+- **Assessment**: Hard-coded integer instead of an enum. The START KEY comparison condition from the bound tree is ignored; it always emits "equal" regardless of the `KEY IS GREATER THAN` / `KEY IS NOT LESS THAN` clauses specified in the COBOL source.
 
-## 3.7 Summary
+### 3.6 WRITE FROM lowering omits the FROM move
 
-| Dimension | Rating | Notes |
-|-----------|--------|-------|
-| Build configuration | Excellent | Modern .NET 9 / C# 13, nullable, warnings-as-errors |
-| Modern C# adoption | Strong | Records, patterns, switch expressions, primary constructors |
-| Naming consistency | Excellent | Zero deviations from .NET conventions observed |
-| Sealed class discipline | Excellent | Default-sealed with abstract bases only where needed |
-| Phase separation | Excellent | Clean pipeline: Preprocess, Parse, Semantic, Bind, IR, Emit |
-| Anti-patterns | Minimal | `object Value` typing and `new` property hiding are minor |
-| Technical debt | Low | 2 TODOs, 5 documented stubs, all for unimplemented COBOL features |
-| Complexity management | Good | Large files reflect language breadth, not poor decomposition |
-| Documentation | Good | XML docs on public APIs; copyright headers universal |
+- **Location**: `Binder.cs` -- `LowerWrite` method
+- **Assessment**: The `BoundWriteStatement` has a `From` property (added in session 2026-03-21), and `BoundTreeValidator.ValidateWrite` validates it. However, `LowerWrite` in the Binder does not perform the FROM-to-record MOVE before the write operation. The validation exists but the codegen is missing.
+
+### 3.7 String literal fallback for unresolved identifiers
+
+- **Location**: `BoundTreeBuilder.cs:3137`
+- **Code**: `return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);`
+- **Impact**: When `BindDataReferenceWithSubscripts` cannot resolve a symbol, it silently creates a string literal containing the identifier name. No diagnostic is emitted. This masks typos and missing data declarations -- the program will silently use the identifier name as a literal string value at runtime.
+
+### 3.8 Three duplicate XML doc comment blocks on `EmitElementAddress`
+
+- **Location**: `CilEmitter.cs:2651-2660`
+- Three consecutive `<summary>` blocks for a single method, each from a different revision. Only the last one reflects the current implementation. The first two are stale.
+
+---
+
+## 4. Dead Code
+
+### 4.1 `CompilationOptions` class -- never instantiated or referenced
+
+- **Location**: `src/CobolSharp.Compiler/Semantics/CompilationOptions.cs`
+- **Assessment**: Defines `DialectMode` enum and `CompilationOptions` class. Neither is referenced anywhere in the codebase. Pure dead code. The `DialectMode.StrictCobol85` mode was intended to pair with `CBL3501`/`CBL3502` descriptors, but none of that wiring exists.
+
+### 4.2 `ReportWriterValidator` -- empty stub, never called
+
+- **Location**: `src/CobolSharp.Compiler/Semantics/ReportWriterValidator.cs`
+- **Assessment**: Contains an empty `Validate` method body. Not called from `Compilation.Compile()` or anywhere else. The diagnostic descriptors it was designed to use (CBL3401-3406) are also unused.
+
+### 4.3 `GetDataReferenceName` -- never called
+
+- **Location**: `BoundTreeBuilder.cs:2521-2524`
+- **Assessment**: `private static string GetDataReferenceName(...)` has zero callers. Dead code.
+
+### 4.4 Unused diagnostic descriptors
+
+The following descriptors in `DiagnosticDescriptors.cs` are defined but never referenced in any diagnostic emission:
+- `CBL3105` (GLOBAL not allowed) -- unreferenced
+- `CBL3106` (LOCAL shadows GLOBAL) -- unreferenced
+- `CBL3107` (Name conflicts with symbol) -- unreferenced
+- `CBL3301`-`CBL3305` (CALL argument validation) -- CALL validation only uses `CBL3310`
+- `CBL3401`-`CBL3406` (Report Writer) -- entirely unused (tied to dead `ReportWriterValidator`)
+- `CBL3501`-`CBL3502` (Strict COBOL-85 mode) -- entirely unused (tied to dead `CompilationOptions`)
+
+---
+
+## 5. TODO / FIXME / HACK Comments
+
+| Location | Text |
+|----------|------|
+| `src/CobolSharp.CLI/Program.cs:148` | `// TODO: pass standard to Compilation when grammar overlays are wired up` |
+| `src/CobolSharp.Compiler/Semantics/Bound/BoundTreeBuilder.cs:3067` | `// TODO: proper function binding` |
+
+**Count**: 2 TODO comments. No FIXME or HACK comments found.
+
+---
+
+## 6. NotSupportedException / NotImplementedException Throws
+
+All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards:
+
+| Line | Context |
+|------|---------|
+| 745 | Default case in `EmitInstruction` switch -- catches unhandled IR node types |
+| 829 | Default case in `EmitBinary` op switch -- catches unhandled binary operators |
+| 2604 | Default case in `GetPicForLocation` -- catches unknown IrLocation subtypes |
+| 2634 | Default case in `EmitLocationArgs` -- catches unknown IrLocation subtypes |
+| 2748 | Default case in `EmitRefModAddress` -- catches unsupported base location types |
+
+These are acceptable as defensive programming for "impossible state" detection. However, they should be distinguished from "not yet implemented" by using a more specific exception type.
+
+---
+
+## 7. Overly Complex Methods (>80 lines)
+
+### CilEmitter.cs
+| Method | Lines | Start Line |
+|--------|-------|------------|
+| `EmitInstruction` | 349 | :400 |
+| `EmitProgramState` | 165 | :93 |
+| `EmitUnstringStatement` | 145 | :2337 |
+| `EmitExpression` | 131 | :1998 |
+| `EmitStringStatement` | 95 | :2241 |
+
+### Binder.cs
+| Method | Lines | Start Line |
+|--------|-------|------------|
+| `LowerConditionName` | 114 | :2601 |
+| `LowerDivide` | 107 | :1815 |
+| `Bind` | 97 | :69 |
+| `LowerStatement` | 90 | :272 |
+| `LowerComparison` | 90 | :2399 |
+| `CreateEntryPoint` | 89 | :180 |
+| `LowerSearchAll` | 86 | :3062 |
+| `ResolveLocation` | 83 | :373 |
+
+### BoundTreeBuilder.cs
+| Method | Lines | Start Line |
+|--------|-------|------------|
+| `BindPerform` | 118 | :422 |
+| `BindDataReferenceWithSubscripts` | 108 | :3089 |
+| `BindInspect` | 100 | :1149 |
+| `BindSubtract` | 92 | :2017 |
+| `BindDivide` | 91 | :2112 |
+| `BindCall` | 85 | :1041 |
+
+**Worst offender**: `CilEmitter.EmitInstruction` at 349 lines is a single switch statement dispatching on IR instruction type. This is standard in emitters and code generators. It could be decomposed using a visitor pattern or dispatch table, but the flat switch is a common pragmatic choice.
+
+---
+
+## 8. Summary of Priorities
+
+### High Priority (correctness risk)
+1. **Duplicate expression binding** (2.1) -- two parallel implementations risk divergent behavior as features are added to one but not the other. ~90 lines of exact duplication.
+2. **Function calls silently return zero** (3.3) -- silent wrong results, no diagnostic
+3. **Unresolved identifiers become string literals** (3.7) -- masks errors silently, no diagnostic
+4. **START always uses Equal condition** (3.5) -- ignores KEY IS GREATER/LESS from source
+5. **WRITE FROM not lowered** (3.6) -- validated but not emitted to IR/CIL
+
+### Medium Priority (maintainability)
+6. **Ad-hoc diagnostic codes** (3.1) -- 50+ string literal codes outside the descriptor registry
+7. **Fake source locations** (2.6) -- 69+ `<source>` placeholders lose error position information
+8. **`GetPicForLocation` duplication** (2.2) -- identical logic in two files
+9. **Branching pattern duplication** (2.3) -- 3x copy of the same conditional block emission
+10. **IR stubs with wrong behavior** (3.2) -- CALL/RETURN always take failure path
+
+### Low Priority (cleanup)
+11. **Dead code** (4.x) -- `CompilationOptions`, `ReportWriterValidator`, `GetDataReferenceName`, unused diagnostic descriptors
+12. **Wrapper method** (1.1) -- `BindDataReference` single-use delegation
+13. **Receiving target binding pattern** (2.4) -- 6x repetition of the same foreach loop
+14. **`BindSimpleOperand` type dispatch** (2.5) -- 4 identical branches
+15. **Stale XML doc comments** (3.8) -- 3 duplicate summary blocks on one method
