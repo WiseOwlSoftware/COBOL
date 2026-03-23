@@ -387,7 +387,7 @@ COBOL source file (.cob)
 | ENTRY statement | Implemented | Spec-true | Alternate entry points; Entry_<name> methods generated; registered in CobolProgramRegistry |
 | EXIT PROGRAM | Implemented | Spec-true | Returns from called program's Entry method (was broken — no-op before) |
 | GOBACK | Implemented | Spec-true | Returns from called program; distinct from STOP RUN |
-| Dynamic CALL | Partially | Spec-true | isDynamic flag correct (was inverted); registry-based resolution; Assembly.LoadFrom discovery |
+| Dynamic CALL | Implemented | Spec-true | Target name read from data item at runtime via GetDisplayString; registry-based resolution; Assembly.LoadFrom discovery |
 | INITIAL program | Implemented | Spec-true | IsInitial captured from PROGRAM-ID; ResetState re-creates ProgramState at Entry start |
 | CANCEL statement | Implemented | Spec-true | Grammar accepts literals and identifiers; CobolProgramRegistry.Cancel removes program |
 | Inter-program communication | Implemented | Spec-true | Same-process shared-address-space via CobolDataPointer; CobolProgramRegistry for dispatch |
@@ -1181,7 +1181,7 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 | P4-4 | Screen Section (ACCEPT/DISPLAY with Screen) | L |
 | P4-5 | ~~ALTER statement~~ | ~~M~~ — **DONE** |
 | P4-6 | CI/CD pipeline (GitHub Actions) | M |
-| P4-7 | Dynamic CALL (cross-assembly program loading) | L |
+| P4-7 | ~~Dynamic CALL~~ | ~~L~~ — **DONE** |
 
 ---
 

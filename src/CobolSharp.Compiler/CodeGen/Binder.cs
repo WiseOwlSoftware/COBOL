@@ -1531,9 +1531,18 @@ public sealed class Binder
         if (call.ReturningTarget != null)
             returningLoc = ResolveLocation(call.ReturningTarget);
 
+        // Resolve dynamic CALL target to storage location
+        IrLocation? targetLoc = null;
+        if (call.IsDynamic)
+        {
+            var targetSym = _semantic.ResolveData(call.TargetName);
+            if (targetSym != null)
+                targetLoc = ResolveLocation(targetSym);
+        }
+
         // Emit the inter-program CALL
         block.Instructions.Add(new IrCallProgram(
-            call.TargetName, call.IsDynamic, args, returningLoc));
+            call.TargetName, call.IsDynamic, args, returningLoc, targetLoc));
 
         // ON EXCEPTION / NOT ON EXCEPTION branching
         if (call.OnException.Count > 0 || call.NotOnException.Count > 0)

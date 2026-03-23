@@ -56,7 +56,7 @@ Audit date: 2026-03-22
 | ENTRY statement | Implemented | Grammar:`entryStatement`; `BoundEntryStatement`; `CilEmitter:EmitAlternateEntryMethod` | Spec-true | Alternate entry points; Entry_<name> methods generated |
 | EXIT PROGRAM | Implemented | `BoundExitProgramStatement`; `IrExitProgram` | Spec-true | Returns from Entry method (was broken — fell through to no-op) |
 | GOBACK | Implemented | `BoundGoBackStatement`; `IrGoBack` | Spec-true | Returns from called program; distinct from STOP RUN |
-| Dynamic CALL | Partially | `BoundCallStatement.IsDynamic` (flag corrected) | Spec-true | Registry-based resolution; Assembly.LoadFrom discovery; CBL3310 diagnostic |
+| Dynamic CALL | Implemented | `BoundCallStatement.IsDynamic`; `IrCallProgram.TargetLocation`; CIL reads name from storage at runtime | Spec-true | Target name decoded via GetDisplayString; registry-based resolution; Assembly.LoadFrom discovery; CBL3310 diagnostic |
 | INITIAL program | Implemented | `ProgramSymbol.IsInitial`; `IrModule.IsInitial`; `CilEmitter:ResetState` | Spec-true | IsInitial extracted from PROGRAM-ID; ResetState re-creates ProgramState at each Entry call |
 | CANCEL statement | Implemented | Grammar:`cancelStatement`; `BoundCancelStatement`; `IrCancelProgram`; `CobolProgramRegistry.Cancel` | Spec-true | Literal and identifier targets; removes program from registry; next CALL re-discovers |
 | Inter-program communication | Implemented | `CobolProgramRegistry`; `CobolDataPointer`; `StopRunException` | Spec-true | Same-process, shared-address-space; BY REFERENCE shares memory |

@@ -268,16 +268,21 @@ public sealed class IrReturnAlterable : IrInstruction
 /// </summary>
 public sealed class IrCallProgram : IrInstruction
 {
+    /// <summary>Static CALL: the literal program name. Dynamic CALL: the variable name (for diagnostics).</summary>
     public string TargetName { get; }
     public bool IsDynamic { get; }
+    /// <summary>For dynamic CALL: the storage location holding the program name string. Null for static CALL.</summary>
+    public IrLocation? TargetLocation { get; }
     public IReadOnlyList<IrCallArgument> CallArguments { get; }
     public IrLocation? ReturningTarget { get; }
 
     public IrCallProgram(string targetName, bool isDynamic,
-        IReadOnlyList<IrCallArgument> args, IrLocation? returningTarget = null)
+        IReadOnlyList<IrCallArgument> args, IrLocation? returningTarget = null,
+        IrLocation? targetLocation = null)
     {
         TargetName = targetName;
         IsDynamic = isDynamic;
+        TargetLocation = targetLocation;
         CallArguments = args;
         ReturningTarget = returningTarget;
     }

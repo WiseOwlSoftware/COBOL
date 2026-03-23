@@ -1220,8 +1220,22 @@ public sealed class CilEmitter
         method.Body.Variables.Add(argsLocal);
         il.Append(il.Create(OpCodes.Stloc, argsLocal));
 
-        // Resolve the target program
-        il.Append(il.Create(OpCodes.Ldstr, callProg.TargetName));
+        // Resolve the target program name
+        if (callProg.IsDynamic && callProg.TargetLocation != null)
+        {
+            // Dynamic CALL: read program name from storage at runtime
+            // GetDisplayString returns the trimmed string value of the data item
+            EmitLocationArgsWithPic(il, callProg.TargetLocation);
+            var getDisplay = _module.ImportReference(
+                typeof(PicRuntime).GetMethod("GetDisplayString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
+            il.Append(il.Create(OpCodes.Call, getDisplay));
+        }
+        else
+        {
+            // Static CALL: program name is a compile-time literal
+            il.Append(il.Create(OpCodes.Ldstr, callProg.TargetName));
+        }
         il.Append(il.Create(OpCodes.Call,
             _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Resolve",
                 new[] { typeof(string) })!)));
