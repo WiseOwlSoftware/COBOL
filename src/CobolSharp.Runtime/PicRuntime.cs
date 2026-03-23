@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
 
@@ -1460,6 +1461,7 @@ public static class PicRuntime
             UsageKind.Display => DecodeDisplay(area, offset, length, pic),
             UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length),
             UsageKind.Comp or UsageKind.Binary => DecodeCompBinary(area, offset, length, pic),
+            UsageKind.Comp5 => DecodeComp5(area, offset, length, pic),
             _ => DecodeDisplay(area, offset, length, pic)
         };
     }
@@ -1608,6 +1610,36 @@ public static class PicRuntime
     }
 
     /// <summary>
+    /// COMP-5 decoding: 2/4/8-byte native-endian (little-endian on .NET) integer.
+    /// Uses full binary capacity — PIC digit count does not constrain the value.
+    /// Unsigned PICs use unsigned reads to access the full positive range.
+    /// </summary>
+    private static decimal DecodeComp5(byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        long raw = length switch
+        {
+            2 => pic.IsSigned
+                ? BinaryPrimitives.ReadInt16LittleEndian(area.AsSpan(offset, 2))
+                : (long)BinaryPrimitives.ReadUInt16LittleEndian(area.AsSpan(offset, 2)),
+            4 => pic.IsSigned
+                ? BinaryPrimitives.ReadInt32LittleEndian(area.AsSpan(offset, 4))
+                : (long)BinaryPrimitives.ReadUInt32LittleEndian(area.AsSpan(offset, 4)),
+            8 => BinaryPrimitives.ReadInt64LittleEndian(area.AsSpan(offset, 8)),
+            _ => 0
+        };
+
+        decimal result = raw;
+
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            result /= Pow10(totalFractionScale);
+        if (pic.TrailingScaleDigits > 0)
+            result *= Pow10(pic.TrailingScaleDigits);
+
+        return result;
+    }
+
+    /// <summary>
     /// COMP/BINARY encoding: decimal → 2/4/8-byte signed big-endian integer.
     /// </summary>
     private static void EncodeCompBinary(
@@ -1670,6 +1702,46 @@ public static class PicRuntime
         }
     }
 
+    /// <summary>
+    /// COMP-5 encoding: decimal → 2/4/8-byte native-endian (little-endian) integer.
+    /// No PIC-based truncation — value truncates only at binary capacity.
+    /// </summary>
+    private static void EncodeComp5(
+        byte[] area, int offset, int length, PicDescriptor pic, decimal value)
+    {
+        decimal scaled = value;
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            scaled *= Pow10(totalFractionScale);
+        if (pic.TrailingScaleDigits > 0)
+            scaled /= Pow10(pic.TrailingScaleDigits);
+
+        long raw = (long)decimal.Truncate(scaled);
+
+        // COMP-5: NO PIC-based truncation (unlike COMP/BINARY).
+        // Value uses the full binary capacity of the storage size.
+
+        // Unsigned field: store absolute value (COBOL strips sign on MOVE to unsigned)
+        if (!pic.IsSigned && raw < 0)
+            raw = -raw;
+
+        switch (length)
+        {
+            case 2:
+                BinaryPrimitives.WriteInt16LittleEndian(
+                    area.AsSpan(offset, 2), (short)raw);
+                break;
+            case 4:
+                BinaryPrimitives.WriteInt32LittleEndian(
+                    area.AsSpan(offset, 4), (int)raw);
+                break;
+            case 8:
+                BinaryPrimitives.WriteInt64LittleEndian(
+                    area.AsSpan(offset, 8), raw);
+                break;
+        }
+    }
+
     // ══════════════════════════════════════════════════════════
     // Encode: decimal → bytes
     // ══════════════════════════════════════════════════════════
@@ -1686,6 +1758,9 @@ public static class PicRuntime
             case UsageKind.Comp:
             case UsageKind.Binary:
                 EncodeCompBinary(area, offset, length, pic, value);
+                break;
+            case UsageKind.Comp5:
+                EncodeComp5(area, offset, length, pic, value);
                 break;
             default:
                 EncodeDisplay(area, offset, length, pic, value);
@@ -1894,6 +1969,32 @@ public static class PicRuntime
 
                 int digits = CountDigits(Math.Abs(raw));
                 return digits > destPic.TotalDigits;
+            }
+
+            case UsageKind.Comp5:
+            {
+                // COMP-5: overflow based on binary capacity, not PIC digit count.
+                // PIC 9(4) COMP-5 = 2 bytes unsigned = 0..65535.
+                // PIC S9(4) COMP-5 = 2 bytes signed = -32768..32767.
+                decimal scaled = absValue;
+                int comp5Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+                if (comp5Scale > 0)
+                    scaled *= Pow10(comp5Scale);
+                long raw;
+                try { raw = checked((long)decimal.Truncate(scaled)); }
+                catch (OverflowException) { return true; }
+
+                return destPic.StorageLength switch
+                {
+                    2 => destPic.IsSigned
+                        ? (raw < short.MinValue || raw > short.MaxValue)
+                        : (raw < 0 || raw > ushort.MaxValue),
+                    4 => destPic.IsSigned
+                        ? (raw < int.MinValue || raw > int.MaxValue)
+                        : (raw < 0 || raw > uint.MaxValue),
+                    8 => false, // long range already enforced by the (long) cast
+                    _ => true
+                };
             }
 
             case UsageKind.Comp3:

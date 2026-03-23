@@ -9,7 +9,7 @@ reference `Microsoft.NET.Test.Sdk`. No NUnit or MSTest usage anywhere.
 
 ```
 tests/
-  CobolSharp.Tests.Unit/          195 passing tests
+  CobolSharp.Tests.Unit/          217 passing tests
     Common/
       SourceTextTests.cs           8 [Fact]
     Preprocessor/
@@ -17,6 +17,7 @@ tests/
     Runtime/
       CobolFieldTests.cs          16 [Fact]
       IntrinsicFunctionTests.cs   30 [Fact]
+      Comp5Tests.cs               16 [Fact], 1 [Theory] (6 InlineData)
       PicRuntimeMoveTests.cs      20 [Fact]
       SequentialFileTests.cs       6 [Fact]
     Semantics/
@@ -28,12 +29,12 @@ tests/
       DiagnosticTestBase.cs           (base class, no test methods)
       ExpressionTypeTests.cs           8 [Fact]
       SymbolValidatorTests.cs         16 [Fact]
-  CobolSharp.Tests.Integration/   176 passing, 1 skip
-    EndToEndTests.cs             169 [Fact], 3 [Theory]  (4868 lines)
+  CobolSharp.Tests.Integration/   184 passing, 1 skip
+    EndToEndTests.cs             177 [Fact], 3 [Theory]
     CobolErrorStrategyTests.cs     2 [Fact], 3 [Theory]
 ```
 
-**Totals**: 338 `[Fact]` + 9 `[Theory]` = 347 test methods across 15 files.
+**Totals**: 346 `[Fact]` + 9 `[Theory]` = 355 test methods across 16 files.
 
 ## Unit Test Inventory by Compiler Phase
 

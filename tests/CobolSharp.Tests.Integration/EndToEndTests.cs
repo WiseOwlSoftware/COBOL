@@ -4865,4 +4865,255 @@ public class EndToEndTests : IDisposable
         // MOVE 100,50 → displays as "0010050"
         Assert.Equal("0010050", lines[1]);
     }
+
+    [Fact]
+    public void Comp5_NativeBinary_FullRangeAndLittleEndian()
+    {
+        // Tests COMP-5 end-to-end:
+        // 1. Values beyond PIC digit range (30000 in PIC 9(4) COMP-5)
+        // 2. MOVE to DISPLAY for output verification
+        // 3. Comparison of COMP-5 values
+        // 4. Arithmetic with no PIC-based truncation
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMP5TEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-COMP5-U   PIC 9(4) COMP-5.
+            01  WS-COMP5-S   PIC S9(4) COMP-5.
+            01  WS-COMP-STD  PIC 9(4) COMP.
+            01  WS-DISPLAY   PIC 9(5).
+            01  WS-RESULT    PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 30000 TO WS-COMP5-U
+                MOVE WS-COMP5-U TO WS-DISPLAY
+                DISPLAY WS-DISPLAY
+                MOVE 30000 TO WS-COMP-STD
+                MOVE WS-COMP-STD TO WS-DISPLAY
+                DISPLAY WS-DISPLAY
+                MOVE -12345 TO WS-COMP5-S
+                MOVE WS-COMP5-S TO WS-DISPLAY
+                DISPLAY WS-DISPLAY
+                MOVE 100 TO WS-COMP5-U
+                ADD 200 TO WS-COMP5-U
+                MOVE WS-COMP5-U TO WS-RESULT
+                DISPLAY WS-RESULT
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // Line 0: COMP-5 30000 — full binary range, no PIC truncation
+        Assert.Equal("30000", lines[0]);
+        // Line 1: Standard COMP 30000 % 10000 = 0 (PIC-based truncation)
+        Assert.Equal("00000", lines[1]);
+        // Line 2: COMP-5 signed -12345 → DISPLAY unsigned = 12345
+        Assert.Equal("12345", lines[2]);
+        // Line 3: ADD 100 + 200 = 300
+        Assert.Equal("00300", lines[3]);
+    }
+
+    [Fact]
+    public void Comp5_Computational5_FullWord_Parses()
+    {
+        // Tests COMPUTATIONAL-5 (full-word form) parses and works
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMP5FW.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-FIELD PIC 9(4) COMPUTATIONAL-5.
+            01  WS-DISP  PIC 9(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 50000 TO WS-FIELD
+                MOVE WS-FIELD TO WS-DISP
+                DISPLAY WS-DISP
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("50000", stdout);
+    }
+
+    [Fact]
+    public void Renames_SimpleAlias_DisplaysCorrectly()
+    {
+        // Level-66 RENAMES creates an alias for a contiguous byte range
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RENTEST1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-RECORD.
+                05  WS-PART1   PIC X(5)  VALUE "HELLO".
+                05  WS-PART2   PIC X(5)  VALUE "WORLD".
+            66  WS-ALIAS RENAMES WS-PART1.
+            66  WS-BOTH  RENAMES WS-PART1 THRU WS-PART2.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-ALIAS
+                DISPLAY WS-BOTH
+                MOVE "ABCDE" TO WS-ALIAS
+                DISPLAY WS-PART1
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("HELLO", lines[0]);
+        Assert.Equal("HELLOWORLD", lines[1]);
+        Assert.Equal("ABCDE", lines[2]);
+    }
+
+    [Fact]
+    public void Renames_Through_Synonym()
+    {
+        // THROUGH is a synonym for THRU
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RENTEST2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-DATA.
+                05  WS-A   PIC X(3)  VALUE "ABC".
+                05  WS-B   PIC X(3)  VALUE "DEF".
+                05  WS-C   PIC X(3)  VALUE "GHI".
+            66  WS-AB RENAMES WS-A THROUGH WS-B.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-AB
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ABCDEF", stdout);
+    }
+
+    [Fact]
+    public void Alter_RedirectsGoTo()
+    {
+        // ALTER changes a GO TO target at runtime.
+        // Without ALTER, GOTO-PARA goes to OLD-TARGET which displays "OLD".
+        // With ALTER, GOTO-PARA goes to NEW-TARGET which displays "NEW".
+        // Both paths end with STOP RUN.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ALTERTEST.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ALTER GOTO-PARA TO PROCEED TO NEW-TARGET.
+                GO TO GOTO-PARA.
+            GOTO-PARA.
+                GO TO OLD-TARGET.
+            OLD-TARGET.
+                DISPLAY "OLD PATH"
+                STOP RUN.
+            NEW-TARGET.
+                DISPLAY "NEW PATH"
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("NEW PATH", stdout);
+    }
+
+    [Fact]
+    public void Alter_WithoutProceedTo()
+    {
+        // ALTER without PROCEED TO (optional per spec)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ALTSHORT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ALTER GOTO-PARA TO NEW-DEST.
+                GO TO GOTO-PARA.
+            GOTO-PARA.
+                GO TO OLD-DEST.
+            OLD-DEST.
+                DISPLAY "OLD"
+                STOP RUN.
+            NEW-DEST.
+                DISPLAY "NEW"
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("NEW", stdout);
+    }
+
+    [Fact]
+    public void SignCondition_PositiveNegativeZero()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SIGNTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-VAL PIC S9(5) VALUE +100.
+            01  WS-NEG PIC S9(5) VALUE -50.
+            01  WS-ZER PIC S9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-VAL IS POSITIVE
+                    DISPLAY "POS-YES"
+                END-IF
+                IF WS-NEG IS NEGATIVE
+                    DISPLAY "NEG-YES"
+                END-IF
+                IF WS-ZER IS ZERO
+                    DISPLAY "ZERO-YES"
+                END-IF
+                IF WS-VAL IS NOT NEGATIVE
+                    DISPLAY "NOT-NEG"
+                END-IF
+                IF WS-NEG IS NOT POSITIVE
+                    DISPLAY "NOT-POS"
+                END-IF
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("POS-YES", lines[0]);
+        Assert.Equal("NEG-YES", lines[1]);
+        Assert.Equal("ZERO-YES", lines[2]);
+        Assert.Equal("NOT-NEG", lines[3]);
+        Assert.Equal("NOT-POS", lines[4]);
+    }
+
+    [Fact]
+    public void NotCondition_NegatesComparison()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NOTTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01  WS-A PIC 9(3) VALUE 100.
+            01  WS-B PIC 9(3) VALUE 200.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF NOT WS-A > WS-B
+                    DISPLAY "NOT-GT"
+                END-IF
+                IF NOT WS-A = WS-B
+                    DISPLAY "NOT-EQ"
+                END-IF
+                IF NOT (WS-A < WS-B)
+                    DISPLAY "SHOULD-NOT-PRINT"
+                ELSE
+                    DISPLAY "PAREN-NOT"
+                END-IF
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("NOT-GT", lines[0]);
+        Assert.Equal("NOT-EQ", lines[1]);
+        Assert.Equal("PAREN-NOT", lines[2]);
+    }
 }

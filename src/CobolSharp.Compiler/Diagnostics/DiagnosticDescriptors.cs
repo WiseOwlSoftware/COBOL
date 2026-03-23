@@ -345,4 +345,168 @@ public static partial class DiagnosticDescriptors
         "BLANK WHEN ZERO only allowed on numeric DISPLAY item '{0}'");
     public static readonly DiagnosticDescriptor CBL0803 = new("CBL0803", DiagnosticSeverity.Error,
         "JUSTIFIED only allowed on alphanumeric elementary item '{0}'");
+
+    // ══════════════════════════════════════
+    // CBL0810–0812: RENAMES (level 66) validation
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0810 = new("CBL0810", DiagnosticSeverity.Error,
+        "RENAMES FROM target '{0}' not found in item '{1}'");
+    public static readonly DiagnosticDescriptor CBL0811 = new("CBL0811", DiagnosticSeverity.Error,
+        "RENAMES THRU target '{0}' not found in item '{1}'");
+    public static readonly DiagnosticDescriptor CBL0812 = new("CBL0812", DiagnosticSeverity.Error,
+        "RENAMES cannot reference level-66 or level-88 item '{0}'");
+
+    // ══════════════════════════════════════
+    // COBOL0001: Generic parse error
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0001 = new("COBOL0001", DiagnosticSeverity.Error,
+        "{0}");
+
+    // ══════════════════════════════════════
+    // COBOL0100–0109: Parser — unsupported feature warnings
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0100 = new("COBOL0100", DiagnosticSeverity.Warning,
+        "ASCENDING/DESCENDING KEY clause in OCCURS is not yet supported. Table created without sort key.");
+    public static readonly DiagnosticDescriptor COBOL0101 = new("COBOL0101", DiagnosticSeverity.Warning,
+        "BLANK WHEN ZERO may not be recognized. Check that it appears as a single clause on the data item.");
+    public static readonly DiagnosticDescriptor COBOL0102 = new("COBOL0102", DiagnosticSeverity.Warning,
+        "This SET form may not be supported. Supported forms: SET identifier TO value, SET condition TO TRUE/FALSE, SET index UP/DOWN BY integer.");
+    public static readonly DiagnosticDescriptor COBOL0103 = new("COBOL0103", DiagnosticSeverity.Warning,
+        "SEARCH statement may not be fully supported.");
+    public static readonly DiagnosticDescriptor COBOL0104 = new("COBOL0104", DiagnosticSeverity.Warning,
+        "OCCURS DEPENDING ON (variable-length tables) is not yet supported.");
+    public static readonly DiagnosticDescriptor COBOL0105 = new("COBOL0105", DiagnosticSeverity.Warning,
+        "INSPECT CONVERTING is not yet supported.");
+    public static readonly DiagnosticDescriptor COBOL0106 = new("COBOL0106", DiagnosticSeverity.Warning,
+        "INITIALIZE REPLACING is not yet supported.");
+    public static readonly DiagnosticDescriptor COBOL0107 = new("COBOL0107", DiagnosticSeverity.Warning,
+        "EVALUATE with ALSO (multi-subject) may not be fully supported.");
+    public static readonly DiagnosticDescriptor COBOL0108 = new("COBOL0108", DiagnosticSeverity.Warning,
+        "Multi-target SET (SET id1 id2 TO value) is not yet supported. Use separate SET statements for each target.");
+    public static readonly DiagnosticDescriptor COBOL0109 = new("COBOL0109", DiagnosticSeverity.Warning,
+        "PERFORM VARYING with AFTER clause (nested varying) is not yet supported.");
+    public static readonly DiagnosticDescriptor COBOL0110 = new("COBOL0110", DiagnosticSeverity.Warning,
+        "Statement not recognized or not yet implemented: '{0}'.");
+
+    // ══════════════════════════════════════
+    // COBOL0200–0201: Parser — reserved word conflicts
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0200 = new("COBOL0200", DiagnosticSeverity.Warning,
+        "STATUS is a reserved word here. For file status, use 'FILE STATUS IS <data-name>'.");
+    public static readonly DiagnosticDescriptor COBOL0201 = new("COBOL0201", DiagnosticSeverity.Warning,
+        "PROGRAM is a reserved word. If this is a paragraph name, it cannot be named PROGRAM.");
+
+    // ══════════════════════════════════════
+    // COBOL0300–0312: Parser — syntax guidance
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0300 = new("COBOL0300", DiagnosticSeverity.Warning,
+        "THROUGH/THRU is not recognized in this context. Check PERFORM or VALUE THROUGH syntax.");
+    public static readonly DiagnosticDescriptor COBOL0301 = new("COBOL0301", DiagnosticSeverity.Warning,
+        "Missing space before string literal.");
+    public static readonly DiagnosticDescriptor COBOL0302 = new("COBOL0302", DiagnosticSeverity.Warning,
+        "Missing space after string literal.");
+    public static readonly DiagnosticDescriptor COBOL0303 = new("COBOL0303", DiagnosticSeverity.Warning,
+        "In a MOVE statement, did you forget TO before the target?");
+    public static readonly DiagnosticDescriptor COBOL0304 = new("COBOL0304", DiagnosticSeverity.Warning,
+        "Missing period after paragraph name — the parser is treating it as a qualified reference.");
+    public static readonly DiagnosticDescriptor COBOL0305 = new("COBOL0305", DiagnosticSeverity.Warning,
+        "Unexpected token in SPECIAL-NAMES. Check implementor-name or mnemonic-name syntax.");
+    public static readonly DiagnosticDescriptor COBOL0306 = new("COBOL0306", DiagnosticSeverity.Warning,
+        "{0} appears without a matching {1} statement.");
+    public static readonly DiagnosticDescriptor COBOL0307 = new("COBOL0307", DiagnosticSeverity.Warning,
+        "A period may be missing at the end of the previous sentence.");
+    public static readonly DiagnosticDescriptor COBOL0308 = new("COBOL0308", DiagnosticSeverity.Warning,
+        "A data-name is expected here, not a literal.");
+    public static readonly DiagnosticDescriptor COBOL0309 = new("COBOL0309", DiagnosticSeverity.Warning,
+        "A literal value is expected here, not a data-name.");
+    public static readonly DiagnosticDescriptor COBOL0310 = new("COBOL0310", DiagnosticSeverity.Warning,
+        "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.");
+    public static readonly DiagnosticDescriptor COBOL0311 = new("COBOL0311", DiagnosticSeverity.Warning,
+        "NOT {0} (abbreviated condition) is not yet supported. Use the word form instead.");
+    public static readonly DiagnosticDescriptor COBOL0312 = new("COBOL0312", DiagnosticSeverity.Warning,
+        "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.");
+
+    // ══════════════════════════════════════
+    // COBOL0400–0412: Bound tree builder
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0400 = new("COBOL0400", DiagnosticSeverity.Warning,
+        "Procedure name '{0}' is used as both a section and a paragraph; resolving as paragraph.");
+    public static readonly DiagnosticDescriptor COBOL0401 = new("COBOL0401", DiagnosticSeverity.Warning,
+        "Section '{0}' contains no paragraphs.");
+    public static readonly DiagnosticDescriptor COBOL0402 = new("COBOL0402", DiagnosticSeverity.Error,
+        "Paragraph or section '{0}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.");
+    public static readonly DiagnosticDescriptor COBOL0403 = new("COBOL0403", DiagnosticSeverity.Error,
+        "{0} CORRESPONDING: '{1}' must be a group item.");
+    public static readonly DiagnosticDescriptor COBOL0404 = new("COBOL0404", DiagnosticSeverity.Error,
+        "PERFORM VARYING index '{0}' must not be subscripted.");
+    public static readonly DiagnosticDescriptor COBOL0405 = new("COBOL0405", DiagnosticSeverity.Error,
+        "Item '{0}' is not defined with OCCURS and cannot be subscripted.");
+    public static readonly DiagnosticDescriptor COBOL0406 = new("COBOL0406", DiagnosticSeverity.Error,
+        "Item '{0}' has {1} OCCURS level(s) but was referenced with {2} subscript(s).");
+    public static readonly DiagnosticDescriptor COBOL0407 = new("COBOL0407", DiagnosticSeverity.Error,
+        "Item '{0}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {1}).");
+    public static readonly DiagnosticDescriptor COBOL0408 = new("COBOL0408", DiagnosticSeverity.Error,
+        "A maximum of 3 subscripts is permitted in COBOL-85; found {0}.");
+    public static readonly DiagnosticDescriptor COBOL0409 = new("COBOL0409", DiagnosticSeverity.Error,
+        "Item '{0}' requires {1} subscript(s) but was referenced with {2}.");
+    public static readonly DiagnosticDescriptor COBOL0410 = new("COBOL0410", DiagnosticSeverity.Warning,
+        "{0} CORRESPONDING: field '{1}' is ambiguous in target group '{2}'.");
+    public static readonly DiagnosticDescriptor COBOL0411 = new("COBOL0411", DiagnosticSeverity.Error,
+        "{0} CORRESPONDING: '{1}' and '{2}' have incompatible OCCURS clauses.");
+    public static readonly DiagnosticDescriptor COBOL0412 = new("COBOL0412", DiagnosticSeverity.Warning,
+        "{0} CORRESPONDING: no matching elementary items between '{1}' and '{2}'.");
+
+    // ══════════════════════════════════════
+    // COBOL0500–0513: Binder (IR lowering)
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0500 = new("COBOL0500", DiagnosticSeverity.Error,
+        "PERFORM VARYING index '{0}' has no storage location.");
+    public static readonly DiagnosticDescriptor COBOL0501 = new("COBOL0501", DiagnosticSeverity.Error,
+        "PERFORM target paragraph '{0}' not found in paragraph dispatch table.");
+    public static readonly DiagnosticDescriptor COBOL0502 = new("COBOL0502", DiagnosticSeverity.Error,
+        "PERFORM TIMES has no target paragraph and no inline statements.");
+    public static readonly DiagnosticDescriptor COBOL0503 = new("COBOL0503", DiagnosticSeverity.Error,
+        "Unsupported condition shape: {0}");
+    public static readonly DiagnosticDescriptor COBOL0504 = new("COBOL0504", DiagnosticSeverity.Error,
+        "Cannot normalize comparison operands: left={0}, right={1}");
+    public static readonly DiagnosticDescriptor COBOL0505 = new("COBOL0505", DiagnosticSeverity.Error,
+        "Unhandled comparison combination: {0} vs {1}");
+    public static readonly DiagnosticDescriptor COBOL0506 = new("COBOL0506", DiagnosticSeverity.Error,
+        "GO TO target '{0}' not found in paragraph dispatch table.");
+    public static readonly DiagnosticDescriptor COBOL0507 = new("COBOL0507", DiagnosticSeverity.Error,
+        "GO TO DEPENDING ON requires a selector variable.");
+    public static readonly DiagnosticDescriptor COBOL0508 = new("COBOL0508", DiagnosticSeverity.Error,
+        "GO TO DEPENDING ON selector '{0}' has no storage location.");
+    public static readonly DiagnosticDescriptor COBOL0509 = new("COBOL0509", DiagnosticSeverity.Error,
+        "EXIT {0} used outside of any active {1}.");
+    public static readonly DiagnosticDescriptor COBOL0510 = new("COBOL0510", DiagnosticSeverity.Error,
+        "SET target '{0}' has no storage location.");
+    public static readonly DiagnosticDescriptor COBOL0511 = new("COBOL0511", DiagnosticSeverity.Error,
+        "SET '{0}' TO: cannot resolve value expression ({1}).");
+    public static readonly DiagnosticDescriptor COBOL0512 = new("COBOL0512", DiagnosticSeverity.Error,
+        "SET '{0}' UP BY: cannot resolve delta expression ({1}).");
+    public static readonly DiagnosticDescriptor COBOL0513 = new("COBOL0513", DiagnosticSeverity.Error,
+        "SET '{0}' DOWN BY: cannot resolve delta expression ({1}).");
+
+    // ══════════════════════════════════════
+    // COBOL0600: Internal compiler error
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0600 = new("COBOL0600", DiagnosticSeverity.Error,
+        "Internal compiler error while generating code for '{0}': {1}. Please report this.");
+
+    // ══════════════════════════════════════
+    // CBL3601–3606: ALTER and bare GO TO (obsolete features)
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL3601 = new("CBL3601", DiagnosticSeverity.Error,
+        "ALTER statement deleted from COBOL standard in 2002; not allowed in {0} mode");
+    public static readonly DiagnosticDescriptor CBL3602 = new("CBL3602", DiagnosticSeverity.Warning,
+        "ALTER statement is obsolete; removed from COBOL-2002 and later standards");
+    public static readonly DiagnosticDescriptor CBL3603 = new("CBL3603", DiagnosticSeverity.Error,
+        "ALTER target '{0}' is not a paragraph name");
+    public static readonly DiagnosticDescriptor CBL3604 = new("CBL3604", DiagnosticSeverity.Error,
+        "ALTER target paragraph '{0}' does not contain a GO TO statement");
+    public static readonly DiagnosticDescriptor CBL3605 = new("CBL3605", DiagnosticSeverity.Error,
+        "Bare GO TO (without target) deleted from COBOL standard in 2002; not allowed in {0} mode");
+    public static readonly DiagnosticDescriptor CBL3606 = new("CBL3606", DiagnosticSeverity.Warning,
+        "Bare GO TO (without target) is obsolete; removed from COBOL-2002 and later standards");
 }

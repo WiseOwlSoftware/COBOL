@@ -145,8 +145,18 @@ public class Program
             return 1;
         }
 
-        // TODO: pass standard to Compilation when grammar overlays are wired up
         var compilation = new Compilation();
+        compilation.Options = new CobolSharp.Compiler.Semantics.CompilationOptions
+        {
+            Dialect = standard switch
+            {
+                "cobol85" => CobolSharp.Compiler.Semantics.DialectMode.StrictCobol85,
+                "cobol2002" => CobolSharp.Compiler.Semantics.DialectMode.Cobol2002,
+                "cobol2014" => CobolSharp.Compiler.Semantics.DialectMode.Cobol2014,
+                "cobol2023" => CobolSharp.Compiler.Semantics.DialectMode.Cobol2023,
+                _ => CobolSharp.Compiler.Semantics.DialectMode.Default
+            }
+        };
 
         // NIST mode: derive test name from source filename if not explicit
         if (nistTestName != null)

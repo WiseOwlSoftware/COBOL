@@ -144,11 +144,10 @@ Empty stub. Descriptors CBL3401-3406 defined but not emitted.
 
 ### 3.2 Control-Flow Gaps
 
-**Gap: GO TO without target in non-ALTER context**
-- COBOL-85 rule (6.14.1): GO TO without a procedure-name is only valid when subject to ALTER.
-- No validation currently; the binder silently handles it.
-- Owner: `ProcedureGraph.Analyze` or `BoundTreeValidator`.
-- Suggested ID: CBL3005 ("GO TO without target requires ALTER").
+**Gap: GO TO without target in non-ALTER context** — **RESOLVED**
+- Bare GO TO now handled in `BoundTreeBuilder.BindGoTo`: emits CBL3605 (error in COBOL-2002+)
+  or CBL3606 (warning in 85/Default). Binder maps bare GO TO to alter slots when ALTER-referenced,
+  or emits `IrReturnConst(-1)` (STOP) when not.
 
 **Gap: EXIT SECTION / EXIT PARAGRAPH outside scope**
 - COBOL-85 rule: EXIT SECTION only valid inside a section; EXIT PARAGRAPH only inside a paragraph.

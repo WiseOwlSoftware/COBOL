@@ -397,15 +397,12 @@ Map COBOL exception handling to .NET try/catch/throw semantics.
 
 ---
 
-### P4-5: ALTER Statement
+### P4-5: ALTER Statement — **DONE**
 
-| Attribute | Detail |
-|-----------|--------|
-| Complexity | M |
-| Dependencies | None |
-| Risk | Very low urgency — archaic feature, rarely used |
-
-Requires runtime GO TO indirection (function pointer or delegate table).
+Implemented with version-aware behavior: error in COBOL-2002+ (CBL3601), warning+full
+runtime support in COBOL-85/Default (CBL3602). Runtime alter indirection table (`int[]`)
+for mutable GO TO targets. Bare GO TO (CBL3605/3606) supported. Zero overhead for
+non-ALTER programs. `--standard` CLI option wired through to compilation pipeline.
 
 ---
 

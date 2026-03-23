@@ -102,7 +102,7 @@ evaluateWhenItem
 // ==========================================
 
 goToStatement
-    : GO TO? procedureName (procedureName)* (DEPENDING ON? dataReference)?
+    : GO TO? procedureName? (procedureName)* (DEPENDING ON? dataReference)?
     ;
 
 // ==========================================
@@ -155,7 +155,7 @@ alterStatement
     ;
 
 alterEntry
-    : procedureName TO PROCEED TO procedureName
+    : procedureName TO (PROCEED TO)? procedureName
     ;
 
 // ==========================================

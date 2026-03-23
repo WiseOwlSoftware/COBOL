@@ -15,6 +15,7 @@ public enum BoundNodeKind
     DisplayStatement,
     StopStatement,
     GoToStatement,
+    AlterStatement,
     OpenStatement,
     CloseStatement,
     ReadStatement,
@@ -192,6 +193,34 @@ public sealed class BoundClassConditionExpression : BoundExpression
     {
         Subject = subject;
         ClassKind = classKind;
+        IsNegated = isNegated;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression; // reuse
+}
+
+/// <summary>COBOL sign condition kinds: POSITIVE, NEGATIVE, ZERO.</summary>
+public enum SignConditionKind
+{
+    Positive,
+    Negative,
+    Zero,
+}
+
+/// <summary>
+/// Sign condition: operand IS [NOT] POSITIVE/NEGATIVE/ZERO.
+/// </summary>
+public sealed class BoundSignConditionExpression : BoundExpression
+{
+    public BoundExpression Subject { get; }
+    public SignConditionKind SignKind { get; }
+    public bool IsNegated { get; }
+
+    public BoundSignConditionExpression(BoundExpression subject, SignConditionKind signKind, bool isNegated)
+        : base(CobolCategory.Unknown)
+    {
+        Subject = subject;
+        SignKind = signKind;
         IsNegated = isNegated;
     }
 
@@ -393,6 +422,9 @@ public sealed class BoundGoToStatement : BoundStatement
 
     public bool IsSimple => DependingOn == null && Targets.Count == 1;
 
+    /// <summary>True for a bare GO TO (no target) whose destination is set by ALTER.</summary>
+    public bool IsBare => Targets.Count == 0 && DependingOn == null;
+
     public BoundGoToStatement(IReadOnlyList<ParagraphSymbol> targets, BoundIdentifierExpression? dependingOn = null)
     {
         Targets = targets;
@@ -403,6 +435,31 @@ public sealed class BoundGoToStatement : BoundStatement
     public ParagraphSymbol Target => Targets[0];
 
     public override BoundNodeKind Kind => BoundNodeKind.GoToStatement;
+}
+
+/// <summary>
+/// ALTER statement: redirects GO TO targets at runtime.
+/// Each entry maps a paragraph (containing a GO TO) to a new destination.
+/// </summary>
+public sealed class BoundAlterStatement : BoundStatement
+{
+    public IReadOnlyList<BoundAlterEntry> Entries { get; }
+
+    public BoundAlterStatement(IReadOnlyList<BoundAlterEntry> entries) => Entries = entries;
+
+    public override BoundNodeKind Kind => BoundNodeKind.AlterStatement;
+}
+
+/// <summary>
+/// Single ALTER entry: the paragraph whose GO TO target is being changed,
+/// and the new destination paragraph.
+/// </summary>
+public sealed class BoundAlterEntry(ParagraphSymbol targetParagraph, ParagraphSymbol newDestination)
+{
+    /// <summary>The paragraph whose GO TO target is being changed.</summary>
+    public ParagraphSymbol TargetParagraph { get; } = targetParagraph;
+    /// <summary>The new destination for the GO TO in TargetParagraph.</summary>
+    public ParagraphSymbol NewDestination { get; } = newDestination;
 }
 
 public sealed class BoundExitStatement : BoundStatement

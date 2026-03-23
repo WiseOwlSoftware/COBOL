@@ -252,14 +252,14 @@ COBOL source file (.cob)
 | USAGE DISPLAY | Implemented | Spec-true | Default usage; SIGN IS SEPARATE adds 1 byte |
 | USAGE COMP / BINARY | Implemented | Spec-true | 2/4/8-byte big-endian; overflow based on PIC digit count |
 | USAGE COMP-3 / PACKED-DECIMAL | Implemented | Spec-true | BCD encoding with trailing sign nibble |
-| USAGE COMP-5 | Not implemented | N/A | No COMP-5 (native binary) support |
+| USAGE COMP-5 | Implemented | Extension | Native binary: little-endian byte order, full binary capacity (no PIC-based truncation) |
 | SIGN clause | Implemented | Spec-true | LEADING/TRAILING, SEPARATE CHARACTER; group-level propagation |
 | JUSTIFIED clause | Implemented | Spec-true | JUSTIFIED RIGHT: right-justify on MOVE, left-truncate |
 | OCCURS fixed | Implemented | Spec-true | MaxOccurs, INDEXED BY, subscript resolution |
 | OCCURS DEPENDING ON | Implemented | Spec-true | Variable-length tables with resolved DEPENDING ON symbol |
 | OCCURS ASCENDING/DESCENDING KEY | Implemented | Spec-true | **Research correction**: Fully parsed, stored in OccursInfo, validated in SEARCH ALL. DEVLOG "known gap" entry is stale. |
 | REDEFINES | Implemented | Spec-true | Deferred resolution, family tracking for max extent |
-| RENAMES (level 66) | Partially | Unknown | Parsed and symbol created; NOT lowered to IR or emitted |
+| RENAMES (level 66) | Implemented | Spec-true | Full end-to-end: parse, resolve FROM/THRU, validate (CBL0810-0812), compute storage alias, bind, emit. THROUGH synonym supported |
 | VALUE clause | Implemented | Spec-true | Literal and figurative constant values |
 | 88-level condition names | Implemented | Spec-true | VALUE ranges with THRU; single values and ranges both supported |
 | VALUE THRU in level-88 | Implemented | Spec-true | **Research correction**: Grammar (`valueRange`), SemanticBuilder (`ConditionSymbol.AddRange`), Binder (`LowerConditionName` range checks) all handle THRU correctly. NC201A/NC250A/NC252A failures are caused by other parse issues, not VALUE THRU. |
@@ -272,7 +272,7 @@ COBOL source file (.cob)
 | DISPLAY numeric encode/decode | Implemented | Spec-true | Overpunch sign (leading/trailing), separate sign character |
 | COMP/BINARY arithmetic | Implemented | Spec-true | 2/4/8-byte big-endian; decimal scaling via FractionDigits |
 | COMP-3 packed decimal | Implemented | Spec-true | BCD with trailing sign nibble (0xC positive, 0xD negative) |
-| COMP-5 native binary | Not implemented | N/A | Extension not supported |
+| COMP-5 native binary | Implemented | Extension | Little-endian encode/decode via BinaryPrimitives; overflow based on binary capacity, not PIC digit count |
 | ROUNDED phrase | Implemented | Spec-true | MidpointRounding.AwayFromZero |
 | Truncation | Implemented | Spec-true | Numeric: truncate to PIC digit capacity; alphanumeric: right-truncate |
 | Overflow behavior | Implemented | Spec-true | Checks PIC digit count for COMP |
@@ -293,7 +293,7 @@ COBOL source file (.cob)
 | PERFORM UNTIL | Implemented | Spec-true | UNTIL condition checked at top of loop; TIMES also supported |
 | GO TO | Implemented | Spec-true | Lowers to IrReturnConst with paragraph index |
 | GO TO DEPENDING ON | Implemented | Spec-true | Switch-based dispatch on selector value |
-| ALTER | Not implemented | N/A | Parsed but silently ignored; obsolete in COBOL-85 |
+| ALTER | Implemented | Spec-true | Version-aware: error in COBOL-2002+ (CBL3601), warning+full support in COBOL-85/Default (CBL3602). Runtime alter indirection table for mutable GO TO targets. Bare GO TO supported (CBL3605/3606) |
 | Fall-through rules | Implemented | Spec-true | Paragraph methods return next index; cross-section fall-through emits CBL3002 |
 | Section/paragraph entry/exit | Implemented | Spec-true | EXIT SECTION/PARAGRAPH correctly implemented |
 
@@ -332,10 +332,10 @@ COBOL source file (.cob)
 | Arithmetic expressions | Implemented | Spec-true | Full operator precedence; exponentiation |
 | Relational conditions | Implemented | Spec-true | IS NOT variants; PIC-aware comparison |
 | Class conditions | Implemented | Spec-true | NUMERIC, ALPHABETIC, ALPHABETIC-LOWER/UPPER |
-| Sign conditions | Not implemented | N/A | Grammar rule exists; BoundTreeBuilder skips it |
+| Sign conditions | Implemented | Spec-true | IS [NOT] POSITIVE/NEGATIVE/ZERO; lowered as comparison against zero |
 | Condition-name (88-level) | Implemented | Spec-true | Expands to parent = value; SET TO TRUE supported |
 | Combined conditions (AND/OR) | Implemented | Spec-true | Short-circuit evaluation |
-| Negated conditions (NOT) | Partially | Likely incorrect | NOT parsed but BindUnaryLogical ignores it; only works inside relational operators |
+| Negated conditions (NOT) | Implemented | Spec-true | NOT condition negates any condition (comparison, sign, class, condition-name, parenthesized) |
 
 ---
 
@@ -389,7 +389,7 @@ COBOL source file (.cob)
 | Feature | Status | Notes |
 |---|---|---|
 | Error reporting mechanism | Implemented | DiagnosticBag accumulates records; HasErrors check |
-| Diagnostic code catalog | Implemented | 107 descriptors across CBL0601-CBL3502 |
+| Diagnostic code catalog | Implemented | 175 descriptors across COBOL0001-COBOL0600 and CBL0601-CBL3606 |
 | Source location tracking | Implemented | File path, offset, line, column; TextSpan |
 | Error recovery in parser | Implemented | 25+ pattern-matched hints for common COBOL mistakes |
 | Error cap | Implemented | Max 20 parse errors per file |
@@ -701,8 +701,8 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 
 | Category | Count | Framework |
 |---|---|---|
-| Unit tests | 195 pass | xUnit |
-| Integration tests | 176 pass, 1 skip | xUnit |
+| Unit tests | 217 pass | xUnit |
+| Integration tests | 184 pass, 1 skip | xUnit |
 | NIST tests at 100% | 39 of 95 NC-series (41%) | Shell script (not xUnit) |
 
 ### Unit Test Coverage by Phase
@@ -1172,7 +1172,7 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 | P4-2 | OO COBOL (CLASS, INVOKE, METHOD) | XL |
 | P4-3 | Exception handling (RAISE/RESUME) | L |
 | P4-4 | Screen Section (ACCEPT/DISPLAY with Screen) | L |
-| P4-5 | ALTER statement | M |
+| P4-5 | ~~ALTER statement~~ | ~~M~~ — **DONE** |
 | P4-6 | CI/CD pipeline (GitHub Actions) | M |
 | P4-7 | Dynamic CALL (cross-assembly program loading) | L |
 

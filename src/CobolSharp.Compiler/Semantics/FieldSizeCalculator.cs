@@ -31,7 +31,7 @@ public static class FieldSizeCalculator
 
         return data.Usage switch
         {
-            UsageKind.Comp or UsageKind.Binary => ComputeBinarySize(totalDigits),
+            UsageKind.Comp or UsageKind.Binary or UsageKind.Comp5 => ComputeBinarySize(totalDigits),
             UsageKind.Comp3 or UsageKind.PackedDecimal => (totalDigits + 2) / 2,
             UsageKind.Comp1 => 4,
             UsageKind.Comp2 => 8,

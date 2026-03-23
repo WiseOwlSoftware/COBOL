@@ -132,30 +132,17 @@ The method dispatches on `AddOperandContext`, `SubtractOperandContext`, `Multipl
 
 ## 3. Ad-hoc and Hacky Code Paths
 
-### 3.1 Ad-hoc diagnostic codes (magic strings)
+### 3.1 Ad-hoc diagnostic codes (magic strings) — **RESOLVED**
 
-The Binder (`Binder.cs`) uses 17 ad-hoc diagnostic codes (`COBOL0500`-`COBOL0513`) as inline string literals, while the rest of the compiler uses the structured `DiagnosticDescriptors` registry:
+**Status**: All 55 ad-hoc diagnostic codes have been migrated to the centralized
+`DiagnosticDescriptors` registry with format templates. Zero inline string codes remain.
 
-| Code | Location | Description |
-|------|----------|-------------|
-| COBOL0500 | Binder.cs:829 | PERFORM VARYING index no storage |
-| COBOL0501 | Binder.cs:932 | PERFORM target not found |
-| COBOL0502 | Binder.cs:983 | PERFORM TIMES no target |
-| COBOL0503 | Binder.cs:2390 | MOVE target no storage |
-| COBOL0504 | Binder.cs:2406 | MOVE source no storage |
-| COBOL0505 | Binder.cs:2482 | Computed expression no location |
-| COBOL0506 | Binder.cs:2726,2761 | ADD/SUB accumulator no location |
-| COBOL0507 | Binder.cs:2736 | Arithmetic target no storage |
-| COBOL0508 | Binder.cs:2746 | COMPUTE store target no storage |
-| COBOL0509 | Binder.cs:2795,2814,2832 | Operand resolution failed |
-| COBOL0510-0513 | Binder.cs:1591-1652 | SET target/value resolution |
-| COBOL0600 | Compilation.cs:182 | Internal compiler error |
+All call sites in `Binder.cs`, `BoundTreeBuilder.cs`, `CorrespondingMatcher.cs`,
+`CobolErrorStrategy.cs`, `CobolErrorListener.cs`, and `Compilation.cs` now reference
+descriptors via `DiagnosticDescriptors.COBOLxxxx`. The `SemanticBuilder` was also
+refactored to use `DiagnosticBag` uniformly instead of a raw `List<Diagnostic>`.
 
-Similarly, `BoundTreeBuilder.cs` uses 13 ad-hoc codes (`COBOL0400`-`COBOL0412`), and `CobolErrorStrategy.cs` uses 20+ ad-hoc codes (`COBOL0001`, `COBOL0100`-`COBOL0312`).
-
-**Total**: 50+ diagnostic codes as inline string literals outside the DiagnosticDescriptors registry.
-
-**Recommendation**: Migrate all ad-hoc codes to `DiagnosticDescriptors` with format templates. This enables centralized documentation, severity management, and diagnostic suppression.
+Total descriptor count: 169 (COBOL0001-COBOL0600 + CBL0601-CBL3502).
 
 ### 3.2 IR stubs for RETURN and CALL
 
@@ -307,7 +294,7 @@ These are acceptable as defensive programming for "impossible state" detection. 
 5. **WRITE FROM not lowered** (3.6) -- validated but not emitted to IR/CIL
 
 ### Medium Priority (maintainability)
-6. **Ad-hoc diagnostic codes** (3.1) -- 50+ string literal codes outside the descriptor registry
+6. ~~**Ad-hoc diagnostic codes** (3.1)~~ -- **RESOLVED**: all 55 codes migrated to DiagnosticDescriptors
 7. **Fake source locations** (2.6) -- 69+ `<source>` placeholders lose error position information
 8. **`GetPicForLocation` duplication** (2.2) -- identical logic in two files
 9. **Branching pattern duplication** (2.3) -- 3x copy of the same conditional block emission

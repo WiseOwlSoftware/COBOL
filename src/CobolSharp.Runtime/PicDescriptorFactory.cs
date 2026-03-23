@@ -296,9 +296,11 @@ public static class PicDescriptorFactory
         else
             category = CobolCategory.Unknown;
 
-        // Storage length (DISPLAY/NATIONAL only; COMP/COMP-3 handled by EncodeNumeric)
-        int storageLength = ComputeDisplayStorageLength(
+        // Storage length — USAGE-aware computation
+        int storageLength = ComputeStorageLength(
+            usage,
             category,
+            totalDigits,
             integerDigits,
             fractionDigits,
             insertionChars,
@@ -408,26 +410,52 @@ public static class PicDescriptorFactory
         return int.TryParse(numText, out var n) && n > 0 ? n : 1;
     }
 
-    private static int ComputeDisplayStorageLength(
+    /// <summary>
+    /// Computes storage length based on USAGE. Binary usages (COMP, BINARY, COMP-5)
+    /// use 2/4/8-byte sizing by digit count. COMP-3 uses BCD. DISPLAY uses one byte per
+    /// character plus optional sign byte.
+    /// </summary>
+    private static int ComputeStorageLength(
+        UsageKind usage,
         CobolCategory category,
+        int totalDigits,
         int integerDigits,
         int fractionDigits,
         int insertionChars,
         bool isSigned,
         SignStorageKind signStorage)
     {
-        int baseLength = integerDigits + fractionDigits + insertionChars;
-
-        // For alpha/national, integerDigits already counts characters.
-        int length = baseLength;
-
-        if (isSigned &&
-            (signStorage == SignStorageKind.LeadingSeparate ||
-             signStorage == SignStorageKind.TrailingSeparate))
+        switch (usage)
         {
-            length++;
-        }
+            case UsageKind.Comp or UsageKind.Binary or UsageKind.Comp5:
+                return totalDigits switch
+                {
+                    <= 4 => 2,
+                    <= 9 => 4,
+                    _ => 8
+                };
 
-        return length;
+            case UsageKind.Comp3 or UsageKind.PackedDecimal:
+                return (totalDigits + 2) / 2;
+
+            case UsageKind.Comp1:
+                return 4;
+
+            case UsageKind.Comp2:
+                return 8;
+
+            default: // DISPLAY, INDEX, etc.
+            {
+                int baseLength = integerDigits + fractionDigits + insertionChars;
+                int length = baseLength;
+                if (isSigned &&
+                    (signStorage == SignStorageKind.LeadingSeparate ||
+                     signStorage == SignStorageKind.TrailingSeparate))
+                {
+                    length++;
+                }
+                return length;
+            }
+        }
     }
 }

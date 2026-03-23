@@ -196,4 +196,6 @@ public enum UsageKind
     Object = 9,
     /// <summary>Usage not yet resolved.</summary>
     Unknown = 10,
+    /// <summary>COMP-5 / COMPUTATIONAL-5 — native binary (little-endian, full binary capacity).</summary>
+    Comp5 = 11,
 }

@@ -21,6 +21,13 @@ public sealed class IrModule(string name)
 
     /// <summary>Global byte-array fields representing COBOL storage areas.</summary>
     public List<IrGlobal> Globals { get; } = [];
+
+    /// <summary>
+    /// Default target paragraph indices for each ALTER slot.
+    /// Empty when no ALTER statements are used (zero overhead).
+    /// Index = alter slot, Value = default paragraph index (-1 for bare GO TO).
+    /// </summary>
+    public List<int> AlterDefaults { get; } = [];
 }
 
 /// <summary>

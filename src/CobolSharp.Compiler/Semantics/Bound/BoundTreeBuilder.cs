@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Generated;
 using CobolSharp.Runtime;
@@ -15,13 +17,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SemanticModel _semantic;
     private readonly DiagnosticBag _diagnostics;
+    private readonly CompilationOptions _options;
     private readonly List<BoundParagraph> _paragraphs = new();
 
-    public BoundTreeBuilder(SemanticModel semantic, DiagnosticBag diagnostics)
+    public BoundTreeBuilder(SemanticModel semantic, DiagnosticBag diagnostics, CompilationOptions? options = null)
     {
         _semantic = semantic;
         _diagnostics = diagnostics;
+        _options = options ?? new CompilationOptions();
     }
+
+    private static SourceLocation MakeLocation(ParserRuleContext ctx) =>
+        new("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+    private static TextSpan MakeSpan(ParserRuleContext ctx) =>
+        new(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex);
 
     /// <summary>
     /// Attach an ExpressionType to a bound expression based on its category and symbol.
@@ -67,10 +76,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("COBOL0400",
-                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return para;
         }
 
@@ -82,17 +90,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (sectionParas != null && sectionParas.Count > 0)
                 return _semantic.ResolveParagraph(sectionParas[0]);
 
-            _diagnostics.ReportWarning("COBOL0401",
-                $"Section '{name}' contains no paragraphs.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return null;
         }
 
-        _diagnostics.ReportError("COBOL0402",
-            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
             new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0));
+            new Common.TextSpan(0, 0), name);
         return null;
     }
 
@@ -108,10 +114,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("COBOL0400",
-                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return para;
         }
 
@@ -123,17 +128,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (sectionParas != null && sectionParas.Count > 0)
                 return _semantic.ResolveParagraph(sectionParas[^1]); // LAST paragraph
 
-            _diagnostics.ReportWarning("COBOL0401",
-                $"Section '{name}' contains no paragraphs.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return null;
         }
 
-        _diagnostics.ReportError("COBOL0402",
-            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
             new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0));
+            new Common.TextSpan(0, 0), name);
         return null;
     }
 
@@ -144,10 +147,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (para != null && sec != null)
         {
-            _diagnostics.ReportWarning("COBOL0400",
-                $"Procedure name '{name}' is used as both a section and a paragraph; resolving as paragraph.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return (para, null);
         }
 
@@ -163,17 +165,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 return (first, sectionParas.Count > 1 ? last : null);
             }
 
-            _diagnostics.ReportWarning("COBOL0401",
-                $"Section '{name}' contains no paragraphs.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), name);
             return (null, null);
         }
 
-        _diagnostics.ReportError("COBOL0402",
-            $"Paragraph or section '{name}' not found. Check spelling or verify it is defined in the PROCEDURE DIVISION.",
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
             new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0));
+            new Common.TextSpan(0, 0), name);
         return (null, null);
     }
 
@@ -222,6 +222,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.writeStatement() is { } wr) return BindWrite(wr);
         if (ctx.ifStatement() is { } iff) return BindIf(iff);
         if (ctx.goToStatement() is { } gt) return BindGoTo(gt);
+        if (ctx.alterStatement() is { } alt) return BindAlter(alt);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
         if (ctx.gobackStatement() is { }) return new BoundStopStatement();
         if (ctx.exitStatement() is { } exitCtx)
@@ -259,10 +260,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.callStatement() is { } callCtx) return BindCall(callCtx);
         if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
 
-        _diagnostics.ReportWarning("COBOL0110",
-            $"Statement not recognized or not yet implemented: '{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...'",
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
             new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
-            new Common.TextSpan(0, 0));
+            new Common.TextSpan(0, 0),
+            $"{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...");
         return null;
     }
 
@@ -382,18 +383,16 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Source must be a group item
         if (srcSym.IsElementary)
         {
-            _diagnostics.ReportError("COBOL0403",
-                $"{kindName} CORRESPONDING: source '{srcSym.DisplayName}' must be a group item.",
-                loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0403,
+                loc, span, kindName, srcSym.DisplayName);
             hasError = true;
         }
 
         // Target must be a group item
         if (dstSym.IsElementary)
         {
-            _diagnostics.ReportError("COBOL0403",
-                $"{kindName} CORRESPONDING: target '{dstSym.DisplayName}' must be a group item.",
-                loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0403,
+                loc, span, kindName, dstSym.DisplayName);
             hasError = true;
         }
 
@@ -587,10 +586,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (id.IsSubscripted)
         {
-            _diagnostics.ReportError("COBOL0404",
-                $"PERFORM VARYING index '{id.Symbol.Name}' must not be subscripted.",
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0404,
                 new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+                new Common.TextSpan(0, 0), id.Symbol.Name);
         }
 
         return id.Symbol;
@@ -2371,7 +2369,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private BoundGoToStatement? BindGoTo(CobolParserCore.GoToStatementContext ctx)
     {
         var procNames = ctx.procedureName();
-        if (procNames == null || procNames.Length == 0) return null;
+
+        // Bare GO TO (no target) — target set by ALTER at runtime
+        if (procNames == null || procNames.Length == 0)
+        {
+            if (_options.IsCobol2002OrLater)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.CBL3605,
+                    MakeLocation(ctx), MakeSpan(ctx), _options.DialectName);
+                return null;
+            }
+            _diagnostics.Report(DiagnosticDescriptors.CBL3606,
+                MakeLocation(ctx), MakeSpan(ctx));
+            return new BoundGoToStatement([]);
+        }
 
         var targets = new List<ParagraphSymbol>();
 
@@ -2393,6 +2404,53 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundGoToStatement(targets, dependingOn);
+    }
+
+    // ── ALTER ──
+
+    private BoundAlterStatement? BindAlter(CobolParserCore.AlterStatementContext ctx)
+    {
+        // Dialect check: ALTER deleted from COBOL-2002+
+        if (_options.IsCobol2002OrLater)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.CBL3601,
+                MakeLocation(ctx), MakeSpan(ctx), _options.DialectName);
+            return null;
+        }
+
+        // Obsolete warning in COBOL-85 / Default mode
+        _diagnostics.Report(DiagnosticDescriptors.CBL3602,
+            MakeLocation(ctx), MakeSpan(ctx));
+
+        var entries = new List<BoundAlterEntry>();
+        foreach (var entry in ctx.alterEntry())
+        {
+            var procNames = entry.procedureName();
+            if (procNames.Length < 2) continue;
+
+            string targetName = procNames[0].GetText();
+            string destName = procNames[1].GetText();
+
+            var targetSym = ResolveProcedureName(targetName);
+            var destSym = ResolveProcedureName(destName);
+
+            if (targetSym == null)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.CBL3603,
+                    MakeLocation(entry), MakeSpan(entry), targetName);
+                continue;
+            }
+            if (destSym == null)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.CBL3603,
+                    MakeLocation(entry), MakeSpan(entry), destName);
+                continue;
+            }
+
+            entries.Add(new BoundAlterEntry(targetSym, destSym));
+        }
+
+        return entries.Count > 0 ? new BoundAlterStatement(entries) : null;
     }
 
     // ═══════════════════════════════════
@@ -2571,12 +2629,54 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindUnaryLogical(CobolParserCore.UnaryLogicalExpressionContext ctx)
     {
-        // logicalNotExpression is a pass-through to relationalExpression.
-        // COBOL-85 has no general logical NOT — NOT lives only inside
-        // relational operators (NOT EQUAL, NOT GREATER, NOT LESS).
-        // Logical NOT for condition-names (IF NOT STATUS-ACTIVE) will be
-        // re-added as a separate production when level-88 is implemented.
-        return BindComparison(ctx.primaryCondition().comparisonExpression());
+        // Recursive NOT: NOT unaryLogicalExpression
+        if (ctx.NOT() != null && ctx.unaryLogicalExpression() != null)
+        {
+            var inner = BindUnaryLogical(ctx.unaryLogicalExpression());
+            // Wrap in a NOT binary expression (uses existing BoundBinaryOperatorKind.Not)
+            return new BoundBinaryExpression(inner, BoundBinaryOperatorKind.Not, inner, CobolCategory.Unknown);
+        }
+
+        // primaryCondition dispatch
+        var primary = ctx.primaryCondition();
+        if (primary == null)
+            return new BoundLiteralExpression(true, CobolCategory.Unknown);
+
+        // Sign condition: operand IS [NOT] POSITIVE/NEGATIVE/ZERO
+        if (primary.signCondition() is { } signCtx)
+            return BindSignCondition(signCtx);
+
+        // Parenthesized condition: (condition)
+        if (primary.condition() is { } parenCond)
+            return BindCondition(parenCond);
+
+        // Boolean literal: TRUE/FALSE
+        if (primary.booleanLiteral() is { } boolLit)
+        {
+            bool value = boolLit.TRUE_() != null;
+            return new BoundLiteralExpression(value, CobolCategory.Unknown);
+        }
+
+        // Comparison expression (relational, class condition, bare identifier)
+        if (primary.comparisonExpression() is { } comp)
+            return BindComparison(comp);
+
+        return new BoundLiteralExpression(true, CobolCategory.Unknown);
+    }
+
+    private BoundExpression BindSignCondition(CobolParserCore.SignConditionContext ctx)
+    {
+        var operandCtx = ctx.valueOperand();
+        var subject = operandCtx != null
+            ? BindValueOperand(operandCtx)
+            : new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
+        bool isNegated = ctx.NOT() != null;
+        var kind = ctx.POSITIVE() != null ? SignConditionKind.Positive
+            : ctx.NEGATIVE() != null ? SignConditionKind.Negative
+            : SignConditionKind.Zero;
+
+        return new BoundSignConditionExpression(subject, kind, isNegated);
     }
 
     private BoundExpression BindComparison(CobolParserCore.ComparisonExpressionContext ctx)
@@ -2759,15 +2859,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         expr is BoundIdentifierExpression or BoundLiteralExpression;
 
     private BoundExpression BindComparisonOperand(CobolParserCore.ComparisonOperandContext ctx)
-    {
-        // comparisonOperand: valueOperand (arithmeticExpression | nonNumericLiteral)
-        var vo = ctx.valueOperand();
-        var nonNumLit = vo.nonNumericLiteral();
-        if (nonNumLit != null)
-            return BindNonNumericLiteral(nonNumLit);
-
-        return BindFullExpression(vo.arithmeticExpression());
-    }
+        => BindValueOperand(ctx.valueOperand());
 
     /// <summary>
     /// Bind ON SIZE ERROR / NOT ON SIZE ERROR clause shared by all arithmetic statements.
@@ -3168,24 +3260,19 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var span = new Common.TextSpan(0, 0);
 
         if (subscriptCount > 0 && occursDepth == 0)
-            _diagnostics.ReportError("COBOL0405",
-                $"Item '{sym.Name}' is not defined with OCCURS and cannot be subscripted.", loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0405, loc, span, sym.Name);
 
         if (subscriptCount > occursDepth && occursDepth > 0)
-            _diagnostics.ReportError("COBOL0406",
-                $"Item '{sym.Name}' has {occursDepth} OCCURS level(s) but was referenced with {subscriptCount} subscript(s).", loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0406, loc, span, sym.Name, occursDepth, subscriptCount);
 
         if (occursDepth > 3)
-            _diagnostics.ReportError("COBOL0407",
-                $"Item '{sym.Name}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {occursDepth}).", loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0407, loc, span, sym.Name, occursDepth);
 
         if (subscriptCount > 3)
-            _diagnostics.ReportError("COBOL0408",
-                $"A maximum of 3 subscripts is permitted in COBOL-85; found {subscriptCount}.", loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0408, loc, span, subscriptCount);
 
         if (sym.IsElementary && occursDepth > 0 && subscriptCount > 0 && subscriptCount < occursDepth)
-            _diagnostics.ReportError("COBOL0409",
-                $"Item '{sym.Name}' requires {occursDepth} subscript(s) but was referenced with {subscriptCount}.", loc, span);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0409, loc, span, sym.Name, occursDepth, subscriptCount);
 
         var baseId = Typed(new BoundIdentifierExpression(sym, cat, subs));
 

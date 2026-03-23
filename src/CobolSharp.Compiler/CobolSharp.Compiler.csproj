@@ -31,7 +31,7 @@
        Uses BeforeTargets="CoreCompile" to guarantee generation completes before compilation starts. -->
   <Target Name="EnsureGeneratedFiles"
           BeforeTargets="BeforeBuild"
-          Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4"
+          Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
           Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
 
     <Message Text="Parser files not found. Generating..." Importance="high"

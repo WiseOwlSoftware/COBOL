@@ -15,7 +15,7 @@ namespace CobolSharp.Compiler.Semantics;
 public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SymbolTable _symbols;
-    private readonly List<Diagnostic> _diagnostics = [];
+    private readonly DiagnosticBag _diagnostics = new();
     private int _fillerCounter;
 
     // Data items in declaration order (preserves all FILLERs)
@@ -52,7 +52,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         _extensionClauses.Add(ExtensionClauseNode.FromParseTree(ctx, context, "<source>"));
     }
 
-    public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics;
+    public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics.Diagnostics;
     public SymbolTable Symbols => _symbols;
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
@@ -75,6 +75,53 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 data.Redefines = target;
             // else: target not found — silently ignore for now (may be in COPY not yet expanded)
         }
+    }
+
+    /// <summary>
+    /// Pass 2b: Resolve all deferred RENAMES FROM/THRU references now that all data items
+    /// are registered in the symbol table.
+    /// </summary>
+    public void ResolveRenames()
+    {
+        foreach (var data in _dataItemsInOrder)
+        {
+            if (data.Renames == null) continue;
+            var from = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.Renames.FromName);
+            if (from != null)
+            {
+                if (from.LevelNumber is 66 or 88)
+                    RenamesError(data, DiagnosticDescriptors.CBL0812, from.DisplayName);
+                else
+                    data.Renames.FromSymbol = from;
+            }
+            else
+            {
+                RenamesError(data, DiagnosticDescriptors.CBL0810, data.Renames.FromName, data.DisplayName);
+            }
+
+            if (data.Renames.ThruName != null)
+            {
+                var thru = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.Renames.ThruName);
+                if (thru != null)
+                {
+                    if (thru.LevelNumber is 66 or 88)
+                        RenamesError(data, DiagnosticDescriptors.CBL0812, thru.DisplayName);
+                    else
+                        data.Renames.ThruSymbol = thru;
+                }
+                else
+                {
+                    RenamesError(data, DiagnosticDescriptors.CBL0811, data.Renames.ThruName, data.DisplayName);
+                }
+            }
+        }
+    }
+
+    private void RenamesError(DataSymbol data, DiagnosticDescriptor desc, params object[] args)
+    {
+        _diagnostics.Report(desc,
+            new Common.SourceLocation("<source>", 0, data.Line, 0),
+            new Common.TextSpan(0, 0), args);
     }
 
     /// <summary>
@@ -110,12 +157,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     private void Error(ParserRuleContext ctx, string message)
     {
-        _diagnostics.Add(new Diagnostic(
-            "SEM",
-            DiagnosticSeverity.Error,
-            message,
+        _diagnostics.ReportError("SEM", message,
             new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column),
-            new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
+            new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex));
     }
 
     // ── SPECIAL-NAMES ──
@@ -292,12 +336,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 fileSym = new FileSymbol(name, nameCtx.Start.Line);
                 _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
-                _diagnostics.Add(new Diagnostic(
-                    DiagnosticDescriptors.CBL0601.Code,
-                    DiagnosticDescriptors.CBL0601.DefaultSeverity,
-                    string.Format(DiagnosticDescriptors.CBL0601.MessageTemplate, name),
+                _diagnostics.Report(DiagnosticDescriptors.CBL0601,
                     new Common.SourceLocation("<source>", 0, nameCtx.Start.Line, nameCtx.Start.Column),
-                    new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex)));
+                    new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex),
+                    name);
             }
             _currentFdFile = fileSym;
         }
@@ -601,8 +643,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         }
         else if (level == 66)
         {
-            // RENAMES — no parent/child
+            // RENAMES — extract FROM/THRU targets from renamesClause
             _dataStack.Clear();
+            var renamesCtx = body?.renamesClause();
+            if (renamesCtx != null)
+            {
+                var refs = renamesCtx.dataReference();
+                string fromName = refs.Length > 0 ? refs[0].IDENTIFIER()?.GetText() ?? "" : "";
+                string? thruName = refs.Length > 1 ? refs[1].IDENTIFIER()?.GetText() : null;
+                data.Renames = new RenamesInfo(fromName, thruName);
+            }
         }
         else
         {
@@ -792,12 +842,15 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             ?.powerExpression(0)?.unaryExpression(0);
         if (unary == null) return (null, false);
 
-        // Check for unary minus: addOp unaryExpression
+        // Check for unary sign: addOp unaryExpression (PLUS or MINUS)
         bool negated = false;
-        if (unary.addOp()?.MINUS() != null)
+        var addOp = unary.addOp();
+        if (addOp != null)
         {
-            negated = true;
-            unary = unary.unaryExpression(); // descend into the inner unaryExpression
+            if (addOp.MINUS() != null)
+                negated = true;
+            // Both +N and -N have a nested unaryExpression containing the literal
+            unary = unary.unaryExpression();
         }
         var numLit = unary?.primaryExpression()?.numericLiteral();
         return (numLit, negated);

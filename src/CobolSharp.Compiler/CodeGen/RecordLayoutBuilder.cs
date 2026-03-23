@@ -141,7 +141,7 @@ public sealed class RecordLayoutBuilder
 
         return s.Usage switch
         {
-            UsageKind.Comp or UsageKind.Binary => elemSize switch
+            UsageKind.Comp or UsageKind.Binary or UsageKind.Comp5 => elemSize switch
             {
                 <= 2 => IrPrimitiveType.Int32,
                 <= 4 => IrPrimitiveType.Int32,

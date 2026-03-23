@@ -36,7 +36,7 @@ public sealed class CobolErrorListener(DiagnosticBag diagnostics, string sourceP
         _errorCount++;
 
         // Extract [COBOLxxxx] code prefix from message if present
-        string code = "COBOL0001";
+        string code = Diagnostics.DiagnosticDescriptors.COBOL0001.Code;
         string message = msg;
         if (msg.StartsWith('['))
         {

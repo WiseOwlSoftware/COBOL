@@ -96,6 +96,7 @@ public static class UsageMapper
             "COMP-1" or "COMPUTATIONAL-1" => UsageKind.Comp1,
             "COMP-2" or "COMPUTATIONAL-2" => UsageKind.Comp2,
             "COMP-3" or "COMPUTATIONAL-3" => UsageKind.Comp3,
+            "COMP-5" or "COMPUTATIONAL-5" => UsageKind.Comp5,
             "BINARY" => UsageKind.Binary,
             "PACKED-DECIMAL" => UsageKind.PackedDecimal,
             "INDEX" => UsageKind.Index,

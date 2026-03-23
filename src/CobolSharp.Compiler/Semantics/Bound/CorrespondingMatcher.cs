@@ -46,9 +46,8 @@ internal static class CorrespondingMatcher
             // Ambiguous: multiple target items with same name and qualification
             if (candidates.Count > 1)
             {
-                diagnostics.ReportWarning("COBOL0410",
-                    $"{operationName} CORRESPONDING: field '{src.DisplayName}' is ambiguous in target group '{targetGroup.DisplayName}'.",
-                    location, span);
+                diagnostics.Report(DiagnosticDescriptors.COBOL0410,
+                    location, span, operationName, src.DisplayName, targetGroup.DisplayName);
                 continue;
             }
 
@@ -57,9 +56,8 @@ internal static class CorrespondingMatcher
             // OCCURS: dimensions from group to leaf must match
             if (!AreOccursCompatible(sourceGroup, src, targetGroup, dst))
             {
-                diagnostics.ReportError("COBOL0411",
-                    $"{operationName} CORRESPONDING: '{src.DisplayName}' and '{dst.DisplayName}' have incompatible OCCURS clauses.",
-                    location, span);
+                diagnostics.Report(DiagnosticDescriptors.COBOL0411,
+                    location, span, operationName, src.DisplayName, dst.DisplayName);
                 continue;
             }
 
@@ -68,9 +66,8 @@ internal static class CorrespondingMatcher
 
         if (result.Count == 0)
         {
-            diagnostics.ReportWarning("COBOL0412",
-                $"{operationName} CORRESPONDING: no matching elementary items between '{sourceGroup.DisplayName}' and '{targetGroup.DisplayName}'.",
-                location, span);
+            diagnostics.Report(DiagnosticDescriptors.COBOL0412,
+                    location, span, operationName, sourceGroup.DisplayName, targetGroup.DisplayName);
         }
 
         return result;

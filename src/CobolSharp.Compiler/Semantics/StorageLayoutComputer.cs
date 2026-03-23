@@ -106,6 +106,14 @@ public static class StorageLayoutComputer
             }
         }
 
+        // Level-66 RENAMES: alias an existing contiguous byte range.
+        // Must run after all records are laid out so FROM/THRU have storage locations.
+        foreach (var data in model.DataItemsInOrder)
+        {
+            if (data.LevelNumber != 66 || data.Renames == null) continue;
+            LayoutRenames(data, model);
+        }
+
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : MinimumAreaSize;
         model.FileSectionSize = maxRecordSize > 0 ? maxRecordSize : MinimumAreaSize;
     }
@@ -206,6 +214,45 @@ public static class StorageLayoutComputer
         }
 
         RegisterValue(model, item);
+    }
+
+    /// <summary>
+    /// Level-66 RENAMES: creates an alias for a contiguous byte range from the
+    /// FROM item through the THRU item (or just FROM if no THRU). No additional
+    /// storage is consumed — the RENAMES item overlays existing fields.
+    /// </summary>
+    private static void LayoutRenames(DataSymbol data, SemanticModel model)
+    {
+        var renames = data.Renames!;
+        if (renames.FromSymbol == null) return;
+
+        var fromLoc = model.GetStorageLocation(renames.FromSymbol);
+        if (!fromLoc.HasValue) return;
+
+        int startOffset = fromLoc.Value.Offset;
+        int endOffset;
+
+        if (renames.ThruSymbol != null)
+        {
+            var thruLoc = model.GetStorageLocation(renames.ThruSymbol);
+            if (!thruLoc.HasValue) return;
+            endOffset = thruLoc.Value.Offset + thruLoc.Value.Length;
+        }
+        else
+        {
+            endOffset = fromLoc.Value.Offset + fromLoc.Value.Length;
+        }
+
+        int totalLength = endOffset - startOffset;
+        if (totalLength <= 0) return;
+
+        data.ElementSize = totalLength;
+        data.Area = fromLoc.Value.Area;
+
+        // RENAMES items are alphanumeric group-like: treated as a byte range
+        var pic = CompilerPicDescriptorFactory.FromDataSymbol(data, totalLength, model.PicEnvironment);
+        model.RegisterStorageLocation(data,
+            new StorageLocation(fromLoc.Value.Area, startOffset, totalLength, pic));
     }
 
     private static void RegisterValue(SemanticModel model, DataSymbol data)

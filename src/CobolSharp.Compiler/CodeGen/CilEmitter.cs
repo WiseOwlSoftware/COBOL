@@ -21,6 +21,7 @@ public sealed class CilEmitter
     private readonly Dictionary<IrMethod, MethodDefinition> _methodMap = new();
     private TypeDefinition? _programType;
     private FieldDefinition? _programStateField;
+    private FieldDefinition? _alterTableField;
     private MethodDefinition? _currentMethodDef;
     private VariableDefinition? _arithmeticStatusLocal;
 
@@ -251,6 +252,29 @@ public sealed class CilEmitter
                     il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
                 }
             }
+        }
+
+        // ALTER table: static int[] field initialized with default GO TO targets
+        if (ir.AlterDefaults.Count > 0)
+        {
+            _alterTableField = new FieldDefinition(
+                "_alterTable",
+                FieldAttributes.Private | FieldAttributes.Static,
+                _module.ImportReference(typeof(int[])));
+            _programType!.Fields.Add(_alterTableField);
+
+            // _alterTable = new int[N]
+            il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults.Count));
+            il.Append(il.Create(OpCodes.Newarr, _module.TypeSystem.Int32));
+            // Initialize each element with default target index
+            for (int i = 0; i < ir.AlterDefaults.Count; i++)
+            {
+                il.Append(il.Create(OpCodes.Dup));
+                il.Append(il.Create(OpCodes.Ldc_I4, i));
+                il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults[i]));
+                il.Append(il.Create(OpCodes.Stelem_I4));
+            }
+            il.Append(il.Create(OpCodes.Stsfld, _alterTableField));
         }
 
         il.Append(il.Create(OpCodes.Ret));
@@ -503,6 +527,22 @@ public sealed class CilEmitter
             case IrReturnConst rc:
                 il.Append(il.Create(OpCodes.Ldc_I4, rc.Value));
                 il.Append(il.Create(OpCodes.Ret));
+                break;
+
+            case IrReturnAlterable ra:
+                // return _alterTable[slot]
+                il.Append(il.Create(OpCodes.Ldsfld, _alterTableField!));
+                il.Append(il.Create(OpCodes.Ldc_I4, ra.AlterSlot));
+                il.Append(il.Create(OpCodes.Ldelem_I4));
+                il.Append(il.Create(OpCodes.Ret));
+                break;
+
+            case IrAlter alt:
+                // _alterTable[slot] = newTargetIndex
+                il.Append(il.Create(OpCodes.Ldsfld, _alterTableField!));
+                il.Append(il.Create(OpCodes.Ldc_I4, alt.AlterSlot));
+                il.Append(il.Create(OpCodes.Ldc_I4, alt.NewTargetIndex));
+                il.Append(il.Create(OpCodes.Stelem_I4));
                 break;
 
             case IrGoToDepending gtd:

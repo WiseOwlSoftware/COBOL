@@ -25,12 +25,22 @@ public sealed class Binder
     private readonly SemanticModel _semantic;
     private readonly RecordLayoutBuilder _layout;
     private readonly DiagnosticBag _diagnostics;
+    private static readonly SourceLocation s_noLocation = new("<source>", 0, 0, 0);
+    private static readonly TextSpan s_noSpan = new(0, 0);
     private readonly IrValueFactory _valueFactory = new();
     private readonly Dictionary<string, IrMethod> _paragraphMethods =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> _paragraphIndices =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _paragraphsByIndex = new();
+
+    // ALTER support: maps alterable paragraph names to their alter table slot indices
+    private readonly Dictionary<string, int> _alterSlots =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<int> _alterDefaults = new();
+
+    // Tracks which paragraph is currently being lowered (for ALTER slot detection in LowerGoTo)
+    private string? _currentParagraphName;
 
     /// <summary>
     /// The block representing the start of the next sentence.
@@ -56,11 +66,14 @@ public sealed class Binder
     /// </summary>
     private int? _sectionExitReturnIndex;
 
-    public Binder(SemanticModel semantic, DiagnosticBag diagnostics)
+    private readonly CompilationOptions _options;
+
+    public Binder(SemanticModel semantic, DiagnosticBag diagnostics, CompilationOptions? options = null)
     {
         _semantic = semantic;
         _layout = new RecordLayoutBuilder();
         _diagnostics = diagnostics;
+        _options = options ?? new CompilationOptions();
     }
 
     /// <summary>
@@ -69,7 +82,7 @@ public sealed class Binder
     public IrModule Bind(CobolParserCore.CompilationUnitContext tree)
     {
         // Phase 1: Build bound tree from parse tree + symbols
-        var builder = new BoundTreeBuilder(_semantic, _diagnostics);
+        var builder = new BoundTreeBuilder(_semantic, _diagnostics, _options);
         var boundProgram = builder.Build(tree);
 
         // Phase 1.5: Flow analysis on bound program
@@ -95,6 +108,30 @@ public sealed class Binder
             paraIndex++;
         }
 
+        // Phase 3.5: Pre-scan for ALTER targets — identify which paragraphs are alterable
+        foreach (var para in boundProgram.Paragraphs)
+        {
+            foreach (var sentence in para.Sentences)
+            {
+                foreach (var stmt in sentence.Statements)
+                {
+                    if (stmt is BoundAlterStatement alter)
+                    {
+                        foreach (var entry in alter.Entries)
+                        {
+                            string name = entry.TargetParagraph.Name;
+                            if (!_alterSlots.ContainsKey(name))
+                            {
+                                int slot = _alterSlots.Count;
+                                _alterSlots[name] = slot;
+                                _alterDefaults.Add(-1); // placeholder, updated during LowerGoTo
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Phase 4: Lower bound statements into IR, preserving sentence structure
         foreach (var para in boundProgram.Paragraphs)
         {
@@ -102,6 +139,7 @@ public sealed class Binder
             {
                 int myIndex = _paragraphIndices[para.Symbol.Name];
                 var block = method.Blocks[0];
+                _currentParagraphName = para.Symbol.Name;
 
                 // Set up EXIT PARAGRAPH target: a block at the end of the paragraph body
                 var paraEnd = method.CreateBlock($"{para.Symbol.Name}_exit");
@@ -148,6 +186,7 @@ public sealed class Binder
                 _currentSentenceEnd = null;
                 _paragraphEndBlock = null;
                 _sectionExitReturnIndex = null;
+                _currentParagraphName = null;
 
                 // Normal flow: jump to paragraph end block
                 block.Instructions.Add(new IrJump(paraEnd));
@@ -157,6 +196,9 @@ public sealed class Binder
                 paraEnd.Instructions.Add(new IrReturnConst(myIndex + 1));
             }
         }
+
+        // Phase 4.5: Store alter table defaults in IR module (zero-cost if no ALTER used)
+        module.AlterDefaults.AddRange(_alterDefaults);
 
         // Phase 5: Create entry point (PC dispatch loop)
         CreateEntryPoint(module, boundProgram);
@@ -298,6 +340,9 @@ public sealed class Binder
                 return LowerArithmetic(arith, method, block);
             case BoundGoToStatement gt:
                 LowerGoTo(gt, block);
+                break;
+            case BoundAlterStatement alter:
+                LowerAlter(alter, block);
                 break;
             case BoundStopStatement:
                 block.Instructions.Add(new IrReturnConst(-1));
@@ -826,10 +871,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(v.Index);
         if (indexLoc == null)
         {
-            _diagnostics.ReportError("COBOL0500",
-                $"PERFORM VARYING index '{v.Index.Name}' has no storage location.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0500, s_noLocation, s_noSpan, v.Index.Name);
             return block;
         }
 
@@ -929,10 +971,7 @@ public sealed class Binder
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
         {
-            _diagnostics.ReportError("COBOL0501",
-                $"PERFORM target paragraph '{perf.Target.Name}' not found in paragraph dispatch table.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0501, s_noLocation, s_noSpan, perf.Target.Name);
             return;
         }
 
@@ -980,10 +1019,7 @@ public sealed class Binder
 
         if (perf.Target == null)
         {
-            _diagnostics.ReportError("COBOL0502",
-                "PERFORM TIMES has no target paragraph and no inline statements.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0502, s_noLocation, s_noSpan);
             return block;
         }
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
@@ -1588,10 +1624,7 @@ public sealed class Binder
         var targetLoc = ResolveLocation(stmt.Target);
         if (targetLoc == null)
         {
-            _diagnostics.ReportError("COBOL0510",
-                $"SET target '{stmt.Target.Symbol.Name}' has no storage location.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0510, s_noLocation, s_noSpan, stmt.Target.Symbol.Name);
             return;
         }
 
@@ -1621,10 +1654,7 @@ public sealed class Binder
                 }
                 else
                 {
-                    _diagnostics.ReportError("COBOL0511",
-                        $"SET '{stmt.Target.Symbol.Name}' TO: cannot resolve value expression ({stmt.Value.GetType().Name}).",
-                        new Common.SourceLocation("<source>", 0, 0, 0),
-                        new Common.TextSpan(0, 0));
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0511, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
 
@@ -1635,10 +1665,7 @@ public sealed class Binder
                     block.Instructions.Add(new IrPicAdd(valueLoc, targetLoc));
                 else
                 {
-                    _diagnostics.ReportError("COBOL0512",
-                        $"SET '{stmt.Target.Symbol.Name}' UP BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
-                        new Common.SourceLocation("<source>", 0, 0, 0),
-                        new Common.TextSpan(0, 0));
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0512, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
 
@@ -1649,10 +1676,7 @@ public sealed class Binder
                     block.Instructions.Add(new IrPicSubtract(valueLoc, targetLoc));
                 else
                 {
-                    _diagnostics.ReportError("COBOL0513",
-                        $"SET '{stmt.Target.Symbol.Name}' DOWN BY: cannot resolve delta expression ({stmt.Value.GetType().Name}).",
-                        new Common.SourceLocation("<source>", 0, 0, 0),
-                        new Common.TextSpan(0, 0));
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0513, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
         }
@@ -2343,6 +2367,13 @@ public sealed class Binder
             return;
         }
 
+        // Sign condition: IS [NOT] POSITIVE/NEGATIVE/ZERO
+        if (cond is BoundSignConditionExpression sc)
+        {
+            LowerSignCondition(sc, result, block);
+            return;
+        }
+
         // Level-88 condition name
         if (cond is BoundConditionNameExpression cn)
         {
@@ -2387,10 +2418,7 @@ public sealed class Binder
             return;
         }
 
-        _diagnostics.ReportError("COBOL0503",
-            $"Unsupported condition shape: {cond.GetType().Name}",
-            new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0));
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0503, s_noLocation, s_noSpan, cond.GetType().Name);
     }
 
     /// <summary>
@@ -2403,11 +2431,7 @@ public sealed class Binder
 
         if (left == null || right == null)
         {
-            _diagnostics.ReportError("COBOL0504",
-                $"Cannot normalize comparison operands: " +
-                $"left={binCond.Left.GetType().Name}, right={binCond.Right.GetType().Name}",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0504, s_noLocation, s_noSpan, binCond.Left.GetType().Name, binCond.Right.GetType().Name);
             return;
         }
 
@@ -2479,10 +2503,7 @@ public sealed class Binder
                 break;
 
             default:
-                _diagnostics.ReportError("COBOL0505",
-                    $"Unhandled comparison combination: {left.Kind} vs {right.Kind}",
-                    new Common.SourceLocation("<source>", 0, 0, 0),
-                    new Common.TextSpan(0, 0));
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0505, s_noLocation, s_noSpan, left.Kind, right.Kind);
                 break;
         }
     }
@@ -2572,6 +2593,36 @@ public sealed class Binder
     }
 
     // ── Class condition (IS NUMERIC, IS ALPHABETIC, etc.) ──
+
+    /// <summary>
+    /// Sign condition: IS [NOT] POSITIVE/NEGATIVE/ZERO.
+    /// Lowered as a comparison against literal zero.
+    /// </summary>
+    private void LowerSignCondition(BoundSignConditionExpression sc, IrValue result, IrBasicBlock block)
+    {
+        // Rewrite as: subject OP 0
+        var op = sc.SignKind switch
+        {
+            SignConditionKind.Positive => BoundBinaryOperatorKind.Greater,
+            SignConditionKind.Negative => BoundBinaryOperatorKind.Less,
+            SignConditionKind.Zero => BoundBinaryOperatorKind.Equal,
+            _ => BoundBinaryOperatorKind.Equal
+        };
+
+        var zero = new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        var comparison = new BoundBinaryExpression(sc.Subject, op, zero, CobolCategory.Unknown);
+
+        if (sc.IsNegated)
+        {
+            var tmp = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(comparison, tmp, block);
+            block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Not));
+        }
+        else
+        {
+            LowerCondition(comparison, result, block);
+        }
+    }
 
     private void LowerClassCondition(BoundClassConditionExpression cc, IrValue result, IrBasicBlock block)
     {
@@ -2713,40 +2764,71 @@ public sealed class Binder
         }
     }
 
+    // ── ALTER ──
+
+    private void LowerAlter(BoundAlterStatement alter, IrBasicBlock block)
+    {
+        foreach (var entry in alter.Entries)
+        {
+            if (!_alterSlots.TryGetValue(entry.TargetParagraph.Name, out int slot))
+                continue;
+            if (!_paragraphIndices.TryGetValue(entry.NewDestination.Name, out int newIndex))
+                continue;
+            block.Instructions.Add(new IrAlter(slot, newIndex));
+        }
+    }
+
     // ── GO TO ──
 
     private void LowerGoTo(BoundGoToStatement gt, IrBasicBlock block)
     {
+        // Bare GO TO (no target) — target set by ALTER at runtime
+        if (gt.IsBare)
+        {
+            if (_currentParagraphName != null && _alterSlots.TryGetValue(_currentParagraphName, out int bareSlot))
+            {
+                // Default remains -1 (STOP RUN) — ALTER will set the real target
+                block.Instructions.Add(new IrReturnAlterable(bareSlot));
+            }
+            else
+            {
+                // Bare GO TO not referenced by ALTER — undefined behavior, emit STOP
+                block.Instructions.Add(new IrReturnConst(-1));
+            }
+            return;
+        }
+
         if (gt.IsSimple)
         {
-            // Simple GO TO: unconditional branch to paragraph
+            // Check if this paragraph is an ALTER target — use indirection table
+            if (_currentParagraphName != null && _alterSlots.TryGetValue(_currentParagraphName, out int slot))
+            {
+                // Record the default GO TO target for this alter slot
+                if (_paragraphIndices.TryGetValue(gt.Target.Name, out int defaultTarget))
+                    _alterDefaults[slot] = defaultTarget;
+                block.Instructions.Add(new IrReturnAlterable(slot));
+                return;
+            }
+
+            // Simple GO TO: unconditional branch to paragraph (non-alterable)
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
             else
-                _diagnostics.ReportError("COBOL0506",
-                    $"GO TO target '{gt.Target.Name}' not found in paragraph dispatch table.",
-                    new Common.SourceLocation("<source>", 0, 0, 0),
-                    new Common.TextSpan(0, 0));
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, s_noLocation, s_noSpan, gt.Target.Name);
             return;
         }
 
         // GO TO para1 para2 ... DEPENDING ON selector
         if (gt.DependingOn == null)
         {
-            _diagnostics.ReportError("COBOL0507",
-                "GO TO DEPENDING ON requires a selector variable.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0507, s_noLocation, s_noSpan);
             return;
         }
 
         var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
         if (selectorLoc == null)
         {
-            _diagnostics.ReportError("COBOL0508",
-                $"GO TO DEPENDING ON selector '{gt.DependingOn}' has no storage location.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0508, s_noLocation, s_noSpan, gt.DependingOn);
             return;
         }
 
@@ -2758,10 +2840,7 @@ public sealed class Binder
                 targetIndices.Add(idx);
             else
             {
-                _diagnostics.ReportError("COBOL0506",
-                    $"GO TO DEPENDING target '{target.Name}' not found in paragraph dispatch table.",
-                    new Common.SourceLocation("<source>", 0, 0, 0),
-                    new Common.TextSpan(0, 0));
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, s_noLocation, s_noSpan, target.Name);
                 targetIndices.Add(-1);
             }
         }
@@ -2792,10 +2871,7 @@ public sealed class Binder
     {
         if (_performExitStack.Count == 0)
         {
-            _diagnostics.ReportError("COBOL0509",
-                "EXIT PERFORM used outside of any active PERFORM.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "PERFORM", "PERFORM");
             return block;
         }
 
@@ -2811,10 +2887,7 @@ public sealed class Binder
     {
         if (_paragraphEndBlock == null)
         {
-            _diagnostics.ReportError("COBOL0509",
-                "EXIT PARAGRAPH used outside of any paragraph.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "PARAGRAPH", "paragraph");
             return block;
         }
 
@@ -2829,10 +2902,7 @@ public sealed class Binder
     {
         if (_sectionExitReturnIndex == null)
         {
-            _diagnostics.ReportError("COBOL0509",
-                "EXIT SECTION used outside of any section.",
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0));
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "SECTION", "section");
             return block;
         }
 

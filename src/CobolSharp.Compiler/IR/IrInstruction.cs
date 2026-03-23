@@ -230,6 +230,35 @@ public sealed class IrParagraphDispatch : IrInstruction
     public IrParagraphDispatch(IReadOnlyList<IrMethod> paragraphs) => Paragraphs = paragraphs;
 }
 
+/// <summary>
+/// ALTER: writes a new target paragraph index into the alter indirection table.
+/// </summary>
+public sealed class IrAlter : IrInstruction
+{
+    /// <summary>Index into the alter table (identifies which alterable GO TO).</summary>
+    public int AlterSlot { get; }
+    /// <summary>New paragraph index to store in the alter table.</summary>
+    public int NewTargetIndex { get; }
+
+    public IrAlter(int alterSlot, int newTargetIndex)
+    {
+        AlterSlot = alterSlot;
+        NewTargetIndex = newTargetIndex;
+    }
+}
+
+/// <summary>
+/// Return the value from the alter indirection table at the given slot.
+/// Replaces IrReturnConst for GO TO statements inside ALTER-targeted paragraphs.
+/// </summary>
+public sealed class IrReturnAlterable : IrInstruction
+{
+    /// <summary>Index into the alter table.</summary>
+    public int AlterSlot { get; }
+
+    public IrReturnAlterable(int alterSlot) => AlterSlot = alterSlot;
+}
+
 // ── Calls and PERFORM ──
 
 public sealed class IrCall : IrInstruction

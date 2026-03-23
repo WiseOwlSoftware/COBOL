@@ -27,6 +27,9 @@ public sealed class Compilation
     /// </summary>
     public string? NistTestName { get; set; }
 
+    /// <summary>Compilation options controlling dialect, warnings, and feature gating.</summary>
+    public Semantics.CompilationOptions Options { get; set; } = new();
+
     public CompilationResult Compile(string sourcePath, string? outputPath = null)
     {
         var diagnostics = new DiagnosticBag();
@@ -54,7 +57,7 @@ public sealed class Compilation
         Semantics.SymbolValidator.Validate(semanticModel, diagnostics);
 
         // Phase 5: Bind -> IR
-        var binder = new CodeGen.Binder(semanticModel, diagnostics);
+        var binder = new CodeGen.Binder(semanticModel, diagnostics, Options);
         var irModule = binder.Bind(tree);
 
         // Phase 6: CIL emission
@@ -106,6 +109,7 @@ public sealed class Compilation
         var semanticBuilder = new Semantics.SemanticBuilder(programId, 1);
         semanticBuilder.Visit(tree);
         semanticBuilder.ResolveRedefines();
+        semanticBuilder.ResolveRenames();
         semanticBuilder.PropagateGroupSignClauses();
 
         // Pass 2: Reference resolution
@@ -179,10 +183,10 @@ public sealed class Compilation
         }
         catch (Exception ex)
         {
-            diagnostics.ReportError("COBOL0600",
-                $"Internal compiler error while generating code for '{programId}': {ex.Message}. Please report this.",
+            diagnostics.Report(DiagnosticDescriptors.COBOL0600,
                 new SourceLocation(sourcePath, 0, 0, 0),
-                new TextSpan(0, 0));
+                new TextSpan(0, 0),
+                programId, ex.Message);
             return new CompilationResult(false, outputPath, diagnostics.Diagnostics);
         }
     }

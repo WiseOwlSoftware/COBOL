@@ -154,10 +154,15 @@ usageClause
     : USAGE IS? usageKeyword        // full form: USAGE IS DISPLAY
     | DISPLAY                        // bare keyword forms (no USAGE prefix)
     | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
+    | COMPUTATIONAL_1
+    | COMPUTATIONAL_2
+    | COMPUTATIONAL_3
+    | COMPUTATIONAL_5
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
+    | COMP_5
     | BINARY
     | PACKED_DECIMAL
     | INDEX
@@ -166,10 +171,15 @@ usageClause
 usageKeyword
     : DISPLAY
     | COMPUTATIONAL
+    | COMPUTATIONAL_1
+    | COMPUTATIONAL_2
+    | COMPUTATIONAL_3
+    | COMPUTATIONAL_5
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
+    | COMP_5
     | BINARY
     | PACKED_DECIMAL
     | INDEX
@@ -198,7 +208,7 @@ redefinesClause
 
 // RENAMES (Level 66)
 renamesClause
-    : RENAMES dataReference (THRU dataReference)?
+    : RENAMES dataReference ((THRU | THROUGH) dataReference)?
     ;
 
 // VALUE Clause — IS is optional noise word
