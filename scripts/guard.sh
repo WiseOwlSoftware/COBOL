@@ -37,20 +37,20 @@ for test in $NIST_TESTS; do
         continue
     fi
 
-    # Run
+    # Run in the output directory to keep generated files out of project root
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
-    dotnet "tests/nist/output/$test.dll" 2>/dev/null || true
+    (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true)
 
-    # Compare output
+    # Compare output (files written to tests/nist/output/)
     validfile="tests/nist/valid/$test.txt"
     if [ ! -f "$validfile" ]; then
         echo "  $test: NO VALID FILE — skipping"
         continue
     fi
 
-    if diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "$outfile") > /dev/null 2>&1; then
+    if diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/$outfile") > /dev/null 2>&1; then
         echo "  $test: MATCH"
-    elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' print-file.txt) > /dev/null 2>&1; then
+    elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
         echo "  $test: MATCH"
     else
         echo "  $test: DIFF — REGRESSION!"
