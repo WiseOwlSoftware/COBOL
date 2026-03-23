@@ -319,9 +319,9 @@ COBOL source file (.cob)
 | ACCEPT | Implemented | Spec-true | DATE/TIME/DAY/etc. |
 | DISPLAY | Implemented | Spec-true | Multiple operands; PIC-aware formatting |
 | EXIT (plain) | Implemented | Spec-true | No-op per spec |
-| EXIT PROGRAM | Partially | Likely incorrect | Treated as plain EXIT; should terminate in called programs |
-| STOP RUN | Implemented | Spec-true | Returns -1 to exit main dispatch loop |
-| GOBACK | Implemented | Spec-true | Desugared to STOP RUN |
+| EXIT PROGRAM | Implemented | Spec-true | Returns from called program's Entry method; distinct from plain EXIT |
+| STOP RUN | Implemented | Spec-true | Exits paragraph dispatch loop |
+| GOBACK | Implemented | Spec-true | Returns from called program; distinct from STOP RUN |
 | CONTINUE | Implemented | Spec-true | No-op |
 | INITIALIZE | Implemented | Spec-true | Category-based REPLACING supported |
 
@@ -434,14 +434,16 @@ COBOL source file (.cob)
 | CBL3401-3406 | Report Writer | 6 |
 | CBL3501-3502 | Strict COBOL-85 mode | 2 |
 
-### Summary of Feature Coverage Gaps
+### Summary of Feature Coverage Gaps (Section 2c)
+
+All major File I/O and CALL features are now implemented:
 
 1. ~~**ALTERNATE KEY**~~: **DONE** — parsed, stored in FileSymbol, registered at runtime with secondary indices.
-2. **READ random/keyed**: KEY IS parsed but binder does not dispatch to `ReadByKey`; likely broken for indexed random access.
-3. **WRITE BEFORE ADVANCING / PAGE**: Flag stored but IR only has `IrWriteAfterAdvancing`.
+2. ~~**READ random/keyed**~~: **DONE** — IrReadByKey instruction; FileRuntime.ReadByKey dispatches to IFileHandler.ReadByKey.
+3. ~~**WRITE BEFORE ADVANCING / PAGE**~~: **DONE** — IrWriteAdvancing with IsBefore flag; PAGE emits form-feed.
 4. ~~**CALL inter-program linkage**~~: **DONE** — full implementation via CobolProgramRegistry + Entry methods.
 5. ~~**PROCEDURE DIVISION USING/RETURNING**~~: **DONE** — parameters resolved to LINKAGE DataSymbols.
-6. **Inter-program communication**: No shared storage, external data, or program loading.
+6. ~~**Inter-program communication**~~: **DONE** — same-process shared-address-space via CobolDataPointer.
 
 ---
 
@@ -1048,9 +1050,11 @@ Define `IrSort`/`IrMerge` instructions. Implement `SortRuntime` with key-based c
 
 ---
 
-#### CIL-05: Implement WRITE BEFORE/AFTER ADVANCING with Dynamic Operand
+#### CIL-05: ~~Implement WRITE BEFORE/AFTER ADVANCING~~ — **DONE**
 
-Extend `IrWriteAfterAdvancing` to carry optional `IrLocation` for data-item advance count and `bool IsBefore` for BEFORE vs AFTER.
+Renamed `IrWriteAfterAdvancing` → `IrWriteAdvancing` with `IsBefore` flag and PAGE (-1) sentinel.
+BEFORE/AFTER/PAGE all implemented. Dynamic operand (data-item advance count) not yet supported
+(only integer literal advance count).
 
 ---
 
