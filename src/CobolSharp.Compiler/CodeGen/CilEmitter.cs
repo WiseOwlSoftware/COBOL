@@ -21,6 +21,7 @@ public sealed class CilEmitter
     private readonly Dictionary<IrMethod, MethodDefinition> _methodMap = new();
     private TypeDefinition? _programType;
     private FieldDefinition? _programStateField;
+    private MethodDefinition? _initializeStateMethod;
     private FieldDefinition? _alterTableField;
     /// <summary>Static fields for LINKAGE SECTION parameters, keyed by USING parameter name (case-insensitive).</summary>
     private readonly Dictionary<string, FieldDefinition> _linkageFields = new(StringComparer.OrdinalIgnoreCase);
@@ -136,6 +137,12 @@ public sealed class CilEmitter
     private void EmitEntryMethodBody(IrModule ir)
     {
         var il = _entryMethod!.Body.GetILProcessor();
+
+        // INITIAL programs: re-initialize ProgramState at each Entry call
+        if (ir.IsInitial && _initializeStateMethod != null)
+        {
+            il.Append(il.Create(OpCodes.Call, _initializeStateMethod));
+        }
 
         // Map args[i] → static CobolDataPointer fields (created in CreateEntryMethodSignature)
         for (int i = 0; i < ir.UsingParameterNames.Count; i++)
@@ -448,6 +455,23 @@ public sealed class CilEmitter
         }
 
         il.Append(il.Create(OpCodes.Ret));
+
+        // For INITIAL programs, generate a ResetState method that re-creates ProgramState
+        if (ir.IsInitial)
+        {
+            _initializeStateMethod = new MethodDefinition(
+                "ResetState",
+                MethodAttributes.Private | MethodAttributes.Static,
+                _module.TypeSystem.Void);
+            _programType!.Methods.Add(_initializeStateMethod);
+
+            var resetIl = _initializeStateMethod.Body.GetILProcessor();
+            resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, wsSize));
+            resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, fileSize));
+            resetIl.Append(resetIl.Create(OpCodes.Newobj, ctor));
+            resetIl.Append(resetIl.Create(OpCodes.Stsfld, _programStateField));
+            resetIl.Append(resetIl.Create(OpCodes.Ret));
+        }
     }
 
     private void SeedPrimitiveTypes()
@@ -746,6 +770,13 @@ public sealed class CilEmitter
 
             case IrCallProgram callProg:
                 EmitCallProgram(il, callProg, _currentMethodDef!);
+                break;
+
+            case IrCancelProgram cancelProg:
+                il.Append(il.Create(OpCodes.Ldstr, cancelProg.ProgramName));
+                il.Append(il.Create(OpCodes.Call,
+                    _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Cancel",
+                        new[] { typeof(string) })!)));
                 break;
 
             case IrCheckCallException checkExc:
@@ -1134,9 +1165,11 @@ public sealed class CilEmitter
 
     private void EmitCallProgram(ILProcessor il, IrCallProgram callProg, MethodDefinition method)
     {
-        // Build CobolDataPointer[] args
+        // Build CobolDataPointer[] args (+ 1 extra for RETURNING if present)
         int argCount = callProg.CallArguments.Count;
-        il.Append(il.Create(OpCodes.Ldc_I4, argCount));
+        bool hasReturning = callProg.ReturningTarget != null;
+        int totalArgs = hasReturning ? argCount + 1 : argCount;
+        il.Append(il.Create(OpCodes.Ldc_I4, totalArgs));
         il.Append(il.Create(OpCodes.Newarr,
             _module.ImportReference(typeof(CobolDataPointer))));
 
@@ -1149,14 +1182,16 @@ public sealed class CilEmitter
             // Push (area, offset, length) for the source location
             EmitLocationArgs(il, arg.Source);
 
-            if (arg.Mode == 1) // BY CONTENT — copy
+            if (arg.Mode == 1 || arg.Mode == 2) // BY CONTENT or BY VALUE — copy
             {
+                // BY CONTENT: callee gets private copy, modifications don't propagate
+                // BY VALUE: same copy semantics (value is encoded in source location)
                 var createByContent = _module.ImportReference(
                     typeof(CobolDataPointer).GetMethod("CreateByContent",
                         new[] { typeof(byte[]), typeof(int), typeof(int) })!);
                 il.Append(il.Create(OpCodes.Call, createByContent));
             }
-            else // BY REFERENCE (or BY VALUE)
+            else // BY REFERENCE — share caller's storage
             {
                 var createByRef = _module.ImportReference(
                     typeof(CobolDataPointer).GetMethod("CreateByReference",
@@ -1164,6 +1199,19 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Call, createByRef));
             }
 
+            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+        }
+
+        // If RETURNING specified, add it as an extra BY REFERENCE arg at the end
+        if (hasReturning)
+        {
+            il.Append(il.Create(OpCodes.Dup)); // array ref
+            il.Append(il.Create(OpCodes.Ldc_I4, argCount)); // last index
+            EmitLocationArgs(il, callProg.ReturningTarget!);
+            var createByRef = _module.ImportReference(
+                typeof(CobolDataPointer).GetMethod("CreateByReference",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, createByRef));
             il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
         }
 

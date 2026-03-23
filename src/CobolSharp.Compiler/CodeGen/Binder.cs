@@ -200,6 +200,9 @@ public sealed class Binder
         // Phase 4.5: Store alter table defaults in IR module (zero-cost if no ALTER used)
         module.AlterDefaults.AddRange(_alterDefaults);
 
+        // Phase 4.55: Store INITIAL flag
+        module.IsInitial = _semantic.Program.IsInitial;
+
         // Phase 4.6: Store PROCEDURE DIVISION USING parameter names
         foreach (var param in _semantic.ProcedureUsingParameters)
             module.UsingParameterNames.Add(param.Name);
@@ -391,6 +394,10 @@ public sealed class Binder
                 break;
             case BoundAlterStatement alter:
                 LowerAlter(alter, block);
+                break;
+            case BoundCancelStatement cancel:
+                foreach (var name in cancel.ProgramNames)
+                    block.Instructions.Add(new IrCancelProgram(name));
                 break;
             case BoundEntryStatement:
                 // ENTRY is handled at the module level (CIL emitter generates Entry_<name> methods)

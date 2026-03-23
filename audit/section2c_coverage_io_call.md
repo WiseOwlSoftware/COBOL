@@ -45,18 +45,20 @@ Audit date: 2026-03-22
 | CALL statement | Implemented | `BoundCallStatement`; `Binder.cs:LowerCall`→`IrCallProgram`; `CilEmitter:EmitCallProgram`; `CobolProgramRegistry` | Spec-true | Static CALL resolves via registry; Entry method invoked; paragraph dispatch in Entry |
 | BY REFERENCE | Implemented | `CobolDataPointer.CreateByReference`; `EmitLinkageLocationArgs`; static `_linkage_` fields | Spec-true | Callee's LINKAGE items alias caller's WorkingStorage bytes via CobolDataPointer |
 | BY CONTENT | Implemented | `CobolDataPointer.CreateByContent`; copies argument bytes | Spec-true | Callee gets private copy; modifications don't propagate |
-| BY VALUE | Parsed | Grammar gated by `{is2002()}?` | Dialect-gated | Lowering passes value as CobolDataPointer; full semantics pending |
-| RETURNING | Parsed | `BoundCallStatement.ReturningTarget` | Partial | Bound tree captures target; value marshaling from callee not yet wired |
+| BY VALUE | Implemented | Grammar gated by `{is2002()}?`; CilEmitter treats mode 2 as copy (BY CONTENT semantics) | Dialect-gated | Value encoded in source location; copy semantics prevent callee modification |
+| RETURNING | Implemented | `IrCallProgram.ReturningTarget`; extra BY REFERENCE arg in CobolDataPointer[] | Spec-true | RETURNING target passed as additional arg; callee writes via LINKAGE, caller sees result |
 | ON EXCEPTION / NOT ON EXCEPTION | Implemented | `IrCheckCallException`; branch on `_lastCallResult` | Spec-true | Unresolvable programs take ON EXCEPTION; successful calls take NOT ON EXCEPTION |
 | Linkage Section parsing | Implemented | `SemanticBuilder.cs:VisitLinkageSection` | Spec-true | Items tagged with `StorageAreaKind.LinkageSection` |
 | Linkage Section layout | Implemented | `StorageLayoutComputer`; relative offsets per 01-level | Spec-true | Each LINKAGE item layout starts at offset 0 |
 | Linkage Section validation | Implemented | `SymbolValidator.cs:ValidateLinkageSection` | Spec-true | VALUE not allowed (CBL3110), REDEFINES not allowed (CBL3111) |
 | PROCEDURE DIVISION USING | Implemented | `SemanticBuilder:VisitProcedureDivision`; `SemanticModel.ProcedureUsingParameters` | Spec-true | Parameters resolved to LINKAGE DataSymbols; mapped to Entry args |
-| PROCEDURE DIVISION RETURNING | Parsed | `SemanticModel.ProcedureReturningItem` | Partial | Resolved to DataSymbol; value marshaling not yet wired |
+| PROCEDURE DIVISION RETURNING | Implemented | `SemanticModel.ProcedureReturningItem` | Spec-true | Resolved to LINKAGE DataSymbol; mapped to args slot in Entry |
 | ENTRY statement | Implemented | Grammar:`entryStatement`; `BoundEntryStatement`; `CilEmitter:EmitAlternateEntryMethod` | Spec-true | Alternate entry points; Entry_<name> methods generated |
 | EXIT PROGRAM | Implemented | `BoundExitProgramStatement`; `IrExitProgram` | Spec-true | Returns from Entry method (was broken — fell through to no-op) |
 | GOBACK | Implemented | `BoundGoBackStatement`; `IrGoBack` | Spec-true | Returns from called program; distinct from STOP RUN |
 | Dynamic CALL | Partially | `BoundCallStatement.IsDynamic` (flag corrected) | Spec-true | Registry-based resolution; Assembly.LoadFrom discovery; CBL3310 diagnostic |
+| INITIAL program | Implemented | `ProgramSymbol.IsInitial`; `IrModule.IsInitial`; `CilEmitter:ResetState` | Spec-true | IsInitial extracted from PROGRAM-ID; ResetState re-creates ProgramState at each Entry call |
+| CANCEL statement | Implemented | Grammar:`cancelStatement`; `BoundCancelStatement`; `IrCancelProgram`; `CobolProgramRegistry.Cancel` | Spec-true | Literal and identifier targets; removes program from registry; next CALL re-discovers |
 | Inter-program communication | Implemented | `CobolProgramRegistry`; `CobolDataPointer`; `StopRunException` | Spec-true | Same-process, shared-address-space; BY REFERENCE shares memory |
 
 ### CALL Diagnostics Defined
@@ -113,8 +115,6 @@ CBL3301 (arg count mismatch), CBL3302 (invalid arg for mode), CBL3303 (type inco
 
 ## Summary of Gaps
 
-1. **RETURNING value marshaling**: Bound tree captures target, but callee return value not moved into caller's RETURNING item.
-2. **BY VALUE full semantics**: Grammar parsed and dialect-gated; value widening not yet implemented.
-3. **INITIAL program support**: ProgramState re-initialization per CALL not yet implemented.
-4. **Compile-time linking**: Programs resolve at runtime; no cross-assembly references.
-5. **CANCEL statement**: Parsed but lowering is a stub.
+1. **Compile-time linking**: Programs resolve at runtime via registry; no cross-assembly compile-time references (future optimization).
+2. **BY VALUE type widening**: BY VALUE uses copy semantics; callee-type-based value widening not implemented.
+3. **StopRunException across CALL boundaries**: STOP RUN in callee currently exits callee's dispatch loop but does not propagate to unwind caller. Needs try/catch in Main.

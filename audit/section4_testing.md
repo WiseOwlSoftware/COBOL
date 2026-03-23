@@ -26,7 +26,7 @@ cases.
 | Category | Count |
 |----------|-------|
 | Unit tests | 217 pass |
-| Integration tests | 188 pass, 1 skip |
+| Integration tests | 189 pass, 1 skip |
 | NIST tests at 100% | 39 |
 
 ---

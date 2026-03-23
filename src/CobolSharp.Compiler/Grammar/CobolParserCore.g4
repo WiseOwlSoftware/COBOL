@@ -620,7 +620,12 @@ entryStatement
 // ==========================================
 
 cancelStatement
-    : CANCEL dataReferenceList
+    : CANCEL cancelTarget+
+    ;
+
+cancelTarget
+    : literal
+    | dataReference
     ;
 
 // ==========================================

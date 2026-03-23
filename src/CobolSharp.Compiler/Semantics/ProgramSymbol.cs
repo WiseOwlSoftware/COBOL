@@ -15,6 +15,9 @@ public sealed class ProgramSymbol : Symbol
     /// <summary>Scope for PROCEDURE DIVISION sections and paragraphs.</summary>
     public Scope ProcedureDivisionScope { get; }
 
+    /// <summary>True if this program is declared IS INITIAL (WORKING-STORAGE re-initialized per CALL).</summary>
+    public bool IsInitial { get; set; }
+
     public ProgramSymbol(string name, int line)
         : base(name, SymbolKind.Program, line)
     {

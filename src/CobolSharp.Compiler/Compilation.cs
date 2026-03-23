@@ -47,7 +47,9 @@ public sealed class Compilation
 
         // Phase 3: Semantic analysis
         string programId = ExtractProgramId(tree) ?? Path.GetFileNameWithoutExtension(sourcePath);
+        bool isInitial = ExtractIsInitial(tree);
         var semanticModel = BuildSemanticModel(tree, programId, diagnostics);
+        semanticModel.Program.IsInitial = isInitial;
 
         // Phase 4: Validate and compute layout
         Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);
@@ -257,5 +259,21 @@ public sealed class Compilation
         var body = idDiv?.identificationBody();
         var progId = body?.programIdParagraph();
         return progId?.programName()?.IDENTIFIER()?.GetText();
+    }
+
+    private static bool ExtractIsInitial(CobolParserCore.CompilationUnitContext tree)
+    {
+        var compilationGroups = tree.compilationGroup();
+        if (compilationGroups.Length == 0) return false;
+
+        var programUnit = compilationGroups[0].programUnit();
+        if (programUnit.Length == 0) return false;
+
+        var progIdPara = programUnit[0].identificationDivision()
+            ?.identificationBody()?.programIdParagraph();
+        var attrs = progIdPara?.programIdAttributes()?.programIdAttribute();
+        if (attrs == null) return false;
+
+        return attrs.Any(a => a.commonProgramAttribute()?.INITIAL_() != null);
     }
 }

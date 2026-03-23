@@ -308,6 +308,13 @@ public sealed class IrGoBack : IrInstruction { }
 /// <summary>STOP RUN — terminate the entire run unit by throwing StopRunException.</summary>
 public sealed class IrStopRun : IrInstruction { }
 
+/// <summary>CANCEL: remove a program from the registry.</summary>
+public sealed class IrCancelProgram : IrInstruction
+{
+    public string ProgramName { get; }
+    public IrCancelProgram(string programName) => ProgramName = programName;
+}
+
 /// <summary>Check whether the last CALL raised an exception (target not found, etc.).</summary>
 public sealed class IrCheckCallException : IrInstruction
 {

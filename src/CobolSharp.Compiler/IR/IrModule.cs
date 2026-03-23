@@ -35,6 +35,9 @@ public sealed class IrModule(string name)
     /// </summary>
     public List<IrMethod> ParagraphDispatchOrder { get; } = [];
 
+    /// <summary>True if this program is declared IS INITIAL (re-initialize WORKING-STORAGE per CALL).</summary>
+    public bool IsInitial { get; set; }
+
     /// <summary>
     /// PROCEDURE DIVISION USING parameter names (LINKAGE SECTION item names).
     /// Positional: UsingParameterNames[i] maps to Entry args[i].

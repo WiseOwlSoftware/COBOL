@@ -627,6 +627,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCancelStatement([NotNull] CobolParserCore.CancelStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.cancelTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCancelTarget([NotNull] CobolParserCore.CancelTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.setStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

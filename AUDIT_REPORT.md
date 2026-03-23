@@ -379,8 +379,8 @@ COBOL source file (.cob)
 | CALL statement | Implemented | Spec-true | Static CALL via CobolProgramRegistry; Entry method per program; paragraph dispatch in Entry |
 | BY REFERENCE | Implemented | Spec-true | CobolDataPointer into caller's WorkingStorage; callee LINKAGE items alias caller's bytes |
 | BY CONTENT | Implemented | Spec-true | CobolDataPointer.CreateByContent copies argument bytes |
-| BY VALUE | Parsed | Dialect-gated | Grammar gated by `is2002()`; lowering passes value as CobolDataPointer |
-| RETURNING | Parsed | Partial | Bound tree captures target; value marshaling not yet wired |
+| BY VALUE | Implemented | Dialect-gated | Grammar gated by `is2002()`; copy semantics (same as BY CONTENT); value encoded in source location |
+| RETURNING | Implemented | Spec-true | RETURNING target added as extra BY REFERENCE arg in CobolDataPointer array; callee writes via LINKAGE |
 | ON EXCEPTION / NOT ON EXCEPTION | Implemented | Spec-true | Branch on registry resolve result; unresolvable programs take ON EXCEPTION path |
 | Linkage Section | Implemented | Spec-true | Layout computed with relative offsets; accessed via CobolDataPointer fields |
 | PROCEDURE DIVISION USING | Implemented | Spec-true | Parameters resolved to LINKAGE DataSymbols; mapped to Entry args in CIL |
@@ -388,6 +388,8 @@ COBOL source file (.cob)
 | EXIT PROGRAM | Implemented | Spec-true | Returns from called program's Entry method (was broken — no-op before) |
 | GOBACK | Implemented | Spec-true | Returns from called program; distinct from STOP RUN |
 | Dynamic CALL | Partially | Spec-true | isDynamic flag correct (was inverted); registry-based resolution; Assembly.LoadFrom discovery |
+| INITIAL program | Implemented | Spec-true | IsInitial captured from PROGRAM-ID; ResetState re-creates ProgramState at Entry start |
+| CANCEL statement | Implemented | Spec-true | Grammar accepts literals and identifiers; CobolProgramRegistry.Cancel removes program |
 | Inter-program communication | Implemented | Spec-true | Same-process shared-address-space via CobolDataPointer; CobolProgramRegistry for dispatch |
 
 ### Diagnostics Infrastructure
@@ -708,7 +710,7 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 | Category | Count | Framework |
 |---|---|---|
 | Unit tests | 217 pass | xUnit |
-| Integration tests | 188 pass, 1 skip | xUnit |
+| Integration tests | 189 pass, 1 skip | xUnit |
 | NIST tests at 100% | 39 of 95 NC-series (41%) | Shell script (not xUnit) |
 
 ### Unit Test Coverage by Phase

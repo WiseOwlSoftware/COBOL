@@ -6212,4 +6212,36 @@ single architectural change in the compiler's history.
 - Integration: 188 pass, 1 skip (was 185)
 - NIST: all 39 at 100%
 
+---
+
+## 2026-03-23 (cont.) — Close all remaining CALL gaps
+
+### Summary
+
+Closed all 4 remaining CALL implementation gaps. The feature is now complete.
+
+### Fixes
+
+**1. RETURNING value marshaling**: RETURNING target added as extra BY REFERENCE argument at the
+end of the CobolDataPointer array. The callee writes to it via LINKAGE; the caller sees the
+result because it's BY REFERENCE into the caller's storage.
+
+**2. BY VALUE**: CIL emitter now treats mode 2 (BY VALUE) as copy semantics (same as BY CONTENT).
+The value is encoded in the source location before copying. This matches COBOL semantics where
+BY VALUE prevents callee modification of the caller's data.
+
+**3. INITIAL program**: `IsInitial` extracted from PROGRAM-ID attributes (`INITIAL_` token).
+Stored on `ProgramSymbol`, propagated to `IrModule`. CIL emitter generates `ResetState` method
+that re-creates `ProgramState` with fresh space-filled byte arrays. Called at Entry method start
+for INITIAL programs.
+
+**4. CANCEL statement**: Full pipeline — grammar fixed to accept both literals and identifiers
+(`cancelTarget` rule). `BoundCancelStatement`, `IrCancelProgram`, CIL emits
+`CobolProgramRegistry.Cancel(name)`. Integration test: CALL, CANCEL, re-CALL verified.
+
+### Test Results
+- Unit: 217 pass
+- Integration: 189 pass, 1 skip (was 188)
+- NIST: all 39 at 100%
+
 *End of entries for 2026-03-23*

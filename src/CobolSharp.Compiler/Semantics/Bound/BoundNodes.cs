@@ -46,6 +46,7 @@ public enum BoundNodeKind
     ExitProgramStatement,
     GoBackStatement,
     EntryStatement,
+    CancelStatement,
 }
 
 public abstract class BoundNode
@@ -495,6 +496,14 @@ public sealed class BoundEntryStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.EntryStatement;
+}
+
+/// <summary>CANCEL — remove programs from the registry so next CALL re-initializes them.</summary>
+public sealed class BoundCancelStatement : BoundStatement
+{
+    public IReadOnlyList<string> ProgramNames { get; }
+    public BoundCancelStatement(IReadOnlyList<string> programNames) => ProgramNames = programNames;
+    public override BoundNodeKind Kind => BoundNodeKind.CancelStatement;
 }
 
 public sealed class BoundExitPerformStatement : BoundStatement

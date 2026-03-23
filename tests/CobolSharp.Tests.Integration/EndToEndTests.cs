@@ -5290,6 +5290,36 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void Call_Cancel_RemovesFromRegistry()
+    {
+        // CANCEL removes program from registry; next CALL re-resolves
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("CALLER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLER.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    CALL "HELPER"
+                    CANCEL "HELPER"
+                    CALL "HELPER"
+                    STOP RUN.
+            """),
+            ("HELPER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. HELPER.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY "CALLED"
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("CALLED", lines[0]);
+        Assert.Equal("CALLED", lines[1]);
+    }
+
+    [Fact]
     public void Call_OnException_UnresolvableProgram()
     {
         // CALL a non-existent program triggers ON EXCEPTION
