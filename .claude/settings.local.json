@@ -20,7 +20,11 @@
       "Bash(dotnet build:*)",
       "Bash(where choco:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(bash scripts/guard.sh)",
+      "Bash(E:/CobolSharp/scripts/guard.sh)",
+      "Bash(bash guard.sh)",
+      "Bash(xargs grep:*)"
     ]
   }
 }
