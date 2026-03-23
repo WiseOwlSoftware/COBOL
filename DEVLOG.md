@@ -6244,4 +6244,63 @@ for INITIAL programs.
 - Integration: 189 pass, 1 skip (was 188)
 - NIST: all 39 at 100%
 
+---
+
+## 2026-03-23 (cont.) — Dynamic CALL fix + Code quality sweep (audit sections 3.1-3.5)
+
+### Dynamic CALL
+
+Fixed: CIL emitter always emitted `ldstr` with the literal target name, even for dynamic CALL
+(`CALL identifier`). Now `IrCallProgram` carries `TargetLocation` for dynamic targets. CIL emitter
+reads the program name from storage at runtime via `PicRuntime.GetDisplayString`, then passes it
+to `CobolProgramRegistry.Resolve`.
+
+### Audit Section 3.1 — Meaningless Wrappers (RESOLVED)
+
+- `BindDataReference`: inlined at single call site (BindMove) and deleted.
+- `BindFullExpression`: all 12 callers updated to call `BindAdditiveExpression(ctx.additiveExpression())`
+  directly. Wrapper method deleted. Zero meaningless wrappers remain.
+
+### Audit Section 3.2 — Duplicated Logic (ALL RESOLVED)
+
+1. **Expression binding path B**: already deleted in prior session (6 methods, ~90 lines).
+2. **GetPicForLocation**: moved to `IrLocationExtensions.GetPic()` extension method.
+   Deleted identical private copies from Binder.cs and CilEmitter.cs.
+3. **INVALID KEY branching**: extracted `LowerConditionalBranch()` helper in Binder.
+   LowerRead, LowerDelete, LowerStart, LowerCall all delegate to it. ~54 lines → 1 helper.
+4. **Arithmetic target binding**: extracted `BindArithmeticTargets()` helper in BoundTreeBuilder.
+   7 duplicated foreach loops across BindAdd/Sub/Mul/Div replaced.
+5. **Fake source locations**: created `SourceLocation.None` and `TextSpan.Empty` static factories.
+   44 occurrences across 12 files replaced. Redundant `s_noLocation`/`s_noSpan` deleted.
+
+### Audit Section 3.3 — Silent Correctness Bugs (RESOLVED)
+
+- Function calls: COBOL0110 diagnostic now emitted (was silent zero).
+- Unresolved identifiers: COBOL0110 diagnostic emitted before string literal fallback.
+- StartCondition: already resolved (prior session).
+- REWRITE FROM: already resolved (prior session).
+- Ad-hoc diagnostic codes: already resolved (prior session).
+
+### Audit Section 3.4 — Dead Code (MOSTLY RESOLVED)
+
+- Deleted: `ReportWriterValidator.cs`, `GetDataReferenceName`, `BindDataReference`, CBL3401-3406.
+- Wired: CBL3304 (RETURNING not in LINKAGE) in `BoundTreeValidator.ValidateCall`.
+- CompilationOptions is now actively used (not dead code).
+
+### Audit Section 3.5 — TODOs (RESOLVED)
+
+Both TODOs addressed: `--standard` wired, function binding has diagnostic.
+
+### AI Misstep
+
+1. **Addressed only the first of five section 3.2 findings**: Initially fixed only the expression
+   binding duplication and marked the whole section as "RESOLVED" in the audit doc, leaving four
+   duplications unfixed. User correctly called this out.
+
+### Test Results
+- Unit: 217 pass
+- Integration: 189 pass, 1 skip
+- NIST: all 39 at 100%
+- Net code change: -90 lines from duplication elimination
+
 *End of entries for 2026-03-23*
