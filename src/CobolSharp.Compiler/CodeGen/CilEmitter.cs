@@ -22,6 +22,8 @@ public sealed class CilEmitter
     private TypeDefinition? _programType;
     private FieldDefinition? _programStateField;
     private FieldDefinition? _alterTableField;
+    /// <summary>Static fields for LINKAGE SECTION parameters, keyed by USING parameter name (case-insensitive).</summary>
+    private readonly Dictionary<string, FieldDefinition> _linkageFields = new(StringComparer.OrdinalIgnoreCase);
     private MethodDefinition? _currentMethodDef;
     private VariableDefinition? _arithmeticStatusLocal;
 
@@ -79,8 +81,8 @@ public sealed class CilEmitter
         foreach (var m in ir.Methods)
             DefineMethodSignature(m);
 
-        // 4. Create Entry method signature (before emitting bodies, so Main can reference it)
-        CreateEntryMethodSignature();
+        // 4. Create Entry method signature and LINKAGE fields (before emitting bodies)
+        CreateEntryMethodSignature(ir);
 
         // 5. Method bodies
         Console.Error.WriteLine($"[CIL] IR module '{ir.Name}' has {ir.Methods.Count} methods:");
@@ -96,8 +98,11 @@ public sealed class CilEmitter
 
     private MethodDefinition? _entryMethod;
 
-    /// <summary>Create the Entry method signature so Main can reference it.</summary>
-    private void CreateEntryMethodSignature()
+    /// <summary>
+    /// Create the Entry method signature and LINKAGE parameter fields.
+    /// Must run before emitting paragraph method bodies so LINKAGE access works.
+    /// </summary>
+    private void CreateEntryMethodSignature(IrModule ir)
     {
         _entryMethod = new MethodDefinition(
             "Entry",
@@ -107,6 +112,18 @@ public sealed class CilEmitter
             "args", ParameterAttributes.None,
             _module.ImportReference(typeof(CobolDataPointer[]))));
         _programType!.Methods.Add(_entryMethod);
+
+        // Create static CobolDataPointer fields for each LINKAGE parameter
+        // (so paragraph methods can access LINKAGE items via these fields)
+        foreach (var paramName in ir.UsingParameterNames)
+        {
+            var field = new FieldDefinition(
+                $"_linkage_{paramName}",
+                FieldAttributes.Private | FieldAttributes.Static,
+                _module.ImportReference(typeof(CobolDataPointer)));
+            _programType.Fields.Add(field);
+            _linkageFields[paramName] = field;
+        }
     }
 
     /// <summary>
@@ -116,7 +133,41 @@ public sealed class CilEmitter
     {
         var il = _entryMethod!.Body.GetILProcessor();
 
-        // TODO: Map args[i] → LINKAGE locals based on PROCEDURE DIVISION USING
+        // Map args[i] → static CobolDataPointer fields (created in CreateEntryMethodSignature)
+        for (int i = 0; i < ir.UsingParameterNames.Count; i++)
+        {
+            string paramName = ir.UsingParameterNames[i];
+            if (!_linkageFields.TryGetValue(paramName, out var field))
+                continue;
+
+            // _linkage_X = args.Length > i ? args[i] : default
+            var defaultLabel = il.Create(OpCodes.Nop);
+            var afterLabel = il.Create(OpCodes.Nop);
+
+            il.Append(il.Create(OpCodes.Ldarg_0)); // args
+            il.Append(il.Create(OpCodes.Ldlen));
+            il.Append(il.Create(OpCodes.Conv_I4));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ble, defaultLabel));
+
+            // args[i]
+            il.Append(il.Create(OpCodes.Ldarg_0)); // args
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Stsfld, field));
+            il.Append(il.Create(OpCodes.Br, afterLabel));
+
+            // default
+            il.Append(defaultLabel);
+            var tempLocal = new VariableDefinition(_module.ImportReference(typeof(CobolDataPointer)));
+            _entryMethod.Body.Variables.Add(tempLocal);
+            il.Append(il.Create(OpCodes.Ldloca, tempLocal));
+            il.Append(il.Create(OpCodes.Initobj, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Ldloc, tempLocal));
+            il.Append(il.Create(OpCodes.Stsfld, field));
+
+            il.Append(afterLabel);
+        }
 
         // Paragraph dispatch loop
         if (ir.ParagraphDispatchOrder.Count > 0)
@@ -1067,27 +1118,22 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Dup)); // array ref
             il.Append(il.Create(OpCodes.Ldc_I4, i)); // index
 
+            // Push (area, offset, length) for the source location
+            EmitLocationArgs(il, arg.Source);
+
             if (arg.Mode == 1) // BY CONTENT — copy
             {
-                // Create a copy of the source bytes
-                EmitLocationArgs(il, arg.Source); // area, offset, length on stack
-                var copyMethod = _module.ImportReference(
-                    typeof(StorageHelpers).GetMethod("CopyBytes",
-                        new[] { typeof(byte[]), typeof(int), typeof(int) }));
-                if (copyMethod != null)
-                    il.Append(il.Create(OpCodes.Call, copyMethod));
-                // Now we have byte[] copy on stack; construct CobolDataPointer(copy, 0, length, pic)
-                il.Append(il.Create(OpCodes.Ldc_I4_0)); // offset = 0
-                EmitLocationLength(il, arg.Source);
-                EmitDefaultPicDescriptor(il);
-                il.Append(il.Create(OpCodes.Newobj, GetCobolDataPointerCtor()));
+                var createByContent = _module.ImportReference(
+                    typeof(CobolDataPointer).GetMethod("CreateByContent",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+                il.Append(il.Create(OpCodes.Call, createByContent));
             }
             else // BY REFERENCE (or BY VALUE)
             {
-                // Pass pointer directly into caller's storage
-                EmitLocationArgs(il, arg.Source);
-                EmitDefaultPicDescriptor(il);
-                il.Append(il.Create(OpCodes.Newobj, GetCobolDataPointerCtor()));
+                var createByRef = _module.ImportReference(
+                    typeof(CobolDataPointer).GetMethod("CreateByReference",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+                il.Append(il.Create(OpCodes.Call, createByRef));
             }
 
             il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
@@ -2922,15 +2968,81 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldloca, statusLocal));
     }
 
+    /// <summary>
+    /// Emit (area, offset, length) for a LINKAGE SECTION item.
+    /// Loads from the CobolDataPointer field, adding the relative offset.
+    /// </summary>
+    private void EmitLinkageLocationArgs(ILProcessor il, IR.IrStaticLocation s)
+    {
+        // Find which LINKAGE parameter field this item belongs to.
+        // Try to match the item name directly first, then search for a parent match.
+        FieldDefinition? field = null;
+        string? matchedName = null;
+
+        // Try exact match (for 01-level LINKAGE items)
+        if (_semanticModel != null)
+        {
+            foreach (var param in _semanticModel.ProcedureUsingParameters)
+            {
+                if (_linkageFields.TryGetValue(param.Name, out var f))
+                {
+                    // Check if this storage location falls within this parameter's range
+                    var paramLoc = _semanticModel.GetStorageLocation(param);
+                    if (paramLoc.HasValue &&
+                        s.Location.Offset >= paramLoc.Value.Offset &&
+                        s.Location.Offset < paramLoc.Value.Offset + paramLoc.Value.Length)
+                    {
+                        field = f;
+                        matchedName = param.Name;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (field != null)
+        {
+            // Load CobolDataPointer.Buffer
+            il.Append(il.Create(OpCodes.Ldsflda, field));
+            var bufferGetter = _module.ImportReference(
+                typeof(CobolDataPointer).GetProperty("Buffer")!.GetGetMethod()!);
+            il.Append(il.Create(OpCodes.Call, bufferGetter));
+
+            // Offset = CobolDataPointer.Offset + relative offset within the parameter
+            il.Append(il.Create(OpCodes.Ldsflda, field));
+            var offsetGetter = _module.ImportReference(
+                typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!);
+            il.Append(il.Create(OpCodes.Call, offsetGetter));
+            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset)); // relative offset
+            il.Append(il.Create(OpCodes.Add));
+
+            // Length
+            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
+        }
+        else
+        {
+            // Fallback: LINKAGE item not mapped to a USING parameter
+            // (may happen for LINKAGE items not in the USING clause)
+            // Push nulls that will likely cause a runtime NullReferenceException
+            // if actually accessed — this is correct behavior for unmapped LINKAGE
+            il.Append(il.Create(OpCodes.Ldnull));
+            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
+        }
+    }
+
     private void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)
     {
+        // LINKAGE SECTION items are NOT backed by ProgramState — they're backed
+        // by CobolDataPointer fields populated from CALL USING args.
+        // This method only handles WorkingStorage and FileSection.
+        // LINKAGE access is handled separately in EmitLocationArgs.
         il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
 
         var propertyName = area == StorageAreaKind.WorkingStorage
             ? "WorkingStorage"
             : "FileSection";
 
-        // Get the property as a field (it's an auto-property, so use getter)
         var getter = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
         il.Append(il.Create(OpCodes.Callvirt, getter));
@@ -2962,6 +3074,11 @@ public sealed class CilEmitter
     {
         switch (loc)
         {
+            case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
+                // LINKAGE item: load from CobolDataPointer static field
+                EmitLinkageLocationArgs(il, s);
+                break;
+
             case IR.IrStaticLocation s:
                 EmitLoadBackingArray(il, s.Location.Area);
                 il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));

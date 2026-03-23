@@ -200,6 +200,10 @@ public sealed class Binder
         // Phase 4.5: Store alter table defaults in IR module (zero-cost if no ALTER used)
         module.AlterDefaults.AddRange(_alterDefaults);
 
+        // Phase 4.6: Store PROCEDURE DIVISION USING parameter names
+        foreach (var param in _semantic.ProcedureUsingParameters)
+            module.UsingParameterNames.Add(param.Name);
+
         // Phase 5: Create entry point (PC dispatch loop)
         CreateEntryPoint(module, boundProgram);
 

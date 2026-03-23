@@ -34,6 +34,13 @@ public sealed class IrModule(string name)
     /// Set by CreateEntryPoint; used by CilEmitter.EmitEntryMethod.
     /// </summary>
     public List<IrMethod> ParagraphDispatchOrder { get; } = [];
+
+    /// <summary>
+    /// PROCEDURE DIVISION USING parameter names (LINKAGE SECTION item names).
+    /// Positional: UsingParameterNames[i] maps to Entry args[i].
+    /// Empty if no USING clause.
+    /// </summary>
+    public List<string> UsingParameterNames { get; } = [];
 }
 
 /// <summary>

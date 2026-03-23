@@ -582,6 +582,7 @@ callArgument
     : callByReference
     | callByValue
     | callByContent
+    | dataReference       // bare argument = BY REFERENCE (default)
     ;
 
 callByReference

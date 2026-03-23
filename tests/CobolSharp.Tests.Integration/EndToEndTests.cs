@@ -5223,6 +5223,42 @@ public class EndToEndTests : IDisposable
     }
 
     [Fact]
+    public void Call_ByReference_CalleeModifiesCallerStorage()
+    {
+        // BY REFERENCE: callee modifies caller's data via LINKAGE SECTION
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("CALLER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLER.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01  WS-VALUE PIC X(10) VALUE "BEFORE".
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY WS-VALUE
+                    CALL "MODIFIER" USING WS-VALUE
+                    DISPLAY WS-VALUE
+                    STOP RUN.
+            """),
+            ("MODIFIER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MODIFIER.
+                DATA DIVISION.
+                LINKAGE SECTION.
+                01  LS-DATA PIC X(10).
+                PROCEDURE DIVISION USING LS-DATA.
+                MAIN-PARA.
+                    MOVE "AFTER" TO LS-DATA
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("BEFORE", lines[0]);
+        Assert.Equal("AFTER", lines[1]);
+    }
+
+    [Fact]
     public void Call_SimpleSubprogram_DisplaysFromCallee()
     {
         // Caller CALLs a subprogram which DISPLAYs a message

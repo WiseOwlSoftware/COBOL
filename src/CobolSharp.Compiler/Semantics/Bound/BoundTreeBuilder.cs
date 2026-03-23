@@ -1091,6 +1091,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     if (expr != null)
                         arguments.Add(new BoundCallArgument(ParameterMode.ByValue, expr));
                 }
+                else if (argCtx.dataReference() is { } bareRef)
+                {
+                    // Bare argument without BY keyword = BY REFERENCE (default)
+                    var expr = BindDataReferenceWithSubscripts(bareRef);
+                    if (expr != null)
+                        arguments.Add(new BoundCallArgument(ParameterMode.ByReference, expr));
+                }
             }
         }
 

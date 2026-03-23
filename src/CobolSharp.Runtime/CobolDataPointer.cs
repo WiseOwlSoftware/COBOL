@@ -25,4 +25,23 @@ public readonly record struct CobolDataPointer(
         Array.Copy(Buffer, Offset, copy, 0, Length);
         return new CobolDataPointer(copy, 0, Length, Pic);
     }
+
+    /// <summary>
+    /// Create a CobolDataPointer for BY REFERENCE passing.
+    /// Used by CIL emitter to construct arguments for CALL USING.
+    /// </summary>
+    public static CobolDataPointer CreateByReference(byte[] buffer, int offset, int length)
+    {
+        return new CobolDataPointer(buffer, offset, length, default!);
+    }
+
+    /// <summary>
+    /// Create a CobolDataPointer for BY CONTENT passing (copies the data).
+    /// </summary>
+    public static CobolDataPointer CreateByContent(byte[] buffer, int offset, int length)
+    {
+        var copy = new byte[length];
+        Array.Copy(buffer, offset, copy, 0, length);
+        return new CobolDataPointer(copy, 0, length, default!);
+    }
 }
