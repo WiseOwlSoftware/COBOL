@@ -357,6 +357,11 @@ public static class BoundTreeValidator
         // CBL3310: Dynamic CALL — parameter list cannot be validated at compile time
         if (call.IsDynamic)
             Report(diagnostics, line, DiagnosticDescriptors.CBL3310);
+
+        // CBL3304: RETURNING item must be in LINKAGE SECTION
+        if (call.ReturningTarget is BoundIdentifierExpression returning
+            && returning.Symbol.Area != StorageAreaKind.LinkageSection)
+            Report(diagnostics, line, DiagnosticDescriptors.CBL3304);
     }
 
     // ═══════════════════════════════════════════════════════════════

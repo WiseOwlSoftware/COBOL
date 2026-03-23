@@ -397,7 +397,7 @@ COBOL source file (.cob)
 | Feature | Status | Notes |
 |---|---|---|
 | Error reporting mechanism | Implemented | DiagnosticBag accumulates records; HasErrors check |
-| Diagnostic code catalog | Implemented | 175 descriptors across COBOL0001-COBOL0600 and CBL0601-CBL3606 |
+| Diagnostic code catalog | Implemented | 169 descriptors across COBOL0001-COBOL0600 and CBL0601-CBL3606 |
 | Source location tracking | Implemented | File path, offset, line, column; TextSpan |
 | Error recovery in parser | Implemented | 25+ pattern-matched hints for common COBOL mistakes |
 | Error cap | Implemented | Max 20 parse errors per file |
@@ -451,36 +451,19 @@ All major File I/O and CALL features are now implemented:
 
 Codebase: 97 C# source files (excluding generated ANTLR code).
 
-## 3.1 Meaningless Wrappers
+## 3.1 Meaningless Wrappers — **RESOLVED**
 
-### `BindDataReference` delegates to `BindDataReferenceWithSubscripts`
-
-- **Location**: `BoundTreeBuilder.cs:2512`
-- **Callers**: 1 (in `BindMove`)
-- **Assessment**: Pure delegation with no added invariants. Inline at the call site and delete.
-
-### `BindFullExpression` delegates to `BindAdditiveExpression`
-
-- **Location**: `BoundTreeBuilder.cs:2236`
-- **Callers**: 12 (PERFORM, EVALUATE, COMPUTE, condition contexts)
-- **Assessment**: Borderline -- retain for readability as structural entry point into the recursive expression grammar.
+- ~~`BindDataReference`~~: **Inlined** at single call site (BindMove) and deleted.
+- `BindFullExpression`: Retained as structural entry point (12 callers).
 
 ---
 
-## 3.2 Duplicated Logic
+## 3.2 Duplicated Logic — **EXPRESSION DUPLICATION RESOLVED**
 
-### CRITICAL: Two complete expression binding implementations
+### ~~Two complete expression binding implementations~~ — **RESOLVED**
 
-- **Location A** ("full expression" path): `BoundTreeBuilder.cs:2236-2330`
-  - `BindFullExpression` -> `BindAdditiveExpression` -> `BindMultiplicativeExpression` -> `BindPowerExpression` -> `BindUnaryExpression` -> `BindPrimaryExpression`
-- **Location B** ("arithmetic expr" path): `BoundTreeBuilder.cs:2994-3082`
-  - `BindArithmeticExpr` -> `BindAdditiveExpr` -> `BindMultiplicativeExpr` -> `BindPowerExpr` -> `BindUnaryExpr` -> `BindPrimaryExpr`
-
-Both walk the same grammar rules and produce the same `BoundBinaryExpression` trees. The only difference: path B accepts nullable input and returns a zero literal for null. ~90 lines of exact duplication.
-
-**Research confirmation**: Set B is slightly more robust (null-safe entry point). Both share the same function-call and unresolved-identifier fallback bugs. These are true duplicates that should be unified.
-
-**Recommendation**: Delete path B entirely. Replace `BindArithmeticExpr` with a null-guarded call to `BindFullExpression`.
+Path B (`BindArithmeticExpr` chain — 6 methods, ~90 lines) deleted. Replaced with a one-line
+null-guarded delegation to `BindFullExpression`. Zero duplication remains.
 
 ### `GetPicForLocation` duplicated between Binder and CilEmitter
 
@@ -513,71 +496,64 @@ The foreach loop binding `receivingArithmeticOperand` to `BoundArithmeticTarget`
 
 ## 3.3 Ad-hoc and Hacky Code Paths
 
-### Ad-hoc diagnostic codes (magic strings)
+### ~~Ad-hoc diagnostic codes~~ — **RESOLVED**
 
-The Binder uses 17 ad-hoc diagnostic codes (`COBOL0500`-`COBOL0513`) as inline string literals, while the rest of the compiler uses structured `DiagnosticDescriptors`. BoundTreeBuilder uses 13 more (`COBOL0400`-`COBOL0412`). CobolErrorStrategy uses 20+.
+All 55 ad-hoc codes migrated to centralized `DiagnosticDescriptors`. 175 total descriptors.
 
-**Total**: 50+ diagnostic codes as inline string literals outside the DiagnosticDescriptors registry.
-
-| Code Range | File | Count |
-|---|---|---|
-| COBOL0500-0513 | Binder.cs | 17 |
-| COBOL0400-0412 | BoundTreeBuilder.cs | 13 |
-| COBOL0001, 0100-0312 | CobolErrorStrategy.cs | 20+ |
-
-### IR stubs for RETURN ~~and CALL~~
+### IR stub for RETURN
 
 - **RETURN stub** (Binder.cs): Emits DISPLAY message, always takes AT END path. (SORT/MERGE not yet implemented.)
-- ~~**CALL stub**~~: **RESOLVED** — CALL is fully implemented with real inter-program invocation.
+- ~~**CALL stub**~~: **RESOLVED**.
 
-### Function calls return constant zero
+### ~~Function calls return constant zero~~ — **RESOLVED**
 
-- **Location**: `BoundTreeBuilder.cs:3067-3068` (and duplicate at line 2325-2327)
-- Any COBOL intrinsic function call (FUNCTION LENGTH, CURRENT-DATE, etc.) silently returns decimal 0. **No diagnostic emitted.**
+Diagnostic COBOL0110 now emitted for unimplemented FUNCTION calls. Zero literal fallback retained
+for graceful degradation but the warning alerts the programmer.
 
-### Power operator has no CIL binary op mapping
+### Power operator
 
-- `BoundTreeBuilder.cs:2283-2288` produces `Power` enum value. `CilEmitter.EmitBinary` does **not** handle `Power` -- falls through to `throw NotSupportedException`. Latent crash for COMPUTE expressions with `**`.
+- `CilEmitter.cs`: `Math.Pow` emission already implemented for Power operator.
 
-### `StartCondition` is a magic number
+### ~~`StartCondition` is a magic number~~ — **RESOLVED**
 
-- `Binder.cs:1308`: `int condition = 0; // StartCondition.Equal` -- hardcoded regardless of COBOL source. The `BoundStartStatement.KeyCondition` is computed but completely ignored.
+KeyCondition extracted from bound tree and mapped to StartCondition enum.
 
-### REWRITE FROM lowering omits the FROM move
+### ~~REWRITE FROM lowering~~ — **RESOLVED**
 
-- `BoundWriteStatement.From` property exists and is validated. But `LowerRewrite` in Binder does not perform the FROM-to-record MOVE before the rewrite. **7-line fix needed** (same pattern already used in `LowerWrite`).
+FROM source MOVEd to record before rewrite.
 
-### String literal fallback for unresolved identifiers
+### ~~String literal fallback for unresolved identifiers~~ — **RESOLVED**
 
-- **`BoundTreeBuilder.cs:3137`**: When `ResolveData(name)` returns null, creates `BoundLiteralExpression(name, Alphanumeric)`. **No diagnostic.** Masks typos and missing data declarations -- the program silently uses the identifier name as a string value at runtime.
-
-- Two additional fallback locations: `BindPrimaryExpr:3081` and `BindDataReferenceOrLiteral:2991`.
+Diagnostic COBOL0110 now emitted before the string literal fallback. Typos and missing
+declarations are surfaced as warnings instead of silently producing wrong results.
 
 ### Stale XML doc comments
 
-- `CilEmitter.cs:2651-2660`: Three consecutive `<summary>` blocks on `EmitElementAddress`. Only the last reflects current implementation.
+- `CilEmitter.cs`: Three consecutive `<summary>` blocks on `EmitElementAddress`. Low priority.
 
 ---
 
-## 3.4 Dead Code
+## 3.4 Dead Code — **MOSTLY RESOLVED**
 
-| Item | Location | Assessment |
+| Item | Status | Notes |
 |---|---|---|
-| `CompilationOptions` class | `Semantics/CompilationOptions.cs` | Never instantiated or referenced. Pure dead code. |
-| `ReportWriterValidator` | `Semantics/ReportWriterValidator.cs` | Empty stub, never called. CBL3401-3406 also unused. |
-| `GetDataReferenceName` | `BoundTreeBuilder.cs:2521-2524` | Zero callers. |
-| Unused diagnostic descriptors | `DiagnosticDescriptors.cs` | CBL3105-3107, CBL3301-3305, CBL3401-3406, CBL3501-3502 -- defined but never referenced in emission. |
+| ~~`CompilationOptions`~~ | **In use** | Now actively used for `--standard` dialect gating |
+| ~~`ReportWriterValidator`~~ | **Deleted** | Empty stub removed; CBL3401-3406 descriptors also deleted |
+| ~~`GetDataReferenceName`~~ | **Deleted** | Zero callers |
+| ~~`BindDataReference`~~ | **Deleted** | Inlined at single call site |
+| CBL3105-3107 | Forward decl | GLOBAL/LOCAL features not yet implemented |
+| CBL3301-3305 | Partially wired | CBL3304 (RETURNING not LINKAGE) now wired in ValidateCall; others need compile-time linking |
+| CBL3501-3502 | Forward decl | Strict COBOL-85 mode features |
 
 ---
 
-## 3.5 TODO / FIXME / HACK Comments
+## 3.5 TODO / FIXME / HACK Comments — **RESOLVED**
 
-| Location | Text |
-|---|---|
-| `src/CobolSharp.CLI/Program.cs:148` | `// TODO: pass standard to Compilation when grammar overlays are wired up` |
-| `BoundTreeBuilder.cs:3067` | `// TODO: proper function binding` |
+Both TODOs addressed:
+- ~~`Program.cs:148`~~: `--standard` is now wired to CompilationOptions. TODO removed.
+- ~~`BoundTreeBuilder.cs:3067`~~: Was in deleted duplicate path B. Function calls now emit COBOL0110 diagnostic.
 
-**Count**: 2 TODO comments. No FIXME or HACK comments.
+**Count**: 0 TODO comments remaining.
 
 ---
 
@@ -620,25 +596,25 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 
 ## 3.8 Code Quality Priority Summary
 
-### High Priority (correctness risk)
-1. **Duplicate expression binding** (3.2) -- two parallel implementations risk divergent behavior. ~90 lines of duplication.
-2. **Function calls silently return zero** (3.3) -- silent wrong results, no diagnostic.
-3. **Unresolved identifiers become string literals** (3.3) -- masks errors silently.
-4. **START always uses Equal condition** (3.3) -- ignores KEY IS GREATER/LESS from source.
-5. ~~**REWRITE FROM not lowered** (3.3)~~ -- **RESOLVED**: FROM source MOVEd to record before rewrite.
+### High Priority — ALL RESOLVED
+1. ~~**Duplicate expression binding** (3.2)~~ — **RESOLVED**: path B deleted, single chain.
+2. ~~**Function calls silently return zero** (3.3)~~ — **RESOLVED**: COBOL0110 diagnostic emitted.
+3. ~~**Unresolved identifiers become string literals** (3.3)~~ — **RESOLVED**: COBOL0110 diagnostic emitted.
+4. ~~**START always uses Equal condition** (3.3)~~ — **RESOLVED**: KeyCondition extracted.
+5. ~~**REWRITE FROM not lowered** (3.3)~~ — **RESOLVED**: FROM MOVEd to record before rewrite.
 
-### Medium Priority (maintainability)
-6. **Ad-hoc diagnostic codes** (3.3) -- 50+ string literal codes outside descriptor registry.
-7. **Fake source locations** (3.2) -- 69+ `<source>` placeholders lose error position information.
-8. **`GetPicForLocation` duplication** (3.2) -- identical logic in two files.
-9. **Branching pattern duplication** (3.2) -- 3x copy of the same conditional block emission.
+### Medium Priority
+6. ~~**Ad-hoc diagnostic codes** (3.3)~~ — **RESOLVED**: all 55 migrated to DiagnosticDescriptors.
+7. **Fake source locations** (3.2) — 69+ `<source>` placeholders lose error position information.
+8. **`GetPicForLocation` duplication** (3.2) — identical logic in two files.
+9. **Branching pattern duplication** (3.2) — 3x copy of the same conditional block emission.
 10. ~~**CALL stub**~~ — **RESOLVED**; RETURN stub remains (SORT/MERGE dependency).
 
-### Low Priority (cleanup)
-11. **Dead code** (3.4) -- `CompilationOptions`, `ReportWriterValidator`, `GetDataReferenceName`, unused descriptors.
-12. **Wrapper method** (3.1) -- `BindDataReference` single-use delegation.
-13. **Receiving target binding pattern** (3.2) -- 6x repetition.
-14. **Stale XML doc comments** (3.3) -- 3 duplicate summary blocks.
+### Low Priority
+11. ~~**Dead code** (3.4)~~ — **MOSTLY RESOLVED**: CompilationOptions in use, ReportWriterValidator + BindDataReference + GetDataReferenceName deleted, CBL3401-3406 deleted.
+12. ~~**Wrapper method** (3.1)~~ — **RESOLVED**: BindDataReference inlined and deleted.
+13. **Receiving target binding pattern** (3.2) — 6x repetition.
+14. **Stale XML doc comments** (3.3) — 3 duplicate summary blocks.
 
 ---
 

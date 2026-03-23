@@ -301,22 +301,6 @@ public static partial class DiagnosticDescriptors
         "Dynamic CALL: parameter list cannot be validated");
 
     // ══════════════════════════════════════
-    // CBL3401–3406: Report Writer
-    // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor CBL3401 = new("CBL3401", DiagnosticSeverity.Error,
-        "Unknown REPORT TYPE");
-    public static readonly DiagnosticDescriptor CBL3402 = new("CBL3402", DiagnosticSeverity.Error,
-        "REPORT group missing TYPE");
-    public static readonly DiagnosticDescriptor CBL3403 = new("CBL3403", DiagnosticSeverity.Error,
-        "SUM source not numeric");
-    public static readonly DiagnosticDescriptor CBL3404 = new("CBL3404", DiagnosticSeverity.Error,
-        "CONTROL must be data-name");
-    public static readonly DiagnosticDescriptor CBL3405 = new("CBL3405", DiagnosticSeverity.Error,
-        "CONTROL item not defined");
-    public static readonly DiagnosticDescriptor CBL3406 = new("CBL3406", DiagnosticSeverity.Warning,
-        "SUM item never referenced");
-
-    // ══════════════════════════════════════
     // CBL3501–3502: Strict COBOL-85 mode
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3501 = new("CBL3501", DiagnosticSeverity.Error,

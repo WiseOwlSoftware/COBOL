@@ -318,7 +318,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (idList != null)
         {
             foreach (var id in idList.dataReference())
-                targets.Add(BindDataReference(id));
+                targets.Add(BindDataReferenceWithSubscripts(id));
         }
 
         // MOVE type enforcement
@@ -2333,9 +2333,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.arithmeticExpression() != null)
             return BindFullExpression(ctx.arithmeticExpression());
 
-        // functionCall — bind as identifier for now
+        // functionCall — not yet implemented, emit diagnostic
         if (ctx.functionCall() != null)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
+                MakeLocation(ctx), MakeSpan(ctx),
+                $"FUNCTION {ctx.functionCall().GetText()}");
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        }
 
         return new BoundLiteralExpression(0m, CobolCategory.Numeric);
     }
@@ -2615,19 +2620,6 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         };
     }
 
-    private BoundExpression BindDataReference(CobolParserCore.DataReferenceContext idCtx)
-    {
-        return BindDataReferenceWithSubscripts(idCtx);
-    }
-
-    /// <summary>
-    /// Extract just the data name from an identifier context (strips subscripts).
-    /// Use this instead of idCtx.IDENTIFIER().GetText() when resolving symbol names.
-    /// </summary>
-    private static string GetDataReferenceName(CobolParserCore.DataReferenceContext idCtx)
-    {
-        return idCtx.IDENTIFIER().GetText();
-    }
 
     /// <summary>
     /// Bind a condition expression. Handles simple relational: left op right.
@@ -3128,98 +3120,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (sym != null)
             return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
 
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
+            new SourceLocation("<source>", 0, 0, 0), new TextSpan(0, 0),
+            $"Unresolved identifier '{text}'");
         return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
     }
 
     private BoundExpression BindArithmeticExpr(CobolParserCore.ArithmeticExpressionContext? ctx)
-    {
-        if (ctx == null)
-            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
-
-        // Walk the expression tree properly
-        return BindAdditiveExpr(ctx.additiveExpression());
-    }
-
-    private BoundExpression BindAdditiveExpr(CobolParserCore.AdditiveExpressionContext ctx)
-    {
-        var left = BindMultiplicativeExpr(ctx.multiplicativeExpression(0));
-        for (int i = 0; i < ctx.addOp().Length; i++)
-        {
-            var right = BindMultiplicativeExpr(ctx.multiplicativeExpression(i + 1));
-            var op = ctx.addOp(i).GetText() == "+"
-                ? BoundBinaryOperatorKind.Add : BoundBinaryOperatorKind.Subtract;
-            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
-        }
-        return left;
-    }
-
-    private BoundExpression BindMultiplicativeExpr(CobolParserCore.MultiplicativeExpressionContext ctx)
-    {
-        var left = BindPowerExpr(ctx.powerExpression(0));
-        for (int i = 0; i < ctx.mulOp().Length; i++)
-        {
-            var right = BindPowerExpr(ctx.powerExpression(i + 1));
-            var op = ctx.mulOp(i).GetText() == "*"
-                ? BoundBinaryOperatorKind.Multiply : BoundBinaryOperatorKind.Divide;
-            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
-        }
-        return left;
-    }
-
-    private BoundExpression BindPowerExpr(CobolParserCore.PowerExpressionContext ctx)
-    {
-        var left = BindUnaryExpr(ctx.unaryExpression(0));
-        if (ctx.unaryExpression().Length > 1)
-        {
-            var right = BindUnaryExpr(ctx.unaryExpression(1));
-            left = new BoundBinaryExpression(left, BoundBinaryOperatorKind.Power, right, CobolCategory.Numeric);
-        }
-        return left;
-    }
-
-    private BoundExpression BindUnaryExpr(CobolParserCore.UnaryExpressionContext ctx)
-    {
-        if (ctx.primaryExpression() != null)
-            return BindPrimaryExpr(ctx.primaryExpression());
-
-        // Unary +/-
-        var inner = BindUnaryExpr(ctx.unaryExpression());
-        if (ctx.addOp().GetText() == "-")
-        {
-            return new BoundBinaryExpression(
-                new BoundLiteralExpression(0m, CobolCategory.Numeric),
-                BoundBinaryOperatorKind.Subtract, inner, CobolCategory.Numeric);
-        }
-        return inner; // unary + is identity
-    }
-
-    private BoundExpression BindPrimaryExpr(CobolParserCore.PrimaryExpressionContext ctx)
-    {
-        // numericLiteral
-        var numLit = ctx.numericLiteral();
-        if (numLit != null)
-            return BindNumericLiteral(numLit);
-
-        // functionCall
-        var funcCall = ctx.functionCall();
-        if (funcCall != null)
-        {
-            // TODO: proper function binding
-            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
-        }
-
-        // (arithmeticExpression) — parenthesized
-        var parenExpr = ctx.arithmeticExpression();
-        if (parenExpr != null)
-            return BindArithmeticExpr(parenExpr);
-
-        // identifier (possibly subscripted)
-        var idCtx = ctx.dataReference();
-        if (idCtx != null)
-            return BindDataReferenceWithSubscripts(idCtx);
-
-        return new BoundLiteralExpression(ctx.GetText(), CobolCategory.Alphanumeric);
-    }
+        => ctx != null ? BindFullExpression(ctx) : new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
     /// <summary>
     /// Bind a data reference: IDENTIFIER with optional qualification (OF/IN),
