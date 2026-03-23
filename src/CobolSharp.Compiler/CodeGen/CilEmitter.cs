@@ -3164,15 +3164,6 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// Push (area, effectiveOffset) onto the IL stack for an IrElementRef.
-    /// Decodes the subscript field to int and computes: baseOffset + (subscript - 1) * elementSize.
-    /// </summary>
-    /// <summary>
-    /// Push (area, effectiveOffset) for a multi-dimensional IrElementRef.
-    /// Loops over all dimensions: offset = base + sum((sub_i - 1) * multiplier_i).
-    /// Handles 1D, 2D, and 3D OCCURS uniformly.
-    /// </summary>
-    /// <summary>
     /// Push (area, effectiveOffset) for a multi-dimensional IrElementRef.
     /// Each subscript is a BoundExpression evaluated via EmitExpression → decimal → int32.
     /// Handles identifiers (ARR(I)), arithmetic (ARR(I+1)), and any expression uniformly.

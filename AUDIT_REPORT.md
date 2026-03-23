@@ -597,7 +597,7 @@ These are dispatch switches or spec-matching implementations where the complexit
 11. ~~**Dead code** (3.4)~~ — **MOSTLY RESOLVED**.
 12. ~~**Wrapper method** (3.1)~~ — **RESOLVED**: both wrappers eliminated.
 13. ~~**Receiving target binding pattern** (3.2)~~ — **RESOLVED**: `BindArithmeticTargets` helper.
-14. **Stale XML doc comments** (3.3) — 3 duplicate summary blocks on EmitElementAddress.
+14. ~~**Stale XML doc comments** (3.3)~~ — **RESOLVED**: duplicate summary blocks removed.
 
 ---
 
