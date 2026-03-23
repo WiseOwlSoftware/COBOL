@@ -93,6 +93,24 @@ public sealed class SemanticModel
 
     public int WorkingStorageSize { get; set; }
     public int FileSectionSize { get; set; }
+    public int LinkageSectionSize { get; set; }
+
+    // ── PROCEDURE DIVISION USING/RETURNING parameters ──
+
+    private List<DataSymbol> _procedureUsingParameters = [];
+    private DataSymbol? _procedureReturningItem;
+
+    /// <summary>Ordered list of LINKAGE SECTION items from PROCEDURE DIVISION USING.</summary>
+    public IReadOnlyList<DataSymbol> ProcedureUsingParameters => _procedureUsingParameters;
+
+    /// <summary>The LINKAGE SECTION item from PROCEDURE DIVISION RETURNING (COBOL-2002+).</summary>
+    public DataSymbol? ProcedureReturningItem => _procedureReturningItem;
+
+    public void SetProcedureUsingParameters(IReadOnlyList<DataSymbol> parameters)
+        => _procedureUsingParameters = [..parameters];
+
+    public void SetProcedureReturningItem(DataSymbol? item)
+        => _procedureReturningItem = item;
 
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 

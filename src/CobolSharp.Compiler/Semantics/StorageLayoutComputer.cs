@@ -114,8 +114,22 @@ public static class StorageLayoutComputer
             LayoutRenames(data, model);
         }
 
+        // Linkage section: each 01-level item gets its own layout starting at offset 0.
+        // LINKAGE items don't share a contiguous buffer — each is backed by a separate
+        // CobolDataPointer passed via CALL USING. The offset is relative to the parameter.
+        int linkageSize = 0;
+        foreach (var data in model.DataItemsInOrder)
+        {
+            if (data.LevelNumber is not (1 or 77) || data.Area != StorageAreaKind.LinkageSection)
+                continue;
+            int itemOffset = 0;
+            LayoutItem(data, StorageAreaKind.LinkageSection, ref itemOffset, model);
+            linkageSize = Math.Max(linkageSize, itemOffset);
+        }
+
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : MinimumAreaSize;
         model.FileSectionSize = maxRecordSize > 0 ? maxRecordSize : MinimumAreaSize;
+        model.LinkageSectionSize = linkageSize;
     }
 
     private static void LayoutItem(

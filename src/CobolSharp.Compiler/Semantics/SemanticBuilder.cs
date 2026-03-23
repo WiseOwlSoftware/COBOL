@@ -712,8 +712,34 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     // ── Procedure Division ──
 
+    // Captured during VisitProcedureDivision for use by Compilation.BuildSemanticModel
+    private readonly List<string> _procedureUsingNames = [];
+    private string? _procedureReturningName;
+
+    /// <summary>Ordered USING parameter names from PROCEDURE DIVISION USING.</summary>
+    public IReadOnlyList<string> ProcedureUsingNames => _procedureUsingNames;
+    /// <summary>RETURNING parameter name from PROCEDURE DIVISION RETURNING.</summary>
+    public string? ProcedureReturningName => _procedureReturningName;
+
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
     {
+        // Parse PROCEDURE DIVISION USING data-name-1 data-name-2 ...
+        if (ctx.usingClause() is { } usingCtx)
+        {
+            var dataRefs = usingCtx.dataReferenceList()?.dataReference();
+            if (dataRefs != null)
+            {
+                foreach (var dr in dataRefs)
+                    _procedureUsingNames.Add(dr.IDENTIFIER().GetText());
+            }
+        }
+
+        // Parse PROCEDURE DIVISION RETURNING data-name (COBOL-2002+)
+        if (ctx.returningClause() is { } retCtx)
+        {
+            _procedureReturningName = retCtx.dataReference().IDENTIFIER().GetText();
+        }
+
         using var _ = _symbols.PushScope(_symbols.Program.ProcedureDivisionScope);
         return base.VisitProcedureDivision(ctx);
     }

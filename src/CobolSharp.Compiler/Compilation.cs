@@ -157,6 +157,24 @@ public sealed class Compilation
         }
         model.SetDataItemsInOrder(semanticBuilder.DataItemsInOrder);
 
+        // Resolve PROCEDURE DIVISION USING parameters to LINKAGE SECTION DataSymbols
+        var usingParams = new List<Semantics.DataSymbol>();
+        foreach (var name in semanticBuilder.ProcedureUsingNames)
+        {
+            var sym = semanticBuilder.Symbols.Program.DataDivisionScope.Resolve<Semantics.DataSymbol>(name);
+            if (sym != null)
+                usingParams.Add(sym);
+        }
+        model.SetProcedureUsingParameters(usingParams);
+
+        // Resolve PROCEDURE DIVISION RETURNING
+        if (semanticBuilder.ProcedureReturningName != null)
+        {
+            var retSym = semanticBuilder.Symbols.Program.DataDivisionScope
+                .Resolve<Semantics.DataSymbol>(semanticBuilder.ProcedureReturningName);
+            model.SetProcedureReturningItem(retSym);
+        }
+
         return model;
     }
 
