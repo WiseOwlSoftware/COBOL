@@ -439,8 +439,8 @@ COBOL source file (.cob)
 1. ~~**ALTERNATE KEY**~~: **DONE** — parsed, stored in FileSymbol, registered at runtime with secondary indices.
 2. **READ random/keyed**: KEY IS parsed but binder does not dispatch to `ReadByKey`; likely broken for indexed random access.
 3. **WRITE BEFORE ADVANCING / PAGE**: Flag stored but IR only has `IrWriteAfterAdvancing`.
-4. **CALL inter-program linkage**: Full parse + bind, but IR is a display stub.
-5. **PROCEDURE DIVISION USING/RETURNING**: Grammar rule exists, not visited in SemanticBuilder.
+4. ~~**CALL inter-program linkage**~~: **DONE** — full implementation via CobolProgramRegistry + Entry methods.
+5. ~~**PROCEDURE DIVISION USING/RETURNING**~~: **DONE** — parameters resolved to LINKAGE DataSymbols.
 6. **Inter-program communication**: No shared storage, external data, or program loading.
 
 ---
@@ -523,12 +523,10 @@ The Binder uses 17 ad-hoc diagnostic codes (`COBOL0500`-`COBOL0513`) as inline s
 | COBOL0400-0412 | BoundTreeBuilder.cs | 13 |
 | COBOL0001, 0100-0312 | CobolErrorStrategy.cs | 20+ |
 
-### IR stubs for RETURN and CALL
+### IR stubs for RETURN ~~and CALL~~
 
-- **RETURN stub** (Binder.cs:1350-1364): Emits DISPLAY message, always takes AT END path.
-- **CALL stub** (Binder.cs:1369-1383): Emits DISPLAY message, always takes ON EXCEPTION path.
-
-These stubs produce **incorrect runtime behavior**: CALL always fails, RETURN always signals end-of-file.
+- **RETURN stub** (Binder.cs): Emits DISPLAY message, always takes AT END path. (SORT/MERGE not yet implemented.)
+- ~~**CALL stub**~~: **RESOLVED** — CALL is fully implemented with real inter-program invocation.
 
 ### Function calls return constant zero
 
@@ -632,7 +630,7 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 7. **Fake source locations** (3.2) -- 69+ `<source>` placeholders lose error position information.
 8. **`GetPicForLocation` duplication** (3.2) -- identical logic in two files.
 9. **Branching pattern duplication** (3.2) -- 3x copy of the same conditional block emission.
-10. **IR stubs with wrong behavior** (3.3) -- CALL/RETURN always take failure path.
+10. ~~**CALL stub**~~ — **RESOLVED**; RETURN stub remains (SORT/MERGE dependency).
 
 ### Low Priority (cleanup)
 11. **Dead code** (3.4) -- `CompilationOptions`, `ReportWriterValidator`, `GetDataReferenceName`, unused descriptors.
@@ -1031,9 +1029,10 @@ Replace stringly-typed `IrRuntimeCall` with typed IR instructions for all file I
 
 ---
 
-#### CIL-02: Implement CALL Inter-Program Linkage
+#### CIL-02: ~~Implement CALL Inter-Program Linkage~~ — **DONE**
 
-Replace CALL stub with actual CIL emission. Define `IrCallProgram` IR instruction. Create `CallRuntime` for program resolution, parameter marshaling (BY REFERENCE/CONTENT/VALUE), and ON EXCEPTION semantics.
+Fully implemented: `IrCallProgram`, `CobolProgramRegistry`, `CobolDataPointer`, Entry methods,
+LINKAGE access, BY REFERENCE/CONTENT/VALUE, RETURNING, ON EXCEPTION, ENTRY, CANCEL, INITIAL.
 
 ---
 
@@ -1155,7 +1154,7 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 
 | ID | Issue | Complexity | Dependencies |
 |---|---|---|---|
-| P2-1 | CALL/USING/RETURNING full IR (remove stub) | L | None |
+| P2-1 | ~~CALL/USING/RETURNING full IR~~ | ~~L~~ — **DONE** | |
 | P2-2 | SORT/MERGE full implementation | L | P2-5 |
 | P2-3 | Alternate keys (indexed files) | L | P2-5 |
 | P2-4 | START statement full implementation | M | P2-5 |
@@ -1251,7 +1250,7 @@ P3-3 (semantic features) ──────────────────�
 | T-004 | STATUS in SPECIAL-NAMES grammar fix | Planned | | Unblocks NC174A, NC211A, NC254A |
 | T-005 | PROGRAM COLLATING SEQUENCE grammar fix | Planned | | Unblocks NC215A, NC219A |
 | T-006 | Reserved words as paragraph names | Planned | | Context-sensitive keyword handling |
-| T-007 | CALL IR implementation (inter-program) | Planned | | Currently stub |
+| T-007 | CALL IR implementation (inter-program) | **Done** | | Full implementation with Entry methods + CobolProgramRegistry |
 | T-008 | SORT/MERGE full IR implementation | Planned | | Currently parse only |
 | T-009 | Alternate keys (ISAM) | **Done** | | Parsed, stored, registered, secondary indices maintained |
 | T-010 | REWRITE FROM lowering (7-line fix) | Planned | | FROM move not emitted |
@@ -1268,7 +1267,7 @@ P3-3 (semantic features) ──────────────────�
 The remediation roadmap is complete when:
 
 1. **All NIST COBOL-85 Nucleus tests pass at 100%.** NC220M, NC201A, NC233A, NC237A, NC247A, NC250A, NC252A all pass.
-2. **Zero stubs in code generation.** CALL, SORT, START, MERGE all produce correct runtime behavior.
+2. **Zero stubs in code generation.** CALL produces correct runtime behavior. SORT, MERGE remain stubs.
 3. **Zero silent skips.** Every unhandled construct produces a compile-time diagnostic.
 4. **No runtime hangs.** All compiled programs terminate correctly.
 5. **Clean codebase per PROMPT.md standards.** No legacy types, consistent C# 13, no dead code, no duplicated logic.

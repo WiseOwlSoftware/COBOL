@@ -144,14 +144,12 @@ refactored to use `DiagnosticBag` uniformly instead of a raw `List<Diagnostic>`.
 
 Total descriptor count: 169 (COBOL0001-COBOL0600 + CBL0601-CBL3502).
 
-### 3.2 IR stubs for RETURN and CALL
+### 3.2 IR stubs for RETURN ~~and CALL~~ — **CALL RESOLVED**
 
-- **RETURN stub**: `Binder.cs:1350-1364` -- emits a DISPLAY message and always takes the AT END path
-- **CALL stub**: `Binder.cs:1369-1383` -- emits a DISPLAY message and always takes the ON EXCEPTION path
-
-These stubs produce incorrect runtime behavior: CALL always fails, RETURN always signals end-of-file. Any test that uses CALL or RETURN will produce wrong results.
-
-**Recommendation**: At minimum, emit a runtime-level diagnostic/warning. For CALL, consider implementing the inter-program dispatch table (the bound tree already has `BoundCallStatement` with `BoundCallArgument` list and `ParameterMode`). For RETURN, block until SORT/MERGE is implemented.
+- **RETURN stub**: `Binder.cs` -- emits DISPLAY message, always takes AT END path (SORT/MERGE dependency)
+- ~~**CALL stub**~~: **RESOLVED** — CALL is fully implemented with Entry methods, CobolProgramRegistry,
+  CobolDataPointer parameter passing, LINKAGE access, BY REFERENCE/CONTENT/VALUE, RETURNING,
+  ON EXCEPTION, ENTRY, CANCEL, and INITIAL support.
 
 ### 3.3 Function calls return constant zero
 
@@ -298,7 +296,7 @@ These are acceptable as defensive programming for "impossible state" detection. 
 7. **Fake source locations** (2.6) -- 69+ `<source>` placeholders lose error position information
 8. **`GetPicForLocation` duplication** (2.2) -- identical logic in two files
 9. **Branching pattern duplication** (2.3) -- 3x copy of the same conditional block emission
-10. **IR stubs with wrong behavior** (3.2) -- CALL/RETURN always take failure path
+10. ~~**CALL stub** (3.2)~~ -- **RESOLVED**; RETURN stub remains (SORT/MERGE)
 
 ### Low Priority (cleanup)
 11. **Dead code** (4.x) -- `CompilationOptions`, `ReportWriterValidator`, `GetDataReferenceName`, unused diagnostic descriptors

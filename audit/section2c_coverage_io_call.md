@@ -63,7 +63,7 @@ Audit date: 2026-03-22
 
 ### CALL Diagnostics Defined
 
-CBL3301 (arg count mismatch), CBL3302 (invalid arg for mode), CBL3303 (type incompatible), CBL3304 (RETURNING not linkage), CBL3305 (RETURNING type mismatch), CBL3310 (dynamic CALL warning). These descriptors exist but are **not wired** since CALL is a stub.
+CBL3301 (arg count mismatch), CBL3302 (invalid arg for mode), CBL3303 (type incompatible), CBL3304 (RETURNING not linkage), CBL3305 (RETURNING type mismatch), CBL3310 (dynamic CALL warning). CBL3310 is wired (emits for dynamic CALL). Others available for future compile-time validation when caller/callee are compiled together.
 
 ---
 
