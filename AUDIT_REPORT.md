@@ -550,34 +550,30 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 
 ---
 
-## 3.7 Overly Complex Methods (>80 lines)
+## 3.7 Overly Complex Methods (>80 lines) — **PARTIALLY RESOLVED**
 
-### CilEmitter.cs
-| Method | Lines | Start |
+Two methods that mixed distinct concerns were split:
+
+- ~~`EmitProgramState` (206 lines)~~: **Split** into 6 focused methods: `EmitProgramState` (32-line orchestrator), `EmitProgramStateAllocation` (13), `EmitValueClauseInitialization` (73), `EmitAlterTableInitialization` (23), `EmitResetStateMethod` (18), `ComputeOccursExtent` (25).
+- ~~`Bind` (149 lines)~~: **Split** into 5 focused methods: `Bind` (28-line orchestrator), `CreateParagraphStubs` (15), `ScanAlterTargets` (17), `LowerAllParagraphs` (49), `PopulateModuleMetadata` (17).
+
+### Remaining (inherent complexity — accepted)
+
+These are dispatch switches or spec-matching implementations where the complexity is irreducible:
+
+| Method | Lines | Category |
 |---|---|---|
-| `EmitInstruction` | 349 | :400 |
-| `EmitProgramState` | 165 | :93 |
-| `EmitUnstringStatement` | 145 | :2337 |
-| `EmitExpression` | 131 | :1998 |
-| `EmitStringStatement` | 95 | :2241 |
-
-### Binder.cs
-| Method | Lines | Start |
-|---|---|---|
-| `LowerConditionName` | 114 | :2601 |
-| `LowerDivide` | 107 | :1815 |
-| `Bind` | 97 | :69 |
-| `LowerStatement` | 90 | :272 |
-| `LowerComparison` | 90 | :2399 |
-
-### BoundTreeBuilder.cs
-| Method | Lines | Start |
-|---|---|---|
-| `BindPerform` | 118 | :422 |
-| `BindDataReferenceWithSubscripts` | 108 | :3089 |
-| `BindInspect` | 100 | :1149 |
-
-**Worst offender**: `CilEmitter.EmitInstruction` at 349 lines -- a single switch dispatching on IR instruction type. Standard in emitters; could use visitor pattern but flat switch is a common pragmatic choice.
+| `EmitInstruction` | ~410 | CIL dispatch switch (standard compiler pattern) |
+| `EmitUnstringStatement` | ~151 | UNSTRING spec complexity (DELIMITED BY, INTO, POINTER, etc.) |
+| `EmitExpression` | ~132 | Expression type dispatch |
+| `BindPerform` | ~119 | PERFORM has 5 forms per spec |
+| `LowerConditionName` | ~117 | Level-88 expansion with VALUE ranges/THRU |
+| `LowerStatement` | ~118 | Statement type dispatch |
+| `LowerDivide` | ~110 | DIVIDE has 4 forms per spec |
+| `BindDataReferenceWithSubscripts` | ~108 | Multi-dimensional subscript handling |
+| `BindInspect` | ~101 | INSPECT TALLYING/REPLACING/CONVERTING |
+| `EmitStringStatement` | ~96 | STRING spec complexity |
+| `LowerComparison` | ~91 | Numeric/alphanumeric/literal matrix |
 
 ---
 

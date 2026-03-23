@@ -6303,4 +6303,30 @@ Both TODOs addressed: `--standard` wired, function binding has diagnostic.
 - NIST: all 39 at 100%
 - Net code change: -90 lines from duplication elimination
 
+---
+
+## 2026-03-23 (cont.) — Section 3.7: Split overly complex methods
+
+### EmitProgramState (206 → 32 lines)
+Split into 6 focused methods:
+- `EmitProgramState`: 32-line orchestrator
+- `EmitProgramStateAllocation`: ProgramState field + constructor (13 lines)
+- `EmitValueClauseInitialization`: figurative fills + literal/numeric VALUES (73 lines)
+- `ComputeOccursExtent`: nested OCCURS dimension flattening (25 lines)
+- `EmitAlterTableInitialization`: ALTER indirection table (23 lines)
+- `EmitResetStateMethod`: INITIAL program re-initialization (18 lines)
+
+### Bind (149 → 28 lines)
+Split into 5 focused methods:
+- `Bind`: 28-line orchestrator (was 149)
+- `CreateParagraphStubs`: method stubs for paragraphs (15 lines)
+- `ScanAlterTargets`: ALTER pre-scan (17 lines)
+- `LowerAllParagraphs`: paragraph body lowering (49 lines)
+- `PopulateModuleMetadata`: ALTER defaults, INITIAL, USING, ENTRY (17 lines)
+
+### Remaining 11 methods (accepted)
+All are either dispatch switches (EmitInstruction, LowerStatement, EmitExpression) or
+spec-matching COBOL statement implementations (BindPerform, LowerDivide, BindInspect, etc.)
+where the complexity is irreducible. No refactoring applied.
+
 *End of entries for 2026-03-23*

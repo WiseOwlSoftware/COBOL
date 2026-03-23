@@ -79,21 +79,34 @@ public sealed class Binder
     /// </summary>
     public IrModule Bind(CobolParserCore.CompilationUnitContext tree)
     {
-        // Phase 1: Build bound tree from parse tree + symbols
+        // Phase 1: Build bound tree + validate
         var builder = new BoundTreeBuilder(_semantic, _diagnostics, _options);
         var boundProgram = builder.Build(tree);
-
-        // Phase 1.5: Flow analysis on bound program
         Semantics.ProcedureGraph.Analyze(boundProgram, _semantic, _diagnostics);
-
-        // Phase 1.6: Expression type enforcement on bound tree
         Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics);
 
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);
 
-        // Phase 3: Create paragraph method stubs (return Int32 for PC)
+        // Phase 3: Create paragraph method stubs
+        CreateParagraphStubs(module, boundProgram);
+
+        // Phase 3.5: Pre-scan for ALTER targets
+        ScanAlterTargets(boundProgram);
+
+        // Phase 4: Lower all paragraph bodies
+        LowerAllParagraphs(boundProgram);
+
+        // Phase 5: Populate module metadata + create entry point
+        PopulateModuleMetadata(module, boundProgram);
+        CreateEntryPoint(module, boundProgram);
+
+        return module;
+    }
+
+    private void CreateParagraphStubs(IrModule module, BoundProgram boundProgram)
+    {
         int paraIndex = 0;
         foreach (var para in boundProgram.Paragraphs)
         {
@@ -105,123 +118,87 @@ public sealed class Binder
             module.Methods.Add(method);
             paraIndex++;
         }
+    }
 
-        // Phase 3.5: Pre-scan for ALTER targets — identify which paragraphs are alterable
+    private void ScanAlterTargets(BoundProgram boundProgram)
+    {
         foreach (var para in boundProgram.Paragraphs)
-        {
             foreach (var sentence in para.Sentences)
-            {
                 foreach (var stmt in sentence.Statements)
-                {
                     if (stmt is BoundAlterStatement alter)
-                    {
                         foreach (var entry in alter.Entries)
                         {
                             string name = entry.TargetParagraph.Name;
                             if (!_alterSlots.ContainsKey(name))
                             {
-                                int slot = _alterSlots.Count;
-                                _alterSlots[name] = slot;
-                                _alterDefaults.Add(-1); // placeholder, updated during LowerGoTo
+                                _alterSlots[name] = _alterSlots.Count;
+                                _alterDefaults.Add(-1);
                             }
                         }
-                    }
-                }
-            }
-        }
+    }
 
-        // Phase 4: Lower bound statements into IR, preserving sentence structure
+    private void LowerAllParagraphs(BoundProgram boundProgram)
+    {
         foreach (var para in boundProgram.Paragraphs)
         {
-            if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var method))
+            if (!_paragraphMethods.TryGetValue(para.Symbol.Name, out var method))
+                continue;
+
+            int myIndex = _paragraphIndices[para.Symbol.Name];
+            var block = method.Blocks[0];
+            _currentParagraphName = para.Symbol.Name;
+
+            var paraEnd = method.CreateBlock($"{para.Symbol.Name}_exit");
+            _paragraphEndBlock = paraEnd;
+
+            // EXIT SECTION target
+            var sectionName = _semantic.GetParagraphSection(para.Symbol.Name);
+            _sectionExitReturnIndex = null;
+            if (sectionName != null)
             {
-                int myIndex = _paragraphIndices[para.Symbol.Name];
-                var block = method.Blocks[0];
-                _currentParagraphName = para.Symbol.Name;
-
-                // Set up EXIT PARAGRAPH target: a block at the end of the paragraph body
-                var paraEnd = method.CreateBlock($"{para.Symbol.Name}_exit");
-                _paragraphEndBlock = paraEnd;
-
-                // Set up EXIT SECTION target: return index of first paragraph after this section
-                var sectionName = _semantic.GetParagraphSection(para.Symbol.Name);
-                if (sectionName != null)
-                {
-                    var sectionParas = _semantic.GetSectionParagraphs(sectionName);
-                    if (sectionParas != null && sectionParas.Count > 0
-                        && _paragraphIndices.TryGetValue(sectionParas[^1], out var lastIdx))
-                    {
-                        _sectionExitReturnIndex = lastIdx + 1;
-                    }
-                    else
-                    {
-                        _sectionExitReturnIndex = null;
-                    }
-                }
-                else
-                {
-                    _sectionExitReturnIndex = null;
-                }
-
-                for (int si = 0; si < para.Sentences.Count; si++)
-                {
-                    var sentence = para.Sentences[si];
-
-                    // Create the block that represents the start of the next sentence.
-                    // NEXT SENTENCE jumps here; normal flow falls through.
-                    var sentenceEnd = new IrBasicBlock($"{para.Symbol.Name}_sent{si}_end");
-                    _currentSentenceEnd = sentenceEnd;
-
-                    foreach (var stmt in sentence.Statements)
-                        block = LowerStatement(stmt, method, block);
-
-                    // Fall through into the sentence-end block
-                    block.Instructions.Add(new IrJump(sentenceEnd));
-                    method.Blocks.Add(sentenceEnd);
-                    block = sentenceEnd;
-                }
-
-                _currentSentenceEnd = null;
-                _paragraphEndBlock = null;
-                _sectionExitReturnIndex = null;
-                _currentParagraphName = null;
-
-                // Normal flow: jump to paragraph end block
-                block.Instructions.Add(new IrJump(paraEnd));
-                method.Blocks.Add(paraEnd);
-
-                // Fall-through: return next paragraph index
-                paraEnd.Instructions.Add(new IrReturnConst(myIndex + 1));
+                var sectionParas = _semantic.GetSectionParagraphs(sectionName);
+                if (sectionParas is { Count: > 0 }
+                    && _paragraphIndices.TryGetValue(sectionParas[^1], out var lastIdx))
+                    _sectionExitReturnIndex = lastIdx + 1;
             }
+
+            for (int si = 0; si < para.Sentences.Count; si++)
+            {
+                var sentenceEnd = new IrBasicBlock($"{para.Symbol.Name}_sent{si}_end");
+                _currentSentenceEnd = sentenceEnd;
+
+                foreach (var stmt in para.Sentences[si].Statements)
+                    block = LowerStatement(stmt, method, block);
+
+                block.Instructions.Add(new IrJump(sentenceEnd));
+                method.Blocks.Add(sentenceEnd);
+                block = sentenceEnd;
+            }
+
+            _currentSentenceEnd = null;
+            _paragraphEndBlock = null;
+            _sectionExitReturnIndex = null;
+            _currentParagraphName = null;
+
+            block.Instructions.Add(new IrJump(paraEnd));
+            method.Blocks.Add(paraEnd);
+            paraEnd.Instructions.Add(new IrReturnConst(myIndex + 1));
         }
+    }
 
-        // Phase 4.5: Store alter table defaults in IR module (zero-cost if no ALTER used)
+    private void PopulateModuleMetadata(IrModule module, BoundProgram boundProgram)
+    {
         module.AlterDefaults.AddRange(_alterDefaults);
-
-        // Phase 4.55: Store INITIAL flag
         module.IsInitial = _semantic.Program.IsInitial;
 
-        // Phase 4.6: Store PROCEDURE DIVISION USING parameter names
         foreach (var param in _semantic.ProcedureUsingParameters)
             module.UsingParameterNames.Add(param.Name);
 
-        // Phase 4.7: Collect ENTRY statements for alternate entry point generation
         foreach (var para in boundProgram.Paragraphs)
-        {
             foreach (var sentence in para.Sentences)
-            {
                 foreach (var stmt in sentence.Statements)
-                {
                     if (stmt is BoundEntryStatement entry)
                         module.EntryPoints.Add((entry.EntryName, entry.UsingParameters));
-                }
-            }
-        }
-
-        // Phase 5: Create entry point (PC dispatch loop)
-        CreateEntryPoint(module, boundProgram);
-
-        return module;
     }
 
     // ── Record layout ──

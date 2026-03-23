@@ -270,7 +270,6 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitProgramState(IrModule ir)
     {
-        // Use sizes computed by ComputeStorageLayout
         int wsSize = _semanticModel?.WorkingStorageSize ?? 4096;
         int fileSize = _semanticModel?.FileSectionSize ?? 1024;
         if (wsSize == 0) wsSize = 4096;
@@ -292,186 +291,165 @@ public sealed class CilEmitter
         _programType.Methods.Add(cctor);
 
         var il = cctor.Body.GetILProcessor();
+        var ctor = EmitProgramStateAllocation(il, wsSize, fileSize);
+        EmitValueClauseInitialization(il);
+        EmitAlterTableInitialization(il, ir);
+        il.Append(il.Create(OpCodes.Ret));
+
+        EmitResetStateMethod(ir, ctor, wsSize, fileSize);
+    }
+
+    /// <summary>Emit ProgramState allocation: new ProgramState(wsSize, fileSize) → static field.</summary>
+    private MethodReference EmitProgramStateAllocation(ILProcessor il, int wsSize, int fileSize)
+    {
         il.Append(il.Create(OpCodes.Ldc_I4, wsSize));
         il.Append(il.Create(OpCodes.Ldc_I4, fileSize));
-
         var ctor = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState)
                 .GetConstructor(new[] { typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
-        il.Append(il.Create(OpCodes.Stsfld, _programStateField));
+        il.Append(il.Create(OpCodes.Stsfld, _programStateField!));
+        return ctor;
+    }
 
-        // Apply VALUE clauses: write initial values into backing storage
-        if (_semanticModel != null)
+    /// <summary>Emit VALUE clause initialization: figurative fills + literal/numeric values.</summary>
+    private void EmitValueClauseInitialization(ILProcessor il)
+    {
+        if (_semanticModel == null) return;
+
+        // Figurative VALUE clauses (SPACE, ZERO, HIGH-VALUE, etc.)
+        var moveFigMethod = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod(
+                "MoveFigurativeToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(Runtime.PicDescriptor), typeof(int) })!);
+
+        foreach (var kvp in _semanticModel.FigurativeInitValues)
         {
-            var moveStringMethod = _module.ImportReference(
-                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                    "MoveStringToField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+            var loc = _semanticModel.GetStorageLocation(kvp.Key);
+            if (!loc.HasValue) continue;
 
-            // Figurative VALUE clauses: use MoveFigurativeToField (field-filling).
-            // Must be emitted BEFORE non-figurative InitialValues to avoid overwriting.
-            var moveFigMethod = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod(
-                    "MoveFigurativeToField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(Runtime.PicDescriptor), typeof(int) })!);
+            EmitLoadBackingArray(il, loc.Value.Area);
+            il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+            il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+            EmitLoadPicDescriptor(il, loc.Value.Pic);
+            il.Append(il.Create(OpCodes.Ldc_I4, (int)kvp.Value));
+            il.Append(il.Create(OpCodes.Call, moveFigMethod));
+        }
 
-            foreach (var kvp in _semanticModel.FigurativeInitValues)
+        // Literal/numeric VALUE clauses
+        var moveStringToOccursMethod = _module.ImportReference(
+            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                "MoveStringToOccursField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+
+        foreach (var kvp in _semanticModel.InitialValues)
+        {
+            if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
+                continue;
+
+            var data = kvp.Key;
+            var loc = _semanticModel.GetStorageLocation(data);
+            if (!loc.HasValue) continue;
+
+            var init = kvp.Value;
+            var (elementSize, totalOccurs) = ComputeOccursExtent(data, loc.Value);
+
+            EmitLoadBackingArray(il, loc.Value.Area);
+
+            if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
             {
-                var loc = _semanticModel.GetStorageLocation(kvp.Key);
-                if (!loc.HasValue) continue;
-
-                // Load backing array
-                il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
-                var getter = _module.ImportReference(
-                    typeof(CobolSharp.Runtime.ProgramState).GetProperty(
-                        loc.Value.Area == StorageAreaKind.WorkingStorage
-                            ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
-                il.Append(il.Create(OpCodes.Callvirt, getter));
-
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
-                EmitLoadPicDescriptor(il, loc.Value.Pic);
-                il.Append(il.Create(OpCodes.Ldc_I4, (int)kvp.Value));
-                il.Append(il.Create(OpCodes.Call, moveFigMethod));
+                EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
+                EmitLoadDecimal(il, d);
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                var numMethod = _module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod(
+                        "MoveNumericLiteral",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(Runtime.PicDescriptor),
+                                typeof(decimal), typeof(int) })!);
+                il.Append(il.Create(OpCodes.Call, numMethod));
             }
-
-            var moveStringToOccursMethod = _module.ImportReference(
-                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                    "MoveStringToOccursField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
-
-            foreach (var kvp in _semanticModel.InitialValues)
+            else
             {
-                // Skip symbols that have a figurative init — already handled above
-                if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
-                    continue;
-
-                var data = kvp.Key;
-                var loc = _semanticModel.GetStorageLocation(data);
-                if (!loc.HasValue) continue;
-
-                var init = kvp.Value;
-
-                // Compute OCCURS-aware element size and total occurrences.
-                // For nested OCCURS where elements are contiguous across parent boundaries,
-                // flatten to a single totalOccurs covering all dimensions.
-                int directOccurs = data.Occurs?.MaxOccurs ?? 1;
-                int totalSize = loc.Value.Length;
-                int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
-                int totalOccurs = directOccurs;
-
-                // Walk parent chain: if parent has OCCURS and child fills the entire
-                // parent occurrence (contiguous), multiply totalOccurs and adjust sizes.
-                for (var parent = data.Parent; parent != null; parent = parent.Parent)
-                {
-                    int parentMaxOccurs = parent.Occurs?.MaxOccurs ?? 1;
-                    if (parentMaxOccurs <= 1) continue;
-                    var parentLoc = _semanticModel.GetStorageLocation(parent);
-                    if (!parentLoc.HasValue) break;
-                    int parentPerOccurrence = parentLoc.Value.Length / parentMaxOccurs;
-                    // Contiguous check: child's span fills exactly one parent occurrence
-                    if (totalOccurs * elementSize == parentPerOccurrence)
-                    {
-                        totalOccurs *= parentMaxOccurs;
-                    }
-                    else
-                    {
-                        break; // Non-contiguous — stop flattening
-                    }
-                }
-
-                // Load backing array
-                il.Append(il.Create(OpCodes.Ldsfld, _programStateField));
-                var getter = _module.ImportReference(
-                    typeof(CobolSharp.Runtime.ProgramState).GetProperty(
-                        loc.Value.Area == StorageAreaKind.WorkingStorage
-                            ? "WorkingStorage" : "FileSection")!.GetGetMethod()!);
-                il.Append(il.Create(OpCodes.Callvirt, getter));
-
-                if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
-                {
-                    // Numeric VALUE → PicRuntime.MoveNumericLiteral
-                    // suppressBlankWhenZero: VALUE clause stores raw digits,
-                    // BLANK WHEN ZERO only applies on MOVE/DISPLAY output.
-                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
-                    il.Append(il.Create(OpCodes.Ldc_I4, totalSize));
-                    EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
-                    EmitLoadDecimal(il, d);
-                    il.Append(il.Create(OpCodes.Ldc_I4_0)); // rounding = truncate
-
-                    var numMethod = _module.ImportReference(
-                        typeof(Runtime.PicRuntime).GetMethod(
-                            "MoveNumericLiteral",
-                            new[] { typeof(byte[]), typeof(int), typeof(int),
-                                    typeof(Runtime.PicDescriptor),
-                                    typeof(decimal), typeof(int) })!);
-                    il.Append(il.Create(OpCodes.Call, numMethod));
-                }
-                else if (init.Value is string s)
-                {
-                    // String VALUE → MoveStringToOccursField (handles OCCURS replication)
-                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
-                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
-                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
-                    il.Append(il.Create(OpCodes.Ldstr, s));
-                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
-                }
-                else if (init.Value is decimal d2)
-                {
-                    // Numeric VALUE on non-numeric field → treat as string
-                    string numStr = d2.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                    il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
-                    il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
-                    il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
-                    il.Append(il.Create(OpCodes.Ldstr, numStr));
-                    il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
-                }
+                string strValue = init.Value is string s ? s
+                    : ((decimal)init.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
+                il.Append(il.Create(OpCodes.Ldstr, strValue));
+                il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
             }
         }
+    }
 
-        // ALTER table: static int[] field initialized with default GO TO targets
-        if (ir.AlterDefaults.Count > 0)
+    /// <summary>Compute OCCURS-aware element size and total occurrences across nested dimensions.</summary>
+    private (int elementSize, int totalOccurs) ComputeOccursExtent(
+        Semantics.DataSymbol data, StorageLocation loc)
+    {
+        int directOccurs = data.Occurs?.MaxOccurs ?? 1;
+        int totalSize = loc.Length;
+        int elementSize = directOccurs > 1 ? totalSize / directOccurs : totalSize;
+        int totalOccurs = directOccurs;
+
+        for (var parent = data.Parent; parent != null; parent = parent.Parent)
         {
-            _alterTableField = new FieldDefinition(
-                "_alterTable",
-                FieldAttributes.Private | FieldAttributes.Static,
-                _module.ImportReference(typeof(int[])));
-            _programType!.Fields.Add(_alterTableField);
-
-            // _alterTable = new int[N]
-            il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults.Count));
-            il.Append(il.Create(OpCodes.Newarr, _module.TypeSystem.Int32));
-            // Initialize each element with default target index
-            for (int i = 0; i < ir.AlterDefaults.Count; i++)
-            {
-                il.Append(il.Create(OpCodes.Dup));
-                il.Append(il.Create(OpCodes.Ldc_I4, i));
-                il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults[i]));
-                il.Append(il.Create(OpCodes.Stelem_I4));
-            }
-            il.Append(il.Create(OpCodes.Stsfld, _alterTableField));
+            int parentMaxOccurs = parent.Occurs?.MaxOccurs ?? 1;
+            if (parentMaxOccurs <= 1) continue;
+            var parentLoc = _semanticModel?.GetStorageLocation(parent);
+            if (!parentLoc.HasValue) break;
+            int parentPerOccurrence = parentLoc.Value.Length / parentMaxOccurs;
+            if (totalOccurs * elementSize == parentPerOccurrence)
+                totalOccurs *= parentMaxOccurs;
+            else
+                break;
         }
 
-        il.Append(il.Create(OpCodes.Ret));
+        return (elementSize, totalOccurs);
+    }
 
-        // For INITIAL programs, generate a ResetState method that re-creates ProgramState
-        if (ir.IsInitial)
+    /// <summary>Emit ALTER indirection table initialization into .cctor.</summary>
+    private void EmitAlterTableInitialization(ILProcessor il, IrModule ir)
+    {
+        if (ir.AlterDefaults.Count == 0) return;
+
+        _alterTableField = new FieldDefinition(
+            "_alterTable",
+            FieldAttributes.Private | FieldAttributes.Static,
+            _module.ImportReference(typeof(int[])));
+        _programType!.Fields.Add(_alterTableField);
+
+        il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults.Count));
+        il.Append(il.Create(OpCodes.Newarr, _module.TypeSystem.Int32));
+        for (int i = 0; i < ir.AlterDefaults.Count; i++)
         {
-            _initializeStateMethod = new MethodDefinition(
-                "ResetState",
-                MethodAttributes.Private | MethodAttributes.Static,
-                _module.TypeSystem.Void);
-            _programType!.Methods.Add(_initializeStateMethod);
-
-            var resetIl = _initializeStateMethod.Body.GetILProcessor();
-            resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, wsSize));
-            resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, fileSize));
-            resetIl.Append(resetIl.Create(OpCodes.Newobj, ctor));
-            resetIl.Append(resetIl.Create(OpCodes.Stsfld, _programStateField));
-            resetIl.Append(resetIl.Create(OpCodes.Ret));
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldc_I4, ir.AlterDefaults[i]));
+            il.Append(il.Create(OpCodes.Stelem_I4));
         }
+        il.Append(il.Create(OpCodes.Stsfld, _alterTableField));
+    }
+
+    /// <summary>For INITIAL programs, generate ResetState that re-creates ProgramState.</summary>
+    private void EmitResetStateMethod(IrModule ir, MethodReference ctor, int wsSize, int fileSize)
+    {
+        if (!ir.IsInitial) return;
+
+        _initializeStateMethod = new MethodDefinition(
+            "ResetState",
+            MethodAttributes.Private | MethodAttributes.Static,
+            _module.TypeSystem.Void);
+        _programType!.Methods.Add(_initializeStateMethod);
+
+        var resetIl = _initializeStateMethod.Body.GetILProcessor();
+        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, wsSize));
+        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, fileSize));
+        resetIl.Append(resetIl.Create(OpCodes.Newobj, ctor));
+        resetIl.Append(resetIl.Create(OpCodes.Stsfld, _programStateField!));
+        resetIl.Append(resetIl.Create(OpCodes.Ret));
     }
 
     private void SeedPrimitiveTypes()
