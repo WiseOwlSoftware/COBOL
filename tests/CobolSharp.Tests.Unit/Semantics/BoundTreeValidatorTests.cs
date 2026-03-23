@@ -669,15 +669,16 @@ public class BoundTreeValidatorTests : DiagnosticTestBase
     [Fact]
     public void CBL3310_DynamicCallWarning()
     {
+        // Dynamic CALL uses a data-name (runtime-resolved), not a literal
         var source = @"
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TESTPROG.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 WS-A PIC 9 VALUE 0.
+       01 WS-PROG PIC X(8) VALUE ""SUBPROG"".
        PROCEDURE DIVISION.
        MAIN-PARA.
-           CALL ""SUBPROG"".
+           CALL WS-PROG.
            STOP RUN.
 ";
         var diags = GetDiagnostics(source);

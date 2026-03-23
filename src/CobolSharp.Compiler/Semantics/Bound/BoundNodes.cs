@@ -43,6 +43,8 @@ public enum BoundNodeKind
     CompoundStatement,
     ReturnStatement,
     CallStatement,
+    ExitProgramStatement,
+    GoBackStatement,
 }
 
 public abstract class BoundNode
@@ -465,6 +467,18 @@ public sealed class BoundAlterEntry(ParagraphSymbol targetParagraph, ParagraphSy
 public sealed class BoundExitStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement;
+}
+
+/// <summary>EXIT PROGRAM — return from a called program to the caller.</summary>
+public sealed class BoundExitProgramStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.ExitProgramStatement;
+}
+
+/// <summary>GOBACK — return from called program, or terminate if main program.</summary>
+public sealed class BoundGoBackStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.GoBackStatement;
 }
 
 public sealed class BoundExitPerformStatement : BoundStatement

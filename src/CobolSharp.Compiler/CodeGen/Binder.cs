@@ -379,6 +379,16 @@ public sealed class Binder
             case BoundStopStatement:
                 block.Instructions.Add(new IrReturnConst(-1));
                 break;
+            case BoundExitProgramStatement:
+                // EXIT PROGRAM — return from called program (for now, same as STOP RUN;
+                // will be distinguished from STOP RUN in Phase 3 when Entry method exists)
+                block.Instructions.Add(new IrReturnConst(-1));
+                break;
+            case BoundGoBackStatement:
+                // GOBACK — return from called program or terminate main
+                // (for now, same as STOP RUN; distinguished in Phase 3)
+                block.Instructions.Add(new IrReturnConst(-1));
+                break;
             case BoundExitStatement:
                 // EXIT is a no-op; fall-through return handles it
                 break;

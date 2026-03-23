@@ -224,9 +224,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.goToStatement() is { } gt) return BindGoTo(gt);
         if (ctx.alterStatement() is { } alt) return BindAlter(alt);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
-        if (ctx.gobackStatement() is { }) return new BoundStopStatement();
+        if (ctx.gobackStatement() is { }) return new BoundGoBackStatement();
         if (ctx.exitStatement() is { } exitCtx)
         {
+            if (exitCtx.PROGRAM() != null)
+                return new BoundExitProgramStatement();
             if (exitCtx.PERFORM() != null)
                 return new BoundExitPerformStatement();
             if (exitCtx.PARAGRAPH() != null)
@@ -1046,13 +1048,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         bool isDynamic;
         if (targetCtx.literal() is { } litCtx)
         {
+            // CALL "LITERAL" — static call (program name known at compile time)
             targetName = litCtx.GetText().Trim('"', '\'');
-            isDynamic = true;
+            isDynamic = false;
         }
         else if (targetCtx.dataReference() is { } dataRefCtx)
         {
+            // CALL identifier — dynamic call (program name computed at runtime)
             targetName = dataRefCtx.IDENTIFIER().GetText();
-            isDynamic = false;
+            isDynamic = true;
         }
         else
         {
