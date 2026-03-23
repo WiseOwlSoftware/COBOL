@@ -1540,7 +1540,7 @@ public sealed class CilEmitter
     private void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        var pic = GetPicForLocation(ms.Target);
+        var pic = ms.Target.GetPic();
 
         // Numeric targets: right-justified numeric MOVE (rightmost digits taken)
         if (pic.Category == Runtime.CobolCategory.Numeric)
@@ -3140,19 +3140,6 @@ public sealed class CilEmitter
 
     // ── Unified IrLocation emission helpers ──
 
-    /// <summary>
-    /// Get the PicDescriptor for an IrLocation (static or element).
-    /// </summary>
-    private static Runtime.PicDescriptor GetPicForLocation(IR.IrLocation loc)
-    {
-        return loc switch
-        {
-            IR.IrStaticLocation s => s.Location.Pic,
-            IR.IrElementRef e => e.ElementPic,
-            IR.IrRefModLocation r => GetPicForLocation(r.Base),
-            _ => throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}")
-        };
-    }
 
     /// <summary>
     /// Push (area, offset, length) onto the IL stack for any IrLocation.
@@ -3195,7 +3182,7 @@ public sealed class CilEmitter
     private void EmitLocationArgsWithPic(ILProcessor il, IR.IrLocation loc)
     {
         EmitLocationArgs(il, loc);
-        EmitLoadPicDescriptor(il, GetPicForLocation(loc));
+        EmitLoadPicDescriptor(il, loc.GetPic());
     }
 
     /// <summary>

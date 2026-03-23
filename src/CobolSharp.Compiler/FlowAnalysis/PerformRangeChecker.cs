@@ -26,7 +26,7 @@ public sealed class PerformRangeChecker(SymbolTable symbols, DiagnosticBag diagn
                 "FLOW",
                 $"PERFORM target '{startName}' is not a paragraph or section.",
                 new SourceLocation("<source>", 0, line, 0),
-                new TextSpan(0, 0));
+                TextSpan.Empty);
             return;
         }
 
@@ -36,7 +36,7 @@ public sealed class PerformRangeChecker(SymbolTable symbols, DiagnosticBag diagn
                 "FLOW",
                 $"PERFORM THRU target '{endName}' is not a paragraph or section.",
                 new SourceLocation("<source>", 0, line, 0),
-                new TextSpan(0, 0));
+                TextSpan.Empty);
             return;
         }
 
@@ -47,7 +47,7 @@ public sealed class PerformRangeChecker(SymbolTable symbols, DiagnosticBag diagn
                 $"PERFORM range '{startName} THRU {endName}' may be invalid: " +
                 $"start (line {start.Line}) comes after end (line {end.Line}).",
                 new SourceLocation("<source>", 0, line, 0),
-                new TextSpan(0, 0));
+                TextSpan.Empty);
         }
     }
 }

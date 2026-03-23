@@ -205,7 +205,7 @@ public sealed class Compilation
         {
             diagnostics.Report(DiagnosticDescriptors.COBOL0600,
                 new SourceLocation(sourcePath, 0, 0, 0),
-                new TextSpan(0, 0),
+                TextSpan.Empty,
                 programId, ex.Message);
             return new CompilationResult(false, outputPath, diagnostics.Diagnostics);
         }

@@ -458,39 +458,26 @@ Codebase: 97 C# source files (excluding generated ANTLR code).
 
 ---
 
-## 3.2 Duplicated Logic — **EXPRESSION DUPLICATION RESOLVED**
+## 3.2 Duplicated Logic — **ALL RESOLVED**
 
 ### ~~Two complete expression binding implementations~~ — **RESOLVED**
+Path B deleted (~90 lines). Single expression chain remains.
 
-Path B (`BindArithmeticExpr` chain — 6 methods, ~90 lines) deleted. Replaced with a one-line
-null-guarded delegation to `BindFullExpression`. Zero duplication remains.
+### ~~`GetPicForLocation` duplicated~~ — **RESOLVED**
+Moved to `IrLocationExtensions.GetPic()` extension method in `IR/IrLocationExtensions.cs`.
+Both private copies in Binder and CilEmitter deleted.
 
-### `GetPicForLocation` duplicated between Binder and CilEmitter
+### ~~INVALID KEY branching duplicated 3x~~ — **RESOLVED**
+Extracted `LowerConditionalBranch()` helper in Binder. LowerRead, LowerDelete, LowerStart,
+and LowerCall all delegate to it. ~54 lines of duplication → 1 shared helper + 4 one-line calls.
 
-- **Binder copy**: `Binder.cs:523-532`
-- **CilEmitter copy**: `CilEmitter.cs:2597-2606`
+### ~~Arithmetic target binding repeated 6x~~ — **RESOLVED**
+Extracted `BindArithmeticTargets()` helper in BoundTreeBuilder. 7 foreach loops replaced
+across BindAdd, BindSubtract, BindMultiply, BindDivide.
 
-Identical logic (switch on IrLocation subtypes). Only difference: exception type in default arm. Both are `private static`, preventing sharing.
-
-**Recommendation**: Move to `IrLocation` as a public static method or a shared utility class.
-
-### INVALID KEY branching pattern duplicated 3x in Binder
-
-`LowerDelete` (1260-1286), `LowerStart` (1317-1343), and `LowerRead` (1188-1216) contain structurally identical branching logic (~18 lines each, ~54 lines total).
-
-**Recommendation**: Extract `LowerConditionalBranch(...)` helper. Reduces to ~15 lines + 3 one-line call sites.
-
-### Receiving arithmetic target binding pattern repeated 6x
-
-The foreach loop binding `receivingArithmeticOperand` to `BoundArithmeticTarget` appears in BindMultiply, BindAdd, BindSubtract, BindDivide, BindCompute (6+ locations).
-
-**Recommendation**: Extract `BindArithmeticTargets(receivingArithmeticOperand[])`.
-
-### Fake source location construction repeated 69+ times
-
-`new Common.SourceLocation("<source>", 0, 0, 0)` with `new Common.TextSpan(0, 0)`: **36+ occurrences** across Binder.cs, BoundTreeBuilder.cs, and others.
-
-**Recommendation**: Create `SourceLocation.None` / `TextSpan.Empty` static factories.
+### ~~Fake source locations repeated 69+ times~~ — **RESOLVED**
+Created `SourceLocation.None` and `TextSpan.Empty` static factories. All 44 occurrences
+across 12 files replaced. Redundant `s_noLocation`/`s_noSpan` fields in Binder deleted.
 
 ---
 
@@ -604,17 +591,17 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 5. ~~**REWRITE FROM not lowered** (3.3)~~ — **RESOLVED**: FROM MOVEd to record before rewrite.
 
 ### Medium Priority
-6. ~~**Ad-hoc diagnostic codes** (3.3)~~ — **RESOLVED**: all 55 migrated to DiagnosticDescriptors.
-7. **Fake source locations** (3.2) — 69+ `<source>` placeholders lose error position information.
-8. **`GetPicForLocation` duplication** (3.2) — identical logic in two files.
-9. **Branching pattern duplication** (3.2) — 3x copy of the same conditional block emission.
-10. ~~**CALL stub**~~ — **RESOLVED**; RETURN stub remains (SORT/MERGE dependency).
+6. ~~**Ad-hoc diagnostic codes** (3.3)~~ — **RESOLVED**.
+7. ~~**Fake source locations** (3.2)~~ — **RESOLVED**: `SourceLocation.None` / `TextSpan.Empty`.
+8. ~~**`GetPicForLocation` duplication** (3.2)~~ — **RESOLVED**: shared extension method.
+9. ~~**Branching pattern duplication** (3.2)~~ — **RESOLVED**: `LowerConditionalBranch` helper.
+10. ~~**CALL stub**~~ — **RESOLVED**.
 
 ### Low Priority
-11. ~~**Dead code** (3.4)~~ — **MOSTLY RESOLVED**: CompilationOptions in use, ReportWriterValidator + BindDataReference + GetDataReferenceName deleted, CBL3401-3406 deleted.
-12. ~~**Wrapper method** (3.1)~~ — **RESOLVED**: BindDataReference inlined and deleted.
-13. **Receiving target binding pattern** (3.2) — 6x repetition.
-14. **Stale XML doc comments** (3.3) — 3 duplicate summary blocks.
+11. ~~**Dead code** (3.4)~~ — **MOSTLY RESOLVED**.
+12. ~~**Wrapper method** (3.1)~~ — **RESOLVED**: both wrappers eliminated.
+13. ~~**Receiving target binding pattern** (3.2)~~ — **RESOLVED**: `BindArithmeticTargets` helper.
+14. **Stale XML doc comments** (3.3) — 3 duplicate summary blocks on EmitElementAddress.
 
 ---
 

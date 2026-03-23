@@ -42,7 +42,7 @@ public sealed class ParagraphReachabilityAnalyzer(
                     "FLOW",
                     $"Paragraph '{p.Name}' is unreachable.",
                     new SourceLocation("<source>", 0, p.Line, 0),
-                    new TextSpan(0, 0));
+                    TextSpan.Empty);
             }
         }
     }

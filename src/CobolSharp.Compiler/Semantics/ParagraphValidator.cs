@@ -40,7 +40,7 @@ public static class ParagraphValidator
                     $"Paragraph '{para.Name}' has a name that matches a COBOL keyword — " +
                     "this may indicate a parsing error (e.g., unconsumed keyword from a statement clause).",
                     new SourceLocation("<source>", 0, para.Line, 0),
-                    new TextSpan(0, 0)));
+                    TextSpan.Empty));
             }
         }
     }

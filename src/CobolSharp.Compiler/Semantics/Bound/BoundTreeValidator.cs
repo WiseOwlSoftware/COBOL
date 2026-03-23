@@ -440,7 +440,7 @@ public static class BoundTreeValidator
     {
         diagnostics.Report(descriptor,
             new SourceLocation("<source>", 0, line, 0),
-            new TextSpan(0, 0),
+            TextSpan.Empty,
             args);
     }
 }

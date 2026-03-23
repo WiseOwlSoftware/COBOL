@@ -121,7 +121,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         _diagnostics.Report(desc,
             new Common.SourceLocation("<source>", 0, data.Line, 0),
-            new Common.TextSpan(0, 0), args);
+            Common.TextSpan.Empty, args);
     }
 
     /// <summary>

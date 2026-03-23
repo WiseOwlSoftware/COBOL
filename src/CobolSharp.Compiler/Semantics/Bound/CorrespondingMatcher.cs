@@ -29,7 +29,7 @@ internal static class CorrespondingMatcher
         SourceLocation location)
     {
         var result = new List<(DataSymbol, DataSymbol)>();
-        var span = new TextSpan(0, 0);
+        var span = TextSpan.Empty;
 
         // Collect eligible elementary leaves under each group
         var sourceLeaves = EnumerateEligibleLeaves(sourceGroup);

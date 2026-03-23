@@ -77,8 +77,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (para != null && sec != null)
         {
             _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return para;
         }
 
@@ -91,14 +91,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 return _semantic.ResolveParagraph(sectionParas[0]);
 
             _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return null;
         }
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
-            new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0), name);
+            Common.SourceLocation.None,
+            Common.TextSpan.Empty, name);
         return null;
     }
 
@@ -115,8 +115,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (para != null && sec != null)
         {
             _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return para;
         }
 
@@ -129,14 +129,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 return _semantic.ResolveParagraph(sectionParas[^1]); // LAST paragraph
 
             _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return null;
         }
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
-            new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0), name);
+            Common.SourceLocation.None,
+            Common.TextSpan.Empty, name);
         return null;
     }
 
@@ -148,8 +148,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (para != null && sec != null)
         {
             _diagnostics.Report(DiagnosticDescriptors.COBOL0400,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return (para, null);
         }
 
@@ -166,14 +166,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
 
             _diagnostics.Report(DiagnosticDescriptors.COBOL0401,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, name);
             return (null, null);
         }
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0402,
-            new Common.SourceLocation("<source>", 0, 0, 0),
-            new Common.TextSpan(0, 0), name);
+            Common.SourceLocation.None,
+            Common.TextSpan.Empty, name);
         return (null, null);
     }
 
@@ -266,7 +266,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
             new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
-            new Common.TextSpan(0, 0),
+            Common.TextSpan.Empty,
             $"{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...");
         return null;
     }
@@ -324,7 +324,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // MOVE type enforcement
         {
             var moveLoc = new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0);
-            var moveSpan = new Common.TextSpan(0, 0);
+            var moveSpan = Common.TextSpan.Empty;
             foreach (var tgt in targets)
             {
                 var tgtCat = tgt.Category;
@@ -380,7 +380,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var srcSym = srcId.Symbol;
         var dstSym = dstId.Symbol;
         var loc = new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column);
-        var span = new Common.TextSpan(0, 0);
+        var span = Common.TextSpan.Empty;
         var kindName = kind.ToString().ToUpperInvariant();
         bool hasError = false;
 
@@ -591,8 +591,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (id.IsSubscripted)
         {
             _diagnostics.Report(DiagnosticDescriptors.COBOL0404,
-                new Common.SourceLocation("<source>", 0, 0, 0),
-                new Common.TextSpan(0, 0), id.Symbol.Name);
+                Common.SourceLocation.None,
+                Common.TextSpan.Empty, id.Symbol.Name);
         }
 
         return id.Symbol;
@@ -1922,12 +1922,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (isGiving)
         {
-            foreach (var gt in givingCtx!.receivingArithmeticOperand())
-            {
-                var sym = BindDataReferenceWithSubscripts(gt.dataReference());
-                if (sym is BoundIdentifierExpression boundGt)
-                    targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
-            }
+            targets = BindArithmeticTargets(givingCtx!.receivingArithmeticOperand());
         }
         else
         {
@@ -1983,14 +1978,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var targets = new List<BoundArithmeticTarget>();
         var toPhrase = ctx.addToPhrase();
         if (toPhrase != null)
-        {
-            foreach (var t in toPhrase.receivingArithmeticOperand())
-            {
-                var sym = BindDataReferenceWithSubscripts(t.dataReference());
-                if (sym is BoundIdentifierExpression boundT)
-                    targets.Add(new BoundArithmeticTarget(boundT, t.ROUNDED() != null));
-            }
-        }
+            targets = BindArithmeticTargets(toPhrase.receivingArithmeticOperand());
 
         // GIVING phrase: ADD A TO B GIVING C → C = A + B.
         // The TO items become additional operands (sources), not targets.
@@ -2005,13 +1993,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 // Move TO items to operands (they're addends in GIVING form)
                 foreach (var t in targets)
                     operands.Add(t.Target);
-                targets.Clear();
-                foreach (var gt in givingTargetCtxs)
-                {
-                    var sym = BindDataReferenceWithSubscripts(gt.dataReference());
-                    if (sym is BoundIdentifierExpression boundGt)
-                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
-                }
+                targets = BindArithmeticTargets(givingTargetCtxs);
             }
         }
 
@@ -2064,12 +2046,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fromTargetCtxs.Length > 0)
         {
             // FROM identifier [ROUNDED] ... (Format 1)
-            foreach (var t in fromTargetCtxs)
-            {
-                var sym = BindDataReferenceWithSubscripts(t.dataReference());
-                if (sym is BoundIdentifierExpression boundT2)
-                    targets.Add(new BoundArithmeticTarget(boundT2, t.ROUNDED() != null));
-            }
+            targets = BindArithmeticTargets(fromTargetCtxs);
         }
         else if (fromOperand.receivingOperand() != null)
         {
@@ -2101,13 +2078,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     // Use the original BoundIdentifierExpression (preserves subscripts)
                     givingMinuend = targets[0].Target;
                 }
-                targets.Clear();
-                foreach (var gt in givingTargetCtxs)
-                {
-                    var sym = BindDataReferenceWithSubscripts(gt.dataReference());
-                    if (sym is BoundIdentifierExpression boundGt)
-                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
-                }
+                targets = BindArithmeticTargets(givingTargetCtxs);
             }
         }
 
@@ -2143,14 +2114,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
             var givingPhrase = ctx.divideGivingPhrase();
             if (givingPhrase != null)
-            {
-                foreach (var gt in givingPhrase.receivingArithmeticOperand())
-                {
-                    var sym = BindDataReferenceWithSubscripts(gt.dataReference());
-                    if (sym is BoundIdentifierExpression boundGt)
-                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
-                }
-            }
+                targets = BindArithmeticTargets(givingPhrase.receivingArithmeticOperand());
         }
         else
         {
@@ -2164,12 +2128,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 var intoTargets = intoOp.receivingArithmeticOperand();
                 if (intoTargets.Length > 0)
                 {
-                    foreach (var at in intoTargets)
-                    {
-                        var sym = BindDataReferenceWithSubscripts(at.dataReference());
-                        if (sym is BoundIdentifierExpression boundIt)
-                            targets.Add(new BoundArithmeticTarget(boundIt, at.ROUNDED() != null));
-                    }
+                    targets = BindArithmeticTargets(intoTargets);
                 }
                 else if (intoOp.literal() != null)
                 {
@@ -2185,13 +2144,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     dividend = intoLiteral;
                 else if (targets.Count > 0)
                     dividend = targets[0].Target;  // preserve subscripts from INTO operand
-                targets.Clear();
-                foreach (var gt in givingPhrase.receivingArithmeticOperand())
-                {
-                    var sym = BindDataReferenceWithSubscripts(gt.dataReference());
-                    if (sym is BoundIdentifierExpression boundGt)
-                        targets.Add(new BoundArithmeticTarget(boundGt, gt.ROUNDED() != null));
-                }
+                targets = BindArithmeticTargets(givingPhrase.receivingArithmeticOperand());
             }
         }
 
@@ -2972,7 +2925,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var stmt = new BoundArithmeticStatement(kind, operands, receiver, targets,
             isGiving, isByForm, remainderTarget, sizeError);
         var loc = new Common.SourceLocation("<source>", 0, line, 0);
-        var span = new Common.TextSpan(0, 0);
+        var span = Common.TextSpan.Empty;
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, _diagnostics, loc, span);
         return stmt;
     }
@@ -2982,7 +2935,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     // ═══════════════════════════════════
 
     private (Common.SourceLocation loc, Common.TextSpan span) DiagAt(int line)
-        => (new Common.SourceLocation("<source>", 0, line, 0), new Common.TextSpan(0, 0));
+        => (new Common.SourceLocation("<source>", 0, line, 0), Common.TextSpan.Empty);
 
     private void ValidateStringStatement(BoundStringStatement stmt, int line)
     {
@@ -3116,7 +3069,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return new BoundIdentifierExpression(sym, CobolCategory.Alphanumeric);
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
-            new SourceLocation("<source>", 0, 0, 0), new TextSpan(0, 0),
+            SourceLocation.None, TextSpan.Empty,
             $"Unresolved identifier '{text}'");
         return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
     }
@@ -3125,6 +3078,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         => ctx != null ? BindAdditiveExpression(ctx.additiveExpression()) : new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
     /// <summary>
+    /// <summary>
+    /// Bind an array of receivingArithmeticOperand contexts into BoundArithmeticTarget list.
+    /// Each operand carries a data reference and an optional ROUNDED flag.
+    /// </summary>
+    private List<BoundArithmeticTarget> BindArithmeticTargets(
+        CobolParserCore.ReceivingArithmeticOperandContext[] operands)
+    {
+        var targets = new List<BoundArithmeticTarget>();
+        foreach (var op in operands)
+        {
+            var sym = BindDataReferenceWithSubscripts(op.dataReference());
+            if (sym is BoundIdentifierExpression bound)
+                targets.Add(new BoundArithmeticTarget(bound, op.ROUNDED() != null));
+        }
+        return targets;
+    }
+
     /// Bind a data reference: IDENTIFIER with optional qualification (OF/IN),
     /// subscripts, and reference modification.
     /// Qualified names are resolved right-to-left: A OF B OF C → resolve C, then B in C, then A in B.
@@ -3208,7 +3178,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         int subscriptCount = subs.Count;
         int line = idCtx.Start?.Line ?? 0;
         var loc = new Common.SourceLocation("<source>", 0, line, 0);
-        var span = new Common.TextSpan(0, 0);
+        var span = Common.TextSpan.Empty;
 
         if (subscriptCount > 0 && occursDepth == 0)
             _diagnostics.Report(DiagnosticDescriptors.COBOL0405, loc, span, sym.Name);

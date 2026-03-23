@@ -25,8 +25,6 @@ public sealed class Binder
     private readonly SemanticModel _semantic;
     private readonly RecordLayoutBuilder _layout;
     private readonly DiagnosticBag _diagnostics;
-    private static readonly SourceLocation s_noLocation = new("<source>", 0, 0, 0);
-    private static readonly TextSpan s_noSpan = new(0, 0);
     private readonly IrValueFactory _valueFactory = new();
     private readonly Dictionary<string, IrMethod> _paragraphMethods =
         new(StringComparer.OrdinalIgnoreCase);
@@ -627,19 +625,6 @@ public sealed class Binder
         return new IrRefModLocation(baseLoc, refMod.Start, refMod.Length, baseLen);
     }
 
-    /// <summary>
-    /// Get the PicDescriptor for an IrLocation (static or element).
-    /// </summary>
-    private static Runtime.PicDescriptor GetPicForLocation(IrLocation loc)
-    {
-        return loc switch
-        {
-            IrStaticLocation s => s.Location.Pic,
-            IrElementRef e => e.ElementPic,
-            IrRefModLocation r => GetPicForLocation(r.Base),
-            _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
-        };
-    }
 
     /// <summary>
     /// Format a numeric literal for MOVE to alphanumeric field.
@@ -760,7 +745,7 @@ public sealed class Binder
 
                 block.Instructions.Add(new IrMoveFieldToField(
                     srcLoc, dstLoc,
-                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
+                    srcLoc.GetPic(), dstLoc.GetPic()));
             }
             return block;
         }
@@ -808,7 +793,7 @@ public sealed class Binder
             }
             else if (mv.Source is BoundLiteralExpression lit)
             {
-                var destPic = GetPicForLocation(destLoc);
+                var destPic = destLoc.GetPic();
                 if (lit.Value is string s)
                 {
                     if (destPic.Category == Runtime.CobolCategory.NumericEdited)
@@ -852,7 +837,7 @@ public sealed class Binder
                 {
                     block.Instructions.Add(new IrMoveFieldToField(
                         srcLoc, destLoc,
-                        GetPicForLocation(srcLoc), GetPicForLocation(destLoc),
+                        srcLoc.GetPic(), destLoc.GetPic(),
                         mv.IsRounded));
                 }
             }
@@ -936,7 +921,7 @@ public sealed class Binder
         var indexLoc = ResolveLocation(v.Index);
         if (indexLoc == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0500, s_noLocation, s_noSpan, v.Index.Name);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0500, SourceLocation.None, TextSpan.Empty, v.Index.Name);
             return block;
         }
 
@@ -993,7 +978,7 @@ public sealed class Binder
             if (srcLoc != null)
                 block.Instructions.Add(new IrMoveFieldToField(
                     srcLoc, dest,
-                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
+                    srcLoc.GetPic(), dest.GetPic()));
         }
     }
 
@@ -1036,7 +1021,7 @@ public sealed class Binder
         if (perf.Target == null) return;
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0501, s_noLocation, s_noSpan, perf.Target.Name);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, perf.Target.Name);
             return;
         }
 
@@ -1084,7 +1069,7 @@ public sealed class Binder
 
         if (perf.Target == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0502, s_noLocation, s_noSpan);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0502, SourceLocation.None, TextSpan.Empty);
             return block;
         }
         if (!_paragraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
@@ -1182,7 +1167,7 @@ public sealed class Binder
                 if (fromLoc != null)
                     block.Instructions.Add(new IrMoveFieldToField(
                         fromLoc, recordLoc,
-                        GetPicForLocation(fromLoc), GetPicForLocation(recordLoc)));
+                        fromLoc.GetPic(), recordLoc.GetPic()));
             }
 
             if (wr.AdvancingLines.HasValue)
@@ -1298,7 +1283,7 @@ public sealed class Binder
             {
                 block.Instructions.Add(new IrMoveFieldToField(
                     srcLoc, dstLoc,
-                    GetPicForLocation(srcLoc), GetPicForLocation(dstLoc)));
+                    srcLoc.GetPic(), dstLoc.GetPic()));
             }
         }
 
@@ -1307,33 +1292,49 @@ public sealed class Binder
         {
             var atEndResult = _valueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckFileAtEnd(cobolName, atEndResult));
-
-            var atEndBlock = method.CreateBlock("read_at_end");
-            var notAtEndBlock = method.CreateBlock("read_not_at_end");
-            var afterBlock = method.CreateBlock("read_after");
-
-            block.Instructions.Add(new IrBranchIfFalse(atEndResult, notAtEndBlock));
-            block.Instructions.Add(new IrJump(atEndBlock));
-
-            // AT END
-            method.Blocks.Add(atEndBlock);
-            var current = atEndBlock;
-            foreach (var stmt in read.AtEnd)
-                current = LowerStatement(stmt, method, current);
-            current.Instructions.Add(new IrJump(afterBlock));
-
-            // NOT AT END
-            method.Blocks.Add(notAtEndBlock);
-            current = notAtEndBlock;
-            foreach (var stmt in read.NotAtEnd)
-                current = LowerStatement(stmt, method, current);
-            current.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(afterBlock);
-            return afterBlock;
+            return LowerConditionalBranch(read.AtEnd, read.NotAtEnd, atEndResult, method, block, "read");
         }
 
         return block;
+    }
+
+    /// <summary>
+    /// Emit conditional branching for file I/O exception handling patterns
+    /// (AT END / NOT AT END, INVALID KEY / NOT INVALID KEY, ON EXCEPTION / NOT ON EXCEPTION).
+    /// Creates true/false/after blocks, branches on the condition, lowers statement lists, and
+    /// returns the after block.
+    /// </summary>
+    private IrBasicBlock LowerConditionalBranch(
+        IReadOnlyList<BoundStatement> onTrue,
+        IReadOnlyList<BoundStatement> onFalse,
+        IrValue conditionResult,
+        IrMethod method,
+        IrBasicBlock block,
+        string labelPrefix)
+    {
+        var trueBlock = method.CreateBlock($"{labelPrefix}.true");
+        var falseBlock = method.CreateBlock($"{labelPrefix}.false");
+        var afterBlock = method.CreateBlock($"{labelPrefix}.after");
+
+        block.Instructions.Add(new IrBranchIfFalse(conditionResult, falseBlock));
+        block.Instructions.Add(new IrJump(trueBlock));
+
+        // True branch
+        method.Blocks.Add(trueBlock);
+        var current = trueBlock;
+        foreach (var stmt in onTrue)
+            current = LowerStatement(stmt, method, current);
+        current.Instructions.Add(new IrJump(afterBlock));
+
+        // False branch
+        method.Blocks.Add(falseBlock);
+        current = falseBlock;
+        foreach (var stmt in onFalse)
+            current = LowerStatement(stmt, method, current);
+        current.Instructions.Add(new IrJump(afterBlock));
+
+        method.Blocks.Add(afterBlock);
+        return afterBlock;
     }
 
     /// <summary>
@@ -1368,7 +1369,7 @@ public sealed class Binder
                 if (fromLoc != null)
                     block.Instructions.Add(new IrMoveFieldToField(
                         fromLoc, recordLoc,
-                        GetPicForLocation(fromLoc), GetPicForLocation(recordLoc)));
+                        fromLoc.GetPic(), recordLoc.GetPic()));
             }
 
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
@@ -1389,28 +1390,7 @@ public sealed class Binder
         {
             var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
-
-            var invalidBlock = method.CreateBlock("delete.invalid");
-            var notInvalidBlock = method.CreateBlock("delete.not.invalid");
-            var afterBlock = method.CreateBlock("delete.after");
-
-            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
-            block.Instructions.Add(new IrJump(invalidBlock));
-
-            method.Blocks.Add(invalidBlock);
-            var ikCurrent = invalidBlock;
-            foreach (var stmt in del.InvalidKey)
-                ikCurrent = LowerStatement(stmt, method, ikCurrent);
-            ikCurrent.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(notInvalidBlock);
-            var nikCurrent = notInvalidBlock;
-            foreach (var stmt in del.NotInvalidKey)
-                nikCurrent = LowerStatement(stmt, method, nikCurrent);
-            nikCurrent.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(afterBlock);
-            return afterBlock;
+            return LowerConditionalBranch(del.InvalidKey, del.NotInvalidKey, invalidResult, method, block, "delete");
         }
 
         return block;
@@ -1458,28 +1438,7 @@ public sealed class Binder
         {
             var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
-
-            var invalidBlock = method.CreateBlock("start.invalid");
-            var notInvalidBlock = method.CreateBlock("start.not.invalid");
-            var afterBlock = method.CreateBlock("start.after");
-
-            block.Instructions.Add(new IrBranchIfFalse(invalidResult, notInvalidBlock));
-            block.Instructions.Add(new IrJump(invalidBlock));
-
-            method.Blocks.Add(invalidBlock);
-            var ikCurrent = invalidBlock;
-            foreach (var stmt in start.InvalidKey)
-                ikCurrent = LowerStatement(stmt, method, ikCurrent);
-            ikCurrent.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(notInvalidBlock);
-            var nikCurrent = notInvalidBlock;
-            foreach (var stmt in start.NotInvalidKey)
-                nikCurrent = LowerStatement(stmt, method, nikCurrent);
-            nikCurrent.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(afterBlock);
-            return afterBlock;
+            return LowerConditionalBranch(start.InvalidKey, start.NotInvalidKey, invalidResult, method, block, "start");
         }
 
         return block;
@@ -1547,34 +1506,9 @@ public sealed class Binder
         // ON EXCEPTION / NOT ON EXCEPTION branching
         if (call.OnException.Count > 0 || call.NotOnException.Count > 0)
         {
-            // The call result (success/fail) is checked by the CIL emitter
-            // which branches based on the return value of the Entry method.
-            var excBlock = method.CreateBlock("call_exception");
-            var notExcBlock = method.CreateBlock("call_not_exception");
-            var afterBlock = method.CreateBlock("call_after");
-
-            // Branch on call result (emitter checks last call status)
             var callResult = _valueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckCallException(call.TargetName, callResult));
-            block.Instructions.Add(new IrBranchIfFalse(callResult, notExcBlock));
-            block.Instructions.Add(new IrJump(excBlock));
-
-            // ON EXCEPTION
-            method.Blocks.Add(excBlock);
-            var current = excBlock;
-            foreach (var stmt in call.OnException)
-                current = LowerStatement(stmt, method, current);
-            current.Instructions.Add(new IrJump(afterBlock));
-
-            // NOT ON EXCEPTION
-            method.Blocks.Add(notExcBlock);
-            current = notExcBlock;
-            foreach (var stmt in call.NotOnException)
-                current = LowerStatement(stmt, method, current);
-            current.Instructions.Add(new IrJump(afterBlock));
-
-            method.Blocks.Add(afterBlock);
-            return afterBlock;
+            return LowerConditionalBranch(call.OnException, call.NotOnException, callResult, method, block, "call");
         }
 
         return block;
@@ -1605,7 +1539,7 @@ public sealed class Binder
         var loc = ResolveLocation(item);
         if (loc == null) return;
 
-        var pic = GetPicForLocation(loc);
+        var pic = loc.GetPic();
         var category = ClassifyInitializeCategory(pic.Category);
 
         // Check for matching category replacement
@@ -1642,7 +1576,7 @@ public sealed class Binder
 
     private void EmitInitializeAssignment(IrLocation dest, BoundExpression value, IrBasicBlock block)
     {
-        var pic = GetPicForLocation(dest);
+        var pic = dest.GetPic();
         if (value is BoundLiteralExpression lit)
         {
             if (lit.Value is decimal d)
@@ -1664,7 +1598,7 @@ public sealed class Binder
             if (srcLoc != null)
                 block.Instructions.Add(new IrMoveFieldToField(
                     srcLoc, dest,
-                    GetPicForLocation(srcLoc), GetPicForLocation(dest)));
+                    srcLoc.GetPic(), dest.GetPic()));
         }
     }
 
@@ -1758,7 +1692,7 @@ public sealed class Binder
         else
         {
             // SET condition TO FALSE: move a value that doesn't match any true value
-            var parentCat = GetPicForLocation(parentLoc).Category;
+            var parentCat = parentLoc.GetPic().Category;
             if (parentCat.IsNumericLike())
             {
                 var trueVals = stmt.Condition.ValueRanges.Select(r => r.From).ToList();
@@ -1785,7 +1719,7 @@ public sealed class Binder
         var targetLoc = ResolveLocation(stmt.Target);
         if (targetLoc == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0510, s_noLocation, s_noSpan, stmt.Target.Symbol.Name);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0510, SourceLocation.None, TextSpan.Empty, stmt.Target.Symbol.Name);
             return;
         }
 
@@ -1801,7 +1735,7 @@ public sealed class Binder
             case SetOperation.Assign:
                 if (literalValue.HasValue)
                 {
-                    if (GetPicForLocation(targetLoc).Category.IsNumericLike())
+                    if (targetLoc.GetPic().Category.IsNumericLike())
                         block.Instructions.Add(new IrPicMoveLiteralNumeric(targetLoc, literalValue.Value));
                     else
                         block.Instructions.Add(new IrMoveStringToField(targetLoc,
@@ -1811,11 +1745,11 @@ public sealed class Binder
                 {
                     block.Instructions.Add(new IrMoveFieldToField(
                         valueLoc, targetLoc,
-                        GetPicForLocation(valueLoc), GetPicForLocation(targetLoc)));
+                        valueLoc.GetPic(), targetLoc.GetPic()));
                 }
                 else
                 {
-                    _diagnostics.Report(DiagnosticDescriptors.COBOL0511, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0511, SourceLocation.None, TextSpan.Empty, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
 
@@ -1826,7 +1760,7 @@ public sealed class Binder
                     block.Instructions.Add(new IrPicAdd(valueLoc, targetLoc));
                 else
                 {
-                    _diagnostics.Report(DiagnosticDescriptors.COBOL0512, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0512, SourceLocation.None, TextSpan.Empty, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
 
@@ -1837,7 +1771,7 @@ public sealed class Binder
                     block.Instructions.Add(new IrPicSubtract(valueLoc, targetLoc));
                 else
                 {
-                    _diagnostics.Report(DiagnosticDescriptors.COBOL0513, s_noLocation, s_noSpan, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0513, SourceLocation.None, TextSpan.Empty, stmt.Target.Symbol.Name, stmt.Value.GetType().Name);
                 }
                 break;
         }
@@ -2050,7 +1984,7 @@ public sealed class Binder
                     block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
 
                     // Remainder uses the target's fraction digits (quotient stored in target)
-                    int givingFracDigits = GetPicForLocation(destLoc).FractionDigits;
+                    int givingFracDigits = destLoc.GetPic().FractionDigits;
                     var remLoc = ResolveLocation(div.RemainderTarget!);
                     if (remLoc != null)
                     {
@@ -2093,7 +2027,7 @@ public sealed class Binder
             {
                 var givingLoc = ResolveLocation(div.Targets[0].Target);
                 int givingFracDigits = givingLoc != null
-                    ? GetPicForLocation(givingLoc).FractionDigits : 0;
+                    ? givingLoc.GetPic().FractionDigits : 0;
 
                 block.Instructions.Add(new IrCobolRemainder(
                     div.Receiver, div.Operands[0], accum.Value, givingFracDigits, remLoc,
@@ -2467,7 +2401,7 @@ public sealed class Binder
             {
                 var loc = ResolveExpressionLocation(expr);
                 if (loc == null) return null;
-                var pic = GetPicForLocation(loc);
+                var pic = loc.GetPic();
                 return ComparisonOperand.FromLocation(loc, pic.Category, pic.StorageLength);
             }
 
@@ -2579,7 +2513,7 @@ public sealed class Binder
             return;
         }
 
-        _diagnostics.Report(DiagnosticDescriptors.COBOL0503, s_noLocation, s_noSpan, cond.GetType().Name);
+        _diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty, cond.GetType().Name);
     }
 
     /// <summary>
@@ -2592,7 +2526,7 @@ public sealed class Binder
 
         if (left == null || right == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0504, s_noLocation, s_noSpan, binCond.Left.GetType().Name, binCond.Right.GetType().Name);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0504, SourceLocation.None, TextSpan.Empty, binCond.Left.GetType().Name, binCond.Right.GetType().Name);
             return;
         }
 
@@ -2664,7 +2598,7 @@ public sealed class Binder
                 break;
 
             default:
-                _diagnostics.Report(DiagnosticDescriptors.COBOL0505, s_noLocation, s_noSpan, left.Kind, right.Kind);
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0505, SourceLocation.None, TextSpan.Empty, left.Kind, right.Kind);
                 break;
         }
     }
@@ -2827,7 +2761,7 @@ public sealed class Binder
             return;
         }
 
-        var parentCat = GetPicForLocation(parentLoc).Category;
+        var parentCat = parentLoc.GetPic().Category;
 
         // Build a list of individual match results
         var matchResults = new List<IrValue>();
@@ -2975,21 +2909,21 @@ public sealed class Binder
             if (_paragraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
             else
-                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, s_noLocation, s_noSpan, gt.Target.Name);
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, SourceLocation.None, TextSpan.Empty, gt.Target.Name);
             return;
         }
 
         // GO TO para1 para2 ... DEPENDING ON selector
         if (gt.DependingOn == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0507, s_noLocation, s_noSpan);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0507, SourceLocation.None, TextSpan.Empty);
             return;
         }
 
         var selectorLoc = ResolveExpressionLocation(gt.DependingOn);
         if (selectorLoc == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0508, s_noLocation, s_noSpan, gt.DependingOn);
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0508, SourceLocation.None, TextSpan.Empty, gt.DependingOn);
             return;
         }
 
@@ -3001,7 +2935,7 @@ public sealed class Binder
                 targetIndices.Add(idx);
             else
             {
-                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, s_noLocation, s_noSpan, target.Name);
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0506, SourceLocation.None, TextSpan.Empty, target.Name);
                 targetIndices.Add(-1);
             }
         }
@@ -3032,7 +2966,7 @@ public sealed class Binder
     {
         if (_performExitStack.Count == 0)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "PERFORM", "PERFORM");
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, SourceLocation.None, TextSpan.Empty, "PERFORM", "PERFORM");
             return block;
         }
 
@@ -3048,7 +2982,7 @@ public sealed class Binder
     {
         if (_paragraphEndBlock == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "PARAGRAPH", "paragraph");
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, SourceLocation.None, TextSpan.Empty, "PARAGRAPH", "paragraph");
             return block;
         }
 
@@ -3063,7 +2997,7 @@ public sealed class Binder
     {
         if (_sectionExitReturnIndex == null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, s_noLocation, s_noSpan, "SECTION", "section");
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0509, SourceLocation.None, TextSpan.Empty, "SECTION", "section");
             return block;
         }
 

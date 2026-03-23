@@ -89,7 +89,7 @@ public static class SymbolValidator
             rejected.IsValid = false;
 
             var loc = new SourceLocation("<source>", 0, rejected.Line, 0);
-            var span = new TextSpan(0, 0);
+            var span = TextSpan.Empty;
 
             // Choose diagnostic based on symbol kinds
             if (rejected.Kind == existing.Kind)
@@ -149,7 +149,7 @@ public static class SymbolValidator
             if (data.Redefines == null) continue;
 
             var loc = new SourceLocation("<source>", 0, data.Line, 0);
-            var span = new TextSpan(0, 0);
+            var span = TextSpan.Empty;
             var target = data.Redefines;
 
             // Level numbers must match
@@ -181,7 +181,7 @@ public static class SymbolValidator
             if (data.Area != StorageAreaKind.LinkageSection) continue;
 
             var loc = new SourceLocation("<source>", 0, data.Line, 0);
-            var span = new TextSpan(0, 0);
+            var span = TextSpan.Empty;
 
             // VALUE not allowed on LINKAGE items (except 88-level)
             if (data.InitialValue != null && data.LevelNumber != 88)

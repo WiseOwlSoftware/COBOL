@@ -49,7 +49,7 @@ public static class ProcedureGraph
                 {
                     diagnostics.Report(DiagnosticDescriptors.CBL3002,
                         new SourceLocation("<source>", 0, program.Paragraphs[i].Symbol.Line, 0),
-                        new TextSpan(0, 0), fromSection, toSection);
+                        TextSpan.Empty, fromSection, toSection);
                 }
             }
 
@@ -88,7 +88,7 @@ public static class ProcedureGraph
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL3001,
                     new SourceLocation("<source>", 0, para.Symbol.Line, 0),
-                    new TextSpan(0, 0), para.Symbol.Name);
+                    TextSpan.Empty, para.Symbol.Name);
             }
         }
     }
