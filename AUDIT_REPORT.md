@@ -453,8 +453,8 @@ Codebase: 97 C# source files (excluding generated ANTLR code).
 
 ## 3.1 Meaningless Wrappers — **RESOLVED**
 
-- ~~`BindDataReference`~~: **Inlined** at single call site (BindMove) and deleted.
-- `BindFullExpression`: Retained as structural entry point (12 callers).
+- ~~`BindDataReference`~~: **Inlined** at single call site and deleted.
+- ~~`BindFullExpression`~~: **Eliminated**. All 12 callers updated to call `BindAdditiveExpression(ctx.additiveExpression())` directly. Wrapper method deleted.
 
 ---
 

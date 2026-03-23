@@ -556,8 +556,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 var afterSym = ValidatePerformIndex(afterExpr);
                 if (afterSym == null) continue;
                 var afterExprs = afterCtx.arithmeticExpression();
-                var afterInit = BindFullExpression(afterExprs[0]);
-                var afterStep = BindFullExpression(afterExprs[1]);
+                var afterInit = BindAdditiveExpression(afterExprs[0].additiveExpression());
+                var afterStep = BindAdditiveExpression(afterExprs[1].additiveExpression());
                 var afterUntil = BindCondition(afterCtx.condition());
                 inner = new BoundPerformVarying(afterSym, afterInit, afterStep, afterUntil, inner);
             }
@@ -568,8 +568,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var indexSym = ValidatePerformIndex(indexExpr);
         if (indexSym == null) return null;
         var arithExprs = ctx.arithmeticExpression();
-        var initial = BindFullExpression(arithExprs[0]);  // FROM
-        var step = BindFullExpression(arithExprs[1]);      // BY
+        var initial = BindAdditiveExpression(arithExprs[0].additiveExpression());  // FROM
+        var step = BindAdditiveExpression(arithExprs[1].additiveExpression());      // BY
         var untilCond = BindCondition(ctx.condition());
 
         return new BoundPerformVarying(indexSym, initial, step, untilCond, inner);
@@ -614,7 +614,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 continue;
             }
             if (subCtx.valueOperand()?.arithmeticExpression() is { } arithCtx)
-                subjects.Add(BindFullExpression(arithCtx));
+                subjects.Add(BindAdditiveExpression(arithCtx.additiveExpression()));
             else if (subCtx.valueOperand()?.nonNumericLiteral() is { } nonNumCtx)
                 subjects.Add(BindNonNumericLiteral(nonNumCtx));
         }
@@ -682,7 +682,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             // Fallback: try as valueOperand (bare identifier → condition name)
             if (items.Length > 0 && items[0].valueOperand()?.arithmeticExpression() is { } arithFallback)
             {
-                var expr = BindFullExpression(arithFallback);
+                var expr = BindAdditiveExpression(arithFallback.additiveExpression());
                 // Check if the result resolves to a condition name
                 expr = TryResolveConditionName(expr);
                 return new BoundEvaluateConditionWhen(expr);
@@ -728,7 +728,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (vo.nonNumericLiteral() is { } nonNumCtx)
             return BindNonNumericLiteral(nonNumCtx);
-        return BindFullExpression(vo.arithmeticExpression());
+        return BindAdditiveExpression(vo.arithmeticExpression().additiveExpression());
     }
 
     // ── WRITE ──
@@ -1089,7 +1089,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 }
                 else if (argCtx.callByValue() is { } byValue)
                 {
-                    var expr = BindFullExpression(byValue.arithmeticExpression());
+                    var expr = BindAdditiveExpression(byValue.arithmeticExpression().additiveExpression());
                     if (expr != null)
                         arguments.Add(new BoundCallArgument(ParameterMode.ByValue, expr));
                 }
@@ -2233,7 +2233,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
 
         // Bind the full arithmetic expression (recursive tree walk)
-        var expr = BindFullExpression(ctx.arithmeticExpression());
+        var expr = BindAdditiveExpression(ctx.arithmeticExpression().additiveExpression());
 
         var sizeError = BindSizeErrorClause(ctx.computeOnSizeError());
         return ValidatedArithmetic(ArithmeticKind.Compute, new[] { expr }, null, targets, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
@@ -2244,11 +2244,6 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     /// Walks the parse tree: additiveExpression → multiplicativeExpression →
     /// powerExpression → unaryExpression → primaryExpression.
     /// </summary>
-    private BoundExpression BindFullExpression(CobolParserCore.ArithmeticExpressionContext ctx)
-    {
-        return BindAdditiveExpression(ctx.additiveExpression());
-    }
-
     private BoundExpression BindAdditiveExpression(CobolParserCore.AdditiveExpressionContext ctx)
     {
         var terms = ctx.multiplicativeExpression();
@@ -2331,7 +2326,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (ctx.arithmeticExpression() != null)
-            return BindFullExpression(ctx.arithmeticExpression());
+            return BindAdditiveExpression(ctx.arithmeticExpression().additiveExpression());
 
         // functionCall — not yet implemented, emit diagnostic
         if (ctx.functionCall() != null)
@@ -3127,7 +3122,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     private BoundExpression BindArithmeticExpr(CobolParserCore.ArithmeticExpressionContext? ctx)
-        => ctx != null ? BindFullExpression(ctx) : new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        => ctx != null ? BindAdditiveExpression(ctx.additiveExpression()) : new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
     /// <summary>
     /// Bind a data reference: IDENTIFIER with optional qualification (OF/IN),
