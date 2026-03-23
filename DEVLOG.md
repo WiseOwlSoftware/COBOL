@@ -6351,4 +6351,19 @@ CBL3114 initially walked the entire parent chain, rejecting REDEFINES anywhere u
 The spec actually only prohibits REDEFINES of an item that itself has OCCURS. Existing unit test
 `RedefinesWithinOccurs_NoDiagnostic` caught the error.
 
+---
+
+## 2026-03-23 (cont.) — Flow-sensitive file state validation
+
+New `FileStateValidator` — forward-walk across paragraphs tracking file open/close state:
+
+- **CBL0702** (warning): I/O operation on file not yet OPENed. Tracks `Set<FileSymbol>` of
+  opened files; OPEN adds, CLOSE removes, READ/WRITE/REWRITE/DELETE checks membership.
+- **CBL3206** (warning): FILE STATUS not checked between I/O operations. Tracks pending
+  status checks per file; clears when the status variable is referenced in IF/EVALUATE/DISPLAY/MOVE.
+
+Architecture: standalone validation pass running inside Binder.Bind after BoundTreeValidator,
+before IR lowering. Simple forward-walk with mutable sets — no CFG or dataflow framework needed.
+Also handles nested statements (IF/EVALUATE/AT END/INVALID KEY).
+
 *End of entries for 2026-03-23*

@@ -609,13 +609,14 @@ These are dispatch switches or spec-matching implementations where the complexit
 
 | Validator | File | Post/Pre-binding | Diagnostics |
 |---|---|---|---|
-| BoundTreeValidator | `Semantics/Bound/BoundTreeValidator.cs` | Post | CBL0701, CBL1601-1703, CBL1801-2001, CBL2101, CBL2302-2503, CBL3310 |
+| BoundTreeValidator | `Semantics/Bound/BoundTreeValidator.cs` | Post | CBL0701, CBL1601-1704, CBL1801-2001, CBL2101, CBL2302-2503, CBL3302, CBL3304, CBL3310 |
+| FileStateValidator | `Semantics/FileStateValidator.cs` | Post | CBL0702 (file not open), CBL3206 (FILE STATUS not checked) |
 | SymbolValidator | `Semantics/SymbolValidator.cs` | Pre | CBL3101-3104, CBL3107, CBL3110-3113 |
 | DataItemClassifier | `Semantics/DataItemClassifier.cs` | Pre | CBL0801-0803, CBL1001-1004, CBL1103-1104 |
 | ParagraphValidator | `Semantics/ParagraphValidator.cs` | Pre | Ad-hoc "SEM" warnings (no CBL code) |
 | FileStatusValidator | `Semantics/FileStatusValidator.cs` | Pre | CBL3201-3204 |
 | ProcedureGraph | `Semantics/ProcedureGraph.cs` | Post | CBL3001-3004 |
-| ReportWriterValidator | `Semantics/ReportWriterValidator.cs` | Stub | Empty body. CBL3401-3406 defined but never emitted. |
+| ~~ReportWriterValidator~~ | Deleted | — | Report Writer not implemented; CBL3401-3406 deleted |
 
 ### Dormant Diagnostics (47 of 107 defined descriptors never emitted)
 

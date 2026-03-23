@@ -319,6 +319,8 @@ public static partial class DiagnosticDescriptors
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL0701 = new("CBL0701", DiagnosticSeverity.Error,
         "OPEN EXTEND not allowed on non-sequential file '{0}'");
+    public static readonly DiagnosticDescriptor CBL0702 = new("CBL0702", DiagnosticSeverity.Warning,
+        "I/O operation on file '{0}' which has not been OPENed");
 
     // ══════════════════════════════════════
     // Data item classification (Phase 1.1)
