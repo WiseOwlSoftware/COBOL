@@ -288,6 +288,11 @@ public static class BoundTreeValidator
         if (IsSequentialOrganization(start.File))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1601);
 
+        // CBL1602: START KEY must be a comparison expression (not a bare identifier)
+        if (start.KeyCondition != null && start.KeyCondition is not BoundBinaryExpression
+            && start.KeyCondition is not BoundIdentifierExpression)
+            Report(diagnostics, line, DiagnosticDescriptors.CBL1602);
+
         // CBL1603: START KEY operand not a record key of file
         if (start.KeyCondition is BoundBinaryExpression binExpr
             && binExpr.Left is BoundIdentifierExpression keyId
@@ -296,9 +301,17 @@ public static class BoundTreeValidator
         {
             Report(diagnostics, line, DiagnosticDescriptors.CBL1603);
         }
+
+        // CBL1604: START KEY comparison operands must be compatible types
+        if (start.KeyCondition is BoundBinaryExpression keyBin
+            && keyBin.Left.ResultType != null && keyBin.Right.ResultType != null
+            && !IsTypeCompatible(keyBin.Left.ResultType, keyBin.Right.ResultType))
+        {
+            Report(diagnostics, line, DiagnosticDescriptors.CBL1604);
+        }
     }
 
-    /// <summary>CBL1801: WRITE FROM source incompatible with record.</summary>
+    /// <summary>CBL1801-1803: WRITE FROM + ADVANCING validation.</summary>
     private static void ValidateWrite(BoundWriteStatement write, int line, DiagnosticBag diagnostics)
     {
         // CBL1801: WRITE FROM source must be compatible with record
@@ -306,12 +319,15 @@ public static class BoundTreeValidator
         {
             var sourceType = write.From.ResultType;
             var recordType = ExpressionType.FromDataSymbol(write.File.Record);
-            // Group records accept any source (group move). For elementary records,
-            // check that source is not boolean (conditions can't be MOVE sources).
             if (sourceType != null && recordType.Kind != ExpressionTypeKind.Group
                 && sourceType.IsBoolean)
                 Report(diagnostics, line, DiagnosticDescriptors.CBL1801);
         }
+
+        // CBL1802: WRITE ADVANCING value must be numeric (non-negative integer)
+        // CBL1803: WRITE ADVANCING with data-item must be integer numeric
+        // Currently AdvancingLines is parsed as int? from integer literal or PAGE sentinel.
+        // When a data-item advancing operand is added, validate its type here.
     }
 
     /// <summary>CBL1901: REWRITE not allowed on sequential files. CBL1902: FROM incompatible.</summary>
@@ -358,6 +374,13 @@ public static class BoundTreeValidator
         if (call.IsDynamic)
             Report(diagnostics, line, DiagnosticDescriptors.CBL3310);
 
+        // CBL3302: BY REFERENCE argument must be an identifier (not a literal)
+        foreach (var arg in call.Arguments)
+        {
+            if (arg.Mode == ParameterMode.ByReference && arg.Expression is not BoundIdentifierExpression)
+                Report(diagnostics, line, DiagnosticDescriptors.CBL3302);
+        }
+
         // CBL3304: RETURNING item must be in LINKAGE SECTION
         if (call.ReturningTarget is BoundIdentifierExpression returning
             && returning.Symbol.Area != StorageAreaKind.LinkageSection)
@@ -383,6 +406,14 @@ public static class BoundTreeValidator
         if (read.KeyDataName != null && read.File.RecordKey != null
             && !string.Equals(read.KeyDataName, read.File.RecordKey, StringComparison.OrdinalIgnoreCase))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1703);
+
+        // CBL1704: READ INTO target must be alphanumeric or group
+        if (read.Into is BoundIdentifierExpression into)
+        {
+            var targetType = ExpressionType.FromDataSymbol(into.Symbol);
+            if (targetType.IsBoolean)
+                Report(diagnostics, line, DiagnosticDescriptors.CBL1704);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

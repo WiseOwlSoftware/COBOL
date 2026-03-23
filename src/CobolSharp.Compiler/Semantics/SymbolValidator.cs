@@ -20,6 +20,7 @@ public static class SymbolValidator
         ValidateScopeRejections(model, diagnostics);
         ValidateRedefines(model, diagnostics);
         ValidateLinkageSection(model, diagnostics);
+        ValidateProcedureUsingReturning(model, diagnostics);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -167,6 +168,12 @@ public static class SymbolValidator
                     target.DisplayName, target.LevelNumber);
             }
 
+            // CBL3114: REDEFINES target must not itself have an OCCURS clause
+            if (target.Occurs is { MaxOccurs: > 1 })
+            {
+                diagnostics.Report(DiagnosticDescriptors.CBL3114, loc, span,
+                    target.DisplayName, target.DisplayName);
+            }
         }
     }
 
@@ -194,6 +201,33 @@ public static class SymbolValidator
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL3111, loc, span, data.DisplayName);
             }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Pass 4: PROCEDURE DIVISION USING/RETURNING validation
+    // ═══════════════════════════════════════════════════════════════
+
+    private static void ValidateProcedureUsingReturning(SemanticModel model, DiagnosticBag diagnostics)
+    {
+        // CBL3108: USING parameters must be in LINKAGE SECTION
+        foreach (var param in model.ProcedureUsingParameters)
+        {
+            if (param.Area != StorageAreaKind.LinkageSection)
+            {
+                diagnostics.Report(DiagnosticDescriptors.CBL3108,
+                    new SourceLocation("<source>", 0, param.Line, 0), TextSpan.Empty,
+                    param.DisplayName);
+            }
+        }
+
+        // CBL3109: RETURNING item must be in LINKAGE SECTION
+        if (model.ProcedureReturningItem is { } ret
+            && ret.Area != StorageAreaKind.LinkageSection)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL3109,
+                new SourceLocation("<source>", 0, ret.Line, 0), TextSpan.Empty,
+                ret.DisplayName);
         }
     }
 }

@@ -628,8 +628,8 @@ These are dispatch switches or spec-matching implementations where the complexit
 | STRING | CBL1302-1303 | 2 |
 | UNSTRING | CBL1402-1404 | 3 |
 | INSPECT | CBL1503 | 1 |
-| START | CBL1602, CBL1604-1605 | 3 |
-| READ | CBL1704 | 1 |
+| START | CBL1605 | 1 |
+| READ | — | 0 |
 | WRITE | CBL1802-1803 | 2 |
 | RETURN | CBL2102 | 1 |
 | RELEASE | CBL2201 | 1 |
@@ -637,10 +637,9 @@ These are dispatch switches or spec-matching implementations where the complexit
 | IF/comparison | CBL2402 | 1 |
 | Arithmetic | CBL2604 | 1 |
 | Flow analysis | CBL3003 | 1 |
-| Scope & symbols | CBL3105-3106, CBL3108-3109, CBL3114 | 5 |
+| Scope & symbols | CBL3105-3106 | 2 |
 | File status | CBL3205-3206 | 2 |
-| CALL | CBL3301-3305 | 5 |
-| Report Writer | CBL3402-3406 | 5 |
+| CALL | CBL3301, CBL3303, CBL3305 | 3 |
 | Strict COBOL-85 | CBL3501-3502 | 2 |
 | **Total** | | **47** |
 

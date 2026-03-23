@@ -6329,4 +6329,26 @@ All are either dispatch switches (EmitInstruction, LowerStatement, EmitExpressio
 spec-matching COBOL statement implementations (BindPerform, LowerDivide, BindInspect, etc.)
 where the complexity is irreducible. No refactoring applied.
 
+---
+
+## 2026-03-23 (cont.) — Wire dormant validation diagnostics
+
+Wired 7 previously-defined-but-unused diagnostic descriptors:
+
+- **CBL3302** (ValidateCall): BY REFERENCE argument must be an identifier, not a literal.
+- **CBL1704** (ValidateRead): READ INTO target must not be boolean (level-88).
+- **CBL3108** (SymbolValidator): PROCEDURE DIVISION USING parameter must be in LINKAGE SECTION.
+- **CBL3109** (SymbolValidator): PROCEDURE DIVISION RETURNING item must be in LINKAGE SECTION.
+- **CBL3114** (SymbolValidator): REDEFINES target must not itself have an OCCURS clause.
+- **CBL1602** (ValidateStart): START KEY must be a comparison expression.
+- **CBL1604** (ValidateStart): START KEY comparison operands must be compatible types.
+
+CBL1802/1803 (WRITE ADVANCING type) have placeholder comments — need data-item advancing
+operand support to fully wire.
+
+### AI Misstep
+CBL3114 initially walked the entire parent chain, rejecting REDEFINES anywhere under OCCURS.
+The spec actually only prohibits REDEFINES of an item that itself has OCCURS. Existing unit test
+`RedefinesWithinOccurs_NoDiagnostic` caught the error.
+
 *End of entries for 2026-03-23*
