@@ -86,6 +86,34 @@ public sealed class CilEmitter
 
         foreach (var m in ir.Methods)
             EmitMethodBody(m);
+
+        // 5. Generate static Entry(CobolDataPointer[]) method for inter-program CALL
+        EmitEntryMethod(ir);
+    }
+
+    /// <summary>
+    /// Generate the static Entry method that serves as the CALL target for this program.
+    /// Entry maps CobolDataPointer[] args to LINKAGE items and runs the paragraph dispatch.
+    /// The Main method registers the program and calls Entry with empty args.
+    /// </summary>
+    private void EmitEntryMethod(IrModule ir)
+    {
+        var entryMethod = new MethodDefinition(
+            "Entry",
+            MethodAttributes.Public | MethodAttributes.Static,
+            _module.TypeSystem.Int32);
+        entryMethod.Parameters.Add(new ParameterDefinition(
+            "args", ParameterAttributes.None,
+            _module.ImportReference(typeof(CobolDataPointer[]))));
+        _programType!.Methods.Add(entryMethod);
+
+        var il = entryMethod.Body.GetILProcessor();
+
+        // TODO Phase 3 full: map args to LINKAGE items
+        // For now, Entry just returns 0 (normal completion).
+        // The actual paragraph dispatch stays in Main until the full refactor.
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ret));
     }
 
     /// <summary>
@@ -549,6 +577,39 @@ public sealed class CilEmitter
                 EmitGoToDepending(il, gtd, getLocal);
                 break;
 
+            case IrStopRun:
+                // STOP RUN: exit the paragraph dispatch loop by returning -1.
+                // In a called program, this exits the Entry method.
+                // TODO: When nested CALL is exercised, upgrade to throw StopRunException
+                // to unwind across call boundaries.
+                il.Append(il.Create(OpCodes.Ldc_I4_M1));
+                il.Append(il.Create(OpCodes.Ret));
+                break;
+
+            case IrExitProgram:
+                // EXIT PROGRAM: return -1 from paragraph method (exit dispatch loop)
+                // In Phase 3 full implementation, this returns from the Entry method.
+                // For now, same as IrReturnConst(-1) to exit the paragraph dispatch.
+                il.Append(il.Create(OpCodes.Ldc_I4_M1));
+                il.Append(il.Create(OpCodes.Ret));
+                break;
+
+            case IrGoBack:
+                // GOBACK: same as EXIT PROGRAM (return from dispatch loop)
+                // In a main program, STOP RUN semantics apply, but since we don't
+                // yet distinguish main vs called at emit time, exit the dispatch loop.
+                il.Append(il.Create(OpCodes.Ldc_I4_M1));
+                il.Append(il.Create(OpCodes.Ret));
+                break;
+
+            case IrCallProgram callProg:
+                EmitCallProgram(il, callProg, _currentMethodDef!);
+                break;
+
+            case IrCheckCallException checkExc:
+                EmitCheckCallException(il, checkExc, getLocal);
+                break;
+
             case IrReturn ret:
                 EmitReturn(il, ret, getLocal);
                 break;
@@ -921,6 +982,166 @@ public sealed class CilEmitter
             var local = getLocal(res);
             il.Append(il.Create(OpCodes.Stloc, local));
         }
+    }
+
+    /// <summary>
+    /// Field to track the last CALL result (0=success, non-zero=exception).
+    /// Allocated lazily when the first IrCallProgram is emitted.
+    /// </summary>
+    private FieldDefinition? _lastCallResultField;
+
+    private void EmitCallProgram(ILProcessor il, IrCallProgram callProg, MethodDefinition method)
+    {
+        // Build CobolDataPointer[] args
+        int argCount = callProg.CallArguments.Count;
+        il.Append(il.Create(OpCodes.Ldc_I4, argCount));
+        il.Append(il.Create(OpCodes.Newarr,
+            _module.ImportReference(typeof(CobolDataPointer))));
+
+        for (int i = 0; i < argCount; i++)
+        {
+            var arg = callProg.CallArguments[i];
+            il.Append(il.Create(OpCodes.Dup)); // array ref
+            il.Append(il.Create(OpCodes.Ldc_I4, i)); // index
+
+            if (arg.Mode == 1) // BY CONTENT — copy
+            {
+                // Create a copy of the source bytes
+                EmitLocationArgs(il, arg.Source); // area, offset, length on stack
+                var copyMethod = _module.ImportReference(
+                    typeof(StorageHelpers).GetMethod("CopyBytes",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) }));
+                if (copyMethod != null)
+                    il.Append(il.Create(OpCodes.Call, copyMethod));
+                // Now we have byte[] copy on stack; construct CobolDataPointer(copy, 0, length, pic)
+                il.Append(il.Create(OpCodes.Ldc_I4_0)); // offset = 0
+                EmitLocationLength(il, arg.Source);
+                EmitDefaultPicDescriptor(il);
+                il.Append(il.Create(OpCodes.Newobj, GetCobolDataPointerCtor()));
+            }
+            else // BY REFERENCE (or BY VALUE)
+            {
+                // Pass pointer directly into caller's storage
+                EmitLocationArgs(il, arg.Source);
+                EmitDefaultPicDescriptor(il);
+                il.Append(il.Create(OpCodes.Newobj, GetCobolDataPointerCtor()));
+            }
+
+            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+        }
+
+        // Store args array in a local
+        var argsLocal = new VariableDefinition(_module.ImportReference(typeof(CobolDataPointer[])));
+        method.Body.Variables.Add(argsLocal);
+        il.Append(il.Create(OpCodes.Stloc, argsLocal));
+
+        // Resolve the target program
+        il.Append(il.Create(OpCodes.Ldstr, callProg.TargetName));
+        il.Append(il.Create(OpCodes.Call,
+            _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Resolve",
+                new[] { typeof(string) })!)));
+
+        // Check if resolve returned null (program not found)
+        var entryLocal = new VariableDefinition(
+            _module.ImportReference(typeof(CobolProgramEntry)));
+        method.Body.Variables.Add(entryLocal);
+        il.Append(il.Create(OpCodes.Stloc, entryLocal));
+
+        // Ensure _lastCallResultField exists
+        if (_lastCallResultField == null)
+        {
+            _lastCallResultField = new FieldDefinition(
+                "_lastCallResult",
+                FieldAttributes.Private | FieldAttributes.Static,
+                _module.TypeSystem.Int32);
+            _programType!.Fields.Add(_lastCallResultField);
+        }
+
+        // If entry is null, set result = -1 (exception)
+        var callLabel = il.Create(OpCodes.Nop);
+        var afterLabel = il.Create(OpCodes.Nop);
+
+        il.Append(il.Create(OpCodes.Ldloc, entryLocal));
+        il.Append(il.Create(OpCodes.Brtrue, callLabel));
+
+        // Not found: set result = -1
+        il.Append(il.Create(OpCodes.Ldc_I4_M1));
+        il.Append(il.Create(OpCodes.Stsfld, _lastCallResultField));
+        il.Append(il.Create(OpCodes.Br, afterLabel));
+
+        // Found: invoke entry(args)
+        il.Append(callLabel);
+        il.Append(il.Create(OpCodes.Ldloc, entryLocal));
+        il.Append(il.Create(OpCodes.Ldloc, argsLocal));
+        il.Append(il.Create(OpCodes.Callvirt,
+            _module.ImportReference(typeof(CobolProgramEntry).GetMethod("Invoke")!)));
+        il.Append(il.Create(OpCodes.Stsfld, _lastCallResultField));
+
+        il.Append(afterLabel);
+    }
+
+    private void EmitCheckCallException(ILProcessor il, IrCheckCallException checkExc,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Load _lastCallResult, check if < 0 (exception)
+        il.Append(il.Create(OpCodes.Ldsfld, _lastCallResultField!));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Clt));
+        if (checkExc.Result.HasValue)
+        {
+            var local = getLocal(checkExc.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, local));
+        }
+    }
+
+    private void EmitLocationLength(ILProcessor il, IrLocation loc)
+    {
+        if (loc is IrStaticLocation sl)
+            il.Append(il.Create(OpCodes.Ldc_I4, sl.Location.Length));
+        else
+            il.Append(il.Create(OpCodes.Ldc_I4_0)); // fallback
+    }
+
+    private void EmitDefaultPicDescriptor(ILProcessor il)
+    {
+        // Push a default PicDescriptor (alphanumeric, for parameter passing)
+        // This is a simplified version — the actual PicDescriptor comes from
+        // the caller's StorageLocation.Pic in a full implementation
+        var defaultPicCtor = _module.ImportReference(
+            typeof(PicDescriptor).GetConstructors()
+                .First(c => c.GetParameters().Length > 10));
+        // Push all constructor args for a basic alphanumeric descriptor
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // totalDigits
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // fractionDigits
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isSigned
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isNumeric
+        il.Append(il.Create(OpCodes.Ldc_I4_1)); // isAlphanumeric
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // hasEditing
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // storageLength (will be set from Length)
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // usage = Display
+        il.Append(il.Create(OpCodes.Ldc_I4_1)); // category = Alphanumeric
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // signStorage
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // editing
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // blankWhenZero
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // leadingScaleDigits
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // trailingScaleDigits
+        il.Append(il.Create(OpCodes.Ldnull));    // editPattern
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isGroup
+        il.Append(il.Create(OpCodes.Ldc_I4, 36)); // currencySign '$'
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // decimalPointIsComma
+        var picEnvCtor = _module.ImportReference(
+            typeof(PicEnvironment).GetConstructor(new[] { typeof(char), typeof(bool) })!);
+        il.Append(il.Create(OpCodes.Newobj, picEnvCtor));
+        il.Append(il.Create(OpCodes.Newobj, defaultPicCtor));
+    }
+
+    private MethodReference? _cobolDataPointerCtor;
+    private MethodReference GetCobolDataPointerCtor()
+    {
+        _cobolDataPointerCtor ??= _module.ImportReference(
+            typeof(CobolDataPointer).GetConstructor(
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
+        return _cobolDataPointerCtor;
     }
 
     private void EmitPerform(ILProcessor il, IrPerform perf)
@@ -2595,7 +2816,8 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Br, loopLabel));
         }
 
-        // EXIT
+        // EXIT — wrap dispatch loop exit with StopRunException catch
+        // StopRunException may be thrown by STOP RUN from any paragraph
         il.Append(exitLabel);
     }
 

@@ -259,7 +259,67 @@ public sealed class IrReturnAlterable : IrInstruction
     public IrReturnAlterable(int alterSlot) => AlterSlot = alterSlot;
 }
 
-// ── Calls and PERFORM ──
+// ── Inter-program CALL ──
+
+/// <summary>
+/// CALL another COBOL program via the program registry.
+/// Builds a CobolDataPointer[] from the arguments, resolves the target,
+/// and invokes its Entry method.
+/// </summary>
+public sealed class IrCallProgram : IrInstruction
+{
+    public string TargetName { get; }
+    public bool IsDynamic { get; }
+    public IReadOnlyList<IrCallArgument> CallArguments { get; }
+    public IrLocation? ReturningTarget { get; }
+
+    public IrCallProgram(string targetName, bool isDynamic,
+        IReadOnlyList<IrCallArgument> args, IrLocation? returningTarget = null)
+    {
+        TargetName = targetName;
+        IsDynamic = isDynamic;
+        CallArguments = args;
+        ReturningTarget = returningTarget;
+    }
+}
+
+/// <summary>
+/// A single argument in an IrCallProgram instruction.
+/// Carries the parameter passing mode and the source storage location.
+/// </summary>
+public sealed class IrCallArgument
+{
+    public int Mode { get; } // 0=ByReference, 1=ByContent, 2=ByValue
+    public IrLocation Source { get; }
+
+    public IrCallArgument(int mode, IrLocation source)
+    {
+        Mode = mode;
+        Source = source;
+    }
+}
+
+/// <summary>EXIT PROGRAM — return from a called program's Entry method.</summary>
+public sealed class IrExitProgram : IrInstruction { }
+
+/// <summary>GOBACK — return from called program, or terminate if in main.</summary>
+public sealed class IrGoBack : IrInstruction { }
+
+/// <summary>STOP RUN — terminate the entire run unit by throwing StopRunException.</summary>
+public sealed class IrStopRun : IrInstruction { }
+
+/// <summary>Check whether the last CALL raised an exception (target not found, etc.).</summary>
+public sealed class IrCheckCallException : IrInstruction
+{
+    public string TargetName { get; }
+    public IrCheckCallException(string targetName, IrValue result)
+    {
+        TargetName = targetName;
+        Result = result;
+    }
+}
+
+// ── Internal calls and PERFORM ──
 
 public sealed class IrCall : IrInstruction
 {

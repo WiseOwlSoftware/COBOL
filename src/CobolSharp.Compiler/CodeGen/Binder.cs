@@ -377,17 +377,13 @@ public sealed class Binder
                 LowerAlter(alter, block);
                 break;
             case BoundStopStatement:
-                block.Instructions.Add(new IrReturnConst(-1));
+                block.Instructions.Add(new IrStopRun());
                 break;
             case BoundExitProgramStatement:
-                // EXIT PROGRAM — return from called program (for now, same as STOP RUN;
-                // will be distinguished from STOP RUN in Phase 3 when Entry method exists)
-                block.Instructions.Add(new IrReturnConst(-1));
+                block.Instructions.Add(new IrExitProgram());
                 break;
             case BoundGoBackStatement:
-                // GOBACK — return from called program or terminate main
-                // (for now, same as STOP RUN; distinguished in Phase 3)
-                block.Instructions.Add(new IrReturnConst(-1));
+                block.Instructions.Add(new IrGoBack());
                 break;
             case BoundExitStatement:
                 // EXIT is a no-op; fall-through return handles it
@@ -1485,16 +1481,64 @@ public sealed class Binder
 
     private IrBasicBlock LowerCall(BoundCallStatement call, IrMethod method, IrBasicBlock block)
     {
-        // CALL inter-program linkage not yet supported — emit stub warning
-        block.Instructions.Add(new IR.IrPicDisplay(
-            [new IR.DisplayLiteralOperand($"CALL not implemented: {call.TargetName}")]));
+        // Build argument list
+        var args = new List<IrCallArgument>();
+        foreach (var arg in call.Arguments)
+        {
+            var loc = ResolveExpressionLocation(arg.Expression);
+            if (loc != null)
+            {
+                int mode = arg.Mode switch
+                {
+                    ParameterMode.ByReference => 0,
+                    ParameterMode.ByContent => 1,
+                    ParameterMode.ByValue => 2,
+                    _ => 0
+                };
+                args.Add(new IrCallArgument(mode, loc));
+            }
+        }
 
-        // Lower ON EXCEPTION / NOT ON EXCEPTION for structural completeness
+        // Resolve RETURNING target
+        IrLocation? returningLoc = null;
+        if (call.ReturningTarget != null)
+            returningLoc = ResolveLocation(call.ReturningTarget);
+
+        // Emit the inter-program CALL
+        block.Instructions.Add(new IrCallProgram(
+            call.TargetName, call.IsDynamic, args, returningLoc));
+
+        // ON EXCEPTION / NOT ON EXCEPTION branching
         if (call.OnException.Count > 0 || call.NotOnException.Count > 0)
         {
-            // Always take the ON EXCEPTION path (stub behavior)
+            // The call result (success/fail) is checked by the CIL emitter
+            // which branches based on the return value of the Entry method.
+            var excBlock = method.CreateBlock("call_exception");
+            var notExcBlock = method.CreateBlock("call_not_exception");
+            var afterBlock = method.CreateBlock("call_after");
+
+            // Branch on call result (emitter checks last call status)
+            var callResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckCallException(call.TargetName, callResult));
+            block.Instructions.Add(new IrBranchIfFalse(callResult, notExcBlock));
+            block.Instructions.Add(new IrJump(excBlock));
+
+            // ON EXCEPTION
+            method.Blocks.Add(excBlock);
+            var current = excBlock;
             foreach (var stmt in call.OnException)
-                block = LowerStatement(stmt, method, block);
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            // NOT ON EXCEPTION
+            method.Blocks.Add(notExcBlock);
+            current = notExcBlock;
+            foreach (var stmt in call.NotOnException)
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
         }
 
         return block;

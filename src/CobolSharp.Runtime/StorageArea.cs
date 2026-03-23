@@ -32,6 +32,16 @@ public sealed class ProgramState
 public static class StorageHelpers
 {
     /// <summary>
+    /// Create a copy of a byte range. Used for BY CONTENT parameter passing.
+    /// </summary>
+    public static byte[] CopyBytes(byte[] area, int offset, int length)
+    {
+        var copy = new byte[length];
+        Array.Copy(area, offset, copy, 0, length);
+        return copy;
+    }
+
+    /// <summary>
     /// MOVE "literal" TO field. Left-justified, space-padded.
     /// </summary>
     public static void MoveStringToField(byte[] area, int offset, int size, string value)
