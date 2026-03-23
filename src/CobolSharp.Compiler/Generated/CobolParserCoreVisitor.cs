@@ -615,6 +615,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCallOnExceptionPhrase([NotNull] CobolParserCore.CallOnExceptionPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.entryStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEntryStatement([NotNull] CobolParserCore.EntryStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.cancelStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

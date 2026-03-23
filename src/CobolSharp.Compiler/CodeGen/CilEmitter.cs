@@ -94,6 +94,10 @@ public sealed class CilEmitter
 
         // 6. Generate Entry method body (paragraph dispatch loop)
         EmitEntryMethodBody(ir);
+
+        // 7. Generate alternate Entry methods for ENTRY statements
+        foreach (var ep in ir.EntryPoints)
+            EmitAlternateEntryMethod(ir, ep.Name, ep.UsingParams);
     }
 
     private MethodDefinition? _entryMethod;
@@ -177,6 +181,30 @@ public sealed class CilEmitter
 
         // Normal return: 0
         il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>
+    /// Generate an alternate entry method (for ENTRY statement) that delegates to the main Entry.
+    /// Each ENTRY name is registered in CobolProgramRegistry.
+    /// </summary>
+    private void EmitAlternateEntryMethod(IrModule ir, string entryName, IReadOnlyList<string> usingParams)
+    {
+        var method = new MethodDefinition(
+            $"Entry_{entryName}",
+            MethodAttributes.Public | MethodAttributes.Static,
+            _module.TypeSystem.Int32);
+        method.Parameters.Add(new ParameterDefinition(
+            "args", ParameterAttributes.None,
+            _module.ImportReference(typeof(CobolDataPointer[]))));
+        _programType!.Methods.Add(method);
+
+        var il = method.Body.GetILProcessor();
+
+        // Delegate to the main Entry method (ENTRY shares the same paragraph dispatch)
+        // TODO: map ENTRY-specific USING parameters to LINKAGE fields
+        il.Append(il.Create(OpCodes.Ldarg_0)); // args
+        il.Append(il.Create(OpCodes.Call, _entryMethod!));
         il.Append(il.Create(OpCodes.Ret));
     }
 

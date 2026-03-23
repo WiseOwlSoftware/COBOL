@@ -42,17 +42,22 @@ Audit date: 2026-03-22
 
 | Feature | Status | Where | Quality | Notes |
 |---|---|---|---|---|
-| CALL statement | Partially | `BoundNodes.cs:BoundCallStatement`, `BoundTreeBuilder.cs:BindCall`, `Binder.cs:LowerCall` | N/A — stub | Parsed + bound; IR emits **DISPLAY stub** ("CALL not implemented"); no actual inter-program call |
-| BY REFERENCE | Partially | `BoundCallArgument(ParameterMode.ByReference, ...)`, `BoundTreeBuilder.cs` | N/A — stub | Parsed and stored in bound tree; not lowered to real IR |
-| BY CONTENT | Partially | `BoundCallArgument(ParameterMode.ByContent, ...)` | N/A — stub | Parsed and stored; not lowered |
-| BY VALUE | Partially | `BoundCallArgument(ParameterMode.ByValue, ...)` | N/A — stub | Parsed and stored; not lowered |
-| RETURNING | Partially | `BoundCallStatement.ReturningTarget` | N/A — stub | Parsed as identifier expression; not wired |
-| ON EXCEPTION / NOT ON EXCEPTION | Partially | `BoundCallStatement.OnException`, `Binder.cs:LowerCall` | Spec-true (structural) | Both paths bound; stub always takes ON EXCEPTION path |
-| Linkage Section parsing | Implemented | `SemanticBuilder.cs:VisitLinkageSection`, `StorageAreaKind.LinkageSection` | Spec-true | Items tagged with `StorageAreaKind.LinkageSection` |
+| CALL statement | Implemented | `BoundCallStatement`; `Binder.cs:LowerCall`→`IrCallProgram`; `CilEmitter:EmitCallProgram`; `CobolProgramRegistry` | Spec-true | Static CALL resolves via registry; Entry method invoked; paragraph dispatch in Entry |
+| BY REFERENCE | Implemented | `CobolDataPointer.CreateByReference`; `EmitLinkageLocationArgs`; static `_linkage_` fields | Spec-true | Callee's LINKAGE items alias caller's WorkingStorage bytes via CobolDataPointer |
+| BY CONTENT | Implemented | `CobolDataPointer.CreateByContent`; copies argument bytes | Spec-true | Callee gets private copy; modifications don't propagate |
+| BY VALUE | Parsed | Grammar gated by `{is2002()}?` | Dialect-gated | Lowering passes value as CobolDataPointer; full semantics pending |
+| RETURNING | Parsed | `BoundCallStatement.ReturningTarget` | Partial | Bound tree captures target; value marshaling from callee not yet wired |
+| ON EXCEPTION / NOT ON EXCEPTION | Implemented | `IrCheckCallException`; branch on `_lastCallResult` | Spec-true | Unresolvable programs take ON EXCEPTION; successful calls take NOT ON EXCEPTION |
+| Linkage Section parsing | Implemented | `SemanticBuilder.cs:VisitLinkageSection` | Spec-true | Items tagged with `StorageAreaKind.LinkageSection` |
+| Linkage Section layout | Implemented | `StorageLayoutComputer`; relative offsets per 01-level | Spec-true | Each LINKAGE item layout starts at offset 0 |
 | Linkage Section validation | Implemented | `SymbolValidator.cs:ValidateLinkageSection` | Spec-true | VALUE not allowed (CBL3110), REDEFINES not allowed (CBL3111) |
-| PROCEDURE DIVISION USING/RETURNING | Not implemented | Grammar has `linkageProcedureParameter` rule | Unknown | Parser accepts it but `SemanticBuilder` does not visit; no `ProcedureParameter` list populated |
-| Inter-program communication | Not implemented | — | — | No program linking, no shared memory, no external data |
-| Dynamic CALL | Partially | `BoundCallStatement.IsDynamic` | N/A — stub | Flag parsed; diagnostic CBL3310 warns param list cannot be validated |
+| PROCEDURE DIVISION USING | Implemented | `SemanticBuilder:VisitProcedureDivision`; `SemanticModel.ProcedureUsingParameters` | Spec-true | Parameters resolved to LINKAGE DataSymbols; mapped to Entry args |
+| PROCEDURE DIVISION RETURNING | Parsed | `SemanticModel.ProcedureReturningItem` | Partial | Resolved to DataSymbol; value marshaling not yet wired |
+| ENTRY statement | Implemented | Grammar:`entryStatement`; `BoundEntryStatement`; `CilEmitter:EmitAlternateEntryMethod` | Spec-true | Alternate entry points; Entry_<name> methods generated |
+| EXIT PROGRAM | Implemented | `BoundExitProgramStatement`; `IrExitProgram` | Spec-true | Returns from Entry method (was broken — fell through to no-op) |
+| GOBACK | Implemented | `BoundGoBackStatement`; `IrGoBack` | Spec-true | Returns from called program; distinct from STOP RUN |
+| Dynamic CALL | Partially | `BoundCallStatement.IsDynamic` (flag corrected) | Spec-true | Registry-based resolution; Assembly.LoadFrom discovery; CBL3310 diagnostic |
+| Inter-program communication | Implemented | `CobolProgramRegistry`; `CobolDataPointer`; `StopRunException` | Spec-true | Same-process, shared-address-space; BY REFERENCE shares memory |
 
 ### CALL Diagnostics Defined
 
@@ -108,6 +113,8 @@ CBL3301 (arg count mismatch), CBL3302 (invalid arg for mode), CBL3303 (type inco
 
 ## Summary of Gaps
 
-1. **CALL inter-program linkage**: Full parse + bind, but IR is a display stub. No actual call mechanism.
-3. **PROCEDURE DIVISION USING/RETURNING**: Grammar rule exists, not visited in SemanticBuilder; `ProcedureParameter` list never populated.
-4. **Inter-program communication**: No shared storage, external data, or program loading.
+1. **RETURNING value marshaling**: Bound tree captures target, but callee return value not moved into caller's RETURNING item.
+2. **BY VALUE full semantics**: Grammar parsed and dialect-gated; value widening not yet implemented.
+3. **INITIAL program support**: ProgramState re-initialization per CALL not yet implemented.
+4. **Compile-time linking**: Programs resolve at runtime; no cross-assembly references.
+5. **CANCEL statement**: Parsed but lowering is a stub.

@@ -6138,4 +6138,78 @@ was never emitted. 7-line fix copying the pattern from `LowerWrite`.
 - Integration: 185 pass, 1 skip (was 184)
 - NIST: all 39 at 100%
 
-*End of entries for 2026-03-22*
+---
+
+## 2026-03-22/23 — CALL/USING/RETURNING: Full Inter-Program Invocation
+
+### Summary
+
+Implemented CALL inter-program invocation from scratch — not grafted on, but designed as a
+native feature with significant CIL emission refactoring (Main → Entry). This was the largest
+single architectural change in the compiler's history.
+
+### Architecture (6 phases)
+
+**Phase 0 — Foundation fixes**:
+- Fixed EXIT PROGRAM (was no-op — PROGRAM token not checked in BoundTreeBuilder)
+- Fixed GOBACK (was mapped to STOP RUN; now distinct BoundGoBackStatement)
+- Fixed isDynamic inversion (CALL "literal" was isDynamic=true, should be false)
+
+**Phase 1 — Runtime infrastructure** (3 new files):
+- `CobolDataPointer`: readonly record struct for parameter passing (Buffer, Offset, Length, Pic)
+- `CobolProgramRegistry`: maps program names → Entry delegates, auto-discovers via reflection
+- `StopRunException`: STOP RUN unwind across call boundaries
+
+**Phase 2 — LINKAGE SECTION layout + PROCEDURE DIVISION USING**:
+- StorageLayoutComputer: LINKAGE items get relative offsets (each 01-level starts at 0)
+- SemanticBuilder: parse USING/RETURNING clauses, resolve to DataSymbols
+- SemanticModel: ProcedureUsingParameters, ProcedureReturningItem
+
+**Phase 3 — CIL refactor (largest phase)**:
+- **Main → Entry refactor**: Every program gets `public static int Entry(CobolDataPointer[] args)`.
+  Paragraph dispatch loop moved from Main into Entry. Main becomes a thin wrapper.
+- **IrCallProgram**: resolves target via registry, builds CobolDataPointer[], invokes Entry
+- **LINKAGE access**: static `_linkage_<name>` fields per USING parameter; Entry populates from
+  args[]; EmitLinkageLocationArgs loads Buffer/Offset from CobolDataPointer field
+- **BY REFERENCE**: CobolDataPointer points directly into caller's WorkingStorage — callee's
+  MOVE to LINKAGE item modifies caller's data
+- **BY CONTENT**: CobolDataPointer.CreateByContent copies argument bytes
+- **ON EXCEPTION**: branch on _lastCallResult < 0 (unresolvable programs trigger exception path)
+
+**Phase 4 — ENTRY statement + grammar**:
+- ENTRY token added to lexer, entryStatement rule added to parser
+- BoundEntryStatement captures entry name + USING parameters
+- CilEmitter generates Entry_<name> methods that delegate to main Entry
+- Grammar also fixed: bare CALL USING argument (without BY keyword) = BY REFERENCE default
+
+### Integration Tests (4 new)
+1. Simple two-program CALL (callee DISPLAYs, EXIT PROGRAM returns to caller)
+2. BY REFERENCE: callee modifies caller's WS-VALUE via LINKAGE
+3. ON EXCEPTION: CALL "NONEXISTENT" triggers ON EXCEPTION path
+4. ALTERNATE KEY with CALL (from File I/O session)
+
+### Remaining CALL Gaps
+- RETURNING value marshaling (bound but not wired)
+- BY VALUE full semantics (dialect-gated, pending)
+- INITIAL program re-initialization
+- Compile-time linking (future)
+- CANCEL statement (parsed, stub)
+
+### AI Missteps
+1. **LINKAGE fields created too late**: EmitEntryMethodBody ran AFTER EmitMethodBody for
+   paragraphs, so _linkageFields was empty when paragraph IL was emitted. Fixed by splitting
+   into CreateEntryMethodSignature (creates fields) + EmitEntryMethodBody (fills bodies).
+2. **Complex CIL for CobolDataPointer construction**: Initially tried to emit the full
+   PicDescriptor constructor in CIL (20+ arguments). Simplified by adding static helper
+   methods CreateByReference/CreateByContent to CobolDataPointer.
+
+### Infrastructure
+- guard.sh: NIST tests now run in tests/nist/output/ directory (was project root, cluttering it)
+- .gitignore: tests/nist/output/ added
+
+### Test Results
+- Unit: 217 pass
+- Integration: 188 pass, 1 skip (was 185)
+- NIST: all 39 at 100%
+
+*End of entries for 2026-03-23*

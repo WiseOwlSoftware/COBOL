@@ -183,6 +183,7 @@ DYNAMIC     : 'DYNAMIC' ;
 EDITED      : 'EDITED' ;
 ELSE        : 'ELSE' ;
 END         : 'END' ;
+ENTRY       : 'ENTRY' ;
 EQUAL       : 'EQUAL' ;
 ERROR       : 'ERROR' ;
 EXCEPTION   : 'EXCEPTION' ;

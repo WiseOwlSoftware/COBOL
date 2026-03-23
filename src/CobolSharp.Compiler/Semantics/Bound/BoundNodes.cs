@@ -45,6 +45,7 @@ public enum BoundNodeKind
     CallStatement,
     ExitProgramStatement,
     GoBackStatement,
+    EntryStatement,
 }
 
 public abstract class BoundNode
@@ -479,6 +480,21 @@ public sealed class BoundExitProgramStatement : BoundStatement
 public sealed class BoundGoBackStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.GoBackStatement;
+}
+
+/// <summary>ENTRY "name" USING ... — alternate entry point for CALL.</summary>
+public sealed class BoundEntryStatement : BoundStatement
+{
+    public string EntryName { get; }
+    public IReadOnlyList<string> UsingParameters { get; }
+
+    public BoundEntryStatement(string entryName, IReadOnlyList<string> usingParameters)
+    {
+        EntryName = entryName;
+        UsingParameters = usingParameters;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.EntryStatement;
 }
 
 public sealed class BoundExitPerformStatement : BoundStatement

@@ -5288,4 +5288,26 @@ public class EndToEndTests : IDisposable
         Assert.Equal("INSIDE CALLEE", lines[1]);
         Assert.Equal("AFTER CALL", lines[2]);
     }
+
+    [Fact]
+    public void Call_OnException_UnresolvableProgram()
+    {
+        // CALL a non-existent program triggers ON EXCEPTION
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXCTEST.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                CALL "NONEXISTENT"
+                    ON EXCEPTION
+                        DISPLAY "CAUGHT"
+                    NOT ON EXCEPTION
+                        DISPLAY "OK"
+                END-CALL
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("CAUGHT", stdout);
+    }
 }

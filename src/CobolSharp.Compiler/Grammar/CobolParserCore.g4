@@ -333,6 +333,7 @@ statement
     | alterStatement
     | useStatement
     | callStatement
+    | entryStatement
     | cancelStatement
     | closeStatement
     | computeStatement
@@ -604,6 +605,14 @@ callReturningPhrase
 callOnExceptionPhrase
     : ON EXCEPTION statementBlock
       (NOT ON EXCEPTION statementBlock)?
+    ;
+
+// ==========================================
+// ENTRY (§14.9.14 — alternate entry point)
+// ==========================================
+
+entryStatement
+    : ENTRY literal usingClause?
     ;
 
 // ==========================================

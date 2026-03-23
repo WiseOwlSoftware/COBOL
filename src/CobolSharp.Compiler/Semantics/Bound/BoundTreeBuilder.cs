@@ -223,6 +223,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.ifStatement() is { } iff) return BindIf(iff);
         if (ctx.goToStatement() is { } gt) return BindGoTo(gt);
         if (ctx.alterStatement() is { } alt) return BindAlter(alt);
+        if (ctx.entryStatement() is { } entry) return BindEntry(entry);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
         if (ctx.gobackStatement() is { }) return new BoundGoBackStatement();
         if (ctx.exitStatement() is { } exitCtx)
@@ -2462,6 +2463,26 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return entries.Count > 0 ? new BoundAlterStatement(entries) : null;
+    }
+
+    // ── ENTRY ──
+
+    private BoundEntryStatement? BindEntry(CobolParserCore.EntryStatementContext ctx)
+    {
+        string entryName = ctx.literal().GetText().Trim('"', '\'');
+
+        var usingNames = new List<string>();
+        if (ctx.usingClause() is { } usingCtx)
+        {
+            var dataRefs = usingCtx.dataReferenceList()?.dataReference();
+            if (dataRefs != null)
+            {
+                foreach (var dr in dataRefs)
+                    usingNames.Add(dr.IDENTIFIER().GetText());
+            }
+        }
+
+        return new BoundEntryStatement(entryName, usingNames);
     }
 
     // ═══════════════════════════════════

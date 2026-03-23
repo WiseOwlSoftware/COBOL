@@ -41,6 +41,12 @@ public sealed class IrModule(string name)
     /// Empty if no USING clause.
     /// </summary>
     public List<string> UsingParameterNames { get; } = [];
+
+    /// <summary>
+    /// ENTRY points declared in the program. Each entry has a name and optional
+    /// USING parameter names. Registered in CobolProgramRegistry under their own names.
+    /// </summary>
+    public List<(string Name, IReadOnlyList<string> UsingParams)> EntryPoints { get; } = [];
 }
 
 /// <summary>

@@ -204,6 +204,19 @@ public sealed class Binder
         foreach (var param in _semantic.ProcedureUsingParameters)
             module.UsingParameterNames.Add(param.Name);
 
+        // Phase 4.7: Collect ENTRY statements for alternate entry point generation
+        foreach (var para in boundProgram.Paragraphs)
+        {
+            foreach (var sentence in para.Sentences)
+            {
+                foreach (var stmt in sentence.Statements)
+                {
+                    if (stmt is BoundEntryStatement entry)
+                        module.EntryPoints.Add((entry.EntryName, entry.UsingParameters));
+                }
+            }
+        }
+
         // Phase 5: Create entry point (PC dispatch loop)
         CreateEntryPoint(module, boundProgram);
 
@@ -378,6 +391,10 @@ public sealed class Binder
                 break;
             case BoundAlterStatement alter:
                 LowerAlter(alter, block);
+                break;
+            case BoundEntryStatement:
+                // ENTRY is handled at the module level (CIL emitter generates Entry_<name> methods)
+                // At lowering time, ENTRY is a no-op — it marks a position in the paragraph flow
                 break;
             case BoundStopStatement:
                 block.Instructions.Add(new IrStopRun());
