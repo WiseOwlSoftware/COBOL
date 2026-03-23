@@ -303,6 +303,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 fileSym.RecordKey = keyClause.dataReference().GetText();
             if (clause.fileStatusClause() is { } statusClause)
                 fileSym.FileStatus = statusClause.dataReference().GetText();
+            if (clause.alternateKeyClause() is { } altKeyClause)
+            {
+                string altKeyName = altKeyClause.dataReference().GetText();
+                bool duplicates = altKeyClause.DUPLICATES() != null;
+                fileSym.AlternateKeys.Add(new AlternateKeyInfo(altKeyName, duplicates));
+            }
         }
 
         _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);

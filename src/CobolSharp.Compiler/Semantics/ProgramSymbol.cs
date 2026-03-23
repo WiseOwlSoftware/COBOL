@@ -77,6 +77,9 @@ public sealed class FileSymbol : Symbol
     /// <summary>RECORD KEY identifier name (for INDEXED).</summary>
     public string? RecordKey { get; set; }
 
+    /// <summary>ALTERNATE RECORD KEY entries (for INDEXED files).</summary>
+    public List<AlternateKeyInfo> AlternateKeys { get; } = [];
+
     /// <summary>FILE STATUS identifier name (PIC XX variable).</summary>
     public string? FileStatus { get; set; }
 
@@ -89,6 +92,11 @@ public sealed class FileSymbol : Symbol
     public FileSymbol(string name, int line)
         : base(name, SymbolKind.File, line) { }
 }
+
+/// <summary>
+/// ALTERNATE RECORD KEY descriptor: data-name and whether duplicates are allowed.
+/// </summary>
+public sealed record AlternateKeyInfo(string DataName, bool AllowDuplicates);
 
 /// <summary>
 /// A level-88 condition-name. Bound to a parent data item and carries one or more

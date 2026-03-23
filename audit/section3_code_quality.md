@@ -167,16 +167,16 @@ These stubs produce incorrect runtime behavior: CALL always fails, RETURN always
 - **Comment in code**: "Power is not a standard BoundBinaryOperatorKind; use Multiply as placeholder"
 - **Impact**: The `Power` enum value is produced by the bound tree builder. The CilEmitter's `EmitBinary` (line 818-829) does **not** handle `Power` -- it falls through to `throw new NotSupportedException`. COMPUTE expressions with `**` may work if routed through `EmitExpression` rather than `EmitBinary`, but this is a latent crash for some code paths.
 
-### 3.5 `StartCondition` is a magic number
+### 3.5 `StartCondition` is a magic number — **RESOLVED**
 
-- **Location**: `Binder.cs:1308`
-- **Code**: `int condition = 0; // StartCondition.Equal`
-- **Assessment**: Hard-coded integer instead of an enum. The START KEY comparison condition from the bound tree is ignored; it always emits "equal" regardless of the `KEY IS GREATER THAN` / `KEY IS NOT LESS THAN` clauses specified in the COBOL source.
+**Status**: Fixed. `LowerStart` now extracts `BoundBinaryOperatorKind` from `start.KeyCondition`
+and maps it to the `StartCondition` enum (Equal=0, Greater=1, GreaterOrEqual=2, Less=3, LessOrEqual=4).
 
-### 3.6 WRITE FROM lowering omits the FROM move
+### 3.6 REWRITE FROM lowering omits the FROM move — **RESOLVED**
 
-- **Location**: `Binder.cs` -- `LowerWrite` method
-- **Assessment**: The `BoundWriteStatement` has a `From` property (added in session 2026-03-21), and `BoundTreeValidator.ValidateWrite` validates it. However, `LowerWrite` in the Binder does not perform the FROM-to-record MOVE before the write operation. The validation exists but the codegen is missing.
+**Status**: Fixed. `LowerRewrite` now performs FROM-to-record MOVE before rewrite,
+matching the pattern established in `LowerWrite`. (Note: the original audit incorrectly
+said "WRITE FROM" — WRITE FROM was already working; it was REWRITE FROM that was missing.)
 
 ### 3.7 String literal fallback for unresolved identifiers
 
@@ -290,8 +290,8 @@ These are acceptable as defensive programming for "impossible state" detection. 
 1. **Duplicate expression binding** (2.1) -- two parallel implementations risk divergent behavior as features are added to one but not the other. ~90 lines of exact duplication.
 2. **Function calls silently return zero** (3.3) -- silent wrong results, no diagnostic
 3. **Unresolved identifiers become string literals** (3.7) -- masks errors silently, no diagnostic
-4. **START always uses Equal condition** (3.5) -- ignores KEY IS GREATER/LESS from source
-5. **WRITE FROM not lowered** (3.6) -- validated but not emitted to IR/CIL
+4. ~~**START always uses Equal condition** (3.5)~~ -- **RESOLVED**: KeyCondition extracted from bound tree
+5. ~~**REWRITE FROM not lowered** (3.6)~~ -- **RESOLVED**: FROM MOVEd to record before rewrite
 
 ### Medium Priority (maintainability)
 6. ~~**Ad-hoc diagnostic codes** (3.1)~~ -- **RESOLVED**: all 55 codes migrated to DiagnosticDescriptors

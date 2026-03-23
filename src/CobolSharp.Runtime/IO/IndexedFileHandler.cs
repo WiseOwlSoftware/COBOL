@@ -15,7 +15,9 @@ public class IndexedFileHandler : IFileHandler
     private readonly int _recordLength;
     private readonly int _keyOffset;
     private readonly int _keyLength;
+    private readonly List<AlternateKeyDescriptor> _alternateKeys = [];
     private SortedDictionary<string, byte[]>? _records;
+    private readonly List<SortedDictionary<string, List<byte[]>>> _alternateIndices = [];
     private IEnumerator<KeyValuePair<string, byte[]>>? _enumerator;
     private string? _currentKey;
     private string? _dataFilePath;
@@ -32,6 +34,14 @@ public class IndexedFileHandler : IFileHandler
         _keyLength = keyLength;
     }
 
+    /// <summary>Register an alternate key for this indexed file.</summary>
+    public void AddAlternateKey(int keyOffset, int keyLength, bool allowDuplicates)
+    {
+        _alternateKeys.Add(new AlternateKeyDescriptor(keyOffset, keyLength, allowDuplicates));
+    }
+
+    internal sealed record AlternateKeyDescriptor(int Offset, int Length, bool AllowDuplicates);
+
     public string Open(FileOpenMode mode)
     {
         if (IsOpen) return FileStatus.FileAlreadyOpen;
@@ -39,6 +49,11 @@ public class IndexedFileHandler : IFileHandler
         _openMode = mode;
         _dataFilePath = ExternalName;
         _records = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
+
+        // Initialize alternate indices
+        _alternateIndices.Clear();
+        foreach (var _ in _alternateKeys)
+            _alternateIndices.Add(new SortedDictionary<string, List<byte[]>>(StringComparer.Ordinal));
 
         if (mode == FileOpenMode.Input || mode == FileOpenMode.InputOutput)
         {
@@ -54,6 +69,7 @@ public class IndexedFileHandler : IFileHandler
                 {
                     string key = ExtractKey(buffer);
                     _records[key] = (byte[])buffer.Clone();
+                    IndexAlternateKeys(buffer);
                 }
             }
             catch (IOException)
@@ -107,15 +123,39 @@ public class IndexedFileHandler : IFileHandler
     }
 
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
+        => ReadByKey(recordBuffer, keyValue, keyIndex: -1);
+
+    /// <summary>
+    /// Read by key with optional alternate key index.
+    /// keyIndex = -1 means primary key; 0+ means alternate key index.
+    /// </summary>
+    public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
 
         string key = Encoding.ASCII.GetString(keyValue).TrimEnd();
-        if (!_records!.TryGetValue(key, out var record))
+
+        if (keyIndex < 0)
+        {
+            // Primary key lookup
+            if (!_records!.TryGetValue(key, out var record))
+                return FileStatus.RecordNotFound;
+
+            Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
+            _currentKey = ExtractKey(record);
+            return FileStatus.Success;
+        }
+
+        // Alternate key lookup
+        if (keyIndex >= _alternateIndices.Count)
             return FileStatus.RecordNotFound;
 
-        Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
-        _currentKey = key;
+        if (!_alternateIndices[keyIndex].TryGetValue(key, out var records) || records.Count == 0)
+            return FileStatus.RecordNotFound;
+
+        var found = records[0]; // First matching record
+        Array.Copy(found, recordBuffer, Math.Min(found.Length, recordBuffer.Length));
+        _currentKey = ExtractKey(found);
         return FileStatus.Success;
     }
 
@@ -127,7 +167,19 @@ public class IndexedFileHandler : IFileHandler
         if (_records!.ContainsKey(key))
             return FileStatus.DuplicateKey;
 
+        // Check alternate key uniqueness (for non-DUPLICATES keys)
+        for (int i = 0; i < _alternateKeys.Count; i++)
+        {
+            if (!_alternateKeys[i].AllowDuplicates)
+            {
+                string altKey = ExtractAlternateKey(recordData, i);
+                if (_alternateIndices[i].ContainsKey(altKey))
+                    return FileStatus.DuplicateKey;
+            }
+        }
+
         _records[key] = (byte[])recordData.Clone();
+        IndexAlternateKeys(recordData);
         return FileStatus.Success;
     }
 
@@ -194,6 +246,26 @@ public class IndexedFileHandler : IFileHandler
     private string ExtractKey(byte[] record)
     {
         return Encoding.ASCII.GetString(record, _keyOffset, _keyLength).TrimEnd();
+    }
+
+    private string ExtractAlternateKey(byte[] record, int altKeyIndex)
+    {
+        var desc = _alternateKeys[altKeyIndex];
+        return Encoding.ASCII.GetString(record, desc.Offset, desc.Length).TrimEnd();
+    }
+
+    private void IndexAlternateKeys(byte[] record)
+    {
+        for (int i = 0; i < _alternateKeys.Count; i++)
+        {
+            string altKey = ExtractAlternateKey(record, i);
+            if (!_alternateIndices[i].TryGetValue(altKey, out var list))
+            {
+                list = [];
+                _alternateIndices[i][altKey] = list;
+            }
+            list.Add((byte[])record.Clone());
+        }
     }
 
     private void ResetEnumerator()

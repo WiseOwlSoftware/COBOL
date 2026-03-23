@@ -9,21 +9,21 @@ Audit date: 2026-03-22
 | SELECT/ASSIGN | Implemented | `SemanticBuilder.cs:VisitFileControlClauseGroup`, `ProgramSymbol.cs:FileSymbol` | Spec-true | Parses literal and identifier ASSIGN targets; stores on FileSymbol |
 | ORGANIZATION (SEQ/REL/IDX) | Implemented | `SemanticBuilder.cs:VisitFileControlClauseGroup`, grammar `organizationType` | Spec-true | SEQUENTIAL, RELATIVE, INDEXED, LINE SEQUENTIAL all handled |
 | ACCESS MODE (SEQ/RND/DYN) | Implemented | `SemanticBuilder.cs:VisitFileControlClauseGroup` | Spec-true | Stored on `FileSymbol.AccessMode`; validated in BoundTreeValidator |
-| RECORD KEY | Partially | `SemanticBuilder.cs`, `Binder.cs` (key offset/length resolution) | Spec-true | Primary key parsed and resolved; offset computed for IndexedFileHandler |
-| ALTERNATE KEY | Not implemented | Grammar rule `AlternateKeyClause` exists in parser | Unknown | Parsed by ANTLR but **not visited** in SemanticBuilder; no FileSymbol property; no runtime support |
+| RECORD KEY | Implemented | `SemanticBuilder.cs`, `Binder.cs` (key offset/length resolution) | Spec-true | Primary key parsed and resolved; offset computed for IndexedFileHandler |
+| ALTERNATE KEY | Implemented | Grammar:`alternateKeyClause`; `SemanticBuilder.cs`; `ProgramSymbol.cs:AlternateKeyInfo`; `IndexedFileHandler` secondary indices; `FileRuntime.RegisterAlternateKey` | Spec-true | Full pipeline: parsed (ALTERNATE RECORD KEY IS ... WITH DUPLICATES), stored in FileSymbol, registered at runtime, IndexedFileHandler maintains secondary SortedDictionary per alternate key with duplicate support |
 | FILE STATUS | Implemented | `FileStatusValidator.cs`, `Binder.cs:EmitFileStatus`, `IrInstruction.cs:IrStoreFileStatus`, `CilEmitter.cs:EmitStoreFileStatus` | Spec-true | Full pipeline: validation (CBL3201-3206), IR generation, CIL emission; checks alphanumeric >= 2 |
 | OPEN (INPUT/OUTPUT/I-O/EXTEND) | Implemented | `BoundNodes.cs:BoundOpenStatement`, `BoundTreeBuilder.cs:BindOpen`, `BoundTreeValidator.cs:ValidateOpen`, `Binder.cs:LowerOpen` | Spec-true | All four modes; EXTEND validated against non-sequential (CBL0701) |
 | CLOSE | Implemented | `BoundNodes.cs:BoundCloseStatement`, `BoundTreeBuilder.cs`, `Binder.cs:LowerClose` | Spec-true | Multi-file CLOSE supported |
 | READ (sequential) | Implemented | `BoundNodes.cs:BoundReadStatement`, `Binder.cs:LowerRead`, `IrInstruction.cs:IrReadRecordToStorage` | Spec-true | AT END / NOT AT END; FILE STATUS update; READ NEXT flag |
-| READ (random/keyed) | Partially | `BoundReadStatement.KeyDataName`, `IrReadRecordToStorage` | Likely incorrect | KEY IS parsed and stored, but IR only emits `IrReadRecordToStorage` without key dispatch; runtime `ReadByKey` exists but binder may not wire it for random access |
+| READ (random/keyed) | Implemented | `BoundReadStatement.KeyDataName`; IR:`IrReadByKey`; `FileRuntime.ReadByKey`; `CobolFileManager.ReadByKey` | Spec-true | RANDOM/DYNAMIC access without NEXT emits `IrReadByKey`; extracts key bytes and calls `IFileHandler.ReadByKey` |
 | READ INTO | Implemented | `BoundReadStatement.Into`, `Binder.cs:LowerRead` | Spec-true | INTO target bound as identifier expression; implicit MOVE emitted after read |
 | WRITE (basic) | Implemented | `BoundNodes.cs:BoundWriteStatement`, `Binder.cs:LowerWrite`, `IrInstruction.cs:IrWriteRecordFromStorage` | Spec-true | Full pipeline through CIL emission |
 | WRITE FROM | Implemented | `BoundWriteStatement.From`, `BoundTreeValidator.cs:ValidateWrite` | Spec-true | Validated (CBL1801); permissive compatibility per COBOL spec |
-| WRITE ADVANCING | Implemented | `BoundWriteStatement.AdvancingLines`, `IrInstruction.cs:IrWriteAfterAdvancing` | Partially | AFTER ADVANCING with integer lines; BEFORE ADVANCING flag exists but BEFORE not fully wired in IR; PAGE advancing not supported |
+| WRITE ADVANCING | Implemented | `BoundWriteStatement.AdvancingLines/IsAfterAdvancing`; IR:`IrWriteAdvancing` (with IsBefore); `FileRuntime.WriteAdvancing` | Spec-true | BEFORE/AFTER ADVANCING with integer lines; PAGE advancing emits form-feed (-1 sentinel) |
 | REWRITE (basic) | Implemented | `BoundNodes.cs:BoundRewriteStatement`, `Binder.cs:LowerRewrite`, `IrInstruction.cs:IrRewriteRecordFromStorage` | Spec-true | Organization check (CBL1901) |
-| REWRITE FROM | Implemented | `BoundRewriteStatement.From`, `BoundTreeValidator.cs:ValidateRewrite` | Spec-true | Validated (CBL1902); permissive compatibility |
+| REWRITE FROM | Implemented | `BoundRewriteStatement.From`, `BoundTreeValidator.cs:ValidateRewrite`, `Binder.cs:LowerRewrite` | Spec-true | Validated (CBL1902); FROM source MOVEd to record before rewrite |
 | DELETE | Implemented | `BoundNodes.cs:BoundDeleteStatement`, `Binder.cs:LowerDelete`, `IrInstruction.cs:IrDeleteRecord` | Spec-true | INVALID KEY / NOT INVALID KEY paths; organization validated (CBL2001) |
-| START (KEY IS) | Implemented | `BoundNodes.cs:BoundStartStatement`, `Binder.cs:LowerStart`, `IrInstruction.cs:IrStartFile` | Spec-true | Key condition validated (CBL1601-1605); maps to `StartCondition` enum; INVALID KEY paths |
+| START (KEY IS) | Implemented | `BoundNodes.cs:BoundStartStatement`, `Binder.cs:LowerStart`, `IrInstruction.cs:IrStartFile` | Spec-true | Key condition extracted from bound tree and mapped to `StartCondition` enum (Equal/Greater/GreaterOrEqual/Less/LessOrEqual); INVALID KEY paths |
 
 ### Runtime I/O Handlers
 
@@ -108,9 +108,6 @@ CBL3301 (arg count mismatch), CBL3302 (invalid arg for mode), CBL3303 (type inco
 
 ## Summary of Gaps
 
-1. **ALTERNATE KEY**: Grammar exists, not visited in semantic builder, no runtime support.
-2. **READ random/keyed**: KEY IS parsed but binder does not dispatch to `ReadByKey`; likely broken for indexed random access.
-3. **WRITE BEFORE ADVANCING / PAGE**: Flag stored but IR only has `IrWriteAfterAdvancing`; BEFORE and PAGE not wired.
-4. **CALL inter-program linkage**: Full parse + bind, but IR is a display stub. No actual call mechanism.
-5. **PROCEDURE DIVISION USING/RETURNING**: Grammar rule exists, not visited in SemanticBuilder; `ProcedureParameter` list never populated.
-6. **Inter-program communication**: No shared storage, external data, or program loading.
+1. **CALL inter-program linkage**: Full parse + bind, but IR is a display stub. No actual call mechanism.
+3. **PROCEDURE DIVISION USING/RETURNING**: Grammar rule exists, not visited in SemanticBuilder; `ProcedureParameter` list never populated.
+4. **Inter-program communication**: No shared storage, external data, or program loading.

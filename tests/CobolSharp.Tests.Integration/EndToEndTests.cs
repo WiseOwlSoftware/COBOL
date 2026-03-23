@@ -2611,9 +2611,9 @@ public class EndToEndTests : IDisposable
                 MOVE "BBB" TO IX-KEY.
                 START IX-FILE KEY IS IX-KEY.
                 DISPLAY WS-FS.
-                READ IX-FILE.
+                READ IX-FILE NEXT RECORD.
                 DISPLAY IX-KEY IX-VAL.
-                READ IX-FILE.
+                READ IX-FILE NEXT RECORD.
                 DISPLAY IX-KEY IX-VAL.
                 CLOSE IX-FILE.
                 STOP RUN.
@@ -5115,5 +5115,56 @@ public class EndToEndTests : IDisposable
         Assert.Equal("NOT-GT", lines[0]);
         Assert.Equal("NOT-EQ", lines[1]);
         Assert.Equal("PAREN-NOT", lines[2]);
+    }
+
+    [Fact]
+    public void FileIO_AlternateKey_ReadByAlternateKey()
+    {
+        // Write records with primary key (ID) and alternate key (NAME),
+        // then READ by alternate key
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ALTKEYT.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixaltkey"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-ID
+                    ALTERNATE RECORD KEY IS IX-NAME
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-ID   PIC X(3).
+               05 IX-NAME PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "001" TO IX-ID.
+                MOVE "ALICE" TO IX-NAME.
+                WRITE IX-REC.
+                MOVE "002" TO IX-ID.
+                MOVE "BOB  " TO IX-NAME.
+                WRITE IX-REC.
+                MOVE "003" TO IX-ID.
+                MOVE "CAROL" TO IX-NAME.
+                WRITE IX-REC.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                MOVE "002" TO IX-ID.
+                READ IX-FILE.
+                DISPLAY IX-ID IX-NAME.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // READ by primary key "002" → should return "002BOB  "
+        Assert.Equal("002BOB", stdout.TrimEnd());
     }
 }

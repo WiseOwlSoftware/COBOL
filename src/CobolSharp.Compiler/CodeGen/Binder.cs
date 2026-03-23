@@ -292,6 +292,38 @@ public sealed class Binder
             block.Instructions.Add(new IrLoadConst(keyLenVal, keyLength));
             block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandlerWithOrg",
                 new[] { nameVal, pathVal, recLenVal, lineSeqVal, orgVal, keyOffVal, keyLenVal }));
+
+            // Register alternate keys for INDEXED files
+            if (org == "INDEXED")
+            {
+                foreach (var altKey in fileSym.AlternateKeys)
+                {
+                    var altKeySym = _semantic.ResolveData(altKey.DataName);
+                    if (altKeySym == null) continue;
+                    var altKeyLoc = _semantic.GetStorageLocation(altKeySym);
+                    if (!altKeyLoc.HasValue) continue;
+
+                    int altKeyOffset = altKeyLoc.Value.Offset;
+                    var recordSym2 = fileSym.Record;
+                    if (recordSym2 != null)
+                    {
+                        var recordLoc2 = _semantic.GetStorageLocation(recordSym2);
+                        if (recordLoc2.HasValue)
+                            altKeyOffset = altKeyLoc.Value.Offset - recordLoc2.Value.Offset;
+                    }
+
+                    var altNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                    var altOffVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                    var altLenVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                    var altDupVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    block.Instructions.Add(new IrLoadConst(altNameVal, fileSym.Name));
+                    block.Instructions.Add(new IrLoadConst(altOffVal, altKeyOffset));
+                    block.Instructions.Add(new IrLoadConst(altLenVal, altKeyLoc.Value.Length));
+                    block.Instructions.Add(new IrLoadConst(altDupVal, altKey.AllowDuplicates));
+                    block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterAlternateKey",
+                        new[] { altNameVal, altOffVal, altLenVal, altDupVal }));
+                }
+            }
         }
 
         // Collect paragraph methods in declaration order
@@ -1122,8 +1154,8 @@ public sealed class Binder
 
             if (wr.AdvancingLines.HasValue)
             {
-                block.Instructions.Add(new IrWriteAfterAdvancing(
-                    fileName, recordLoc, wr.AdvancingLines.Value));
+                block.Instructions.Add(new IrWriteAdvancing(
+                    fileName, recordLoc, wr.AdvancingLines.Value, !wr.IsAfterAdvancing));
             }
             else
             {
@@ -1200,7 +1232,24 @@ public sealed class Binder
             var recordLoc = ResolveLocation(recordSym);
             if (recordLoc != null)
             {
-                block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey
+                bool isKeyedRead = !read.IsNext &&
+                    read.File.AccessMode is "RANDOM" or "DYNAMIC" &&
+                    read.File.RecordKey != null;
+
+                if (isKeyedRead)
+                {
+                    var keySym = _semantic.ResolveData(read.File.RecordKey!);
+                    var keyLoc = keySym != null ? ResolveLocation(keySym) : null;
+                    if (keyLoc != null)
+                        block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
+                    else
+                        block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                }
+                else
+                {
+                    block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                }
             }
         }
 
@@ -1279,6 +1328,16 @@ public sealed class Binder
         var recordLoc = ResolveLocation(rw.Record);
         if (recordLoc != null)
         {
+            // REWRITE FROM: MOVE source TO record before rewriting
+            if (rw.From != null)
+            {
+                var fromLoc = ResolveExpressionLocation(rw.From);
+                if (fromLoc != null)
+                    block.Instructions.Add(new IrMoveFieldToField(
+                        fromLoc, recordLoc,
+                        GetPicForLocation(fromLoc), GetPicForLocation(recordLoc)));
+            }
+
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
         }
         EmitFileStatus(rw.File, block);
@@ -1340,8 +1399,20 @@ public sealed class Binder
                 var keyLoc = ResolveLocation(keySym);
                 if (keyLoc != null)
                 {
-                    // Default to Equal if no KEY IS clause
+                    // Extract key condition from bound tree (default: Equal)
                     int condition = 0; // StartCondition.Equal
+                    if (start.KeyCondition is BoundBinaryExpression keyExpr)
+                    {
+                        condition = keyExpr.OperatorKind switch
+                        {
+                            BoundBinaryOperatorKind.Equal => 0,
+                            BoundBinaryOperatorKind.Greater => 1,
+                            BoundBinaryOperatorKind.GreaterOrEqual => 2,
+                            BoundBinaryOperatorKind.Less => 3,
+                            BoundBinaryOperatorKind.LessOrEqual => 4,
+                            _ => 0
+                        };
+                    }
                     block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition));
                 }
             }

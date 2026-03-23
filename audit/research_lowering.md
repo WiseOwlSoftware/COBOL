@@ -288,9 +288,9 @@ _diagnostics.ReportError("COBOL0NNN",
 |---|-------|----------|--------|
 | 1 | NC121M subscripted DIVIDE | Already fixed | N/A |
 | 2 | NC220M infinite loop | Bug | Medium -- needs runtime debugging |
-| 3 | REWRITE FROM not lowered | Bug | Small -- 7-line addition |
+| 3 | ~~REWRITE FROM not lowered~~ | **Fixed** | FROM source MOVEd to record before rewrite |
 | 4 | Branching duplication (READ/DELETE/START) | Tech debt | Small -- extract helper |
 | 5 | Duplicate GetPicForLocation | Tech debt | Small -- move to IrLocation |
-| 6 | Raw diagnostic strings (17 instances) | Tech debt | Medium -- define descriptors, wire source locations |
+| 6 | ~~Raw diagnostic strings (17 instances)~~ | **Fixed** | All 55 ad-hoc codes migrated to DiagnosticDescriptors |
 | 6a | ADD/SUBTRACT/DIVIDE use ResolveLocation not ResolveExpressionLocation for targets | Latent bug | Small -- change to ResolveExpressionLocation for ref-mod support |
 | 7 | WRITE INVALID KEY not in bound tree | Feature gap | Medium -- add to BoundWriteStatement + builder + binder |

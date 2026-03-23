@@ -348,21 +348,21 @@ COBOL source file (.cob)
 | SELECT/ASSIGN | Implemented | Spec-true | Literal and identifier ASSIGN targets |
 | ORGANIZATION (SEQ/REL/IDX) | Implemented | Spec-true | SEQUENTIAL, RELATIVE, INDEXED, LINE SEQUENTIAL |
 | ACCESS MODE (SEQ/RND/DYN) | Implemented | Spec-true | Stored on FileSymbol; validated |
-| RECORD KEY | Partially | Spec-true | Primary key parsed and resolved |
-| ALTERNATE KEY | Not implemented | Unknown | Parsed by ANTLR but **not visited** in SemanticBuilder |
+| RECORD KEY | Implemented | Spec-true | Primary key parsed, resolved, offset computed for IndexedFileHandler |
+| ALTERNATE KEY | Implemented | Spec-true | Parsed (ALTERNATE RECORD KEY IS ... WITH DUPLICATES), stored in FileSymbol.AlternateKeys, registered at runtime; IndexedFileHandler maintains secondary indices with duplicate support |
 | FILE STATUS | Implemented | Spec-true | Full pipeline: validation, IR generation, CIL emission |
 | OPEN (all modes) | Implemented | Spec-true | INPUT/OUTPUT/I-O/EXTEND; EXTEND validated (CBL0701) |
 | CLOSE | Implemented | Spec-true | Multi-file CLOSE |
 | READ (sequential) | Implemented | Spec-true | AT END / NOT AT END; FILE STATUS update |
-| READ (random/keyed) | Partially | Likely incorrect | KEY IS parsed but binder may not wire ReadByKey for random access |
+| READ (random/keyed) | Implemented | Spec-true | RANDOM/DYNAMIC access emits IrReadByKey; calls FileRuntime.ReadByKey → IFileHandler.ReadByKey |
 | READ INTO | Implemented | Spec-true | INTO target bound; implicit MOVE emitted |
 | WRITE (basic) | Implemented | Spec-true | Full pipeline |
 | WRITE FROM | Implemented | Spec-true | Validated (CBL1801) |
-| WRITE ADVANCING | Partially | Partial | AFTER ADVANCING with integer; BEFORE/PAGE not wired |
+| WRITE ADVANCING | Implemented | Spec-true | BEFORE/AFTER ADVANCING with integer lines; PAGE advancing (form-feed) |
 | REWRITE | Implemented | Spec-true | Organization check (CBL1901) |
-| REWRITE FROM | Partially | Bug | Validated (CBL1902) but **FROM not lowered in Binder** -- 7-line fix needed |
+| REWRITE FROM | Implemented | Spec-true | FROM source MOVEd to record before rewrite (same pattern as WRITE FROM) |
 | DELETE | Implemented | Spec-true | INVALID KEY paths; organization validated (CBL2001) |
-| START (KEY IS) | Partially | Bug | Key condition hardcoded to Equal regardless of source; bound tree carries correct condition but it's ignored |
+| START (KEY IS) | Implemented | Spec-true | Key condition extracted from bound tree; maps to StartCondition enum (Equal/Greater/GreaterOrEqual/Less/LessOrEqual) |
 
 ### Runtime I/O Handlers
 
@@ -428,7 +428,7 @@ COBOL source file (.cob)
 
 ### Summary of Feature Coverage Gaps
 
-1. **ALTERNATE KEY**: Grammar exists, not visited in semantic builder, no runtime support.
+1. ~~**ALTERNATE KEY**~~: **DONE** — parsed, stored in FileSymbol, registered at runtime with secondary indices.
 2. **READ random/keyed**: KEY IS parsed but binder does not dispatch to `ReadByKey`; likely broken for indexed random access.
 3. **WRITE BEFORE ADVANCING / PAGE**: Flag stored but IR only has `IrWriteAfterAdvancing`.
 4. **CALL inter-program linkage**: Full parse + bind, but IR is a display stub.
@@ -617,7 +617,7 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 2. **Function calls silently return zero** (3.3) -- silent wrong results, no diagnostic.
 3. **Unresolved identifiers become string literals** (3.3) -- masks errors silently.
 4. **START always uses Equal condition** (3.3) -- ignores KEY IS GREATER/LESS from source.
-5. **REWRITE FROM not lowered** (3.3) -- validated but not emitted.
+5. ~~**REWRITE FROM not lowered** (3.3)~~ -- **RESOLVED**: FROM source MOVEd to record before rewrite.
 
 ### Medium Priority (maintainability)
 6. **Ad-hoc diagnostic codes** (3.3) -- 50+ string literal codes outside descriptor registry.
@@ -702,7 +702,7 @@ All 5 occurrences are in `CilEmitter.cs` and serve as exhaustive switch guards (
 | Category | Count | Framework |
 |---|---|---|
 | Unit tests | 217 pass | xUnit |
-| Integration tests | 184 pass, 1 skip | xUnit |
+| Integration tests | 185 pass, 1 skip | xUnit |
 | NIST tests at 100% | 39 of 95 NC-series (41%) | Shell script (not xUnit) |
 
 ### Unit Test Coverage by Phase
@@ -1245,9 +1245,9 @@ P3-3 (semantic features) ──────────────────�
 | T-006 | Reserved words as paragraph names | Planned | | Context-sensitive keyword handling |
 | T-007 | CALL IR implementation (inter-program) | Planned | | Currently stub |
 | T-008 | SORT/MERGE full IR implementation | Planned | | Currently parse only |
-| T-009 | Alternate keys (ISAM) | Planned | | Parsed but not visited |
+| T-009 | Alternate keys (ISAM) | **Done** | | Parsed, stored, registered, secondary indices maintained |
 | T-010 | REWRITE FROM lowering (7-line fix) | Planned | | FROM move not emitted |
-| T-011 | START key condition (hardcoded Equal) | Planned | | BoundStartStatement.KeyCondition ignored |
+| T-011 | START key condition | **Done** | | KeyCondition extracted from bound tree → StartCondition enum |
 | T-012 | Duplicate expression binding elimination | Planned | | ~90 lines of duplication |
 | T-013 | Silent zero for function calls | Planned | | No diagnostic emitted |
 | T-014 | Unresolved identifier string fallback | Planned | | No diagnostic emitted |

@@ -597,12 +597,16 @@ public sealed class CilEmitter
                 EmitRewriteRecordFromStorage(il, rw);
                 break;
 
-            case IrWriteAfterAdvancing waa:
-                EmitWriteAfterAdvancing(il, waa);
+            case IrWriteAdvancing waa:
+                EmitWriteAdvancing(il, waa);
                 break;
 
             case IrReadRecordToStorage rd:
                 EmitReadRecordToStorage(il, rd);
+                break;
+
+            case IrReadByKey rbk:
+                EmitReadByKey(il, rbk);
                 break;
 
             case IrCheckFileAtEnd chk:
@@ -1270,7 +1274,7 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
-    private void EmitWriteAfterAdvancing(ILProcessor il, IrWriteAfterAdvancing waa)
+    private void EmitWriteAdvancing(ILProcessor il, IrWriteAdvancing waa)
     {
         // fileName
         il.Append(il.Create(OpCodes.Ldstr, waa.FileName));
@@ -1278,11 +1282,13 @@ public sealed class CilEmitter
         EmitLocationArgs(il, waa.Record);
         // advanceLines
         il.Append(il.Create(OpCodes.Ldc_I4, waa.AdvanceLines));
+        // isBefore
+        il.Append(il.Create(waa.IsBefore ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         var method = _module.ImportReference(
             typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "WriteAfterAdvancing",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+                "WriteAdvancing",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(bool) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
@@ -1298,6 +1304,22 @@ public sealed class CilEmitter
                 new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Call, method));
         il.Append(il.Create(OpCodes.Pop)); // Discard bool return (AT END checked separately)
+    }
+
+    private void EmitReadByKey(ILProcessor il, IrReadByKey rbk)
+    {
+        // FileRuntime.ReadByKey(string fileName, byte[] recArea, int recOff, int recSize,
+        //                       byte[] keyArea, int keyOff, int keySize)
+        il.Append(il.Create(OpCodes.Ldstr, rbk.FileName));
+        EmitLocationArgs(il, rbk.Record);
+        EmitLocationArgs(il, rbk.Key);
+
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
+                "ReadByKey",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int),
+                        typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
     }
 
     /// <summary>
@@ -2919,6 +2941,13 @@ public sealed class CilEmitter
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseFile",
                     new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.RegisterAlternateKey")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("RegisterAlternateKey",
+                    new[] { typeof(string), typeof(int), typeof(int), typeof(bool) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "FileRuntime.RegisterFileHandlerWithOrg")

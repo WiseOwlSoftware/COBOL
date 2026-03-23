@@ -51,6 +51,16 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// Register an alternate key for an indexed file (after RegisterFileHandlerWithOrg).
+    /// </summary>
+    public static void RegisterAlternateKey(string cobolName, int keyOffset, int keyLength, bool allowDuplicates)
+    {
+        EnsureManager();
+        var handler = _manager!.GetHandler(cobolName) as IndexedFileHandler;
+        handler?.AddAlternateKey(keyOffset, keyLength, allowDuplicates);
+    }
+
+    /// <summary>
     /// OPEN OUTPUT file-name.
     /// </summary>
     public static void OpenOutput(string fileName)
@@ -120,37 +130,66 @@ public static class FileRuntime
     }
 
     /// <summary>
-    /// WRITE AFTER ADVANCING n LINES: print-control semantics.
-    /// Outputs n CR/LF sequences then the record text (no trailing newline).
+    /// WRITE BEFORE/AFTER ADVANCING: print-control semantics.
+    /// advanceLines = -1 means PAGE advancing (form-feed).
+    /// AFTER: advance lines, then write record. BEFORE: write record, then advance lines.
     /// </summary>
-    public static void WriteAfterAdvancing(string fileName, byte[] area, int offset, int size, int advanceLines)
+    public static void WriteAdvancing(string fileName, byte[] area, int offset, int size,
+        int advanceLines, bool isBefore)
     {
         string text = Encoding.ASCII.GetString(area, offset, size).TrimEnd();
-        WriteAfterAdvancingText(fileName, text, advanceLines);
+        WriteAdvancingText(fileName, text, advanceLines, isBefore);
     }
 
-    /// <summary>
-    /// WRITE AFTER ADVANCING with pre-extracted text.
-    /// </summary>
+    /// <summary>WRITE AFTER ADVANCING with pre-extracted text (legacy compatibility).</summary>
     public static void WriteAfterAdvancingText(string fileName, string text, int advanceLines)
+        => WriteAdvancingText(fileName, text, advanceLines, isBefore: false);
+
+    private static void WriteAdvancingText(string fileName, string text, int advanceLines, bool isBefore)
     {
         EnsureManager();
         var handler = _manager!.GetHandler(fileName) as SequentialFileHandler;
         if (handler != null && handler.IsOpen)
         {
             _afterAdvancingFiles.Add(fileName);
-            for (int i = 0; i < advanceLines; i++)
-                handler.WriteRawText("\r\n");
-            handler.WriteRawText(text);
+            if (isBefore) { handler.WriteRawText(text); EmitAdvance(handler, advanceLines); }
+            else          { EmitAdvance(handler, advanceLines); handler.WriteRawText(text); }
             _lastStatus[fileName] = FileStatus.Success;
         }
         else
         {
-            // Fallback: console output
-            for (int i = 0; i < advanceLines; i++)
-                Console.WriteLine();
-            Console.Write(text);
+            if (isBefore) { Console.Write(text); EmitAdvanceConsole(advanceLines); }
+            else          { EmitAdvanceConsole(advanceLines); Console.Write(text); }
         }
+    }
+
+    private static void EmitAdvance(SequentialFileHandler handler, int advanceLines)
+    {
+        if (advanceLines == -1) handler.WriteRawText("\f");
+        else for (int i = 0; i < advanceLines; i++) handler.WriteRawText("\r\n");
+    }
+
+    private static void EmitAdvanceConsole(int advanceLines)
+    {
+        if (advanceLines == -1) Console.Write('\f');
+        else for (int i = 0; i < advanceLines; i++) Console.WriteLine();
+    }
+
+    /// <summary>
+    /// READ by key: read a specific record from an indexed/relative file using the key value.
+    /// Extracts key bytes and calls IFileHandler.ReadByKey.
+    /// </summary>
+    public static void ReadByKey(string fileName, byte[] recArea, int recOffset, int recSize,
+        byte[] keyArea, int keyOffset, int keySize)
+    {
+        EnsureManager();
+        byte[] keyValue = new byte[keySize];
+        Array.Copy(keyArea, keyOffset, keyValue, 0, keySize);
+        byte[] tempBuf = new byte[recSize];
+        string status = _manager!.ReadByKey(fileName, tempBuf, keyValue);
+        _lastStatus[fileName] = status;
+        if (status == FileStatus.Success)
+            Array.Copy(tempBuf, 0, recArea, recOffset, recSize);
     }
 
     /// <summary>

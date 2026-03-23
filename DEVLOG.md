@@ -6083,4 +6083,59 @@ dropped the value. Found by the sign condition integration test — the test use
 
 ---
 
+---
+
+## 2026-03-22 (cont.) — File I/O gap sweep
+
+### Summary
+
+Closed all 5 File I/O gaps from AUDIT_REPORT.md section 2c. Two bug fixes, one enhancement,
+two feature completions.
+
+### Fixes
+
+**1. REWRITE FROM (bug)**: `LowerRewrite` ignored the FROM clause — the FROM-to-record MOVE
+was never emitted. 7-line fix copying the pattern from `LowerWrite`.
+
+**2. START KEY condition (bug)**: `LowerStart` hardcoded `condition = 0` (Equal), ignoring the
+`KeyCondition` from the bound tree. Fixed to extract `BoundBinaryOperatorKind` and map to
+`StartCondition` enum. This also exposed a bug in the existing START test — it used
+`READ IX-FILE` (random read in DYNAMIC mode) when it meant `READ IX-FILE NEXT RECORD`
+(sequential read after START). The READ fix (below) made this visible.
+
+**3. WRITE ADVANCING (enhancement)**: Only AFTER ADVANCING with integer was supported. Added:
+- BEFORE ADVANCING (write record, then advance — vs AFTER which advances first)
+- PAGE advancing (form-feed, sentinel value -1)
+- Renamed `IrWriteAfterAdvancing` → `IrWriteAdvancing` with `IsBefore` property
+- Runtime `WriteAdvancing` replaces `WriteAfterAdvancing` (kept legacy wrapper)
+
+**4. READ random/keyed (feature)**: READ for RANDOM/DYNAMIC access always used sequential read.
+- New `IrReadByKey` IR instruction with key location
+- `LowerRead` checks `AccessMode` and `IsNext` to select sequential vs keyed
+- New `FileRuntime.ReadByKey` → `CobolFileManager.ReadByKey` → `IFileHandler.ReadByKey`
+- CIL emission via `EmitReadByKey`
+
+**5. ALTERNATE KEY (feature — full end-to-end)**:
+- Grammar: fixed `alternateKeyClause` to accept `ALTERNATE RECORD KEY IS` (was missing `RECORD`)
+- Semantic: `AlternateKeyInfo` record, `FileSymbol.AlternateKeys` list, extracted in SemanticBuilder
+- Binder: emits `RegisterAlternateKey` calls with resolved offset/length per alternate key
+- Runtime: `FileRuntime.RegisterAlternateKey` → `IndexedFileHandler.AddAlternateKey`
+- IndexedFileHandler: secondary `SortedDictionary<string, List<byte[]>>` per alternate key,
+  duplicate support, uniqueness enforcement for non-DUPLICATES keys, `ReadByKey` with key index
+- CIL: `RegisterAlternateKey(string, int, int, bool)` call emitted
+- Initially stopped at semantic extraction without runtime; user correctly called out incomplete
+  implementation — finished the full pipeline
+
+### AI Misstep
+
+1. **Stopped ALTERNATE KEY at semantic extraction**: Declared it "done" after storing in FileSymbol
+   without implementing the runtime multi-key indexing. User called this out — the plan said full
+   implementation and I cut it short. Lesson: when the plan says "implement fully", implement fully.
+
+### Test Results
+
+- Unit: 217 pass
+- Integration: 185 pass, 1 skip (was 184)
+- NIST: all 39 at 100%
+
 *End of entries for 2026-03-22*

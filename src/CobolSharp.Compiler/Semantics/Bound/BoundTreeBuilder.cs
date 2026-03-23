@@ -759,7 +759,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 // Could be PAGE or an identifier — for PAGE, use a large value
                 var idCtx = advCtx.dataReference();
                 if (idCtx != null && idCtx.IDENTIFIER().GetText().Equals("PAGE", StringComparison.OrdinalIgnoreCase))
-                    advancingLines = 0; // PAGE = no line advance, just form-feed (handled separately)
+                    advancingLines = -1; // PAGE = form-feed (sentinel value)
                 else
                     advancingLines = 1; // Default: 1 line
             }

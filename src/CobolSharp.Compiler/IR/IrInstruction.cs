@@ -416,19 +416,22 @@ public sealed class IrRewriteRecordFromStorage : IrInstruction
 }
 
 /// <summary>
-/// WRITE AFTER ADVANCING: print-control write with line advance.
+/// WRITE BEFORE/AFTER ADVANCING: print-control write with line advance or page eject.
+/// AdvanceLines = -1 means PAGE advancing (form-feed).
 /// </summary>
-public sealed class IrWriteAfterAdvancing : IrInstruction
+public sealed class IrWriteAdvancing : IrInstruction
 {
     public string FileName { get; }
     public IrLocation Record { get; }
     public int AdvanceLines { get; }
+    public bool IsBefore { get; }
 
-    public IrWriteAfterAdvancing(string fileName, IrLocation record, int advanceLines)
+    public IrWriteAdvancing(string fileName, IrLocation record, int advanceLines, bool isBefore = false)
     {
         FileName = fileName;
         Record = record;
         AdvanceLines = advanceLines;
+        IsBefore = isBefore;
     }
 }
 
@@ -444,6 +447,24 @@ public sealed class IrReadRecordToStorage : IrInstruction
     {
         FileName = fileName;
         Record = record;
+    }
+}
+
+/// <summary>
+/// READ by key: read a specific record from an indexed/relative file using the key value.
+/// Used for RANDOM and DYNAMIC access modes (non-NEXT reads).
+/// </summary>
+public sealed class IrReadByKey : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    public IrLocation Key { get; }
+
+    public IrReadByKey(string fileName, IrLocation record, IrLocation key)
+    {
+        FileName = fileName;
+        Record = record;
+        Key = key;
     }
 }
 

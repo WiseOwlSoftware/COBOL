@@ -68,7 +68,7 @@ recordKeyClause
     ;
 
 alternateKeyClause
-    : ALTERNATE KEY IS dataReference
+    : ALTERNATE RECORD? KEY IS dataReference
       (WITH? DUPLICATES)?
     ;
 

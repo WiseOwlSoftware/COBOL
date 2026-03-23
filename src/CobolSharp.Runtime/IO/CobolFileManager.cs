@@ -47,6 +47,14 @@ public class CobolFileManager : IDisposable
         return handler.ReadNext(recordBuffer);
     }
 
+    /// <summary>Read a specific record by key (random/indexed access).</summary>
+    public string ReadByKey(string cobolFileName, byte[] recordBuffer, byte[] keyValue)
+    {
+        var handler = GetHandler(cobolFileName);
+        if (handler == null) return FileStatus.FileNotOpen;
+        return handler.ReadByKey(recordBuffer, keyValue);
+    }
+
     /// <summary>Write a record to a file.</summary>
     public string Write(string cobolFileName, byte[] recordData)
     {

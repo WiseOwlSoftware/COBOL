@@ -29,7 +29,7 @@ tests/
       DiagnosticTestBase.cs           (base class, no test methods)
       ExpressionTypeTests.cs           8 [Fact]
       SymbolValidatorTests.cs         16 [Fact]
-  CobolSharp.Tests.Integration/   184 passing, 1 skip
+  CobolSharp.Tests.Integration/   185 passing, 1 skip
     EndToEndTests.cs             177 [Fact], 3 [Theory]
     CobolErrorStrategyTests.cs     2 [Fact], 3 [Theory]
 ```
