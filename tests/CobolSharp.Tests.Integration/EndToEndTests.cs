@@ -5221,4 +5221,35 @@ public class EndToEndTests : IDisposable
         // READ by primary key "002" → should return "002BOB  "
         Assert.Equal("002BOB", stdout.TrimEnd());
     }
+
+    [Fact]
+    public void Call_SimpleSubprogram_DisplaysFromCallee()
+    {
+        // Caller CALLs a subprogram which DISPLAYs a message
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("CALLER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLER.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY "BEFORE CALL"
+                    CALL "CALLEE"
+                    DISPLAY "AFTER CALL"
+                    STOP RUN.
+            """),
+            ("CALLEE.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLEE.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY "INSIDE CALLEE"
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("BEFORE CALL", lines[0]);
+        Assert.Equal("INSIDE CALLEE", lines[1]);
+        Assert.Equal("AFTER CALL", lines[2]);
+    }
 }

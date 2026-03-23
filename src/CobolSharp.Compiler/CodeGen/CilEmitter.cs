@@ -79,7 +79,10 @@ public sealed class CilEmitter
         foreach (var m in ir.Methods)
             DefineMethodSignature(m);
 
-        // 4. Method bodies
+        // 4. Create Entry method signature (before emitting bodies, so Main can reference it)
+        CreateEntryMethodSignature();
+
+        // 5. Method bodies
         Console.Error.WriteLine($"[CIL] IR module '{ir.Name}' has {ir.Methods.Count} methods:");
         foreach (var m in ir.Methods)
             Console.Error.WriteLine($"[CIL]   {m.Name}: {m.Blocks.Count} blocks, {m.Blocks.Sum(b => b.Instructions.Count)} instr");
@@ -87,33 +90,93 @@ public sealed class CilEmitter
         foreach (var m in ir.Methods)
             EmitMethodBody(m);
 
-        // 5. Generate static Entry(CobolDataPointer[]) method for inter-program CALL
-        EmitEntryMethod(ir);
+        // 6. Generate Entry method body (paragraph dispatch loop)
+        EmitEntryMethodBody(ir);
     }
 
-    /// <summary>
-    /// Generate the static Entry method that serves as the CALL target for this program.
-    /// Entry maps CobolDataPointer[] args to LINKAGE items and runs the paragraph dispatch.
-    /// The Main method registers the program and calls Entry with empty args.
-    /// </summary>
-    private void EmitEntryMethod(IrModule ir)
+    private MethodDefinition? _entryMethod;
+
+    /// <summary>Create the Entry method signature so Main can reference it.</summary>
+    private void CreateEntryMethodSignature()
     {
-        var entryMethod = new MethodDefinition(
+        _entryMethod = new MethodDefinition(
             "Entry",
             MethodAttributes.Public | MethodAttributes.Static,
             _module.TypeSystem.Int32);
-        entryMethod.Parameters.Add(new ParameterDefinition(
+        _entryMethod.Parameters.Add(new ParameterDefinition(
             "args", ParameterAttributes.None,
             _module.ImportReference(typeof(CobolDataPointer[]))));
-        _programType!.Methods.Add(entryMethod);
+        _programType!.Methods.Add(_entryMethod);
+    }
 
-        var il = entryMethod.Body.GetILProcessor();
+    /// <summary>
+    /// Emit the Entry method body: maps args to LINKAGE items, runs paragraph dispatch.
+    /// </summary>
+    private void EmitEntryMethodBody(IrModule ir)
+    {
+        var il = _entryMethod!.Body.GetILProcessor();
 
-        // TODO Phase 3 full: map args to LINKAGE items
-        // For now, Entry just returns 0 (normal completion).
-        // The actual paragraph dispatch stays in Main until the full refactor.
+        // TODO: Map args[i] → LINKAGE locals based on PROCEDURE DIVISION USING
+
+        // Paragraph dispatch loop
+        if (ir.ParagraphDispatchOrder.Count > 0)
+        {
+            EmitParagraphDispatchInline(il, ir.ParagraphDispatchOrder, _entryMethod);
+        }
+
+        // Normal return: 0
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>
+    /// Emit the paragraph dispatch loop inline into a method (Entry or legacy Main).
+    /// while (pc >= 0 && pc < N) { pc = paragraphs[pc](); }
+    /// </summary>
+    private void EmitParagraphDispatchInline(ILProcessor il,
+        IReadOnlyList<IrMethod> paragraphs, MethodDefinition md)
+    {
+        int count = paragraphs.Count;
+
+        var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        md.Body.Variables.Add(pcLocal);
+
+        // pc = 0
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Stloc, pcLocal));
+
+        var loopLabel = il.Create(OpCodes.Nop);
+        il.Append(loopLabel);
+
+        var exitLabel = il.Create(OpCodes.Nop);
+
+        // if pc < 0, goto EXIT
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Blt, exitLabel));
+
+        // switch (pc)
+        var caseLabels = new Instruction[count];
+        for (int i = 0; i < count; i++)
+            caseLabels[i] = il.Create(OpCodes.Nop);
+
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Switch, caseLabels));
+
+        // Default: goto EXIT
+        il.Append(il.Create(OpCodes.Br, exitLabel));
+
+        // Case bodies
+        for (int i = 0; i < count; i++)
+        {
+            il.Append(caseLabels[i]);
+            var target = _methodMap[paragraphs[i]];
+            il.Append(il.Create(OpCodes.Call, target));
+            il.Append(il.Create(OpCodes.Stloc, pcLocal));
+            il.Append(il.Create(OpCodes.Br, loopLabel));
+        }
+
+        il.Append(exitLabel);
     }
 
     /// <summary>
@@ -3122,6 +3185,14 @@ public sealed class CilEmitter
             // Need to push advanceLines=1 for legacy WriteText calls
             il.Append(il.Create(OpCodes.Ldc_I4_1));
             il.Append(il.Create(OpCodes.Call, writeText));
+        }
+        else if (rtc.MethodName == "Self.Entry")
+        {
+            // Main calls Entry(Array.Empty<CobolDataPointer>())
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Call, _entryMethod!));
+            il.Append(il.Create(OpCodes.Pop)); // discard int return value in Main
         }
         else if (rtc.MethodName == "FileRuntime.Init")
         {

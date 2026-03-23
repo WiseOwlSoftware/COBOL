@@ -326,16 +326,15 @@ public sealed class Binder
             }
         }
 
-        // Collect paragraph methods in declaration order
-        var orderedMethods = new List<IrMethod>();
+        // Collect paragraph methods in declaration order for Entry method
         foreach (var para in boundProgram.Paragraphs)
         {
             if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var m))
-                orderedMethods.Add(m);
+                module.ParagraphDispatchOrder.Add(m);
         }
 
-        // Emit PC dispatch loop
-        block.Instructions.Add(new IrParagraphDispatch(orderedMethods));
+        // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
+        block.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));
 
         main.Blocks.Add(block);
         module.Methods.Insert(0, main);

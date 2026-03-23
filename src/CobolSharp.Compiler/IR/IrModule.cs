@@ -28,6 +28,12 @@ public sealed class IrModule(string name)
     /// Index = alter slot, Value = default paragraph index (-1 for bare GO TO).
     /// </summary>
     public List<int> AlterDefaults { get; } = [];
+
+    /// <summary>
+    /// Ordered list of paragraph methods for the Entry dispatch loop.
+    /// Set by CreateEntryPoint; used by CilEmitter.EmitEntryMethod.
+    /// </summary>
+    public List<IrMethod> ParagraphDispatchOrder { get; } = [];
 }
 
 /// <summary>
