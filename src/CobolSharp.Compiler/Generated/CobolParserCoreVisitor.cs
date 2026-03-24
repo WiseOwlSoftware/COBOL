@@ -1731,6 +1731,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitUnstringIntoPhrase([NotNull] CobolParserCore.UnstringIntoPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringIntoTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUnstringIntoTarget([NotNull] CobolParserCore.UnstringIntoTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringWithPointer"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

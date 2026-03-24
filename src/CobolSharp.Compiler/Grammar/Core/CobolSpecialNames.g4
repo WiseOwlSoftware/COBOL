@@ -33,7 +33,7 @@ implementorSwitchEntry
 
 switchOnClause
     : ON STATUS IS IDENTIFIER
-    | ON IDENTIFIER
+    | ON IS? IDENTIFIER
     ;
 
 switchOffClause

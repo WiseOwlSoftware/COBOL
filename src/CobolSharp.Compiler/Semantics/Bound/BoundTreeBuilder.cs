@@ -1692,23 +1692,26 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var intos = new List<BoundUnstringInto>();
         foreach (var intoPhrase in ctx.unstringIntoPhrase())
         {
-            var identifiers = intoPhrase.dataReference();
-            int idIdx = 0;
+            foreach (var target in intoPhrase.unstringIntoTarget())
+            {
+                var identifiers = target.dataReference();
+                int idIdx = 0;
 
-            // First identifier is the INTO target
-            var targetExpr = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+                // First identifier is the INTO target
+                var targetExpr = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
 
-            // DELIMITER IN (optional)
-            BoundExpression? delimiterIn = null;
-            if (intoPhrase.DELIMITER() != null && idIdx < identifiers.Length)
-                delimiterIn = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+                // DELIMITER IN (optional)
+                BoundExpression? delimiterIn = null;
+                if (target.DELIMITER() != null && idIdx < identifiers.Length)
+                    delimiterIn = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
 
-            // COUNT IN (optional)
-            BoundExpression? countIn = null;
-            if (intoPhrase.COUNT() != null && idIdx < identifiers.Length)
-                countIn = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+                // COUNT IN (optional)
+                BoundExpression? countIn = null;
+                if (target.COUNT() != null && idIdx < identifiers.Length)
+                    countIn = BindDataReferenceWithSubscripts(identifiers[idIdx++]);
 
-            intos.Add(new BoundUnstringInto(targetExpr, countIn, delimiterIn));
+                intos.Add(new BoundUnstringInto(targetExpr, countIn, delimiterIn));
+            }
         }
 
         // WITH POINTER (optional)

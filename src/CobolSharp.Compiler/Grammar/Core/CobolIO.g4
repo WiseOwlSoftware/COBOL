@@ -399,7 +399,11 @@ unstringDelimiterPhrase
     ;
 
 unstringIntoPhrase
-    : INTO dataReference
+    : INTO unstringIntoTarget+
+    ;
+
+unstringIntoTarget
+    : dataReference
       (DELIMITER IN dataReference)?
       (COUNT IN dataReference)?
     ;

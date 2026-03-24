@@ -84,6 +84,8 @@ public static class DataItemClassifier
 
     private static bool IsSubordinateTo(DataSymbol child, DataSymbol ancestor)
     {
+        // The key is the table item itself — valid (self-referencing key)
+        if (child == ancestor) return true;
         for (var cur = child.Parent; cur != null; cur = cur.Parent)
         {
             if (cur == ancestor) return true;
