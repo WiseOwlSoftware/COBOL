@@ -49,11 +49,8 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - Sign conditions rewritten as comparisons (POSITIVE → > 0), not a new IR instruction
 
 ### Known gaps
-- CALL/USING/RETURNING bound + validated, but IR is stub (no inter-program linkage)
-- SORT/MERGE (parse only)
-- Alternate keys (not parsed)
-- VALUE THRU in level-88 (grammar gap — NC201A, NC250A, NC252A)
-- ASCENDING/DESCENDING KEY in OCCURS (NC233A, NC237A, NC238A, NC247A)
-- STATUS/PROGRAM as paragraph names (reserved word conflicts)
-- Subscripted operands in DIVIDE GIVING (NC121M)
-- NC220M infinite loop at runtime
+- SORT/MERGE (parse only, IR is stub)
+- Abbreviated conditions (IF A > B OR < C — implicit operand reuse; NC211A, NC250A)
+- ALPHABET clause THRU/ALSO in SPECIAL-NAMES (NC215A, NC219A)
+- NC220M infinite loop at runtime (IrElementRef destination issue)
+- Compile-time CALL parameter validation (needs inter-program metadata)

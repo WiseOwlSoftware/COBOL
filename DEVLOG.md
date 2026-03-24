@@ -6366,4 +6366,33 @@ Architecture: standalone validation pass running inside Binder.Bind after BoundT
 before IR lowering. Simple forward-walk with mutable sets — no CFG or dataflow framework needed.
 Also handles nested statements (IF/EVALUATE/AT END/INVALID KEY).
 
+---
+
+## 2026-03-23 (cont.) — NIST keyword conflict fixes
+
+### STATUS keyword in SPECIAL-NAMES (NC211A, NC254A)
+- Split `implementorSwitchEntry` into sub-rules: `switchOnClause`, `switchOffClause`
+- `ON STATUS IS condition-name` / `OFF STATUS IS condition-name` now parsed with proper tokens
+- SemanticBuilder updated to extract ON/OFF names from new sub-rule contexts
+
+### PROGRAM keyword in OBJECT-COMPUTER (NC215A, NC219A)
+- Added `programCollatingSequenceClause` rule: `PROGRAM COLLATING? SEQUENCE IS? IDENTIFIER`
+- Added `COLLATING` and `SEQUENCE` lexer tokens
+- User correctly rejected initial approach of adding PROGRAM to `computerAttributes` as
+  identifier — that was a hack. Proper fix uses dedicated grammar rule with keyword tokens.
+
+### Tests removed
+Removed 5 tests that validated broken behavior (asserted valid COBOL syntax would produce
+reserved-word errors). Per user feedback: never test for broken behavior.
+
+### Remaining NIST blockers (not yet fixed)
+- NC220M: runtime infinite loop
+- NC211A, NC250A: abbreviated conditions (implicit operand reuse)
+- NC215A, NC219A: ALPHABET clause THRU/ALSO in SPECIAL-NAMES
+- NC254A: quote handling in NIST preprocessor
+
+### CLAUDE.md known gaps updated
+Removed stale entries (CALL, ALTERNATE KEY, NC121M, STATUS/PROGRAM all fixed).
+Added current gaps: abbreviated conditions, ALPHABET THRU/ALSO, NC220M.
+
 *End of entries for 2026-03-23*
