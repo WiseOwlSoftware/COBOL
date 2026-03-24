@@ -1,7 +1,7 @@
 # Section 3: Non-production-quality and Duplication Findings
 
-Audit date: 2026-03-22
-Branch: nist-phase-d
+Audit date: 2026-03-24
+Branch: main
 Codebase: 97 C# source files (excluding generated ANTLR code)
 
 ---

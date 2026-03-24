@@ -126,7 +126,7 @@
 
 **Acceptance criteria:**
 - Only one expression binding code path exists.
-- All 176 integration tests pass. All 195 unit tests pass. All 39 NIST tests pass.
+- All 184 integration tests pass. All 217 unit tests pass. All 31 NIST tests pass.
 
 ---
 

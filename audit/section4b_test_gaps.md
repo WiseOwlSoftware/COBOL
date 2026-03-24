@@ -29,7 +29,7 @@ tests/
       DiagnosticTestBase.cs           (base class, no test methods)
       ExpressionTypeTests.cs           8 [Fact]
       SymbolValidatorTests.cs         16 [Fact]
-  CobolSharp.Tests.Integration/   189 passing, 1 skip
+  CobolSharp.Tests.Integration/   184 passing, 1 skip
     EndToEndTests.cs             177 [Fact], 3 [Theory]
     CobolErrorStrategyTests.cs     2 [Fact], 3 [Theory]
 ```
@@ -116,8 +116,9 @@ not integrated into `dotnet test`.
 5. **File I/O beyond sequential** -- Indexed and relative file operations have no dedicated
    test coverage. `SequentialFileTests` has 6 tests.
 
-6. **Inter-program CALL** -- CALL statement is bound and validated but IR is a stub.
-   No tests for parameter passing, BY REFERENCE/CONTENT/VALUE semantics.
+6. **Inter-program CALL** -- **RESOLVED**: CALL fully implemented with Entry methods,
+   CobolProgramRegistry, BY REFERENCE/CONTENT/VALUE, RETURNING, INITIAL, CANCEL, ENTRY,
+   dynamic CALL. Integration tests cover basic CALL semantics.
 
 7. **SORT/MERGE** -- Parse-only; no binding, validation, or runtime tests.
 

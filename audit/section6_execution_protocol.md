@@ -8,7 +8,7 @@ drift, contradict earlier decisions, introduce regressions, or duplicate work. E
 was derived from patterns observed across 13+ sessions of building this compiler.
 
 The project has completed its 9-phase modernization (see MIGRATION_LEDGER.md) and is now in
-active feature development on the `nist-phase-d` branch, with 39 NIST tests at 100% and known
+active feature development on the `main` branch, with 31 NIST tests at 100% (in guard script) and known
 gaps documented in CLAUDE.md. The rules below apply to all future work: new features, bug fixes,
 NIST test expansion, and any further modernization.
 
@@ -213,7 +213,7 @@ The coverage matrix is the NIST test list in CLAUDE.md "Current State".
 
 **When a new NIST test passes at 100%:**
 1. Add its ID to the sorted list in CLAUDE.md (maintain alphabetical/numerical order).
-2. Increment the count in parentheses (e.g., "(39 tests)" -> "(40 tests)").
+2. Increment the count in parentheses (e.g., "(31 tests)" -> "(32 tests)").
 
 **When a NIST test regresses:**
 1. Remove it from the list.
@@ -245,14 +245,17 @@ file and update it as tasks are completed.
 ```
 | ID     | Task                                      | Status   | Completed  | Notes                                    |
 |--------|-------------------------------------------|----------|------------|------------------------------------------|
-| T-001  | Fix NC121M subscripted DIVIDE GIVING      | Planned  |            | Known gap: subscripted operands          |
-| T-002  | Fix NC220M infinite loop at runtime       | Planned  |            | Known gap: runtime hang                  |
-| T-003  | VALUE THRU in level-88 (grammar gap)      | Planned  |            | Affects NC201A, NC250A, NC252A           |
-| T-004  | ASCENDING/DESCENDING KEY in OCCURS        | Planned  |            | Affects NC233A, NC237A, NC238A, NC247A   |
-| T-005  | STATUS/PROGRAM as paragraph names         | Planned  |            | Reserved word conflict                   |
-| T-006  | CALL IR implementation (inter-program)    | Planned  |            | Currently stub                           |
+| T-001  | Fix NC121M subscripted DIVIDE GIVING      | Done     | 2026-03-20 | DEVLOG Entry 126                         |
+| T-002  | Fix NC220M infinite loop at runtime       | Planned  |            | Likely ODO/subscript issue               |
+| T-003  | NC252A qualified RENAMES                  | Partial  |            | Compiles; 3 sub-tests fail               |
+| T-004  | NC233A OCCURS key + validation            | Done     | 2026-03-24 | 100% — added to guard suite              |
+| T-005  | STATUS/PROGRAM keyword conflicts          | Done     | 2026-03-22 | DEVLOG Entry 135-136                     |
+| T-006  | CALL IR implementation (inter-program)    | Done     | 2026-03-23 | Full CALL/USING/RETURNING/ENTRY/CANCEL   |
 | T-007  | SORT/MERGE full IR implementation         | Planned  |            | Currently parse only                     |
-| T-008  | Alternate keys (ISAM)                     | Planned  |            | Not parsed                               |
+| T-008  | Alternate keys (ISAM)                     | Done     | 2026-03-23 | Parsed, stored, runtime indices          |
+| T-009  | Condition-name conditions                 | Planned  |            | IF switch-condition (NC211A, NC254A)     |
+| T-010  | ODO runtime truncation                    | Planned  |            | SEARCH/compare respect active count      |
+| T-011  | Collating sequence (ALPHABET)             | Planned  |            | NC215A, NC219A                           |
 ```
 
 ### Column definitions

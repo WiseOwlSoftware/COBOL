@@ -1,6 +1,6 @@
 # COBOL-85 Feature Coverage Audit: Divisions, Data Description, Numeric Behavior
 
-Audited: 2026-03-22 | Branch: nist-phase-d
+Audited: 2026-03-24 | Branch: main
 
 ## 1. Divisions / Sections
 

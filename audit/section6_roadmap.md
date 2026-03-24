@@ -3,10 +3,11 @@
 ## Overview
 
 This section presents a prioritized remediation plan for the CobolSharp compiler, organized
-by criticality. The plan reflects the current state as of 2026-03-22: 39 NIST tests passing
-at 100%, 195 unit tests, 176 integration tests (1 skip), and the modernization ledger showing
-all 9 migration phases complete. The remaining work falls into correctness blockers, feature
-completions, code quality improvements, and future considerations.
+by criticality. The plan reflects the current state as of 2026-03-24: 31 NIST tests passing
+at 100% (in guard script), 217 unit tests, 184 integration tests (1 skip), and the modernization
+ledger showing all 9 migration phases complete. CALL/USING/RETURNING fully implemented.
+Code quality sweep (3.1-3.5) complete. The remaining work falls into correctness blockers,
+feature completions, and future considerations.
 
 ---
 

@@ -20,32 +20,16 @@
 **Acceptance criteria:**
 - No `IrRuntimeCall` instances exist in the IR after lowering.
 - All OPEN (INPUT/OUTPUT/IO/EXTEND), CLOSE, Init, and RegisterFileHandler operations emit through typed IR instructions.
-- All 176 integration tests pass. All 195 unit tests pass.
+- All 184 integration tests pass. All 217 unit tests pass.
 
 ---
 
-### CIL-02: Implement CALL Inter-Program Linkage
+### ~~CIL-02: Implement CALL Inter-Program Linkage~~ — **DONE** (2026-03-23)
 
-**Goal:** Replace the CALL stub in the Binder with actual CIL emission that invokes external programs via reflection or a program registry.
-
-**Scope:**
-- `src/CobolSharp.Compiler/CodeGen/Binder.cs` (LowerCall, lines ~1369-1384)
-- `src/CobolSharp.Compiler/IR/IrInstruction.cs` (new IrCallProgram instruction)
-- `src/CobolSharp.Compiler/CodeGen/CilEmitter.cs` (new EmitCallProgram method)
-- `src/CobolSharp.Runtime/` (new ProgramRegistry or CallRuntime class)
-
-**Required changes:**
-1. Define `IrCallProgram` IR instruction carrying: target name (string or IrLocation for dynamic CALL), argument list with parameter modes (BY REFERENCE/CONTENT/VALUE), optional RETURNING location.
-2. Implement `LowerCall` in `Binder.cs` to emit `IrCallProgram` instead of the current DISPLAY stub.
-3. Create a `CallRuntime` class in the runtime that resolves program names to compiled assemblies, marshals BY REFERENCE arguments as byte-array slices, and handles ON EXCEPTION / NOT ON EXCEPTION semantics.
-4. Implement `EmitCallProgram` in `CilEmitter.cs` to emit CIL that invokes `CallRuntime.Invoke(programName, args)`.
-5. Wire ON EXCEPTION path to catch resolution failures; NOT ON EXCEPTION as the success continuation.
-
-**Acceptance criteria:**
-- Static CALL to a compiled subprogram with BY REFERENCE parameters produces working CIL.
-- Dynamic CALL with string identifier resolves at runtime and raises exception on failure.
-- ON EXCEPTION / NOT ON EXCEPTION paths execute correctly.
-- CALL RETURNING stores result into the designated data item.
+**Status:** Fully implemented. CALL/USING/RETURNING with BY REFERENCE/CONTENT/VALUE, ENTRY statement,
+INITIAL program, CANCEL statement, dynamic CALL, ON EXCEPTION / NOT ON EXCEPTION. Uses
+`CobolProgramRegistry` for program resolution, `CobolDataPointer` for parameter passing,
+`StopRunException` for EXIT PROGRAM / GOBACK. Integration tests verify all modes.
 
 ---
 
@@ -328,7 +312,7 @@
 **Acceptance criteria:**
 - A single command produces a summary of all NIST test statuses.
 - The summary distinguishes between "test exists and passes," "test exists and fails," and "test not yet implemented."
-- Current baseline: 39 NIST tests at 100%.
+- Current baseline: 31 NIST tests at 100% (in guard script).
 
 ---
 

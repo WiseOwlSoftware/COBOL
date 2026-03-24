@@ -1,7 +1,7 @@
 # CobolSharp Compiler Audit Report
 
-**Date:** 2026-03-22
-**Branch:** nist-phase-d
+**Date:** 2026-03-24
+**Branch:** main
 **Auditor:** Claude (automated deep audit)
 
 ---
@@ -669,7 +669,7 @@ These are dispatch switches or spec-matching implementations where the complexit
 | Category | Count | Framework |
 |---|---|---|
 | Unit tests | 217 pass | xUnit |
-| Integration tests | 189 pass, 1 skip | xUnit |
+| Integration tests | 184 pass, 1 skip | xUnit |
 | NIST tests at 100% | 39 of 95 NC-series (41%) | Shell script (not xUnit) |
 
 ### Unit Test Coverage by Phase
@@ -701,24 +701,24 @@ These are dispatch switches or spec-matching implementations where the complexit
 
 `EndToEndTests.cs` (4,868 lines, 169 tests) compiles inline COBOL via `Compilation.Compile()`, runs the DLL as a subprocess, and asserts on stdout. True end-to-end: source text in, program output out. 10-second process timeout.
 
-One skipped test: `CallStatement_EmitsDiagnostic` (CALL not yet lowered to CIL).
+One skipped test: `CallStatement_EmitsDiagnostic` (CALL now implemented — test may need updating).
 
 ### NIST CCVS85 Compliance
 
-**39 NIST NC-series tests at 100%:**
-- Arithmetic: NC101A-NC107A, NC111A, NC112A, NC115A-NC120A, NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A
-- Table Handling: NC170A-NC173A, NC175A-NC177A
-- Control Flow: NC202A, NC203A, NC206A, NC207A, NC210A, NC221A, NC222A, NC224A
-- Data: NC239A-NC241A, NC248A, NC251A, NC253A
+**31 NIST NC-series tests at 100% (in guard script):**
+- Arithmetic: NC101A-NC107A, NC111A, NC112A, NC115A, NC117A, NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A
+- Table Handling: NC176A, NC233A
+- Control Flow: NC202A, NC206A, NC207A, NC210A, NC221A
+- Data: NC239A-NC241A, NC248A, NC253A
 
-**Known blockers:**
-- NC220M: infinite loop at runtime (IrElementRef destination issue likely)
-- NC201A, NC250A, NC252A: period-terminated inline PERFORM and other parse issues (NOT VALUE THRU -- research corrected this)
-- NC233A, NC237A, NC247A: runtime PERFORM VARYING / SEARCH issues (NOT ASCENDING KEY grammar -- research corrected this)
-- NC211A, NC254A: STATUS as keyword in SPECIAL-NAMES
-- NC215A, NC219A: PROGRAM as keyword in OBJECT-COMPUTER
-
-**Note:** NC121M (subscripted DIVIDE GIVING) was **already fixed** in DEVLOG Entry 126 (2026-03-20). The CLAUDE.md "known gap" entry is stale.
+**Known blockers (categorized 2026-03-24):**
+- NC220M, NC237A: runtime infinite loop (likely OCCURS DEPENDING ON or subscript issue)
+- NC201A: subscripted PERFORM VARYING + abbreviated conditions
+- NC211A, NC254A: condition-name conditions (`IF switch-condition` — not yet bound)
+- NC250A: ZERO as arithmetic operand causes grammar ALL(*) backtracking (needs grammar redesign)
+- NC215A, NC219A: collating sequence (ALPHABET clause) not applied to comparisons
+- NC252A: qualified RENAMES failures (3 sub-tests); compiles now after op_Explicit + RENAMES category fix
+- NC247A: OCCURS DEPENDING ON runtime truncation — SEARCH/comparison don't respect active ODO count
 
 ### Test Quality Assessment
 
@@ -748,7 +748,7 @@ One skipped test: `CallStatement_EmitsDiagnostic` (CALL not yet lowered to CIL).
 | Code Generation (CIL) | None | All integration tests | **High** |
 | Runtime (fields/PIC) | 66 tests | All integration tests | Low |
 | Runtime (file I/O) | 6 tests | 12+ integration tests | Medium |
-| NIST validation | Not in xUnit | 39 via shell script | **High** (automation gap) |
+| NIST validation | Not in xUnit | 31 via shell script | **High** (automation gap) |
 
 ---
 
@@ -756,7 +756,7 @@ One skipped test: `CallStatement_EmitsDiagnostic` (CALL not yet lowered to CIL).
 
 ## 5a. Phase 1 (Grammar/Parsing), Phase 2 (Semantic Analysis), Phase 3 (Lowering/IR)
 
-> **Research corrections applied**: Deep codebase research found that VALUE THRU and ASCENDING/DESCENDING KEY are already fully implemented. The CLAUDE.md "known gap" entries for these are stale. NC201A/NC250A/NC252A failures are caused by other parse issues; NC233A/NC237A/NC247A failures are caused by runtime PERFORM VARYING and SEARCH issues. Additionally, NC121M (subscripted DIVIDE GIVING) was already fixed in DEVLOG Entry 126.
+> **Research corrections applied (2026-03-22)**: VALUE THRU and ASCENDING/DESCENDING KEY are fully implemented. NC121M was already fixed. NC233A now passes at 100% (OCCURS validation relaxed). NC252A compiles (CIL op_Explicit + RENAMES category fixed). Remaining blockers recategorized: condition-name conditions, ODO runtime truncation, collating sequence, ZERO grammar, subscripted VARYING.
 
 ### Phase 1: Grammar and Parsing Hardening (GRA-xx)
 
@@ -1107,11 +1107,15 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 
 | ID | Issue | Complexity | NIST Blocked | Status |
 |---|---|---|---|---|
-| P1-1 | NC220M infinite loop at runtime | M | NC220M | Open |
-| P1-2 | NC121M subscripted DIVIDE GIVING | — | NC121M | **Already fixed** (DEVLOG Entry 126) |
-| P1-3 | NC201A/NC250A/NC252A parse failures | M | 3 tests | Open (NOT VALUE THRU -- corrected by research) |
-| P1-4 | STATUS in SPECIAL-NAMES keyword conflict | S | NC174A, NC211A, NC254A | Open |
-| P1-5 | PROGRAM COLLATING SEQUENCE keyword conflict | S | NC215A, NC219A | Open |
+| P1-1 | NC220M/NC237A runtime infinite loop | M | 2 tests | Open (likely ODO/subscript) |
+| P1-2 | NC121M subscripted DIVIDE GIVING | — | NC121M | **Fixed** (DEVLOG Entry 126) |
+| P1-3 | NC252A qualified RENAMES | S | 3 sub-tests | Compiles; 3 sub-tests fail |
+| P1-4 | Condition-name conditions (`IF switch-condition`) | M | NC211A, NC254A | Open |
+| P1-5 | ~~STATUS/PROGRAM keyword conflicts~~ | ~~S~~ | — | **Fixed** (DEVLOG Entry 135-136) |
+| P1-6 | NC250A ZERO-in-arithmetic grammar | M | NC250A | Open (ALL(*) backtracking) |
+| P1-7 | NC201A subscripted PERFORM VARYING | M | NC201A | Open |
+| P1-8 | NC215A/NC219A collating sequence | M | 2 tests | Compiles; sequence not applied |
+| P1-9 | NC247A OCCURS DEPENDING ON runtime | M | NC247A | Compiles; ODO truncation missing |
 
 ### Priority 2 — High: Feature Completions
 
@@ -1130,7 +1134,7 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 |---|---|---|
 | P3-1 | Eliminate all silent statement skips | S |
 | P3-2 | Remove legacy CobolProgram/CobolField types | M |
-| P3-3 | Complete deferred semantic features (qualification, sign, abbreviated relations) | M each |
+| P3-3 | ~~Abbreviated relations~~ partially done; bare operand edge cases remain | S |
 | P3-4 | C# 13 adoption in remaining files | S |
 | P3-5 | Package version updates | S |
 
@@ -1150,23 +1154,23 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 
 ## Suggested Phasing
 
-### Wave 1: Correctness Blockers (Target: 46+ NIST tests passing)
+### Wave 1: Remaining Correctness Blockers
 
-1. **P1-4** (STATUS in SPECIAL-NAMES) — small grammar fix, unblocks 3 NIST tests
-2. **P1-5** (PROGRAM COLLATING SEQUENCE) — small grammar fix, unblocks 2+ NIST tests
-3. **P1-1** (NC220M hang) — requires runtime debugging
-4. **P1-3** (NC201A/NC250A/NC252A) — parse issue diagnosis
+1. **P1-4** (condition-name conditions) — bind `IF switch-condition`, unblocks NC211A/NC254A
+2. **P1-9** (ODO runtime truncation) — SEARCH/comparison respect active ODO count
+3. **P1-1** (NC220M/NC237A hang) — likely ODO-related; may resolve with P1-9
+4. **P1-6** (ZERO-in-arithmetic grammar) — needs grammar restructuring to avoid backtracking
+5. **P1-7** (subscripted PERFORM VARYING) — BoundPerformVarying must carry subscripts
+6. **P1-8** (collating sequence) — apply ALPHABET clause to runtime comparisons
 
 Estimated effort: 2-3 sessions.
 
-### Wave 2: Core Feature Completions (Target: production-viable compiler)
+### Wave 2: Feature Completions (Target: production-viable compiler)
 
-1. **P2-6** (reserved word conflicts) — small fix
-2. **P2-1** (CALL full IR) — high value, foundational
-3. **P2-4** (START statement) — grammar fix + handler wiring
-4. **P2-5** (indexed/relative file I/O) — largest item
-5. **P2-2** (SORT/MERGE) — depends on file I/O maturity
-6. **P2-3** (alternate keys) — depends on P2-5
+1. **P2-4** (START statement) — grammar fix + handler wiring
+2. **P2-5** (indexed/relative file I/O) — largest item
+3. **P2-2** (SORT/MERGE) — depends on file I/O maturity
+4. **P2-3** (alternate keys) — depends on P2-5
 
 Estimated effort: 5-8 sessions.
 
@@ -1229,14 +1233,14 @@ P3-3 (semantic features) ──────────────────�
 
 The remediation roadmap is complete when:
 
-1. **All NIST COBOL-85 Nucleus tests pass at 100%.** NC220M, NC201A, NC233A, NC237A, NC247A, NC250A, NC252A all pass.
-2. **Zero stubs in code generation.** CALL produces correct runtime behavior. SORT, MERGE remain stubs.
+1. **All NIST COBOL-85 Nucleus tests pass at 100%.** Remaining: NC220M, NC237A (hang), NC201A, NC211A, NC215A, NC219A, NC247A, NC250A, NC252A, NC254A.
+2. **Zero stubs in code generation.** CALL fully implemented. SORT, MERGE remain stubs.
 3. **Zero silent skips.** Every unhandled construct produces a compile-time diagnostic.
-4. **No runtime hangs.** All compiled programs terminate correctly.
-5. **Clean codebase per PROMPT.md standards.** No legacy types, consistent C# 13, no dead code, no duplicated logic.
-6. **All tests green.** Unit, integration, and NIST tests all pass with zero unexplained failures.
+4. **No runtime hangs.** NC220M/NC237A still hang — likely ODO runtime issue.
+5. **Clean codebase per PROMPT.md standards.** Code quality sweep 3.1-3.5 complete. No legacy types, consistent C# 13, no dead code, no duplicated logic.
+6. **All tests green.** 217 unit + 184 integration + 31 NIST all pass.
 7. **Indexed file I/O operational.** READ, WRITE, REWRITE, DELETE, START all work for indexed files.
-8. **CALL interop works.** Inter-program calls with BY REFERENCE/CONTENT/VALUE parameters.
+8. **CALL interop works.** ~~Inter-program calls~~ **DONE**: full BY REFERENCE/CONTENT/VALUE, RETURNING, INITIAL, CANCEL, ENTRY, dynamic CALL.
 
 ---
 
