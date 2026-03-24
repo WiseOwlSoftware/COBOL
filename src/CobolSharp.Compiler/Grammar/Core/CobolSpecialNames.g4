@@ -77,7 +77,12 @@ alphabetClause
     ;
 
 alphabetDefinition
-    : (IDENTIFIER | literal)+
+    : alphabetEntry (COMMA? alphabetEntry)*
+    ;
+
+alphabetEntry
+    : (IDENTIFIER | literal) ((THRU | THROUGH) (IDENTIFIER | literal))?
+      (ALSO (IDENTIFIER | literal))*
     ;
 
 // CRT STATUS IS data-name

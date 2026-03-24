@@ -1239,6 +1239,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAlphabetDefinition([NotNull] CobolParserCore.AlphabetDefinitionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.alphabetEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAlphabetEntry([NotNull] CobolParserCore.AlphabetEntryContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.crtStatusClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
