@@ -219,6 +219,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitObjectComputerParagraph([NotNull] CobolParserCore.ObjectComputerParagraphContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.programCollatingSequenceClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitProgramCollatingSequenceClause([NotNull] CobolParserCore.ProgramCollatingSequenceClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.computerName"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1166,6 +1172,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitImplementorSwitchEntry([NotNull] CobolParserCore.ImplementorSwitchEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.switchOnClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSwitchOnClause([NotNull] CobolParserCore.SwitchOnClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.switchOffClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSwitchOffClause([NotNull] CobolParserCore.SwitchOffClauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.currencySignClause"/>.
 	/// </summary>

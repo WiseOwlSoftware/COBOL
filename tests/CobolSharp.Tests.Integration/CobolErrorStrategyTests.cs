@@ -26,42 +26,10 @@ public sealed class CobolErrorStrategyTests
             $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
     }
 
-    // ── STATUS keyword where identifier expected ──
-
-    [Theory]
-    [InlineData("NC211A.cob", "STATUS")]
-    [InlineData("NC254A.cob", "STATUS")]
-    public void Detects_UnexpectedStatus(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
-    // ── PROGRAM keyword where identifier expected ──
-
-    [Theory]
-    [InlineData("NC215A.cob", "PROGRAM")]
-    [InlineData("NC219A.cob", "PROGRAM")]
-    public void Detects_ProgramMisplaced(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
-    // ── ASCENDING/DESCENDING KEY not supported ──
-
-    // ── Diagnostic code prefix assertions ──
-
-    [Fact]
-    public void StatusReserved_HasCode0200()
-    {
-        var diagnostics = CompileWithDiagnostics("NC211A.cob");
-        Assert.Contains(diagnostics, d => d.Code == "COBOL0200");
-    }
+    // STATUS in SPECIAL-NAMES (ON STATUS IS / OFF STATUS IS) and
+    // PROGRAM in OBJECT-COMPUTER (PROGRAM COLLATING SEQUENCE) are now
+    // properly parsed with dedicated grammar rules. Tests for the old
+    // reserved-word conflict errors have been removed.
 
     // ── Error count cap ──
 

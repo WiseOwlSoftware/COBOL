@@ -204,7 +204,12 @@ sourceComputerParagraph
     ;
 
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT computerName computerAttributes? DOT
+    : OBJECT_COMPUTER DOT computerName computerAttributes?
+      programCollatingSequenceClause? DOT
+    ;
+
+programCollatingSequenceClause
+    : PROGRAM COLLATING? SEQUENCE IS? IDENTIFIER
     ;
 
 computerName

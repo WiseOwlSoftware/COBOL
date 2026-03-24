@@ -197,7 +197,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     _decimalPointIsComma = true;
             }
 
-            // Implementor switch: IDENTIFIER IS IDENTIFIER (ON name)? (OFF IS? name)?
+            // Implementor switch: IDENTIFIER IS IDENTIFIER switchOnClause? switchOffClause?
             if (entry.implementorSwitchEntry() is { } swClause)
             {
                 var ids = swClause.IDENTIFIER();
@@ -208,15 +208,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     string? onName = null;
                     string? offName = null;
 
-                    if (swClause.ON() != null && ids.Length >= 3)
-                        onName = ids[2].GetText();
+                    if (swClause.switchOnClause() is { } onClause)
+                        onName = onClause.IDENTIFIER()?.GetText();
 
-                    if (swClause.OFF() != null)
-                    {
-                        int idx = swClause.ON() != null ? 3 : 2;
-                        if (ids.Length > idx)
-                            offName = ids[idx].GetText();
-                    }
+                    if (swClause.switchOffClause() is { } offClause)
+                        offName = offClause.IDENTIFIER()?.GetText();
 
                     _implementorSwitches.Add(
                         new ImplementorSwitch(mnemonicName, implName, onName, offName));

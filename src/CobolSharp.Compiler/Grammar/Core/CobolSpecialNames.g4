@@ -27,8 +27,18 @@ specialNameEntry
 
 implementorSwitchEntry
     : IDENTIFIER IS IDENTIFIER
-      (ON IDENTIFIER)?
-      (OFF IS? IDENTIFIER)?
+      switchOnClause?
+      switchOffClause?
+    ;
+
+switchOnClause
+    : ON STATUS IS IDENTIFIER
+    | ON IDENTIFIER
+    ;
+
+switchOffClause
+    : OFF STATUS IS? IDENTIFIER
+    | OFF IS? IDENTIFIER
     ;
 
 currencySignClause
