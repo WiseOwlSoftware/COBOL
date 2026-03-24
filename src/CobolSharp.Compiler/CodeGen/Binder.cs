@@ -2454,6 +2454,13 @@ public sealed class Binder
             return;
         }
 
+        // Switch-status condition: IF ON-SWITCH-1
+        if (cond is BoundSwitchConditionExpression sw)
+        {
+            block.Instructions.Add(new IrTestSwitch(result, sw.Switch.ImplementorName, sw.TestsOnState));
+            return;
+        }
+
         if (cond is BoundBinaryExpression binCond)
         {
             // Boolean composition — recurse

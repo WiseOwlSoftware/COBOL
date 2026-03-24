@@ -648,6 +648,27 @@ public sealed class CilEmitter
                 break;
             }
 
+            case IrTestSwitch ts:
+            {
+                // Call SwitchRuntime.GetSwitchState(implementorName)
+                il.Append(il.Create(OpCodes.Ldstr, ts.ImplementorName));
+                var getSwitchMethod = _module.ImportReference(
+                    typeof(CobolSharp.Runtime.SwitchRuntime).GetMethod("GetSwitchState")!);
+                il.Append(il.Create(OpCodes.Call, getSwitchMethod));
+                // If testing OFF state, negate the result
+                if (!ts.TestOnState)
+                {
+                    il.Append(il.Create(OpCodes.Ldc_I4_0));
+                    il.Append(il.Create(OpCodes.Ceq));
+                }
+                if (ts.Result.HasValue)
+                {
+                    var local = getLocal(ts.Result.Value);
+                    il.Append(il.Create(OpCodes.Stloc, local));
+                }
+                break;
+            }
+
             case IrBinaryLogical log:
             {
                 var leftLocal = getLocal(log.Left);

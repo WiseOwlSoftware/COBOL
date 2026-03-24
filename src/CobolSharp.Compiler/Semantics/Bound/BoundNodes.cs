@@ -48,6 +48,7 @@ public enum BoundNodeKind
     EntryStatement,
     CancelStatement,
     AbbreviatedExpression,
+    SwitchConditionExpression,
 }
 
 public abstract class BoundNode
@@ -271,6 +272,25 @@ public sealed class BoundConditionNameExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ConditionNameExpression;
+}
+
+/// <summary>
+/// Switch-status condition: tests whether an implementor switch is ON or OFF.
+/// Defined via ON STATUS IS / OFF STATUS IS in SPECIAL-NAMES.
+/// </summary>
+public sealed class BoundSwitchConditionExpression : BoundExpression
+{
+    public ImplementorSwitch Switch { get; }
+    public bool TestsOnState { get; }
+
+    public BoundSwitchConditionExpression(ImplementorSwitch sw, bool testsOnState)
+        : base(CobolCategory.Unknown)
+    {
+        Switch = sw;
+        TestsOnState = testsOnState;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SwitchConditionExpression;
 }
 
 // ═══════════════════════════════════

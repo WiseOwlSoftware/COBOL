@@ -169,6 +169,22 @@ public sealed class IrSetBool : IrInstruction
     }
 }
 
+/// <summary>
+/// Tests an implementor switch state: result = SwitchRuntime.GetSwitchState(name) == testOn.
+/// </summary>
+public sealed class IrTestSwitch : IrInstruction
+{
+    public string ImplementorName { get; }
+    public bool TestOnState { get; }
+
+    public IrTestSwitch(IrValue result, string implementorName, bool testOnState)
+    {
+        Result = result;
+        ImplementorName = implementorName;
+        TestOnState = testOnState;
+    }
+}
+
 public enum IrLogicalOp { And, Or, Not }
 
 /// <summary>

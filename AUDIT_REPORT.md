@@ -705,16 +705,16 @@ One skipped test: `CallStatement_EmitsDiagnostic` (CALL now implemented — test
 
 ### NIST CCVS85 Compliance
 
-**31 NIST NC-series tests at 100% (in guard script):**
+**32 NIST NC-series tests at 100% (in guard script):**
 - Arithmetic: NC101A-NC107A, NC111A, NC112A, NC115A, NC117A, NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A
 - Table Handling: NC176A, NC233A
 - Control Flow: NC202A, NC206A, NC207A, NC210A, NC221A
-- Data: NC239A-NC241A, NC248A, NC253A
+- Data: NC239A-NC241A, NC248A, NC253A, NC254A
 
 **Known blockers (categorized 2026-03-24):**
 - NC220M, NC237A: runtime infinite loop (likely OCCURS DEPENDING ON or subscript issue)
 - NC201A: subscripted PERFORM VARYING + abbreviated conditions
-- NC211A, NC254A: condition-name conditions (`IF switch-condition` — not yet bound)
+- NC211A: complex abbreviated + condition-name combos (2 remaining errors; NC254A now passes)
 - NC250A: ZERO as arithmetic operand causes grammar ALL(*) backtracking (needs grammar redesign)
 - NC215A, NC219A: collating sequence (ALPHABET clause) not applied to comparisons
 - NC252A: qualified RENAMES failures (3 sub-tests); compiles now after op_Explicit + RENAMES category fix

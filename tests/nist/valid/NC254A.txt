@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC254A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                      PASS  NEXT-TEST-1
+                                                          THE FOLLOWING TESTS
+                                                          TEST THE COMPARISONS IN
+                                                          SWITCH-STATUS, RELATION
+                                                          AND CLASS CONDITIONALS.
+ SWITCH-STATUS        PASS  SWH-TEST-GF-1
+ SWITCH-STATUS        PASS  SWH-TEST-GF-2
+ SWITCH-STATUS        PASS  SWH-TEST-GF-3
+ SWITCH-STATUS        PASS  SWH-TEST-GF-4
+ SWITCH-STATUS        PASS  SWH-TEST-5
+ SWITCH-STATUS        PASS  SWH-TEST-6
+ SWITCH-STATUS        PASS  SWH-TEST-7
+ SWITCH-STATUS        PASS  SWH-TEST-8
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC254A
+
+                                                    009 OF 009  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

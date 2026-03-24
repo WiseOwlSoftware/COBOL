@@ -2773,19 +2773,22 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (operands.Length < 2 || relOp == null)
         {
-            // Check if bare identifier is a level-88 condition name
+            // Check if bare identifier is a level-88 condition name or switch condition
+            string? condNameStr = null;
             if (left is BoundIdentifierExpression idExpr)
+                condNameStr = idExpr.Symbol.Name;
+            else if (left is BoundLiteralExpression litExpr && litExpr.Value is string s)
+                condNameStr = s;
+
+            if (condNameStr != null)
             {
-                var condSym = _semantic.ResolveConditionName(idExpr.Symbol.Name);
+                var condSym = _semantic.ResolveConditionName(condNameStr);
                 if (condSym != null)
                     return new BoundConditionNameExpression(condSym);
-            }
-            // Also check unresolved identifiers that became string literals
-            if (left is BoundLiteralExpression litExpr && litExpr.Value is string condName)
-            {
-                var condSym = _semantic.ResolveConditionName(condName);
-                if (condSym != null)
-                    return new BoundConditionNameExpression(condSym);
+
+                var swCond = _semantic.ResolveSwitchCondition(condNameStr);
+                if (swCond != null)
+                    return new BoundSwitchConditionExpression(swCond.Value.Switch, swCond.Value.IsOn);
             }
             // Bare expression: IF A (means A <> 0 for numeric, A <> SPACE for alpha)
             return left;
@@ -2889,6 +2892,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             // Rewrite left first (passing inherited context)
             var left = RewriteAbbrev(bin.Left, ctxSubject, ctxOp);
+
+            // If left is still a bare operand after rewrite, expand it using inherited context
+            if (IsBareOperand(left) && ctxSubject != null && IsRelational(ctxOp))
+                left = new BoundBinaryExpression(ctxSubject, ctxOp, left, CobolCategory.Unknown);
 
             // Extract relational context from the (rewritten) left for use by right
             var (newSubject, newOp) = ExtractRelationalContext(left);

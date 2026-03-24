@@ -39,6 +39,24 @@ public sealed class SemanticModel
     public ImplementorSwitch? ResolveImplementorSwitch(string name)
         => _implementorSwitches.TryGetValue(name, out var sw) ? sw : null;
 
+    /// <summary>
+    /// Resolve a condition name to its implementor switch and ON/OFF state.
+    /// Returns null if the name is not a switch condition.
+    /// </summary>
+    public (ImplementorSwitch Switch, bool IsOn)? ResolveSwitchCondition(string name)
+    {
+        foreach (var sw in _implementorSwitches.Values)
+        {
+            if (sw.OnValueName != null &&
+                string.Equals(sw.OnValueName, name, StringComparison.OrdinalIgnoreCase))
+                return (sw, true);
+            if (sw.OffValueName != null &&
+                string.Equals(sw.OffValueName, name, StringComparison.OrdinalIgnoreCase))
+                return (sw, false);
+        }
+        return null;
+    }
+
     // ── Extension clauses (vendor extensions, unrecognized clauses) ──
 
     private readonly List<ExtensionClauseNode> _extensionClauses = new();
