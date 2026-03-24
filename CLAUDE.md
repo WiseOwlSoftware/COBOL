@@ -51,6 +51,7 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 ### Known gaps
 - SORT/MERGE (parse only, IR is stub)
 - Abbreviated conditions (IF A > B OR < C — implicit operand reuse; NC211A, NC250A)
-- ALPHABET clause THRU/ALSO in SPECIAL-NAMES (NC215A, NC219A)
-- NC220M infinite loop at runtime (IrElementRef destination issue)
+- NC220M infinite loop at runtime (Y-line handling or subscript/index issue)
+- NC215A string continuation with parentheses (preprocessor issue)
+- NC254A CLASS clause without IS keyword + quote handling
 - Compile-time CALL parameter validation (needs inter-program metadata)

@@ -6395,4 +6395,32 @@ reserved-word errors). Per user feedback: never test for broken behavior.
 Removed stale entries (CALL, ALTERNATE KEY, NC121M, STATUS/PROGRAM all fixed).
 Added current gaps: abbreviated conditions, ALPHABET THRU/ALSO, NC220M.
 
+---
+
+## 2026-03-23 (cont.) — NIST grammar fixes: UNSTRING, OCCURS KEY, ALPHABET
+
+### UNSTRING INTO multiple targets (NC247A)
+Restructured `unstringIntoPhrase` into `unstringIntoPhrase` + `unstringIntoTarget+` to allow
+`UNSTRING source INTO dest1 dest2` without repeating INTO. BoundTreeBuilder updated to iterate
+`unstringIntoTarget` sub-contexts.
+
+### OCCURS KEY self-reference
+`IsSubordinateTo` returned false when key == table (self-referencing key on a simple table).
+Added identity check — the key item IS the table item, which is valid per spec.
+
+### ALPHABET THRU/ALSO (NC219A)
+Restructured `alphabetDefinition` into `alphabetEntry` supporting THRU/THROUGH ranges and
+ALSO alternatives. NC219A now compiles clean. NC215A has a remaining preprocessor issue
+(string continuation with parentheses in column 72+ area).
+
+### NC220M investigation
+Compiles clean but hangs at runtime. Likely Y-line handling in preprocessor (debugging line
+indicator) or subscript/index computation in PERFORM VARYING. Deferred — requires runtime debugging.
+
+### Remaining NIST blockers
+- NC220M: runtime hang (Y-line or subscript issue)
+- NC211A, NC250A: abbreviated conditions (grammar + binding feature)
+- NC215A: string continuation with parentheses
+- NC254A: CLASS clause without IS, quote handling
+
 *End of entries for 2026-03-23*
