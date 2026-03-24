@@ -245,12 +245,27 @@ public static class ReferenceFormatProcessor
         {
             // Previous line ended with the first half of a "" pair.
             // This quote is the SECOND HALF — data, not a resume marker.
-            // Append ALL content (including this quote).
-            result.Append(sourceArea[firstNonBlank..]);
-            result.AppendLine();
+            // Keep this quote (append it).
             pendingQuote = false;
-            // Re-scan from the character AFTER the paired quote
-            ScanLiteralState(sourceArea[(firstNonBlank + 1)..], ref inLiteral, ref pendingQuote);
+
+            // Check if the NEXT character is also a quote — if so, it's
+            // the resume marker for the continuing literal and must be stripped.
+            int contentStart = firstNonBlank + 1;
+            if (contentStart < sourceArea.Length && sourceArea[contentStart] is '"' or '\'')
+            {
+                // Append the paired quote, then skip the resume marker
+                result.Append(sourceArea[firstNonBlank]);
+                result.Append(sourceArea[(contentStart + 1)..]);
+                result.AppendLine();
+                ScanLiteralState(sourceArea[(contentStart + 1)..], ref inLiteral, ref pendingQuote);
+            }
+            else
+            {
+                // No resume marker follows — just append everything
+                result.Append(sourceArea[firstNonBlank..]);
+                result.AppendLine();
+                ScanLiteralState(sourceArea[(firstNonBlank + 1)..], ref inLiteral, ref pendingQuote);
+            }
         }
         else
         {

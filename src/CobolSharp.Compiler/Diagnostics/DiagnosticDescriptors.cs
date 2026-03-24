@@ -430,9 +430,9 @@ public static partial class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor COBOL0406 = new("COBOL0406", DiagnosticSeverity.Error,
         "Item '{0}' has {1} OCCURS level(s) but was referenced with {2} subscript(s).");
     public static readonly DiagnosticDescriptor COBOL0407 = new("COBOL0407", DiagnosticSeverity.Error,
-        "Item '{0}' exceeds the COBOL-85 limit of 3 OCCURS levels (found {1}).");
+        "Item '{0}' exceeds the supported limit of 7 OCCURS levels (found {1}).");
     public static readonly DiagnosticDescriptor COBOL0408 = new("COBOL0408", DiagnosticSeverity.Error,
-        "A maximum of 3 subscripts is permitted in COBOL-85; found {0}.");
+        "A maximum of 7 subscripts is supported; found {0}.");
     public static readonly DiagnosticDescriptor COBOL0409 = new("COBOL0409", DiagnosticSeverity.Error,
         "Item '{0}' requires {1} subscript(s) but was referenced with {2}.");
     public static readonly DiagnosticDescriptor COBOL0410 = new("COBOL0410", DiagnosticSeverity.Warning,

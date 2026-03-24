@@ -151,8 +151,10 @@ public class DataItemClassifierTests
     }
 
     [Fact]
-    public void Occurs_key_that_is_group_reports_CBL1104()
+    public void Occurs_key_that_is_group_is_accepted()
     {
+        // COBOL-85 allows group items as OCCURS keys — comparison uses
+        // the group's alphanumeric representation.
         var innerChild = MakeElementary("INNER", 10, "X(5)");
         var subGroup = MakeGroup("SUB", 10, innerChild);
         var tableChild = MakeElementary("VAL", 10, "9(3)");
@@ -160,7 +162,7 @@ public class DataItemClassifierTests
         table.Occurs = new OccursInfo(5, 5, ascendingKeys: new[] { "SUB" });
         var root = MakeGroup("RECORD1", 1, table);
         var (diags, _) = RunClassifier(root, table, subGroup, innerChild, tableChild);
-        Assert.Contains(diags.Diagnostics, d => d.Code == "CBL1104");
+        Assert.DoesNotContain(diags.Diagnostics, d => d.Code == "CBL1104");
     }
 
     // ── No OCCURS → no diagnostics ──

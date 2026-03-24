@@ -263,8 +263,18 @@ public static class StorageLayoutComputer
         data.ElementSize = totalLength;
         data.Area = fromLoc.Value.Area;
 
-        // RENAMES items are alphanumeric group-like: treated as a byte range
-        var pic = CompilerPicDescriptorFactory.FromDataSymbol(data, totalLength, model.PicEnvironment);
+        Runtime.PicDescriptor pic;
+        if (renames.ThruSymbol == null && renames.FromSymbol.IsElementary && renames.FromSymbol.ResolvedType != null)
+        {
+            // Single-field RENAMES: inherit the source field's PIC and category
+            data.ResolvedType = renames.FromSymbol.ResolvedType;
+            pic = fromLoc.Value.Pic;
+        }
+        else
+        {
+            // THRU range or group source: alphanumeric group-like byte range
+            pic = CompilerPicDescriptorFactory.FromDataSymbol(data, totalLength, model.PicEnvironment);
+        }
         model.RegisterStorageLocation(data,
             new StorageLocation(fromLoc.Value.Area, startOffset, totalLength, pic));
     }

@@ -47,6 +47,7 @@ public enum BoundNodeKind
     GoBackStatement,
     EntryStatement,
     CancelStatement,
+    AbbreviatedExpression,
 }
 
 public abstract class BoundNode
@@ -174,6 +175,29 @@ public sealed class BoundBinaryExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
+}
+
+/// <summary>
+/// Abbreviated relational condition (COBOL-85 §6.3.4.2).
+/// Represents a comparison where the left operand is elided and must be
+/// inferred from context by RewriteAbbreviatedRelations.
+/// </summary>
+public sealed class BoundAbbreviatedExpression : BoundExpression
+{
+    /// <summary>The relational operator (from the abbreviated form).</summary>
+    public BoundBinaryOperatorKind OperatorKind { get; }
+
+    /// <summary>The right operand (the only operand present).</summary>
+    public BoundExpression Right { get; }
+
+    public BoundAbbreviatedExpression(BoundBinaryOperatorKind op, BoundExpression right)
+        : base(CobolCategory.Unknown)
+    {
+        OperatorKind = op;
+        Right = right;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.AbbreviatedExpression;
 }
 
 // ── Class conditions (IS NUMERIC, IS ALPHABETIC, etc.) ──

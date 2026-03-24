@@ -46,11 +46,31 @@ condition
     ;
 
 logicalOrExpression
-    : logicalAndExpression ( OR logicalAndExpression )*
+    : logicalAndExpression ( OR ( logicalAndExpression | abbreviatedAndChain ) )*
     ;
 
 logicalAndExpression
-    : unaryLogicalExpression ( AND unaryLogicalExpression )*
+    : unaryLogicalExpression ( AND ( abbreviatedRelation | unaryLogicalExpression ) )*
+    ;
+
+// Abbreviated AND chain: one or more abbreviated relations connected by AND.
+// Used after OR when the abbreviated form includes AND chaining:
+//   IF A = B OR = C AND = D   → OR (= C AND = D)
+abbreviatedAndChain
+    : abbreviatedRelation ( AND abbreviatedRelation )*
+    ;
+
+// Abbreviated relational condition (COBOL-85 §6.3.4.2):
+// After AND/OR, the left operand (and optionally the operator) can be
+// elided from the previous comparison.
+//   IF A > B OR < C          →  comparisonOperator comparisonOperand
+//   IF A > B AND NOT < C     →  comparisonOperator comparisonOperand
+//     (NOT < is already a comparisonOperator alternative)
+// Bare operands (IF A = B OR C) are already handled by the full
+// logicalAndExpression/unaryLogicalExpression path.
+// NOT + bare operand (IF A = B AND NOT C) is handled by unaryLogicalExpression.
+abbreviatedRelation
+    : comparisonOperator comparisonOperand
     ;
 
 unaryLogicalExpression

@@ -771,6 +771,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitLogicalAndExpression([NotNull] CobolParserCore.LogicalAndExpressionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.abbreviatedAndChain"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAbbreviatedAndChain([NotNull] CobolParserCore.AbbreviatedAndChainContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.abbreviatedRelation"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAbbreviatedRelation([NotNull] CobolParserCore.AbbreviatedRelationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.unaryLogicalExpression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

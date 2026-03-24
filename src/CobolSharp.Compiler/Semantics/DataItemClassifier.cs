@@ -74,11 +74,9 @@ public static class DataItemClassifier
                     keyName, table.DisplayName);
             }
 
-            // Key cannot be a group item
-            if (keySym.IsGroup)
-            {
-                diagnostics.Report(DiagnosticDescriptors.CBL1104, loc, span, keyName);
-            }
+            // COBOL-85 allows group items as OCCURS keys (comparison uses
+            // the group's alphanumeric representation). CBL1104 reserved for
+            // future use if a stricter mode is needed.
         }
     }
 

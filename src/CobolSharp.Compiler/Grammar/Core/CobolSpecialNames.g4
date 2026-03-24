@@ -51,7 +51,7 @@ decimalPointClause
 
 // CLASS name IS literal [THRU literal] [, literal [THRU literal]]...
 classDefinitionClause
-    : CLASS IDENTIFIER IS classValueSet
+    : CLASS IDENTIFIER IS? classValueSet
     ;
 
 classValueSet

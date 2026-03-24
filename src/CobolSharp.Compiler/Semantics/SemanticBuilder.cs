@@ -451,26 +451,43 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
                                 string figText = fig.GetText().ToUpperInvariant();
-                                // For ZERO, keep as "0" so numeric VALUE parsing still works
-                                initialValue = figText switch
+                                // Strip ALL prefix — ANTLR concatenates tokens without space
+                                // so "ALL ZEROS" becomes "ALLZEROS", "ALL SPACES" becomes "ALLSPACES"
+                                if (figText.StartsWith("ALL"))
+                                    figText = figText[3..];
+                                // Handle ALL "X" (literal) — figText is now the quoted string
+                                if (figText.Length >= 2 && (figText[0] == '"' || figText[0] == '\''))
                                 {
-                                    "SPACE" or "SPACES" => " ",
-                                    "ZERO" or "ZEROS" or "ZEROES" => "0",
-                                    "HIGH-VALUE" or "HIGH-VALUES" => null,
-                                    "LOW-VALUE" or "LOW-VALUES" => null,
-                                    "QUOTE" or "QUOTES" => null,
-                                    _ => figText
-                                };
-                                // Store figurative kind for field-filling initialization
-                                _deferredFigurativeInit = figText switch
+                                    char q = figText[0];
+                                    string allChar = figText[1..^1].Replace(new string(q, 2), new string(q, 1));
+                                    initialValue = allChar;
+                                    // ALL "X" uses Space kind as fill mechanism — the actual character
+                                    // is in initialValue and the runtime fills by repeating it.
+                                    _deferredFigurativeInit = null;
+                                }
+                                else
                                 {
-                                    "SPACE" or "SPACES" => FigurativeKind.Space,
-                                    "ZERO" or "ZEROS" or "ZEROES" => FigurativeKind.Zero,
-                                    "HIGH-VALUE" or "HIGH-VALUES" => FigurativeKind.HighValue,
-                                    "LOW-VALUE" or "LOW-VALUES" => FigurativeKind.LowValue,
-                                    "QUOTE" or "QUOTES" => FigurativeKind.Quote,
-                                    _ => null
-                                };
+                                    // For ZERO, keep as "0" so numeric VALUE parsing still works
+                                    initialValue = figText switch
+                                    {
+                                        "SPACE" or "SPACES" => " ",
+                                        "ZERO" or "ZEROS" or "ZEROES" => "0",
+                                        "HIGH-VALUE" or "HIGH-VALUES" => null,
+                                        "LOW-VALUE" or "LOW-VALUES" => null,
+                                        "QUOTE" or "QUOTES" => null,
+                                        _ => figText
+                                    };
+                                    // Store figurative kind for field-filling initialization
+                                    _deferredFigurativeInit = figText switch
+                                    {
+                                        "SPACE" or "SPACES" => FigurativeKind.Space,
+                                        "ZERO" or "ZEROS" or "ZEROES" => FigurativeKind.Zero,
+                                        "HIGH-VALUE" or "HIGH-VALUES" => FigurativeKind.HighValue,
+                                        "LOW-VALUE" or "LOW-VALUES" => FigurativeKind.LowValue,
+                                        "QUOTE" or "QUOTES" => FigurativeKind.Quote,
+                                        _ => null
+                                    };
+                                }
                             }
                         }
                     }

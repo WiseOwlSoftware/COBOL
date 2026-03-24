@@ -2552,10 +2552,6 @@ public sealed class CilEmitter
                     case Semantics.Bound.BoundBinaryOperatorKind.Power:
                     {
                         // Convert both to double, call Math.Pow, convert back to decimal
-                        var toDouble = _module.ImportReference(
-                            typeof(decimal).GetMethod("op_Explicit",
-                                new[] { typeof(decimal) },
-                                null)!);
                         // Stack has: decimal left, decimal right
                         // Need to convert: store right, convert left, load right, convert right
                         var tempRight = new VariableDefinition(_module.ImportReference(typeof(decimal)));
