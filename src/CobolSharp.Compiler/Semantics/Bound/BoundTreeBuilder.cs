@@ -3343,6 +3343,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return baseId;
     }
 
+    // NOTE: Subscript +N ambiguity (signed literal vs binary addition) in space-separated
+    // subscripts is a fundamental COBOL grammar issue. NC134A/NC139A remain blocked.
+    // The grammar uses arithmeticExpression for subscripts, which consumes +N as addition.
+
     /// <summary>
     /// Resolve a qualified name using right-to-left narrowing.
     /// A OF B OF C → resolve C (outermost), then B within C, then A within B.
