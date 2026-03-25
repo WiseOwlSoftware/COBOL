@@ -62,6 +62,10 @@ public static class LoweringTable
             (CobolCategory.NumericEdited, CobolCategory.NationalEdited) =>
                 Get(nameof(PicRuntime.MoveNumericEditedToNationalEdited)),
 
+            (CobolCategory.Alphanumeric, CobolCategory.Numeric) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToNumeric)),
+            (CobolCategory.Alphanumeric, CobolCategory.NumericEdited) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToNumericEdited)),
             (CobolCategory.Alphanumeric, CobolCategory.Alphanumeric) =>
                 Get(nameof(PicRuntime.MoveAlphanumericToAlphanumeric)),
             (CobolCategory.Alphanumeric, CobolCategory.AlphanumericEdited) =>

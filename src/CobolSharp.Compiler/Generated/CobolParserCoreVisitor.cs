@@ -963,6 +963,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFileDescriptionClause([NotNull] CobolParserCore.FileDescriptionClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.labelRecordsClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLabelRecordsClause([NotNull] CobolParserCore.LabelRecordsClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.dataRecordsClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

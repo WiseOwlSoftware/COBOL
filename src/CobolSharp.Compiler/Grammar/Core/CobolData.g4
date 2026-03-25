@@ -42,8 +42,14 @@ fileDescriptionClause
     | recordKeyClause
     | alternateKeyClause
     | fileStatusClause
+    | labelRecordsClause
     | dataRecordsClause
     | genericFileDescriptionClause
+    ;
+
+// LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert
+labelRecordsClause
+    : LABEL (RECORD | RECORDS) IS? (STANDARD | OMITTED | IDENTIFIER+)
     ;
 
 // DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert

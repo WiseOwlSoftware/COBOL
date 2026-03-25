@@ -41,7 +41,9 @@ public static class CategoryCompatibility
             (CobolCategory.NumericEdited, CobolCategory.AlphanumericEdited),
             (CobolCategory.NumericEdited, CobolCategory.National),
             (CobolCategory.NumericEdited, CobolCategory.NationalEdited),
-            // Alphanumeric -> alpha/national families
+            // Alphanumeric -> numeric, alpha/national families
+            (CobolCategory.Alphanumeric, CobolCategory.Numeric),
+            (CobolCategory.Alphanumeric, CobolCategory.NumericEdited),
             (CobolCategory.Alphanumeric, CobolCategory.Alphanumeric),
             (CobolCategory.Alphanumeric, CobolCategory.AlphanumericEdited),
             (CobolCategory.Alphanumeric, CobolCategory.National),

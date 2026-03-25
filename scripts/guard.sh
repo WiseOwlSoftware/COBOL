@@ -16,9 +16,9 @@ echo "=== NIST regression ==="
 cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
-# All NIST tests currently at 100% — must stay green (61 tests)
+# All NIST tests currently at 100% — must stay green (63 tests)
 NIST_TESTS="
-NC101A NC102A NC103A NC106A NC107A
+NC101A NC102A NC103A NC104A NC105A NC106A NC107A
 NC111A NC112A NC115A NC116A NC117A NC118A NC119A NC120A NC121M
 NC122A NC123A NC124A NC126A NC127A
 NC131A NC132A NC133A NC136A NC137A NC140A NC141A

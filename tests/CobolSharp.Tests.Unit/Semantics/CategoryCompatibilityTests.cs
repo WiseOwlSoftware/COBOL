@@ -29,14 +29,21 @@ public class CategoryCompatibilityTests
     }
 
     [Theory]
-    [InlineData(CobolCategory.Alphanumeric)]
     [InlineData(CobolCategory.AlphanumericEdited)]
     [InlineData(CobolCategory.National)]
     [InlineData(CobolCategory.NationalEdited)]
-    public void Non_numeric_cannot_move_to_Numeric(CobolCategory src)
+    public void Non_alphanumeric_cannot_move_to_Numeric(CobolCategory src)
     {
         Assert.False(CategoryCompatibility.IsMoveLegal(src, CobolCategory.Numeric),
             $"{src} → Numeric should be illegal");
+    }
+
+    [Fact]
+    public void Alphanumeric_can_move_to_Numeric()
+    {
+        // COBOL-85 §14.9.24: Alphanumeric → Numeric is legal
+        Assert.True(CategoryCompatibility.IsMoveLegal(
+            CobolCategory.Alphanumeric, CobolCategory.Numeric));
     }
 
     [Fact]
@@ -48,7 +55,6 @@ public class CategoryCompatibilityTests
     }
 
     [Theory]
-    [InlineData(CobolCategory.Alphanumeric)]
     [InlineData(CobolCategory.AlphanumericEdited)]
     [InlineData(CobolCategory.National)]
     [InlineData(CobolCategory.NationalEdited)]
