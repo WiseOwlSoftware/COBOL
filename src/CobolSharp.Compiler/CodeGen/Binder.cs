@@ -2498,6 +2498,15 @@ public sealed class Binder
             return;
         }
 
+        // Unresolved abbreviated expression — should never reach here if expander is correct
+        if (cond is BoundAbbreviatedExpression)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty,
+                "BoundAbbreviatedExpression (unresolved)");
+            block.Instructions.Add(new IrSetBool(result, false));
+            return;
+        }
+
         _diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty, cond.GetType().Name);
     }
 

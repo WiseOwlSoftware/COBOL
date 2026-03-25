@@ -8977,9 +8977,6 @@ public partial class CobolParserCore : CobolParserCoreBase {
 
 	public partial class UnaryLogicalExpressionContext : ParserRuleContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NOT() { return GetToken(CobolParserCore.NOT, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public UnaryLogicalExpressionContext unaryLogicalExpression() {
-			return GetRuleContext<UnaryLogicalExpressionContext>(0);
-		}
 		[System.Diagnostics.DebuggerNonUserCode] public PrimaryConditionContext primaryCondition() {
 			return GetRuleContext<PrimaryConditionContext>(0);
 		}
@@ -9010,7 +9007,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				State = 1551;
 				Match(NOT);
 				State = 1552;
-				unaryLogicalExpression();
+				primaryCondition();
 				}
 				break;
 			case 2:
@@ -9034,11 +9031,11 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 
 	public partial class PrimaryConditionContext : ParserRuleContext {
-		[System.Diagnostics.DebuggerNonUserCode] public ComparisonExpressionContext comparisonExpression() {
-			return GetRuleContext<ComparisonExpressionContext>(0);
-		}
 		[System.Diagnostics.DebuggerNonUserCode] public SignConditionContext signCondition() {
 			return GetRuleContext<SignConditionContext>(0);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ComparisonExpressionContext comparisonExpression() {
+			return GetRuleContext<ComparisonExpressionContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public BooleanLiteralContext booleanLiteral() {
 			return GetRuleContext<BooleanLiteralContext>(0);
@@ -9073,14 +9070,14 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 1556;
-				comparisonExpression();
+				signCondition();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
 				State = 1557;
-				signCondition();
+				comparisonExpression();
 				}
 				break;
 			case 3:
@@ -24920,9 +24917,9 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		1,0,0,0,1540,1545,3,248,124,0,1541,1542,5,113,0,0,1542,1544,3,248,124,
 		0,1543,1541,1,0,0,0,1544,1547,1,0,0,0,1545,1543,1,0,0,0,1545,1546,1,0,
 		0,0,1546,247,1,0,0,0,1547,1545,1,0,0,0,1548,1549,3,262,131,0,1549,1550,
-		3,254,127,0,1550,249,1,0,0,0,1551,1552,5,208,0,0,1552,1555,3,250,125,0,
+		3,254,127,0,1550,249,1,0,0,0,1551,1552,5,208,0,0,1552,1555,3,252,126,0,
 		1553,1555,3,252,126,0,1554,1551,1,0,0,0,1554,1553,1,0,0,0,1555,251,1,0,
-		0,0,1556,1564,3,256,128,0,1557,1564,3,238,119,0,1558,1564,3,236,118,0,
+		0,0,1556,1564,3,238,119,0,1557,1564,3,256,128,0,1558,1564,3,236,118,0,
 		1559,1560,5,291,0,0,1560,1561,3,240,120,0,1561,1562,5,292,0,0,1562,1564,
 		1,0,0,0,1563,1556,1,0,0,0,1563,1557,1,0,0,0,1563,1558,1,0,0,0,1563,1559,
 		1,0,0,0,1564,253,1,0,0,0,1565,1566,3,232,116,0,1566,255,1,0,0,0,1567,1569,

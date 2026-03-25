@@ -74,13 +74,13 @@ abbreviatedRelation
     ;
 
 unaryLogicalExpression
-    : NOT unaryLogicalExpression
+    : NOT primaryCondition
     | primaryCondition
     ;
 
 primaryCondition
-    : comparisonExpression
-    | signCondition
+    : signCondition
+    | comparisonExpression
     | booleanLiteral
     | LPAREN condition RPAREN
     ;
