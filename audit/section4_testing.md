@@ -27,7 +27,7 @@ cases.
 |----------|-------|
 | Unit tests | 217 pass |
 | Integration tests | 184 pass, 1 skip |
-| NIST tests at 100% | 31 (in guard script) |
+| NIST tests at 100% | 33 (in guard script) |
 
 ---
 
@@ -178,7 +178,7 @@ shell script `scripts/nist-batch.sh`, which:
 The script supports parallel execution (4 jobs), stop-on-first-failure mode, and category
 filtering (ARITH, CTRL, IO).
 
-### 31 NIST Tests at 100% Pass Rate (in guard script)
+### 33 NIST Tests at 100% Pass Rate (in guard script)
 
 Per CLAUDE.md, the following NIST NC-series tests achieve 100% pass rate (all internal
 sub-tests successful):
@@ -315,7 +315,7 @@ debugging, communications, and report writing features.
 | Runtime (fields/PIC) | 66 tests | All integration tests exercise it | Low |
 | Runtime (file I/O) | 6 tests | 12+ integration tests | Medium |
 | Runtime (intrinsics) | 30 tests | Limited integration coverage | Low |
-| NIST validation | Not in xUnit | 31 tests via shell script | **High** (automation gap) |
+| NIST validation | Not in xUnit | 33 tests via shell script | **High** (automation gap) |
 
 ### Key Metrics
 

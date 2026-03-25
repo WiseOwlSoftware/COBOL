@@ -312,7 +312,7 @@ INITIAL program, CANCEL statement, dynamic CALL, ON EXCEPTION / NOT ON EXCEPTION
 **Acceptance criteria:**
 - A single command produces a summary of all NIST test statuses.
 - The summary distinguishes between "test exists and passes," "test exists and fails," and "test not yet implemented."
-- Current baseline: 31 NIST tests at 100% (in guard script).
+- Current baseline: 33 NIST tests at 100% (in guard script).
 
 ---
 

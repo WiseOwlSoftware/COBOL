@@ -8,7 +8,7 @@ drift, contradict earlier decisions, introduce regressions, or duplicate work. E
 was derived from patterns observed across 13+ sessions of building this compiler.
 
 The project has completed its 9-phase modernization (see MIGRATION_LEDGER.md) and is now in
-active feature development on the `main` branch, with 31 NIST tests at 100% (in guard script) and known
+active feature development on the `main` branch, with 33 NIST tests at 100% (in guard script) and known
 gaps documented in CLAUDE.md. The rules below apply to all future work: new features, bug fixes,
 NIST test expansion, and any further modernization.
 
@@ -213,7 +213,7 @@ The coverage matrix is the NIST test list in CLAUDE.md "Current State".
 
 **When a new NIST test passes at 100%:**
 1. Add its ID to the sorted list in CLAUDE.md (maintain alphabetical/numerical order).
-2. Increment the count in parentheses (e.g., "(31 tests)" -> "(32 tests)").
+2. Increment the count in parentheses (e.g., "(33 tests)" -> "(34 tests)").
 
 **When a NIST test regresses:**
 1. Remove it from the list.
