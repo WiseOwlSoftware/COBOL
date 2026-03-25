@@ -124,6 +124,12 @@ public sealed class DataSymbol : Symbol
     /// </summary>
     public FigurativeKind? FigurativeInit { get; set; }
 
+    /// <summary>
+    /// ALL literal pattern (e.g., "ABC" for VALUE ALL "ABC").
+    /// Must be repeated to fill the field's PIC width during initialization.
+    /// </summary>
+    public string? AllLiteralPattern { get; set; }
+
     /// <summary>JUSTIFIED RIGHT clause present on this data item.</summary>
     public bool IsJustifiedRight { get; set; }
 

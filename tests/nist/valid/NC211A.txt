@@ -1,0 +1,84 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC211A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ COMPOUND CONDITIONS        CC--TEST-GF-1
+   NOT ABBREVIATED    PASS
+   NOT ABBREVIATED    PASS  CC--TEST-GF-2
+   NOT ABBREVIATED    PASS  CC--TEST-GF-3
+   NOT ABBREVIATED    PASS  CC--TEST-GF-4
+   NOT ABBREVIATED    PASS  CC--TEST-GF-5
+   NOT ABBREVIATED    PASS  CC--TEST-GF-6
+   NOT ABBREVIATED    PASS  CC--TEST-GF-7
+   NOT ABBREVIATED    PASS  CC--TEST-GF-8
+   NOT ABBREVIATED    PASS  CC--TEST-GF-9
+   NOT ABBREVIATED    PASS  CC--TEST-GF-10
+   ABBREVIATED        PASS  CC--TEST-GF-11
+   ABBREVIATED        PASS  CC--TEST-GF-12
+   ABBREVIATED        PASS  CC--TEST-GF-13
+   ABBREVIATED        PASS  CC--TEST-GF-14
+   ABBREVIATED        PASS  CC--TEST-GF-15
+   ABBREVIATED        PASS  CC--TEST-GF-16
+   ABBREVIATED        PASS  CC--TEST-GF-17
+   ABBREVIATED        PASS  CC--TEST-GF-18
+   ABBREV. W/PARENS   PASS  CC--TEST-GF-19
+   ABBREV. W/PARENS   PASS  CC--TEST-GF-20
+   NESTED IF          PASS  CC--TEST-GF-21
+   NESTED IF          PASS  CC--TEST-GF-22
+   NESTED IF          PASS  CC--TEST-GF-23
+   NOT ABBREVIATED    PASS  CC--TEST-GF-24
+   NOT ABBREVIATED    PASS  CC--TEST-GF-25
+   NOT ABBR, W/PARENS PASS  CC--TEST-GF-26
+   NOT ABBR, W/PARENS PASS  CC--TEST-GF-27
+   ABBREVIATED        PASS  CC--TEST-GF-28
+   ABBREVIATED        PASS  CC--TEST-GF-29
+   LOGICAL *NOT*      PASS  CC--TEST-GF-30
+   LOGICAL *NOT*      PASS  CC--TEST-GF-31
+   LOGICAL *NOT*      PASS  CC--TEST-GF-32
+   LOGICAL *NOT*      PASS  CC--TEST-GF-33
+   LOGICAL *NOT*      PASS  CC--TEST-GF-34
+   LOGICAL *NOT*      PASS  CC--TEST-GF-35
+   LOGICAL *NOT*      PASS  CC--TEST-GF-36
+   LOGICAL *NOT*      PASS  CC--TEST-GF-37
+   LOGICAL *NOT*      PASS  CC--TEST-GF-38
+   SIGN CONDITIONS    PASS  CC--TEST-GF-39
+   SIGN CONDITIONS    PASS  CC--TEST-GF-40
+   CLASS CONDITIONS   PASS  CC--TEST-GF-41
+   CLASS CONDITIONS   PASS  CC--TEST-GF-42
+   SWITCH CONDITIONS  PASS  CC--TEST-GF-43
+   SWITCH CONDITIONS  PASS  CC--TEST-GF-44
+   CONDITION-NAMES    PASS  CC--TEST-GF-45
+   CONDITION-NAMES    PASS  CC--TEST-GF-46
+   MIXED CONDITIONS   PASS  CC--TEST-GF-47
+   MIXED CONDITIONS   PASS  CC--TEST-GF-48
+ ***********************************************************************************************************************
+
+
+
+
+ FIGURATIVE CONSTANTS PASS  FIG-TEST-1
+ FIGURATIVE CONSTANTS PASS  FIG-TEST-2
+ FIGURATIVE CONSTANTS PASS  FIG-TEST-3
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC211A
+
+                                                    051 OF 051  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

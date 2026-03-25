@@ -15,9 +15,9 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - **Integration tests**: 184 pass, 1 skip
 - **Unit tests**: 217 pass
 - **Diagnostic descriptors**: 175+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
-- **NIST tests at 100%** (32 in guard): NC101A-NC107A, NC111A, NC112A, NC115A, NC117A,
+- **NIST tests at 100%** (33 in guard): NC101A-NC107A, NC111A, NC112A, NC115A, NC117A,
   NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A,
-  NC176A, NC202A, NC206A, NC207A, NC210A, NC221A, NC233A,
+  NC176A, NC202A, NC206A, NC207A, NC210A, NC211A, NC221A, NC233A,
   NC239A, NC240A, NC241A, NC248A, NC253A, NC254A
 - **Next**: ODO runtime, runtime hangs, collating sequence, remaining abbreviated edge cases
 
@@ -35,7 +35,8 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - NC254A reaches 100% and added to guard suite
 - Abbreviated condition bare-left-operand fix in RewriteAbbreviatedRelations
 - Condition grammar refactor: NOT non-recursive, signCondition first, ExpandAbbreviatedConditions
-- NC211A compiles — 49/51 tests pass (only 2 figurative constant failures remain)
+- NC211A reaches 100% (51/51) — added to guard suite
+- ALL literal figurative constants fixed (pattern repeated to fill field width)
 
 ### Key architectural decisions
 - RENAMES single-field inherits source PIC (not always alphanumeric)
@@ -44,7 +45,7 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
 ### Known gaps
 - SORT/MERGE (parse only, IR is stub)
-- NC211A: 49/51 pass; 2 figurative constant (ALL literal) failures remain — unrelated to conditions
+- ALL literal repetition fixed; NC211A at 100%
 - OCCURS DEPENDING ON runtime truncation — SEARCH/comparison don't respect active ODO count
 - NC220M/NC237A infinite loop at runtime (undiagnosed, likely ODO-related)
 - NC250A: ZERO as arithmetic operand causes grammar backtracking

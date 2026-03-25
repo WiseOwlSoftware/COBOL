@@ -289,7 +289,22 @@ public static class StorageLayoutComputer
 
         if (data.InitialValue == null) return;
 
-        if (decimal.TryParse(data.InitialValue,
+        // Expand ALL literal pattern to fill the field width by repeating the pattern
+        string initVal = data.InitialValue;
+        if (data.AllLiteralPattern != null && data.ElementSize > 0)
+        {
+            int fieldWidth = data.ElementSize;
+            string pattern = data.AllLiteralPattern;
+            if (pattern.Length > 0 && fieldWidth > pattern.Length)
+            {
+                var sb = new System.Text.StringBuilder(fieldWidth);
+                while (sb.Length < fieldWidth)
+                    sb.Append(pattern);
+                initVal = sb.ToString(0, fieldWidth);
+            }
+        }
+
+        if (decimal.TryParse(initVal,
             System.Globalization.CultureInfo.InvariantCulture, out var numVal)
             && data.ResolvedType?.IsNumeric == true)
         {
@@ -297,7 +312,7 @@ public static class StorageLayoutComputer
         }
         else
         {
-            model.RegisterInitialValue(data, data.InitialValue, CobolCategory.Alphanumeric);
+            model.RegisterInitialValue(data, initVal, CobolCategory.Alphanumeric);
         }
     }
 }

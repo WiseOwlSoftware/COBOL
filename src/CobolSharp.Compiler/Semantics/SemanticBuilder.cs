@@ -41,6 +41,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private string? _deferredRedefinesName;
     private Runtime.SignStorageKind? _deferredSignStorage;
     private FigurativeKind? _deferredFigurativeInit;
+    private string? _deferredAllLiteralPattern;
 
     // Extension clauses captured during parsing (vendor extensions, unrecognized clauses)
     private readonly List<ExtensionClauseNode> _extensionClauses = [];
@@ -460,9 +461,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                 {
                                     char q = figText[0];
                                     string allChar = figText[1..^1].Replace(new string(q, 2), new string(q, 1));
+                                    // Store the ALL literal pattern; it will be expanded to fill
+                                    // the PIC width when the field size is known (ExpandAllLiteralInit)
+                                    _deferredAllLiteralPattern = allChar;
                                     initialValue = allChar;
-                                    // ALL "X" uses Space kind as fill mechanism — the actual character
-                                    // is in initialValue and the runtime fills by repeating it.
                                     _deferredFigurativeInit = null;
                                 }
                                 else
@@ -635,6 +637,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         _deferredSignStorage = null;
         data.FigurativeInit = _deferredFigurativeInit;
         _deferredFigurativeInit = null;
+        data.AllLiteralPattern = _deferredAllLiteralPattern;
+        _deferredAllLiteralPattern = null;
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
