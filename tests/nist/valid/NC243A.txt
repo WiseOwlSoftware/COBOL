@@ -1,0 +1,43 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC243A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ PERFORM VARYING LEV1 PASS  CHECK-ENTRIES
+ PERFORM VARYING LEV1 PASS  LEVEL-1-TEST-2
+ PERFORM VARYING LEV1 PASS  LEVEL-1-TEST-3
+ PERFORM VARYING LEV1 PASS  LEVEL-1-TEST-4
+ PERFORM VARYING LEV2 PASS  LEVEL-2-TEST-1
+ PERFORM VARYING LEV2 PASS  LEVEL-2-TEST-2
+ PERFORM VARYING LEV2 PASS  LEVEL-2-TEST-3
+ PERFORM VARYING LEV2 PASS  LEVEL-2-TEST-4
+ PERFORM VARYING LEV3 PASS  LEVEL-3-TEST-1
+ PERFORM VARYING LEV3 PASS  LEVEL-3-TEST-2
+ PERFORM VARYING LEV3 PASS  LEVEL-3-TEST-3
+ PERFORM VARYING LEV3 PASS  LEVEL-3-TEST-4
+ PERFORM VARYING LEV3 PASS  TH7-TEST           .01
+ PERFORM VARYING LEV3 PASS  TH7-TEST           .02
+ PERFORM VARYING LEV3 PASS  TH7-TEST           .03
+ PERFORM VARYING LEV3 PASS  TH7-TEST           .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC243A
+
+                                                    016 OF 016  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -15,10 +15,10 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - **Integration tests**: 184 pass, 1 skip
 - **Unit tests**: 217 pass
 - **Diagnostic descriptors**: 175+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
-- **NIST tests at 100%** (33 in guard): NC101A-NC107A, NC111A, NC112A, NC115A, NC117A,
-  NC122A-NC124A, NC126A, NC127A, NC131A, NC132A, NC136A, NC137A, NC140A, NC141A,
-  NC176A, NC202A, NC206A, NC207A, NC210A, NC211A, NC221A, NC233A,
-  NC239A, NC240A, NC241A, NC248A, NC253A, NC254A
+- **NIST tests at 100%** (55 in guard): NC101A-NC103A, NC106A-NC107A, NC111A-NC112A,
+  NC115A-NC121M, NC122A-NC124A, NC126A-NC127A, NC131A-NC133A, NC136A-NC137A,
+  NC140A-NC141A, NC170A-NC173A, NC175A-NC177A, NC202A, NC206A-NC207A, NC210A-NC211A,
+  NC221A, NC224A, NC231A-NC234A, NC236A, NC238A-NC244A, NC248A, NC253A-NC254A
 - **Next**: ODO runtime, runtime hangs, collating sequence, remaining abbreviated edge cases
 
 ### What was done this session (2026-03-24)

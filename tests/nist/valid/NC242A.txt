@@ -1,0 +1,39 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC242A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ LEVEL 1 TBL SUBSCRPT PASS  CHECK-ENTRIES
+ LEVEL 1 TBL SUBSCRPT PASS  TEST-1-2
+ LEVEL 2 TBL SUBSCRPT PASS  TEST-2
+ LEVEL 2 TBL SUBSCRPT PASS  TEST-2-2
+ LEVEL 2 TBL SUBSCRPT PASS  TEST-2-3
+ LEVEL 3 TBL SUBSCRPT PASS  TEST-3
+ LEVEL 3 TBL SUBSCRPT PASS  TEST-3-2
+ LEVEL 3 TBL SUBSCRPT PASS  TEST-3-3
+ LEVEL 3 TBL SUBSCRPT PASS  TH7-TEST-1         .01
+ LEVEL 3 TBL SUBSCRPT PASS  TH7-TEST-2         .02
+ LEVEL 3 TBL SUBSCRPT PASS  TH7-TEST-3         .03
+ LEVEL 3 TBL SUBSCRPT PASS  TH7-TEST-4         .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC242A
+
+                                                    012 OF 012  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
