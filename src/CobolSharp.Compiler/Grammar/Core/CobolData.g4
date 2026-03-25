@@ -86,7 +86,7 @@ parameterDescriptionBody
     ;
 
 parameterPassingClause
-    : USING (BY_REFERENCE | BY_VALUE | BY_CONTENT)? dataReference
+    : USING (BY REFERENCE | BY VALUE | BY CONTENT)? dataReference
     ;
 
 // ==========================================
@@ -236,9 +236,9 @@ syncClause
     : (SYNCHRONIZED | SYNC) (LEFT | RIGHT)?
     ;
 
-// BLANK WHEN ZERO
+// BLANK [WHEN] ZERO — WHEN is optional per COBOL-85
 blankWhenZeroClause
-    : BLANK_WHEN_ZERO
+    : BLANK WHEN? ZERO
     ;
 
 // 88-LEVEL CONDITION ENTRIES — handled through valueClause with THRU support.

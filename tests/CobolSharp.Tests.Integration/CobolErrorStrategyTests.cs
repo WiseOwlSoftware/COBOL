@@ -14,18 +14,7 @@ public sealed class CobolErrorStrategyTests
 {
     private const string NistProgramsDir = "tests/nist/programs";
 
-    // ── BLANK WHEN ZERO not parsed in data description ──
-
-    [Theory]
-    [InlineData("NC134A.cob", "BLANK")]
-    public void Detects_UnrecognizedClause(string file, string expectedFragment)
-    {
-        var diagnostics = CompileWithDiagnostics(file);
-        Assert.True(
-            HasDiagnosticContaining(diagnostics, expectedFragment),
-            $"Expected diagnostic mentioning '{expectedFragment}' in {file}");
-    }
-
+    // BLANK WHEN ZERO now properly parsed — NC134A compiles successfully.
     // STATUS in SPECIAL-NAMES (ON STATUS IS / OFF STATUS IS) and
     // PROGRAM in OBJECT-COMPUTER (PROGRAM COLLATING SEQUENCE) are now
     // properly parsed with dedicated grammar rules. Tests for the old

@@ -52,10 +52,7 @@ CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;
 WORKING_STORAGE : 'WORKING-STORAGE' ;
 LOCAL_STORAGE   : 'LOCAL-STORAGE' ;
-NEXT_SENTENCE   : 'NEXT' [ ]+ 'SENTENCE' ;
-BY_REFERENCE    : 'BY' [ ]+ 'REFERENCE' ;
-BY_VALUE        : 'BY' [ ]+ 'VALUE' ;
-BY_CONTENT      : 'BY' [ ]+ 'CONTENT' ;
+SENTENCE        : 'SENTENCE' ;
 DATE_WRITTEN    : 'DATE-WRITTEN' ;
 DATE_COMPILED   : 'DATE-COMPILED' ;
 SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
@@ -65,7 +62,7 @@ FILE_CONTROL    : 'FILE-CONTROL' ;
 I_O_CONTROL     : 'I-O-CONTROL' ;
 I_O             : 'I-O' ;
 PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
-BLANK_WHEN_ZERO : 'BLANK' [ ]+ 'WHEN' [ ]+ 'ZERO' ;
+// BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 
 // ── Division/section keywords ──

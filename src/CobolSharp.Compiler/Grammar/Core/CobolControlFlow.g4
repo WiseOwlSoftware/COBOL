@@ -194,5 +194,5 @@ continueStatement
     ;
 
 nextSentenceStatement
-    : NEXT_SENTENCE
+    : NEXT SENTENCE
     ;

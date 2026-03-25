@@ -43,9 +43,9 @@ public static class ArithmeticTypeSystem
 
     public static bool IsValidRemainderTarget(ITypeSymbol? type)
     {
-        if (type == null || !type.IsNumeric) return false;
-        // Remainder must be integer numeric (no fraction digits)
-        return type.Pic == null || type.Pic.FractionDigits == 0;
+        if (type == null) return false;
+        // COBOL-85 §6.4.5: REMAINDER must be numeric or numeric-edited
+        return type.IsNumeric || type.Category == Runtime.CobolCategory.NumericEdited;
     }
 
     /// <summary>

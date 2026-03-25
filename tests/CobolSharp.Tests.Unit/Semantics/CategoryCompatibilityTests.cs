@@ -29,7 +29,6 @@ public class CategoryCompatibilityTests
     }
 
     [Theory]
-    [InlineData(CobolCategory.NumericEdited)]
     [InlineData(CobolCategory.Alphanumeric)]
     [InlineData(CobolCategory.AlphanumericEdited)]
     [InlineData(CobolCategory.National)]
@@ -38,6 +37,14 @@ public class CategoryCompatibilityTests
     {
         Assert.False(CategoryCompatibility.IsMoveLegal(src, CobolCategory.Numeric),
             $"{src} → Numeric should be illegal");
+    }
+
+    [Fact]
+    public void NumericEdited_can_move_to_Numeric()
+    {
+        // COBOL-85 §14.9.24: NumericEdited → Numeric is legal (de-edit)
+        Assert.True(CategoryCompatibility.IsMoveLegal(
+            CobolCategory.NumericEdited, CobolCategory.Numeric));
     }
 
     [Theory]
