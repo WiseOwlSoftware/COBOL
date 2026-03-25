@@ -2342,7 +2342,7 @@ public sealed class Binder
     /// Normalized operand for comparison dispatch.
     /// Every BoundExpression in a comparison is reduced to one of these.
     /// </summary>
-    private enum ComparisonOperandKind { Location, NumericLiteral, StringLiteral, Figurative }
+    private enum ComparisonOperandKind { Location, NumericLiteral, StringLiteral, Figurative, ArithmeticExpression }
 
     private sealed class ComparisonOperand
     {
@@ -2354,6 +2354,7 @@ public sealed class Binder
         public Runtime.FigurativeKind FigurativeKind { get; init; }
         public string? AllLiteral { get; init; }
         public int FieldWidth { get; init; }
+        public Semantics.Bound.BoundBinaryExpression? ArithExpr { get; init; }
 
         private ComparisonOperand(ComparisonOperandKind kind) { Kind = kind; }
 
@@ -2365,6 +2366,8 @@ public sealed class Binder
             new(ComparisonOperandKind.StringLiteral) { StringValue = value, Category = Runtime.CobolCategory.Alphanumeric };
         public static ComparisonOperand FromFigurative(Runtime.FigurativeKind kind, string? allLiteral = null) =>
             new(ComparisonOperandKind.Figurative) { FigurativeKind = kind, AllLiteral = allLiteral };
+        public static ComparisonOperand FromArithmeticExpression(Semantics.Bound.BoundBinaryExpression expr) =>
+            new(ComparisonOperandKind.ArithmeticExpression) { ArithExpr = expr, Category = Runtime.CobolCategory.Numeric };
     }
 
     /// <summary>
@@ -2398,6 +2401,15 @@ public sealed class Binder
                      && neg.Left is BoundLiteralExpression zl && zl.Value is decimal zd && zd == 0m
                      && neg.Right is BoundLiteralExpression il && il.Value is decimal id:
                 return ComparisonOperand.FromNumeric(-id);
+
+            // Arithmetic expression as comparison operand: evaluate to temp, compare against that
+            case BoundBinaryExpression arith
+                when arith.OperatorKind is BoundBinaryOperatorKind.Add
+                    or BoundBinaryOperatorKind.Subtract
+                    or BoundBinaryOperatorKind.Multiply
+                    or BoundBinaryOperatorKind.Divide
+                    or BoundBinaryOperatorKind.Power:
+                return ComparisonOperand.FromArithmeticExpression(arith);
 
             default:
                 return null;
@@ -2578,6 +2590,16 @@ public sealed class Binder
                 EmitLocationVsFigurative(left, right, result, op, block);
                 break;
 
+            case (ComparisonOperandKind.Location, ComparisonOperandKind.ArithmeticExpression):
+            {
+                // Evaluate arithmetic expression to decimal accumulator, then compare
+                var accumulator = _valueFactory.Next(IrPrimitiveType.Decimal);
+                var resolvedLocs = PreResolveExpressionLocations(right.ArithExpr!);
+                block.Instructions.Add(new IrComputeIntoAccumulator(accumulator, right.ArithExpr!, resolvedLocs));
+                block.Instructions.Add(new IrPicCompareAccumulator(left.Location!, accumulator, result, op));
+                break;
+            }
+
             case (ComparisonOperandKind.NumericLiteral, ComparisonOperandKind.NumericLiteral):
                 // Compile-time constant comparison
                 int cmp = Math.Sign(left.NumericValue.CompareTo(right.NumericValue));
@@ -2626,6 +2648,7 @@ public sealed class Binder
             ComparisonOperandKind.Figurative =>
                 op.FigurativeKind == Runtime.FigurativeKind.Zero,
             ComparisonOperandKind.StringLiteral => false,
+            ComparisonOperandKind.ArithmeticExpression => true,
             _ => false
         };
     }

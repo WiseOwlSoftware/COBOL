@@ -35,7 +35,7 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 - NC254A reaches 100% and added to guard suite
 - Abbreviated condition bare-left-operand fix in RewriteAbbreviatedRelations
 - Condition grammar refactor: NOT non-recursive, signCondition first, ExpandAbbreviatedConditions
-- NC211A compiles (was 2 errors) — 47/51 tests pass
+- NC211A compiles — 49/51 tests pass (only 2 figurative constant failures remain)
 
 ### Key architectural decisions
 - RENAMES single-field inherits source PIC (not always alphanumeric)
@@ -44,8 +44,7 @@ Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
 ### Known gaps
 - SORT/MERGE (parse only, IR is stub)
-- NC211A: 47/51 pass; GF-48 monster compound (sign+class+switch+abbreviated) fails;
-  2 figurative constant (ALL literal) failures unrelated to conditions
+- NC211A: 49/51 pass; 2 figurative constant (ALL literal) failures remain — unrelated to conditions
 - OCCURS DEPENDING ON runtime truncation — SEARCH/comparison don't respect active ODO count
 - NC220M/NC237A infinite loop at runtime (undiagnosed, likely ODO-related)
 - NC250A: ZERO as arithmetic operand causes grammar backtracking

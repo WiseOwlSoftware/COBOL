@@ -2099,13 +2099,18 @@ public static class PicRuntime
 
     public static bool IsNumericClass(byte[] area, int offset, int length, PicDescriptor pic)
     {
+        // COBOL-85 §6.3.4.1: For alphanumeric/group items, NUMERIC = digits 0-9 only.
+        // For numeric items, signs and decimal points are allowed per the PIC.
+        bool allowSign = pic.Category == CobolCategory.Numeric;
+        bool allowDecimal = pic.Category == CobolCategory.Numeric;
+
         for (int i = 0; i < length; i++)
         {
             char c = (char)area[offset + i];
-            if (c == ' ') continue;
             if (c >= '0' && c <= '9') continue;
-            if (c == '+' || c == '-') continue;
-            if (c == '.') continue;
+            if (c == ' ') continue;
+            if (allowSign && (c == '+' || c == '-')) continue;
+            if (allowDecimal && c == '.') continue;
             return false;
         }
         return true;

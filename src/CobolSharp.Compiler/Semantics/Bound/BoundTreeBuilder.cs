@@ -2894,7 +2894,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return new BoundBinaryExpression(subject, abbrev.OperatorKind, abbrev.Right, CobolCategory.Unknown);
         }
 
-        // Bare operand (identifier/literal not resolved as condition-name):
+        // Bare operand (identifier/literal/arithmetic not resolved as condition-name):
         // expand using inherited context if available
         if (expr is BoundIdentifierExpression or BoundLiteralExpression)
         {
@@ -2905,6 +2905,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         if (expr is not BoundBinaryExpression bin)
             return expr;
+
+        // Arithmetic expression used as abbreviated operand (e.g., IF A = B OR C - 1)
+        if (IsArithmeticOp(bin.OperatorKind))
+        {
+            if (subject != null && IsRelational(op))
+                return new BoundBinaryExpression(subject, op, expr, CobolCategory.Unknown);
+            return expr;
+        }
 
         // AND/OR: propagate context through children
         if (bin.OperatorKind is BoundBinaryOperatorKind.Or
@@ -2968,6 +2976,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             or BoundBinaryOperatorKind.LessOrEqual
             or BoundBinaryOperatorKind.Greater
             or BoundBinaryOperatorKind.GreaterOrEqual;
+
+    private static bool IsArithmeticOp(BoundBinaryOperatorKind kind) =>
+        kind is BoundBinaryOperatorKind.Add
+            or BoundBinaryOperatorKind.Subtract
+            or BoundBinaryOperatorKind.Multiply
+            or BoundBinaryOperatorKind.Divide
+            or BoundBinaryOperatorKind.Power;
 
     private BoundExpression BindComparisonOperand(CobolParserCore.ComparisonOperandContext ctx)
         => BindValueOperand(ctx.valueOperand());

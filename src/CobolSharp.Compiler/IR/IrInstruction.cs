@@ -1161,6 +1161,23 @@ public sealed class IrPicCompareLiteral : IrInstruction
 }
 
 /// <summary>
+/// Compare a PIC field to a computed decimal value (from arithmetic expression).
+/// The accumulator holds the pre-evaluated result of the arithmetic expression.
+/// </summary>
+public sealed class IrPicCompareAccumulator : IrInstruction
+{
+    public IrLocation Left { get; }
+    public IrValue Accumulator { get; }
+    public int OperatorKind { get; }
+
+    public IrPicCompareAccumulator(IrLocation left, IrValue accumulator,
+        IrValue result, int operatorKind)
+    {
+        Left = left; Accumulator = accumulator; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
 /// Compare an alphanumeric field to a string literal. Result is bool.
 /// </summary>
 public sealed class IrStringCompareLiteral : IrInstruction

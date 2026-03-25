@@ -990,6 +990,10 @@ public sealed class CilEmitter
                 EmitPicCompareLiteral(il, cmpLit, getLocal);
                 break;
 
+            case IrPicCompareAccumulator cmpAccum:
+                EmitPicCompareAccumulator(il, cmpAccum, getLocal);
+                break;
+
             case IrStringCompareLiteral strCmp:
                 EmitStringCompareLiteral(il, strCmp, getLocal);
                 break;
@@ -2609,6 +2613,28 @@ public sealed class CilEmitter
     {
         EmitLocationArgsWithPic(il, cmp.Left);
         EmitLoadDecimal(il, cmp.Value);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("CompareNumericToLiteral",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                        typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
+
+    private void EmitPicCompareAccumulator(ILProcessor il, IrPicCompareAccumulator cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLocationArgsWithPic(il, cmp.Left);
+        // Load the pre-evaluated accumulator (decimal)
+        il.Append(il.Create(OpCodes.Ldloc, getLocal(cmp.Accumulator)));
 
         var method = _module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("CompareNumericToLiteral",
