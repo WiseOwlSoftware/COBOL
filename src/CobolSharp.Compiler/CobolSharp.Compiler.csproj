@@ -28,9 +28,11 @@
   </ItemGroup>
 
   <!-- Ensure Generated folder exists and regenerate parser if needed.
-       Uses BeforeTargets="CoreCompile" to guarantee generation completes before compilation starts. -->
+       Uses BeforeTargets="CoreCompile" so generation completes before csc runs.
+       After generation, explicitly add generated .cs files to the Compile item group
+       in case they were missing during initial SDK globbing (e.g., after dotnet clean). -->
   <Target Name="EnsureGeneratedFiles"
-          BeforeTargets="BeforeBuild"
+          BeforeTargets="CoreCompile"
           Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
           Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
 
@@ -45,6 +47,11 @@
     <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs) -->
     <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\GenerateIfNewer.ps1&quot;"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
+
+    <!-- Add generated files to compilation in case they were missing during initial globbing -->
+    <ItemGroup>
+      <Compile Include="Generated\*.cs" Exclude="@(Compile)" />
+    </ItemGroup>
   </Target>
 
   <!-- Clean target: remove generated files AND temp folder -->
