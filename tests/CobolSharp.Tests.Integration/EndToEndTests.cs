@@ -634,22 +634,25 @@ public class EndToEndTests : IDisposable
         Assert.Equal("XXBBXXCCXX", stdout);
     }
 
-    [Fact(Skip = "CALL statement not yet lowered to CIL")]
-    public void CallStatement_EmitsDiagnostic()
+    [Fact]
+    public void CallStatement_UnresolvedProgram_OnException()
     {
         var (success, stdout, stderr) = CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. CALLTEST.
             PROCEDURE DIVISION.
             MAIN-PARA.
-                CALL "SUBPROG".
-                DISPLAY "After call".
+                CALL "SUBPROG"
+                    ON EXCEPTION
+                        DISPLAY "Not found"
+                    NOT ON EXCEPTION
+                        DISPLAY "After call"
+                END-CALL.
                 STOP RUN.
             """);
 
         Assert.True(success, $"Failed: {stderr}");
-        Assert.Equal("After call", stdout);
-        Assert.Contains("CALL:", stderr); // program not found diagnostic
+        Assert.Equal("Not found", stdout);
     }
 
     // (FileIO_WriteAndReadBack moved to end of file with proper implementation)
@@ -3414,7 +3417,7 @@ public class EndToEndTests : IDisposable
         Assert.Equal("CDE", stdout);
     }
 
-    [Fact(Skip = "Needs SUBSCRIPT-mode arithmetic for ref-mod start/length expressions")]
+    [Fact]
     public void RefMod_ExpressionStartLength()
     {
         var (success, stdout, stderr) = CompileAndRun("""
