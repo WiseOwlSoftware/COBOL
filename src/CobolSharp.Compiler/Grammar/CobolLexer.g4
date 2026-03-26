@@ -7,6 +7,20 @@ options {
     caseInsensitive = true;
 }
 
+@members {
+    // Track the type of the last non-WS token emitted, for subscript mode detection.
+    // When '(' follows an IDENTIFIER, we push to SUBSCRIPT mode.
+    private int _lastNonWsTokenType = -1;
+
+    public override Antlr4.Runtime.IToken NextToken()
+    {
+        var token = base.NextToken();
+        if (token.Type != WS && token.Type != Antlr4.Runtime.TokenConstants.EOF)
+            _lastNonWsTokenType = token.Type;
+        return token;
+    }
+}
+
 // ==========================================
 // DEFAULT MODE
 // ==========================================
@@ -351,7 +365,7 @@ DOT         : '.' ;
 // Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
 COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
 COMMA       : ',' ;
-LPAREN      : '(' ;
+LPAREN      : '(' { if (_lastNonWsTokenType == IDENTIFIER) PushMode(SUBSCRIPT); } ;
 RPAREN      : ')' ;
 LT          : '<' ;
 GT          : '>' ;
@@ -385,6 +399,44 @@ PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+ -> popMode ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)
     // Stops:  at whitespace or period-before-whitespace (sentence end)
+
+// ==========================================
+// COMMENT_MODE — *> to end of line
+// ==========================================
+
+// ==========================================
+// SUBSCRIPT MODE — COBOL-85 §5.3 subscript lexing
+// ==========================================
+// Entered when '(' follows an IDENTIFIER. Whitespace is preserved (not skipped)
+// and sign adjacency is distinguished: +1 (SIGNED_INTEGERLIT) vs + 1 (SUB_PLUS SUB_WS SUB_INTEGERLIT).
+
+mode SUBSCRIPT;
+
+SUB_WS              : [ \t\r\n]+ ;
+
+// Keywords must precede SUB_IDENTIFIER (same length → first rule wins)
+SUB_OF              : 'OF' ;
+SUB_IN              : 'IN' ;
+SUB_ALL             : 'ALL' ;
+
+// Sign immediately followed by digits: +1, -10 (signed literal subscript)
+SIGNED_INTEGERLIT   : [+-] [0-9]+ ;
+
+// Numeric literals
+SUB_INTEGERLIT      : [0-9]+ ;
+SUB_DECIMALLIT      : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
+
+// Data-name / index-name (must follow keywords to avoid capturing OF/IN/ALL)
+SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* | [a-z] [a-z0-9-]* [a-z0-9] | [a-z] ;
+
+// Operators and punctuation
+SUB_PLUS            : '+' ;
+SUB_MINUS           : '-' ;
+SUB_COMMA           : ',' ;
+SUB_COLON           : ':' ;
+SUB_LPAREN          : '(' -> pushMode(SUBSCRIPT) ;
+SUB_RPAREN          : ')' -> popMode ;
+SUB_ANY             : . ;
 
 // ==========================================
 // COMMENT_MODE — *> to end of line

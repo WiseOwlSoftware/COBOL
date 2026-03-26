@@ -153,8 +153,8 @@ additiveExpression
     ;
 
 addOp
-    : '+'
-    | '-'
+    : PLUS
+    | MINUS
     ;
 
 multiplicativeExpression
@@ -162,12 +162,12 @@ multiplicativeExpression
     ;
 
 mulOp
-    : '*'
-    | '/'
+    : STAR
+    | SLASH
     ;
 
 powerExpression
-    : unaryExpression ( '**' unaryExpression )?
+    : unaryExpression ( POWER unaryExpression )?
     ;
 
 unaryExpression

@@ -285,6 +285,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSubscriptPart([NotNull] CobolParserCore.SubscriptPartContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptOrRefMod"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptOrRefMod([NotNull] CobolParserCore.SubscriptOrRefModContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subToken"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubToken([NotNull] CobolParserCore.SubTokenContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.refModPart"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -302,6 +314,24 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSubscriptList([NotNull] CobolParserCore.SubscriptListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptEntry([NotNull] CobolParserCore.SubscriptEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.subscriptQualification"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSubscriptQualification([NotNull] CobolParserCore.SubscriptQualificationContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.relativeOffset"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRelativeOffset([NotNull] CobolParserCore.RelativeOffsetContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.fileName"/>.
 	/// </summary>

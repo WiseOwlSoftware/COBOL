@@ -256,10 +256,37 @@ qualification
     : (OF | IN) IDENTIFIER (subscriptPart | refModPart)*
     ;
 
+// subscriptPart uses SUBSCRIPT-mode tokens (entered via LPAREN after IDENTIFIER).
+// SUB_RPAREN pops back to default mode. Also handles ref-mod (colon form).
 subscriptPart
-    : LPAREN subscriptList RPAREN
+    : LPAREN subscriptOrRefMod SUB_RPAREN
     ;
 
+// Inside SUBSCRIPT mode: captures all content as a flat sequence of SUBSCRIPT-mode tokens.
+// The binding layer interprets the content: SUB_COLON → ref-mod, else → subscript list.
+// This avoids the need for the grammar to distinguish subscripts from ref-mod.
+subscriptOrRefMod
+    : subToken+
+    ;
+
+// Any token that can appear inside subscript/ref-mod parentheses
+subToken
+    : SUB_WS
+    | SUB_IDENTIFIER
+    | SUB_INTEGERLIT
+    | SUB_DECIMALLIT
+    | SIGNED_INTEGERLIT
+    | SUB_PLUS
+    | SUB_MINUS
+    | SUB_COMMA
+    | SUB_COLON
+    | SUB_OF
+    | SUB_IN
+    | SUB_ALL
+    | SUB_LPAREN subToken+ SUB_RPAREN                                  // nested parens
+    ;
+
+// refModPart for non-identifier context (default mode)
 refModPart
     : LPAREN refModSpec RPAREN
     ;
@@ -268,8 +295,30 @@ refModSpec
     : arithmeticExpression COLON arithmeticExpression?
     ;
 
+// COBOL-85 §5.3: subscript list using SUBSCRIPT-mode tokens.
+// Whitespace (SUB_WS) separates subscripts; commas are optional.
 subscriptList
-    : arithmeticExpression (COMMA? arithmeticExpression)*
+    : SUB_WS? subscriptEntry ( (SUB_WS+ | SUB_WS* SUB_COMMA SUB_WS*) subscriptEntry )* SUB_WS?
+    ;
+
+// Each subscript is one of the three COBOL-85 forms
+subscriptEntry
+    : SIGNED_INTEGERLIT                                                // +8, -3, +1
+    | SUB_INTEGERLIT                                                   // 1, 10, 300
+    | SUB_ALL                                                          // ALL
+    | SUB_IDENTIFIER subscriptQualification* relativeOffset?           // W-2, INDEX1 + 2
+    ;
+
+// Qualification inside subscript: data-name OF/IN qualifier
+subscriptQualification
+    : SUB_WS? (SUB_OF | SUB_IN) SUB_WS? SUB_IDENTIFIER
+    ;
+
+// Relative subscript offset: {+|-} unsigned-integer
+// The + or - is separated by whitespace from the data-name,
+// distinguishing it from SIGNED_INTEGERLIT where sign is adjacent.
+relativeOffset
+    : SUB_WS (SUB_PLUS | SUB_MINUS) SUB_WS SUB_INTEGERLIT
     ;
 
 fileName
@@ -592,7 +641,7 @@ callArgument
     ;
 
 callByReference
-    : BY 'REFERENCE'? dataReference
+    : BY REFERENCE? dataReference
     ;
 
 callByValue
@@ -600,7 +649,7 @@ callByValue
     ;
 
 callByContent
-    : BY 'CONTENT' (dataReference | literal)
+    : BY CONTENT (dataReference | literal)
     ;
 
 callReturningPhrase

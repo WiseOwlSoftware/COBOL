@@ -64,7 +64,7 @@ accessMode
     ;
 
 recordKeyClause
-    : 'RECORD' KEY IS dataReference
+    : RECORD KEY IS dataReference
     ;
 
 alternateKeyClause
@@ -167,7 +167,7 @@ writeFrom
     ;
 
 writeBeforeAfter
-    : ('BEFORE' | 'AFTER') ADVANCING (dataReference | integerLiteral | literal) (LINE | LINES)?
+    : (BEFORE | AFTER) ADVANCING (dataReference | integerLiteral | literal) (LINE | LINES)?
     ;
 
 writeInvalidKey

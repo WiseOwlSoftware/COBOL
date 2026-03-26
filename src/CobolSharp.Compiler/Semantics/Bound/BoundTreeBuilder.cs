@@ -3244,7 +3244,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Extract qualifications, subscripts, and refmod from dataNameTail*
         var qualifiers = new List<string>();
-        CobolParserCore.SubscriptListContext? subList = null;
+        CobolParserCore.SubscriptOrRefModContext? subOrRefMod = null;
         CobolParserCore.RefModSpecContext? refModCtx = null;
 
         foreach (var tail in tails)
@@ -3255,15 +3255,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 qualifiers.Add(qual.IDENTIFIER().GetText());
                 // Extract subscripts/refmods attached to the qualifier (e.g., AX-2 IN AX(I))
                 var qualSubs = qual.subscriptPart();
-                if (qualSubs.Length > 0 && subList == null)
-                    subList = qualSubs[0].subscriptList();
+                if (qualSubs.Length > 0 && subOrRefMod == null)
+                    subOrRefMod = qualSubs[0].subscriptOrRefMod();
                 var qualRefMods = qual.refModPart();
                 if (qualRefMods.Length > 0 && refModCtx == null)
                     refModCtx = qualRefMods[0].refModSpec();
             }
-            else if (tail.subscriptPart() != null && subList == null)
+            else if (tail.subscriptPart() != null && subOrRefMod == null)
             {
-                subList = tail.subscriptPart().subscriptList();
+                subOrRefMod = tail.subscriptPart().subscriptOrRefMod();
             }
             else if (tail.refModPart() != null && refModCtx == null)
             {
@@ -3289,7 +3289,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         var cat = sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
 
-        if (subList == null)
+        if (subOrRefMod == null)
         {
             var plainId = Typed(new BoundIdentifierExpression(sym, cat));
             if (refModCtx != null)
@@ -3297,10 +3297,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return plainId;
         }
 
-        // Parse subscript expressions
-        var subs = new List<BoundExpression>();
-        foreach (var arithCtx in subList.arithmeticExpression())
-            subs.Add(BindArithmeticExpr(arithCtx));
+        // Interpret the flat SUBSCRIPT-mode token sequence
+        var (subExprs, isRefMod) = InterpretSubscriptTokens(subOrRefMod);
+
+        if (isRefMod)
+        {
+            var startExpr = subExprs.Count > 0 ? subExprs[0] : new BoundLiteralExpression(1m, CobolCategory.Numeric);
+            BoundExpression? lengthExpr = subExprs.Count > 1 ? subExprs[1] : null;
+            var refModBase = Typed(new BoundIdentifierExpression(sym, cat));
+            return Typed(new BoundReferenceModificationExpression(refModBase, startExpr, lengthExpr));
+        }
+
+        var subs = subExprs;
 
         // ── Subscript validation (COBOL-85 semantic rules) ──
 
@@ -3343,9 +3351,343 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return baseId;
     }
 
-    // NOTE: Subscript +N ambiguity (signed literal vs binary addition) in space-separated
-    // subscripts is a fundamental COBOL grammar issue. NC134A/NC139A remain blocked.
-    // The grammar uses arithmeticExpression for subscripts, which consumes +N as addition.
+    /// <summary>
+    /// Interpret the flat SUBSCRIPT-mode token sequence into expressions.
+    /// Returns (expressions, isRefMod). If SUB_COLON is present, it's ref-mod
+    /// and expressions[0] = start, expressions[1] = length. Otherwise it's subscripts.
+    /// </summary>
+    private (List<BoundExpression> Exprs, bool IsRefMod) InterpretSubscriptTokens(
+        CobolParserCore.SubscriptOrRefModContext ctx)
+    {
+        // Collect all leaf tokens from the subToken+ tree
+        var tokens = new List<Antlr4.Runtime.IToken>();
+        CollectLeafTokens(ctx, tokens);
+
+        // Check for colon → ref-mod
+        int colonIdx = tokens.FindIndex(t => t.Type == CobolParserCore.SUB_COLON);
+        if (colonIdx >= 0)
+        {
+            // Ref-mod: split on colon, parse each half as arithmetic expression
+            var startTokens = tokens.GetRange(0, colonIdx);
+            var lengthTokens = colonIdx + 1 < tokens.Count
+                ? tokens.GetRange(colonIdx + 1, tokens.Count - colonIdx - 1)
+                : new List<Antlr4.Runtime.IToken>();
+            var exprs = new List<BoundExpression>();
+            exprs.Add(BindSubscriptTokensAsArithmetic(startTokens));
+            if (lengthTokens.Any(t => t.Type != CobolParserCore.SUB_WS))
+                exprs.Add(BindSubscriptTokensAsArithmetic(lengthTokens));
+            return (exprs, true);
+        }
+
+        // Subscripts: split on multi-space (SUB_WS with 2+ chars) or SUB_COMMA boundaries
+        var segments = SplitSubscriptTokens(tokens);
+        var subs = new List<BoundExpression>();
+        foreach (var seg in segments)
+            subs.Add(BindSubscriptSegment(seg));
+        return (subs, false);
+    }
+
+    private static void CollectLeafTokens(Antlr4.Runtime.Tree.IParseTree node, List<Antlr4.Runtime.IToken> tokens)
+    {
+        if (node is Antlr4.Runtime.Tree.ITerminalNode term)
+        {
+            tokens.Add(term.Symbol);
+            return;
+        }
+        for (int i = 0; i < node.ChildCount; i++)
+            CollectLeafTokens(node.GetChild(i), tokens);
+    }
+
+    /// <summary>Split token list into subscript segments on WS/COMMA boundaries.</summary>
+    private static List<List<Antlr4.Runtime.IToken>> SplitSubscriptTokens(List<Antlr4.Runtime.IToken> tokens)
+    {
+        var segments = new List<List<Antlr4.Runtime.IToken>>();
+        var current = new List<Antlr4.Runtime.IToken>();
+
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            var t = tokens[i];
+            if (t.Type == CobolParserCore.SUB_COMMA)
+            {
+                if (current.Count > 0) segments.Add(current);
+                current = new List<Antlr4.Runtime.IToken>();
+                continue;
+            }
+            if (t.Type == CobolParserCore.SUB_WS)
+            {
+                // Multi-space is a subscript separator. Single space could be part of
+                // relative subscripting (IDENT + N). Check: if next non-WS is a sign
+                // token (SUB_PLUS/SUB_MINUS) and current ends with an identifier,
+                // it MIGHT be relative. But SIGNED_INTEGERLIT already handled the
+                // adjacent-sign case. If we see SUB_PLUS/SUB_MINUS after WS, it's
+                // part of relative subscripting (operator separated by space).
+                // Split only when what follows starts a new subscript:
+                //   SIGNED_INTEGERLIT, SUB_IDENTIFIER, SUB_INTEGERLIT, SUB_ALL
+                int next = i + 1;
+                while (next < tokens.Count && tokens[next].Type == CobolParserCore.SUB_WS)
+                    next++;
+                if (next < tokens.Count && current.Count > 0)
+                {
+                    int nextType = tokens[next].Type;
+                    // Only split if next token starts a new subscript AND current
+                    // segment doesn't end with an operator (which would mean the
+                    // WS is inside a relative subscript: IDENT + N)
+                    var lastNonWs = current.FindLast(x => x.Type != CobolParserCore.SUB_WS);
+                    bool endsWithOperator = lastNonWs != null &&
+                        (lastNonWs.Type == CobolParserCore.SUB_PLUS || lastNonWs.Type == CobolParserCore.SUB_MINUS);
+                    // Don't split after OF/IN — these are qualification keywords
+                    bool endsWithQualifier = lastNonWs != null &&
+                        (lastNonWs.Type == CobolParserCore.SUB_OF || lastNonWs.Type == CobolParserCore.SUB_IN);
+
+                    if (!endsWithOperator && !endsWithQualifier &&
+                        (nextType == CobolParserCore.SIGNED_INTEGERLIT
+                         || nextType == CobolParserCore.SUB_IDENTIFIER
+                         || nextType == CobolParserCore.SUB_INTEGERLIT
+                         || nextType == CobolParserCore.SUB_ALL))
+                    {
+                        segments.Add(current);
+                        current = new List<Antlr4.Runtime.IToken>();
+                        i = next - 1; // skip consumed WS
+                        continue;
+                    }
+                }
+                // Part of relative subscripting — keep in current segment
+                current.Add(t);
+                continue;
+            }
+            current.Add(t);
+        }
+        if (current.Count > 0) segments.Add(current);
+        return segments;
+    }
+
+    /// <summary>Bind a single subscript segment (list of SUBSCRIPT-mode tokens).</summary>
+    private BoundExpression BindSubscriptSegment(List<Antlr4.Runtime.IToken> tokens)
+    {
+        // Remove leading/trailing WS
+        while (tokens.Count > 0 && tokens[0].Type == CobolParserCore.SUB_WS)
+            tokens.RemoveAt(0);
+        while (tokens.Count > 0 && tokens[^1].Type == CobolParserCore.SUB_WS)
+            tokens.RemoveAt(tokens.Count - 1);
+
+        if (tokens.Count == 0)
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
+        // Single SIGNED_INTEGERLIT: +8, -3
+        if (tokens.Count == 1 && tokens[0].Type == CobolParserCore.SIGNED_INTEGERLIT)
+        {
+            decimal value = decimal.Parse(tokens[0].Text, System.Globalization.CultureInfo.InvariantCulture);
+            return new BoundLiteralExpression(value, CobolCategory.Numeric);
+        }
+
+        // Single SUB_INTEGERLIT: 1, 10
+        if (tokens.Count == 1 && tokens[0].Type == CobolParserCore.SUB_INTEGERLIT)
+        {
+            decimal value = decimal.Parse(tokens[0].Text, System.Globalization.CultureInfo.InvariantCulture);
+            return new BoundLiteralExpression(value, CobolCategory.Numeric);
+        }
+
+        // ALL
+        if (tokens.Count == 1 && tokens[0].Type == CobolParserCore.SUB_ALL)
+            return new BoundLiteralExpression("ALL", CobolCategory.Alphanumeric);
+
+        // Identifier with optional qualification (OF/IN) and relative offset
+        // Extract identifier and qualifiers first
+        string? baseName = null;
+        var qualNames = new List<string>();
+        bool expectingQualifier = false;
+
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            var t = tokens[i];
+            if (t.Type == CobolParserCore.SUB_WS) continue;
+            if (t.Type == CobolParserCore.SUB_OF || t.Type == CobolParserCore.SUB_IN)
+            {
+                expectingQualifier = true;
+                continue;
+            }
+            if (t.Type == CobolParserCore.SUB_IDENTIFIER)
+            {
+                if (baseName == null) baseName = t.Text;
+                else if (expectingQualifier) { qualNames.Add(t.Text); expectingQualifier = false; }
+                continue;
+            }
+            // Remaining tokens are operator + offset (relative subscript)
+            break;
+        }
+
+        if (baseName == null)
+            return BindSubscriptTokensAsArithmetic(tokens);
+
+        DataSymbol? sym2;
+        if (qualNames.Count > 0)
+            sym2 = ResolveQualifiedName(baseName, qualNames);
+        else
+            sym2 = _semantic.ResolveData(baseName);
+
+        BoundExpression baseExpr2 = sym2 != null
+            ? new BoundIdentifierExpression(sym2, sym2.ResolvedType?.Category ?? CobolCategory.Numeric)
+            : new BoundLiteralExpression(baseName, CobolCategory.Alphanumeric);
+
+        // Check for relative offset (+/- integer) in remaining tokens
+        var remaining = tokens.SkipWhile(t =>
+            t.Type == CobolParserCore.SUB_WS || t.Type == CobolParserCore.SUB_IDENTIFIER
+            || t.Type == CobolParserCore.SUB_OF || t.Type == CobolParserCore.SUB_IN).ToList();
+        if (remaining.Count >= 2)
+        {
+            var opTok = remaining.FirstOrDefault(t => t.Type == CobolParserCore.SUB_PLUS || t.Type == CobolParserCore.SUB_MINUS);
+            var numTok = remaining.FirstOrDefault(t => t.Type == CobolParserCore.SUB_INTEGERLIT);
+            if (opTok != null && numTok != null)
+            {
+                var offset = decimal.Parse(numTok.Text, System.Globalization.CultureInfo.InvariantCulture);
+                var op = opTok.Type == CobolParserCore.SUB_MINUS
+                    ? BoundBinaryOperatorKind.Subtract : BoundBinaryOperatorKind.Add;
+                return new BoundBinaryExpression(baseExpr2, op,
+                    new BoundLiteralExpression(offset, CobolCategory.Numeric), CobolCategory.Numeric);
+            }
+        }
+
+        return baseExpr2;
+    }
+
+    /// <summary>Bind a token list as an arithmetic expression (for ref-mod or relative subscript).</summary>
+    private BoundExpression BindSubscriptTokensAsArithmetic(List<Antlr4.Runtime.IToken> tokens)
+    {
+        // Remove leading/trailing WS
+        while (tokens.Count > 0 && tokens[0].Type == CobolParserCore.SUB_WS)
+            tokens.RemoveAt(0);
+        while (tokens.Count > 0 && tokens[^1].Type == CobolParserCore.SUB_WS)
+            tokens.RemoveAt(tokens.Count - 1);
+
+        if (tokens.Count == 0)
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
+        // Build expression from tokens: handle identifiers, integers, +/- operators
+        BoundExpression? result = null;
+        BoundBinaryOperatorKind pendingOp = default;
+        bool hasPendingOp = false;
+
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            var t = tokens[i];
+            if (t.Type == CobolParserCore.SUB_WS) continue;
+
+            BoundExpression? term = null;
+            if (t.Type == CobolParserCore.SUB_IDENTIFIER)
+            {
+                var sym = _semantic.ResolveData(t.Text);
+                term = sym != null
+                    ? new BoundIdentifierExpression(sym, sym.ResolvedType?.Category ?? CobolCategory.Numeric)
+                    : (BoundExpression)new BoundLiteralExpression(t.Text, CobolCategory.Alphanumeric);
+            }
+            else if (t.Type == CobolParserCore.SUB_INTEGERLIT || t.Type == CobolParserCore.SIGNED_INTEGERLIT)
+            {
+                term = new BoundLiteralExpression(
+                    decimal.Parse(t.Text, System.Globalization.CultureInfo.InvariantCulture),
+                    CobolCategory.Numeric);
+            }
+            else if (t.Type == CobolParserCore.SUB_PLUS)
+            {
+                pendingOp = BoundBinaryOperatorKind.Add;
+                hasPendingOp = true;
+                continue;
+            }
+            else if (t.Type == CobolParserCore.SUB_MINUS)
+            {
+                pendingOp = BoundBinaryOperatorKind.Subtract;
+                hasPendingOp = true;
+                continue;
+            }
+            else continue; // skip OF, IN, etc. for now
+
+            if (term != null)
+            {
+                if (result == null)
+                    result = term;
+                else if (hasPendingOp)
+                {
+                    result = new BoundBinaryExpression(result, pendingOp, term, CobolCategory.Numeric);
+                    hasPendingOp = false;
+                }
+            }
+        }
+
+        return result ?? new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    }
+
+    /// <summary>
+    /// Bind a subscript entry per COBOL-85 §5.3. SUBSCRIPT lexer mode provides
+    /// sign-adjacency disambiguation: SIGNED_INTEGERLIT (+N) vs SUB_PLUS SUB_WS SUB_INTEGERLIT (+ N).
+    /// </summary>
+    private BoundExpression BindSubscriptEntry(CobolParserCore.SubscriptEntryContext ctx)
+    {
+        // Signed integer literal: +8, -3, +1 (sign adjacent to digits)
+        if (ctx.SIGNED_INTEGERLIT() is { } signedLit)
+        {
+            string text = signedLit.GetText();
+            decimal value = decimal.Parse(text, System.Globalization.CultureInfo.InvariantCulture);
+            return new BoundLiteralExpression(value, CobolCategory.Numeric);
+        }
+
+        // Unsigned integer literal: 1, 10, 300
+        if (ctx.SUB_INTEGERLIT() is { } intLit)
+        {
+            decimal value = decimal.Parse(intLit.GetText(), System.Globalization.CultureInfo.InvariantCulture);
+            return new BoundLiteralExpression(value, CobolCategory.Numeric);
+        }
+
+        // ALL (for SEARCH ALL)
+        if (ctx.SUB_ALL() != null)
+            return new BoundLiteralExpression("ALL", CobolCategory.Alphanumeric);
+
+        // Data-name / index-name with optional qualification and relative offset
+        if (ctx.SUB_IDENTIFIER() is { } idToken)
+        {
+            string baseName = idToken.GetText();
+
+            // Handle qualifications
+            var quals = ctx.subscriptQualification();
+            DataSymbol? baseSym;
+            if (quals.Length > 0)
+            {
+                var qualNames = new List<string>();
+                foreach (var q in quals)
+                    qualNames.Add(q.SUB_IDENTIFIER().GetText());
+                baseSym = ResolveQualifiedName(baseName, qualNames);
+            }
+            else
+            {
+                baseSym = _semantic.ResolveData(baseName);
+            }
+
+            BoundExpression baseExpr;
+            if (baseSym != null)
+            {
+                var baseCat = baseSym.ResolvedType?.Category ?? CobolCategory.Numeric;
+                baseExpr = new BoundIdentifierExpression(baseSym, baseCat);
+            }
+            else
+            {
+                baseExpr = new BoundLiteralExpression(baseName, CobolCategory.Alphanumeric);
+            }
+
+            // Relative subscript offset: data-name + N or data-name - N
+            if (ctx.relativeOffset() is { } relOff)
+            {
+                decimal offset = decimal.Parse(relOff.SUB_INTEGERLIT().GetText(),
+                    System.Globalization.CultureInfo.InvariantCulture);
+                var offsetLit = new BoundLiteralExpression(offset, CobolCategory.Numeric);
+                var op = relOff.SUB_MINUS() != null
+                    ? BoundBinaryOperatorKind.Subtract
+                    : BoundBinaryOperatorKind.Add;
+                return new BoundBinaryExpression(baseExpr, op, offsetLit, CobolCategory.Numeric);
+            }
+
+            return baseExpr;
+        }
+
+        return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    }
 
     /// <summary>
     /// Resolve a qualified name using right-to-left narrowing.
