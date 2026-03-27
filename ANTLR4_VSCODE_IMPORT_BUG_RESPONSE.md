@@ -89,7 +89,7 @@ This second issue is the import-chain dependency problem from my original report
 
 The token issue has a viable user-side solution (co-locate files + add `tokenVocab`). The parser rule issue does not -- it requires an extension change to resolve rules through the importing grammar's context.
 
-The co-location solution is also fragile: it only works when all imported grammar fragments and the lexer are in the same flat directory. A more complex directory structure (e.g., `Core/Expressions/CobolExpressions.g4` separate from `Core/CobolLexer.g4`) would cause the token issue to return, since the extension resolves `tokenVocab` relative to each grammar file's own directory.
+The co-location solution is also fragile: it only works when all imported grammar fragments and the lexer are in the same directory. The extension resolves `tokenVocab` relative to each grammar file's own directory, so any layout where the lexer is in a parent directory, a peer directory, or a subdirectory relative to an imported grammar will fail. Our original layout (lexer in `Grammar/`, fragments in `Grammar/Core/`) is a natural and common structure that the ANTLR4 tool handles correctly via `-lib`, but the extension cannot.
 
 A PR to propagate the importing grammar's dependencies to imported grammars (through the existing `references` chain in `SourceContext.ts`) would fix **both** issues in one change and work regardless of directory structure. Imported grammars would inherit the master grammar's `tokenVocab` and see sibling imports' rules -- matching the ANTLR4 tool's resolution semantics.
 
