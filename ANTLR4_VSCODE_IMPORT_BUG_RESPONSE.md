@@ -44,7 +44,7 @@ Grammar/
     CobolExtensionsJsonXml.g4 # imported parser fragment (no tokenVocab)
 ```
 
-In this layout, every imported grammar in `Core/` showed hundreds of "Unknown token reference" errors because the extension couldn't resolve tokens -- the lexer was in the parent directory.
+In this layout, every imported grammar in `Core/` showed hundreds of "Unknown token reference" errors because the extension couldn't resolve tokens -- the lexer was in the parent directory. The 5 standalone grammars in `Grammar/` (CobolDialect, CobolParserGenerics, CobolParserJsonXml, CobolParserOO, CobolPreprocessor) don't exhibit the issue because they aren't imported by the master grammar -- the extension analyzes them independently and they don't reference tokens from `CobolLexer.g4`. Only the 7 `Core/` files that are `import`-ed by `CobolParserCore.g4` are affected.
 
 ## Test 1: Your proposed solution with the original layout (FAILS)
 
