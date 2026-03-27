@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-**Goal**: Build a production-quality COBOL compiler that fully implements the ISO/IEC 1989:2023
-standard, targeting .NET (CIL) as the output platform.
+**Goal**: Build a production-quality COBOL compiler implementing ISO/IEC 1989:1985 (COBOL-85),
+targeting .NET (CIL) as the output platform.
 
-**Implementation Language**: C# (.NET 8+)
+**Implementation Language**: C# 13 on .NET 9.0
 
-**ISO Specification**: `ISO_COBOL_2023.pdf` (1,261 pages, 2,090 sections)
+**Primary Spec**: ISO/IEC 1989:1985 (COBOL-85); ISO/IEC 1989:2023 used as reference
 
-**Repository**: E:\COBOL (git, `main` branch)
+**Repository**: https://github.com/BrentRector/CobolSharp (git, `main` branch)
 
 ---
 
@@ -28,7 +28,7 @@ COBOL Source (.cob / .cbl)
 └──────────┬───────────┘
            ▼
 ┌──────────────────────┐
-│  3. Parser           │  Hand-written recursive descent → CST/AST
+│  3. Parser           │  ANTLR4 grammar (7 imported fragments) → CST
 └──────────┬───────────┘
            ▼
 ┌──────────────────────┐
@@ -867,42 +867,39 @@ what was accomplished, and what to pick up next.
 | 2026-03-20 | **NC131A 10/10, NC140A 70/70, NC141A 9/9.** SET BY expression lowering with TryEvalConstant (handles -5, +5, computed deltas). Silent fallthrough elimination in LowerSetIndex. USAGE INDEX elementary classification fix (IsElementary/IsGroup, FieldSizeCalculator, CompilerPicDescriptorFactory). Grammar rename: 17 rules. 119 unit, 182 integration, 1 skip. | Div/0 handling (NC203A, NC251A), more NIST tests |
 | 2026-03-21 | **Remaining validation gaps: full sweep.** OPEN EXTEND (CBL0701), READ extensions (CBL1701-1703), WRITE FROM (CBL1801), REWRITE FROM (CBL1902), START KEY (CBL1603), BoundReturnStatement (CBL2101), BoundCallStatement (CBL3310), SELECT/FD consistency (CBL0601). New bound nodes: BoundReturnStatement, BoundCallStatement + BoundCallArgument. IR lowering stubs for RETURN/CALL. Extended BoundReadStatement (IsNext, KeyDataName) and BoundRewriteStatement (From). 195 unit, 176 integration, NIST ALL GREEN. | Grammar gaps: START KEY IS syntax, CALL implicit BY REFERENCE |
 | 2026-03-21 | **Semantic foundations: OccursInfo, ExpressionType, 90 diagnostic descriptors.** Replaced flat OccursCount with structured OccursInfo (min/max, DEPENDING ON, KEY, INDEXED BY). ExpressionType model with NumericType precision/scale and Promote rules. DiagnosticDescriptors: 90 CBL codes (CBL0801–CBL3502). ArithmeticTypeSystem enforcement on all 5 arithmetic statements. MOVE category enforcement with figurative-constant-aware source classification. ProcedureGraph flow analysis. SymbolValidator, FileStatusValidator, DataItemClassifier. CompilationOptions with DialectMode. StorageAreaKind extended (LinkageSection, LocalStorage). 8 new source files, 4 new test files. 143 unit, 176 integration, 1 skip. | Wire ProcedureGraph into pipeline, continue NIST sweep |
+| 2026-03-22 | **Deep audit + NIST sweep.** Full codebase audit (AUDIT_REPORT.md + 10 subdocuments). OCCURS validation relaxed (7 levels, group keys). ALL ZEROS figurative parsing. CIL op_Explicit ambiguity fix. RENAMES single-field category. Abbreviated conditions grammar. NC233A, NC254A reach 100%. | Continue NIST blockers |
+| 2026-03-23 | **CALL/USING/RETURNING full implementation.** CobolProgramRegistry, CobolDataPointer, StopRunException. BY REFERENCE/CONTENT/VALUE parameter passing. ENTRY statement, INITIAL program, CANCEL, dynamic CALL, ON EXCEPTION. LINKAGE SECTION layout. 7 dormant validators wired. Flow-sensitive FileStateValidator (CBL0702, CBL3206). Code quality sweep 3.1-3.5. | Continue NIST blockers |
+| 2026-03-24 | **NC211A condition-name monster + NIST sweep.** Sign conditions, negated conditions, condition-name switch-status, abbreviated combined conditions — all implemented with RewriteAbbreviatedRelations pass. NC211A 51/51 at 100%. Full 95-test NIST sweep: 52 pass at 100%, identified remaining blockers. Guard expanded from 33 to 63 tests. COMP-5, RENAMES, ALTER all fully implemented. | Subscript parsing, remaining NIST blockers |
+| 2026-03-25 | **SUBSCRIPT lexer mode — spec-true subscript parsing.** Dedicated ANTLR4 lexer mode preserving sign adjacency inside subscript parentheses (COBOL-85 §5.3). SIGNED_INTEGERLIT token for +N/-N. Multi-word token elimination (NEXT SENTENCE, BLANK WHEN ZERO, etc.). NC134A reaches 100%. DIVIDE REMAINDER fix, MOVE NumericEdited→Numeric. LABEL RECORDS clause. Guard at 63 tests. | Runtime hangs, collating sequence |
+| 2026-03-26 | **Clean build fix, test refactor, doc cleanup.** Fixed `dotnet clean && dotnet build` (MSBuild target ordering). Un-skipped CALL + ref-mod tests. Split monolithic EndToEndTests.cs (5,346 lines) into 10 focused test files. Deleted 5 obsolete .md files. Updated README.md and PROJECT_PLAN.md. 216 unit, 183 integration, 60 NIST guard tests. | ODO runtime, collating sequence, remaining NIST gaps |
 
 ---
 
-## Code Quality Audit (Session 10, Phase B)
+## Code Quality
 
-Identified during Phase B. Items 1-3 fixed. Remaining deferred.
+See AUDIT_REPORT.md sections 3.1-3.6 for the comprehensive code quality audit.
+Sweep 3.1-3.5 completed (2026-03-23): wrapper elimination, dedup, method splits,
+stale docs, dead code. Section 3.6 (ReportWriter) deferred until Report Writer is implemented.
 
-| # | Location | Issue | Status |
-|---|----------|-------|--------|
-| 1 | Binder.cs LowerCondition | `IrSetBool(true)` fallback silently returned TRUE for unrecognized comparisons | **FIXED** — replaced with fatal `InvalidOperationException` |
-| 2 | BoundTreeBuilder.cs | Magic casts `(BoundBinaryOperatorKind)20/21/22` for OR/AND/NOT | **FIXED** — proper enum members Or, And, Not |
-| 3 | BoundTreeBuilder.cs/CilEmitter.cs | Magic cast `(BoundBinaryOperatorKind)99` for Power | **FIXED** — proper enum member Power |
-| 4 | RecordLayoutBuilder.cs:108 | TODO: extract OCCURS count from data description | Phase D |
-| 5 | BoundTreeBuilder.cs:397 | TODO: resolve file from record → FD relationship | Phase F |
-| 6 | BoundTreeBuilder.cs:782 | Function calls bound as identifiers | Phase K |
-| 7 | BoundTreeBuilder.cs:938 | Unresolved identifiers treated as string literals | Needs diagnostic |
-| 8 | SemanticBuilder.cs:56 | Unresolved REDEFINES silently ignored | Needs diagnostic |
-| 9 | SemanticBuilder.cs:257 | Level-88 condition names skipped | Phase B5c |
-| 10 | CilEmitter.cs:1821 | Runtime calls NOP'd | Known limitation |
-| 11 | RecordLayoutBuilder.cs:182-183 | COMP-1/COMP-2 mapped to Int32/Int64 | Known limitation |
-| 12 | ReferenceResolver.cs:87 | WRITE file validation skipped | Phase F |
-| 13 | PicRuntime.cs:921 | National chars treated as alphanumeric | Phase L |
+## Design Decisions (Resolved)
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | EBCDIC codepages? | ASCII-only. EBCDIC is a future consideration. |
+| 2 | Indexed files? | Custom IndexedFileHandler with in-memory Dictionary + secondary indices. |
+| 3 | OO COBOL? | Deferred. Parsing only, no binding or emission. |
+| 4 | Assembly emission? | Disk always (Mono.Cecil). In-memory for integration tests via temp dir. |
+| 5 | .NET version? | .NET 9.0 only. |
+| 6 | Runtime linking? | Runtime DLL copied alongside compiled assembly. |
+| 7 | DECIMAL-POINT IS COMMA? | Implemented: grammar flag propagated through compilation pipeline. |
 
 ## Open Design Questions
 
-Track decisions that still need to be made.
-
-| # | Question | Status | Decision |
-|---|----------|--------|----------|
-| 1 | Should we support EBCDIC codepages or ASCII-only initially? | OPEN | Suggest: ASCII-only for Phase 1-4, EBCDIC in Phase 5+ |
-| 2 | How to handle ISAM/indexed files? LiteDB, custom B+tree, or SQLite? | OPEN | Suggest: LiteDB for simplicity, migrate if perf issues |
-| 3 | Should OO COBOL map 1:1 to .NET classes or use wrapper pattern? | OPEN | Suggest: 1:1 mapping for maximum .NET interop |
-| 4 | Emit assemblies in-memory or always to disk? | OPEN | Suggest: disk by default, in-memory for tests |
-| 5 | Support .NET Framework or .NET 8+ only? | OPEN | Suggest: .NET 8+ only (modern, cross-platform) |
-| 6 | Should the runtime library be statically linked or a shared NuGet? | OPEN | Suggest: shared NuGet package for versioning |
-| 7 | How to handle COBOL's DECIMAL-POINT IS COMMA (EU locale)? | OPEN | Need to design locale-aware numeric formatting |
+| # | Question | Status |
+|---|----------|--------|
+| 1 | Collating sequence (ALPHABET) — how to apply to runtime comparisons? | OPEN |
+| 2 | OCCURS DEPENDING ON — runtime truncation enforcement strategy? | OPEN |
+| 3 | Inter-program metadata — compile-time CALL parameter validation? | OPEN |
 
 ---
 
@@ -921,8 +918,8 @@ Track decisions that still need to be made.
 
 Any future session should:
 
-1. Read this file (`PROJECT_PLAN.md`) to understand overall status
-2. Check the **Progress Log** for the latest entry and its "Next Step"
-3. Check the **task checkboxes** in the current phase for granular status
-4. Check **Open Design Questions** for any decisions needed
-5. Continue from where the last session left off
+1. Read `CLAUDE.md` — it contains the session resume context and known gaps
+2. Read `PROMPT.md` — architectural doctrine and non-negotiable rules
+3. Check this file's **Progress Log** for the latest entry and its "Next Step"
+4. Read `DEVLOG.md` recent entries for context on last session's decisions
+5. Run `bash scripts/guard.sh` to verify baseline before making changes

@@ -259,7 +259,7 @@ catalog. They improve maintainability, correctness confidence, and long-term sus
 | Dependencies | None |
 | Risk | None — purely additive diagnostics |
 
-**Problem:** Per IMPLEMENTATION-STATUS.md, `BoundTreeBuilder.BindStatement` returns `null` for
+**Problem:** `BoundTreeBuilder.BindStatement` returns `null` for
 unrecognized statement types, and these nulls propagate silently. The binder's catch-all `break`
 silently drops statements.
 
