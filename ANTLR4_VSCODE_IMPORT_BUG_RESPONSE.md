@@ -2,10 +2,17 @@ Thanks for the quick reply. I tested your suggestion thoroughly and have concret
 
 ## Original grammar file structure
 
+14 grammar files (3,225 lines total), split across two directories:
+
 ```
 Grammar/
-  CobolLexer.g4              # lexer grammar (448 lines, 300+ tokens)
+  CobolLexer.g4              # lexer grammar (448 lines, 300+ tokens, multiple modes)
   CobolParserCore.g4         # master parser: tokenVocab = CobolLexer; import CobolExpressions, ...
+  CobolDialect.g4            # dialect-specific parser rules
+  CobolParserGenerics.g4     # generic/template extension rules
+  CobolParserJsonXml.g4      # JSON/XML extension rules
+  CobolParserOO.g4           # OO COBOL extension rules
+  CobolPreprocessor.g4       # preprocessor grammar
   .antlr/
     CobolLexer.tokens        # extension-generated cache
   Core/
@@ -51,15 +58,20 @@ I moved the lexer grammar into `Core/` alongside the parser fragments and added 
 ```
 Grammar/
   CobolParserCore.g4         # master parser: tokenVocab = CobolLexer; import CobolExpressions, ...
+  CobolDialect.g4            # dialect-specific parser rules
+  CobolParserGenerics.g4     # generic/template extension rules
+  CobolParserJsonXml.g4      # JSON/XML extension rules
+  CobolParserOO.g4           # OO COBOL extension rules
+  CobolPreprocessor.g4       # preprocessor grammar
   Core/
     CobolLexer.g4            # lexer grammar (MOVED HERE from Grammar/)
-    CobolExpressions.g4      # options { tokenVocab = CobolLexer; }
-    CobolData.g4             # options { tokenVocab = CobolLexer; }
-    CobolControlFlow.g4      # options { tokenVocab = CobolLexer; }
-    CobolIO.g4               # options { tokenVocab = CobolLexer; }
-    CobolSpecialNames.g4     # options { tokenVocab = CobolLexer; }
-    CobolReportWriter.g4     # options { tokenVocab = CobolLexer; }
-    CobolExtensionsJsonXml.g4 # options { tokenVocab = CobolLexer; }
+    CobolExpressions.g4      # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolData.g4             # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolControlFlow.g4      # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolIO.g4               # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolSpecialNames.g4     # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolReportWriter.g4     # options { tokenVocab = CobolLexer; } (ADDED)
+    CobolExtensionsJsonXml.g4 # options { tokenVocab = CobolLexer; } (ADDED)
 ```
 
 Result: **All "Unknown token reference" errors are gone.** The ANTLR4 tool still generates correctly (updated the build script paths). All 216 unit + 183 integration + 60 NIST tests pass.
