@@ -47,10 +47,6 @@ Core/
 
 Result: **Zero warnings.** Token resolution works when the lexer `.g4` file is in the same directory as the parser grammar.
 
-## Test 3: Isolating the variable
-
-To confirm the issue was directory layout (not grammar complexity), I tested progressively complex lexers in `Core/` -- `caseInsensitive = true`, `@members` with C# code, multiple lexer modes, and all three combined. **All worked with zero warnings** when co-located in the same directory.
-
 ## Final grammar file structure (WORKS for tokens)
 
 I moved the lexer grammar into `Core/` alongside the parser fragments and added `tokenVocab = CobolLexer` to each imported grammar:
@@ -74,7 +70,7 @@ Grammar/
     CobolExtensionsJsonXml.g4 # options { tokenVocab = CobolLexer; } (ADDED)
 ```
 
-Result: **All "Unknown token reference" errors are gone.** The ANTLR4 tool still generates correctly (updated the build script paths). All 216 unit + 183 integration + 60 NIST tests pass.
+Result: **All "Unknown token reference" errors are gone.** The ANTLR4 tool still generates correctly (updated the build script paths). All tests pass.
 
 ## What this solved and what it did not
 
@@ -93,6 +89,8 @@ This second issue is the import-chain dependency problem from my original report
 
 The token issue has a viable user-side solution (co-locate files + add `tokenVocab`). The parser rule issue does not -- it requires an extension change to resolve rules through the importing grammar's context.
 
-Note that a PR to propagate the importing grammar's dependencies to imported grammars (through the existing `references` chain in `SourceContext.ts`) would fix **both** issues in one change. Imported grammars would inherit the master grammar's `tokenVocab` and see sibling imports' rules -- matching the ANTLR4 tool's resolution semantics. This would also eliminate the need for the co-location workaround.
+The co-location solution is also fragile: it only works when all imported grammar fragments and the lexer are in the same flat directory. A more complex directory structure (e.g., `Core/Expressions/CobolExpressions.g4` separate from `Core/CobolLexer.g4`) would cause the token issue to return, since the extension resolves `tokenVocab` relative to each grammar file's own directory.
+
+A PR to propagate the importing grammar's dependencies to imported grammars (through the existing `references` chain in `SourceContext.ts`) would fix **both** issues in one change and work regardless of directory structure. Imported grammars would inherit the master grammar's `tokenVocab` and see sibling imports' rules -- matching the ANTLR4 tool's resolution semantics.
 
 Would you be open to such a PR?
