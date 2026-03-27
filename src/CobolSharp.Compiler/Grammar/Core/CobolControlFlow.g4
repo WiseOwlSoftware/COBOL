@@ -7,6 +7,10 @@
 
 parser grammar CobolControlFlow;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // ==========================================
 // PERFORM / END-PERFORM (§14.9.28)
 // ==========================================

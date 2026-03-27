@@ -2,9 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
 // Literals, arithmetic expressions, conditions, and comparisons.
-// Imported by CobolParserCore.g4 — no options block.
+// Imported by CobolParserCore.g4. tokenVocab enables VSCode ANTLR4 extension token resolution.
 
 parser grammar CobolExpressions;
+
+options {
+    tokenVocab = CobolLexer;
+}
 
 // Generic clause pattern for vendor/extension hooks.
 // Shared across all grammars — one rule, one source of truth.

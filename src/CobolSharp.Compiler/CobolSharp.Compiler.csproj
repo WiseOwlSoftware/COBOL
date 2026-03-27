@@ -22,7 +22,7 @@
 
   <!-- Grammar files included for reference -->
   <ItemGroup>
-    <None Include="Grammar\CobolLexer.g4" />
+    <None Include="Grammar\Core\CobolLexer.g4" />
     <None Include="Grammar\CobolParserCore.g4" />
     <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
   </ItemGroup>
@@ -33,7 +33,7 @@
        in case they were missing during initial SDK globbing (e.g., after dotnet clean). -->
   <Target Name="EnsureGeneratedFiles"
           BeforeTargets="CoreCompile"
-          Inputs="Grammar\CobolLexer.g4;Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
+          Inputs="Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
           Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
 
     <Message Text="Parser files not found. Generating..." Importance="high"

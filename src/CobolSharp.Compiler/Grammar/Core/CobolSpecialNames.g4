@@ -6,6 +6,10 @@
 
 parser grammar CobolSpecialNames;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // SPECIAL-NAMES.
 specialNamesParagraph
     : SPECIAL_NAMES DOT specialNameEntry+

@@ -8,6 +8,10 @@
 
 parser grammar CobolExtensionsJsonXml;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // ==========================================
 // EXTENSION STUBS (overridden by import grammars)
 // ==========================================

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from CobolLexer.g4 by ANTLR 4.13.2
+// Generated from Core/CobolLexer.g4 by ANTLR 4.13.2
 
 // Unreachable code detected
 #pragma warning disable 0162

@@ -6,6 +6,10 @@
 
 parser grammar CobolReportWriter;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // ==========================================
 // REPORT SECTION (COBOL-85)
 // ==========================================

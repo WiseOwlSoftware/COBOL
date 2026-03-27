@@ -7,6 +7,10 @@
 
 parser grammar CobolData;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // ==========================================
 // DATA DIVISION
 // ==========================================

@@ -6,6 +6,10 @@
 
 parser grammar CobolIO;
 
+options {
+    tokenVocab = CobolLexer;
+}
+
 // ==========================================
 // INPUT-OUTPUT SECTION
 // ==========================================

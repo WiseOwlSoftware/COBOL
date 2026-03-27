@@ -4,7 +4,8 @@
 .DESCRIPTION
   - Expects:
       - antlr-4.13.2-complete.jar in ANTLR4/
-      - CobolLexer.g4 and CobolParserCore.g4 in Grammar/ subdirectory
+      - CobolLexer.g4 in Grammar/Core/ subdirectory
+      - CobolParserCore.g4 in Grammar/ subdirectory
       - Imported sub-grammars in Grammar/Core/ subdirectory
   - Generates into a temp folder, then copies only the files we need to Generated/
   - CobolParserCoreBase.cs is hand-maintained in Parsing/ and is NEVER overwritten
@@ -32,12 +33,17 @@ function Invoke-Antlr4CSharp {
         Write-Error "ANTLR JAR not found at: $JarPath"
         return 1
     }
-    foreach ($g in @('CobolLexer.g4', 'CobolParserCore.g4')) {
+    foreach ($g in @('CobolParserCore.g4')) {
         $gPath = Join-Path $grammarDir $g
         if (-not (Test-Path $gPath)) {
             Write-Error "Grammar file not found at: $gPath"
             return 1
         }
+    }
+    $lexerGPath = Join-Path $coreDir 'CobolLexer.g4'
+    if (-not (Test-Path $lexerGPath)) {
+        Write-Error "Lexer grammar not found at: $lexerGPath"
+        return 1
     }
 
     # Clean and create temp directory
@@ -55,7 +61,7 @@ function Invoke-Antlr4CSharp {
     Push-Location $grammarDir
 
     try {
-        # --- Step 1: Generate lexer ---
+        # --- Step 1: Generate lexer (from Core/ subdirectory) ---
         Write-Host "Generating C# from: CobolLexer.g4" -ForegroundColor Cyan
 
         $antlrOutput = & java -jar $JarPath `
@@ -64,7 +70,7 @@ function Invoke-Antlr4CSharp {
             -package $PackageName `
             -lib ../Generated_temp `
             -o ../Generated_temp `
-            CobolLexer.g4 2>&1
+            Core/CobolLexer.g4 2>&1
         $exitCode = $LASTEXITCODE
         $hadDiag = $false
 
@@ -85,11 +91,9 @@ function Invoke-Antlr4CSharp {
 
         Write-Host "CobolLexer.g4 generation succeeded." -ForegroundColor Green
 
-        # --- Step 2: Copy CobolLexer.tokens to Core/ so parser import resolution finds it ---
-        # ANTLR's -lib accepts one directory. The parser grammar uses:
-        #   - tokenVocab = CobolLexer (needs CobolLexer.tokens)
-        #   - import CobolExpressions, ... (needs Core/*.g4)
-        # We use -lib Core so imports resolve. Copy tokens there temporarily.
+        # --- Step 2: Copy CobolLexer.tokens to Core/ so parser -lib Core finds it ---
+        # ANTLR outputs tokens to Generated_temp/. The parser uses -lib Core for
+        # both imports and tokenVocab resolution, so tokens must be there too.
         $tokensFile = Join-Path $tempDir 'CobolLexer.tokens'
         $tokensCopy = Join-Path $coreDir 'CobolLexer.tokens'
         if (Test-Path $tokensFile) {
