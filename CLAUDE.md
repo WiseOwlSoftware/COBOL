@@ -8,41 +8,37 @@ Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
-## Session Resume Context (updated 2026-03-24)
+ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification. Refer to it for all
+specification, behavior, syntax, and semantic questions. It is the authoritative source — do not
+guess or assume COBOL semantics without consulting it.
+
+## Session Resume Context (updated 2026-03-27)
 
 ### Current State
 - **Branch**: main
-- **Integration tests**: 184 pass, 1 skip
-- **Unit tests**: 217 pass
+- **Integration tests**: 183 pass, 1 skip (split into 10 focused test files)
+- **Unit tests**: 216 pass
 - **Diagnostic descriptors**: 175+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
-- **NIST tests at 100%** (61 in guard): NC101A-NC103A, NC106A-NC107A, NC111A-NC112A,
-  NC115A-NC121M, NC122A-NC124A, NC126A-NC127A, NC131A-NC133A, NC136A-NC137A,
+- **NIST tests at 100%** (60 in guard): NC101A-NC107A, NC111A-NC112A,
+  NC115A-NC121M, NC122A-NC124A, NC126A-NC127A, NC131A-NC134A, NC136A-NC137A,
   NC140A-NC141A, NC170A-NC173A, NC175A-NC177A, NC202A-NC203A, NC206A-NC207A,
   NC210A-NC211A, NC221A-NC222A, NC224A, NC231A-NC234A, NC236A, NC238A-NC244A,
   NC248A, NC251A, NC253A-NC254A
-- **Next**: ODO runtime, runtime hangs, collating sequence, remaining abbreviated edge cases
+- **Next**: ODO runtime, runtime hangs, collating sequence
 
-### What was done this session (2026-03-24)
-- NIST blocker sweep: OCCURS validation relaxed (7 levels, group keys allowed),
-  ALL ZEROS figurative parsing fixed, CIL op_Explicit ambiguity removed,
-  RENAMES single-field category inheritance fixed, abbreviated conditions grammar added
-- NC233A reaches 100% and added to guard suite
-- CALL/USING/RETURNING full implementation (prior session work committed)
-- Code quality sweep 3.1-3.5 (prior session work committed)
-- Flow-sensitive FileStateValidator (CBL0702, CBL3206)
-- 7 dormant validators wired
-- NC252A compiles (was internal compiler error)
-- Switch condition-name conditions: BoundSwitchConditionExpression + SwitchRuntime + IrTestSwitch
-- NC254A reaches 100% and added to guard suite
-- Abbreviated condition bare-left-operand fix in RewriteAbbreviatedRelations
-- Condition grammar refactor: NOT non-recursive, signCondition first, ExpandAbbreviatedConditions
-- NC211A reaches 100% (51/51) — added to guard suite
-- ALL literal figurative constants fixed (pattern repeated to fill field width)
+### What was done this session (2026-03-26/27)
+- Split monolithic EndToEndTests.cs (5,346 lines) into 10 focused test files
+- Fixed `dotnet clean && dotnet build` (MSBuild target ordering)
+- Un-skipped CALL and ref-mod integration tests (both features now implemented)
+- Deleted 6 obsolete .md files, updated README.md and PROJECT_PLAN.md
+- Moved CobolLexer.g4 to Core/, added tokenVocab to all imported grammars
+  (fixes VSCode ANTLR4 extension false warnings for token references)
 
 ### Key architectural decisions
+- SUBSCRIPT lexer mode for spec-true COBOL-85 subscript parsing (Entry 150)
+- CobolLexer.g4 co-located with parser fragments in Core/ for IDE support
 - RENAMES single-field inherits source PIC (not always alphanumeric)
 - OCCURS group keys are valid per COBOL-85 spec
-- ZERO-in-arithmetic grammar blocked by ALL(*) backtracking with signCondition
 
 ### Known gaps
 - SORT/MERGE (parse only, IR is stub)
