@@ -81,4 +81,6 @@ This second issue is the import-chain dependency problem from my original report
 
 The token issue has a viable user-side solution (co-locate files + add `tokenVocab`). The parser rule issue does not -- it requires an extension change to resolve rules through the importing grammar's context.
 
-Would you be open to a PR for the parser rule resolution issue?
+Note that a PR to propagate the importing grammar's dependencies to imported grammars (through the existing `references` chain in `SourceContext.ts`) would fix **both** issues in one change. Imported grammars would inherit the master grammar's `tokenVocab` and see sibling imports' rules -- matching the ANTLR4 tool's resolution semantics. This would also eliminate the need for the co-location workaround.
+
+Would you be open to such a PR?
