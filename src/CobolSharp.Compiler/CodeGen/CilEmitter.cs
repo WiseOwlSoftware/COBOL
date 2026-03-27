@@ -2059,7 +2059,7 @@ public sealed class CilEmitter
         // NumericEdited source: specific handling before generic IsNumericLike() rules.
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.NumericEdited)
         {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericEditedToNumericEdited");
         }
         else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
         {
@@ -3150,9 +3150,17 @@ public sealed class CilEmitter
         // LINKAGE access is handled separately in EmitLocationArgs.
         il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
 
-        var propertyName = area == StorageAreaKind.WorkingStorage
-            ? "WorkingStorage"
-            : "FileSection";
+        // LOCAL-STORAGE currently shares the WorkingStorage backing array.
+        // TODO: LOCAL-STORAGE is not yet re-initialized per invocation as the spec requires.
+        var propertyName = area switch
+        {
+            StorageAreaKind.WorkingStorage => "WorkingStorage",
+            StorageAreaKind.LocalStorage   => "WorkingStorage",
+            StorageAreaKind.FileSection    => "FileSection",
+            _ => throw new InvalidOperationException(
+                $"EmitLoadBackingArray: unexpected StorageAreaKind '{area}'. " +
+                "LinkageSection should be handled separately via CobolDataPointer.")
+        };
 
         var getter = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);

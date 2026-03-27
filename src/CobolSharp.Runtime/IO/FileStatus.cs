@@ -29,10 +29,16 @@ public static class FileStatus
     public const string FileAlreadyOpen = "41";
     /// <summary>Status 42 — CLOSE attempted on a file that is not open.</summary>
     public const string FileNotOpen = "42";
-    /// <summary>Status 43 — READ attempted on a file not opened for input or I-O.</summary>
-    public const string NoReadPermission = "43";
-    /// <summary>Status 44 — WRITE attempted on a file not opened for output or I-O.</summary>
-    public const string NoWritePermission = "44";
-    /// <summary>Status 47 — READ/WRITE record length does not match file's record description.</summary>
-    public const string RecordLengthError = "47";
+    /// <summary>Status 43 — last I/O was not a successful READ before DELETE/REWRITE.</summary>
+    public const string NoSuccessfulReadBeforeDeleteRewrite = "43";
+    /// <summary>Status 44 — record boundary violation (record too large for file).</summary>
+    public const string RecordBoundaryViolation = "44";
+    /// <summary>Status 46 — no valid next record position for sequential READ.</summary>
+    public const string NoValidNextRecord = "46";
+    /// <summary>Status 47 — READ/START on file not open for INPUT or I-O.</summary>
+    public const string ReadNotOpenForInput = "47";
+    /// <summary>Status 48 — WRITE on file not open for OUTPUT, I-O, or EXTEND.</summary>
+    public const string WriteNotOpenForOutput = "48";
+    /// <summary>Status 49 — DELETE/REWRITE on file not open for I-O.</summary>
+    public const string DeleteRewriteNotOpenForIO = "49";
 }

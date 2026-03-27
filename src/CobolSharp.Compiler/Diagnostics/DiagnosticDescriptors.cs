@@ -441,6 +441,8 @@ public static partial class DiagnosticDescriptors
         "{0} CORRESPONDING: '{1}' and '{2}' have incompatible OCCURS clauses.");
     public static readonly DiagnosticDescriptor COBOL0412 = new("COBOL0412", DiagnosticSeverity.Warning,
         "{0} CORRESPONDING: no matching elementary items between '{1}' and '{2}'.");
+    public static readonly DiagnosticDescriptor COBOL0413 = new("COBOL0413", DiagnosticSeverity.Warning,
+        "User-defined CLASS condition '{0}' is not yet supported; condition will evaluate to false.");
 
     // ══════════════════════════════════════
     // COBOL0500–0513: Binder (IR lowering)

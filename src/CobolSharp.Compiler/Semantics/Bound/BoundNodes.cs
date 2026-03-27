@@ -425,15 +425,22 @@ public sealed class BoundWriteStatement : BoundStatement
     public int? AdvancingLines { get; }
     /// <summary>True for AFTER advancing, false for BEFORE advancing.</summary>
     public bool IsAfterAdvancing { get; }
+    /// <summary>INVALID KEY imperative statements.</summary>
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    /// <summary>NOT INVALID KEY imperative statements.</summary>
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
 
     public BoundWriteStatement(FileSymbol? file, DataSymbol record, BoundExpression? from,
-        int? advancingLines = null, bool isAfterAdvancing = true)
+        int? advancingLines = null, bool isAfterAdvancing = true,
+        IReadOnlyList<BoundStatement>? invalidKey = null, IReadOnlyList<BoundStatement>? notInvalidKey = null)
     {
         File = file;
         Record = record;
         From = from;
         AdvancingLines = advancingLines;
         IsAfterAdvancing = isAfterAdvancing;
+        InvalidKey = invalidKey ?? Array.Empty<BoundStatement>();
+        NotInvalidKey = notInvalidKey ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.WriteStatement;
@@ -606,6 +613,10 @@ public sealed class BoundReadStatement : BoundStatement
     public string? KeyDataName { get; }
     public IReadOnlyList<BoundStatement> AtEnd { get; }
     public IReadOnlyList<BoundStatement> NotAtEnd { get; }
+    /// <summary>INVALID KEY imperative statements (for keyed/random reads).</summary>
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    /// <summary>NOT INVALID KEY imperative statements (for keyed/random reads).</summary>
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
 
     public BoundReadStatement(
         FileSymbol file,
@@ -613,7 +624,9 @@ public sealed class BoundReadStatement : BoundStatement
         bool isNext,
         string? keyDataName,
         IReadOnlyList<BoundStatement> atEnd,
-        IReadOnlyList<BoundStatement> notAtEnd)
+        IReadOnlyList<BoundStatement> notAtEnd,
+        IReadOnlyList<BoundStatement>? invalidKey = null,
+        IReadOnlyList<BoundStatement>? notInvalidKey = null)
     {
         File = file;
         Into = into;
@@ -621,6 +634,8 @@ public sealed class BoundReadStatement : BoundStatement
         KeyDataName = keyDataName;
         AtEnd = atEnd;
         NotAtEnd = notAtEnd;
+        InvalidKey = invalidKey ?? Array.Empty<BoundStatement>();
+        NotInvalidKey = notInvalidKey ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ReadStatement;
@@ -631,12 +646,19 @@ public sealed class BoundRewriteStatement : BoundStatement
     public FileSymbol File { get; }
     public DataSymbol Record { get; }
     public BoundExpression? From { get; }
+    /// <summary>INVALID KEY imperative statements.</summary>
+    public IReadOnlyList<BoundStatement> InvalidKey { get; }
+    /// <summary>NOT INVALID KEY imperative statements.</summary>
+    public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
 
-    public BoundRewriteStatement(FileSymbol file, DataSymbol record, BoundExpression? from = null)
+    public BoundRewriteStatement(FileSymbol file, DataSymbol record, BoundExpression? from = null,
+        IReadOnlyList<BoundStatement>? invalidKey = null, IReadOnlyList<BoundStatement>? notInvalidKey = null)
     {
         File = file;
         Record = record;
         From = from;
+        InvalidKey = invalidKey ?? Array.Empty<BoundStatement>();
+        NotInvalidKey = notInvalidKey ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.RewriteStatement;

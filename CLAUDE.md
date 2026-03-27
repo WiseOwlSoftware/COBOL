@@ -8,9 +8,10 @@ Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale.
 
-ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification. Refer to it for all
-specification, behavior, syntax, and semantic questions. It is the authoritative source — do not
-guess or assume COBOL semantics without consulting it.
+specs/ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification (in the
+CobolSharp-private submodule). Refer to it for all specification, behavior, syntax, and semantic
+questions. It is the authoritative source — do not guess or assume COBOL semantics without
+consulting it. Initialize the submodule with: `git submodule update --init --recursive`
 
 ## Session Resume Context (updated 2026-03-27)
 

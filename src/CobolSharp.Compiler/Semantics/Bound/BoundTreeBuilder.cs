@@ -773,7 +773,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.writeFrom() is { } fromCtx)
             from = BindDataReferenceWithSubscripts(fromCtx.dataReference());
 
-        return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing);
+        // INVALID KEY / NOT INVALID KEY
+        var invalidKey = new List<BoundStatement>();
+        var notInvalidKey = new List<BoundStatement>();
+        if (ctx.writeInvalidKey() is { } wikCtx)
+        {
+            var impStmts = wikCtx.statementBlock();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) invalidKey.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notInvalidKey.Add(bound);
+                }
+        }
+
+        return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing, invalidKey, notInvalidKey);
     }
 
     // ── OPEN ──
@@ -807,7 +827,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (results.Count == 1) return results[0];
-        return results.Count > 0 ? results[0]
+        return results.Count > 1 ? new BoundCompoundStatement(results)
             : new BoundOpenStatement(OpenMode.Output, Array.Empty<FileSymbol>());
     }
 
@@ -883,7 +903,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        // INVALID KEY / NOT INVALID KEY
+        // INVALID KEY / NOT INVALID KEY (separate from AT END for keyed/random reads)
+        var invalidKey = new List<BoundStatement>();
+        var notInvalidKey = new List<BoundStatement>();
         if (ctx.readInvalidKey() is { } ikCtx)
         {
             var impStmts = ikCtx.statementBlock();
@@ -891,17 +913,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 foreach (var stmt in impStmts[0].statement())
                 {
                     var bound = BindStatement(stmt);
-                    if (bound != null) atEnd.Add(bound);
+                    if (bound != null) invalidKey.Add(bound);
                 }
             if (impStmts.Length >= 2)
                 foreach (var stmt in impStmts[1].statement())
                 {
                     var bound = BindStatement(stmt);
-                    if (bound != null) notAtEnd.Add(bound);
+                    if (bound != null) notInvalidKey.Add(bound);
                 }
         }
 
-        return new BoundReadStatement(fileSym, intoId, isNext, keyDataName, atEnd, notAtEnd);
+        return new BoundReadStatement(fileSym, intoId, isNext, keyDataName, atEnd, notAtEnd, invalidKey, notInvalidKey);
     }
 
     // ── REWRITE ──
@@ -924,7 +946,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fromCtx != null)
             from = BindDataReferenceWithSubscripts(fromCtx);
 
-        return new BoundRewriteStatement(fileSym, recordSym, from);
+        // INVALID KEY / NOT INVALID KEY
+        var invalidKey = new List<BoundStatement>();
+        var notInvalidKey = new List<BoundStatement>();
+        if (ctx.rewriteInvalidKeyPhrase() is { } rikCtx)
+        {
+            var impStmts = rikCtx.statementBlock();
+            if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) invalidKey.Add(bound);
+                }
+            if (impStmts.Length >= 2)
+                foreach (var stmt in impStmts[1].statement())
+                {
+                    var bound = BindStatement(stmt);
+                    if (bound != null) notInvalidKey.Add(bound);
+                }
+        }
+
+        return new BoundRewriteStatement(fileSym, recordSym, from, invalidKey, notInvalidKey);
     }
 
     // ── DELETE ──
@@ -2759,15 +2801,22 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var subject = BindComparisonOperand(operands[0]);
             bool isNegated = ctx.NOT() != null;
-            var kind = classNameCtx.GetText().ToUpperInvariant() switch
+            var classText = classNameCtx.GetText().ToUpperInvariant();
+            ClassConditionKind? kind = classText switch
             {
                 "NUMERIC" => ClassConditionKind.Numeric,
                 "ALPHABETIC" => ClassConditionKind.Alphabetic,
                 "ALPHABETIC-LOWER" => ClassConditionKind.AlphabeticLower,
                 "ALPHABETIC-UPPER" => ClassConditionKind.AlphabeticUpper,
-                _ => throw new InvalidOperationException($"Unknown class condition: {classNameCtx.GetText()}")
+                _ => null
             };
-            return new BoundClassConditionExpression(subject, kind, isNegated);
+            if (kind == null)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0413,
+                    Common.SourceLocation.None, Common.TextSpan.Empty, classNameCtx.GetText());
+                return new BoundLiteralExpression(false, CobolCategory.Unknown);
+            }
+            return new BoundClassConditionExpression(subject, kind.Value, isNegated);
         }
 
         if (operands.Length == 0)

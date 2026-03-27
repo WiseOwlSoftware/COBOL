@@ -1295,9 +1295,38 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        // Edited-to-edited: raw byte copy (same as alpha-to-alpha)
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        // De-edit source to get numeric value, then re-edit into destination format.
+        // Strip editing characters (commas, currency, CR/DB, etc.) and parse to decimal.
+        string raw = Encoding.ASCII.GetString(srcArea, srcOffset, srcLength).Trim();
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            string zeroFormatted = FormatNumericEdited(0m, dstPic);
+            MoveStringToBytes(dstArea, dstOffset, dstLength, zeroFormatted);
+            return;
+        }
+
+        bool negative = raw.Contains('-') ||
+                         raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
+                         raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
+
+        raw = raw.Replace(",", "").Replace("$", "")
+                 .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
+                 .Replace("*", "").Replace("/", "").Replace(" ", "")
+                 .Replace("-", "").Replace("+", "").Trim();
+
+        if (!decimal.TryParse(raw, NumberStyles.AllowDecimalPoint,
+                              CultureInfo.InvariantCulture, out var value))
+        {
+            value = 0m;
+        }
+
+        if (negative) value = -value;
+
+        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        string formatted = FormatNumericEdited(value, dstPic);
+        MoveStringToBytes(dstArea, dstOffset, dstLength, formatted);
     }
 
     // ══════════════════════════════════════════════════════════

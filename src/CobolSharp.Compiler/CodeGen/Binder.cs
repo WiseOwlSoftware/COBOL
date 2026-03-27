@@ -2738,12 +2738,14 @@ public sealed class Binder
 
     private void LowerClassCondition(BoundClassConditionExpression cc, IrValue result, IrBasicBlock block)
     {
-        if (cc.Subject is not BoundIdentifierExpression id)
-            throw new InvalidOperationException("Class condition subject must be a data item");
-
-        var loc = ResolveLocation(id);
+        var loc = ResolveExpressionLocation(cc.Subject);
         if (loc == null)
-            throw new InvalidOperationException($"Cannot resolve storage for {id.Symbol.Name}");
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty,
+                $"class condition on {cc.Subject.GetType().Name}");
+            block.Instructions.Add(new IrSetBool(result, false));
+            return;
+        }
 
         var tmp = _valueFactory.Next(IrPrimitiveType.Bool);
         block.Instructions.Add(new IrClassCondition(loc, (int)cc.ClassKind, tmp));
