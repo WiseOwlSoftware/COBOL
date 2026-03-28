@@ -1,8 +1,9 @@
 # CobolSharp Grammar-vs-Spec Audit
 
-**Date:** 2026-03-28
-**Method:** 5 parallel agents compared every .g4 grammar rule against the corresponding
-ISO/IEC 1989:2023 syntax diagram, token by token.
+**Date:** 2026-03-28 (updated with version categorization)
+**Method:** 10 parallel agents (5 initial audit + 5 version categorization) compared every
+.g4 grammar rule against ISO syntax diagrams, token by token, then categorized each mismatch
+by the COBOL specification version that introduced the feature.
 **Scope:** All 14 grammar files (3,225 lines) against the full ISO spec (specs/ISO_COBOL.md)
 
 This audit was performed AFTER the initial feature-presence audit (SPEC_COMPLIANCE_AUDIT.md)
@@ -11,7 +12,59 @@ character by character, not just feature presence.
 
 ---
 
-## Summary
+## Version-Categorized Summary
+
+All mismatches categorized by the COBOL spec version that introduced the feature.
+Version attribution verified against ISO Annex E (substantive changes) and historical specs.
+
+### COBOL-85 Grammar Gaps (must fix for compliance)
+
+| Area | Count | Key Items |
+|------|------:|-----------|
+| Data Division | 38 | FD clauses (BLOCK CONTAINS, RECORD, CODE-SET) as genericClause; INITIALIZE extended forms; SYMBOLIC CHARACTERS multi-name; CURRENCY WITH PICTURE SYMBOL; VALUE IN alphabet/WHEN SET TO FALSE |
+| Procedure Division | 27 | DISPLAY UPON/NO ADVANCING; CORR synonym; SET TO ON/OFF; START FIRST/LAST; SORT table format; FROM literal on WRITE/REWRITE/RELEASE; STOP WITH STATUS |
+| Environment Division | 27 | Empty paragraph failures (5); RECORD SEQUENTIAL; ASSIGN required+USING; SAME AREA clause; keyword optionality (13 items) |
+| Expressions/Conditions | 1 | Chained exponentiation (A**B**C) |
+| Lexer tokens | 45 | UPON, CORR, CONTAINS, SAME, CONFIGURATION, INPUT-OUTPUT, NATIVE, STANDARD-1, STANDARD-2, CODE-SET, LINAGE-COUNTER + Report Writer tokens |
+| **Total COBOL-85** | **~138** | |
+
+### COBOL-2002 Grammar Gaps (gate behind is2002())
+
+| Area | Count | Key Items |
+|------|------:|-----------|
+| Data Division | 20 | 15 USAGE alternatives; GROUP-USAGE; BASED; ALIGNED; TYPEDEF; SAME AS |
+| Procedure Division | 15 | ROUNDED MODE IS; retry-phrase; SHARING; LOCK; PERFORM UNTIL EXIT; BY VALUE/RETURNING on CALL |
+| Environment Division | 17 | REPOSITORY; LOCK MODE; SHARING; file COLLATING SEQUENCE; LOCALE; FOR NATIONAL on ALPHABET/CLASS/SYMBOLIC |
+| Expressions/Conditions | 10 | General arithmetic subscripts; floating-point literals; IS OMITTED; boolean/national literals; concatenation (&); boolean expressions (B-AND etc.) |
+| Lexer tokens | 60 | Boolean/national/float type tokens; OO tokens; transaction tokens; exception management |
+| **Total COBOL-2002** | **~122** | |
+
+### COBOL-2014/2023 Grammar Gaps (future)
+
+| Area | Count | Key Items |
+|------|------:|-----------|
+| Data Division | 12 | DYNAMIC LENGTH; CONSTANT RECORD; SELECT WHEN; OCCURS DYNAMIC |
+| Procedure Division | 8 | XOR/EXCLUSIVE-OR; CONTINUE AFTER SECONDS; PERFORM Format 3; INSPECT BACKWARD; GOBACK WITH STATUS |
+| Environment Division | 4 | ORDER TABLE; DYNAMIC LENGTH STRUCTURE; UCS-4/UTF-8/UTF-16 |
+| Expressions/Conditions | 5 | XOR; B-SHIFT-* operators; FARTHEST-FROM-ZERO; NEAREST-TO-ZERO; IN-ARITHMETIC-RANGE |
+| Lexer tokens | 13 | 2014/2023 reserved words |
+| **Total COBOL-2014/2023** | **~42** | |
+
+### Key Version Corrections (from Annex E analysis)
+
+Several features were initially miscategorized. Corrections based on ISO Annex E:
+- **XOR/EXCLUSIVE-OR**: COBOL-2023 (NOT 2002 as initially assumed)
+- **PERFORM UNTIL EXIT**: COBOL-2023 (NOT 2002)
+- **CONTINUE AFTER SECONDS**: COBOL-2023 (NOT 2002)
+- **INSPECT BACKWARD**: COBOL-2023 (NOT 2014)
+- **GOBACK WITH STATUS**: COBOL-2023 (STOP RUN WITH STATUS is 2002)
+- **RECORD DELIMITER STANDARD-1**: COBOL-85 (NOT 2014/2023)
+- **RESERVE clause**: COBOL-85, but misplaced in grammar (SPECIAL-NAMES instead of SELECT)
+- **IS <>**: COBOL-2002 (but treat as practical COBOL-85 target since ubiquitous)
+
+---
+
+## Detailed Findings (original audit)
 
 | Area | Agent | Critical | High | Medium | Low | Total |
 |------|-------|:--------:|:----:|:------:|:---:|------:|
