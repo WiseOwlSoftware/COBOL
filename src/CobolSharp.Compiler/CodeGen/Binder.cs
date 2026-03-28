@@ -84,7 +84,7 @@ public sealed class Binder
     /// <summary>
     /// Build BoundProgram from parse tree, then lower to IrModule.
     /// </summary>
-    public IrModule Bind(CobolParserCore.CompilationUnitContext tree)
+    public IrModule Bind(Antlr4.Runtime.ParserRuleContext tree)
     {
         // Phase 1: Build bound tree + validate
         var builder = new BoundTreeBuilder(_semantic, _diagnostics, _options);

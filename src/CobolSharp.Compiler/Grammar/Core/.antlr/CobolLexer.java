@@ -333,7 +333,14 @@ public class CobolLexer extends Lexer {
 	private void LPAREN_action(RuleContext _localctx, int actionIndex) {
 		switch (actionIndex) {
 		case 0:
-			 if (_lastNonWsTokenType == IDENTIFIER) PushMode(SUBSCRIPT); 
+			 if (_lastNonWsTokenType == IDENTIFIER
+			                          || _lastNonWsTokenType == DISPLAY
+			                          || _lastNonWsTokenType == MERGE
+			                          || _lastNonWsTokenType == RANDOM
+			                          || _lastNonWsTokenType == SIGN
+			                          || _lastNonWsTokenType == SORT
+			                          || _lastNonWsTokenType == SUM)
+			                         PushMode(SUBSCRIPT); 
 			break;
 		}
 	}

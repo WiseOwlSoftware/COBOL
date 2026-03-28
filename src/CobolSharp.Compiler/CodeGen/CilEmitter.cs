@@ -45,20 +45,40 @@ public sealed class CilEmitter
     public static AssemblyDefinition EmitAssembly(IrModule ir, string assemblyName,
         Semantics.SemanticModel? semanticModel = null)
     {
+        return EmitAssembly([(ir, semanticModel)], assemblyName);
+    }
+
+    /// <summary>
+    /// Emit an assembly containing multiple COBOL programs.
+    /// Each program becomes a separate public type in the assembly.
+    /// The first program's Main method is used as the assembly entry point.
+    /// </summary>
+    public static AssemblyDefinition EmitAssembly(
+        List<(IrModule Module, SemanticModel? Model)> programs,
+        string assemblyName)
+    {
         var asmName = new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0));
         var asm = AssemblyDefinition.CreateAssembly(asmName, assemblyName, ModuleKind.Console);
-        var emitter = new CilEmitter(asm.MainModule);
-        emitter._semanticModel = semanticModel;
-        emitter.EmitModule(ir);
+        MethodDefinition? entryPoint = null;
 
-        // Set entry point to Main method
-        if (emitter._methodMap.Count > 0)
+        foreach (var (module, model) in programs)
         {
-            var mainMethod = emitter._methodMap.Values
-                .FirstOrDefault(m => m.Name == "Main");
-            if (mainMethod != null)
-                asm.EntryPoint = mainMethod;
+            var emitter = new CilEmitter(asm.MainModule);
+            emitter._semanticModel = model;
+            emitter.EmitModule(module);
+
+            // Only the first program gets the entry point
+            if (entryPoint == null && emitter._methodMap.Count > 0)
+            {
+                var mainMethod = emitter._methodMap.Values
+                    .FirstOrDefault(m => m.Name == "Main");
+                if (mainMethod != null)
+                    entryPoint = mainMethod;
+            }
         }
+
+        if (entryPoint != null)
+            asm.EntryPoint = entryPoint;
 
         return asm;
     }

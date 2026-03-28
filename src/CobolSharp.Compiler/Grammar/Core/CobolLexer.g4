@@ -458,6 +458,7 @@ SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* |
 SUB_PLUS            : '+' ;
 SUB_MINUS           : '-' ;
 SUB_COMMA           : ',' ;
+SUB_SEMICOLON       : ';' ;  // §8.3.5: semicolon is interchangeable with comma
 SUB_COLON           : ':' ;
 SUB_LPAREN          : '(' -> pushMode(SUBSCRIPT) ;
 SUB_RPAREN          : ')' -> popMode ;

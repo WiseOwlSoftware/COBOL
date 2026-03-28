@@ -48,6 +48,21 @@ programUnit
       environmentDivision?
       dataDivision?
       procedureDivision?
+      nestedProgram*
+      endProgramHeader?
+    ;
+
+nestedProgram
+    : identificationDivision
+      environmentDivision?
+      dataDivision?
+      procedureDivision?
+      nestedProgram*
+      endProgramHeader
+    ;
+
+endProgramHeader
+    : END PROGRAM programName DOT
     ;
 
 // ==========================================
@@ -279,6 +294,7 @@ subToken
     | SUB_PLUS
     | SUB_MINUS
     | SUB_COMMA
+    | SUB_SEMICOLON
     | SUB_COLON
     | SUB_OF
     | SUB_IN
@@ -621,6 +637,7 @@ callStatement
       callUsingPhrase?
       callReturningPhrase?
       callOnExceptionPhrase?
+      callNotOnExceptionPhrase?
       END_CALL?
 
     ;
@@ -642,7 +659,7 @@ callArgument
     ;
 
 callByReference
-    : BY REFERENCE? dataReference
+    : BY? REFERENCE dataReference
     ;
 
 callByValue
@@ -650,7 +667,7 @@ callByValue
     ;
 
 callByContent
-    : BY CONTENT (dataReference | literal)
+    : BY? CONTENT (dataReference | literal)
     ;
 
 callReturningPhrase
@@ -658,8 +675,11 @@ callReturningPhrase
     ;
 
 callOnExceptionPhrase
-    : ON EXCEPTION statementBlock
-      (NOT ON EXCEPTION statementBlock)?
+    : ON? (EXCEPTION | OVERFLOW) statementBlock
+    ;
+
+callNotOnExceptionPhrase
+    : NOT ON? (EXCEPTION | OVERFLOW) statementBlock
     ;
 
 // ==========================================

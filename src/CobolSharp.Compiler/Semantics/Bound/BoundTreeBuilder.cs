@@ -178,7 +178,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return (null, null);
     }
 
-    public BoundProgram Build(CobolParserCore.CompilationUnitContext tree)
+    public BoundProgram Build(Antlr4.Runtime.ParserRuleContext tree)
     {
         Visit(tree);
         return new BoundProgram(_semantic.Program, _paragraphs);
@@ -1464,24 +1464,24 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             returningTarget = retExpr as BoundIdentifierExpression;
         }
 
-        // ON EXCEPTION / NOT ON EXCEPTION
+        // ON EXCEPTION / NOT ON EXCEPTION (independently optional per spec)
         var onException = new List<BoundStatement>();
         var notOnException = new List<BoundStatement>();
         if (ctx.callOnExceptionPhrase() is { } excCtx)
         {
-            var impStmts = excCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onException.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnException.Add(bound);
-                }
+            foreach (var stmt in excCtx.statementBlock().statement())
+            {
+                var bound = BindStatement(stmt);
+                if (bound != null) onException.Add(bound);
+            }
+        }
+        if (ctx.callNotOnExceptionPhrase() is { } notExcCtx)
+        {
+            foreach (var stmt in notExcCtx.statementBlock().statement())
+            {
+                var bound = BindStatement(stmt);
+                if (bound != null) notOnException.Add(bound);
+            }
         }
 
         return new BoundCallStatement(targetName, isDynamic, arguments, returningTarget,
@@ -3880,7 +3880,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
-            if (t.Type == CobolParserCore.SUB_COMMA)
+            if (t.Type == CobolParserCore.SUB_COMMA || t.Type == CobolParserCore.SUB_SEMICOLON)
             {
                 if (current.Count > 0) segments.Add(current);
                 current = new List<Antlr4.Runtime.IToken>();

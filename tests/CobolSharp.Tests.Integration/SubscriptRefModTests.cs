@@ -1025,4 +1025,57 @@ public class SubscriptRefModTests : EndToEndTestBase
         Assert.Equal("NOT-FOUND", stdout.Trim());
     }
 
+    [Fact]
+    public void Subscript_SemicolonSeparator()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SEMSEP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TAB1.
+               05 ROW-1 OCCURS 3 TIMES.
+                  10 COL-1 PIC 9 OCCURS 3 TIMES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 7 TO COL-1 (2; 3).
+                DISPLAY COL-1 (2; 3).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("7", stdout);
+    }
+
+    [Fact]
+    public void Nist_NC245A_SemicolonSubscriptSeparators()
+    {
+        var (success, stdout, stderr) = CompileNistAndRun("NC245A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+        Assert.True(success, $"Compile/run failed: {stderr}");
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+    [Fact]
+    public void Nist_NC246A_QualifiedSubscripts()
+    {
+        var (success, stdout, stderr) = CompileNistAndRun("NC246A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+        Assert.True(success, $"Compile/run failed: {stderr}");
+        int failCount = stdout.Split('\n').Count(l => l.Contains("FAIL*"));
+        int passCount = stdout.Split('\n').Count(l => l.Contains("PASS "));
+        Assert.True(failCount == 0, $"NC246A: {passCount} pass, {failCount} fail\nFirst failures:\n{string.Join("\n", stdout.Split('\n').Where(l => l.Contains("FAIL*")).Take(5))}");
+    }
+
+    [Fact]
+    public void Nist_NC247A_OccursDependingOn()
+    {
+        var (success, stdout, stderr) = CompileNistAndRun("NC247A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+        Assert.True(success, $"Compile/run failed: {stderr}");
+        int failCount = stdout.Split('\n').Count(l => l.Contains("FAIL*"));
+        int passCount = stdout.Split('\n').Count(l => l.Contains("PASS "));
+        Assert.True(failCount == 0, $"NC247A: {passCount} pass, {failCount} fail\nFirst failures:\n{string.Join("\n", stdout.Split('\n').Where(l => l.Contains("FAIL*")).Take(5))}");
+    }
+
 }

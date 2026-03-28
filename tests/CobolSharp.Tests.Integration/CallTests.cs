@@ -156,4 +156,132 @@ public class CallTests : EndToEndTestBase
         Assert.Equal("CAUGHT", stdout);
     }
 
+
+    [Fact]
+    public void BatchCompilation_TwoProgramsInOneSource_CallBetween()
+    {
+        // Two programs in one source file with END PROGRAM headers
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BATCH-MAIN.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "IN MAIN"
+                CALL "BATCH-SUB"
+                DISPLAY "BACK IN MAIN"
+                STOP RUN.
+            END PROGRAM BATCH-MAIN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BATCH-SUB.
+            PROCEDURE DIVISION.
+            SUB-PARA.
+                DISPLAY "IN SUB"
+                EXIT PROGRAM.
+            END PROGRAM BATCH-SUB.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("IN MAIN", lines[0]);
+        Assert.Equal("IN SUB", lines[1]);
+        Assert.Equal("BACK IN MAIN", lines[2]);
+    }
+
+
+    [Fact]
+    public void NistIC222A_BatchCompilation_TwoPrograms()
+    {
+        // IC222A: Two programs in one source file testing CALL with END PROGRAM
+        var (success, stdout, stderr) = CompileNistAndRun("IC222A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+
+        Assert.True(success, $"Failed: {stderr}");
+        // Should contain test output lines, no FAIL*
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+
+    [Fact]
+    public void NistIC223A_BatchCompilation_ByReference()
+    {
+        // IC223A: Two programs - tests BY REFERENCE parameter passing
+        var (success, stdout, stderr) = CompileNistAndRun("IC223A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+
+    [Fact]
+    public void NistIC224A_BatchCompilation_ByContent()
+    {
+        // IC224A: Two programs - tests BY CONTENT parameter passing
+        var (success, stdout, stderr) = CompileNistAndRun("IC224A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+
+    [Fact]
+    public void NistIC225A_BatchCompilation_InitialProgram()
+    {
+        // IC225A: Two programs - tests INITIAL program attribute
+        var (success, stdout, stderr) = CompileNistAndRun("IC225A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+
+    [Fact]
+    public void NistIC226A_BatchCompilation_ExternalData()
+    {
+        // IC226A: Two programs - tests EXTERNAL data
+        var (success, stdout, stderr) = CompileNistAndRun("IC226A",
+            new Dictionary<string, string> { { "COBOL_SWITCH_1", "ON" } });
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.DoesNotContain("FAIL*", stdout);
+    }
+
+
+    // IC237A: Requires REDEFINES in LINKAGE SECTION (CBL3111 blocks it)
+    // IC227A: Requires IS EXTERNAL on FD (not yet supported)
+    // IC228A+: Requires GLOBAL clause for nested programs (not yet implemented)
+
+
+    [Fact]
+    public void NestedProgram_ContainedProgramCall()
+    {
+        // Nested (contained) program: IC228A-style structure
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OUTER.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "OUTER START"
+                CALL "INNER"
+                DISPLAY "OUTER END"
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INNER.
+            PROCEDURE DIVISION.
+            INNER-PARA.
+                DISPLAY "INNER"
+                EXIT PROGRAM.
+            END PROGRAM INNER.
+            END PROGRAM OUTER.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("OUTER START", lines[0]);
+        Assert.Equal("INNER", lines[1]);
+        Assert.Equal("OUTER END", lines[2]);
+    }
+
 }

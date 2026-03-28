@@ -58,6 +58,63 @@ public class EndToEndTestBase : IDisposable
     }
 
     /// <summary>
+    /// Compile a NIST test program and run it. Handles --nist preprocessing.
+    /// Returns stdout output. The source file is read from tests/nist/programs/.
+    /// </summary>
+    protected (bool success, string stdout, string stderr) CompileNistAndRun(
+        string testName, Dictionary<string, string>? envVars = null)
+    {
+        string nistDir = Path.GetFullPath(Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
+            "tests", "nist", "programs"));
+        string sourcePath = Path.Combine(nistDir, testName + ".cob");
+        string outputPath = Path.Combine(_tempDir, testName + ".dll");
+
+        var compilation = new Compilation { NistTestName = testName };
+        var result = compilation.Compile(sourcePath, outputPath);
+
+        if (!result.Success)
+        {
+            var errors = string.Join("\n", result.Diagnostics.Select(d => d.ToString()));
+            return (false, "", $"Compilation failed:\n{errors}");
+        }
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "dotnet",
+            Arguments = outputPath,
+            WorkingDirectory = _tempDir,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        if (envVars != null)
+        {
+            foreach (var (key, value) in envVars)
+                psi.EnvironmentVariables[key] = value;
+        }
+
+        using var process = Process.Start(psi)!;
+        // Use async reads to avoid deadlock when process hangs
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        bool exited = process.WaitForExit(15000);
+        if (!exited)
+        {
+            process.Kill();
+            process.WaitForExit(2000); // wait for kill to complete
+            string partialOut = stdoutTask.IsCompleted ? stdoutTask.Result : "";
+            return (false, partialOut.TrimEnd(), "Process timed out after 15s");
+        }
+        string stdout = stdoutTask.Result;
+        string stderr = stderrTask.Result;
+
+        return (process.ExitCode == 0, stdout.TrimEnd(), stderr.TrimEnd());
+    }
+
+    /// <summary>
     /// Compile multiple COBOL programs and run the first one.
     /// Each entry is (filename, source). The first program is the main program.
     /// All programs are compiled to the same temp directory so they can find each other.

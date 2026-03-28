@@ -51,6 +51,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitProgramUnit([NotNull] CobolParserCore.ProgramUnitContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.nestedProgram"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNestedProgram([NotNull] CobolParserCore.NestedProgramContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.endProgramHeader"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEndProgramHeader([NotNull] CobolParserCore.EndProgramHeaderContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.identificationDivision"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -650,6 +662,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitCallOnExceptionPhrase([NotNull] CobolParserCore.CallOnExceptionPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.callNotOnExceptionPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCallNotOnExceptionPhrase([NotNull] CobolParserCore.CallNotOnExceptionPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.entryStatement"/>.
 	/// </summary>
