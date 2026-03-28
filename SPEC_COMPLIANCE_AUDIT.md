@@ -1,10 +1,25 @@
 # CobolSharp Spec Compliance Audit
 
-**Date:** 2026-03-27 (updated after P0+P1 fix sweep)
+**Date:** 2026-03-28 (updated after NIST sweep)
 **Primary Spec:** ISO/IEC 1989:1985 (COBOL-85)
 **Reference Spec:** ISO/IEC 1989:2023 (used for spec section numbers)
 **Method:** 8 parallel agents audited every spec feature against the implementation
 **Scope:** Grammar, binding, lowering, CIL emission, runtime, and testing
+
+### Audit Methodology Limitation (honest assessment)
+
+This audit checked feature **presence** — "is X parsed? is it lowered? is it emitted?" It did
+NOT systematically compare grammar rules against spec syntax diagrams token by token. As a result,
+grammar **completeness** gaps were missed: optional keywords (e.g., `CURRENCY SIGN?`), syntax
+variants (e.g., semicolons as subscript separators), and edge cases in clause ordering.
+
+NIST conformance tests exposed these gaps because they exercise every syntax variant the spec
+allows. The full ISO spec is available in `specs/ISO_COBOL.md` — a proper grammar audit should
+compare each .g4 rule against the corresponding spec syntax diagram character by character.
+The audit agents had the spec but were not instructed to do this level of comparison.
+
+**Recommendation:** A follow-up grammar-vs-spec audit should be performed, comparing every
+grammar rule in the 14 .g4 files against the corresponding ISO syntax diagram.
 
 Features marked with version tags (e.g., `[COBOL-2002]`, `[COBOL-2014]`, `[COBOL-2023]`) are
 NOT required for COBOL-85 compliance and are included for completeness only.
@@ -13,7 +28,7 @@ NOT required for COBOL-85 compliance and are included for completeness only.
 
 ## Executive Summary
 
-**Tests:** 421 unit + 263 integration + 60 NIST guard = ALL GREEN
+**Tests:** 421 unit + 274 integration + 65 NIST guard = ALL GREEN
 
 **P0 bugs (data corruption/crashes):** 8 identified, **8 fixed** (Entry 154)
 **P1 bugs (wrong computation):** 12 identified, **12 fixed** (Entry 155)
