@@ -6,6 +6,15 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 161 — 2026-03-28: Grammar Audit + ~70 COBOL-85 Grammar Fixes
+
+10-agent grammar-vs-spec audit + 7-agent grammar fix sweep. Consolidated all audit docs
+into single GRAMMAR_AUDIT.md. ~70 COBOL-85 gaps fixed (45 lexer tokens, FD clauses, INITIALIZE,
+CORR, exponentiation, ALPHABET tokens, etc.). NC114M regression fixed (NATIVE token).
+421 unit + 274 integration + 65 NIST guard = ALL GREEN.
+
+---
+
 ## Entry 160 — 2026-03-28: NIST Sweep — Nested Programs + Remaining Fixes
 
 **Full NIST sweep:** 64/95 at 100% (up from 60). Dispatched 4 agents for the 28 remaining
