@@ -1,0 +1,55 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC245A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-008       .01
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-008       .02
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-008       .03
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-008       .04
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-008       .05
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .01
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .02
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .03
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .04
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .05
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-009       .06
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .01
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .02
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .03
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .04
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .05
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .06
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-010       .07
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .01
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .02
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .03
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .04
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .05
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-011       .06
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-012       .01
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-012       .02
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-012       .03
+ SEMICLN AS SEPARATOR PASS  SEP-TEST-012       .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC245A
+
+                                                    028 OF 028  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
