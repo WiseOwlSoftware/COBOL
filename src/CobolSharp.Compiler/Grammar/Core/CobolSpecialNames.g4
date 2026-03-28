@@ -46,7 +46,7 @@ switchOffClause
     ;
 
 currencySignClause
-    : CURRENCY SIGN IS? literal
+    : CURRENCY SIGN? IS? literal
     ;
 
 decimalPointClause
