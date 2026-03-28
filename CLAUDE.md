@@ -19,7 +19,7 @@ consulting it. Initialize the submodule with: `git submodule update --init --rec
 - **Branch**: main
 - **Unit tests**: 421 pass
 - **Integration tests**: 274 pass, 1 skip (12 focused test files)
-- **NIST tests at 100%** (77 in guard)
+- **NIST tests at 100%** (82 in guard)
 - **Intrinsic functions**: 94/94 dispatched, all tested
 - **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
 - **Grammar files**: 14 files, 3,225+ lines
