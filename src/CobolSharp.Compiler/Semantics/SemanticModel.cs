@@ -57,6 +57,56 @@ public sealed class SemanticModel
         return null;
     }
 
+    // ── User-defined CLASS conditions from SPECIAL-NAMES ──
+
+    private readonly Dictionary<string, ClassDefinition> _classDefinitions =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, ClassDefinition> ClassDefinitions => _classDefinitions;
+
+    internal void RegisterClassDefinition(ClassDefinition classDef)
+        => _classDefinitions[classDef.Name] = classDef;
+
+    public ClassDefinition? ResolveClassDefinition(string name)
+        => _classDefinitions.TryGetValue(name, out var def) ? def : null;
+
+    // ── SYMBOLIC CHARACTERS from SPECIAL-NAMES ──
+
+    private readonly Dictionary<string, byte> _symbolicCharacters =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, byte> SymbolicCharacters => _symbolicCharacters;
+
+    internal void RegisterSymbolicCharacter(string name, byte value)
+        => _symbolicCharacters[name] = value;
+
+    public byte? ResolveSymbolicCharacter(string name)
+        => _symbolicCharacters.TryGetValue(name, out var val) ? val : null;
+
+    // ── ALPHABET definitions from SPECIAL-NAMES ──
+
+    private readonly Dictionary<string, AlphabetDefinition> _alphabetDefinitions =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public IReadOnlyDictionary<string, AlphabetDefinition> AlphabetDefinitions => _alphabetDefinitions;
+
+    internal void RegisterAlphabetDefinition(AlphabetDefinition def)
+        => _alphabetDefinitions[def.Name] = def;
+
+    public AlphabetDefinition? ResolveAlphabetDefinition(string name)
+        => _alphabetDefinitions.TryGetValue(name, out var def) ? def : null;
+
+    // ── PROGRAM COLLATING SEQUENCE ──
+
+    /// <summary>
+    /// The collating sequence byte[] (256 entries mapping character ordinal → sort weight).
+    /// Null when default (native) collating sequence is used.
+    /// </summary>
+    public byte[]? ProgramCollatingSequence { get; private set; }
+
+    internal void SetProgramCollatingSequence(byte[] sequence)
+        => ProgramCollatingSequence = sequence;
+
     // ── Extension clauses (vendor extensions, unrecognized clauses) ──
 
     private readonly List<ExtensionClauseNode> _extensionClauses = new();
@@ -102,6 +152,18 @@ public sealed class SemanticModel
     // Paragraph → section it belongs to (null if orphan)
     private readonly Dictionary<string, string> _paragraphSection =
         new(StringComparer.OrdinalIgnoreCase);
+
+    // ── USE declarative associations (file-name → section name) ──
+
+    private readonly Dictionary<string, string> _useDeclaratives =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Map from file name to the declarative section that handles its I/O errors.</summary>
+    public IReadOnlyDictionary<string, string> UseDeclaratives => _useDeclaratives;
+
+    /// <summary>Register a USE AFTER ERROR declarative for a file.</summary>
+    public void RegisterUseDeclarative(string fileName, string sectionName)
+        => _useDeclaratives[fileName] = sectionName;
 
     // ── PIC descriptors per data symbol ──
 

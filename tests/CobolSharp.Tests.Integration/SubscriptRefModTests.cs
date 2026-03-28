@@ -979,4 +979,50 @@ public class SubscriptRefModTests : EndToEndTestBase
 
     // ── STRING ──
 
+    // ── ODO RUNTIME ENFORCEMENT ──
+
+    [Fact]
+    public void OdoRuntime_SearchRespectsActiveCount()
+    {
+        // SEARCH should only examine elements up to the current
+        // DEPENDING ON count, not the static MaxOccurs.
+        // Table has 5 max elements, but ODO count set to 3.
+        // Element at position 4 matches but should NOT be found
+        // because it is beyond the active ODO count.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ODOTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-COUNT PIC 9 VALUE 3.
+            01 WS-TABLE.
+               05 ELEM OCCURS 1 TO 5 TIMES
+                   DEPENDING ON WS-COUNT
+                   INDEXED BY IDX.
+                  10 ELEM-VAL PIC 9(2).
+            01 WS-FOUND PIC X(10) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 10 TO ELEM-VAL(1).
+                MOVE 20 TO ELEM-VAL(2).
+                MOVE 30 TO ELEM-VAL(3).
+                MOVE 99 TO ELEM-VAL(4).
+                MOVE 50 TO ELEM-VAL(5).
+                SET IDX TO 1.
+                SEARCH ELEM
+                    AT END
+                        MOVE "NOT-FOUND" TO WS-FOUND
+                    WHEN ELEM-VAL(IDX) = 99
+                        MOVE "FOUND" TO WS-FOUND
+                END-SEARCH.
+                DISPLAY WS-FOUND.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        // ODO count is 3, so only elements 1-3 are searched.
+        // Element 4 (value 99) is beyond the active count.
+        Assert.Equal("NOT-FOUND", stdout.Trim());
+    }
+
 }

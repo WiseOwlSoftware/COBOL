@@ -26,6 +26,9 @@ public class IndexedFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _records != null;
 
+    /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
+    public bool IsOptional { get; set; }
+
     public IndexedFileHandler(string externalName, int recordLength, int keyOffset, int keyLength)
     {
         ExternalName = externalName;
@@ -58,7 +61,11 @@ public class IndexedFileHandler : IFileHandler
         if (mode == FileOpenMode.Input || mode == FileOpenMode.InputOutput)
         {
             if (!File.Exists(_dataFilePath))
-                return mode == FileOpenMode.Input ? FileStatus.FileNotFound : FileStatus.Success;
+            {
+                if (mode == FileOpenMode.Input)
+                    return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
+                return FileStatus.Success;
+            }
 
             // Load all records from file
             try
@@ -112,6 +119,8 @@ public class IndexedFileHandler : IFileHandler
     public string ReadNext(byte[] recordBuffer)
     {
         if (!IsOpen || _enumerator == null) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
 
         if (!_enumerator.MoveNext())
             return FileStatus.AtEnd;
@@ -132,6 +141,8 @@ public class IndexedFileHandler : IFileHandler
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
 
         string key = Encoding.ASCII.GetString(keyValue);
 
@@ -162,6 +173,8 @@ public class IndexedFileHandler : IFileHandler
     public string Write(byte[] recordData)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Input)
+            return FileStatus.WriteNotOpenForOutput;
 
         string key = ExtractKey(recordData);
         if (_records!.ContainsKey(key))
@@ -186,6 +199,8 @@ public class IndexedFileHandler : IFileHandler
     public string Rewrite(byte[] recordData)
     {
         if (!IsOpen || _currentKey == null) return FileStatus.FileNotOpen;
+        if (_openMode != FileOpenMode.InputOutput)
+            return FileStatus.DeleteRewriteNotOpenForIO;
 
         string newKey = ExtractKey(recordData);
         if (newKey != _currentKey)
@@ -198,6 +213,8 @@ public class IndexedFileHandler : IFileHandler
     public string Delete()
     {
         if (!IsOpen || _currentKey == null) return FileStatus.FileNotOpen;
+        if (_openMode != FileOpenMode.InputOutput)
+            return FileStatus.DeleteRewriteNotOpenForIO;
 
         _records!.Remove(_currentKey);
         _currentKey = null;
@@ -207,6 +224,8 @@ public class IndexedFileHandler : IFileHandler
     public string Start(byte[] keyValue, StartCondition condition)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
 
         string targetKey = Encoding.ASCII.GetString(keyValue);
 

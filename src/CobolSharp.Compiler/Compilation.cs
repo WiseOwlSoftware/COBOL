@@ -133,6 +133,23 @@ public sealed class Compilation
         foreach (var sw in semanticBuilder.ImplementorSwitches)
             model.RegisterImplementorSwitch(sw);
 
+        foreach (var classDef in semanticBuilder.ClassDefinitions)
+            model.RegisterClassDefinition(classDef);
+
+        foreach (var (symName, symValue) in semanticBuilder.SymbolicCharacters)
+            model.RegisterSymbolicCharacter(symName, symValue);
+
+        foreach (var alphaDef in semanticBuilder.AlphabetDefinitions)
+            model.RegisterAlphabetDefinition(alphaDef);
+
+        // Resolve PROGRAM COLLATING SEQUENCE (needs alphabet definitions registered first)
+        if (semanticBuilder.ProgramCollatingSequenceAlphabetName is { } pcsName)
+        {
+            var alphaDef = model.ResolveAlphabetDefinition(pcsName);
+            if (alphaDef != null)
+                model.SetProgramCollatingSequence(alphaDef.CollatingSequence);
+        }
+
         foreach (var ext in semanticBuilder.ExtensionClauses)
             model.AddExtensionClause(ext);
 

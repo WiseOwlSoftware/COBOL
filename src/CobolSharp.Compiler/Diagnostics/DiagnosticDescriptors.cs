@@ -269,6 +269,20 @@ public static partial class DiagnosticDescriptors
         "REDEFINES target '{0}' is subordinate to OCCURS item '{1}'");
 
     // ══════════════════════════════════════
+    // CBL3115–3118: EXTERNAL / GLOBAL clauses
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL3115 = new("CBL3115", DiagnosticSeverity.Error,
+        "EXTERNAL clause on '{0}' is only allowed on level-01 items in WORKING-STORAGE SECTION");
+    public static readonly DiagnosticDescriptor CBL3116 = new("CBL3116", DiagnosticSeverity.Error,
+        "GLOBAL clause on '{0}' is only allowed on level-01 items");
+    public static readonly DiagnosticDescriptor CBL3117 = new("CBL3117", DiagnosticSeverity.Error,
+        "EXTERNAL clause on '{0}' cannot be combined with REDEFINES");
+    public static readonly DiagnosticDescriptor CBL3118 = new("CBL3118", DiagnosticSeverity.Warning,
+        "EXTERNAL clause on '{0}': shared storage not yet supported at runtime; item treated as internal");
+    public static readonly DiagnosticDescriptor CBL3119 = new("CBL3119", DiagnosticSeverity.Warning,
+        "GLOBAL clause on '{0}': nested program visibility not yet supported at runtime; item treated as local");
+
+    // ══════════════════════════════════════
     // CBL3201–3206: File status
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3201 = new("CBL3201", DiagnosticSeverity.Error,
@@ -481,6 +495,46 @@ public static partial class DiagnosticDescriptors
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOL0600 = new("COBOL0600", DiagnosticSeverity.Error,
         "Internal compiler error while generating code for '{0}': {1}. Please report this.");
+
+    // ══════════════════════════════════════
+    // CBL0906–0908: Additional MOVE enforcement
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0906 = new("CBL0906", DiagnosticSeverity.Error,
+        "MOVE figurative constant {0} to Numeric target is not allowed");
+    public static readonly DiagnosticDescriptor CBL0907 = new("CBL0907", DiagnosticSeverity.Error,
+        "MOVE of non-integer numeric literal to alphanumeric target is not allowed");
+    public static readonly DiagnosticDescriptor CBL0908 = new("CBL0908", DiagnosticSeverity.Error,
+        "MOVE ZERO to Alphabetic target is not allowed");
+
+    // ══════════════════════════════════════
+    // CBL0804–0807: Additional data item checks
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0804 = new("CBL0804", DiagnosticSeverity.Error,
+        "BLANK WHEN ZERO not allowed with JUSTIFIED on item '{0}'");
+    public static readonly DiagnosticDescriptor CBL0805 = new("CBL0805", DiagnosticSeverity.Error,
+        "OCCURS not allowed on level 66 (RENAMES) item '{0}'");
+    public static readonly DiagnosticDescriptor CBL0806 = new("CBL0806", DiagnosticSeverity.Warning,
+        "VALUE clause not allowed on REDEFINES item '{0}'");
+    public static readonly DiagnosticDescriptor CBL0807 = new("CBL0807", DiagnosticSeverity.Warning,
+        "VALUE clause not allowed on item '{0}' subordinate to OCCURS");
+
+    // ══════════════════════════════════════
+    // CBL1206: SEARCH ALL key equality
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL1206 = new("CBL1206", DiagnosticSeverity.Error,
+        "SEARCH ALL WHEN condition must be equality comparison on a key field");
+
+    // ══════════════════════════════════════
+    // COBOL0414: CORRESPONDING excludes RENAMES
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0414 = new("COBOL0414", DiagnosticSeverity.Error,
+        "{0} CORRESPONDING: '{1}' is a RENAMES item and cannot participate.");
+
+    // ══════════════════════════════════════
+    // CBL2606: Sign condition on non-numeric
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL2606 = new("CBL2606", DiagnosticSeverity.Error,
+        "Sign condition (POSITIVE/NEGATIVE/ZERO) requires a numeric operand");
 
     // ══════════════════════════════════════
     // CBL3601–3606: ALTER and bare GO TO (obsolete features)

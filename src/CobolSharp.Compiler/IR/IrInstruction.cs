@@ -1158,6 +1158,23 @@ public sealed class IrClassCondition : IrInstruction
     }
 }
 
+/// <summary>
+/// User-defined CLASS condition from SPECIAL-NAMES.
+/// Calls PicRuntime.IsInUserClass with the pre-computed valid byte set.
+/// </summary>
+public sealed class IrUserClassCondition : IrInstruction
+{
+    public IrLocation Subject { get; }
+    public byte[] ValidBytes { get; }
+
+    public IrUserClassCondition(IrLocation subject, byte[] validBytes, IrValue result)
+    {
+        Subject = subject;
+        ValidBytes = validBytes;
+        Result = result;
+    }
+}
+
 public sealed class IrPicCompare : IrInstruction
 {
     public IrLocation Left { get; }
@@ -1230,6 +1247,44 @@ public sealed class IrStringCompare : IrInstruction
         IrValue result, int operatorKind)
     {
         Left = left; Right = right; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// Alphanumeric field-to-field comparison with a custom collating sequence.
+/// Uses PicRuntime.CompareAlphanumericWithSequence.
+/// </summary>
+public sealed class IrStringCompareWithSequence : IrInstruction
+{
+    public IrLocation Left { get; }
+    public IrLocation Right { get; }
+    public byte[] CollatingSequence { get; }
+    public int OperatorKind { get; }
+
+    public IrStringCompareWithSequence(IrLocation left, IrLocation right,
+        byte[] collatingSequence, IrValue result, int operatorKind)
+    {
+        Left = left; Right = right; CollatingSequence = collatingSequence;
+        Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// Alphanumeric field-to-string comparison with a custom collating sequence.
+/// Uses PicRuntime.CompareAlphanumericWithSequence after encoding the string.
+/// </summary>
+public sealed class IrStringCompareLiteralWithSequence : IrInstruction
+{
+    public IrLocation Left { get; }
+    public string Value { get; }
+    public byte[] CollatingSequence { get; }
+    public int OperatorKind { get; }
+
+    public IrStringCompareLiteralWithSequence(IrLocation left, string value,
+        byte[] collatingSequence, IrValue result, int operatorKind)
+    {
+        Left = left; Value = value; CollatingSequence = collatingSequence;
+        Result = result; OperatorKind = operatorKind;
     }
 }
 

@@ -29,11 +29,15 @@ dataDivision
 // ==========================================
 
 fileSection
-    : FILE SECTION DOT fileDescriptionEntry*
+    : FILE SECTION DOT (fileDescriptionEntry | sortMergeDescriptionEntry)*
     ;
 
 fileDescriptionEntry
     : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
+    ;
+
+sortMergeDescriptionEntry
+    : SD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
     ;
 
 fileDescriptionClauses
@@ -48,6 +52,7 @@ fileDescriptionClause
     | fileStatusClause
     | labelRecordsClause
     | dataRecordsClause
+    | linageClause
     | genericFileDescriptionClause
     ;
 
@@ -59,6 +64,26 @@ labelRecordsClause
 // DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
 dataRecordsClause
     : DATA RECORD IS? IDENTIFIER+
+    ;
+
+// LINAGE clause (ISO §13.16) — page-based printing for sequential files
+linageClause
+    : LINAGE IS? (dataReference | integerLiteral) LINES?
+      linageFootingPhrase?
+      linageLinesAtTopPhrase?
+      linageLinesAtBottomPhrase?
+    ;
+
+linageFootingPhrase
+    : WITH? FOOTING AT? (dataReference | integerLiteral)
+    ;
+
+linageLinesAtTopPhrase
+    : LINES? AT? TOP (dataReference | integerLiteral)
+    ;
+
+linageLinesAtBottomPhrase
+    : LINES? AT? BOTTOM (dataReference | integerLiteral)
     ;
 
 genericFileDescriptionClause
@@ -140,8 +165,20 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
+    | externalClause
+    | globalClause
     | typeClause
     | genericDataClause
+    ;
+
+// EXTERNAL clause (§13.18.22) — shared storage across run unit
+externalClause
+    : IS? EXTERNAL
+    ;
+
+// GLOBAL clause (§13.18.27) — visible to contained programs
+globalClause
+    : IS? GLOBAL
     ;
 
 // TYPE clause (COBOL-2023 — threaded from CobolParserGenerics)

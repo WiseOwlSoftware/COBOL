@@ -49,6 +49,7 @@ public enum BoundNodeKind
     CancelStatement,
     AbbreviatedExpression,
     SwitchConditionExpression,
+    UseStatement,
 }
 
 public abstract class BoundNode
@@ -222,6 +223,27 @@ public sealed class BoundClassConditionExpression : BoundExpression
     {
         Subject = subject;
         ClassKind = classKind;
+        IsNegated = isNegated;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression; // reuse
+}
+
+/// <summary>
+/// User-defined CLASS condition: operand IS [NOT] class-name
+/// where class-name is defined in SPECIAL-NAMES.
+/// </summary>
+public sealed class BoundUserClassConditionExpression : BoundExpression
+{
+    public BoundExpression Subject { get; }
+    public ClassDefinition ClassDef { get; }
+    public bool IsNegated { get; }
+
+    public BoundUserClassConditionExpression(BoundExpression subject, ClassDefinition classDef, bool isNegated)
+        : base(CobolCategory.Unknown)
+    {
+        Subject = subject;
+        ClassDef = classDef;
         IsNegated = isNegated;
     }
 
@@ -566,6 +588,9 @@ public sealed class BoundCancelStatement : BoundStatement
 
 public sealed class BoundExitPerformStatement : BoundStatement
 {
+    /// <summary>True for EXIT PERFORM CYCLE (continue loop); false for EXIT PERFORM (break loop).</summary>
+    public bool IsCycle { get; }
+    public BoundExitPerformStatement(bool isCycle = false) => IsCycle = isCycle;
     public override BoundNodeKind Kind => BoundNodeKind.ExitStatement; // reuse — lowering distinguishes
 }
 
@@ -1397,5 +1422,29 @@ public sealed class BoundCallStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.CallStatement;
+}
+
+/// <summary>
+/// USE AFTER STANDARD ERROR/EXCEPTION PROCEDURE ON file-name(s).
+/// Represents a declarative error handler association.
+/// Currently a stub — full execution support deferred.
+/// </summary>
+public sealed class BoundUseStatement : BoundStatement
+{
+    /// <summary>True if USE BEFORE REPORTING (report writer), false if USE AFTER ERROR.</summary>
+    public bool IsBeforeReporting { get; }
+    /// <summary>File names associated with this USE AFTER ERROR declarative.</summary>
+    public IReadOnlyList<string> FileNames { get; }
+    /// <summary>Report name for USE BEFORE REPORTING (null for USE AFTER ERROR).</summary>
+    public string? ReportName { get; }
+
+    public BoundUseStatement(bool isBeforeReporting, IReadOnlyList<string> fileNames, string? reportName)
+    {
+        IsBeforeReporting = isBeforeReporting;
+        FileNames = fileNames;
+        ReportName = reportName;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.UseStatement;
 }
 

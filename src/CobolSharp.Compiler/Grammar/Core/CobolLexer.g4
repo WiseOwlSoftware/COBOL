@@ -58,6 +58,9 @@ END_UNSTRING : 'END-UNSTRING' ;
 END_ACCEPT   : 'END-ACCEPT' ;
 END_DISPLAY  : 'END-DISPLAY' ;
 
+END_OF_PAGE  : 'END-OF-PAGE' ;
+EOP          : 'EOP' ;
+
 // ── Hyphenated keywords (must precede IDENTIFIER) ──
 
 PROGRAM_ID      : 'PROGRAM-ID' ;
@@ -160,6 +163,7 @@ AUTHOR      : 'AUTHOR' ;
 BEFORE      : 'BEFORE' ;
 BINARY      : 'BINARY' ;
 BLANK       : 'BLANK' ;
+BOTTOM      : 'BOTTOM' ;
 BY          : 'BY' ;
 CHARACTER   : 'CHARACTER' ;
 CHARACTERS  : 'CHARACTERS' ;
@@ -179,6 +183,7 @@ COMPUTATIONAL_5 : 'COMPUTATIONAL-5' ;
 CONTENT     : 'CONTENT' ;
 CONVERTING  : 'CONVERTING' ;
 CURRENCY    : 'CURRENCY' ;
+CYCLE       : 'CYCLE' ;
 DECIMAL_POINT : 'DECIMAL-POINT' ;
 CORRESPONDING : 'CORRESPONDING' ;
 COUNT       : 'COUNT' ;
@@ -204,6 +209,7 @@ EXCEPTION   : 'EXCEPTION' ;
 EXTEND      : 'EXTEND' ;
 EXTERNAL    : 'EXTERNAL' ;
 FIRST       : 'FIRST' ;
+FOOTING     : 'FOOTING' ;
 FOR         : 'FOR' ;
 FALSE_      : 'FALSE' ;
 FILE        : 'FILE' ;
@@ -214,6 +220,7 @@ RESERVE     : 'RESERVE' ;
 FROM        : 'FROM' ;
 FUNCTION    : 'FUNCTION' ;
 LABEL       : 'LABEL' ;
+LINAGE      : 'LINAGE' ;
 GENERIC     : 'GENERIC' ;
 GIVING      : 'GIVING' ;
 GLOBAL      : 'GLOBAL' ;
@@ -257,11 +264,13 @@ OFF         : 'OFF' ;
 ON          : 'ON' ;
 OR          : 'OR' ;
 OMITTED     : 'OMITTED' ;
+OPTIONAL    : 'OPTIONAL' ;
 ORGANIZATION: 'ORGANIZATION' ;
 OTHER       : 'OTHER' ;
 OUTPUT      : 'OUTPUT' ;
 OVERFLOW    : 'OVERFLOW' ;
 PACKED      : 'PACKED' ;
+PAGE        : 'PAGE' ;
 PARAGRAPH   : 'PARAGRAPH' ;
 // PIC/PICTURE → push into PICMODE to capture the PIC string as one token.
 // Handles: PIC X(120), PIC IS S9(18), PICTURE $$$,$$9.99CR, etc.
@@ -305,6 +314,7 @@ THRU        : 'THRU' ;
 TIME        : 'TIME' ;
 TIMES       : 'TIMES' ;
 TO          : 'TO' ;
+TOP         : 'TOP' ;
 TRAILING    : 'TRAILING' ;
 TRUE_       : 'TRUE' ;
 TYPE        : 'TYPE' ;

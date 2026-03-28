@@ -62,6 +62,16 @@ public static class LoweringTable
             (CobolCategory.NumericEdited, CobolCategory.NationalEdited) =>
                 Get(nameof(PicRuntime.MoveNumericEditedToNationalEdited)),
 
+            // Alphabetic → treated as Alphanumeric for runtime dispatch
+            (CobolCategory.Alphabetic, CobolCategory.Alphabetic) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToAlphanumeric)),
+            (CobolCategory.Alphabetic, CobolCategory.Alphanumeric) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToAlphanumeric)),
+            (CobolCategory.Alphabetic, CobolCategory.AlphanumericEdited) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToAlphanumericEdited)),
+
+            (CobolCategory.Alphanumeric, CobolCategory.Alphabetic) =>
+                Get(nameof(PicRuntime.MoveAlphanumericToAlphanumeric)),
             (CobolCategory.Alphanumeric, CobolCategory.Numeric) =>
                 Get(nameof(PicRuntime.MoveAlphanumericToNumeric)),
             (CobolCategory.Alphanumeric, CobolCategory.NumericEdited) =>
@@ -75,6 +85,8 @@ public static class LoweringTable
             (CobolCategory.Alphanumeric, CobolCategory.NationalEdited) =>
                 Get(nameof(PicRuntime.MoveAlphanumericToNationalEdited)),
 
+            (CobolCategory.AlphanumericEdited, CobolCategory.Alphabetic) =>
+                Get(nameof(PicRuntime.MoveAlphanumericEditedToAlphanumeric)),
             (CobolCategory.AlphanumericEdited, CobolCategory.Alphanumeric) =>
                 Get(nameof(PicRuntime.MoveAlphanumericEditedToAlphanumeric)),
             (CobolCategory.AlphanumericEdited, CobolCategory.AlphanumericEdited) =>

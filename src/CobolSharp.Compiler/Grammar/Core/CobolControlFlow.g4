@@ -178,7 +178,7 @@ useStatement
 // ==========================================
 
 exitStatement
-    : EXIT ( PROGRAM | PERFORM | SECTION | PARAGRAPH | METHOD | FUNCTION )?
+    : EXIT ( PROGRAM | PERFORM CYCLE? | SECTION | PARAGRAPH | METHOD | FUNCTION )?
     ;
 
 // ==========================================

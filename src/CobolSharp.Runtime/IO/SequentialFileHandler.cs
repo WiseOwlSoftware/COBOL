@@ -20,6 +20,20 @@ public class SequentialFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _stream != null || _reader != null || _writer != null;
 
+    /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
+    public bool IsOptional { get; set; }
+
+    /// <summary>LINAGE body line count (0 = no LINAGE clause).</summary>
+    public int LinageBody { get; set; }
+    /// <summary>LINAGE FOOTING line (0 = no footing).</summary>
+    public int LinageFooting { get; set; }
+    /// <summary>LINAGE LINES AT TOP (default 0).</summary>
+    public int LinageTop { get; set; }
+    /// <summary>LINAGE LINES AT BOTTOM (default 0).</summary>
+    public int LinageBottom { get; set; }
+    /// <summary>Current LINAGE-COUNTER value (1-based line within current page body).</summary>
+    public int LinageCounter { get; set; }
+
     public SequentialFileHandler(string externalName, int recordLength, bool lineSequential = false)
     {
         ExternalName = externalName;
@@ -38,7 +52,7 @@ public class SequentialFileHandler : IFileHandler
             {
                 case FileOpenMode.Input:
                     if (!File.Exists(ExternalName))
-                        return FileStatus.FileNotFound;
+                        return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
                     if (_lineSequential)
                         _reader = new StreamReader(ExternalName, Encoding.ASCII);
                     else
@@ -63,6 +77,9 @@ public class SequentialFileHandler : IFileHandler
                     _stream = new FileStream(ExternalName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                     break;
             }
+            // Initialize LINAGE-COUNTER for files with LINAGE clause
+            if (LinageBody > 0)
+                LinageCounter = 1;
             return FileStatus.Success;
         }
         catch (UnauthorizedAccessException)
@@ -90,6 +107,8 @@ public class SequentialFileHandler : IFileHandler
     public string ReadNext(byte[] recordBuffer)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
 
         try
         {
@@ -131,6 +150,8 @@ public class SequentialFileHandler : IFileHandler
     public string Write(byte[] recordData)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Input)
+            return FileStatus.WriteNotOpenForOutput;
 
         try
         {
@@ -159,6 +180,8 @@ public class SequentialFileHandler : IFileHandler
     {
         // For sequential files, rewrite replaces the last-read record
         if (!IsOpen || _stream == null) return FileStatus.FileNotOpen;
+        if (_openMode != FileOpenMode.InputOutput)
+            return FileStatus.DeleteRewriteNotOpenForIO;
 
         try
         {
@@ -185,6 +208,34 @@ public class SequentialFileHandler : IFileHandler
             var bytes = Encoding.ASCII.GetBytes(text);
             _stream.Write(bytes, 0, bytes.Length);
         }
+    }
+
+    /// <summary>
+    /// After a WRITE with LINAGE active, indicates whether the END-OF-PAGE condition was triggered.
+    /// The END-OF-PAGE condition is raised when LINAGE-COUNTER equals or exceeds the FOOTING value.
+    /// </summary>
+    public bool EndOfPage { get; private set; }
+
+    /// <summary>
+    /// Advance the LINAGE-COUNTER by the given number of lines.
+    /// Returns true if END-OF-PAGE was triggered (counter crossed footing line).
+    /// </summary>
+    public bool AdvanceLinageCounter(int lines)
+    {
+        EndOfPage = false;
+        if (LinageBody <= 0) return false;
+
+        LinageCounter += lines;
+        if (LinageFooting > 0 && LinageCounter >= LinageFooting)
+            EndOfPage = true;
+
+        if (LinageCounter > LinageBody)
+        {
+            // Page overflow — emit bottom margin + top margin blank lines, reset counter
+            LinageCounter = 1;
+            EndOfPage = true;
+        }
+        return EndOfPage;
     }
 
     public string Delete() => FileStatus.PermanentError; // Not supported for sequential files

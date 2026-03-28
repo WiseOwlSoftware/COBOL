@@ -54,6 +54,12 @@ public sealed class Binder
     private readonly Stack<IrBasicBlock> _performExitStack = new();
 
     /// <summary>
+    /// Stack of continue blocks for active PERFORM loops.
+    /// EXIT PERFORM CYCLE jumps to the top of this stack (loop's condition/increment).
+    /// </summary>
+    private readonly Stack<IrBasicBlock> _performContinueStack = new();
+
+    /// <summary>
     /// The end block for the paragraph currently being lowered.
     /// EXIT PARAGRAPH jumps here (fall-through semantics).
     /// </summary>
@@ -321,6 +327,32 @@ public sealed class Binder
                         new[] { altNameVal, altOffVal, altLenVal, altDupVal }));
                 }
             }
+
+            // SELECT OPTIONAL
+            if (fileSym.IsOptional)
+            {
+                var optNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                block.Instructions.Add(new IrLoadConst(optNameVal, fileSym.Name));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetFileOptional",
+                    new[] { optNameVal }));
+            }
+
+            // LINAGE clause
+            if (fileSym.LinageBody > 0)
+            {
+                var linNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                var linBodyVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                var linFootVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                var linTopVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                var linBotVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                block.Instructions.Add(new IrLoadConst(linNameVal, fileSym.Name));
+                block.Instructions.Add(new IrLoadConst(linBodyVal, fileSym.LinageBody));
+                block.Instructions.Add(new IrLoadConst(linFootVal, fileSym.LinageFooting));
+                block.Instructions.Add(new IrLoadConst(linTopVal, fileSym.LinageTop));
+                block.Instructions.Add(new IrLoadConst(linBotVal, fileSym.LinageBottom));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetFileLinage",
+                    new[] { linNameVal, linBodyVal, linFootVal, linTopVal, linBotVal }));
+            }
         }
 
         // Collect paragraph methods in declaration order for Entry method
@@ -392,8 +424,8 @@ public sealed class Binder
             case BoundExitStatement:
                 // EXIT is a no-op; fall-through return handles it
                 break;
-            case BoundExitPerformStatement:
-                return LowerExitPerform(method, block);
+            case BoundExitPerformStatement exitPerf:
+                return LowerExitPerform(exitPerf, method, block);
             case BoundExitParagraphStatement:
                 return LowerExitParagraph(method, block);
             case BoundExitSectionStatement:
@@ -443,6 +475,9 @@ public sealed class Binder
                 return LowerReturn(ret, method, block);
             case BoundCallStatement call:
                 return LowerCall(call, method, block);
+            case BoundUseStatement:
+                // USE declaratives are metadata; no CIL emitted for the statement itself.
+                return block;
         }
         return block;
     }
@@ -867,6 +902,8 @@ public sealed class Binder
             var loopEnd = method.CreateBlock("perf.until.end");
 
             _performExitStack.Push(loopEnd);
+            // EXIT PERFORM CYCLE jumps to loopStart (re-tests condition)
+            _performContinueStack.Push(loopStart);
 
             if (perf.IsTestAfter)
             {
@@ -900,6 +937,7 @@ public sealed class Binder
             }
 
             method.Blocks.Add(loopEnd);
+            _performContinueStack.Pop();
             _performExitStack.Pop();
             return loopEnd;
         }
@@ -942,6 +980,16 @@ public sealed class Binder
         var loopBody = method.CreateBlock("vary.body");
         var loopEnd = method.CreateBlock("vary.end");
 
+        // Create a separate increment block so EXIT PERFORM CYCLE can target it
+        var loopIncr = method.CreateBlock("vary.incr");
+
+        // Push continue target: EXIT PERFORM CYCLE jumps to increment block
+        // Only the outermost VARYING level manages the continue stack (inner AFTER
+        // levels do not — CYCLE always targets the outermost loop).
+        bool isOutermost = v == perf.Varying;
+        if (isOutermost)
+            _performContinueStack.Push(loopIncr);
+
         if (perf.IsTestAfter)
         {
             // TEST AFTER: do-while — execute body first, then test + increment
@@ -966,7 +1014,6 @@ public sealed class Binder
             var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
             LowerCondition(v.UntilCondition, condVal, loopStart);
             // If condition true → exit; if false → increment and loop
-            var loopIncr = method.CreateBlock("vary.incr");
             loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopIncr));
             loopStart.Instructions.Add(new IrJump(loopEnd));
 
@@ -1000,11 +1047,17 @@ public sealed class Binder
                 bodyCurrent = LowerPerformBody(perf, method, loopBody);
             }
 
-            // Increment: ADD step TO index
-            EmitVaryingAdd(v.Step, indexLoc, bodyCurrent);
+            // Jump to increment block (separate so EXIT PERFORM CYCLE can target it)
+            bodyCurrent.Instructions.Add(new IrJump(loopIncr));
 
-            bodyCurrent.Instructions.Add(new IrJump(loopStart));
+            // Increment: ADD step TO index, then re-test
+            method.Blocks.Add(loopIncr);
+            EmitVaryingAdd(v.Step, indexLoc, loopIncr);
+            loopIncr.Instructions.Add(new IrJump(loopStart));
         }
+
+        if (isOutermost)
+            _performContinueStack.Pop();
 
         method.Blocks.Add(loopEnd);
         return loopEnd;
@@ -1299,13 +1352,15 @@ public sealed class Binder
             if (recordLoc != null)
             {
                 // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey
+                // For INDEXED files, use RECORD KEY; for RELATIVE files, use RELATIVE KEY
+                string? keyName = read.File.RecordKey ?? read.File.RelativeKey;
                 bool isKeyedRead = !read.IsNext &&
                     read.File.AccessMode is "RANDOM" or "DYNAMIC" &&
-                    read.File.RecordKey != null;
+                    keyName != null;
 
                 if (isKeyedRead)
                 {
-                    var keySym = _semantic.ResolveData(read.File.RecordKey!);
+                    var keySym = _semantic.ResolveData(keyName!);
                     var keyLoc = keySym != null ? ResolveLocation(keySym) : null;
                     if (keyLoc != null)
                         block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
@@ -2522,6 +2577,13 @@ public sealed class Binder
             return;
         }
 
+        // User-defined CLASS condition from SPECIAL-NAMES
+        if (cond is BoundUserClassConditionExpression ucc)
+        {
+            LowerUserClassCondition(ucc, result, block);
+            return;
+        }
+
         // Sign condition: IS [NOT] POSITIVE/NEGATIVE/ZERO
         if (cond is BoundSignConditionExpression sc)
         {
@@ -2639,6 +2701,8 @@ public sealed class Binder
                                      || right.Category == Runtime.CobolCategory.Numeric;
                     if (eitherNumeric)
                         block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
+                    else if (_semantic.ProgramCollatingSequence is { } seq)
+                        block.Instructions.Add(new IrStringCompareWithSequence(left.Location!, right.Location!, seq, result, op));
                     else
                         block.Instructions.Add(new IrStringCompare(left.Location!, right.Location!, result, op));
                 }
@@ -2652,6 +2716,8 @@ public sealed class Binder
                 if (useNumeric && decimal.TryParse(right.StringValue,
                     System.Globalization.CultureInfo.InvariantCulture, out var numFromStr))
                     block.Instructions.Add(new IrPicCompareLiteral(left.Location!, numFromStr, result, op));
+                else if (_semantic.ProgramCollatingSequence is { } litSeq)
+                    block.Instructions.Add(new IrStringCompareLiteralWithSequence(left.Location!, right.StringValue!, litSeq, result, op));
                 else
                     block.Instructions.Add(new IrStringCompareLiteral(left.Location!, right.StringValue!, result, op));
                 break;
@@ -2827,6 +2893,30 @@ public sealed class Binder
         else
         {
             // Copy tmp to result
+            block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Or));
+        }
+    }
+
+    private void LowerUserClassCondition(BoundUserClassConditionExpression ucc, IrValue result, IrBasicBlock block)
+    {
+        var loc = ResolveExpressionLocation(ucc.Subject);
+        if (loc == null)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty,
+                $"user class condition on {ucc.Subject.GetType().Name}");
+            block.Instructions.Add(new IrSetBool(result, false));
+            return;
+        }
+
+        var tmp = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrUserClassCondition(loc, ucc.ClassDef.ValidBytes, tmp));
+
+        if (ucc.IsNegated)
+        {
+            block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Not));
+        }
+        else
+        {
             block.Instructions.Add(new IrBinaryLogical(result, tmp, tmp, IrLogicalOp.Or));
         }
     }
@@ -3051,7 +3141,7 @@ public sealed class Binder
 
     // ── EXIT PERFORM / EXIT PARAGRAPH / EXIT SECTION ──
 
-    private IrBasicBlock LowerExitPerform(IrMethod method, IrBasicBlock block)
+    private IrBasicBlock LowerExitPerform(BoundExitPerformStatement exitPerf, IrMethod method, IrBasicBlock block)
     {
         if (_performExitStack.Count == 0)
         {
@@ -3059,8 +3149,24 @@ public sealed class Binder
             return block;
         }
 
-        var exitBlock = _performExitStack.Peek();
-        block.Instructions.Add(new IrJump(exitBlock));
+        if (exitPerf.IsCycle)
+        {
+            // EXIT PERFORM CYCLE: jump to the loop's continue target
+            // (condition re-test for UNTIL; increment block for VARYING)
+            if (_performContinueStack.Count == 0)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.COBOL0509, SourceLocation.None, TextSpan.Empty, "PERFORM CYCLE", "PERFORM");
+                return block;
+            }
+            var continueBlock = _performContinueStack.Peek();
+            block.Instructions.Add(new IrJump(continueBlock));
+        }
+        else
+        {
+            // EXIT PERFORM: jump to the loop's exit target (break)
+            var exitBlock = _performExitStack.Peek();
+            block.Instructions.Add(new IrJump(exitBlock));
+        }
 
         var dead = new IrBasicBlock("dead_after_exit_perform");
         method.Blocks.Add(dead);
@@ -3247,7 +3353,13 @@ public sealed class Binder
         var indexLoc = ResolveLocation(search.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = search.Table.Symbol.Occurs?.MaxOccurs ?? 1;
+        var occurs = search.Table.Symbol.Occurs;
+        int staticUpperBound = occurs?.MaxOccurs ?? 1;
+
+        // Resolve ODO DEPENDING ON variable for runtime upper bound
+        IrLocation? odoLoc = null;
+        if (occurs?.DependingOnSymbol != null)
+            odoLoc = ResolveLocation(occurs.DependingOnSymbol);
 
         // COBOL-85 §14.9.38: SEARCH uses the CURRENT index value.
         // If the index already exceeds the table, AT END is triggered immediately.
@@ -3262,10 +3374,20 @@ public sealed class Binder
         method.Blocks.Add(loopHeader);
 
         // Bounds check: if index > upperBound → AT END
+        // When ODO is active, compare against the DEPENDING ON variable at runtime
         var boundsResult = _valueFactory.Next(IrPrimitiveType.Bool);
-        loopHeader.Instructions.Add(new IrPicCompareLiteral(
-            indexLoc, (decimal)upperBound, boundsResult,
-            (int)BoundBinaryOperatorKind.Greater));
+        if (odoLoc != null)
+        {
+            loopHeader.Instructions.Add(new IrPicCompare(
+                indexLoc, odoLoc, boundsResult,
+                (int)BoundBinaryOperatorKind.Greater));
+        }
+        else
+        {
+            loopHeader.Instructions.Add(new IrPicCompareLiteral(
+                indexLoc, (decimal)staticUpperBound, boundsResult,
+                (int)BoundBinaryOperatorKind.Greater));
+        }
         var whenChain = method.CreateBlock("search.whens");
         loopHeader.Instructions.Add(new IrBranchIfFalse(boundsResult, whenChain));
         loopHeader.Instructions.Add(new IrJump(atEndBlock));
@@ -3327,13 +3449,18 @@ public sealed class Binder
         var indexLoc = ResolveLocation(searchAll.Index);
         if (indexLoc == null) return block;
 
-        int upperBound = searchAll.Table.Symbol.Occurs?.MaxOccurs ?? 1;
+        var occurs = searchAll.Table.Symbol.Occurs;
+        int upperBound = occurs?.MaxOccurs ?? 1;
         var when = searchAll.Whens[0]; // SEARCH ALL allows exactly one WHEN
+
+        // Resolve ODO DEPENDING ON variable for runtime upper bound
+        IrLocation? odoLoc = null;
+        if (occurs?.DependingOnSymbol != null)
+            odoLoc = ResolveLocation(occurs.DependingOnSymbol);
 
         // Determine sort direction from table's KEY clause.
         // ASCENDING KEY → key < target means search right (higher indices).
         // DESCENDING KEY → key < target means search left (lower indices).
-        var occurs = searchAll.Table.Symbol.Occurs;
         bool isAscending = occurs == null || occurs.AscendingKeys.Count > 0 || occurs.DescendingKeys.Count == 0;
 
         // Extract the first relational comparison from the WHEN condition
@@ -3352,7 +3479,7 @@ public sealed class Binder
 
         // Generate the unrolled binary search tree
         EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
-            indexLoc, 1, upperBound, method, block, atEndBlock, exitBlock);
+            indexLoc, 1, upperBound, method, block, atEndBlock, exitBlock, odoLoc);
 
         // AT END
         method.Blocks.Add(atEndBlock);
@@ -3380,7 +3507,8 @@ public sealed class Binder
         IrMethod method,
         IrBasicBlock block,
         IrBasicBlock atEndBlock,
-        IrBasicBlock exitBlock)
+        IrBasicBlock exitBlock,
+        IrLocation? odoLoc = null)
     {
         if (lo > hi)
         {
@@ -3390,6 +3518,33 @@ public sealed class Binder
         }
 
         int mid = lo + (hi - lo) / 2;
+
+        // ODO bounds check: if mid > active ODO count, this element is inactive → AT END
+        if (odoLoc != null)
+        {
+            var odoCheck = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrPicCompareLiteral(
+                odoLoc, (decimal)mid, odoCheck,
+                (int)BoundBinaryOperatorKind.Less));
+            var inBoundsBlock = method.CreateBlock("searchall.inbounds");
+            // If odoCount < mid → out of bounds, search left half or AT END
+            if (lo < mid)
+            {
+                var odoLeftBlock = method.CreateBlock("searchall.odoleft");
+                block.Instructions.Add(new IrBranchIfFalse(odoCheck, inBoundsBlock));
+                block.Instructions.Add(new IrJump(odoLeftBlock));
+                method.Blocks.Add(odoLeftBlock);
+                EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+                    indexLoc, lo, mid - 1, method, odoLeftBlock, atEndBlock, exitBlock, odoLoc);
+            }
+            else
+            {
+                block.Instructions.Add(new IrBranchIfFalse(odoCheck, inBoundsBlock));
+                block.Instructions.Add(new IrJump(atEndBlock));
+            }
+            method.Blocks.Add(inBoundsBlock);
+            block = inBoundsBlock;
+        }
 
         // Set index = mid
         block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, (decimal)mid));
@@ -3451,12 +3606,12 @@ public sealed class Binder
             // Left subtree: lo..mid-1
             method.Blocks.Add(leftBlock);
             EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
-                indexLoc, lo, mid - 1, method, leftBlock, atEndBlock, exitBlock);
+                indexLoc, lo, mid - 1, method, leftBlock, atEndBlock, exitBlock, odoLoc);
 
             // Right subtree: mid+1..hi
             method.Blocks.Add(rightBlock);
             EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
-                indexLoc, mid + 1, hi, method, rightBlock, atEndBlock, exitBlock);
+                indexLoc, mid + 1, hi, method, rightBlock, atEndBlock, exitBlock, odoLoc);
         }
         else
         {

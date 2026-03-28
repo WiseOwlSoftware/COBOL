@@ -26,7 +26,7 @@ fileControlParagraph
     ;
 
 fileControlClauseGroup
-    : SELECT fileName
+    : SELECT OPTIONAL? fileName
       ( ASSIGN TO assignTarget )?
       fileControlClauses*
       DOT
@@ -42,6 +42,7 @@ fileControlClauses
     | accessModeClause
     | recordKeyClause
     | alternateKeyClause
+    | relativeKeyClause
     | fileStatusClause
     | vendorFileControlClause
     ;
@@ -78,6 +79,10 @@ alternateKeyClause
 
 fileStatusClause
     : FILE STATUS IS dataReference
+    ;
+
+relativeKeyClause
+    : RELATIVE KEY IS? dataReference
     ;
 
 vendorFileControlClause
@@ -161,6 +166,7 @@ writeStatement
     : WRITE recordName
       writeFrom?
       writeBeforeAfter?
+      writeAtEndOfPage?
       writeInvalidKey?
       END_WRITE?
 
@@ -171,7 +177,15 @@ writeFrom
     ;
 
 writeBeforeAfter
-    : (BEFORE | AFTER) ADVANCING (dataReference | integerLiteral | literal) (LINE | LINES)?
+    : (BEFORE | AFTER) ADVANCING
+      ( PAGE
+      | (dataReference | integerLiteral | literal) (LINE | LINES)?
+      )
+    ;
+
+writeAtEndOfPage
+    : AT? (END_OF_PAGE | EOP) statementBlock
+      (NOT AT? (END_OF_PAGE | EOP) statementBlock)?
     ;
 
 writeInvalidKey
@@ -259,11 +273,11 @@ startInvalidKeyPhrase
 
 sortStatement
     : SORT sortFileName
-      sortKeyPhrase*
-      sortUsingPhrase?
-      sortGivingPhrase?
-      sortInputProcedurePhrase?
-      sortOutputProcedurePhrase?
+      sortKeyPhrase+
+      sortDuplicatesPhrase?
+      sortCollatingPhrase?
+      ( sortUsingPhrase | sortInputProcedurePhrase )
+      ( sortGivingPhrase | sortOutputProcedurePhrase )?
       END_SORT?
 
     ;
@@ -273,7 +287,15 @@ sortFileName
     ;
 
 sortKeyPhrase
-    : (ASCENDING | DESCENDING) KEY dataReferenceList
+    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList
+    ;
+
+sortDuplicatesPhrase
+    : WITH? DUPLICATES IN? IDENTIFIER?
+    ;
+
+sortCollatingPhrase
+    : COLLATING SEQUENCE IS? IDENTIFIER (IDENTIFIER)?
     ;
 
 sortUsingPhrase
@@ -285,11 +307,11 @@ sortGivingPhrase
     ;
 
 sortInputProcedurePhrase
-    : INPUT PROCEDURE IS procedureName
+    : INPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
     ;
 
 sortOutputProcedurePhrase
-    : OUTPUT PROCEDURE IS procedureName
+    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
     ;
 
 // ==========================================
@@ -299,9 +321,9 @@ sortOutputProcedurePhrase
 mergeStatement
     : MERGE mergeFileName
       mergeKeyPhrase+
+      sortCollatingPhrase?
       mergeUsingPhrase
-      mergeOutputProcedurePhrase?
-      mergeGivingPhrase?
+      ( mergeGivingPhrase | mergeOutputProcedurePhrase )?
       END_MERGE?
 
     ;
@@ -311,7 +333,7 @@ mergeFileName
     ;
 
 mergeKeyPhrase
-    : (ASCENDING | DESCENDING) KEY dataReferenceList
+    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList
     ;
 
 mergeUsingPhrase
@@ -323,7 +345,7 @@ mergeGivingPhrase
     ;
 
 mergeOutputProcedurePhrase
-    : OUTPUT PROCEDURE IS procedureName
+    : OUTPUT PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?
     ;
 
 // ==========================================

@@ -31,10 +31,17 @@ public static class DataItemClassifier
     {
         if (data.Occurs == null) return;
 
-        // OCCURS not allowed on level 01 or 77
+        // OCCURS not allowed on level 01, 77, or 66 (RENAMES)
         if (data.LevelNumber is 1 or 77)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0801, loc, span, data.DisplayName);
+            return;
+        }
+
+        // Check 5: OCCURS not allowed on level-66 (RENAMES)
+        if (data.LevelNumber == 66)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL0805, loc, span, data.DisplayName);
             return;
         }
 
@@ -91,6 +98,19 @@ public static class DataItemClassifier
         return false;
     }
 
+    /// <summary>
+    /// Returns true if the item has a parent with an OCCURS clause.
+    /// Items subordinate to OCCURS should not have VALUE clauses (ISO §6.13.2).
+    /// </summary>
+    private static bool IsSubordinateToOccurs(DataSymbol data)
+    {
+        for (var cur = data.Parent; cur != null; cur = cur.Parent)
+        {
+            if (cur.Occurs != null) return true;
+        }
+        return false;
+    }
+
     private static void ValidateBlankWhenZero(DataSymbol data, SourceLocation loc, TextSpan span,
         DiagnosticBag diagnostics)
     {
@@ -105,6 +125,12 @@ public static class DataItemClassifier
         if (!isNumericDisplay && !isNumericEditedDisplay)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0802, loc, span, data.DisplayName);
+        }
+
+        // Check 4: BLANK WHEN ZERO with JUSTIFIED is not allowed (ISO §13.18.5)
+        if (data.IsJustifiedRight)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL0804, loc, span, data.DisplayName);
         }
     }
 
@@ -125,6 +151,18 @@ public static class DataItemClassifier
     {
         if (data.InitialValue == null && data.FigurativeInit == null) return;
         if (data.LevelNumber == 88) return; // Condition values validated separately
+
+        // Check 6: VALUE on REDEFINES items (except level-88)
+        if (data.Redefines != null)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL0806, loc, span, data.DisplayName);
+        }
+
+        // Check 7: VALUE on items subordinate to OCCURS
+        if (IsSubordinateToOccurs(data))
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL0807, loc, span, data.DisplayName);
+        }
 
         // VALUE on group item → warning (ISO allows it but it's an extension)
         if (data.IsGroup)

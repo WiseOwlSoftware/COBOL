@@ -50,7 +50,8 @@ public static class PicDescriptorFactory
         bool edited = false;
 
         bool hasNumericChars = false;   // 9, V, P, S
-        bool hasAlphaChars = false;     // X, A
+        bool hasAlphaChars = false;     // A (alphabetic only)
+        bool hasAlphanumericChars = false; // X (alphanumeric)
         bool hasNationalChars = false;  // N
         bool hasRealDigits = false;     // any 9/edited-digit
 
@@ -113,7 +114,7 @@ public static class PicDescriptorFactory
 
                 case 'X':
                 {
-                    hasAlphaChars = true;
+                    hasAlphanumericChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -284,12 +285,15 @@ public static class PicDescriptorFactory
         int totalDigits = integerDigits + fractionDigits;
 
         // Category lattice (mirrors PicUsageResolver)
+        // hasAlphaChars = PIC A only; hasAlphanumericChars = PIC X
         CobolCategory category;
-        if (hasNumericChars && !hasAlphaChars && !hasNationalChars)
+        if (hasNumericChars && !hasAlphaChars && !hasAlphanumericChars && !hasNationalChars)
             category = edited ? CobolCategory.NumericEdited : CobolCategory.Numeric;
-        else if (hasNationalChars && !hasNumericChars && !hasAlphaChars)
+        else if (hasNationalChars && !hasNumericChars && !hasAlphaChars && !hasAlphanumericChars)
             category = edited ? CobolCategory.NationalEdited : CobolCategory.National;
-        else if (hasAlphaChars || (!hasNumericChars && !hasNationalChars && edited))
+        else if (hasAlphaChars && !hasAlphanumericChars && !hasNumericChars && !hasNationalChars && !edited)
+            category = CobolCategory.Alphabetic;
+        else if (hasAlphaChars || hasAlphanumericChars || (!hasNumericChars && !hasNationalChars && edited))
             category = edited ? CobolCategory.AlphanumericEdited : CobolCategory.Alphanumeric;
         else if (edited && hasNumericChars)
             category = CobolCategory.NumericEdited;

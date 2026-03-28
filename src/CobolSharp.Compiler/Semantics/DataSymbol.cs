@@ -133,6 +133,12 @@ public sealed class DataSymbol : Symbol
     /// <summary>JUSTIFIED RIGHT clause present on this data item.</summary>
     public bool IsJustifiedRight { get; set; }
 
+    /// <summary>IS EXTERNAL clause (§13.18.22): shared storage across run unit.</summary>
+    public bool IsExternal { get; set; }
+
+    /// <summary>IS GLOBAL clause (§13.18.27): visible to contained programs.</summary>
+    public bool IsGlobal { get; set; }
+
     /// <summary>True if USAGE was explicitly specified on this item (not inherited from parent).</summary>
     public bool HasExplicitUsage { get; set; }
 

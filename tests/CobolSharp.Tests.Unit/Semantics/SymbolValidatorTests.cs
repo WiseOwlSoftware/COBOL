@@ -380,4 +380,125 @@ public class SymbolValidatorTests : DiagnosticTestBase
         var diags = GetDiagnostics(source);
         AssertHasDiagnostic(diags, "CBL3107");
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CBL3115: EXTERNAL only on level-01 in WORKING-STORAGE
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void CBL3115_ExternalOnLevel77_IsError()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-X IS EXTERNAL PIC 9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL3115");
+    }
+
+    [Fact]
+    public void CBL3115_ExternalOnLinkageItem_IsError()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-X IS EXTERNAL PIC 9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL3115");
+    }
+
+    [Fact]
+    public void CBL3118_ExternalOnLevel01WS_WarnsRuntime()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-EXT IS EXTERNAL PIC X(5).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        // Valid placement — no CBL3115 error
+        AssertNoDiagnostic(diags, "CBL3115");
+        // But runtime warning is emitted
+        AssertHasDiagnostic(diags, "CBL3118");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CBL3116: GLOBAL only on level-01
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void CBL3116_GlobalOnLevel77_IsError()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77 WS-G IS GLOBAL PIC 9.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL3116");
+    }
+
+    [Fact]
+    public void CBL3119_GlobalOnLevel01_WarnsRuntime()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-GLB IS GLOBAL PIC X(5).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        // Valid placement — no CBL3116 error
+        AssertNoDiagnostic(diags, "CBL3116");
+        // But runtime warning is emitted
+        AssertHasDiagnostic(diags, "CBL3119");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CBL3117: EXTERNAL cannot be combined with REDEFINES
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void CBL3117_ExternalWithRedefines_IsError()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-A PIC X(5).
+       01 WS-B IS EXTERNAL REDEFINES WS-A PIC X(5).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL3117");
+    }
 }

@@ -174,4 +174,77 @@ public class DataItemClassifierTests
         var (diags, _) = RunClassifier(item);
         Assert.Empty(diags.Diagnostics);
     }
+
+    // ── PIC A classification ──
+
+    [Fact]
+    public void PicA_classified_as_Alphabetic()
+    {
+        var item = MakeElementary("ALPHA1", 77, "A(10)");
+        Assert.Equal(CobolCategory.Alphabetic, item.ResolvedType!.Category);
+    }
+
+    [Fact]
+    public void PicX_classified_as_Alphanumeric()
+    {
+        var item = MakeElementary("ALPHANUM1", 77, "X(10)");
+        Assert.Equal(CobolCategory.Alphanumeric, item.ResolvedType!.Category);
+    }
+
+    [Fact]
+    public void PicAX_classified_as_Alphanumeric()
+    {
+        // Mixed A and X → Alphanumeric
+        var item = MakeElementary("MIXED1", 77, "AX");
+        Assert.Equal(CobolCategory.Alphanumeric, item.ResolvedType!.Category);
+    }
+
+    // ── BLANK WHEN ZERO with JUSTIFIED (Check 4) ──
+
+    [Fact]
+    public void BlankWhenZero_with_Justified_reports_CBL0804()
+    {
+        var item = MakeElementary("NUM1", 77, "9(5)", blankWhenZero: true, justifiedRight: true);
+        var (diags, _) = RunClassifier(item);
+        Assert.Contains(diags.Diagnostics, d => d.Code == "CBL0804");
+    }
+
+    // ── OCCURS on level-66 (Check 5) ──
+
+    [Fact]
+    public void Occurs_on_level_66_reports_CBL0805()
+    {
+        var item = MakeElementary("RENAME1", 66, "X(10)");
+        item.Occurs = new OccursInfo(5, 5);
+        var (diags, _) = RunClassifier(item);
+        Assert.Contains(diags.Diagnostics, d => d.Code == "CBL0805");
+    }
+
+    // ── VALUE on REDEFINES (Check 6) ──
+
+    [Fact]
+    public void Value_on_Redefines_reports_CBL0806()
+    {
+        var original = MakeElementary("ORIG", 5, "X(10)");
+        var redef = MakeElementary("REDEF1", 5, "9(10)");
+        redef.Redefines = original;
+        redef.InitialValue = "0";
+        var group = MakeGroup("GRP1", 1, original, redef);
+        var (diags, _) = RunClassifier(group, original, redef);
+        Assert.Contains(diags.Diagnostics, d => d.Code == "CBL0806");
+    }
+
+    // ── VALUE on OCCURS subordinate (Check 7) ──
+
+    [Fact]
+    public void Value_on_Occurs_subordinate_reports_CBL0807()
+    {
+        var child = MakeElementary("CHILD1", 10, "X(5)");
+        child.InitialValue = "HELLO";
+        var table = MakeGroup("TABLE1", 5, child);
+        table.Occurs = new OccursInfo(5, 5);
+        var root = MakeGroup("ROOT1", 1, table);
+        var (diags, _) = RunClassifier(root, table, child);
+        Assert.Contains(diags.Diagnostics, d => d.Code == "CBL0807");
+    }
 }

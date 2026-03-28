@@ -1117,4 +1117,137 @@ public class DataTests : EndToEndTestBase
         Assert.Equal("AA", lines[1]); // ITEM(2) should have "AA" (value of ITEM(1) at time of evaluation)
     }
 
+
+    // ═══════════════════════════════════════════════════════════════
+    // EXTERNAL / GLOBAL clause tests (§13.18.22, §13.18.27)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void ExternalClause_Level01_WorkingStorage_ParsesAndCompiles()
+    {
+        // EXTERNAL on level-01 in WORKING-STORAGE should parse and compile
+        // (with a warning that shared storage is not yet implemented)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXTTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-SHARED IS EXTERNAL PIC X(10) VALUE "HELLO".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-SHARED.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("HELLO", stdout);
+    }
+
+
+    [Fact]
+    public void ExternalClause_WithoutIS_ParsesAndCompiles()
+    {
+        // EXTERNAL without IS keyword should also parse (IS is optional noise word)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXTTEST2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-EXT EXTERNAL PIC X(5) VALUE "WORLD".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-EXT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("WORLD", stdout);
+    }
+
+
+    [Fact]
+    public void GlobalClause_Level01_ParsesAndCompiles()
+    {
+        // GLOBAL on level-01 should parse and compile
+        // (with a warning that nested visibility is not yet implemented)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GLBTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GLOB IS GLOBAL PIC X(8) VALUE "GLOBAL01".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-GLOB.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("GLOBAL01", stdout);
+    }
+
+
+    [Fact]
+    public void GlobalClause_WithoutIS_ParsesAndCompiles()
+    {
+        // GLOBAL without IS keyword should also parse
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GLBTEST2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GLB GLOBAL PIC X(4) VALUE "GLOB".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-GLB.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("GLOB", stdout);
+    }
+
+
+    [Fact]
+    public void ExternalAndGlobal_Together_ParsesAndCompiles()
+    {
+        // Both EXTERNAL and GLOBAL on the same level-01 item
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BOTHTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-BOTH IS EXTERNAL IS GLOBAL PIC X(4) VALUE "BOTH".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-BOTH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("BOTH", stdout);
+    }
+
+
+    [Fact]
+    public void ExternalClause_GroupItem_ParsesAndCompiles()
+    {
+        // EXTERNAL on a level-01 group item (no PIC) — should compile fine
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. EXTGRP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GRP IS EXTERNAL.
+               05 WS-A PIC X(3) VALUE "ABC".
+               05 WS-B PIC X(3) VALUE "DEF".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-A WS-B.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ABCDEF", stdout);
+    }
 }

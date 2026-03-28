@@ -43,6 +43,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             BoundReferenceModificationExpression => ExpressionType.Alphanumeric,
             BoundConditionNameExpression => ExpressionType.Boolean,
             BoundClassConditionExpression => ExpressionType.Boolean,
+            BoundUserClassConditionExpression => ExpressionType.Boolean,
             BoundFigurativeExpression => ExpressionType.Alphanumeric,
             BoundBinaryExpression bin => bin.OperatorKind switch
             {
@@ -232,7 +233,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (exitCtx.PROGRAM() != null)
                 return new BoundExitProgramStatement();
             if (exitCtx.PERFORM() != null)
-                return new BoundExitPerformStatement();
+                return new BoundExitPerformStatement(isCycle: exitCtx.CYCLE() != null);
             if (exitCtx.PARAGRAPH() != null)
                 return new BoundExitParagraphStatement();
             if (exitCtx.SECTION() != null)
@@ -263,6 +264,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.returnStatement() is { } retCtx) return BindReturn(retCtx);
         if (ctx.callStatement() is { } callCtx) return BindCall(callCtx);
         if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
+        if (ctx.useStatement() is { }) return new BoundExitStatement(); // USE is a no-op stub
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
             new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
@@ -355,6 +357,29 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
                 if (!CategoryCompatibility.IsMoveLegal(effectiveSrcCat, tgtCat))
                     _diagnostics.Report(DiagnosticDescriptors.CBL0901, moveLoc, moveSpan, effectiveSrcCat, tgtCat);
+
+                // Check 1: MOVE ZERO to Alphabetic
+                if (source is BoundFigurativeExpression fig2
+                    && fig2.FigurativeKind == Runtime.FigurativeKind.Zero
+                    && tgtCat == CobolCategory.Alphabetic)
+                    _diagnostics.Report(DiagnosticDescriptors.CBL0908, moveLoc, moveSpan);
+
+                // Check 2: HIGH-VALUE/LOW-VALUE/QUOTE to Numeric
+                if (source is BoundFigurativeExpression fig3
+                    && fig3.FigurativeKind is Runtime.FigurativeKind.HighValue
+                        or Runtime.FigurativeKind.LowValue
+                        or Runtime.FigurativeKind.Quote
+                    && tgtCat.IsNumericLike())
+                    _diagnostics.Report(DiagnosticDescriptors.CBL0906, moveLoc, moveSpan, fig3.FigurativeKind);
+
+                // Check 3: Numeric noninteger literal to Alphanumeric
+                if (source is BoundLiteralExpression srcLit
+                    && srcLit.Category == CobolCategory.Numeric
+                    && srcLit.Value is decimal decVal
+                    && decVal != decimal.Truncate(decVal)
+                    && tgtCat.IsAlphanumericLike()
+                    && !tgtCat.IsNumericLike())
+                    _diagnostics.Report(DiagnosticDescriptors.CBL0907, moveLoc, moveSpan);
             }
         }
 
@@ -383,6 +408,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var span = Common.TextSpan.Empty;
         var kindName = kind.ToString().ToUpperInvariant();
         bool hasError = false;
+
+        // Check 11: CORRESPONDING excludes RENAMES items (ISO §14.9.26)
+        if (srcSym.LevelNumber == 66)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0414,
+                loc, span, kindName, srcSym.DisplayName);
+            hasError = true;
+        }
+        if (dstSym.LevelNumber == 66)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.COBOL0414,
+                loc, span, kindName, dstSym.DisplayName);
+            hasError = true;
+        }
 
         // Source must be a group item
         if (srcSym.IsElementary)
@@ -772,28 +811,31 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);
             // Parse the advancing value — integer literal, PAGE, or identifier
-            var intLit = advCtx.integerLiteral();
-            if (intLit != null)
+            if (advCtx.PAGE() != null)
             {
-                advancingLines = int.Parse(intLit.GetText());
+                advancingLines = -1; // PAGE = form-feed (sentinel value)
             }
             else
             {
-                // Could be PAGE or an identifier referencing a data field
-                var idCtx = advCtx.dataReference();
-                if (idCtx != null && idCtx.IDENTIFIER().GetText().Equals("PAGE", StringComparison.OrdinalIgnoreCase))
+                var intLit = advCtx.integerLiteral();
+                if (intLit != null)
                 {
-                    advancingLines = -1; // PAGE = form-feed (sentinel value)
-                }
-                else if (idCtx != null)
-                {
-                    // Data identifier — bind as expression, read at runtime
-                    advancingExpression = BindDataReferenceWithSubscripts(idCtx);
-                    advancingLines = 0; // Sentinel: will be overridden at runtime
+                    advancingLines = int.Parse(intLit.GetText());
                 }
                 else
                 {
-                    advancingLines = 1; // Default: 1 line
+                    // Could be a data identifier referencing a data field
+                    var idCtx = advCtx.dataReference();
+                    if (idCtx != null)
+                    {
+                        // Data identifier — bind as expression, read at runtime
+                        advancingExpression = BindDataReferenceWithSubscripts(idCtx);
+                        advancingLines = 0; // Sentinel: will be overridden at runtime
+                    }
+                    else
+                    {
+                        advancingLines = 1; // Default: 1 line
+                    }
                 }
             }
         }
@@ -2830,6 +2872,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             : ctx.NEGATIVE() != null ? SignConditionKind.Negative
             : SignConditionKind.Zero;
 
+        // Check 12: Sign condition requires a numeric operand (ISO §6.3.4.1)
+        if (!subject.Category.IsNumericLike() && subject.Category != CobolCategory.Unknown)
+        {
+            var (loc, span) = DiagAt(ctx.Start?.Line ?? 0);
+            _diagnostics.Report(DiagnosticDescriptors.CBL2606, loc, span);
+        }
+
         return new BoundSignConditionExpression(subject, kind, isNegated);
     }
 
@@ -2855,6 +2904,11 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             };
             if (kind == null)
             {
+                // Check for user-defined CLASS from SPECIAL-NAMES
+                var classDef = _semantic.ResolveClassDefinition(classText);
+                if (classDef != null)
+                    return new BoundUserClassConditionExpression(subject, classDef, isNegated);
+
                 _diagnostics.Report(DiagnosticDescriptors.COBOL0413,
                     Common.SourceLocation.None, Common.TextSpan.Empty, classNameCtx.GetText());
                 return new BoundLiteralExpression(false, CobolCategory.Unknown);
@@ -2976,6 +3030,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (expr is BoundConditionNameExpression
                 or BoundSwitchConditionExpression
                 or BoundClassConditionExpression
+                or BoundUserClassConditionExpression
                 or BoundSignConditionExpression)
             return expr;
 
@@ -3233,6 +3288,30 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var occurs = stmt.Table.Symbol.Occurs;
         if (occurs != null && occurs.AscendingKeys.Count == 0 && occurs.DescendingKeys.Count == 0)
             _diagnostics.Report(DiagnosticDescriptors.CBL1204, loc, span, stmt.Table.Symbol.DisplayName);
+
+        // Check 10: SEARCH ALL WHEN must be equality comparison on key fields
+        foreach (var when in stmt.Whens)
+        {
+            if (!IsSearchAllEqualityCondition(when.Condition))
+                _diagnostics.Report(DiagnosticDescriptors.CBL1206, loc, span);
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the condition is a valid SEARCH ALL WHEN condition:
+    /// a simple equality comparison, an AND of equality comparisons,
+    /// or a condition-name (level-88) check.
+    /// </summary>
+    private static bool IsSearchAllEqualityCondition(BoundExpression condition)
+    {
+        return condition switch
+        {
+            BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.Equal } => true,
+            BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.And } and_ =>
+                IsSearchAllEqualityCondition(and_.Left) && IsSearchAllEqualityCondition(and_.Right),
+            BoundConditionNameExpression => true, // Level-88 condition-name
+            _ => false,
+        };
     }
 
     /// <summary>
@@ -3377,7 +3456,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         if (sym == null)
+        {
+            // Check for SYMBOLIC CHARACTER from SPECIAL-NAMES
+            var symChar = _semantic.ResolveSymbolicCharacter(name);
+            if (symChar.HasValue)
+            {
+                // Symbolic character: produce a 1-byte string literal
+                string charValue = ((char)symChar.Value).ToString();
+                return Typed(new BoundLiteralExpression(charValue, CobolCategory.Alphanumeric));
+            }
+
             return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
+        }
 
         var cat = sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
 
@@ -3831,5 +3921,25 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             lengthExpr = BindArithmeticExpr(arithExprs[1]);
 
         return new BoundReferenceModificationExpression(baseId, startExpr, lengthExpr);
+    }
+
+    // ── USE (declaratives) ──
+
+    private BoundUseStatement BindUse(CobolParserCore.UseStatementContext ctx)
+    {
+        // USE BEFORE REPORTING report-name
+        if (ctx.BEFORE() != null && ctx.REPORTING() != null)
+        {
+            string reportName = ctx.procedureName()?.GetText() ?? "";
+            return new BoundUseStatement(isBeforeReporting: true, [], reportName);
+        }
+
+        // USE AFTER STANDARD ERROR PROCEDURE ON file-name+
+        var fileNames = new List<string>();
+        foreach (var fn in ctx.fileName())
+        {
+            fileNames.Add(fn.GetText());
+        }
+        return new BoundUseStatement(isBeforeReporting: false, fileNames, reportName: null);
     }
 }

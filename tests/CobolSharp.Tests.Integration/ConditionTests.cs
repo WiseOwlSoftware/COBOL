@@ -333,4 +333,163 @@ public class ConditionTests : EndToEndTestBase
         Assert.Equal("PAREN-NOT", lines[2]);
     }
 
+    // ═══════════════════════════════════════════
+    // User-defined CLASS condition
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void UserDefinedClass_IsMyClass()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDCLASS.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                CLASS MY-CLASS IS "ABC".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-YES PIC X(3) VALUE "ABC".
+            01 WS-NO  PIC X(3) VALUE "ABD".
+            01 WS-MIX PIC X(3) VALUE "AXB".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-YES IS MY-CLASS
+                    DISPLAY "YES-IN"
+                ELSE
+                    DISPLAY "YES-OUT"
+                END-IF.
+                IF WS-NO IS MY-CLASS
+                    DISPLAY "NO-IN"
+                ELSE
+                    DISPLAY "NO-OUT"
+                END-IF.
+                IF WS-MIX IS NOT MY-CLASS
+                    DISPLAY "MIX-NOT"
+                ELSE
+                    DISPLAY "MIX-IS"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("YES-IN", lines[0]);
+        Assert.Equal("NO-OUT", lines[1]);
+        Assert.Equal("MIX-NOT", lines[2]);
+    }
+
+    [Fact]
+    public void UserDefinedClass_ThruRange()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDRANGE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                CLASS DIGIT-CLASS IS "0" THRU "9".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-NUM PIC X(3) VALUE "123".
+            01 WS-MIX PIC X(3) VALUE "1A3".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-NUM IS DIGIT-CLASS
+                    DISPLAY "NUM-YES"
+                END-IF.
+                IF WS-MIX IS DIGIT-CLASS
+                    DISPLAY "MIX-YES"
+                ELSE
+                    DISPLAY "MIX-NO"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("NUM-YES", lines[0]);
+        Assert.Equal("MIX-NO", lines[1]);
+    }
+
+    // ═══════════════════════════════════════════
+    // SYMBOLIC CHARACTERS
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void SymbolicCharacters_MoveAndDisplay()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SYMCHAR.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                SYMBOLIC CHARACTERS SYM-A IS 66.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-FLD PIC X(3) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE SYM-A TO WS-FLD.
+                IF WS-FLD = "A  "
+                    DISPLAY "SYM-OK"
+                ELSE
+                    DISPLAY "SYM-FAIL:" WS-FLD ":"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("SYM-OK", lines[0]);
+    }
+
+    // ═══════════════════════════════════════════
+    // ALPHABET / PROGRAM COLLATING SEQUENCE
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void CollatingSequence_ReverseOrder()
+    {
+        // Define an alphabet where "B" sorts before "A"
+        // Native: A=65, B=66, so A < B
+        // With reversed alphabet: B < A
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COLLSEQ.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            OBJECT-COMPUTER. X86 PROGRAM COLLATING SEQUENCE
+                IS MY-ORDER.
+            SPECIAL-NAMES.
+                ALPHABET MY-ORDER IS
+                    "B", "A".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(1) VALUE "A".
+            01 WS-B PIC X(1) VALUE "B".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A > WS-B
+                    DISPLAY "A-GT-B"
+                ELSE
+                    DISPLAY "A-NOT-GT"
+                END-IF.
+                IF WS-B < WS-A
+                    DISPLAY "B-LT-A"
+                ELSE
+                    DISPLAY "B-NOT-LT"
+                END-IF.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // With our custom alphabet: B has weight 0, A has weight 1
+        // So A > B (A's weight 1 > B's weight 0)
+        Assert.Equal("A-GT-B", lines[0]);
+        Assert.Equal("B-LT-A", lines[1]);
+    }
+
 }

@@ -8,6 +8,7 @@ public class CategoryCompatibilityTests
 {
     private static readonly CobolCategory[] AllCategories =
     {
+        CobolCategory.Alphabetic,
         CobolCategory.Numeric,
         CobolCategory.NumericEdited,
         CobolCategory.Alphanumeric,
@@ -21,14 +22,21 @@ public class CategoryCompatibilityTests
     // ══════════════════════════════════════
 
     [Fact]
-    public void Numeric_can_move_to_any_category()
+    public void Numeric_can_move_to_most_categories()
     {
         foreach (var dst in AllCategories)
-            Assert.True(CategoryCompatibility.IsMoveLegal(CobolCategory.Numeric, dst),
-                $"Numeric → {dst} should be legal");
+        {
+            if (dst == CobolCategory.Alphabetic)
+                Assert.False(CategoryCompatibility.IsMoveLegal(CobolCategory.Numeric, dst),
+                    "Numeric → Alphabetic should be illegal (ISO Table 16)");
+            else
+                Assert.True(CategoryCompatibility.IsMoveLegal(CobolCategory.Numeric, dst),
+                    $"Numeric → {dst} should be legal");
+        }
     }
 
     [Theory]
+    [InlineData(CobolCategory.Alphabetic)]
     [InlineData(CobolCategory.AlphanumericEdited)]
     [InlineData(CobolCategory.National)]
     [InlineData(CobolCategory.NationalEdited)]
@@ -55,6 +63,7 @@ public class CategoryCompatibilityTests
     }
 
     [Theory]
+    [InlineData(CobolCategory.Alphabetic)]
     [InlineData(CobolCategory.AlphanumericEdited)]
     [InlineData(CobolCategory.National)]
     [InlineData(CobolCategory.NationalEdited)]
@@ -86,6 +95,34 @@ public class CategoryCompatibilityTests
             else
                 Assert.Null(helper);
         }
+    }
+
+    // ══════════════════════════════════════
+    // Alphabetic MOVE rules (ISO Table 16)
+    // ══════════════════════════════════════
+
+    [Theory]
+    [InlineData(CobolCategory.Alphabetic, true)]
+    [InlineData(CobolCategory.Alphanumeric, true)]
+    [InlineData(CobolCategory.AlphanumericEdited, true)]
+    [InlineData(CobolCategory.Numeric, false)]
+    [InlineData(CobolCategory.NumericEdited, false)]
+    [InlineData(CobolCategory.National, false)]
+    public void Alphabetic_move_targets(CobolCategory target, bool expected)
+    {
+        Assert.Equal(expected,
+            CategoryCompatibility.IsMoveLegal(CobolCategory.Alphabetic, target));
+    }
+
+    [Theory]
+    [InlineData(CobolCategory.Alphanumeric, true)]
+    [InlineData(CobolCategory.AlphanumericEdited, true)]
+    [InlineData(CobolCategory.Numeric, false)]
+    [InlineData(CobolCategory.NumericEdited, false)]
+    public void Alphabetic_as_target(CobolCategory source, bool expected)
+    {
+        Assert.Equal(expected,
+            CategoryCompatibility.IsMoveLegal(source, CobolCategory.Alphabetic));
     }
 
     // ══════════════════════════════════════
@@ -188,6 +225,7 @@ public class CategoryCompatibilityTests
         => Assert.Equal(expected, CategoryCompatibility.IsNumericFamily(c));
 
     [Theory]
+    [InlineData(CobolCategory.Alphabetic, true)]
     [InlineData(CobolCategory.Alphanumeric, true)]
     [InlineData(CobolCategory.AlphanumericEdited, true)]
     [InlineData(CobolCategory.Numeric, false)]

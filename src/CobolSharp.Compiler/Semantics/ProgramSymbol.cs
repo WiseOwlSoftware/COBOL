@@ -86,6 +86,21 @@ public sealed class FileSymbol : Symbol
     /// <summary>FILE STATUS identifier name (PIC XX variable).</summary>
     public string? FileStatus { get; set; }
 
+    /// <summary>RELATIVE KEY identifier name (for RELATIVE organization).</summary>
+    public string? RelativeKey { get; set; }
+
+    /// <summary>True if SELECT OPTIONAL was specified.</summary>
+    public bool IsOptional { get; set; }
+
+    /// <summary>LINAGE body line count (0 = no LINAGE clause). May be a data-name or integer.</summary>
+    public int LinageBody { get; set; }
+    /// <summary>LINAGE FOOTING line number (0 = no footing).</summary>
+    public int LinageFooting { get; set; }
+    /// <summary>LINAGE LINES AT TOP (default 0).</summary>
+    public int LinageTop { get; set; }
+    /// <summary>LINAGE LINES AT BOTTOM (default 0).</summary>
+    public int LinageBottom { get; set; }
+
     /// <summary>The 01-level record DataSymbol under this FD.</summary>
     public DataSymbol? Record { get; set; }
 

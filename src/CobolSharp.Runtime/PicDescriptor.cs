@@ -14,7 +14,9 @@ public enum CobolCategory
     Numeric,
     /// <summary>PIC with insertion/suppression symbols — display-only numeric (ISO §6.1.2.2).</summary>
     NumericEdited,
-    /// <summary>PIC X fields — general-purpose character data (ISO §6.1.2.3).</summary>
+    /// <summary>PIC A fields — alphabetic-only data (ISO §6.1.2.3).</summary>
+    Alphabetic,
+    /// <summary>PIC X fields — general-purpose character data (ISO §6.1.2.4).</summary>
     Alphanumeric,
     /// <summary>PIC X with B/0// insertion — display-formatted character data (ISO §6.1.2.4).</summary>
     AlphanumericEdited,
@@ -34,9 +36,9 @@ public static class CobolCategoryExtensions
     public static bool IsNumericLike(this CobolCategory c) =>
         c is CobolCategory.Numeric or CobolCategory.NumericEdited;
 
-    /// <summary>Returns true for Alphanumeric and AlphanumericEdited.</summary>
+    /// <summary>Returns true for Alphabetic, Alphanumeric, and AlphanumericEdited.</summary>
     public static bool IsAlphanumericLike(this CobolCategory c) =>
-        c is CobolCategory.Alphanumeric or CobolCategory.AlphanumericEdited;
+        c is CobolCategory.Alphabetic or CobolCategory.Alphanumeric or CobolCategory.AlphanumericEdited;
 
     /// <summary>Returns true for National and NationalEdited.</summary>
     public static bool IsNationalLike(this CobolCategory c) =>

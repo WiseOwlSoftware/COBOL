@@ -107,6 +107,7 @@ className
     | ALPHABETIC
     | ALPHABETIC_LOWER
     | ALPHABETIC_UPPER
+    | IDENTIFIER                    // user-defined CLASS from SPECIAL-NAMES
     ;
 
 classCondition

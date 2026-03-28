@@ -51,6 +51,34 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// Mark a file as OPTIONAL (SELECT OPTIONAL). When OPEN INPUT on a missing file,
+    /// returns status "05" instead of "35".
+    /// </summary>
+    public static void SetFileOptional(string cobolName)
+    {
+        EnsureManager();
+        var handler = _manager!.GetHandler(cobolName);
+        if (handler is SequentialFileHandler seq) seq.IsOptional = true;
+        else if (handler is IndexedFileHandler idx) idx.IsOptional = true;
+        else if (handler is RelativeFileHandler rel) rel.IsOptional = true;
+    }
+
+    /// <summary>
+    /// Set LINAGE parameters for a sequential file.
+    /// </summary>
+    public static void SetFileLinage(string cobolName, int body, int footing, int top, int bottom)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is SequentialFileHandler seq)
+        {
+            seq.LinageBody = body;
+            seq.LinageFooting = footing;
+            seq.LinageTop = top;
+            seq.LinageBottom = bottom;
+        }
+    }
+
+    /// <summary>
     /// Register an alternate key for an indexed file (after RegisterFileHandlerWithOrg).
     /// </summary>
     public static void RegisterAlternateKey(string cobolName, int keyOffset, int keyLength, bool allowDuplicates)

@@ -334,7 +334,7 @@ declarativePart
     ;
 
 declarativeSection
-    : sectionName SECTION DOT declarativeParagraph+
+    : sectionName SECTION DOT sentence* declarativeParagraph*
     ;
 
 declarativeParagraph

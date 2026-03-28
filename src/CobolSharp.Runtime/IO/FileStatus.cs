@@ -9,6 +9,8 @@ public static class FileStatus
 {
     /// <summary>Status 00 — operation completed successfully.</summary>
     public const string Success = "00";
+    /// <summary>Status 05 — OPEN on OPTIONAL file that does not exist; file created or available for first write.</summary>
+    public const string OptionalFileNotFound = "05";
     /// <summary>Status 10 — sequential READ reached end-of-file (AT END condition).</summary>
     public const string AtEnd = "10";
     /// <summary>Status 21 — key value not in ascending sequence for sequential WRITE to indexed file.</summary>

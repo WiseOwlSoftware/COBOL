@@ -759,4 +759,338 @@ public class FileIOTests : EndToEndTestBase
         Assert.Equal(3, newlinesBefore);
     }
 
+
+    // ═══════════════════════════════════
+    // Feature 9: Open-mode enforcement
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_OpenModeEnforcement_WriteToInputFile_Returns48()
+    {
+        // First create a file, then open it for INPUT and try to WRITE → status "48"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OPMODE48.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT TST-FILE ASSIGN TO "opmode48"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD TST-FILE.
+            01 TST-REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT TST-FILE.
+                MOVE "HELLO" TO TST-REC.
+                WRITE TST-REC.
+                CLOSE TST-FILE.
+                OPEN INPUT TST-FILE.
+                MOVE "WORLD" TO TST-REC.
+                WRITE TST-REC.
+                DISPLAY WS-FS.
+                CLOSE TST-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("48", stdout);
+    }
+
+
+    [Fact]
+    public void FileIO_OpenModeEnforcement_ReadFromOutputFile_Returns47()
+    {
+        // OPEN OUTPUT and try to READ → status "47"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OPMODE47.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT TST-FILE ASSIGN TO "opmode47"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD TST-FILE.
+            01 TST-REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT TST-FILE.
+                READ TST-FILE
+                    AT END DISPLAY "AT-END"
+                END-READ.
+                DISPLAY WS-FS.
+                CLOSE TST-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("47", stdout);
+    }
+
+
+    [Fact]
+    public void FileIO_OpenModeEnforcement_RewriteNotIO_Returns49()
+    {
+        // REWRITE on file not open for I-O → status "49"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OPMODE49.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT TST-FILE ASSIGN TO "opmode49"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS TST-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD TST-FILE.
+            01 TST-REC.
+               05 TST-KEY PIC X(3).
+               05 TST-VAL PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT TST-FILE.
+                MOVE "AAA" TO TST-KEY.
+                MOVE "111" TO TST-VAL.
+                WRITE TST-REC.
+                CLOSE TST-FILE.
+                OPEN INPUT TST-FILE.
+                READ TST-FILE.
+                MOVE "222" TO TST-VAL.
+                REWRITE TST-REC.
+                DISPLAY WS-FS.
+                CLOSE TST-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("49", stdout);
+    }
+
+
+    // ═══════════════════════════════════
+    // Feature 13: SELECT OPTIONAL
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_SelectOptional_MissingFileReturns05()
+    {
+        // SELECT OPTIONAL + OPEN INPUT on non-existent file → status "05"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SELOPT05.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT OPTIONAL OPT-FILE ASSIGN TO "nonexist05"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD OPT-FILE.
+            01 OPT-REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN INPUT OPT-FILE.
+                DISPLAY WS-FS.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("05", stdout);
+    }
+
+
+    // ═══════════════════════════════════
+    // Feature 12: RELATIVE KEY IS
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_RelativeKey_RandomReadByKeyField()
+    {
+        // Write records sequentially, then random-read by relative key
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RELKEY1.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT REL-FILE ASSIGN TO "relkeytest"
+                    ORGANIZATION IS RELATIVE
+                    ACCESS MODE IS DYNAMIC
+                    RELATIVE KEY IS WS-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD REL-FILE.
+            01 REL-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-KEY PIC 9(4).
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT REL-FILE.
+                MOVE "FIRST     " TO REL-REC.
+                WRITE REL-REC.
+                MOVE "SECOND    " TO REL-REC.
+                WRITE REL-REC.
+                MOVE "THIRD     " TO REL-REC.
+                WRITE REL-REC.
+                CLOSE REL-FILE.
+                OPEN INPUT REL-FILE.
+                MOVE 2 TO WS-KEY.
+                READ REL-FILE.
+                DISPLAY REL-REC.
+                DISPLAY WS-FS.
+                CLOSE REL-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("SECOND", lines[0].TrimEnd());
+        Assert.Equal("00", lines[1]);
+    }
+
+
+    // ═══════════════════════════════════
+    // Feature 11: LINAGE clause
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_LinageClause_Compiles()
+    {
+        // Verify LINAGE clause compiles without error
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LINAGE1.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT PRT-FILE ASSIGN TO "lintest"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD PRT-FILE
+                LINAGE IS 60 LINES
+                WITH FOOTING AT 55
+                LINES AT TOP 3
+                LINES AT BOTTOM 3.
+            01 PRT-REC PIC X(80).
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT PRT-FILE.
+                MOVE "LINE ONE" TO PRT-REC.
+                WRITE PRT-REC.
+                CLOSE PRT-FILE.
+                DISPLAY "LINAGE-OK".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("LINAGE-OK", stdout);
+    }
+
+
+    // ═══════════════════════════════════
+    // Feature 10: USE declaratives
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_UseDeclarative_CompilesWithoutError()
+    {
+        // Verify USE AFTER ERROR compiles (declaratives section)
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. USEDECL.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT TST-FILE ASSIGN TO "usetest"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD TST-FILE.
+            01 TST-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            ERR-SECTION SECTION.
+                USE AFTER STANDARD ERROR PROCEDURE ON TST-FILE.
+            ERR-PARA.
+                DISPLAY "USE-HANDLER".
+            END DECLARATIVES.
+            MAIN-SECTION SECTION.
+            MAIN-PARA.
+                DISPLAY "USE-COMPILED-OK".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("USE-COMPILED-OK", stdout);
+    }
+
+
+    // ═══════════════════════════════════
+    // WRITE AFTER ADVANCING PAGE
+    // ═══════════════════════════════════
+
+    [Fact]
+    public void FileIO_WriteAdvancingPage()
+    {
+        // WRITE AFTER ADVANCING PAGE should emit a form-feed
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. WRPAGE.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT PRT-FILE ASSIGN TO "pagetest"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD PRT-FILE.
+            01 PRT-REC PIC X(20).
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT PRT-FILE.
+                MOVE "BEFORE-PAGE" TO PRT-REC.
+                WRITE PRT-REC AFTER ADVANCING 1 LINES.
+                MOVE "AFTER-PAGE" TO PRT-REC.
+                WRITE PRT-REC AFTER ADVANCING PAGE.
+                CLOSE PRT-FILE.
+                DISPLAY "PAGE-OK".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("PAGE-OK", stdout);
+        // Verify file contains form-feed
+        string outputPath = Path.Combine(_tempDir, "pagetest.txt");
+        if (File.Exists(outputPath))
+        {
+            string content = File.ReadAllText(outputPath);
+            Assert.Contains("\f", content);
+        }
+    }
+
 }

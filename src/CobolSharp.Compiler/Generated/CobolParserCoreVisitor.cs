@@ -981,6 +981,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFileDescriptionEntry([NotNull] CobolParserCore.FileDescriptionEntryContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sortMergeDescriptionEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSortMergeDescriptionEntry([NotNull] CobolParserCore.SortMergeDescriptionEntryContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.fileDescriptionClauses"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1004,6 +1010,30 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDataRecordsClause([NotNull] CobolParserCore.DataRecordsClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linageClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinageClause([NotNull] CobolParserCore.LinageClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linageFootingPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinageFootingPhrase([NotNull] CobolParserCore.LinageFootingPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linageLinesAtTopPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinageLinesAtTopPhrase([NotNull] CobolParserCore.LinageLinesAtTopPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.linageLinesAtBottomPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLinageLinesAtBottomPhrase([NotNull] CobolParserCore.LinageLinesAtBottomPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.genericFileDescriptionClause"/>.
 	/// </summary>
@@ -1088,6 +1118,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDataDescriptionClause([NotNull] CobolParserCore.DataDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.externalClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExternalClause([NotNull] CobolParserCore.ExternalClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.globalClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitGlobalClause([NotNull] CobolParserCore.GlobalClauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.typeClause"/>.
 	/// </summary>
@@ -1473,6 +1515,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFileStatusClause([NotNull] CobolParserCore.FileStatusClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.relativeKeyClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRelativeKeyClause([NotNull] CobolParserCore.RelativeKeyClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.vendorFileControlClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1569,6 +1617,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitWriteBeforeAfter([NotNull] CobolParserCore.WriteBeforeAfterContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.writeAtEndOfPage"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWriteAtEndOfPage([NotNull] CobolParserCore.WriteAtEndOfPageContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.writeInvalidKey"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1652,6 +1706,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSortKeyPhrase([NotNull] CobolParserCore.SortKeyPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sortDuplicatesPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSortDuplicatesPhrase([NotNull] CobolParserCore.SortDuplicatesPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sortCollatingPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSortCollatingPhrase([NotNull] CobolParserCore.SortCollatingPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.sortUsingPhrase"/>.
 	/// </summary>

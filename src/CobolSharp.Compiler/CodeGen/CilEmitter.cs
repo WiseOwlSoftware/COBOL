@@ -989,6 +989,10 @@ public sealed class CilEmitter
                 EmitClassCondition(il, classInst, getLocal);
                 break;
 
+            case IrUserClassCondition userClassInst:
+                EmitUserClassCondition(il, userClassInst, getLocal);
+                break;
+
             case IrPicCompare cmp:
                 EmitPicCompare(il, cmp, getLocal);
                 break;
@@ -1007,6 +1011,14 @@ public sealed class CilEmitter
 
             case IrStringCompare strFldCmp:
                 EmitStringCompare(il, strFldCmp, getLocal);
+                break;
+
+            case IrStringCompareWithSequence seqCmp:
+                EmitStringCompareWithSequence(il, seqCmp, getLocal);
+                break;
+
+            case IrStringCompareLiteralWithSequence seqLitCmp:
+                EmitStringCompareLiteralWithSequence(il, seqLitCmp, getLocal);
                 break;
 
             case IrPicMoveLiteralNumeric movLit:
@@ -2181,6 +2193,42 @@ public sealed class CilEmitter
         }
     }
 
+    private void EmitUserClassCondition(ILProcessor il, IrUserClassCondition inst,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLocationArgs(il, inst.Subject);
+
+        // Emit the valid bytes array as a static field or inline byte array
+        EmitByteArrayLiteral(il, inst.ValidBytes);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("IsInUserClass",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        if (inst.Result.HasValue)
+        {
+            var resLocal = getLocal(inst.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
+
+    /// <summary>
+    /// Emit a byte[] literal onto the CIL stack. Creates a new array and fills it.
+    /// </summary>
+    private void EmitByteArrayLiteral(ILProcessor il, byte[] data)
+    {
+        il.Append(il.Create(OpCodes.Ldc_I4, data.Length));
+        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(byte))));
+        for (int i = 0; i < data.Length; i++)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldc_I4, (int)data[i]));
+            il.Append(il.Create(OpCodes.Stelem_I1));
+        }
+    }
+
     private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
@@ -2746,6 +2794,57 @@ public sealed class CilEmitter
             typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToField",
                 new[] { typeof(byte[]), typeof(int), typeof(int),
                         typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
+
+    private void EmitStringCompareWithSequence(ILProcessor il, IrStringCompareWithSequence cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        EmitLocationArgs(il, cmp.Left);
+        EmitLocationArgs(il, cmp.Right);
+        EmitByteArrayLiteral(il, cmp.CollatingSequence);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("CompareAlphanumericWithSequence",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+        {
+            var resLocal = getLocal(cmp.Result.Value);
+            il.Append(il.Create(OpCodes.Stloc, resLocal));
+        }
+    }
+
+    private void EmitStringCompareLiteralWithSequence(ILProcessor il, IrStringCompareLiteralWithSequence cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Convert the string literal to a byte array and compare using CompareAlphanumericWithSequence
+        EmitLocationArgs(il, cmp.Left);
+
+        // Create a temp byte array from the string literal
+        var bytes = System.Text.Encoding.ASCII.GetBytes(cmp.Value);
+        EmitByteArrayLiteral(il, bytes);
+        il.Append(il.Create(OpCodes.Ldc_I4_0)); // offset = 0
+        il.Append(il.Create(OpCodes.Ldc_I4, bytes.Length)); // length
+
+        EmitByteArrayLiteral(il, cmp.CollatingSequence);
+
+        var method = _module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("CompareAlphanumericWithSequence",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
         EmitCompareResultToBool(il, cmp.OperatorKind);
@@ -3526,6 +3625,20 @@ public sealed class CilEmitter
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("RegisterFileHandlerWithOrg",
                     new[] { typeof(string), typeof(string), typeof(int), typeof(bool),
                             typeof(string), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.SetFileOptional")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetFileOptional",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.SetFileLinage")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetFileLinage",
+                    new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now

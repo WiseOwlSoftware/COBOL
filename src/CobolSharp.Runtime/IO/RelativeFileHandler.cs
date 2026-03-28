@@ -17,6 +17,12 @@ public class RelativeFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _stream != null;
 
+    /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
+    public bool IsOptional { get; set; }
+
+    /// <summary>The RELATIVE KEY data-name identifier, if specified in FILE-CONTROL.</summary>
+    public string? RelativeKeyName { get; set; }
+
     public RelativeFileHandler(string externalName, int recordLength)
     {
         ExternalName = externalName;
@@ -43,7 +49,7 @@ public class RelativeFileHandler : IFileHandler
         }
         catch (FileNotFoundException)
         {
-            return FileStatus.FileNotFound;
+            return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
         }
         catch (IOException)
         {
@@ -62,6 +68,8 @@ public class RelativeFileHandler : IFileHandler
     public string ReadNext(byte[] recordBuffer)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
         _currentRecord++;
         return ReadRecord(_currentRecord, recordBuffer);
     }
@@ -69,6 +77,8 @@ public class RelativeFileHandler : IFileHandler
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
         int recordNum = int.Parse(System.Text.Encoding.ASCII.GetString(keyValue).Trim());
         _currentRecord = recordNum;
         return ReadRecord(recordNum, recordBuffer);
@@ -77,6 +87,8 @@ public class RelativeFileHandler : IFileHandler
     public string Write(byte[] recordData)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Input)
+            return FileStatus.WriteNotOpenForOutput;
         try
         {
             _stream!.Write(recordData, 0, _recordLength);
@@ -88,6 +100,8 @@ public class RelativeFileHandler : IFileHandler
     public string Rewrite(byte[] recordData)
     {
         if (!IsOpen || _currentRecord == 0) return FileStatus.FileNotOpen;
+        if (_openMode != FileOpenMode.InputOutput)
+            return FileStatus.DeleteRewriteNotOpenForIO;
         try
         {
             _stream!.Seek((long)(_currentRecord - 1) * _recordLength, SeekOrigin.Begin);
@@ -101,6 +115,8 @@ public class RelativeFileHandler : IFileHandler
     {
         // Mark record as deleted by filling with high-values
         if (!IsOpen || _currentRecord == 0) return FileStatus.FileNotOpen;
+        if (_openMode != FileOpenMode.InputOutput)
+            return FileStatus.DeleteRewriteNotOpenForIO;
         try
         {
             byte[] deleted = new byte[_recordLength];

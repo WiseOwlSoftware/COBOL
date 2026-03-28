@@ -118,14 +118,10 @@ public class P0BugFixTests : EndToEndTestBase
 
 
     [Fact]
-    public void UserDefinedClass_ProducesDiagnostic()
+    public void UserDefinedClass_CompilesAndRuns()
     {
-        // Compile a program with user-defined CLASS in SPECIAL-NAMES.
-        // The grammar doesn't support user-defined class names in conditions,
-        // so verify the compiler produces a parse diagnostic (not a crash).
-        string sourcePath = Path.Combine(_tempDir, "classtest.cob");
-        string outputPath = Path.Combine(_tempDir, "classtest.dll");
-        File.WriteAllText(sourcePath, """
+        // User-defined CLASS in SPECIAL-NAMES is now fully supported.
+        var (success, stdout, stderr) = CompileAndRun("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. CLSTEST.
             ENVIRONMENT DIVISION.
@@ -145,15 +141,9 @@ public class P0BugFixTests : EndToEndTestBase
                 STOP RUN.
             """);
 
-        var compilation = new Compilation();
-        var result = compilation.Compile(sourcePath, outputPath);
-
-        // The compiler should NOT crash — it should produce diagnostics
-        // (either a parse error for unrecognized class name, or COBOL0413 warning)
-        Assert.NotEmpty(result.Diagnostics);
-        Assert.True(
-            result.Diagnostics.Any(d => d.Code == "COBOL0413" || d.Code == "COBOL0001"),
-            $"Expected COBOL0413 or COBOL0001, got: {string.Join(", ", result.Diagnostics.Select(d => d.Code))}");
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("CLASS-YES", lines[0]);
     }
 
 

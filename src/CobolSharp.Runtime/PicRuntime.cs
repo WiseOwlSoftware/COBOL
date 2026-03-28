@@ -2175,4 +2175,50 @@ public static class PicRuntime
         }
         return true;
     }
+
+    /// <summary>
+    /// User-defined CLASS condition: returns true if every byte in the field
+    /// is in the validBytes set.
+    /// </summary>
+    public static bool IsInUserClass(byte[] area, int offset, int length, byte[] validBytes)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            byte b = area[offset + i];
+            bool found = false;
+            for (int j = 0; j < validBytes.Length; j++)
+            {
+                if (validBytes[j] == b)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Alphanumeric comparison with a custom collating sequence.
+    /// The collatingSequence is a 256-byte array mapping character ordinal → sort weight.
+    /// Returns -1, 0, or 1.
+    /// </summary>
+    public static int CompareAlphanumericWithSequence(
+        byte[] leftArea, int leftOffset, int leftLength,
+        byte[] rightArea, int rightOffset, int rightLength,
+        byte[] collatingSequence)
+    {
+        int maxLen = Math.Max(leftLength, rightLength);
+        for (int i = 0; i < maxLen; i++)
+        {
+            byte lb = i < leftLength ? leftArea[leftOffset + i] : (byte)' ';
+            byte rb = i < rightLength ? rightArea[rightOffset + i] : (byte)' ';
+            int lw = collatingSequence[lb];
+            int rw = collatingSequence[rb];
+            if (lw < rw) return -1;
+            if (lw > rw) return 1;
+        }
+        return 0;
+    }
 }

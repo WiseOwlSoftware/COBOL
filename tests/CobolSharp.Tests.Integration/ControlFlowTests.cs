@@ -1390,4 +1390,68 @@ public class ControlFlowTests : EndToEndTestBase
         Assert.Equal("00015", stdout);
     }
 
+
+    [Fact]
+    public void ExitPerformCycle_SkipsToIncrement()
+    {
+        // EXIT PERFORM CYCLE in a PERFORM VARYING loop should skip the
+        // rest of the body and continue to the next iteration (increment
+        // the VARYING variable and re-test the UNTIL condition).
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CYCLETEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I     PIC 9(2) VALUE 0.
+            01 WS-SUM   PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING WS-I FROM 1 BY 1
+                    UNTIL WS-I > 10
+                    IF WS-I = 3 OR WS-I = 7
+                        EXIT PERFORM CYCLE
+                    END-IF
+                    ADD WS-I TO WS-SUM
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        // Sum of 1..10 = 55, minus 3 and 7 = 55 - 10 = 45
+        Assert.Equal("00045", stdout);
+    }
+
+
+    [Fact]
+    public void ExitPerformCycle_UntilLoop()
+    {
+        // EXIT PERFORM CYCLE in a PERFORM UNTIL loop should skip the
+        // rest of the body and re-test the UNTIL condition.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. CYCLEU.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I     PIC 9(2) VALUE 0.
+            01 WS-SUM   PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM UNTIL WS-I > 4
+                    ADD 1 TO WS-I
+                    IF WS-I = 3
+                        EXIT PERFORM CYCLE
+                    END-IF
+                    ADD WS-I TO WS-SUM
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        // Loop: I goes 1,2,3,4,5. At I=3 CYCLE skips ADD.
+        // Sum = 1+2+4+5 = 12. At I=5, condition 5>4 exits.
+        Assert.Equal("00012", stdout);
+    }
+
 }

@@ -27,28 +27,34 @@ public static class CategoryCompatibility
     private static readonly FrozenSet<(CobolCategory Source, CobolCategory Target)> MoveLegalPairs =
         new (CobolCategory, CobolCategory)[]
         {
-            // Numeric -> anything
+            // Alphabetic -> Alphabetic, Alphanumeric, AlphanumericEdited (ISO Table 16)
+            (CobolCategory.Alphabetic, CobolCategory.Alphabetic),
+            (CobolCategory.Alphabetic, CobolCategory.Alphanumeric),
+            (CobolCategory.Alphabetic, CobolCategory.AlphanumericEdited),
+            // Numeric -> anything except Alphabetic
             (CobolCategory.Numeric, CobolCategory.Numeric),
             (CobolCategory.Numeric, CobolCategory.NumericEdited),
             (CobolCategory.Numeric, CobolCategory.Alphanumeric),
             (CobolCategory.Numeric, CobolCategory.AlphanumericEdited),
             (CobolCategory.Numeric, CobolCategory.National),
             (CobolCategory.Numeric, CobolCategory.NationalEdited),
-            // NumericEdited -> Numeric, NumericEdited, alpha/national families
+            // NumericEdited -> Numeric, NumericEdited, alpha/national families (not Alphabetic)
             (CobolCategory.NumericEdited, CobolCategory.Numeric),
             (CobolCategory.NumericEdited, CobolCategory.NumericEdited),
             (CobolCategory.NumericEdited, CobolCategory.Alphanumeric),
             (CobolCategory.NumericEdited, CobolCategory.AlphanumericEdited),
             (CobolCategory.NumericEdited, CobolCategory.National),
             (CobolCategory.NumericEdited, CobolCategory.NationalEdited),
-            // Alphanumeric -> numeric, alpha/national families
+            // Alphanumeric -> numeric, alpha/national families, Alphabetic
+            (CobolCategory.Alphanumeric, CobolCategory.Alphabetic),
             (CobolCategory.Alphanumeric, CobolCategory.Numeric),
             (CobolCategory.Alphanumeric, CobolCategory.NumericEdited),
             (CobolCategory.Alphanumeric, CobolCategory.Alphanumeric),
             (CobolCategory.Alphanumeric, CobolCategory.AlphanumericEdited),
             (CobolCategory.Alphanumeric, CobolCategory.National),
             (CobolCategory.Alphanumeric, CobolCategory.NationalEdited),
-            // AlphanumericEdited -> alpha/national families
+            // AlphanumericEdited -> alpha/national families, Alphabetic
+            (CobolCategory.AlphanumericEdited, CobolCategory.Alphabetic),
             (CobolCategory.AlphanumericEdited, CobolCategory.Alphanumeric),
             (CobolCategory.AlphanumericEdited, CobolCategory.AlphanumericEdited),
             (CobolCategory.AlphanumericEdited, CobolCategory.National),
@@ -87,7 +93,7 @@ public static class CategoryCompatibility
         => c is CobolCategory.Numeric or CobolCategory.NumericEdited;
 
     public static bool IsAlphanumericFamily(CobolCategory c)
-        => c is CobolCategory.Alphanumeric or CobolCategory.AlphanumericEdited;
+        => c is CobolCategory.Alphabetic or CobolCategory.Alphanumeric or CobolCategory.AlphanumericEdited;
 
     public static bool IsNationalFamily(CobolCategory c)
         => c is CobolCategory.National or CobolCategory.NationalEdited;

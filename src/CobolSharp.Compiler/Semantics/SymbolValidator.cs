@@ -21,6 +21,7 @@ public static class SymbolValidator
         ValidateRedefines(model, diagnostics);
         ValidateLinkageSection(model, diagnostics);
         ValidateProcedureUsingReturning(model, diagnostics);
+        ValidateExternalGlobal(model, diagnostics);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -228,6 +229,54 @@ public static class SymbolValidator
             diagnostics.Report(DiagnosticDescriptors.CBL3109,
                 new SourceLocation("<source>", 0, ret.Line, 0), TextSpan.Empty,
                 ret.DisplayName);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Pass 5: EXTERNAL / GLOBAL clause validation (§13.18.22, §13.18.27)
+    // ═══════════════════════════════════════════════════════════════
+
+    private static void ValidateExternalGlobal(SemanticModel model, DiagnosticBag diagnostics)
+    {
+        foreach (var data in model.DataItemsInOrder)
+        {
+            var loc = new SourceLocation("<source>", 0, data.Line, 0);
+            var span = TextSpan.Empty;
+
+            if (data.IsExternal)
+            {
+                // §13.18.22: EXTERNAL only on level-01 in WORKING-STORAGE
+                if (data.LevelNumber != 1 || data.Area != StorageAreaKind.WorkingStorage)
+                {
+                    diagnostics.Report(DiagnosticDescriptors.CBL3115, loc, span,
+                        data.DisplayName);
+                }
+
+                // §13.18.22 rule 5: EXTERNAL shall not be combined with REDEFINES
+                if (data.Redefines != null || data.RedefinesName != null)
+                {
+                    diagnostics.Report(DiagnosticDescriptors.CBL3117, loc, span,
+                        data.DisplayName);
+                }
+
+                // Runtime warning: shared storage not yet implemented
+                diagnostics.Report(DiagnosticDescriptors.CBL3118, loc, span,
+                    data.DisplayName);
+            }
+
+            if (data.IsGlobal)
+            {
+                // §13.18.27: GLOBAL only on level-01 items
+                if (data.LevelNumber != 1)
+                {
+                    diagnostics.Report(DiagnosticDescriptors.CBL3116, loc, span,
+                        data.DisplayName);
+                }
+
+                // Runtime warning: nested program visibility not yet implemented
+                diagnostics.Report(DiagnosticDescriptors.CBL3119, loc, span,
+                    data.DisplayName);
+            }
         }
     }
 }
