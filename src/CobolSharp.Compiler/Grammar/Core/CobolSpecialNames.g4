@@ -81,10 +81,12 @@ alphabetClause
     : ALPHABET IDENTIFIER IS alphabetDefinition
     ;
 
-// NATIVE, STANDARD-1, STANDARD-2 lex as IDENTIFIER (no dedicated tokens);
-// visitor validates named-alphabet keywords vs user-defined ordinal sequences.
+// NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.
 alphabetDefinition
-    : alphabetEntry (COMMA? alphabetEntry)*
+    : NATIVE
+    | STANDARD_1
+    | STANDARD_2
+    | alphabetEntry (COMMA? alphabetEntry)*
     ;
 
 alphabetEntry
