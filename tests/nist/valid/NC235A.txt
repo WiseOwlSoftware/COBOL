@@ -1,0 +1,43 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC235A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ LEVEL 3 TBL HANDLING       INIT-TBL-TH309                TBL ENTRIES BUILT INCORRECT
+*** INFORMATION ***        *****                    *****
+
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-1
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-2
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-3
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-4
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-5
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-6
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-7
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-8
+ LEVEL 3 TBL HANDLING ***** IDX-TEST-F2-9                 ****TEST DELETED****
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-10
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-11
+ LEVEL 3 TBL HANDLING ***** IDX-TEST-F2-12                ****TEST DELETED****
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-13
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC235A
+
+                                                    011 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    002 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
