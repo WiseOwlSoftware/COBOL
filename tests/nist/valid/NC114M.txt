@@ -14,29 +14,86 @@ TEST RESULT OF NC114M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  ***********************************************************************************************************************
  B AS EDIT CHARACTER  PASS  ALPHA-ED-TEST-4
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  / AS EDIT CHARACTER  PASS  ALPHA-ED-TEST-5
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  / AS EDIT CHARACTER  PASS  NUM-EDIT-TEST-6
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  STRIP MINUS SIGN     PASS  MOVE-TEST-16
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  / AND B EDITS        PASS  MOVE-TEST-17
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  ***********************************************************************************************************************
 
 
 
 
  PICTURE AB9  **  CHECK DATA DIV.
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.
+
  SEQUENCE NUMBER AREA       SEQ-NUM-TEST-1
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
  SEQUENCE NUMBER AREA                                        PLEASE VERIFY THAT THE FOLLOWING ENTRIES
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
  SEQUENCE NUMBER AREA                                        ARE PRINTED IN THE SEQUENCE NUMBER AREA
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
  SEQUENCE NUMBER AREA                                        (COLUMNS 1-6) NEAR THE END OF THE
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
  SEQUENCE NUMBER AREA                                        COMPILATION LISTING FOR NC114M:
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              COLUMNS:  123456
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              =======:  ======
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-1:  ABCDEF
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-2:  */+(>'
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-3:  999-99
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-4:  Z=.,;<
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-5:  )14$ X
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
                                                              ENTRY-6:    23 4
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-44  7.2.1
+
  ***********************************************************************************************************************
 
 
