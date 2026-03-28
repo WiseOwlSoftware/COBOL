@@ -13,41 +13,61 @@ CobolSharp-private submodule). Refer to it for all specification, behavior, synt
 questions. It is the authoritative source — do not guess or assume COBOL semantics without
 consulting it. Initialize the submodule with: `git submodule update --init --recursive`
 
-## Session Resume Context (updated 2026-03-27)
+## Session Resume Context (updated 2026-03-28)
 
 ### Current State
 - **Branch**: main
-- **Integration tests**: 183 pass, 1 skip (split into 10 focused test files)
-- **Unit tests**: 216 pass
-- **Diagnostic descriptors**: 175+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
-- **NIST tests at 100%** (60 in guard): NC101A-NC107A, NC111A-NC112A,
-  NC115A-NC121M, NC122A-NC124A, NC126A-NC127A, NC131A-NC134A, NC136A-NC137A,
-  NC140A-NC141A, NC170A-NC173A, NC175A-NC177A, NC202A-NC203A, NC206A-NC207A,
-  NC210A-NC211A, NC221A-NC222A, NC224A, NC231A-NC234A, NC236A, NC238A-NC244A,
-  NC248A, NC251A, NC253A-NC254A
-- **Next**: ODO runtime, runtime hangs, collating sequence
+- **Unit tests**: 421 pass
+- **Integration tests**: 274 pass, 1 skip (12 focused test files)
+- **NIST tests at 100%** (65 in guard)
+- **Intrinsic functions**: 94/94 dispatched, all tested
+- **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
+- **Grammar files**: 14 files, 3,225+ lines
+- **Source of truth**: GRAMMAR_AUDIT.md (consolidated from all audit docs)
 
-### What was done this session (2026-03-26/27)
-- Split monolithic EndToEndTests.cs (5,346 lines) into 10 focused test files
-- Fixed `dotnet clean && dotnet build` (MSBuild target ordering)
-- Un-skipped CALL and ref-mod integration tests (both features now implemented)
-- Deleted 6 obsolete .md files, updated README.md and PROJECT_PLAN.md
-- Moved CobolLexer.g4 to Core/, added tokenVocab to all imported grammars
-  (fixes VSCode ANTLR4 extension false warnings for token references)
+### What was done this session (2026-03-27/28)
+- **Spec compliance audit**: 8 parallel agents audited entire compiler vs ISO spec
+- **P0 bug sweep**: 8 critical bugs fixed (OPEN multi-clause, READ INVALID KEY,
+  NumericEdited MOVE, LOCAL-STORAGE routing, file status codes, etc.)
+- **P1 bug sweep**: 12 wrong-computation bugs fixed (PERFORM TEST AFTER, MOVE
+  subscript eval, INTEGER/MOD intrinsics, signed DISPLAY default, etc.)
+- **P2 feature sweep**: 14 COBOL-85 required features implemented (SORT/MERGE,
+  Alphabetic category, CLASS/SYMBOLIC/ALPHABET, EXIT CYCLE, ODO runtime, etc.)
+- **Remaining gaps**: 12 partial implementations completed (SYNCHRONIZED, COMP-1/2
+  IEEE 754, LOCAL-STORAGE re-init, EXTERNAL shared storage, file status codes, etc.)
+- **Intrinsic functions**: Full binder pipeline wired, 94/94 functions dispatched,
+  all stubs replaced, reserved word conflicts fixed, 212 tests added
+- **Grammar audit**: 10 agents did token-by-token grammar-vs-spec comparison,
+  version-categorized all ~300 mismatches (138 COBOL-85, 122 COBOL-2002, 42 COBOL-2023)
+- **Grammar fixes**: 7 agents fixed ~70 COBOL-85 grammar gaps (45 lexer tokens,
+  FD clauses, INITIALIZE, CORR, exponentiation, ALPHABET, empty paragraphs, etc.)
+- **Nested programs**: Grammar + multi-program compilation pipeline
+- **Doc cleanup**: Deleted 6 obsolete .md files, consolidated audit docs into
+  single GRAMMAR_AUDIT.md, updated README/PROJECT_PLAN
 
 ### Key architectural decisions
 - SUBSCRIPT lexer mode for spec-true COBOL-85 subscript parsing (Entry 150)
 - CobolLexer.g4 co-located with parser fragments in Core/ for IDE support
-- RENAMES single-field inherits source PIC (not always alphanumeric)
-- OCCURS group keys are valid per COBOL-85 spec
+- SortRuntime.cs: in-memory sort (external merge sort deferred)
+- ExternalStorage.cs: ConcurrentDictionary for EXTERNAL shared storage
+- IrCachedLocation: ensures MOVE source evaluated once for multi-target
+- GRAMMAR_AUDIT.md is the single source of truth for compliance
 
-### Known gaps
-- SORT/MERGE (parse only, IR is stub)
-- ALL literal repetition fixed; NC211A at 100%
-- OCCURS DEPENDING ON runtime truncation — SEARCH/comparison don't respect active ODO count
-- NC220M/NC237A infinite loop at runtime (undiagnosed, likely ODO-related)
-- NC250A: ZERO as arithmetic operand causes grammar backtracking
-- NC215A/NC219A: collating sequence (ALPHABET) not applied to comparisons
-- NC252A: qualified RENAMES failures (3 tests)
-- Subscripted PERFORM VARYING (NC201A)
-- Compile-time CALL parameter validation (needs inter-program metadata)
+### Next session: Iterative audit-fix-verify loop
+The user requested a looping process:
+1. **Audit team**: agents compare grammar + compiler against spec + GRAMMAR_AUDIT.md
+2. **Fix team**: agents correct any gaps found
+3. **Verify**: build + test + guard
+4. **Repeat** until audit finds zero gaps
+
+~68 COBOL-85 grammar gaps remain (of ~138 identified). Key remaining items:
+- DISPLAY UPON/NO ADVANCING (in CobolParserCore.g4)
+- ACCEPT FROM mnemonic-name
+- SET TO ON/OFF (switch-setting)
+- WRITE/REWRITE FILE form, retry-phrase, locking
+- SORT table format (Format 2)
+- USE GLOBAL/EXCEPTION/INPUT-OUTPUT modes
+- START WITH LENGTH
+- CURRENCY WITH PICTURE SYMBOL (blocked by PICMODE lexer architecture)
+- NC220M/NC237A runtime hangs (undiagnosed)
+- 30 non-passing NIST tests (7 nested programs, 5 ODO, 12 parse, 4 partial, 3 Report Writer)
