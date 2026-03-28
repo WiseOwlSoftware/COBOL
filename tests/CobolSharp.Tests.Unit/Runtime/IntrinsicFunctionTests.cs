@@ -938,191 +938,345 @@ public class IntrinsicFunctionTests
     }
 
     // ═══════════════════════════════════════════════════
-    // Stub functions — verify stub behavior
+    // LOCALE-COMPARE (§15.55)
     // ═══════════════════════════════════════════════════
 
     [Fact]
-    public void LocaleCompare_ReturnsZero() // Stub test — update when function is fully implemented
+    public void LocaleCompare_LessThan()
     {
-        Assert.Equal(0m, IntrinsicFunctions.LocaleCompare("A", "B"));
+        Assert.Equal(-1m, IntrinsicFunctions.LocaleCompare("A", "B"));
     }
 
     [Fact]
-    public void LocaleCompare_ViaDispatch() // Stub test — update when function is fully implemented
+    public void LocaleCompare_GreaterThan()
+    {
+        Assert.Equal(1m, IntrinsicFunctions.LocaleCompare("B", "A"));
+    }
+
+    [Fact]
+    public void LocaleCompare_Equal()
+    {
+        Assert.Equal(0m, IntrinsicFunctions.LocaleCompare("ABC", "ABC"));
+    }
+
+    [Fact]
+    public void LocaleCompare_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("LOCALE-COMPARE", new object[] { "A", "B" });
-        Assert.Equal(0m, result);
+        Assert.Equal(-1m, result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // LOCALE-DATE (§15.56)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void LocaleDate_ReturnsDateString() // Stub test — update when function is fully implemented
+    public void LocaleDate_ReturnsNonEmptyString()
     {
         decimal intDate = IntrinsicFunctions.IntegerOfDate(20260313m);
         string result = IntrinsicFunctions.LocaleDate(intDate);
-        Assert.Equal("2026-03-13", result);
+        // Locale-specific format, so just check it contains the date components
+        Assert.NotNull(result);
+        Assert.True(result.Length > 0, "LOCALE-DATE returned empty string");
+        Assert.Contains("2026", result);
     }
 
     [Fact]
-    public void LocaleDate_ViaDispatch() // Stub test — update when function is fully implemented
+    public void LocaleDate_ViaDispatch()
     {
         decimal intDate = IntrinsicFunctions.IntegerOfDate(20260313m);
         var result = IntrinsicFunctions.Call("LOCALE-DATE", new object[] { intDate });
-        Assert.Equal("2026-03-13", result);
+        Assert.IsType<string>(result);
+        Assert.Contains("2026", (string)result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // LOCALE-TIME (§15.57)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void LocaleTime_ReturnsTimeString() // Stub test — update when function is fully implemented
+    public void LocaleTime_ReturnsNonEmptyString()
     {
         string result = IntrinsicFunctions.LocaleTime(143045m);
-        Assert.Equal("14:30:45", result);
+        Assert.NotNull(result);
+        Assert.True(result.Length > 0, "LOCALE-TIME returned empty string");
+        // Locale-dependent: may be "14:30:45" or "2:30:45 PM" etc.
+        Assert.Contains("30", result);
+        Assert.Contains("45", result);
     }
 
     [Fact]
-    public void LocaleTime_ViaDispatch() // Stub test — update when function is fully implemented
+    public void LocaleTime_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("LOCALE-TIME", new object[] { 143045m });
-        Assert.Equal("14:30:45", result);
+        Assert.IsType<string>(result);
+        Assert.Contains("30", (string)result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // LOCALE-TIME-FROM-SECONDS (§15.58)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void LocaleTimeFromSeconds_ReturnsTimeString() // Stub test — update when function is fully implemented
+    public void LocaleTimeFromSeconds_ReturnsNonEmptyString()
     {
+        // 52245 seconds = 14 hours, 30 minutes, 45 seconds
         string result = IntrinsicFunctions.LocaleTimeFromSeconds(52245m);
-        Assert.Equal("14:30:45", result);
+        Assert.NotNull(result);
+        Assert.True(result.Length > 0, "LOCALE-TIME-FROM-SECONDS returned empty string");
+        // Locale-dependent: may be "14:30:45" or "2:30:45 PM" etc.
+        Assert.Contains("30", result);
+        Assert.Contains("45", result);
     }
 
     [Fact]
-    public void LocaleTimeFromSeconds_ViaDispatch() // Stub test — update when function is fully implemented
+    public void LocaleTimeFromSeconds_Midnight()
+    {
+        string result = IntrinsicFunctions.LocaleTimeFromSeconds(0m);
+        Assert.NotNull(result);
+        Assert.True(result.Length > 0);
+    }
+
+    [Fact]
+    public void LocaleTimeFromSeconds_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("LOCALE-TIME-FROM-SECONDS", new object[] { 52245m });
-        Assert.Equal("14:30:45", result);
+        Assert.IsType<string>(result);
+        Assert.Contains("30", (string)result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // STANDARD-COMPARE (§15.87)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void StandardCompare_ReturnsZero() // Stub test — update when function is fully implemented
+    public void StandardCompare_LessThan()
     {
-        Assert.Equal(0m, IntrinsicFunctions.StandardCompare("A", "B"));
+        Assert.Equal(-1m, IntrinsicFunctions.StandardCompare("A", "B"));
     }
 
     [Fact]
-    public void StandardCompare_ViaDispatch() // Stub test — update when function is fully implemented
+    public void StandardCompare_GreaterThan()
+    {
+        Assert.Equal(1m, IntrinsicFunctions.StandardCompare("B", "A"));
+    }
+
+    [Fact]
+    public void StandardCompare_Equal()
+    {
+        Assert.Equal(0m, IntrinsicFunctions.StandardCompare("ABC", "ABC"));
+    }
+
+    [Fact]
+    public void StandardCompare_CaseSensitive()
+    {
+        // Ordinal: 'A' (65) < 'a' (97)
+        Assert.Equal(-1m, IntrinsicFunctions.StandardCompare("A", "a"));
+    }
+
+    [Fact]
+    public void StandardCompare_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("STANDARD-COMPARE", new object[] { "A", "B" });
-        Assert.Equal(0m, result);
+        Assert.Equal(-1m, result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // DISPLAY-OF (§15.28) — approximation, returns string as-is
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void DisplayOf_ReturnsInput() // Stub test — update when function is fully implemented
+    public void DisplayOf_ReturnsInput()
     {
         Assert.Equal("Hello", IntrinsicFunctions.DisplayOf("Hello"));
     }
 
     [Fact]
-    public void DisplayOf_ViaDispatch() // Stub test — update when function is fully implemented
+    public void DisplayOf_EmptyString()
+    {
+        Assert.Equal("", IntrinsicFunctions.DisplayOf(""));
+    }
+
+    [Fact]
+    public void DisplayOf_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("DISPLAY-OF", new object[] { "Hello" });
         Assert.Equal("Hello", result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // NATIONAL-OF (§15.66) — approximation, returns string as-is
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void NationalOf_ReturnsInput() // Stub test — update when function is fully implemented
+    public void NationalOf_ReturnsInput()
     {
         Assert.Equal("Hello", IntrinsicFunctions.NationalOf("Hello"));
     }
 
     [Fact]
-    public void NationalOf_ViaDispatch() // Stub test — update when function is fully implemented
+    public void NationalOf_EmptyString()
+    {
+        Assert.Equal("", IntrinsicFunctions.NationalOf(""));
+    }
+
+    [Fact]
+    public void NationalOf_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("NATIONAL-OF", new object[] { "Hello" });
         Assert.Equal("Hello", result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // CHAR-NATIONAL (§15.16)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void CharNational_ReturnsChar() // Stub test — update when function is fully implemented
+    public void CharNational_ReturnsChar()
     {
         Assert.Equal("A", IntrinsicFunctions.CharNational(65m));
     }
 
     [Fact]
-    public void CharNational_ViaDispatch() // Stub test — update when function is fully implemented
+    public void CharNational_Space()
+    {
+        Assert.Equal(" ", IntrinsicFunctions.CharNational(32m));
+    }
+
+    [Fact]
+    public void CharNational_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("CHAR-NATIONAL", new object[] { 65m });
         Assert.Equal("A", result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // CONVERT (§15.19) — encoding conversion
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void ConvertEncoding_ReturnsInput() // Stub test — update when function is fully implemented
+    public void ConvertEncoding_AsciiToUtf8_PreservesAscii()
     {
         Assert.Equal("Hello", IntrinsicFunctions.ConvertEncoding("Hello", "ASCII", "UTF-8"));
     }
 
     [Fact]
-    public void ConvertEncoding_ViaDispatch() // Stub test — update when function is fully implemented
+    public void ConvertEncoding_UnknownEncoding_ReturnsInput()
+    {
+        Assert.Equal("Hello", IntrinsicFunctions.ConvertEncoding("Hello", "NONEXISTENT", "ALSO-FAKE"));
+    }
+
+    [Fact]
+    public void ConvertEncoding_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("CONVERT", new object[] { "Hello", "ASCII", "UTF-8" });
         Assert.Equal("Hello", result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // BASECONVERT (§15.10)
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void Baseconvert_ReturnsInput() // Stub test — update when function is fully implemented
+    public void Baseconvert_HexToDecimal()
     {
-        Assert.Equal("FF", IntrinsicFunctions.Baseconvert("FF", 16m, 10m));
+        Assert.Equal("255", IntrinsicFunctions.Baseconvert("FF", 16m, 10m));
     }
 
     [Fact]
-    public void Baseconvert_ViaDispatch() // Stub test — update when function is fully implemented
+    public void Baseconvert_DecimalToHex()
+    {
+        Assert.Equal("FF", IntrinsicFunctions.Baseconvert("255", 10m, 16m));
+    }
+
+    [Fact]
+    public void Baseconvert_DecimalToBinary()
+    {
+        Assert.Equal("1010", IntrinsicFunctions.Baseconvert("10", 10m, 2m));
+    }
+
+    [Fact]
+    public void Baseconvert_BinaryToDecimal()
+    {
+        Assert.Equal("10", IntrinsicFunctions.Baseconvert("1010", 2m, 10m));
+    }
+
+    [Fact]
+    public void Baseconvert_OctalToDecimal()
+    {
+        Assert.Equal("8", IntrinsicFunctions.Baseconvert("10", 8m, 10m));
+    }
+
+    [Fact]
+    public void Baseconvert_DecimalToOctal()
+    {
+        Assert.Equal("10", IntrinsicFunctions.Baseconvert("8", 10m, 8m));
+    }
+
+    [Fact]
+    public void Baseconvert_Zero()
+    {
+        Assert.Equal("0", IntrinsicFunctions.Baseconvert("0", 10m, 16m));
+    }
+
+    [Fact]
+    public void Baseconvert_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("BASECONVERT", new object[] { "FF", 16m, 10m });
-        Assert.Equal("FF", result);
+        Assert.Equal("255", result);
     }
 
+    // ═══════════════════════════════════════════════════
+    // EXCEPTION-* functions — no exception returns empty string
+    // ═══════════════════════════════════════════════════
+
     [Fact]
-    public void ExceptionFile_ReturnsEmpty() // Stub test — update when function is fully implemented
+    public void ExceptionFile_ReturnsEmpty()
     {
         Assert.Equal("", IntrinsicFunctions.ExceptionFile());
     }
 
     [Fact]
-    public void ExceptionFile_ViaDispatch() // Stub test — update when function is fully implemented
+    public void ExceptionFile_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("EXCEPTION-FILE", Array.Empty<object>());
         Assert.Equal("", result);
     }
 
     [Fact]
-    public void ExceptionLocation_ReturnsEmpty() // Stub test — update when function is fully implemented
+    public void ExceptionLocation_ReturnsEmpty()
     {
         Assert.Equal("", IntrinsicFunctions.ExceptionLocation());
     }
 
     [Fact]
-    public void ExceptionLocation_ViaDispatch() // Stub test — update when function is fully implemented
+    public void ExceptionLocation_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("EXCEPTION-LOCATION", Array.Empty<object>());
         Assert.Equal("", result);
     }
 
     [Fact]
-    public void ExceptionStatement_ReturnsEmpty() // Stub test — update when function is fully implemented
+    public void ExceptionStatement_ReturnsEmpty()
     {
         Assert.Equal("", IntrinsicFunctions.ExceptionStatement());
     }
 
     [Fact]
-    public void ExceptionStatement_ViaDispatch() // Stub test — update when function is fully implemented
+    public void ExceptionStatement_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("EXCEPTION-STATEMENT", Array.Empty<object>());
         Assert.Equal("", result);
     }
 
     [Fact]
-    public void ExceptionStatus_ReturnsEmpty() // Stub test — update when function is fully implemented
+    public void ExceptionStatus_ReturnsEmpty()
     {
         Assert.Equal("", IntrinsicFunctions.ExceptionStatus());
     }
 
     [Fact]
-    public void ExceptionStatus_ViaDispatch() // Stub test — update when function is fully implemented
+    public void ExceptionStatus_ViaDispatch()
     {
         var result = IntrinsicFunctions.Call("EXCEPTION-STATUS", Array.Empty<object>());
         Assert.Equal("", result);

@@ -909,6 +909,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFunctionCall([NotNull] CobolParserCore.FunctionCallContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.functionName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunctionName([NotNull] CobolParserCore.FunctionNameContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.argumentList"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

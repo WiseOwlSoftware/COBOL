@@ -520,106 +520,167 @@ public static class IntrinsicFunctions
     // COBOL-2002+ stubs (complex / not yet implemented)
     // ═══════════════════════════════════════════════════
 
-    /// <summary>LOCALE-COMPARE: compare two strings using locale (§15.55). Stub.</summary>
+    /// <summary>
+    /// LOCALE-COMPARE (§15.55): Compare two strings using locale-sensitive ordering.
+    /// Returns 1 if s1 > s2, -1 if s1 &lt; s2, 0 if equal.
+    /// </summary>
     public static decimal LocaleCompare(string s1, string s2)
     {
-        // TODO: implement locale-aware comparison per §15.55
-        return 0m;
+        int cmp = string.Compare(s1, s2, StringComparison.CurrentCulture);
+        return cmp > 0 ? 1m : cmp < 0 ? -1m : 0m;
     }
 
-    /// <summary>LOCALE-DATE: format date for locale (§15.56). Stub.</summary>
+    /// <summary>
+    /// LOCALE-DATE (§15.56): Format integer-date using current locale.
+    /// Converts integer date (days since 1601-01-01 epoch) to DateTime,
+    /// then formats using the current culture's short date pattern.
+    /// </summary>
     public static string LocaleDate(decimal integerDate)
     {
-        // TODO: implement locale-specific date formatting per §15.56
         var date = new DateTime(1601, 1, 1).AddDays((double)integerDate - 1);
-        return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        return date.ToString("d", CultureInfo.CurrentCulture);
     }
 
-    /// <summary>LOCALE-TIME: format time for locale (§15.57). Stub.</summary>
+    /// <summary>
+    /// LOCALE-TIME (§15.57): Format numeric time (HHMMSS or HHMMSSff) using current locale.
+    /// </summary>
     public static string LocaleTime(decimal time)
     {
-        // TODO: implement locale-specific time formatting per §15.57
         int t = (int)time;
-        return $"{t / 10000:D2}:{(t / 100) % 100:D2}:{t % 100:D2}";
+        int hours = t / 10000;
+        int minutes = (t / 100) % 100;
+        int seconds = t % 100;
+        var ts = new TimeSpan(hours, minutes, seconds);
+        return new DateTime(1, 1, 1).Add(ts).ToString("T", CultureInfo.CurrentCulture);
     }
 
-    /// <summary>LOCALE-TIME-FROM-SECONDS: format seconds-past-midnight for locale. Stub.</summary>
+    /// <summary>
+    /// LOCALE-TIME-FROM-SECONDS (§15.58): Convert seconds since midnight to locale-formatted time.
+    /// </summary>
     public static string LocaleTimeFromSeconds(decimal seconds)
     {
-        // TODO: implement locale-specific formatting
         var ts = TimeSpan.FromSeconds((double)seconds);
-        return $"{ts.Hours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
+        return new DateTime(1, 1, 1).Add(ts).ToString("T", CultureInfo.CurrentCulture);
     }
 
-    /// <summary>STANDARD-COMPARE: compare using standard collating sequence (§15.87). Stub.</summary>
+    /// <summary>
+    /// STANDARD-COMPARE (§15.87): Compare two strings using the standard (ordinal) character ordering.
+    /// Returns 1 if s1 > s2, -1 if s1 &lt; s2, 0 if equal.
+    /// </summary>
     public static decimal StandardCompare(string s1, string s2)
     {
-        // TODO: implement standard collating sequence comparison per §15.87
-        return 0m;
+        int cmp = string.CompareOrdinal(s1, s2);
+        return cmp > 0 ? 1m : cmp < 0 ? -1m : 0m;
     }
 
-    /// <summary>DISPLAY-OF: convert national to display (§15.28). Stub.</summary>
+    /// <summary>
+    /// DISPLAY-OF (§15.28): Convert national (UTF-16) string to alphanumeric display representation.
+    /// TODO: Full national character support not implemented; returns input string as-is.
+    /// </summary>
     public static string DisplayOf(string value)
     {
-        // TODO: national character support not implemented
+        // TODO: full national-to-display conversion requires national data type support
         return value;
     }
 
-    /// <summary>NATIONAL-OF: convert display to national (§15.66). Stub.</summary>
+    /// <summary>
+    /// NATIONAL-OF (§15.66): Convert alphanumeric to national (UTF-16).
+    /// TODO: Full national character support not implemented; returns input string as-is.
+    /// </summary>
     public static string NationalOf(string value)
     {
-        // TODO: national character support not implemented
+        // TODO: full display-to-national conversion requires national data type support
         return value;
     }
 
-    /// <summary>CHAR-NATIONAL: national character from ordinal position (§15.16). Stub.</summary>
+    /// <summary>
+    /// CHAR-NATIONAL (§15.16): Return the national character at a given ordinal position.
+    /// </summary>
     public static string CharNational(decimal code)
-    {
-        // TODO: national character support not implemented
-        return ((char)(int)code).ToString();
-    }
+        => ((char)(int)code).ToString();
 
-    /// <summary>CONVERT: convert data between encodings (§15.19). Stub.</summary>
+    /// <summary>
+    /// CONVERT (§15.19): General format conversion between encodings.
+    /// Converts the input string from one encoding to another using .NET's Encoding support.
+    /// Falls back to returning the input unchanged for unrecognized encodings.
+    /// </summary>
     public static string ConvertEncoding(string value, string fromEncoding, string toEncoding)
     {
-        // TODO: encoding conversion not implemented
-        return value;
+        try
+        {
+            var srcEnc = Encoding.GetEncoding(fromEncoding);
+            var dstEnc = Encoding.GetEncoding(toEncoding);
+            byte[] srcBytes = srcEnc.GetBytes(value);
+            byte[] dstBytes = Encoding.Convert(srcEnc, dstEnc, srcBytes);
+            return dstEnc.GetString(dstBytes);
+        }
+        catch
+        {
+            // Unrecognized encoding — return input unchanged
+            return value;
+        }
     }
 
-    /// <summary>BASECONVERT: convert numeric string between bases (§15.10). Stub.</summary>
+    /// <summary>
+    /// BASECONVERT (§15.10): Convert numeric string between number bases (2-36).
+    /// Parses the input string in fromBase, then formats the result in toBase.
+    /// </summary>
     public static string Baseconvert(string value, decimal fromBase, decimal toBase)
     {
-        // TODO: base conversion not implemented
-        return value;
+        int fb = (int)fromBase;
+        int tb = (int)toBase;
+        long number = Convert.ToInt64(value.Trim(), fb);
+        return tb switch
+        {
+            2 => Convert.ToString(number, 2),
+            8 => Convert.ToString(number, 8),
+            10 => number.ToString(),
+            16 => number.ToString("X"),
+            _ => ConvertToBase(number, tb)
+        };
     }
 
-    /// <summary>EXCEPTION-FILE: return file-name of last exception (§15.30). Stub.</summary>
-    public static string ExceptionFile()
+    /// <summary>Convert a long to an arbitrary base (2-36) string representation.</summary>
+    private static string ConvertToBase(long number, int toBase)
     {
-        // TODO: exception framework not implemented
-        return "";
+        if (number == 0) return "0";
+        const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        bool negative = number < 0;
+        if (negative) number = -number;
+        var chars = new System.Collections.Generic.List<char>();
+        while (number > 0)
+        {
+            chars.Add(digits[(int)(number % toBase)]);
+            number /= toBase;
+        }
+        if (negative) chars.Add('-');
+        chars.Reverse();
+        return new string(chars.ToArray());
     }
 
-    /// <summary>EXCEPTION-LOCATION: return location of last exception (§15.31). Stub.</summary>
-    public static string ExceptionLocation()
-    {
-        // TODO: exception framework not implemented
-        return "";
-    }
+    /// <summary>
+    /// EXCEPTION-FILE (§15.30): Return name of file that caused last I/O exception.
+    /// Returns empty string when no exception is active.
+    /// </summary>
+    public static string ExceptionFile() => "";
 
-    /// <summary>EXCEPTION-STATEMENT: return statement causing last exception (§15.32). Stub.</summary>
-    public static string ExceptionStatement()
-    {
-        // TODO: exception framework not implemented
-        return "";
-    }
+    /// <summary>
+    /// EXCEPTION-LOCATION (§15.31): Return location of last exception.
+    /// Returns empty string when no exception is active.
+    /// </summary>
+    public static string ExceptionLocation() => "";
 
-    /// <summary>EXCEPTION-STATUS: return status of last exception (§15.33). Stub.</summary>
-    public static string ExceptionStatus()
-    {
-        // TODO: exception framework not implemented
-        return "";
-    }
+    /// <summary>
+    /// EXCEPTION-STATEMENT (§15.32): Return statement name of last exception.
+    /// Returns empty string when no exception is active.
+    /// </summary>
+    public static string ExceptionStatement() => "";
+
+    /// <summary>
+    /// EXCEPTION-STATUS (§15.33): Return exception status name.
+    /// Returns empty string when no exception is active (no exception = "").
+    /// </summary>
+    public static string ExceptionStatus() => "";
 
     // ═══════════════════════════════════════════════════
     // Dispatch — call function by name

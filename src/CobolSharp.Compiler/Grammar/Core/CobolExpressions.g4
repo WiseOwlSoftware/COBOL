@@ -192,12 +192,24 @@ primaryExpression
     ;
 
 // FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions)
-// The function name + arguments are parsed as a dataReference where the argument list
-// is captured as subscriptPart by the lexer's SUBSCRIPT mode. The binder extracts
-// the function name from the IDENTIFIER and treats subscripts as arguments.
+// The function name + arguments are parsed via functionName + optional subscriptPart.
+// Arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
 // No-arg functions (e.g., FUNCTION PI) have no subscriptPart.
 functionCall
-    : FUNCTION dataReference
+    : FUNCTION functionName subscriptPart?
+    ;
+
+// Function names are normally IDENTIFIERs, but several intrinsic function names
+// collide with reserved words (lexer tokens). List them explicitly so the parser
+// accepts them after FUNCTION.
+functionName
+    : IDENTIFIER
+    | DISPLAY
+    | MERGE
+    | RANDOM
+    | SIGN
+    | SORT
+    | SUM
     ;
 
 argumentList

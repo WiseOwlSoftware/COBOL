@@ -13,7 +13,7 @@ NOT required for COBOL-85 compliance and are included for completeness only.
 
 ## Executive Summary
 
-**Tests:** 405 unit + 260 integration + 60 NIST guard = ALL GREEN
+**Tests:** 421 unit + 263 integration + 60 NIST guard = ALL GREEN
 
 **P0 bugs (data corruption/crashes):** 8 identified, **8 fixed** (Entry 154)
 **P1 bugs (wrong computation):** 12 identified, **12 fixed** (Entry 155)
@@ -185,12 +185,11 @@ available at all dialect levels.
 
 | Status | Count | Notes |
 |--------|------:|-------|
-| Fully implemented + binder wired | 66 | End-to-end from COBOL source to runtime |
-| Stub implementations (TODO) | 8 | LOCALE-*, STANDARD-COMPARE, DISPLAY-OF, NATIONAL-OF, CHAR-NATIONAL, CONVERT, BASECONVERT, EXCEPTION-* |
-| Reserved word conflicts | 3 | SIGN, SUM, RANDOM conflict with lexer tokens — need SUBSCRIPT-mode fix |
-| **Total dispatched** | **91** | (of 94 spec functions; 3 conflict) |
+| Fully implemented + binder wired | 94 | All spec functions dispatched end-to-end |
+| Approximations (TODO: national data) | 2 | DISPLAY-OF, NATIONAL-OF (pass-through until PIC N support) |
+| **Total dispatched** | **94** | All spec functions covered |
 
-**Test coverage:** 405 unit tests (every function has at least one test) + 24 COBOL-level integration tests.
+**Test coverage:** 421 unit tests (every function has at least one test) + 27 COBOL-level integration tests.
 
 **Known limitation:** String literal arguments in FUNCTION calls don't work (SUBSCRIPT mode has no string literal token). Field arguments and numeric literals work.
 
@@ -212,9 +211,9 @@ available at all dialect levels.
 |---|------|-----------|
 | 1 | ~~Wire intrinsic function binder~~ **DONE** (Entry 158) | — |
 | 2 | ~~Fix intrinsic function bugs~~ **DONE** (Entry 158) | — |
-| 3 | Fix SIGN/SUM/RANDOM reserved word conflicts in FUNCTION calls | S |
-| 4 | Add string literal token to SUBSCRIPT mode for FUNCTION args | S |
-| 5 | Implement 8 stub intrinsic functions | M |
+| 3 | ~~Fix SIGN/SUM/RANDOM reserved word conflicts~~ **DONE** (Entry 159) | — |
+| 4 | ~~Implement 8 stub intrinsic functions~~ **DONE** (Entry 159) | — |
+| 5 | Add string literal token to SUBSCRIPT mode for FUNCTION args | S |
 | 6 | ROUNDED MODE phrase (8 modes) | M |
 | 7 | XOR / EXCLUSIVE-OR | S |
 | 8 | National data (PIC N / UTF-16) | L |

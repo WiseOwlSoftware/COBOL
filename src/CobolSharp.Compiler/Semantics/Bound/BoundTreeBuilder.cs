@@ -2673,28 +2673,22 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindFunctionCall(CobolParserCore.FunctionCallContext ctx)
     {
-        // FUNCTION dataReference — the function name is the IDENTIFIER from the dataReference,
-        // and arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
-        var dataRef = ctx.dataReference();
-        var funcName = dataRef?.IDENTIFIER()?.GetText() ?? "UNKNOWN";
+        // FUNCTION functionName subscriptPart? — the function name comes from the
+        // functionName rule (IDENTIFIER or a reserved-word alternative like SIGN/SUM/RANDOM).
+        // Arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
+        var funcName = ctx.functionName()?.GetText() ?? "UNKNOWN";
 
         var args = new List<BoundExpression>();
-        var tails = dataRef?.dataReferenceSuffix();
-        if (tails != null)
+        var subPart = ctx.subscriptPart();
+        if (subPart != null)
         {
-            foreach (var tail in tails)
+            var subOrRefMod = subPart.subscriptOrRefMod();
+            if (subOrRefMod != null)
             {
-                if (tail.subscriptPart() != null)
-                {
-                    var subOrRefMod = tail.subscriptPart().subscriptOrRefMod();
-                    if (subOrRefMod != null)
-                    {
-                        // Reuse the subscript token interpreter — it splits comma-separated
-                        // expressions which is exactly what function arguments are.
-                        var (subExprs, _) = InterpretSubscriptTokens(subOrRefMod);
-                        args.AddRange(subExprs);
-                    }
-                }
+                // Reuse the subscript token interpreter — it splits comma-separated
+                // expressions which is exactly what function arguments are.
+                var (subExprs, _) = InterpretSubscriptTokens(subOrRefMod);
+                args.AddRange(subExprs);
             }
         }
 

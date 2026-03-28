@@ -525,4 +525,71 @@ public class IntrinsicFunctionTests : EndToEndTestBase
         Assert.True(success, $"Execution failed: {stderr}");
         Assert.Equal("A", stdout);
     }
+
+    // ═══════════════════════════════════════════════════
+    // Reserved-word function names (SIGN, SUM, RANDOM)
+    // ═══════════════════════════════════════════════════
+
+    [Fact]
+    public void Function_Sign_Positive()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SIGNTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-RESULT PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                COMPUTE WS-RESULT = FUNCTION SIGN(42).
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("00001", stdout);
+    }
+
+    [Fact]
+    public void Function_Sum_Total()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SUMTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-RESULT PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                COMPUTE WS-RESULT = FUNCTION SUM(10, 20, 30).
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("00060", stdout);
+    }
+
+    [Fact]
+    public void Function_Random_InRange()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RNDTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-RESULT PIC 9V9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                COMPUTE WS-RESULT = FUNCTION RANDOM(42).
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        // RANDOM returns 0 <= X < 1; with PIC 9V9(4) the output is 5 digits
+        var value = decimal.Parse(stdout.Insert(1, "."));
+        Assert.True(value >= 0m && value < 1m,
+            $"RANDOM result {value} not in [0, 1)");
+    }
 }

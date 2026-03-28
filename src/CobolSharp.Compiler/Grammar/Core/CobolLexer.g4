@@ -383,7 +383,14 @@ DOT         : '.' ;
 // Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
 COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
 COMMA       : ',' ;
-LPAREN      : '(' { if (_lastNonWsTokenType == IDENTIFIER) PushMode(SUBSCRIPT); } ;
+LPAREN      : '(' { if (_lastNonWsTokenType == IDENTIFIER
+                          || _lastNonWsTokenType == DISPLAY
+                          || _lastNonWsTokenType == MERGE
+                          || _lastNonWsTokenType == RANDOM
+                          || _lastNonWsTokenType == SIGN
+                          || _lastNonWsTokenType == SORT
+                          || _lastNonWsTokenType == SUM)
+                         PushMode(SUBSCRIPT); } ;
 RPAREN      : ')' ;
 LT          : '<' ;
 GT          : '>' ;
