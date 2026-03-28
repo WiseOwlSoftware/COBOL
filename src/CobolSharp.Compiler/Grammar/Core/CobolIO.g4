@@ -118,7 +118,17 @@ openMode
     ;
 
 closeStatement
-    : CLOSE dataReferenceList
+    : CLOSE closeFilePhrase (closeFilePhrase)*
+    ;
+
+closeFilePhrase
+    : fileName closeOption?
+    ;
+
+closeOption
+    : (REEL | UNIT) (FOR? REMOVAL)?
+    | WITH? NO REWIND
+    | WITH? LOCK
     ;
 
 // ==========================================

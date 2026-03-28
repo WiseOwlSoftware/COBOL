@@ -12,15 +12,46 @@ public sealed class ProgramState
 {
     public byte[] WorkingStorage { get; }
     public byte[] FileSection { get; }
+    public byte[] LocalStorage { get; }
 
-    public ProgramState(int wsSize, int fileSize)
+    /// <summary>
+    /// Snapshot of LOCAL-STORAGE initial values (VALUE clauses applied).
+    /// Copied into <see cref="LocalStorage"/> at each program invocation
+    /// to implement per-invocation re-initialization (§13.8).
+    /// </summary>
+    public byte[]? LocalStorageDefaults { get; set; }
+
+    public ProgramState(int wsSize, int fileSize, int lsSize)
     {
         WorkingStorage = new byte[wsSize];
         FileSection = new byte[fileSize];
+        LocalStorage = new byte[lsSize];
 
         // COBOL default: fill with spaces (DISPLAY items)
         Array.Fill(WorkingStorage, (byte)' ');
         Array.Fill(FileSection, (byte)' ');
+        Array.Fill(LocalStorage, (byte)' ');
+    }
+
+    /// <summary>
+    /// Snapshot the current LOCAL-STORAGE contents as the default state.
+    /// Called once from .cctor after VALUE clause initialization.
+    /// </summary>
+    public void SnapshotLocalStorageDefaults()
+    {
+        LocalStorageDefaults = (byte[])LocalStorage.Clone();
+    }
+
+    /// <summary>
+    /// Re-initialize LOCAL-STORAGE to its default state (VALUE clause defaults).
+    /// Called at each program invocation (CALL) per §13.8.
+    /// </summary>
+    public void ReinitializeLocalStorage()
+    {
+        if (LocalStorageDefaults != null)
+            Array.Copy(LocalStorageDefaults, LocalStorage, LocalStorage.Length);
+        else
+            Array.Fill(LocalStorage, (byte)' ');
     }
 }
 
@@ -186,6 +217,15 @@ public static class StorageHelpers
     public static bool ReadRecordFromFile(string fileName, byte[] area, int offset, int size)
     {
         return FileRuntime.ReadRecord(fileName, area, offset, size);
+    }
+
+    /// <summary>
+    /// READ PREVIOUS: read previous record from file into storage area.
+    /// Returns true if a record was read, false if at beginning-of-file.
+    /// </summary>
+    public static bool ReadPreviousRecordFromFile(string fileName, byte[] area, int offset, int size)
+    {
+        return FileRuntime.ReadPreviousRecord(fileName, area, offset, size);
     }
 
     /// <summary>

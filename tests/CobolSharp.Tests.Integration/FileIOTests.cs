@@ -1093,4 +1093,211 @@ public class FileIOTests : EndToEndTestBase
         }
     }
 
+
+    // ── File Status 02: Duplicate Alternate Key ──
+
+    [Fact]
+    public void FileIO_FileStatus02_DuplicateAlternateKey()
+    {
+        // Write records with duplicate alternate key values (WITH DUPLICATES),
+        // verify file status "02" is returned on WRITE and READ
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FS02T.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixfs02"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-ID
+                    ALTERNATE RECORD KEY IS IX-DEPT
+                        WITH DUPLICATES
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-ID   PIC X(3).
+               05 IX-DEPT PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "001" TO IX-ID.
+                MOVE "SALES" TO IX-DEPT.
+                WRITE IX-REC.
+                DISPLAY WS-FS.
+                MOVE "002" TO IX-ID.
+                MOVE "SALES" TO IX-DEPT.
+                WRITE IX-REC.
+                DISPLAY WS-FS.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                READ IX-FILE NEXT RECORD.
+                DISPLAY WS-FS.
+                READ IX-FILE NEXT RECORD.
+                DISPLAY WS-FS.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("00", lines[0]); // First WRITE — no duplicate yet
+        Assert.Equal("02", lines[1]); // Second WRITE — duplicate alt key exists
+        // READ records: first record's alt key has a duplicate
+        Assert.Equal("02", lines[2]); // READ record 1 — alt key "SALES" has >1 record
+        Assert.Equal("02", lines[3]); // READ record 2 — alt key "SALES" has >1 record
+    }
+
+
+    // ── CLOSE WITH LOCK ──
+
+    [Fact]
+    public void FileIO_CloseWithLock_PreventsReopen()
+    {
+        // CLOSE file WITH LOCK, then attempt to reopen — should fail with status "38"
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LOCKTS.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT OUT-FILE ASSIGN TO "locktest"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD OUT-FILE.
+            01 OUT-REC.
+               05 OUT-TEXT PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT OUT-FILE.
+                MOVE "TESTDATA  " TO OUT-TEXT.
+                WRITE OUT-REC.
+                CLOSE OUT-FILE WITH LOCK.
+                DISPLAY WS-FS.
+                OPEN INPUT OUT-FILE.
+                DISPLAY WS-FS.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("00", lines[0]); // CLOSE WITH LOCK succeeded
+        Assert.Equal("38", lines[1]); // OPEN after LOCK — file locked
+    }
+
+
+    // ── READ PREVIOUS ──
+
+    [Fact]
+    public void FileIO_ReadPrevious_IndexedFile()
+    {
+        // Write 3 records to indexed file, read forward to end, then READ PREVIOUS backward
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RDPREV.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixprev"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-KEY PIC X(3).
+               05 IX-VAL PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            01 WS-EOF PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "AAA" TO IX-KEY.
+                MOVE "111" TO IX-VAL.
+                WRITE IX-REC.
+                MOVE "BBB" TO IX-KEY.
+                MOVE "222" TO IX-VAL.
+                WRITE IX-REC.
+                MOVE "CCC" TO IX-KEY.
+                MOVE "333" TO IX-VAL.
+                WRITE IX-REC.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                PERFORM UNTIL WS-EOF = 1
+                    READ IX-FILE NEXT RECORD
+                        AT END MOVE 1 TO WS-EOF
+                    END-READ
+                END-PERFORM.
+                READ IX-FILE PREVIOUS RECORD.
+                DISPLAY IX-KEY IX-VAL.
+                READ IX-FILE PREVIOUS RECORD.
+                DISPLAY IX-KEY IX-VAL.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // After reading forward past end, READ PREVIOUS should get last then second-to-last
+        Assert.Equal("CCC333", lines[0]);
+        Assert.Equal("BBB222", lines[1]);
+    }
+
+
+    // ── USE AFTER EXCEPTION ──
+
+    [Fact]
+    public void FileIO_UseAfterException_TriggersHandler()
+    {
+        // Open non-existent file for input (without FILE STATUS check),
+        // USE AFTER should fire and we can detect it via a flag
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. USEDECL.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT DAT-FILE ASSIGN TO "nonexistent"
+                    ORGANIZATION IS SEQUENTIAL
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD DAT-FILE.
+            01 DAT-REC.
+               05 DAT-TEXT PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            01 WS-FLAG PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            ERR-SECTION SECTION.
+                USE AFTER STANDARD ERROR PROCEDURE ON DAT-FILE.
+            ERR-PARA.
+                MOVE 1 TO WS-FLAG.
+            END DECLARATIVES.
+            MAIN-SECTION SECTION.
+            MAIN-PARA.
+                OPEN INPUT DAT-FILE.
+                DISPLAY WS-FS.
+                DISPLAY WS-FLAG.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("35", lines[0]); // OPEN failed — file not found
+        Assert.Equal("1", lines[1]);  // USE handler fired, set flag to 1
+    }
+
 }

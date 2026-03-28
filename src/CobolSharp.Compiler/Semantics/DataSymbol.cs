@@ -103,11 +103,15 @@ public sealed class DataSymbol : Symbol
     public bool IsFiller { get; }
 
     /// <summary>True if this is a group item (has subordinate items, no PIC clause).
-    /// USAGE INDEX items without children are elementary, not groups.</summary>
-    public bool IsGroup => PicString == null && !(Usage == Runtime.UsageKind.Index && Children.Count == 0);
+    /// USAGE INDEX/COMP-1/COMP-2 items without children are elementary, not groups.</summary>
+    public bool IsGroup => PicString == null
+        && !(Usage == Runtime.UsageKind.Index && Children.Count == 0)
+        && !(Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0);
 
-    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX without children).</summary>
-    public bool IsElementary => PicString != null || (Usage == Runtime.UsageKind.Index && Children.Count == 0);
+    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX/COMP-1/COMP-2 without children).</summary>
+    public bool IsElementary => PicString != null
+        || (Usage == Runtime.UsageKind.Index && Children.Count == 0)
+        || (Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0);
 
     /// <summary>Which DATA DIVISION storage area this item belongs to (WORKING-STORAGE, FILE SECTION, etc.).</summary>
     public StorageAreaKind Area { get; set; }
@@ -132,6 +136,9 @@ public sealed class DataSymbol : Symbol
 
     /// <summary>JUSTIFIED RIGHT clause present on this data item.</summary>
     public bool IsJustifiedRight { get; set; }
+
+    /// <summary>SYNCHRONIZED clause present — align to natural boundary (§13.18.55).</summary>
+    public bool IsSynchronized { get; set; }
 
     /// <summary>IS EXTERNAL clause (§13.18.22): shared storage across run unit.</summary>
     public bool IsExternal { get; set; }

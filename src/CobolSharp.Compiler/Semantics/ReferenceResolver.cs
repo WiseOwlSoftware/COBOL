@@ -105,14 +105,14 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitCloseStatement(CobolParserCore.CloseStatementContext ctx)
     {
-        var idList = ctx.dataReferenceList();
-        if (idList != null)
+        foreach (var phrase in ctx.closeFilePhrase())
         {
-            foreach (var id in idList.dataReference())
+            var fn = phrase.fileName();
+            if (fn != null)
             {
-                string name = id.GetText();
+                string name = fn.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
-                    Error(id, $"CLOSE target '{name}' is not a declared file.");
+                    Error(fn, $"CLOSE target '{name}' is not a declared file.");
             }
         }
         return base.VisitCloseStatement(ctx);

@@ -395,7 +395,7 @@ public static class BoundTreeValidator
     private static void ValidateRead(BoundReadStatement read, int line, DiagnosticBag diagnostics)
     {
         // CBL1701: READ NEXT/PREVIOUS invalid for random-access-only
-        if (read.IsNext
+        if ((read.IsNext || read.IsPrevious)
             && string.Equals(read.File.AccessMode, "RANDOM", StringComparison.OrdinalIgnoreCase))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1701);
 

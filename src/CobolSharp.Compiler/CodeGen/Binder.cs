@@ -358,9 +358,12 @@ public sealed class Binder
             }
         }
 
-        // Collect paragraph methods in declaration order for Entry method
+        // Collect paragraph methods in declaration order for Entry method.
+        // Declarative paragraphs are excluded from the main dispatch — they're only
+        // invoked via PERFORM from USE AFTER EXCEPTION handlers.
         foreach (var para in boundProgram.Paragraphs)
         {
+            if (para.IsDeclarative) continue;
             if (_paragraphMethods.TryGetValue(para.Symbol.Name, out var m))
                 module.ParagraphDispatchOrder.Add(m);
         }
@@ -436,11 +439,9 @@ public sealed class Binder
             case BoundNextSentenceStatement:
                 return LowerNextSentence(method, block);
             case BoundOpenStatement open:
-                LowerOpen(open, block);
-                break;
+                return LowerOpen(open, method, block);
             case BoundCloseStatement close:
-                LowerClose(close, block);
-                break;
+                return LowerClose(close, method, block);
             case BoundReadStatement read:
                 return LowerRead(read, method, block);
             case BoundRewriteStatement rw:
@@ -1309,7 +1310,7 @@ public sealed class Binder
 
     // ── OPEN ──
 
-    private void LowerOpen(BoundOpenStatement open, IrBasicBlock block)
+    private IrBasicBlock LowerOpen(BoundOpenStatement open, IrMethod method, IrBasicBlock block)
     {
         string runtimeMethod = open.Mode switch
         {
@@ -1329,22 +1330,39 @@ public sealed class Binder
 
             // Update FILE STATUS if declared
             EmitFileStatus(file, block);
+
+            // USE AFTER EXCEPTION check
+            block = EmitUseDeclarative(file, method, block);
         }
+        return block;
     }
 
     // ── CLOSE ──
 
-    private void LowerClose(BoundCloseStatement close, IrBasicBlock block)
+    private IrBasicBlock LowerClose(BoundCloseStatement close, IrMethod method, IrBasicBlock block)
     {
-        foreach (var file in close.Files)
+        foreach (var phrase in close.FilePhrases)
         {
-            string cobolName = file.Name;
+            string cobolName = phrase.File.Name;
             var fnVal = _valueFactory.Next(IrPrimitiveType.String);
             block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
-            block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { fnVal }));
 
-            EmitFileStatus(file, block);
+            if (phrase.Option == CloseOption.Lock)
+            {
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFileWithLock", new[] { fnVal }));
+            }
+            else
+            {
+                // REEL, UNIT, NO REWIND are no-ops on disk — use standard close
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { fnVal }));
+            }
+
+            EmitFileStatus(phrase.File, block);
+
+            // USE AFTER EXCEPTION check
+            block = EmitUseDeclarative(phrase.File, method, block);
         }
+        return block;
     }
 
     // ── READ ──
@@ -1360,25 +1378,33 @@ public sealed class Binder
             var recordLoc = ResolveLocation(recordSym);
             if (recordLoc != null)
             {
-                // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey
-                // For INDEXED files, use RECORD KEY; for RELATIVE files, use RELATIVE KEY
-                string? keyName = read.File.RecordKey ?? read.File.RelativeKey;
-                bool isKeyedRead = !read.IsNext &&
-                    read.File.AccessMode is "RANDOM" or "DYNAMIC" &&
-                    keyName != null;
-
-                if (isKeyedRead)
+                if (read.IsPrevious)
                 {
-                    var keySym = _semantic.ResolveData(keyName!);
-                    var keyLoc = keySym != null ? ResolveLocation(keySym) : null;
-                    if (keyLoc != null)
-                        block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
-                    else
-                        block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                    // READ PREVIOUS — reverse sequential access
+                    block.Instructions.Add(new IrReadPreviousToStorage(cobolName, recordLoc));
                 }
                 else
                 {
-                    block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                    // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey
+                    // For INDEXED files, use RECORD KEY; for RELATIVE files, use RELATIVE KEY
+                    string? keyName = read.File.RecordKey ?? read.File.RelativeKey;
+                    bool isKeyedRead = !read.IsNext &&
+                        read.File.AccessMode is "RANDOM" or "DYNAMIC" &&
+                        keyName != null;
+
+                    if (isKeyedRead)
+                    {
+                        var keySym = _semantic.ResolveData(keyName!);
+                        var keyLoc = keySym != null ? ResolveLocation(keySym) : null;
+                        if (keyLoc != null)
+                            block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
+                        else
+                            block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                    }
+                    else
+                    {
+                        block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
+                    }
                 }
             }
         }
@@ -1406,6 +1432,17 @@ public sealed class Binder
             block.Instructions.Add(new IrCheckFileAtEnd(cobolName, atEndResult));
             return LowerConditionalBranch(read.AtEnd, read.NotAtEnd, atEndResult, method, block, "read");
         }
+
+        // INVALID KEY branching
+        if (read.InvalidKey.Count > 0 || read.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _valueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+            return LowerConditionalBranch(read.InvalidKey, read.NotInvalidKey, invalidResult, method, block, "read");
+        }
+
+        // USE AFTER EXCEPTION: fire declarative handler if no explicit AT END/INVALID KEY
+        block = EmitUseDeclarative(read.File, method, block);
 
         return block;
     }
@@ -1464,6 +1501,64 @@ public sealed class Binder
         if (statusLoc == null) return;
 
         block.Instructions.Add(new IrStoreFileStatus(file.Name, statusLoc));
+    }
+
+    /// <summary>
+    /// Emit USE AFTER EXCEPTION declarative check: if a USE declarative is registered
+    /// for this file and the last I/O status indicates an error, PERFORM the declarative section.
+    /// Returns the (possibly new) current block after branching.
+    /// </summary>
+    private IrBasicBlock EmitUseDeclarative(FileSymbol file, IrMethod method, IrBasicBlock block)
+    {
+        if (!_semantic.UseDeclaratives.TryGetValue(file.Name, out var sectionName))
+            return block;
+
+        // Find the first paragraph of the declarative section
+        var sectionParas = _semantic.GetSectionParagraphs(sectionName);
+        if (sectionParas == null || sectionParas.Count == 0)
+            return block;
+
+        string firstPara = sectionParas[0];
+        if (!_paragraphMethods.TryGetValue(firstPara, out var paraMethod))
+            return block;
+
+        // Check if file status != "00" (error occurred)
+        var errorVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrCheckFileInvalidKey(file.Name, errorVal));
+
+        var useBlock = method.CreateBlock("use.handler");
+        var afterBlock = method.CreateBlock("use.after");
+        block.Instructions.Add(new IrBranch(errorVal, useBlock, afterBlock));
+
+        // USE handler: PERFORM the declarative section
+        method.Blocks.Add(useBlock);
+        if (sectionParas.Count == 1)
+        {
+            useBlock.Instructions.Add(new IrPerform(paraMethod));
+        }
+        else
+        {
+            // PERFORM THRU all paragraphs in the section
+            int startIdx = _paragraphIndices.GetValueOrDefault(sectionParas[0], -1);
+            int endIdx = _paragraphIndices.GetValueOrDefault(sectionParas[^1], -1);
+            if (startIdx >= 0 && endIdx >= 0)
+            {
+                var methods = new List<IrMethod>();
+                for (int i = startIdx; i <= endIdx; i++)
+                {
+                    var pName = _paragraphsByIndex[i];
+                    if (_paragraphMethods.TryGetValue(pName, out var pm))
+                        methods.Add(pm);
+                    else
+                        methods.Add(null!);
+                }
+                useBlock.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
+            }
+        }
+        useBlock.Instructions.Add(new IrJump(afterBlock));
+
+        method.Blocks.Add(afterBlock);
+        return afterBlock;
     }
 
     // ── REWRITE ──

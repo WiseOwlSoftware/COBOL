@@ -20,6 +20,9 @@ public class IndexedFileHandler : IFileHandler
     private readonly List<SortedDictionary<string, List<byte[]>>> _alternateIndices = [];
     private IEnumerator<KeyValuePair<string, byte[]>>? _enumerator;
     private string? _currentKey;
+#pragma warning disable CS0414
+    private bool _pastEnd; // reserved for future ReadPrevious
+#pragma warning restore CS0414
     private string? _dataFilePath;
     private FileOpenMode _openMode;
 
@@ -122,13 +125,69 @@ public class IndexedFileHandler : IFileHandler
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
+        _pastEnd = false;
         if (!_enumerator.MoveNext())
+        {
+            _pastEnd = true;
             return FileStatus.AtEnd;
+        }
 
         var record = _enumerator.Current.Value;
         Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
         _currentKey = _enumerator.Current.Key;
-        return FileStatus.Success;
+        return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
+    }
+
+    /// <summary>
+    /// Read the previous record (reverse sequential access for DYNAMIC mode).
+    /// </summary>
+    public string ReadPrevious(byte[] recordBuffer)
+    {
+        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
+
+        if (_currentKey == null)
+        {
+            // No current position — start from the last record
+            var lastEntry = _records!.LastOrDefault();
+            if (lastEntry.Key == null) return FileStatus.AtEnd;
+            Array.Copy(lastEntry.Value, recordBuffer, Math.Min(lastEntry.Value.Length, recordBuffer.Length));
+            _currentKey = lastEntry.Key;
+            _pastEnd = false;
+            return HasDuplicateAlternateKey(lastEntry.Value) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
+        }
+
+        // If we just hit AT END on a forward read, the current key still points to the
+        // last successfully read record. Return that record first, then go backward.
+        if (_pastEnd)
+        {
+            _pastEnd = false;
+            if (_records!.TryGetValue(_currentKey, out var currentRecord))
+            {
+                Array.Copy(currentRecord, recordBuffer, Math.Min(currentRecord.Length, recordBuffer.Length));
+                return HasDuplicateAlternateKey(currentRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
+            }
+            return FileStatus.AtEnd;
+        }
+
+        // Find the record before _currentKey
+        string? prevKey = null;
+        byte[]? prevRecord = null;
+        foreach (var entry in _records!)
+        {
+            if (string.Compare(entry.Key, _currentKey, StringComparison.Ordinal) >= 0)
+                break;
+            prevKey = entry.Key;
+            prevRecord = entry.Value;
+        }
+
+        if (prevKey == null || prevRecord == null)
+            return FileStatus.AtEnd;
+
+        Array.Copy(prevRecord, recordBuffer, Math.Min(prevRecord.Length, recordBuffer.Length));
+        _currentKey = prevKey;
+        return HasDuplicateAlternateKey(prevRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
@@ -154,7 +213,7 @@ public class IndexedFileHandler : IFileHandler
 
             Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
             _currentKey = ExtractKey(record);
-            return FileStatus.Success;
+            return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
         }
 
         // Alternate key lookup
@@ -167,7 +226,7 @@ public class IndexedFileHandler : IFileHandler
         var found = records[0]; // First matching record
         Array.Copy(found, recordBuffer, Math.Min(found.Length, recordBuffer.Length));
         _currentKey = ExtractKey(found);
-        return FileStatus.Success;
+        return HasDuplicateAlternateKey(found) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
     public string Write(byte[] recordData)
@@ -191,9 +250,22 @@ public class IndexedFileHandler : IFileHandler
             }
         }
 
+        // Check if any alternate key with DUPLICATES allowed already has a matching value.
+        // If so, the WRITE succeeds but returns status "02" (duplicate alternate key exists).
+        bool hasDuplicateAlt = false;
+        for (int i = 0; i < _alternateKeys.Count; i++)
+        {
+            if (_alternateKeys[i].AllowDuplicates)
+            {
+                string altKey = ExtractAlternateKey(recordData, i);
+                if (_alternateIndices[i].TryGetValue(altKey, out var existing) && existing.Count > 0)
+                    hasDuplicateAlt = true;
+            }
+        }
+
         _records[key] = (byte[])recordData.Clone();
         IndexAlternateKeys(recordData);
-        return FileStatus.Success;
+        return hasDuplicateAlt ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
     public string Rewrite(byte[] recordData)
@@ -285,6 +357,24 @@ public class IndexedFileHandler : IFileHandler
             }
             list.Add((byte[])record.Clone());
         }
+    }
+
+    /// <summary>
+    /// Check if any alternate key (with DUPLICATES) has more than one record for this record's alt key value.
+    /// Returns true if status "02" should be returned (duplicate alternate key exists).
+    /// </summary>
+    private bool HasDuplicateAlternateKey(byte[] record)
+    {
+        for (int i = 0; i < _alternateKeys.Count; i++)
+        {
+            if (_alternateKeys[i].AllowDuplicates)
+            {
+                string altKey = ExtractAlternateKey(record, i);
+                if (_alternateIndices[i].TryGetValue(altKey, out var list) && list.Count > 1)
+                    return true;
+            }
+        }
+        return false;
     }
 
     private void ResetEnumerator()

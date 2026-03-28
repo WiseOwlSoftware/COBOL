@@ -1563,6 +1563,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCloseStatement([NotNull] CobolParserCore.CloseStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.closeFilePhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCloseFilePhrase([NotNull] CobolParserCore.CloseFilePhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.closeOption"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCloseOption([NotNull] CobolParserCore.CloseOptionContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.readStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

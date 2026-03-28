@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Linq;
 using CobolSharp.Runtime;
 namespace CobolSharp.Compiler.Semantics.Bound;
 
@@ -628,22 +629,58 @@ public sealed class BoundOpenStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.OpenStatement;
 }
 
+/// <summary>CLOSE statement option per COBOL-85 §14.9.6.</summary>
+public enum CloseOption
+{
+    /// <summary>No option — default CLOSE.</summary>
+    None,
+    /// <summary>CLOSE ... REEL [FOR REMOVAL].</summary>
+    Reel,
+    /// <summary>CLOSE ... UNIT [FOR REMOVAL].</summary>
+    Unit,
+    /// <summary>CLOSE ... WITH NO REWIND.</summary>
+    NoRewind,
+    /// <summary>CLOSE ... WITH LOCK — prevents reopening.</summary>
+    Lock,
+}
+
+/// <summary>A single file + option pair in a CLOSE statement.</summary>
+public sealed record BoundCloseFilePhrase(FileSymbol File, CloseOption Option);
+
 public sealed class BoundCloseStatement : BoundStatement
 {
-    public IReadOnlyList<FileSymbol> Files { get; }
+    public IReadOnlyList<BoundCloseFilePhrase> FilePhrases { get; }
 
-    public BoundCloseStatement(IReadOnlyList<FileSymbol> files)
-        => Files = files;
+    /// <summary>Convenience: all file symbols (backward compat for validators).</summary>
+    public IReadOnlyList<FileSymbol> Files => FilePhrases.Select(p => p.File).ToList();
+
+    public BoundCloseStatement(IReadOnlyList<BoundCloseFilePhrase> filePhrases)
+        => FilePhrases = filePhrases;
 
     public override BoundNodeKind Kind => BoundNodeKind.CloseStatement;
+}
+
+/// <summary>Direction for READ NEXT / READ PREVIOUS.</summary>
+public enum ReadDirection
+{
+    /// <summary>No explicit direction — default sequential or keyed.</summary>
+    None,
+    /// <summary>READ NEXT RECORD — forward sequential.</summary>
+    Next,
+    /// <summary>READ PREVIOUS RECORD — backward sequential.</summary>
+    Previous,
 }
 
 public sealed class BoundReadStatement : BoundStatement
 {
     public FileSymbol File { get; }
     public BoundIdentifierExpression? Into { get; }
-    /// <summary>True if READ NEXT or READ PREVIOUS was specified.</summary>
-    public bool IsNext { get; }
+    /// <summary>The explicit read direction (NEXT, PREVIOUS, or None).</summary>
+    public ReadDirection Direction { get; }
+    /// <summary>True if READ NEXT was explicitly specified (backward compat with old isNext semantics).</summary>
+    public bool IsNext => Direction == ReadDirection.Next;
+    /// <summary>True if READ PREVIOUS was specified.</summary>
+    public bool IsPrevious => Direction == ReadDirection.Previous;
     /// <summary>The KEY IS data-name, if specified (for indexed files).</summary>
     public string? KeyDataName { get; }
     public IReadOnlyList<BoundStatement> AtEnd { get; }
@@ -656,7 +693,7 @@ public sealed class BoundReadStatement : BoundStatement
     public BoundReadStatement(
         FileSymbol file,
         BoundIdentifierExpression? into,
-        bool isNext,
+        ReadDirection direction,
         string? keyDataName,
         IReadOnlyList<BoundStatement> atEnd,
         IReadOnlyList<BoundStatement> notAtEnd,
@@ -665,7 +702,7 @@ public sealed class BoundReadStatement : BoundStatement
     {
         File = file;
         Into = into;
-        IsNext = isNext;
+        Direction = direction;
         KeyDataName = keyDataName;
         AtEnd = atEnd;
         NotAtEnd = notAtEnd;
@@ -1115,11 +1152,14 @@ public sealed class BoundParagraph : BoundNode
 {
     public ParagraphSymbol Symbol { get; }
     public IReadOnlyList<BoundSentence> Sentences { get; }
+    /// <summary>True if this paragraph belongs to a DECLARATIVES section (not part of normal execution flow).</summary>
+    public bool IsDeclarative { get; }
 
-    public BoundParagraph(ParagraphSymbol symbol, IEnumerable<BoundSentence> sentences)
+    public BoundParagraph(ParagraphSymbol symbol, IEnumerable<BoundSentence> sentences, bool isDeclarative = false)
     {
         Symbol = symbol;
         Sentences = sentences.ToList().AsReadOnly();
+        IsDeclarative = isDeclarative;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.Paragraph;

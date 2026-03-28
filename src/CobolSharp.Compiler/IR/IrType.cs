@@ -35,6 +35,8 @@ public sealed class IrPrimitiveType : IrType
 {
     public static readonly IrPrimitiveType Int32 = new("int32");
     public static readonly IrPrimitiveType Int64 = new("int64");
+    public static readonly IrPrimitiveType Float32 = new("float32");
+    public static readonly IrPrimitiveType Float64 = new("float64");
     public static readonly IrPrimitiveType Decimal = new("decimal");
     public static readonly IrPrimitiveType String = new("string");
     public static readonly IrPrimitiveType Bool = new("bool");

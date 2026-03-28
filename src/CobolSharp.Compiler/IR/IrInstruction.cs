@@ -545,6 +545,21 @@ public sealed class IrReadRecordToStorage : IrInstruction
 }
 
 /// <summary>
+/// READ PREVIOUS: read previous record from file into storage location (reverse sequential).
+/// </summary>
+public sealed class IrReadPreviousToStorage : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+
+    public IrReadPreviousToStorage(string fileName, IrLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
 /// READ by key: read a specific record from an indexed/relative file using the key value.
 /// Used for RANDOM and DYNAMIC access modes (non-NEXT reads).
 /// </summary>

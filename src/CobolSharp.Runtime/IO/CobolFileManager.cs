@@ -47,6 +47,14 @@ public class CobolFileManager : IDisposable
         return handler.ReadNext(recordBuffer);
     }
 
+    /// <summary>Read the previous record from a file (reverse sequential).</summary>
+    public string ReadPrevious(string cobolFileName, byte[] recordBuffer)
+    {
+        var handler = GetHandler(cobolFileName);
+        if (handler == null) return FileStatus.FileNotOpen;
+        return handler.ReadPrevious(recordBuffer);
+    }
+
     /// <summary>Read a specific record by key (random/indexed access).</summary>
     public string ReadByKey(string cobolFileName, byte[] recordBuffer, byte[] keyValue)
     {

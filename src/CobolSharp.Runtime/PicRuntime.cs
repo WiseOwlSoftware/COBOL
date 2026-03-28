@@ -39,7 +39,9 @@ public static class PicRuntime
             value = Math.Abs(value);
         }
 
-        value = ApplyScalingAndRounding(value, dstPic, roundingMode);
+        // COMP-1/COMP-2 floating-point destinations: no fixed-point scaling.
+        if (dstPic.Usage is not (UsageKind.Comp1 or UsageKind.Comp2))
+            value = ApplyScalingAndRounding(value, dstPic, roundingMode);
         EncodeNumeric(dstArea, dstOffset, dstLength, dstPic, value);
     }
 
@@ -887,7 +889,10 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal literal, int roundingMode = 0)
     {
-        decimal value = ApplyScalingAndRounding(literal, destPic, roundingMode);
+        // COMP-1/COMP-2 floating-point fields: no scaling — store the value directly.
+        decimal value = destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2
+            ? literal
+            : ApplyScalingAndRounding(literal, destPic, roundingMode);
 
         // Numeric-edited targets: format using edit pattern, not raw encode
         if (destPic.Category == CobolCategory.NumericEdited)
@@ -1489,6 +1494,8 @@ public static class PicRuntime
             UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length),
             UsageKind.Comp or UsageKind.Binary => DecodeCompBinary(area, offset, length, pic),
             UsageKind.Comp5 => DecodeComp5(area, offset, length, pic),
+            UsageKind.Comp1 => DecodeComp1(area, offset),
+            UsageKind.Comp2 => DecodeComp2(area, offset),
             _ => DecodeDisplay(area, offset, length, pic)
         };
     }
@@ -1596,6 +1603,44 @@ public static class PicRuntime
         }
         intPart = intPart * 10 + ((lastByte >> 4) & 0x0F);
         return negative ? -intPart : intPart;
+    }
+
+    /// <summary>
+    /// COMP-1 decoding: read 4 bytes as IEEE 754 single-precision float, return as decimal.
+    /// </summary>
+    private static decimal DecodeComp1(byte[] area, int offset)
+    {
+        float value = BitConverter.ToSingle(area, offset);
+        return (decimal)value;
+    }
+
+    /// <summary>
+    /// COMP-2 decoding: read 8 bytes as IEEE 754 double-precision float, return as decimal.
+    /// </summary>
+    private static decimal DecodeComp2(byte[] area, int offset)
+    {
+        double value = BitConverter.ToDouble(area, offset);
+        return (decimal)value;
+    }
+
+    /// <summary>
+    /// COMP-1 encoding: convert decimal to IEEE 754 single-precision float, write 4 bytes.
+    /// </summary>
+    private static void EncodeComp1(byte[] area, int offset, decimal value)
+    {
+        float f = (float)value;
+        byte[] bytes = BitConverter.GetBytes(f);
+        Array.Copy(bytes, 0, area, offset, 4);
+    }
+
+    /// <summary>
+    /// COMP-2 encoding: convert decimal to IEEE 754 double-precision float, write 8 bytes.
+    /// </summary>
+    private static void EncodeComp2(byte[] area, int offset, decimal value)
+    {
+        double d = (double)value;
+        byte[] bytes = BitConverter.GetBytes(d);
+        Array.Copy(bytes, 0, area, offset, 8);
     }
 
     /// <summary>
@@ -1788,6 +1833,12 @@ public static class PicRuntime
                 break;
             case UsageKind.Comp5:
                 EncodeComp5(area, offset, length, pic, value);
+                break;
+            case UsageKind.Comp1:
+                EncodeComp1(area, offset, value);
+                break;
+            case UsageKind.Comp2:
+                EncodeComp2(area, offset, value);
                 break;
             default:
                 EncodeDisplay(area, offset, length, pic, value);

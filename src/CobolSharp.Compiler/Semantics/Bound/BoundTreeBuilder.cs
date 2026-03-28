@@ -184,6 +184,34 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return new BoundProgram(_semantic.Program, _paragraphs);
     }
 
+    public override object? VisitDeclarativeSection(CobolParserCore.DeclarativeSectionContext ctx)
+    {
+        // Extract section name
+        string sectionName = ctx.sectionName()?.GetText() ?? "";
+
+        // The first sentence in a declarative section contains the USE statement.
+        // Extract it and register the USE association with the semantic model.
+        var sentences = ctx.sentence();
+        if (sentences.Length > 0)
+        {
+            foreach (var stmtCtx in sentences[0].statement())
+            {
+                if (stmtCtx.useStatement() is { } useCtx)
+                {
+                    var bound = BindUse(useCtx);
+                    if (!bound.IsBeforeReporting)
+                    {
+                        foreach (var fileName in bound.FileNames)
+                            _semantic.RegisterUseDeclarative(fileName, sectionName);
+                    }
+                }
+            }
+        }
+
+        // Continue visiting children (declarative paragraphs become bound paragraphs)
+        return base.VisitDeclarativeSection(ctx);
+    }
+
     public override object? VisitParagraphDefinition(CobolParserCore.ParagraphDefinitionContext ctx)
     {
         var nameCtx = ctx.paragraphName();
@@ -208,6 +236,33 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         _paragraphs.Add(new BoundParagraph(paraSym, sentences));
+        return null;
+    }
+
+    public override object? VisitDeclarativeParagraph(CobolParserCore.DeclarativeParagraphContext ctx)
+    {
+        var nameCtx = ctx.paragraphName();
+        if (nameCtx == null) return null;
+
+        string name = nameCtx.GetText();
+        var paraSym = _semantic.ResolveParagraph(name);
+        if (paraSym == null) return null;
+
+        var sentences = new List<BoundSentence>();
+        foreach (var sentenceCtx in ctx.sentence())
+        {
+            var statements = new List<BoundStatement>();
+            foreach (var stmtCtx in sentenceCtx.statement())
+            {
+                var bound = BindStatement(stmtCtx);
+                if (bound != null)
+                    statements.Add(bound);
+            }
+            if (statements.Count > 0)
+                sentences.Add(new BoundSentence(statements));
+        }
+
+        _paragraphs.Add(new BoundParagraph(paraSym, sentences, isDeclarative: true));
         return null;
     }
 
@@ -910,19 +965,27 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement BindClose(CobolParserCore.CloseStatementContext ctx)
     {
-        var idListCtx = ctx.dataReferenceList();
-        var files = new List<FileSymbol>();
-        if (idListCtx != null)
+        var phrases = new List<BoundCloseFilePhrase>();
+        foreach (var phraseCtx in ctx.closeFilePhrase())
         {
-            foreach (var idCtx in idListCtx.dataReference())
+            var fn = phraseCtx.fileName();
+            if (fn == null) continue;
+            string name = fn.GetText();
+            var fileSym = _semantic.ResolveFile(name);
+            if (fileSym == null) continue;
+
+            var option = CloseOption.None;
+            var optCtx = phraseCtx.closeOption();
+            if (optCtx != null)
             {
-                string name = idCtx.IDENTIFIER().GetText();
-                var fileSym = _semantic.ResolveFile(name);
-                if (fileSym != null)
-                    files.Add(fileSym);
+                if (optCtx.LOCK() != null) option = CloseOption.Lock;
+                else if (optCtx.NO() != null) option = CloseOption.NoRewind;
+                else if (optCtx.REEL() != null) option = CloseOption.Reel;
+                else if (optCtx.UNIT() != null) option = CloseOption.Unit;
             }
+            phrases.Add(new BoundCloseFilePhrase(fileSym, option));
         }
-        return new BoundCloseStatement(files);
+        return new BoundCloseStatement(phrases);
     }
 
     // ── READ ──
@@ -937,7 +1000,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (fileSym == null) return null;
 
         // NEXT/PREVIOUS direction
-        bool isNext = ctx.readDirection() != null;
+        var direction = ReadDirection.None;
+        var dirCtx = ctx.readDirection();
+        if (dirCtx != null)
+        {
+            if (dirCtx.PREVIOUS() != null)
+                direction = ReadDirection.Previous;
+            else
+                direction = ReadDirection.Next;
+        }
 
         // KEY IS data-name
         string? keyDataName = null;
@@ -998,7 +1069,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 }
         }
 
-        return new BoundReadStatement(fileSym, intoId, isNext, keyDataName, atEnd, notAtEnd, invalidKey, notInvalidKey);
+        return new BoundReadStatement(fileSym, intoId, direction, keyDataName, atEnd, notAtEnd, invalidKey, notInvalidKey);
     }
 
     // ── REWRITE ──

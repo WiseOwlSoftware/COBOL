@@ -1250,4 +1250,251 @@ public class DataTests : EndToEndTestBase
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("ABCDEF", stdout);
     }
+
+
+    [Fact]
+    public void Synchronized_AlignsCompFieldToWordBoundary()
+    {
+        // PIC X(1) occupies 1 byte at offset 0.
+        // Without SYNC, COMP PIC S9(5) would start at offset 1 (4 bytes).
+        // With SYNC, it must start at offset 4 (word boundary).
+        // Total group = 4 (slack) + 4 (COMP) = 8 bytes.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SYNCTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-GROUP.
+               05 WS-CHAR   PIC X(1) VALUE "A".
+               05 WS-NUM    PIC S9(5) COMP SYNC VALUE 12345.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-NUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("12345", stdout);
+    }
+
+
+    [Fact]
+    public void Comp1_FloatArithmetic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMP1TST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-FLOAT   COMP-1 VALUE 3.14.
+            01 WS-RESULT  PIC 9(3)V99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-FLOAT TO WS-RESULT.
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("00314", stdout);
+    }
+
+
+    [Fact]
+    public void Comp2_DoubleArithmetic()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. COMP2TST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DOUBLE  COMP-2 VALUE 2.71.
+            01 WS-RESULT  PIC 9(3)V99 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-DOUBLE TO WS-RESULT.
+                DISPLAY WS-RESULT.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("00271", stdout);
+    }
+
+    // ═══════════════════════════════════════════
+    // LOCAL-STORAGE per-invocation re-initialization
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void LocalStorage_ReinitializedOnEachCall()
+    {
+        // CALL a subprogram twice. The subprogram has LOCAL-STORAGE with VALUE.
+        // Each call should see the initial VALUE, proving re-initialization.
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("CALLER.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLER.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    CALL "LSUB"
+                    CALL "LSUB"
+                    STOP RUN.
+            """),
+            ("LSUB.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. LSUB.
+                DATA DIVISION.
+                LOCAL-STORAGE SECTION.
+                01 LS-COUNTER PIC 9(3) VALUE 100.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY LS-COUNTER
+                    ADD 50 TO LS-COUNTER
+                    DISPLAY LS-COUNTER
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // First call: starts at 100, incremented to 150
+        Assert.Equal("100", lines[0]);
+        Assert.Equal("150", lines[1]);
+        // Second call: re-initialized to 100, incremented to 150 again
+        Assert.Equal("100", lines[2]);
+        Assert.Equal("150", lines[3]);
+    }
+
+    [Fact]
+    public void LocalStorage_SingleProgram_ValuePreserved()
+    {
+        // Just verify LOCAL-STORAGE VALUE works in a single-program context
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. LSTEST.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 LS-VAL PIC X(5) VALUE "ABCDE".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY LS-VAL
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ABCDE", stdout);
+    }
+
+    [Fact]
+    public void LocalStorage_AlphanumericValue_Reinitialized()
+    {
+        // LOCAL-STORAGE alphanumeric field with VALUE is re-initialized on each call
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("CALLER2.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALLER2.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    CALL "LSUB2"
+                    CALL "LSUB2"
+                    STOP RUN.
+            """),
+            ("LSUB2.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. LSUB2.
+                DATA DIVISION.
+                LOCAL-STORAGE SECTION.
+                01 LS-MSG PIC X(5) VALUE "HELLO".
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY LS-MSG
+                    MOVE "WORLD" TO LS-MSG
+                    DISPLAY LS-MSG
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("HELLO", lines[0]);
+        Assert.Equal("WORLD", lines[1]);
+        Assert.Equal("HELLO", lines[2]);
+        Assert.Equal("WORLD", lines[3]);
+    }
+
+    // ═══════════════════════════════════════════
+    // EXTERNAL shared storage
+    // ═══════════════════════════════════════════
+
+    [Fact]
+    public void External_SharedStorage_TwoPrograms()
+    {
+        // Two programs share an EXTERNAL item. One writes, the other reads.
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("EXTMAIN.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. EXTMAIN.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 EXT-DATA IS EXTERNAL PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    MOVE "SHARED-VAL" TO EXT-DATA
+                    CALL "EXTREAD"
+                    STOP RUN.
+            """),
+            ("EXTREAD.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. EXTREAD.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 EXT-DATA IS EXTERNAL PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY EXT-DATA
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("SHARED-VAL", stdout);
+    }
+
+    [Fact]
+    public void External_GroupRecord_SharedAcrossPrograms()
+    {
+        // EXTERNAL group record with subordinate fields shared across programs
+        var (success, stdout, stderr) = CompileMultipleAndRun(
+            ("EXTGRPMAIN.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. EXTGRPMAIN.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 EXT-REC IS EXTERNAL.
+                   05 EXT-NAME PIC X(5).
+                   05 EXT-NUM  PIC 9(3).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    MOVE "ABCDE" TO EXT-NAME
+                    MOVE 42 TO EXT-NUM
+                    CALL "EXTGRPREAD"
+                    STOP RUN.
+            """),
+            ("EXTGRPREAD.cob", """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. EXTGRPREAD.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 EXT-REC IS EXTERNAL.
+                   05 EXT-NAME PIC X(5).
+                   05 EXT-NUM  PIC 9(3).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY EXT-NAME
+                    DISPLAY EXT-NUM
+                    EXIT PROGRAM.
+            """));
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal("ABCDE", lines[0]);
+        Assert.Equal("042", lines[1]);
+    }
 }

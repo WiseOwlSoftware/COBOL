@@ -11,6 +11,10 @@ public static class FileStatus
     public const string Success = "00";
     /// <summary>Status 05 — OPEN on OPTIONAL file that does not exist; file created or available for first write.</summary>
     public const string OptionalFileNotFound = "05";
+    /// <summary>Status 02 — successful READ/WRITE/REWRITE but duplicate alternate key exists.</summary>
+    public const string DuplicateAlternateKey = "02";
+    /// <summary>Status 04 — record length does not match FD RECORD CONTAINS (length mismatch).</summary>
+    public const string RecordLengthMismatch = "04";
     /// <summary>Status 10 — sequential READ reached end-of-file (AT END condition).</summary>
     public const string AtEnd = "10";
     /// <summary>Status 21 — key value not in ascending sequence for sequential WRITE to indexed file.</summary>
@@ -19,14 +23,20 @@ public static class FileStatus
     public const string DuplicateKey = "22";
     /// <summary>Status 23 — READ/START found no record matching the specified key.</summary>
     public const string RecordNotFound = "23";
+    /// <summary>Status 14 — sequential READ on relative file where relative key exceeds max.</summary>
+    public const string RelativeKeyOverflow = "14";
     /// <summary>Status 24 — record boundary violation (e.g., relative key exceeds file boundary).</summary>
     public const string BoundaryViolation = "24";
     /// <summary>Status 30 — permanent I/O error with no more specific code.</summary>
     public const string PermanentError = "30";
+    /// <summary>Status 34 — WRITE past end boundary of sequential file.</summary>
+    public const string SequentialBoundaryViolation = "34";
     /// <summary>Status 35 — OPEN failed because the file does not exist (INPUT/I-O mode).</summary>
     public const string FileNotFound = "35";
     /// <summary>Status 37 — OPEN failed due to insufficient access permissions.</summary>
     public const string PermissionDenied = "37";
+    /// <summary>Status 39 — OPEN detects file attributes conflict with FD definition.</summary>
+    public const string FixedAttributeConflict = "39";
     /// <summary>Status 41 — OPEN attempted on a file that is already open.</summary>
     public const string FileAlreadyOpen = "41";
     /// <summary>Status 42 — CLOSE attempted on a file that is not open.</summary>

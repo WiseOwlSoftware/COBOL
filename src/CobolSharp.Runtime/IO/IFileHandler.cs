@@ -23,6 +23,9 @@ public interface IFileHandler : IDisposable
     /// <summary>Read the next record (sequential access).</summary>
     string ReadNext(byte[] recordBuffer);
 
+    /// <summary>Read the previous record (reverse sequential access, DYNAMIC mode).</summary>
+    string ReadPrevious(byte[] recordBuffer);
+
     /// <summary>Read a specific record by key (random/indexed access).</summary>
     string ReadByKey(byte[] recordBuffer, byte[] keyValue);
 

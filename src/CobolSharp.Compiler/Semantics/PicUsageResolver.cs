@@ -32,8 +32,14 @@ public static class PicUsageResolver
         bool isAlpha = category.IsAlphanumericLike();
         bool isBool = false;
 
+        // COMP-1 (single float) and COMP-2 (double float) have no PIC clause but are numeric
+        if (picString == null && usage is UsageKind.Comp1 or UsageKind.Comp2)
+        {
+            isNumeric = true;
+            category = CobolCategory.Numeric;
+        }
         // Group items (no PIC) are alphanumeric by default
-        if (picString == null && usage == UsageKind.Display)
+        else if (picString == null && usage == UsageKind.Display)
         {
             isAlpha = true;
             category = CobolCategory.Alphanumeric;

@@ -15,6 +15,7 @@ public static class FileRuntime
     private static CobolFileManager? _manager;
     private static readonly Dictionary<string, string> _lastStatus = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> _afterAdvancingFiles = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> _lockedFiles = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Initialize the file manager. Called once at program start.
@@ -25,6 +26,7 @@ public static class FileRuntime
         _manager = new CobolFileManager();
         _lastStatus.Clear();
         _afterAdvancingFiles.Clear();
+        _lockedFiles.Clear();
     }
 
     /// <summary>
@@ -93,6 +95,7 @@ public static class FileRuntime
     /// </summary>
     public static void OpenOutput(string fileName)
     {
+        if (CheckLocked(fileName)) return;
         EnsureManager();
         string status = _manager!.Open(fileName, FileOpenMode.Output);
         _lastStatus[fileName] = status;
@@ -103,6 +106,7 @@ public static class FileRuntime
     /// </summary>
     public static void OpenInput(string fileName)
     {
+        if (CheckLocked(fileName)) return;
         EnsureManager();
         string status = _manager!.Open(fileName, FileOpenMode.Input);
         _lastStatus[fileName] = status;
@@ -113,6 +117,7 @@ public static class FileRuntime
     /// </summary>
     public static void OpenIO(string fileName)
     {
+        if (CheckLocked(fileName)) return;
         EnsureManager();
         string status = _manager!.Open(fileName, FileOpenMode.InputOutput);
         _lastStatus[fileName] = status;
@@ -123,9 +128,26 @@ public static class FileRuntime
     /// </summary>
     public static void OpenExtend(string fileName)
     {
+        if (CheckLocked(fileName)) return;
         EnsureManager();
         string status = _manager!.Open(fileName, FileOpenMode.Extend);
         _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// Check if a file was closed WITH LOCK. If so, set status "38" (file previously closed with lock)
+    /// and return true to prevent the open.
+    /// </summary>
+    private static bool CheckLocked(string fileName)
+    {
+        if (_lockedFiles.Contains(fileName))
+        {
+            // COBOL-85 doesn't define a specific status for this — use "38" (file locked)
+            // or "41" (already open) doesn't fit. Use "38" as a non-standard but reasonable code.
+            _lastStatus[fileName] = "38";
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -142,6 +164,15 @@ public static class FileRuntime
         }
         string status = _manager!.Close(fileName);
         _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
+    /// CLOSE file-name WITH LOCK — prevents reopening.
+    /// </summary>
+    public static void CloseFileWithLock(string fileName)
+    {
+        CloseFile(fileName);
+        _lockedFiles.Add(fileName);
     }
 
     /// <summary>
@@ -204,6 +235,24 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// READ PREVIOUS: read previous record from file into byte buffer.
+    /// Returns true if a record was read, false if at beginning-of-file.
+    /// </summary>
+    public static bool ReadPreviousRecord(string fileName, byte[] buffer, int offset, int length)
+    {
+        EnsureManager();
+        byte[] tempBuf = new byte[length];
+        string status = _manager!.ReadPrevious(fileName, tempBuf);
+        _lastStatus[fileName] = status;
+
+        if (status == FileStatus.AtEnd)
+            return false;
+
+        Array.Copy(tempBuf, 0, buffer, offset, length);
+        return status is FileStatus.Success or FileStatus.DuplicateAlternateKey;
+    }
+
+    /// <summary>
     /// READ by key: read a specific record from an indexed/relative file using the key value.
     /// Extracts key bytes and calls IFileHandler.ReadByKey.
     /// </summary>
@@ -235,7 +284,7 @@ public static class FileRuntime
             return false;
 
         Array.Copy(tempBuf, 0, buffer, offset, length);
-        return status == FileStatus.Success;
+        return status is FileStatus.Success or FileStatus.DuplicateAlternateKey;
     }
 
     /// <summary>
@@ -295,7 +344,7 @@ public static class FileRuntime
     public static bool IsInvalidKey(string fileName)
     {
         if (_lastStatus.TryGetValue(fileName, out var status))
-            return status != IO.FileStatus.Success;
+            return status != IO.FileStatus.Success && status != IO.FileStatus.DuplicateAlternateKey;
         return false;
     }
 
@@ -320,6 +369,7 @@ public static class FileRuntime
         _manager = null;
         _lastStatus.Clear();
         _afterAdvancingFiles.Clear();
+        _lockedFiles.Clear();
     }
 
     private static void EnsureManager()

@@ -148,8 +148,8 @@ public sealed class RecordLayoutBuilder
                 _ => IrPrimitiveType.Int64
             },
             UsageKind.Comp3 or UsageKind.PackedDecimal => IrPrimitiveType.Decimal,
-            UsageKind.Comp1 => IrPrimitiveType.Int32, // float mapped via Int32 for now
-            UsageKind.Comp2 => IrPrimitiveType.Int64, // double mapped via Int64 for now
+            UsageKind.Comp1 => IrPrimitiveType.Float32,
+            UsageKind.Comp2 => IrPrimitiveType.Float64,
             _ => IrPrimitiveType.ByteArray
         };
     }

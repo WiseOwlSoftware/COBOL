@@ -314,6 +314,94 @@ public class SymbolValidatorTests : DiagnosticTestBase
     // if RENAMES is fully supported. Check is a safety net for future binder changes.
 
     // ═══════════════════════════════════════════════════════════════
+    // CBL0808: REDEFINES clause ordering (§13.18.44 SR 1)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void CBL0808_RedefinesAsFirstClause_NoDiagnostic()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 REC-A.
+          05 FIELD-A PIC X(10).
+          05 FIELD-B REDEFINES FIELD-A PIC 9(10).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertNoDiagnostic(diags, "CBL0808");
+    }
+
+    [Fact]
+    public void CBL0808_RedefinesNotFirstClause_Warning()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 REC-A.
+          05 FIELD-A PIC X(10).
+          05 FIELD-B PIC 9(10) REDEFINES FIELD-A.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL0808");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CBL0813: RENAMES THRU physical ordering (§13.18.45.3 SR 11)
+    // ═══════════════════════════════════════════════════════════════
+
+    [Fact]
+    public void CBL0813_RenamesThruCorrectOrder_NoDiagnostic()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 REC-A.
+          05 FIELD-A PIC X(5).
+          05 FIELD-B PIC X(5).
+          05 FIELD-C PIC X(5).
+       66 RANGE-AB RENAMES FIELD-A THRU FIELD-B.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertNoDiagnostic(diags, "CBL0813");
+    }
+
+    [Fact]
+    public void CBL0813_RenamesThruWrongOrder_Error()
+    {
+        var source = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TESTPROG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 REC-A.
+          05 FIELD-A PIC X(5).
+          05 FIELD-B PIC X(5).
+          05 FIELD-C PIC X(5).
+       66 RANGE-BA RENAMES FIELD-C THRU FIELD-A.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           STOP RUN.
+";
+        var diags = GetDiagnostics(source);
+        AssertHasDiagnostic(diags, "CBL0813");
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // CBL3110/3111: Linkage section rules (existing, verify still work)
     // ═══════════════════════════════════════════════════════════════
 
@@ -420,7 +508,7 @@ public class SymbolValidatorTests : DiagnosticTestBase
     }
 
     [Fact]
-    public void CBL3118_ExternalOnLevel01WS_WarnsRuntime()
+    public void External_OnLevel01WS_NoWarning()
     {
         var source = @"
        IDENTIFICATION DIVISION.
@@ -433,10 +521,9 @@ public class SymbolValidatorTests : DiagnosticTestBase
            STOP RUN.
 ";
         var diags = GetDiagnostics(source);
-        // Valid placement — no CBL3115 error
+        // Valid placement — no errors or warnings
         AssertNoDiagnostic(diags, "CBL3115");
-        // But runtime warning is emitted
-        AssertHasDiagnostic(diags, "CBL3118");
+        AssertNoDiagnostic(diags, "CBL3118");
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -461,7 +548,7 @@ public class SymbolValidatorTests : DiagnosticTestBase
     }
 
     [Fact]
-    public void CBL3119_GlobalOnLevel01_WarnsRuntime()
+    public void Global_OnLevel01_NoWarning()
     {
         var source = @"
        IDENTIFICATION DIVISION.
@@ -474,10 +561,9 @@ public class SymbolValidatorTests : DiagnosticTestBase
            STOP RUN.
 ";
         var diags = GetDiagnostics(source);
-        // Valid placement — no CBL3116 error
+        // Valid placement — no errors or warnings
         AssertNoDiagnostic(diags, "CBL3116");
-        // But runtime warning is emitted
-        AssertHasDiagnostic(diags, "CBL3119");
+        AssertNoDiagnostic(diags, "CBL3119");
     }
 
     // ═══════════════════════════════════════════════════════════════

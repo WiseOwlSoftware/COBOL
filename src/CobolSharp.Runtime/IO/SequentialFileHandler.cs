@@ -144,6 +144,9 @@ public class SequentialFileHandler : IFileHandler
         }
     }
 
+    public string ReadPrevious(byte[] recordBuffer) =>
+        FileStatus.PermanentError; // Not supported for sequential files
+
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue) =>
         FileStatus.PermanentError; // Not supported for sequential files
 

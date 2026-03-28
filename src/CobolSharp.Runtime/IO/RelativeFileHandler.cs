@@ -74,6 +74,16 @@ public class RelativeFileHandler : IFileHandler
         return ReadRecord(_currentRecord, recordBuffer);
     }
 
+    public string ReadPrevious(byte[] recordBuffer)
+    {
+        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
+            return FileStatus.ReadNotOpenForInput;
+        if (_currentRecord <= 1) return FileStatus.AtEnd;
+        _currentRecord--;
+        return ReadRecord(_currentRecord, recordBuffer);
+    }
+
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;

@@ -114,6 +114,43 @@ public static class StorageLayoutComputer
             LayoutRenames(data, model);
         }
 
+        // Local storage: separate offset namespace from working storage (§13.8).
+        // LOCAL-STORAGE items are re-initialized on each program invocation.
+        int lsOffset = 0;
+        RedefinesFamily? currentLsFamily = null;
+
+        foreach (var data in model.DataItemsInOrder)
+        {
+            if (data.LevelNumber is not (1 or 77) || data.Area != StorageAreaKind.LocalStorage)
+                continue;
+
+            if (data.Redefines != null)
+            {
+                LayoutRedefines(data, StorageAreaKind.LocalStorage, ref lsOffset, model);
+                var selfLoc = model.GetStorageLocation(data);
+                if (selfLoc.HasValue)
+                    currentLsFamily?.AddMember(selfLoc.Value.Length);
+            }
+            else
+            {
+                if (currentLsFamily != null)
+                {
+                    lsOffset = currentLsFamily.NextSiblingOffset;
+                    currentLsFamily = null;
+                }
+
+                int itemStart = lsOffset;
+                LayoutItem(data, StorageAreaKind.LocalStorage, ref lsOffset, model);
+                int itemSize = lsOffset - itemStart;
+
+                if (data.LevelNumber == 1)
+                    currentLsFamily = new RedefinesFamily(data, itemStart, itemSize);
+            }
+        }
+
+        if (currentLsFamily != null)
+            lsOffset = currentLsFamily.NextSiblingOffset;
+
         // Linkage section: each 01-level item gets its own layout starting at offset 0.
         // LINKAGE items don't share a contiguous buffer — each is backed by a separate
         // CobolDataPointer passed via CALL USING. The offset is relative to the parameter.
@@ -130,6 +167,7 @@ public static class StorageLayoutComputer
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : MinimumAreaSize;
         model.FileSectionSize = maxRecordSize > 0 ? maxRecordSize : MinimumAreaSize;
         model.LinkageSectionSize = linkageSize;
+        model.LocalStorageSize = lsOffset;
     }
 
     private static void LayoutItem(
@@ -191,6 +229,23 @@ public static class StorageLayoutComputer
     {
         int elementSize = FieldSizeCalculator.ComputeElementSize(item);
         item.ElementSize = elementSize;
+
+        // SYNCHRONIZED (§13.18.55): align to natural boundary.
+        // Slack bytes are inserted before the item to reach the alignment boundary.
+        // 2-byte items → half-word (2), 4-byte items → word (4), 8-byte items → doubleword (8).
+        if (item.IsSynchronized && elementSize >= 2)
+        {
+            int alignment = elementSize switch
+            {
+                <= 2 => 2,
+                <= 4 => 4,
+                _ => 8
+            };
+            int remainder = offset % alignment;
+            if (remainder != 0)
+                offset += alignment - remainder;
+        }
+
         int totalSize = elementSize * (item.Occurs?.MaxOccurs ?? 1);
         var pic = CompilerPicDescriptorFactory.FromDataSymbol(item, totalSize, model.PicEnvironment);
         model.RegisterStorageLocation(item, new StorageLocation(area, offset, totalSize, pic));

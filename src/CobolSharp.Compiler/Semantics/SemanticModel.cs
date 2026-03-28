@@ -174,6 +174,7 @@ public sealed class SemanticModel
     public int WorkingStorageSize { get; set; }
     public int FileSectionSize { get; set; }
     public int LinkageSectionSize { get; set; }
+    public int LocalStorageSize { get; set; }
 
     // ── PROCEDURE DIVISION USING/RETURNING parameters ──
 

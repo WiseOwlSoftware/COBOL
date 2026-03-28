@@ -347,7 +347,13 @@ public static partial class DiagnosticDescriptors
         "JUSTIFIED only allowed on alphanumeric elementary item '{0}'");
 
     // ══════════════════════════════════════
-    // CBL0810–0812: RENAMES (level 66) validation
+    // CBL0808: REDEFINES clause ordering (§13.18.44 SR 1)
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0808 = new("CBL0808", DiagnosticSeverity.Warning,
+        "REDEFINES clause should be first clause after data-name in item '{0}'");
+
+    // ══════════════════════════════════════
+    // CBL0810–0813: RENAMES (level 66) validation
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL0810 = new("CBL0810", DiagnosticSeverity.Error,
         "RENAMES FROM target '{0}' not found in item '{1}'");
@@ -355,6 +361,8 @@ public static partial class DiagnosticDescriptors
         "RENAMES THRU target '{0}' not found in item '{1}'");
     public static readonly DiagnosticDescriptor CBL0812 = new("CBL0812", DiagnosticSeverity.Error,
         "RENAMES cannot reference level-66 or level-88 item '{0}'");
+    public static readonly DiagnosticDescriptor CBL0813 = new("CBL0813", DiagnosticSeverity.Error,
+        "RENAMES THRU item '{0}' must follow FROM item '{1}' in storage");
 
     // ══════════════════════════════════════
     // COBOL0001: Generic parse error

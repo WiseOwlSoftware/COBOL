@@ -150,6 +150,15 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Call, _initializeStateMethod));
         }
 
+        // LOCAL-STORAGE: re-initialize to defaults on every invocation (§13.8)
+        if ((_semanticModel?.LocalStorageSize ?? 0) > 0)
+        {
+            il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+            var reinitMethod = _module.ImportReference(
+                typeof(ProgramState).GetMethod("ReinitializeLocalStorage")!);
+            il.Append(il.Create(OpCodes.Callvirt, reinitMethod));
+        }
+
         // Map args[i] → static CobolDataPointer fields (created in CreateEntryMethodSignature)
         for (int i = 0; i < ir.UsingParameterNames.Count; i++)
         {
@@ -278,6 +287,7 @@ public sealed class CilEmitter
     {
         int wsSize = _semanticModel?.WorkingStorageSize ?? 4096;
         int fileSize = _semanticModel?.FileSectionSize ?? 1024;
+        int lsSize = _semanticModel?.LocalStorageSize ?? 0;
         if (wsSize == 0) wsSize = 4096;
         if (fileSize == 0) fileSize = 1024;
 
@@ -297,22 +307,30 @@ public sealed class CilEmitter
         _programType.Methods.Add(cctor);
 
         var il = cctor.Body.GetILProcessor();
-        var ctor = EmitProgramStateAllocation(il, wsSize, fileSize);
+        var ctor = EmitProgramStateAllocation(il, wsSize, fileSize, lsSize);
+        EmitExternalStorageInitialization(il);
         EmitValueClauseInitialization(il);
         EmitAlterTableInitialization(il, ir);
+
+        // Snapshot LOCAL-STORAGE defaults after VALUE clause initialization.
+        // This snapshot is used by ReinitializeLocalStorage() on each program invocation.
+        if (lsSize > 0)
+            EmitLocalStorageDefaultsSnapshot(il, lsSize);
+
         il.Append(il.Create(OpCodes.Ret));
 
-        EmitResetStateMethod(ir, ctor, wsSize, fileSize);
+        EmitResetStateMethod(ir, ctor, wsSize, fileSize, lsSize);
     }
 
-    /// <summary>Emit ProgramState allocation: new ProgramState(wsSize, fileSize) → static field.</summary>
-    private MethodReference EmitProgramStateAllocation(ILProcessor il, int wsSize, int fileSize)
+    /// <summary>Emit ProgramState allocation: new ProgramState(wsSize, fileSize, lsSize) → static field.</summary>
+    private MethodReference EmitProgramStateAllocation(ILProcessor il, int wsSize, int fileSize, int lsSize)
     {
         il.Append(il.Create(OpCodes.Ldc_I4, wsSize));
         il.Append(il.Create(OpCodes.Ldc_I4, fileSize));
+        il.Append(il.Create(OpCodes.Ldc_I4, lsSize));
         var ctor = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState)
-                .GetConstructor(new[] { typeof(int), typeof(int) })!);
+                .GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
         il.Append(il.Create(OpCodes.Stsfld, _programStateField!));
         return ctor;
@@ -335,8 +353,8 @@ public sealed class CilEmitter
             var loc = _semanticModel.GetStorageLocation(kvp.Key);
             if (!loc.HasValue) continue;
 
-            EmitLoadBackingArray(il, loc.Value.Area);
-            il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+            EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var figAdjOffset);
+            il.Append(il.Create(OpCodes.Ldc_I4, figAdjOffset));
             il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
             EmitLoadPicDescriptor(il, loc.Value.Pic);
             il.Append(il.Create(OpCodes.Ldc_I4, (int)kvp.Value));
@@ -361,11 +379,11 @@ public sealed class CilEmitter
             var init = kvp.Value;
             var (elementSize, totalOccurs) = ComputeOccursExtent(data, loc.Value);
 
-            EmitLoadBackingArray(il, loc.Value.Area);
+            EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var valAdjOffset);
 
             if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
             {
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, valAdjOffset));
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
                 EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
                 EmitLoadDecimal(il, d);
@@ -382,7 +400,7 @@ public sealed class CilEmitter
             {
                 string strValue = init.Value is string s ? s
                     : ((decimal)init.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Offset));
+                il.Append(il.Create(OpCodes.Ldc_I4, valAdjOffset));
                 il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
                 il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                 il.Append(il.Create(OpCodes.Ldstr, strValue));
@@ -440,7 +458,7 @@ public sealed class CilEmitter
     }
 
     /// <summary>For INITIAL programs, generate ResetState that re-creates ProgramState.</summary>
-    private void EmitResetStateMethod(IrModule ir, MethodReference ctor, int wsSize, int fileSize)
+    private void EmitResetStateMethod(IrModule ir, MethodReference ctor, int wsSize, int fileSize, int lsSize)
     {
         if (!ir.IsInitial) return;
 
@@ -453,15 +471,94 @@ public sealed class CilEmitter
         var resetIl = _initializeStateMethod.Body.GetILProcessor();
         resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, wsSize));
         resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, fileSize));
+        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, lsSize));
         resetIl.Append(resetIl.Create(OpCodes.Newobj, ctor));
         resetIl.Append(resetIl.Create(OpCodes.Stsfld, _programStateField!));
         resetIl.Append(resetIl.Create(OpCodes.Ret));
+    }
+
+    /// <summary>
+    /// Snapshot LOCAL-STORAGE after VALUE clause initialization into LocalStorageDefaults.
+    /// Called from .cctor so per-invocation re-initialization can restore these defaults.
+    /// Emits: State.SnapshotLocalStorageDefaults()
+    /// </summary>
+    private void EmitLocalStorageDefaultsSnapshot(ILProcessor il, int lsSize)
+    {
+        il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+        var snapshotMethod = _module.ImportReference(
+            typeof(ProgramState).GetMethod("SnapshotLocalStorageDefaults")!);
+        il.Append(il.Create(OpCodes.Callvirt, snapshotMethod));
+    }
+
+    /// <summary>
+    /// Emit EXTERNAL storage initialization: for each EXTERNAL level-01 item,
+    /// call ExternalStorage.GetOrCreate() and store the shared byte[] in a static field.
+    /// </summary>
+    private void EmitExternalStorageInitialization(ILProcessor il)
+    {
+        if (_semanticModel == null) return;
+
+        foreach (var data in _semanticModel.DataItemsInOrder)
+        {
+            if (!data.IsExternal || data.LevelNumber != 1 || data.Area != StorageAreaKind.WorkingStorage)
+                continue;
+            var loc = _semanticModel.GetStorageLocation(data);
+            if (!loc.HasValue) continue;
+
+            string externalName = data.Name.ToUpperInvariant();
+
+            var extField = new FieldDefinition(
+                $"_ext_{externalName}",
+                FieldAttributes.Private | FieldAttributes.Static,
+                _module.ImportReference(typeof(byte[])));
+            _programType!.Fields.Add(extField);
+            _externalFields[data.Name] = extField;
+
+            _externalRanges.Add((loc.Value.Offset, loc.Value.Length, extField));
+
+            il.Append(il.Create(OpCodes.Ldstr, externalName));
+            il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+            var getOrCreate = _module.ImportReference(
+                typeof(ExternalStorage).GetMethod("GetOrCreate",
+                    new[] { typeof(string), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, getOrCreate));
+            il.Append(il.Create(OpCodes.Stsfld, extField));
+        }
+    }
+
+    /// <summary>Static fields for EXTERNAL data items, keyed by data name (case-insensitive).</summary>
+    private readonly Dictionary<string, FieldDefinition> _externalFields = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>EXTERNAL record offset ranges in WorkingStorage: (wsOffset, wsLength) → (extField, baseOffset).</summary>
+    private readonly List<(int WsOffset, int WsLength, FieldDefinition ExtField)> _externalRanges = [];
+
+    /// <summary>
+    /// Try to find the EXTERNAL byte[] field for a WorkingStorage offset.
+    /// Returns true if the offset falls within an EXTERNAL record's range.
+    /// adjustedOffset is the offset relative to the EXTERNAL array (always starts at 0).
+    /// </summary>
+    private bool TryGetExternalField(int wsOffset, out FieldDefinition? extField, out int adjustedOffset)
+    {
+        foreach (var (rangeOffset, rangeLength, field) in _externalRanges)
+        {
+            if (wsOffset >= rangeOffset && wsOffset < rangeOffset + rangeLength)
+            {
+                extField = field;
+                adjustedOffset = wsOffset - rangeOffset;
+                return true;
+            }
+        }
+        extField = null;
+        adjustedOffset = 0;
+        return false;
     }
 
     private void SeedPrimitiveTypes()
     {
         _typeMap[IrPrimitiveType.Int32] = _module.TypeSystem.Int32;
         _typeMap[IrPrimitiveType.Int64] = _module.TypeSystem.Int64;
+        _typeMap[IrPrimitiveType.Float32] = _module.TypeSystem.Single;
+        _typeMap[IrPrimitiveType.Float64] = _module.TypeSystem.Double;
         _typeMap[IrPrimitiveType.Decimal] = _module.ImportReference(typeof(decimal));
         _typeMap[IrPrimitiveType.String] = _module.TypeSystem.String;
         _typeMap[IrPrimitiveType.Bool] = _module.TypeSystem.Boolean;
@@ -843,6 +940,10 @@ public sealed class CilEmitter
 
             case IrReadRecordToStorage rd:
                 EmitReadRecordToStorage(il, rd);
+                break;
+
+            case IrReadPreviousToStorage rdp:
+                EmitReadPreviousToStorage(il, rdp);
                 break;
 
             case IrReadByKey rbk:
@@ -1784,6 +1885,20 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Pop)); // Discard bool return (AT END checked separately)
     }
 
+    private void EmitReadPreviousToStorage(ILProcessor il, IrReadPreviousToStorage rdp)
+    {
+        // StorageHelpers.ReadPreviousRecordFromFile(string fileName, byte[] area, int offset, int size)
+        il.Append(il.Create(OpCodes.Ldstr, rdp.FileName));
+        EmitLocationArgs(il, rdp.Record);
+
+        var method = _module.ImportReference(
+            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
+                "ReadPreviousRecordFromFile",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+        il.Append(il.Create(OpCodes.Pop)); // Discard bool return (AT END checked separately)
+    }
+
     private void EmitReadByKey(ILProcessor il, IrReadByKey rbk)
     {
         // FileRuntime.ReadByKey(string fileName, byte[] recArea, int recOff, int recSize,
@@ -2605,8 +2720,8 @@ public sealed class CilEmitter
                     var storageLoc = _semanticModel?.GetStorageLocation(fallbackId.Symbol);
                     if (storageLoc.HasValue)
                     {
-                        EmitLoadBackingArray(il, storageLoc.Value.Area);
-                        il.Append(il.Create(OpCodes.Ldc_I4, storageLoc.Value.Offset));
+                        EmitLoadBackingArrayOrExternal(il, storageLoc.Value.Area, storageLoc.Value.Offset, out var fbAdjOffset);
+                        il.Append(il.Create(OpCodes.Ldc_I4, fbAdjOffset));
                         il.Append(il.Create(OpCodes.Ldc_I4, storageLoc.Value.Length));
                         EmitLoadPicDescriptor(il, storageLoc.Value.Pic);
                         var decode = _module.ImportReference(
@@ -3288,16 +3403,14 @@ public sealed class CilEmitter
     {
         // LINKAGE SECTION items are NOT backed by ProgramState — they're backed
         // by CobolDataPointer fields populated from CALL USING args.
-        // This method only handles WorkingStorage and FileSection.
+        // This method only handles WorkingStorage, LocalStorage, and FileSection.
         // LINKAGE access is handled separately in EmitLocationArgs.
         il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
 
-        // LOCAL-STORAGE currently shares the WorkingStorage backing array.
-        // TODO: LOCAL-STORAGE is not yet re-initialized per invocation as the spec requires.
         var propertyName = area switch
         {
             StorageAreaKind.WorkingStorage => "WorkingStorage",
-            StorageAreaKind.LocalStorage   => "WorkingStorage",
+            StorageAreaKind.LocalStorage   => "LocalStorage",
             StorageAreaKind.FileSection    => "FileSection",
             _ => throw new InvalidOperationException(
                 $"EmitLoadBackingArray: unexpected StorageAreaKind '{area}'. " +
@@ -3307,6 +3420,23 @@ public sealed class CilEmitter
         var getter = _module.ImportReference(
             typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
         il.Append(il.Create(OpCodes.Callvirt, getter));
+    }
+
+    /// <summary>
+    /// Load the backing array for a storage location, accounting for EXTERNAL items.
+    /// For EXTERNAL WorkingStorage items, loads the shared ExternalStorage byte[] field.
+    /// Returns the adjusted offset (0-based within the external array, or unchanged for non-external).
+    /// </summary>
+    private void EmitLoadBackingArrayOrExternal(ILProcessor il, StorageAreaKind area, int wsOffset, out int adjustedOffset)
+    {
+        if (area == StorageAreaKind.WorkingStorage && TryGetExternalField(wsOffset, out var extField, out adjustedOffset))
+        {
+            il.Append(il.Create(OpCodes.Ldsfld, extField!));
+            return;
+        }
+
+        adjustedOffset = wsOffset;
+        EmitLoadBackingArray(il, area);
     }
 
     // ── Unified IrLocation emission helpers ──
@@ -3329,6 +3459,15 @@ public sealed class CilEmitter
             case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
                 // LINKAGE item: load from CobolDataPointer static field
                 EmitLinkageLocationArgs(il, s);
+                break;
+
+            case IR.IrStaticLocation s
+                when s.Location.Area == StorageAreaKind.WorkingStorage
+                  && TryGetExternalField(s.Location.Offset, out var extField, out var adjOffset):
+                // EXTERNAL item: load from shared ExternalStorage byte[]
+                il.Append(il.Create(OpCodes.Ldsfld, extField!));
+                il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
+                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
                 break;
 
             case IR.IrStaticLocation s:
@@ -3407,11 +3546,11 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
     {
-        // Push base area
-        EmitLoadBackingArray(il, e.BaseLocation.Area);
+        // Push base area (EXTERNAL-aware)
+        EmitLoadBackingArrayOrExternal(il, e.BaseLocation.Area, e.BaseLocation.Offset, out var elemAdjOffset);
 
         // Push base offset — accumulates displacement from each dimension
-        il.Append(il.Create(OpCodes.Ldc_I4, e.BaseLocation.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, elemAdjOffset));
 
         var toInt32 = _module.ImportReference(
             typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
@@ -3482,6 +3621,13 @@ public sealed class CilEmitter
         // Push base location (area, baseOffset)
         switch (r.Base)
         {
+            case IR.IrStaticLocation s
+                when s.Location.Area == StorageAreaKind.WorkingStorage
+                  && TryGetExternalField(s.Location.Offset, out var rmExtField, out var rmAdjOffset):
+                il.Append(il.Create(OpCodes.Ldsfld, rmExtField!));
+                il.Append(il.Create(OpCodes.Ldc_I4, rmAdjOffset));
+                break;
+
             case IR.IrStaticLocation s:
                 EmitLoadBackingArray(il, s.Location.Area);
                 il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
@@ -3633,6 +3779,13 @@ public sealed class CilEmitter
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseFile",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.CloseFileWithLock")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseFileWithLock",
                     new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }

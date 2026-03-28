@@ -821,6 +821,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         OccursInfo? occursInfo = null;
         bool blankWhenZero = false;
         bool justifiedRight = false;
+        bool isSynchronized = false;
         bool isExternal = false;
         bool isGlobal = false;
         if (body?.dataDescriptionClauses() != null)
@@ -891,11 +892,28 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (clause.justifiedClause() != null)
                     justifiedRight = true;
 
+                if (clause.syncClause() != null)
+                    isSynchronized = true;
+
                 if (clause.externalClause() != null)
                     isExternal = true;
 
                 if (clause.globalClause() != null)
                     isGlobal = true;
+            }
+        }
+
+        // §13.18.44 SR 1: REDEFINES must be the first clause after the entry-name.
+        // Emit a warning (not error) since many mainframe programs violate this ordering.
+        if (_deferredRedefinesName != null && body?.dataDescriptionClauses() != null)
+        {
+            var clauses = body.dataDescriptionClauses().dataDescriptionClause();
+            if (clauses.Length > 0 && clauses[0].redefinesClause() == null)
+            {
+                _diagnostics.Report(DiagnosticDescriptors.CBL0808,
+                    new Common.SourceLocation("<source>", 0, line, 0),
+                    Common.TextSpan.Empty,
+                    displayName);
             }
         }
 
@@ -913,6 +931,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         data.HasExplicitUsage = hasExplicitUsage;
         data.Occurs = occursInfo;
         data.IsJustifiedRight = justifiedRight;
+        data.IsSynchronized = isSynchronized;
         data.IsExternal = isExternal;
         data.IsGlobal = isGlobal;
         data.RedefinesName = _deferredRedefinesName;
@@ -1061,6 +1080,59 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var para in ctx.paragraphDefinition())
             VisitParagraphDefinition(para);
         _currentSectionName = null;
+
+        return null;
+    }
+
+    public override object? VisitDeclarativeSection(CobolParserCore.DeclarativeSectionContext ctx)
+    {
+        var nameCtx = ctx.sectionName();
+        if (nameCtx == null) return base.VisitDeclarativeSection(ctx);
+
+        string name = nameCtx.GetText();
+        var section = new SectionSymbol(name,
+            _symbols.Program.ProcedureDivisionScope, ctx.Start.Line);
+
+        _symbols.Program.ProcedureDivisionScope.TryDeclare(section, out _);
+
+        _currentSectionName = name;
+        using var scopeGuard = _symbols.PushScope(section.Scope);
+
+        // Visit declarative paragraphs within this section
+        foreach (var para in ctx.declarativeParagraph())
+            VisitDeclarativeParagraph(para);
+
+        _currentSectionName = null;
+        return null;
+    }
+
+    public override object? VisitDeclarativeParagraph(CobolParserCore.DeclarativeParagraphContext ctx)
+    {
+        var nameCtx = ctx.paragraphName();
+        if (nameCtx == null) return base.VisitDeclarativeParagraph(ctx);
+
+        string name = nameCtx.GetText();
+        var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
+
+        _symbols.CurrentScope.TryDeclare(paragraph, out _);
+        if (_symbols.CurrentScope != _symbols.Program.ProcedureDivisionScope)
+            _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out _);
+
+        // Track section membership
+        if (_currentSectionName != null)
+        {
+            if (!_sectionParagraphs.TryGetValue(_currentSectionName, out var list))
+            {
+                list = new List<string>();
+                _sectionParagraphs[_currentSectionName] = list;
+            }
+            list.Add(name);
+        }
+
+        using var paraScope = _symbols.PushScope(paragraph.Scope);
+        foreach (var sentence in ctx.sentence())
+            foreach (var stmt in sentence.statement())
+                Visit(stmt);
 
         return null;
     }
