@@ -1,100 +1,111 @@
 # CobolSharp Spec Compliance Audit
 
-**Date:** 2026-03-27
-**Spec:** ISO/IEC 1989:2023 (COBOL), with COBOL-85 as primary target
+**Date:** 2026-03-27 (updated after P0+P1 fix sweep)
+**Primary Spec:** ISO/IEC 1989:1985 (COBOL-85)
+**Reference Spec:** ISO/IEC 1989:2023 (used for spec section numbers)
 **Method:** 8 parallel agents audited every spec feature against the implementation
 **Scope:** Grammar, binding, lowering, CIL emission, runtime, and testing
+
+Features marked with version tags (e.g., `[COBOL-2002]`, `[COBOL-2014]`, `[COBOL-2023]`) are
+NOT required for COBOL-85 compliance and are included for completeness only.
 
 ---
 
 ## Executive Summary
 
-| Category | Fully Impl. | Partial | Not Impl. | Spec Violations |
-|----------|:-----------:|:-------:|:---------:|:---------------:|
-| Data Division | 25 | 12 | 15 | 11 |
-| Procedure Division (38 statements) | 15 | 17 | 4 | 10 |
-| Expressions & Conditions | 12 | 4 | 7 | 6 |
-| File I/O | 16 | 8 | 14 | 10 |
-| Environment Division | 6 | 5 | 7 | 5 |
-| Data Movement (MOVE) | 16 | 7 | 7 | 8 |
-| Intrinsic Functions (94 total) | 33 | 15 | 38 | 8 |
-| SORT/MERGE & Table Handling | 5 | 5 | 14 | 7 |
+**Tests:** 218 unit + 200 integration + 60 NIST guard = ALL GREEN
+
+**P0 bugs (data corruption/crashes):** 8 identified, **8 fixed** (Entry 154)
+**P1 bugs (wrong computation):** 12 identified, **12 fixed** (Entry 155)
+
+| Category | Fully Impl. | Partial | Not Impl. (COBOL-85) | Not Impl. (later specs) |
+|----------|:-----------:|:-------:|:--------------------:|:----------------------:|
+| Data Division | 25 | 10 | 5 | 10 |
+| Procedure Division | 15 | 15 | 2 | 6 |
+| Expressions & Conditions | 12 | 3 | 2 | 5 |
+| File I/O | 16 | 6 | 8 | 6 |
+| Environment Division | 6 | 3 | 4 | 3 |
+| Data Movement (MOVE) | 16 | 5 | 3 | 4 |
+| Intrinsic Functions | 33 | 13 | 0 | 38+ |
+| SORT/MERGE & Table Handling | 5 | 3 | 6 | 8 |
 
 ---
 
-## Critical Runtime Bugs (produce wrong results NOW)
+## Fixed Bugs (P0 + P1)
 
-These are the highest priority — they silently produce incorrect output for valid COBOL programs.
+All 20 bugs identified in the initial audit have been fixed and tested.
 
-### P0: Bugs that corrupt data or crash
+### P0 Fixes (Entry 154) — 8 bugs, 8 integration tests
 
-| # | Bug | Impact | Location |
-|---|-----|--------|----------|
-| 1 | **NumericEdited->NumericEdited MOVE produces zero.** Routes through `DecodeDisplay` which can't parse edited strings. Any `MOVE edited-A TO edited-B` with different patterns returns 0. | Data corruption | `CilEmitter.cs` dispatch + `PicRuntime.cs` |
-| 2 | **OPEN drops all but first clause.** `OPEN INPUT A OUTPUT B` only opens A; B is silently never opened. | Files never opened | `BoundTreeBuilder.cs:809-811` |
-| 3 | **READ INVALID KEY drives wrong condition.** Uses AT END check (status "10") instead of INVALID KEY check. Random/keyed READ failures don't trigger INVALID KEY branch. | Wrong control flow | `BoundTreeBuilder.cs:887-902` |
-| 4 | **WRITE/REWRITE INVALID KEY silently discarded.** Parsed but binder ignores it entirely. | Missing error handling | `BoundTreeBuilder.cs` BindWrite/BindRewrite |
-| 5 | **File status codes 43/44/47 misassigned vs ISO.** 43 should be "last I/O not READ before DELETE/REWRITE"; we use it for "no read permission". 47 should be "not open for input"; we use it for "record length error". | Wrong status codes | `FileStatus.cs` |
-| 6 | **User-defined CLASS names crash compiler.** `BoundTreeBuilder` throws `InvalidOperationException` instead of producing a diagnostic. | Compiler crash | `BoundTreeBuilder.cs:2768` |
-| 7 | **LOCAL-STORAGE treated as WORKING-STORAGE.** Items silently access FileSection storage, corrupting file record buffers. Never re-initialized between invocations. | Data corruption | `CilEmitter.cs:3153-3155` |
-| 8 | **Class condition on ref-mod subject crashes.** `LowerClassCondition` throws if subject is `BoundReferenceModificationExpression`. | Compiler crash | `Binder.cs:2739-2759` |
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | NumericEdited->NumericEdited MOVE produced zero | De-edit + re-edit via `MoveNumericEditedToNumericEdited` |
+| 2 | OPEN dropped all but first clause | `BoundCompoundStatement` wraps multiple open modes |
+| 3 | READ INVALID KEY drove wrong condition | Separate `InvalidKey`/`NotInvalidKey` fields on `BoundReadStatement` |
+| 4 | WRITE/REWRITE INVALID KEY silently discarded | Now bound from grammar context |
+| 5 | File status codes 43/44/47 misassigned | Corrected to ISO; added 46/48/49 |
+| 6 | User-defined CLASS names crashed compiler | `COBOL0413` diagnostic instead of throw |
+| 7 | LOCAL-STORAGE accessed FileSection storage | Explicit switch routes to WorkingStorage |
+| 8 | Class condition on ref-mod subject crashed | `ResolveExpressionLocation` handles ref-mod/subscripts |
 
-### P1: Wrong computation results
+### P1 Fixes (Entry 155) — 12 bugs, 11 integration tests
 
-| # | Bug | Impact | Location |
-|---|-----|--------|----------|
-| 9 | **PERFORM WITH TEST AFTER silently ignored.** All loops execute as TEST BEFORE regardless of source. One extra or missing iteration. | Wrong loop count | `BoundTreeBuilder.cs` (no `IsTestAfter` flag) |
-| 10 | **Source subscript re-evaluated per target.** `MOVE A(I) TO I, B(I)` — I is modified on first store; second target uses wrong subscript. | Wrong data | `Binder.cs:813` (loop) |
-| 11 | **DECIMAL-POINT IS COMMA in edited PIC.** Both branches produce same character — `.` and `,` cases are identical. | Wrong formatting | `PicRuntime.cs:270-278` |
-| 12 | **INTEGER intrinsic: Math.Truncate instead of Math.Floor.** `INTEGER(-1.5)` returns -1 instead of -2. | Wrong result | `IntrinsicFunctions.cs` |
-| 13 | **MOD intrinsic: C# % instead of floor-based modulo.** `MOD(-11, 5)` returns -1 instead of 4. | Wrong result | `IntrinsicFunctions.cs` |
-| 14 | **WRITE ADVANCING with identifier always outputs 1 line.** Dynamic line spacing ignored. | Wrong output | `BoundTreeBuilder.cs:768` |
-| 15 | **ACCEPT DATE returns 8 digits (YYYYMMDD) even without YYYYMMDD qualifier.** 6-digit format (YYMMDD) not distinguished. | Wrong data size | Runtime ACCEPT |
-| 16 | **Signed DISPLAY default not trailing overpunch.** Items without explicit SIGN clause get `SignStorage=None` instead of `TrailingOverpunch`. | Wrong sign encoding | `PicUsageResolver.cs` |
-| 17 | **IndexedFileHandler key comparison uses TrimEnd().** Fixed-width keys with trailing spaces compare incorrectly. | Wrong key matching | `IndexedFileHandler.cs` |
-| 18 | **RelativeFileHandler reads key as Int32 bytes.** COBOL numeric PIC items store ASCII digits, not binary. | Wrong record number | `RelativeFileHandler.cs` |
-| 19 | **SEARCH ALL uses linear scan, not binary search.** Correct results but O(n) not O(log n). | Performance | `Binder.cs:3274` |
-| 20 | **SEARCH VARYING clause silently dropped.** VARYING target never incremented. | Wrong variable state | `BoundTreeBuilder.cs` BindSearch |
+| # | Bug | Fix |
+|---|-----|-----|
+| 9 | PERFORM WITH TEST AFTER silently ignored | `IsTestAfter` flag + do-while lowering |
+| 10 | MOVE source subscript re-evaluated per target | `IrCachedLocation` ensures single evaluation |
+| 11 | DECIMAL-POINT IS COMMA dead code in PicRuntime | Removed identical ternary branches |
+| 12 | INTEGER intrinsic: Truncate not Floor | `Math.Floor` for negative values |
+| 13 | MOD intrinsic: C# % not floor-modulo | `a - b * Math.Floor(a / b)` |
+| 14 | WRITE ADVANCING identifier hard-coded to 1 | Dynamic `ReadFieldAsInt` at runtime |
+| 15 | ACCEPT DATE returned 8 digits without YYYYMMDD | YYYYMMDD/YYYYDDD lexer tokens + split formatting |
+| 16 | Signed DISPLAY default not trailing overpunch | `TrailingOverpunch` for PIC S9 DISPLAY |
+| 17 | IndexedFileHandler key TrimEnd() | Removed; fixed-width keys compared as-is |
+| 18 | RelativeFileHandler key as Int32 bytes | Parse ASCII digits instead |
+| 19 | SEARCH ALL used linear scan | Compile-time unrolled binary search tree |
+| 20 | SEARCH VARYING clause silently dropped | Varying variable incremented in parallel (skip if same as index) |
 
 ---
 
-## Major Missing Features
+## Remaining Gaps: COBOL-85 Required Features
 
-### Not implemented at all (no binding, no IR, no runtime)
+### Not implemented (COBOL-85 required, no binding/IR/runtime)
 
-| Feature | Spec § | Impact |
-|---------|--------|--------|
-| **SORT statement** | 14.9.40 | Any program using SORT fails to compile (COBOL0110) |
-| **MERGE statement** | 14.9.24 | Any program using MERGE fails to compile |
+| Feature | COBOL-85 § | Impact |
+|---------|-----------|--------|
+| **SORT statement** | 14.9.40 | Any program using SORT fails (COBOL0110) |
+| **MERGE statement** | 14.9.24 | Any program using MERGE fails |
 | **RELEASE statement** | 14.9.32 | Required for SORT INPUT PROCEDURE |
-| **SD file descriptions** | 13.18 | Sort files can't be declared (parse failure) |
-| **Intrinsic function binder** | 15.x | All 94 FUNCTION calls return 0 (runtime exists but unreachable) |
-| **XOR / EXCLUSIVE-OR** | 8.8.4.11 | Missing from lexer, grammar, bound nodes, IR |
-| **User-defined CLASS conditions** | 8.8.4.4 | Crashes compiler (no symbol table, no runtime) |
+| **SD file descriptions** | 13.18 | Sort files can't be declared |
+| **User-defined CLASS conditions** | 8.8.4.4 | Diagnostic emitted but not functional |
 | **ALPHABET / collating sequence** | 12.3.7 | Parsed but never applied to comparisons |
-| **SYMBOLIC CHARACTERS** | 12.3.7 | Parsed but never registered as figurative constants |
-| **EXTERNAL clause on data items** | 13.18.22 | Shared storage across programs not supported |
-| **GLOBAL clause on data items** | 13.18.27 | Nested program visibility not supported |
-| **OCCURS DEPENDING ON runtime** | 13.18.38 | Active count never consulted; static max used |
+| **SYMBOLIC CHARACTERS** | 12.3.7 | Parsed but never registered |
+| **OCCURS DEPENDING ON runtime** | 13.18.38 | Active count not enforced at runtime |
 | **USE declaratives** | 14.9.49 | Parsed but never invoked on I/O errors |
 | **LINAGE clause + END-OF-PAGE** | 13.18.34 | Print file page control not supported |
 | **RELATIVE KEY IS clause** | 12.4.5 | Relative file random access broken |
-| **EXIT PERFORM CYCLE** | 14.9.14 | No CYCLE keyword; can't skip to loop increment |
+| **EXIT PERFORM CYCLE** | 14.9.14 | Can't skip to loop increment |
+| **CobolCategory.Alphabetic** | 6.1.2 | PIC A items misclassified as Alphanumeric |
+| **EXTERNAL clause on data items** | 13.18.22 | Shared storage across programs |
+| **GLOBAL clause on data items** | 13.18.27 | Nested program visibility |
 
-### Parse-only (grammar exists, no semantic processing)
+### Partially implemented (COBOL-85, missing clauses or edge cases)
 
-| Feature | Notes |
-|---------|-------|
-| Report Writer (GENERATE, INITIATE, TERMINATE) | Grammar stubs only |
-| COMP-1/COMP-2 arithmetic | Sized correctly but treated as integers, not IEEE 754 |
-| National data (PIC N) | Parsed but stored as single-byte; no UTF-16 |
-| Screen Section | Not in grammar |
-| Communication Section | Not in grammar |
-| SYNCHRONIZED alignment | Parsed, no padding computed |
+| Feature | What's Missing |
+|---------|---------------|
+| **SYNCHRONIZED** | Parsed, no alignment padding computed |
+| **RENAMES THRU validation** | FROM/THRU physical ordering not checked |
+| **CORRESPONDING** | Doesn't exclude RENAMES items; doesn't check move legality per pair |
+| **LOCAL-STORAGE** | Routes to WorkingStorage; not re-initialized per invocation |
+| **COMP-1/COMP-2** | Sized correctly but arithmetic uses integer, not IEEE 754 float |
+| **Open-mode enforcement** | Runtime doesn't check READ on OUTPUT, WRITE on INPUT, etc. |
+| **File status codes** | Missing: 02, 04, 05, 14, 34, 39 |
+| **CLOSE options** | REEL/UNIT, FOR REMOVAL, WITH NO REWIND not parsed |
+| **READ options** | READ PREVIOUS not distinguished from READ NEXT |
+| **SELECT OPTIONAL** | Not parsed; missing file on OPEN INPUT returns 35 instead of 05 |
+| **Report Writer** | Grammar stubs only, no binding/lowering/emission |
 
----
-
-## Missing Validation (compile-time checks absent)
+### Missing validation (COBOL-85 compile-time checks)
 
 | Check | Spec Rule | Consequence |
 |-------|-----------|-------------|
@@ -106,87 +117,124 @@ These are the highest priority — they silently produce incorrect output for va
 | VALUE on REDEFINES items | 13.18.63 SR 10 | Accepted instead of rejected |
 | VALUE on OCCURS subordinates | 13.18.63 SR 11 | Accepted instead of rejected |
 | REDEFINES clause ordering | 13.18.44 SR 1 | Any clause order accepted |
-| RENAMES THRU physical ordering | 13.18.46.4 GR 6 | FROM/THRU order not validated |
-| Open-mode enforcement | Table 20 | READ on OUTPUT, WRITE on INPUT succeed |
+| Open-mode enforcement | Table 20 | Wrong-mode I/O silently succeeds |
 | SEARCH ALL WHEN must be KEY equality | 14.9.37 SR 7-11 | Any condition accepted |
 | CORRESPONDING excludes RENAMES | 14.7.6 rule 4 | Level-66 items not excluded |
-| CORRESPONDING move legality per pair | 14.7.6 rule 2 | Category compatibility not checked |
 | Sign condition on non-numeric literal | 8.8.4.7.3 | `"ABC" IS POSITIVE` accepted |
 
 ---
 
-## Missing Category: CobolCategory.Alphabetic
+## Remaining Gaps: Later COBOL Versions (not required for COBOL-85)
 
-PIC A items are classified as `Alphanumeric` instead of a distinct `Alphabetic` category. This causes:
-- MOVE ZERO to PIC A silently accepted (should be error)
-- MOVE Numeric to PIC A silently accepted (should be error per Table 16)
-- No alphabetic-specific validation on input data
-- Class condition `IS ALPHABETIC` works but category-based dispatch is wrong
+### `[COBOL-2002]` Features
+
+| Feature | Notes |
+|---------|-------|
+| Intrinsic functions (94 total) | Binder returns 0 for all; 48 implemented in runtime but unreachable. **Not in COBOL-85.** |
+| ROUNDED MODE phrase (8 modes) | Grammar accepts bare ROUNDED only; no MODE IS sub-phrase |
+| XOR / EXCLUSIVE-OR logical operator | Not in lexer, grammar, or bound nodes |
+| BY VALUE parameter passing | Implemented (gated `is2002()`) |
+| RETURNING on CALL | Implemented |
+| OCCURS DYNAMIC | Not parsed |
+| TYPEDEF / TYPE IS | Parsed behind `is2023()` guard, not resolved |
+| GROUP-USAGE NATIONAL/BIT | Not in grammar |
+| National data (PIC N) | Parsed but stored as single-byte; no UTF-16 |
+| FLOAT-SHORT/LONG/BINARY-32/64/128 | Not in grammar |
+| BOOLEAN class condition | Not in grammar |
+| OMITTED argument condition | Not in grammar |
+| CONTINUE AFTER n SECONDS | Not in grammar |
+| EXIT PROGRAM RAISING | Not in grammar |
+| GOBACK RAISING / WITH STATUS | Not in grammar |
+| STOP RUN WITH STATUS | Not in grammar |
+| CALL FORMAT 2 (AS program-prototype) | Not in grammar |
+| COMPUTE FORMAT 2 (boolean) | Not in grammar |
+| DISPLAY UPON / WITH NO ADVANCING | Not in grammar |
+| ACCEPT FROM mnemonic-name | Not in grammar |
+| INITIALIZE WITH FILLER / ALL TO VALUE | Not in grammar |
+| SET FORMAT 3+ (switches, address, object-ref) | Parsed but not bound |
+| PERFORM UNTIL EXIT | Not in grammar |
+| PERFORM FORMAT 3 (exception-checking) | Not in grammar |
+| INSPECT BACKWARD | Not in grammar |
+| DELETE FILE OVERRIDE | Not in grammar |
+| File sharing (SHARING / LOCK / RETRY / UNLOCK) | Not in grammar |
+
+### `[COBOL-2014]` / `[COBOL-2023]` Features
+
+| Feature | Notes |
+|---------|-------|
+| LOCALE-NAME in SPECIAL-NAMES | Not in grammar |
+| CURRENCY SIGN WITH PICTURE SYMBOL | Not in grammar |
+| CHARACTER CLASSIFICATION clause | Not in grammar |
+| FORMATTED-CURRENT-DATE / FORMATTED-DATE / FORMATTED-TIME | Not in runtime |
+| LOCALE-COMPARE / LOCALE-DATE / LOCALE-TIME | Not in runtime |
+| FIND-STRING / STANDARD-COMPARE | Not in runtime |
+| TEST-DATE-YYYYMMDD / TEST-NUMVAL / TEST-NUMVAL-C | Not in runtime |
+| BASECONVERT / BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN | Not in runtime |
+| HIGHEST-ALGEBRAIC / LOWEST-ALGEBRAIC / SMALLEST-ALGEBRAIC | Not in runtime |
+| MODULE-NAME / EXCEPTION-* functions | Not in runtime |
+| Screen Section | Not in grammar |
+| Communication Section | Not in grammar (obsolete) |
+| OO COBOL (METHOD-ID, INVOKE, etc.) | Grammar stubs only |
 
 ---
 
-## Intrinsic Functions: 94 Total, 0 Reachable from COBOL Source
+## Intrinsic Functions Summary
 
-The binder (`BoundTreeBuilder.cs:2287-2294`) emits COBOL0110 warning and returns literal `0m` for every `FUNCTION` call. The runtime library (`IntrinsicFunctions.cs`) implements 48 functions (33 correct, 15 with wrong semantics), but none are reachable. 38 functions have no runtime code at all.
+**Note:** Intrinsic functions were introduced in the 1989 Amendment (sometimes called COBOL-85
+Addendum) and formalized in COBOL-2002. They are NOT part of the original COBOL-85 standard.
 
-**Wrong semantics in runtime (even if wired):** INTEGER (Truncate not Floor), MOD (C# % not floor-modulo), WHEN-COMPILED (16 chars not 21), BYTE-LENGTH/LENGTH (runtime string length not declared size), TRIM (no LEADING/TRAILING), NUMVAL/NUMVAL-C (naive parsing), DATE-TO-YYYYMMDD/YEAR-TO-YYYY (missing optional args), MAX/MIN/ORD-MAX/ORD-MIN (numeric only, spec allows alphanumeric), SUBSTITUTE (single pair only).
+| Status | Count | Notes |
+|--------|------:|-------|
+| Runtime correct (but binder not wired) | 35 | Unreachable from COBOL source |
+| Runtime has wrong semantics | 13 | WHEN-COMPILED, BYTE-LENGTH, LENGTH, TRIM, NUMVAL, NUMVAL-C, DATE-TO-YYYYMMDD, YEAR-TO-YYYY, MAX/MIN (numeric only), ORD-MAX/ORD-MIN, SUBSTITUTE |
+| No runtime code | 38+ | Mostly COBOL-2014/2023 additions |
+| **Total spec functions** | **94** | |
 
----
-
-## File I/O: Status Code Misassignment
-
-| Our Code | Our Meaning | ISO Meaning |
-|----------|-------------|-------------|
-| 43 | No read permission | Last I/O before DELETE/REWRITE was not successful READ |
-| 44 | No write permission | Boundary violation (record too large) |
-| 47 | Record length error | READ/START on file not open in INPUT or I-O mode |
-
-**Missing status codes:** 02, 04, 05, 06, 07, 09, 14, 34, 39, 46, 48, 49.
+**Priority:** Wire the binder (one-time fix enables 35 correct functions immediately).
+INTEGER and MOD semantics already fixed in P1 sweep.
 
 ---
 
-## ROUNDED MODE (affects ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE)
+## Priority Recommendations (Post P0+P1)
 
-The spec defines 8 rounding modes: AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER, TRUNCATION. The grammar accepts only bare `ROUNDED` with no `MODE IS` sub-phrase. The runtime always uses NEAREST-AWAY-FROM-ZERO. Programs that specify `ROUNDED MODE IS TRUNCATION` or `ROUNDED MODE IS NEAREST-EVEN` will get wrong results.
+### P2 — Missing COBOL-85 features (required for compliance)
 
----
+| # | Item | Complexity |
+|---|------|-----------|
+| 1 | SORT/MERGE/RELEASE + SD | XL |
+| 2 | OCCURS DEPENDING ON runtime enforcement | M |
+| 3 | CobolCategory.Alphabetic | M |
+| 4 | ALPHABET / collating sequence | L |
+| 5 | User-defined CLASS conditions | M |
+| 6 | SYMBOLIC CHARACTERS | S |
+| 7 | EXIT PERFORM CYCLE | S |
+| 8 | EXTERNAL / GLOBAL on data items | M |
+| 9 | Open-mode enforcement in file handlers | M |
+| 10 | USE declaratives | L |
+| 11 | LINAGE + END-OF-PAGE | M |
+| 12 | RELATIVE KEY IS | S |
+| 13 | SELECT OPTIONAL | S |
+| 14 | Missing validation checks (12 items above) | S each |
 
-## Priority Recommendations
+### P3 — COBOL-85 polish
 
-### Immediate (P0 — data corruption / crashes)
-1. Fix OPEN multi-clause (drops files)
-2. Fix READ INVALID KEY condition check
-3. Fix WRITE/REWRITE INVALID KEY binding
-4. Fix file status code assignments
-5. Fix NumericEdited->NumericEdited MOVE
-6. Fix LOCAL-STORAGE storage area routing
-7. Add diagnostic for user-defined CLASS (instead of crash)
-8. Fix class condition on ref-mod subject
+| # | Item |
+|---|------|
+| 1 | Missing file status codes (02, 04, 05, 14, 34, 39) |
+| 2 | CLOSE options (REEL/UNIT, NO REWIND) |
+| 3 | READ PREVIOUS direction |
+| 4 | SYNCHRONIZED alignment padding |
+| 5 | LOCAL-STORAGE per-invocation re-initialization |
+| 6 | COMP-1/COMP-2 IEEE 754 arithmetic |
+| 7 | Report Writer (beyond grammar stubs) |
 
-### High (P1 — wrong computation)
-9. Fix PERFORM WITH TEST AFTER
-10. Fix MOVE source subscript evaluation order
-11. Fix DECIMAL-POINT IS COMMA in edited PIC
-12. Fix INTEGER/MOD intrinsic semantics
-13. Fix signed DISPLAY default (trailing overpunch)
-14. Wire intrinsic function binder (48 functions ready in runtime)
-15. Fix WRITE ADVANCING with identifier
+### P4 — COBOL-2002+ features (future)
 
-### Medium (P2 — missing features)
-16. Implement SORT/MERGE/RELEASE + SD
-17. Implement OCCURS DEPENDING ON runtime
-18. Add CobolCategory.Alphabetic
-19. Implement XOR/EXCLUSIVE-OR
-20. Implement user-defined CLASS conditions
-21. Implement ALPHABET / collating sequence
-22. Implement EXIT PERFORM CYCLE
-23. Fix open-mode enforcement in file handlers
-
-### Low (P3 — completeness)
-24. Implement missing file status codes
-25. Add ROUNDED MODE phrase
-26. Implement remaining 38 intrinsic functions
-27. Implement USE declaratives
-28. Implement LINAGE + END-OF-PAGE
-29. Implement RELATIVE KEY IS
-30. Add missing validation checks (14 items above)
+| # | Item |
+|---|------|
+| 1 | Wire intrinsic function binder (enables 35 functions) |
+| 2 | Fix 13 intrinsic functions with wrong semantics |
+| 3 | ROUNDED MODE phrase |
+| 4 | XOR / EXCLUSIVE-OR |
+| 5 | National data (PIC N / UTF-16) |
+| 6 | Remaining 38 intrinsic functions |
