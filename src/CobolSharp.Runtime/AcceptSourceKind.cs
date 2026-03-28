@@ -10,12 +10,16 @@ public enum AcceptSourceKind
 {
     /// <summary>Not a system source — ACCEPT FROM identifier.</summary>
     None,
-    /// <summary>ACCEPT FROM DATE — six-digit YYMMDD or eight-digit YYYYMMDD.</summary>
+    /// <summary>ACCEPT FROM DATE — six-digit YYMMDD.</summary>
     Date,
     /// <summary>ACCEPT FROM TIME — eight-digit HHMMSScc (hours, minutes, seconds, centiseconds).</summary>
     Time,
-    /// <summary>ACCEPT FROM DAY — five-digit YYDDD or seven-digit YYYYDDD (Julian day).</summary>
+    /// <summary>ACCEPT FROM DAY — five-digit YYDDD (Julian day).</summary>
     Day,
     /// <summary>ACCEPT FROM DAY-OF-WEEK — single digit 1 (Monday) through 7 (Sunday).</summary>
-    DayOfWeek
+    DayOfWeek,
+    /// <summary>ACCEPT FROM DATE YYYYMMDD — eight-digit YYYYMMDD.</summary>
+    DateYYYYMMDD,
+    /// <summary>ACCEPT FROM DAY YYYYDDD — seven-digit YYYYDDD (Julian day).</summary>
+    DayYYYYDDD
 }

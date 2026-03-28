@@ -110,6 +110,20 @@ public class IntrinsicFunctionTests
     }
 
     [Fact]
+    public void Integer_NegativeValue_ReturnsFloor()
+    {
+        // INTEGER(-1.5) should return -2 per ISO spec (greatest integer <= argument)
+        Assert.Equal(-2m, IntrinsicFunctions.Integer(-1.5m));
+    }
+
+    [Fact]
+    public void Mod_MixedSign_ReturnsFloorBasedModulo()
+    {
+        // MOD(-11, 5) = -11 - 5 * floor(-11/5) = -11 - 5*(-3) = -11 + 15 = 4
+        Assert.Equal(4m, IntrinsicFunctions.Mod(-11m, 5m));
+    }
+
+    [Fact]
     public void Dispatch_CurrentDate()
     {
         var result = IntrinsicFunctions.Call("CURRENT-DATE", Array.Empty<object>());

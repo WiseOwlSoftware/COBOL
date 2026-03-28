@@ -58,11 +58,16 @@ public static class PicUsageResolver
     private static PicLayout ParsePic(string picString, DiagnosticBag diagnostics, int line,
         bool blankWhenZero = false, PicEnvironment? environment = null)
     {
+        // Per ISO §13.18.52, signed DISPLAY numerics default to trailing overpunch
+        // when no explicit SIGN clause is present. Detect 'S' in the PIC body upfront.
+        bool bodySigned = picString.IndexOf('S', StringComparison.OrdinalIgnoreCase) >= 0;
+        var signStorage = bodySigned ? SignStorageKind.TrailingOverpunch : SignStorageKind.None;
+
         var desc = Runtime.PicDescriptorFactory.FromPicBody(
             picString.Trim(),
             usage: UsageKind.Display,
             isSigned: false,               // S in the body will flip this
-            signStorage: SignStorageKind.None,
+            signStorage: signStorage,
             blankWhenZero: blankWhenZero,
             environment: environment);
 

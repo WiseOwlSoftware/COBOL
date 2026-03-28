@@ -17,6 +17,7 @@ public static class IrLocationExtensions
     {
         return loc switch
         {
+            IrCachedLocation c => c.Inner.GetPic(),
             IrStaticLocation s => s.Location.Pic,
             IrElementRef e => e.ElementPic,
             IrRefModLocation r => r.Base.GetPic(),

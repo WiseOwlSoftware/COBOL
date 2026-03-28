@@ -133,7 +133,7 @@ public class IndexedFileHandler : IFileHandler
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
 
-        string key = Encoding.ASCII.GetString(keyValue).TrimEnd();
+        string key = Encoding.ASCII.GetString(keyValue);
 
         if (keyIndex < 0)
         {
@@ -208,7 +208,7 @@ public class IndexedFileHandler : IFileHandler
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
 
-        string targetKey = Encoding.ASCII.GetString(keyValue).TrimEnd();
+        string targetKey = Encoding.ASCII.GetString(keyValue);
 
         // Find the first key that satisfies the condition
         string? firstKey = null;
@@ -245,13 +245,13 @@ public class IndexedFileHandler : IFileHandler
 
     private string ExtractKey(byte[] record)
     {
-        return Encoding.ASCII.GetString(record, _keyOffset, _keyLength).TrimEnd();
+        return Encoding.ASCII.GetString(record, _keyOffset, _keyLength);
     }
 
     private string ExtractAlternateKey(byte[] record, int altKeyIndex)
     {
         var desc = _alternateKeys[altKeyIndex];
-        return Encoding.ASCII.GetString(record, desc.Offset, desc.Length).TrimEnd();
+        return Encoding.ASCII.GetString(record, desc.Offset, desc.Length);
     }
 
     private void IndexAlternateKeys(byte[] record)

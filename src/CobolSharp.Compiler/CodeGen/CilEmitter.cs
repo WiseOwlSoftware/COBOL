@@ -27,6 +27,12 @@ public sealed class CilEmitter
     private readonly Dictionary<string, FieldDefinition> _linkageFields = new(StringComparer.OrdinalIgnoreCase);
     private MethodDefinition? _currentMethodDef;
     private VariableDefinition? _arithmeticStatusLocal;
+    /// <summary>
+    /// Cache for IrCachedLocation: maps cache key → (area, offset, length) locals.
+    /// Cleared per method via <see cref="ClearCachedLocationLocals"/>.
+    /// </summary>
+    private readonly Dictionary<int, (VariableDefinition area, VariableDefinition offset, VariableDefinition length)>
+        _cachedLocationLocals = new();
 
     private CilEmitter(ModuleDefinition module)
     {
@@ -539,6 +545,7 @@ public sealed class CilEmitter
         var md = _methodMap[irMethod];
         _currentMethodDef = md;
         _arithmeticStatusLocal = null; // reset per method (lazy allocation)
+        _cachedLocationLocals.Clear(); // reset per method
 
         md.Body.InitLocals = true;
 
@@ -1703,8 +1710,20 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldstr, waa.FileName));
         // Load area, offset, size
         EmitLocationArgs(il, waa.Record);
-        // advanceLines
-        il.Append(il.Create(OpCodes.Ldc_I4, waa.AdvanceLines));
+        // advanceLines: from data field or compile-time constant
+        if (waa.AdvancingLocation != null)
+        {
+            // Read advancing count from data field at runtime
+            EmitLocationArgs(il, waa.AdvancingLocation);
+            var readInt = _module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsInt",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, readInt));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldc_I4, waa.AdvanceLines));
+        }
         // isBefore
         il.Append(il.Create(waa.IsBefore ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
@@ -3180,6 +3199,10 @@ public sealed class CilEmitter
     {
         switch (loc)
         {
+            case IR.IrCachedLocation cached:
+                EmitCachedLocationArgs(il, cached);
+                break;
+
             case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
                 // LINKAGE item: load from CobolDataPointer static field
                 EmitLinkageLocationArgs(il, s);
@@ -3203,6 +3226,46 @@ public sealed class CilEmitter
             default:
                 throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Emit (area, offset, length) for a cached location. On first encounter with a
+    /// given cache key, compute the inner location args, store into locals, and reload.
+    /// On subsequent encounters, just load from the cached locals.
+    /// </summary>
+    private void EmitCachedLocationArgs(ILProcessor il, IR.IrCachedLocation cached)
+    {
+        if (_cachedLocationLocals.TryGetValue(cached.CacheKey, out var locals))
+        {
+            // Already computed — reload from locals
+            il.Append(il.Create(OpCodes.Ldloc, locals.area));
+            il.Append(il.Create(OpCodes.Ldloc, locals.offset));
+            il.Append(il.Create(OpCodes.Ldloc, locals.length));
+            return;
+        }
+
+        // First encounter — compute inner, store into locals
+        EmitLocationArgs(il, cached.Inner);
+
+        var body = _currentMethodDef!.Body;
+        var lengthLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        body.Variables.Add(lengthLocal);
+        var offsetLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        body.Variables.Add(offsetLocal);
+        var areaLocal = new VariableDefinition(_module.ImportReference(typeof(byte[])));
+        body.Variables.Add(areaLocal);
+
+        // Stack is: area, offset, length — store in reverse order
+        il.Append(il.Create(OpCodes.Stloc, lengthLocal));
+        il.Append(il.Create(OpCodes.Stloc, offsetLocal));
+        il.Append(il.Create(OpCodes.Stloc, areaLocal));
+
+        _cachedLocationLocals[cached.CacheKey] = (areaLocal, offsetLocal, lengthLocal);
+
+        // Reload onto stack
+        il.Append(il.Create(OpCodes.Ldloc, areaLocal));
+        il.Append(il.Create(OpCodes.Ldloc, offsetLocal));
+        il.Append(il.Create(OpCodes.Ldloc, lengthLocal));
     }
 
     /// <summary>

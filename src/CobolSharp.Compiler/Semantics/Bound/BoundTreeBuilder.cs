@@ -431,6 +431,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             BoundExpression? untilCond = null;
             BoundPerformVarying? varying = null;
+            bool isTestAfter = false;
 
             BoundExpression? timesExpr = null;
             var options = ctx.performOptions();
@@ -448,9 +449,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                             timesExpr = BindDataReferenceWithSubscripts(inlineTimesCtx.dataReference());
                     }
                     if (opt.performUntil() is { } untilCtx)
+                    {
                         untilCond = BindCondition(untilCtx.condition());
+                        if (untilCtx.AFTER() != null)
+                            isTestAfter = true;
+                    }
                     if (opt.performVarying() is { } varyCtx)
+                    {
                         varying = BindPerformVaryingOption(varyCtx);
+                        if (varyCtx.AFTER() != null)
+                            isTestAfter = true;
+                    }
                 }
             }
 
@@ -465,7 +474,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (varying != null)
                 untilCond = varying.UntilCondition;
 
-            return new BoundPerformStatement(null, null, timesExpr, untilCond, varying, inlineStmts);
+            return new BoundPerformStatement(null, null, timesExpr, untilCond, varying, inlineStmts,
+                isTestAfter);
         }
 
         // Out-of-line: first procedureName is the target (paragraph or section)
@@ -491,7 +501,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.performUntil() is { } untilCtx2)
         {
             var cond = BindCondition(untilCtx2.condition());
-            return new BoundPerformStatement(paraSym, sectionLastPara, untilCondition: cond);
+            return new BoundPerformStatement(paraSym, sectionLastPara, untilCondition: cond,
+                isTestAfter: untilCtx2.AFTER() != null);
         }
 
         // PERFORM para VARYING ...
@@ -499,7 +510,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var varying = BindPerformVaryingOption(varyCtx2);
             return new BoundPerformStatement(paraSym, sectionLastPara, varying: varying,
-                untilCondition: varying?.UntilCondition);
+                untilCondition: varying?.UntilCondition,
+                isTestAfter: varyCtx2.AFTER() != null);
         }
 
         // PERFORM para THRU para2 [options]
@@ -512,6 +524,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             BoundExpression? timesExpr2 = null;
             BoundExpression? untilCond = null;
             BoundPerformVarying? varyOpt = null;
+            bool isTestAfter = false;
             var options = ctx.performOptions();
             if (options != null && options.Length > 0)
             {
@@ -526,15 +539,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                         timesExpr2 = BindDataReferenceWithSubscripts(thruTimesCtx.dataReference());
                 }
                 if (opt.performUntil() is { } u)
+                {
                     untilCond = BindCondition(u.condition());
+                    if (u.AFTER() != null) isTestAfter = true;
+                }
                 if (opt.performVarying() is { } v)
                 {
                     varyOpt = BindPerformVaryingOption(v);
                     untilCond = varyOpt?.UntilCondition;
+                    if (v.AFTER() != null) isTestAfter = true;
                 }
             }
 
-            return new BoundPerformStatement(paraSym, thruSym, timesExpr2, untilCond, varyOpt);
+            return new BoundPerformStatement(paraSym, thruSym, timesExpr2, untilCond, varyOpt,
+                isTestAfter: isTestAfter);
         }
 
         // Simple PERFORM para (or PERFORM section → implicit THRU)
@@ -748,11 +766,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Parse BEFORE/AFTER ADVANCING clause
         int? advancingLines = null;
         bool isAfterAdvancing = true;
+        BoundExpression? advancingExpression = null;
         var advCtx = ctx.writeBeforeAfter();
         if (advCtx != null)
         {
             isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);
-            // Parse the advancing value — integer literal or PAGE
+            // Parse the advancing value — integer literal, PAGE, or identifier
             var intLit = advCtx.integerLiteral();
             if (intLit != null)
             {
@@ -760,12 +779,22 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
             else
             {
-                // Could be PAGE or an identifier — for PAGE, use a large value
+                // Could be PAGE or an identifier referencing a data field
                 var idCtx = advCtx.dataReference();
                 if (idCtx != null && idCtx.IDENTIFIER().GetText().Equals("PAGE", StringComparison.OrdinalIgnoreCase))
+                {
                     advancingLines = -1; // PAGE = form-feed (sentinel value)
+                }
+                else if (idCtx != null)
+                {
+                    // Data identifier — bind as expression, read at runtime
+                    advancingExpression = BindDataReferenceWithSubscripts(idCtx);
+                    advancingLines = 0; // Sentinel: will be overridden at runtime
+                }
                 else
+                {
                     advancingLines = 1; // Default: 1 line
+                }
             }
         }
 
@@ -793,7 +822,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 }
         }
 
-        return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing, invalidKey, notInvalidKey);
+        return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing, invalidKey, notInvalidKey,
+            advancingExpression: advancingExpression);
     }
 
     // ── OPEN ──
@@ -1188,9 +1218,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var sourceCtx = ctx.acceptSource();
         if (sourceCtx != null)
         {
-            if (sourceCtx.DATE() != null) sourceKind = AcceptSourceKind.Date;
+            if (sourceCtx.DATE() != null && sourceCtx.YYYYMMDD() != null)
+                sourceKind = AcceptSourceKind.DateYYYYMMDD;
+            else if (sourceCtx.DATE() != null) sourceKind = AcceptSourceKind.Date;
             else if (sourceCtx.TIME() != null) sourceKind = AcceptSourceKind.Time;
             else if (sourceCtx.DAY_OF_WEEK() != null) sourceKind = Runtime.AcceptSourceKind.DayOfWeek;
+            else if (sourceCtx.DAY() != null && sourceCtx.YYYYDDD() != null)
+                sourceKind = AcceptSourceKind.DayYYYYDDD;
             else if (sourceCtx.DAY() != null) sourceKind = AcceptSourceKind.Day;
         }
 
@@ -1482,6 +1516,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var tableExpr = BindDataReferenceWithSubscripts(dataRefs[0]);
         if (tableExpr is not BoundIdentifierExpression tableId) return null;
 
+        // Bind VARYING identifier (second dataReference, if present)
+        BoundIdentifierExpression? varyingExpr = null;
+        if (dataRefs.Length > 1)
+        {
+            var varyBound = BindDataReferenceWithSubscripts(dataRefs[1]);
+            if (varyBound is BoundIdentifierExpression varyId)
+                varyingExpr = varyId;
+        }
+
         // Bind WHEN clauses
         var whens = new List<BoundSearchWhenClause>();
         foreach (var whenCtx in ctx.searchWhenClause())
@@ -1512,7 +1555,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Extract index: find the first subscript used on a table element in WHEN conditions
         var index = ExtractSearchIndex(tableId.Symbol, whens);
 
-        var searchStmt = new BoundSearchStatement(tableId, index, whens, atEnd);
+        var searchStmt = new BoundSearchStatement(tableId, index, varyingExpr, whens, atEnd);
         ValidateSearchStatement(searchStmt, ctx.Start?.Line ?? 0);
         return searchStmt;
     }

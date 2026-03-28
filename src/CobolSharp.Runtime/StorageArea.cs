@@ -157,6 +157,19 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// Read a numeric field as an integer. Used by WRITE ADVANCING with identifier.
+    /// Interprets the field's DISPLAY bytes as a decimal string and converts to int.
+    /// </summary>
+    public static int ReadFieldAsInt(byte[] area, int offset, int size)
+    {
+        string text = Encoding.ASCII.GetString(area, offset, size).Trim();
+        if (int.TryParse(text, System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture, out int result))
+            return result;
+        return 0; // Default to 0 if unparseable
+    }
+
+    /// <summary>
     /// WRITE record: write record bytes to file.
     /// Routes through FileRuntime.WriteRecord which handles both binary (data files)
     /// and text (PRINT-FILE) modes.

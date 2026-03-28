@@ -69,7 +69,7 @@ public class RelativeFileHandler : IFileHandler
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
     {
         if (!IsOpen) return FileStatus.FileNotOpen;
-        int recordNum = BitConverter.ToInt32(keyValue, 0);
+        int recordNum = int.Parse(System.Text.Encoding.ASCII.GetString(keyValue).Trim());
         _currentRecord = recordNum;
         return ReadRecord(recordNum, recordBuffer);
     }

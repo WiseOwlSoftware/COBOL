@@ -735,8 +735,10 @@ acceptStatement
     ;
 
 acceptSource
-    : DATE
+    : DATE YYYYMMDD
+    | DATE
     | TIME
+    | DAY YYYYDDD
     | DAY
     | DAY_OF_WEEK
     ;

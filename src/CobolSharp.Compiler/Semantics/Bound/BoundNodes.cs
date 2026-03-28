@@ -379,11 +379,13 @@ public sealed class BoundPerformStatement : BoundStatement
     public BoundExpression? UntilCondition { get; }
     public BoundPerformVarying? Varying { get; }
     public IReadOnlyList<BoundStatement>? InlineStatements { get; }
+    public bool IsTestAfter { get; } // WITH TEST AFTER → do-while semantics
 
     public BoundPerformStatement(ParagraphSymbol? target, ParagraphSymbol? thruTarget = null,
         BoundExpression? timesExpression = null, BoundExpression? untilCondition = null,
         BoundPerformVarying? varying = null,
-        IReadOnlyList<BoundStatement>? inlineStatements = null)
+        IReadOnlyList<BoundStatement>? inlineStatements = null,
+        bool isTestAfter = false)
     {
         Target = target;
         ThruTarget = thruTarget;
@@ -391,6 +393,7 @@ public sealed class BoundPerformStatement : BoundStatement
         UntilCondition = untilCondition;
         Varying = varying;
         InlineStatements = inlineStatements;
+        IsTestAfter = isTestAfter;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.PerformStatement;
@@ -425,6 +428,8 @@ public sealed class BoundWriteStatement : BoundStatement
     public int? AdvancingLines { get; }
     /// <summary>True for AFTER advancing, false for BEFORE advancing.</summary>
     public bool IsAfterAdvancing { get; }
+    /// <summary>When ADVANCING references a data identifier, this is the bound expression.</summary>
+    public BoundExpression? AdvancingExpression { get; }
     /// <summary>INVALID KEY imperative statements.</summary>
     public IReadOnlyList<BoundStatement> InvalidKey { get; }
     /// <summary>NOT INVALID KEY imperative statements.</summary>
@@ -432,13 +437,15 @@ public sealed class BoundWriteStatement : BoundStatement
 
     public BoundWriteStatement(FileSymbol? file, DataSymbol record, BoundExpression? from,
         int? advancingLines = null, bool isAfterAdvancing = true,
-        IReadOnlyList<BoundStatement>? invalidKey = null, IReadOnlyList<BoundStatement>? notInvalidKey = null)
+        IReadOnlyList<BoundStatement>? invalidKey = null, IReadOnlyList<BoundStatement>? notInvalidKey = null,
+        BoundExpression? advancingExpression = null)
     {
         File = file;
         Record = record;
         From = from;
         AdvancingLines = advancingLines;
         IsAfterAdvancing = isAfterAdvancing;
+        AdvancingExpression = advancingExpression;
         InvalidKey = invalidKey ?? Array.Empty<BoundStatement>();
         NotInvalidKey = notInvalidKey ?? Array.Empty<BoundStatement>();
     }
@@ -1134,17 +1141,20 @@ public sealed class BoundSearchStatement : BoundStatement
 {
     public BoundIdentifierExpression Table { get; }
     public BoundIdentifierExpression? Index { get; }
+    public BoundIdentifierExpression? VaryingSymbol { get; }
     public IReadOnlyList<BoundSearchWhenClause> Whens { get; }
     public IReadOnlyList<BoundStatement> AtEnd { get; }
 
     public BoundSearchStatement(
         BoundIdentifierExpression table,
         BoundIdentifierExpression? index,
+        BoundIdentifierExpression? varyingSymbol,
         IReadOnlyList<BoundSearchWhenClause> whens,
         IReadOnlyList<BoundStatement> atEnd)
     {
         Table = table;
         Index = index;
+        VaryingSymbol = varyingSymbol;
         Whens = whens;
         AtEnd = atEnd;
     }

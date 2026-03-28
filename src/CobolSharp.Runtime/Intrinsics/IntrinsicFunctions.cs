@@ -35,9 +35,9 @@ public static class IntrinsicFunctions
         for (int i = 2; i <= n; i++) result *= i;
         return result;
     }
-    public static decimal Mod(decimal value, decimal divisor) => value % divisor;
+    public static decimal Mod(decimal value, decimal divisor) => value - divisor * Math.Floor(value / divisor);
     public static decimal Rem(decimal value, decimal divisor) => value - divisor * Math.Truncate(value / divisor);
-    public static decimal Integer(decimal value) => Math.Truncate(value);
+    public static decimal Integer(decimal value) => Math.Floor(value);
     public static decimal IntegerPart(decimal value) => Math.Truncate(value);
     public static decimal FractionPart(decimal value) => value - Math.Truncate(value);
     public static decimal Sign(decimal value) => value > 0 ? 1 : value < 0 ? -1 : 0;

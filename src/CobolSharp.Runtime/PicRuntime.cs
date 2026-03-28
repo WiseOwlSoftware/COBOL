@@ -268,13 +268,11 @@ public static class PicRuntime
                     break;
 
                 case '.':
-                    // DECIMAL-POINT IS COMMA: '.' in pattern → thousands separator
-                    output[i] = decimalPointIsComma ? '.' : '.';
+                    output[i] = '.';
                     break;
 
                 case ',':
-                    // DECIMAL-POINT IS COMMA: ',' in pattern → decimal point
-                    output[i] = decimalPointIsComma ? ',' : ',';
+                    output[i] = ',';
                     break;
 
                 case 'B':

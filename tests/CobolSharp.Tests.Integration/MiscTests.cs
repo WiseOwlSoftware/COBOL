@@ -112,13 +112,13 @@ public class MiscTests : EndToEndTestBase
             01 WS-DATE PIC 9(8).
             PROCEDURE DIVISION.
             MAIN-PARA.
-                ACCEPT WS-DATE FROM DATE.
+                ACCEPT WS-DATE FROM DATE YYYYMMDD.
                 DISPLAY WS-DATE.
                 STOP RUN.
             """);
 
         Assert.True(success, $"Failed: {stderr}");
-        // Should be 8 digits starting with 2026
+        // Should be 8 digits starting with 2026 (DATE YYYYMMDD qualifier)
         Assert.Equal(8, stdout.Length);
         Assert.StartsWith("2026", stdout);
     }
@@ -185,7 +185,7 @@ public class MiscTests : EndToEndTestBase
             01 DY PIC 9(7).
             PROCEDURE DIVISION.
             MAIN-PARA.
-                ACCEPT DY FROM DAY.
+                ACCEPT DY FROM DAY YYYYDDD.
                 DISPLAY DY.
                 STOP RUN.
             """);
@@ -218,6 +218,30 @@ public class MiscTests : EndToEndTestBase
         Assert.Equal(1, stdout.Length);
         int dow = int.Parse(stdout);
         Assert.InRange(dow, 1, 7);
+    }
+
+    [Fact]
+    public void AcceptFromDate_NoQualifier_Returns6Digits()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DATETEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DATE PIC X(8) VALUE SPACES.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT WS-DATE FROM DATE.
+                DISPLAY WS-DATE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // DATE without YYYYMMDD qualifier should produce 6 digits (YYMMDD) + 2 trailing spaces
+        string trimmed = stdout.TrimEnd();
+        Assert.Equal(6, trimmed.Length);
+        // All characters should be digits
+        Assert.All(trimmed.ToCharArray(), c => Assert.True(char.IsDigit(c), $"Expected digit, got '{c}'"));
     }
 
     // ── OCCURS + Subscripts ──

@@ -13,11 +13,11 @@ TEST RESULT OF NC236A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- SEARCH               ***** SCH-TEST-F1-1                 ****TEST DELETED****
- SEARCH               ***** SCH-TEST-F1-2                 ****TEST DELETED****
+ SEARCH               PASS  SCH-TEST-F1-1
+ SEARCH               PASS  SCH-TEST-F1-2
  SEARCH               PASS  SCH-TEST-F1-3
  SEARCH               PASS  SCH-TEST-F1-4
- SEARCH               ***** SCH-TEST-F1-5                 ****TEST DELETED****
+ SEARCH               PASS  SCH-TEST-F1-5
  SEARCH               PASS  SCH-TEST-F1-6
  SEARCH               PASS  SCH-TEST-F1-7
  SEARCH               ***** SCH-TEST-F1-8                 ****TEST DELETED****
@@ -30,8 +30,8 @@ TEST RESULT OF NC236A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC236A
 
-                                                    005 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    008 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
-                                                    005 TEST(S) DELETED
+                                                    002 TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

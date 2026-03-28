@@ -604,4 +604,159 @@ public class FileIOTests : EndToEndTestBase
         Assert.Equal("002BOB", stdout.TrimEnd());
     }
 
+
+    [Fact]
+    public void FileIO_IndexedFile_TrailingSpacesInKeys()
+    {
+        // Keys that differ only in trailing spaces must be treated as distinct
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IXTRSP.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT IX-FILE ASSIGN TO "ixtrailsp"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS IX-KEY
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD IX-FILE.
+            01 IX-REC.
+               05 IX-KEY  PIC X(5).
+               05 IX-DATA PIC X(3).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT IX-FILE.
+                MOVE "AB   " TO IX-KEY.
+                MOVE "001" TO IX-DATA.
+                WRITE IX-REC.
+                MOVE "AB  C" TO IX-KEY.
+                MOVE "002" TO IX-DATA.
+                WRITE IX-REC.
+                CLOSE IX-FILE.
+                OPEN INPUT IX-FILE.
+                MOVE "AB   " TO IX-KEY.
+                READ IX-FILE.
+                DISPLAY IX-DATA.
+                MOVE "AB  C" TO IX-KEY.
+                READ IX-FILE.
+                DISPLAY IX-DATA.
+                CLOSE IX-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(2, lines.Length);
+        Assert.Equal("001", lines[0]);
+        Assert.Equal("002", lines[1]);
+    }
+
+
+    [Fact]
+    public void FileIO_RelativeFile_SequentialAccess()
+    {
+        // Write records sequentially and read them back
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RELSEQ.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT REL-FILE ASSIGN TO "relseqtest"
+                    ORGANIZATION IS RELATIVE
+                    ACCESS MODE IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD REL-FILE.
+            01 REL-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-REC PIC X(10).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT REL-FILE.
+                MOVE "FIRST     " TO REL-REC.
+                WRITE REL-REC.
+                MOVE "SECOND    " TO REL-REC.
+                WRITE REL-REC.
+                MOVE "THIRD     " TO REL-REC.
+                WRITE REL-REC.
+                CLOSE REL-FILE.
+                OPEN INPUT REL-FILE.
+                READ REL-FILE INTO WS-REC
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-REC.
+                READ REL-FILE INTO WS-REC
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-REC.
+                READ REL-FILE INTO WS-REC
+                    AT END DISPLAY "UNEXPECTED-END"
+                END-READ.
+                DISPLAY WS-REC.
+                READ REL-FILE INTO WS-REC
+                    AT END DISPLAY "AT-END-OK"
+                END-READ.
+                CLOSE REL-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(4, lines.Length);
+        Assert.Equal("FIRST", lines[0].TrimEnd());
+        Assert.Equal("SECOND", lines[1].TrimEnd());
+        Assert.Equal("THIRD", lines[2].TrimEnd());
+        Assert.Equal("AT-END-OK", lines[3]);
+    }
+
+
+    [Fact]
+    public void FileIO_WriteAdvancing_IdentifierLines()
+    {
+        // WRITE AFTER ADVANCING WS-LINES where WS-LINES = 3
+        // Should produce 3 blank lines before the record, vs 1 for literal ADVANCING 1
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. WRADV.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT PRINT-FILE ASSIGN TO "advtest"
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD PRINT-FILE.
+            01 PRINT-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-LINES PIC 9(1) VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT PRINT-FILE.
+                MOVE "LINE-ONE" TO PRINT-REC.
+                WRITE PRINT-REC AFTER ADVANCING WS-LINES LINES.
+                MOVE "LINE-TWO" TO PRINT-REC.
+                WRITE PRINT-REC AFTER ADVANCING 1 LINES.
+                CLOSE PRINT-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // Read the output file and verify line spacing
+        string outputPath = Path.Combine(_tempDir, "advtest.txt");
+        Assert.True(File.Exists(outputPath), "Output file not created");
+        string content = File.ReadAllText(outputPath);
+        Assert.Contains("LINE-ONE", content);
+        Assert.Contains("LINE-TWO", content);
+        // Count newlines before LINE-ONE (should be 3 for AFTER ADVANCING 3)
+        int lineOneIdx = content.IndexOf("LINE-ONE");
+        int newlinesBefore = content[..lineOneIdx].Count(c => c == '\n');
+        Assert.Equal(3, newlinesBefore);
+    }
+
 }

@@ -22,9 +22,11 @@ public static class AcceptRuntime
     {
         string text = sourceKind switch
         {
-            AcceptSourceKind.Date => FormatDate(DateTime.Now, length),
+            AcceptSourceKind.Date => FormatDate(DateTime.Now),
+            AcceptSourceKind.DateYYYYMMDD => FormatDateYYYYMMDD(DateTime.Now),
             AcceptSourceKind.Time => FormatTime(DateTime.Now, length),
-            AcceptSourceKind.Day => FormatDay(DateTime.Now, length),
+            AcceptSourceKind.Day => FormatDay(DateTime.Now),
+            AcceptSourceKind.DayYYYYDDD => FormatDayYYYYDDD(DateTime.Now),
             AcceptSourceKind.DayOfWeek => FormatDayOfWeek(DateTime.Now, length),
             _ => new string(' ', length) // Plain ACCEPT: blank fill (console input stub)
         };
@@ -39,13 +41,19 @@ public static class AcceptRuntime
     }
 
     /// <summary>
-    /// DATE: YYYYMMDD if field ≥ 8 chars, else YYMMDD.
+    /// DATE (no qualifier): YYMMDD — always 6 digits per COBOL-85 spec.
     /// </summary>
-    private static string FormatDate(DateTime dt, int length)
+    private static string FormatDate(DateTime dt)
     {
-        if (length >= 8)
-            return dt.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         return dt.ToString("yyMMdd", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// DATE YYYYMMDD: YYYYMMDD — always 8 digits.
+    /// </summary>
+    private static string FormatDateYYYYMMDD(DateTime dt)
+    {
+        return dt.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -58,14 +66,23 @@ public static class AcceptRuntime
     }
 
     /// <summary>
-    /// DAY: YYYYDDD (year + day-of-year), truncated if needed.
+    /// DAY (no qualifier): YYDDD — always 5 digits per COBOL-85 spec.
     /// </summary>
-    private static string FormatDay(DateTime dt, int length)
+    private static string FormatDay(DateTime dt)
+    {
+        string year = dt.ToString("yy", CultureInfo.InvariantCulture);
+        string dayOfYear = dt.DayOfYear.ToString("000", CultureInfo.InvariantCulture);
+        return year + dayOfYear;
+    }
+
+    /// <summary>
+    /// DAY YYYYDDD: YYYYDDD — always 7 digits.
+    /// </summary>
+    private static string FormatDayYYYYDDD(DateTime dt)
     {
         string year = dt.Year.ToString("0000", CultureInfo.InvariantCulture);
         string dayOfYear = dt.DayOfYear.ToString("000", CultureInfo.InvariantCulture);
-        string s = year + dayOfYear;
-        return s.Length > length ? s[..length] : s;
+        return year + dayOfYear;
     }
 
     /// <summary>

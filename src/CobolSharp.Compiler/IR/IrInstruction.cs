@@ -506,6 +506,8 @@ public sealed class IrRewriteRecordFromStorage : IrInstruction
 /// <summary>
 /// WRITE BEFORE/AFTER ADVANCING: print-control write with line advance or page eject.
 /// AdvanceLines = -1 means PAGE advancing (form-feed).
+/// When AdvancingLocation is non-null, the advancing count is read from a data field
+/// at runtime instead of using the compile-time AdvanceLines constant.
 /// </summary>
 public sealed class IrWriteAdvancing : IrInstruction
 {
@@ -513,13 +515,17 @@ public sealed class IrWriteAdvancing : IrInstruction
     public IrLocation Record { get; }
     public int AdvanceLines { get; }
     public bool IsBefore { get; }
+    /// <summary>When non-null, advancing lines are read from this field at runtime.</summary>
+    public IrLocation? AdvancingLocation { get; }
 
-    public IrWriteAdvancing(string fileName, IrLocation record, int advanceLines, bool isBefore = false)
+    public IrWriteAdvancing(string fileName, IrLocation record, int advanceLines, bool isBefore = false,
+        IrLocation? advancingLocation = null)
     {
         FileName = fileName;
         Record = record;
         AdvanceLines = advanceLines;
         IsBefore = isBefore;
+        AdvancingLocation = advancingLocation;
     }
 }
 
@@ -700,6 +706,24 @@ public sealed class IrRefModLocation : IrLocation
         Start = start;
         Length = length;
         BaseFieldLength = baseFieldLength;
+    }
+}
+
+/// <summary>
+/// Wraps an IrLocation with a cache key so that the CIL emitter computes
+/// (area, offset, length) once into locals and reuses them on subsequent
+/// encounters with the same key.  Used by MOVE when the source has subscripts
+/// and there are multiple targets — the spec says the source is evaluated ONCE.
+/// </summary>
+public sealed class IrCachedLocation : IrLocation
+{
+    public IrLocation Inner { get; }
+    public int CacheKey { get; }
+
+    public IrCachedLocation(IrLocation inner, int cacheKey)
+    {
+        Inner = inner;
+        CacheKey = cacheKey;
     }
 }
 

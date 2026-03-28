@@ -1339,4 +1339,55 @@ public class ControlFlowTests : EndToEndTestBase
         Assert.Equal("NEW", stdout);
     }
 
+    [Fact]
+    public void PerformVaryingInlineTestAfter_DisplaysOneToSix()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PVTA1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I PIC 9(3) VALUE 0.
+            01 WS-SUM PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM WITH TEST AFTER
+                    VARYING WS-I FROM 1 BY 1
+                    UNTIL WS-I > 5
+                    ADD WS-I TO WS-SUM
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // TEST AFTER: body runs for I=1,2,3,4,5,6 → sum = 21
+        Assert.Equal("00021", stdout);
+    }
+
+    [Fact]
+    public void PerformVaryingTestBefore_DisplaysOneToFive()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PVTB1.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-I PIC 9(3) VALUE 0.
+            01 WS-SUM PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING WS-I FROM 1 BY 1
+                    UNTIL WS-I > 5
+                    ADD WS-I TO WS-SUM
+                END-PERFORM.
+                DISPLAY WS-SUM.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // TEST BEFORE (default): body runs for I=1,2,3,4,5 → sum = 15
+        Assert.Equal("00015", stdout);
+    }
+
 }

@@ -26,6 +26,7 @@ public sealed class Binder
     private readonly RecordLayoutBuilder _layout;
     private readonly DiagnosticBag _diagnostics;
     private readonly IrValueFactory _valueFactory = new();
+    private int _nextCacheKey;
     private readonly Dictionary<string, IrMethod> _paragraphMethods =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> _paragraphIndices =
@@ -756,6 +757,18 @@ public sealed class Binder
 
     private void LowerMove(BoundMoveStatement mv, IrBasicBlock block)
     {
+        // §14.9.25.4 GR 1: source is evaluated ONCE before any stores.
+        // Pre-resolve data-reference source outside the target loop and wrap in
+        // IrCachedLocation when it has runtime-computed addressing (subscripts/refmod)
+        // so the emitter computes (area, offset, length) once into CIL locals.
+        IrLocation? preResolvedSrc = null;
+        if (mv.Source is not BoundFigurativeExpression and not BoundLiteralExpression)
+        {
+            preResolvedSrc = ResolveExpressionLocation(mv.Source);
+            if (preResolvedSrc is IrElementRef or IrRefModLocation && mv.Targets.Count > 1)
+                preResolvedSrc = new IrCachedLocation(preResolvedSrc, _nextCacheKey++);
+        }
+
         foreach (var t in mv.Targets)
         {
             var destLoc = ResolveExpressionLocation(t);
@@ -809,13 +822,12 @@ public sealed class Binder
             }
             else
             {
-                // Data reference source (identifier, ref mod, or any expression with a location)
-                var srcLoc = ResolveExpressionLocation(mv.Source);
-                if (srcLoc != null)
+                // Data reference source — already resolved before the loop
+                if (preResolvedSrc != null)
                 {
                     block.Instructions.Add(new IrMoveFieldToField(
-                        srcLoc, destLoc,
-                        srcLoc.GetPic(), destLoc.GetPic(),
+                        preResolvedSrc, destLoc,
+                        preResolvedSrc.GetPic(), destLoc.GetPic(),
                         mv.IsRounded));
                 }
             }
@@ -856,17 +868,36 @@ public sealed class Binder
 
             _performExitStack.Push(loopEnd);
 
-            block.Instructions.Add(new IrJump(loopStart));
+            if (perf.IsTestAfter)
+            {
+                // TEST AFTER: do-while — execute body first, then test condition
+                block.Instructions.Add(new IrJump(loopBody));
 
-            method.Blocks.Add(loopStart);
-            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-            LowerCondition(perf.UntilCondition, condVal, loopStart);
-            loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
-            loopStart.Instructions.Add(new IrJump(loopEnd));
+                method.Blocks.Add(loopBody);
+                var bodyCurrent = LowerPerformBody(perf, method, loopBody);
+                bodyCurrent.Instructions.Add(new IrJump(loopStart));
 
-            method.Blocks.Add(loopBody);
-            var bodyCurrent = LowerPerformBody(perf, method, loopBody);
-            bodyCurrent.Instructions.Add(new IrJump(loopStart));
+                method.Blocks.Add(loopStart);
+                var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(perf.UntilCondition, condVal, loopStart);
+                loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
+                loopStart.Instructions.Add(new IrJump(loopEnd));
+            }
+            else
+            {
+                // TEST BEFORE (default): while — test condition first
+                block.Instructions.Add(new IrJump(loopStart));
+
+                method.Blocks.Add(loopStart);
+                var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(perf.UntilCondition, condVal, loopStart);
+                loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
+                loopStart.Instructions.Add(new IrJump(loopEnd));
+
+                method.Blocks.Add(loopBody);
+                var bodyCurrent = LowerPerformBody(perf, method, loopBody);
+                bodyCurrent.Instructions.Add(new IrJump(loopStart));
+            }
 
             method.Blocks.Add(loopEnd);
             _performExitStack.Pop();
@@ -911,34 +942,69 @@ public sealed class Binder
         var loopBody = method.CreateBlock("vary.body");
         var loopEnd = method.CreateBlock("vary.end");
 
-        block.Instructions.Add(new IrJump(loopStart));
-
-        // Test UNTIL (top-tested)
-        method.Blocks.Add(loopStart);
-        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-        LowerCondition(v.UntilCondition, condVal, loopStart);
-        loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
-        loopStart.Instructions.Add(new IrJump(loopEnd));
-
-        // Body
-        method.Blocks.Add(loopBody);
-        IrBasicBlock bodyCurrent;
-
-        if (v.Next != null)
+        if (perf.IsTestAfter)
         {
-            // Nested AFTER: recurse into inner level
-            bodyCurrent = LowerPerformVarying(v.Next, perf, method, loopBody);
+            // TEST AFTER: do-while — execute body first, then test + increment
+            block.Instructions.Add(new IrJump(loopBody));
+
+            // Body
+            method.Blocks.Add(loopBody);
+            IrBasicBlock bodyCurrent;
+
+            if (v.Next != null)
+            {
+                bodyCurrent = LowerPerformVarying(v.Next, perf, method, loopBody);
+            }
+            else
+            {
+                bodyCurrent = LowerPerformBody(perf, method, loopBody);
+            }
+
+            // Test UNTIL (bottom-tested): condition checked after body executes
+            bodyCurrent.Instructions.Add(new IrJump(loopStart));
+            method.Blocks.Add(loopStart);
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(v.UntilCondition, condVal, loopStart);
+            // If condition true → exit; if false → increment and loop
+            var loopIncr = method.CreateBlock("vary.incr");
+            loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopIncr));
+            loopStart.Instructions.Add(new IrJump(loopEnd));
+
+            // Increment: ADD step TO index
+            method.Blocks.Add(loopIncr);
+            EmitVaryingAdd(v.Step, indexLoc, loopIncr);
+            loopIncr.Instructions.Add(new IrJump(loopBody));
         }
         else
         {
-            // Innermost level: execute the actual body
-            bodyCurrent = LowerPerformBody(perf, method, loopBody);
+            // TEST BEFORE (default): while — test condition first
+            block.Instructions.Add(new IrJump(loopStart));
+
+            // Test UNTIL (top-tested)
+            method.Blocks.Add(loopStart);
+            var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(v.UntilCondition, condVal, loopStart);
+            loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopBody));
+            loopStart.Instructions.Add(new IrJump(loopEnd));
+
+            // Body
+            method.Blocks.Add(loopBody);
+            IrBasicBlock bodyCurrent;
+
+            if (v.Next != null)
+            {
+                bodyCurrent = LowerPerformVarying(v.Next, perf, method, loopBody);
+            }
+            else
+            {
+                bodyCurrent = LowerPerformBody(perf, method, loopBody);
+            }
+
+            // Increment: ADD step TO index
+            EmitVaryingAdd(v.Step, indexLoc, bodyCurrent);
+
+            bodyCurrent.Instructions.Add(new IrJump(loopStart));
         }
-
-        // Increment: ADD step TO index
-        EmitVaryingAdd(v.Step, indexLoc, bodyCurrent);
-
-        bodyCurrent.Instructions.Add(new IrJump(loopStart));
 
         method.Blocks.Add(loopEnd);
         return loopEnd;
@@ -1150,8 +1216,12 @@ public sealed class Binder
 
             if (wr.AdvancingLines.HasValue)
             {
+                IrLocation? advLoc = null;
+                if (wr.AdvancingExpression != null)
+                    advLoc = ResolveExpressionLocation(wr.AdvancingExpression);
                 block.Instructions.Add(new IrWriteAdvancing(
-                    fileName, recordLoc, wr.AdvancingLines.Value, !wr.IsAfterAdvancing));
+                    fileName, recordLoc, wr.AdvancingLines.Value, !wr.IsAfterAdvancing,
+                    advancingLocation: advLoc));
             }
             else
             {
@@ -3225,9 +3295,16 @@ public sealed class Binder
             current = nextWhen;
         }
 
-        // No WHEN matched: increment index and loop
+        // No WHEN matched: increment index (and varying, if present) and loop
         block.Instructions.Add(new IrInitArithmeticStatus());
         current.Instructions.Add(new IrPicAddLiteral(indexLoc, 1m));
+        if (search.VaryingSymbol != null
+            && search.VaryingSymbol.Symbol != search.Index.Symbol)
+        {
+            var varyLoc = ResolveLocation(search.VaryingSymbol);
+            if (varyLoc != null)
+                current.Instructions.Add(new IrPicAddLiteral(varyLoc, 1m));
+        }
         current.Instructions.Add(new IrJump(loopHeader));
 
         // AT END
@@ -3253,71 +3330,29 @@ public sealed class Binder
         int upperBound = searchAll.Table.Symbol.Occurs?.MaxOccurs ?? 1;
         var when = searchAll.Whens[0]; // SEARCH ALL allows exactly one WHEN
 
-        // Create temp variables for low, high, mid
-        // We use the index field itself for mid (so user code sees the found position)
-        // and create synthetic IrLocations for low/high by reusing the index field's
-        // storage characteristics.
-        //
-        // For simplicity, we lower binary search using the index as mid directly:
-        //   low = 1, high = upperBound
-        //   while low <= high:
-        //     index = (low + high) / 2
-        //     if condition → body, exit
-        //     if element < key → low = mid + 1
-        //     else → high = mid - 1
-        //   AT END
+        // Determine sort direction from table's KEY clause.
+        // ASCENDING KEY → key < target means search right (higher indices).
+        // DESCENDING KEY → key < target means search left (lower indices).
+        var occurs = searchAll.Table.Symbol.Occurs;
+        bool isAscending = occurs == null || occurs.AscendingKeys.Count > 0 || occurs.DescendingKeys.Count == 0;
 
-        // We need temp storage for low and high. Use IrComputeStore with synthetic expressions.
-        // Actually, we can use PERFORM-style arithmetic with the index itself.
+        // Extract the first relational comparison from the WHEN condition
+        // to build a less-than test for binary search direction.
+        var directionComparison = ExtractFirstRelationalComparison(when.Condition);
 
-        // Simpler approach: use COMPUTE expressions via IrComputeStore for mid calculation,
-        // and PicMoveLiteralNumeric/PicAddLiteral/PicSubtractLiteral for low/high.
-
-        // For now, implement as linear search (correct behavior, not O(log n)).
-        // This can be optimized to true binary search when KEY ASCENDING/DESCENDING
-        // is supported. Linear search produces correct results for all test cases.
-
-        // Initialize index to 1
-        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, 1m));
-
-        var loopHeader = method.CreateBlock("searchall.loop");
+        // Compile-time unrolled binary search tree.
+        // For a table of size N, we generate ceil(log2(N))+1 levels of
+        // if-else blocks. Each node: set index=mid, test equality, if no match
+        // test direction comparison and branch to left or right subtree.
         var atEndBlock = method.CreateBlock("searchall.atend");
         var exitBlock = method.CreateBlock("searchall.exit");
 
-        block.Instructions.Add(new IrJump(loopHeader));
-        method.Blocks.Add(loopHeader);
+        // Initialize arithmetic status once before the tree
+        block.Instructions.Add(new IrInitArithmeticStatus());
 
-        // Bounds check: if index > upperBound → AT END
-        var boundsResult = _valueFactory.Next(IrPrimitiveType.Bool);
-        loopHeader.Instructions.Add(new IrPicCompareLiteral(
-            indexLoc, (decimal)upperBound, boundsResult,
-            (int)BoundBinaryOperatorKind.Greater));
-        var checkBlock = method.CreateBlock("searchall.check");
-        loopHeader.Instructions.Add(new IrBranchIfFalse(boundsResult, checkBlock));
-        loopHeader.Instructions.Add(new IrJump(atEndBlock));
-
-        // Evaluate WHEN condition
-        method.Blocks.Add(checkBlock);
-        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
-        LowerCondition(when.Condition, condVal, checkBlock);
-
-        var bodyBlock = method.CreateBlock("searchall.body");
-        var incrementBlock = method.CreateBlock("searchall.incr");
-
-        checkBlock.Instructions.Add(new IrBranchIfFalse(condVal, incrementBlock));
-
-        // Match: execute body
-        method.Blocks.Add(bodyBlock);
-        var bodyCurrent = bodyBlock;
-        foreach (var stmt in when.Statements)
-            bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
-        bodyCurrent.Instructions.Add(new IrJump(exitBlock));
-
-        // No match: increment and loop
-        method.Blocks.Add(incrementBlock);
-        incrementBlock.Instructions.Add(new IrInitArithmeticStatus());
-        incrementBlock.Instructions.Add(new IrPicAddLiteral(indexLoc, 1m));
-        incrementBlock.Instructions.Add(new IrJump(loopHeader));
+        // Generate the unrolled binary search tree
+        EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+            indexLoc, 1, upperBound, method, block, atEndBlock, exitBlock);
 
         // AT END
         method.Blocks.Add(atEndBlock);
@@ -3328,5 +3363,153 @@ public sealed class Binder
 
         method.Blocks.Add(exitBlock);
         return exitBlock;
+    }
+
+    /// <summary>
+    /// Recursively emit a binary search tree node for SEARCH ALL.
+    /// Sets index=mid, tests the WHEN condition for equality, and if no match
+    /// uses a less-than comparison to branch into left or right subtree.
+    /// </summary>
+    private void EmitBinarySearchNode(
+        BoundSearchAllStatement searchAll,
+        BoundSearchWhenClause when,
+        BoundBinaryExpression? directionComparison,
+        bool isAscending,
+        IrLocation indexLoc,
+        int lo, int hi,
+        IrMethod method,
+        IrBasicBlock block,
+        IrBasicBlock atEndBlock,
+        IrBasicBlock exitBlock)
+    {
+        if (lo > hi)
+        {
+            // Empty range → AT END
+            block.Instructions.Add(new IrJump(atEndBlock));
+            return;
+        }
+
+        int mid = lo + (hi - lo) / 2;
+
+        // Set index = mid
+        block.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, (decimal)mid));
+
+        // Test WHEN condition (equality)
+        var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        LowerCondition(when.Condition, condVal, block);
+
+        var bodyBlock = method.CreateBlock("searchall.body");
+        var noMatchBlock = method.CreateBlock("searchall.nomatch");
+
+        block.Instructions.Add(new IrBranchIfFalse(condVal, noMatchBlock));
+
+        // Match: execute body
+        method.Blocks.Add(bodyBlock);
+        var bodyCurrent = bodyBlock;
+        foreach (var stmt in when.Statements)
+            bodyCurrent = LowerStatement(stmt, method, bodyCurrent);
+        bodyCurrent.Instructions.Add(new IrJump(exitBlock));
+
+        // No match: determine direction
+        method.Blocks.Add(noMatchBlock);
+
+        if (lo == hi)
+        {
+            // Leaf node, no children to recurse into → AT END
+            noMatchBlock.Instructions.Add(new IrJump(atEndBlock));
+            return;
+        }
+
+        if (directionComparison != null)
+        {
+            // Build a less-than comparison from the WHEN's equality comparison
+            var lessComparison = new BoundBinaryExpression(
+                directionComparison.Left,
+                BoundBinaryOperatorKind.Less,
+                directionComparison.Right,
+                directionComparison.Category);
+
+            var lessVal = _valueFactory.Next(IrPrimitiveType.Bool);
+            LowerCondition(lessComparison, lessVal, noMatchBlock);
+
+            var leftBlock = method.CreateBlock("searchall.left");
+            var rightBlock = method.CreateBlock("searchall.right");
+
+            // For ASCENDING: key < target → search right half (higher indices)
+            // For DESCENDING: key < target → search left half (lower indices)
+            if (isAscending)
+            {
+                noMatchBlock.Instructions.Add(new IrBranchIfFalse(lessVal, leftBlock));
+                noMatchBlock.Instructions.Add(new IrJump(rightBlock));
+            }
+            else
+            {
+                noMatchBlock.Instructions.Add(new IrBranchIfFalse(lessVal, rightBlock));
+                noMatchBlock.Instructions.Add(new IrJump(leftBlock));
+            }
+
+            // Left subtree: lo..mid-1
+            method.Blocks.Add(leftBlock);
+            EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+                indexLoc, lo, mid - 1, method, leftBlock, atEndBlock, exitBlock);
+
+            // Right subtree: mid+1..hi
+            method.Blocks.Add(rightBlock);
+            EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+                indexLoc, mid + 1, hi, method, rightBlock, atEndBlock, exitBlock);
+        }
+        else
+        {
+            // No relational comparison extracted — fall back to linear scan of remaining range.
+            // This handles compound conditions where direction can't be determined.
+            var scanBlock = noMatchBlock;
+
+            // Try each remaining index in order
+            for (int i = lo; i <= hi; i++)
+            {
+                if (i == mid) continue; // Already tested
+
+                scanBlock.Instructions.Add(new IrPicMoveLiteralNumeric(indexLoc, (decimal)i));
+                var tryCondVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                LowerCondition(when.Condition, tryCondVal, scanBlock);
+
+                var tryBodyBlock = method.CreateBlock("searchall.trybody");
+                var nextTryBlock = method.CreateBlock("searchall.trynext");
+                scanBlock.Instructions.Add(new IrBranchIfFalse(tryCondVal, nextTryBlock));
+
+                method.Blocks.Add(tryBodyBlock);
+                var tryBodyCurrent = tryBodyBlock;
+                foreach (var stmt in when.Statements)
+                    tryBodyCurrent = LowerStatement(stmt, method, tryBodyCurrent);
+                tryBodyCurrent.Instructions.Add(new IrJump(exitBlock));
+
+                method.Blocks.Add(nextTryBlock);
+                scanBlock = nextTryBlock;
+            }
+
+            scanBlock.Instructions.Add(new IrJump(atEndBlock));
+        }
+    }
+
+    /// <summary>
+    /// Extract the first relational (Equal) comparison from a SEARCH ALL WHEN condition.
+    /// The condition may be a single equality or ANDed equalities. We extract the first
+    /// one to use for binary search direction testing.
+    /// </summary>
+    private static BoundBinaryExpression? ExtractFirstRelationalComparison(BoundExpression condition)
+    {
+        if (condition is BoundBinaryExpression bin)
+        {
+            if (bin.OperatorKind == BoundBinaryOperatorKind.Equal)
+                return bin;
+
+            if (bin.OperatorKind == BoundBinaryOperatorKind.And)
+            {
+                // Try left side first, then right
+                return ExtractFirstRelationalComparison(bin.Left)
+                    ?? ExtractFirstRelationalComparison(bin.Right);
+            }
+        }
+        return null;
     }
 }

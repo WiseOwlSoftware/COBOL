@@ -1036,6 +1036,30 @@ public class DataTests : EndToEndTestBase
 
 
     [Fact]
+    public void SignedDisplay_DefaultTrailingOverpunch()
+    {
+        // PIC S9(4) DISPLAY with no explicit SIGN clause defaults to trailing overpunch.
+        // MOVE signed to unsigned should strip the sign and display the absolute value.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SIGNTEST.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-SIGNED PIC S9(4) VALUE -1234.
+            01 WS-UNSIGNED PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-SIGNED TO WS-UNSIGNED.
+                DISPLAY WS-UNSIGNED.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("1234", stdout);
+    }
+
+
+    [Fact]
     public void Renames_Through_Synonym()
     {
         // THROUGH is a synonym for THRU
@@ -1057,6 +1081,40 @@ public class DataTests : EndToEndTestBase
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("ABCDEF", stdout);
+    }
+
+
+    [Fact]
+    public void MoveSourceSubscriptEvaluatedOnce()
+    {
+        // §14.9.25.4 GR 1: source is evaluated ONCE before any stores.
+        // MOVE ITEM(IDX) TO IDX, ITEM(2) — source ITEM(IDX) should use IDX=1 (before store),
+        // so ITEM(2) should still be "BB" not overwritten.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MOVSUB.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TABLE.
+               05 WS-ITEM PIC X(2) OCCURS 3 TIMES.
+            01 WS-IDX PIC 9(1) VALUE 1.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO WS-ITEM(1).
+                MOVE "BB" TO WS-ITEM(2).
+                MOVE "CC" TO WS-ITEM(3).
+                MOVE WS-ITEM(WS-IDX) TO WS-IDX WS-ITEM(2).
+                DISPLAY WS-IDX.
+                DISPLAY WS-ITEM(2).
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = stdout.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        // WS-IDX gets "AA" → numeric truncation → last digit = "A" which is invalid...
+        // Actually PIC 9(1) receiving "AA" (alphanumeric) — MOVE alphanumeric to numeric
+        // truncates to rightmost character. Let's just verify ITEM(2) got the original source value.
+        Assert.Equal("AA", lines[1]); // ITEM(2) should have "AA" (value of ITEM(1) at time of evaluation)
     }
 
 }

@@ -939,6 +939,44 @@ public class SubscriptRefModTests : EndToEndTestBase
         Assert.Equal("FOUND 5", stdout);
     }
 
+    [Fact]
+    public void Search_Varying_IncrementsInParallel()
+    {
+        // SEARCH VARYING increments the varying variable alongside the index.
+        // The varying variable is separate from the search index.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SRCHVARY.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TBL.
+               05 ELEM PIC 9 OCCURS 5 TIMES.
+            01 IDX PIC 9 VALUE 1.
+            01 V   PIC 9 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 0 TO ELEM(1).
+                MOVE 0 TO ELEM(2).
+                MOVE 0 TO ELEM(3).
+                MOVE 7 TO ELEM(4).
+                MOVE 0 TO ELEM(5).
+                MOVE 1 TO IDX.
+                MOVE 0 TO V.
+                SEARCH ELEM VARYING V
+                    AT END DISPLAY "NOT FOUND"
+                    WHEN ELEM(IDX) = 7
+                        DISPLAY "FOUND IDX=" IDX " V=" V
+                END-SEARCH.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        // Element 7 is at index 4. Starting IDX=1, V=0.
+        // After 3 increments (positions 1,2,3 fail): IDX=4, V=3.
+        // At IDX=4, WHEN matches, so V should be 3 (incremented 3 times from 0).
+        Assert.Equal("FOUND IDX=4 V=3", stdout);
+    }
+
     // ── STRING ──
 
 }
