@@ -577,12 +577,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (_currentFdFile != null)
         {
-            // Body line count: integer literal or data-name (for now, only integer)
             var intLit = ctx.integerLiteral();
             if (intLit != null && int.TryParse(intLit.GetText(), out int body))
                 _currentFdFile.LinageBody = body;
 
-            // FOOTING
             if (ctx.linageFootingPhrase() is { } footCtx)
             {
                 var footInt = footCtx.integerLiteral();
@@ -590,7 +588,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     _currentFdFile.LinageFooting = foot;
             }
 
-            // LINES AT TOP
             if (ctx.linageLinesAtTopPhrase() is { } topCtx)
             {
                 var topInt = topCtx.integerLiteral();
@@ -598,7 +595,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     _currentFdFile.LinageTop = top;
             }
 
-            // LINES AT BOTTOM
             if (ctx.linageLinesAtBottomPhrase() is { } botCtx)
             {
                 var botInt = botCtx.integerLiteral();
@@ -607,6 +603,27 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
         return base.VisitLinageClause(ctx);
+    }
+
+    public override object? VisitSortMergeDescriptionEntry(CobolParserCore.SortMergeDescriptionEntryContext ctx)
+    {
+        var nameCtx = ctx.fileName();
+        if (nameCtx != null)
+        {
+            string name = nameCtx.GetText();
+            var fileSym = _symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
+            if (fileSym == null)
+            {
+                fileSym = new FileSymbol(name, nameCtx.Start.Line);
+                _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
+            }
+            fileSym.IsSortMerge = true;
+            _currentFdFile = fileSym;
+        }
+        _dataStack.Clear();
+        var result = base.VisitSortMergeDescriptionEntry(ctx);
+        _currentFdFile = null;
+        return result;
     }
 
     public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)

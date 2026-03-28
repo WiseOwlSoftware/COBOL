@@ -230,9 +230,12 @@ public sealed class Binder
         // Initialize file manager
         block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.Init", Array.Empty<IrValue>()));
 
-        // Register file handlers at startup for each SELECT
+        // Register file handlers at startup for each SELECT (skip SD sort-merge files)
         foreach (var fileSym in _semantic.Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
         {
+            // Sort-merge files (SD) don't have physical handlers
+            if (fileSym.IsSortMerge) continue;
+
             // Resolve external path: literal ASSIGN target uses the target value,
             // identifier ASSIGN target (like NIST's XXXXX055) uses the COBOL file name
             string externalName = (fileSym.AssignIsLiteral && fileSym.AssignTarget != null)
@@ -473,6 +476,12 @@ public sealed class Binder
                 return LowerStart(start, method, block);
             case BoundReturnStatement ret:
                 return LowerReturn(ret, method, block);
+            case BoundSortStatement sort:
+                return LowerSort(sort, method, block);
+            case BoundMergeStatement merge:
+                return LowerMerge(merge, method, block);
+            case BoundReleaseStatement release:
+                return LowerRelease(release, method, block);
             case BoundCallStatement call:
                 return LowerCall(call, method, block);
             case BoundUseStatement:
@@ -1551,17 +1560,297 @@ public sealed class Binder
 
     private IrBasicBlock LowerReturn(BoundReturnStatement ret, IrMethod method, IrBasicBlock block)
     {
-        // RETURN is for sort/merge, not yet supported — emit stub warning
-        block.Instructions.Add(new IR.IrPicDisplay(
-            [new IR.DisplayLiteralOperand($"RETURN not implemented: {ret.File.Name}")]));
+        string cobolName = ret.File.Name;
+        var recordSym = ret.File.Record;
+        if (recordSym == null) return block;
 
-        // Lower AT END / NOT AT END for structural completeness
+        var recordLoc = ResolveLocation(recordSym);
+        if (recordLoc == null) return block;
+
+        // SortRuntime.ReturnRecord → bool (true = record available, false = at end)
+        var resultVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        block.Instructions.Add(new IrSortReturn(cobolName, recordLoc, resultVal));
+
         if (ret.AtEnd.Count > 0 || ret.NotAtEnd.Count > 0)
         {
-            // Always take the AT END path (stub behavior)
+            // resultVal = true means NOT at end; build branching manually
+            // True branch = NOT AT END (record available), False branch = AT END
+            var notAtEndBlock = method.CreateBlock("return.not_at_end");
+            var atEndBlock = method.CreateBlock("return.at_end");
+            var afterBlock = method.CreateBlock("return.after");
+
+            // Branch: if resultVal is false → atEndBlock, else fall through to notAtEndBlock
+            block.Instructions.Add(new IrBranchIfFalse(resultVal, atEndBlock));
+            block.Instructions.Add(new IrJump(notAtEndBlock));
+
+            // NOT AT END: move INTO, then user statements
+            method.Blocks.Add(notAtEndBlock);
+            if (ret.Into != null)
+            {
+                var srcLoc = ResolveLocation(recordSym);
+                var dstLoc = ResolveLocation(ret.Into);
+                if (srcLoc != null && dstLoc != null)
+                    notAtEndBlock.Instructions.Add(new IrMoveFieldToField(srcLoc, dstLoc,
+                        srcLoc.GetPic(), dstLoc.GetPic()));
+            }
+            var current = notAtEndBlock;
+            foreach (var stmt in ret.NotAtEnd)
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            // AT END: user statements
+            method.Blocks.Add(atEndBlock);
+            current = atEndBlock;
             foreach (var stmt in ret.AtEnd)
-                block = LowerStatement(stmt, method, block);
+                current = LowerStatement(stmt, method, current);
+            current.Instructions.Add(new IrJump(afterBlock));
+
+            method.Blocks.Add(afterBlock);
+            return afterBlock;
         }
+        else
+        {
+            // No AT END phrase — just do INTO move unconditionally
+            if (ret.Into != null)
+            {
+                var srcLoc = ResolveLocation(recordSym);
+                var dstLoc = ResolveLocation(ret.Into);
+                if (srcLoc != null && dstLoc != null)
+                    block.Instructions.Add(new IrMoveFieldToField(srcLoc, dstLoc,
+                        srcLoc.GetPic(), dstLoc.GetPic()));
+            }
+        }
+
+        return block;
+    }
+
+    // ── SORT ──
+
+    private IrBasicBlock LowerSort(BoundSortStatement sort, IrMethod method, IrBasicBlock block)
+    {
+        string sortFileName = sort.SortFile.Name;
+        var sdRecord = sort.SortFile.Record;
+        if (sdRecord == null) return block;
+
+        var sdLoc = ResolveLocation(sdRecord);
+        if (sdLoc == null) return block;
+
+        int recordLength = sort.SortFile.RecordLength;
+        if (recordLength == 0)
+        {
+            var recLoc = _semantic.GetStorageLocation(sdRecord);
+            if (recLoc.HasValue) recordLength = recLoc.Value.Length;
+        }
+
+        // Phase 0: Initialize the sort file
+        block.Instructions.Add(new IrSortInit(sortFileName, recordLength));
+
+        // Phase 1: Input — collect records
+        if (sort.UsingFiles != null)
+        {
+            foreach (var inputFile in sort.UsingFiles)
+                EmitSortUsingFile(inputFile, sort.SortFile, sdRecord, sdLoc, recordLength, method, ref block);
+        }
+        else if (sort.InputProcedure != null)
+        {
+            var performStmt = new BoundPerformStatement(sort.InputProcedure, sort.InputProcedureThru);
+            block = LowerStatement(performStmt, method, block);
+        }
+
+        // Phase 2: Sort the records
+        block.Instructions.Add(new IrSortSort(sortFileName, BuildKeysSpec(sort.SortFile, sort.Keys)));
+
+        // Phase 3: Output — return sorted records
+        if (sort.GivingFiles != null)
+        {
+            foreach (var outputFile in sort.GivingFiles)
+                EmitSortGivingFile(outputFile, sort.SortFile, sdRecord, sdLoc, recordLength, method, ref block);
+        }
+        else if (sort.OutputProcedure != null)
+        {
+            var performStmt = new BoundPerformStatement(sort.OutputProcedure, sort.OutputProcedureThru);
+            block = LowerStatement(performStmt, method, block);
+        }
+
+        // Clean up
+        block.Instructions.Add(new IrSortClose(sortFileName));
+
+        return block;
+    }
+
+    private void EmitSortUsingFile(FileSymbol inputFile, FileSymbol sortFile,
+        DataSymbol sdRecord, IrLocation sdLoc, int recordLength,
+        IrMethod method, ref IrBasicBlock block)
+    {
+        string inputName = inputFile.Name;
+        string sortName = sortFile.Name;
+
+        var inputRecord = inputFile.Record;
+        if (inputRecord == null) return;
+        var inputLoc = ResolveLocation(inputRecord);
+        if (inputLoc == null) return;
+
+        // OPEN INPUT input-file
+        var openNameVal = _valueFactory.Next(IrPrimitiveType.String);
+        block.Instructions.Add(new IrLoadConst(openNameVal, inputName));
+        block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.OpenInput", new[] { openNameVal }));
+
+        // Loop: READ → RELEASE → repeat until AT END
+        var loopHead = method.CreateBlock("sort_using_read");
+        var loopBody = method.CreateBlock("sort_using_release");
+        var loopExit = method.CreateBlock("sort_using_done");
+
+        block.Instructions.Add(new IrJump(loopHead));
+        method.Blocks.Add(loopHead);
+
+        // Read record from input file
+        loopHead.Instructions.Add(new IrReadRecordToStorage(inputName, inputLoc));
+        var atEndVal = _valueFactory.Next(IrPrimitiveType.Bool);
+        loopHead.Instructions.Add(new IrCheckFileAtEnd(inputName, atEndVal));
+        loopHead.Instructions.Add(new IrBranch(atEndVal, loopExit, loopBody));
+
+        method.Blocks.Add(loopBody);
+        // Copy input record → SD record, then release to sort
+        var inputPic = inputLoc.GetPic();
+        var sdPic = sdLoc.GetPic();
+        loopBody.Instructions.Add(new IrMoveFieldToField(inputLoc, sdLoc, inputPic, sdPic));
+        loopBody.Instructions.Add(new IrSortRelease(sortName, sdLoc));
+        loopBody.Instructions.Add(new IrJump(loopHead));
+
+        method.Blocks.Add(loopExit);
+        // Close input file
+        var closeNameVal = _valueFactory.Next(IrPrimitiveType.String);
+        loopExit.Instructions.Add(new IrLoadConst(closeNameVal, inputName));
+        loopExit.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { closeNameVal }));
+
+        block = loopExit;
+    }
+
+    private void EmitSortGivingFile(FileSymbol outputFile, FileSymbol sortFile,
+        DataSymbol sdRecord, IrLocation sdLoc, int recordLength,
+        IrMethod method, ref IrBasicBlock block)
+    {
+        string outputName = outputFile.Name;
+        string sortName = sortFile.Name;
+
+        var outputRecord = outputFile.Record;
+        if (outputRecord == null) return;
+        var outputLoc = ResolveLocation(outputRecord);
+        if (outputLoc == null) return;
+
+        // OPEN OUTPUT output-file
+        var openNameVal = _valueFactory.Next(IrPrimitiveType.String);
+        block.Instructions.Add(new IrLoadConst(openNameVal, outputName));
+        block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.OpenOutput", new[] { openNameVal }));
+
+        // Loop: RETURN → WRITE → repeat until at end
+        var loopHead = method.CreateBlock("sort_giving_return");
+        var loopBody = method.CreateBlock("sort_giving_write");
+        var loopExit = method.CreateBlock("sort_giving_done");
+
+        block.Instructions.Add(new IrJump(loopHead));
+        method.Blocks.Add(loopHead);
+
+        // Return next sorted record into SD record
+        var retResult = _valueFactory.Next(IrPrimitiveType.Bool);
+        loopHead.Instructions.Add(new IrSortReturn(sortName, sdLoc, retResult));
+        loopHead.Instructions.Add(new IrBranch(retResult, loopBody, loopExit));
+
+        method.Blocks.Add(loopBody);
+        // Copy SD record → output record, then write
+        var sdPic = sdLoc.GetPic();
+        var outPic = outputLoc.GetPic();
+        loopBody.Instructions.Add(new IrMoveFieldToField(sdLoc, outputLoc, sdPic, outPic));
+        loopBody.Instructions.Add(new IrWriteRecordFromStorage(outputName, outputLoc));
+        loopBody.Instructions.Add(new IrJump(loopHead));
+
+        method.Blocks.Add(loopExit);
+        // Close output file
+        var closeNameVal = _valueFactory.Next(IrPrimitiveType.String);
+        loopExit.Instructions.Add(new IrLoadConst(closeNameVal, outputName));
+        loopExit.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { closeNameVal }));
+
+        block = loopExit;
+    }
+
+    private string BuildKeysSpec(FileSymbol sortFile, IReadOnlyList<BoundSortKey> keys)
+    {
+        var sdRecord = sortFile.Record;
+        var sdRecLoc = sdRecord != null ? _semantic.GetStorageLocation(sdRecord) : null;
+        int sdBaseOffset = sdRecLoc?.Offset ?? 0;
+
+        return string.Join(";", keys.Select(k =>
+        {
+            var keyLoc = _semantic.GetStorageLocation(k.Key);
+            int keyOff = keyLoc.HasValue ? keyLoc.Value.Offset - sdBaseOffset : 0;
+            int keyLen = keyLoc.HasValue ? keyLoc.Value.Length : 0;
+            return $"{keyOff},{keyLen},{(k.IsAscending ? "1" : "0")}";
+        }));
+    }
+
+    // ── MERGE ──
+
+    private IrBasicBlock LowerMerge(BoundMergeStatement merge, IrMethod method, IrBasicBlock block)
+    {
+        string mergeFileName = merge.MergeFile.Name;
+        var sdRecord = merge.MergeFile.Record;
+        if (sdRecord == null) return block;
+
+        var sdLoc = ResolveLocation(sdRecord);
+        if (sdLoc == null) return block;
+
+        int recordLength = merge.MergeFile.RecordLength;
+        if (recordLength == 0)
+        {
+            var recLoc = _semantic.GetStorageLocation(sdRecord);
+            if (recLoc.HasValue) recordLength = recLoc.Value.Length;
+        }
+
+        // Initialize
+        block.Instructions.Add(new IrSortInit(mergeFileName, recordLength));
+
+        // Merge: read from all USING files, sort by keys
+        var inputNames = string.Join(";", merge.UsingFiles.Select(f => f.Name));
+        var keysSpec = BuildKeysSpec(merge.MergeFile, merge.Keys);
+        block.Instructions.Add(new IrSortMerge(mergeFileName, inputNames, keysSpec));
+
+        // Output phase
+        if (merge.GivingFiles != null)
+        {
+            foreach (var outputFile in merge.GivingFiles)
+                EmitSortGivingFile(outputFile, merge.MergeFile, sdRecord, sdLoc, recordLength, method, ref block);
+        }
+        else if (merge.OutputProcedure != null)
+        {
+            var performStmt = new BoundPerformStatement(merge.OutputProcedure, merge.OutputProcedureThru);
+            block = LowerStatement(performStmt, method, block);
+        }
+
+        // Clean up
+        block.Instructions.Add(new IrSortClose(mergeFileName));
+
+        return block;
+    }
+
+    // ── RELEASE ──
+
+    private IrBasicBlock LowerRelease(BoundReleaseStatement release, IrMethod method, IrBasicBlock block)
+    {
+        string sortFileName = release.SortFile.Name;
+        var recordLoc = ResolveLocation(release.Record);
+        if (recordLoc == null) return block;
+
+        // If FROM is specified, MOVE source → record first
+        if (release.From != null)
+        {
+            var fromLoc = ResolveExpressionLocation(release.From);
+            if (fromLoc != null)
+                block.Instructions.Add(new IrMoveFieldToField(fromLoc, recordLoc,
+                    fromLoc.GetPic(), recordLoc.GetPic()));
+        }
+
+        // Release the record to the sort file
+        block.Instructions.Add(new IrSortRelease(sortFileName, recordLoc));
 
         return block;
     }

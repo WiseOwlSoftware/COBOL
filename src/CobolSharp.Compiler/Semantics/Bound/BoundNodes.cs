@@ -50,6 +50,9 @@ public enum BoundNodeKind
     AbbreviatedExpression,
     SwitchConditionExpression,
     UseStatement,
+    SortStatement,
+    MergeStatement,
+    ReleaseStatement,
 }
 
 public abstract class BoundNode
@@ -1379,6 +1382,110 @@ public sealed class BoundReturnStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ReturnStatement;
+}
+
+// ═══════════════════════════════════
+// SORT (sort/merge file)
+// ═══════════════════════════════════
+
+/// <summary>Represents a single sort/merge key: data field + direction.</summary>
+public sealed class BoundSortKey
+{
+    public DataSymbol Key { get; }
+    public bool IsAscending { get; }
+
+    public BoundSortKey(DataSymbol key, bool isAscending)
+    {
+        Key = key;
+        IsAscending = isAscending;
+    }
+}
+
+public sealed class BoundSortStatement : BoundStatement
+{
+    public FileSymbol SortFile { get; }
+    public IReadOnlyList<BoundSortKey> Keys { get; }
+    public bool DuplicatesInOrder { get; }
+
+    /// <summary>USING files (null if INPUT PROCEDURE).</summary>
+    public IReadOnlyList<FileSymbol>? UsingFiles { get; }
+    /// <summary>GIVING files (null if OUTPUT PROCEDURE).</summary>
+    public IReadOnlyList<FileSymbol>? GivingFiles { get; }
+
+    /// <summary>INPUT PROCEDURE target paragraph (null if USING).</summary>
+    public ParagraphSymbol? InputProcedure { get; }
+    public ParagraphSymbol? InputProcedureThru { get; }
+
+    /// <summary>OUTPUT PROCEDURE target paragraph (null if GIVING).</summary>
+    public ParagraphSymbol? OutputProcedure { get; }
+    public ParagraphSymbol? OutputProcedureThru { get; }
+
+    public BoundSortStatement(FileSymbol sortFile, IReadOnlyList<BoundSortKey> keys,
+        bool duplicatesInOrder,
+        IReadOnlyList<FileSymbol>? usingFiles, IReadOnlyList<FileSymbol>? givingFiles,
+        ParagraphSymbol? inputProcedure, ParagraphSymbol? inputProcedureThru,
+        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru)
+    {
+        SortFile = sortFile;
+        Keys = keys;
+        DuplicatesInOrder = duplicatesInOrder;
+        UsingFiles = usingFiles;
+        GivingFiles = givingFiles;
+        InputProcedure = inputProcedure;
+        InputProcedureThru = inputProcedureThru;
+        OutputProcedure = outputProcedure;
+        OutputProcedureThru = outputProcedureThru;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SortStatement;
+}
+
+// ═══════════════════════════════════
+// MERGE
+// ═══════════════════════════════════
+
+public sealed class BoundMergeStatement : BoundStatement
+{
+    public FileSymbol MergeFile { get; }
+    public IReadOnlyList<BoundSortKey> Keys { get; }
+    public IReadOnlyList<FileSymbol> UsingFiles { get; }
+    public IReadOnlyList<FileSymbol>? GivingFiles { get; }
+    public ParagraphSymbol? OutputProcedure { get; }
+    public ParagraphSymbol? OutputProcedureThru { get; }
+
+    public BoundMergeStatement(FileSymbol mergeFile, IReadOnlyList<BoundSortKey> keys,
+        IReadOnlyList<FileSymbol> usingFiles, IReadOnlyList<FileSymbol>? givingFiles,
+        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru)
+    {
+        MergeFile = mergeFile;
+        Keys = keys;
+        UsingFiles = usingFiles;
+        GivingFiles = givingFiles;
+        OutputProcedure = outputProcedure;
+        OutputProcedureThru = outputProcedureThru;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.MergeStatement;
+}
+
+// ═══════════════════════════════════
+// RELEASE
+// ═══════════════════════════════════
+
+public sealed class BoundReleaseStatement : BoundStatement
+{
+    public FileSymbol SortFile { get; }
+    public DataSymbol Record { get; }
+    public BoundExpression? From { get; }
+
+    public BoundReleaseStatement(FileSymbol sortFile, DataSymbol record, BoundExpression? from)
+    {
+        SortFile = sortFile;
+        Record = record;
+        From = from;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.ReleaseStatement;
 }
 
 // ═══════════════════════════════════

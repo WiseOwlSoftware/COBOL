@@ -262,6 +262,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.deleteStatement() is { } delCtx) return BindDelete(delCtx);
         if (ctx.startStatement() is { } startCtx) return BindStart(startCtx);
         if (ctx.returnStatement() is { } retCtx) return BindReturn(retCtx);
+        if (ctx.sortStatement() is { } sortCtx) return BindSort(sortCtx);
+        if (ctx.mergeStatement() is { } mergeCtx) return BindMerge(mergeCtx);
+        if (ctx.releaseStatement() is { } relCtx) return BindRelease(relCtx);
         if (ctx.callStatement() is { } callCtx) return BindCall(callCtx);
         if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
         if (ctx.useStatement() is { }) return new BoundExitStatement(); // USE is a no-op stub
@@ -1150,6 +1153,168 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return new BoundReturnStatement(fileSym, intoId, atEnd, notAtEnd);
+    }
+
+    // ── SORT ──
+
+    private BoundStatement? BindSort(CobolParserCore.SortStatementContext ctx)
+    {
+        var fileNameCtx = ctx.sortFileName()?.dataReference();
+        if (fileNameCtx == null) return null;
+
+        var fileSym = _semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+
+        // Parse sort keys
+        var keys = BindSortKeys(ctx.sortKeyPhrase(), fileSym);
+
+        bool duplicates = ctx.sortDuplicatesPhrase() != null;
+
+        // USING / INPUT PROCEDURE
+        IReadOnlyList<FileSymbol>? usingFiles = null;
+        ParagraphSymbol? inputProc = null, inputProcThru = null;
+        if (ctx.sortUsingPhrase() is { } usingCtx)
+        {
+            usingFiles = ResolveFileList(usingCtx.dataReferenceList());
+        }
+        else if (ctx.sortInputProcedurePhrase() is { } inputCtx)
+        {
+            var procNames = inputCtx.procedureName();
+            if (procNames.Length >= 1)
+                inputProc = ResolveProcedureName(procNames[0].GetText());
+            if (procNames.Length >= 2)
+                inputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+        }
+
+        // GIVING / OUTPUT PROCEDURE
+        IReadOnlyList<FileSymbol>? givingFiles = null;
+        ParagraphSymbol? outputProc = null, outputProcThru = null;
+        if (ctx.sortGivingPhrase() is { } givingCtx)
+        {
+            givingFiles = ResolveFileList(givingCtx.dataReferenceList());
+        }
+        else if (ctx.sortOutputProcedurePhrase() is { } outputCtx)
+        {
+            var procNames = outputCtx.procedureName();
+            if (procNames.Length >= 1)
+                outputProc = ResolveProcedureName(procNames[0].GetText());
+            if (procNames.Length >= 2)
+                outputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+        }
+
+        return new BoundSortStatement(fileSym, keys, duplicates,
+            usingFiles, givingFiles,
+            inputProc, inputProcThru,
+            outputProc, outputProcThru);
+    }
+
+    // ── MERGE ──
+
+    private BoundStatement? BindMerge(CobolParserCore.MergeStatementContext ctx)
+    {
+        var fileNameCtx = ctx.mergeFileName()?.dataReference();
+        if (fileNameCtx == null) return null;
+
+        var fileSym = _semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+
+        var keys = BindMergeKeys(ctx.mergeKeyPhrase(), fileSym);
+
+        // USING (required for MERGE)
+        var usingFiles = ResolveFileList(ctx.mergeUsingPhrase().dataReferenceList());
+
+        // GIVING / OUTPUT PROCEDURE
+        IReadOnlyList<FileSymbol>? givingFiles = null;
+        ParagraphSymbol? outputProc = null, outputProcThru = null;
+        if (ctx.mergeGivingPhrase() is { } givingCtx)
+        {
+            givingFiles = ResolveFileList(givingCtx.dataReferenceList());
+        }
+        else if (ctx.mergeOutputProcedurePhrase() is { } outputCtx)
+        {
+            var procNames = outputCtx.procedureName();
+            if (procNames.Length >= 1)
+                outputProc = ResolveProcedureName(procNames[0].GetText());
+            if (procNames.Length >= 2)
+                outputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+        }
+
+        return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,
+            outputProc, outputProcThru);
+    }
+
+    // ── RELEASE ──
+
+    private BoundStatement? BindRelease(CobolParserCore.ReleaseStatementContext ctx)
+    {
+        // record-name-1 is the first dataReference — must be a record in an SD
+        var dataRefs = ctx.dataReference();
+        if (dataRefs.Length == 0) return null;
+
+        string recordName = dataRefs[0].GetText();
+        var recordSym = _semantic.ResolveData(recordName);
+        if (recordSym == null) return null;
+
+        // Find the SD file for this record
+        var fileSym = _semantic.ResolveFileForRecord(recordSym);
+        if (fileSym == null) return null;
+
+        // FROM clause
+        BoundExpression? fromExpr = null;
+        if (dataRefs.Length >= 2)
+        {
+            fromExpr = BindDataReferenceWithSubscripts(dataRefs[1]);
+        }
+
+        return new BoundReleaseStatement(fileSym, recordSym, fromExpr);
+    }
+
+    // ── Sort/merge key binding helpers ──
+
+    private List<BoundSortKey> BindSortKeys(
+        CobolParserCore.SortKeyPhraseContext[] keyPhrases, FileSymbol file)
+    {
+        var keys = new List<BoundSortKey>();
+        foreach (var phrase in keyPhrases)
+        {
+            bool ascending = phrase.ASCENDING() != null;
+            foreach (var dataRef in phrase.dataReferenceList().dataReference())
+            {
+                var keySym = _semantic.ResolveData(dataRef.GetText());
+                if (keySym != null)
+                    keys.Add(new BoundSortKey(keySym, ascending));
+            }
+        }
+        return keys;
+    }
+
+    private List<BoundSortKey> BindMergeKeys(
+        CobolParserCore.MergeKeyPhraseContext[] keyPhrases, FileSymbol file)
+    {
+        var keys = new List<BoundSortKey>();
+        foreach (var phrase in keyPhrases)
+        {
+            bool ascending = phrase.ASCENDING() != null;
+            foreach (var dataRef in phrase.dataReferenceList().dataReference())
+            {
+                var keySym = _semantic.ResolveData(dataRef.GetText());
+                if (keySym != null)
+                    keys.Add(new BoundSortKey(keySym, ascending));
+            }
+        }
+        return keys;
+    }
+
+    private List<FileSymbol> ResolveFileList(CobolParserCore.DataReferenceListContext listCtx)
+    {
+        var files = new List<FileSymbol>();
+        foreach (var dataRef in listCtx.dataReference())
+        {
+            var fileSym = _semantic.ResolveFile(dataRef.GetText());
+            if (fileSym != null)
+                files.Add(fileSym);
+        }
+        return files;
     }
 
     // ── CALL ──

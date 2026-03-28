@@ -634,6 +634,101 @@ public sealed class IrStoreFileStatus : IrInstruction
     }
 }
 
+// ── Sort/Merge ──
+
+/// <summary>
+/// Initialize a sort file: SortRuntime.InitSortFile(fileName, recordLength).
+/// </summary>
+public sealed class IrSortInit : IrInstruction
+{
+    public string FileName { get; }
+    public int RecordLength { get; }
+
+    public IrSortInit(string fileName, int recordLength)
+    {
+        FileName = fileName;
+        RecordLength = recordLength;
+    }
+}
+
+/// <summary>
+/// Release a record to the sort file: SortRuntime.ReleaseRecord(fileName, area, offset, length).
+/// </summary>
+public sealed class IrSortRelease : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+
+    public IrSortRelease(string fileName, IrLocation record)
+    {
+        FileName = fileName;
+        Record = record;
+    }
+}
+
+/// <summary>
+/// Sort the collected records: SortRuntime.SortRecords(fileName, keysSpec).
+/// keysSpec is "offset,length,asc;..." encoded string.
+/// </summary>
+public sealed class IrSortSort : IrInstruction
+{
+    public string FileName { get; }
+    public string KeysSpec { get; }
+
+    public IrSortSort(string fileName, string keysSpec)
+    {
+        FileName = fileName;
+        KeysSpec = keysSpec;
+    }
+}
+
+/// <summary>
+/// Return the next sorted record: SortRuntime.ReturnRecord(fileName, area, offset, length) → bool.
+/// Result is true if a record was returned, false if at end.
+/// </summary>
+public sealed class IrSortReturn : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+
+    public IrSortReturn(string fileName, IrLocation record, IrValue result)
+    {
+        FileName = fileName;
+        Record = record;
+        Result = result;
+    }
+}
+
+/// <summary>
+/// Close/clean up a sort file: SortRuntime.CloseSortFile(fileName).
+/// </summary>
+public sealed class IrSortClose : IrInstruction
+{
+    public string FileName { get; }
+
+    public IrSortClose(string fileName)
+    {
+        FileName = fileName;
+    }
+}
+
+/// <summary>
+/// Merge records from multiple input files: SortRuntime.MergeRecords(mergeFile, inputFiles, keysSpec).
+/// </summary>
+public sealed class IrSortMerge : IrInstruction
+{
+    public string MergeFileName { get; }
+    public string InputFileNames { get; } // semicolon-delimited
+    public string KeysSpec { get; }
+
+    public IrSortMerge(string mergeFileName, string inputFileNames, string keysSpec)
+    {
+        MergeFileName = mergeFileName;
+        InputFileNames = inputFileNames;
+        KeysSpec = keysSpec;
+    }
+}
+
 // ── Location abstraction ──
 
 /// <summary>

@@ -360,8 +360,9 @@ public static class BoundTreeValidator
 
     private static void ValidateReturn(BoundReturnStatement ret, int line, DiagnosticBag diagnostics)
     {
-        // CBL2101: RETURN on non-sort/merge file — no sort/merge support yet
-        Report(diagnostics, line, DiagnosticDescriptors.CBL2101);
+        // CBL2101: RETURN on non-sort/merge file
+        if (!ret.File.IsSortMerge)
+            Report(diagnostics, line, DiagnosticDescriptors.CBL2101);
     }
 
     // ═══════════════════════════════════════════════════════════════

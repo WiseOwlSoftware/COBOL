@@ -107,6 +107,9 @@ public sealed class FileSymbol : Symbol
     /// <summary>Record length in bytes (computed from PIC layout).</summary>
     public int RecordLength { get; set; }
 
+    /// <summary>True if this file is described by an SD entry (sort-merge file).</summary>
+    public bool IsSortMerge { get; set; }
+
     public FileSymbol(string name, int line)
         : base(name, SymbolKind.File, line) { }
 }

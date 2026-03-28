@@ -1041,6 +1041,30 @@ public sealed class CilEmitter
                 EmitUnstringStatement(il, unstrStmt, getLocal);
                 break;
 
+            case IrSortInit sortInit:
+                EmitSortInit(il, sortInit);
+                break;
+
+            case IrSortRelease sortRel:
+                EmitSortRelease(il, sortRel);
+                break;
+
+            case IrSortSort sortSort:
+                EmitSortSort(il, sortSort);
+                break;
+
+            case IrSortReturn sortRet:
+                EmitSortReturn(il, sortRet, getLocal);
+                break;
+
+            case IrSortClose sortClose:
+                EmitSortClose(il, sortClose);
+                break;
+
+            case IrSortMerge sortMerge:
+                EmitSortMerge(il, sortMerge);
+                break;
+
             default:
                 throw new NotSupportedException(
                     $"IR instruction {inst.GetType().Name} not supported in CIL emission.");
@@ -3642,5 +3666,71 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now
+    }
+
+    // ── Sort/Merge CIL emission ──
+
+    private void EmitSortInit(ILProcessor il, IrSortInit inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.RecordLength));
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("InitSortFile",
+                new[] { typeof(string), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    private void EmitSortRelease(ILProcessor il, IrSortRelease inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        EmitLocationArgs(il, inst.Record);
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("ReleaseRecord",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    private void EmitSortSort(ILProcessor il, IrSortSort inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("SortRecords",
+                new[] { typeof(string), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    private void EmitSortReturn(ILProcessor il, IrSortReturn inst,
+        Func<IR.IrValue, VariableDefinition> getLocal)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        EmitLocationArgs(il, inst.Record);
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("ReturnRecord",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+        // Store bool result
+        var local = getLocal(inst.Result!.Value);
+        il.Append(il.Create(OpCodes.Stloc, local));
+    }
+
+    private void EmitSortClose(ILProcessor il, IrSortClose inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("CloseSortFile",
+                new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    private void EmitSortMerge(ILProcessor il, IrSortMerge inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.MergeFileName));
+        il.Append(il.Create(OpCodes.Ldstr, inst.InputFileNames));
+        il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        var m = _module.ImportReference(
+            typeof(Runtime.SortRuntime).GetMethod("MergeRecords",
+                new[] { typeof(string), typeof(string), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, m));
     }
 }
