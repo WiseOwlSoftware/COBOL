@@ -71,10 +71,32 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var data in _dataItemsInOrder)
         {
             if (data.RedefinesName == null) continue;
-            var target = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.RedefinesName);
+
+            // COBOL-85 §13.18.44: REDEFINES target must be at the same level
+            // and precede the redefining item in the same record. When multiple
+            // items share a name, prefer the one at the same level within the
+            // same parent group (scan backwards from current position).
+            DataSymbol? target = null;
+            int idx = _dataItemsInOrder.IndexOf(data);
+            for (int i = idx - 1; i >= 0; i--)
+            {
+                var candidate = _dataItemsInOrder[i];
+                if (string.Equals(candidate.Name, data.RedefinesName, StringComparison.OrdinalIgnoreCase)
+                    && candidate.LevelNumber == data.LevelNumber)
+                {
+                    target = candidate;
+                    break;
+                }
+                // Stop searching when we pass a level-01 boundary
+                if (candidate.LevelNumber == 1 && data.LevelNumber != 1)
+                    break;
+            }
+
+            // Fallback to global scope lookup if no same-level sibling found
+            target ??= _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.RedefinesName);
+
             if (target != null)
                 data.Redefines = target;
-            // else: target not found — silently ignore for now (may be in COPY not yet expanded)
         }
     }
 

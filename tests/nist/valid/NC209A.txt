@@ -1,0 +1,84 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC209A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MOVE CORRESPONDING -       MOV-TEST-F2-1
+   DIFFERENT LEVELS   PASS                     .01
+   DIFFERENT LEVELS   PASS                     .02
+   DIFFERENT LEVELS   PASS                     .03
+   DIFFERENT LEVELS   PASS                     .04
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .01
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .02
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .03
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .04
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .05
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-2      .06
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-3      .02
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-3      .03
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-3      .04
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-3      .05
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-4      .01
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-4      .02
+   DIFFERENT LEVELS   PASS  MOV-TEST-F2-4      .03
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .01
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .02
+   WITH RENAMES       FAIL* MOV-TEST-F2-5      .03
+
+                                     COMPUTED= HARRY
+                                     CORRECT = UUUUU                 VI-102 6.18.4 GR1
+
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .04
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .05
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .06
+   WITH REDEF, OCCURS PASS  MOV-TEST-F2-6      .01
+   WITH REDEF, OCCURS FAIL* MOV-TEST-F2-6      .02
+
+                                     COMPUTED= TTTT
+                                     CORRECT = DICK                  VI-102 6.18.4 GR1
+
+   WITH REDEF, OCCURS PASS  MOV-TEST-F2-6      .03
+   WITH REDEF, OCCURS PASS  MOV-TEST-F2-6      .04
+   WITH REDEF, OCCURS FAIL* MOV-TEST-F2-7      .01
+
+                                     COMPUTED= SSS
+                                     CORRECT = TOM                   VI-102 6.18.4 GR1
+
+   WITH REDEF, OCCURS FAIL* MOV-TEST-F2-7      .02
+
+                                     COMPUTED= SSSS
+                                     CORRECT = DICK                  VI-102 6.18.4 GR1
+
+   WITH REDEF, OCCURS FAIL* MOV-TEST-F2-7      .03
+
+                                     COMPUTED= SSS
+                                     CORRECT = JOE                   VI-102 6.18.4 GR1
+
+   WITH REDEF, OCCURS FAIL* MOV-TEST-F2-7      .04
+
+                                     COMPUTED= SSSSS
+                                     CORRECT = HARRY                 VI-102 6.18.4 GR1
+
+   WITH REDEF, OCCURS PASS  MOV-TEST-F2-8
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC209A
+
+                                                    026 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    006 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
