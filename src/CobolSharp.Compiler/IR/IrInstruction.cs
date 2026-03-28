@@ -444,6 +444,32 @@ public sealed class IrMoveStringToField : IrInstruction
 }
 
 /// <summary>
+/// Intrinsic function call: evaluates FUNCTION name(args) and stores the result
+/// into a destination field. The function name and bound arguments are carried
+/// to the emitter, which dispatches to IntrinsicFunctions.Call().
+/// </summary>
+public sealed class IrFunctionCall : IrInstruction
+{
+    public string FunctionName { get; }
+    public IReadOnlyList<Semantics.Bound.BoundExpression> Arguments { get; }
+    public IrLocation Destination { get; }
+    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
+
+    public IrFunctionCall(string functionName,
+        IReadOnlyList<Semantics.Bound.BoundExpression> arguments,
+        IrLocation destination,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    {
+        FunctionName = functionName;
+        Arguments = arguments;
+        Destination = destination;
+        ResolvedLocations = resolvedLocations
+            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
+               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
+    }
+}
+
+/// <summary>
 /// MOVE figurative-constant TO field — fills entire field with figurative byte value.
 /// </summary>
 public sealed class IrMoveFigurative : IrInstruction

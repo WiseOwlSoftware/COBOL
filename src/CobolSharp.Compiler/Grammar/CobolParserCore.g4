@@ -603,6 +603,7 @@ moveStatement
 
 moveSendingOperand
     : literal
+    | functionCall
     | dataReference
     ;
 

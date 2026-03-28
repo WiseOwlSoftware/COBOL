@@ -1126,6 +1126,10 @@ public sealed class CilEmitter
                 EmitPicMoveLiteralNumeric(il, movLit);
                 break;
 
+            case IrFunctionCall funcCall:
+                EmitFunctionCall(il, funcCall);
+                break;
+
             case IrRuntimeCall rtc:
                 EmitRuntimeCall(il, rtc, getLocal);
                 break;
@@ -2656,6 +2660,135 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    /// <summary>
+    /// Emit CIL for IrFunctionCall: call IntrinsicFunctions.Call() and store result into destination.
+    /// Dispatches to numeric (MoveAccumulatedToField) or string (MoveAlphanumericToField) path
+    /// based on the function's result category.
+    /// </summary>
+    private void EmitFunctionCall(ILProcessor il, IR.IrFunctionCall funcCall)
+    {
+        // Determine if this function returns a string result
+        bool isStringFunction = funcCall.FunctionName.ToUpperInvariant() switch
+        {
+            "LOWER-CASE" or "UPPER-CASE" or "REVERSE" or "TRIM" or "CONCATENATE"
+                or "SUBSTITUTE" or "CHAR" or "CURRENT-DATE" or "WHEN-COMPILED" => true,
+            _ => false
+        };
+
+        if (isStringFunction)
+        {
+            // String-returning function: push dest args first, then call function, store to field.
+            // Stack order: area, offset, length, stringValue → MoveStringToField
+            EmitLocationArgs(il, funcCall.Destination);
+            EmitIntrinsicCall(il, funcCall.FunctionName, funcCall.Arguments, funcCall.ResolvedLocations);
+            // Result is object on stack; cast to string
+            il.Append(il.Create(OpCodes.Castclass,
+                _module.ImportReference(typeof(string))));
+            il.Append(il.Create(OpCodes.Call,
+                _module.ImportReference(
+                    typeof(Runtime.StorageHelpers).GetMethod("MoveStringToField",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(string) })!)));
+        }
+        else
+        {
+            // Numeric-returning function: call, unbox to decimal, store via MoveAccumulatedToField
+            EmitLocationArgsWithPic(il, funcCall.Destination);
+            EmitIntrinsicCall(il, funcCall.FunctionName, funcCall.Arguments, funcCall.ResolvedLocations);
+            il.Append(il.Create(OpCodes.Unbox_Any,
+                _module.ImportReference(typeof(decimal))));
+            il.Append(il.Create(OpCodes.Ldc_I4_0)); // no rounding
+            EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
+            il.Append(il.Create(OpCodes.Call,
+                _module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
+                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
+                                typeof(decimal), typeof(int),
+                                typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
+        }
+    }
+
+    /// <summary>
+    /// Emit CIL to call IntrinsicFunctions.Call(functionName, args).
+    /// Pushes the result (object) onto the evaluation stack.
+    /// Each argument is evaluated and boxed into an object[] array.
+    /// </summary>
+    private void EmitIntrinsicCall(ILProcessor il, string functionName,
+        IReadOnlyList<Semantics.Bound.BoundExpression> arguments,
+        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IR.IrLocation>? resolvedLocations)
+    {
+        // Push function name
+        il.Append(il.Create(OpCodes.Ldstr, functionName.ToUpperInvariant()));
+
+        // Build object[] args array
+        il.Append(il.Create(OpCodes.Ldc_I4, arguments.Count));
+        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(object))));
+
+        for (int i = 0; i < arguments.Count; i++)
+        {
+            il.Append(il.Create(OpCodes.Dup)); // duplicate array ref
+            il.Append(il.Create(OpCodes.Ldc_I4, i)); // index
+
+            var arg = arguments[i];
+            if (arg is Semantics.Bound.BoundLiteralExpression lit && lit.Value is string s)
+            {
+                // String literal argument
+                il.Append(il.Create(OpCodes.Ldstr, s));
+            }
+            else if (arg.Category == Runtime.CobolCategory.Alphanumeric
+                     || arg.Category == Runtime.CobolCategory.AlphanumericEdited)
+            {
+                // Alphanumeric field: read as string via StorageArea.ReadFieldAsString
+                if (resolvedLocations != null && resolvedLocations.TryGetValue(arg, out var loc))
+                {
+                    EmitLocationArgs(il, loc);
+                    il.Append(il.Create(OpCodes.Call,
+                        _module.ImportReference(
+                            typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                                new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                }
+                else if (arg is Semantics.Bound.BoundIdentifierExpression fallbackId
+                         && !fallbackId.IsSubscripted)
+                {
+                    var storageLoc = _semanticModel?.GetStorageLocation(fallbackId.Symbol);
+                    if (storageLoc.HasValue)
+                    {
+                        EmitLoadBackingArrayOrExternal(il, storageLoc.Value.Area,
+                            storageLoc.Value.Offset, out var adjOff);
+                        il.Append(il.Create(OpCodes.Ldc_I4, adjOff));
+                        il.Append(il.Create(OpCodes.Ldc_I4, storageLoc.Value.Length));
+                        il.Append(il.Create(OpCodes.Call,
+                            _module.ImportReference(
+                                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                                    new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                    }
+                    else
+                    {
+                        il.Append(il.Create(OpCodes.Ldstr, ""));
+                    }
+                }
+                else
+                {
+                    il.Append(il.Create(OpCodes.Ldstr, ""));
+                }
+            }
+            else
+            {
+                // Numeric argument: evaluate expression to decimal, box it
+                EmitExpression(il, arg, resolvedLocations);
+                il.Append(il.Create(OpCodes.Box, _module.ImportReference(typeof(decimal))));
+            }
+
+            il.Append(il.Create(OpCodes.Stelem_Ref)); // store into array
+        }
+
+        // Call IntrinsicFunctions.Call(string, object[])
+        il.Append(il.Create(OpCodes.Call,
+            _module.ImportReference(
+                typeof(Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
+                    new[] { typeof(string), typeof(object[]) })!)));
+    }
+
     private void EmitCobolRemainder(ILProcessor il, IrCobolRemainder rem,
         Func<IrValue, VariableDefinition> getLocal)
     {
@@ -2805,6 +2938,17 @@ public sealed class CilEmitter
                         break;
                     }
                 }
+                break;
+            }
+
+            case Semantics.Bound.BoundFunctionCallExpression func:
+            {
+                // Emit intrinsic function call that returns decimal.
+                // Build object[] args, call IntrinsicFunctions.Call(), cast result to decimal.
+                EmitIntrinsicCall(il, func.FunctionName, func.Arguments, resolvedLocations);
+                // The Call() returns object; unbox to decimal for arithmetic context
+                il.Append(il.Create(OpCodes.Unbox_Any,
+                    _module.ImportReference(typeof(decimal))));
                 break;
             }
 

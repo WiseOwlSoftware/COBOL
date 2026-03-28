@@ -703,6 +703,11 @@ public sealed class Binder
                 WalkExpressionForLocations(bin.Right, result);
                 break;
 
+            case BoundFunctionCallExpression func:
+                foreach (var arg in func.Arguments)
+                    WalkExpressionForLocations(arg, result);
+                break;
+
             // Literals, figuratives, etc. — no location to resolve
         }
     }
@@ -807,7 +812,8 @@ public sealed class Binder
         // IrCachedLocation when it has runtime-computed addressing (subscripts/refmod)
         // so the emitter computes (area, offset, length) once into CIL locals.
         IrLocation? preResolvedSrc = null;
-        if (mv.Source is not BoundFigurativeExpression and not BoundLiteralExpression)
+        if (mv.Source is not BoundFigurativeExpression and not BoundLiteralExpression
+            and not BoundFunctionCallExpression)
         {
             preResolvedSrc = ResolveExpressionLocation(mv.Source);
             if (preResolvedSrc is IrElementRef or IrRefModLocation && mv.Targets.Count > 1)
@@ -819,7 +825,7 @@ public sealed class Binder
             var destLoc = ResolveExpressionLocation(t);
             if (destLoc == null) continue;
 
-            // Source dispatch: figurative, literal, or data reference
+            // Source dispatch: figurative, literal, function call, or data reference
             if (mv.Source is BoundFigurativeExpression fig)
             {
                 if (fig.AllLiteral != null)
@@ -864,6 +870,15 @@ public sealed class Binder
                         block.Instructions.Add(new IrMoveStringToField(destLoc, display));
                     }
                 }
+            }
+            else if (mv.Source is BoundFunctionCallExpression func)
+            {
+                // Intrinsic function call → IrFunctionCall stores result into dest
+                var resolvedLocs = new Dictionary<BoundExpression, IrLocation>();
+                foreach (var arg in func.Arguments)
+                    WalkExpressionForLocations(arg, resolvedLocs);
+                block.Instructions.Add(new IrFunctionCall(
+                    func.FunctionName, func.Arguments, destLoc, resolvedLocs));
             }
             else
             {

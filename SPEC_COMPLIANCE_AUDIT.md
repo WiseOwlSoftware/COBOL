@@ -13,7 +13,7 @@ NOT required for COBOL-85 compliance and are included for completeness only.
 
 ## Executive Summary
 
-**Tests:** 260 unit + 236 integration + 60 NIST guard = ALL GREEN
+**Tests:** 405 unit + 260 integration + 60 NIST guard = ALL GREEN
 
 **P0 bugs (data corruption/crashes):** 8 identified, **8 fixed** (Entry 154)
 **P1 bugs (wrong computation):** 12 identified, **12 fixed** (Entry 155)
@@ -177,20 +177,22 @@ All previously-partial COBOL-85 features have been completed:
 
 ---
 
-## Intrinsic Functions Summary
+## Intrinsic Functions Summary (Entry 158)
 
-**Note:** Intrinsic functions were introduced in the 1989 Amendment (sometimes called COBOL-85
-Addendum) and formalized in COBOL-2002. They are NOT part of the original COBOL-85 standard.
+**Note:** Intrinsic functions were introduced in the 1989 Amendment to COBOL-85
+and formalized in COBOL-2002. The grammar gate has been removed — functions are
+available at all dialect levels.
 
 | Status | Count | Notes |
 |--------|------:|-------|
-| Runtime correct (but binder not wired) | 35 | Unreachable from COBOL source (INTEGER/MOD fixed in P1) |
-| Runtime has wrong semantics | 11 | WHEN-COMPILED, BYTE-LENGTH, LENGTH, TRIM, NUMVAL, NUMVAL-C, DATE-TO-YYYYMMDD, YEAR-TO-YYYY, MAX/MIN (numeric only), ORD-MAX/ORD-MIN, SUBSTITUTE |
-| No runtime code | 38+ | Mostly COBOL-2014/2023 additions |
-| **Total spec functions** | **94** | |
+| Fully implemented + binder wired | 66 | End-to-end from COBOL source to runtime |
+| Stub implementations (TODO) | 8 | LOCALE-*, STANDARD-COMPARE, DISPLAY-OF, NATIONAL-OF, CHAR-NATIONAL, CONVERT, BASECONVERT, EXCEPTION-* |
+| Reserved word conflicts | 3 | SIGN, SUM, RANDOM conflict with lexer tokens — need SUBSCRIPT-mode fix |
+| **Total dispatched** | **91** | (of 94 spec functions; 3 conflict) |
 
-**Priority:** Wire the binder (one-time fix enables 35 correct functions immediately).
-INTEGER and MOD semantics already fixed in P1 sweep.
+**Test coverage:** 405 unit tests (every function has at least one test) + 24 COBOL-level integration tests.
+
+**Known limitation:** String literal arguments in FUNCTION calls don't work (SUBSCRIPT mode has no string literal token). Field arguments and numeric literals work.
 
 ---
 
@@ -208,9 +210,11 @@ INTEGER and MOD semantics already fixed in P1 sweep.
 
 | # | Item | Complexity |
 |---|------|-----------|
-| 1 | Wire intrinsic function binder (enables 35 functions) | M |
-| 2 | Fix 13 intrinsic functions with wrong semantics | S each |
-| 3 | ROUNDED MODE phrase (8 modes) | M |
-| 4 | XOR / EXCLUSIVE-OR | S |
-| 5 | National data (PIC N / UTF-16) | L |
-| 6 | Remaining 38 intrinsic functions | L |
+| 1 | ~~Wire intrinsic function binder~~ **DONE** (Entry 158) | — |
+| 2 | ~~Fix intrinsic function bugs~~ **DONE** (Entry 158) | — |
+| 3 | Fix SIGN/SUM/RANDOM reserved word conflicts in FUNCTION calls | S |
+| 4 | Add string literal token to SUBSCRIPT mode for FUNCTION args | S |
+| 5 | Implement 8 stub intrinsic functions | M |
+| 6 | ROUNDED MODE phrase (8 modes) | M |
+| 7 | XOR / EXCLUSIVE-OR | S |
+| 8 | National data (PIC N / UTF-16) | L |

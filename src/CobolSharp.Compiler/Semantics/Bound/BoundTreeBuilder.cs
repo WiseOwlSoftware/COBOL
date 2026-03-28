@@ -507,9 +507,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindMoveSendingOperand(CobolParserCore.MoveSendingOperandContext ctx)
     {
-        // moveSource: literal | identifier (COBOL-85)
+        // moveSource: literal | functionCall | dataReference (COBOL-85 + 1989 Amendment)
         var litCtx = ctx.literal();
         if (litCtx != null) return BindLiteral(litCtx);
+
+        if (ctx.functionCall() != null)
+            return BindFunctionCall(ctx.functionCall());
 
         if (ctx.dataReference() != null)
             return BindDataReferenceWithSubscripts(ctx.dataReference());
@@ -2647,16 +2650,74 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.arithmeticExpression() != null)
             return BindAdditiveExpression(ctx.arithmeticExpression().additiveExpression());
 
-        // functionCall — not yet implemented, emit diagnostic
+        // Intrinsic function call (1989 Amendment)
         if (ctx.functionCall() != null)
         {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
-                MakeLocation(ctx), MakeSpan(ctx),
-                $"FUNCTION {ctx.functionCall().GetText()}");
-            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+            return BindFunctionCall(ctx.functionCall());
         }
 
         return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    }
+
+    // ── FUNCTION CALL ──
+
+    /// <summary>
+    /// Intrinsic function result categories per ISO/IEC 1989:2023 §15.
+    /// String functions return Alphanumeric, everything else returns Numeric.
+    /// </summary>
+    private static readonly HashSet<string> _alphanumericFunctions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "LOWER-CASE", "UPPER-CASE", "REVERSE", "TRIM", "CONCATENATE",
+        "SUBSTITUTE", "CHAR", "CURRENT-DATE", "WHEN-COMPILED"
+    };
+
+    private BoundExpression BindFunctionCall(CobolParserCore.FunctionCallContext ctx)
+    {
+        // FUNCTION dataReference — the function name is the IDENTIFIER from the dataReference,
+        // and arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
+        var dataRef = ctx.dataReference();
+        var funcName = dataRef?.IDENTIFIER()?.GetText() ?? "UNKNOWN";
+
+        var args = new List<BoundExpression>();
+        var tails = dataRef?.dataReferenceSuffix();
+        if (tails != null)
+        {
+            foreach (var tail in tails)
+            {
+                if (tail.subscriptPart() != null)
+                {
+                    var subOrRefMod = tail.subscriptPart().subscriptOrRefMod();
+                    if (subOrRefMod != null)
+                    {
+                        // Reuse the subscript token interpreter — it splits comma-separated
+                        // expressions which is exactly what function arguments are.
+                        var (subExprs, _) = InterpretSubscriptTokens(subOrRefMod);
+                        args.AddRange(subExprs);
+                    }
+                }
+            }
+        }
+
+        // FUNCTION LENGTH returns the defined size of the operand, not its content length.
+        // Per ISO §15.24: "the value returned is the number of character positions
+        // in argument-1". Resolved at bind time — no runtime call needed.
+        if (funcName.Equals("LENGTH", StringComparison.OrdinalIgnoreCase) && args.Count == 1)
+        {
+            decimal lengthValue = 0;
+            if (args[0] is BoundIdentifierExpression idExpr)
+                lengthValue = idExpr.Symbol.ElementSize;
+            else if (args[0] is BoundLiteralExpression litExpr && litExpr.Value is string s)
+                lengthValue = s.Length;
+            else if (args[0] is BoundLiteralExpression numLit && numLit.Value is decimal d)
+                lengthValue = d; // already a number (e.g., from nested function)
+            return new BoundLiteralExpression(lengthValue, CobolCategory.Numeric);
+        }
+
+        var category = _alphanumericFunctions.Contains(funcName)
+            ? CobolCategory.Alphanumeric
+            : CobolCategory.Numeric;
+
+        return new BoundFunctionCallExpression(funcName, args.AsReadOnly(), category);
     }
 
     // ── IF ──

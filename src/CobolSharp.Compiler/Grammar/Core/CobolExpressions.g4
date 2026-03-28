@@ -191,9 +191,13 @@ primaryExpression
     | LPAREN arithmeticExpression RPAREN
     ;
 
-// FUNCTION calls (ISO 2002+)
+// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions)
+// The function name + arguments are parsed as a dataReference where the argument list
+// is captured as subscriptPart by the lexer's SUBSCRIPT mode. The binder extracts
+// the function name from the IDENTIFIER and treats subscripts as arguments.
+// No-arg functions (e.g., FUNCTION PI) have no subscriptPart.
 functionCall
-    : {is2002()}? FUNCTION dataReference (LPAREN argumentList? RPAREN)?
+    : FUNCTION dataReference
     ;
 
 argumentList

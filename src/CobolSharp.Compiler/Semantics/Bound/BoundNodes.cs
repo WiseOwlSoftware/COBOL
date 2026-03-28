@@ -50,6 +50,7 @@ public enum BoundNodeKind
     CancelStatement,
     AbbreviatedExpression,
     SwitchConditionExpression,
+    FunctionCallExpression,
     UseStatement,
     SortStatement,
     MergeStatement,
@@ -181,6 +182,27 @@ public sealed class BoundBinaryExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
+}
+
+/// <summary>
+/// Intrinsic function call expression (1989 Amendment to COBOL-85).
+/// FUNCTION function-name (arg1, arg2, ...).
+/// Category depends on the function: most are Numeric, string functions are Alphanumeric.
+/// </summary>
+public sealed class BoundFunctionCallExpression : BoundExpression
+{
+    public string FunctionName { get; }
+    public IReadOnlyList<BoundExpression> Arguments { get; }
+
+    public BoundFunctionCallExpression(string functionName, IReadOnlyList<BoundExpression> arguments,
+        CobolCategory category)
+        : base(category)
+    {
+        FunctionName = functionName;
+        Arguments = arguments;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.FunctionCallExpression;
 }
 
 /// <summary>
