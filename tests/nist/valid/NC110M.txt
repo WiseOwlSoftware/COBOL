@@ -1,0 +1,23 @@
+ 
+ FOR OFFICIAL USE ONLY                                    
+     OFFICIAL COBOL COMPILER TEST SYSTEM.     
+                TEST RESULTS SET- NC110M                  
+                                                          
+ FOR OFFICIAL USE ONLY                                                          
+COPYRIGHT  1985
+                                                          
+ FEATURE     RESULTS AND                                  
+ TESTED      REMARKS                                      
+                                                          
+ ---------------------------------------------------------
+ GO TO       THIS TEST PASSES UNLESS FAIL APPEARS BELOW.  
+ PERFORM     THIS TEST FAILS UNLESS PASS APPEARS BELOW.   
+             PASS
+ ---------------------------------------------------------
+ 
+                  END OF TEST - NC110M                    
+                  CHECK FOR ERRORS                        
+                                                          
+ FOR OFFICIAL USE ONLY 
+COPYRIGHT  1985
+       NTIS DISTRIBUTION COBOL 1985               

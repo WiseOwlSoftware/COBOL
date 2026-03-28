@@ -180,7 +180,9 @@ public static class DataItemClassifier
             bool isNumericItem = data.ResolvedType.IsNumeric;
 
             // String value on numeric item (not figurative zero)
-            if (!isNumericValue && isNumericItem && data.FigurativeInit == null)
+            // Numeric-edited items accept string VALUE (the edited display form)
+            bool isNumericEdited = data.ResolvedType.Category == CobolCategory.NumericEdited;
+            if (!isNumericValue && isNumericItem && !isNumericEdited && data.FigurativeInit == null)
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL1002, loc, span, data.DisplayName);
             }

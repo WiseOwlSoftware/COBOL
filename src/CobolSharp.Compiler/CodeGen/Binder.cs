@@ -3148,6 +3148,36 @@ public sealed class Binder
                 block.Instructions.Add(new IrSetBool(result, strResult));
                 break;
 
+            case (ComparisonOperandKind.ArithmeticExpression, ComparisonOperandKind.ArithmeticExpression):
+            {
+                var leftAcc = _valueFactory.Next(IrPrimitiveType.Decimal);
+                var rightAcc = _valueFactory.Next(IrPrimitiveType.Decimal);
+                var leftLocs = PreResolveExpressionLocations(left.ArithExpr!);
+                var rightLocs = PreResolveExpressionLocations(right.ArithExpr!);
+                block.Instructions.Add(new IrComputeIntoAccumulator(leftAcc, left.ArithExpr!, leftLocs));
+                block.Instructions.Add(new IrComputeIntoAccumulator(rightAcc, right.ArithExpr!, rightLocs));
+                block.Instructions.Add(new IrDecimalCompare(leftAcc, rightAcc, result, op));
+                break;
+            }
+
+            case (ComparisonOperandKind.ArithmeticExpression, ComparisonOperandKind.NumericLiteral):
+            {
+                var accumulator = _valueFactory.Next(IrPrimitiveType.Decimal);
+                var resolvedLocs = PreResolveExpressionLocations(left.ArithExpr!);
+                block.Instructions.Add(new IrComputeIntoAccumulator(accumulator, left.ArithExpr!, resolvedLocs));
+                block.Instructions.Add(new IrDecimalCompareLiteral(accumulator, right.NumericValue, result, op));
+                break;
+            }
+
+            case (ComparisonOperandKind.NumericLiteral, ComparisonOperandKind.ArithmeticExpression):
+            {
+                var accumulator = _valueFactory.Next(IrPrimitiveType.Decimal);
+                var resolvedLocs = PreResolveExpressionLocations(right.ArithExpr!);
+                block.Instructions.Add(new IrComputeIntoAccumulator(accumulator, right.ArithExpr!, resolvedLocs));
+                block.Instructions.Add(new IrDecimalCompareLiteral(accumulator, left.NumericValue, result, (int)FlipComparisonOp((BoundBinaryOperatorKind)op)));
+                break;
+            }
+
             default:
                 _diagnostics.Report(DiagnosticDescriptors.COBOL0505, SourceLocation.None, TextSpan.Empty, left.Kind, right.Kind);
                 break;

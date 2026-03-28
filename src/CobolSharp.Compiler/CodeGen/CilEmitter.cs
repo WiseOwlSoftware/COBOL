@@ -1126,6 +1126,14 @@ public sealed class CilEmitter
                 EmitPicCompareAccumulator(il, cmpAccum, getLocal);
                 break;
 
+            case IrDecimalCompare decCmp:
+                EmitDecimalCompare(il, decCmp, getLocal);
+                break;
+
+            case IrDecimalCompareLiteral decLitCmp:
+                EmitDecimalCompareLiteral(il, decLitCmp, getLocal);
+                break;
+
             case IrStringCompareLiteral strCmp:
                 EmitStringCompareLiteral(il, strCmp, getLocal);
                 break;
@@ -3019,6 +3027,38 @@ public sealed class CilEmitter
             var resLocal = getLocal(cmp.Result.Value);
             il.Append(il.Create(OpCodes.Stloc, resLocal));
         }
+    }
+
+    private void EmitDecimalCompare(ILProcessor il, IrDecimalCompare cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Load left accumulator, call CompareTo(right accumulator)
+        il.Append(il.Create(OpCodes.Ldloca, getLocal(cmp.Left)));
+        il.Append(il.Create(OpCodes.Ldloc, getLocal(cmp.Right)));
+        var compareTo = _module.ImportReference(
+            typeof(decimal).GetMethod("CompareTo", new[] { typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, compareTo));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(cmp.Result.Value)));
+    }
+
+    private void EmitDecimalCompareLiteral(ILProcessor il, IrDecimalCompareLiteral cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Load accumulator, call CompareTo(literal)
+        il.Append(il.Create(OpCodes.Ldloca, getLocal(cmp.Accumulator)));
+        EmitLoadDecimal(il, cmp.LiteralValue);
+        var compareTo = _module.ImportReference(
+            typeof(decimal).GetMethod("CompareTo", new[] { typeof(decimal) })!);
+        il.Append(il.Create(OpCodes.Call, compareTo));
+
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(cmp.Result.Value)));
     }
 
     /// <summary>

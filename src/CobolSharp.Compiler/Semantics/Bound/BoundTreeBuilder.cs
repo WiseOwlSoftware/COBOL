@@ -706,13 +706,6 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return null;
         }
 
-        if (id.IsSubscripted)
-        {
-            _diagnostics.Report(DiagnosticDescriptors.COBOL0404,
-                Common.SourceLocation.None,
-                Common.TextSpan.Empty, id.Symbol.Name);
-        }
-
         return id.Symbol;
     }
 

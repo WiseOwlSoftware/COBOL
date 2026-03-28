@@ -1,0 +1,58 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC108M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ COMPLETE DATA FORMAT       FMT-TEST-GF-1                 FAILURE IF DOLLAR APPEARS
+*** INFORMATION ***         <1,1                     <1,1               V1-6 3.2.1.1
+
+ COMPLETE DATA FORMAT PASS  FMT-TEST-GF-2
+ COMPLETE DATA FORMAT PASS  FMT-TEST-GF-3
+ DATA DESCR ABBREVS -
+   PIC                PASS  ABR-TEST-GF-1
+   JUST               PASS  ABR-TEST-GF-2
+   JUST               PASS  ABR-TEST-GF-3
+   BLANK ZERO         PASS  ABR-TEST-GF-4
+   COMP               PASS  ABR-TEST-GF-5
+   SYNC               FAIL* ABR-TEST-GF-6
+
+                                     COMPUTED=         55555
+                                     CORRECT =       55555           VI-20 5.3
+
+   SYNC               PASS  ABR-TEST-GF-7
+   SYNC               PASS  ABR-TEST-GF-8
+ SPECIAL-NAMES SWITCH PASS  ABR-TEST-GF-9
+ SPECIAL-NAMES CURNCY       ABR-TEST-GF-10                FAILURE IF DOLLAR APPEARS
+*** INFORMATION ***              <.00                     <.00          VI-20 5.3
+
+ CHARACTER-SET        PASS  CHA-GF-1-1
+ CHARACTER-SET        PASS  CHA-GF-1-2
+ CHARACTER-SET        PASS  CHA-GF-1-3
+ ***********************************************************************************************************************
+
+
+
+
+ ALPHABET-NAME     *****     CHECK THE ALPHABET-NAME IN THE SPECIAL-NAMES PARAGRAPH
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC108M
+
+                                                    013 OF 014  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    001 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -16,9 +16,9 @@ echo "=== NIST regression ==="
 cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
-# All NIST tests currently at 100% — must stay green (77 tests)
+# All NIST tests currently at 100% — must stay green (79 tests)
 NIST_TESTS="
-NC101A NC102A NC103A NC104A NC105A NC106A NC107A NC109M
+NC101A NC102A NC103A NC104A NC105A NC106A NC107A NC108M NC109M NC110M
 NC111A NC112A NC113M NC114M NC115A NC116A NC117A NC118A NC119A NC120A NC121M
 NC122A NC123A NC124A NC126A NC127A
 NC131A NC132A NC133A NC134A NC135A NC136A NC137A NC138A NC139A NC140A NC141A
@@ -40,9 +40,10 @@ for test in $NIST_TESTS; do
         continue
     fi
 
-    # Run in the output directory to keep generated files out of project root
+    # Run in the output directory; capture stdout for DISPLAY-only tests
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
-    (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true)
+    stdoutfile="tests/nist/output/${test}-stdout.txt"
+    (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
 
     # Compare output (files written to tests/nist/output/)
     validfile="tests/nist/valid/$test.txt"
@@ -54,6 +55,8 @@ for test in $NIST_TESTS; do
     if diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/$outfile") > /dev/null 2>&1; then
         echo "  $test: MATCH"
     elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
+        echo "  $test: MATCH"
+    elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "$stdoutfile") > /dev/null 2>&1; then
         echo "  $test: MATCH"
     else
         echo "  $test: DIFF — REGRESSION!"

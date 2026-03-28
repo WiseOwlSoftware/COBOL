@@ -1355,6 +1355,38 @@ public sealed class IrPicCompareAccumulator : IrInstruction
 }
 
 /// <summary>
+/// Compare two decimal accumulators. Result is bool.
+/// Used for ArithmeticExpression vs ArithmeticExpression comparisons.
+/// </summary>
+public sealed class IrDecimalCompare : IrInstruction
+{
+    public IrValue Left { get; }
+    public IrValue Right { get; }
+    public int OperatorKind { get; }
+
+    public IrDecimalCompare(IrValue left, IrValue right, IrValue result, int operatorKind)
+    {
+        Left = left; Right = right; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
+/// Compare a decimal accumulator to a literal. Result is bool.
+/// Used for ArithmeticExpression vs NumericLiteral comparisons.
+/// </summary>
+public sealed class IrDecimalCompareLiteral : IrInstruction
+{
+    public IrValue Accumulator { get; }
+    public decimal LiteralValue { get; }
+    public int OperatorKind { get; }
+
+    public IrDecimalCompareLiteral(IrValue accumulator, decimal literalValue, IrValue result, int operatorKind)
+    {
+        Accumulator = accumulator; LiteralValue = literalValue; Result = result; OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
 /// Compare an alphanumeric field to a string literal. Result is bool.
 /// </summary>
 public sealed class IrStringCompareLiteral : IrInstruction
