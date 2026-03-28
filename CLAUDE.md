@@ -19,13 +19,16 @@ consulting it. Initialize the submodule with: `git submodule update --init --rec
 - **Branch**: main
 - **Unit tests**: 421 pass
 - **Integration tests**: 274 pass, 1 skip (12 focused test files)
-- **NIST tests at 100%** (65 in guard)
+- **NIST tests at 100%** (77 in guard)
 - **Intrinsic functions**: 94/94 dispatched, all tested
 - **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
 - **Grammar files**: 14 files, 3,225+ lines
 - **Source of truth**: GRAMMAR_AUDIT.md (consolidated from all audit docs)
 
-### What was done this session (2026-03-27/28)
+### What was done this session (2026-03-27/28/29)
+- **NIST expansion (65→77)**: 12 grammar fixes (DISPLAY UPON, SET ON/OFF, WRITE ADVANCING,
+  STRING/UNSTRING POINTER/OVERFLOW/DELIMITED, INSPECT FOR+, IS >= operator, ACCEPT FROM)
+  unblocked 12 new NIST tests. All 77 at 100%.
 - **Spec compliance audit**: 8 parallel agents audited entire compiler vs ISO spec
 - **P0 bug sweep**: 8 critical bugs fixed (OPEN multi-clause, READ INVALID KEY,
   NumericEdited MOVE, LOCAL-STORAGE routing, file status codes, etc.)
@@ -60,14 +63,15 @@ The user requested a looping process:
 3. **Verify**: build + test + guard
 4. **Repeat** until audit finds zero gaps
 
-~68 COBOL-85 grammar gaps remain (of ~138 identified). Key remaining items:
-- DISPLAY UPON/NO ADVANCING (in CobolParserCore.g4)
-- ACCEPT FROM mnemonic-name
-- SET TO ON/OFF (switch-setting)
+~56 COBOL-85 grammar gaps remain (of ~138 identified). Key items FIXED this session:
+- DISPLAY UPON/NO ADVANCING, SET TO ON/OFF, WRITE ADVANCING optional, STRING/UNSTRING optionality,
+  INSPECT FOR+, IS >= operator, ACCEPT FROM mnemonic-name (all done)
+Key remaining items:
 - WRITE/REWRITE FILE form, retry-phrase, locking
 - SORT table format (Format 2)
 - USE GLOBAL/EXCEPTION/INPUT-OUTPUT modes
 - START WITH LENGTH
 - CURRENCY WITH PICTURE SYMBOL (blocked by PICMODE lexer architecture)
 - NC220M/NC237A runtime hangs (undiagnosed)
-- 30 non-passing NIST tests (7 nested programs, 5 ODO, 12 parse, 4 partial, 3 Report Writer)
+- 18 non-passing NC tests: 5 parse, 6 semantic, 1 codegen, 2 runtime hang, 4 no output
+- Remaining non-NC suites (IC, IF, IX, SQ, ST, etc.) not yet attempted

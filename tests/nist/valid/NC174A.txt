@@ -1,0 +1,132 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC174A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                      PASS  NEXT-TEST-1
+                                                          THE FOLLOWING TESTS
+                                                          TEST THE COMPARISONS IN
+                                                          SWITCH-STATUS, RELATION
+                                                          AND CLASS CONDITIONALS.
+ SWITCH-STATUS        PASS  SWH-TEST-GF-1
+ SWITCH-STATUS        PASS  SWH-TEST-GF-2
+ SWITCH-STATUS        PASS  SWH-TEST-GF-3
+ SWITCH-STATUS        PASS  SWH-TEST-GF-4
+ SWITCH-STATUS        PASS  SWH-TEST-5
+ SWITCH-STATUS        PASS  SWH-TEST-6
+ SWITCH-STATUS        ***** SWH-TEST-7                    ****TEST DELETED****
+ SWITCH-STATUS        PASS  SWH-TEST-8
+ SET SWITCH ON/OFF    PASS  SWH-TEST-GF-9
+ SET SWITCH ON/OFF    FAIL* SWH-TEST-GF-10-1
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 V1-126 6.22.1(2)
+
+ SET SWITCH ON/OFF    PASS  SWH-TEST-GF-10-2
+ SET SWITCH ON/OFF    PASS  SWH-TEST-GF-11-1
+ SET SWITCH ON/OFF    PASS  SWH-TEST-GF-11-2
+ SET SWITCH ON/OFF    PASS  SWH-TEST-GF-12
+ RELATION             PASS  RELAT-TEST-GF-1
+ RELATION             PASS  RELAT-TEST-GF-2
+ RELATION             PASS  RELAT-TEST-GF-3
+ RELATION             PASS  RELAT-TEST-GF-4
+ RELATION             PASS  RELAT-TEST-GF-5
+ RELATION             PASS  RELAT-TEST-GF-6
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-7
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-8
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-9
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-10
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-11
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-12
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-13
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-14
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-15
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-16
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-17
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-18
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-19
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-20
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-21
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-22
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-23
+ ABBREV. RELATION     PASS  RELAT-TEST-GF-24
+ ***********************************************************************************************************************
+
+
+
+
+ CLASS ---
+   NUMERIC            PASS  CLASS-TEST-GF-1
+   NOT NUMERIC        PASS  CLASS-TEST-GF-2
+   NOT NUMERIC        PASS  CLASS-TEST-GF-3
+   NOT NUMERIC        FAIL* CLASS-TEST-GF-4
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 V1-56 6.3.1.2
+
+   NUMERIC            PASS  CLASS-TEST-GF-5
+   NUMERIC            FAIL* CLASS-TEST-GF-6
+
+                                     COMPUTED=  000000022.000000000
+                                     CORRECT = NUMERIC EXPECTED      V1-56 6.3.1.2
+
+   NUMERIC            PASS  CLASS-TEST-GF-7
+   NUMERIC            PASS  CLASS-TEST-GF-8
+   NOT NUMERIC        FAIL* CLASS-TEST-GF-9
+
+                                     COMPUTED=
+                                     CORRECT = ALPHABETIC EXPECTED   V1-56 6.3.1.2
+
+   NOT NUMERIC        PASS  CLASS-TEST-GF-10
+   NOT NUMERIC        PASS  CLASS-TEST-GF-11
+   NOT NUMERIC        FAIL* CLASS-TEST-GF-12
+
+                                     COMPUTED= NUMERIC EXPECTED
+                                     CORRECT =  000000990.000000000  V1-56 6.3.1.2
+
+   ALPHABETIC         PASS  CLASS-TEST-GF-13
+   ALPHABETIC         PASS  CLASS-TEST-GF-14
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-15
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-16
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-17
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-18
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-19
+   NOT ALPHABETIC     PASS  CLASS-TEST-GF-20
+   ALPHABETIC-UPPER   PASS  CLASS-TEST-GF-35
+   ALPHABETIC-LOWER   PASS  CLASS-TEST-GF-36
+ UPPER & LOWER CASE   PASS  CLASS-TEST-GF-37
+ UPPER & LOWER CASE   PASS  CLASS-TEST-GF-38
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-39
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-40
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-41
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-42
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-43
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-44
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-45
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-46
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-47
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-48
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-49
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-50
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-51
+ NEW CLASS TESTS      PASS  CLASS-TEST-GF-52
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC174A
+
+                                                    071 OF 077  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    005 TEST(S) FAILED
+                                                    001 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

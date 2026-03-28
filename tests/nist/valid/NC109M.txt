@@ -1,0 +1,279 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC109M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ACCEPT               FAIL* ACC-TEST-GF-1
+
+                                     COMPUTED=
+                                     CORRECT = ABCDEFGHIJKLMNOPQRST  V1-71 6.5.4 GR1-5
+
+ ACCEPT                                                   LAST 7 OF 27-CHAR FIELD
+*** INFORMATION ***                                 UVWXY Z             V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-2
+
+                                     COMPUTED=  000000000000000000
+                                     CORRECT =  000000000123456789   V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-3
+
+                                     COMPUTED=
+                                     CORRECT = ().+-*/$, =           V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-4
+
+                                     COMPUTED=
+                                     CORRECT = 9                     V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-5
+
+                                     COMPUTED=
+                                     CORRECT = 0                     V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-6
+
+                                     COMPUTED=
+                                     CORRECT =  ABC            XYZ   V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-7
+
+                                     COMPUTED= 000000000
+                                     CORRECT = 012345678             V1-71 6.5.4 GR1-5
+
+ ACCEPT               PASS  ACC-TEST-GF-8
+ ACCEPT               FAIL* ACC-TEST-GF-9
+
+                                     COMPUTED=
+                                     CORRECT = "                     V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-10
+
+                                     COMPUTED= ....    ....
+                                     CORRECT = ....ABCD....          V1-71 6.5.4 GR1-5
+
+ ACCEPT               FAIL* ACC-TEST-GF-11
+
+                                     COMPUTED=
+                                     CORRECT = A B C D E F G H I J   V1-71 6.5.4 GR1-5
+
+ ACCEPT
+*** INFORMATION ***                                 K L M N O P Q R S T V1-71 6.5.4 GR1-5
+
+ ACCEPT
+*** INFORMATION ***                                 U V W X Y Z  0123456V1-71 6.5.4 GR1-5
+
+ ACCEPT                                                   LAST 20 OF 80-CHAR FIELD
+*** INFORMATION ***                                 789                 V1-71 6.5.4 GR1-5
+
+
+ DISPLAY TESTS                                            SEE NOTE IN DISP-INIT-GF-1
+
+
+
+
+
+ DISPLAY                    DISP-TEST-GF-1
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+ALPHABETIC
+
+
+ DISPLAY                    DISP-TEST-GF-1                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-2
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+ALPHABETIC LITERAL
+
+
+ DISPLAY                    DISP-TEST-GF-2                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-3
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+0123456789
+
+
+ DISPLAY                    DISP-TEST-GF-3                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-4
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+9876543210
+
+
+ DISPLAY                    DISP-TEST-GF-4                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-5
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+A1B2C3D4E5
+
+
+ DISPLAY                    DISP-TEST-GF-5                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-6
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+12345 ///// ALPHANUMERIC LITERAL
+
+
+ DISPLAY                    DISP-TEST-GF-6                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-7
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+ALPHABETIC0123456789A1B2C3D4E5 SERIES
+
+
+ DISPLAY                    DISP-TEST-GF-7                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-8
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+0 "
+
+
+ DISPLAY                    DISP-TEST-GF-8                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-9
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+REDEFINE-INFO
+
+
+ DISPLAY                    DISP-TEST-GF-9                END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-10
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+*001*002*003*004*005*006*007*008*009*010*011*012*013*014*015*016*017*018*019*020*021*022*023*024*025
+*026*027*028*029*030*031*032*033*034*035*036*037*038*039*040*041*042*043*044*045*046*047*048*049*050
+
+
+ DISPLAY                    DISP-TEST-GF-10               END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-11
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+UTSRQPONMLKJIHGFEDCBA
+
+
+ DISPLAY                    DISP-TEST-GF-11               END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-12
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+ABCDEFGHIJKLMNOPQRSTU
+
+
+ DISPLAY                    DISP-TEST-GF-12               END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-13
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+QUOTE " ASTERISK * NUMERIC LITERALS 21 35 IDENTIFIER DATA A B C D E 0102030405 (TOTAL 21 OPERANDS) END OF DATA
+
+
+ DISPLAY                    DISP-TEST-GF-13               END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+
+ DISPLAY                    DISP-TEST-GF-14 GR3
+*** INFORMATION ***        SEE BELOW                SEE BELOW           V1-78 6.10.4
+
+
+                                                          CORRECT DATA FOLLOWS
+
+ABCD
+
+
+ DISPLAY                    DISP-TEST-GF-14               END CORRECT DATA
+*** INFORMATION ***        SEE ABOVE                SEE ABOVE           V1-78 6.10.4
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC109M
+
+                                                    001 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    010 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -693,6 +693,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSetStatement([NotNull] CobolParserCore.SetStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.setSwitchStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitSetSwitchStatement([NotNull] CobolParserCore.SetSwitchStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.setToValueStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -746,6 +752,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDisplayStatement([NotNull] CobolParserCore.DisplayStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.displayUpon"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDisplayUpon([NotNull] CobolParserCore.DisplayUponContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.displayNoAdvancing"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDisplayNoAdvancing([NotNull] CobolParserCore.DisplayNoAdvancingContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.gobackStatement"/>.
 	/// </summary>
@@ -1958,6 +1976,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitUnstringDelimiterPhrase([NotNull] CobolParserCore.UnstringDelimiterPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringDelimiterItem"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUnstringDelimiterItem([NotNull] CobolParserCore.UnstringDelimiterItemContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.unstringIntoPhrase"/>.
 	/// </summary>

@@ -708,11 +708,18 @@ cancelTarget
 // ==========================================
 
 setStatement
-    : setToValueStatement
+    : setSwitchStatement
+    | setToValueStatement
     | setBooleanStatement
     | setAddressStatement
     | setObjectReferenceStatement
     | setIndexStatement
+    ;
+
+// SET mnemonic-name+ TO {ON | OFF} (COBOL-85 §14.9.39 Format 3)
+// Supports compound form: SET sw-1 TO ON sw-2 TO OFF.
+setSwitchStatement
+    : SET (dataReference+ TO (ON | OFF))+
     ;
 
 // SET dataReference+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
@@ -762,6 +769,7 @@ acceptSource
     | DAY YYYYDDD
     | DAY
     | DAY_OF_WEEK
+    | dataReference
     ;
 
 // ==========================================
@@ -769,7 +777,15 @@ acceptSource
 // ==========================================
 
 displayStatement
-    : DISPLAY (dataReference | literal)+
+    : DISPLAY (dataReference | literal)+ displayUpon? displayNoAdvancing? END_DISPLAY?
+    ;
+
+displayUpon
+    : UPON (dataReference | IDENTIFIER)
+    ;
+
+displayNoAdvancing
+    : WITH? NO ADVANCING
     ;
 
 // ==========================================

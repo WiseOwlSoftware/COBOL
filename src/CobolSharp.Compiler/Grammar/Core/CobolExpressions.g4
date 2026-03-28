@@ -119,19 +119,19 @@ classCondition
     ;
 
 comparisonOperator
-    // Symbolic
-    : EQUALS
-    | NOTEQUAL
-    | LTEQUAL
-    | GTEQUAL
-    | LT
-    | GT
+    // Symbolic (with optional IS prefix per §6.3.4.2)
+    : IS? EQUALS
+    | IS? NOTEQUAL
+    | IS? LTEQUAL
+    | IS? GTEQUAL
+    | IS? LT
+    | IS? GT
     // Abbreviated NOT + symbolic (COBOL-85 §6.3.4.2)
-    | NOT EQUALS       // NOT =
-    | NOT GT            // NOT >
-    | NOT LT            // NOT <
-    | NOT GTEQUAL       // NOT >=
-    | NOT LTEQUAL       // NOT <=
+    | IS? NOT EQUALS       // NOT =
+    | IS? NOT GT            // NOT >
+    | IS? NOT LT            // NOT <
+    | IS? NOT GTEQUAL       // NOT >=
+    | IS? NOT LTEQUAL       // NOT <=
     // Word forms with optional IS and optional THAN
     | IS? EQUAL (TO | THAN)?
     | IS? NOT EQUAL (TO | THAN)?

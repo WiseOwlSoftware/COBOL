@@ -1,0 +1,64 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC215A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ A = LOW-VALUE        FAIL* SEQ-TEST-GF-1
+
+                                     COMPUTED= A NOT = LOW-VALUE
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ H I J B SEQUENCE     PASS  SEQ-TEST-GF-2
+ I J K L M N EQUAL    FAIL* SEQ-TEST-GF-3
+
+                                     COMPUTED= I J K L M N NOT =
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ O > THAN N           FAIL* SEQ-TEST-GF-4
+
+                                     COMPUTED= O NOT > THAN N
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ A < THAN ZERO        FAIL* SEQ-TEST-GF-5
+
+                                     COMPUTED= A FOUND > THAN ZERO
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ NINE < THAN SPACE    FAIL* SEQ-TEST-GF-6
+
+                                     COMPUTED= 9 FOUND > THAN SPACE
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ NINE < THAN QUOTE    FAIL* SEQ-TEST-GF-7
+
+                                     COMPUTED= NINE FOUND >  QUOTE
+                                     CORRECT =                       VI-15 4.5.4 GR4(D)
+
+ ***********************************************************************************************************************
+
+
+
+
+ ALPHABET-NAME     *****     CHECK THE ALPHABET-NAME IN THE SPECIAL-NAMES PARAGRAPH
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC215A
+
+                                                    001 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    006 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

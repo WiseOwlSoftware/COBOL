@@ -1,0 +1,55 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1                                          OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                                    TEST RESULTS SET-    NC113M
+
+
+
+
+ FOR OFFICIAL USE ONLY                                                                                COPYRIGHT 1985
+
+
+ FEATURE              PASS  PARAGRAPH NAME                                                   REMARKS
+ TESTED               FAIL
+
+ -----------------------------------------------------------------------------------------------------------------------
+ MARGIN TESTING             MAR-TEST-1                                                      ANSWERS MUST BE
+ MARGIN TESTING             MAR-TEST-2                                                      VISUALLY CHECKED
+ MARGIN TESTING             MAR-TEST-3                                                      FOR CORRECTNESS
+ MARGIN TESTING             MAR-TEST-4
+ MARGIN TESTING             MAR-TEST-5                                                      TESTS MUST BE SEQUENTIAL
+ MARGIN TESTING             MAR-TEST-6
+ MARGIN TESTING             MAR-TEST-7
+ MARGIN TESTING             MAR-TEST-8
+ MARGIN TESTING             MAR-TEST-9
+ MARGIN TESTING             MAR-TEST-10
+ MARGIN TESTING             MAR-TEST-11
+ MARGIN TESTING             MAR-TEST-12
+ MARGIN TESTING             MAR-TEST-13
+ MARGIN TESTING             MAR-TEST-14
+ MARGIN TESTING             MAR-TEST-15
+ -----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+                                                    END OF TEST-    NC113M
+
+                                                     15 TESTS REQUIRE VISUAL INSPECTION
+                                                     NO TESTS DELETED
+ FOR OFFICIAL USE ONLY                                                                                    COPYRIGHT 1985

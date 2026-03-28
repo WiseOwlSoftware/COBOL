@@ -1534,27 +1534,29 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
                 foreach (var forClause in item.inspectForClause())
                 {
-                    var countPhrase = forClause.inspectCountPhrase();
-                    InspectTallyKind kind;
-                    InspectPatternValue? pattern = null;
+                    foreach (var countPhrase in forClause.inspectCountPhrase())
+                    {
+                        InspectTallyKind kind;
+                        InspectPatternValue? pattern = null;
 
-                    if (countPhrase.CHARACTERS() != null)
-                    {
-                        kind = InspectTallyKind.Characters;
-                    }
-                    else if (countPhrase.LEADING() != null)
-                    {
-                        kind = InspectTallyKind.Leading;
-                        pattern = ExtractInspectPattern(countPhrase.inspectChar());
-                    }
-                    else
-                    {
-                        kind = InspectTallyKind.All;
-                        pattern = ExtractInspectPattern(countPhrase.inspectChar());
-                    }
+                        if (countPhrase.CHARACTERS() != null)
+                        {
+                            kind = InspectTallyKind.Characters;
+                        }
+                        else if (countPhrase.LEADING() != null)
+                        {
+                            kind = InspectTallyKind.Leading;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+                        else
+                        {
+                            kind = InspectTallyKind.All;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
 
-                    var region = BindInspectDelimiters(countPhrase.inspectDelimiters());
-                    tallying.Add(new BoundInspectTallyingItem(counterId, kind, pattern, region));
+                        var region = BindInspectDelimiters(countPhrase.inspectDelimiters());
+                        tallying.Add(new BoundInspectTallyingItem(counterId, kind, pattern, region));
+                    }
                 }
             }
         }
@@ -2043,17 +2045,26 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Source identifier
         var sourceExpr = BindDataReferenceWithSubscripts(ctx.dataReference());
 
-        // DELIMITED BY phrase (optional)
-        BoundExpression? delimiter = null;
-        bool delimitedByAll = false;
+        // DELIMITED BY phrase (optional) — supports OR-separated delimiters
+        var delimiterItems = new List<(BoundExpression Expr, bool IsAll)>();
         if (ctx.unstringDelimiterPhrase() is { } delimCtx)
         {
-            delimitedByAll = delimCtx.ALL() != null;
-            if (delimCtx.dataReference() is { } delimId)
-                delimiter = BindDataReferenceWithSubscripts(delimId);
-            else if (delimCtx.literal() is { } delimLit)
-                delimiter = BindLiteral(delimLit);
+            foreach (var item in delimCtx.unstringDelimiterItem())
+            {
+                bool itemAll = item.ALL() != null;
+                BoundExpression itemExpr;
+                if (item.dataReference() is { } delimId)
+                    itemExpr = BindDataReferenceWithSubscripts(delimId);
+                else if (item.literal() is { } delimLit)
+                    itemExpr = BindLiteral(delimLit);
+                else
+                    itemExpr = BindFigurativeConstantExpression(item.figurativeConstant());
+                delimiterItems.Add((itemExpr, itemAll));
+            }
         }
+        // For backwards compatibility, expose first delimiter as primary
+        BoundExpression? delimiter = delimiterItems.Count > 0 ? delimiterItems[0].Expr : null;
+        bool delimitedByAll = delimiterItems.Count > 0 && delimiterItems[0].IsAll;
 
         // INTO phrases (one or more)
         var intos = new List<BoundUnstringInto>();

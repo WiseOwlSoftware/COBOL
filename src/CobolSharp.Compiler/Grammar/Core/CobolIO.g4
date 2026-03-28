@@ -202,7 +202,7 @@ writeFrom
     ;
 
 writeBeforeAfter
-    : (BEFORE | AFTER) ADVANCING
+    : (BEFORE | AFTER) ADVANCING?
       ( PAGE
       | (dataReference | integerLiteral | literal) (LINE | LINES)?
       )
@@ -422,7 +422,7 @@ stringSendingPhrase
     ;
 
 delimitedByPhrase
-    : DELIMITED BY (ALL)? (dataReference | literal | figurativeConstant | SIZE)
+    : DELIMITED BY? (ALL)? (dataReference | literal | figurativeConstant | SIZE)
     ;
 
 stringIntoPhrase
@@ -430,12 +430,12 @@ stringIntoPhrase
     ;
 
 stringWithPointer
-    : WITH POINTER dataReference
+    : WITH? POINTER dataReference
     ;
 
 stringOnOverflow
-    : ON OVERFLOW statementBlock
-      (NOT ON OVERFLOW statementBlock)?
+    : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
+    | NOT ON? OVERFLOW statementBlock
     ;
 
 // ==========================================
@@ -454,7 +454,11 @@ unstringStatement
     ;
 
 unstringDelimiterPhrase
-    : DELIMITED BY (ALL)? (dataReference | literal | figurativeConstant)
+    : DELIMITED BY? unstringDelimiterItem (OR unstringDelimiterItem)*
+    ;
+
+unstringDelimiterItem
+    : (ALL)? (dataReference | literal | figurativeConstant)
     ;
 
 unstringIntoPhrase
@@ -463,21 +467,21 @@ unstringIntoPhrase
 
 unstringIntoTarget
     : dataReference
-      (DELIMITER IN dataReference)?
-      (COUNT IN dataReference)?
+      (DELIMITER IN? dataReference)?
+      (COUNT IN? dataReference)?
     ;
 
 unstringWithPointer
-    : WITH POINTER dataReference
+    : WITH? POINTER dataReference
     ;
 
 unstringTallying
-    : TALLYING IN dataReference
+    : TALLYING IN? dataReference
     ;
 
 unstringOnOverflow
-    : ON OVERFLOW statementBlock
-      (NOT ON OVERFLOW statementBlock)?
+    : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
+    | NOT ON? OVERFLOW statementBlock
     ;
 
 // ==========================================
@@ -502,7 +506,7 @@ inspectTallyingItem
     ;
 
 inspectForClause
-    : FOR inspectCountPhrase
+    : FOR inspectCountPhrase+
     ;
 
 inspectCountPhrase
