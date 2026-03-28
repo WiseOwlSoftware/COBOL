@@ -1091,7 +1091,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // FROM clause
         BoundExpression? from = null;
-        var fromCtx = ctx.dataReference();
+        var fromCtx = ctx.rewriteFrom()?.dataReference();
         if (fromCtx != null)
             from = BindDataReferenceWithSubscripts(fromCtx);
 
@@ -1322,10 +1322,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private BoundStatement? BindRelease(CobolParserCore.ReleaseStatementContext ctx)
     {
         // record-name-1 is the first dataReference — must be a record in an SD
-        var dataRefs = ctx.dataReference();
-        if (dataRefs.Length == 0) return null;
+        var recordRef = ctx.dataReference();
+        if (recordRef == null) return null;
 
-        string recordName = dataRefs[0].GetText();
+        string recordName = recordRef.GetText();
         var recordSym = _semantic.ResolveData(recordName);
         if (recordSym == null) return null;
 
@@ -1335,9 +1335,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         // FROM clause
         BoundExpression? fromExpr = null;
-        if (dataRefs.Length >= 2)
+        var fromCtx = ctx.releaseFrom()?.dataReference();
+        if (fromCtx != null)
         {
-            fromExpr = BindDataReferenceWithSubscripts(dataRefs[1]);
+            fromExpr = BindDataReferenceWithSubscripts(fromCtx);
         }
 
         return new BoundReleaseStatement(fileSym, recordSym, fromExpr);
@@ -2239,15 +2240,14 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private InitializeCategory ClassifyReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
     {
-        // The grammar alternatives are ordered:
-        // ALPHANUMERIC DATA BY ... | NUMERIC DATA BY ... | ALPHANUMERIC EDITED DATA BY ... | NUMERIC EDITED DATA BY ...
-        // Check for EDITED presence and ALPHANUMERIC/NUMERIC token
-        if (ctx.EDITED() != null)
+        var cat = ctx.initializeCategory();
+        if (cat.EDITED() != null || cat.ALPHANUMERIC_EDITED() != null || cat.NUMERIC_EDITED() != null)
         {
-            if (ctx.ALPHANUMERIC() != null) return InitializeCategory.AlphanumericEdited;
+            if (cat.ALPHANUMERIC() != null || cat.ALPHANUMERIC_EDITED() != null) return InitializeCategory.AlphanumericEdited;
             return InitializeCategory.NumericEdited;
         }
-        if (ctx.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
+        if (cat.ALPHABETIC() != null) return InitializeCategory.Alphabetic;
+        if (cat.ALPHANUMERIC() != null) return InitializeCategory.Alphanumeric;
         return InitializeCategory.Numeric;
     }
 

@@ -231,7 +231,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // CLASS class-name IS literal [THRU literal] [, literal [THRU literal]]...
             if (entry.classDefinitionClause() is { } classClause)
             {
-                var className = classClause.IDENTIFIER()?.GetText();
+                var className = classClause.IDENTIFIER(0)?.GetText();
                 if (className != null && classClause.classValueSet() is { } valueSet)
                 {
                     var validBytes = new HashSet<byte>();
@@ -483,7 +483,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             fileSym.IsOptional = true;
 
         // ASSIGN TO
-        var assignCtx = ctx.assignTarget();
+        var assignClause = ctx.assignClause();
+        var assignCtx = assignClause?.assignTarget();
         if (assignCtx != null)
         {
             string assignText = assignCtx.GetText();

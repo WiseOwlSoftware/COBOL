@@ -172,7 +172,7 @@ mulOp
     ;
 
 powerExpression
-    : unaryExpression ( POWER unaryExpression )?
+    : unaryExpression ( POWER unaryExpression )*
     ;
 
 unaryExpression

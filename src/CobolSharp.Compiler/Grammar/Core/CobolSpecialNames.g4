@@ -12,7 +12,7 @@ options {
 
 // SPECIAL-NAMES.
 specialNamesParagraph
-    : SPECIAL_NAMES DOT specialNameEntry+
+    : SPECIAL_NAMES DOT specialNameEntry*
     ;
 
 specialNameEntry
@@ -30,9 +30,7 @@ specialNameEntry
     ;
 
 implementorSwitchEntry
-    : IDENTIFIER IS IDENTIFIER
-      switchOnClause?
-      switchOffClause?
+    : IDENTIFIER (IS IDENTIFIER)? switchOnClause? switchOffClause?
     ;
 
 switchOnClause
@@ -45,6 +43,9 @@ switchOffClause
     | OFF IS? IDENTIFIER
     ;
 
+// CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
+// Note: PICTURE lexes as PIC (pushes PICMODE); full WITH PICTURE SYMBOL
+// support requires lexer changes. For now, the optional phrase is omitted.
 currencySignClause
     : CURRENCY SIGN? IS? literal
     ;
@@ -53,9 +54,9 @@ decimalPointClause
     : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
-// CLASS name IS literal [THRU literal] [, literal [THRU literal]]...
+// CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [IN alphabet-name]
 classDefinitionClause
-    : CLASS IDENTIFIER IS? classValueSet
+    : CLASS IDENTIFIER IS? classValueSet (IN IDENTIFIER)?
     ;
 
 classValueSet
@@ -66,13 +67,13 @@ classValueItem
     : literal ((THRU | THROUGH) literal)?
     ;
 
-// SYMBOLIC CHARACTERS name IS literal [, name IS literal]...
+// SYMBOLIC CHARACTERS {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
 symbolicCharactersClause
-    : SYMBOLIC CHARACTERS symbolicCharacterEntry (COMMA symbolicCharacterEntry)*
+    : SYMBOLIC CHARACTERS symbolicCharacterEntry+ (IN IDENTIFIER)?
     ;
 
 symbolicCharacterEntry
-    : IDENTIFIER IS literal
+    : IDENTIFIER (IS | ARE) literal
     ;
 
 // ALPHABET name IS ...
@@ -80,6 +81,8 @@ alphabetClause
     : ALPHABET IDENTIFIER IS alphabetDefinition
     ;
 
+// NATIVE, STANDARD-1, STANDARD-2 lex as IDENTIFIER (no dedicated tokens);
+// visitor validates named-alphabet keywords vs user-defined ordinal sequences.
 alphabetDefinition
     : alphabetEntry (COMMA? alphabetEntry)*
     ;

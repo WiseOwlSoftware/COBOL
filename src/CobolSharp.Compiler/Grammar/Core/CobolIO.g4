@@ -15,21 +15,26 @@ options {
 // ==========================================
 
 inputOutputSection
-    : IDENTIFIER SECTION DOT
+    : INPUT_OUTPUT SECTION DOT
       fileControlParagraph?
       ioControlParagraph?
     ;
 
 // FILE-CONTROL.
 fileControlParagraph
-    : FILE_CONTROL DOT fileControlClauseGroup+
+    : FILE_CONTROL DOT fileControlClauseGroup*
     ;
 
 fileControlClauseGroup
     : SELECT OPTIONAL? fileName
-      ( ASSIGN TO assignTarget )?
+      assignClause?
       fileControlClauses*
       DOT
+    ;
+
+assignClause
+    : ASSIGN TO? assignTarget (USING dataReference)?
+    | ASSIGN USING dataReference
     ;
 
 assignTarget
@@ -44,7 +49,12 @@ fileControlClauses
     | alternateKeyClause
     | relativeKeyClause
     | fileStatusClause
+    | fileReserveClause
     | vendorFileControlClause
+    ;
+
+fileReserveClause
+    : RESERVE integerLiteral (AREA | AREAS)?
     ;
 
 organizationClause
@@ -91,11 +101,16 @@ vendorFileControlClause
 
 // I-O-CONTROL.
 ioControlParagraph
-    : I_O_CONTROL DOT ioControlEntry+
+    : I_O_CONTROL DOT ioControlEntry*
     ;
 
 ioControlEntry
-    : genericClause DOT
+    : sameClause DOT
+    | genericClause DOT
+    ;
+
+sameClause
+    : SAME (RECORD? AREA | SORT AREA | IDENTIFIER AREA) FOR? fileName (fileName)+
     ;
 
 // ==========================================
@@ -136,7 +151,7 @@ closeOption
 // ==========================================
 
 readStatement
-    : READ fileName
+    : READ (fileName | FILE fileName)
       readDirection?
       readInto?
       readKey?
@@ -173,7 +188,7 @@ readInvalidKey
 // ==========================================
 
 writeStatement
-    : WRITE recordName
+    : WRITE (recordName | FILE fileName)
       writeFrom?
       writeBeforeAfter?
       writeAtEndOfPage?
@@ -183,7 +198,7 @@ writeStatement
     ;
 
 writeFrom
-    : FROM dataReference
+    : FROM (dataReference | literal)
     ;
 
 writeBeforeAfter
@@ -212,11 +227,15 @@ recordName
 // ==========================================
 
 rewriteStatement
-    : REWRITE recordName
-      (FROM dataReference)?
+    : REWRITE (recordName | FILE fileName)
+      rewriteFrom?
       rewriteInvalidKeyPhrase?
       END_REWRITE?
 
+    ;
+
+rewriteFrom
+    : FROM (dataReference | literal)
     ;
 
 rewriteInvalidKeyPhrase
@@ -262,7 +281,7 @@ deleteFileOnException
 
 startStatement
     : START fileName
-      startKeyPhrase?
+      (FIRST | LAST | startKeyPhrase)?
       startInvalidKeyPhrase?
       END_START?
 
@@ -287,7 +306,7 @@ sortStatement
       sortDuplicatesPhrase?
       sortCollatingPhrase?
       ( sortUsingPhrase | sortInputProcedurePhrase )
-      ( sortGivingPhrase | sortOutputProcedurePhrase )?
+      ( sortGivingPhrase | sortOutputProcedurePhrase )
       END_SORT?
 
     ;
@@ -301,7 +320,7 @@ sortKeyPhrase
     ;
 
 sortDuplicatesPhrase
-    : WITH? DUPLICATES IN? IDENTIFIER?
+    : WITH? DUPLICATES IN? IDENTIFIER?    // IDENTIFIER matches ORDER (not a lexer token)
     ;
 
 sortCollatingPhrase
@@ -381,8 +400,12 @@ returnAtEndPhrase
 
 releaseStatement
     : RELEASE dataReference
-      (FROM dataReference)?
+      releaseFrom?
 
+    ;
+
+releaseFrom
+    : FROM (dataReference | literal)
     ;
 
 // ==========================================

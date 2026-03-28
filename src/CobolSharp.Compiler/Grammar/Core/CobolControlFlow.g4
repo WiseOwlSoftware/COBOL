@@ -48,14 +48,14 @@ performUntil
 performVarying
     : (WITH? TEST (BEFORE | AFTER))?
       VARYING dataReference FROM arithmeticExpression
-      BY arithmeticExpression
+      (BY arithmeticExpression)?    // BY is optional per COBOL-85 spec (default = 1)
       UNTIL condition
       performVaryingAfter*
     ;
 
 performVaryingAfter
     : AFTER dataReference FROM arithmeticExpression
-      BY arithmeticExpression
+      (BY arithmeticExpression)?    // BY is optional per COBOL-85 spec (default = 1)
       UNTIL condition
     ;
 

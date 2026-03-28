@@ -36,8 +36,19 @@ fileDescriptionEntry
     : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
     ;
 
+// SD entry — per §13.4.14, only RECORD clause is permitted (not BLOCK, CODE-SET, etc.)
 sortMergeDescriptionEntry
-    : SD fileName fileDescriptionClauses? DOT dataDescriptionEntry*
+    : SD fileName sortMergeDescriptionClauses? DOT dataDescriptionEntry*
+    ;
+
+sortMergeDescriptionClauses
+    : sortMergeDescriptionClause+
+    ;
+
+sortMergeDescriptionClause
+    : recordClause
+    | dataRecordsClause
+    | genericFileDescriptionClause
     ;
 
 fileDescriptionClauses
@@ -50,20 +61,39 @@ fileDescriptionClause
     | recordKeyClause
     | alternateKeyClause
     | fileStatusClause
+    | blockContainsClause
+    | recordClause
+    | codeSetClause
     | labelRecordsClause
     | dataRecordsClause
     | linageClause
     | genericFileDescriptionClause
     ;
 
+// BLOCK CONTAINS clause (§13.18.10)
+blockContainsClause
+    : BLOCK CONTAINS? integerLiteral (TO integerLiteral)? (CHARACTERS | RECORDS)?
+    ;
+
+// RECORD clause (§13.18.43) — fixed-length, variable-length, or VARYING forms
+recordClause
+    : RECORD CONTAINS? integerLiteral (TO integerLiteral)? CHARACTERS?
+    | RECORD IS? VARYING IN? SIZE? (FROM? integerLiteral)? (TO integerLiteral)? CHARACTERS? (DEPENDING ON? dataReference)?
+    ;
+
+// CODE-SET clause (§13.18.13)
+codeSetClause
+    : CODE_SET IS? IDENTIFIER
+    ;
+
 // LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert
 labelRecordsClause
-    : LABEL (RECORD | RECORDS) IS? (STANDARD | OMITTED | IDENTIFIER+)
+    : LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED | IDENTIFIER+)
     ;
 
 // DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
 dataRecordsClause
-    : DATA RECORD IS? IDENTIFIER+
+    : DATA (RECORD IS? | RECORDS ARE?) IDENTIFIER+
     ;
 
 // LINAGE clause (ISO §13.16) — page-based printing for sequential files
@@ -260,8 +290,12 @@ renamesClause
 
 // VALUE Clause — IS is optional noise word
 // For level-88 condition entries, valueItem supports THRU ranges.
+// Format 3 (§13.18.63): WHEN SET TO FALSE IS literal for condition-names;
+//                        IN alphabet-name for character comparisons.
 valueClause
     : (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
+      (WHEN SET TO FALSE_ IS? literal)?
+      (IN IDENTIFIER)?
     ;
 
 valueItem
@@ -298,17 +332,39 @@ blankWhenZeroClause
 // ==========================================
 
 initializeStatement
-    : INITIALIZE dataReferenceList initializeReplacingPhrase?
+    : INITIALIZE dataReferenceList (WITH? FILLER)?
+      initializeCategoryToValue?
+      initializeReplacingPhrase?
+      initializeDefaultPhrase?
+    ;
+
+// [ALL | category-name] TO VALUE (§14.9.20)
+initializeCategoryToValue
+    : (ALL | initializeCategory)? TO VALUE
     ;
 
 initializeReplacingPhrase
-    : REPLACING initializeReplacingItem+
+    : THEN? REPLACING initializeReplacingItem+
+    ;
+
+// THEN TO DEFAULT (§14.9.20) — DEFAULT is not a reserved word; matches as IDENTIFIER
+initializeDefaultPhrase
+    : THEN? TO IDENTIFIER   /* semantic check: IDENTIFIER must be "DEFAULT" */
     ;
 
 initializeReplacingItem
-    : ALPHABETIC DATA? BY (dataReference | literal)
-    | ALPHANUMERIC DATA? BY (dataReference | literal)
-    | NUMERIC DATA? BY (dataReference | literal)
-    | (ALPHANUMERIC EDITED | ALPHANUMERIC_EDITED) DATA? BY (dataReference | literal)
-    | (NUMERIC EDITED | NUMERIC_EDITED) DATA? BY (dataReference | literal)
+    : initializeCategory DATA? BY (dataReference | literal)
+    ;
+
+// Category names for INITIALIZE REPLACING and TO VALUE phrases.
+// BOOLEAN, DATA-POINTER, FUNCTION-POINTER, PROGRAM-POINTER, NATIONAL,
+// OBJECT-REFERENCE are COBOL-2002+ and require lexer tokens not yet defined.
+initializeCategory
+    : ALPHABETIC
+    | ALPHANUMERIC
+    | NUMERIC
+    | ALPHANUMERIC EDITED
+    | ALPHANUMERIC_EDITED
+    | NUMERIC EDITED
+    | NUMERIC_EDITED
     ;

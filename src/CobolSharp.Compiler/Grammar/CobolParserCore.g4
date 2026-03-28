@@ -203,7 +203,7 @@ environmentDivision
 // ==========================================
 
 configurationSection
-    : IDENTIFIER SECTION DOT configurationParagraph*
+    : CONFIGURATION SECTION DOT configurationParagraph*
     ;
 
 configurationParagraph
@@ -215,12 +215,12 @@ configurationParagraph
 
 // SOURCE-COMPUTER.
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT computerName computerAttributes? DOT
+    : SOURCE_COMPUTER DOT (computerName computerAttributes? DOT)?
     ;
 
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT computerName computerAttributes?
-      programCollatingSequenceClause? DOT
+    : OBJECT_COMPUTER DOT (computerName computerAttributes?
+      programCollatingSequenceClause? DOT)?
     ;
 
 programCollatingSequenceClause
@@ -482,7 +482,7 @@ arithmeticOnSizeError
 // ==========================================
 
 addStatement
-    : ADD CORRESPONDING dataReference TO dataReference ROUNDED? arithmeticOnSizeError? END_ADD?
+    : ADD (CORRESPONDING | CORR) dataReference TO dataReference ROUNDED? arithmeticOnSizeError? END_ADD?
     | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
@@ -508,7 +508,7 @@ addGivingPhrase
 // ==========================================
 
 subtractStatement
-    : SUBTRACT CORRESPONDING dataReference FROM dataReference ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
+    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM dataReference ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
     | SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 
@@ -613,7 +613,7 @@ computeOnSizeError
 // ==========================================
 
 moveStatement
-    : MOVE CORRESPONDING dataReference TO dataReference
+    : MOVE (CORRESPONDING | CORR) dataReference TO dataReference
     | MOVE moveSendingOperand moveReceivingPhrase
     ;
 
@@ -625,7 +625,7 @@ moveSendingOperand
 
 moveReceivingPhrase
     : TO dataReferenceList
-    | CORRESPONDING dataReference TO dataReference
+    | (CORRESPONDING | CORR) dataReference TO dataReference
     ;
 
 // ==========================================

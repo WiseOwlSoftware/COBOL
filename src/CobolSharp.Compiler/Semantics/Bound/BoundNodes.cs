@@ -762,6 +762,7 @@ public sealed class BoundRewriteStatement : BoundStatement
 
 public enum InitializeCategory
 {
+    Alphabetic,
     Numeric,
     Alphanumeric,
     NumericEdited,
