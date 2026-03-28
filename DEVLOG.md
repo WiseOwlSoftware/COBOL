@@ -268,7 +268,7 @@ Each agent read the spec sections and the implementation files, producing exhaus
 Environment Division, Data Movement (MOVE), Intrinsic Functions (94), SORT/MERGE + Table Handling.
 
 **Findings:** 8 P0 data-corruption/crash bugs, 12 P1 wrong-computation bugs, 16 major missing
-features, 14 missing validations. Full report in SPEC_COMPLIANCE_AUDIT.md.
+features, 14 missing validations. Full report in GRAMMAR_AUDIT.md (consolidated source of truth).
 
 **Key discoveries:**
 - NumericEdited→NumericEdited MOVE silently returns zero (de-edit path broken)
