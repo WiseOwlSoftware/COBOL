@@ -1,0 +1,47 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC214M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ACCEPT DATE                ACC-TEST-F2-1                 CHECK VISUALLY
+
+                                     COMPUTED=  000260328.000000000
+                                     CORRECT = DATE YYMMDD FORMAT    VI-72 6.5.4 GR7
+
+ ACCEPT DAY                 ACC-TEST-F2-2                 CHECK VISUALLY
+
+                                     COMPUTED=  000026087.000000000
+                                     CORRECT = DAY YYDDD FORMAT      VI-72 6.5.4 GR8
+
+ ACCEPT TIME                ACC-TEST-F2-3                 CHECK VISUALLY
+
+                                     COMPUTED=  016040071.000000000
+                                     CORRECT = HHMMSSFF FORMAT       VI-72 6.5.4 GR9
+
+ ACCEPT DAY-OF-WEEK         ACC-TEST-F2-4                 CHECK VISUALLY
+
+                                     COMPUTED=  000000006.000000000
+                                     CORRECT = SINGLE DIGIT INTEGER  VI-72 6.5.4 GR10
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC214M
+
+                                                    000 OF 000  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

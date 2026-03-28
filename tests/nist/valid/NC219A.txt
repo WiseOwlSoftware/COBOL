@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC219A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ F < U                PASS  SEQ-TEST-GF-1
+ U < N                PASS  SEQ-TEST-GF-2
+ N = HIGH-VALUE       PASS  SEQ-TEST-GF-3
+ F = LOW-VALUE        FAIL* SEQ-TEST-GF-4
+
+                                     COMPUTED= F NOT = LOW-VALUE
+                                     CORRECT =                       VI-16 4.5.4 GR5/7
+
+ H-VALUE > L-VALUE    PASS  SEQ-TEST-GF-5
+ L-VALUE < H-VALUE    PASS  SEQ-TEST-GF-6
+ H-VALUE = L-VALUE    PASS  SEQ-TEST-GF-7
+ Y = LOW-VALUE        PASS  SEQ-TEST-GF-8
+ Q = LOW-VALUE        PASS  SEQ-TEST-GF-9
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC219A
+
+                                                    008 OF 009  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    001 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

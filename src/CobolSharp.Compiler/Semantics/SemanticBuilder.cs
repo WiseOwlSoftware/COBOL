@@ -432,21 +432,28 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
             if (primaryVal >= 0 && primaryVal < 256)
             {
-                // THRU range
-                if (lits.Length >= 2)
+                // THRU range (only when THRU/THROUGH keyword is present)
+                if (entry.THRU() != null || entry.THROUGH() != null)
                 {
-                    int endVal = ExtractCharacterOrdinal(lits[1]);
-                    int lo = Math.Min(primaryVal, endVal);
-                    int hi = Math.Max(primaryVal, endVal);
-                    if (primaryVal <= endVal)
+                    int endVal = lits.Length >= 2 ? ExtractCharacterOrdinal(lits[1]) : -1;
+                    if (endVal >= 0 && endVal < 256)
                     {
-                        for (int i = lo; i <= hi && i < 256; i++)
-                            sequence[i] = nextWeight++;
+                        int lo = Math.Min(primaryVal, endVal);
+                        int hi = Math.Max(primaryVal, endVal);
+                        if (primaryVal <= endVal)
+                        {
+                            for (int i = lo; i <= hi && i < 256; i++)
+                                sequence[i] = nextWeight++;
+                        }
+                        else
+                        {
+                            for (int i = hi; i >= lo && i >= 0; i--)
+                                sequence[i] = nextWeight++;
+                        }
                     }
                     else
                     {
-                        for (int i = hi; i >= lo; i--)
-                            sequence[i] = nextWeight++;
+                        sequence[primaryVal] = nextWeight++;
                     }
                 }
                 else
