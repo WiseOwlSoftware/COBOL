@@ -511,10 +511,7 @@ inspectForClause
 
 inspectCountPhrase
     : CHARACTERS inspectDelimiters?
-    | ALL inspectChar inspectDelimiters?
-    | LEADING inspectChar inspectDelimiters?
-    | FIRST inspectChar inspectDelimiters?
-    | TRAILING inspectChar inspectDelimiters?
+    | (ALL | LEADING | FIRST | TRAILING)? inspectChar inspectDelimiters?
     ;
 
 inspectChar
@@ -531,10 +528,7 @@ inspectReplacingPhrase
 
 inspectReplacingItem
     : CHARACTERS BY inspectChar inspectDelimiters?
-    | ALL inspectChar BY inspectChar inspectDelimiters?
-    | LEADING inspectChar BY inspectChar inspectDelimiters?
-    | FIRST inspectChar BY inspectChar inspectDelimiters?
-    | TRAILING inspectChar BY inspectChar inspectDelimiters?
+    | (ALL | LEADING | FIRST | TRAILING)? inspectChar BY inspectChar inspectDelimiters?
     ;
 
 // ----- CONVERTING -----

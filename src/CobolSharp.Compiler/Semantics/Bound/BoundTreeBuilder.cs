@@ -3563,10 +3563,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private void ValidateInspectStatement(BoundInspectStatement stmt, int line)
     {
         var (loc, span) = DiagAt(line);
-        // Target must be alphanumeric or group
+        // Target must be alphanumeric, numeric-edited, or group
+        // COBOL-85 §14.9.21: INSPECT operates on the display representation
         if (stmt.Target.Symbol.IsElementary
             && stmt.Target.Category != CobolCategory.Alphanumeric
-            && stmt.Target.Category != CobolCategory.AlphanumericEdited)
+            && stmt.Target.Category != CobolCategory.AlphanumericEdited
+            && stmt.Target.Category != CobolCategory.Numeric
+            && stmt.Target.Category != CobolCategory.NumericEdited)
             _diagnostics.Report(DiagnosticDescriptors.CBL1501, loc, span);
         // TALLYING counters must be integer numeric
         foreach (var item in stmt.Tallying)

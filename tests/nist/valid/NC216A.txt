@@ -1,0 +1,128 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC216A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TALLY FOR CHARACTERS PASS  INS-TEST-F1-1
+ TALLY ALL LITERAL    PASS  INS-TEST-F1-2
+ TALLY FOR ALL SPACES PASS  INS-TEST-F1-3
+ TALLY LEADING LIT    PASS  INS-TEST-F1-4
+ FOR CHARS AFTER LIT  PASS  INS-TEST-F1-5
+ ALL BEFORE INITIAL   PASS  INS-TEST-F1-6
+ LEAD LIT INITIAL FIG PASS  INS-TEST-F1-7
+ REP CHARS BY SPACES  PASS  INS-TEST-F2-8
+ CHARS BEFORE INITIAL PASS  INS-TEST-F2-9      .01
+ CHARS BEFORE INITIAL PASS  INS-TEST-F2-9      .02
+ LEAD AFTER INIT ID   PASS  INS-TEST-F2-10
+ FIRST BY ID BEFORE   PASS  INS-TEST-F2-11
+ ALL ID BY LIT AFTER  PASS  INS-TEST-F2-12
+ TALLY-REPLACE CHARS  PASS  INS-TEST-F3-13     .01
+ TALLY-REPLACE CHARS  PASS  INS-TEST-F3-13     .02
+ LIT BY BEFORE INIT   PASS  INS-TEST-F3-14     .01
+ LIT BY BEFORE INIT   PASS  INS-TEST-F3-14     .02
+ REPL FIRST AFTER     PASS  INS-TEST-F3-15     .01
+ REPL FIRST AFTER     PASS  INS-TEST-F3-15     .02
+ FOR LEADING          PASS  INS-TEST-F3-16     .01
+ FOR LEADING          PASS  INS-TEST-F3-16     .02
+ LIT BY AFTER INIT    PASS  INS-TEST-F3-17     .01
+ LIT BY AFTER INIT    PASS  INS-TEST-F3-17     .02
+ CHAR AFTER ALL BEF   PASS  INS-TEST-F3-18     .01
+ CHAR AFTER ALL BEF   PASS  INS-TEST-F3-18     .02
+ TALLY SERIES         FAIL* INS-TEST-F3-19     .01
+
+                                     COMPUTED=  000000030.000000000
+                                     CORRECT =  000000008.000000000  VI-94 6.17.3
+
+ TALLY SERIES         PASS  INS-TEST-F3-19     .02
+ TALLY SERIES         FAIL* INS-TEST-F3-19     .03
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT =  000000013.000000000  VI-94 6.17.3
+
+ TALLY SERIES         FAIL* INS-TEST-F3-19     .04
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT =  000000005.000000000  VI-94 6.17.3
+
+ TALLY SERIES         FAIL* INS-TEST-F3-19     .05
+
+                                     COMPUTED= AH YES AH YES W.C. F
+                                     CORRECT = AH YES AH YES W.C. F  VI-94 6.17.3
+
+ TALLY SERIES               INS-TEST-F3-19     .05
+*** INFORMATION ***        RITOES HERE. ANYONE      RITOES HERE. ANYONE VI-94 6.17.3
+
+ TALLY SERIES               INS-TEST-F3-19     .05
+*** INFORMATION ***        WHO HATES DOGS AND K     WHO HATES DOGS AND KVI-94 6.17.3
+
+ TALLY SERIES               INS-TEST-F3-19     .05
+*** INFORMATION ***        IDS CAN NOT BE ALZZB     IDS CAN NOT BE ALZZZVI-94 6.17.3
+
+ TALLY SERIES               INS-TEST-F3-19     .05
+*** INFORMATION ***        ADZ                      ZZZ                 VI-94 6.17.3
+
+ REPLACE SERIES       PASS  INS-TEST-F3-20     .01
+ REPLACE SERIES       PASS  INS-TEST-F3-20     .02
+ REPLACE BEFORE       PASS  INS-TEST-F2-21
+ REPLACE AFTER        PASS  INS-TEST-F2-22
+ TALLY SIGNED NUM.    PASS  INS-TEST-F1-23     .01
+ TALLY SIGNED NUM.    FAIL* INS-TEST-F1-23     .02
+
+                                     COMPUTED=  000000000.000000000
+                                     CORRECT =  000000001.000000000  VI-94
+
+ NUMERIC EDITED FIELD PASS  INS-TEST-F1-24
+ NUMERIC EDITED FIELD PASS  INS-TEST-F1-25
+ 2 CHARACTER MASK     PASS  INS-TEST-F1-26
+ ORDER OF COMPARE     FAIL* INS-TEST-F1-27                BOTH SHOULD BE 1
+
+                                     COMPUTED=  000000004.000000000
+                                     CORRECT =  000000000.000000000  VI-94
+
+ TALLY FOR ALL SPACES PASS  INS-TEST-F1-28
+ FOR CHARS AFTER LIT  PASS  INS-TEST-F1-29
+ FOR CHARS AFTER LIT  PASS  INS-TEST-F1-30
+ FOR CHARS AFTER LIT  PASS  INS-TEST-F1-31
+ FOR CHARS AFTER LIT  FAIL* INS-TEST-F1-32
+
+                                     COMPUTED=  000000018.000000000
+                                     CORRECT =  000000000.000000000  VI-93
+
+ REP CHARS BY SPACES  PASS  INS-TEST-F2-33
+ REP CHARS BY SPACES  PASS  INS-TEST-F2-34
+ REP CHARS BY SPACES  PASS  INS-TEST-F3-35-1
+ TALLY-REPLACE CHARS  PASS  INS-TEST-F3-36     .01
+ TALLY-REPLACE CHARS  PASS  INS-TEST-F3-36     .02
+ REPL FIRST AFTER     PASS  INS-TEST-F3-37     .01
+ REPL FIRST AFTER     PASS  INS-TEST-F3-37     .02
+ REPL FIRST AFTER     FAIL* INS-TEST-F3-38
+
+                                     COMPUTED=  000000011.000000000
+                                     CORRECT =  000000007.000000000  VI-93 6.17.2
+
+ REPL FIRST AFTER     PASS  INS-TEST-F3-39
+ REPL FIRST AFTER     PASS  INS-TEST-F4-40
+ REPL FIRST AFTER     PASS  INS-TEST-F4-41
+ REPL FIRST AFTER     PASS  INS-TEST-F4-42
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC216A
+
+                                                    049 OF 057  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    008 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
