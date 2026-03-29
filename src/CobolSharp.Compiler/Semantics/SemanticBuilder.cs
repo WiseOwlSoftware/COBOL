@@ -763,14 +763,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     var items = valClause.valueItem();
                     var voCtx = items.Length > 0
-                        ? (items[0].valueRange()?.valueOperand(0) ?? items[0].valueOperand(0))
+                        ? (items[0].valueClauseRange()?.valueClauseOperand(0) ?? items[0].valueClauseOperand(0))
                         : null;
                     if (voCtx != null)
                     {
-                        // valueOperand: arithmeticExpression | nonNumericLiteral
+                        // valueClauseOperand: unaryExpression | nonNumericLiteral
                         // For numeric VALUE, find numericLiteral and detect unary minus
-                        var arithCtx = voCtx.arithmeticExpression();
-                        var (numLit, isNegated) = FindNumericLiteralInArith(arithCtx);
+                        var unaryCtx = voCtx.unaryExpression();
+                        var (numLit, isNegated) = FindNumericLiteralInUnary(unaryCtx);
                         if (numLit != null)
                         {
                             var text = NormalizeNumericLiteralText(numLit);
@@ -858,18 +858,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     {
                         foreach (var item in valClause.valueItem())
                         {
-                            var rangeCtx = item.valueRange();
+                            var rangeCtx = item.valueClauseRange();
                             if (rangeCtx != null)
                             {
-                                var fromVal = ConditionValue.FromObject(ParseConditionValueOperand(rangeCtx.valueOperand(0)));
-                                var toVal = ConditionValue.FromObject(ParseConditionValueOperand(rangeCtx.valueOperand(1)));
+                                var fromVal = ConditionValue.FromObject(ParseConditionClauseOperand(rangeCtx.valueClauseOperand(0)));
+                                var toVal = ConditionValue.FromObject(ParseConditionClauseOperand(rangeCtx.valueClauseOperand(1)));
                                 condSym.AddRange(fromVal, toVal);
                             }
                             else
                             {
-                                foreach (var vo in item.valueOperand())
+                                foreach (var vco in item.valueClauseOperand())
                                 {
-                                    var fromVal = ConditionValue.FromObject(ParseConditionValueOperand(vo));
+                                    var fromVal = ConditionValue.FromObject(ParseConditionClauseOperand(vco));
                                     condSym.AddRange(fromVal, null);
                                 }
                             }
@@ -1326,6 +1326,51 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         }
         var numLit = unary?.primaryExpression()?.numericLiteral();
         return (numLit, negated);
+    }
+
+    private static (Generated.CobolParserCore.NumericLiteralContext? numLit, bool isNegated)
+        FindNumericLiteralInUnary(Generated.CobolParserCore.UnaryExpressionContext? unary)
+    {
+        if (unary == null) return (null, false);
+        bool negated = false;
+        var addOp = unary.addOp();
+        if (addOp != null)
+        {
+            if (addOp.MINUS() != null) negated = true;
+            unary = unary.unaryExpression();
+        }
+        var numLit = unary?.primaryExpression()?.numericLiteral();
+        return (numLit, negated);
+    }
+
+    private static object ParseConditionClauseOperand(Generated.CobolParserCore.ValueClauseOperandContext vo)
+    {
+        var nonNum = vo.nonNumericLiteral();
+        if (nonNum?.STRINGLIT() is { } slit)
+        {
+            var text = slit.GetText();
+            if (text.Length >= 2)
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
+            return text;
+        }
+        if (nonNum?.figurativeConstant() != null)
+            return nonNum.GetText();
+
+        var (numLit, isNegated) = FindNumericLiteralInUnary(vo.unaryExpression());
+        if (numLit != null)
+        {
+            var text = NormalizeNumericLiteralText(numLit);
+            if (isNegated) text = "-" + text;
+            if (decimal.TryParse(text,
+                System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
+                System.Globalization.CultureInfo.InvariantCulture, out var d))
+                return d;
+            return text;
+        }
+        return vo.GetText();
     }
 
     /// <summary>

@@ -20,15 +20,27 @@ genericClause
 // Value operands and ranges
 // =========================
 
-// A "value" in COBOL terms: numeric expression or non-numeric literal.
+// A "value" in comparisons/EVALUATE: full arithmetic expression or literal.
 valueOperand
     : arithmeticExpression
     | nonNumericLiteral
     ;
 
-// Shared range form: used by VALUE THRU and EVALUATE WHEN ranges.
+// A "value" in VALUE clauses: single value (no binary arithmetic).
+// Uses unaryExpression to prevent "5 -9999" from being parsed as subtraction.
+valueClauseOperand
+    : unaryExpression
+    | nonNumericLiteral
+    ;
+
+// Range form for EVALUATE WHEN (full arithmetic).
 valueRange
     : valueOperand (THRU | THROUGH) valueOperand
+    ;
+
+// Range form for VALUE clauses (no binary arithmetic).
+valueClauseRange
+    : valueClauseOperand (THRU | THROUGH) valueClauseOperand
     ;
 
 // =========================

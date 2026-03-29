@@ -801,11 +801,23 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitValueOperand([NotNull] CobolParserCore.ValueOperandContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueClauseOperand"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueClauseOperand([NotNull] CobolParserCore.ValueClauseOperandContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.valueRange"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitValueRange([NotNull] CobolParserCore.ValueRangeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueClauseRange"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueClauseRange([NotNull] CobolParserCore.ValueClauseRangeContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.booleanLiteral"/>.
 	/// </summary>

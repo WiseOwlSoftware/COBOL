@@ -299,8 +299,8 @@ valueClause
     ;
 
 valueItem
-    : valueRange
-    | valueOperand+
+    : valueClauseRange
+    | valueClauseOperand+
     ;
 
 // SIGN Clause
