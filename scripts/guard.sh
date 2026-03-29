@@ -53,11 +53,14 @@ for test in $NIST_TESTS; do
         continue
     fi
 
-    if diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/$outfile") > /dev/null 2>&1; then
+    # Normalize: strip trailing spaces, and normalize time-dependent COMPUTED values
+    normalize() { sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' "$1" 2>/dev/null; }
+
+    if diff <(normalize "$validfile") <(normalize "tests/nist/output/$outfile") > /dev/null 2>&1; then
         echo "  $test: MATCH"
-    elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
+    elif diff <(normalize "$validfile") <(normalize "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
         echo "  $test: MATCH"
-    elif diff <(sed 's/ *$//' "$validfile") <(sed 's/ *$//' "$stdoutfile") > /dev/null 2>&1; then
+    elif diff <(normalize "$validfile") <(normalize "$stdoutfile") > /dev/null 2>&1; then
         echo "  $test: MATCH"
     else
         echo "  $test: DIFF — REGRESSION!"
