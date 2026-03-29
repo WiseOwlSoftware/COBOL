@@ -109,7 +109,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var data in _dataItemsInOrder)
         {
             if (data.Renames == null) continue;
-            var from = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.Renames.FromName);
+            var from = ResolveQualifiedDataName(data.Renames.FromName, data.Renames.FromQualifier);
             if (from != null)
             {
                 if (from.LevelNumber is 66 or 88)
@@ -124,7 +124,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
             if (data.Renames.ThruName != null)
             {
-                var thru = _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(data.Renames.ThruName);
+                var thru = ResolveQualifiedDataName(data.Renames.ThruName, data.Renames.ThruQualifier);
                 if (thru != null)
                 {
                     if (thru.LevelNumber is 66 or 88)
@@ -138,6 +138,30 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 }
             }
         }
+    }
+
+    /// <summary>Resolve a data name with optional OF/IN qualifier.</summary>
+    private DataSymbol? ResolveQualifiedDataName(string name, string? qualifier)
+    {
+        if (qualifier == null)
+            return _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(name);
+
+        // Find items matching the name, then filter by qualifier (parent hierarchy)
+        foreach (var candidate in _dataItemsInOrder)
+        {
+            if (!string.Equals(candidate.Name, name, StringComparison.OrdinalIgnoreCase))
+                continue;
+            // Walk up parent chain to find qualifier match
+            var parent = candidate.Parent;
+            while (parent != null)
+            {
+                if (string.Equals(parent.Name, qualifier, StringComparison.OrdinalIgnoreCase))
+                    return candidate;
+                parent = parent.Parent;
+            }
+        }
+        // Fallback to unqualified
+        return _symbols.Program.DataDivisionScope.Resolve<DataSymbol>(name);
     }
 
     private void RenamesError(DataSymbol data, DiagnosticDescriptor desc, params object[] args)
@@ -362,6 +386,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 return val;
         }
         return -1;
+    }
+
+    /// <summary>Extract the first OF/IN qualifier from a dataReference.</summary>
+    private static string? ExtractQualifier(CobolParserCore.DataReferenceContext dataRef)
+    {
+        foreach (var suffix in dataRef.dataReferenceSuffix())
+        {
+            if (suffix.qualification() is { } qual)
+                return qual.IDENTIFIER()?.GetText();
+        }
+        return null;
     }
 
     /// <summary>Extract the text content of a string literal (without quotes).</summary>
@@ -1006,8 +1041,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 var refs = renamesCtx.dataReference();
                 string fromName = refs.Length > 0 ? refs[0].IDENTIFIER()?.GetText() ?? "" : "";
+                string? fromQual = refs.Length > 0 ? ExtractQualifier(refs[0]) : null;
                 string? thruName = refs.Length > 1 ? refs[1].IDENTIFIER()?.GetText() : null;
-                data.Renames = new RenamesInfo(fromName, thruName);
+                string? thruQual = refs.Length > 1 ? ExtractQualifier(refs[1]) : null;
+                data.Renames = new RenamesInfo(fromName, thruName, fromQual, thruQual);
             }
         }
         else

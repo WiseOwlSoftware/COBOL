@@ -1,0 +1,133 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC252A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ REDEFINES            PASS  RDF-TEST-1
+ REDEFINES            PASS  RDF-TEST-2
+ REDEFINES            PASS  RDF-TEST-003
+ REDEFINES            PASS  RDF-TEST-4
+ REDEFINES            PASS  RDF-TEST-5
+ REDEFINES            PASS  RDF-TEST-6
+ REDEFINES            PASS  RDF-TEST-7
+ REDEFINES            PASS  RDF-TEST-8
+ REDEFINES            PASS  RDF-TEST-9
+ REDEFINES            PASS  RDF-TEST-10
+ REDEFINES            PASS  RDF-TEST-11
+ REDEFINES            PASS  RDF-TEST-12
+ REDEFINES            PASS  RDF-TEST-13
+ REDEFINES            PASS  RDF-TEST-14
+ ***********************************************************************************************************************
+
+
+
+
+ RENAMES              PASS  RENAM-TEST-1
+ RENAMES              PASS  RENAM-TEST-2
+ RENAMES              PASS  RENAM-TEST-3
+ RENAMES              PASS  RENAM-TEST-4
+ RENAMES              PASS  RENAM-TEST-5
+ RENAMES              PASS  RENAM-TEST-6
+ RENAMES              PASS  RENAM-TEST-7
+ QUALIFIED RENAMES    FAIL* RENAM-TEST-8
+
+                                     COMPUTED= IOWAOREGON
+                                     CORRECT = CALIFORNIA
+
+ QUALIFIED RENAMES    PASS  RENAM-TEST-9
+ QUALIFIED RENAMES    FAIL* RENAM-TEST-10
+
+                                     COMPUTED= RENAME-6
+                                     CORRECT = IOWAOREGONFLORIDA
+
+ RENAMES A TABLE      PASS  RENAM-TEST-11
+ RENAMED DATA ---
+   GROUP COMPARISON   PASS  RENAM-TEST-12
+   GRP MOVE, COMPARE  PASS  RENAM-TEST-13
+   GROUP MOVE         PASS  RENAM-TEST-14
+   EDITED MOVE        PASS  RENAM-TEST-15
+   ADD, SIZE ERROR    PASS  RENAM-TEST-16
+   ADD, SIZE ERROR    PASS  RENAM-TEST-17
+   THROUGH            FAIL* RENAM-TEST-18
+
+                                     COMPUTED=
+                                     CORRECT = CHICAGO ILL
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                          THE COMPUTED RESULT FOR THE FOLLOWING TESTS
+                                                          IS ALLOWED TO DEVIATE FROM THE INDICATED
+                                                          CORRECT RESULT BY
+                                                          + OR - (CORRECT RESULT * (.2 ** 5)).
+ COMPUTE              PASS  COMP-TEST-1
+ COMPUTE              PASS  COMP-TEST-2
+ COMPUTE              PASS  COMP-TEST-3
+ COMPUTE              PASS  COMP-TEST-4
+ COMPUTE              PASS  COMP-TEST-5
+ COMPUTE              PASS  COMP-TEST-6
+ COMPUTE              PASS  COMP-TEST-7
+ COMPUTE              PASS  COMP-TEST-8
+ COMPUTE              PASS  COMP-TEST-9
+ COMPUTE              PASS  COMP-TEST-10
+ COMPUTE              PASS  COMP-TEST-11
+ COMPUTE              PASS  COMP-TEST-12
+ COMPUTE              PASS  COMP-TEST-13
+ COMPUTE              PASS  COMP-TEST-14
+ COMPUTE              PASS  COMP-TEST-15
+ COMPUTE              PASS  COMP-TEST-16
+ COMPUTE              PASS  COMP-TEST-17
+ COMPUTE              PASS  COMP-TEST-18
+ COMPUTE              PASS  COMP-TEST-19
+ COMPUTE              PASS  COMP-TEST-20
+ COMPUTE              PASS  COMP-TEST-21
+ COMPUTE              PASS  COMP-TEST-22
+ COMPUTE              PASS  COMP-TEST-23
+ COMPUTE              PASS  COMP-TEST-24
+ COMPUTE              PASS  COMP-TEST-25
+ COMPUTE              PASS  COMP-TEST-26
+ COMPUTE              PASS  COMP-TEST-27
+ COMPUTE              PASS  COMP-TEST-28
+ COMPUTE              PASS  COMP-TEST-29
+ COMPUTE              PASS  COMP-TEST-30
+ COMPUTE              PASS  COMP-TEST-31
+ COMPUTE              PASS  COMP-TEST-32
+ COMPUTE              PASS  COMP-TEST-33
+ COMPUTE              PASS  COMP-TEST-34
+ COMPUTE              PASS  COMP-TEST-35
+ COMPUTE              PASS  COMP-TEST-36
+ COMPUTE              PASS  COMP-TEST-37
+ COMPUTE              PASS  COMP-TEST-38
+                            COMP-TEST-39                  NOT USED
+                            COMP-TEST-40                  NOT USED
+                            COMP-TEST-41                  NOT USED
+                            COMP-TEST-42                  NOT USED
+ COMPUTE              PASS  COMP-TEST-43
+ COMPUTE              PASS  COMP-TEST-44
+ COMPUTE SERIES       PASS  COMP-TEST-045-1
+ COMPUTE SERIES       PASS  COMP-TEST-045-2
+ COMPUTE SERIES       PASS  COMP-TEST-045-3
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC252A
+
+                                                    072 OF 076  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    004 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -232,7 +232,7 @@ computerName
     ;
 
 computerAttributes
-    : (IDENTIFIER | STRINGLIT | INTEGERLIT)+
+    : ~(DOT | PROGRAM)+
     ;
 
 // ==========================================

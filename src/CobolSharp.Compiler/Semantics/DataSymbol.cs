@@ -58,16 +58,25 @@ public sealed class RenamesInfo
     /// <summary>RENAMES THRU target data-name (null if no THRU).</summary>
     public string? ThruName { get; }
 
+    /// <summary>OF/IN qualifier for FROM (e.g., "RECORD-A" in NAME-1 OF RECORD-A).</summary>
+    public string? FromQualifier { get; }
+
+    /// <summary>OF/IN qualifier for THRU (e.g., "RECORD-A" in NAME-2 OF RECORD-A).</summary>
+    public string? ThruQualifier { get; }
+
     /// <summary>Resolved FROM symbol (set during deferred resolution).</summary>
     public DataSymbol? FromSymbol { get; set; }
 
     /// <summary>Resolved THRU symbol (set during deferred resolution).</summary>
     public DataSymbol? ThruSymbol { get; set; }
 
-    public RenamesInfo(string fromName, string? thruName = null)
+    public RenamesInfo(string fromName, string? thruName = null,
+        string? fromQualifier = null, string? thruQualifier = null)
     {
         FromName = fromName;
         ThruName = thruName;
+        FromQualifier = fromQualifier;
+        ThruQualifier = thruQualifier;
     }
 }
 

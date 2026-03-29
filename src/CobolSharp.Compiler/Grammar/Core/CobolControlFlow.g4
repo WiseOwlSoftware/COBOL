@@ -187,6 +187,7 @@ exitStatement
 
 stopStatement
     : STOP RUN
+    | STOP literal                     // STOP literal (Format 2, obsolete)
     ;
 
 // ==========================================
