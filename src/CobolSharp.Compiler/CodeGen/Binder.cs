@@ -2913,6 +2913,7 @@ public sealed class Binder
             case BoundLiteralExpression lit:
                 if (lit.Value is decimal d) return ComparisonOperand.FromNumeric(d);
                 if (lit.Value is string s) return ComparisonOperand.FromString(s);
+                if (lit.Value is bool b) return ComparisonOperand.FromNumeric(b ? 1m : 0m);
                 return null;
 
             case BoundFigurativeExpression fig:
@@ -3039,6 +3040,40 @@ public sealed class Binder
             // Relational comparison — normalize and dispatch
             LowerComparison(binCond, result, block);
             return;
+        }
+
+        // Bare identifier in condition context (from EVALUATE subject comparison)
+        // Treat as "identifier != 0" truth test
+        if (cond is BoundIdentifierExpression condId)
+        {
+            var loc = ResolveExpressionLocation(cond);
+            if (loc != null)
+            {
+                block.Instructions.Add(new IrPicCompareLiteral(loc, 0m, result, (int)BoundBinaryOperatorKind.NotEqual));
+                return;
+            }
+        }
+
+        // Literal in condition context (from EVALUATE TRUE/FALSE or value comparisons)
+        if (cond is BoundLiteralExpression condLit)
+        {
+            if (condLit.Value is bool boolVal)
+            {
+                block.Instructions.Add(new IrSetBool(result, boolVal));
+                return;
+            }
+            // Non-boolean literal (decimal/string) in condition context:
+            // treat as "value != 0" for numeric, or "value != spaces" for string
+            if (condLit.Value is decimal dv)
+            {
+                block.Instructions.Add(new IrSetBool(result, dv != 0m));
+                return;
+            }
+            if (condLit.Value is string sv)
+            {
+                block.Instructions.Add(new IrSetBool(result, !string.IsNullOrWhiteSpace(sv)));
+                return;
+            }
         }
 
         // Unresolved abbreviated expression — should never reach here if expander is correct
