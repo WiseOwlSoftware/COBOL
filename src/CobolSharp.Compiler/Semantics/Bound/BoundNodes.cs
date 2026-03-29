@@ -450,16 +450,18 @@ public sealed class BoundPerformStatement : BoundStatement
 public sealed class BoundPerformVarying
 {
     public DataSymbol Index { get; }
+    public BoundExpression IndexExpression { get; }  // full expression with subscripts
     public BoundExpression Initial { get; }
     public BoundExpression Step { get; }
     public BoundExpression UntilCondition { get; }
     public BoundPerformVarying? Next { get; }  // AFTER clause → nested inner level
 
-    public BoundPerformVarying(DataSymbol index, BoundExpression initial,
-        BoundExpression step, BoundExpression untilCondition,
+    public BoundPerformVarying(DataSymbol index, BoundExpression indexExpression,
+        BoundExpression initial, BoundExpression step, BoundExpression untilCondition,
         BoundPerformVarying? next = null)
     {
         Index = index;
+        IndexExpression = indexExpression;
         Initial = initial;
         Step = step;
         UntilCondition = untilCondition;

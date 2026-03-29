@@ -990,7 +990,10 @@ public sealed class Binder
     private IrBasicBlock LowerPerformVarying(BoundPerformVarying v, BoundPerformStatement perf,
         IrMethod method, IrBasicBlock block)
     {
-        var indexLoc = ResolveLocation(v.Index);
+        // Use full IndexExpression (preserves subscripts) when available
+        var indexLoc = v.IndexExpression != null
+            ? ResolveExpressionLocation(v.IndexExpression)
+            : ResolveLocation(v.Index);
         if (indexLoc == null)
         {
             _diagnostics.Report(DiagnosticDescriptors.COBOL0500, SourceLocation.None, TextSpan.Empty, v.Index.Name);

@@ -688,7 +688,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 var afterInit = BindAdditiveExpression(afterExprs[0].additiveExpression());
                 var afterStep = BindAdditiveExpression(afterExprs[1].additiveExpression());
                 var afterUntil = BindCondition(afterCtx.condition());
-                inner = new BoundPerformVarying(afterSym, afterInit, afterStep, afterUntil, inner);
+                inner = new BoundPerformVarying(afterSym, afterExpr, afterInit, afterStep, afterUntil, inner);
             }
         }
 
@@ -701,7 +701,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var step = BindAdditiveExpression(arithExprs[1].additiveExpression());      // BY
         var untilCond = BindCondition(ctx.condition());
 
-        return new BoundPerformVarying(indexSym, initial, step, untilCond, inner);
+        return new BoundPerformVarying(indexSym, indexExpr, initial, step, untilCond, inner);
     }
 
     /// <summary>
