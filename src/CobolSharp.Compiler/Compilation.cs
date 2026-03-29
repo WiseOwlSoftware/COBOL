@@ -150,7 +150,22 @@ public sealed class Compilation
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));
         parser.ErrorHandler = new CobolErrorStrategy();
 
-        var tree = parser.compilationUnit();
+        // Two-stage parsing: try fast SLL mode first, fall back to full LL on error.
+        // This prevents exponential prediction time for ambiguous grammars.
+        parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.SLL;
+        CobolParserCore.CompilationUnitContext tree;
+        try
+        {
+            tree = parser.compilationUnit();
+        }
+        catch (Exception)
+        {
+            // SLL failed — retry with full LL prediction
+            tokenStream.Seek(0);
+            parser.Reset();
+            parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.LL;
+            tree = parser.compilationUnit();
+        }
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;
     }
 
