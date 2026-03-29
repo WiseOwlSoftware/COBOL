@@ -6,6 +6,114 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 168 — 2026-03-29: PERFORM VARYING — One Fix, Three Tests (92→95)
+
+The NC201A/NC220M/NC237A runtime hangs had been "known issues" for two sessions. All three
+turned out to share the same root cause: `EmitVaryingMove` and `EmitVaryingAdd` in `Binder.cs`
+only handled two expression types for the FROM and BY clauses — positive numeric literals and
+simple (non-subscripted) identifiers. Any other shape silently fell through without emitting
+IR instructions, so the loop variable was never initialized or incremented → infinite loop.
+
+Three cases the code didn't handle:
+1. **Negative literals** (`BY -0.2`): the parser encodes `-0.2` as `BoundBinaryExpression(0, Subtract, 0.2)`,
+   not as a `BoundLiteralExpression(-0.2)`. New `TryExtractNegativeLiteral` helper detects and folds this.
+2. **Subscripted identifiers** (`BY PFM-F4-24-C(S2)`): used `ResolveLocation(DataSymbol)` which lost
+   subscript info. Changed to `ResolveExpressionLocation(BoundExpression)`.
+3. **Arbitrary expressions**: added fallback paths using `IrComputeStore` / `IrComputeIntoAccumulator`
+   for any expression type the specific handlers don't cover.
+
+The fix was dispatched to a specialist agent. Once applied, NC201A (55 tests), NC220M (24 tests),
+and NC237A (11 tests) all ran to completion. The lesson: when IR emission code has a type switch
+on bound node kinds, every unhandled case MUST produce a diagnostic — silent fall-through is a
+time bomb.
+
+---
+
+## Entry 167 — 2026-03-29: The ZERO Saga — Expert Team Cracks the "Impossible" One (91→92)
+
+NC250A had `IF ZERO - WRK-DU-1V0-1 IS NEGATIVE` — ZERO as an arithmetic operand. Five
+solo attempts over ~4 hours all failed:
+
+1. **ZERO in `primaryExpression`**: worked for small files, caused exponential ANTLR prediction
+   on NC250A's 1971 lines (75 ZERO tokens). Parser hung after 2+ minutes.
+2. **Reorder `valueOperand`** (`nonNumericLiteral` first): ZERO matched as figurative in
+   `IF ZERO - WRK` before arithmetic could try `ZERO - WRK` as subtraction.
+3. **Separate `comparisonOperand`** (arithmetic first): ZERO entered arithmetic in ALL
+   comparisons, breaking `IF ZERO IS NOT EQUAL TO alphanumeric-field` (NC103A regression —
+   numeric 0 vs figurative "0" have different comparison semantics).
+4. **SLL two-stage parsing**: NC250A hung in SLL mode. Added `BailErrorStrategy` to force
+   SLL exceptions on ambiguity — but NC250A still hung in the LL fallback.
+5. **Various grammar orderings**: every combination caused either performance regression,
+   semantic regression (NC103A), or both.
+
+**The breakthrough**: user directed me to "create a team of experts." Three specialist agents
+were launched in parallel:
+
+- **ANTLR expert**: proposed a virtual token `ZERO_ARITH` — rewrite ZERO→ZERO_ARITH in a
+  pre-parser token stream pass when adjacent to arithmetic operators. ZERO_ARITH lives in
+  `primaryExpression`; ZERO stays in `figurativeConstant`. Completely disjoint — zero ambiguity.
+- **COBOL expert**: researched the ISO spec exhaustively. Key finding: ZERO is the ONLY
+  figurative constant valid in arithmetic expressions (§8.8.1.1). The dual nature (numeric 0
+  vs character '0') depends on context — exactly what the token rewriter implements.
+- **C# expert**: built `ZeroTokenRewriter.cs` — O(n) scan of the token stream, checking
+  adjacency to `+`, `-`, `*`, `/`, `**`, `(`, `)`.
+
+The ANTLR expert's `ZERO_ARITH` design was the key insight. No grammar ambiguity means no
+exponential prediction. NC250A compiles in <15 seconds and passes 111 tests.
+
+**Lesson**: when you're stuck in a combinatorial design space (grammar ordering × semantic
+correctness × parser performance), bring in specialists who can see the problem from different
+angles. The token rewriting approach was outside my "grammar change" tunnel vision.
+
+---
+
+## Entry 166 — 2026-03-29: The "Impossible" Tests — 85→91 via Targeted Fixes
+
+Six more tests fell to targeted fixes, each exposing a different compiler gap:
+
+1. **NC216A** (INSPECT multi-pattern): `inspectCountPhrase` and `inspectReplacingItem` made
+   `ALL/LEADING/FIRST/TRAILING` optional so subsequent patterns inherit the keyword from the
+   first in a FOR clause. Also relaxed INSPECT target validation to allow numeric items.
+
+2. **NC225A** (EVALUATE class conditions): `LowerCondition` didn't handle bare
+   `BoundIdentifierExpression` or `BoundLiteralExpression` in condition context — these appear
+   from EVALUATE TRUE/FALSE with class condition subjects. Added truth-test fallbacks.
+
+3. **NC125A** (PIC trailing period): `PIC 999999999999..` — the lexer's `PIC_STRING` rule
+   greedily consumed both periods. Added a post-match action: if PIC string ends with `.`,
+   trim it and back up `InputStream` by 1 so the sentence-ending `.` tokenizes as DOT.
+   This was the "lexer-level fix is impossible" one — turned out to be 8 lines.
+
+4. **NC205A** (preprocessor continuation): non-literal continuation handler wasn't stripping
+   trailing spaces from the previous line before appending continuation content. `PIC S9(`
+   + continuation `6)V9(6)` became `PIC S9(                        6)V9(6)` with 24 spaces.
+
+5. **NC211A** (VALUE THRU negative numbers): `VALUE IS 5 -9999 THRU 10` — the parser saw
+   `5 - 9999` as subtraction. Split `valueOperand` into two: `valueClauseOperand` uses
+   `unaryExpression` (no binary arithmetic) for VALUE clauses; `valueOperand` keeps full
+   `arithmeticExpression` for comparisons and EVALUATE WHEN.
+
+6. **NC303M/NC401M** (flagging tests): just compiled and ran — no assertions, only diagnostics.
+   Guard captures stdout for comparison.
+
+---
+
+## Entry 165 — 2026-03-28: SLL Two-Stage Parsing — 6× Speedup
+
+Added ANTLR4 SLL prediction mode with LL fallback to `Compilation.cs`. Integration tests
+dropped from 18s → 3s. Most COBOL files parse correctly with SLL's faster single-context
+prediction; only ambiguous files fall back to full LL.
+
+Added `BailErrorStrategy` for the SLL phase so ambiguous constructs throw immediately instead
+of hanging in slow adaptive prediction. Without this, NC250A and other files with complex
+VALUE THRU patterns would cause the SLL parser to spin.
+
+The performance gain compounds: every guard run (95 NIST tests) benefits, and developer
+iteration speed improves dramatically. The COBOL grammar has many optional keywords that
+create prediction ambiguity — SLL handles these by picking the first viable alternative.
+
+---
+
 ## Entry 164 — 2026-03-28: Deep Fixes — 82→85 NIST Tests
 
 **3 more NIST tests pass** via deeper fixes:

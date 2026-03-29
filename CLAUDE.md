@@ -19,16 +19,18 @@ consulting it. Initialize the submodule with: `git submodule update --init --rec
 - **Branch**: main
 - **Unit tests**: 421 pass
 - **Integration tests**: 274 pass, 1 skip (12 focused test files)
-- **NIST tests at 100%** (85 in guard)
+- **NIST tests at 100%** (95 in guard)
 - **Intrinsic functions**: 94/94 dispatched, all tested
 - **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
 - **Grammar files**: 14 files, 3,225+ lines
 - **Source of truth**: GRAMMAR_AUDIT.md (consolidated from all audit docs)
 
 ### What was done this session (2026-03-27/28/29)
-- **NIST expansion (65→77)**: 12 grammar fixes (DISPLAY UPON, SET ON/OFF, WRITE ADVANCING,
-  STRING/UNSTRING POINTER/OVERFLOW/DELIMITED, INSPECT FOR+, IS >= operator, ACCEPT FROM)
-  unblocked 12 new NIST tests. All 77 at 100%.
+- **NIST expansion (65→95)**: 30 new tests via grammar fixes (DISPLAY UPON, SET ON/OFF,
+  WRITE ADVANCING, STRING/UNSTRING, INSPECT, IS >= operator, ACCEPT FROM, PIC lexer,
+  preprocessor continuation, VALUE THRU negative numbers), semantic fixes (comparisons,
+  REDEFINES, RENAMES, EVALUATE, ALPHABET, qualified names), ZERO_ARITH token rewriting,
+  SLL two-stage parsing (6× speedup), PERFORM VARYING subscripted FROM/BY fix.
 - **Spec compliance audit**: 8 parallel agents audited entire compiler vs ISO spec
 - **P0 bug sweep**: 8 critical bugs fixed (OPEN multi-clause, READ INVALID KEY,
   NumericEdited MOVE, LOCAL-STORAGE routing, file status codes, etc.)
@@ -73,7 +75,7 @@ Key remaining items:
 - START WITH LENGTH
 - CURRENCY WITH PICTURE SYMBOL (blocked by PICMODE lexer architecture)
 - NC220M/NC237A runtime hangs (undiagnosed)
-- 10 non-passing NC tests (all need deep architectural work):
-  NC205A (preprocessor), NC125A (lexer PIC), NC250A/NC216A (grammar),
-  NC225A (EVALUATE lowering), NC201A/NC220M/NC237A (runtime), NC303M/NC401M (flagging)
+- All 95 NC-series NIST tests pass (was 65 at session start)
 - Remaining non-NC suites (IC, IF, IX, SQ, ST, etc.) not yet attempted
+- Key infrastructure: ZERO_ARITH token rewriter, SLL+BailErrorStrategy parsing,
+  PIC_STRING lexer action for trailing period, preprocessor continuation trailing space fix
