@@ -1,0 +1,137 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC125A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .01
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .02
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .03
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .04
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .05
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .06
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .07
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .08
+ l EDIT MOVE          PASS  EDI-TEST-GF1       .09
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .01
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .02
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .03
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .04
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .05
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .06
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .07
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .08
+ + EDIT MOVE          PASS  EDI-TEST-GF2       .09
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .01
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .02
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .03
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .04
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .05
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .06
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .07
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .08
+ - EDIT MOVE          PASS  EDI-TEST-GF3       .09
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .01
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .02
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .03
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .04
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .05
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .06
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .07
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .08
+ * EDIT MOVE          PASS  EDI-TEST-GF4       .09
+ l EDIT ADD           PASS  EDI-TEST-GF5       .01
+ l EDIT ADD           PASS  EDI-TEST-GF5       .02
+ l EDIT ADD           PASS  EDI-TEST-GF5       .03
+ l EDIT ADD           PASS  EDI-TEST-GF5       .04
+ l EDIT ADD           PASS  EDI-TEST-GF5       .05
+ l EDIT ADD           PASS  EDI-TEST-GF5       .06
+ l EDIT ADD           PASS  EDI-TEST-GF5       .07
+ l EDIT ADD           PASS  EDI-TEST-GF5       .08
+ l EDIT ADD           PASS  EDI-TEST-GF5       .09
+ + EDIT ADD           PASS  EDI-TEST-GF6       .01
+ + EDIT ADD           PASS  EDI-TEST-GF6       .02
+ + EDIT ADD           PASS  EDI-TEST-GF6       .03
+ + EDIT ADD           PASS  EDI-TEST-GF6       .04
+ + EDIT ADD           PASS  EDI-TEST-GF6       .05
+ + EDIT ADD           PASS  EDI-TEST-GF6       .06
+ + EDIT ADD           PASS  EDI-TEST-GF6       .07
+ + EDIT ADD           PASS  EDI-TEST-GF6       .08
+ + EDIT ADD           PASS  EDI-TEST-GF6       .09
+ - EDIT ADD           PASS  EDI-TEST-GF7       .01
+ - EDIT ADD           PASS  EDI-TEST-GF7       .02
+ - EDIT ADD           PASS  EDI-TEST-GF7       .03
+ - EDIT ADD           PASS  EDI-TEST-GF7       .04
+ - EDIT ADD           PASS  EDI-TEST-GF7       .05
+ - EDIT ADD           PASS  EDI-TEST-GF7       .06
+ - EDIT ADD           PASS  EDI-TEST-GF7       .07
+ - EDIT ADD           PASS  EDI-TEST-GF7       .08
+ - EDIT ADD           PASS  EDI-TEST-GF7       .09
+ * EDIT ADD           PASS  EDI-TEST-GF8       .01
+ * EDIT ADD           PASS  EDI-TEST-GF8       .02
+ * EDIT ADD           PASS  EDI-TEST-GF8       .03
+ * EDIT ADD           PASS  EDI-TEST-GF8       .04
+ * EDIT ADD           PASS  EDI-TEST-GF8       .05
+ * EDIT ADD           PASS  EDI-TEST-GF8       .06
+ * EDIT ADD           PASS  EDI-TEST-GF8       .07
+ * EDIT ADD           PASS  EDI-TEST-GF8       .08
+ * EDIT ADD           PASS  EDI-TEST-GF8       .09
+ l EDIT SUB           PASS  EDI-TEST-GF9       .01
+ l EDIT SUB           PASS  EDI-TEST-GF9       .02
+ l EDIT SUB           PASS  EDI-TEST-GF9       .03
+ l EDIT SUB           PASS  EDI-TEST-GF9       .04
+ l EDIT SUB           PASS  EDI-TEST-GF9       .05
+ l EDIT SUB           PASS  EDI-TEST-GF9       .06
+ l EDIT SUB           PASS  EDI-TEST-GF9       .07
+ l EDIT SUB           PASS  EDI-TEST-GF9       .08
+ l EDIT SUB           PASS  EDI-TEST-GF9       .09
+ + EDIT SUB           PASS  EDI-TEST-GF10      .01
+ + EDIT SUB           PASS  EDI-TEST-GF10      .02
+ + EDIT SUB           PASS  EDI-TEST-GF10      .03
+ + EDIT SUB           PASS  EDI-TEST-GF10      .04
+ + EDIT SUB           PASS  EDI-TEST-GF10      .05
+ + EDIT SUB           PASS  EDI-TEST-GF10      .06
+ + EDIT SUB           PASS  EDI-TEST-GF10      .07
+ + EDIT SUB           PASS  EDI-TEST-GF10      .08
+ + EDIT SUB           PASS  EDI-TEST-GF10      .09
+ - EDIT SUB           PASS  EDI-TEST-GF11      .01
+ - EDIT SUB           PASS  EDI-TEST-GF11      .02
+ - EDIT SUB           PASS  EDI-TEST-GF11      .03
+ - EDIT SUB           PASS  EDI-TEST-GF11      .04
+ - EDIT SUB           PASS  EDI-TEST-GF11      .05
+ - EDIT SUB           PASS  EDI-TEST-GF11      .06
+ - EDIT SUB           PASS  EDI-TEST-GF11      .07
+ - EDIT SUB           PASS  EDI-TEST-GF11      .08
+ - EDIT SUB           PASS  EDI-TEST-GF11      .09
+ * EDIT SUB           PASS  EDI-TEST-GF12      .01
+ * EDIT SUB           PASS  EDI-TEST-GF12      .02
+ * EDIT SUB           PASS  EDI-TEST-GF12      .03
+ * EDIT SUB           PASS  EDI-TEST-GF12      .04
+ * EDIT SUB           PASS  EDI-TEST-GF12      .05
+ * EDIT SUB           PASS  EDI-TEST-GF12      .06
+ * EDIT SUB           PASS  EDI-TEST-GF12      .07
+ * EDIT SUB           PASS  EDI-TEST-GF12      .08
+ * EDIT SUB           PASS  EDI-TEST-GF12      .09
+ COMMA AS LAST SYMBOL PASS  EDI-TEST-GF-13     .09
+ PERIOD LAST SYMBOL   PASS  EDI-TEST-GF-14     .09
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC125A
+
+                                                    110 OF 110  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

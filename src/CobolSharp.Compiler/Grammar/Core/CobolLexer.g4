@@ -463,10 +463,22 @@ mode PICMODE;
 
 PIC_IS      : 'IS' -> skip ;              // optional IS keyword
 PIC_WS      : [ \t\r\n]+ -> skip ;        // skip whitespace
-PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+ -> popMode ;
+PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+
+    {
+        // Handle PIC "999999999999.." — greedy match consumed sentence-ending period.
+        // If the PIC string ends with '.' and the char that caused the match was also '.',
+        // trim the trailing period and back up so it becomes a DOT token.
+        var t = Text;
+        if (t.Length > 1 && t[t.Length - 1] == '.')
+        {
+            Text = t.Substring(0, t.Length - 1);
+            InputStream.Seek(InputStream.Index - 1);
+        }
+    } -> popMode ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)
-    // Stops:  at whitespace or period-before-whitespace (sentence end)
+    // Post-action: if PIC string ends with '.', the greedy match consumed a
+    //   sentence-ending period — back up one char so it tokenizes as DOT.
 
 // ==========================================
 // COMMENT_MODE — *> to end of line
