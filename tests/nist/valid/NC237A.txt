@@ -1,0 +1,52 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC237A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-1                 TABLE BUILT CORRECTLY
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-2
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-3
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-4
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-5
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-6
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-7
+ SET AND SEARCH-ALL   PASS  IDX-TEST-GF-8
+ SET AND SEARCH-ALL   FAIL* IDX-TEST-F2-9                 SUBSCRIPT USED FOR COMPUTED
+
+                                     COMPUTED= 0507
+                                     CORRECT = 0507                  VI-121 6.21.2
+
+ SET AND SEARCH-ALL   PASS  IDX-TEST-F2-10
+ SET AND SEARCH-ALL   PASS  IDX-TEST-F2-11
+ SET AND SEARCH-ALL   FAIL* IDX-TEST-F2-12                SUBSCRIPT USED FOR COMPUTED
+
+                                     COMPUTED= 050603
+                                     CORRECT = 050603                VI-121 6.21.2
+
+ SET AND SEARCH-ALL   FAIL* IDX-TEST-F2-13                SUBSCRIPT USED FOR COMPUTED
+
+                                     COMPUTED= 0901
+                                     CORRECT = 0901                  VI-121 6.21.2
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC237A
+
+                                                    010 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    003 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

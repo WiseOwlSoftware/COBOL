@@ -1,0 +1,56 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC220M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ DISPLAY UPON         INSPT DIS-TEST-GF-1                 RESULTS MUST BE
+*** INFORMATION ***                                 LITERAL-02          IV-21 4.3.8.2
+
+ DISPLAY UPON         INSPT DIS-TEST-GF-2                 VISUALLY CHECKED
+*** INFORMATION ***                                 9876543210          IV-21 4.3.8.2
+
+ MULTIPLY BY          PASS  MLT-TEST-F1-1
+ MULTIPLY BY          PASS  MLT-TEST-F1-2
+ MULTIPLY BY          PASS  MLT-TEST-F1-3
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-1      .01        QUOTIENT
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-1      .02        REMAINDER
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-2      .01        QUOTIENT
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-2      .02        REMAINDER
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-3      .01        QUOTIENT
+ DIVIDE BY REMAINDER  PASS  DIV-TEST-F5-3      .02        REMAINDER
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-4      .01        QUOTIENT
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-4      .02        REMAINDER
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-5      .01        QUOTIENT
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-5      .02        REMAINDER
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-6      .01        QUOTIENT
+ DIVIDE INTO REMNDER  PASS  DIV-TEST-F4-6      .02        REMAINDER
+ DIVIDE INTO          PASS  DIV-TEST-F1-7
+ DIVIDE INTO          PASS  DIV-TEST-F1-8
+ DIVIDE BY GIVING     PASS  DIV-TEST-F5-9
+ DIVIDE BY GIVING     PASS  DIV-TEST-F5-10
+ PERFORM UNTIL        PASS  PFM-TEST-F3-1
+ PERFORM UNTIL        PASS  PFM-TEST-F3-2
+ PERFORM VARYING      PASS  PFM-TEST-F4-3
+ PERFORM VARYING      PASS  PFM-TEST-F4-4
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC220M
+
+                                                    023 OF 025  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    002 TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
