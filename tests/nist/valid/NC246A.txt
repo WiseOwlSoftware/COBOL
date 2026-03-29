@@ -13,13 +13,13 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- STORE TABLE VALUES         INIT-TABLE         .01        GROUP-1-TABLEABCDEFGHIJKLMNOPNO
+ STORE TABLE VALUES         INIT-TABLE         .01        GROUP-1-TABLE = ABCDEFGHIJKLMNO
 *** INFORMATION ***        SEE REMARKS              ABCDEFGHIJKLMNO
 
- STORE TABLE VALUES         INIT-TABLE         .02        GROUP-2-TABLE =
+ STORE TABLE VALUES         INIT-TABLE         .02        GROUP-2-TABLE = LKJIHGFEDCBA
 *** INFORMATION ***        SEE REMARKS              LKJIHGFEDCBA
 
- STORE TABLE VALUES         INIT-TABLE         .03        GROUP-3-TABLE =
+ STORE TABLE VALUES         INIT-TABLE         .03        GROUP-3-TABLE =ABCDEFGHIJKLMNOP
 *** INFORMATION ***        SEE REMARKS              ABCDEFGHIJKLMNOP
 
  STORE TABLE VALUES         INIT-TABLE         .04        GROUP-4-TABLE =ABCDEFGHIJKLMNO
@@ -28,87 +28,23 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  STORE TABLE VALUES         INIT-TABLE         .05        GROUP-5-TABLE =PONMLKJIHGFEDCBA
 *** INFORMATION ***        SEE REMARKS              PONMLKJIHGFEDCBA
 
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .01        ONE DIMENSIONAL TABLE
-
-                                     COMPUTED= D
-                                     CORRECT = A
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .02
-
-                                     COMPUTED= D
-                                     CORRECT = A
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .03
-
-                                     COMPUTED= D
-                                     CORRECT = A
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .04
-
-                                     COMPUTED=
-                                     CORRECT = A
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .05
-
-                                     COMPUTED= G
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .06
-
-                                     COMPUTED= G
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-01       .07
-
-                                     COMPUTED=
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-02       .01
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .01        ONE DIMENSIONAL TABLE
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .02
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .03
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .04
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .05
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .06
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-01       .07
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-02       .01
  QUALIFIED TABLE ITEM PASS  QUAL-TEST-02       .02
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-02       .03
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-02       .04
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-02       .05
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-03       .01        THREE DIMENSIONAL TABLE
-
-                                     COMPUTED=
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-03       .02
-
-                                     COMPUTED=
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-03       .03
-
-                                     COMPUTED=
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-03       .04
-
-                                     COMPUTED=
-                                     CORRECT = D
-
- QUALIFIED TABLE ITEM FAIL* QUAL-TEST-03       .05
-
-                                     COMPUTED=
-                                     CORRECT = D
-
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-02       .03
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-02       .04
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-02       .05
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-03       .01        THREE DIMENSIONAL TABLE
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-03       .02
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-03       .03
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-03       .04
+ QUALIFIED TABLE ITEM PASS  QUAL-TEST-03       .05
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-04       .01        ONE DIMENSIONAL TABLE
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-04       .02
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-04       .03
@@ -117,16 +53,8 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-05       .01        THREE DIMENSIONAL TABLE
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-05       .02
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-06       .01        ONE DIMENSIONAL TABLE
- QUALIFIED SUBSCRIPT  FAIL* QUAL-TEST-06       .02
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUALIFIED SUBSCRIPT  FAIL* QUAL-TEST-07       .01        THREE DIMENSIONAL TABLE
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
+ QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-06       .02
+ QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-07       .01        THREE DIMENSIONAL TABLE
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-07       .02
  QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .01        ONE DIMENSIONAL TABLE
 
@@ -190,22 +118,10 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      CORRECT = TRUE
 
  QUAL. CONDITION NAME PASS  QUAL-TEST-10       .04
- QUALIFICATION        FAIL* QUAL-TEST-11       .01        INTERMEDIATE LEVELS SKIPPED
-
-                                     COMPUTED= J
-                                     CORRECT = G
-
+ QUALIFICATION        PASS  QUAL-TEST-11       .01        INTERMEDIATE LEVELS SKIPPED
  QUALIFICATION        PASS  QUAL-TEST-11       .02
- QUALIFICATION        FAIL* QUAL-TEST-11       .03
-
-                                     COMPUTED= J
-                                     CORRECT = G
-
- QUALIFICATION        FAIL* QUAL-TEST-11       .04
-
-                                     COMPUTED=
-                                     CORRECT = A
-
+ QUALIFICATION        PASS  QUAL-TEST-11       .03
+ QUALIFICATION        PASS  QUAL-TEST-11       .04
  QUALIFICATION        FAIL* QUAL-TEST-11       .05
 
                                      COMPUTED= FALSE
@@ -224,8 +140,8 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC246A
 
-                                                    014 OF 049  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    035 TEST(S) FAILED
+                                                    035 OF 049  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    014 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

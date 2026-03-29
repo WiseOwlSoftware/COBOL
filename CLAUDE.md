@@ -19,7 +19,7 @@ consulting it. Initialize the submodule with: `git submodule update --init --rec
 - **Branch**: main
 - **Unit tests**: 421 pass
 - **Integration tests**: 274 pass, 1 skip (12 focused test files)
-- **NIST tests at 100%** (82 in guard)
+- **NIST tests at 100%** (85 in guard)
 - **Intrinsic functions**: 94/94 dispatched, all tested
 - **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
 - **Grammar files**: 14 files, 3,225+ lines
@@ -73,5 +73,7 @@ Key remaining items:
 - START WITH LENGTH
 - CURRENCY WITH PICTURE SYMBOL (blocked by PICMODE lexer architecture)
 - NC220M/NC237A runtime hangs (undiagnosed)
-- 18 non-passing NC tests: 5 parse, 6 semantic, 1 codegen, 2 runtime hang, 4 no output
+- 10 non-passing NC tests (all need deep architectural work):
+  NC205A (preprocessor), NC125A (lexer PIC), NC250A/NC216A (grammar),
+  NC225A (EVALUATE lowering), NC201A/NC220M/NC237A (runtime), NC303M/NC401M (flagging)
 - Remaining non-NC suites (IC, IF, IX, SQ, ST, etc.) not yet attempted
