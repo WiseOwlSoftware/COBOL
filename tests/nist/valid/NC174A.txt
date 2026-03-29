@@ -68,30 +68,15 @@ TEST RESULT OF NC174A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
    NUMERIC            PASS  CLASS-TEST-GF-1
    NOT NUMERIC        PASS  CLASS-TEST-GF-2
    NOT NUMERIC        PASS  CLASS-TEST-GF-3
-   NOT NUMERIC        FAIL* CLASS-TEST-GF-4
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 V1-56 6.3.1.2
-
+   NOT NUMERIC        PASS  CLASS-TEST-GF-4
    NUMERIC            PASS  CLASS-TEST-GF-5
-   NUMERIC            FAIL* CLASS-TEST-GF-6
-
-                                     COMPUTED=  000000022.000000000
-                                     CORRECT = NUMERIC EXPECTED      V1-56 6.3.1.2
-
+   NUMERIC            PASS  CLASS-TEST-GF-6
    NUMERIC            PASS  CLASS-TEST-GF-7
    NUMERIC            PASS  CLASS-TEST-GF-8
-   NOT NUMERIC        FAIL* CLASS-TEST-GF-9
-
-                                     COMPUTED=
-                                     CORRECT = ALPHABETIC EXPECTED   V1-56 6.3.1.2
-
+   NOT NUMERIC        PASS  CLASS-TEST-GF-9
    NOT NUMERIC        PASS  CLASS-TEST-GF-10
    NOT NUMERIC        PASS  CLASS-TEST-GF-11
-   NOT NUMERIC        FAIL* CLASS-TEST-GF-12
-
-                                     COMPUTED= NUMERIC EXPECTED
-                                     CORRECT =  000000990.000000000  V1-56 6.3.1.2
-
+   NOT NUMERIC        PASS  CLASS-TEST-GF-12
    ALPHABETIC         PASS  CLASS-TEST-GF-13
    ALPHABETIC         PASS  CLASS-TEST-GF-14
    NOT ALPHABETIC     PASS  CLASS-TEST-GF-15
@@ -125,8 +110,8 @@ TEST RESULT OF NC174A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC174A
 
-                                                    071 OF 077  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    005 TEST(S) FAILED
+                                                    075 OF 077  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    001 TEST(S) FAILED
                                                     001 TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
