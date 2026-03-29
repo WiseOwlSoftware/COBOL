@@ -57,21 +57,46 @@ for test in $NIST_TESTS; do
     # Normalize: strip trailing spaces, and normalize time-dependent COMPUTED values
     normalize() { sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' "$1" 2>/dev/null; }
 
+    # Find the actual output file (outfile, print-file, or stdout)
+    actual=""
     if diff <(normalize "$validfile") <(normalize "tests/nist/output/$outfile") > /dev/null 2>&1; then
-        echo "  $test: MATCH"
+        actual="tests/nist/output/$outfile"
     elif diff <(normalize "$validfile") <(normalize "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
-        echo "  $test: MATCH"
+        actual="tests/nist/output/print-file.txt"
     elif diff <(normalize "$validfile") <(normalize "$stdoutfile") > /dev/null 2>&1; then
-        echo "  $test: MATCH"
-    else
+        actual="$stdoutfile"
+    fi
+
+    if [ -z "$actual" ]; then
         echo "  $test: DIFF — REGRESSION!"
         FAILURES=$((FAILURES + 1))
+        continue
+    fi
+
+    # Check for FAIL* in output — these are real test failures, not acceptable baselines
+    fail_count=$(grep -c "FAIL\*" "$actual" 2>/dev/null || true)
+    fail_count=${fail_count:-0}
+    if [ "$fail_count" -gt 0 ] 2>/dev/null; then
+        echo "  $test: MATCH (${fail_count} FAIL*)"
+    else
+        echo "  $test: MATCH"
     fi
 done
 
 if [ $FAILURES -gt 0 ]; then
     echo "=== $FAILURES NIST REGRESSION(S) ==="
     exit 1
+fi
+
+# Report total FAIL* across all tests (bugs locked into baselines)
+total_fails=0
+for f in tests/nist/valid/*.txt; do
+    fc=$(grep -c "FAIL\*" "$f" 2>/dev/null || true)
+    fc=${fc:-0}
+    total_fails=$((total_fails + fc)) 2>/dev/null || true
+done
+if [ "$total_fails" -gt 0 ] 2>/dev/null; then
+    echo "=== WARNING: $total_fails FAIL* results locked in valid baselines ==="
 fi
 
 echo "=== ALL GREEN ==="
