@@ -31,6 +31,15 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
     }
 
+    private static string ExtractProcedureName(CobolParserCore.ProcedureNameContext ctx)
+    {
+        var ids = ctx.IDENTIFIER();
+        if (ids.Length > 0) return ids[0].GetText();
+        var ints = ctx.INTEGERLIT();
+        if (ints.Length > 0) return ints[0].GetText();
+        return ctx.GetText();
+    }
+
     // ── Resolve PERFORM targets ──
 
     public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
@@ -40,7 +49,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
         {
             foreach (var procName in procNames)
             {
-                string name = procName.GetText();
+                string name = ExtractProcedureName(procName);
                 var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
 
                 if (sym is not (ParagraphSymbol or SectionSymbol))
@@ -59,7 +68,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
         foreach (var pn in procNames)
         {
-            string name = pn.GetText();
+            string name = ExtractProcedureName(pn);
             var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
 
             if (sym is not (ParagraphSymbol or SectionSymbol))

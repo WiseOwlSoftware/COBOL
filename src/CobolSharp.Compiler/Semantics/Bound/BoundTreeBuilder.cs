@@ -70,6 +70,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     /// For sections, returns the first paragraph in the section.
     /// For paragraphs, returns the paragraph directly.
     /// </summary>
+    /// <summary>Extract the paragraph/section name from a procedureName context.
+    /// Uses first IDENTIFIER/INTEGERLIT token only, ignoring OF/IN qualifiers.</summary>
+    private static string ExtractProcedureNameText(CobolParserCore.ProcedureNameContext ctx)
+    {
+        var ids = ctx.IDENTIFIER();
+        if (ids.Length > 0) return ids[0].GetText();
+        var ints = ctx.INTEGERLIT();
+        if (ints.Length > 0) return ints[0].GetText();
+        return ctx.GetText();
+    }
+
     private ParagraphSymbol? ResolveProcedureName(string name)
     {
         var para = _semantic.ResolveParagraph(name);
@@ -579,7 +590,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         // Out-of-line: first procedureName is the target (paragraph or section)
-        string name = procNames[0].GetText();
+        string name = ExtractProcedureNameText(procNames[0]);
         var (paraSym, sectionLastPara) = ResolveProcedureNameForPerform(name);
         if (paraSym == null) return null;
 
@@ -617,7 +628,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // PERFORM para THRU para2 [options]
         if (procNames.Length > 1)
         {
-            string thruName = procNames[1].GetText();
+            string thruName = ExtractProcedureNameText(procNames[1]);
             var thruSym = ResolveProcedureNameForThruEnd(thruName);
 
             // Check for options on the THRU form
@@ -1248,9 +1259,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var procNames = inputCtx.procedureName();
             if (procNames.Length >= 1)
-                inputProc = ResolveProcedureName(procNames[0].GetText());
+                inputProc = ResolveProcedureName(ExtractProcedureNameText(procNames[0]));
             if (procNames.Length >= 2)
-                inputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+                inputProcThru = ResolveProcedureNameForThruEnd(ExtractProcedureNameText(procNames[1]));
         }
 
         // GIVING / OUTPUT PROCEDURE
@@ -1264,9 +1275,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var procNames = outputCtx.procedureName();
             if (procNames.Length >= 1)
-                outputProc = ResolveProcedureName(procNames[0].GetText());
+                outputProc = ResolveProcedureName(ExtractProcedureNameText(procNames[0]));
             if (procNames.Length >= 2)
-                outputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+                outputProcThru = ResolveProcedureNameForThruEnd(ExtractProcedureNameText(procNames[1]));
         }
 
         return new BoundSortStatement(fileSym, keys, duplicates,
@@ -1301,9 +1312,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         {
             var procNames = outputCtx.procedureName();
             if (procNames.Length >= 1)
-                outputProc = ResolveProcedureName(procNames[0].GetText());
+                outputProc = ResolveProcedureName(ExtractProcedureNameText(procNames[0]));
             if (procNames.Length >= 2)
-                outputProcThru = ResolveProcedureNameForThruEnd(procNames[1].GetText());
+                outputProcThru = ResolveProcedureNameForThruEnd(ExtractProcedureNameText(procNames[1]));
         }
 
         return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,
@@ -2779,7 +2790,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
         foreach (var pn in procNames)
         {
-            string name = pn.GetText();
+            string name = ExtractProcedureNameText(pn);
             var paraSym = ResolveProcedureName(name);
             if (paraSym != null) targets.Add(paraSym);
         }
@@ -2819,8 +2830,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             var procNames = entry.procedureName();
             if (procNames.Length < 2) continue;
 
-            string targetName = procNames[0].GetText();
-            string destName = procNames[1].GetText();
+            string targetName = ExtractProcedureNameText(procNames[0]);
+            string destName = ExtractProcedureNameText(procNames[1]);
 
             var targetSym = ResolveProcedureName(targetName);
             var destSym = ResolveProcedureName(destName);
@@ -4225,7 +4236,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // USE BEFORE REPORTING report-name
         if (ctx.BEFORE() != null && ctx.REPORTING() != null)
         {
-            string reportName = ctx.procedureName()?.GetText() ?? "";
+            string reportName = ctx.procedureName() != null ? ExtractProcedureNameText(ctx.procedureName()) : "";
             return new BoundUseStatement(isBeforeReporting: true, [], reportName);
         }
 
