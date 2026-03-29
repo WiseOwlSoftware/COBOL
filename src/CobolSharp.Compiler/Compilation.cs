@@ -144,6 +144,12 @@ public sealed class Compilation
         var inputStream = new AntlrInputStream(processedText);
         var lexer = new CobolLexer(inputStream);
         var tokenStream = new CommonTokenStream(lexer);
+
+        // Rewrite ZERO tokens to ZERO_ARITH in arithmetic contexts.
+        // Must run after lexing, before parsing — avoids grammar ambiguity
+        // that causes exponential ANTLR prediction time.
+        ZeroTokenRewriter.Rewrite(tokenStream);
+
         var parser = new CobolParserCore(tokenStream);
 
         parser.RemoveErrorListeners();
@@ -151,8 +157,9 @@ public sealed class Compilation
         parser.ErrorHandler = new CobolErrorStrategy();
 
         // Two-stage parsing: try fast SLL mode first, fall back to full LL on error.
-        // This prevents exponential prediction time for ambiguous grammars.
+        // BailErrorStrategy forces SLL to throw on ambiguity instead of hanging.
         parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.SLL;
+        parser.ErrorHandler = new Antlr4.Runtime.BailErrorStrategy();
         CobolParserCore.CompilationUnitContext tree;
         try
         {
@@ -160,10 +167,11 @@ public sealed class Compilation
         }
         catch (Exception)
         {
-            // SLL failed — retry with full LL prediction
+            // SLL failed — retry with full LL prediction and normal error handling
             tokenStream.Seek(0);
             parser.Reset();
             parser.Interpreter.PredictionMode = Antlr4.Runtime.Atn.PredictionMode.LL;
+            parser.ErrorHandler = new CobolErrorStrategy();
             tree = parser.compilationUnit();
         }
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;

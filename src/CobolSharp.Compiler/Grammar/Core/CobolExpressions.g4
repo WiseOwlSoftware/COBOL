@@ -52,10 +52,9 @@ booleanLiteral
     | FALSE_
     ;
 
-// COBOL sign conditions: IS [NOT] POSITIVE/NEGATIVE/ZERO.
-signCondition
-    : valueOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)
-    ;
+// signCondition has been merged into comparisonExpression to eliminate
+// ANTLR prediction ambiguity — both rules started with valueOperand,
+// causing exponential DFA growth on files with many figurative-constant comparisons.
 
 condition
     : logicalOrExpression
@@ -95,8 +94,7 @@ unaryLogicalExpression
     ;
 
 primaryCondition
-    : signCondition
-    | comparisonExpression
+    : comparisonExpression
     | booleanLiteral
     | LPAREN condition RPAREN
     ;
@@ -111,6 +109,7 @@ comparisonOperand
 
 comparisonExpression
     : comparisonOperand IS? NOT? className                         // class condition
+    | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition)
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
 
@@ -198,6 +197,7 @@ unaryExpression
 
 primaryExpression
     : numericLiteral
+    | ZERO_ARITH                       // figurative ZERO rewritten by token rewriter in arithmetic context
     | functionCall
     | dataReference
     | LPAREN arithmeticExpression RPAREN

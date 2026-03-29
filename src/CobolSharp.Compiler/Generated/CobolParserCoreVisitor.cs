@@ -825,12 +825,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitBooleanLiteral([NotNull] CobolParserCore.BooleanLiteralContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.signCondition"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitSignCondition([NotNull] CobolParserCore.SignConditionContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.condition"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

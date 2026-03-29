@@ -2962,7 +2962,7 @@ public sealed class Binder
         if (allLiteral != null)
         {
             // ALL "X" — repeat pattern to fill width
-            if (width <= 0) return allLiteral;
+            if (width <= 0 || allLiteral.Length == 0) return allLiteral;
             var sb = new System.Text.StringBuilder(width);
             while (sb.Length < width) sb.Append(allLiteral);
             return sb.ToString(0, width);

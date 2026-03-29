@@ -1,0 +1,205 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ***********************************************************************************************************************
+
+
+
+
+                                                          THE FOLLOWING TESTS
+                                                          COMPARE FIGURATIVE
+                                                          CONSTANTS, SIGN OF DATA,
+                                                          AND CONDITION-NAMES
+                                                          IN VARYING COMBINATIONS.
+ COMPARE--
+   FIG. CONSTANTS     PASS  IF--TEST-1
+   FIG. CONSTANTS     PASS  IF--TEST-2
+   FIG. CONSTANTS     PASS  IF--TEST-3
+   FIG. CONSTANTS     PASS  IF--TEST-4
+   FIG. CONSTANTS     PASS  IF--TEST-5
+   FIG. CONSTANTS     PASS  IF--TEST-6
+   FIG. CONSTANTS     PASS  IF--TEST-7
+   UNEQUAL LENGTHS    PASS  IF--TEST-8
+   POSITIVE           PASS  IF--TEST-9
+   POSITIVE           PASS  IF--TEST-10
+   POSITIVE           PASS  IF--TEST-11
+   POSITIVE           PASS  IF--TEST-12
+   POSITIVE           PASS  IF--TEST-13
+   POSITIVE           PASS  IF--TEST-14
+   POSITIVE           PASS  IF--TEST-15
+   POSITIVE           PASS  IF--TEST-16
+   NEGATIVE           PASS  IF--TEST-17
+   NEGATIVE           PASS  IF--TEST-18
+   NEGATIVE           PASS  IF--TEST-19
+   ZERO               PASS  IF--TEST-20
+   ZERO               PASS  IF--TEST-21
+   CONDITION-NAMES    PASS  IF--TEST-22
+   CONDITION-NAMES    PASS  IF--TEST-23
+   CONDITION-NAMES    FAIL* IF--TEST-24
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
+
+   CONDITION-NAMES    PASS  IF--TEST-25
+   CONDITION-NAMES    FAIL* IF--TEST-26
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
+
+   CONDITION-NAMES    FAIL* IF--TEST-27
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
+
+   CONDITION-NAMES    PASS  IF--TEST-28
+   CONDITION-NAMES    PASS  IF--TEST-29
+   CONDITION-NAMES    PASS  IF--TEST-30
+   CONDITION-NAMES    PASS  IF--TEST-31
+   CONDITION-NAMES    PASS  IF--TEST-32
+   CONDITION-NAMES    PASS  IF--TEST-33
+ ***********************************************************************************************************************
+
+
+
+
+                                                          THE FOLLOWING TESTS USE ARITHMETIC-EXPRESSIONS
+                                                          IN RELATION OR SIGN CONDITIONS.
+   EQUAL              PASS  IF--TEST-34
+   EQUAL              PASS  IF--TEST-35
+   EQUAL              PASS  IF--TEST-36
+   EQUAL              PASS  IF--TEST-37
+   GREATER            PASS  IF--TEST-38
+   GREATER            PASS  IF--TEST-39
+   GREATER            PASS  IF--TEST-40
+   LESS               PASS  IF--TEST-41
+   LESS               PASS  IF--TEST-42
+   LESS               PASS  IF--TEST-43
+                            IF--TEST-44                   NOT USED
+                            IF--TEST-45                   NOT USED
+   NOT EQUAL
+   NOT EQUAL          PASS  IF--TEST-46
+   NOT EQUAL          PASS  IF--TEST-47
+   NOT GREATER        PASS  IF--TEST-48
+   NOT GREATER        PASS  IF--TEST-49
+   NOT GREATER        PASS  IF--TEST-50
+   NOT LESS           PASS  IF--TEST-51
+   NOT LESS           PASS  IF--TEST-52
+   NOT LESS           PASS  IF--TEST-53
+   POS, NEG, ZERO     PASS  IF--TEST-54
+   POS, NEG, ZERO     PASS  IF--TEST-55
+   POS, NEG, ZERO     PASS  IF--TEST-56
+                            IF--TEST-57                   NOT USED
+                            IF--TEST-58                   NOT USED
+   POS, NEG, ZERO     PASS  IF--TEST-59
+   POS, NEG, ZERO     PASS  IF--TEST-60
+   POS, NEG, ZERO     PASS  IF--TEST-61
+                            IF--TEST-62                   NOT USED
+ POS, NEG, ZERO       PASS  IF--TEST-63
+   SYMBOLS > < =      PASS  IF--TEST-64
+   SYMBOLS > < =      PASS  IF--TEST-65
+   SYMBOLS > < =      PASS  IF--TEST-66
+   SYMBOLS > < =      PASS  IF--TEST-67
+   SYMBOLS > < =      PASS  IF--TEST-68
+   SYMBOLS > < =      PASS  IF--TEST-69
+                            IF--TEST-70                   NOT USED
+ ***********************************************************************************************************************
+
+
+
+
+                                                          THE FOLLOWING TESTS COMBINATIONS OF
+                                                          RELATIONAL AND SIZE ERROR CONDITIONS.
+   INCL SIZE ERROR    PASS  IF--TEST-71
+   UNEQUAL LENGTHS    PASS  IF--TEST-73
+   UNEQUAL LENGTHS    PASS  IF--TEST-74
+   UNEQUAL LENGTHS    PASS  IF--TEST-75
+   UNEQUAL LENGTHS    PASS  IF--TEST-77
+   UNEQUAL LENGTHS    PASS  IF--TEST-78
+ QUALIFIED GROUP      PASS  IF--TEST-79
+ ***********************************************************************************************************************
+
+
+
+
+                                                          THESE SPECIAL CONDITION-
+                                                          NAME TESTS VERIFY THE
+                                                          ABILITY OF THE COMPILER TO
+                                                          ACCEPT SUBSCRIPTED 88 LEVEL
+ OCCURS WITH 88 LEVEL FAIL* IF--TEST-80
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
+
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-81
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-82
+ OCCURS WITH 88 LEVEL FAIL* IF--TEST-83
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
+
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-84
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-85
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-86
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-87
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-88
+ FIGCON < = > D-NAME  PASS  IF--TEST-89
+ FIGCON < = > D-NAME  PASS  IF--TEST-90
+ FIGCON < = > D-NAME  PASS  IF--TEST-91
+ FIGCON < = > D-NAME  PASS  IF--TEST-92
+ FIGCON < = > D-NAME  PASS  IF--TEST-93
+ FIGCON < = > D-NAME  PASS  IF--TEST-94
+ FIGCON < = > D-NAME  PASS  IF--TEST-95
+ FIGCON < = > D-NAME  PASS  IF--TEST-96
+ FIGCON < = > D-NAME  PASS  IF--TEST-97
+ FIGCON < = > D-NAME  PASS  IF--TEST-98
+ FIGCON < = > D-NAME  PASS  IF--TEST-99
+ FIGCON < = > D-NAME  PASS  IF--TEST-100
+ FIGCON < = > D-NAME  PASS  IF--TEST-101
+ FIGCON < = > D-NAME  PASS  IF--TEST-102
+ FIGCON < = > D-NAME  PASS  IF--TEST-103
+ FIGCON < = > D-NAME  PASS  IF--TEST-104
+ FIGCON < = > D-NAME  PASS  IF--TEST-105
+ FIGCON < = > D-NAME  PASS  IF--TEST-106
+ FIGCON < = > D-NAME  PASS  IF--TEST-107
+ FIGCON < = > D-NAME  PASS  IF--TEST-108
+ CLASS --- ALPHABETIC PASS  IF--TEST-109
+ ABBREV CONDITIONS    PASS  IF--TEST-110
+ ABBREV CONDITIONS    PASS  IF--TEST-111
+ CONDITION---NAME     PASS  IF--TEST-112
+ ABBREV---CONDITION   PASS  IF--TEST-113
+ ABBREV---CONDITION   PASS  IF--TEST-114
+ POS/NEG SIGN TEST    PASS  IF--TEST-115
+ POS/NEG SIGN TEST    PASS  IF--TEST-116
+ POS/NEG SIGN TEST    PASS  IF--TEST-117
+ POS/NEG SIGN TEST    PASS  IF--TEST-118
+                            IF--TEST-119                  NOT USED
+ SIGN TEST ON ZERO    PASS  IF--TEST-120
+ SIGN TEST ON ZERO    PASS  IF--TEST-121
+ ABR. COM. REL. CONDT PASS  IF-TEST-122
+ LOGICAL CONNECTIVES  PASS  IF-TEST-123
+ ***********************************************************************************************************************
+
+
+
+
+ COLLATING-AND-ALPHABET-TEST-9  SYNTAX CHECK IN OBJECT-COMPUTER AND SPECIAL-NAMES
+ LOGICAL CONNECTIVES  PASS  IF-TEST-124
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC250A
+
+                                                    110 OF 115  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    005 TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

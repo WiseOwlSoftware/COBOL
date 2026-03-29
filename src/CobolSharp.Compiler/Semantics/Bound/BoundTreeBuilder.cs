@@ -2657,6 +2657,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.numericLiteral() != null)
             return BindNumericLiteral(ctx.numericLiteral());
 
+        // ZERO_ARITH: figurative ZERO rewritten by token rewriter in arithmetic context
+        if (ctx.ZERO_ARITH() != null)
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
         if (ctx.dataReference() != null)
         {
             return BindDataReferenceWithSubscripts(ctx.dataReference());
@@ -2969,12 +2973,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (figCtx.ALL() != null)
         {
-            string? allText = null;
+            // ALL STRINGLIT / ALL HEXLIT: repeating literal pattern
             var allStr = figCtx.STRINGLIT();
             if (allStr != null)
             {
                 var raw = allStr.GetText();
-                if (raw.Length >= 2) allText = raw[1..^1];
+                string allText = raw.Length >= 2 ? raw[1..^1] : "";
+                return new BoundFigurativeExpression(FigurativeKind.None, allText);
             }
             var allHex = figCtx.HEXLIT();
             if (allHex != null)
@@ -2986,10 +2991,21 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     var sb = new System.Text.StringBuilder();
                     for (int i = 0; i + 1 < hexBody.Length; i += 2)
                         sb.Append((char)Convert.ToByte(hexBody[i..(i + 2)], 16));
-                    allText = sb.ToString();
+                    return new BoundFigurativeExpression(FigurativeKind.None, sb.ToString());
                 }
             }
-            return new BoundFigurativeExpression(FigurativeKind.None, allText ?? "");
+
+            // ALL ZERO / ALL SPACE / ALL HIGH-VALUE / ALL LOW-VALUE / ALL QUOTE
+            // Per COBOL-85 §4.3.3, ALL applied to a figurative constant is
+            // semantically identical to the figurative constant alone.
+            if (figCtx.ZERO() != null) return new BoundFigurativeExpression(FigurativeKind.Zero);
+            if (figCtx.SPACE() != null) return new BoundFigurativeExpression(FigurativeKind.Space);
+            if (figCtx.HIGH_VALUE() != null) return new BoundFigurativeExpression(FigurativeKind.HighValue);
+            if (figCtx.LOW_VALUE() != null) return new BoundFigurativeExpression(FigurativeKind.LowValue);
+            if (figCtx.QUOTE_() != null) return new BoundFigurativeExpression(FigurativeKind.Quote);
+
+            // Fallback: should not reach here with valid grammar
+            return new BoundFigurativeExpression(FigurativeKind.None, "");
         }
 
         string figText = figCtx.GetText().ToUpperInvariant();
@@ -3143,12 +3159,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundExpression BindPrimaryCondition(CobolParserCore.PrimaryConditionContext primary)
     {
-        // Sign condition: operand IS [NOT] POSITIVE/NEGATIVE/ZERO
-        // Listed first in grammar — more specific than comparisonExpression
-        if (primary.signCondition() is { } signCtx)
-            return BindSignCondition(signCtx);
-
-        // Comparison expression (relational, class condition, bare identifier)
+        // Comparison expression (relational, class condition, sign condition, bare identifier)
+        // Sign condition was merged into comparisonExpression to eliminate ANTLR prediction ambiguity.
         if (primary.comparisonExpression() is { } comp)
             return BindComparison(comp);
 
@@ -3166,12 +3178,15 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return new BoundLiteralExpression(true, CobolCategory.Unknown);
     }
 
-    private BoundExpression BindSignCondition(CobolParserCore.SignConditionContext ctx)
+    /// <summary>
+    /// Bind a sign condition from within comparisonExpression (after grammar merge).
+    /// The sign condition alternative is: comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)
+    /// </summary>
+    private BoundExpression BindSignConditionFromComparison(
+        CobolParserCore.ComparisonExpressionContext ctx,
+        CobolParserCore.ComparisonOperandContext operandCtx)
     {
-        var operandCtx = ctx.valueOperand();
-        var subject = operandCtx != null
-            ? BindValueOperand(operandCtx)
-            : new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        var subject = BindComparisonOperand(operandCtx);
 
         bool isNegated = ctx.NOT() != null;
         var kind = ctx.POSITIVE() != null ? SignConditionKind.Positive
@@ -3193,6 +3208,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var operands = ctx.comparisonOperand();
         var relOp = ctx.comparisonOperator();
         var classNameCtx = ctx.className();
+
+        // Sign condition (merged from signCondition): operand IS? NOT? POSITIVE/NEGATIVE/ZERO
+        if ((ctx.POSITIVE() != null || ctx.NEGATIVE() != null || ctx.ZERO() != null)
+            && classNameCtx == null && operands.Length >= 1)
+        {
+            return BindSignConditionFromComparison(ctx, operands[0]);
+        }
 
         // Class condition: operand IS? NOT? className
         if (classNameCtx != null && operands.Length >= 1)

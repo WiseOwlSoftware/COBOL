@@ -8,6 +8,11 @@ options {
     superClass = CobolParserCoreBase;
 }
 
+// Virtual token: ZERO rewritten to ZERO_ARITH by token rewriter when
+// adjacent to arithmetic operators. Keeps ZERO and ZERO_ARITH in
+// completely disjoint grammar rules — zero ambiguity.
+tokens { ZERO_ARITH }
+
 import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml;
 
 // ==========================================
