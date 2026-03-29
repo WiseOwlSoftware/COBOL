@@ -8,8 +8,8 @@ namespace CobolSharp.Runtime;
 /// sorted by key fields, then returned in order via Return.
 ///
 /// LIMITATION: Current implementation is entirely in-memory. All records are held in a
-/// List&lt;byte[]&gt; and sorted via Array.Sort. This works for NIST test datasets but will
-/// fail with OutOfMemoryException on large production files.
+/// List&lt;byte[]&gt; and sorted via LINQ OrderBy (which is stable). This works for NIST test
+/// datasets but will fail with OutOfMemoryException on large production files.
 ///
 /// The COBOL spec does not require in-memory sort — SD files are files, and implementations
 /// may use any mechanism. A production implementation should use external merge sort:
@@ -46,49 +46,64 @@ public static class SortRuntime
 
     /// <summary>
     /// Sort the collected records by the specified keys.
-    /// keysSpec format: "offset,length,asc;offset,length,asc;..." where asc is "1" or "0".
+    /// keysSpec format: "offset,length,asc,isNumeric,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale;..."
+    /// Legacy format "offset,length,asc;..." is also accepted (treated as alphanumeric byte comparison).
     /// </summary>
     public static void SortRecords(string fileName, string keysSpec)
     {
-        ParseKeysSpec(keysSpec, out var keyOffsets, out var keyLengths, out var keyAscending);
-        SortRecordsInternal(fileName, keyOffsets, keyLengths, keyAscending);
+        var keys = ParseKeysSpec(keysSpec);
+        SortRecordsInternal(fileName, keys);
     }
 
-    private static void SortRecordsInternal(string fileName, int[] keyOffsets, int[] keyLengths, bool[] keyAscending)
+    private static void SortRecordsInternal(string fileName, SortKeySpec[] keys)
     {
         if (!_sortFiles.TryGetValue(fileName, out var sf))
             throw new InvalidOperationException($"SORT file '{fileName}' not initialized");
 
-        sf.Records.Sort((a, b) =>
+        // Use LINQ OrderBy/ThenBy which is guaranteed stable (preserves original order for equal keys).
+        // This is required by COBOL's WITH DUPLICATES IN ORDER semantics.
+        if (keys.Length == 0)
         {
-            for (int k = 0; k < keyOffsets.Length; k++)
-            {
-                int off = keyOffsets[k];
-                int len = keyLengths[k];
-                int cmp = CompareBytes(a, b, off, len);
-                if (cmp != 0)
-                    return keyAscending[k] ? cmp : -cmp;
-            }
-            return 0; // equal keys — stable sort preserves order (List.Sort is stable in .NET)
-        });
+            sf.ReturnIndex = 0;
+            return;
+        }
 
+        IOrderedEnumerable<byte[]> ordered;
+        var firstKey = keys[0];
+        if (firstKey.IsAscending)
+            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey));
+        else
+            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+
+        for (int k = 1; k < keys.Length; k++)
+        {
+            var key = keys[k];
+            if (key.IsAscending)
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+            else
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+        }
+
+        // Materialize before clearing — LINQ is lazy, so the source list must survive enumeration
+        var sorted = ordered.ToList();
+        sf.Records.Clear();
+        sf.Records.AddRange(sorted);
         sf.ReturnIndex = 0;
     }
 
     /// <summary>
     /// Merge multiple already-sorted input streams.
     /// inputFileNames: semicolon-delimited file names.
-    /// keysSpec format: "offset,length,asc;offset,length,asc;..."
+    /// keysSpec format: "offset,length,asc,isNumeric,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale;..."
     /// </summary>
     public static void MergeRecords(string mergeFileName, string inputFileNamesStr, string keysSpec)
     {
         var inputFileNames = inputFileNamesStr.Split(';');
-        ParseKeysSpec(keysSpec, out var keyOffsets, out var keyLengths, out var keyAscending);
-        MergeRecordsInternal(mergeFileName, inputFileNames, keyOffsets, keyLengths, keyAscending);
+        var keys = ParseKeysSpec(keysSpec);
+        MergeRecordsInternal(mergeFileName, inputFileNames, keys);
     }
 
-    private static void MergeRecordsInternal(string mergeFileName, string[] inputFileNames,
-        int[] keyOffsets, int[] keyLengths, bool[] keyAscending)
+    private static void MergeRecordsInternal(string mergeFileName, string[] inputFileNames, SortKeySpec[] keys)
     {
         if (!_sortFiles.TryGetValue(mergeFileName, out var sf))
             throw new InvalidOperationException($"MERGE file '{mergeFileName}' not initialized");
@@ -109,20 +124,33 @@ public static class SortRuntime
             FileRuntime.CloseFile(inputName);
         }
 
-        // Sort merged records by keys
-        sf.Records.Sort((a, b) =>
+        // Sort merged records by keys (stable sort)
+        if (keys.Length == 0)
         {
-            for (int k = 0; k < keyOffsets.Length; k++)
-            {
-                int off = keyOffsets[k];
-                int len = keyLengths[k];
-                int cmp = CompareBytes(a, b, off, len);
-                if (cmp != 0)
-                    return keyAscending[k] ? cmp : -cmp;
-            }
-            return 0;
-        });
+            sf.ReturnIndex = 0;
+            return;
+        }
 
+        IOrderedEnumerable<byte[]> ordered;
+        var firstKey = keys[0];
+        if (firstKey.IsAscending)
+            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey));
+        else
+            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+
+        for (int k = 1; k < keys.Length; k++)
+        {
+            var key = keys[k];
+            if (key.IsAscending)
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+            else
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+        }
+
+        // Materialize before clearing — LINQ is lazy, so the source list must survive enumeration
+        var sorted = ordered.ToList();
+        sf.Records.Clear();
+        sf.Records.AddRange(sorted);
         sf.ReturnIndex = 0;
     }
 
@@ -156,18 +184,79 @@ public static class SortRuntime
         _sortFiles.Remove(fileName);
     }
 
-    private static void ParseKeysSpec(string keysSpec, out int[] offsets, out int[] lengths, out bool[] ascending)
+    private static SortKeySpec[] ParseKeysSpec(string keysSpec)
     {
         var parts = keysSpec.Split(';', StringSplitOptions.RemoveEmptyEntries);
-        offsets = new int[parts.Length];
-        lengths = new int[parts.Length];
-        ascending = new bool[parts.Length];
+        var keys = new SortKeySpec[parts.Length];
         for (int i = 0; i < parts.Length; i++)
         {
             var fields = parts[i].Split(',');
-            offsets[i] = int.Parse(fields[0]);
-            lengths[i] = int.Parse(fields[1]);
-            ascending[i] = fields[2] == "1";
+            int offset = int.Parse(fields[0]);
+            int length = int.Parse(fields[1]);
+            bool ascending = fields[2] == "1";
+
+            if (fields.Length >= 11)
+            {
+                // Extended format with PIC info
+                bool isNumeric = fields[3] == "1";
+                var usage = (UsageKind)int.Parse(fields[4]);
+                bool isSigned = fields[5] == "1";
+                var signStorage = (SignStorageKind)int.Parse(fields[6]);
+                int fractionDigits = int.Parse(fields[7]);
+                int totalDigits = int.Parse(fields[8]);
+                int leadingScale = int.Parse(fields[9]);
+                int trailingScale = int.Parse(fields[10]);
+
+                PicDescriptor? pic = null;
+                if (isNumeric)
+                {
+                    pic = new PicDescriptor(
+                        totalDigits: totalDigits,
+                        fractionDigits: fractionDigits,
+                        isSigned: isSigned,
+                        isNumeric: true,
+                        isAlphanumeric: false,
+                        hasEditing: false,
+                        storageLength: length,
+                        usage: usage,
+                        category: CobolCategory.Numeric,
+                        signStorage: signStorage,
+                        editing: EditingKind.None,
+                        blankWhenZero: false,
+                        leadingScaleDigits: leadingScale,
+                        trailingScaleDigits: trailingScale);
+                }
+
+                keys[i] = new SortKeySpec(offset, length, ascending, isNumeric, pic);
+            }
+            else
+            {
+                // Legacy 3-field format: treat as alphanumeric byte comparison
+                keys[i] = new SortKeySpec(offset, length, ascending, false, null);
+            }
+        }
+        return keys;
+    }
+
+    /// <summary>Comparer for a single sort key, used with LINQ OrderBy/ThenBy.</summary>
+    private sealed class SortKeyComparer(SortKeySpec key) : IComparer<byte[]>
+    {
+        public int Compare(byte[]? a, byte[]? b)
+        {
+            if (a is null && b is null) return 0;
+            if (a is null) return -1;
+            if (b is null) return 1;
+
+            if (key.IsNumeric && key.Pic != null)
+            {
+                // Decode numeric values and compare as decimals
+                decimal valA = PicRuntime.DecodeNumeric(a, key.Offset, key.Length, key.Pic);
+                decimal valB = PicRuntime.DecodeNumeric(b, key.Offset, key.Length, key.Pic);
+                return valA.CompareTo(valB);
+            }
+
+            // Alphanumeric: unsigned byte-by-byte comparison (EBCDIC/ASCII collating sequence)
+            return CompareBytes(a, b, key.Offset, key.Length);
         }
     }
 
@@ -182,6 +271,16 @@ public static class SortRuntime
             if (cmp != 0) return cmp;
         }
         return 0;
+    }
+
+    /// <summary>Parsed sort key specification including PIC info for numeric keys.</summary>
+    private sealed class SortKeySpec(int offset, int length, bool isAscending, bool isNumeric, PicDescriptor? pic)
+    {
+        public int Offset { get; } = offset;
+        public int Length { get; } = length;
+        public bool IsAscending { get; } = isAscending;
+        public bool IsNumeric { get; } = isNumeric;
+        public PicDescriptor? Pic { get; } = pic;
     }
 
     private sealed class SortFile(int recordLength)

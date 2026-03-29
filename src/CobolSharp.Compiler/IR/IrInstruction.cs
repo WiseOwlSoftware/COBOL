@@ -651,7 +651,6 @@ public sealed class IrCheckFileInvalidKey : IrInstruction
 public sealed class IrCheckFileAtEnd : IrInstruction
 {
     public string FileName { get; }
-    public new IrValue Result { get; }
 
     public IrCheckFileAtEnd(string fileName, IrValue result)
     {

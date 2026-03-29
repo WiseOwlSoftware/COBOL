@@ -112,10 +112,6 @@ public sealed class CilEmitter
         CreateEntryMethodSignature(ir);
 
         // 5. Method bodies
-        Console.Error.WriteLine($"[CIL] IR module '{ir.Name}' has {ir.Methods.Count} methods:");
-        foreach (var m in ir.Methods)
-            Console.Error.WriteLine($"[CIL]   {m.Name}: {m.Blocks.Count} blocks, {m.Blocks.Sum(b => b.Instructions.Count)} instr");
-
         foreach (var m in ir.Methods)
             EmitMethodBody(m);
 
@@ -703,16 +699,6 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ret));
         }
 
-        // DIAG: dump IL with computed offsets
-        int diagOffset = 0;
-        Console.Error.WriteLine($"[IL] {md.FullName}: {md.Body.Instructions.Count} IL instructions, {md.Body.Variables.Count} locals");
-        foreach (var instr in md.Body.Instructions)
-        {
-            instr.Offset = diagOffset;
-            diagOffset += instr.GetSize();
-        }
-        foreach (var instr in md.Body.Instructions)
-            Console.Error.WriteLine($"[IL]   {instr}");
     }
 
     // ── Instruction emission ──
@@ -1272,6 +1258,8 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldloc, leftLocal));
         il.Append(il.Create(OpCodes.Ldloc, rightLocal));
 
+        bool needsNegate = bin.Op is IrBinaryOp.Ne or IrBinaryOp.Le or IrBinaryOp.Ge;
+
         var op = bin.Op switch
         {
             IrBinaryOp.Add => OpCodes.Add,
@@ -1279,14 +1267,24 @@ public sealed class CilEmitter
             IrBinaryOp.Mul => OpCodes.Mul,
             IrBinaryOp.Div => OpCodes.Div,
             IrBinaryOp.Eq => OpCodes.Ceq,
+            IrBinaryOp.Ne => OpCodes.Ceq,   // negate after
             IrBinaryOp.Lt => OpCodes.Clt,
+            IrBinaryOp.Le => OpCodes.Cgt,   // negate after
             IrBinaryOp.Gt => OpCodes.Cgt,
+            IrBinaryOp.Ge => OpCodes.Clt,   // negate after
             IrBinaryOp.And => OpCodes.And,
             IrBinaryOp.Or => OpCodes.Or,
             _ => throw new NotSupportedException($"Binary op {bin.Op}")
         };
 
         il.Append(il.Create(op));
+
+        if (needsNegate)
+        {
+            // Logical negate: push 0, ceq (turns 1->0 and 0->1)
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ceq));
+        }
 
         if (bin.Result is { } res)
         {
@@ -1982,7 +1980,10 @@ public sealed class CilEmitter
                 "IsAtEnd",
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
-        il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result)));
+        if (chk.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result.Value)));
+        else
+            il.Append(il.Create(OpCodes.Pop));
     }
 
     // ── DELETE / START / INVALID KEY ──

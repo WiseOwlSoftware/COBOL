@@ -1491,7 +1491,7 @@ public static class PicRuntime
         return pic.Usage switch
         {
             UsageKind.Display => DecodeDisplay(area, offset, length, pic),
-            UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length),
+            UsageKind.Comp3 or UsageKind.PackedDecimal => DecodeComp3(area, offset, length, pic),
             UsageKind.Comp or UsageKind.Binary => DecodeCompBinary(area, offset, length, pic),
             UsageKind.Comp5 => DecodeComp5(area, offset, length, pic),
             UsageKind.Comp1 => DecodeComp1(area, offset),
@@ -1590,7 +1590,7 @@ public static class PicRuntime
         return 0m;
     }
 
-    private static decimal DecodeComp3(byte[] area, int offset, int length)
+    private static decimal DecodeComp3(byte[] area, int offset, int length, PicDescriptor pic)
     {
         if (length == 0) return 0m;
         int lastByte = area[offset + length - 1];
@@ -1602,7 +1602,17 @@ public static class PicRuntime
             intPart = intPart * 10 + (area[i] & 0x0F);
         }
         intPart = intPart * 10 + ((lastByte >> 4) & 0x0F);
-        return negative ? -intPart : intPart;
+
+        decimal result = negative ? -intPart : intPart;
+
+        // Apply implied decimal + leading P scaling (same as COMP/BINARY)
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            result /= Pow10(totalFractionScale);
+        if (pic.TrailingScaleDigits > 0)
+            result *= Pow10(pic.TrailingScaleDigits);
+
+        return result;
     }
 
     /// <summary>
@@ -1825,7 +1835,7 @@ public static class PicRuntime
         {
             case UsageKind.Comp3:
             case UsageKind.PackedDecimal:
-                EncodeComp3(area, offset, length, value);
+                EncodeComp3(area, offset, length, pic, value);
                 break;
             case UsageKind.Comp:
             case UsageKind.Binary:
@@ -1952,9 +1962,18 @@ public static class PicRuntime
         return ('0', false);
     }
 
-    private static void EncodeComp3(byte[] area, int offset, int length, decimal value)
+    private static void EncodeComp3(byte[] area, int offset, int length, PicDescriptor pic, decimal value)
     {
-        string s = Math.Abs(value).ToString("F0", CultureInfo.InvariantCulture);
+        // Apply scaling to get integer representation (same as COMP/BINARY)
+        decimal scaled = value;
+        int totalFractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+        if (totalFractionScale > 0)
+            scaled *= Pow10(totalFractionScale);
+        if (pic.TrailingScaleDigits > 0)
+            scaled /= Pow10(pic.TrailingScaleDigits);
+
+        scaled = decimal.Truncate(scaled);
+        string s = Math.Abs(scaled).ToString("F0", CultureInfo.InvariantCulture);
         bool negative = value < 0;
         for (int i = offset; i < offset + length; i++) area[i] = 0;
 
@@ -2179,16 +2198,49 @@ public static class PicRuntime
     {
         // COBOL-85 §6.3.4.1: For alphanumeric/group items, NUMERIC = digits 0-9 only.
         // For numeric items, signs and decimal points are allowed per the PIC.
-        bool allowSign = pic.Category == CobolCategory.Numeric;
-        bool allowDecimal = pic.Category == CobolCategory.Numeric;
+        // Spaces are NOT digits and cause IS NUMERIC to return false.
+        bool isNumericCategory = pic.Category == CobolCategory.Numeric;
+
+        // Determine which position (if any) holds an overpunch or separate sign
+        int overpunchPos = -1;
+        int separateSignPos = -1;
+        if (isNumericCategory && pic.IsSigned)
+        {
+            switch (pic.SignStorage)
+            {
+                case SignStorageKind.TrailingOverpunch:
+                    overpunchPos = length - 1;
+                    break;
+                case SignStorageKind.LeadingOverpunch:
+                    overpunchPos = 0;
+                    break;
+                case SignStorageKind.TrailingSeparate:
+                    separateSignPos = length - 1;
+                    break;
+                case SignStorageKind.LeadingSeparate:
+                    separateSignPos = 0;
+                    break;
+            }
+        }
 
         for (int i = 0; i < length; i++)
         {
             char c = (char)area[offset + i];
             if (c >= '0' && c <= '9') continue;
-            if (c == ' ') continue;
-            if (allowSign && (c == '+' || c == '-')) continue;
-            if (allowDecimal && c == '.') continue;
+
+            // Overpunch sign position: accept overpunch-encoded digits
+            // Positive 0-9: { A B C D E F G H I
+            // Negative 0-9: } J K L M N O P Q R
+            if (i == overpunchPos)
+            {
+                if (c == '{' || (c >= 'A' && c <= 'I') ||
+                    c == '}' || (c >= 'J' && c <= 'R'))
+                    continue;
+            }
+
+            // Separate sign position: accept + or -
+            if (i == separateSignPos && (c == '+' || c == '-')) continue;
+
             return false;
         }
         return true;

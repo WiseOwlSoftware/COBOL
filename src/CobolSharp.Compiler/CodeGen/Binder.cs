@@ -1214,7 +1214,10 @@ public sealed class Binder
                 if (_paragraphMethods.TryGetValue(paraName, out var paraMethod))
                     methods.Add(paraMethod);
                 else
-                    methods.Add(null!);
+                {
+                    _diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, paraName);
+                    continue;
+                }
             }
             block.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
         }
@@ -1608,7 +1611,10 @@ public sealed class Binder
                     if (_paragraphMethods.TryGetValue(pName, out var pm))
                         methods.Add(pm);
                     else
-                        methods.Add(null!);
+                    {
+                        _diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, pName);
+                        continue;
+                    }
                 }
                 useBlock.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
             }
@@ -1937,7 +1943,17 @@ public sealed class Binder
             var keyLoc = _semantic.GetStorageLocation(k.Key);
             int keyOff = keyLoc.HasValue ? keyLoc.Value.Offset - sdBaseOffset : 0;
             int keyLen = keyLoc.HasValue ? keyLoc.Value.Length : 0;
-            return $"{keyOff},{keyLen},{(k.IsAscending ? "1" : "0")}";
+            var pic = _semantic.GetPicDescriptor(k.Key);
+            // Extended format: offset,length,asc,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale
+            int usage = pic != null ? (int)pic.Usage : 0;
+            int isSigned = pic is { IsSigned: true } ? 1 : 0;
+            int signStorage = pic != null ? (int)pic.SignStorage : 0;
+            int fractionDigits = pic?.FractionDigits ?? 0;
+            int totalDigits = pic?.TotalDigits ?? 0;
+            int leadingScale = pic?.LeadingScaleDigits ?? 0;
+            int trailingScale = pic?.TrailingScaleDigits ?? 0;
+            bool isNumeric = pic is { IsNumeric: true };
+            return $"{keyOff},{keyLen},{(k.IsAscending ? "1" : "0")},{(isNumeric ? "1" : "0")},{usage},{isSigned},{signStorage},{fractionDigits},{totalDigits},{leadingScale},{trailingScale}";
         }));
     }
 
