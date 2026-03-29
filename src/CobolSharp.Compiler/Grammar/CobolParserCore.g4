@@ -131,47 +131,47 @@ identificationParagraph
 
 // AUTHOR.
 authorParagraph
-    : AUTHOR DOT authorContent
+    : AUTHOR DOT authorContent? DOT
     ;
 
 authorContent
-    : (IDENTIFIER | STRINGLIT)+
+    : ~DOT+
     ;
 
 // INSTALLATION.
 installationParagraph
-    : INSTALLATION DOT installationContent
+    : INSTALLATION DOT installationContent? DOT
     ;
 
 installationContent
-    : (IDENTIFIER | STRINGLIT)+
+    : ~DOT+
     ;
 
 // DATE-WRITTEN.
 dateWrittenParagraph
-    : DATE_WRITTEN DOT dateWrittenContent
+    : DATE_WRITTEN DOT dateWrittenContent? DOT
     ;
 
 dateWrittenContent
-    : (IDENTIFIER | STRINGLIT | INTEGERLIT)+
+    : ~DOT+
     ;
 
 // DATE-COMPILED.
 dateCompiledParagraph
-    : DATE_COMPILED DOT dateCompiledContent
+    : DATE_COMPILED DOT dateCompiledContent? DOT
     ;
 
 dateCompiledContent
-    : (IDENTIFIER | STRINGLIT | INTEGERLIT)+
+    : ~DOT+
     ;
 
 // SECURITY.
 securityParagraph
-    : SECURITY DOT securityContent
+    : SECURITY DOT securityContent? DOT
     ;
 
 securityContent
-    : (IDENTIFIER | STRINGLIT)+
+    : ~DOT+
     ;
 
 // REMARKS.
