@@ -1,0 +1,38 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC205A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CONTINUATION ---
+   NUMERIC INTEGER    PASS  CON-TEST-GF-1
+   NUM NON-INTEGER    PASS  CON-TEST-GF-2
+   COMP CONDITIONAL   PASS  CON-TEST-GF-3
+   RESERVED WORDS     PASS  CON-TEST-GF-4
+   DATA-NAMES         PASS  CON-TEST-GF-5
+   PARAGRAPH-NAMES    PASS  CON-TEST-GF-6
+   RECORD, ITEM DESCR PASS  CON-TEST-GF-7
+ SPACES BETWEEN WORDS PASS  CON-TEST-GF-10
+ SPACES BETWEEN WORDS PASS  CON-WRITE-GF-9
+ PICTURE STRING CONTI PASS  CON-TEST-GF-10
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC205A
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

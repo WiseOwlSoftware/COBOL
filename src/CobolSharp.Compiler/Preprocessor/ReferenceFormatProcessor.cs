@@ -211,7 +211,11 @@ public static class ReferenceFormatProcessor
 
         if (!inLiteral)
         {
-            // Not in a literal — just append the trimmed continuation content
+            // Not in a literal — strip trailing spaces from previous line and
+            // append trimmed continuation content (§6.2.4: first non-space of
+            // continuation immediately follows last non-space of preceding line)
+            while (result.Length > 0 && result[result.Length - 1] == ' ')
+                result.Length--;
             string trimmed = sourceArea.TrimStart();
             result.AppendLine(trimmed);
             ScanLiteralState(trimmed, ref inLiteral, ref pendingQuote);
