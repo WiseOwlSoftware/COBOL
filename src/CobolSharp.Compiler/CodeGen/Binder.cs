@@ -1097,13 +1097,23 @@ public sealed class Binder
         {
             block.Instructions.Add(new IrPicMoveLiteralNumeric(dest, d, 0));
         }
+        else if (TryExtractNegativeLiteral(source, out var negVal))
+        {
+            block.Instructions.Add(new IrPicMoveLiteralNumeric(dest, negVal, 0));
+        }
         else if (source is BoundIdentifierExpression id)
         {
-            var srcLoc = ResolveLocation(id);
+            var srcLoc = ResolveExpressionLocation(id);
             if (srcLoc != null)
                 block.Instructions.Add(new IrMoveFieldToField(
                     srcLoc, dest,
                     srcLoc.GetPic(), dest.GetPic()));
+        }
+        else
+        {
+            // General expression (arithmetic, etc.): evaluate via COMPUTE and store
+            var resolvedLocs = PreResolveExpressionLocations(source);
+            block.Instructions.Add(new IrComputeStore(source, dest, 0, resolvedLocs));
         }
     }
 
@@ -1114,12 +1124,42 @@ public sealed class Binder
         {
             block.Instructions.Add(new IrPicAddLiteral(indexLoc, dStep, 0));
         }
+        else if (TryExtractNegativeLiteral(step, out var negVal))
+        {
+            block.Instructions.Add(new IrPicAddLiteral(indexLoc, negVal, 0));
+        }
         else if (step is BoundIdentifierExpression idStep)
         {
-            var stepLoc = ResolveLocation(idStep);
+            var stepLoc = ResolveExpressionLocation(idStep);
             if (stepLoc != null)
                 block.Instructions.Add(new IrPicAdd(stepLoc, indexLoc, 0));
         }
+        else
+        {
+            // General expression: evaluate step into accumulator, then add to index
+            var accumulator = _valueFactory.Next(IrPrimitiveType.Decimal);
+            var resolvedLocs = PreResolveExpressionLocations(step);
+            block.Instructions.Add(new IrComputeIntoAccumulator(accumulator, step, resolvedLocs));
+            block.Instructions.Add(new IrAddAccumulatedToTarget(accumulator, indexLoc, 0));
+        }
+    }
+
+    /// <summary>
+    /// Try to extract a negative literal from a BoundBinaryExpression of the form (0 - literal).
+    /// The parser encodes negative numeric literals as subtraction from zero.
+    /// </summary>
+    private static bool TryExtractNegativeLiteral(BoundExpression expr, out decimal value)
+    {
+        if (expr is BoundBinaryExpression neg
+            && neg.OperatorKind == BoundBinaryOperatorKind.Subtract
+            && neg.Left is BoundLiteralExpression zl && zl.Value is decimal zd && zd == 0m
+            && neg.Right is BoundLiteralExpression il && il.Value is decimal id)
+        {
+            value = -id;
+            return true;
+        }
+        value = 0m;
+        return false;
     }
 
     private IrBasicBlock LowerPerformBody(BoundPerformStatement perf, IrMethod method, IrBasicBlock block)
