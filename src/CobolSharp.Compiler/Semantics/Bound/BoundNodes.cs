@@ -312,12 +312,16 @@ public sealed class BoundConditionNameExpression : BoundExpression
 {
     public ConditionSymbol Condition { get; }
     public bool IsNegated { get; }
+    /// <summary>The parent data reference expression including subscripts (null = unsubscripted).</summary>
+    public BoundExpression? ParentExpression { get; }
 
-    public BoundConditionNameExpression(ConditionSymbol condition, bool isNegated = false)
+    public BoundConditionNameExpression(ConditionSymbol condition, bool isNegated = false,
+        BoundExpression? parentExpression = null)
         : base(CobolCategory.Unknown)
     {
         Condition = condition;
         IsNegated = isNegated;
+        ParentExpression = parentExpression;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.ConditionNameExpression;

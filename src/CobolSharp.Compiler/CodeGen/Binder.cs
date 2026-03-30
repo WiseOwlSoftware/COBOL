@@ -3475,7 +3475,10 @@ public sealed class Binder
     private void LowerConditionName(BoundConditionNameExpression cn, IrValue result, IrBasicBlock block)
     {
         var parentSym = cn.Condition.ParentDataItem;
-        var parentLoc = ResolveLocation(parentSym);
+        // Use subscripted parent expression if available (for condition names on table elements)
+        var parentLoc = cn.ParentExpression != null
+            ? ResolveExpressionLocation(cn.ParentExpression)
+            : ResolveLocation(parentSym);
         if (parentLoc == null)
         {
             block.Instructions.Add(new IrSetBool(result, false));

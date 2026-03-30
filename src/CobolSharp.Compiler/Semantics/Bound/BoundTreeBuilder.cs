@@ -3401,7 +3401,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 var condSym = _semantic.ResolveConditionName(condNameStr);
                 if (condSym != null)
-                    return new BoundConditionNameExpression(condSym);
+                {
+                    // For subscripted condition names (e.g., EQUALS-M OF TABLE (13)),
+                    // create a parent expression using the parent DATA item with the
+                    // condition name's subscripts, so the lowering resolves to the
+                    // correct subscripted element.
+                    BoundExpression? parentExpr = null;
+                    if (left is BoundIdentifierExpression condId && condId.IsSubscripted
+                        && condSym.ParentDataItem != null)
+                    {
+                        parentExpr = new BoundIdentifierExpression(
+                            condSym.ParentDataItem, condId.Category, condId.Subscripts);
+                    }
+                    return new BoundConditionNameExpression(condSym, parentExpression: parentExpr);
+                }
 
                 var swCond = _semantic.ResolveSwitchCondition(condNameStr);
                 if (swCond != null)
