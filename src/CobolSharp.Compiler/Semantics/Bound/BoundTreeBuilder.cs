@@ -843,7 +843,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             }
         }
 
-        return new BoundEvaluateValueCondition(values, ranges, isAny);
+        bool isNot = groupCtx.NOT() != null;
+        return new BoundEvaluateValueCondition(values, ranges, isAny, isNot);
     }
 
     private BoundExpression BindValueOperand(CobolParserCore.ValueOperandContext vo)

@@ -1127,15 +1127,18 @@ public sealed class BoundEvaluateValueCondition : BoundEvaluateCondition
     public IReadOnlyList<BoundExpression> Values { get; }
     public IReadOnlyList<BoundEvaluateRange> Ranges { get; }
     public bool IsAny { get; }  // WHEN ANY — matches unconditionally
+    public bool IsNot { get; }  // WHEN NOT — invert match result
 
     public BoundEvaluateValueCondition(
         IReadOnlyList<BoundExpression> values,
         IReadOnlyList<BoundEvaluateRange> ranges,
-        bool isAny = false)
+        bool isAny = false,
+        bool isNot = false)
     {
         Values = values;
         Ranges = ranges;
         IsAny = isAny;
+        IsNot = isNot;
     }
 }
 

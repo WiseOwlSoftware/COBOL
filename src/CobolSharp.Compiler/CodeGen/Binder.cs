@@ -2881,6 +2881,10 @@ public sealed class Binder
                 return;
             }
 
+            // WHEN NOT: invert match by swapping success/fail targets
+            var matchSuccess = vc.IsNot ? failBlock : successBlock;
+            var matchFail = vc.IsNot ? successBlock : failBlock;
+
             var subject = eval.Subjects[subjectIndex];
 
             // OR over values: if any value matches, success
@@ -2888,10 +2892,10 @@ public sealed class Binder
             {
                 var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
                 LowerEvaluateComparison(subject, value, condVal, block);
-                // If true → success
+                // If true → match success
                 var tryNext = method.CreateBlock("eval.val.next");
                 block.Instructions.Add(new IrBranchIfFalse(condVal, tryNext));
-                block.Instructions.Add(new IrJump(successBlock));
+                block.Instructions.Add(new IrJump(matchSuccess));
                 method.Blocks.Add(tryNext);
                 block = tryNext;
             }
@@ -2910,13 +2914,13 @@ public sealed class Binder
                 var tryNextRange = method.CreateBlock("eval.range.next");
                 block.Instructions.Add(new IrBranchIfFalse(geVal, tryNextRange));
                 block.Instructions.Add(new IrBranchIfFalse(leVal, tryNextRange));
-                block.Instructions.Add(new IrJump(successBlock));
+                block.Instructions.Add(new IrJump(matchSuccess));
                 method.Blocks.Add(tryNextRange);
                 block = tryNextRange;
             }
 
-            // None matched → fail
-            block.Instructions.Add(new IrJump(failBlock));
+            // None matched → match fail
+            block.Instructions.Add(new IrJump(matchFail));
             return;
         }
 
