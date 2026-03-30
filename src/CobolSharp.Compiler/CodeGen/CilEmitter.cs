@@ -3457,11 +3457,16 @@ public sealed class CilEmitter
                                 typeof(decimal), typeof(int) })!)));
             }
 
-            // Increment tally counter
+            // Increment tally counter — only if overflow hasn't occurred
+            // (per spec, tally counts INTO targets that received data)
+            var skipTally = il.Create(OpCodes.Nop);
+            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));
+            il.Append(il.Create(OpCodes.Brtrue, skipTally));
             il.Append(il.Create(OpCodes.Ldloc, tallyLocal));
             il.Append(il.Create(OpCodes.Ldc_I4_1));
             il.Append(il.Create(OpCodes.Add));
             il.Append(il.Create(OpCodes.Stloc, tallyLocal));
+            il.Append(skipTally);
         }
 
         // Post-loop overflow check: if pointer <= srcLength (unexamined chars remain),

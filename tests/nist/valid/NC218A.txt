@@ -105,11 +105,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  POINTER NOT = 1      PASS  UST-TEST-GF-15     .03
  TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .01
  TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .02
- TALLY 3 FIELDS TEST  FAIL* UST-TEST-GF-16     .03
-
-                                     COMPUTED=  000000003.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .03
  QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .01
  QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .02
  QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .03
@@ -126,11 +122,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .01
  MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .02
  MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .03
- MULT RECEIVE AREAS   FAIL* UST-TEST-GF-20     .04
-
-                                     COMPUTED=  000000005.000000000
-                                     CORRECT =  000000003.000000000  VI-135
-
+ MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .04
  TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .01
  TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .02
  TRUNCATION CHECKS    FAIL* UST-TEST-GF-21     .03
@@ -138,7 +130,11 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED= *
                                      CORRECT = I                     VI-135
 
- TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .04
+ TRUNCATION CHECKS    FAIL* UST-TEST-GF-21     .04
+
+                                     COMPUTED=  000000003.000000000
+                                     CORRECT =  000000004.000000000  VI-135
+
  PIC X                PASS  UST-TEST-GF-22     .01
  PIC X                PASS  UST-TEST-GF-22     .02
  PIC X                PASS  UST-TEST-GF-22     .03
@@ -183,8 +179,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    115 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    010 TEST(S) FAILED
+                                                    116 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    009 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
