@@ -13,19 +13,13 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- PIC X                FAIL* UST-TEST-GF-1      .01        OVERFLOW SHOULD OCCUR
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-135
-
+ PIC X                PASS  UST-TEST-GF-1      .01
  PIC X                PASS  UST-TEST-GF-1      .02
  PIC X                PASS  UST-TEST-GF-1      .03
  PIC X                PASS  UST-TEST-GF-1      .04
  PIC X                PASS  UST-TEST-GF-1      .05
  PIC X                PASS  UST-TEST-GF-1      .06
- PIC X JUST           FAIL* UST-TEST-GF-2      .01        OVERFLOW SHOULD HAVE OCCURED
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-135
-
+ PIC X JUST           PASS  UST-TEST-GF-2      .01
  PIC X JUST           FAIL* UST-TEST-GF-2      .02
 
                                      COMPUTED= 1
@@ -98,10 +92,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  GROUP BOTTOM UP      PASS  UST-TEST-GF-11
  OVERFLOW TEST        PASS  UST-TEST-GF-12     .01
  OVERFLOW TEST        PASS  UST-TEST-GF-12     .02
- OVERFLOW EXPECTED    FAIL* UST-TEST-GF-13     .01        OVERFLOW SHOULD HAVE OCCURED
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-135
-
+ OVERFLOW EXPECTED    PASS  UST-TEST-GF-13     .01
  OVERFLOW EXPECTED    PASS  UST-TEST-GF-13     .02
  INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .01
  INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .02
@@ -148,10 +139,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      CORRECT = I                     VI-135
 
  TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .04
- PIC X                FAIL* UST-TEST-GF-22     .01        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-22     .01
  PIC X                PASS  UST-TEST-GF-22     .02
  PIC X                PASS  UST-TEST-GF-22     .03
  PIC X                PASS  UST-TEST-GF-22     .04
@@ -159,10 +147,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC X                PASS  UST-TEST-GF-22     .06
  OVERFLOW TEST        PASS  UST-TEST-GF-23     .01
  OVERFLOW TEST        PASS  UST-TEST-GF-23     .02
- PIC X                FAIL* UST-TEST-GF-24     .01        ON OVERFLOW SHOULD HAVE EXECUTED
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-24     .01
  PIC X                PASS  UST-TEST-GF-24     .02
  PIC X                PASS  UST-TEST-GF-24     .03
  PIC X                PASS  UST-TEST-GF-24     .04
@@ -184,16 +169,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC X                PASS  UST-TEST-GF-29-1   .03
  PIC X                PASS  UST-TEST-GF-29-1   .04
  PIC X                PASS  UST-TEST-GF-29-1   .05
- PIC X                FAIL* UST-TEST-GF-29-1   .06        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
-
-                                     COMPUTED= A
-                                     CORRECT =                       VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-29-1   .07        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
-
-                                     COMPUTED= B
-                                     CORRECT =                       VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-29-1   .06
+ PIC X                PASS  UST-TEST-GF-29-1   .07
  PIC X                PASS  UST-TEST-GF-29-1   .08
  OVERFLOW TEST        PASS  UST-TEST-GF-30     .01
  OVERFLOW TEST        PASS  UST-TEST-GF-30     .02
@@ -206,8 +183,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    108 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    017 TEST(S) FAILED
+                                                    115 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    010 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

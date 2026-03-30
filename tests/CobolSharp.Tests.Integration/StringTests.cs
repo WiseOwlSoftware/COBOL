@@ -301,14 +301,11 @@ public class StringTests : EndToEndTestBase
             """);
 
         Assert.True(success, $"Failed: {stderr}");
-        // Source has 3 fields (A, B, C) but only 2 INTO targets
-        // After X gets "A" and Y gets "B", source pointer hasn't reached end
-        // because "C" remains. But there are no more INTO targets.
-        // COBOL spec: overflow occurs when pointer > length of source.
-        // With 2 INTOs for 3 fields, the third field "C" is left but no overflow
-        // because source isn't exhausted — pointer just stops.
-        // Actually: overflow = pointer exceeded source length, which doesn't happen here.
-        Assert.Equal("OK", stdout);
+        // Source has 3 fields (A, B, C) but only 2 INTO targets.
+        // After X gets "A" and Y gets "B", "C" remains unexamined.
+        // Per ISO §14.9.44: overflow occurs when all receiving areas have been
+        // acted upon but unexamined characters remain in the source.
+        Assert.Equal("OVF", stdout);
     }
 
     // ── SECTION control flow ──

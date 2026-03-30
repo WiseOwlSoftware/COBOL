@@ -3464,6 +3464,22 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Stloc, tallyLocal));
         }
 
+        // Post-loop overflow check: if pointer <= srcLength (unexamined chars remain),
+        // set overflow. Per ISO §14.9.44: overflow occurs when "all receiving areas
+        // have been acted upon" but source is not exhausted.
+        // Logic: overflow = existingOverflow OR (pointer <= srcLength)
+        {
+            var srcLen = unstrStmt.Source.GetPic().StorageLength;
+            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));    // existing overflow
+            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));         // pointer (1-based)
+            il.Append(il.Create(OpCodes.Ldc_I4, srcLen));           // source length
+            il.Append(il.Create(OpCodes.Cgt));                      // pointer > srcLength?
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ceq));                      // NOT(pointer > srcLen) = unexamined chars remain
+            il.Append(il.Create(OpCodes.Or));                       // overflow OR unexamined
+            il.Append(il.Create(OpCodes.Stloc, overflowLocal));
+        }
+
         // Write pointer back to POINTER variable (if present)
         if (unstrStmt.PointerLocation != null)
         {
