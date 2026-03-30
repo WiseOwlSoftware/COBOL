@@ -6,18 +6,23 @@ using System.Text;
 namespace CobolSharp.Runtime;
 
 /// <summary>
-/// Runtime helpers for ACCEPT FROM DATE/TIME/DAY/DAY-OF-WEEK.
-/// Formats current date/time into the target field's byte storage.
+/// Runtime helpers for ACCEPT statement (Format 1: from input device, Format 2: from system source).
+/// Format 1 (AcceptSourceKind.None): reads from stdin into the target field.
+/// Format 2: formats current date/time into the target field's byte storage.
 /// </summary>
 public static class AcceptRuntime
 {
     /// <summary>
     /// ACCEPT identifier FROM source.
-    /// Formats the current date/time value and writes it into the target storage area.
+    /// For AcceptSourceKind.None (plain ACCEPT or ACCEPT FROM mnemonic-name),
+    /// reads from stdin. For system sources (DATE, TIME, etc.),
+    /// formats the current date/time value.
+    /// The result is written left-justified into the target storage area, space-padded on the right.
     /// </summary>
     /// <param name="area">Backing byte array.</param>
     /// <param name="offset">Field offset within the array.</param>
     /// <param name="length">Field length in bytes.</param>
+    /// <param name="sourceKind">The ACCEPT source kind.</param>
     public static void Accept(byte[] area, int offset, int length, AcceptSourceKind sourceKind)
     {
         string text = sourceKind switch
@@ -28,7 +33,7 @@ public static class AcceptRuntime
             AcceptSourceKind.Day => FormatDay(DateTime.Now),
             AcceptSourceKind.DayYYYYDDD => FormatDayYYYYDDD(DateTime.Now),
             AcceptSourceKind.DayOfWeek => FormatDayOfWeek(DateTime.Now, length),
-            _ => new string(' ', length) // Plain ACCEPT: blank fill (console input stub)
+            _ => ReadFromConsole(length)
         };
 
         byte[] bytes = Encoding.ASCII.GetBytes(text);
@@ -38,6 +43,40 @@ public static class AcceptRuntime
         // Pad remainder with spaces
         for (int i = offset + copyLen; i < offset + length; i++)
             area[i] = (byte)' ';
+    }
+
+    /// <summary>
+    /// Reads from stdin for ACCEPT Format 1 (plain ACCEPT or ACCEPT FROM mnemonic-name).
+    /// Per COBOL-85 spec section 6.5.4:
+    /// - Data is read from the input device and moved to the receiving field
+    ///   as if by an alphanumeric MOVE (left-justified, space-padded or truncated).
+    /// - For record-oriented input, successive records are read until the field is filled.
+    ///   Each record fills up to 80 characters (the standard card image size).
+    /// Returns spaces at end of input.
+    /// </summary>
+    private static string ReadFromConsole(int length)
+    {
+        const int RecordSize = 80;
+        var result = new StringBuilder(length);
+
+        while (result.Length < length)
+        {
+            string? line = Console.ReadLine();
+            if (line == null)
+                break;
+
+            // Pad short lines to record size (80-column card image semantics)
+            if (line.Length < RecordSize)
+                line = line.PadRight(RecordSize);
+
+            result.Append(line);
+
+            // If the field fits in one record, don't read more
+            if (length <= RecordSize)
+                break;
+        }
+
+        return result.ToString();
     }
 
     /// <summary>

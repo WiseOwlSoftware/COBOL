@@ -13,69 +13,17 @@ TEST RESULT OF NC109M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- ACCEPT               FAIL* ACC-TEST-GF-1
-
-                                     COMPUTED=
-                                     CORRECT = ABCDEFGHIJKLMNOPQRST  V1-71 6.5.4 GR1-5
-
- ACCEPT                                                   LAST 7 OF 27-CHAR FIELD
-*** INFORMATION ***                                 UVWXY Z             V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-2
-
-                                     COMPUTED=  000000000000000000
-                                     CORRECT =  000000000123456789   V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-3
-
-                                     COMPUTED=
-                                     CORRECT = ().+-*/$, =           V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-4
-
-                                     COMPUTED=
-                                     CORRECT = 9                     V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-5
-
-                                     COMPUTED=
-                                     CORRECT = 0                     V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-6
-
-                                     COMPUTED=
-                                     CORRECT =  ABC            XYZ   V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-7
-
-                                     COMPUTED= 000000000
-                                     CORRECT = 012345678             V1-71 6.5.4 GR1-5
-
+ ACCEPT               PASS  ACC-TEST-GF-1
+ ACCEPT               PASS  ACC-TEST-GF-2
+ ACCEPT               PASS  ACC-TEST-GF-3
+ ACCEPT               PASS  ACC-TEST-GF-4
+ ACCEPT               PASS  ACC-TEST-GF-5
+ ACCEPT               PASS  ACC-TEST-GF-6
+ ACCEPT               PASS  ACC-TEST-GF-7
  ACCEPT               PASS  ACC-TEST-GF-8
- ACCEPT               FAIL* ACC-TEST-GF-9
-
-                                     COMPUTED=
-                                     CORRECT = "                     V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-10
-
-                                     COMPUTED= ....    ....
-                                     CORRECT = ....ABCD....          V1-71 6.5.4 GR1-5
-
- ACCEPT               FAIL* ACC-TEST-GF-11
-
-                                     COMPUTED=
-                                     CORRECT = A B C D E F G H I J   V1-71 6.5.4 GR1-5
-
- ACCEPT
-*** INFORMATION ***                                 K L M N O P Q R S T V1-71 6.5.4 GR1-5
-
- ACCEPT
-*** INFORMATION ***                                 U V W X Y Z  0123456V1-71 6.5.4 GR1-5
-
- ACCEPT                                                   LAST 20 OF 80-CHAR FIELD
-*** INFORMATION ***                                 789                 V1-71 6.5.4 GR1-5
-
+ ACCEPT               PASS  ACC-TEST-GF-9
+ ACCEPT               PASS  ACC-TEST-GF-10
+ ACCEPT               PASS  ACC-TEST-GF-11
 
  DISPLAY TESTS                                            SEE NOTE IN DISP-INIT-GF-1
 
@@ -272,8 +220,8 @@ ABCD
 
                                                     END OF TEST-  NC109M
 
-                                                    001 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    010 TEST(S) FAILED
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

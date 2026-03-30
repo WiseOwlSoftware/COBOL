@@ -2085,6 +2085,9 @@ public sealed class Binder
 
     private void InitializeDataItem(DataSymbol item, BoundInitializeStatement stmt, IrBasicBlock block)
     {
+        // FILLER items are not affected by INITIALIZE (ISO 6.16.2 GR3)
+        if (item.IsFiller) return;
+
         if (item.IsGroup)
         {
             // Recurse into children (skipping REDEFINES items — they share storage)
@@ -2113,7 +2116,12 @@ public sealed class Binder
             }
         }
 
-        // Default: numeric → zero, everything else → spaces
+        // When REPLACING is specified, only the named categories are affected;
+        // fields not matching any replacement category are left unchanged (ISO 6.16.2 GR2).
+        if (stmt.CategoryReplacements.Count > 0)
+            return;
+
+        // Default (no REPLACING): numeric -> zero, everything else -> spaces
         if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
         {
             block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
@@ -2130,6 +2138,7 @@ public sealed class Binder
         {
             CobolCategory.Numeric => InitializeCategory.Numeric,
             CobolCategory.NumericEdited => InitializeCategory.NumericEdited,
+            CobolCategory.Alphabetic => InitializeCategory.Alphabetic,
             CobolCategory.AlphanumericEdited => InitializeCategory.AlphanumericEdited,
             _ => InitializeCategory.Alphanumeric
         };
@@ -3730,6 +3739,20 @@ public sealed class Binder
 
     // ── STRING ──
 
+    private static string? FigurativeToStringHelper(BoundFigurativeExpression fig)
+    {
+        if (fig.AllLiteral != null) return fig.AllLiteral;
+        return fig.FigurativeKind switch
+        {
+            Runtime.FigurativeKind.Zero => "0",
+            Runtime.FigurativeKind.Space => " ",
+            Runtime.FigurativeKind.HighValue => "\xFF",
+            Runtime.FigurativeKind.LowValue => "\x00",
+            Runtime.FigurativeKind.Quote => "\"",
+            _ => null
+        };
+    }
+
     private IrBasicBlock LowerString(BoundStringStatement str, IrMethod method, IrBasicBlock block)
     {
         var destLoc = ResolveExpressionLocation(str.Into);
@@ -3740,23 +3763,34 @@ public sealed class Binder
         if (str.Pointer != null)
             ptrLoc = ResolveExpressionLocation(str.Pointer);
 
-        // Build sending specs
+        // Build sending specs — handle figurative constants and field delimiters
         var sendings = new List<IrStringSending>();
         foreach (var sending in str.Sendings)
         {
             string? delimiter = null;
+            IrLocation? delimiterLoc = null;
             if (sending.Delimiter is BoundLiteralExpression delimLit && delimLit.Value is string ds)
                 delimiter = ds;
+            else if (sending.Delimiter is BoundFigurativeExpression delimFig)
+                delimiter = FigurativeToStringHelper(delimFig);
+            else if (sending.Delimiter is BoundIdentifierExpression)
+                delimiterLoc = ResolveExpressionLocation(sending.Delimiter);
 
             if (sending.Value is BoundLiteralExpression litVal && litVal.Value is string sv)
             {
-                sendings.Add(new IrStringSending(sv, null, delimiter, sending.DelimitedBySize));
+                sendings.Add(new IrStringSending(sv, null, delimiter, delimiterLoc, sending.DelimitedBySize));
+            }
+            else if (sending.Value is BoundFigurativeExpression figVal)
+            {
+                var figStr = FigurativeToStringHelper(figVal);
+                if (figStr != null)
+                    sendings.Add(new IrStringSending(figStr, null, delimiter, delimiterLoc, sending.DelimitedBySize));
             }
             else
             {
                 var srcLoc = ResolveExpressionLocation(sending.Value);
                 if (srcLoc != null)
-                    sendings.Add(new IrStringSending(null, srcLoc, delimiter, sending.DelimitedBySize));
+                    sendings.Add(new IrStringSending(null, srcLoc, delimiter, delimiterLoc, sending.DelimitedBySize));
             }
         }
 

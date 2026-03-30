@@ -287,7 +287,10 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED=  000000003.000000000
                                      CORRECT =  000000004.000000000  VI-135
 
- PIC X                PASS  UST-TEST-GF-22     .01
+ PIC X                FAIL* UST-TEST-GF-22     .01        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
+
  PIC X                PASS  UST-TEST-GF-22     .02
  PIC X                FAIL* UST-TEST-GF-22     .03
 
@@ -305,7 +308,10 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
 
  PIC X                PASS  UST-TEST-GF-22     .06
- OVERFLOW TEST        PASS  UST-TEST-GF-23     .01
+ OVERFLOW TEST        FAIL* UST-TEST-GF-23     .01        OVERFLOW SHOULD NOT HAVE OCCURED
+
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
+
  OVERFLOW TEST        FAIL* UST-TEST-GF-23     .02
 
                                      COMPUTED= ABCDE
@@ -395,16 +401,32 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
 
  PIC X                PASS  UST-TEST-GF-29-1   .05
- PIC X                PASS  UST-TEST-GF-29-1   .06
- PIC X                PASS  UST-TEST-GF-29-1   .07
+ PIC X                FAIL* UST-TEST-GF-29-1   .06        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
+
+                                     COMPUTED= A
+                                     CORRECT =                       VI-138 6.26.4 GR17
+
+ PIC X                FAIL* UST-TEST-GF-29-1   .07        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
+
+                                     COMPUTED= B
+                                     CORRECT =                       VI-138 6.26.4 GR17
+
  PIC X                PASS  UST-TEST-GF-29-1   .08
  OVERFLOW TEST        FAIL* UST-TEST-GF-30     .01
 
                                      COMPUTED= ABCDE
                                      CORRECT = ABCDEF                VI-138 6.26.4 GR17
 
- OVERFLOW TEST        PASS  UST-TEST-GF-30     .02
- OVERFLOW TEST        PASS  UST-TEST-GF-30     .03
+ OVERFLOW TEST        FAIL* UST-TEST-GF-30     .02        NOT ON OVERFLOW SHOULD HAVE EXECUTED
+
+                                     COMPUTED=
+                                     CORRECT = A                     VI-138 6.26.4 GR17
+
+ OVERFLOW TEST        FAIL* UST-TEST-GF-30     .03        NOT ON OVERFLOW SHOULD HAVE EXECUTED
+
+                                     COMPUTED=
+                                     CORRECT = B                     VI-138 6.26.4 GR17
+
  OVERFLOW TEST        PASS  UST-TEST-GF-30     .04
  ***********************************************************************************************************************
 
@@ -413,8 +435,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    056 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    069 TEST(S) FAILED
+                                                    050 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    075 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

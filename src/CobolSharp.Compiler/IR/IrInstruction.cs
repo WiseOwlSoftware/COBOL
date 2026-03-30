@@ -1465,14 +1465,16 @@ public sealed class IrStringSending
     /// <summary>Field location (non-null for field sendings).</summary>
     public IrLocation? SourceLocation { get; }
     public string? Delimiter { get; }
+    public IrLocation? DelimiterLocation { get; }
     public bool DelimitedBySize { get; }
 
     public IrStringSending(string? literalValue, IrLocation? sourceLocation,
-        string? delimiter, bool delimitedBySize)
+        string? delimiter, IrLocation? delimiterLocation, bool delimitedBySize)
     {
         LiteralValue = literalValue;
         SourceLocation = sourceLocation;
         Delimiter = delimiter;
+        DelimiterLocation = delimiterLocation;
         DelimitedBySize = delimitedBySize;
     }
 }

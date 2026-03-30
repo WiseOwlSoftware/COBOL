@@ -215,123 +215,24 @@ ALPHABETIC0123456789A1B2C3D4E5 SERIES
  DISPLAY UPON               DIS-TEST-GF-16                END CORRECT DATA
 *** INFORMATION ***        SEE ABOVE                SEE ABOVE           VI-79 6.10.4 GR8
 
- ACCEPT                     ACC-TEST-F1-1
-*** INFORMATION ***                                 ABCDEFGHIJKLMNOPQRSTVI-71 6.5.2
-
- ACCEPT               FAIL*                               LAST 7 OF 27-CHAR FIELD
-
-                                     COMPUTED=
-                                     CORRECT = UVWXY Z               VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-2
-
-                                     COMPUTED=  000000000000000000
-                                     CORRECT =  000000000123456789   VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-3
-
-                                     COMPUTED=
-                                     CORRECT = ().+-*/$, =           VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-4                 9 EXPECTED
-
-                                     COMPUTED=
-                                     CORRECT = 9                     VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-5                 0 EXPECTED
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-6
-
-                                     COMPUTED=
-                                     CORRECT =  ABC            XYZ   VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-7
-
-                                     COMPUTED=
-                                     CORRECT =  9    (SPACE 9)       VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-8
-
-                                     COMPUTED=
-                                     CORRECT = "                     VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-9
-
-                                     COMPUTED=
-                                     CORRECT = Q                     VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-10
-
-                                     COMPUTED= ....    ....
-                                     CORRECT = ....ABCD....          VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-11
-
-                                     COMPUTED= ----------------
-                                     CORRECT = ----------------ABCD  VI-71 6.5.2
-
- ACCEPT                     ACC-TEST-F1-12
-*** INFORMATION ***                                 A B C D E F G H I J VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 K L M N O P Q R S T VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 U V W X Y Z  0123456VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-12                LAST 20 OF  80 CHAR FIELD
-
-                                     COMPUTED=
-                                     CORRECT = 789                   VI-71 6.5.2
-
- ACCEPT                     ACC-TEST-F1-13
-*** INFORMATION ***                                 D001*002*003*004*005VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *006*007*008*009*010VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *011*012*013*014*015VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *016*017*018*019*020VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 D021*022*023*024*025VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *026*027*028*029*030VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *031*032*033*034*035VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 *036*037*038*039*040VI-71 6.5.2
-
- ACCEPT
-*** INFORMATION ***                                 D041*042*043*044*045VI-71 6.5.2
-
- ACCEPT               FAIL* ACC-TEST-F1-13                LAST 20 OF 200CHAR FIELD
-
-                                     COMPUTED=
-                                     CORRECT = *046*047*048*049*050  VI-71 6.5.2
-
+ ACCEPT               PASS  ACC-TEST-F1-1
+ ACCEPT               PASS  ACC-TEST-F1-2
+ ACCEPT               PASS  ACC-TEST-F1-3
+ ACCEPT               PASS  ACC-TEST-F1-4
+ ACCEPT               PASS  ACC-TEST-F1-5
+ ACCEPT               PASS  ACC-TEST-F1-6
+ ACCEPT               PASS  ACC-TEST-F1-7
+ ACCEPT               PASS  ACC-TEST-F1-8
+ ACCEPT               PASS  ACC-TEST-F1-9
+ ACCEPT               PASS  ACC-TEST-F1-10
+ ACCEPT               PASS  ACC-TEST-F1-11
+ ACCEPT               PASS  ACC-TEST-F1-12
+ ACCEPT               PASS  ACC-TEST-F1-13
  ACCEPT                     ACC-TEST-F1-14-1              PLEASE PERFORM A VISUAL CHECK TO ENSURE THAT
  ACCEPT                                                   A REQUEST FOR FURTHER INPUT IS MADE BY THE
  ACCEPT                                                   HARDWARE DEVICE
- ACCEPT               FAIL* ACC-TEST-F1-14-1
-
-                                     COMPUTED=
-                                     CORRECT = ABCDEFGHIJ            VI-71 6.5.4 GR4(A)
-
- ACCEPT               FAIL* ACC-TEST-F1-14-2
-
-                                     COMPUTED=
-                                     CORRECT = KLMNO                 VI-71 6.5.4 GR4(A)
-
+ ACCEPT               PASS  ACC-TEST-F1-14-1
+ ACCEPT               PASS  ACC-TEST-F1-14-2
  ***********************************************************************************************************************
 
 
@@ -339,8 +240,8 @@ ALPHABETIC0123456789A1B2C3D4E5 SERIES
 
                                                     END OF TEST-  NC204M
 
-                                                    000 OF 015  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    015 TEST(S) FAILED
+                                                    015 OF 015  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

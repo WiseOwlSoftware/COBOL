@@ -2003,6 +2003,16 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             sendings.Add(new BoundStringSending(value, delimiter, delimitedBySize));
         }
 
+        // Propagate delimiters: items without a delimiter inherit from the next item
+        for (int i = sendings.Count - 2; i >= 0; i--)
+        {
+            if (sendings[i].Delimiter == null && !sendings[i].DelimitedBySize)
+            {
+                var next = sendings[i + 1];
+                sendings[i] = new BoundStringSending(sendings[i].Value, next.Delimiter, next.DelimitedBySize);
+            }
+        }
+
         // INTO
         var intoPhrase = ctx.stringIntoPhrase();
         if (intoPhrase == null) return null;
@@ -2019,20 +2029,32 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.stringOnOverflow() is { } ovCtx)
         {
             var impStmts = ovCtx.statementBlock();
-            if (impStmts.Length >= 1)
+            bool isNotOnly = ovCtx.NOT() != null && impStmts.Length == 1;
+            if (isNotOnly)
             {
                 foreach (var stmt in impStmts[0].statement())
                 {
                     var bound = BindStatement(stmt);
-                    if (bound != null) onOverflow.Add(bound);
+                    if (bound != null) notOnOverflow.Add(bound);
                 }
             }
-            if (impStmts.Length >= 2)
+            else
             {
-                foreach (var stmt in impStmts[1].statement())
+                if (impStmts.Length >= 1)
                 {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) notOnOverflow.Add(bound);
+                    foreach (var stmt in impStmts[0].statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) onOverflow.Add(bound);
+                    }
+                }
+                if (impStmts.Length >= 2)
+                {
+                    foreach (var stmt in impStmts[1].statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) notOnOverflow.Add(bound);
+                    }
                 }
             }
         }
@@ -2109,23 +2131,35 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // ON OVERFLOW / NOT ON OVERFLOW
         var onOverflow = new List<BoundStatement>();
         var notOnOverflow = new List<BoundStatement>();
-        if (ctx.unstringOnOverflow() is { } ovCtx)
+        if (ctx.unstringOnOverflow() is { } ovCtx2)
         {
-            var impStmts = ovCtx.statementBlock();
-            if (impStmts.Length >= 1)
+            var impStmts2 = ovCtx2.statementBlock();
+            bool isNotOnly2 = ovCtx2.NOT() != null && impStmts2.Length == 1;
+            if (isNotOnly2)
             {
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = BindStatement(stmt);
-                    if (bound != null) onOverflow.Add(bound);
-                }
-            }
-            if (impStmts.Length >= 2)
-            {
-                foreach (var stmt in impStmts[1].statement())
+                foreach (var stmt in impStmts2[0].statement())
                 {
                     var bound = BindStatement(stmt);
                     if (bound != null) notOnOverflow.Add(bound);
+                }
+            }
+            else
+            {
+                if (impStmts2.Length >= 1)
+                {
+                    foreach (var stmt in impStmts2[0].statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) onOverflow.Add(bound);
+                    }
+                }
+                if (impStmts2.Length >= 2)
+                {
+                    foreach (var stmt in impStmts2[1].statement())
+                    {
+                        var bound = BindStatement(stmt);
+                        if (bound != null) notOnOverflow.Add(bound);
+                    }
                 }
             }
         }

@@ -43,9 +43,15 @@ for test in $NIST_TESTS; do
     fi
 
     # Run in the output directory; capture stdout for DISPLAY-only tests
+    # Pipe NIST data file to stdin when available (for ACCEPT tests)
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
     stdoutfile="tests/nist/output/${test}-stdout.txt"
-    (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
+    datafile="tests/nist/data/$test.dat"
+    if [ -f "$datafile" ]; then
+        (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) < "$datafile" > "$stdoutfile"
+    else
+        (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
+    fi
 
     # Compare output (files written to tests/nist/output/)
     validfile="tests/nist/valid/$test.txt"
