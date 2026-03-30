@@ -27,18 +27,13 @@ public sealed record IrTemp(string Name, IrPrimitiveType Type, int Id);
 /// </summary>
 public sealed class IrPerformInlineTimes : IrInstruction
 {
-    public Semantics.Bound.BoundExpression CountExpression { get; }
+    public IrExpression CountExpression { get; }
     public IReadOnlyList<IrInstruction> BodyInstructions { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
 
-    public IrPerformInlineTimes(
-        Semantics.Bound.BoundExpression countExpression,
-        IReadOnlyList<IrInstruction> bodyInstructions,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    public IrPerformInlineTimes(IrExpression countExpression, IReadOnlyList<IrInstruction> bodyInstructions)
     {
         CountExpression = countExpression;
         BodyInstructions = bodyInstructions;
-        ResolvedLocations = resolvedLocations;
     }
 }
 
@@ -387,7 +382,7 @@ public sealed class IrPerform : IrInstruction
 
 /// <summary>
 /// PERFORM para N TIMES: calls Target method Count times using a CIL local counter.
-/// Count is a BoundExpression (literal or identifier) evaluated once at entry.
+/// Count is an IrExpression (literal or identifier) evaluated once at entry.
 /// The emitter manages the loop counter as a CIL local int.
 /// </summary>
 public sealed class IrPerformTimes : IrInstruction
@@ -396,20 +391,16 @@ public sealed class IrPerformTimes : IrInstruction
     public int StartIdx { get; }
     public int EndIdx { get; }
     public IReadOnlyList<IrMethod> ThruMethods { get; }
-    public Semantics.Bound.BoundExpression CountExpression { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? ResolvedLocations { get; }
+    public IrExpression CountExpression { get; }
 
     public IrPerformTimes(IrMethod target, int startIdx, int endIdx,
-        IReadOnlyList<IrMethod> thruMethods,
-        Semantics.Bound.BoundExpression countExpression,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+        IReadOnlyList<IrMethod> thruMethods, IrExpression countExpression)
     {
         Target = target;
         StartIdx = startIdx;
         EndIdx = endIdx;
         ThruMethods = thruMethods;
         CountExpression = countExpression;
-        ResolvedLocations = resolvedLocations;
     }
 }
 
@@ -464,21 +455,14 @@ public sealed class IrMoveStringToField : IrInstruction
 public sealed class IrFunctionCall : IrInstruction
 {
     public string FunctionName { get; }
-    public IReadOnlyList<Semantics.Bound.BoundExpression> Arguments { get; }
+    public IReadOnlyList<IrFunctionArg> Arguments { get; }
     public IrLocation Destination { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
 
-    public IrFunctionCall(string functionName,
-        IReadOnlyList<Semantics.Bound.BoundExpression> arguments,
-        IrLocation destination,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    public IrFunctionCall(string functionName, IReadOnlyList<IrFunctionArg> arguments, IrLocation destination)
     {
         FunctionName = functionName;
         Arguments = arguments;
         Destination = destination;
-        ResolvedLocations = resolvedLocations
-            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
-               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
     }
 }
 
@@ -811,19 +795,19 @@ public sealed class IrStaticLocation : IrLocation
 /// The effective offset is computed at runtime using the general formula:
 ///   offset = base + sum_i((subscript_i - 1) * multiplier_i)
 /// where multiplier_i is the product of all inner dimension sizes * element size.
-/// Subscripts are carried as BoundExpressions — the emitter evaluates each one
-/// via EmitExpression (handles identifiers, arithmetic, and any expression).
+/// Subscripts are carried as IrExpressions — the emitter evaluates each one
+/// via EmitIrExpression (handles literals, loads, arithmetic, and function calls).
 /// </summary>
 public sealed class IrElementRef : IrLocation
 {
     public CodeGen.StorageLocation BaseLocation { get; }
-    public IReadOnlyList<Semantics.Bound.BoundExpression> Subscripts { get; }
+    public IReadOnlyList<IrExpression> Subscripts { get; }
     public IReadOnlyList<int> Multipliers { get; }
     public int ElementSize { get; }
     public Runtime.PicDescriptor ElementPic { get; }
 
     public IrElementRef(CodeGen.StorageLocation baseLocation,
-        IReadOnlyList<Semantics.Bound.BoundExpression> subscripts,
+        IReadOnlyList<IrExpression> subscripts,
         IReadOnlyList<int> multipliers,
         int elementSize, Runtime.PicDescriptor elementPic)
     {
@@ -843,12 +827,12 @@ public sealed class IrElementRef : IrLocation
 public sealed class IrRefModLocation : IrLocation
 {
     public IrLocation Base { get; }
-    public Semantics.Bound.BoundExpression Start { get; }
-    public Semantics.Bound.BoundExpression? Length { get; }
+    public IrExpression Start { get; }
+    public IrExpression? Length { get; }
     public int BaseFieldLength { get; }
 
-    public IrRefModLocation(IrLocation @base, Semantics.Bound.BoundExpression start,
-        Semantics.Bound.BoundExpression? length, int baseFieldLength)
+    public IrRefModLocation(IrLocation @base, IrExpression start,
+        IrExpression? length, int baseFieldLength)
     {
         Base = @base;
         Start = start;
@@ -937,7 +921,7 @@ public sealed class IrInspectTally : IrInstruction
 {
     public IrLocation Target { get; }
     public IrLocation Counter { get; }
-    public Semantics.Bound.InspectTallyKind Kind { get; }
+    public InspectTallyKind Kind { get; }
     public IrInspectPatternValue? Pattern { get; }
     public IrInspectPatternValue? BeforePattern { get; }
     public bool BeforeInitial { get; }
@@ -945,7 +929,7 @@ public sealed class IrInspectTally : IrInstruction
     public bool AfterInitial { get; }
 
     public IrInspectTally(IrLocation target, IrLocation counter,
-        Semantics.Bound.InspectTallyKind kind, IrInspectPatternValue? pattern,
+        InspectTallyKind kind, IrInspectPatternValue? pattern,
         IrInspectPatternValue? beforePattern, bool beforeInitial,
         IrInspectPatternValue? afterPattern, bool afterInitial)
     {
@@ -958,7 +942,7 @@ public sealed class IrInspectTally : IrInstruction
 public sealed class IrInspectReplace : IrInstruction
 {
     public IrLocation Target { get; }
-    public Semantics.Bound.InspectReplaceKind Kind { get; }
+    public InspectReplaceKind Kind { get; }
     public IrInspectPatternValue Pattern { get; }
     public IrInspectPatternValue Replacement { get; }
     public IrInspectPatternValue? BeforePattern { get; }
@@ -967,7 +951,7 @@ public sealed class IrInspectReplace : IrInstruction
     public bool AfterInitial { get; }
 
     public IrInspectReplace(IrLocation target,
-        Semantics.Bound.InspectReplaceKind kind,
+        InspectReplaceKind kind,
         IrInspectPatternValue pattern, IrInspectPatternValue replacement,
         IrInspectPatternValue? beforePattern, bool beforeInitial,
         IrInspectPatternValue? afterPattern, bool afterInitial)
@@ -1122,25 +1106,19 @@ public sealed class IrAccumulateLiteral : IrInstruction
 }
 
 /// <summary>
-/// Evaluate a BoundExpression and store the decimal result into an accumulator.
+/// Evaluate an IrExpression and store the decimal result into an accumulator.
 /// Used for DIVIDE BY GIVING with multiple targets: evaluate quotient once,
 /// then store from the accumulator to each target.
 /// </summary>
 public sealed class IrComputeIntoAccumulator : IrInstruction
 {
     public IrValue Accumulator { get; }
-    public Semantics.Bound.BoundExpression Expression { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
+    public IrExpression Expression { get; }
 
-    public IrComputeIntoAccumulator(IrValue accumulator,
-        Semantics.Bound.BoundExpression expression,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    public IrComputeIntoAccumulator(IrValue accumulator, IrExpression expression)
     {
         Accumulator = accumulator;
         Expression = expression;
-        ResolvedLocations = resolvedLocations
-            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
-               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
     }
 }
 
@@ -1224,31 +1202,20 @@ public sealed class IrPicDivideLiteral : IrInstruction
 }
 
 /// <summary>
-/// COMPUTE: evaluate a bound expression tree and store the decimal result
+/// COMPUTE: evaluate an IrExpression tree and store the decimal result
 /// into a target field with optional rounding and overflow detection.
 /// </summary>
 public sealed class IrComputeStore : IrInstruction
 {
-    public Semantics.Bound.BoundExpression Expression { get; }
+    public IrExpression Expression { get; }
     public IrLocation Destination { get; }
     public int Rounding { get; }
 
-    /// <summary>
-    /// Pre-resolved IrLocations for all data-reference leaf nodes in the Expression tree.
-    /// Populated by the Binder so the emitter never needs to resolve locations itself.
-    /// </summary>
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> ResolvedLocations { get; }
-
-    public IrComputeStore(Semantics.Bound.BoundExpression expression,
-        IrLocation dest, int rounding = 0,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? resolvedLocations = null)
+    public IrComputeStore(IrExpression expression, IrLocation dest, int rounding = 0)
     {
         Expression = expression;
         Destination = dest;
         Rounding = rounding;
-        ResolvedLocations = resolvedLocations
-            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
-               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
     }
 }
 
@@ -1258,34 +1225,21 @@ public sealed class IrComputeStore : IrInstruction
 /// </summary>
 public sealed class IrCobolRemainder : IrInstruction
 {
-    public Semantics.Bound.BoundExpression Dividend { get; }
-    public Semantics.Bound.BoundExpression Divisor { get; }
+    public IrExpression Dividend { get; }
+    public IrExpression Divisor { get; }
     public IrValue QuotientAccumulator { get; }
     public int GivingFractionDigits { get; }
     public IrLocation Destination { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> DividendLocations { get; }
-    public IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation> DivisorLocations { get; }
 
     public IrCobolRemainder(
-        Semantics.Bound.BoundExpression dividend,
-        Semantics.Bound.BoundExpression divisor,
-        IrValue quotientAccumulator,
-        int givingFractionDigits,
-        IrLocation destination,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? dividendLocations = null,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>? divisorLocations = null)
+        IrExpression dividend, IrExpression divisor,
+        IrValue quotientAccumulator, int givingFractionDigits, IrLocation destination)
     {
         Dividend = dividend;
         Divisor = divisor;
         QuotientAccumulator = quotientAccumulator;
         GivingFractionDigits = givingFractionDigits;
         Destination = destination;
-        DividendLocations = dividendLocations
-            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
-               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
-        DivisorLocations = divisorLocations
-            ?? (IReadOnlyDictionary<Semantics.Bound.BoundExpression, IrLocation>)
-               new Dictionary<Semantics.Bound.BoundExpression, IrLocation>();
     }
 }
 

@@ -1091,7 +1091,7 @@ public sealed class CilEmitter
                 break;
 
             case IrComputeIntoAccumulator compAccum:
-                EmitExpression(il, compAccum.Expression, compAccum.ResolvedLocations);
+                EmitIrExpression(il, compAccum.Expression);
                 il.Append(il.Create(OpCodes.Stloc, getLocal(compAccum.Accumulator)));
                 break;
 
@@ -1550,7 +1550,7 @@ public sealed class CilEmitter
         var counterLocal = new VariableDefinition(_module.TypeSystem.Int32);
         md.Body.Variables.Add(counterLocal);
 
-        EmitExpression(il, pt.CountExpression, pt.ResolvedLocations);
+        EmitIrExpression(il, pt.CountExpression);
         var toInt32 = _module.ImportReference(
             typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
         il.Append(il.Create(OpCodes.Call, toInt32));
@@ -1608,7 +1608,7 @@ public sealed class CilEmitter
         md.Body.Variables.Add(counterLocal);
 
         // Evaluate count expression → decimal → int → store in counter
-        EmitExpression(il, pit.CountExpression, pit.ResolvedLocations);
+        EmitIrExpression(il, pit.CountExpression);
         var toInt32 = _module.ImportReference(
             typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
         il.Append(il.Create(OpCodes.Call, toInt32));
@@ -2132,13 +2132,13 @@ public sealed class CilEmitter
 
         string methodName;
 
-        if (it.Kind == Semantics.Bound.InspectTallyKind.Characters)
+        if (it.Kind == IR.InspectTallyKind.Characters)
         {
             methodName = "TallyCharactersAndStore";
         }
         else
         {
-            methodName = it.Kind == Semantics.Bound.InspectTallyKind.Leading
+            methodName = it.Kind == IR.InspectTallyKind.Leading
                 ? "TallyLeadingAndStore" : "TallyAllAndStore";
             EmitIrInspectPatternValue(il, it.Pattern);
         }
@@ -2153,7 +2153,7 @@ public sealed class CilEmitter
         il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
         System.Type[] paramTypes;
-        if (it.Kind == Semantics.Bound.InspectTallyKind.Characters)
+        if (it.Kind == IR.InspectTallyKind.Characters)
         {
             paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int),
                 typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
@@ -2175,7 +2175,7 @@ public sealed class CilEmitter
     {
         EmitLocationArgs(il, ir.Target);
 
-        if (ir.Kind == Semantics.Bound.InspectReplaceKind.Characters)
+        if (ir.Kind == IR.InspectReplaceKind.Characters)
         {
             // REPLACING CHARACTERS BY x — no pattern, just replacement
             EmitIrInspectPatternValue(il, ir.Replacement);
@@ -2195,8 +2195,8 @@ public sealed class CilEmitter
         {
             string methodName = ir.Kind switch
             {
-                Semantics.Bound.InspectReplaceKind.First => "ReplaceFirst",
-                Semantics.Bound.InspectReplaceKind.Leading => "ReplaceLeading",
+                IR.InspectReplaceKind.First => "ReplaceFirst",
+                IR.InspectReplaceKind.Leading => "ReplaceLeading",
                 _ => "ReplaceAll"
             };
 
@@ -2342,19 +2342,19 @@ public sealed class CilEmitter
     private void EmitClassCondition(ILProcessor il, IrClassCondition inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        var kind = (Semantics.Bound.ClassConditionKind)inst.ClassKind;
+        var kind = (IR.ClassConditionKind)inst.ClassKind;
         string methodName = kind switch
         {
-            Semantics.Bound.ClassConditionKind.Numeric => "IsNumericClass",
-            Semantics.Bound.ClassConditionKind.Alphabetic => "IsAlphabeticClass",
-            Semantics.Bound.ClassConditionKind.AlphabeticLower => "IsAlphabeticLowerClass",
-            Semantics.Bound.ClassConditionKind.AlphabeticUpper => "IsAlphabeticUpperClass",
+            IR.ClassConditionKind.Numeric => "IsNumericClass",
+            IR.ClassConditionKind.Alphabetic => "IsAlphabeticClass",
+            IR.ClassConditionKind.AlphabeticLower => "IsAlphabeticLowerClass",
+            IR.ClassConditionKind.AlphabeticUpper => "IsAlphabeticUpperClass",
             _ => throw new InvalidOperationException($"Unknown class condition: {kind}")
         };
 
         // IsNumericClass takes PicDescriptor; others don't
         System.Reflection.MethodInfo method;
-        if (kind == Semantics.Bound.ClassConditionKind.Numeric)
+        if (kind == IR.ClassConditionKind.Numeric)
         {
             EmitLocationArgsWithPic(il, inst.Subject);
             method = typeof(Runtime.PicRuntime).GetMethod(methodName,
@@ -2688,7 +2688,7 @@ public sealed class CilEmitter
     private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
     {
         EmitLocationArgsWithPic(il, cs.Destination);
-        EmitExpression(il, cs.Expression, cs.ResolvedLocations);
+        EmitIrExpression(il, cs.Expression);
         il.Append(il.Create(OpCodes.Ldc_I4, cs.Rounding));
         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
 
@@ -2715,12 +2715,13 @@ public sealed class CilEmitter
             _ => false
         };
 
+        var irCall = new IR.IrIntrinsicCall(funcCall.FunctionName, funcCall.Arguments);
         if (isStringFunction)
         {
             // String-returning function: push dest args first, then call function, store to field.
             // Stack order: area, offset, length, stringValue → MoveStringToField
             EmitLocationArgs(il, funcCall.Destination);
-            EmitIntrinsicCall(il, funcCall.FunctionName, funcCall.Arguments, funcCall.ResolvedLocations);
+            EmitIrIntrinsicCall(il, irCall);
             // Result is object on stack; cast to string
             il.Append(il.Create(OpCodes.Castclass,
                 _module.ImportReference(typeof(string))));
@@ -2734,7 +2735,7 @@ public sealed class CilEmitter
         {
             // Numeric-returning function: call, unbox to decimal, store via MoveAccumulatedToField
             EmitLocationArgsWithPic(il, funcCall.Destination);
-            EmitIntrinsicCall(il, funcCall.FunctionName, funcCall.Arguments, funcCall.ResolvedLocations);
+            EmitIrIntrinsicCall(il, irCall);
             il.Append(il.Create(OpCodes.Unbox_Any,
                 _module.ImportReference(typeof(decimal))));
             il.Append(il.Create(OpCodes.Ldc_I4_0)); // no rounding
@@ -2748,94 +2749,13 @@ public sealed class CilEmitter
         }
     }
 
-    /// <summary>
-    /// Emit CIL to call IntrinsicFunctions.Call(functionName, args).
-    /// Pushes the result (object) onto the evaluation stack.
-    /// Each argument is evaluated and boxed into an object[] array.
-    /// </summary>
-    private void EmitIntrinsicCall(ILProcessor il, string functionName,
-        IReadOnlyList<Semantics.Bound.BoundExpression> arguments,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IR.IrLocation>? resolvedLocations)
-    {
-        // Push function name
-        il.Append(il.Create(OpCodes.Ldstr, functionName.ToUpperInvariant()));
-
-        // Build object[] args array
-        il.Append(il.Create(OpCodes.Ldc_I4, arguments.Count));
-        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(object))));
-
-        for (int i = 0; i < arguments.Count; i++)
-        {
-            il.Append(il.Create(OpCodes.Dup)); // duplicate array ref
-            il.Append(il.Create(OpCodes.Ldc_I4, i)); // index
-
-            var arg = arguments[i];
-            if (arg is Semantics.Bound.BoundLiteralExpression lit && lit.Value is string s)
-            {
-                // String literal argument
-                il.Append(il.Create(OpCodes.Ldstr, s));
-            }
-            else if (arg.Category == Runtime.CobolCategory.Alphanumeric
-                     || arg.Category == Runtime.CobolCategory.AlphanumericEdited)
-            {
-                // Alphanumeric field: read as string via StorageArea.ReadFieldAsString
-                if (resolvedLocations != null && resolvedLocations.TryGetValue(arg, out var loc))
-                {
-                    EmitLocationArgs(il, loc);
-                    il.Append(il.Create(OpCodes.Call,
-                        _module.ImportReference(
-                            typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
-                                new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
-                }
-                else if (arg is Semantics.Bound.BoundIdentifierExpression fallbackId
-                         && !fallbackId.IsSubscripted)
-                {
-                    var storageLoc = _semanticModel?.GetStorageLocation(fallbackId.Symbol);
-                    if (storageLoc.HasValue)
-                    {
-                        EmitLoadBackingArrayOrExternal(il, storageLoc.Value.Area,
-                            storageLoc.Value.Offset, out var adjOff);
-                        il.Append(il.Create(OpCodes.Ldc_I4, adjOff));
-                        il.Append(il.Create(OpCodes.Ldc_I4, storageLoc.Value.Length));
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(
-                                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
-                                    new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
-                    }
-                    else
-                    {
-                        il.Append(il.Create(OpCodes.Ldstr, ""));
-                    }
-                }
-                else
-                {
-                    il.Append(il.Create(OpCodes.Ldstr, ""));
-                }
-            }
-            else
-            {
-                // Numeric argument: evaluate expression to decimal, box it
-                EmitExpression(il, arg, resolvedLocations);
-                il.Append(il.Create(OpCodes.Box, _module.ImportReference(typeof(decimal))));
-            }
-
-            il.Append(il.Create(OpCodes.Stelem_Ref)); // store into array
-        }
-
-        // Call IntrinsicFunctions.Call(string, object[])
-        il.Append(il.Create(OpCodes.Call,
-            _module.ImportReference(
-                typeof(Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
-                    new[] { typeof(string), typeof(object[]) })!)));
-    }
-
     private void EmitCobolRemainder(ILProcessor il, IrCobolRemainder rem,
         Func<IrValue, VariableDefinition> getLocal)
     {
         // Push: dividend(decimal), divisor(decimal), rawQuotient(decimal),
         //        givingFractionDigits(int), dest(area,off,len,pic), ref status
-        EmitExpression(il, rem.Dividend, rem.DividendLocations);
-        EmitExpression(il, rem.Divisor, rem.DivisorLocations);
+        EmitIrExpression(il, rem.Dividend);
+        EmitIrExpression(il, rem.Divisor);
         il.Append(il.Create(OpCodes.Ldloc, getLocal(rem.QuotientAccumulator)));
         il.Append(il.Create(OpCodes.Ldc_I4, rem.GivingFractionDigits));
         EmitLocationArgsWithPic(il, rem.Destination);
@@ -2853,111 +2773,61 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// Recursively emit a bound expression tree, leaving a decimal on the IL stack.
-    /// Data-reference leaves (identifiers, ref-mod) are resolved via the pre-resolved
-    /// location dictionary populated by the Binder — no direct GetStorageLocation here.
-    /// When resolvedLocations is null (subscript/ref-mod sub-expression context),
-    /// falls back to GetStorageLocation for simple non-subscripted identifiers only.
+    /// Emit an IR-native expression tree, leaving a decimal on the IL stack.
+    /// All locations are pre-resolved by the Binder during lowering — no fallback needed.
     /// </summary>
-    private void EmitExpression(ILProcessor il, Semantics.Bound.BoundExpression expr,
-        IReadOnlyDictionary<Semantics.Bound.BoundExpression, IR.IrLocation>? resolvedLocations = null)
+    private void EmitIrExpression(ILProcessor il, IR.IrExpression expr)
     {
         switch (expr)
         {
-            case Semantics.Bound.BoundLiteralExpression lit when lit.Value is decimal d:
-                EmitLoadDecimal(il, d);
+            case IR.IrLiteral lit:
+                EmitLoadDecimal(il, lit.Value);
                 break;
 
-            case Semantics.Bound.BoundIdentifierExpression:
-            case Semantics.Bound.BoundReferenceModificationExpression:
-            {
-                // Data-reference leaf: load numeric value via pre-resolved IrLocation.
-                // EmitLocationArgsWithPic pushes (area, offset, length, pic) for any
-                // IrLocation type (static, element ref, ref-mod) — then DecodeNumeric
-                // converts the raw bytes to a decimal.
-                if (resolvedLocations != null && resolvedLocations.TryGetValue(expr, out var loc))
-                {
-                    EmitLocationArgsWithPic(il, loc);
-                    var decode = _module.ImportReference(
-                        typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                            new[] { typeof(byte[]), typeof(int), typeof(int),
-                                    typeof(Runtime.PicDescriptor) })!);
-                    il.Append(il.Create(OpCodes.Call, decode));
-                }
-                else if (expr is Semantics.Bound.BoundIdentifierExpression fallbackId
-                         && !fallbackId.IsSubscripted)
-                {
-                    // Fallback for simple identifiers in subscript/ref-mod sub-expressions.
-                    // COBOL subscript expressions are always simple elementary items or literals,
-                    // never themselves subscripted or ref-mod'd.
-                    var storageLoc = _semanticModel?.GetStorageLocation(fallbackId.Symbol);
-                    if (storageLoc.HasValue)
-                    {
-                        EmitLoadBackingArrayOrExternal(il, storageLoc.Value.Area, storageLoc.Value.Offset, out var fbAdjOffset);
-                        il.Append(il.Create(OpCodes.Ldc_I4, fbAdjOffset));
-                        il.Append(il.Create(OpCodes.Ldc_I4, storageLoc.Value.Length));
-                        EmitLoadPicDescriptor(il, storageLoc.Value.Pic);
-                        var decode = _module.ImportReference(
-                            typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                                new[] { typeof(byte[]), typeof(int), typeof(int),
-                                        typeof(Runtime.PicDescriptor) })!);
-                        il.Append(il.Create(OpCodes.Call, decode));
-                    }
-                    else
-                    {
-                        EmitLoadDecimal(il, 0m);
-                    }
-                }
-                else
-                {
-                    EmitLoadDecimal(il, 0m);
-                }
+            case IR.IrLoadNumeric load:
+                EmitLocationArgsWithPic(il, load.Source);
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(Runtime.PicDescriptor) })!)));
                 break;
-            }
 
-            case Semantics.Bound.BoundBinaryExpression bin:
-            {
-                EmitExpression(il, bin.Left, resolvedLocations);
-                EmitExpression(il, bin.Right, resolvedLocations);
-
-                switch (bin.OperatorKind)
+            case IR.IrBinaryExpr bin:
+                EmitIrExpression(il, bin.Left);
+                EmitIrExpression(il, bin.Right);
+                switch (bin.Op)
                 {
-                    case Semantics.Bound.BoundBinaryOperatorKind.Add:
+                    case IR.IrArithmeticOp.Add:
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
-                    case Semantics.Bound.BoundBinaryOperatorKind.Subtract:
+                    case IR.IrArithmeticOp.Subtract:
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(decimal).GetMethod("op_Subtraction",
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
-                    case Semantics.Bound.BoundBinaryOperatorKind.Multiply:
+                    case IR.IrArithmeticOp.Multiply:
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(decimal).GetMethod("op_Multiply",
                                 new[] { typeof(decimal), typeof(decimal) })!)));
                         break;
-                    case Semantics.Bound.BoundBinaryOperatorKind.Divide:
-                        // Use SafeDivide instead of op_Division to handle divide-by-zero
-                        // as SIZE ERROR instead of crashing with DivideByZeroException.
+                    case IR.IrArithmeticOp.Divide:
                         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeDivide",
                                 new[] { typeof(decimal), typeof(decimal),
                                         typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
-                    case Semantics.Bound.BoundBinaryOperatorKind.Remainder:
+                    case IR.IrArithmeticOp.Remainder:
                         EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeRemainder",
                                 new[] { typeof(decimal), typeof(decimal),
                                         typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
                         break;
-                    case Semantics.Bound.BoundBinaryOperatorKind.Power:
+                    case IR.IrArithmeticOp.Power:
                     {
-                        // Convert both to double, call Math.Pow, convert back to decimal
-                        // Stack has: decimal left, decimal right
-                        // Need to convert: store right, convert left, load right, convert right
                         var tempRight = new VariableDefinition(_module.ImportReference(typeof(decimal)));
                         il.Body.Variables.Add(tempRight);
                         il.Append(il.Create(OpCodes.Stloc, tempRight));
@@ -2971,7 +2841,6 @@ public sealed class CilEmitter
                         il.Append(il.Create(OpCodes.Call,
                             _module.ImportReference(typeof(Math).GetMethod("Pow",
                                 new[] { typeof(double), typeof(double) })!)));
-                        // Convert double result back to decimal
                         il.Append(il.Create(OpCodes.Newobj,
                             _module.ImportReference(typeof(decimal).GetConstructor(
                                 new[] { typeof(double) })!)));
@@ -2979,23 +2848,69 @@ public sealed class CilEmitter
                     }
                 }
                 break;
-            }
 
-            case Semantics.Bound.BoundFunctionCallExpression func:
-            {
-                // Emit intrinsic function call that returns decimal.
-                // Build object[] args, call IntrinsicFunctions.Call(), cast result to decimal.
-                EmitIntrinsicCall(il, func.FunctionName, func.Arguments, resolvedLocations);
-                // The Call() returns object; unbox to decimal for arithmetic context
+            case IR.IrUnaryExpr unary when unary.Op == IR.IrUnaryOp.Negate:
+                EmitIrExpression(il, unary.Operand);
+                il.Append(il.Create(OpCodes.Call,
+                    _module.ImportReference(typeof(decimal).GetMethod("op_UnaryNegation",
+                        new[] { typeof(decimal) })!)));
+                break;
+
+            case IR.IrIntrinsicCall call:
+                EmitIrIntrinsicCall(il, call);
                 il.Append(il.Create(OpCodes.Unbox_Any,
                     _module.ImportReference(typeof(decimal))));
                 break;
-            }
 
             default:
                 EmitLoadDecimal(il, 0m);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Emit an IR-native intrinsic function call, leaving an object on the IL stack.
+    /// </summary>
+    private void EmitIrIntrinsicCall(ILProcessor il, IR.IrIntrinsicCall call)
+    {
+        // Push function name first (matches Call(string, object[]) signature)
+        il.Append(il.Create(OpCodes.Ldstr, call.FunctionName.ToUpperInvariant()));
+
+        // Build object[] args array
+        il.Append(il.Create(OpCodes.Ldc_I4, call.Arguments.Count));
+        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(object))));
+
+        for (int i = 0; i < call.Arguments.Count; i++)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+
+            switch (call.Arguments[i])
+            {
+                case IR.IrLiteralStringArg strArg:
+                    il.Append(il.Create(OpCodes.Ldstr, strArg.Value));
+                    break;
+
+                case IR.IrAlphanumericArg alphaArg:
+                    EmitLocationArgs(il, alphaArg.Source);
+                    il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                        typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                            new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                    break;
+
+                case IR.IrNumericArg numArg:
+                    EmitIrExpression(il, numArg.Expression);
+                    il.Append(il.Create(OpCodes.Box, _module.ImportReference(typeof(decimal))));
+                    break;
+            }
+
+            il.Append(il.Create(OpCodes.Stelem_Ref));
+        }
+
+        // Call IntrinsicFunctions.Call(string, object[])
+        il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+            typeof(Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
+                new[] { typeof(string), typeof(object[]) })!)));
     }
 
     private void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,
@@ -3079,34 +2994,34 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitCompareResultToBool(ILProcessor il, int operatorKind)
     {
-        var op = (Semantics.Bound.BoundBinaryOperatorKind)operatorKind;
+        var op = (IR.IrCompareOp)operatorKind;
         switch (op)
         {
-            case Semantics.Bound.BoundBinaryOperatorKind.Equal: // result == 0
+            case IR.IrCompareOp.Equal: // result == 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case Semantics.Bound.BoundBinaryOperatorKind.NotEqual: // NOT (result == 0)
+            case IR.IrCompareOp.NotEqual: // NOT (result == 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case Semantics.Bound.BoundBinaryOperatorKind.Less: // result < 0
+            case IR.IrCompareOp.Less: // result < 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Clt));
                 break;
-            case Semantics.Bound.BoundBinaryOperatorKind.LessOrEqual: // NOT (result > 0)
+            case IR.IrCompareOp.LessOrEqual: // NOT (result > 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Cgt));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Ceq));
                 break;
-            case Semantics.Bound.BoundBinaryOperatorKind.Greater: // result > 0
+            case IR.IrCompareOp.Greater: // result > 0
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Cgt));
                 break;
-            case Semantics.Bound.BoundBinaryOperatorKind.GreaterOrEqual: // NOT (result < 0)
+            case IR.IrCompareOp.GreaterOrEqual: // NOT (result < 0)
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 il.Append(il.Create(OpCodes.Clt));
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
@@ -3820,7 +3735,7 @@ public sealed class CilEmitter
 
     /// <summary>
     /// Push (area, effectiveOffset) for a multi-dimensional IrElementRef.
-    /// Each subscript is a BoundExpression evaluated via EmitExpression → decimal → int32.
+    /// Each subscript is an IrExpression evaluated via EmitIrExpression → decimal → int32.
     /// Handles identifiers (ARR(I)), arithmetic (ARR(I+1)), and any expression uniformly.
     /// </summary>
     private void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
@@ -3839,7 +3754,7 @@ public sealed class CilEmitter
             int multiplier = e.Multipliers[dim];
 
             // Evaluate subscript expression → decimal on stack
-            EmitExpression(il, e.Subscripts[dim]);
+            EmitIrExpression(il, e.Subscripts[dim]);
 
             // decimal → int32
             il.Append(il.Create(OpCodes.Call, toInt32));
@@ -3868,7 +3783,7 @@ public sealed class CilEmitter
 
         // Evaluate start and length first (into locals), before pushing base
         // start (1-based)
-        EmitExpression(il, (Semantics.Bound.BoundExpression)r.Start);
+        EmitIrExpression(il, r.Start);
         il.Append(il.Create(OpCodes.Call, toInt32));
         var startLocal = new VariableDefinition(_module.TypeSystem.Int32);
         _currentMethodDef!.Body.Variables.Add(startLocal);
@@ -3878,7 +3793,7 @@ public sealed class CilEmitter
         VariableDefinition lengthLocal;
         if (r.Length != null)
         {
-            EmitExpression(il, (Semantics.Bound.BoundExpression)r.Length);
+            EmitIrExpression(il, r.Length!);
             il.Append(il.Create(OpCodes.Call, toInt32));
             lengthLocal = new VariableDefinition(_module.TypeSystem.Int32);
             _currentMethodDef!.Body.Variables.Add(lengthLocal);
