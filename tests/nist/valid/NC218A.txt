@@ -187,11 +187,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED=  000000001.000000000
                                      CORRECT =  000000004.000000000  VI-136
 
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .05
-
-                                     COMPUTED=  000000002.000000000
-                                     CORRECT =  000000003.000000000  VI-136
-
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .05
  QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .06
 
                                      COMPUTED=
@@ -205,7 +201,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .03
  MULT RECEIVE AREAS   FAIL* UST-TEST-GF-20     .04
 
-                                     COMPUTED=  000000004.000000000
+                                     COMPUTED=  000000005.000000000
                                      CORRECT =  000000003.000000000  VI-135
 
  TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .01
@@ -215,11 +211,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED= *
                                      CORRECT = I                     VI-135
 
- TRUNCATION CHECKS    FAIL* UST-TEST-GF-21     .04
-
-                                     COMPUTED=  000000003.000000000
-                                     CORRECT =  000000004.000000000  VI-135
-
+ TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .04
  PIC X                FAIL* UST-TEST-GF-22     .01        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
 
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
@@ -278,8 +270,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    090 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    035 TEST(S) FAILED
+                                                    092 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    033 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

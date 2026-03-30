@@ -3360,10 +3360,24 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Stloc, overflowLocal));
 
-        // Tally counter local
+        // Tally counter local — initialize from existing TALLYING field value (not zero)
+        // Per ISO §14.9.44: "the value of identifier-7 is incremented by 1"
         var tallyLocal = new VariableDefinition(_module.TypeSystem.Int32);
         _currentMethodDef.Body.Variables.Add(tallyLocal);
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        if (unstrStmt.TallyingLocation != null)
+        {
+            EmitLocationArgsWithPic(il, unstrStmt.TallyingLocation);
+            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(Runtime.PicDescriptor) })!)));
+            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+        }
         il.Append(il.Create(OpCodes.Stloc, tallyLocal));
 
         // Resolve the UnstringExtract method reference

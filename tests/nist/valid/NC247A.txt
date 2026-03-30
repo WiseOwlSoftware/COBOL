@@ -53,14 +53,10 @@ TEST RESULT OF NC247A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  OCCURS DEPENDING ON  ***** STR-TEST-GF-4                 ****TEST DELETED****
 *** INFORMATION ***        DELETE AUTOMATIC IF      STR-TEST-GF-3 FAILS VI-26 5.8
 
- OCCURS DEPENDING ON  FAIL* UST-TEST-GF-1                 UNSTRING FULL ODO
-
-                                     COMPUTED=
-                                     CORRECT = 123456789             VI-26 5.8
-
+ OCCURS DEPENDING ON  PASS  UST-TEST-GF-1                 UNSTRING FULL ODO
  OCCURS DEPENDING ON  FAIL* UST-TEST-GF-2                 UNSTRING PARTIAL ODO
 
-                                     COMPUTED=
+                                     COMPUTED= 123456789
                                      CORRECT = 123                   VI-26 5.8
 
  OCCURS DEPENDING ON  FAIL* UST-TEST-GF-3                 UNSTRING DELIMITED PARTIAL ODO
@@ -75,8 +71,8 @@ TEST RESULT OF NC247A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC247A
 
-                                                    011 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    008 TEST(S) FAILED
+                                                    012 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    007 TEST(S) FAILED
                                                     002 TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
