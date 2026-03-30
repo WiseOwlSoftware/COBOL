@@ -3838,10 +3838,24 @@ public sealed class Binder
         var srcLoc = ResolveExpressionLocation(unstr.Source);
         if (srcLoc == null) return block;
 
-        // Resolve delimiter literal
+        // Resolve delimiter — literal, figurative constant, or field reference
         string? literalDelimiter = null;
         if (unstr.Delimiter is BoundLiteralExpression delimLit && delimLit.Value is string ds)
             literalDelimiter = ds;
+        else if (unstr.Delimiter is BoundFigurativeExpression fig)
+        {
+            literalDelimiter = fig.FigurativeKind switch
+            {
+                Runtime.FigurativeKind.Zero => "0",
+                Runtime.FigurativeKind.Space => " ",
+                Runtime.FigurativeKind.Quote => "\"",
+                Runtime.FigurativeKind.HighValue => "\xFF",
+                Runtime.FigurativeKind.LowValue => "\x00",
+                _ => fig.AllLiteral ?? "0"
+            };
+        }
+        else if (unstr.Delimiter is BoundLiteralExpression numDelim && numDelim.Value is decimal dv)
+            literalDelimiter = dv.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
         // Pointer: resolve if present
         IrLocation? ptrLoc = null;

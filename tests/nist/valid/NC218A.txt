@@ -18,21 +18,9 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-135
 
  PIC X                PASS  UST-TEST-GF-1      .02
- PIC X                FAIL* UST-TEST-GF-1      .03
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
- PIC X                FAIL* UST-TEST-GF-1      .04
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
- PIC X                FAIL* UST-TEST-GF-1      .05
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-135
-
+ PIC X                PASS  UST-TEST-GF-1      .03
+ PIC X                PASS  UST-TEST-GF-1      .04
+ PIC X                PASS  UST-TEST-GF-1      .05
  PIC X                PASS  UST-TEST-GF-1      .06
  PIC X JUST           FAIL* UST-TEST-GF-2      .01        OVERFLOW SHOULD HAVE OCCURED
 
@@ -43,21 +31,9 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED= 1
                                      CORRECT = 2                     VI-135
 
- PIC X JUST           FAIL* UST-TEST-GF-2      .03
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
- PIC X JUST           FAIL* UST-TEST-GF-2      .04
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
- PIC X JUST           FAIL* UST-TEST-GF-2      .05
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-135
-
+ PIC X JUST           PASS  UST-TEST-GF-2      .03
+ PIC X JUST           PASS  UST-TEST-GF-2      .04
+ PIC X JUST           PASS  UST-TEST-GF-2      .05
  PIC X JUST           PASS  UST-TEST-GF-2      .06
  PIC XXX              PASS  UST-TEST-GF-3      .01
  PIC XXX              PASS  UST-TEST-GF-3      .02
@@ -99,16 +75,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED=  000000001.000000000
                                      CORRECT =  000000002.000000000  VI-135
 
- PIC S9               FAIL* UST-TEST-GF-6      .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
- PIC S9               FAIL* UST-TEST-GF-6      .03
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC S9               PASS  UST-TEST-GF-6      .02
+ PIC S9               PASS  UST-TEST-GF-6      .03
  PIC S9               PASS  UST-TEST-GF-6      .04
  PIC S9               PASS  UST-TEST-GF-6      .05
  PIC 99               PASS  UST-TEST-GF-7      .01
@@ -292,21 +260,9 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
 
  PIC X                PASS  UST-TEST-GF-22     .02
- PIC X                FAIL* UST-TEST-GF-22     .03
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-22     .04
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-22     .05
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-22     .03
+ PIC X                PASS  UST-TEST-GF-22     .04
+ PIC X                PASS  UST-TEST-GF-22     .05
  PIC X                PASS  UST-TEST-GF-22     .06
  OVERFLOW TEST        FAIL* UST-TEST-GF-23     .01        OVERFLOW SHOULD NOT HAVE OCCURED
 
@@ -322,21 +278,9 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-138 6.26.4 GR17
 
  PIC X                PASS  UST-TEST-GF-24     .02
- PIC X                FAIL* UST-TEST-GF-24     .03
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-24     .04
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-24     .05
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-24     .03
+ PIC X                PASS  UST-TEST-GF-24     .04
+ PIC X                PASS  UST-TEST-GF-24     .05
  PIC X                PASS  UST-TEST-GF-24     .06
  OVERFLOW TEST        FAIL* UST-TEST-GF-25     .01        ON OVERFLOW SHOULD NOT HAVE EXECUTED
 
@@ -364,42 +308,18 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  OVERFLOW TEST        PASS  UST-TEST-GF-25     .04
  PIC X                PASS  UST-TEST-GF-27     .01
- PIC X                FAIL* UST-TEST-GF-27     .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-27     .03
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-27     .04
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-27     .02
+ PIC X                PASS  UST-TEST-GF-27     .03
+ PIC X                PASS  UST-TEST-GF-27     .04
  OVERFLOW TEST        FAIL* UST-TEST-GF-28     .01
 
                                      COMPUTED= ABCDE
                                      CORRECT = ABCDEF                VI-138 6.26.4 GR17
 
  PIC X                PASS  UST-TEST-GF-29-1   .01
- PIC X                FAIL* UST-TEST-GF-29-1   .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-29-1   .03
-
-                                     COMPUTED=  000000007.000000000
-                                     CORRECT =  000000002.000000000  VI-138 6.26.4 GR17
-
- PIC X                FAIL* UST-TEST-GF-29-1   .04
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-138 6.26.4 GR17
-
+ PIC X                PASS  UST-TEST-GF-29-1   .02
+ PIC X                PASS  UST-TEST-GF-29-1   .03
+ PIC X                PASS  UST-TEST-GF-29-1   .04
  PIC X                PASS  UST-TEST-GF-29-1   .05
  PIC X                FAIL* UST-TEST-GF-29-1   .06        NOT ON OVERFLOW SHOULD NOT HAVE EXECUTED
 
@@ -435,8 +355,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    050 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    075 TEST(S) FAILED
+                                                    070 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    055 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
