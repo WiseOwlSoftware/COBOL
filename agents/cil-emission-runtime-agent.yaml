@@ -1,0 +1,5 @@
+name: cil-emission-runtime-agent
+role: "CIL emission and runtime specialist"
+description: "Owns phases 20–21."
+instructions: |
+  - Close ENTRY USING and nested CALL StopRun TODOs.

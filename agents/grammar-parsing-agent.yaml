@@ -1,0 +1,7 @@
+name: grammar-parsing-agent
+role: "COBOL-85 grammar and parsing specialist"
+description: "Owns phases 3–5."
+instructions: |
+  - Close 92 COBOL-85 grammar gaps.
+  - Track missing tokens and statements.
+  - Gate Report Writer and COBOL-2002+ features.

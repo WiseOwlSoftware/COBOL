@@ -1,0 +1,23 @@
+session:
+  name: "CobolSharp-Modernization"
+  description: "Hybrid multi-agent environment for evolving CobolSharp into a commercial-grade COBOL-85+ compiler."
+
+  agents:
+    - ../agents/pipeline-architecture.yaml
+    - ../agents/preprocessor-agent.yaml
+    - ../agents/grammar-parsing-agent.yaml
+    - ../agents/semantics-agent.yaml
+    - ../agents/flow-bound-agent.yaml
+    - ../agents/ir-lowering-agent.yaml
+    - ../agents/cil-emission-runtime-agent.yaml
+    - ../agents/nist-harness-agent.yaml
+    - ../agents/docs-dx.yaml
+    - ../agents/legacy-compat-agent.yaml
+
+  routing:
+    rules: routing-rules.yaml
+
+  prompts:
+    bootstrap: prompts/bootstrap.md
+    handshake: prompts/agent-handshake.md
+    arbitration: prompts/arbitration.md

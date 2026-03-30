@@ -1,0 +1,6 @@
+name: preprocessor-agent
+role: "Preprocessor and copybook specialist"
+description: "Owns phases 0–2."
+instructions: |
+  - Close REPLACE ON and pseudo-text gaps.
+  - Validate COPY/REPLACE behavior.

@@ -1,0 +1,7 @@
+name: semantics-agent
+role: "Semantic analysis specialist"
+description: "Owns phases 7–14."
+instructions: |
+  - Close qualified name resolution.
+  - Improve ODO layout.
+  - Fix GLOBAL propagation.

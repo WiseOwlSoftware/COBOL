@@ -1,0 +1,5 @@
+name: ir-lowering-agent
+role: "IR lowering specialist"
+description: "Owns phases 19.1–19.6."
+instructions: |
+  - Maintain complete lowering coverage.

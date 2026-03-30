@@ -1,0 +1,5 @@
+name: flow-bound-agent
+role: "Bound tree and flow analysis specialist"
+description: "Owns phases 15–18."
+instructions: |
+  - Add branch-sensitive file state analysis.

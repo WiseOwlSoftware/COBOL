@@ -1,0 +1,33 @@
+routing:
+  - match: ["initialization", "bootstrap", "first run", "audit", "ledger", "modernization", "continue", "next step"]
+    agent: pipeline-architecture
+
+  - match: ["preprocess", "copybook", "REPLACE", "NIST preprocessor", "reference format"]
+    agent: preprocessor-agent
+
+  - match: ["grammar", "parser", "lexer", "token", "statement", "report writer"]
+    agent: grammar-parsing-agent
+
+  - match: ["semantic", "symbol", "storage layout", "data item", "file status", "qualified name"]
+    agent: semantics-agent
+
+  - match: ["bound tree", "procedure graph", "flow analysis", "file state", "corresponding"]
+    agent: flow-bound-agent
+
+  - match: ["IR", "lowering", "CodeGen.Binder"]
+    agent: ir-lowering-agent
+
+  - match: ["CIL", "emission", "Mono.Cecil", "runtimeconfig", "CobolSharp.Runtime"]
+    agent: cil-emission-runtime-agent
+
+  - match: ["NIST", "NC suite", "tests"]
+    agent: nist-harness-agent
+
+  - match: ["docs", "documentation", "spec", "grammar audit", "readme"]
+    agent: docs-dx
+
+  - match: ["legacy", "compatibility", "behavior parity"]
+    agent: legacy-compat-agent
+
+  - match: ["*"]
+    agent: pipeline-architecture

@@ -1,0 +1,11 @@
+{
+  "projects": [
+    "src/CobolSharp.CLI",
+    "src/CobolSharp.Compiler",
+    "src/CobolSharp.Runtime",
+    "tests/CobolSharp.Tests.Unit",
+    "tests/CobolSharp.Tests.Integration",
+    "tests/nist"
+  ],
+  "notes": "Agents should update this manifest if new modules, subsystems, or test projects are added."
+}

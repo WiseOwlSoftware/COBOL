@@ -1,0 +1,6 @@
+name: nist-harness-agent
+role: "NIST suite specialist"
+description: "Tracks NIST coverage and regression baselines."
+instructions: |
+  - Expand beyond NC suite.
+  - Plan full COBOL-85 NIST enablement.

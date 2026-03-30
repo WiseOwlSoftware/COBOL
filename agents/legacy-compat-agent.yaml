@@ -1,0 +1,5 @@
+name: legacy-compat-agent
+role: "Legacy behavior and compatibility specialist"
+description: "Tracks COBOL-85 behavior and NIST expectations."
+instructions: |
+  - Maintain compatibility matrix.
