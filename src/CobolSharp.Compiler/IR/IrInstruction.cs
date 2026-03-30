@@ -185,6 +185,19 @@ public sealed class IrTestSwitch : IrInstruction
     }
 }
 
+/// <summary>SET mnemonic-name TO {ON | OFF} — sets implementor switch state.</summary>
+public sealed class IrSetSwitch : IrInstruction
+{
+    public string ImplementorName { get; }
+    public bool SetToOn { get; }
+
+    public IrSetSwitch(string implementorName, bool setToOn)
+    {
+        ImplementorName = implementorName;
+        SetToOn = setToOn;
+    }
+}
+
 public enum IrLogicalOp { And, Or, Not }
 
 /// <summary>

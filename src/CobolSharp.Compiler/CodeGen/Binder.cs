@@ -459,6 +459,10 @@ public sealed class Binder
             case BoundSetConditionStatement setCond:
                 LowerSetCondition(setCond, block);
                 break;
+            case BoundSetSwitchStatement setSwitch:
+                foreach (var (implName, setToOn) in setSwitch.Switches)
+                    block.Instructions.Add(new IrSetSwitch(implName, setToOn));
+                break;
             case BoundSetIndexStatement setIdx:
                 LowerSetIndex(setIdx, block);
                 break;

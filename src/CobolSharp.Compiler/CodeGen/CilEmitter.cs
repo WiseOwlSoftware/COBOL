@@ -758,6 +758,17 @@ public sealed class CilEmitter
                 break;
             }
 
+            case IrSetSwitch ss:
+            {
+                // Call SwitchRuntime.SetSwitchState(implementorName, isOn)
+                il.Append(il.Create(OpCodes.Ldstr, ss.ImplementorName));
+                il.Append(il.Create(ss.SetToOn ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+                var setSwitchMethod = _module.ImportReference(
+                    typeof(CobolSharp.Runtime.SwitchRuntime).GetMethod("SetSwitchState")!);
+                il.Append(il.Create(OpCodes.Call, setSwitchMethod));
+                break;
+            }
+
             case IrTestSwitch ts:
             {
                 // Call SwitchRuntime.GetSwitchState(implementorName)
@@ -3249,8 +3260,11 @@ public sealed class CilEmitter
                 EmitLocationArgs(il, sending.SourceLocation!);
             }
 
-            // Delimiter
-            if (sending.Delimiter != null)
+            // Delimiter: field-based or literal string
+            bool hasFieldDelim = sending.DelimiterLocation != null;
+            if (hasFieldDelim)
+                EmitLocationArgs(il, sending.DelimiterLocation!);
+            else if (sending.Delimiter != null)
                 il.Append(il.Create(OpCodes.Ldstr, sending.Delimiter));
             else
                 il.Append(il.Create(OpCodes.Ldnull));
@@ -3262,12 +3276,29 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ldloca, ptrLocal));
 
             // Call appropriate runtime method
-            if (sending.LiteralValue != null)
+            if (sending.LiteralValue != null && hasFieldDelim)
+            {
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(Runtime.StorageHelpers).GetMethod("StringConcatLiteralFieldDelim",
+                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
+                                typeof(byte[]), typeof(int), typeof(int),
+                                typeof(bool), typeof(int).MakeByRefType() })!)));
+            }
+            else if (sending.LiteralValue != null)
             {
                 il.Append(il.Create(OpCodes.Call, _module.ImportReference(
                     typeof(Runtime.StorageHelpers).GetMethod("StringConcatLiteral",
                         new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
                                 typeof(string), typeof(bool), typeof(int).MakeByRefType() })!)));
+            }
+            else if (hasFieldDelim)
+            {
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(Runtime.StorageHelpers).GetMethod("StringConcatFieldDelim",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(byte[]), typeof(int), typeof(int),
+                                typeof(byte[]), typeof(int), typeof(int),
+                                typeof(bool), typeof(int).MakeByRefType() })!)));
             }
             else
             {

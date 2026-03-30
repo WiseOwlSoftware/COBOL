@@ -2174,6 +2174,10 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
     private BoundStatement? BindSet(CobolParserCore.SetStatementContext ctx)
     {
+        // SET mnemonic-name+ TO {ON | OFF} (switch setting)
+        if (ctx.setSwitchStatement() is { } swCtx)
+            return BindSetSwitch(swCtx);
+
         // SET condition-name TO TRUE/FALSE
         if (ctx.setBooleanStatement() is { } boolCtx)
             return BindSetBoolean(boolCtx);
@@ -2187,6 +2191,60 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             return BindSetIndex(idxCtx);
 
         return null;
+    }
+
+    private BoundStatement? BindSetSwitch(CobolParserCore.SetSwitchStatementContext ctx)
+    {
+        // Grammar: SET (dataReference+ TO (ON | OFF))+
+        // For the common case SET SW-1 SW-2 TO OFF, all refs share one ON/OFF.
+        // For compound SET SW-1 TO ON SW-2 TO OFF, each group has its own.
+        // Strategy: walk tokens by position to match refs to their ON/OFF.
+        var switches = new List<(string Name, bool SetToOn)>();
+        var refs = ctx.dataReference();
+        var toTokens = ctx.TO();
+        var onTokens = ctx.ON();
+        var offTokens = ctx.OFF();
+
+        int refIdx = 0;
+        int onIdx = 0;
+        int offIdx = 0;
+
+        for (int toIdx = 0; toIdx < toTokens.Length; toIdx++)
+        {
+            int toPos = toTokens[toIdx].Symbol.TokenIndex;
+            int nextToPos = (toIdx + 1 < toTokens.Length) ? toTokens[toIdx + 1].Symbol.TokenIndex : int.MaxValue;
+
+            // Collect refs before this TO
+            var targets = new List<string>();
+            while (refIdx < refs.Length && refs[refIdx].Stop.TokenIndex < toPos)
+            {
+                targets.Add(refs[refIdx].IDENTIFIER().GetText());
+                refIdx++;
+            }
+
+            // Find the ON or OFF token between this TO and the next TO
+            bool setToOn = false;
+            if (onIdx < onTokens.Length && onTokens[onIdx].Symbol.TokenIndex > toPos && onTokens[onIdx].Symbol.TokenIndex < nextToPos)
+            {
+                setToOn = true;
+                onIdx++;
+            }
+            else if (offIdx < offTokens.Length)
+            {
+                offIdx++;
+            }
+
+            foreach (var target in targets)
+            {
+                var switchInfo = _semantic.ResolveImplementorSwitch(target);
+                if (switchInfo != null)
+                    switches.Add((switchInfo.ImplementorName, setToOn));
+            }
+        }
+
+        if (switches.Count == 0) return null;
+        // Return a bound node that the Binder can lower to IrSetSwitch
+        return new BoundSetSwitchStatement(switches);
     }
 
     private BoundStatement? BindSetBoolean(CobolParserCore.SetBooleanStatementContext ctx)

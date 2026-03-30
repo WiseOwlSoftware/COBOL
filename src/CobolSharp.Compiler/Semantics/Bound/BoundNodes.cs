@@ -55,6 +55,7 @@ public enum BoundNodeKind
     SortStatement,
     MergeStatement,
     ReleaseStatement,
+    SetSwitchStatement,
 }
 
 public abstract class BoundNode
@@ -357,6 +358,13 @@ public sealed class BoundCompoundStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.CompoundStatement;
     public IReadOnlyList<BoundStatement> Statements { get; }
     public BoundCompoundStatement(IReadOnlyList<BoundStatement> statements) => Statements = statements;
+}
+
+public sealed class BoundSetSwitchStatement : BoundStatement
+{
+    public override BoundNodeKind Kind => BoundNodeKind.SetSwitchStatement;
+    public IReadOnlyList<(string ImplementorName, bool SetToOn)> Switches { get; }
+    public BoundSetSwitchStatement(IReadOnlyList<(string, bool)> switches) => Switches = switches;
 }
 
 public sealed class BoundDisplayStatement : BoundStatement
