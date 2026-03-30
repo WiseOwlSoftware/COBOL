@@ -727,6 +727,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Bind subjects — detect EVALUATE TRUE
         var subjects = new List<BoundExpression>();
         bool isEvaluateTrue = false;
+        BoundClassConditionExpression? evaluateClassCondition = null;
 
         bool isEvaluateFalse = false;
 
@@ -740,6 +741,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             if (subCtx.booleanLiteral()?.FALSE_() != null)
             {
                 isEvaluateFalse = true;
+                continue;
+            }
+            // Check for class condition: EVALUATE X NUMERIC → treat as EVALUATE TRUE
+            // where the implicit condition is "X IS [NOT] NUMERIC/ALPHABETIC"
+            if (subCtx.classCondition() is { } classCtx && subCtx.valueOperand() is { } classVo)
+            {
+                isEvaluateTrue = true;
+                BoundExpression classSubject;
+                if (classVo.arithmeticExpression() is { } classArith)
+                    classSubject = BindAdditiveExpression(classArith.additiveExpression());
+                else if (classVo.nonNumericLiteral() is { } classNonNum)
+                    classSubject = BindNonNumericLiteral(classNonNum);
+                else
+                    continue;
+                bool isClassNot = subCtx.NOT() != null;
+                var classKind = classCtx.NUMERIC() != null ? ClassConditionKind.Numeric
+                    : classCtx.ALPHABETIC() != null ? ClassConditionKind.Alphabetic
+                    : classCtx.ALPHABETIC_LOWER() != null ? ClassConditionKind.AlphabeticLower
+                    : classCtx.ALPHABETIC_UPPER() != null ? ClassConditionKind.AlphabeticUpper
+                    : ClassConditionKind.Numeric;
+                // Store the class condition as implicit subject condition
+                evaluateClassCondition = new BoundClassConditionExpression(classSubject, classKind, isClassNot);
                 continue;
             }
             if (subCtx.valueOperand()?.arithmeticExpression() is { } arithCtx)
@@ -776,7 +799,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
             for (int i = 0; i < subjectCount && i < groups.Length; i++)
             {
-                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue || isEvaluateFalse));
+                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue || isEvaluateFalse, evaluateClassCondition));
             }
             // If fewer groups than subjects → semantic error; fill with "never match"
             // so the WHEN clause doesn't fire (missing subjects are non-matching)
@@ -799,12 +822,28 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     }
 
     private BoundEvaluateCondition BindEvaluateWhenGroup(
-        CobolParserCore.EvaluateWhenGroupContext groupCtx, bool isEvaluateTrue)
+        CobolParserCore.EvaluateWhenGroupContext groupCtx, bool isEvaluateTrue,
+        BoundClassConditionExpression? classConditionSubject = null)
     {
         var items = groupCtx.evaluateWhenItem();
 
         if (isEvaluateTrue)
         {
+            // For EVALUATE TRUE with class condition subject (e.g., EVALUATE X NUMERIC WHEN TRUE),
+            // inject the class condition as the WHEN's condition
+            if (classConditionSubject != null && items.Length > 0)
+            {
+                var item = items[0];
+                // Check if WHEN item is TRUE or FALSE via condition → booleanLiteral
+                var boolLit = item.condition()?.logicalOrExpression()?.logicalAndExpression(0)
+                    ?.unaryLogicalExpression(0)?.primaryCondition()?.booleanLiteral();
+                if (boolLit?.TRUE_() != null)
+                    return new BoundEvaluateConditionWhen(classConditionSubject);
+                if (boolLit?.FALSE_() != null)
+                    return new BoundEvaluateConditionWhen(
+                        new BoundClassConditionExpression(classConditionSubject.Subject,
+                            classConditionSubject.ClassKind, !classConditionSubject.IsNegated));
+            }
             // For EVALUATE TRUE, the WHEN item is a condition
             if (items.Length > 0 && items[0].condition() is { } condCtx)
                 return new BoundEvaluateConditionWhen(BindCondition(condCtx));
