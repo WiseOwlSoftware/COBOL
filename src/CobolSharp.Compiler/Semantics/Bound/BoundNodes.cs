@@ -1076,20 +1076,23 @@ public sealed class BoundArithmeticTarget
 
 public sealed class BoundEvaluateStatement : BoundStatement
 {
-    public IReadOnlyList<BoundExpression> Subjects { get; }  // empty for EVALUATE TRUE
+    public IReadOnlyList<BoundExpression> Subjects { get; }  // empty for EVALUATE TRUE/FALSE
     public IReadOnlyList<BoundEvaluateWhen> Whens { get; }
     public IReadOnlyList<BoundStatement>? WhenOther { get; }
+    public bool IsEvaluateFalse { get; }  // EVALUATE FALSE — invert condition matches
 
-    public bool IsEvaluateTrue => Subjects.Count == 0;
+    public bool IsEvaluateTrue => Subjects.Count == 0 && !IsEvaluateFalse;
 
     public BoundEvaluateStatement(
         IReadOnlyList<BoundExpression> subjects,
         IReadOnlyList<BoundEvaluateWhen> whens,
-        IReadOnlyList<BoundStatement>? whenOther)
+        IReadOnlyList<BoundStatement>? whenOther,
+        bool isEvaluateFalse = false)
     {
         Subjects = subjects;
         Whens = whens;
         WhenOther = whenOther;
+        IsEvaluateFalse = isEvaluateFalse;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.EvaluateStatement;

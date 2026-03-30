@@ -69,10 +69,7 @@ TEST RESULT OF NC225A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-21-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-22-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-23-1   .01
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-24-1   .01        SELECTION OBJECT CONDITION SHOULD BE FALSE
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-84 6.12.4 GR1(e)
-
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-24-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-25-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-26-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-27-1   .01
@@ -82,39 +79,43 @@ TEST RESULT OF NC225A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-84 6.12.4 GR3
 
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-30-1   .01
- EVALUATE STATEMENT   PASS  EVA-TEST-GF-31-1   .01
- EVALUATE STATEMENT   PASS  EVA-TEST-GF-31-1   .01
+ EVALUATE STATEMENT   FAIL* EVA-TEST-GF-31-1   .01        EVALUATE FAILURE
+
+                                     COMPUTED= E
+                                     CORRECT = A                     VI-84 6.12.4 GR3
+
+ EVALUATE STATEMENT   FAIL* EVA-TEST-GF-31-1   .01        EVALUATE FAILURE
+
+                                     COMPUTED= F
+                                     CORRECT = B                     VI-84 6.12.4 GR3
+
  EVALUATE STATEMENT   FAIL* EVA-TEST-GF-32-1   .01        EVALUATE FAILURE
 
-                                     COMPUTED= A
+                                     COMPUTED= E
                                      CORRECT = C                     VI-84 6.12.4 GR3
 
  EVALUATE STATEMENT   FAIL* EVA-TEST-GF-32-1   .02        EVALUATE FAILURE
 
-                                     COMPUTED= B
+                                     COMPUTED= F
                                      CORRECT = D                     VI-84 6.12.4 GR3
 
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-33-1   .01        EVALUATE FAILURE
-
-                                     COMPUTED= A
-                                     CORRECT = E                     VI-84 6.12.4 GR3
-
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-33-1   .02        EVALUATE FAILURE
-
-                                     COMPUTED= B
-                                     CORRECT = F                     VI-84 6.12.4 GR3
-
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-33-1   .01
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-33-1   .02
  EVALUATE STATEMENT   FAIL* EVA-TEST-GF-34-1   .01        EVALUATE FAILURE
 
-                                     COMPUTED= A
+                                     COMPUTED= E
                                      CORRECT = G                     VI-84 6.12.4 GR3
 
  EVALUATE STATEMENT   FAIL* EVA-TEST-GF-34-1   .02        EVALUATE FAILURE
 
-                                     COMPUTED= B
+                                     COMPUTED= F
                                      CORRECT = H                     VI-84 6.12.4 GR3
 
- EVALUATE STATEMENT   PASS  EVA-TEST-GF-35-1   .01
+ EVALUATE STATEMENT   FAIL* EVA-TEST-GF-35-1   .01        EVALUATE FAILURE
+
+                                     COMPUTED= E
+                                     CORRECT = A                     VI-84 6.12.4 GR3
+
  ***********************************************************************************************************************
 
 

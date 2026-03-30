@@ -2865,11 +2865,20 @@ public sealed class Binder
     {
         if (cond is BoundEvaluateConditionWhen condWhen)
         {
-            // EVALUATE TRUE: condition is a standalone boolean
+            // EVALUATE TRUE/FALSE: condition is a standalone boolean
             var condVal = _valueFactory.Next(IrPrimitiveType.Bool);
             LowerCondition(condWhen.Condition, condVal, block);
-            block.Instructions.Add(new IrBranchIfFalse(condVal, failBlock));
-            block.Instructions.Add(new IrJump(successBlock));
+            if (eval.IsEvaluateFalse)
+            {
+                // EVALUATE FALSE: match when condition is FALSE
+                block.Instructions.Add(new IrBranchIfFalse(condVal, successBlock));
+                block.Instructions.Add(new IrJump(failBlock));
+            }
+            else
+            {
+                block.Instructions.Add(new IrBranchIfFalse(condVal, failBlock));
+                block.Instructions.Add(new IrJump(successBlock));
+            }
             return;
         }
 

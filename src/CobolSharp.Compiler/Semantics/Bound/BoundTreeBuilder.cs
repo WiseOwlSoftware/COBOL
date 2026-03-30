@@ -728,11 +728,18 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         var subjects = new List<BoundExpression>();
         bool isEvaluateTrue = false;
 
+        bool isEvaluateFalse = false;
+
         foreach (var subCtx in ctx.evaluateSubject())
         {
             if (subCtx.booleanLiteral()?.TRUE_() != null)
             {
                 isEvaluateTrue = true;
+                continue;
+            }
+            if (subCtx.booleanLiteral()?.FALSE_() != null)
+            {
+                isEvaluateFalse = true;
                 continue;
             }
             if (subCtx.valueOperand()?.arithmeticExpression() is { } arithCtx)
@@ -741,7 +748,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                 subjects.Add(BindNonNumericLiteral(nonNumCtx));
         }
 
-        int subjectCount = isEvaluateTrue ? 1 : subjects.Count;
+        int subjectCount = (isEvaluateTrue || isEvaluateFalse) ? 1 : subjects.Count;
 
         // Bind WHEN clauses
         var whens = new List<BoundEvaluateWhen>();
@@ -769,7 +776,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
 
             for (int i = 0; i < subjectCount && i < groups.Length; i++)
             {
-                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue));
+                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue || isEvaluateFalse));
             }
             // If fewer groups than subjects → semantic error; fill with "never match"
             // so the WHEN clause doesn't fire (missing subjects are non-matching)
@@ -788,7 +795,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
             whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
         }
 
-        return new BoundEvaluateStatement(subjects, whens, whenOther);
+        return new BoundEvaluateStatement(subjects, whens, whenOther, isEvaluateFalse);
     }
 
     private BoundEvaluateCondition BindEvaluateWhenGroup(
