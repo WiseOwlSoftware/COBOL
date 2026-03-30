@@ -1284,8 +1284,20 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
             return text;
         }
-        if (nonNum?.figurativeConstant() != null)
-            return nonNum.GetText();
+        if (nonNum?.figurativeConstant() is { } fig2)
+        {
+            var figText = fig2.GetText().ToUpperInvariant();
+            if (figText.StartsWith("ALL")) figText = figText[3..];
+            return figText switch
+            {
+                "ZERO" or "ZEROS" or "ZEROES" => (object)0m,
+                "SPACE" or "SPACES" => " ",
+                "QUOTE" or "QUOTES" => "\"",
+                "HIGH-VALUE" or "HIGH-VALUES" => "\xFF",
+                "LOW-VALUE" or "LOW-VALUES" => "\x00",
+                _ => nonNum.GetText()
+            };
+        }
 
         // Navigate arithmeticExpression chain to reach numericLiteral (handles unary minus)
         var (numLit, isNegated) = FindNumericLiteralInArith(vo.arithmeticExpression());
@@ -1356,8 +1368,20 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
             return text;
         }
-        if (nonNum?.figurativeConstant() != null)
-            return nonNum.GetText();
+        if (nonNum?.figurativeConstant() is { } fig)
+        {
+            var figText = fig.GetText().ToUpperInvariant();
+            if (figText.StartsWith("ALL")) figText = figText[3..];
+            return figText switch
+            {
+                "ZERO" or "ZEROS" or "ZEROES" => (object)0m,
+                "SPACE" or "SPACES" => " ",
+                "QUOTE" or "QUOTES" => "\"",
+                "HIGH-VALUE" or "HIGH-VALUES" => "\xFF",
+                "LOW-VALUE" or "LOW-VALUES" => "\x00",
+                _ => nonNum.GetText()
+            };
+        }
 
         var (numLit, isNegated) = FindNumericLiteralInUnary(vo.unaryExpression());
         if (numLit != null)

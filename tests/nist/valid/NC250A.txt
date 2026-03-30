@@ -47,10 +47,7 @@ TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
    ZERO               PASS  IF--TEST-21
    CONDITION-NAMES    PASS  IF--TEST-22
    CONDITION-NAMES    PASS  IF--TEST-23
-   CONDITION-NAMES    FAIL* IF--TEST-24
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
-
+   CONDITION-NAMES    PASS  IF--TEST-24
    CONDITION-NAMES    PASS  IF--TEST-25
    CONDITION-NAMES    FAIL* IF--TEST-26
 
@@ -198,8 +195,8 @@ TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC250A
 
-                                                    110 OF 115  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    005 TEST(S) FAILED
+                                                    111 OF 115  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    004 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
