@@ -3861,6 +3861,11 @@ public sealed class Binder
         else if (unstr.Delimiter is BoundLiteralExpression numDelim && numDelim.Value is decimal dv)
             literalDelimiter = dv.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
+        // Resolve identifier-based delimiter (data reference)
+        IrLocation? delimiterLoc = null;
+        if (literalDelimiter == null && unstr.Delimiter is BoundIdentifierExpression delimId)
+            delimiterLoc = ResolveExpressionLocation(delimId);
+
         // Pointer: resolve if present
         IrLocation? ptrLoc = null;
         if (unstr.Pointer != null)
@@ -3892,7 +3897,7 @@ public sealed class Binder
         // Emit single IrUnstringStatement
         var overflowResult = _valueFactory.Next(IrPrimitiveType.Bool);
         block.Instructions.Add(new IrUnstringStatement(srcLoc, literalDelimiter, unstr.DelimitedByAll,
-            intos, ptrLoc, tallyLoc, overflowResult));
+            intos, ptrLoc, tallyLoc, overflowResult, delimiterLoc));
 
         // ON OVERFLOW / NOT ON OVERFLOW branching (same pattern as STRING)
         if (unstr.OnOverflow.Count > 0 || unstr.NotOnOverflow.Count > 0)

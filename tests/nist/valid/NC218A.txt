@@ -42,19 +42,11 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC XXX              PASS  UST-TEST-GF-3      .05
  PIC XXX JUST         FAIL* UST-TEST-GF-4      .01
 
-                                     COMPUTED= 120
+                                     COMPUTED= 12
                                      CORRECT =  12                   VI-135
 
- PIC XXX JUST         FAIL* UST-TEST-GF-4      .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
- PIC XXX JUST         FAIL* UST-TEST-GF-4      .03
-
-                                     COMPUTED=  000000003.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .02
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .03
  PIC XXX JUST         PASS  UST-TEST-GF-4      .04
  PIC XXX JUST         PASS  UST-TEST-GF-4      .05
  PIC 9                FAIL* UST-TEST-GF-5      .01
@@ -81,38 +73,18 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC 99               PASS  UST-TEST-GF-7      .04
  PIC 99               PASS  UST-TEST-GF-7      .05
  PIC S99              PASS  UST-TEST-GF-8      .01
- PIC S99              FAIL* UST-TEST-GF-8      .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
+ PIC S99              PASS  UST-TEST-GF-8      .02
  PIC S99              PASS  UST-TEST-GF-8      .03
- PIC S99              FAIL* UST-TEST-GF-8      .04
-
-                                     COMPUTED=  000000003.000000000
-                                     CORRECT =  000000004.000000000  VI-135
-
+ PIC S99              PASS  UST-TEST-GF-8      .04
  PIC S99              PASS  UST-TEST-GF-8      .05
  PIC S9 TRAIL SEP     FAIL* UST-TEST-GF-9      .01
 
                                      COMPUTED=  000000001.000000000
                                      CORRECT =  000000002.000000000  VI-135
 
- PIC S9 TRAIL SEP     FAIL* UST-TEST-GF-9      .02
-
-                                     COMPUTED=
-                                     CORRECT = 0                     VI-135
-
- PIC S9 TRAIL SEP     FAIL* UST-TEST-GF-9      .02
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
- PIC S9 TRAIL SEP     FAIL* UST-TEST-GF-9      .03
-
-                                     COMPUTED=  000000002.000000000
-                                     CORRECT =  000000008.000000000  VI-135
-
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .03
  PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .04
  PIC S9 LEAD SEP      FAIL* UST-TEST-GF-10     .01
 
@@ -147,52 +119,16 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      COMPUTED=  000000003.000000000
                                      CORRECT =  000000002.000000000  VI-135
 
- QUAL DEL BY POINT    FAIL* UST-TEST-GF-17     .01
-
-                                     COMPUTED= BCDEFG
-                                     CORRECT = B                     VI-135
-
- QUAL DEL BY POINT    FAIL* UST-TEST-GF-17     .02
-
-                                     COMPUTED=
-                                     CORRECT = C                     VI-135
-
- QUAL DEL BY POINT    FAIL* UST-TEST-GF-17     .03
-
-                                     COMPUTED=  000000006.000000000
-                                     CORRECT =  000000001.000000000  VI-135
-
- QUAL DEL BY POINT    FAIL* UST-TEST-GF-17     .04
-
-                                     COMPUTED=  000000008.000000000
-                                     CORRECT =  000000004.000000000  VI-135
-
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .01
-
-                                     COMPUTED= ABCDEF
-                                     CORRECT = AB   D                VI-136
-
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .02
-
-                                     COMPUTED=
-                                     CORRECT = C                     VI-136
-
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .03
-
-                                     COMPUTED=  000000005.000000000
-                                     CORRECT =  000000002.000000000  VI-136
-
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .04
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000004.000000000  VI-136
-
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .01
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .02
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .03
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .04
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .01
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .02
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .03
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .04
  QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .05
- QUAL DEL BY TALLY    FAIL* UST-TEST-GF-18     .06
-
-                                     COMPUTED=
-                                     CORRECT = 4                     VI-136
-
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .06
  QUALIFIED ID1        PASS  UST-TEST-GF-19     .01
  QUALIFIED ID1        PASS  UST-TEST-GF-19     .02
  QUALIFIED ID1        PASS  UST-TEST-GF-19     .03
@@ -270,8 +206,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    092 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    033 TEST(S) FAILED
+                                                    108 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    017 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

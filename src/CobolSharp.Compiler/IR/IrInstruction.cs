@@ -1541,6 +1541,7 @@ public sealed class IrUnstringStatement : IrInstruction
 {
     public IrLocation Source { get; }
     public string? LiteralDelimiter { get; }
+    public IrLocation? DelimiterLocation { get; }  // field-based delimiter
     public bool DelimitedByAll { get; }
     public IReadOnlyList<IrUnstringInto> Intos { get; }
     public IrLocation? PointerLocation { get; }
@@ -1548,10 +1549,11 @@ public sealed class IrUnstringStatement : IrInstruction
 
     public IrUnstringStatement(IrLocation source, string? literalDelimiter, bool delimitedByAll,
         IReadOnlyList<IrUnstringInto> intos, IrLocation? pointerLocation, IrLocation? tallyingLocation,
-        IrValue overflowResult)
+        IrValue overflowResult, IrLocation? delimiterLocation = null)
     {
         Source = source;
         LiteralDelimiter = literalDelimiter;
+        DelimiterLocation = delimiterLocation;
         DelimitedByAll = delimitedByAll;
         Intos = intos;
         PointerLocation = pointerLocation;

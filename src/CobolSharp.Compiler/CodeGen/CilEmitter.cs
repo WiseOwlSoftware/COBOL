@@ -3405,6 +3405,14 @@ public sealed class CilEmitter
             // Push delimiter (string? or null)
             if (unstrStmt.LiteralDelimiter != null)
                 il.Append(il.Create(OpCodes.Ldstr, unstrStmt.LiteralDelimiter));
+            else if (unstrStmt.DelimiterLocation != null)
+            {
+                // Field-based delimiter: read field as string at runtime
+                EmitLocationArgs(il, unstrStmt.DelimiterLocation);
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+            }
             else
                 il.Append(il.Create(OpCodes.Ldnull));
 
