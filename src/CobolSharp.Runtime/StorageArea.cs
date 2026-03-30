@@ -321,6 +321,35 @@ public static class StorageHelpers
         return overflow;
     }
 
+    public static bool StringConcatLiteralFieldDelim(
+        byte[] destArea, int destOffset, int destLength, string value,
+        byte[] delimArea, int delimOffset, int delimLength,
+        bool delimitedBySize, ref int pointer)
+    {
+        string delim = Encoding.ASCII.GetString(delimArea, delimOffset, delimLength);
+        return StringConcatLiteral(destArea, destOffset, destLength, value, delim, delimitedBySize, ref pointer);
+    }
+
+    public static bool StringConcatFieldDelim(
+        byte[] destArea, int destOffset, int destLength,
+        byte[] srcArea, int srcOffset, int srcLength,
+        byte[] delimArea, int delimOffset, int delimLength,
+        bool delimitedBySize, ref int pointer)
+    {
+        int index = pointer - 1;
+        int effectiveLength = delimitedBySize ? srcLength
+            : FindDelimitedLengthField(srcArea, srcOffset, srcLength, delimArea, delimOffset, delimLength);
+        bool overflow = false;
+        for (int j = 0; j < effectiveLength; j++)
+        {
+            if (index >= destLength) { overflow = true; break; }
+            destArea[destOffset + index] = srcArea[srcOffset + j];
+            index++;
+        }
+        pointer = index + 1;
+        return overflow;
+    }
+
     private static int FindDelimitedLength(byte[] area, int offset, int length, string delimiter)
     {
         byte[] delimBytes = Encoding.ASCII.GetBytes(delimiter);
@@ -343,6 +372,21 @@ public static class StorageHelpers
         return length;
     }
 
+    private static int FindDelimitedLengthField(byte[] area, int offset, int length,
+        byte[] delimArea, int delimOffset, int delimLength)
+    {
+        for (int i = 0; i <= length - delimLength; i++)
+        {
+            bool match = true;
+            for (int k = 0; k < delimLength; k++)
+            {
+                if (area[offset + i + k] != delimArea[delimOffset + k]) { match = false; break; }
+            }
+            if (match) return i;
+        }
+        return length;
+    }
+
     // ── UNSTRING runtime ──
 
     /// <summary>
@@ -362,13 +406,11 @@ public static class StorageHelpers
     {
         int pos = pointer - 1; // convert to 0-based within source window
 
-        // Source already exhausted — overflow
+        // Source already exhausted — overflow; do NOT modify destination
+        // Per ISO §14.9.44: when overflow occurs, receiving fields are not altered
         if (pos >= srcLength)
         {
             overflow = true;
-            // Space-fill destination
-            for (int i = 0; i < destLength; i++)
-                destArea[destOffset + i] = (byte)' ';
             return 0;
         }
 
@@ -378,8 +420,10 @@ public static class StorageHelpers
 
         if (delimiter == null)
         {
-            // No delimiter — take the entire remaining source
-            extractLen = srcLength - pos;
+            // No delimiter — take field-length characters (not entire remaining source)
+            // Per ISO §14.9.44: characters are moved into the receiving field
+            // until the field is full, then pointer advances by characters moved
+            extractLen = Math.Min(destLength, srcLength - pos);
         }
         else
         {
