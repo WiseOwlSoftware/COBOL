@@ -1,15 +1,18 @@
 {
   "initialized": true,
-  "last_review_commit": "21fab2844c46c353f79463702b1b47cddcaa6168",
+  "last_review_commit": "b2fb123",
   "ledger_path": "claude/state/modernization-ledger.json",
   "audit_date": "2026-03-30",
+  "ledger_version": 3,
   "ledger_summary": {
-    "total_items": 25,
-    "done": 2,
-    "p0_critical": 2,
-    "p1_high": 7,
-    "p2_medium": 12,
-    "p3_low": 2,
+    "total_items": 148,
+    "done": 4,
+    "open": 121,
+    "planned": 23,
+    "p0_critical": 4,
+    "p1_high": 62,
+    "p2_medium": 52,
+    "p3_low": 30,
     "subsystems_audited": [
       "Preprocessor",
       "Grammar/Parser",
@@ -18,6 +21,25 @@
       "IR/Lowering",
       "CIL Emission/Runtime",
       "Project Structure/Build"
-    ]
+    ],
+    "series": {
+      "M001-M004": "done (god class elimination)",
+      "M005-M025": "open (cleanup, 21 items)",
+      "M100-M112": "planned (features, 13 items)",
+      "M200-M209": "planned (compliance initiative, 10 items)",
+      "M300-M399": "open (compliance gaps, 100 items)"
+    }
+  },
+  "cobol85_audit": {
+    "date": "2026-03-30",
+    "artifacts_path": "audit/cobol85/",
+    "unit_tests": 922,
+    "integration_tests": 287,
+    "nist_nc_tests": 95,
+    "nist_nc_fail_star": 77,
+    "nist_nc_clean": 81,
+    "nist_non_nc_baselines": 0,
+    "grammar_gaps_remaining": 56,
+    "semantic_rules_unclear": 9
   }
 }
