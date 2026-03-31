@@ -1122,7 +1122,7 @@
       "severity": "P1",
       "subsystem": "Grammar",
       "status": "in-progress",
-      "description": "Grammar audit verified 2026-03-30. Original 138 gaps, ~102 fixed at session start. Batch 1 closed 7 REJECT gaps. Batch 2 closed 3 REJECT gaps. ANTLR review completed. Batch 3 DESIGN COMPLETE for remaining 2 REJECT gaps (M407, M411) — implementation pending. 15 OVERLENIENT gaps (P3). 9 SEMANTIC-ONLY gaps (M302/M304/M310). 5 new sub-gaps discovered during Batch 3 design (M429-M433).",
+      "description": "Grammar audit verified 2026-03-30. Original 138 gaps. Batch 1 closed 7 REJECT gaps. Batch 2 closed 3 REJECT gaps. ANTLR review completed. Batch 3 closed final 2 REJECT gaps (M407, M411). ALL 12 REJECT grammar gaps now closed. 15 OVERLENIENT gaps (P3) remain. 9 SEMANTIC-ONLY gaps remain (M302/M304/M310). 5 sub-gaps from Batch 3 design (M429-M433). LPAREN subscript trigger refactored to production-quality _dataNameTokens HashSet whitelist.",
       "deliverables": [
         "Close all 12 REJECT gaps (M400-M411)",
         "Close all 15 OVERLENIENT gaps (M412-M426)",
@@ -1344,7 +1344,18 @@
           "docs/M411-screen-section-grammar-island.md",
           "docs/batch3-architectural-summary.md"
         ],
-        "batch_3_implementation_status": "pending",
+        "batch_3_implementation_status": "complete",
+        "batch_3_completed": "2026-03-31",
+        "batch_3_items_closed": ["M407", "M411"],
+        "batch_3_tests_added": 18,
+        "batch_3_architectural_changes": {
+          "picmode_exploit": "WITH PICTURE SYMBOL parsed via PICMODE capturing SYMBOL as PIC_STRING",
+          "pic_environment": "Added CurrencyOutputChar field; 3-param constructor",
+          "screen_grammar": "CobolScreen.g4 new file; 17 lexer tokens; screenSection in dataDivision",
+          "bound_screen": "BoundScreenItem.cs with position, attributes, data binding, hierarchy",
+          "lparen_refactor": "_dataNameTokens HashSet whitelist replacing || chain; mirrors cobolWord + functionName",
+          "cobolWord_expansion": "15 screen tokens + COLUMN added"
+        },
         "batch_3_sub_gaps_discovered": [
           "M429",
           "M430",
@@ -3913,25 +3924,27 @@
       "title": "CURRENCY SIGN WITH PICTURE SYMBOL",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "design-complete",
-      "description": "CURRENCY SIGN IS literal WITH PICTURE SYMBOL literal phrase. Design complete: exploits existing PICMODE to capture SYMBOL as PIC_STRING token (zero lexer changes). PicEnvironment gains CurrencyOutputChar to decouple PIC symbol from output character. 8 files touched, 0 new files. See docs/M407-currency-sign-picmode-refactor.md.",
+      "status": "complete",
+      "description": "CURRENCY SIGN IS literal WITH PICTURE SYMBOL literal. Implemented: PICMODE exploit captures SYMBOL as PIC_STRING token. PicEnvironment.CurrencyOutputChar decouples PIC symbol from output char. PicRuntime: 3 output-placement + 3 de-editing sites updated. CIL emission: 3-param PicEnvironment ctor. SemanticBuilder: parses WITH PICTURE SYMBOL, validates literal-7/literal-8. 6 integration tests.",
       "deliverables": [
-        "Design document (COMPLETE): docs/M407-currency-sign-picmode-refactor.md",
-        "Grammar change: currencySignClause WITH PIC PIC_STRING literal (PENDING)",
-        "Runtime change: PicEnvironment.CurrencyOutputChar, PicRuntime output sites (PENDING)",
-        "Binder change: SemanticBuilder, SemanticModel, Compilation passthrough (PENDING)",
-        "CIL change: CilExpressionEmitter PicEnvironment ctor (PENDING)",
-        "Tests: 19 new (4 parser, 2 negative, 5 binder, 5 runtime, 3 integration) (PENDING)"
+        "Design document: docs/M407-currency-sign-picmode-refactor.md",
+        "Grammar: currencySignClause WITH PIC PIC_STRING literal",
+        "Runtime: PicEnvironment.CurrencyOutputChar, PicRuntime 3 output + 3 de-editing sites",
+        "Binder: SemanticBuilder parses PICTURE SYMBOL, validates chars, sets CurrencyOutputChar",
+        "CIL: CilExpressionEmitter 3-param PicEnvironment ctor",
+        "Tests: 6 integration (fixed/floating/blank/default/decoupled/explicit-dollar)"
       ],
       "risks": [
         "CIL ctor signature change requires simultaneous PicEnvironment + CilExpressionEmitter update",
         "PICMODE exploit depends on PIC_STRING matching 'SYMBOL' — verify with ANTLR test"
       ],
       "test_impact": [
-        "Parser tests: 4 positive + 2 negative",
-        "Binder tests: 5 (CurrencySign/CurrencyOutputChar validation)",
-        "Runtime formatting tests: 5 (fixed/floating/suppression/blank/default)",
-        "Integration tests: 3 (end-to-end compile + run with custom currency)"
+        "CurrencySign_WithoutPictureSymbol_ParsesAndFormats",
+        "CurrencySign_WithPictureSymbol_ParsesSuccessfully",
+        "CurrencySign_WithPictureSymbol_FixedCurrency",
+        "CurrencySign_DefaultDollar_Unaffected",
+        "CurrencySign_WithPictureSymbol_BlankWhenZero",
+        "CurrencySign_WithPictureSymbol_ExplicitDollar"
       ],
       "dependencies": [
         "M300",
@@ -3943,9 +3956,12 @@
         "design_doc": "docs/M407-currency-sign-picmode-refactor.md",
         "design_date": "2026-03-30",
         "design_review": "Approved by Brent — 'Production-quality design'",
-        "implementation_status": "pending"
+        "implementation_date": "2026-03-31",
+        "implementation_commit": "122cc72",
+        "implementation_status": "complete"
       },
-      "notes": "Ready for implementation; no grammar or runtime changes applied yet."
+      "notes": "PICMODE refactor complete; runtime formatting updated; no regressions.",
+      "completed_date": "2026-03-31"
     },
     {
       "id": "M408",
@@ -4035,25 +4051,35 @@
       "title": "SCREEN SECTION",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "design-complete",
-      "description": "SCREEN SECTION grammar island. Design complete: new CobolScreen.g4 parser fragment, 16 new lexer tokens, BoundScreenItem/BoundScreenSection binder model, ACCEPT/DISPLAY disambiguation via semantic layer (no grammar change needed). Dialect gating: Option A (always enabled). Runtime I/O intentionally deferred. See docs/M411-screen-section-grammar-island.md.",
+      "status": "complete",
+      "description": "SCREEN SECTION grammar island implemented. 17 new lexer tokens. CobolScreen.g4 parser fragment with screenSection, screenDescriptionEntry, ~15 clause rules. BoundScreenItem with position, attributes, data binding, hierarchy. SemanticBuilder.VisitScreenSection builds tree with level-number stack. Validates HIGHLIGHT/LOWLIGHT and USING/FROM+TO exclusivity. All screen tokens in cobolWord for shadowing mitigation. LPAREN trigger refactored to _dataNameTokens HashSet whitelist. Runtime I/O deferred (M429). 12 integration tests.",
       "deliverables": [
-        "Design document (COMPLETE): docs/M411-screen-section-grammar-island.md",
-        "Lexer tokens: 16 new (SCREEN, COL, BELL, BLINK, etc.) (PENDING)",
-        "Grammar: CobolScreen.g4 new file + CobolData.g4 screenSection (PENDING)",
-        "Binder: BoundScreenItem, BoundScreenSection (PENDING)",
-        "Semantic: VisitScreenSection, validation rules, name resolution (PENDING)",
-        "Tests: 23 new (12 parser, 2 negative, 6 binder, 3 integration) (PENDING)"
+        "Design document: docs/M411-screen-section-grammar-island.md",
+        "Lexer: 17 tokens (SCREEN, COL, COLUMN, BELL, BLINK, HIGHLIGHT, LOWLIGHT, REVERSE_VIDEO, UNDERLINE_, FOREGROUND_COLOR, BACKGROUND_COLOR, SECURE, AUTO, FULL_, ERASE, REQUIRED, EOL, EOS)",
+        "Grammar: CobolScreen.g4 + CobolData.g4 screenSection + CobolParserCore.g4 import",
+        "Binder: BoundScreenItem.cs, ScreenPosition record",
+        "Semantic: VisitScreenSection, validation, SemanticModel.ScreenItems",
+        "cobolWord: 15 screen tokens added for keyword shadowing mitigation",
+        "LPAREN: refactored to _dataNameTokens HashSet whitelist (production-quality)",
+        "Tests: 12 integration (empty, VALUE+LINE+COL, PIC+USING, FROM+TO, attributes, colors, PLUS, BLANK, ERASE, SECURE, nested, AUTO+FULL)"
       ],
       "risks": [
-        "16 new lexer tokens may shadow IDENTIFIER in existing programs (SCREEN, AUTO, FULL, SECURE)",
-        "Hyphenated tokens (REVERSE-VIDEO, FOREGROUND-COLOR, BACKGROUND-COLOR) require careful ordering before IDENTIFIER",
-        "Large scope — grammar island with ~25 new parser rules"
+        "17 new lexer tokens shadow IDENTIFIER — mitigated by cobolWord inclusion",
+        "LPAREN HashSet whitelist must mirror cobolWord + functionName"
       ],
       "test_impact": [
-        "Parser tests: 12 positive + 2 negative",
-        "Binder tests: 6 (tree structure, FROM/TO/USING resolution, mutual exclusivity)",
-        "Integration tests: 3 (compile with SCREEN SECTION, ACCEPT, DISPLAY)"
+        "ScreenSection_Empty_ParsesSuccessfully",
+        "ScreenSection_SimpleValueLineCol_ParsesSuccessfully",
+        "ScreenSection_PicUsing_ParsesSuccessfully",
+        "ScreenSection_PicFromTo_ParsesSuccessfully",
+        "ScreenSection_AllAttributes_ParsesSuccessfully",
+        "ScreenSection_Colors_ParsesSuccessfully",
+        "ScreenSection_LinePlusColPlus_ParsesSuccessfully",
+        "ScreenSection_BlankScreen_ParsesSuccessfully",
+        "ScreenSection_EraseEolEos_ParsesSuccessfully",
+        "ScreenSection_SecureRequired_ParsesSuccessfully",
+        "ScreenSection_NestedLevels_ParsesSuccessfully",
+        "ScreenSection_AutoFull_ParsesSuccessfully"
       ],
       "dependencies": [
         "M300"
@@ -4064,9 +4090,12 @@
         "design_doc": "docs/M411-screen-section-grammar-island.md",
         "design_date": "2026-03-30",
         "design_review": "Approved by Brent — 'Very strong design for a complex feature'",
-        "implementation_status": "pending"
+        "implementation_date": "2026-03-31",
+        "implementation_commit": "122cc72",
+        "implementation_status": "complete"
       },
-      "notes": "Grammar island design complete; runtime I/O intentionally deferred."
+      "notes": "SCREEN SECTION grammar + semantics complete; runtime I/O deferred to M429.",
+      "completed_date": "2026-03-31"
     },
     {
       "id": "M412",
