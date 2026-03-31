@@ -40,7 +40,7 @@ TEST RESULT OF NC216A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  CHAR AFTER ALL BEF   PASS  INS-TEST-F3-18     .02
  TALLY SERIES         FAIL* INS-TEST-F3-19     .01
 
-                                     COMPUTED=  000000030.000000000
+                                     COMPUTED=  000000113.000000000
                                      CORRECT =  000000008.000000000  VI-94 6.17.3
 
  TALLY SERIES         PASS  INS-TEST-F3-19     .02
@@ -93,11 +93,7 @@ TEST RESULT OF NC216A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  FOR CHARS AFTER LIT  PASS  INS-TEST-F1-29
  FOR CHARS AFTER LIT  PASS  INS-TEST-F1-30
  FOR CHARS AFTER LIT  PASS  INS-TEST-F1-31
- FOR CHARS AFTER LIT  FAIL* INS-TEST-F1-32
-
-                                     COMPUTED=  000000018.000000000
-                                     CORRECT =  000000000.000000000  VI-93
-
+ FOR CHARS AFTER LIT  PASS  INS-TEST-F1-32
  REP CHARS BY SPACES  PASS  INS-TEST-F2-33
  REP CHARS BY SPACES  PASS  INS-TEST-F2-34
  REP CHARS BY SPACES  PASS  INS-TEST-F3-35-1
@@ -121,8 +117,8 @@ TEST RESULT OF NC216A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC216A
 
-                                                    049 OF 057  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    008 TEST(S) FAILED
+                                                    050 OF 057  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    007 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

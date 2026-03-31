@@ -433,11 +433,15 @@ internal sealed class FileIoBinder
         {
             var procNames = inputCtx.procedureName();
             if (procNames.Length >= 1)
-                inputProc = _ctx.ProcedureName.ResolveProcedureName(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[0]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+                inputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
+            }
             if (procNames.Length >= 2)
-                inputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[1]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
+                inputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
+            }
         }
 
         // GIVING / OUTPUT PROCEDURE
@@ -451,11 +455,15 @@ internal sealed class FileIoBinder
         {
             var procNames = outputCtx.procedureName();
             if (procNames.Length >= 1)
-                outputProc = _ctx.ProcedureName.ResolveProcedureName(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[0]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+                outputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
+            }
             if (procNames.Length >= 2)
-                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[1]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
+                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
+            }
         }
 
         return new BoundSortStatement(fileSym, keys, duplicates,
@@ -535,11 +543,15 @@ internal sealed class FileIoBinder
         {
             var procNames = outputCtx.procedureName();
             if (procNames.Length >= 1)
-                outputProc = _ctx.ProcedureName.ResolveProcedureName(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[0]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+                outputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
+            }
             if (procNames.Length >= 2)
-                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(
-                    ProcedureNameResolver.ExtractProcedureNameText(procNames[1]));
+            {
+                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
+                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
+            }
         }
 
         return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,

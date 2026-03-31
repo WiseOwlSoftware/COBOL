@@ -43,6 +43,11 @@ internal sealed class StringStatementBinder
 
                 foreach (var forClause in item.inspectForClause())
                 {
+                    // Track last-seen keyword within this FOR clause.
+                    // Per ISO spec, bare patterns (no keyword) inherit from
+                    // the preceding phrase in the same FOR clause.
+                    InspectTallyKind lastKind = InspectTallyKind.All;
+
                     foreach (var countPhrase in forClause.inspectCountPhrase())
                     {
                         InspectTallyKind kind;
@@ -51,15 +56,38 @@ internal sealed class StringStatementBinder
                         if (countPhrase.CHARACTERS() != null)
                         {
                             kind = InspectTallyKind.Characters;
+                            lastKind = kind;
                         }
                         else if (countPhrase.LEADING() != null)
                         {
                             kind = InspectTallyKind.Leading;
+                            lastKind = kind;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+                        else if (countPhrase.ALL() != null)
+                        {
+                            kind = InspectTallyKind.All;
+                            lastKind = kind;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+                        else if (countPhrase.FIRST() != null)
+                        {
+                            // FIRST maps to All for tallying (count first occurrence)
+                            kind = InspectTallyKind.All;
+                            lastKind = kind;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+                        else if (countPhrase.TRAILING() != null)
+                        {
+                            // TRAILING maps to All for tallying (no dedicated enum yet)
+                            kind = InspectTallyKind.All;
+                            lastKind = kind;
                             pattern = ExtractInspectPattern(countPhrase.inspectChar());
                         }
                         else
                         {
-                            kind = InspectTallyKind.All;
+                            // No keyword — inherit from preceding phrase in this FOR clause
+                            kind = lastKind;
                             pattern = ExtractInspectPattern(countPhrase.inspectChar());
                         }
 

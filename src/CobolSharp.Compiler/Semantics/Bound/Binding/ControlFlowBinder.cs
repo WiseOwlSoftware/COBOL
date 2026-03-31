@@ -86,8 +86,8 @@ internal sealed class ControlFlowBinder
         }
 
         // Out-of-line: first procedureName is the target (paragraph or section)
-        string name = ProcedureNameResolver.ExtractProcedureNameText(procNames[0]);
-        var (paraSym, sectionLastPara) = _ctx.ProcedureName.ResolveProcedureNameForPerform(name);
+        var (name, qualifier) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+        var (paraSym, sectionLastPara) = _ctx.ProcedureName.ResolveProcedureNameForPerform(name, qualifier);
         if (paraSym == null) return null;
 
         // PERFORM para N TIMES
@@ -124,8 +124,8 @@ internal sealed class ControlFlowBinder
         // PERFORM para THRU para2 [options]
         if (procNames.Length > 1)
         {
-            string thruName = ProcedureNameResolver.ExtractProcedureNameText(procNames[1]);
-            var thruSym = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(thruName);
+            var (thruName, thruQualifier) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
+            var thruSym = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(thruName, thruQualifier);
 
             // Check for options on the THRU form
             BoundExpression? timesExpr2 = null;
@@ -457,8 +457,8 @@ internal sealed class ControlFlowBinder
 
         foreach (var pn in procNames)
         {
-            string name = ProcedureNameResolver.ExtractProcedureNameText(pn);
-            var paraSym = _ctx.ProcedureName.ResolveProcedureName(name);
+            var (name, qual) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(pn);
+            var paraSym = _ctx.ProcedureName.ResolveProcedureName(name, qual);
             if (paraSym != null) targets.Add(paraSym);
         }
 
@@ -497,11 +497,11 @@ internal sealed class ControlFlowBinder
             var procNames = entry.procedureName();
             if (procNames.Length < 2) continue;
 
-            string targetName = ProcedureNameResolver.ExtractProcedureNameText(procNames[0]);
-            string destName = ProcedureNameResolver.ExtractProcedureNameText(procNames[1]);
+            var (targetName, targetQual) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+            var (destName, destQual) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
 
-            var targetSym = _ctx.ProcedureName.ResolveProcedureName(targetName);
-            var destSym = _ctx.ProcedureName.ResolveProcedureName(destName);
+            var targetSym = _ctx.ProcedureName.ResolveProcedureName(targetName, targetQual);
+            var destSym = _ctx.ProcedureName.ResolveProcedureName(destName, destQual);
 
             if (targetSym == null)
             {

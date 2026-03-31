@@ -14,9 +14,12 @@ TEST RESULT OF NC208A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  ***********************************************************************************************************************
                       PASS  PAR-TEST-F2-1
-                      FAIL* PAR-TEST-F2-2
+                      PASS  PAR-TEST-F2-2
+                      PASS  PAR-TEST-F2-4
+ ***********************************************************************************************************************
 
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 IV-20 4.3.8.1 RULE 6
+
+
 
  DATA-NAME QUAL       PASS
  DATA-NAME QUAL       PASS  QAL-TEST-F1-2
@@ -63,8 +66,8 @@ TEST RESULT OF NC208A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC208A
 
-                                                    019 OF 023  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    004 TEST(S) FAILED
+                                                    021 OF 024  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    003 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

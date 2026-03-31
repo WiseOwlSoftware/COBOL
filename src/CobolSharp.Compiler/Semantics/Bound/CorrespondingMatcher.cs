@@ -87,6 +87,7 @@ internal static class CorrespondingMatcher
         foreach (var child in group.Children)
         {
             if (child.IsFiller) continue;
+            if (child.LevelNumber == 66) continue; // skip RENAMES items per ISO §14.9.26
             if (child.Redefines != null) continue; // skip REDEFINES and all subordinates
             if (child.Occurs != null) continue;   // skip OCCURS items per ISO §14.9.26
 

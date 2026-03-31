@@ -21,6 +21,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
     private readonly CompilationOptions _options;
     private readonly List<BoundParagraph> _paragraphs = new();
     internal readonly BindingContext _ctx;
+    private SectionSymbol? _currentSectionSymbol;
 
     public BoundTreeBuilder(SemanticModel semantic, DiagnosticBag diagnostics, CompilationOptions? options = null)
     {
@@ -113,13 +114,26 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitDeclarativeSection(ctx);
     }
 
+    public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
+    {
+        var sectionNameCtx = ctx.sectionName();
+        string sectionName = sectionNameCtx?.GetText() ?? "";
+        _currentSectionSymbol = _semantic.ResolveSection(sectionName);
+        var result = base.VisitSectionDefinition(ctx);
+        _currentSectionSymbol = null;
+        return result;
+    }
+
     public override object? VisitParagraphDefinition(CobolParserCore.ParagraphDefinitionContext ctx)
     {
         var nameCtx = ctx.paragraphName();
         if (nameCtx == null) return null;
 
         string name = nameCtx.GetText();
-        var paraSym = _semantic.ResolveParagraph(name);
+        // Use section scope for resolution when inside a section, to correctly handle
+        // duplicate paragraph names across sections.
+        ParagraphSymbol? paraSym = _currentSectionSymbol?.Scope.Resolve<ParagraphSymbol>(name)
+            ?? _semantic.ResolveParagraph(name);
         if (paraSym == null) return null;
 
         var sentences = new List<BoundSentence>();

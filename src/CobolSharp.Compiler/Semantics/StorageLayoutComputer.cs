@@ -209,7 +209,10 @@ public static class StorageLayoutComputer
             // Group REDEFINES: compute OWN declared size from children.
             int childOffset = targetLoc.Value.Offset;
             foreach (var child in item.Children)
+            {
+                if (child.LevelNumber == 66) continue; // RENAMES are aliases, not storage
                 LayoutItem(child, area, ref childOffset, model);
+            }
 
             int groupSize = Math.Max(childOffset - targetLoc.Value.Offset, 1);
             item.ElementSize = groupSize;
@@ -264,7 +267,10 @@ public static class StorageLayoutComputer
         if (item.Children.Count > 0)
         {
             foreach (var child in item.Children)
+            {
+                if (child.LevelNumber == 66) continue; // RENAMES are aliases, not storage
                 LayoutItem(child, area, ref offset, model);
+            }
 
             int childrenSize = Math.Max(offset - groupStart, 1);
             item.ElementSize = childrenSize;

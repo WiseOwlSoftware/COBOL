@@ -97,6 +97,8 @@ public sealed class Binder
             _ctx.ParagraphMethods[para.Symbol.Name] = method;
             _ctx.ParagraphIndices[para.Symbol.Name] = paraIndex;
             _ctx.ParagraphsByIndex.Add(para.Symbol.Name);
+            _ctx.ParagraphSymbolMethods[para.Symbol] = method;
+            _ctx.ParagraphSymbolIndices[para.Symbol] = paraIndex;
             module.Methods.Add(method);
             paraIndex++;
         }
@@ -123,10 +125,14 @@ public sealed class Binder
     {
         foreach (var para in boundProgram.Paragraphs)
         {
-            if (!_ctx.ParagraphMethods.TryGetValue(para.Symbol.Name, out var method))
+            // Use symbol-based lookup to correctly handle duplicate paragraph names
+            // in different sections. Fall back to name-based for compatibility.
+            if (!_ctx.ParagraphSymbolMethods.TryGetValue(para.Symbol, out var method)
+                && !_ctx.ParagraphMethods.TryGetValue(para.Symbol.Name, out method))
                 continue;
 
-            int myIndex = _ctx.ParagraphIndices[para.Symbol.Name];
+            if (!_ctx.ParagraphSymbolIndices.TryGetValue(para.Symbol, out int myIndex))
+                myIndex = _ctx.ParagraphIndices.GetValueOrDefault(para.Symbol.Name);
             var block = method.Blocks[0];
             _ctx.CurrentParagraphName = para.Symbol.Name;
 

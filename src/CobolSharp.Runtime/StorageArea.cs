@@ -406,12 +406,14 @@ public static class StorageHelpers
     {
         int pos = pointer - 1; // convert to 0-based within source window
 
-        // Source already exhausted — overflow; do NOT modify destination
-        // Per ISO §14.9.44: when overflow occurs, receiving fields are not altered
+        // Source already exhausted — this INTO target is not acted upon.
+        // Per ISO §14.9.44: overflow occurs ONLY when (a) pointer < 1 or > size
+        // at START, or (b) all receiving areas processed but source not exhausted.
+        // Source exhaustion is NOT an overflow — remaining INTO fields are unchanged.
+        // Return -1 to signal "not acted upon" (tally should not count this target).
         if (pos >= srcLength)
         {
-            overflow = true;
-            return 0;
+            return -1;
         }
 
         int extractLen;

@@ -59,6 +59,7 @@ public sealed class RecordLayoutBuilder
 
         foreach (var child in parent.Children)
         {
+            if (child.LevelNumber == 66) continue; // RENAMES are aliases, not storage
             if (child.Redefines != null)
             {
                 int redefOffset = FindFieldOffset(irRecord, child.Redefines.Name);

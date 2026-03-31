@@ -19,21 +19,9 @@ TEST RESULT OF NC215A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                      CORRECT =                       VI-15 4.5.4 GR4(D)
 
  H I J B SEQUENCE     PASS  SEQ-TEST-GF-2
- I J K L M N EQUAL    FAIL* SEQ-TEST-GF-3
-
-                                     COMPUTED= I J K L M N NOT =
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
- O > THAN N           FAIL* SEQ-TEST-GF-4
-
-                                     COMPUTED= O NOT > THAN N
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
- A < THAN ZERO        FAIL* SEQ-TEST-GF-5
-
-                                     COMPUTED= A FOUND > THAN ZERO
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
+ I J K L M N EQUAL    PASS  SEQ-TEST-GF-3
+ O > THAN N           PASS  SEQ-TEST-GF-4
+ A < THAN ZERO        PASS  SEQ-TEST-GF-5
  NINE < THAN SPACE    FAIL* SEQ-TEST-GF-6
 
                                      COMPUTED= 9 FOUND > THAN SPACE
@@ -57,8 +45,8 @@ TEST RESULT OF NC215A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC215A
 
-                                                    001 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    006 TEST(S) FAILED
+                                                    004 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    003 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

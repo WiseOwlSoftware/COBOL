@@ -260,7 +260,10 @@ internal sealed class ConditionLowerer
                 {
                     bool eitherNumeric = left.Category == CobolCategory.Numeric
                                      || right.Category == CobolCategory.Numeric;
-                    if (eitherNumeric)
+                    // When PROGRAM COLLATING SEQUENCE is active and at least one operand is
+                    // non-numeric, the comparison uses the custom collating sequence (ISO §14.9.17).
+                    // The eitherNumeric shortcut to IrPicCompare must be bypassed in that case.
+                    if (eitherNumeric && _ctx.Semantic.ProgramCollatingSequence == null)
                         block.Instructions.Add(new IrPicCompare(left.Location!, right.Location!, result, op));
                     else if (_ctx.Semantic.ProgramCollatingSequence is { } seq)
                         block.Instructions.Add(new IrStringCompareWithSequence(left.Location!, right.Location!, seq, result, op));

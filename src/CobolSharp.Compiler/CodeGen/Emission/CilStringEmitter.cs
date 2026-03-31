@@ -197,6 +197,30 @@ internal sealed class CilStringEmitter
         var countLocal = new VariableDefinition(_ctx.Module.TypeSystem.Int32);
         _ctx.CurrentMethodDef.Body.Variables.Add(countLocal);
 
+        // Pre-loop overflow check: per ISO §14.9.44 condition (a),
+        // overflow occurs if pointer < 1 or pointer > source size at START.
+        {
+            var srcLen = unstrStmt.Source.GetPic().StorageLength;
+            var setOverflow = il.Create(OpCodes.Ldc_I4_1);
+            var endCheck = il.Create(OpCodes.Nop);
+
+            // if (ptr < 1) goto setOverflow
+            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));
+            il.Append(il.Create(OpCodes.Ldc_I4_1));
+            il.Append(il.Create(OpCodes.Blt, setOverflow));
+            // if (ptr > srcLen) goto setOverflow
+            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));
+            il.Append(il.Create(OpCodes.Ldc_I4, srcLen));
+            il.Append(il.Create(OpCodes.Bgt, setOverflow));
+            // else goto endCheck (no overflow)
+            il.Append(il.Create(OpCodes.Br, endCheck));
+            // setOverflow: overflowLocal = true
+            il.Append(setOverflow); // pushes 1
+            il.Append(il.Create(OpCodes.Stloc, overflowLocal));
+            // endCheck:
+            il.Append(endCheck);
+        }
+
         // Process each INTO
         foreach (var into in unstrStmt.Intos)
         {
@@ -261,11 +285,13 @@ internal sealed class CilStringEmitter
                                 typeof(decimal), typeof(int) })!)));
             }
 
-            // Increment tally counter — only if overflow hasn't occurred
-            // (per spec, tally counts INTO targets that received data)
+            // Increment tally counter — only if INTO target was acted upon.
+            // UnstringExtract returns -1 when source is exhausted (not acted upon).
+            // Per spec, tally counts only INTO targets that received data.
             var skipTally = il.Create(OpCodes.Nop);
-            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));
-            il.Append(il.Create(OpCodes.Brtrue, skipTally));
+            il.Append(il.Create(OpCodes.Ldloc, countLocal));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Blt, skipTally));
             il.Append(il.Create(OpCodes.Ldloc, tallyLocal));
             il.Append(il.Create(OpCodes.Ldc_I4_1));
             il.Append(il.Create(OpCodes.Add));

@@ -29,6 +29,11 @@ internal sealed class LoweringContext
         new(StringComparer.OrdinalIgnoreCase);
     public List<string> ParagraphsByIndex { get; } = new();
 
+    /// <summary>Maps ParagraphSymbol → IrMethod for section-qualified disambiguation.</summary>
+    public Dictionary<ParagraphSymbol, IrMethod> ParagraphSymbolMethods { get; } = new();
+    /// <summary>Maps ParagraphSymbol → paragraph index for section-qualified disambiguation.</summary>
+    public Dictionary<ParagraphSymbol, int> ParagraphSymbolIndices { get; } = new();
+
     // ── ALTER support ──
 
     public Dictionary<string, int> AlterSlots { get; } =

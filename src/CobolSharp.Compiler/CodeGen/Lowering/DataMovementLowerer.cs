@@ -147,6 +147,7 @@ internal sealed class DataMovementLowerer
         {
             foreach (var child in item.Children)
             {
+                if (child.LevelNumber == 66) continue; // RENAMES are aliases
                 if (child.Redefines != null) continue;
                 InitializeDataItem(child, stmt, block);
             }

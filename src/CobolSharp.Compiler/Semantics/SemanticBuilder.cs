@@ -549,8 +549,56 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 }
                 else
                 {
-                    // Single value or ALSO group — assign this weight
+                    // Single value or ALSO group — all share the same weight
                     sequence[primaryVal] = nextWeight;
+
+                    // Process ALSO entries: literals after the first share the same weight
+                    var alsoTokens = entry.ALSO();
+                    if (alsoTokens != null && alsoTokens.Length > 0)
+                    {
+                        // lits[0] is primary (already assigned above).
+                        // lits[1..] are ALSO literals; cobolWords after the first
+                        // may also be ALSO entries. Process all ALSO values.
+                        for (int alsoIdx = 1; alsoIdx < lits.Length; alsoIdx++)
+                        {
+                            int alsoVal = ExtractCharacterOrdinal(lits[alsoIdx]);
+                            if (alsoVal >= 0 && alsoVal < 256)
+                                sequence[alsoVal] = nextWeight;
+                        }
+                        // Also handle ALSO cobolWords (if primary was a literal,
+                        // ALSO entries could be cobolWords)
+                        // Grammar: (ALSO (cobolWord | literal))* — each ALSO has
+                        // exactly one word or literal. Words after the primary
+                        // that aren't the first word are ALSO entries.
+                        int wordStart = (lits.Length >= 1) ? 0 : 1; // if primary was a literal, all words are ALSO
+                        if (lits.Length >= 1)
+                        {
+                            // Primary was a literal, so all cobolWords are ALSO entries
+                            for (int wi = 0; wi < words.Length; wi++)
+                            {
+                                var txt = words[wi].GetText();
+                                if (txt.Length == 1)
+                                {
+                                    int wval = (byte)txt[0];
+                                    if (wval < 256) sequence[wval] = nextWeight;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Primary was a cobolWord (words[0]), ALSO words are words[1..]
+                            for (int wi = 1; wi < words.Length; wi++)
+                            {
+                                var txt = words[wi].GetText();
+                                if (txt.Length == 1)
+                                {
+                                    int wval = (byte)txt[0];
+                                    if (wval < 256) sequence[wval] = nextWeight;
+                                }
+                            }
+                        }
+                    }
+
                     nextWeight++;
                 }
             }
@@ -1091,6 +1139,15 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         else if (level == 66)
         {
             // RENAMES — extract FROM/THRU targets from renamesClause
+            // Add to parent 01-level record's Children so qualified name resolution works
+            // (FindChild traverses Children). The 01-level is at the bottom of the stack.
+            if (_dataStack.Count > 0)
+            {
+                // Walk to the bottom of the stack (01-level root)
+                var stackItems = _dataStack.ToArray(); // top-to-bottom order
+                var root = stackItems[^1]; // bottom = 01-level
+                root.AddChild(data);
+            }
             _dataStack.Clear();
             var renamesCtx = body?.renamesClause();
             if (renamesCtx != null)

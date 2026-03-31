@@ -297,16 +297,23 @@ internal sealed class ControlFlowLowerer
     public void LowerPerformSimple(BoundPerformStatement perf, IrBasicBlock block)
     {
         if (perf.Target == null) return;
-        if (!_ctx.ParagraphIndices.TryGetValue(perf.Target.Name, out int startIdx))
+
+        // Use symbol-based lookup first (handles duplicate paragraph names in different sections),
+        // fall back to name-based lookup for compatibility.
+        if (!_ctx.ParagraphSymbolIndices.TryGetValue(perf.Target, out int startIdx)
+            && !_ctx.ParagraphIndices.TryGetValue(perf.Target.Name, out startIdx))
         {
             _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, perf.Target.Name);
             return;
         }
 
         int endIdx = startIdx;
-        if (perf.ThruTarget != null &&
-            _ctx.ParagraphIndices.TryGetValue(perf.ThruTarget.Name, out int thruIdx))
+        if (perf.ThruTarget != null)
+        {
+            if (!_ctx.ParagraphSymbolIndices.TryGetValue(perf.ThruTarget, out int thruIdx))
+                _ctx.ParagraphIndices.TryGetValue(perf.ThruTarget.Name, out thruIdx);
             endIdx = thruIdx;
+        }
 
         // Ensure valid range (section THRU may produce reversed indices)
         if (endIdx < startIdx)
@@ -314,9 +321,15 @@ internal sealed class ControlFlowLowerer
 
         if (startIdx == endIdx)
         {
-            var paraName = _ctx.ParagraphsByIndex[startIdx];
-            if (_ctx.ParagraphMethods.TryGetValue(paraName, out var paraMethod))
-                block.Instructions.Add(new IrPerform(paraMethod));
+            // Use symbol-based lookup first for correct disambiguation of duplicate names
+            if (_ctx.ParagraphSymbolMethods.TryGetValue(perf.Target, out var symMethod))
+                block.Instructions.Add(new IrPerform(symMethod));
+            else
+            {
+                var paraName = _ctx.ParagraphsByIndex[startIdx];
+                if (_ctx.ParagraphMethods.TryGetValue(paraName, out var paraMethod))
+                    block.Instructions.Add(new IrPerform(paraMethod));
+            }
         }
         else
         {

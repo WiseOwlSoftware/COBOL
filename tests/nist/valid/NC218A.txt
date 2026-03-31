@@ -97,10 +97,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .01
  INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .02
  INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .03
- POINTER NOT = 1      FAIL* UST-TEST-GF-15     .01        OVERFLOW SHOULD NOT HAVE OCCURED
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-135
-
+ POINTER NOT = 1      PASS  UST-TEST-GF-15     .01
  POINTER NOT = 1      PASS  UST-TEST-GF-15     .02
  POINTER NOT = 1      PASS  UST-TEST-GF-15     .03
  TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .01
@@ -179,8 +176,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    116 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    009 TEST(S) FAILED
+                                                    117 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    008 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
