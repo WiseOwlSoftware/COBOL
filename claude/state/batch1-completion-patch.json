@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "description": "JSON patch for Batch 1 grammar fix completion — 2026-03-30",
+    "instructions": "Apply these changes to modernization-ledger.json and initialization.json"
+  },
+
+  "updates": {
+    "M300": {
+      "description": "Grammar audit verified 2026-03-30: of 138 COBOL-85 gaps identified, ~102 are fixed. 36 verified remaining → 29 after Batch 1 (7 REJECT gaps closed). Remaining: Data Division 15 open, Procedure Division 3 open, Environment Division 11 open. Batch 1 complete: USE GLOBAL/EXCEPTION/ERROR/modes, STOP RUN STATUS, START WITH LENGTH, ALPHABET FOR, CLASS FOR. Batch 2 next: SET ON/OFF, SORT Format 2, SYMBOLIC CHARACTERS N:N.",
+      "analysis_update": {
+        "batch_1_completed": "2026-03-30",
+        "batch_1_items_closed": ["M401", "M403", "M404", "M405", "M406", "M409", "M410"],
+        "batch_1_tests_added": 15,
+        "verified_remaining_after_batch_1": 29,
+        "architectural_refactors": ["cobolWord rule", "LENGTH/NATIONAL/NORMAL lexer tokens", "LPAREN subscript-mode trigger expansion"]
+      }
+    },
+
+    "M401": {
+      "status": "complete",
+      "evidence": "Grammar: startWithLength rule added to CobolIO.g4. Lexer: LENGTH token added. Parser tests pass. Integration test: Start_WithLength_ParsesSuccessfully. Regression: 922 unit + 302 integration + 95 NIST = 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M403": {
+      "status": "complete",
+      "evidence": "Grammar: GLOBAL? added to useStatement in CobolControlFlow.g4. Binder: BoundUseStatement.IsGlobal property added. Integration test: Use_Global_AfterStandardException_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M404": {
+      "status": "complete",
+      "evidence": "Grammar: (EXCEPTION | ERROR) alternation added to useStatement. Integration test: Use_ErrorSynonym_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M405": {
+      "status": "complete",
+      "evidence": "Grammar: useOnTarget rule added with INPUT/OUTPUT/I_O/EXTEND alternatives. Binder: BoundUseStatement.TargetMode property added. Integration tests: Use_InputMode, Use_OutputMode, Use_IoMode, Use_ExtendMode (4 tests). Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M406": {
+      "status": "complete",
+      "evidence": "Grammar: stopStatusPhrase rule added to CobolControlFlow.g4. Lexer: NORMAL token added. Integration tests: StopRun_WithNormalStatus, StopRun_WithErrorStatus, StopRun_Plain (3 tests). Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M409": {
+      "status": "complete",
+      "evidence": "Grammar: FOR (ALPHANUMERIC | NATIONAL) phrase added to alphabetClause in CobolSpecialNames.g4. Lexer: NATIONAL token added. Integration tests: Alphabet_ForAlphanumeric, Alphabet_ForNational. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M410": {
+      "status": "complete",
+      "evidence": "Grammar: FOR (ALPHANUMERIC | NATIONAL) phrase added to classDefinitionClause in CobolSpecialNames.g4. Integration test: Class_ForAlphanumeric_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    }
+  },
+
+  "initialization_patch": {
+    "ledger_version": 5,
+    "last_audit": "Batch 1 grammar fixes completed",
+    "last_updated": "2026-03-30",
+    "cobol85_audit_update": {
+      "integration_tests": 302,
+      "grammar_gaps_remaining": 29,
+      "grammar_gaps_reject": 5,
+      "batch_1_status": "complete"
+    },
+    "ledger_summary_update": {
+      "total_items": 175,
+      "done": 11,
+      "open": 139,
+      "in_progress": 1,
+      "planned": 23
+    }
+  }
+}

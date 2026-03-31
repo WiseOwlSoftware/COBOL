@@ -353,7 +353,7 @@ internal sealed class ExpressionBinder
     /// </summary>
     internal BoundExpression BindDataReferenceWithSubscripts(CobolParserCore.DataReferenceContext idCtx)
     {
-        string name = idCtx.IDENTIFIER().GetText();
+        string name = idCtx.cobolWord().GetText();
         var tails = idCtx.dataReferenceSuffix();
 
         // Extract qualifications, subscripts, and refmod from dataNameTail*
@@ -366,7 +366,7 @@ internal sealed class ExpressionBinder
             if (tail.qualification() != null)
             {
                 var qual = tail.qualification();
-                qualifiers.Add(qual.IDENTIFIER().GetText());
+                qualifiers.Add(qual.cobolWord().GetText());
                 // Extract subscripts/refmods attached to the qualifier (e.g., AX-2 IN AX(I))
                 var qualSubs = qual.subscriptPart();
                 if (qualSubs.Length > 0 && subOrRefMod == null)

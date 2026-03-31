@@ -138,7 +138,7 @@ internal sealed class StringStatementBinder
             if (bound is BoundIdentifierExpression idExpr)
                 return InspectPatternValue.FromDataRef(idExpr);
             // Fallback: unresolved identifier → use name as literal
-            return InspectPatternValue.FromLiteral(ctx.dataReference().IDENTIFIER().GetText());
+            return InspectPatternValue.FromLiteral(ctx.dataReference().cobolWord().GetText());
         }
         if (ctx.figurativeConstant() != null)
         {

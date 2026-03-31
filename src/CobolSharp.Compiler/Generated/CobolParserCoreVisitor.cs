@@ -33,6 +33,12 @@ using IToken = Antlr4.Runtime.IToken;
 [System.CLSCompliant(false)]
 public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.cobolWord"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCobolWord([NotNull] CobolParserCore.CobolWordContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.compilationUnit"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1815,6 +1821,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStartKeyPhrase([NotNull] CobolParserCore.StartKeyPhraseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.startWithLength"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStartWithLength([NotNull] CobolParserCore.StartWithLengthContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.startInvalidKeyPhrase"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -2223,6 +2235,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitUseStatement([NotNull] CobolParserCore.UseStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.useOnTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitUseOnTarget([NotNull] CobolParserCore.UseOnTargetContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.exitStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -2234,6 +2252,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitStopStatement([NotNull] CobolParserCore.StopStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.stopStatusPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitStopStatusPhrase([NotNull] CobolParserCore.StopStatusPhraseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.continueStatement"/>.
 	/// </summary>

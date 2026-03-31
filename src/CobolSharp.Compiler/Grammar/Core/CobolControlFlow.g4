@@ -163,14 +163,22 @@ alterEntry
     ;
 
 // ==========================================
-// USE (§14.9.45, declaratives/reporting)
+// USE (§14.9.49, declaratives)
 // ==========================================
 
 useStatement
-    // USE BEFORE REPORTING report-name
-    : USE BEFORE REPORTING procedureName
-    // USE AFTER STANDARD ERROR PROCEDURE ON file-name+
-    | USE AFTER STANDARD ERROR PROCEDURE ON fileName+
+    // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1
+    : USE GLOBAL? BEFORE REPORTING procedureName
+    // Format 1: USE [GLOBAL] AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
+    | USE GLOBAL? AFTER STANDARD (EXCEPTION | ERROR) PROCEDURE ON useOnTarget
+    ;
+
+useOnTarget
+    : INPUT                     // all files opened for INPUT
+    | OUTPUT                    // all files opened for OUTPUT
+    | I_O                       // all files opened for I-O
+    | EXTEND                    // all files opened for EXTEND
+    | fileName+                 // specific file name(s)
     ;
 
 // ==========================================
@@ -182,12 +190,17 @@ exitStatement
     ;
 
 // ==========================================
-// STOP (§14.9.41)
+// STOP (§14.9.42)
 // ==========================================
 
 stopStatement
-    : STOP RUN
+    : STOP RUN stopStatusPhrase?
     | STOP literal                     // STOP literal (Format 2, obsolete)
+    ;
+
+stopStatusPhrase
+    : WITH (ERROR | NORMAL) (STATUS (dataReference | literal))?   // WITH {ERROR|NORMAL} [STATUS {id|lit}]
+    | STATUS (dataReference | literal)                             // STATUS {id|lit} (without WITH)
     ;
 
 // ==========================================

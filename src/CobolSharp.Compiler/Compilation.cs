@@ -350,7 +350,7 @@ public sealed class Compilation
             _ => null
         };
 
-        return idDiv?.identificationBody()?.programIdParagraph()?.programName()?.IDENTIFIER()?.GetText();
+        return idDiv?.identificationBody()?.programIdParagraph()?.programName()?.cobolWord()?.GetText();
     }
 
     /// <summary>Extract IS INITIAL attribute from a programUnit or nestedProgram context.</summary>
@@ -382,7 +382,7 @@ public sealed class Compilation
         var idDiv = programUnit[0].identificationDivision();
         var body = idDiv?.identificationBody();
         var progId = body?.programIdParagraph();
-        return progId?.programName()?.IDENTIFIER()?.GetText();
+        return progId?.programName()?.cobolWord()?.GetText();
     }
 
     /// <summary>Compiled program tuple: PROGRAM-ID, IR module, and semantic model.</summary>

@@ -394,7 +394,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var suffix in dataRef.dataReferenceSuffix())
         {
             if (suffix.qualification() is { } qual)
-                return qual.IDENTIFIER()?.GetText();
+                return qual.cobolWord()?.GetText();
         }
         return null;
     }
@@ -1040,9 +1040,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (renamesCtx != null)
             {
                 var refs = renamesCtx.dataReference();
-                string fromName = refs.Length > 0 ? refs[0].IDENTIFIER()?.GetText() ?? "" : "";
+                string fromName = refs.Length > 0 ? refs[0].cobolWord()?.GetText() ?? "" : "";
                 string? fromQual = refs.Length > 0 ? ExtractQualifier(refs[0]) : null;
-                string? thruName = refs.Length > 1 ? refs[1].IDENTIFIER()?.GetText() : null;
+                string? thruName = refs.Length > 1 ? refs[1].cobolWord()?.GetText() : null;
                 string? thruQual = refs.Length > 1 ? ExtractQualifier(refs[1]) : null;
                 data.Renames = new RenamesInfo(fromName, thruName, fromQual, thruQual);
             }
@@ -1077,7 +1077,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 {
                     foreach (var idCtx in indexList.dataReference())
                     {
-                        string indexName = idCtx.IDENTIFIER().GetText();
+                        string indexName = idCtx.cobolWord().GetText();
                         var indexSym = new DataSymbol(indexName, indexName, 77,
                             "S9(9)", Runtime.UsageKind.Comp, null, null, ctx.Start.Line);
                         indexSym.HasExplicitUsage = true;
@@ -1117,14 +1117,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (dataRefs != null)
             {
                 foreach (var dr in dataRefs)
-                    _procedureUsingNames.Add(dr.IDENTIFIER().GetText());
+                    _procedureUsingNames.Add(dr.cobolWord().GetText());
             }
         }
 
         // Parse PROCEDURE DIVISION RETURNING data-name (COBOL-2002+)
         if (ctx.returningClause() is { } retCtx)
         {
-            _procedureReturningName = retCtx.dataReference().IDENTIFIER().GetText();
+            _procedureReturningName = retCtx.dataReference().cobolWord().GetText();
         }
 
         using var _ = _symbols.PushScope(_symbols.Program.ProcedureDivisionScope);

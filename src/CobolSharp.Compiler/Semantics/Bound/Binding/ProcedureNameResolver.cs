@@ -17,11 +17,11 @@ internal sealed class ProcedureNameResolver
     internal ProcedureNameResolver(BindingContext ctx) => _ctx = ctx;
 
     /// <summary>Extract the paragraph/section name from a procedureName context.
-    /// Uses first IDENTIFIER/INTEGERLIT token only, ignoring OF/IN qualifiers.</summary>
+    /// Uses first cobolWord/INTEGERLIT token only, ignoring OF/IN qualifiers.</summary>
     internal static string ExtractProcedureNameText(CobolParserCore.ProcedureNameContext ctx)
     {
-        var ids = ctx.IDENTIFIER();
-        if (ids.Length > 0) return ids[0].GetText();
+        var words = ctx.cobolWord();
+        if (words.Length > 0) return words[0].GetText();
         var ints = ctx.INTEGERLIT();
         if (ints.Length > 0) return ints[0].GetText();
         return ctx.GetText();

@@ -276,7 +276,7 @@ deleteFileOnException
     ;
 
 // ==========================================
-// START (§14.9.38)
+// START (§14.9.41)
 // ==========================================
 
 startStatement
@@ -288,7 +288,11 @@ startStatement
     ;
 
 startKeyPhrase
-    : KEY IS comparisonExpression
+    : KEY IS comparisonExpression startWithLength?
+    ;
+
+startWithLength
+    : WITH LENGTH arithmeticExpression
     ;
 
 startInvalidKeyPhrase

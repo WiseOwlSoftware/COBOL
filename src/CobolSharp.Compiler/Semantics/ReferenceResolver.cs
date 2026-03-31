@@ -33,8 +33,8 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     private static string ExtractProcedureName(CobolParserCore.ProcedureNameContext ctx)
     {
-        var ids = ctx.IDENTIFIER();
-        if (ids.Length > 0) return ids[0].GetText();
+        var words = ctx.cobolWord();
+        if (words.Length > 0) return words[0].GetText();
         var ints = ctx.INTEGERLIT();
         if (ints.Length > 0) return ints[0].GetText();
         return ctx.GetText();

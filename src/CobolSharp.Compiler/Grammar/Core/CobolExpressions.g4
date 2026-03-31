@@ -217,7 +217,9 @@ functionCall
 functionName
     : IDENTIFIER
     | DISPLAY
+    | LENGTH
     | MERGE
+    | NATIONAL
     | RANDOM
     | SIGN
     | SORT

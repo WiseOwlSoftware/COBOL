@@ -16,6 +16,20 @@ tokens { ZERO_ARITH }
 import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml;
 
 // ==========================================
+// CONTEXT-SENSITIVE KEYWORDS
+// ==========================================
+// Tokens that have special meaning in specific contexts but are NOT COBOL-85
+// reserved words, so they may also appear as user-defined names (data names,
+// file names, paragraph names, etc.). Any token promoted from IDENTIFIER to
+// a dedicated lexer token must be listed here to remain usable as a name.
+cobolWord
+    : IDENTIFIER
+    | LENGTH       // context: START WITH LENGTH, FUNCTION LENGTH
+    | NATIONAL     // context: FOR NATIONAL
+    | NORMAL       // context: STOP RUN WITH NORMAL
+    ;
+
+// ==========================================
 // ERROR RECOVERY
 // ==========================================
 //
@@ -91,7 +105,7 @@ programIdParagraph
     ;
 
 programName
-    : IDENTIFIER
+    : cobolWord
     ;
 
 programIdAttributes
@@ -233,7 +247,7 @@ programCollatingSequenceClause
     ;
 
 computerName
-    : IDENTIFIER
+    : cobolWord
     ;
 
 computerAttributes
@@ -263,7 +277,7 @@ dataReferenceList
     ;
 
 dataReference
-    : IDENTIFIER dataReferenceSuffix*
+    : cobolWord dataReferenceSuffix*
     ;
 
 dataReferenceSuffix
@@ -273,7 +287,7 @@ dataReferenceSuffix
     ;
 
 qualification
-    : (OF | IN) IDENTIFIER (subscriptPart | refModPart)*
+    : (OF | IN) cobolWord (subscriptPart | refModPart)*
     ;
 
 // subscriptPart uses SUBSCRIPT-mode tokens (entered via LPAREN after IDENTIFIER).
@@ -343,7 +357,7 @@ relativeOffset
     ;
 
 fileName
-    : IDENTIFIER
+    : cobolWord
     ;
 
 // ==========================================
@@ -394,8 +408,8 @@ paragraphName
     ;
 
 procedureName
-    : (IDENTIFIER | INTEGERLIT)
-      ((OF | IN) (IDENTIFIER | INTEGERLIT))?
+    : (cobolWord | INTEGERLIT)
+      ((OF | IN) (cobolWord | INTEGERLIT))?
     ;
 
 // ==========================================

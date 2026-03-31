@@ -37,7 +37,7 @@ internal sealed class CallBinder
         else if (targetCtx.dataReference() is { } dataRefCtx)
         {
             // CALL identifier — dynamic call (program name computed at runtime)
-            targetName = dataRefCtx.IDENTIFIER().GetText();
+            targetName = dataRefCtx.cobolWord().GetText();
             isDynamic = true;
         }
         else
@@ -125,7 +125,7 @@ internal sealed class CallBinder
             if (target.literal() is { } lit)
                 names.Add(lit.GetText().Trim('"', '\''));
             else if (target.dataReference() is { } dr)
-                names.Add(dr.IDENTIFIER().GetText());
+                names.Add(dr.cobolWord().GetText());
         }
         return new BoundCancelStatement(names);
     }
@@ -143,7 +143,7 @@ internal sealed class CallBinder
             if (dataRefs != null)
             {
                 foreach (var dr in dataRefs)
-                    usingNames.Add(dr.IDENTIFIER().GetText());
+                    usingNames.Add(dr.cobolWord().GetText());
             }
         }
 

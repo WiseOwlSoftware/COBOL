@@ -197,7 +197,7 @@ internal sealed class DataStatementBinder
             var targets = new List<string>();
             while (refIdx < refs.Length && refs[refIdx].Stop.TokenIndex < toPos)
             {
-                targets.Add(refs[refIdx].IDENTIFIER().GetText());
+                targets.Add(refs[refIdx].cobolWord().GetText());
                 refIdx++;
             }
 
@@ -233,7 +233,7 @@ internal sealed class DataStatementBinder
 
         foreach (var idCtx in ctx.dataReference())
         {
-            string name = idCtx.IDENTIFIER().GetText();
+            string name = idCtx.cobolWord().GetText();
             var condSym = _ctx.Semantic.ResolveConditionName(name);
             if (condSym != null)
                 stmts.Add(new BoundSetConditionStatement(condSym, setToTrue));
@@ -254,7 +254,7 @@ internal sealed class DataStatementBinder
         foreach (var idCtx in identifiers)
         {
             // Check if it's a condition name first
-            string name = idCtx.IDENTIFIER().GetText();
+            string name = idCtx.cobolWord().GetText();
             var condSym = _ctx.Semantic.ResolveConditionName(name);
             if (condSym != null)
             {
@@ -302,7 +302,7 @@ internal sealed class DataStatementBinder
 
         foreach (var idCtx in idList.dataReference())
         {
-            var sym = _ctx.Semantic.ResolveData(idCtx.IDENTIFIER().GetText());
+            var sym = _ctx.Semantic.ResolveData(idCtx.cobolWord().GetText());
             if (sym != null) targets.Add(sym);
         }
 
@@ -345,7 +345,7 @@ internal sealed class DataStatementBinder
         var idCtx = ctx.dataReference();
         if (idCtx != null)
         {
-            var sym = _ctx.Semantic.ResolveData(idCtx.IDENTIFIER().GetText());
+            var sym = _ctx.Semantic.ResolveData(idCtx.cobolWord().GetText());
             if (sym != null) return new BoundIdentifierExpression(sym, sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric);
         }
 

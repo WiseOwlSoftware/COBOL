@@ -167,7 +167,7 @@ levelNumber
     ;
 
 dataName
-    : IDENTIFIER
+    : cobolWord
     | FILLER
     | PROCEDURE    // NC205A: PROCEDURE used as a data name (77 PROCEDURE-DIVISION PIC X)
     ;

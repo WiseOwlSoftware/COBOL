@@ -54,9 +54,9 @@ decimalPointClause
     : DECIMAL_POINT IS IDENTIFIER    // DECIMAL-POINT IS COMMA (COMMA is IDENTIFIER)
     ;
 
-// CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [IN alphabet-name]
+// CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [FOR {ALPHANUMERIC|NATIONAL}] [IN alphabet-name]
 classDefinitionClause
-    : CLASS IDENTIFIER IS? classValueSet (IN IDENTIFIER)?
+    : CLASS IDENTIFIER IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN IDENTIFIER)?
     ;
 
 classValueSet
@@ -76,9 +76,9 @@ symbolicCharacterEntry
     : IDENTIFIER (IS | ARE) literal
     ;
 
-// ALPHABET name IS ...
+// ALPHABET name IS ... [FOR {ALPHANUMERIC|NATIONAL}]
 alphabetClause
-    : ALPHABET IDENTIFIER IS alphabetDefinition
+    : ALPHABET IDENTIFIER IS alphabetDefinition (FOR (ALPHANUMERIC | NATIONAL))?
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.

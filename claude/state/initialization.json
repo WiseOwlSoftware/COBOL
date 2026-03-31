@@ -1,18 +1,21 @@
 {
   "initialized": true,
-  "last_review_commit": "b2fb123",
+  "last_review_commit": "18d33a9",
   "ledger_path": "claude/state/modernization-ledger.json",
   "audit_date": "2026-03-30",
-  "ledger_version": 3,
+  "ledger_version": 5,
+  "last_audit": "Batch 1 grammar fixes completed",
+  "last_updated": "2026-03-30",
   "ledger_summary": {
-    "total_items": 148,
-    "done": 4,
-    "open": 121,
+    "total_items": 175,
+    "done": 11,
+    "open": 139,
+    "in_progress": 1,
     "planned": 23,
     "p0_critical": 4,
-    "p1_high": 62,
+    "p1_high": 74,
     "p2_medium": 52,
-    "p3_low": 30,
+    "p3_low": 45,
     "subsystems_audited": [
       "Preprocessor",
       "Grammar/Parser",
@@ -27,19 +30,25 @@
       "M005-M025": "open (cleanup, 21 items)",
       "M100-M112": "planned (features, 13 items)",
       "M200-M209": "planned (compliance initiative, 10 items)",
-      "M300-M399": "open (compliance gaps, 100 items)"
+      "M300-M399": "in-progress (compliance gaps, 100 items — M300 verified)",
+      "M400-M411": "open (REJECT grammar gaps, 12 items)",
+      "M412-M426": "open (OVERLENIENT grammar gaps, 15 items)"
     }
   },
   "cobol85_audit": {
     "date": "2026-03-30",
     "artifacts_path": "audit/cobol85/",
     "unit_tests": 922,
-    "integration_tests": 287,
+    "integration_tests": 302,
     "nist_nc_tests": 95,
     "nist_nc_fail_star": 77,
     "nist_nc_clean": 81,
     "nist_non_nc_baselines": 0,
-    "grammar_gaps_remaining": 56,
-    "semantic_rules_unclear": 9
+    "grammar_gaps_remaining": 29,
+    "grammar_gaps_reject": 5,
+    "grammar_gaps_overlenient": 15,
+    "grammar_gaps_semantic_only": 9,
+    "semantic_rules_unclear": 9,
+    "batch_1_status": "complete"
   }
 }

@@ -6,6 +6,64 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 172 — 2026-03-30: Batch 1 Grammar Fixes — 7 REJECT gaps closed
+
+Implemented 7 COBOL-85 grammar gaps that were rejecting valid programs:
+
+**Grammar changes (4 files):**
+- CobolControlFlow.g4: USE statement expanded to support GLOBAL keyword, EXCEPTION/ERROR
+  synonym, INPUT/OUTPUT/I-O/EXTEND mode targets. STOP RUN expanded with WITH ERROR/NORMAL
+  STATUS phrase.
+- CobolIO.g4: START statement expanded with WITH LENGTH phrase for partial-key matching.
+- CobolSpecialNames.g4: ALPHABET and CLASS clauses expanded with FOR ALPHANUMERIC/NATIONAL.
+- CobolLexer.g4: Added LENGTH, NATIONAL, NORMAL as dedicated lexer tokens. Added all three
+  to LPAREN subscript-mode trigger list.
+
+**Architectural refactor — `cobolWord` rule:**
+Production-quality refactor: created centralized `cobolWord` parser rule (IDENTIFIER | LENGTH
+| NATIONAL | NORMAL) and propagated it through dataReference, qualification, programName,
+procedureName, fileName, computerName, dataName. Eliminated per-rule token hacks. All C# call
+sites updated: `.IDENTIFIER()` → `.cobolWord()` across 24 files.
+
+**Binder updates:**
+- BoundUseStatement expanded with IsGlobal (bool) and TargetMode (OpenMode?) properties.
+- FileIoBinder.BindUse() updated for new useOnTarget grammar structure.
+- functionName rule expanded with LENGTH and NATIONAL alternatives.
+
+**Tests added:** 15 new integration tests in GrammarBatch1Tests.cs covering all 7 constructs
+plus cobolWord data-name regression tests (LENGTH and NORMAL as data names).
+
+**Regression:** 922 unit + 302 integration + 95 NIST = 0 failures. 15 net new integration tests.
+
+---
+
+## Entry 171 — 2026-03-30: M300 Grammar Gap Verification — 56→36 verified remaining
+
+Deployed 4 parallel agents to verify GRAMMAR_AUDIT.md claims against actual grammar files.
+Found the audit **undercounted fixes by ~20 items**: many Procedure Division and Lexer Token
+gaps were already fixed in prior sessions but not reflected in the audit counts.
+
+**Verified counts**: 36 remaining (was claimed 56). Data Division 15, Procedure Division 10,
+Environment Division 11, Expressions 0 (exponentiation is correct), Lexer Tokens 0 (43/45
+present; COPY/REPLACE correctly omitted as preprocessor-only).
+
+**Categorized all gaps**: 12 REJECT (valid COBOL-85 rejected — P1), 15 OVERLENIENT (accepts
+invalid COBOL — P3), 9 SEMANTIC-ONLY (grammar fine, validation missing — cross-linked to
+M302/M304/M310).
+
+**NIST impact mapping**: USE GLOBAL blocks 6 NC tests + entire IC suite (47 programs).
+ALPHABET FOR blocks NC215A/NC219A + IX suite (42). Combined non-NC unlocks: SQ(85)+ST(40)+IF(45).
+
+**Fix plan**: 3 batches. Batch 1 (quick wins, ~4h): USE GLOBAL/EXCEPTION/modes, STOP RUN STATUS,
+START WITH LENGTH, ALPHABET FOR, CLASS FOR. Batch 2 (medium, ~8h): SET ON/OFF, SORT Format 2,
+SYMBOLIC CHARACTERS N:N. Batch 3 (architectural, deferred): CURRENCY WITH PICTURE SYMBOL
+(PICMODE blocked), SCREEN SECTION (entire new section).
+
+Created 27 new ledger items (M400-M426): 12 REJECT gaps + 15 OVERLENIENT gaps.
+Ledger patch produced as m300-analysis-patch.json — awaiting human review.
+
+---
+
 ## Entry 170 — 2026-03-29: The FAIL* Purge — 232→85 (147 fixed, 63%)
 
 Discovered that the guard was locking 232 FAIL* results into "expected" baselines — real

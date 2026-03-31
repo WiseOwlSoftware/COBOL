@@ -117,7 +117,7 @@ internal sealed class FileIoBinder
             var files = new List<FileSymbol>();
             foreach (var idCtx in clause.dataReference())
             {
-                string name = idCtx.IDENTIFIER().GetText();
+                string name = idCtx.cobolWord().GetText();
                 var fileSym = _ctx.Semantic.ResolveFile(name);
                 if (fileSym != null)
                     files.Add(fileSym);
@@ -184,7 +184,7 @@ internal sealed class FileIoBinder
         // KEY IS data-name
         string? keyDataName = null;
         if (ctx.readKey() is { } keyCtx)
-            keyDataName = keyCtx.dataReference().IDENTIFIER().GetText();
+            keyDataName = keyCtx.dataReference().cobolWord().GetText();
 
         // INTO clause
         BoundIdentifierExpression? intoId = null;
@@ -570,21 +570,35 @@ internal sealed class FileIoBinder
 
     internal BoundUseStatement BindUse(CobolParserCore.UseStatementContext ctx)
     {
-        // USE BEFORE REPORTING report-name
+        bool isGlobal = ctx.GLOBAL() != null;
+
+        // USE [GLOBAL] BEFORE REPORTING report-name
         if (ctx.BEFORE() != null && ctx.REPORTING() != null)
         {
             string reportName = ctx.procedureName() != null
                 ? ProcedureNameResolver.ExtractProcedureNameText(ctx.procedureName())
                 : "";
-            return new BoundUseStatement(isBeforeReporting: true, [], reportName);
+            return new BoundUseStatement(isBeforeReporting: true, isGlobal, [], reportName);
         }
 
-        // USE AFTER STANDARD ERROR PROCEDURE ON file-name+
+        // USE [GLOBAL] AFTER STANDARD {EXCEPTION|ERROR} PROCEDURE ON {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
+        var target = ctx.useOnTarget();
+
+        if (target.INPUT() != null)
+            return new BoundUseStatement(false, isGlobal, [], reportName: null, targetMode: OpenMode.Input);
+        if (target.OUTPUT() != null)
+            return new BoundUseStatement(false, isGlobal, [], reportName: null, targetMode: OpenMode.Output);
+        if (target.I_O() != null)
+            return new BoundUseStatement(false, isGlobal, [], reportName: null, targetMode: OpenMode.IO);
+        if (target.EXTEND() != null)
+            return new BoundUseStatement(false, isGlobal, [], reportName: null, targetMode: OpenMode.Extend);
+
+        // file-name+
         var fileNames = new List<string>();
-        foreach (var fn in ctx.fileName())
+        foreach (var fn in target.fileName())
         {
             fileNames.Add(fn.GetText());
         }
-        return new BoundUseStatement(isBeforeReporting: false, fileNames, reportName: null);
+        return new BoundUseStatement(false, isGlobal, fileNames, reportName: null);
     }
 }

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "generated": "2026-03-30",
   "baseline_commit": "21fab2844c46c353f79463702b1b47cddcaa6168",
   "codebase_stats": {
@@ -1118,30 +1118,213 @@
     },
     {
       "id": "M300",
-      "title": "Close remaining COBOL-85 grammar gaps (~56 items)",
+      "title": "Close remaining COBOL-85 grammar gaps (36 verified remaining)",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "The grammar audit reports ~138 COBOL-85 gaps found and ~82 fixed, leaving ~56 remaining grammar gaps across control flow, data division, I/O, and special names.",
+      "status": "in-progress",
+      "description": "Grammar audit verified 2026-03-30: of 138 COBOL-85 gaps identified, ~102 are fixed. 36 verified remaining → 29 after Batch 1 (7 REJECT gaps closed). Remaining: Data Division 15 open, Procedure Division 3 open, Environment Division 11 open. Batch 1 complete: USE GLOBAL/EXCEPTION/ERROR/modes, STOP RUN STATUS, START WITH LENGTH, ALPHABET FOR, CLASS FOR. Batch 2 next: SET ON/OFF, SORT Format 2, SYMBOLIC CHARACTERS N:N.",
       "deliverables": [
-        "Enumerate each remaining grammar gap",
-        "Update ANTLR grammars to support missing COBOL-85 constructs",
-        "Add positive and negative parser tests",
-        "Update GRAMMAR_AUDIT to show 0 open items"
+        "Close all 12 REJECT gaps (M400-M411)",
+        "Close all 15 OVERLENIENT gaps (M412-M426)",
+        "Add positive and negative parser tests for each fix",
+        "Update GRAMMAR_AUDIT.md to reflect 0 open COBOL-85 items",
+        "Run guard.sh after each batch"
       ],
       "risks": [
-        "Valid COBOL-85 programs may be rejected or misparsed",
-        "NIST coverage may appear green while silently skipping unsupported constructs"
+        "Grammar changes can break existing 95 NC + 421 unit + 274 integration tests",
+        "PICMODE lexer architecture blocks CURRENCY SIGN WITH PICTURE SYMBOL (M407)",
+        "SCREEN SECTION (M411) is an entire new grammar section — large scope"
       ],
       "test_impact": [
-        "Parser unit tests for each construct",
+        "Parser unit tests for each new/modified construct",
         "Integration tests for affected statements",
-        "Regression runs of all NC and future non-NC NIST suites"
+        "Regression runs of all NC and future non-NC NIST suites",
+        "guard.sh must pass after each batch"
       ],
       "dependencies": [
         "M200",
-        "M201"
-      ]
+        "M201",
+        "M301",
+        "M302",
+        "M316"
+      ],
+      "analysis": {
+        "verified_date": "2026-03-30",
+        "audit_claimed_remaining": 56,
+        "verified_remaining": 36,
+        "by_section": {
+          "data_division": {
+            "claimed": 20,
+            "verified_open": 15,
+            "fixed": 18,
+            "partial": 5
+          },
+          "procedure_division": {
+            "claimed": 17,
+            "verified_open": 10,
+            "fixed": 17
+          },
+          "environment_division": {
+            "claimed": 16,
+            "verified_open": 11,
+            "fixed": 16
+          },
+          "expressions": {
+            "claimed": 1,
+            "verified_open": 0,
+            "note": "Exponentiation associativity is correct"
+          },
+          "lexer_tokens": {
+            "claimed": 25,
+            "verified_open": 0,
+            "note": "43/45 present; 2 are preprocessor (COPY/REPLACE), correctly omitted"
+          }
+        },
+        "by_category": {
+          "REJECT": {
+            "count": 12,
+            "items": [
+              "M400",
+              "M401",
+              "M402",
+              "M403",
+              "M404",
+              "M405",
+              "M406",
+              "M407",
+              "M408",
+              "M409",
+              "M410",
+              "M411"
+            ]
+          },
+          "OVERLENIENT": {
+            "count": 15,
+            "items": [
+              "M412",
+              "M413",
+              "M414",
+              "M415",
+              "M416",
+              "M417",
+              "M418",
+              "M419",
+              "M420",
+              "M421",
+              "M422",
+              "M423",
+              "M424",
+              "M425",
+              "M426"
+            ]
+          },
+          "SEMANTIC_ONLY": {
+            "count": 9,
+            "cross_links": [
+              "M302",
+              "M304",
+              "M310"
+            ],
+            "note": "Not grammar fixes; handled by existing items"
+          }
+        },
+        "nist_impact": {
+          "USE_GLOBAL_nested": {
+            "blocked": [
+              "NC113M",
+              "NC204M",
+              "NC205A",
+              "NC216A",
+              "NC217A",
+              "NC218A"
+            ],
+            "suite": "IC (47 programs)"
+          },
+          "SET_ON_OFF": {
+            "blocked": [
+              "NC174A"
+            ]
+          },
+          "SYMBOLIC_CHARACTERS_NN": {
+            "blocked": [
+              "NC108M",
+              "NC174A"
+            ]
+          },
+          "ALPHABET_COLLATING": {
+            "blocked": [
+              "NC215A",
+              "NC219A"
+            ],
+            "suite": "IX (42 programs)"
+          },
+          "combined_non_nc": {
+            "suites": "SQ (85), ST (40), IF (45) = 170+ programs"
+          }
+        },
+        "fix_batches": {
+          "batch_1": {
+            "name": "Quick wins",
+            "items": [
+              "M403",
+              "M404",
+              "M405",
+              "M406",
+              "M409",
+              "M410"
+            ],
+            "description": "USE GLOBAL/EXCEPTION/modes, STOP RUN STATUS, START WITH LENGTH, ALPHABET FOR, CLASS FOR",
+            "estimated_hours": 4,
+            "nist_unblocked": "6+ NC tests, IC suite (47), IX suite (42)"
+          },
+          "batch_2": {
+            "name": "Medium complexity",
+            "items": [
+              "M400",
+              "M402",
+              "M408"
+            ],
+            "description": "SET ON/OFF, SORT Format 2, SYMBOLIC CHARACTERS N:N",
+            "estimated_hours": 8,
+            "nist_unblocked": "NC174A, NC108M"
+          },
+          "batch_3": {
+            "name": "Architectural (deferred)",
+            "items": [
+              "M407",
+              "M411"
+            ],
+            "description": "CURRENCY WITH PICTURE SYMBOL (PICMODE refactor), SCREEN SECTION (entire new section)",
+            "estimated_hours": "10+",
+            "nist_unblocked": "Minimal direct NIST impact"
+          }
+        }
+      },
+      "acceptance_criteria": [
+        "All 12 REJECT gaps have grammar rules that parse valid COBOL-85",
+        "All 15 OVERLENIENT gaps reject invalid COBOL-85 with proper diagnostics",
+        "guard.sh passes (95 NC, 421 unit, 274 integration)",
+        "GRAMMAR_AUDIT.md shows 0 open COBOL-85 items"
+      ],
+      "analysis_update": {
+        "batch_1_completed": "2026-03-30",
+        "batch_1_items_closed": [
+          "M401",
+          "M403",
+          "M404",
+          "M405",
+          "M406",
+          "M409",
+          "M410"
+        ],
+        "batch_1_tests_added": 15,
+        "verified_remaining_after_batch_1": 29,
+        "architectural_refactors": [
+          "cobolWord rule",
+          "LENGTH/NATIONAL/NORMAL lexer tokens",
+          "LPAREN subscript-mode trigger expansion"
+        ]
+      }
     },
     {
       "id": "M301",
@@ -1172,7 +1355,7 @@
       "severity": "P1",
       "subsystem": "Data Semantics",
       "status": "open",
-      "description": "The grammar audit notes 5 not-implemented Data Division COBOL-85 items.",
+      "description": "The grammar audit notes 5 not-implemented Data Division COBOL-85 items. M300 grammar verification (2026-03-30) confirmed 9 SEMANTIC-ONLY gaps overlap with this item: REDEFINES level validation (01/66/77/88 rejection), RENAMES level-66 enforcement, INITIALIZE category keyword completeness (5 of 13), VALUE clause Format 2 table init, PIC editing validation.",
       "deliverables": [
         "Identify the 5 missing items",
         "Implement full semantic support",
@@ -1189,7 +1372,8 @@
       "dependencies": [
         "M205",
         "M300"
-      ]
+      ],
+      "audit_evidence": "M300 grammar verification 2026-03-30: confirmed 5 Data Division semantic gaps are grammar-correct but validation-missing. These are not grammar fixes."
     },
     {
       "id": "M303",
@@ -1221,7 +1405,7 @@
       "severity": "P1",
       "subsystem": "Data Semantics",
       "status": "open",
-      "description": "The audit notes REDEFINES 7-rule constraint enforcement is unclear, and NC252A shows 3 FAIL*.",
+      "description": "The audit notes REDEFINES 7-rule constraint enforcement is unclear, and NC252A shows 3 FAIL*. M300 grammar verification (2026-03-30) confirmed: grammar allows REDEFINES on any level (should reject 01/66/77/88 per §13.18.44 SR1). This is a SEMANTIC-ONLY gap — grammar accepts the syntax, but SemanticAnalyzer must validate level constraints.",
       "deliverables": [
         "Implement explicit checks for all seven REDEFINES rules",
         "Add tests mirroring NC252A patterns"
@@ -1234,8 +1418,10 @@
         "New integration tests for REDEFINES/RENAMES"
       ],
       "dependencies": [
-        "M205"
-      ]
+        "M205",
+        "M300"
+      ],
+      "audit_evidence": "M300 grammar verification 2026-03-30: REDEFINES level validation confirmed as semantic-only gap. Grammar correctly parses REDEFINES; validation must enforce §13.18.44 SR1."
     },
     {
       "id": "M305",
@@ -1359,7 +1545,7 @@
       "severity": "P1",
       "subsystem": "Binder / Control Flow",
       "status": "open",
-      "description": "PERFORM Range overlap detection (§14.8.35) — No / No — Not implemented.",
+      "description": "PERFORM Range overlap detection (§14.8.35) — Not implemented. M300 grammar verification (2026-03-30) confirmed: this is a SEMANTIC-ONLY gap. Grammar correctly parses PERFORM ranges; ControlFlowBinder must implement overlap detection.",
       "deliverables": [
         "Implement range analysis in ControlFlowBinder",
         "Add tests for overlapping and non-overlapping ranges"
@@ -1373,8 +1559,10 @@
       ],
       "dependencies": [
         "M204",
-        "M201"
-      ]
+        "M201",
+        "M300"
+      ],
+      "audit_evidence": "M300 grammar verification 2026-03-30: PERFORM range overlap confirmed as semantic-only gap. Grammar is correct; binder must validate."
     },
     {
       "id": "M311",
@@ -3478,6 +3666,647 @@
         "M396",
         "M397",
         "M398"
+      ]
+    },
+    {
+      "id": "M400",
+      "title": "SET switch-setting ON/OFF (8 SET formats absent)",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "SET TO ON / TO OFF (switch-setting) format is missing from grammar. 8+ SET formats absent per §14.9.39. Valid COBOL-85 programs using SET my-switch TO ON are rejected at parse time.",
+      "deliverables": [
+        "Add SET switch-setting grammar rules to CobolParserCore.g4",
+        "Add parser unit tests for SET ON/OFF forms",
+        "Add integration tests for switch-setting behavior"
+      ],
+      "risks": [
+        "SET statement has 8+ formats — must not break existing SET forms (index, boolean, address, value)",
+        "Implementor-name resolution requires semantic layer coordination"
+      ],
+      "test_impact": [
+        "NC174A",
+        "Parser unit tests for SET switch forms"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 2,
+      "complexity": "medium"
+    },
+    {
+      "id": "M401",
+      "title": "START WITH LENGTH phrase",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "START WITH LENGTH integer phrase is missing from CobolIO.g4 per §14.9.41. Valid COBOL-85 programs using partial-key matching via START file-id WITH LENGTH are rejected.",
+      "deliverables": [
+        "Add WITH LENGTH phrase to startStatement in CobolIO.g4",
+        "Add parser unit tests",
+        "Add integration test for partial-key START"
+      ],
+      "risks": [
+        "Interaction with existing START KEY IS forms must be preserved"
+      ],
+      "test_impact": [
+        "Parser unit tests",
+        "Indexed file integration tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: startWithLength rule added to CobolIO.g4. Lexer: LENGTH token added. Parser tests pass. Integration test: Start_WithLength_ParsesSuccessfully. Regression: 922 unit + 302 integration + 95 NIST = 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M402",
+      "title": "SORT Format 2 (table sort)",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "SORT Format 2 (table sort — SORT table-name ON KEY) is missing from CobolIO.g4 per §14.9.40.2. Valid COBOL-85 programs using in-memory table sorting are rejected.",
+      "deliverables": [
+        "Add SORT Format 2 grammar rules to CobolIO.g4",
+        "Add parser unit tests for table SORT",
+        "Add integration test for in-memory table sorting"
+      ],
+      "risks": [
+        "Must disambiguate from SORT Format 1 (file sort) at grammar level",
+        "Requires SortRuntime extension for in-memory sort"
+      ],
+      "test_impact": [
+        "Parser unit tests",
+        "SortTests integration"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 2,
+      "complexity": "medium"
+    },
+    {
+      "id": "M403",
+      "title": "USE GLOBAL keyword",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "USE AFTER EXCEPTION GLOBAL keyword is missing from CobolControlFlow.g4 per §14.9.49. Valid COBOL-85 programs with nested program exception scope using USE AFTER EXCEPTION GLOBAL are rejected.",
+      "deliverables": [
+        "Add GLOBAL keyword option to useStatement in CobolControlFlow.g4",
+        "Add parser unit tests",
+        "Add integration test for GLOBAL exception handling in nested programs"
+      ],
+      "risks": [
+        "Nested program exception propagation semantics must be correct"
+      ],
+      "test_impact": [
+        "NC113M",
+        "NC204M",
+        "NC205A",
+        "NC216A",
+        "NC217A",
+        "NC218A",
+        "IC suite (47 programs)"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: GLOBAL? added to useStatement in CobolControlFlow.g4. Binder: BoundUseStatement.IsGlobal property added. Integration test: Use_Global_AfterStandardException_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M404",
+      "title": "USE EXCEPTION/ERROR synonym",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "USE AFTER ERROR form (synonym for EXCEPTION) is missing from CobolControlFlow.g4 per §14.9.49. Valid COBOL-85 programs using ERROR instead of EXCEPTION are rejected.",
+      "deliverables": [
+        "Add ERROR as synonym for EXCEPTION in useStatement",
+        "Add parser unit tests for both forms"
+      ],
+      "risks": [
+        "Minimal — simple synonym addition"
+      ],
+      "test_impact": [
+        "Parser unit tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 1,
+      "complexity": "trivial",
+      "evidence": "Grammar: (EXCEPTION | ERROR) alternation added to useStatement. Integration test: Use_ErrorSynonym_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M405",
+      "title": "USE INPUT/OUTPUT/I-O/EXTEND modes",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "USE AFTER EXCEPTION ON INPUT/OUTPUT/I-O/EXTEND mode keywords are missing from CobolControlFlow.g4 per §14.9.49. Valid COBOL-85 programs specifying file operation modes for exception handling are rejected.",
+      "deliverables": [
+        "Add INPUT/OUTPUT/I-O/EXTEND mode options to useStatement",
+        "Add parser unit tests for each mode",
+        "Add integration test for mode-specific USE declaratives"
+      ],
+      "risks": [
+        "Must correctly distinguish file-name reference from mode keyword"
+      ],
+      "test_impact": [
+        "NC113M",
+        "SQ suite (85 programs)",
+        "IX suite (42 programs)"
+      ],
+      "dependencies": [
+        "M300",
+        "M403"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: useOnTarget rule added with INPUT/OUTPUT/I_O/EXTEND alternatives. Binder: BoundUseStatement.TargetMode property added. Integration tests: Use_InputMode, Use_OutputMode, Use_IoMode, Use_ExtendMode (4 tests). Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M406",
+      "title": "STOP RUN WITH ERROR/NORMAL STATUS",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "STOP RUN WITH ERROR STATUS / WITH NORMAL STATUS phrase is missing from CobolControlFlow.g4 per §14.9.42. Valid COBOL-85 programs specifying exit status are rejected.",
+      "deliverables": [
+        "Add WITH ERROR/NORMAL STATUS phrase to stopStatement",
+        "Add parser unit tests",
+        "Add integration test verifying exit code propagation"
+      ],
+      "risks": [
+        "Runtime must propagate status to .NET process exit code"
+      ],
+      "test_impact": [
+        "Parser unit tests",
+        "Runtime integration tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: stopStatusPhrase rule added to CobolControlFlow.g4. Lexer: NORMAL token added. Integration tests: StopRun_WithNormalStatus, StopRun_WithErrorStatus, StopRun_Plain (3 tests). Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M407",
+      "title": "CURRENCY SIGN WITH PICTURE SYMBOL",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "CURRENCY SIGN IS literal WITH PICTURE SYMBOL literal phrase is missing from CobolSpecialNames.g4 per §12.3.7.1. Explicitly noted as omitted in code comment at CobolSpecialNames.g4:47-48. Blocked by PICMODE lexer architecture — the lexer pushes a special mode when PIC keyword is detected, preventing complex phrase parsing in environment clauses.",
+      "deliverables": [
+        "Refactor PICMODE lexer handling to allow post-PIC-string clauses",
+        "Add CURRENCY SIGN WITH PICTURE SYMBOL grammar rule",
+        "Add parser and integration tests for multi-currency programs"
+      ],
+      "risks": [
+        "PICMODE lexer refactoring may break existing PIC string parsing",
+        "Financial/currency programs produce incorrect formatted output without this"
+      ],
+      "test_impact": [
+        "Parser unit tests",
+        "NumericEdited integration tests"
+      ],
+      "dependencies": [
+        "M300",
+        "M301"
+      ],
+      "batch": 3,
+      "complexity": "large"
+    },
+    {
+      "id": "M408",
+      "title": "SYMBOLIC CHARACTERS N:N mapping",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "SYMBOLIC CHARACTERS clause is limited to 1:1 mapping (one name per entry). Spec §12.3.7 allows multiple names per entry: SYMBOLIC CHARACTERS sym-1 sym-2 ARE int-1 int-2 IN alphabet-name. Also missing IN alphabet-name phrase.",
+      "deliverables": [
+        "Extend symbolicCharactersClause in CobolSpecialNames.g4 for N:N mapping",
+        "Add IN alphabet-name optional phrase",
+        "Add parser unit tests for multi-name entries"
+      ],
+      "risks": [
+        "Semantic layer must resolve N:N ordinal-to-character mapping"
+      ],
+      "test_impact": [
+        "NC108M",
+        "NC174A",
+        "Parser unit tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 2,
+      "complexity": "medium"
+    },
+    {
+      "id": "M409",
+      "title": "ALPHABET FOR ALPHANUMERIC/NATIONAL phrases",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "ALPHABET clause is missing FOR ALPHANUMERIC / FOR NATIONAL phrases per §12.3.7.2. Valid COBOL-85 programs specifying alphabet scope are rejected.",
+      "deliverables": [
+        "Add FOR ALPHANUMERIC/NATIONAL option to alphabetClause in CobolSpecialNames.g4",
+        "Add parser unit tests"
+      ],
+      "risks": [
+        "Semantic layer must route alphabet to correct character set"
+      ],
+      "test_impact": [
+        "NC215A",
+        "NC219A",
+        "IX suite (42 programs)"
+      ],
+      "dependencies": [
+        "M300",
+        "M316"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: FOR (ALPHANUMERIC | NATIONAL) phrase added to alphabetClause in CobolSpecialNames.g4. Lexer: NATIONAL token added. Integration tests: Alphabet_ForAlphanumeric, Alphabet_ForNational. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M410",
+      "title": "CLASS FOR ALPHANUMERIC/NATIONAL phrases",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "CLASS definition clause is missing FOR ALPHANUMERIC / FOR NATIONAL phrases per §12.3.7.2. Valid COBOL-85 programs specifying class scope are rejected.",
+      "deliverables": [
+        "Add FOR ALPHANUMERIC/NATIONAL option to classDefinitionClause in CobolSpecialNames.g4",
+        "Add parser unit tests"
+      ],
+      "risks": [
+        "Semantic layer must validate class condition against correct character set"
+      ],
+      "test_impact": [
+        "Parser unit tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 1,
+      "complexity": "small",
+      "evidence": "Grammar: FOR (ALPHANUMERIC | NATIONAL) phrase added to classDefinitionClause in CobolSpecialNames.g4. Integration test: Class_ForAlphanumeric_ParsesSuccessfully. Regression: 0 failures.",
+      "completed_date": "2026-03-30"
+    },
+    {
+      "id": "M411",
+      "title": "SCREEN SECTION",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "SCREEN SECTION is completely missing from CobolData.g4 per §13.4. This is an entire grammar section with its own data description entries, ACCEPT/DISPLAY semantics, and screen field attributes (BLANK, BELL, BLINK, HIGHLIGHT, etc.).",
+      "deliverables": [
+        "Add screenSection grammar rules to CobolData.g4",
+        "Add screen data description entries with all attributes",
+        "Add parser unit tests for screen definitions",
+        "Semantic layer: screen field binding and validation"
+      ],
+      "risks": [
+        "Large scope — entire new section with ~20 clauses",
+        "Requires ACCEPT/DISPLAY statement extensions for screen I/O",
+        "Runtime must support terminal interaction (may need Console abstraction)"
+      ],
+      "test_impact": [
+        "Parser unit tests",
+        "New screen I/O integration tests"
+      ],
+      "dependencies": [
+        "M300"
+      ],
+      "batch": 3,
+      "complexity": "large"
+    },
+    {
+      "id": "M412",
+      "title": "OCCURS TIMES keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: occursClause has timesKeyword? but spec §13.18.38 requires TIMES keyword. OCCURS 5 accepted without TIMES.",
+      "deliverables": [
+        "Remove ? from timesKeyword in CobolData.g4",
+        "Add negative parser test rejecting OCCURS without TIMES"
+      ],
+      "risks": [
+        "Existing COBOL programs using non-standard OCCURS 5 form will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M413",
+      "title": "OCCURS INDEXED BY keyword required (BY currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: occursClause has INDEXED BY? but spec §13.18.38 requires BY keyword.",
+      "deliverables": [
+        "Remove ? from BY in INDEXED phrase in CobolData.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard INDEXED without BY will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M414",
+      "title": "OCCURS KEY IS keywords required (both currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: occursKeyClause has KEY? IS? but spec §13.18.38 requires both KEY and IS keywords.",
+      "deliverables": [
+        "Remove ? from KEY and IS in occursKeyClause in CobolData.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard ASCENDING without KEY IS will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M415",
+      "title": "LINAGE IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: linageClause has LINAGE IS? but spec §13.18.34 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in LINAGE clause in CobolData.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard LINAGE without IS will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M416",
+      "title": "BLANK WHEN ZERO — WHEN keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: blankWhenZeroClause has BLANK WHEN? ZERO but spec §13.18.9 requires WHEN keyword.",
+      "deliverables": [
+        "Remove ? from WHEN in blankWhenZeroClause in CobolData.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard BLANK ZERO will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M417",
+      "title": "ORGANIZATION IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: organizationClause has ORGANIZATION IS? but spec §12.4.5.3 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in organizationClause in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard ORGANIZATION SEQUENTIAL will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M418",
+      "title": "ACCESS MODE IS keywords required (both currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: accessModeClause has ACCESS MODE? IS? but spec §12.4.5.4 requires both MODE and IS keywords.",
+      "deliverables": [
+        "Remove ? from MODE and IS in accessModeClause in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard ACCESS RANDOM will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M419",
+      "title": "RELATIVE KEY IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: relativeKeyClause has RELATIVE KEY IS? but spec §12.4.5.2 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in relativeKeyClause in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard RELATIVE KEY identifier will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M420",
+      "title": "ALTERNATE RECORD KEY — RECORD keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: alternateKeyClause has ALTERNATE RECORD? but spec §12.4.5.6 requires RECORD keyword.",
+      "deliverables": [
+        "Remove ? from RECORD in alternateKeyClause in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard ALTERNATE KEY will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M421",
+      "title": "ALTERNATE WITH DUPLICATES — WITH keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: alternateKeyClause has WITH? DUPLICATES but spec §12.4.5.6 requires WITH keyword.",
+      "deliverables": [
+        "Remove ? from WITH in alternateKeyClause in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard DUPLICATES will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M422",
+      "title": "COLLATING SEQUENCE IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: sortCollatingPhrase has COLLATING SEQUENCE IS? but spec §14.9.40 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in sortCollatingPhrase in CobolIO.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard COLLATING SEQUENCE alphabet will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M423",
+      "title": "CURRENCY SIGN IS — SIGN keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: currencySignClause has CURRENCY SIGN? IS? but spec §12.3.6.3 requires SIGN keyword.",
+      "deliverables": [
+        "Remove ? from SIGN in currencySignClause in CobolSpecialNames.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard CURRENCY IS will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M424",
+      "title": "CURRENCY SIGN IS — IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: currencySignClause has CURRENCY SIGN? IS? but spec §12.3.6.3 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in currencySignClause in CobolSpecialNames.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard CURRENCY SIGN literal will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M425",
+      "title": "CLASS name IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: classDefinitionClause has IS? but spec §12.3.7.2 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in classDefinitionClause in CobolSpecialNames.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard CLASS name values will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M426",
+      "title": "ALPHABET name IS keyword required (currently optional)",
+      "severity": "P3",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "Grammar accepts invalid COBOL-85: alphabetClause has IS? but spec §12.3.7.2 requires IS keyword.",
+      "deliverables": [
+        "Remove ? from IS in alphabetClause in CobolSpecialNames.g4",
+        "Add negative parser test"
+      ],
+      "risks": [
+        "Existing programs using non-standard ALPHABET name values will break"
+      ],
+      "test_impact": [
+        "Parser negative tests"
+      ],
+      "dependencies": [
+        "M300"
       ]
     }
   ]

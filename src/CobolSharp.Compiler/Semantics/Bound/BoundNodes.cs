@@ -1621,18 +1621,25 @@ public sealed class BoundCallStatement : BoundStatement
 /// </summary>
 public sealed class BoundUseStatement : BoundStatement
 {
-    /// <summary>True if USE BEFORE REPORTING (report writer), false if USE AFTER ERROR.</summary>
+    /// <summary>True if USE BEFORE REPORTING (report writer), false if USE AFTER ERROR/EXCEPTION.</summary>
     public bool IsBeforeReporting { get; }
-    /// <summary>File names associated with this USE AFTER ERROR declarative.</summary>
+    /// <summary>True if GLOBAL was specified.</summary>
+    public bool IsGlobal { get; }
+    /// <summary>File names associated with this USE AFTER ERROR declarative (empty if target is a file-mode).</summary>
     public IReadOnlyList<string> FileNames { get; }
     /// <summary>Report name for USE BEFORE REPORTING (null for USE AFTER ERROR).</summary>
     public string? ReportName { get; }
+    /// <summary>File-mode target (INPUT/OUTPUT/I-O/EXTEND) if specified, null if target is file-name(s).</summary>
+    public OpenMode? TargetMode { get; }
 
-    public BoundUseStatement(bool isBeforeReporting, IReadOnlyList<string> fileNames, string? reportName)
+    public BoundUseStatement(bool isBeforeReporting, bool isGlobal, IReadOnlyList<string> fileNames,
+        string? reportName, OpenMode? targetMode = null)
     {
         IsBeforeReporting = isBeforeReporting;
+        IsGlobal = isGlobal;
         FileNames = fileNames;
         ReportName = reportName;
+        TargetMode = targetMode;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.UseStatement;

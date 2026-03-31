@@ -278,14 +278,17 @@ JUSTIFIED   : 'JUSTIFIED' ;
 KEY         : 'KEY' ;
 LEADING     : 'LEADING' ;
 LEFT        : 'LEFT' ;
+LENGTH      : 'LENGTH' ;
 LESS        : 'LESS' ;
 LINE        : 'LINE' ;
 LINES       : 'LINES' ;
 LOCK        : 'LOCK' ;
 METHOD      : 'METHOD' ;
 MODE        : 'MODE' ;
+NATIONAL    : 'NATIONAL' ;
 NATIVE      : 'NATIVE' ;
 NEXT        : 'NEXT' ;
+NORMAL      : 'NORMAL' ;
 NO          : 'NO' ;
 NUMBER      : 'NUMBER' ;
 NOT         : 'NOT' ;
@@ -428,7 +431,10 @@ COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
 COMMA       : ',' ;
 LPAREN      : '(' { if (_lastNonWsTokenType == IDENTIFIER
                           || _lastNonWsTokenType == DISPLAY
+                          || _lastNonWsTokenType == LENGTH
                           || _lastNonWsTokenType == MERGE
+                          || _lastNonWsTokenType == NATIONAL
+                          || _lastNonWsTokenType == NORMAL
                           || _lastNonWsTokenType == RANDOM
                           || _lastNonWsTokenType == SIGN
                           || _lastNonWsTokenType == SORT
