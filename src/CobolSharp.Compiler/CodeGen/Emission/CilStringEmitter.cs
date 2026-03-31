@@ -184,11 +184,12 @@ internal sealed class CilStringEmitter
         }
         il.Append(il.Create(OpCodes.Stloc, tallyLocal));
 
-        // Resolve the UnstringExtract method reference
+        // Resolve the UnstringExtract method reference (with PicDescriptor for MOVE semantics)
         var extractMethod = _ctx.Module.ImportReference(
             typeof(Runtime.StorageHelpers).GetMethod("UnstringExtract",
                 new[] { typeof(byte[]), typeof(int), typeof(int),
                         typeof(byte[]), typeof(int), typeof(int),
+                        typeof(Runtime.PicDescriptor),
                         typeof(string), typeof(bool),
                         typeof(byte[]), typeof(int), typeof(int),
                         typeof(int).MakeByRefType(), typeof(bool).MakeByRefType() })!);
@@ -227,8 +228,8 @@ internal sealed class CilStringEmitter
             // Push source args (area, offset, length)
             _ctx.Location.EmitLocationArgs(il, unstrStmt.Source);
 
-            // Push dest args (area, offset, length)
-            _ctx.Location.EmitLocationArgs(il, into.Target);
+            // Push dest args (area, offset, length, PicDescriptor)
+            _ctx.Location.EmitLocationArgsWithPic(il, into.Target);
 
             // Push delimiter (string? or null)
             if (unstrStmt.LiteralDelimiter != null)

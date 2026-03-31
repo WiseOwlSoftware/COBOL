@@ -20,11 +20,7 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC X                PASS  UST-TEST-GF-1      .05
  PIC X                PASS  UST-TEST-GF-1      .06
  PIC X JUST           PASS  UST-TEST-GF-2      .01
- PIC X JUST           FAIL* UST-TEST-GF-2      .02
-
-                                     COMPUTED= 1
-                                     CORRECT = 2                     VI-135
-
+ PIC X JUST           PASS  UST-TEST-GF-2      .02
  PIC X JUST           PASS  UST-TEST-GF-2      .03
  PIC X JUST           PASS  UST-TEST-GF-2      .04
  PIC X JUST           PASS  UST-TEST-GF-2      .05
@@ -34,29 +30,17 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC XXX              PASS  UST-TEST-GF-3      .03
  PIC XXX              PASS  UST-TEST-GF-3      .04
  PIC XXX              PASS  UST-TEST-GF-3      .05
- PIC XXX JUST         FAIL* UST-TEST-GF-4      .01
-
-                                     COMPUTED= 12
-                                     CORRECT =  12                   VI-135
-
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .01
  PIC XXX JUST         PASS  UST-TEST-GF-4      .02
  PIC XXX JUST         PASS  UST-TEST-GF-4      .03
  PIC XXX JUST         PASS  UST-TEST-GF-4      .04
  PIC XXX JUST         PASS  UST-TEST-GF-4      .05
- PIC 9                FAIL* UST-TEST-GF-5      .01
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC 9                PASS  UST-TEST-GF-5      .01
  PIC 9                PASS  UST-TEST-GF-5      .02
  PIC 9                PASS  UST-TEST-GF-5      .03
  PIC 9                PASS  UST-TEST-GF-5      .04
  PIC 9                PASS  UST-TEST-GF-5      .05
- PIC S9               FAIL* UST-TEST-GF-6      .01
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC S9               PASS  UST-TEST-GF-6      .01
  PIC S9               PASS  UST-TEST-GF-6      .02
  PIC S9               PASS  UST-TEST-GF-6      .03
  PIC S9               PASS  UST-TEST-GF-6      .04
@@ -71,20 +55,12 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PIC S99              PASS  UST-TEST-GF-8      .03
  PIC S99              PASS  UST-TEST-GF-8      .04
  PIC S99              PASS  UST-TEST-GF-8      .05
- PIC S9 TRAIL SEP     FAIL* UST-TEST-GF-9      .01
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .01
  PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
  PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
  PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .03
  PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .04
- PIC S9 LEAD SEP      FAIL* UST-TEST-GF-10     .01
-
-                                     COMPUTED=  000000001.000000000
-                                     CORRECT =  000000002.000000000  VI-135
-
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .01
  PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .02
  PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .03
  PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .04
@@ -176,8 +152,8 @@ TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC218A
 
-                                                    117 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    008 TEST(S) FAILED
+                                                    123 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    002 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

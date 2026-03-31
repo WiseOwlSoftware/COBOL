@@ -399,6 +399,7 @@ public static class StorageHelpers
     public static int UnstringExtract(
         byte[] srcArea, int srcOffset, int srcLength,
         byte[] destArea, int destOffset, int destLength,
+        PicDescriptor destPic,
         string? delimiter, bool delimitedByAll,
         byte[]? delimOutArea, int delimOutOffset, int delimOutLength,
         ref int pointer,
@@ -487,15 +488,12 @@ public static class StorageHelpers
             }
         }
 
-        // Copy extracted characters into destination, space-pad
-        int copyLen = Math.Min(extractLen, destLength);
-        for (int i = 0; i < destLength; i++)
-        {
-            if (i < copyLen)
-                destArea[destOffset + i] = srcArea[srcOffset + pos + i];
-            else
-                destArea[destOffset + i] = (byte)' ';
-        }
+        // Apply MOVE semantics from extracted data to destination.
+        // The extracted data is always alphanumeric; the destination may be
+        // JUSTIFIED RIGHT, numeric, numeric-edited, etc. Using PicRuntime
+        // MOVE methods ensures correct behavior per ISO §14.9.44.
+        CopyExtractedToDestination(srcArea, srcOffset + pos, extractLen,
+            destArea, destOffset, destLength, destPic);
 
         // Write matched delimiter to DELIMITER IN field (if present)
         if (delimOutArea != null)
@@ -514,6 +512,67 @@ public static class StorageHelpers
         pointer = pos + extractLen + delimLen + 1; // back to 1-based
 
         return extractLen;
+    }
+
+    /// <summary>
+    /// Copy extracted UNSTRING data to destination using MOVE semantics.
+    /// The extracted data is always alphanumeric. The destination PIC determines
+    /// the MOVE rules: JUSTIFIED RIGHT, numeric conversion, etc.
+    /// </summary>
+    private static void CopyExtractedToDestination(
+        byte[] srcArea, int srcOffset, int extractLen,
+        byte[] destArea, int destOffset, int destLength, PicDescriptor destPic)
+    {
+        // Build a temporary buffer holding the extracted alphanumeric data.
+        // This serves as the "source" for a MOVE alphanumeric → destination.
+        var tempBuf = new byte[extractLen];
+        if (extractLen > 0)
+            Array.Copy(srcArea, srcOffset, tempBuf, 0, extractLen);
+
+        // Build a minimal alphanumeric PicDescriptor for the source
+        var srcPic = new PicDescriptor
+        {
+            IsAlphanumeric = true,
+            StorageLength = extractLen,
+            Category = CobolCategory.Alphanumeric,
+            Usage = UsageKind.Display,
+            Environment = destPic.Environment
+        };
+
+        var dstCat = destPic.Category;
+
+        if (destPic.IsGroup)
+        {
+            // Group items: raw byte copy, left-justified, space-padded
+            PicRuntime.MoveAlphanumericToAlphanumeric(
+                tempBuf, 0, extractLen, srcPic,
+                destArea, destOffset, destLength, destPic, 0);
+        }
+        else if (dstCat == CobolCategory.Numeric)
+        {
+            PicRuntime.MoveAlphanumericToNumeric(
+                tempBuf, 0, extractLen, srcPic,
+                destArea, destOffset, destLength, destPic, 0);
+        }
+        else if (dstCat == CobolCategory.NumericEdited)
+        {
+            PicRuntime.MoveAlphanumericToNumericEdited(
+                tempBuf, 0, extractLen, srcPic,
+                destArea, destOffset, destLength, destPic, 0);
+        }
+        else if (dstCat == CobolCategory.AlphanumericEdited)
+        {
+            PicRuntime.MoveAlphanumericToAlphanumericEdited(
+                tempBuf, 0, extractLen, srcPic,
+                destArea, destOffset, destLength, destPic, 0);
+        }
+        else
+        {
+            // Default: alphanumeric MOVE (handles JUSTIFIED RIGHT)
+            PicRuntime.MoveAlphanumericToAlphanumeric(
+                tempBuf, 0, extractLen, srcPic,
+                destArea, destOffset, destLength, destPic, 0);
+        }
     }
 
     /// <summary>
