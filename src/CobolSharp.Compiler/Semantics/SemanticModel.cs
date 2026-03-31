@@ -305,6 +305,64 @@ public sealed class SemanticModel
     public ConditionSymbol? ResolveConditionName(string name)
         => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);
 
+    /// <summary>Resolve a qualified level-88 condition name using qualification chain.</summary>
+    public ConditionSymbol? ResolveQualifiedConditionName(string name, IReadOnlyList<string> qualifiers)
+    {
+        // Collect all condition symbols with this name (scope entry + rejections)
+        var candidates = new List<ConditionSymbol>();
+        var scope = Symbols.Program.DataDivisionScope;
+
+        if (scope.Resolve<ConditionSymbol>(name) is { } primary)
+            candidates.Add(primary);
+
+        foreach (var (rejected, _) in scope.Rejections)
+        {
+            if (rejected is ConditionSymbol cs
+                && string.Equals(cs.Name, name, StringComparison.OrdinalIgnoreCase))
+                candidates.Add(cs);
+        }
+
+        if (candidates.Count == 0)
+            return null;
+        if (candidates.Count == 1)
+            return candidates[0];
+
+        // Multiple candidates — use qualifiers to disambiguate
+        foreach (var cond in candidates)
+        {
+            if (MatchesQualification(cond.ParentDataItem, qualifiers))
+                return cond;
+        }
+        return candidates[0]; // fallback to first if none match
+    }
+
+    private static bool MatchesQualification(DataSymbol? sym, IReadOnlyList<string> qualifiers)
+    {
+        // Walk up the parent chain checking each qualifier matches
+        var current = sym;
+        foreach (var qual in qualifiers)
+        {
+            current = FindAncestorByName(current, qual);
+            if (current == null)
+                return false;
+        }
+        return true;
+    }
+
+    private static DataSymbol? FindAncestorByName(DataSymbol? sym, string name)
+    {
+        // Include the symbol itself — for condition names, the first qualifier
+        // typically names the parent data item directly.
+        var current = sym;
+        while (current != null)
+        {
+            if (string.Equals(current.DisplayName, name, StringComparison.OrdinalIgnoreCase))
+                return current;
+            current = current.Parent;
+        }
+        return null;
+    }
+
     /// <summary>Find the FileSymbol whose FD record matches the given DataSymbol.</summary>
     public FileSymbol? ResolveFileForRecord(DataSymbol record)
     {

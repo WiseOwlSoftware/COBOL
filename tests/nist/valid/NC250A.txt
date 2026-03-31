@@ -53,11 +53,11 @@ TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
 
-   CONDITION-NAMES    FAIL* IF--TEST-27
+   CONDITION-NAMES    PASS  IF--TEST-27
+   CONDITION-NAMES    FAIL* IF--TEST-28
 
 *** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
 
-   CONDITION-NAMES    PASS  IF--TEST-28
    CONDITION-NAMES    PASS  IF--TEST-29
    CONDITION-NAMES    PASS  IF--TEST-30
    CONDITION-NAMES    PASS  IF--TEST-31
@@ -131,16 +131,10 @@ TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
                                                           NAME TESTS VERIFY THE
                                                           ABILITY OF THE COMPILER TO
                                                           ACCEPT SUBSCRIPTED 88 LEVEL
- OCCURS WITH 88 LEVEL FAIL* IF--TEST-80
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
-
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-80
  OCCURS WITH 88 LEVEL PASS  IF--TEST-81
  OCCURS WITH 88 LEVEL PASS  IF--TEST-82
- OCCURS WITH 88 LEVEL FAIL* IF--TEST-83
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-89 6.15
-
+ OCCURS WITH 88 LEVEL PASS  IF--TEST-83
  OCCURS WITH 88 LEVEL PASS  IF--TEST-84
  OCCURS WITH 88 LEVEL PASS  IF--TEST-85
  OCCURS WITH 88 LEVEL PASS  IF--TEST-86
@@ -195,8 +189,8 @@ TEST RESULT OF NC250A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC250A
 
-                                                    111 OF 115  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    004 TEST(S) FAILED
+                                                    113 OF 115  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    002 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

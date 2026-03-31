@@ -13,9 +13,7 @@ TEST RESULT OF NC235A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- LEVEL 3 TBL HANDLING       INIT-TBL-TH309                TBL ENTRIES BUILT INCORRECT
-*** INFORMATION ***        *****                    *****
-
+ LEVEL 3 TBL HANDLING       INIT-TBL-TH309                26 ENTRY TABLE CONSTRUCTED
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-1
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-2
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-3

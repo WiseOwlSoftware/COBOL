@@ -56,82 +56,26 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-06       .02
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-07       .01        THREE DIMENSIONAL TABLE
  QUALIFIED SUBSCRIPT  PASS  QUAL-TEST-07       .02
- QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .01        ONE DIMENSIONAL TABLE
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .02
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .03
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .04
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-08       .05
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-09       .01        THREE DIMENSIONAL TABLE
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-09       .02
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-09       .03
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-09       .04
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-09       .05
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUAL. CONDITION NAME FAIL* QUAL-TEST-10       .01        QUALIFIED SUBSCRIPTS
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
+ QUAL. CONDITION NAME PASS  QUAL-TEST-08       .01        ONE DIMENSIONAL TABLE
+ QUAL. CONDITION NAME PASS  QUAL-TEST-08       .02
+ QUAL. CONDITION NAME PASS  QUAL-TEST-08       .03
+ QUAL. CONDITION NAME PASS  QUAL-TEST-08       .04
+ QUAL. CONDITION NAME PASS  QUAL-TEST-08       .05
+ QUAL. CONDITION NAME PASS  QUAL-TEST-09       .01        THREE DIMENSIONAL TABLE
+ QUAL. CONDITION NAME PASS  QUAL-TEST-09       .02
+ QUAL. CONDITION NAME PASS  QUAL-TEST-09       .03
+ QUAL. CONDITION NAME PASS  QUAL-TEST-09       .04
+ QUAL. CONDITION NAME PASS  QUAL-TEST-09       .05
+ QUAL. CONDITION NAME PASS  QUAL-TEST-10       .01        QUALIFIED SUBSCRIPTS
  QUAL. CONDITION NAME PASS  QUAL-TEST-10       .02
- QUAL. CONDITION NAME FAIL* QUAL-TEST-10       .03
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
+ QUAL. CONDITION NAME PASS  QUAL-TEST-10       .03
  QUAL. CONDITION NAME PASS  QUAL-TEST-10       .04
  QUALIFICATION        PASS  QUAL-TEST-11       .01        INTERMEDIATE LEVELS SKIPPED
  QUALIFICATION        PASS  QUAL-TEST-11       .02
  QUALIFICATION        PASS  QUAL-TEST-11       .03
  QUALIFICATION        PASS  QUAL-TEST-11       .04
- QUALIFICATION        FAIL* QUAL-TEST-11       .05
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
- QUALIFICATION        FAIL* QUAL-TEST-11       .06
-
-                                     COMPUTED= FALSE
-                                     CORRECT = TRUE
-
+ QUALIFICATION        PASS  QUAL-TEST-11       .05
+ QUALIFICATION        PASS  QUAL-TEST-11       .06
  QUALIFICATION        PASS  QUAL-TEST-12       .06        SEVEN DIMENSIONAL TABLE
  ***********************************************************************************************************************
 
@@ -140,8 +84,8 @@ TEST RESULT OF NC246A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC246A
 
-                                                    035 OF 049  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    014 TEST(S) FAILED
+                                                    049 OF 049  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

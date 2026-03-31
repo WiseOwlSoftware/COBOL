@@ -409,6 +409,27 @@ internal sealed class ExpressionBinder
                 return _ctx.Typed(new BoundLiteralExpression(charValue, CobolCategory.Alphanumeric));
             }
 
+            // Check if this is a condition name (level 88) — possibly qualified and/or subscripted
+            var condSym = qualifiers.Count > 0
+                ? _ctx.Semantic.ResolveQualifiedConditionName(name, qualifiers)
+                : _ctx.Semantic.ResolveConditionName(name);
+            if (condSym != null)
+            {
+                BoundExpression? parentExpr = null;
+                if (condSym.ParentDataItem != null && subOrRefMod != null)
+                {
+                    var (condSubExprs, condIsRefMod) = InterpretSubscriptTokens(subOrRefMod);
+                    if (!condIsRefMod && condSubExprs.Count > 0)
+                    {
+                        var parentCat = condSym.ParentDataItem.ResolvedType?.Category
+                                        ?? CobolCategory.Alphanumeric;
+                        parentExpr = new BoundIdentifierExpression(
+                            condSym.ParentDataItem, parentCat, condSubExprs);
+                    }
+                }
+                return new BoundConditionNameExpression(condSym, parentExpression: parentExpr);
+            }
+
             return new BoundLiteralExpression(name, CobolCategory.Alphanumeric);
         }
 
