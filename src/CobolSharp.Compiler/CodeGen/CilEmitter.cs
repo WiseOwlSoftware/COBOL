@@ -912,6 +912,7 @@ public sealed class CilEmitter
             case IrSortReturn sortRet: _ctx.FileIo.EmitSortReturn(il, sortRet, getLocal); break;
             case IrSortClose sortClose: _ctx.FileIo.EmitSortClose(il, sortClose); break;
             case IrSortMerge sortMerge: _ctx.FileIo.EmitSortMerge(il, sortMerge); break;
+            case IrTableSort tableSort: _ctx.FileIo.EmitTableSort(il, tableSort); break;
 
             // ── Expression / intrinsics ──
             case IrFunctionCall funcCall: _ctx.Expression.EmitFunctionCall(il, funcCall); break;

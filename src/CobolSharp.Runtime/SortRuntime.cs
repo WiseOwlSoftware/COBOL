@@ -289,4 +289,63 @@ public static class SortRuntime
         public List<byte[]> Records { get; } = [];
         public int ReturnIndex { get; set; }
     }
+
+    // ══════════════════════════════════════════════════════════
+    // FORMAT 2: In-place table sort (SORT on data item with OCCURS)
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Sort OCCURS entries in-place within a storage area.
+    /// </summary>
+    /// <param name="storageArea">The byte array containing the table.</param>
+    /// <param name="tableOffset">Offset of the first OCCURS entry.</param>
+    /// <param name="entrySize">Size of each OCCURS entry in bytes.</param>
+    /// <param name="entryCount">Number of OCCURS entries.</param>
+    /// <param name="keysSpec">Key specification: "offset,length,asc;..." where offset is relative to entry start.</param>
+    public static void SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec)
+    {
+        if (entryCount <= 1) return;
+
+        var keys = ParseKeysSpec(keysSpec);
+
+        // Extract entries into temporary array
+        var entries = new byte[entryCount][];
+        for (int i = 0; i < entryCount; i++)
+        {
+            entries[i] = new byte[entrySize];
+            Array.Copy(storageArea, tableOffset + i * entrySize, entries[i], 0, entrySize);
+        }
+
+        // Stable sort using the same comparison logic as file sort
+        var sorted = StableSort(entries, keys);
+
+        // Copy sorted entries back into storage
+        for (int i = 0; i < entryCount; i++)
+        {
+            Array.Copy(sorted[i], 0, storageArea, tableOffset + i * entrySize, entrySize);
+        }
+    }
+
+    private static byte[][] StableSort(byte[][] entries, SortKeySpec[] keys)
+    {
+        if (keys.Length == 0) return entries;
+
+        IOrderedEnumerable<byte[]> ordered;
+        var firstKey = keys[0];
+        if (firstKey.IsAscending)
+            ordered = entries.OrderBy(r => r, new SortKeyComparer(firstKey));
+        else
+            ordered = entries.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+
+        for (int k = 1; k < keys.Length; k++)
+        {
+            var key = keys[k];
+            if (key.IsAscending)
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+            else
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+        }
+
+        return ordered.ToArray();
+    }
 }

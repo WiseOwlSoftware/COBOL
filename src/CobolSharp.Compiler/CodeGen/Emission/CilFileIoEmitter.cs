@@ -250,6 +250,20 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Stloc, local));
     }
 
+    internal void EmitTableSort(ILProcessor il, IrTableSort inst)
+    {
+        // SortRuntime.SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec)
+        _ctx.Location.EmitLocationArgs(il, inst.TableLocation); // pushes byte[], offset, length
+        il.Append(il.Create(OpCodes.Pop)); // pop the length — we don't need it
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.EntrySize));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.EntryCount));
+        il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        var m = _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("SortTable",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
     internal void EmitSortClose(ILProcessor il, IrSortClose inst)
     {
         il.Append(il.Create(OpCodes.Ldstr, inst.FileName));

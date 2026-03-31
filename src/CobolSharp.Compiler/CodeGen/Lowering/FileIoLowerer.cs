@@ -499,6 +499,53 @@ internal sealed class FileIoLowerer
         return block;
     }
 
+    // ── TABLE SORT (Format 2) ──
+
+    public IrBasicBlock LowerTableSort(BoundTableSortStatement tableSort, IrMethod method, IrBasicBlock block)
+    {
+        var tableSym = tableSort.TableItem;
+
+        // Resolve storage location of the table item
+        var tableLoc = _ctx.Location.ResolveLocation(tableSym);
+        if (tableLoc == null) return block;
+
+        // Get OCCURS info for entry count and entry size
+        var occurs = tableSym.Occurs;
+        if (occurs == null) return block;
+
+        int entryCount = occurs.MaxOccurs;
+        int entrySize = tableSym.ElementSize;
+        if (entrySize <= 0) return block;
+
+        // Build keys spec string: "relOffset,length,asc;..."
+        var keysSpec = BuildTableKeysSpec(tableSort.Keys, tableSym);
+
+        block.Instructions.Add(new IrTableSort(tableLoc, entrySize, entryCount, keysSpec));
+
+        return block;
+    }
+
+    private string BuildTableKeysSpec(IReadOnlyList<BoundSortKey> keys, DataSymbol tableItem)
+    {
+        var specs = new List<string>();
+        foreach (var key in keys)
+        {
+            var keySym = key.Key;
+            // Key offset relative to the table entry start
+            var keyLoc = _ctx.Semantic.GetStorageLocation(keySym);
+            var tableLoc = _ctx.Semantic.GetStorageLocation(tableItem);
+            if (!keyLoc.HasValue || !tableLoc.HasValue) continue;
+
+            int relativeOffset = keyLoc.Value.Offset - tableLoc.Value.Offset;
+            int length = keyLoc.Value.Length;
+            bool asc = key.IsAscending;
+
+            // Check if numeric
+            specs.Add($"{relativeOffset},{length},{(asc ? "1" : "0")}");
+        }
+        return string.Join(";", specs);
+    }
+
     private void EmitSortUsingFile(FileSymbol inputFile, FileSymbol sortFile,
         DataSymbol sdRecord, IrLocation sdLoc, int recordLength,
         IrMethod method, ref IrBasicBlock block)

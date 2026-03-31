@@ -404,8 +404,18 @@ internal sealed class FileIoBinder
         var fileNameCtx = ctx.sortFileName()?.dataReference();
         if (fileNameCtx == null) return null;
 
-        var fileSym = _ctx.Semantic.ResolveFile(fileNameCtx.GetText());
-        if (fileSym == null) return null;
+        var targetName = fileNameCtx.GetText();
+
+        // Format 2 detection: if target is a data item (not a file), it's a table sort
+        var fileSym = _ctx.Semantic.ResolveFile(targetName);
+        if (fileSym == null)
+        {
+            // Try resolving as a data item for Format 2 (table sort)
+            var dataSym = _ctx.Semantic.ResolveData(targetName);
+            if (dataSym != null)
+                return BindTableSort(ctx, dataSym);
+            return null;
+        }
 
         // Parse sort keys
         var keys = BindSortKeys(ctx.sortKeyPhrase(), fileSym);
@@ -452,6 +462,51 @@ internal sealed class FileIoBinder
             usingFiles, givingFiles,
             inputProc, inputProcThru,
             outputProc, outputProcThru);
+    }
+
+    // ── TABLE SORT (Format 2) ──
+
+    private BoundStatement? BindTableSort(CobolParserCore.SortStatementContext ctx, DataSymbol tableSym)
+    {
+        // Resolve sort keys from the ON ASCENDING/DESCENDING KEY phrases
+        var keys = new List<BoundSortKey>();
+        foreach (var phrase in ctx.sortKeyPhrase())
+        {
+            bool ascending = phrase.ASCENDING() != null;
+            var dataRefList = phrase.dataReferenceList();
+            if (dataRefList != null)
+            {
+                foreach (var dataRef in dataRefList.dataReference())
+                {
+                    var keySym = _ctx.Semantic.ResolveData(dataRef.GetText());
+                    if (keySym != null)
+                        keys.Add(new BoundSortKey(keySym, ascending));
+                }
+            }
+            else
+            {
+                // Format 2 without explicit key names: use the table's inherent KEY
+                if (tableSym.Occurs?.AscendingKeys is { Count: > 0 } ascKeys)
+                {
+                    foreach (var keyName in ascKeys)
+                    {
+                        var keySym = _ctx.Semantic.ResolveData(keyName);
+                        if (keySym != null) keys.Add(new BoundSortKey(keySym, true));
+                    }
+                }
+                if (tableSym.Occurs?.DescendingKeys is { Count: > 0 } descKeys)
+                {
+                    foreach (var keyName in descKeys)
+                    {
+                        var keySym = _ctx.Semantic.ResolveData(keyName);
+                        if (keySym != null) keys.Add(new BoundSortKey(keySym, false));
+                    }
+                }
+            }
+        }
+
+        bool duplicates = ctx.sortDuplicatesPhrase() != null;
+        return new BoundTableSortStatement(tableSym, keys, duplicates);
     }
 
     // ── MERGE ──

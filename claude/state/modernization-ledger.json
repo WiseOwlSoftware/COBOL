@@ -4417,44 +4417,72 @@
       "title": "SORT Format 2 runtime - table sort binder/lowerer/emitter",
       "severity": "P2",
       "subsystem": "Binder / Runtime",
-      "status": "open",
-      "description": "SORT Format 2 grammar accepted (M402) but binder resolves target as file, silently skips for data items. Need binder/lowerer/emitter for in-memory table sort.",
+      "status": "complete",
+      "description": "SORT Format 2 in-place table sort. FileIoBinder detects data-item targets, creates BoundTableSortStatement. IrTableSort instruction carries storage location, entry size, count, keys spec. SortRuntime.SortTable extracts entries, sorts with StableSort, copies back. CilFileIoEmitter emits SortTable call.",
       "deliverables": [
-        "Detect table sort target",
-        "Lower to IR",
-        "Emit CIL for in-memory sort"
+        "BoundTableSortStatement in BoundNodes.cs",
+        "FileIoBinder.BindTableSort for data-item detection",
+        "IrTableSort instruction",
+        "FileIoLowerer.LowerTableSort",
+        "SortRuntime.SortTable + StableSort helpers",
+        "CilFileIoEmitter.EmitTableSort",
+        "2 integration tests (ascending, descending)"
       ],
       "risks": [
         "Multi-key sort with mixed ascending/descending"
       ],
       "test_impact": [
-        "GrammarBatch2Tests sort tests"
+        "Sort_Format2_TableSort_AscendingKey",
+        "Sort_Format2_TableSort_DescendingKey"
       ],
       "dependencies": [
         "M402"
-      ]
+      ],
+      "completed_date": "2026-03-31"
     },
     {
       "id": "M428",
       "title": "Semantic validation: SYMBOLIC CHARACTERS N:N count equality",
       "severity": "P2",
       "subsystem": "Semantics",
-      "status": "open",
-      "description": "Grammar accepts mismatched N:M counts in SYMBOLIC CHARACTERS entries. Spec requires 1:1 correspondence. SemanticBuilder should emit diagnostic on count mismatch.",
+      "status": "complete",
+      "description": "Added count-equality check in SemanticBuilder for symbolicCharacterEntry per ISO §12.3.7 rule 16c. Emits diagnostic when name count != ordinal count.",
       "deliverables": [
-        "Add count validation",
-        "Emit diagnostic on mismatch",
-        "Add negative test"
+        "Count validation in SemanticBuilder.VisitSpecialNamesParagraph",
+        "Diagnostic: 'N name(s) but M ordinal(s) — counts must be equal'",
+        "3 integration tests (valid N:N, valid single, count mismatch)"
       ],
       "risks": [
         "Silent wrong mapping if not validated"
       ],
       "test_impact": [
-        "Diagnostic unit tests"
+        "SymbolicCharacters_NNValid_NoError",
+        "SymbolicCharacters_SingleValid_NoError",
+        "SymbolicCharacters_CountMismatch_ProducesError"
       ],
       "dependencies": [
         "M408"
-      ]
+      ],
+      "completed_date": "2026-03-31"
+    },
+    {
+      "id": "M433",
+      "title": "Lexer keyword shadowing mitigation for SCREEN tokens",
+      "severity": "P2",
+      "subsystem": "Grammar",
+      "status": "complete",
+      "description": "Audit confirmed all 15 screen tokens + COLUMN are in cobolWord and _dataNameTokens HashSet. No NIST tests use these as data names. Already mitigated by Batch 3 cobolWord expansion + LPAREN refactor.",
+      "deliverables": [
+        "Audit complete: all tokens in cobolWord + _dataNameTokens",
+        "No NIST programs affected",
+        "No additional changes needed"
+      ],
+      "risks": [],
+      "test_impact": [],
+      "dependencies": [
+        "M411"
+      ],
+      "completed_date": "2026-03-31"
     },
     {
       "id": "M429",

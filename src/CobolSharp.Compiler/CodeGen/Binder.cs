@@ -458,6 +458,8 @@ public sealed class Binder
                 return _ctx.FileIo.LowerReturn(ret, method, block);
             case BoundSortStatement sort:
                 return _ctx.FileIo.LowerSort(sort, method, block);
+            case BoundTableSortStatement tableSort:
+                return _ctx.FileIo.LowerTableSort(tableSort, method, block);
             case BoundMergeStatement merge:
                 return _ctx.FileIo.LowerMerge(merge, method, block);
             case BoundReleaseStatement release:

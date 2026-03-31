@@ -372,8 +372,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 foreach (var symEntry in symClause.symbolicCharacterEntry())
                 {
                     // N:N positional mapping: cobolWord[i] ↔ integerLiteral[i]
+                    // ISO §12.3.7 rule 16c: counts must be equal
                     var names = symEntry.cobolWord();
                     var ordinals = symEntry.integerLiteral();
+                    if (names.Length != ordinals.Length)
+                        Error(symEntry, $"SYMBOLIC CHARACTERS: {names.Length} name(s) but {ordinals.Length} ordinal(s) — counts must be equal");
                     int count = Math.Min(names.Length, ordinals.Length);
                     for (int i = 0; i < count; i++)
                     {

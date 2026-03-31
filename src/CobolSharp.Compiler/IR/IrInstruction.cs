@@ -750,6 +750,25 @@ public sealed class IrSortClose : IrInstruction
 }
 
 /// <summary>
+/// In-place table sort (SORT Format 2): SortRuntime.SortTable(storageArea, offset, entrySize, count, keysSpec).
+/// </summary>
+public sealed class IrTableSort : IrInstruction
+{
+    public IrLocation TableLocation { get; }
+    public int EntrySize { get; }
+    public int EntryCount { get; }
+    public string KeysSpec { get; }
+
+    public IrTableSort(IrLocation tableLocation, int entrySize, int entryCount, string keysSpec)
+    {
+        TableLocation = tableLocation;
+        EntrySize = entrySize;
+        EntryCount = entryCount;
+        KeysSpec = keysSpec;
+    }
+}
+
+/// <summary>
 /// Merge records from multiple input files: SortRuntime.MergeRecords(mergeFile, inputFiles, keysSpec).
 /// </summary>
 public sealed class IrSortMerge : IrInstruction

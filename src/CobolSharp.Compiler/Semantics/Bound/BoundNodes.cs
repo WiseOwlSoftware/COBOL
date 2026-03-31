@@ -53,6 +53,7 @@ public enum BoundNodeKind
     FunctionCallExpression,
     UseStatement,
     SortStatement,
+    TableSortStatement,
     MergeStatement,
     ReleaseStatement,
     SetSwitchStatement,
@@ -1521,6 +1522,28 @@ public sealed class BoundSortStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SortStatement;
+}
+
+/// <summary>
+/// SORT Format 2 — in-place table sort. Sorts OCCURS entries by KEY fields.
+/// </summary>
+public sealed class BoundTableSortStatement : BoundStatement
+{
+    /// <summary>The data item containing the OCCURS table.</summary>
+    public DataSymbol TableItem { get; }
+    /// <summary>Sort keys (from ON ASCENDING/DESCENDING KEY).</summary>
+    public IReadOnlyList<BoundSortKey> Keys { get; }
+    /// <summary>WITH DUPLICATES IN ORDER.</summary>
+    public bool DuplicatesInOrder { get; }
+
+    public BoundTableSortStatement(DataSymbol tableItem, IReadOnlyList<BoundSortKey> keys, bool duplicatesInOrder)
+    {
+        TableItem = tableItem;
+        Keys = keys;
+        DuplicatesInOrder = duplicatesInOrder;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.TableSortStatement;
 }
 
 // ═══════════════════════════════════

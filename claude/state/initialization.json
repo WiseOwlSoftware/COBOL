@@ -1,16 +1,16 @@
 {
   "initialized": true,
-  "last_review_commit": "122cc72",
+  "last_review_commit": "2813a0c",
   "ledger_path": "claude/state/modernization-ledger.json",
   "audit_date": "2026-03-30",
-  "ledger_version": 10,
-  "last_audit": "Batch 3 complete — grammar architecture fully modernized",
+  "ledger_version": 11,
+  "last_audit": "Batch 4 complete — semantic/runtime layer modernized",
   "last_updated": "2026-03-31",
-  "next_item": "Begin Batch 4 (semantic/runtime gaps: M427, M428, etc.)",
+  "next_item": "Begin Batch 5 (Screen I/O runtime M429-M431, multi-char currency M432, OVERLENIENT gaps M412-M426)",
   "ledger_summary": {
     "total_items": 182,
-    "done": 16,
-    "open": 137,
+    "done": 19,
+    "open": 134,
     "in_progress": 1,
     "planned": 23,
     "p0_critical": 4,
@@ -34,15 +34,16 @@
       "M300-M399": "in-progress (compliance gaps — Batches 1-3 complete, 0 REJECT remaining)",
       "M400-M411": "12 complete (all REJECT gaps closed)",
       "M412-M426": "open (OVERLENIENT grammar gaps, 15 items)",
-      "M427-M428": "open (sub-gaps discovered in Batch 2)",
-      "M429-M433": "open (sub-gaps discovered in Batch 3 design, 5 items)"
+      "M427-M428": "complete (Batch 4)",
+      "M429-M432": "open (screen I/O runtime + multi-char currency, 4 items)",
+      "M433": "complete (Batch 4 — keyword shadowing mitigated)"
     }
   },
   "cobol85_audit": {
     "date": "2026-03-30",
     "artifacts_path": "audit/cobol85/",
     "unit_tests": 922,
-    "integration_tests": 329,
+    "integration_tests": 334,
     "nist_nc_tests": 95,
     "nist_nc_fail_star": 77,
     "nist_nc_clean": 81,
