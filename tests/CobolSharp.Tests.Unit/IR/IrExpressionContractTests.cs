@@ -129,9 +129,10 @@ public class IrExpressionContractTests
     }
 
     [Fact]
-    public void CilEmitter_has_EmitIrExpression_method()
+    public void CilExpressionEmitter_has_EmitIrExpression_method()
     {
-        var emitterType = CompilerAssembly.GetType("CobolSharp.Compiler.CodeGen.CilEmitter")!;
+        // M003: EmitIrExpression moved from CilEmitter to CilExpressionEmitter
+        var emitterType = CompilerAssembly.GetType("CobolSharp.Compiler.CodeGen.Emission.CilExpressionEmitter")!;
         var methods = emitterType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
             .Where(m => m.Name == "EmitIrExpression")
             .ToList();

@@ -7444,3 +7444,233 @@ indicator) or subscript/index computation in PERFORM VARYING. Deferred — requi
 - NC254A: CLASS clause without IS, quote handling
 
 *End of entries for 2026-03-23*
+
+---
+
+## Entry 171 — 2026-03-30: Modernization Infrastructure — Ledger, Agents, Bootstrap
+
+Set up the multi-agent modernization infrastructure. Created `claude/` directory with
+session.yaml, routing-rules.yaml, agent definitions, and prompts (bootstrap.md,
+start.md, agent-handshake.md, arbitration.md). Performed full-system audit across
+all 7 subsystems — 25 modernization items identified (2 P0, 7 P1, 12 P2, 2 P3).
+Generated modernization-ledger.json with codebase stats (120 .cs files, 71,843 lines,
+14 grammar files, 459 NIST programs). initialization.json updated to `initialized: true`.
+
+The audit identified 4 god classes: Binder.cs (4,266 lines), CilEmitter.cs (4,168 lines),
+BoundTreeBuilder.cs (4,428 lines), SemanticBuilder.cs (1,477 lines). These became M001-M004.
+
+---
+
+## Entry 172 — 2026-03-30: M001 — IrExpression Contract (Eliminating BoundExpression Leakage)
+
+### The problem
+44 occurrences of `BoundExpression` embedded in IR instructions. The IR layer should be
+independent of the bound tree, but `IrPerformTimes.CountExpression`, `IrFunctionCall`,
+`IrElementRef`, `IrRefModLocation` all carried `BoundExpression` references. This forced
+CilEmitter to import the entire `Semantics.Bound` namespace and evaluate expressions at
+emit time instead of during lowering.
+
+### The fix (4 stages)
+**Stage 1:** Created `IrExpression` hierarchy — `IrLiteral`, `IrLoadNumeric`,
+`IrBinaryExpr`, `IrUnaryExpr`, `IrIntrinsicCall` — plus argument types
+`IrLiteralStringArg`, `IrAlphanumericArg`, `IrNumericArg`. Added `Binder.LowerExpression`
+that converts `BoundExpression` → `IrExpression` during lowering. 19 unit tests.
+
+**Stage 2:** Migrated all 8 IR instruction types to use `IrExpression` instead of
+`BoundExpression`. Added `CilEmitter.EmitIrExpression` that evaluates the IR-native
+expression tree. 4 enums (`IrArithmeticOp`, `IrUnaryOp`, `IrCompareOp`,
+`ClassConditionKind`) moved to IR namespace.
+
+**Stage 3:** Deleted `EmitExpression`, `EmitIntrinsicCall`,
+`PreResolveExpressionLocations`, and the entire `ResolvedLocations` parameter bundle
+from CilEmitter. Zero `BoundExpression` references remain in IR or CilEmitter.
+
+**Stage 4:** 13 reflection contract tests + 13 integration pipeline tests verifying
+the IrExpression pipeline end-to-end.
+
+Design doc: `docs/ir/IR-Expression-Contract.md`. Tests: 453 unit + 287 integration + 95 NIST.
+
+### What I learned
+The `ResolvedLocations` bag was the real code smell — it bundled pre-resolved
+parameters alongside the bound expression, creating a hidden coupling between
+lowering and emission. Once expressions became self-contained IR trees, the
+entire resolution step vanished.
+
+---
+
+## Entry 173 — 2026-03-30: M002 — Binder Decomposition (4,266 → 579 lines)
+
+### The problem
+`Binder.cs` at 4,266 lines was doing everything: record layout, paragraph methods,
+ALTER slots, 58-case `LowerStatement` switch, expression evaluation, control flow,
+arithmetic, data movement, file I/O, and string operations. Single-responsibility
+violated at industrial scale.
+
+### The design
+Decomposition plan in `docs/binder/Binder-Decomposition.md`:
+- **LoweringContext**: shared mutable state (semantic model, value factory, paragraph
+  maps, ALTER slots, PERFORM stacks, tracking vars)
+- **8 focused lowerers**: LocationResolver (150 lines), ExpressionLowerer (120),
+  ConditionLowerer (615), ControlFlowLowerer (1,154), ArithmeticLowerer (292),
+  DataMovementLowerer (335), FileIoLowerer (688), StringLowerer (240)
+
+### The execution (5 stages)
+**Stage 1:** Created `CodeGen/Lowering/` with 9 files. LoweringContext with all shared
+fields, lowerer references, and `LowerStatement` delegate. 76 structural tests.
+
+**Stage 2:** Extracted LocationResolver (5 methods) and ExpressionLowerer (5 methods).
+Binder retains thin forwarding wrappers.
+
+**Stage 3:** Extracted ConditionLowerer (16 methods + 2 nested types), ArithmeticLowerer
+(7 methods), DataMovementLowerer (9 methods). Binder down from 4,266 to 2,726 (-36%).
+
+**Stage 4:** Extracted ControlFlowLowerer (23 methods), FileIoLowerer (16 methods),
+StringLowerer (4 methods). Binder down to 688 lines.
+
+**Stage 5:** Removed all 35 forwarding wrappers. `LowerStatement` dispatches directly
+to `_ctx.ControlFlow.*`, `_ctx.FileIo.*`, etc. Binder at **579 lines** (86% reduction).
+
+Tests at completion: 596 unit + 287 integration + 95 NIST. All green at every stage.
+
+### The key insight
+The `LowerStatement` delegate on LoweringContext was critical — it lets
+ControlFlowLowerer recursively lower IF bodies and PERFORM inline statements without
+depending on the Binder class. No circular dependencies. Clean DAG.
+
+---
+
+## Entry 174 — 2026-03-30: M003 Stage 1 — CilEmitter Decomposition Plan + Scaffolding
+
+### Planning
+Scanned CilEmitter.cs (4,083 lines, 87 methods, 16 fields). Used 4 parallel agents
+to analyze different responsibility areas. Produced complete method inventory table
+with line ranges, categories, and proposed destinations. Identified 10 target emitter
+classes plus EmissionContext.
+
+Design doc: `docs/cilemitter/CilEmitter-Decomposition.md` — mirrors the Binder
+decomposition doc structure exactly.
+
+### Stage 1 execution
+Created `CodeGen/Emission/` with 11 files: EmissionContext (18 state fields, 10
+emitter references, 1 delegate) + 10 emitter skeletons with TODO markers. Modified
+CilEmitter constructor to create EmissionContext and wire all emitters. 53 structural
+tests. Zero behavior change.
+
+Tests: 674 unit + 287 integration + 95 NIST. All green.
+
+---
+
+## Entry 175 — 2026-03-30: M003 Stage 2 — Leaf Emitters (Location + Expression)
+
+### The extraction
+Moved 9 methods to CilLocationEmitter (EmitLocationArgs, EmitLocationArgsWithPic,
+EmitCachedLocationArgs, EmitElementAddress, EmitRefModAddress, EmitLoadBackingArray,
+EmitLoadBackingArrayOrExternal, EmitLinkageLocationArgs, TryGetExternalField).
+
+Moved 6 methods to CilExpressionEmitter (EmitIrExpression, EmitIrIntrinsicCall,
+EmitFunctionCall, EmitLoadDecimal, EmitLoadPicDescriptor, EmitByteArrayLiteral).
+
+### The SyncToContext discovery
+First test run failed: `Value cannot be null (Parameter 'field')`. CilEmitter's local
+`_programStateField` wasn't being synchronized to EmissionContext before VALUE clause
+initialization called the location emitters. Root cause: CilEmitter writes to its own
+fields during module setup, but extracted emitters read from `_ctx`.
+
+Fix: Added `SyncToContext()` / `SyncFromContext()` methods that bridge CilEmitter's
+local fields to EmissionContext. Called at key synchronization points — after
+ProgramState setup, before method body emission, after each method body.
+
+### The ArithmeticStatusLocal unification
+Three NIST regressions (NC117A, NC172A, NC173A) — SIZE ERROR not triggering.
+CilExpressionEmitter's `EmitLoadArithmeticStatusRef` created its own
+ArithmeticStatusLocal, while CilEmitter's `EnsureArithmeticStatusLocal` created a
+different one. Two separate locals in the same method = SIZE ERROR never set.
+
+Fix: Made `_ctx.ArithmeticStatusLocal` the single source of truth. Both CilEmitter
+and CilExpressionEmitter read/write the same field.
+
+Tests: 689 unit + 287 integration + 95 NIST. All green after both fixes.
+
+### Lesson
+Extracting methods that share per-method mutable state is trickier than extracting
+pure functions. The sync protocol is the price of incremental extraction — it
+disappears in Stage 5 when forwarding wrappers are removed.
+
+---
+
+## Entry 176 — 2026-03-30: M003 Stage 3 — Mid-Layer Emitters (Comparison + Arithmetic + Data)
+
+46 methods extracted in one stage using 3 parallel agents:
+- CilComparisonEmitter: 12 methods (~310 lines)
+- CilArithmeticEmitter: 17 methods (~340 lines)
+- CilDataEmitter: 17 methods (~420 lines)
+
+All methods follow the same mechanical transformation: `private` → `internal`,
+`_module` → `_ctx.Module`, forwarding wrapper calls → `_ctx.Location.*` /
+`_ctx.Expression.*`. No logic changes. Clean build on first try after agents
+produced the files. Zero test failures.
+
+Tests: 735 unit + 287 integration + 95 NIST. All green.
+
+---
+
+## Entry 177 — 2026-03-30: M003 Stage 4 — Remaining Emitters (ControlFlow + String + FileIo)
+
+31 methods extracted:
+- CilControlFlowEmitter: 7 named methods + 10 extracted inline cases (~375 lines)
+- CilStringEmitter: 7 methods (~465 lines)
+- CilFileIoEmitter: 17 methods (~270 lines)
+
+The 10 inline EmitInstruction cases (IrJump, IrBranchIfFalse, IrReturnConst,
+IrReturnAlterable, IrAlter, IrStopRun, IrExitProgram, IrGoBack, IrSetSwitch,
+IrTestSwitch) were extracted into named methods on CilControlFlowEmitter. The
+EmitInstruction switch now delegates to `_ctx.ControlFlow.*` for these.
+
+Hit the MethodMap sync issue: CilControlFlowEmitter called `_ctx.MethodMap[perf.Target]`
+but MethodMap was empty — SyncToContext wasn't copying `_methodMap`. Added
+MethodMap/FieldMap/TypeMap sync. All 28 failures resolved instantly.
+
+Tests: 776 unit + 287 integration + 95 NIST. All green.
+
+---
+
+## Entry 178 — 2026-03-30: M003 Stage 5 — Cleanup (4,083 → 1,299 lines)
+
+### The final cleanup
+Rewrote EmitInstruction's 65 case arms to call `_ctx.*` emitters directly (no more
+forwarding wrappers). Deleted ~60 forwarding wrappers. Updated all remaining CilEmitter
+methods that called wrappers (EmitValueClauseInitialization, EmitCallProgram) to use
+`_ctx.Location.*` / `_ctx.Expression.*` directly.
+
+Removed `_cobolDataPointerCtor` field (now only on EmissionContext). Cleaned up
+SyncToContext/SyncFromContext.
+
+### What remains in CilEmitter (1,299 lines)
+- Constructor + EmissionContext wiring
+- EmitAssembly (2 overloads) — public API
+- EmitModule — 7-step orchestration pipeline
+- SyncToContext / SyncFromContext — field bridge
+- Module setup: SeedPrimitiveTypes, DefineType, DefineGlobal, GetTypeRef,
+  DefineMethodSignature, CreateEntryMethodSignature, EmitAlternateEntryMethod
+- Program state: EmitProgramState + 8 sub-methods
+- Method body: EmitMethodBody, EmitInstruction (dispatch-only)
+- Paragraph dispatch: EmitParagraphDispatchInline, EmitParagraphDispatch
+- CALL: EmitCall, EmitCallProgram, EmitCheckCallException
+- Runtime: EmitRuntimeCall
+- Tiny inline cases: IrSetBool, IrBinaryLogical, IrLoadSizeError,
+  IrInitAccumulator, IrAccumulateField/Literal, IrComputeIntoAccumulator, IrCancelProgram
+
+### M003 final scorecard
+| Metric | Before | After |
+|--------|--------|-------|
+| CilEmitter.cs | 4,083 lines | 1,299 lines (-68%) |
+| Emission classes | 0 | 11 (10 emitters + EmissionContext) |
+| God class methods | 87 | 25 (orchestration only) |
+| Unit tests | 674 | 765 |
+| Integration tests | 287 | 287 |
+| NIST guard | 95 | 95 |
+
+M003 closed. Three P0 items (M001, M002, M003) done. Next open P0: M004
+(BoundTreeBuilder decomposition).
+
+*End of entries for 2026-03-30*

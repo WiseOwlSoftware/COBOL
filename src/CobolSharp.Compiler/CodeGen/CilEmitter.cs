@@ -4,6 +4,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
 using CobolSharp.Compiler.Semantics;
+using CobolSharp.Compiler.CodeGen.Emission;
 using CobolSharp.Runtime;
 
 namespace CobolSharp.Compiler.CodeGen;
@@ -34,10 +35,30 @@ public sealed class CilEmitter
     private readonly Dictionary<int, (VariableDefinition area, VariableDefinition offset, VariableDefinition length)>
         _cachedLocationLocals = new();
 
+    // ── M003: Emission context and emitter instances ──
+    // Created in constructor; methods will move to these classes in Stages 2-5.
+    internal readonly EmissionContext _ctx;
+
     private CilEmitter(ModuleDefinition module)
     {
         _module = module;
         SeedPrimitiveTypes();
+
+        // M003: Build emission context with shared state
+        _ctx = new EmissionContext(module);
+
+        // M003: Create emitter instances (empty shells — methods move in Stages 2-5)
+        _ctx.ModuleSetup = new CilModuleSetup(_ctx);
+        _ctx.ProgramState = new CilProgramStateEmitter(_ctx);
+        _ctx.Location = new CilLocationEmitter(_ctx);
+        _ctx.Expression = new CilExpressionEmitter(_ctx);
+        _ctx.Data = new CilDataEmitter(_ctx);
+        _ctx.Arithmetic = new CilArithmeticEmitter(_ctx);
+        _ctx.Comparison = new CilComparisonEmitter(_ctx);
+        _ctx.ControlFlow = new CilControlFlowEmitter(_ctx);
+        _ctx.String = new CilStringEmitter(_ctx);
+        _ctx.FileIo = new CilFileIoEmitter(_ctx);
+        _ctx.EmitInstruction = EmitInstruction;
     }
 
     private Semantics.SemanticModel? _semanticModel;
@@ -83,6 +104,52 @@ public sealed class CilEmitter
         return asm;
     }
 
+    /// <summary>
+    /// Sync CilEmitter's local fields into EmissionContext so extracted emitters can access them.
+    /// Called at key synchronization points during emission.
+    /// </summary>
+    private void SyncToContext()
+    {
+        _ctx.ProgramType = _programType;
+        _ctx.ProgramStateField = _programStateField;
+        _ctx.InitializeStateMethod = _initializeStateMethod;
+        _ctx.AlterTableField = _alterTableField;
+        _ctx.CurrentMethodDef = _currentMethodDef;
+        _ctx.ArithmeticStatusLocal = _arithmeticStatusLocal;
+        _ctx.SemanticModel = _semanticModel;
+        _ctx.EntryMethod = _entryMethod;
+        _ctx.LastCallResultField = _lastCallResultField;
+        // Sync collection contents: copy CilEmitter's collections into _ctx's collections.
+        // MethodMap (needed by CilControlFlowEmitter for PERFORM/THRU dispatch)
+        _ctx.MethodMap.Clear();
+        foreach (var kvp in _methodMap) _ctx.MethodMap[kvp.Key] = kvp.Value;
+        // FieldMap (needed by CilDataEmitter for load/store)
+        _ctx.FieldMap.Clear();
+        foreach (var kvp in _fieldMap) _ctx.FieldMap[kvp.Key] = kvp.Value;
+        // TypeMap (needed by CilModuleSetup)
+        _ctx.TypeMap.Clear();
+        foreach (var kvp in _typeMap) _ctx.TypeMap[kvp.Key] = kvp.Value;
+        // LinkageFields
+        _ctx.LinkageFields.Clear();
+        foreach (var kvp in _linkageFields) _ctx.LinkageFields[kvp.Key] = kvp.Value;
+        // ExternalFields
+        _ctx.ExternalFields.Clear();
+        foreach (var kvp in _externalFields) _ctx.ExternalFields[kvp.Key] = kvp.Value;
+        // ExternalRanges
+        _ctx.ExternalRanges.Clear();
+        _ctx.ExternalRanges.AddRange(_externalRanges);
+    }
+
+    /// <summary>
+    /// Sync mutable fields back from EmissionContext to CilEmitter's local fields.
+    /// Called after emitter methods that may modify shared state.
+    /// </summary>
+    private void SyncFromContext()
+    {
+        _arithmeticStatusLocal = _ctx.ArithmeticStatusLocal;
+        _lastCallResultField = _ctx.LastCallResultField;
+    }
+
     private void EmitModule(IrModule ir)
     {
         // Create the program type that holds globals and methods
@@ -95,6 +162,9 @@ public sealed class CilEmitter
 
         // 0. ProgramState static field + static constructor
         EmitProgramState(ir);
+
+        // M003: Sync after ProgramState setup so emitters called during VALUE clause init can access fields
+        SyncToContext();
 
         // 1. Record types
         foreach (var t in ir.Types)
@@ -110,6 +180,9 @@ public sealed class CilEmitter
 
         // 4. Create Entry method signature and LINKAGE fields (before emitting bodies)
         CreateEntryMethodSignature(ir);
+
+        // M003: Sync all CilEmitter fields to EmissionContext before method body emission
+        SyncToContext();
 
         // 5. Method bodies
         foreach (var m in ir.Methods)
@@ -325,6 +398,8 @@ public sealed class CilEmitter
         var il = cctor.Body.GetILProcessor();
         var ctor = EmitProgramStateAllocation(il, wsSize, fileSize, lsSize);
         EmitExternalStorageInitialization(il);
+        // M003: Sync after EXTERNAL init so VALUE clause init can use location emitters
+        SyncToContext();
         EmitValueClauseInitialization(il);
         EmitAlterTableInitialization(il, ir);
 
@@ -369,10 +444,10 @@ public sealed class CilEmitter
             var loc = _semanticModel.GetStorageLocation(kvp.Key);
             if (!loc.HasValue) continue;
 
-            EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var figAdjOffset);
+            _ctx.Location.EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var figAdjOffset);
             il.Append(il.Create(OpCodes.Ldc_I4, figAdjOffset));
             il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
-            EmitLoadPicDescriptor(il, loc.Value.Pic);
+            _ctx.Expression.EmitLoadPicDescriptor(il, loc.Value.Pic);
             il.Append(il.Create(OpCodes.Ldc_I4, (int)kvp.Value));
             il.Append(il.Create(OpCodes.Call, moveFigMethod));
         }
@@ -395,14 +470,14 @@ public sealed class CilEmitter
             var init = kvp.Value;
             var (elementSize, totalOccurs) = ComputeOccursExtent(data, loc.Value);
 
-            EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var valAdjOffset);
+            _ctx.Location.EmitLoadBackingArrayOrExternal(il, loc.Value.Area, loc.Value.Offset, out var valAdjOffset);
 
             if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
             {
                 il.Append(il.Create(OpCodes.Ldc_I4, valAdjOffset));
                 il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
-                EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
-                EmitLoadDecimal(il, d);
+                _ctx.Expression.EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
+                _ctx.Expression.EmitLoadDecimal(il, d);
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 var numMethod = _module.ImportReference(
                     typeof(Runtime.PicRuntime).GetMethod(
@@ -548,26 +623,6 @@ public sealed class CilEmitter
     /// <summary>EXTERNAL record offset ranges in WorkingStorage: (wsOffset, wsLength) → (extField, baseOffset).</summary>
     private readonly List<(int WsOffset, int WsLength, FieldDefinition ExtField)> _externalRanges = [];
 
-    /// <summary>
-    /// Try to find the EXTERNAL byte[] field for a WorkingStorage offset.
-    /// Returns true if the offset falls within an EXTERNAL record's range.
-    /// adjustedOffset is the offset relative to the EXTERNAL array (always starts at 0).
-    /// </summary>
-    private bool TryGetExternalField(int wsOffset, out FieldDefinition? extField, out int adjustedOffset)
-    {
-        foreach (var (rangeOffset, rangeLength, field) in _externalRanges)
-        {
-            if (wsOffset >= rangeOffset && wsOffset < rangeOffset + rangeLength)
-            {
-                extField = field;
-                adjustedOffset = wsOffset - rangeOffset;
-                return true;
-            }
-        }
-        extField = null;
-        adjustedOffset = 0;
-        return false;
-    }
 
     private void SeedPrimitiveTypes()
     {
@@ -659,6 +714,10 @@ public sealed class CilEmitter
         _currentMethodDef = md;
         _arithmeticStatusLocal = null; // reset per method (lazy allocation)
         _cachedLocationLocals.Clear(); // reset per method
+        // M003: Sync per-method state to EmissionContext
+        _ctx.CurrentMethodDef = md;
+        _ctx.ArithmeticStatusLocal = null;
+        _ctx.CachedLocationLocals.Clear();
 
         md.Body.InitLocals = true;
 
@@ -699,6 +758,8 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ret));
         }
 
+        // M003: Sync back from EmissionContext (emitters may have modified shared state)
+        SyncFromContext();
     }
 
     // ── Instruction emission ──
@@ -711,82 +772,169 @@ public sealed class CilEmitter
     {
         switch (inst)
         {
-            case IrLoadConst lc:
-                EmitLoadConst(il, lc, getLocal);
-                break;
+            // ── Data movement ──
+            case IrLoadConst lc: _ctx.Data.EmitLoadConst(il, lc, getLocal); break;
+            case IrLoadField lf: _ctx.Data.EmitLoadField(il, lf, getLocal); break;
+            case IrStoreField sf: _ctx.Data.EmitStoreField(il, sf, getLocal); break;
+            case IrMove mv: _ctx.Data.EmitMove(il, mv, getLocal); break;
+            case IrMoveStringToField ms: _ctx.Data.EmitMoveStringToField(il, ms, getLocal); break;
+            case IrMoveFigurative mf: _ctx.Data.EmitMoveFigurative(il, mf); break;
+            case IrMoveAllLiteral mal: _ctx.Data.EmitMoveAllLiteral(il, mal); break;
+            case IrMoveFieldToField mf: _ctx.Data.EmitMoveFieldToField(il, mf); break;
+            case IrPicMoveLiteralNumeric movLit: _ctx.Data.EmitPicMoveLiteralNumeric(il, movLit); break;
+            case IrAccept acc: _ctx.Data.EmitAccept(il, acc); break;
+            case IrPicDisplay disp: _ctx.Data.EmitPicDisplay(il, disp); break;
 
-            case IrLoadField lf:
-                EmitLoadField(il, lf, getLocal);
-                break;
+            // ── Control flow ──
+            case IrBranch br: _ctx.ControlFlow.EmitBranch(il, br, getLocal, blockLabels); break;
+            case IrJump j: _ctx.ControlFlow.EmitJump(il, j, blockLabels); break;
+            case IrBranchIfFalse bif: _ctx.ControlFlow.EmitBranchIfFalse(il, bif, getLocal, blockLabels); break;
+            case IrReturn ret: _ctx.ControlFlow.EmitReturn(il, ret, getLocal); break;
+            case IrReturnConst rc: _ctx.ControlFlow.EmitReturnConst(il, rc); break;
+            case IrReturnAlterable ra: _ctx.ControlFlow.EmitReturnAlterable(il, ra); break;
+            case IrAlter alt: _ctx.ControlFlow.EmitAlter(il, alt); break;
+            case IrGoToDepending gtd: _ctx.ControlFlow.EmitGoToDepending(il, gtd, getLocal); break;
+            case IrStopRun: _ctx.ControlFlow.EmitStopRun(il); break;
+            case IrExitProgram: _ctx.ControlFlow.EmitExitProgram(il); break;
+            case IrGoBack: _ctx.ControlFlow.EmitGoBack(il); break;
+            case IrSetSwitch ss: _ctx.ControlFlow.EmitSetSwitch(il, ss); break;
+            case IrTestSwitch ts: _ctx.ControlFlow.EmitTestSwitch(il, ts, getLocal); break;
+            case IrPerform perf: _ctx.ControlFlow.EmitPerform(il, perf); break;
+            case IrPerformTimes perfTimes: _ctx.ControlFlow.EmitPerformTimes(il, perfTimes, _currentMethodDef!); break;
+            case IrPerformInlineTimes pit: _ctx.ControlFlow.EmitPerformInlineTimes(il, pit, _currentMethodDef!, getLocal, blockLabels); break;
+            case IrPerformThru thru: _ctx.ControlFlow.EmitPerformThru(il, thru, _currentMethodDef!); break;
 
-            case IrStoreField sf:
-                EmitStoreField(il, sf, getLocal);
-                break;
+            // ── Arithmetic ──
+            case IrBinary bin: _ctx.Arithmetic.EmitBinary(il, bin, getLocal); break;
+            case IrPicMultiply mul: _ctx.Arithmetic.EmitPicMultiply(il, mul); break;
+            case IrPicMultiplyLiteral mulLit: _ctx.Arithmetic.EmitPicMultiplyLiteral(il, mulLit); break;
+            case IrPicAdd addInst: _ctx.Arithmetic.EmitPicAdd(il, addInst); break;
+            case IrPicAddLiteral addLit: _ctx.Arithmetic.EmitPicAddLiteral(il, addLit); break;
+            case IrPicSubtract subInst: _ctx.Arithmetic.EmitPicSubtract(il, subInst); break;
+            case IrPicSubtractLiteral subLit: _ctx.Arithmetic.EmitPicSubtractLiteral(il, subLit); break;
+            case IrPicDivide divInst: _ctx.Arithmetic.EmitPicDivide(il, divInst); break;
+            case IrPicDivideLiteral divLit: _ctx.Arithmetic.EmitPicDivideLiteral(il, divLit); break;
+            case IrAddAccumulatedToTarget addAcc: _ctx.Arithmetic.EmitAddAccumulatedToTarget(il, addAcc, getLocal); break;
+            case IrMoveAccumulatedToTarget moveAcc: _ctx.Arithmetic.EmitMoveAccumulatedToTarget(il, moveAcc, getLocal); break;
+            case IrSubtractAccumulatedFromTarget subAcc: _ctx.Arithmetic.EmitSubtractAccumulatedFromTarget(il, subAcc, getLocal); break;
+            case IrComputeStore compStore: _ctx.Arithmetic.EmitComputeStore(il, compStore); break;
+            case IrCobolRemainder rem: _ctx.Arithmetic.EmitCobolRemainder(il, rem, getLocal); break;
+            case IrInitArithmeticStatus: _ctx.Arithmetic.EmitInitArithmeticStatus(il, _currentMethodDef!); break;
 
-            case IrMove mv:
-                EmitMove(il, mv, getLocal);
-                break;
-
-            case IrBinary bin:
-                EmitBinary(il, bin, getLocal);
-                break;
-
-            case IrBranch br:
-                EmitBranch(il, br, getLocal, blockLabels);
-                break;
-
-            case IrJump j:
-                il.Append(il.Create(OpCodes.Br, blockLabels[j.Target]));
-                break;
-
-            case IrBranchIfFalse bif:
+            case IrLoadSizeError lse:
             {
-                var condLocal = getLocal(bif.Condition);
-                il.Append(il.Create(OpCodes.Ldloc, condLocal));
-                il.Append(il.Create(OpCodes.Brfalse, blockLabels[bif.Target]));
+                var statusLocal = _ctx.Arithmetic.EnsureArithmeticStatusLocal(_currentMethodDef!);
+                il.Append(il.Create(OpCodes.Ldloca, statusLocal));
+                var sizeErrorGetter = _module.ImportReference(
+                    typeof(ArithmeticStatus).GetProperty("SizeError")!.GetGetMethod()!);
+                il.Append(il.Create(OpCodes.Call, sizeErrorGetter));
+                if (lse.Result.HasValue)
+                    il.Append(il.Create(OpCodes.Stloc, getLocal(lse.Result.Value)));
                 break;
             }
+
+            case IrInitAccumulator initAcc:
+            {
+                var local = getLocal(initAcc.Result!.Value);
+                _ctx.Expression.EmitLoadDecimal(il, 0m);
+                il.Append(il.Create(OpCodes.Stloc, local));
+                break;
+            }
+
+            case IrAccumulateField accField:
+            {
+                var accLocal = getLocal(accField.Accumulator);
+                il.Append(il.Create(OpCodes.Ldloc, accLocal));
+                _ctx.Location.EmitLocationArgsWithPic(il, accField.Source);
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                                typeof(Runtime.PicDescriptor) })!)));
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(decimal).GetMethod("op_Addition",
+                        new[] { typeof(decimal), typeof(decimal) })!)));
+                il.Append(il.Create(OpCodes.Stloc, accLocal));
+                break;
+            }
+
+            case IrAccumulateLiteral accLit:
+            {
+                var accLocal = getLocal(accLit.Accumulator);
+                il.Append(il.Create(OpCodes.Ldloc, accLocal));
+                _ctx.Expression.EmitLoadDecimal(il, accLit.Value);
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(decimal).GetMethod("op_Addition",
+                        new[] { typeof(decimal), typeof(decimal) })!)));
+                il.Append(il.Create(OpCodes.Stloc, accLocal));
+                break;
+            }
+
+            case IrComputeIntoAccumulator compAccum:
+                _ctx.Expression.EmitIrExpression(il, compAccum.Expression);
+                il.Append(il.Create(OpCodes.Stloc, getLocal(compAccum.Accumulator)));
+                break;
+
+            // ── Comparison ──
+            case IrClassCondition classInst: _ctx.Comparison.EmitClassCondition(il, classInst, getLocal); break;
+            case IrUserClassCondition userClassInst: _ctx.Comparison.EmitUserClassCondition(il, userClassInst, getLocal); break;
+            case IrPicCompare cmp: _ctx.Comparison.EmitPicCompare(il, cmp, getLocal); break;
+            case IrPicCompareLiteral cmpLit: _ctx.Comparison.EmitPicCompareLiteral(il, cmpLit, getLocal); break;
+            case IrPicCompareAccumulator cmpAccum: _ctx.Comparison.EmitPicCompareAccumulator(il, cmpAccum, getLocal); break;
+            case IrDecimalCompare decCmp: _ctx.Comparison.EmitDecimalCompare(il, decCmp, getLocal); break;
+            case IrDecimalCompareLiteral decLitCmp: _ctx.Comparison.EmitDecimalCompareLiteral(il, decLitCmp, getLocal); break;
+            case IrStringCompareLiteral strCmp: _ctx.Comparison.EmitStringCompareLiteral(il, strCmp, getLocal); break;
+            case IrStringCompare strFldCmp: _ctx.Comparison.EmitStringCompare(il, strFldCmp, getLocal); break;
+            case IrStringCompareWithSequence seqCmp: _ctx.Comparison.EmitStringCompareWithSequence(il, seqCmp, getLocal); break;
+            case IrStringCompareLiteralWithSequence seqLitCmp: _ctx.Comparison.EmitStringCompareLiteralWithSequence(il, seqLitCmp, getLocal); break;
+
+            // ── String operations ──
+            case IrStringStatement strStmt: _ctx.String.EmitStringStatement(il, strStmt, getLocal); break;
+            case IrUnstringStatement unstrStmt: _ctx.String.EmitUnstringStatement(il, unstrStmt, getLocal); break;
+            case IrInspectTally it: _ctx.String.EmitInspectTally(il, it); break;
+            case IrInspectReplace ir: _ctx.String.EmitInspectReplace(il, ir); break;
+            case IrInspectConvert ic: _ctx.String.EmitInspectConvert(il, ic); break;
+
+            // ── File I/O ──
+            case IrWriteRecordFromStorage wr: _ctx.FileIo.EmitWriteRecordFromStorage(il, wr); break;
+            case IrRewriteRecordFromStorage rw: _ctx.FileIo.EmitRewriteRecordFromStorage(il, rw); break;
+            case IrWriteAdvancing waa: _ctx.FileIo.EmitWriteAdvancing(il, waa); break;
+            case IrReadRecordToStorage rd: _ctx.FileIo.EmitReadRecordToStorage(il, rd); break;
+            case IrReadPreviousToStorage rdp: _ctx.FileIo.EmitReadPreviousToStorage(il, rdp); break;
+            case IrReadByKey rbk: _ctx.FileIo.EmitReadByKey(il, rbk); break;
+            case IrStoreFileStatus sfs: _ctx.FileIo.EmitStoreFileStatus(il, sfs); break;
+            case IrCheckFileAtEnd chk: _ctx.FileIo.EmitCheckFileAtEnd(il, chk, getLocal); break;
+            case IrDeleteRecord del: _ctx.FileIo.EmitDeleteRecord(il, del); break;
+            case IrStartFile sf: _ctx.FileIo.EmitStartFile(il, sf); break;
+            case IrCheckFileInvalidKey cik: _ctx.FileIo.EmitCheckFileInvalidKey(il, cik, getLocal); break;
+            case IrSortInit sortInit: _ctx.FileIo.EmitSortInit(il, sortInit); break;
+            case IrSortRelease sortRel: _ctx.FileIo.EmitSortRelease(il, sortRel); break;
+            case IrSortSort sortSort: _ctx.FileIo.EmitSortSort(il, sortSort); break;
+            case IrSortReturn sortRet: _ctx.FileIo.EmitSortReturn(il, sortRet, getLocal); break;
+            case IrSortClose sortClose: _ctx.FileIo.EmitSortClose(il, sortClose); break;
+            case IrSortMerge sortMerge: _ctx.FileIo.EmitSortMerge(il, sortMerge); break;
+
+            // ── Expression / intrinsics ──
+            case IrFunctionCall funcCall: _ctx.Expression.EmitFunctionCall(il, funcCall); break;
+
+            // ── Orchestration (stays in CilEmitter) ──
+            case IrCallProgram callProg: EmitCallProgram(il, callProg, _currentMethodDef!); break;
+            case IrCheckCallException checkExc: EmitCheckCallException(il, checkExc, getLocal); break;
+            case IrCall call: EmitCall(il, call, getLocal); break;
+            case IrParagraphDispatch dispatch: EmitParagraphDispatch(il, dispatch, _currentMethodDef!); break;
+            case IrRuntimeCall rtc: EmitRuntimeCall(il, rtc, getLocal); break;
+
+            case IrCancelProgram cancelProg:
+                il.Append(il.Create(OpCodes.Ldstr, cancelProg.ProgramName));
+                il.Append(il.Create(OpCodes.Call,
+                    _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Cancel",
+                        new[] { typeof(string) })!)));
+                break;
 
             case IrSetBool sb:
             {
                 il.Append(il.Create(sb.Value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
                 if (sb.Result.HasValue)
-                {
-                    var local = getLocal(sb.Result.Value);
-                    il.Append(il.Create(OpCodes.Stloc, local));
-                }
-                break;
-            }
-
-            case IrSetSwitch ss:
-            {
-                // Call SwitchRuntime.SetSwitchState(implementorName, isOn)
-                il.Append(il.Create(OpCodes.Ldstr, ss.ImplementorName));
-                il.Append(il.Create(ss.SetToOn ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-                var setSwitchMethod = _module.ImportReference(
-                    typeof(CobolSharp.Runtime.SwitchRuntime).GetMethod("SetSwitchState")!);
-                il.Append(il.Create(OpCodes.Call, setSwitchMethod));
-                break;
-            }
-
-            case IrTestSwitch ts:
-            {
-                // Call SwitchRuntime.GetSwitchState(implementorName)
-                il.Append(il.Create(OpCodes.Ldstr, ts.ImplementorName));
-                var getSwitchMethod = _module.ImportReference(
-                    typeof(CobolSharp.Runtime.SwitchRuntime).GetMethod("GetSwitchState")!);
-                il.Append(il.Create(OpCodes.Call, getSwitchMethod));
-                // If testing OFF state, negate the result
-                if (!ts.TestOnState)
-                {
-                    il.Append(il.Create(OpCodes.Ldc_I4_0));
-                    il.Append(il.Create(OpCodes.Ceq));
-                }
-                if (ts.Result.HasValue)
-                {
-                    var local = getLocal(ts.Result.Value);
-                    il.Append(il.Create(OpCodes.Stloc, local));
-                }
+                    il.Append(il.Create(OpCodes.Stloc, getLocal(sb.Result.Value)));
                 break;
             }
 
@@ -804,396 +952,12 @@ public sealed class CilEmitter
                     var rightLocal = getLocal(log.Right);
                     il.Append(il.Create(OpCodes.Ldloc, leftLocal));
                     il.Append(il.Create(OpCodes.Ldloc, rightLocal));
-                    if (log.Op == IrLogicalOp.And)
-                        il.Append(il.Create(OpCodes.And));
-                    else // Or
-                        il.Append(il.Create(OpCodes.Or));
+                    il.Append(il.Create(log.Op == IrLogicalOp.And ? OpCodes.And : OpCodes.Or));
                 }
                 if (log.Result.HasValue)
-                {
-                    var local = getLocal(log.Result.Value);
-                    il.Append(il.Create(OpCodes.Stloc, local));
-                }
+                    il.Append(il.Create(OpCodes.Stloc, getLocal(log.Result.Value)));
                 break;
             }
-
-            case IrInitArithmeticStatus:
-            {
-                EmitInitArithmeticStatus(il, _currentMethodDef!);
-                break;
-            }
-
-            case IrLoadSizeError lse:
-            {
-                var statusLocal = EnsureArithmeticStatusLocal(_currentMethodDef!);
-                il.Append(il.Create(OpCodes.Ldloca, statusLocal));
-                var sizeErrorGetter = _module.ImportReference(
-                    typeof(ArithmeticStatus).GetProperty("SizeError")!.GetGetMethod()!);
-                il.Append(il.Create(OpCodes.Call, sizeErrorGetter));
-                if (lse.Result.HasValue)
-                {
-                    var local = getLocal(lse.Result.Value);
-                    il.Append(il.Create(OpCodes.Stloc, local));
-                }
-                break;
-            }
-
-            case IrReturnConst rc:
-                il.Append(il.Create(OpCodes.Ldc_I4, rc.Value));
-                il.Append(il.Create(OpCodes.Ret));
-                break;
-
-            case IrReturnAlterable ra:
-                // return _alterTable[slot]
-                il.Append(il.Create(OpCodes.Ldsfld, _alterTableField!));
-                il.Append(il.Create(OpCodes.Ldc_I4, ra.AlterSlot));
-                il.Append(il.Create(OpCodes.Ldelem_I4));
-                il.Append(il.Create(OpCodes.Ret));
-                break;
-
-            case IrAlter alt:
-                // _alterTable[slot] = newTargetIndex
-                il.Append(il.Create(OpCodes.Ldsfld, _alterTableField!));
-                il.Append(il.Create(OpCodes.Ldc_I4, alt.AlterSlot));
-                il.Append(il.Create(OpCodes.Ldc_I4, alt.NewTargetIndex));
-                il.Append(il.Create(OpCodes.Stelem_I4));
-                break;
-
-            case IrGoToDepending gtd:
-                EmitGoToDepending(il, gtd, getLocal);
-                break;
-
-            case IrStopRun:
-                // STOP RUN: exit the paragraph dispatch loop by returning -1.
-                // In a called program, this exits the Entry method.
-                // TODO: When nested CALL is exercised, upgrade to throw StopRunException
-                // to unwind across call boundaries.
-                il.Append(il.Create(OpCodes.Ldc_I4_M1));
-                il.Append(il.Create(OpCodes.Ret));
-                break;
-
-            case IrExitProgram:
-                // EXIT PROGRAM: return -1 from paragraph method (exit dispatch loop)
-                // In Phase 3 full implementation, this returns from the Entry method.
-                // For now, same as IrReturnConst(-1) to exit the paragraph dispatch.
-                il.Append(il.Create(OpCodes.Ldc_I4_M1));
-                il.Append(il.Create(OpCodes.Ret));
-                break;
-
-            case IrGoBack:
-                // GOBACK: same as EXIT PROGRAM (return from dispatch loop)
-                // In a main program, STOP RUN semantics apply, but since we don't
-                // yet distinguish main vs called at emit time, exit the dispatch loop.
-                il.Append(il.Create(OpCodes.Ldc_I4_M1));
-                il.Append(il.Create(OpCodes.Ret));
-                break;
-
-            case IrCallProgram callProg:
-                EmitCallProgram(il, callProg, _currentMethodDef!);
-                break;
-
-            case IrCancelProgram cancelProg:
-                il.Append(il.Create(OpCodes.Ldstr, cancelProg.ProgramName));
-                il.Append(il.Create(OpCodes.Call,
-                    _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Cancel",
-                        new[] { typeof(string) })!)));
-                break;
-
-            case IrCheckCallException checkExc:
-                EmitCheckCallException(il, checkExc, getLocal);
-                break;
-
-            case IrReturn ret:
-                EmitReturn(il, ret, getLocal);
-                break;
-
-            case IrParagraphDispatch dispatch:
-                EmitParagraphDispatch(il, dispatch, _currentMethodDef!);
-                break;
-
-            case IrCall call:
-                EmitCall(il, call, getLocal);
-                break;
-
-            case IrPerform perf:
-                EmitPerform(il, perf);
-                break;
-
-            case IrPerformTimes perfTimes:
-                EmitPerformTimes(il, perfTimes, _currentMethodDef!);
-                break;
-
-            case IrPerformInlineTimes perfInlineTimes:
-                EmitPerformInlineTimes(il, perfInlineTimes, _currentMethodDef!, getLocal, blockLabels);
-                break;
-
-            case IrPerformThru thru:
-                EmitPerformThru(il, thru, _currentMethodDef!);
-                break;
-
-            case IrMoveStringToField ms:
-                EmitMoveStringToField(il, ms, getLocal);
-                break;
-
-            case IrMoveFigurative mf:
-                EmitMoveFigurative(il, mf);
-                break;
-
-            case IrMoveAllLiteral mal:
-                EmitMoveAllLiteral(il, mal);
-                break;
-
-            case IrWriteRecordFromStorage wr:
-                EmitWriteRecordFromStorage(il, wr);
-                break;
-
-            case IrRewriteRecordFromStorage rw:
-                EmitRewriteRecordFromStorage(il, rw);
-                break;
-
-            case IrWriteAdvancing waa:
-                EmitWriteAdvancing(il, waa);
-                break;
-
-            case IrReadRecordToStorage rd:
-                EmitReadRecordToStorage(il, rd);
-                break;
-
-            case IrReadPreviousToStorage rdp:
-                EmitReadPreviousToStorage(il, rdp);
-                break;
-
-            case IrReadByKey rbk:
-                EmitReadByKey(il, rbk);
-                break;
-
-            case IrCheckFileAtEnd chk:
-                EmitCheckFileAtEnd(il, chk, getLocal);
-                break;
-
-            case IrStoreFileStatus sfs:
-                EmitStoreFileStatus(il, sfs);
-                break;
-
-            case IrAccept acc:
-                EmitAccept(il, acc);
-                break;
-
-            case IrInspectTally it:
-                EmitInspectTally(il, it);
-                break;
-
-            case IrInspectReplace ir:
-                EmitInspectReplace(il, ir);
-                break;
-
-            case IrInspectConvert ic:
-                EmitInspectConvert(il, ic);
-                break;
-
-            case IrDeleteRecord del:
-                EmitDeleteRecord(il, del);
-                break;
-
-            case IrStartFile sf:
-                EmitStartFile(il, sf);
-                break;
-
-            case IrCheckFileInvalidKey cik:
-                EmitCheckFileInvalidKey(il, cik, getLocal);
-                break;
-
-            case IrMoveFieldToField mf:
-                EmitMoveFieldToField(il, mf);
-                break;
-
-            case IrPicMultiply mul:
-                EmitPicMultiply(il, mul);
-                break;
-
-            case IrPicMultiplyLiteral mulLit:
-                EmitPicMultiplyLiteral(il, mulLit);
-                break;
-
-            case IrPicAdd addInst:
-                EmitPicAdd(il, addInst);
-                break;
-
-            case IrPicAddLiteral addLit:
-                EmitPicAddLiteral(il, addLit);
-                break;
-
-            case IrPicSubtract subInst:
-                EmitPicSubtract(il, subInst);
-                break;
-
-            case IrPicSubtractLiteral subLit:
-                EmitPicSubtractLiteral(il, subLit);
-                break;
-
-            case IrInitAccumulator initAcc:
-            {
-                var local = getLocal(initAcc.Result!.Value);
-                EmitLoadDecimal(il, 0m);
-                il.Append(il.Create(OpCodes.Stloc, local));
-                break;
-            }
-
-            case IrAccumulateField accField:
-            {
-                var accLocal = getLocal(accField.Accumulator);
-                il.Append(il.Create(OpCodes.Ldloc, accLocal));
-                // DecodeNumeric(area, offset, length, pic) → decimal
-                EmitLocationArgsWithPic(il, accField.Source);
-                var decode = _module.ImportReference(
-                    typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
-                                typeof(Runtime.PicDescriptor) })!);
-                il.Append(il.Create(OpCodes.Call, decode));
-                // accumulator += decoded
-                il.Append(il.Create(OpCodes.Call,
-                    _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
-                        new[] { typeof(decimal), typeof(decimal) })!)));
-                il.Append(il.Create(OpCodes.Stloc, accLocal));
-                break;
-            }
-
-            case IrAccumulateLiteral accLit:
-            {
-                var accLocal = getLocal(accLit.Accumulator);
-                il.Append(il.Create(OpCodes.Ldloc, accLocal));
-                EmitLoadDecimal(il, accLit.Value);
-                il.Append(il.Create(OpCodes.Call,
-                    _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
-                        new[] { typeof(decimal), typeof(decimal) })!)));
-                il.Append(il.Create(OpCodes.Stloc, accLocal));
-                break;
-            }
-
-            case IrAddAccumulatedToTarget addAcc:
-                EmitAddAccumulatedToTarget(il, addAcc, getLocal);
-                break;
-
-            case IrMoveAccumulatedToTarget moveAcc:
-                EmitMoveAccumulatedToTarget(il, moveAcc, getLocal);
-                break;
-
-            case IrSubtractAccumulatedFromTarget subAcc:
-                EmitSubtractAccumulatedFromTarget(il, subAcc, getLocal);
-                break;
-
-            case IrComputeStore compStore:
-                EmitComputeStore(il, compStore);
-                break;
-
-            case IrCobolRemainder rem:
-                EmitCobolRemainder(il, rem, getLocal);
-                break;
-
-            case IrComputeIntoAccumulator compAccum:
-                EmitIrExpression(il, compAccum.Expression);
-                il.Append(il.Create(OpCodes.Stloc, getLocal(compAccum.Accumulator)));
-                break;
-
-            case IrPicDivide divInst:
-                EmitPicDivide(il, divInst);
-                break;
-
-            case IrPicDivideLiteral divLit:
-                EmitPicDivideLiteral(il, divLit);
-                break;
-
-            case IrClassCondition classInst:
-                EmitClassCondition(il, classInst, getLocal);
-                break;
-
-            case IrUserClassCondition userClassInst:
-                EmitUserClassCondition(il, userClassInst, getLocal);
-                break;
-
-            case IrPicCompare cmp:
-                EmitPicCompare(il, cmp, getLocal);
-                break;
-
-            case IrPicCompareLiteral cmpLit:
-                EmitPicCompareLiteral(il, cmpLit, getLocal);
-                break;
-
-            case IrPicCompareAccumulator cmpAccum:
-                EmitPicCompareAccumulator(il, cmpAccum, getLocal);
-                break;
-
-            case IrDecimalCompare decCmp:
-                EmitDecimalCompare(il, decCmp, getLocal);
-                break;
-
-            case IrDecimalCompareLiteral decLitCmp:
-                EmitDecimalCompareLiteral(il, decLitCmp, getLocal);
-                break;
-
-            case IrStringCompareLiteral strCmp:
-                EmitStringCompareLiteral(il, strCmp, getLocal);
-                break;
-
-            case IrStringCompare strFldCmp:
-                EmitStringCompare(il, strFldCmp, getLocal);
-                break;
-
-            case IrStringCompareWithSequence seqCmp:
-                EmitStringCompareWithSequence(il, seqCmp, getLocal);
-                break;
-
-            case IrStringCompareLiteralWithSequence seqLitCmp:
-                EmitStringCompareLiteralWithSequence(il, seqLitCmp, getLocal);
-                break;
-
-            case IrPicMoveLiteralNumeric movLit:
-                EmitPicMoveLiteralNumeric(il, movLit);
-                break;
-
-            case IrFunctionCall funcCall:
-                EmitFunctionCall(il, funcCall);
-                break;
-
-            case IrRuntimeCall rtc:
-                EmitRuntimeCall(il, rtc, getLocal);
-                break;
-
-            case IrPicDisplay disp:
-                EmitPicDisplay(il, disp);
-                break;
-
-            case IrStringStatement strStmt:
-                EmitStringStatement(il, strStmt, getLocal);
-                break;
-
-            case IrUnstringStatement unstrStmt:
-                EmitUnstringStatement(il, unstrStmt, getLocal);
-                break;
-
-            case IrSortInit sortInit:
-                EmitSortInit(il, sortInit);
-                break;
-
-            case IrSortRelease sortRel:
-                EmitSortRelease(il, sortRel);
-                break;
-
-            case IrSortSort sortSort:
-                EmitSortSort(il, sortSort);
-                break;
-
-            case IrSortReturn sortRet:
-                EmitSortReturn(il, sortRet, getLocal);
-                break;
-
-            case IrSortClose sortClose:
-                EmitSortClose(il, sortClose);
-                break;
-
-            case IrSortMerge sortMerge:
-                EmitSortMerge(il, sortMerge);
-                break;
 
             default:
                 throw new NotSupportedException(
@@ -1201,129 +965,6 @@ public sealed class CilEmitter
         }
     }
 
-    private void EmitLoadConst(ILProcessor il, IrLoadConst lc,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Push constant onto stack — no stloc.
-        // Consumer (next instruction) reads from stack directly.
-        switch (lc.Value)
-        {
-            case int i:
-                il.Append(il.Create(OpCodes.Ldc_I4, i));
-                break;
-            case long l:
-                il.Append(il.Create(OpCodes.Ldc_I8, l));
-                break;
-            case string s:
-                il.Append(il.Create(OpCodes.Ldstr, s));
-                break;
-            case bool b:
-                il.Append(il.Create(b ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-                break;
-            default:
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                break;
-        }
-        // No stloc — value stays on stack for the next instruction to consume
-    }
-
-    private void EmitLoadField(ILProcessor il, IrLoadField lf,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var fieldRef = _fieldMap[lf.Field];
-        il.Append(il.Create(OpCodes.Ldsfld, fieldRef));
-
-        if (lf.Result is { } res)
-        {
-            var local = getLocal(res);
-            il.Append(il.Create(OpCodes.Stloc, local));
-        }
-    }
-
-    private void EmitStoreField(ILProcessor il, IrStoreField sf,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var fieldRef = _fieldMap[sf.Field];
-        var valueLocal = getLocal(sf.Value);
-
-        il.Append(il.Create(OpCodes.Ldloc, valueLocal));
-        il.Append(il.Create(OpCodes.Stsfld, fieldRef));
-    }
-
-    private void EmitMove(ILProcessor il, IrMove mv,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var srcLocal = getLocal(mv.Source);
-        var dstLocal = getLocal(mv.Target);
-
-        il.Append(il.Create(OpCodes.Ldloc, srcLocal));
-        il.Append(il.Create(OpCodes.Stloc, dstLocal));
-    }
-
-    private void EmitBinary(ILProcessor il, IrBinary bin,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var leftLocal = getLocal(bin.Left);
-        var rightLocal = getLocal(bin.Right);
-
-        il.Append(il.Create(OpCodes.Ldloc, leftLocal));
-        il.Append(il.Create(OpCodes.Ldloc, rightLocal));
-
-        bool needsNegate = bin.Op is IrBinaryOp.Ne or IrBinaryOp.Le or IrBinaryOp.Ge;
-
-        var op = bin.Op switch
-        {
-            IrBinaryOp.Add => OpCodes.Add,
-            IrBinaryOp.Sub => OpCodes.Sub,
-            IrBinaryOp.Mul => OpCodes.Mul,
-            IrBinaryOp.Div => OpCodes.Div,
-            IrBinaryOp.Eq => OpCodes.Ceq,
-            IrBinaryOp.Ne => OpCodes.Ceq,   // negate after
-            IrBinaryOp.Lt => OpCodes.Clt,
-            IrBinaryOp.Le => OpCodes.Cgt,   // negate after
-            IrBinaryOp.Gt => OpCodes.Cgt,
-            IrBinaryOp.Ge => OpCodes.Clt,   // negate after
-            IrBinaryOp.And => OpCodes.And,
-            IrBinaryOp.Or => OpCodes.Or,
-            _ => throw new NotSupportedException($"Binary op {bin.Op}")
-        };
-
-        il.Append(il.Create(op));
-
-        if (needsNegate)
-        {
-            // Logical negate: push 0, ceq (turns 1->0 and 0->1)
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ceq));
-        }
-
-        if (bin.Result is { } res)
-        {
-            var local = getLocal(res);
-            il.Append(il.Create(OpCodes.Stloc, local));
-        }
-    }
-
-    private void EmitBranch(ILProcessor il, IrBranch br,
-        Func<IrValue, VariableDefinition> getLocal,
-        Dictionary<IrBasicBlock, Instruction> blockLabels)
-    {
-        var condLocal = getLocal(br.Condition);
-        il.Append(il.Create(OpCodes.Ldloc, condLocal));
-        il.Append(il.Create(OpCodes.Brtrue, blockLabels[br.TrueTarget]));
-        il.Append(il.Create(OpCodes.Br, blockLabels[br.FalseTarget]));
-    }
-
-    private void EmitReturn(ILProcessor il, IrReturn ret,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        if (ret.Value is { } val)
-        {
-            var local = getLocal(val);
-            il.Append(il.Create(OpCodes.Ldloc, local));
-        }
-        il.Append(il.Create(OpCodes.Ret));
-    }
 
     private void EmitCall(ILProcessor il, IrCall call,
         Func<IrValue, VariableDefinition> getLocal)
@@ -1368,7 +1009,7 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ldc_I4, i)); // index
 
             // Push (area, offset, length) for the source location
-            EmitLocationArgs(il, arg.Source);
+            _ctx.Location.EmitLocationArgs(il, arg.Source);
 
             if (arg.Mode == 1 || arg.Mode == 2) // BY CONTENT or BY VALUE — copy
             {
@@ -1395,7 +1036,7 @@ public sealed class CilEmitter
         {
             il.Append(il.Create(OpCodes.Dup)); // array ref
             il.Append(il.Create(OpCodes.Ldc_I4, argCount)); // last index
-            EmitLocationArgs(il, callProg.ReturningTarget!);
+            _ctx.Location.EmitLocationArgs(il, callProg.ReturningTarget!);
             var createByRef = _module.ImportReference(
                 typeof(CobolDataPointer).GetMethod("CreateByReference",
                     new[] { typeof(byte[]), typeof(int), typeof(int) })!);
@@ -1413,7 +1054,7 @@ public sealed class CilEmitter
         {
             // Dynamic CALL: read program name from storage at runtime
             // GetDisplayString returns the trimmed string value of the data item
-            EmitLocationArgsWithPic(il, callProg.TargetLocation);
+            _ctx.Location.EmitLocationArgsWithPic(il, callProg.TargetLocation);
             var getDisplay = _module.ImportReference(
                 typeof(PicRuntime).GetMethod("GetDisplayString",
                     new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
@@ -1481,1958 +1122,9 @@ public sealed class CilEmitter
         }
     }
 
-    private void EmitLocationLength(ILProcessor il, IrLocation loc)
-    {
-        if (loc is IrStaticLocation sl)
-            il.Append(il.Create(OpCodes.Ldc_I4, sl.Location.Length));
-        else
-            il.Append(il.Create(OpCodes.Ldc_I4_0)); // fallback
-    }
-
-    private void EmitDefaultPicDescriptor(ILProcessor il)
-    {
-        // Push a default PicDescriptor (alphanumeric, for parameter passing)
-        // This is a simplified version — the actual PicDescriptor comes from
-        // the caller's StorageLocation.Pic in a full implementation
-        var defaultPicCtor = _module.ImportReference(
-            typeof(PicDescriptor).GetConstructors()
-                .First(c => c.GetParameters().Length > 10));
-        // Push all constructor args for a basic alphanumeric descriptor
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // totalDigits
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // fractionDigits
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isSigned
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isNumeric
-        il.Append(il.Create(OpCodes.Ldc_I4_1)); // isAlphanumeric
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // hasEditing
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // storageLength (will be set from Length)
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // usage = Display
-        il.Append(il.Create(OpCodes.Ldc_I4_1)); // category = Alphanumeric
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // signStorage
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // editing
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // blankWhenZero
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // leadingScaleDigits
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // trailingScaleDigits
-        il.Append(il.Create(OpCodes.Ldnull));    // editPattern
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // isGroup
-        il.Append(il.Create(OpCodes.Ldc_I4, 36)); // currencySign '$'
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // decimalPointIsComma
-        var picEnvCtor = _module.ImportReference(
-            typeof(PicEnvironment).GetConstructor(new[] { typeof(char), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Newobj, picEnvCtor));
-        il.Append(il.Create(OpCodes.Newobj, defaultPicCtor));
-    }
-
-    private MethodReference? _cobolDataPointerCtor;
-    private MethodReference GetCobolDataPointerCtor()
-    {
-        _cobolDataPointerCtor ??= _module.ImportReference(
-            typeof(CobolDataPointer).GetConstructor(
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
-        return _cobolDataPointerCtor;
-    }
-
-    private void EmitPerform(ILProcessor il, IrPerform perf)
-    {
-        var target = _methodMap[perf.Target];
-        il.Append(il.Create(OpCodes.Call, target));
-        // Paragraph methods return int (next PC); discard in PERFORM context
-        if (target.ReturnType != _module.TypeSystem.Void)
-            il.Append(il.Create(OpCodes.Pop));
-    }
-
-    /// <summary>
-    /// PERFORM N TIMES: evaluates count expression into a CIL local int,
-    /// then loops calling the paragraph method(s) that many times.
-    /// </summary>
-    private void EmitPerformTimes(ILProcessor il, IrPerformTimes pt, MethodDefinition md)
-    {
-        // Evaluate count expression → decimal → int → store in local
-        var counterLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        md.Body.Variables.Add(counterLocal);
-
-        EmitIrExpression(il, pt.CountExpression);
-        var toInt32 = _module.ImportReference(
-            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, toInt32));
-        il.Append(il.Create(OpCodes.Stloc, counterLocal));
-
-        // Loop: while counter > 0
-        var loopStart = il.Create(OpCodes.Nop);
-        var loopEnd = il.Create(OpCodes.Nop);
-
-        il.Append(loopStart);
-
-        // Check: counter > 0
-        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ble, loopEnd));
-
-        // Body: call paragraph(s)
-        if (pt.StartIdx == pt.EndIdx)
-        {
-            var target = _methodMap[pt.Target];
-            il.Append(il.Create(OpCodes.Call, target));
-            if (target.ReturnType != _module.TypeSystem.Void)
-                il.Append(il.Create(OpCodes.Pop));
-        }
-        else
-        {
-            // THRU: reuse EmitPerformThru with a synthetic IrPerformThru
-            var syntheticThru = new IrPerformThru(pt.StartIdx, pt.EndIdx, pt.ThruMethods);
-            EmitPerformThru(il, syntheticThru, md);
-        }
-
-        // Decrement counter
-        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4_1));
-        il.Append(il.Create(OpCodes.Sub));
-        il.Append(il.Create(OpCodes.Stloc, counterLocal));
-
-        // Loop back
-        il.Append(il.Create(OpCodes.Br, loopStart));
-
-        il.Append(loopEnd);
-    }
-
-    /// <summary>
-    /// Inline PERFORM N TIMES: evaluates count expression into a CIL local int,
-    /// then loops over the body instructions that many times.
-    /// The body instructions are emitted inline (no paragraph call).
-    /// </summary>
-    private void EmitPerformInlineTimes(ILProcessor il, IrPerformInlineTimes pit,
-        MethodDefinition md, Func<IrValue, VariableDefinition> getLocal,
-        Dictionary<IrBasicBlock, Instruction> blockLabels)
-    {
-        // Create counter local
-        var counterLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        md.Body.Variables.Add(counterLocal);
-
-        // Evaluate count expression → decimal → int → store in counter
-        EmitIrExpression(il, pit.CountExpression);
-        var toInt32 = _module.ImportReference(
-            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, toInt32));
-        il.Append(il.Create(OpCodes.Stloc, counterLocal));
-
-        // Loop: while counter > 0
-        var loopStart = il.Create(OpCodes.Nop);
-        var loopEnd = il.Create(OpCodes.Nop);
-
-        il.Append(loopStart);
-
-        // Check: counter > 0
-        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ble, loopEnd));
-
-        // Emit body instructions inline
-        foreach (var bodyInst in pit.BodyInstructions)
-            EmitInstruction(il, bodyInst, getLocal, blockLabels);
-
-        // Decrement counter
-        il.Append(il.Create(OpCodes.Ldloc, counterLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4_1));
-        il.Append(il.Create(OpCodes.Sub));
-        il.Append(il.Create(OpCodes.Stloc, counterLocal));
-
-        // Loop back
-        il.Append(il.Create(OpCodes.Br, loopStart));
-
-        il.Append(loopEnd);
-    }
-
-    /// <summary>
-    /// PERFORM THRU: dynamic dispatch loop respecting GO TO returns.
-    /// Generated IL:
-    ///   int pc = startIndex;
-    ///   LOOP: if (pc &lt; startIndex || pc &gt; endIndex) goto EXIT;
-    ///         switch (pc - startIndex) { case 0: pc = Para_A(); break; case 1: pc = Para_B(); ... }
-    ///         goto LOOP;
-    ///   EXIT:
-    /// </summary>
-    private void EmitPerformThru(ILProcessor il, IrPerformThru thru, MethodDefinition md)
-    {
-        int rangeSize = thru.EndIndex - thru.StartIndex + 1;
-
-        // Local: int pc
-        var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        md.Body.Variables.Add(pcLocal);
-
-        // pc = startIndex
-        il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-        il.Append(il.Create(OpCodes.Stloc, pcLocal));
-
-        // LOOP:
-        var loopLabel = il.Create(OpCodes.Nop);
-        il.Append(loopLabel);
-
-        // EXIT label (appended later)
-        var exitLabel = il.Create(OpCodes.Nop);
-
-        // if (pc < startIndex) goto EXIT
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-        il.Append(il.Create(OpCodes.Blt, exitLabel));
-
-        // if (pc > endIndex) goto EXIT
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, thru.EndIndex));
-        il.Append(il.Create(OpCodes.Bgt, exitLabel));
-
-        // switch (pc - startIndex)
-        var caseLabels = new Instruction[rangeSize];
-        for (int i = 0; i < rangeSize; i++)
-            caseLabels[i] = il.Create(OpCodes.Nop);
-
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        if (thru.StartIndex != 0)
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-            il.Append(il.Create(OpCodes.Sub));
-        }
-        il.Append(il.Create(OpCodes.Switch, caseLabels));
-
-        // Default: goto EXIT (shouldn't happen but safety)
-        il.Append(il.Create(OpCodes.Br, exitLabel));
-
-        // Case bodies
-        for (int i = 0; i < rangeSize; i++)
-        {
-            il.Append(caseLabels[i]);
-            var para = thru.Paragraphs[i];
-            if (para != null)
-            {
-                var target = _methodMap[para];
-                il.Append(il.Create(OpCodes.Call, target));
-                il.Append(il.Create(OpCodes.Stloc, pcLocal)); // pc = returned value
-            }
-            else
-            {
-                // Unresolved paragraph: advance pc by 1
-                il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-                il.Append(il.Create(OpCodes.Ldc_I4_1));
-                il.Append(il.Create(OpCodes.Add));
-                il.Append(il.Create(OpCodes.Stloc, pcLocal));
-            }
-            il.Append(il.Create(OpCodes.Br, loopLabel));
-        }
-
-        // EXIT:
-        il.Append(exitLabel);
-    }
-
-    /// <summary>
-    /// MOVE "literal" TO field:
-    /// IL: ldsfld State → ldfld WorkingStorage → ldc.i4 offset → ldc.i4 size → ldstr value → call MoveStringToField
-    /// </summary>
-    private void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var pic = ms.Target.GetPic();
-
-        // Numeric targets: right-justified numeric MOVE (rightmost digits taken)
-        if (pic.Category == Runtime.CobolCategory.Numeric)
-        {
-            EmitLocationArgsWithPic(il, ms.Target);
-            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod(
-                    "MoveStringLiteralToNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(Runtime.PicDescriptor), typeof(string) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-        // Alphanumeric-edited targets: apply edit pattern (B→space, 0→zero, etc.)
-        else if (pic.Category == Runtime.CobolCategory.AlphanumericEdited && pic.EditPattern != null)
-        {
-            EmitLocationArgs(il, ms.Target);
-            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
-            il.Append(il.Create(OpCodes.Ldstr, pic.EditPattern));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.StorageHelpers).GetMethod(
-                    "MoveStringToEditedField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(string), typeof(string) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-        else if (pic.IsJustifiedRight)
-        {
-            // JUSTIFIED RIGHT alphanumeric: right-justified, left-padded/left-truncated
-            EmitLocationArgs(il, ms.Target);
-            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.StorageHelpers).GetMethod(
-                    "MoveStringToJustifiedField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-        else
-        {
-            // Plain alphanumeric: left-justified, space-padded
-            EmitLocationArgs(il, ms.Target);
-            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.StorageHelpers).GetMethod(
-                    "MoveStringToField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-    }
-
-    /// <summary>
-    /// MOVE figurative-constant TO field: calls PicRuntime.MoveFigurativeToField.
-    /// </summary>
-    /// <summary>
-    /// Emit a MOVE call with the standard (src, dst, rounding) signature used by most PicRuntime MOVE methods.
-    /// </summary>
-    private void EmitMoveWithStandardSignature(
-        ILProcessor il, IrLocation source, IrLocation destination, int rounding, string methodName)
-    {
-        EmitLocationArgsWithPic(il, source);
-        EmitLocationArgsWithPic(il, destination);
-
-        il.Append(il.Create(OpCodes.Ldc_I4, rounding));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod(methodName,
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
-    {
-        EmitLocationArgsWithPic(il, mf.Destination);
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)mf.FigurativeKind));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod(
-                "MoveFigurativeToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(Runtime.PicDescriptor), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// MOVE ALL "pattern" TO field: calls PicRuntime.MoveAllLiteralToField.
-    /// </summary>
-    private void EmitMoveAllLiteral(ILProcessor il, IrMoveAllLiteral mal)
-    {
-        EmitLocationArgs(il, mal.Destination);
-
-        // Emit pattern as byte[]: new byte[] { b0, b1, ... }
-        var patternBytes = System.Text.Encoding.ASCII.GetBytes(mal.Pattern);
-        il.Append(il.Create(OpCodes.Ldc_I4, patternBytes.Length));
-        il.Append(il.Create(OpCodes.Newarr, _module.TypeSystem.Byte));
-        for (int i = 0; i < patternBytes.Length; i++)
-        {
-            il.Append(il.Create(OpCodes.Dup));
-            il.Append(il.Create(OpCodes.Ldc_I4, i));
-            il.Append(il.Create(OpCodes.Ldc_I4, (int)patternBytes[i]));
-            il.Append(il.Create(OpCodes.Stelem_I1));
-        }
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod(
-                "MoveAllLiteralToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// WRITE record from ProgramState storage:
-    /// IL: ldstr fileName → ldsfld State → ldfld area → ldc.i4 offset → ldc.i4 size → call WriteRecordToFile
-    /// </summary>
-    private void EmitWriteRecordFromStorage(ILProcessor il, IrWriteRecordFromStorage wr)
-    {
-        // fileName
-        il.Append(il.Create(OpCodes.Ldstr, wr.FileName));
-
-        // Load area, offset, size
-        EmitLocationArgs(il, wr.Record);
-
-        // Call ProgramState.WriteRecordToFile(string, byte[], int, int)
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "WriteRecordToFile",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// WRITE AFTER ADVANCING: calls FileRuntime.WriteAfterAdvancing(string, byte[], int, int, int).
-    /// </summary>
-    /// <summary>
-    /// REWRITE record: calls FileRuntime.Rewrite(string, byte[], int, int).
-    /// </summary>
-    private void EmitRewriteRecordFromStorage(ILProcessor il, IrRewriteRecordFromStorage rw)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, rw.FileName));
-        EmitLocationArgs(il, rw.Record);
-
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "Rewrite",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitWriteAdvancing(ILProcessor il, IrWriteAdvancing waa)
-    {
-        // fileName
-        il.Append(il.Create(OpCodes.Ldstr, waa.FileName));
-        // Load area, offset, size
-        EmitLocationArgs(il, waa.Record);
-        // advanceLines: from data field or compile-time constant
-        if (waa.AdvancingLocation != null)
-        {
-            // Read advancing count from data field at runtime
-            EmitLocationArgs(il, waa.AdvancingLocation);
-            var readInt = _module.ImportReference(
-                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsInt",
-                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, readInt));
-        }
-        else
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4, waa.AdvanceLines));
-        }
-        // isBefore
-        il.Append(il.Create(waa.IsBefore ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "WriteAdvancing",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitReadRecordToStorage(ILProcessor il, IrReadRecordToStorage rd)
-    {
-        // StorageHelpers.ReadRecordFromFile(string fileName, byte[] area, int offset, int size)
-        il.Append(il.Create(OpCodes.Ldstr, rd.FileName));
-        EmitLocationArgs(il, rd.Record);
-
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "ReadRecordFromFile",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-        il.Append(il.Create(OpCodes.Pop)); // Discard bool return (AT END checked separately)
-    }
-
-    private void EmitReadPreviousToStorage(ILProcessor il, IrReadPreviousToStorage rdp)
-    {
-        // StorageHelpers.ReadPreviousRecordFromFile(string fileName, byte[] area, int offset, int size)
-        il.Append(il.Create(OpCodes.Ldstr, rdp.FileName));
-        EmitLocationArgs(il, rdp.Record);
-
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "ReadPreviousRecordFromFile",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-        il.Append(il.Create(OpCodes.Pop)); // Discard bool return (AT END checked separately)
-    }
-
-    private void EmitReadByKey(ILProcessor il, IrReadByKey rbk)
-    {
-        // FileRuntime.ReadByKey(string fileName, byte[] recArea, int recOff, int recSize,
-        //                       byte[] keyArea, int keyOff, int keySize)
-        il.Append(il.Create(OpCodes.Ldstr, rbk.FileName));
-        EmitLocationArgs(il, rbk.Record);
-        EmitLocationArgs(il, rbk.Key);
-
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "ReadByKey",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// Store FILE STATUS: call FileRuntime.GetLastStatus(cobolName) → MoveStringToField.
-    /// </summary>
-    private void EmitStoreFileStatus(ILProcessor il, IrStoreFileStatus sfs)
-    {
-        // Push args for MoveStringToField(byte[] area, int offset, int length, string value)
-        EmitLocationArgs(il, sfs.StatusVariable);
-
-        // Call FileRuntime.GetLastStatus(cobolName) to get the status string
-        il.Append(il.Create(OpCodes.Ldstr, sfs.CobolFileName));
-        var getStatus = _module.ImportReference(
-            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "GetLastStatus", new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, getStatus));
-
-        // Call StorageHelpers.MoveStringToField(area, offset, length, value)
-        var moveString = _module.ImportReference(
-            typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                "MoveStringToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, moveString));
-    }
-
-    private void EmitCheckFileAtEnd(
-        ILProcessor il,
-        IrCheckFileAtEnd chk,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // FileRuntime.IsAtEnd(string fileName)
-        il.Append(il.Create(OpCodes.Ldstr, chk.FileName));
-        var method = _module.ImportReference(
-            typeof(CobolSharp.Runtime.FileRuntime).GetMethod(
-                "IsAtEnd",
-                new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-        if (chk.Result.HasValue)
-            il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result.Value)));
-        else
-            il.Append(il.Create(OpCodes.Pop));
-    }
-
-    // ── DELETE / START / INVALID KEY ──
-
-    private void EmitDeleteRecord(ILProcessor il, IrDeleteRecord del)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, del.FileName));
-        var method = _module.ImportReference(
-            typeof(Runtime.FileRuntime).GetMethod("DeleteRecord",
-                new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitStartFile(ILProcessor il, IrStartFile sf)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, sf.FileName));
-        EmitLocationArgs(il, sf.KeyLocation);
-        il.Append(il.Create(OpCodes.Ldc_I4, sf.Condition));
-        var method = _module.ImportReference(
-            typeof(Runtime.FileRuntime).GetMethod("StartFile",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitCheckFileInvalidKey(ILProcessor il, IrCheckFileInvalidKey cik,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, cik.FileName));
-        var method = _module.ImportReference(
-            typeof(Runtime.FileRuntime).GetMethod("IsInvalidKey",
-                new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-        if (cik.Result.HasValue)
-            il.Append(il.Create(OpCodes.Stloc, getLocal(cik.Result.Value)));
-    }
-
-    // ── GO TO DEPENDING ──
-
-    private void EmitGoToDepending(ILProcessor il, IrGoToDepending gtd,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Decode selector to int: PicRuntime.DecodeNumeric(area, offset, length, pic) → decimal
-        EmitLocationArgsWithPic(il, gtd.Selector);
-
-        var decodeMethod = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!);
-        il.Append(il.Create(OpCodes.Call, decodeMethod));
-
-        // Convert decimal → int32
-        var toInt = _module.ImportReference(
-            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, toInt));
-
-        // Store in a local
-        var selectorLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef!.Body.Variables.Add(selectorLocal);
-        il.Append(il.Create(OpCodes.Stloc, selectorLocal));
-
-        // Emit cascaded: if (selector == 1) return target[0]; if (selector == 2) return target[1]; ...
-        for (int i = 0; i < gtd.TargetParagraphIndices.Count; i++)
-        {
-            int value = i + 1; // 1-based
-            int targetPc = gtd.TargetParagraphIndices[i];
-
-            var nextCheck = il.Create(OpCodes.Nop);
-
-            il.Append(il.Create(OpCodes.Ldloc, selectorLocal));
-            il.Append(il.Create(OpCodes.Ldc_I4, value));
-            il.Append(il.Create(OpCodes.Bne_Un, nextCheck));
-
-            // Match: return the target PC
-            il.Append(il.Create(OpCodes.Ldc_I4, targetPc));
-            il.Append(il.Create(OpCodes.Ret));
-
-            il.Append(nextCheck);
-        }
-
-        // No match: fall through (don't return, let execution continue)
-    }
 
     // ── ACCEPT ──
 
-    private void EmitAccept(ILProcessor il, IrAccept acc)
-    {
-        EmitLocationArgs(il, acc.Target);
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)acc.Source));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.AcceptRuntime).GetMethod("Accept",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.AcceptSourceKind) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    // ── INSPECT emit helpers ──
-
-    /// <summary>
-    /// Emit an IrInspectPatternValue onto the CIL stack as a string.
-    /// Literals: Ldstr. Locations: ReadFieldAsRawString(area, offset, length).
-    /// </summary>
-    private void EmitIrInspectPatternValue(ILProcessor il, IR.IrInspectPatternValue? pv)
-    {
-        if (pv == null || pv.IsLiteral)
-        {
-            il.Append(il.Create(OpCodes.Ldstr, pv?.Literal ?? ""));
-        }
-        else if (pv.IsLocation)
-        {
-            EmitLocationArgs(il, pv.Location!);
-            var readMethod = _module.ImportReference(
-                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
-                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, readMethod));
-        }
-    }
-
-    /// <summary>
-    /// Emit an InspectPatternValue as a nullable string for BEFORE/AFTER/CONVERTING args.
-    /// Literals use Ldstr (compile-time). Data refs use ReadFieldAsRawString (runtime).
-    /// Null patterns emit Ldnull.
-    /// </summary>
-    private void EmitIrInspectPatternValueAsOptionalString(ILProcessor il,
-        IR.IrInspectPatternValue? pv)
-    {
-        if (pv == null)
-            il.Append(il.Create(OpCodes.Ldnull));
-        else
-            EmitIrInspectPatternValue(il, pv);
-    }
-
-    private void EmitInspectTally(ILProcessor il, IrInspectTally it)
-    {
-        // Target area/offset/length
-        EmitLocationArgs(il, it.Target);
-
-        string methodName;
-
-        if (it.Kind == IR.InspectTallyKind.Characters)
-        {
-            methodName = "TallyCharactersAndStore";
-        }
-        else
-        {
-            methodName = it.Kind == IR.InspectTallyKind.Leading
-                ? "TallyLeadingAndStore" : "TallyAllAndStore";
-            EmitIrInspectPatternValue(il, it.Pattern);
-        }
-
-        // Counter area/offset/length/pic
-        EmitLocationArgsWithPic(il, it.Counter);
-
-        // Region args
-        EmitIrInspectPatternValueAsOptionalString(il, it.BeforePattern);
-        il.Append(il.Create(it.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitIrInspectPatternValueAsOptionalString(il, it.AfterPattern);
-        il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-        System.Type[] paramTypes;
-        if (it.Kind == IR.InspectTallyKind.Characters)
-        {
-            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int),
-                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                typeof(string), typeof(bool), typeof(string), typeof(bool) };
-        }
-        else
-        {
-            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
-                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                typeof(string), typeof(bool), typeof(string), typeof(bool) };
-        }
-
-        var method = _module.ImportReference(
-            typeof(Runtime.InspectRuntime).GetMethod(methodName, paramTypes)!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitInspectReplace(ILProcessor il, IrInspectReplace ir)
-    {
-        EmitLocationArgs(il, ir.Target);
-
-        if (ir.Kind == IR.InspectReplaceKind.Characters)
-        {
-            // REPLACING CHARACTERS BY x — no pattern, just replacement
-            EmitIrInspectPatternValue(il, ir.Replacement);
-            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
-            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
-            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            var charsMethod = _module.ImportReference(
-                typeof(Runtime.InspectRuntime).GetMethod("ReplaceCharacters",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(string),
-                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, charsMethod));
-        }
-        else
-        {
-            string methodName = ir.Kind switch
-            {
-                IR.InspectReplaceKind.First => "ReplaceFirst",
-                IR.InspectReplaceKind.Leading => "ReplaceLeading",
-                _ => "ReplaceAll"
-            };
-
-            EmitIrInspectPatternValue(il, ir.Pattern);
-            EmitIrInspectPatternValue(il, ir.Replacement);
-            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
-            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
-            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            var method = _module.ImportReference(
-                typeof(Runtime.InspectRuntime).GetMethod(methodName,
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(string), typeof(string),
-                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-    }
-
-    private void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)
-    {
-        EmitLocationArgs(il, ic.Target);
-        EmitIrInspectPatternValue(il, ic.FromSet);
-        EmitIrInspectPatternValue(il, ic.ToSet);
-        EmitIrInspectPatternValueAsOptionalString(il, ic.BeforePattern);
-        il.Append(il.Create(ic.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitIrInspectPatternValueAsOptionalString(il, ic.AfterPattern);
-        il.Append(il.Create(ic.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.InspectRuntime).GetMethod("Convert",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                    typeof(string), typeof(string),
-                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitOptionalString(ILProcessor il, string? value)
-    {
-        if (value != null)
-            il.Append(il.Create(OpCodes.Ldstr, value));
-        else
-            il.Append(il.Create(OpCodes.Ldnull));
-    }
-
-    /// <summary>
-    /// MOVE field TO field: routes numeric→numeric through PicRuntime.MoveNumeric,
-    /// alpha→alpha through StorageHelpers.MoveFieldToField.
-    /// </summary>
-    private void EmitMoveFieldToField(ILProcessor il, IrMoveFieldToField mf)
-    {
-        var srcPic = mf.SourcePic;
-        var dstPic = mf.DestinationPic;
-        var srcCat = srcPic.Category;
-        var dstCat = dstPic.Category;
-        int rounding = mf.IsRounded ? 1 : 0;
-
-        // Group items are always alphanumeric for MOVE: raw byte copy, no formatting/editing.
-        if (srcPic.IsGroup || dstPic.IsGroup)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
-            return;
-        }
-
-        // Destination AlphanumericEdited: must be checked before generic IsNumericLike() rules.
-        if (dstCat == CobolCategory.AlphanumericEdited)
-        {
-            if (srcCat == CobolCategory.Numeric)
-                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumericEdited");
-            else
-                EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumericEdited");
-            return;
-        }
-        // NumericEdited source: specific handling before generic IsNumericLike() rules.
-        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.NumericEdited)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericEditedToNumericEdited");
-        }
-        else if (srcCat == CobolCategory.NumericEdited && dstCat == CobolCategory.Numeric)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericEditedToNumeric");
-        }
-        else if (srcCat == CobolCategory.NumericEdited && dstCat.IsAlphanumericLike())
-        {
-            // NumericEdited → Alphanumeric: COBOL treats source as alphanumeric (raw byte copy)
-            EmitLocationArgs(il, mf.Destination);
-            EmitLocationArgs(il, mf.Source);
-            var method = _module.ImportReference(
-                typeof(CobolSharp.Runtime.StorageHelpers).GetMethod(
-                    "MoveFieldToField",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(byte[]), typeof(int), typeof(int) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-            return;
-        }
-        // Generic numeric source rules.
-        else if (srcCat.IsNumericLike() && dstCat == CobolCategory.NumericEdited)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumericEdited");
-        }
-        else if (srcCat.IsNumericLike() && dstCat.IsNumericLike())
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToNumeric");
-        }
-        else if (srcCat.IsNumericLike() && dstCat.IsAlphanumericLike())
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveNumericToAlphanumeric");
-        }
-        // Alphanumeric source rules.
-        else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.Numeric)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumeric");
-        }
-        else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumericEdited");
-        }
-        else
-        {
-            // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT)
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
-        }
-    }
-
-    private void EmitPicMultiply(ILProcessor il, IrPicMultiply mul)
-    {
-        EmitLocationArgsWithPic(il, mul.Destination);
-        EmitLocationArgsWithPic(il, mul.Left);
-        EmitLocationArgsWithPic(il, mul.Right);
-
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MultiplyNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitClassCondition(ILProcessor il, IrClassCondition inst,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        var kind = (IR.ClassConditionKind)inst.ClassKind;
-        string methodName = kind switch
-        {
-            IR.ClassConditionKind.Numeric => "IsNumericClass",
-            IR.ClassConditionKind.Alphabetic => "IsAlphabeticClass",
-            IR.ClassConditionKind.AlphabeticLower => "IsAlphabeticLowerClass",
-            IR.ClassConditionKind.AlphabeticUpper => "IsAlphabeticUpperClass",
-            _ => throw new InvalidOperationException($"Unknown class condition: {kind}")
-        };
-
-        // IsNumericClass takes PicDescriptor; others don't
-        System.Reflection.MethodInfo method;
-        if (kind == IR.ClassConditionKind.Numeric)
-        {
-            EmitLocationArgsWithPic(il, inst.Subject);
-            method = typeof(Runtime.PicRuntime).GetMethod(methodName,
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!;
-        }
-        else
-        {
-            EmitLocationArgs(il, inst.Subject);
-            method = typeof(Runtime.PicRuntime).GetMethod(methodName,
-                new[] { typeof(byte[]), typeof(int), typeof(int) })!;
-        }
-
-        il.Append(il.Create(OpCodes.Call, _module.ImportReference(method)));
-
-        if (inst.Result.HasValue)
-        {
-            var resLocal = getLocal(inst.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitUserClassCondition(ILProcessor il, IrUserClassCondition inst,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgs(il, inst.Subject);
-
-        // Emit the valid bytes array as a static field or inline byte array
-        EmitByteArrayLiteral(il, inst.ValidBytes);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("IsInUserClass",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        if (inst.Result.HasValue)
-        {
-            var resLocal = getLocal(inst.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    /// <summary>
-    /// Emit a byte[] literal onto the CIL stack. Creates a new array and fills it.
-    /// </summary>
-    private void EmitByteArrayLiteral(ILProcessor il, byte[] data)
-    {
-        il.Append(il.Create(OpCodes.Ldc_I4, data.Length));
-        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(byte))));
-        for (int i = 0; i < data.Length; i++)
-        {
-            il.Append(il.Create(OpCodes.Dup));
-            il.Append(il.Create(OpCodes.Ldc_I4, i));
-            il.Append(il.Create(OpCodes.Ldc_I4, (int)data[i]));
-            il.Append(il.Create(OpCodes.Stelem_I1));
-        }
-    }
-
-    private void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, cmp.Left);
-        EmitLocationArgsWithPic(il, cmp.Right);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("CompareNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    /// <summary>
-    /// Construct a PicDescriptor on the CIL stack.
-    /// </summary>
-    private void EmitLoadPicDescriptor(ILProcessor il, Runtime.PicDescriptor pic,
-        bool suppressBlankWhenZero = false)
-    {
-        // Must match the CIL-emitted constructor parameter order in PicDescriptor
-        il.Append(il.Create(OpCodes.Ldc_I4, pic.TotalDigits));
-        il.Append(il.Create(OpCodes.Ldc_I4, pic.FractionDigits));
-        il.Append(il.Create(pic.IsSigned ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(pic.IsNumeric ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(pic.IsAlphanumeric ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(pic.HasEditing ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, pic.StorageLength));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Usage));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Category));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.SignStorage));
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)pic.Editing));
-        bool emitBlank = pic.BlankWhenZero && !suppressBlankWhenZero;
-        il.Append(il.Create(emitBlank ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Ldc_I4, pic.LeadingScaleDigits));
-        il.Append(il.Create(OpCodes.Ldc_I4, pic.TrailingScaleDigits));
-
-        if (pic.EditPattern != null)
-            il.Append(il.Create(OpCodes.Ldstr, pic.EditPattern));
-        else
-            il.Append(il.Create(OpCodes.Ldnull));
-
-        il.Append(il.Create(pic.IsJustifiedRight ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-        // Emit PicEnvironment: new PicEnvironment(currencySign, decimalPointIsComma)
-        var env = pic.Environment;
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)env.CurrencySign));
-        il.Append(il.Create(env.DecimalPointIsComma ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        var envCtor = _module.ImportReference(
-            typeof(Runtime.PicEnvironment).GetConstructor(
-                new[] { typeof(char), typeof(bool) })!);
-        il.Append(il.Create(OpCodes.Newobj, envCtor));
-
-        var ctor = _module.ImportReference(
-            typeof(Runtime.PicDescriptor).GetConstructor(
-                new[] { typeof(int), typeof(int), typeof(bool), typeof(bool),
-                        typeof(bool), typeof(bool), typeof(int), typeof(Runtime.UsageKind),
-                        typeof(Runtime.CobolCategory),
-                        typeof(Runtime.SignStorageKind), typeof(Runtime.EditingKind),
-                        typeof(bool), typeof(int), typeof(int), typeof(string),
-                        typeof(bool), typeof(Runtime.PicEnvironment) })!);
-        il.Append(il.Create(OpCodes.Newobj, ctor));
-    }
-
-    /// <summary>
-    /// Emit a decimal literal onto the CIL stack.
-    /// </summary>
-    /// <summary>
-    /// Emit a decimal literal with exact precision (no double round-trip).
-    /// Uses decimal(lo, mid, hi, isNegative, scale) constructor.
-    /// </summary>
-    private void EmitLoadDecimal(ILProcessor il, decimal value)
-    {
-        var bits = decimal.GetBits(value);
-        il.Append(il.Create(OpCodes.Ldc_I4, bits[0]));  // lo
-        il.Append(il.Create(OpCodes.Ldc_I4, bits[1]));  // mid
-        il.Append(il.Create(OpCodes.Ldc_I4, bits[2]));  // hi
-        il.Append(il.Create(value < 0 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));  // isNegative
-        // Scale is in bits 16-23 of bits[3]
-        byte scale = (byte)((bits[3] >> 16) & 0xFF);
-        il.Append(il.Create(OpCodes.Ldc_I4, (int)scale));  // scale
-
-        var decCtor = _module.ImportReference(
-            typeof(decimal).GetConstructor(new[] {
-                typeof(int), typeof(int), typeof(int), typeof(bool), typeof(byte) })!);
-        il.Append(il.Create(OpCodes.Newobj, decCtor));
-    }
-
-    // ── New PIC-aware emitters ──
-
-    private void EmitPicMoveLiteralNumeric(ILProcessor il, IrPicMoveLiteralNumeric mv)
-    {
-        EmitLocationArgsWithPic(il, mv.Destination);
-        EmitLoadDecimal(il, mv.Value);
-        il.Append(il.Create(OpCodes.Ldc_I4, mv.Rounding));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicMultiplyLiteral(ILProcessor il, IrPicMultiplyLiteral mul)
-    {
-        EmitLocationArgsWithPic(il, mul.Destination);
-        EmitLoadDecimal(il, mul.Value);
-        EmitLocationArgsWithPic(il, mul.Other);
-        il.Append(il.Create(OpCodes.Ldc_I4, mul.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MultiplyNumericLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicAdd(ILProcessor il, IrPicAdd add)
-    {
-        EmitLocationArgsWithPic(il, add.Destination);
-        EmitLocationArgsWithPic(il, add.Source);
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("AddNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicAddLiteral(ILProcessor il, IrPicAddLiteral add)
-    {
-        EmitLocationArgsWithPic(il, add.Destination);
-        EmitLoadDecimal(il, add.Value);
-        il.Append(il.Create(OpCodes.Ldc_I4, add.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("AddNumericLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicSubtract(ILProcessor il, IrPicSubtract sub)
-    {
-        EmitLocationArgsWithPic(il, sub.Destination);
-        EmitLocationArgsWithPic(il, sub.Source);
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("SubtractNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicSubtractLiteral(ILProcessor il, IrPicSubtractLiteral sub)
-    {
-        EmitLocationArgsWithPic(il, sub.Destination);
-        EmitLoadDecimal(il, sub.Value);
-        il.Append(il.Create(OpCodes.Ldc_I4, sub.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("SubtractNumericLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitAddAccumulatedToTarget(ILProcessor il, IrAddAccumulatedToTarget inst,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, inst.Destination);
-        var accLocal = getLocal(inst.Accumulator);
-        il.Append(il.Create(OpCodes.Ldloc, accLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("AddAccumulatedToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitMoveAccumulatedToTarget(ILProcessor il, IrMoveAccumulatedToTarget inst,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, inst.Destination);
-        var accLocal = getLocal(inst.Accumulator);
-        il.Append(il.Create(OpCodes.Ldloc, accLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitSubtractAccumulatedFromTarget(ILProcessor il, IrSubtractAccumulatedFromTarget inst,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, inst.Destination);
-        var accLocal = getLocal(inst.Accumulator);
-        il.Append(il.Create(OpCodes.Ldloc, accLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("SubtractAccumulatedFromField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicDivide(ILProcessor il, IrPicDivide div)
-    {
-        EmitLocationArgsWithPic(il, div.Destination);
-        EmitLocationArgsWithPic(il, div.Left);
-        EmitLocationArgsWithPic(il, div.Right);
-
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("DivideNumeric",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    private void EmitPicDivideLiteral(ILProcessor il, IrPicDivideLiteral div)
-    {
-        EmitLocationArgsWithPic(il, div.Destination);
-        EmitLoadDecimal(il, div.Value);
-        EmitLocationArgsWithPic(il, div.Other);
-        il.Append(il.Create(OpCodes.Ldc_I4, div.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("DivideNumericLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int), typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// COMPUTE/GIVING store: evaluate expression tree to decimal, then store to target.
-    /// Routes through MoveAccumulatedToField — the unified "store decimal with overflow
-    /// detection" path shared by all arithmetic operations.
-    /// </summary>
-    private void EmitComputeStore(ILProcessor il, IrComputeStore cs)
-    {
-        EmitLocationArgsWithPic(il, cs.Destination);
-        EmitIrExpression(il, cs.Expression);
-        il.Append(il.Create(OpCodes.Ldc_I4, cs.Rounding));
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal), typeof(int),
-                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// Emit CIL for IrFunctionCall: call IntrinsicFunctions.Call() and store result into destination.
-    /// Dispatches to numeric (MoveAccumulatedToField) or string (MoveAlphanumericToField) path
-    /// based on the function's result category.
-    /// </summary>
-    private void EmitFunctionCall(ILProcessor il, IR.IrFunctionCall funcCall)
-    {
-        // Determine if this function returns a string result
-        bool isStringFunction = funcCall.FunctionName.ToUpperInvariant() switch
-        {
-            "LOWER-CASE" or "UPPER-CASE" or "REVERSE" or "TRIM" or "CONCATENATE"
-                or "SUBSTITUTE" or "CHAR" or "CURRENT-DATE" or "WHEN-COMPILED" => true,
-            _ => false
-        };
-
-        var irCall = new IR.IrIntrinsicCall(funcCall.FunctionName, funcCall.Arguments);
-        if (isStringFunction)
-        {
-            // String-returning function: push dest args first, then call function, store to field.
-            // Stack order: area, offset, length, stringValue → MoveStringToField
-            EmitLocationArgs(il, funcCall.Destination);
-            EmitIrIntrinsicCall(il, irCall);
-            // Result is object on stack; cast to string
-            il.Append(il.Create(OpCodes.Castclass,
-                _module.ImportReference(typeof(string))));
-            il.Append(il.Create(OpCodes.Call,
-                _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("MoveStringToField",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
-                                typeof(string) })!)));
-        }
-        else
-        {
-            // Numeric-returning function: call, unbox to decimal, store via MoveAccumulatedToField
-            EmitLocationArgsWithPic(il, funcCall.Destination);
-            EmitIrIntrinsicCall(il, irCall);
-            il.Append(il.Create(OpCodes.Unbox_Any,
-                _module.ImportReference(typeof(decimal))));
-            il.Append(il.Create(OpCodes.Ldc_I4_0)); // no rounding
-            EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-            il.Append(il.Create(OpCodes.Call,
-                _module.ImportReference(
-                    typeof(Runtime.PicRuntime).GetMethod("MoveAccumulatedToField",
-                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                                typeof(decimal), typeof(int),
-                                typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
-        }
-    }
-
-    private void EmitCobolRemainder(ILProcessor il, IrCobolRemainder rem,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Push: dividend(decimal), divisor(decimal), rawQuotient(decimal),
-        //        givingFractionDigits(int), dest(area,off,len,pic), ref status
-        EmitIrExpression(il, rem.Dividend);
-        EmitIrExpression(il, rem.Divisor);
-        il.Append(il.Create(OpCodes.Ldloc, getLocal(rem.QuotientAccumulator)));
-        il.Append(il.Create(OpCodes.Ldc_I4, rem.GivingFractionDigits));
-        EmitLocationArgsWithPic(il, rem.Destination);
-        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("ComputeCobolRemainder",
-                new[] {
-                    typeof(decimal), typeof(decimal), typeof(decimal),
-                    typeof(int),
-                    typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                    typeof(Runtime.ArithmeticStatus).MakeByRefType()
-                })!);
-        il.Append(il.Create(OpCodes.Call, method));
-    }
-
-    /// <summary>
-    /// Emit an IR-native expression tree, leaving a decimal on the IL stack.
-    /// All locations are pre-resolved by the Binder during lowering — no fallback needed.
-    /// </summary>
-    private void EmitIrExpression(ILProcessor il, IR.IrExpression expr)
-    {
-        switch (expr)
-        {
-            case IR.IrLiteral lit:
-                EmitLoadDecimal(il, lit.Value);
-                break;
-
-            case IR.IrLoadNumeric load:
-                EmitLocationArgsWithPic(il, load.Source);
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
-                                typeof(Runtime.PicDescriptor) })!)));
-                break;
-
-            case IR.IrBinaryExpr bin:
-                EmitIrExpression(il, bin.Left);
-                EmitIrExpression(il, bin.Right);
-                switch (bin.Op)
-                {
-                    case IR.IrArithmeticOp.Add:
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("op_Addition",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
-                        break;
-                    case IR.IrArithmeticOp.Subtract:
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("op_Subtraction",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
-                        break;
-                    case IR.IrArithmeticOp.Multiply:
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("op_Multiply",
-                                new[] { typeof(decimal), typeof(decimal) })!)));
-                        break;
-                    case IR.IrArithmeticOp.Divide:
-                        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeDivide",
-                                new[] { typeof(decimal), typeof(decimal),
-                                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
-                        break;
-                    case IR.IrArithmeticOp.Remainder:
-                        EmitLoadArithmeticStatusRef(il, _currentMethodDef!);
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(Runtime.PicRuntime).GetMethod("SafeRemainder",
-                                new[] { typeof(decimal), typeof(decimal),
-                                        typeof(Runtime.ArithmeticStatus).MakeByRefType() })!)));
-                        break;
-                    case IR.IrArithmeticOp.Power:
-                    {
-                        var tempRight = new VariableDefinition(_module.ImportReference(typeof(decimal)));
-                        il.Body.Variables.Add(tempRight);
-                        il.Append(il.Create(OpCodes.Stloc, tempRight));
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("ToDouble",
-                                new[] { typeof(decimal) })!)));
-                        il.Append(il.Create(OpCodes.Ldloc, tempRight));
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(decimal).GetMethod("ToDouble",
-                                new[] { typeof(decimal) })!)));
-                        il.Append(il.Create(OpCodes.Call,
-                            _module.ImportReference(typeof(Math).GetMethod("Pow",
-                                new[] { typeof(double), typeof(double) })!)));
-                        il.Append(il.Create(OpCodes.Newobj,
-                            _module.ImportReference(typeof(decimal).GetConstructor(
-                                new[] { typeof(double) })!)));
-                        break;
-                    }
-                }
-                break;
-
-            case IR.IrUnaryExpr unary when unary.Op == IR.IrUnaryOp.Negate:
-                EmitIrExpression(il, unary.Operand);
-                il.Append(il.Create(OpCodes.Call,
-                    _module.ImportReference(typeof(decimal).GetMethod("op_UnaryNegation",
-                        new[] { typeof(decimal) })!)));
-                break;
-
-            case IR.IrIntrinsicCall call:
-                EmitIrIntrinsicCall(il, call);
-                il.Append(il.Create(OpCodes.Unbox_Any,
-                    _module.ImportReference(typeof(decimal))));
-                break;
-
-            default:
-                EmitLoadDecimal(il, 0m);
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Emit an IR-native intrinsic function call, leaving an object on the IL stack.
-    /// </summary>
-    private void EmitIrIntrinsicCall(ILProcessor il, IR.IrIntrinsicCall call)
-    {
-        // Push function name first (matches Call(string, object[]) signature)
-        il.Append(il.Create(OpCodes.Ldstr, call.FunctionName.ToUpperInvariant()));
-
-        // Build object[] args array
-        il.Append(il.Create(OpCodes.Ldc_I4, call.Arguments.Count));
-        il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(object))));
-
-        for (int i = 0; i < call.Arguments.Count; i++)
-        {
-            il.Append(il.Create(OpCodes.Dup));
-            il.Append(il.Create(OpCodes.Ldc_I4, i));
-
-            switch (call.Arguments[i])
-            {
-                case IR.IrLiteralStringArg strArg:
-                    il.Append(il.Create(OpCodes.Ldstr, strArg.Value));
-                    break;
-
-                case IR.IrAlphanumericArg alphaArg:
-                    EmitLocationArgs(il, alphaArg.Source);
-                    il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                        typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
-                            new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
-                    break;
-
-                case IR.IrNumericArg numArg:
-                    EmitIrExpression(il, numArg.Expression);
-                    il.Append(il.Create(OpCodes.Box, _module.ImportReference(typeof(decimal))));
-                    break;
-            }
-
-            il.Append(il.Create(OpCodes.Stelem_Ref));
-        }
-
-        // Call IntrinsicFunctions.Call(string, object[])
-        il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-            typeof(Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
-                new[] { typeof(string), typeof(object[]) })!)));
-    }
-
-    private void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, cmp.Left);
-        EmitLoadDecimal(il, cmp.Value);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("CompareNumericToLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitPicCompareAccumulator(ILProcessor il, IrPicCompareAccumulator cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgsWithPic(il, cmp.Left);
-        // Load the pre-evaluated accumulator (decimal)
-        il.Append(il.Create(OpCodes.Ldloc, getLocal(cmp.Accumulator)));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("CompareNumericToLiteral",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitDecimalCompare(ILProcessor il, IrDecimalCompare cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Load left accumulator, call CompareTo(right accumulator)
-        il.Append(il.Create(OpCodes.Ldloca, getLocal(cmp.Left)));
-        il.Append(il.Create(OpCodes.Ldloc, getLocal(cmp.Right)));
-        var compareTo = _module.ImportReference(
-            typeof(decimal).GetMethod("CompareTo", new[] { typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, compareTo));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-            il.Append(il.Create(OpCodes.Stloc, getLocal(cmp.Result.Value)));
-    }
-
-    private void EmitDecimalCompareLiteral(ILProcessor il, IrDecimalCompareLiteral cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Load accumulator, call CompareTo(literal)
-        il.Append(il.Create(OpCodes.Ldloca, getLocal(cmp.Accumulator)));
-        EmitLoadDecimal(il, cmp.LiteralValue);
-        var compareTo = _module.ImportReference(
-            typeof(decimal).GetMethod("CompareTo", new[] { typeof(decimal) })!);
-        il.Append(il.Create(OpCodes.Call, compareTo));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-            il.Append(il.Create(OpCodes.Stloc, getLocal(cmp.Result.Value)));
-    }
-
-    /// <summary>
-    /// Convert CompareNumeric result (-1/0/1) to bool based on operator kind.
-    /// Uses enum values directly — never hardcode integer constants for enum members.
-    /// </summary>
-    private void EmitCompareResultToBool(ILProcessor il, int operatorKind)
-    {
-        var op = (IR.IrCompareOp)operatorKind;
-        switch (op)
-        {
-            case IR.IrCompareOp.Equal: // result == 0
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                break;
-            case IR.IrCompareOp.NotEqual: // NOT (result == 0)
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                break;
-            case IR.IrCompareOp.Less: // result < 0
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Clt));
-                break;
-            case IR.IrCompareOp.LessOrEqual: // NOT (result > 0)
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Cgt));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                break;
-            case IR.IrCompareOp.Greater: // result > 0
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Cgt));
-                break;
-            case IR.IrCompareOp.GreaterOrEqual: // NOT (result < 0)
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Clt));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                break;
-            default: // Fallback: treat as equal
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ceq));
-                break;
-        }
-    }
-
-    private void EmitStringCompareLiteral(ILProcessor il, IrStringCompareLiteral cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgs(il, cmp.Left);
-        il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
-
-        var method = _module.ImportReference(
-            typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToString",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitStringCompare(ILProcessor il, IrStringCompare cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgs(il, cmp.Left);
-        EmitLocationArgs(il, cmp.Right);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitStringCompareWithSequence(ILProcessor il, IrStringCompareWithSequence cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        EmitLocationArgs(il, cmp.Left);
-        EmitLocationArgs(il, cmp.Right);
-        EmitByteArrayLiteral(il, cmp.CollatingSequence);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("CompareAlphanumericWithSequence",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    private void EmitStringCompareLiteralWithSequence(ILProcessor il, IrStringCompareLiteralWithSequence cmp,
-        Func<IrValue, VariableDefinition> getLocal)
-    {
-        // Convert the string literal to a byte array and compare using CompareAlphanumericWithSequence
-        EmitLocationArgs(il, cmp.Left);
-
-        // Create a temp byte array from the string literal
-        var bytes = System.Text.Encoding.ASCII.GetBytes(cmp.Value);
-        EmitByteArrayLiteral(il, bytes);
-        il.Append(il.Create(OpCodes.Ldc_I4_0)); // offset = 0
-        il.Append(il.Create(OpCodes.Ldc_I4, bytes.Length)); // length
-
-        EmitByteArrayLiteral(il, cmp.CollatingSequence);
-
-        var method = _module.ImportReference(
-            typeof(Runtime.PicRuntime).GetMethod("CompareAlphanumericWithSequence",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int), typeof(byte[]) })!);
-        il.Append(il.Create(OpCodes.Call, method));
-
-        EmitCompareResultToBool(il, cmp.OperatorKind);
-
-        if (cmp.Result.HasValue)
-        {
-            var resLocal = getLocal(cmp.Result.Value);
-            il.Append(il.Create(OpCodes.Stloc, resLocal));
-        }
-    }
-
-    /// <summary>
-    // ── STRING emit ──
-
-    private void EmitStringStatement(ILProcessor il, IR.IrStringStatement strStmt,
-        Func<IR.IrValue, VariableDefinition> getLocal)
-    {
-        // Create a shared pointer local for the entire STRING statement
-        var ptrLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef!.Body.Variables.Add(ptrLocal);
-
-        // Initialize pointer: from user POINTER variable or 1
-        if (strStmt.PointerLocation != null)
-        {
-            EmitLocationArgsWithPic(il, strStmt.PointerLocation);
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(Runtime.PicDescriptor) })!)));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
-        }
-        else
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4_1));
-        }
-        il.Append(il.Create(OpCodes.Stloc, ptrLocal));
-
-        // Initialize overflow result to false
-        var overflowLocal = getLocal(strStmt.Result!.Value);
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Stloc, overflowLocal));
-
-        // Emit each sending
-        foreach (var sending in strStmt.Sendings)
-        {
-            // Push dest args
-            EmitLocationArgs(il, strStmt.Destination);
-
-            if (sending.LiteralValue != null)
-            {
-                // Literal sending: StringConcatLiteral(dest area/off/len, value, delim, bySize, ref ptr)
-                il.Append(il.Create(OpCodes.Ldstr, sending.LiteralValue));
-            }
-            else
-            {
-                // Field sending: StringConcat(dest area/off/len, src area/off/len, delim, bySize, ref ptr)
-                EmitLocationArgs(il, sending.SourceLocation!);
-            }
-
-            // Delimiter: field-based or literal string
-            bool hasFieldDelim = sending.DelimiterLocation != null;
-            if (hasFieldDelim)
-                EmitLocationArgs(il, sending.DelimiterLocation!);
-            else if (sending.Delimiter != null)
-                il.Append(il.Create(OpCodes.Ldstr, sending.Delimiter));
-            else
-                il.Append(il.Create(OpCodes.Ldnull));
-
-            // DelimitedBySize
-            il.Append(il.Create(sending.DelimitedBySize ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            // Pass pointer by ref
-            il.Append(il.Create(OpCodes.Ldloca, ptrLocal));
-
-            // Call appropriate runtime method
-            if (sending.LiteralValue != null && hasFieldDelim)
-            {
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("StringConcatLiteralFieldDelim",
-                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
-                                typeof(byte[]), typeof(int), typeof(int),
-                                typeof(bool), typeof(int).MakeByRefType() })!)));
-            }
-            else if (sending.LiteralValue != null)
-            {
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("StringConcatLiteral",
-                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
-                                typeof(string), typeof(bool), typeof(int).MakeByRefType() })!)));
-            }
-            else if (hasFieldDelim)
-            {
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("StringConcatFieldDelim",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
-                                typeof(byte[]), typeof(int), typeof(int),
-                                typeof(byte[]), typeof(int), typeof(int),
-                                typeof(bool), typeof(int).MakeByRefType() })!)));
-            }
-            else
-            {
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("StringConcat",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
-                                typeof(byte[]), typeof(int), typeof(int),
-                                typeof(string), typeof(bool), typeof(int).MakeByRefType() })!)));
-            }
-
-            // OR overflow: overflowLocal |= result
-            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));
-            il.Append(il.Create(OpCodes.Or));
-            il.Append(il.Create(OpCodes.Stloc, overflowLocal));
-        }
-
-        // Write pointer back to POINTER variable (if present)
-        if (strStmt.PointerLocation != null)
-        {
-            EmitLocationArgsWithPic(il, strStmt.PointerLocation);
-            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));
-            il.Append(il.Create(OpCodes.Newobj,
-                _module.ImportReference(typeof(decimal).GetConstructor(new[] { typeof(int) })!)));
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(decimal), typeof(int) })!)));
-        }
-    }
-
-    private void EmitUnstringStatement(ILProcessor il, IR.IrUnstringStatement unstrStmt,
-        Func<IR.IrValue, VariableDefinition> getLocal)
-    {
-        // Create shared pointer local for the entire UNSTRING statement
-        var ptrLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef!.Body.Variables.Add(ptrLocal);
-
-        // Initialize pointer: from user POINTER variable or 1
-        if (unstrStmt.PointerLocation != null)
-        {
-            EmitLocationArgsWithPic(il, unstrStmt.PointerLocation);
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(Runtime.PicDescriptor) })!)));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
-        }
-        else
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4_1));
-        }
-        il.Append(il.Create(OpCodes.Stloc, ptrLocal));
-
-        // Create shared overflow local
-        var overflowLocal = new VariableDefinition(_module.TypeSystem.Boolean);
-        _currentMethodDef.Body.Variables.Add(overflowLocal);
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
-        il.Append(il.Create(OpCodes.Stloc, overflowLocal));
-
-        // Tally counter local — initialize from existing TALLYING field value (not zero)
-        // Per ISO §14.9.44: "the value of identifier-7 is incremented by 1"
-        var tallyLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef.Body.Variables.Add(tallyLocal);
-        if (unstrStmt.TallyingLocation != null)
-        {
-            EmitLocationArgsWithPic(il, unstrStmt.TallyingLocation);
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                            typeof(Runtime.PicDescriptor) })!)));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
-        }
-        else
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-        }
-        il.Append(il.Create(OpCodes.Stloc, tallyLocal));
-
-        // Resolve the UnstringExtract method reference
-        var extractMethod = _module.ImportReference(
-            typeof(Runtime.StorageHelpers).GetMethod("UnstringExtract",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int),
-                        typeof(string), typeof(bool),
-                        typeof(byte[]), typeof(int), typeof(int),
-                        typeof(int).MakeByRefType(), typeof(bool).MakeByRefType() })!);
-
-        // Count local for COUNT IN write-back
-        var countLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef.Body.Variables.Add(countLocal);
-
-        // Process each INTO
-        foreach (var into in unstrStmt.Intos)
-        {
-            // Push source args (area, offset, length)
-            EmitLocationArgs(il, unstrStmt.Source);
-
-            // Push dest args (area, offset, length)
-            EmitLocationArgs(il, into.Target);
-
-            // Push delimiter (string? or null)
-            if (unstrStmt.LiteralDelimiter != null)
-                il.Append(il.Create(OpCodes.Ldstr, unstrStmt.LiteralDelimiter));
-            else if (unstrStmt.DelimiterLocation != null)
-            {
-                // Field-based delimiter: read field as string at runtime
-                EmitLocationArgs(il, unstrStmt.DelimiterLocation);
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
-                        new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
-            }
-            else
-                il.Append(il.Create(OpCodes.Ldnull));
-
-            // Push delimitedByAll flag
-            il.Append(il.Create(unstrStmt.DelimitedByAll ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            // Push DELIMITER IN args (area, offset, length) or nulls
-            if (into.DelimiterIn != null)
-            {
-                EmitLocationArgs(il, into.DelimiterIn);
-            }
-            else
-            {
-                il.Append(il.Create(OpCodes.Ldnull));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-            }
-
-            // Pass pointer by ref
-            il.Append(il.Create(OpCodes.Ldloca, ptrLocal));
-
-            // Pass overflow by ref
-            il.Append(il.Create(OpCodes.Ldloca, overflowLocal));
-
-            // Call UnstringExtract — returns int (count of extracted chars)
-            il.Append(il.Create(OpCodes.Call, extractMethod));
-
-            // Store returned count
-            il.Append(il.Create(OpCodes.Stloc, countLocal));
-
-            // Handle COUNT IN: write the count to the COUNT IN field
-            if (into.CountIn != null)
-            {
-                EmitLocationArgsWithPic(il, into.CountIn);
-                il.Append(il.Create(OpCodes.Ldloc, countLocal));
-                il.Append(il.Create(OpCodes.Newobj,
-                    _module.ImportReference(typeof(decimal).GetConstructor(new[] { typeof(int) })!)));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                    typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
-                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                                typeof(decimal), typeof(int) })!)));
-            }
-
-            // Increment tally counter — only if overflow hasn't occurred
-            // (per spec, tally counts INTO targets that received data)
-            var skipTally = il.Create(OpCodes.Nop);
-            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));
-            il.Append(il.Create(OpCodes.Brtrue, skipTally));
-            il.Append(il.Create(OpCodes.Ldloc, tallyLocal));
-            il.Append(il.Create(OpCodes.Ldc_I4_1));
-            il.Append(il.Create(OpCodes.Add));
-            il.Append(il.Create(OpCodes.Stloc, tallyLocal));
-            il.Append(skipTally);
-        }
-
-        // Post-loop overflow check: if pointer <= srcLength (unexamined chars remain),
-        // set overflow. Per ISO §14.9.44: overflow occurs when "all receiving areas
-        // have been acted upon" but source is not exhausted.
-        // Logic: overflow = existingOverflow OR (pointer <= srcLength)
-        {
-            var srcLen = unstrStmt.Source.GetPic().StorageLength;
-            il.Append(il.Create(OpCodes.Ldloc, overflowLocal));    // existing overflow
-            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));         // pointer (1-based)
-            il.Append(il.Create(OpCodes.Ldc_I4, srcLen));           // source length
-            il.Append(il.Create(OpCodes.Cgt));                      // pointer > srcLength?
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Ceq));                      // NOT(pointer > srcLen) = unexamined chars remain
-            il.Append(il.Create(OpCodes.Or));                       // overflow OR unexamined
-            il.Append(il.Create(OpCodes.Stloc, overflowLocal));
-        }
-
-        // Write pointer back to POINTER variable (if present)
-        if (unstrStmt.PointerLocation != null)
-        {
-            EmitLocationArgsWithPic(il, unstrStmt.PointerLocation);
-            il.Append(il.Create(OpCodes.Ldloc, ptrLocal));
-            il.Append(il.Create(OpCodes.Newobj,
-                _module.ImportReference(typeof(decimal).GetConstructor(new[] { typeof(int) })!)));
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(decimal), typeof(int) })!)));
-        }
-
-        // Write tally count to TALLYING variable (if present)
-        if (unstrStmt.TallyingLocation != null)
-        {
-            EmitLocationArgsWithPic(il, unstrStmt.TallyingLocation);
-            il.Append(il.Create(OpCodes.Ldloc, tallyLocal));
-            il.Append(il.Create(OpCodes.Newobj,
-                _module.ImportReference(typeof(decimal).GetConstructor(new[] { typeof(int) })!)));
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("MoveNumericLiteral",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                            typeof(decimal), typeof(int) })!)));
-        }
-
-        // Store overflow result for branching
-        var resultLocal = getLocal(unstrStmt.Result!.Value);
-        il.Append(il.Create(OpCodes.Ldloc, overflowLocal));
-        il.Append(il.Create(OpCodes.Stloc, resultLocal));
-    }
 
     /// Emit the PC-driven dispatch loop for Main:
     ///   int pc = 0;
@@ -3492,417 +1184,6 @@ public sealed class CilEmitter
         il.Append(exitLabel);
     }
 
-    /// <summary>
-    /// Load the backing byte array from ProgramState.
-    /// Pushes: State.WorkingStorage or State.FileSection (byte[]) onto the stack.
-    /// </summary>
-    /// <summary>
-    /// Lazily allocate one ArithmeticStatus local per method.
-    /// </summary>
-    private VariableDefinition EnsureArithmeticStatusLocal(MethodDefinition md)
-    {
-        if (_arithmeticStatusLocal == null)
-        {
-            _arithmeticStatusLocal = new VariableDefinition(
-                _module.ImportReference(typeof(ArithmeticStatus)));
-            md.Body.Variables.Add(_arithmeticStatusLocal);
-        }
-        return _arithmeticStatusLocal;
-    }
-
-    /// <summary>
-    /// Zero-initialize the ArithmeticStatus local before an arithmetic call.
-    /// </summary>
-    private void EmitInitArithmeticStatus(ILProcessor il, MethodDefinition md)
-    {
-        var statusLocal = EnsureArithmeticStatusLocal(md);
-        il.Append(il.Create(OpCodes.Ldloca, statusLocal));
-        il.Append(il.Create(OpCodes.Initobj,
-            _module.ImportReference(typeof(ArithmeticStatus))));
-    }
-
-    /// <summary>
-    /// Push address of ArithmeticStatus local onto stack (for ref parameter).
-    /// </summary>
-    private void EmitLoadArithmeticStatusRef(ILProcessor il, MethodDefinition md)
-    {
-        var statusLocal = EnsureArithmeticStatusLocal(md);
-        il.Append(il.Create(OpCodes.Ldloca, statusLocal));
-    }
-
-    /// <summary>
-    /// Emit (area, offset, length) for a LINKAGE SECTION item.
-    /// Loads from the CobolDataPointer field, adding the relative offset.
-    /// </summary>
-    private void EmitLinkageLocationArgs(ILProcessor il, IR.IrStaticLocation s)
-    {
-        // Find which LINKAGE parameter field this item belongs to.
-        // Try to match the item name directly first, then search for a parent match.
-        FieldDefinition? field = null;
-        string? matchedName = null;
-
-        // Try exact match (for 01-level LINKAGE items)
-        if (_semanticModel != null)
-        {
-            foreach (var param in _semanticModel.ProcedureUsingParameters)
-            {
-                if (_linkageFields.TryGetValue(param.Name, out var f))
-                {
-                    // Check if this storage location falls within this parameter's range
-                    var paramLoc = _semanticModel.GetStorageLocation(param);
-                    if (paramLoc.HasValue &&
-                        s.Location.Offset >= paramLoc.Value.Offset &&
-                        s.Location.Offset < paramLoc.Value.Offset + paramLoc.Value.Length)
-                    {
-                        field = f;
-                        matchedName = param.Name;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (field != null)
-        {
-            // Load CobolDataPointer.Buffer
-            il.Append(il.Create(OpCodes.Ldsflda, field));
-            var bufferGetter = _module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Buffer")!.GetGetMethod()!);
-            il.Append(il.Create(OpCodes.Call, bufferGetter));
-
-            // Offset = CobolDataPointer.Offset + relative offset within the parameter
-            il.Append(il.Create(OpCodes.Ldsflda, field));
-            var offsetGetter = _module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!);
-            il.Append(il.Create(OpCodes.Call, offsetGetter));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset)); // relative offset
-            il.Append(il.Create(OpCodes.Add));
-
-            // Length
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
-        }
-        else
-        {
-            // Fallback: LINKAGE item not mapped to a USING parameter
-            // (may happen for LINKAGE items not in the USING clause)
-            // Push nulls that will likely cause a runtime NullReferenceException
-            // if actually accessed — this is correct behavior for unmapped LINKAGE
-            il.Append(il.Create(OpCodes.Ldnull));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
-        }
-    }
-
-    private void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)
-    {
-        // LINKAGE SECTION items are NOT backed by ProgramState — they're backed
-        // by CobolDataPointer fields populated from CALL USING args.
-        // This method only handles WorkingStorage, LocalStorage, and FileSection.
-        // LINKAGE access is handled separately in EmitLocationArgs.
-        il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
-
-        var propertyName = area switch
-        {
-            StorageAreaKind.WorkingStorage => "WorkingStorage",
-            StorageAreaKind.LocalStorage   => "LocalStorage",
-            StorageAreaKind.FileSection    => "FileSection",
-            _ => throw new InvalidOperationException(
-                $"EmitLoadBackingArray: unexpected StorageAreaKind '{area}'. " +
-                "LinkageSection should be handled separately via CobolDataPointer.")
-        };
-
-        var getter = _module.ImportReference(
-            typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
-        il.Append(il.Create(OpCodes.Callvirt, getter));
-    }
-
-    /// <summary>
-    /// Load the backing array for a storage location, accounting for EXTERNAL items.
-    /// For EXTERNAL WorkingStorage items, loads the shared ExternalStorage byte[] field.
-    /// Returns the adjusted offset (0-based within the external array, or unchanged for non-external).
-    /// </summary>
-    private void EmitLoadBackingArrayOrExternal(ILProcessor il, StorageAreaKind area, int wsOffset, out int adjustedOffset)
-    {
-        if (area == StorageAreaKind.WorkingStorage && TryGetExternalField(wsOffset, out var extField, out adjustedOffset))
-        {
-            il.Append(il.Create(OpCodes.Ldsfld, extField!));
-            return;
-        }
-
-        adjustedOffset = wsOffset;
-        EmitLoadBackingArray(il, area);
-    }
-
-    // ── Unified IrLocation emission helpers ──
-
-
-    /// <summary>
-    /// Push (area, offset, length) onto the IL stack for any IrLocation.
-    /// For static: pushes compile-time constants.
-    /// For element ref: computes runtime offset via subscript decode.
-    /// For ref mod: composes base location + runtime start:length.
-    /// </summary>
-    private void EmitLocationArgs(ILProcessor il, IR.IrLocation loc)
-    {
-        switch (loc)
-        {
-            case IR.IrCachedLocation cached:
-                EmitCachedLocationArgs(il, cached);
-                break;
-
-            case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
-                // LINKAGE item: load from CobolDataPointer static field
-                EmitLinkageLocationArgs(il, s);
-                break;
-
-            case IR.IrStaticLocation s
-                when s.Location.Area == StorageAreaKind.WorkingStorage
-                  && TryGetExternalField(s.Location.Offset, out var extField, out var adjOffset):
-                // EXTERNAL item: load from shared ExternalStorage byte[]
-                il.Append(il.Create(OpCodes.Ldsfld, extField!));
-                il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
-                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
-                break;
-
-            case IR.IrStaticLocation s:
-                EmitLoadBackingArray(il, s.Location.Area);
-                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
-                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
-                break;
-
-            case IR.IrElementRef e:
-                EmitElementAddress(il, e);
-                il.Append(il.Create(OpCodes.Ldc_I4, e.ElementSize));
-                break;
-
-            case IR.IrRefModLocation r:
-                EmitRefModAddress(il, r);
-                break;
-
-            default:
-                throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}");
-        }
-    }
-
-    /// <summary>
-    /// Emit (area, offset, length) for a cached location. On first encounter with a
-    /// given cache key, compute the inner location args, store into locals, and reload.
-    /// On subsequent encounters, just load from the cached locals.
-    /// </summary>
-    private void EmitCachedLocationArgs(ILProcessor il, IR.IrCachedLocation cached)
-    {
-        if (_cachedLocationLocals.TryGetValue(cached.CacheKey, out var locals))
-        {
-            // Already computed — reload from locals
-            il.Append(il.Create(OpCodes.Ldloc, locals.area));
-            il.Append(il.Create(OpCodes.Ldloc, locals.offset));
-            il.Append(il.Create(OpCodes.Ldloc, locals.length));
-            return;
-        }
-
-        // First encounter — compute inner, store into locals
-        EmitLocationArgs(il, cached.Inner);
-
-        var body = _currentMethodDef!.Body;
-        var lengthLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        body.Variables.Add(lengthLocal);
-        var offsetLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        body.Variables.Add(offsetLocal);
-        var areaLocal = new VariableDefinition(_module.ImportReference(typeof(byte[])));
-        body.Variables.Add(areaLocal);
-
-        // Stack is: area, offset, length — store in reverse order
-        il.Append(il.Create(OpCodes.Stloc, lengthLocal));
-        il.Append(il.Create(OpCodes.Stloc, offsetLocal));
-        il.Append(il.Create(OpCodes.Stloc, areaLocal));
-
-        _cachedLocationLocals[cached.CacheKey] = (areaLocal, offsetLocal, lengthLocal);
-
-        // Reload onto stack
-        il.Append(il.Create(OpCodes.Ldloc, areaLocal));
-        il.Append(il.Create(OpCodes.Ldloc, offsetLocal));
-        il.Append(il.Create(OpCodes.Ldloc, lengthLocal));
-    }
-
-    /// <summary>
-    /// Push (area, offset, length, pic) onto the IL stack for any IrLocation.
-    /// </summary>
-    private void EmitLocationArgsWithPic(ILProcessor il, IR.IrLocation loc)
-    {
-        EmitLocationArgs(il, loc);
-        EmitLoadPicDescriptor(il, loc.GetPic());
-    }
-
-    /// <summary>
-    /// Push (area, effectiveOffset) for a multi-dimensional IrElementRef.
-    /// Each subscript is an IrExpression evaluated via EmitIrExpression → decimal → int32.
-    /// Handles identifiers (ARR(I)), arithmetic (ARR(I+1)), and any expression uniformly.
-    /// </summary>
-    private void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
-    {
-        // Push base area (EXTERNAL-aware)
-        EmitLoadBackingArrayOrExternal(il, e.BaseLocation.Area, e.BaseLocation.Offset, out var elemAdjOffset);
-
-        // Push base offset — accumulates displacement from each dimension
-        il.Append(il.Create(OpCodes.Ldc_I4, elemAdjOffset));
-
-        var toInt32 = _module.ImportReference(
-            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
-
-        for (int dim = 0; dim < e.Subscripts.Count; dim++)
-        {
-            int multiplier = e.Multipliers[dim];
-
-            // Evaluate subscript expression → decimal on stack
-            EmitIrExpression(il, e.Subscripts[dim]);
-
-            // decimal → int32
-            il.Append(il.Create(OpCodes.Call, toInt32));
-
-            // (subscript - 1) * multiplier
-            il.Append(il.Create(OpCodes.Ldc_I4_1));
-            il.Append(il.Create(OpCodes.Sub));
-            il.Append(il.Create(OpCodes.Ldc_I4, multiplier));
-            il.Append(il.Create(OpCodes.Mul));
-
-            // Add to running offset
-            il.Append(il.Create(OpCodes.Add));
-        }
-
-        // Stack: [area, effectiveOffset]
-    }
-
-    /// <summary>
-    /// Push (area, substringOffset, substringLength) for a reference modification.
-    /// Composes the base location (static or element) with runtime start:length.
-    /// </summary>
-    private void EmitRefModAddress(ILProcessor il, IR.IrRefModLocation r)
-    {
-        var toInt32 = _module.ImportReference(
-            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
-
-        // Evaluate start and length first (into locals), before pushing base
-        // start (1-based)
-        EmitIrExpression(il, r.Start);
-        il.Append(il.Create(OpCodes.Call, toInt32));
-        var startLocal = new VariableDefinition(_module.TypeSystem.Int32);
-        _currentMethodDef!.Body.Variables.Add(startLocal);
-        il.Append(il.Create(OpCodes.Stloc, startLocal));
-
-        // length: expression or rest-of-field
-        VariableDefinition lengthLocal;
-        if (r.Length != null)
-        {
-            EmitIrExpression(il, r.Length!);
-            il.Append(il.Create(OpCodes.Call, toInt32));
-            lengthLocal = new VariableDefinition(_module.TypeSystem.Int32);
-            _currentMethodDef!.Body.Variables.Add(lengthLocal);
-            il.Append(il.Create(OpCodes.Stloc, lengthLocal));
-        }
-        else
-        {
-            // Rest-of-field: length = baseFieldLength - (start - 1)
-            lengthLocal = new VariableDefinition(_module.TypeSystem.Int32);
-            _currentMethodDef!.Body.Variables.Add(lengthLocal);
-            il.Append(il.Create(OpCodes.Ldc_I4, r.BaseFieldLength));
-            il.Append(il.Create(OpCodes.Ldloc, startLocal));
-            il.Append(il.Create(OpCodes.Sub));
-            il.Append(il.Create(OpCodes.Ldc_I4_1));
-            il.Append(il.Create(OpCodes.Add));
-            il.Append(il.Create(OpCodes.Stloc, lengthLocal));
-        }
-
-        // Push base location (area, baseOffset)
-        switch (r.Base)
-        {
-            case IR.IrStaticLocation s
-                when s.Location.Area == StorageAreaKind.WorkingStorage
-                  && TryGetExternalField(s.Location.Offset, out var rmExtField, out var rmAdjOffset):
-                il.Append(il.Create(OpCodes.Ldsfld, rmExtField!));
-                il.Append(il.Create(OpCodes.Ldc_I4, rmAdjOffset));
-                break;
-
-            case IR.IrStaticLocation s:
-                EmitLoadBackingArray(il, s.Location.Area);
-                il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
-                break;
-
-            case IR.IrElementRef e:
-                EmitElementAddress(il, e);
-                break;
-
-            default:
-                throw new NotSupportedException($"Unsupported base location for ref mod: {r.Base.GetType().Name}");
-        }
-
-        // Stack: [area, baseOffset]
-
-        // baseOffset + (start - 1)
-        il.Append(il.Create(OpCodes.Ldloc, startLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4_1));
-        il.Append(il.Create(OpCodes.Sub));
-        il.Append(il.Create(OpCodes.Add));
-
-        // Push length
-        il.Append(il.Create(OpCodes.Ldloc, lengthLocal));
-
-        // Stack: [area, substringOffset, substringLength]
-    }
-
-    private void EmitPicDisplay(ILProcessor il, IrPicDisplay disp)
-    {
-        // Strategy: push each operand as a string, then concat and call Console.WriteLine.
-        // For a single operand, just push it directly. For multiple, use String.Concat.
-        if (disp.Operands.Count == 0)
-        {
-            // DISPLAY with no operands: just output empty line
-            il.Append(il.Create(OpCodes.Ldstr, ""));
-        }
-        else if (disp.Operands.Count == 1)
-        {
-            EmitDisplayOperand(il, disp.Operands[0]);
-        }
-        else
-        {
-            // Create a string array, populate it, then call String.Concat(string[])
-            il.Append(il.Create(OpCodes.Ldc_I4, disp.Operands.Count));
-            il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(string))));
-
-            for (int i = 0; i < disp.Operands.Count; i++)
-            {
-                il.Append(il.Create(OpCodes.Dup)); // keep array ref
-                il.Append(il.Create(OpCodes.Ldc_I4, i));
-                EmitDisplayOperand(il, disp.Operands[i]);
-                il.Append(il.Create(OpCodes.Stelem_Ref));
-            }
-
-            var concat = _module.ImportReference(
-                typeof(string).GetMethod("Concat", new[] { typeof(string[]) })!);
-            il.Append(il.Create(OpCodes.Call, concat));
-        }
-
-        var consoleWriteLine = _module.ImportReference(
-            typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, consoleWriteLine));
-    }
-
-    private void EmitDisplayOperand(ILProcessor il, DisplayOperand operand)
-    {
-        if (operand is DisplayLiteralOperand lit)
-        {
-            il.Append(il.Create(OpCodes.Ldstr, lit.Value));
-        }
-        else if (operand is DisplayFieldOperand field)
-        {
-            // Call PicRuntime.GetDisplayString(byte[] area, int offset, int length, PicDescriptor pic)
-            EmitLocationArgsWithPic(il, field.Location);
-
-            var method = _module.ImportReference(
-                typeof(PicRuntime).GetMethod("GetDisplayString",
-                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
-            il.Append(il.Create(OpCodes.Call, method));
-        }
-    }
 
     private void EmitRuntimeCall(ILProcessor il, IrRuntimeCall rtc,
         Func<IrValue, VariableDefinition> getLocal)
@@ -4015,69 +1296,4 @@ public sealed class CilEmitter
         // Other runtime calls: NOP for now
     }
 
-    // ── Sort/Merge CIL emission ──
-
-    private void EmitSortInit(ILProcessor il, IrSortInit inst)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
-        il.Append(il.Create(OpCodes.Ldc_I4, inst.RecordLength));
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("InitSortFile",
-                new[] { typeof(string), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-    }
-
-    private void EmitSortRelease(ILProcessor il, IrSortRelease inst)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
-        EmitLocationArgs(il, inst.Record);
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("ReleaseRecord",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-    }
-
-    private void EmitSortSort(ILProcessor il, IrSortSort inst)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
-        il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("SortRecords",
-                new[] { typeof(string), typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-    }
-
-    private void EmitSortReturn(ILProcessor il, IrSortReturn inst,
-        Func<IR.IrValue, VariableDefinition> getLocal)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
-        EmitLocationArgs(il, inst.Record);
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("ReturnRecord",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-        // Store bool result
-        var local = getLocal(inst.Result!.Value);
-        il.Append(il.Create(OpCodes.Stloc, local));
-    }
-
-    private void EmitSortClose(ILProcessor il, IrSortClose inst)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("CloseSortFile",
-                new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-    }
-
-    private void EmitSortMerge(ILProcessor il, IrSortMerge inst)
-    {
-        il.Append(il.Create(OpCodes.Ldstr, inst.MergeFileName));
-        il.Append(il.Create(OpCodes.Ldstr, inst.InputFileNames));
-        il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
-        var m = _module.ImportReference(
-            typeof(Runtime.SortRuntime).GetMethod("MergeRecords",
-                new[] { typeof(string), typeof(string), typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, m));
-    }
 }
