@@ -259,13 +259,14 @@ internal sealed class CilExpressionEmitter
 
         il.Append(il.Create(pic.IsJustifiedRight ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
 
-        // Emit PicEnvironment: new PicEnvironment(currencySign, decimalPointIsComma)
+        // Emit PicEnvironment: new PicEnvironment(currencySign, currencyOutputChar, decimalPointIsComma)
         var env = pic.Environment;
         il.Append(il.Create(OpCodes.Ldc_I4, (int)env.CurrencySign));
+        il.Append(il.Create(OpCodes.Ldc_I4, (int)env.CurrencyOutputChar));
         il.Append(il.Create(env.DecimalPointIsComma ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         var envCtor = _ctx.Module.ImportReference(
             typeof(Runtime.PicEnvironment).GetConstructor(
-                new[] { typeof(char), typeof(bool) })!);
+                new[] { typeof(char), typeof(char), typeof(bool) })!);
         il.Append(il.Create(OpCodes.Newobj, envCtor));
 
         var ctor = _ctx.Module.ImportReference(

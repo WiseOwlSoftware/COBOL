@@ -141,7 +141,7 @@ public static class PicRuntime
                 // Place currency symbol before first non-space digit
                 for (int i = 0; i < chars.Length; i++)
                 {
-                    if (chars[i] != ' ') { chars[i] = pic.Environment.CurrencySign; break; }
+                    if (chars[i] != ' ') { chars[i] = pic.Environment.CurrencyOutputChar; break; }
                 }
                 break;
 
@@ -228,7 +228,7 @@ public static class PicRuntime
             if (p == currencyChar)
             {
                 if (isFixedCurrency)
-                    output[i] = env.CurrencySign;
+                    output[i] = env.CurrencyOutputChar;
                 else
                     output[i] = digitIdx >= 0 ? digits[digitIdx--] : '0';
                 continue;
@@ -433,7 +433,7 @@ public static class PicRuntime
         {
             int currencyPos = FindFloatingPlacement(pattern, output, currencyChar);
             if (currencyPos >= 0)
-                output[currencyPos] = env.CurrencySign;
+                output[currencyPos] = env.CurrencyOutputChar;
         }
 
         return new string(output);
@@ -710,7 +710,7 @@ public static class PicRuntime
                          raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
                          raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        raw = raw.Replace(",", "").Replace("$", "")
+        raw = raw.Replace(",", "").Replace(srcPic.Environment.CurrencyOutputChar.ToString(), "")
                  .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("*", "").Replace("/", "").Replace(" ", "")
@@ -750,7 +750,7 @@ public static class PicRuntime
                          raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
                          raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        raw = raw.Replace(",", "").Replace("$", "")
+        raw = raw.Replace(",", "").Replace(srcPic.Environment.CurrencyOutputChar.ToString(), "")
                  .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("*", "").Replace("/", "").Replace(" ", "")
@@ -1313,7 +1313,7 @@ public static class PicRuntime
                          raw.Contains("CR", StringComparison.OrdinalIgnoreCase) ||
                          raw.Contains("DB", StringComparison.OrdinalIgnoreCase);
 
-        raw = raw.Replace(",", "").Replace("$", "")
+        raw = raw.Replace(",", "").Replace(srcPic.Environment.CurrencyOutputChar.ToString(), "")
                  .Replace("CR", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("DB", "", StringComparison.OrdinalIgnoreCase)
                  .Replace("*", "").Replace("/", "").Replace(" ", "")

@@ -43,6 +43,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private FigurativeKind? _deferredFigurativeInit;
     private string? _deferredAllLiteralPattern;
 
+    // Screen items from SCREEN SECTION
+    private readonly List<Bound.BoundScreenItem> _screenItems = [];
+    public IReadOnlyList<Bound.BoundScreenItem> ScreenItems => _screenItems;
+
     // Extension clauses captured during parsing (vendor extensions, unrecognized clauses)
     private readonly List<ExtensionClauseNode> _extensionClauses = [];
     public IReadOnlyList<ExtensionClauseNode> ExtensionClauses => _extensionClauses;
@@ -212,6 +216,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // ── SPECIAL-NAMES ──
 
     private char _currencySign = '$';
+    private char _currencyOutputChar = '$';
     private bool _decimalPointIsComma = false;
     private readonly List<ImplementorSwitch> _implementorSwitches = [];
     private readonly List<ClassDefinition> _classDefinitions = [];
@@ -220,6 +225,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private string? _programCollatingSequenceAlphabetName = null;
 
     public char CurrencySign => _currencySign;
+    public char CurrencyOutputChar => _currencyOutputChar;
     public bool DecimalPointIsComma => _decimalPointIsComma;
     public IReadOnlyList<ImplementorSwitch> ImplementorSwitches => _implementorSwitches;
     public IReadOnlyList<ClassDefinition> ClassDefinitions => _classDefinitions;
@@ -231,16 +237,60 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         foreach (var entry in ctx.specialNameEntry())
         {
-            // CURRENCY SIGN IS "W"
+            // CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
             if (entry.currencySignClause() is { } currClause)
             {
-                var lit = currClause.literal();
-                var nonNum = lit?.nonNumericLiteral();
-                if (nonNum?.STRINGLIT() is { } slit)
+                var literals = currClause.literal();
+                // literal-7: the currency string (output char)
+                if (literals.Length >= 1)
                 {
-                    var text = slit.GetText();
-                    if (text.Length >= 3)
-                        _currencySign = text[1];
+                    var nonNum = literals[0].nonNumericLiteral();
+                    if (nonNum?.STRINGLIT() is { } slit)
+                    {
+                        var text = slit.GetText();
+                        if (text.Length >= 3)
+                        {
+                            char lit7 = text[1];
+                            _currencySign = lit7;
+                            _currencyOutputChar = lit7;
+                        }
+                    }
+                }
+
+                // WITH PICTURE SYMBOL literal-8 (optional)
+                if (currClause.PIC_STRING() is { } picStr)
+                {
+                    // Validate PIC_STRING == "SYMBOL"
+                    if (!string.Equals(picStr.GetText(), "SYMBOL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Error(currClause, $"Expected SYMBOL after WITH PICTURE, got '{picStr.GetText()}'");
+                    }
+                    else if (literals.Length >= 2)
+                    {
+                        // literal-8: the PIC symbol
+                        var nonNum8 = literals[1].nonNumericLiteral();
+                        if (nonNum8?.STRINGLIT() is { } slit8)
+                        {
+                            var text8 = slit8.GetText();
+                            if (text8.Length >= 3)
+                            {
+                                char lit8 = text8[1];
+                                // Validate: literal-8 must not be digit, letter, or space
+                                if (char.IsDigit(lit8))
+                                    Error(currClause, "Currency symbol cannot be a digit");
+                                else if (char.IsLetter(lit8))
+                                    Error(currClause, "Currency symbol cannot be an alphabetic letter");
+                                else if (lit8 == ' ')
+                                    Error(currClause, "Currency symbol cannot be a space");
+                                else
+                                {
+                                    // literal-8 = PIC symbol, literal-7 = output char
+                                    _currencySign = lit8;
+                                    // _currencyOutputChar stays as literal-7 (already set above)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1013,7 +1063,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         // Resolve PIC/USAGE → ITypeSymbol
         var diagBag = new DiagnosticBag();
-        var picEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
+        var picEnv = new Runtime.PicEnvironment(_currencySign, _currencyOutputChar, _decimalPointIsComma);
         data.ResolvedType = PicUsageResolver.ResolveForDataItem(
             displayName, picString, usage, diagBag, line, blankWhenZero, picEnv);
         foreach (var d in diagBag.Diagnostics)
@@ -1087,7 +1137,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         indexSym.Area = _currentArea;
                         // Resolve PIC for the INDEX item so it gets proper storage layout
                         var idxDiagBag = new DiagnosticBag();
-                        var idxPicEnv = new Runtime.PicEnvironment(_currencySign, _decimalPointIsComma);
+                        var idxPicEnv = new Runtime.PicEnvironment(_currencySign, _currencyOutputChar, _decimalPointIsComma);
                         indexSym.ResolvedType = PicUsageResolver.ResolveForDataItem(
                             indexName, "S9(9)", Runtime.UsageKind.Comp, idxDiagBag, ctx.Start.Line, false, idxPicEnv);
                         _dataItemsInOrder.Add(indexSym);
@@ -1476,5 +1526,131 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
         return base.VisitIoControlEntry(ctx);
+    }
+
+    // ── SCREEN SECTION ──
+
+    public override object? VisitScreenSection(CobolParserCore.ScreenSectionContext ctx)
+    {
+        var rootItems = new List<Bound.BoundScreenItem>();
+        var stack = new Stack<Bound.BoundScreenItem>();
+
+        foreach (var entryCtx in ctx.screenDescriptionEntry())
+        {
+            var levelText = entryCtx.levelNumber()?.GetText();
+            if (!int.TryParse(levelText, out int level))
+                continue;
+
+            var name = entryCtx.screenName()?.GetText();
+            if (string.Equals(name, "FILLER", StringComparison.OrdinalIgnoreCase))
+                name = null;
+
+            var item = new Bound.BoundScreenItem { Name = name, Level = level };
+
+            // Parse screen clauses
+            if (entryCtx.screenDescriptionBody() is { } body)
+            {
+                foreach (var clause in body.screenClause())
+                {
+                    if (clause.screenLineClause() is { } lineClause)
+                    {
+                        bool isPlus = lineClause.PLUS() != null;
+                        int val = 1;
+                        if (lineClause.integerLiteral() is { } intLit)
+                            int.TryParse(intLit.GetText(), out val);
+                        item.Line = new Bound.ScreenPosition(isPlus, val);
+                    }
+                    else if (clause.screenColumnClause() is { } colClause)
+                    {
+                        bool isPlus = colClause.PLUS() != null;
+                        int val = 1;
+                        if (colClause.integerLiteral() is { } intLit)
+                            int.TryParse(intLit.GetText(), out val);
+                        item.Column = new Bound.ScreenPosition(isPlus, val);
+                    }
+                    else if (clause.screenBlankClause() is { } blankClause)
+                    {
+                        if (blankClause.SCREEN() != null)
+                            item.BlankScreen = true;
+                        else if (blankClause.LINE() != null)
+                            item.BlankLine = true;
+                    }
+                    else if (clause.screenEraseClause() is { } eraseClause)
+                    {
+                        if (eraseClause.EOL() != null)
+                            item.EraseEol = true;
+                        else if (eraseClause.EOS() != null)
+                            item.EraseEos = true;
+                    }
+                    else if (clause.screenBellClause() != null) item.Bell = true;
+                    else if (clause.screenBlinkClause() != null) item.Blink = true;
+                    else if (clause.screenHighlightClause() != null) item.Highlight = true;
+                    else if (clause.screenLowlightClause() != null) item.Lowlight = true;
+                    else if (clause.screenReverseVideoClause() != null) item.ReverseVideo = true;
+                    else if (clause.screenUnderlineClause() != null) item.Underline = true;
+                    else if (clause.screenAutoClause() != null) item.Auto = true;
+                    else if (clause.screenSecureClause() != null) item.Secure = true;
+                    else if (clause.screenFullClause() != null) item.Full = true;
+                    else if (clause.screenRequiredClause() != null) item.Required = true;
+                    else if (clause.screenForegroundColorClause() is { } fgClause)
+                    {
+                        if (fgClause.integerLiteral() is { } intLit && int.TryParse(intLit.GetText(), out int fg))
+                            item.ForegroundColor = fg;
+                    }
+                    else if (clause.screenBackgroundColorClause() is { } bgClause)
+                    {
+                        if (bgClause.integerLiteral() is { } intLit && int.TryParse(intLit.GetText(), out int bg))
+                            item.BackgroundColor = bg;
+                    }
+                    else if (clause.pictureClause() is { } picClause)
+                    {
+                        item.PicString = picClause.PIC_STRING()?.GetText();
+                    }
+                    else if (clause.screenFromClause() is { } fromClause)
+                    {
+                        item.FromSource = fromClause.dataReference()?.GetText()
+                                          ?? fromClause.literal()?.GetText();
+                    }
+                    else if (clause.screenToClause() is { } toClause)
+                    {
+                        item.ToTarget = toClause.dataReference()?.GetText();
+                    }
+                    else if (clause.screenUsingClause() is { } usingClause)
+                    {
+                        item.UsingField = usingClause.dataReference()?.GetText();
+                    }
+                    else if (clause.valueClause() is { } valClause)
+                    {
+                        var valItems = valClause.valueItem();
+                        if (valItems.Length > 0)
+                        {
+                            var operands = valItems[0].valueClauseOperand();
+                            if (operands != null && operands.Length > 0)
+                                item.Value = operands[0].GetText();
+                        }
+                    }
+                }
+
+                // Validate mutual exclusivity
+                if (item.Highlight && item.Lowlight)
+                    Error(entryCtx, "HIGHLIGHT and LOWLIGHT are mutually exclusive");
+                if (item.UsingField != null && (item.FromSource != null || item.ToTarget != null))
+                    Error(entryCtx, "USING cannot be combined with FROM or TO");
+            }
+
+            // Build hierarchy using level numbers (same pattern as data items)
+            while (stack.Count > 0 && stack.Peek().Level >= level)
+                stack.Pop();
+
+            if (stack.Count > 0)
+                stack.Peek().AddChild(item);
+            else
+                rootItems.Add(item);
+
+            stack.Push(item);
+        }
+
+        _screenItems.AddRange(rootItems);
+        return null;
     }
 }

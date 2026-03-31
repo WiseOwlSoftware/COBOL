@@ -23,8 +23,19 @@ public sealed class SemanticModel
     /// </summary>
     public Runtime.PicEnvironment PicEnvironment { get; private set; } = Runtime.PicEnvironment.Default;
 
-    public void SetPicEnvironment(char currencySign, bool decimalPointIsComma)
-        => PicEnvironment = new Runtime.PicEnvironment(currencySign, decimalPointIsComma);
+    public void SetPicEnvironment(char currencySign, char currencyOutputChar, bool decimalPointIsComma)
+        => PicEnvironment = new Runtime.PicEnvironment(currencySign, currencyOutputChar, decimalPointIsComma);
+
+    // ── Screen items from SCREEN SECTION ──
+
+    private readonly List<Bound.BoundScreenItem> _screenItems = [];
+    public IReadOnlyList<Bound.BoundScreenItem> ScreenItems => _screenItems;
+
+    internal void RegisterScreenItems(IEnumerable<Bound.BoundScreenItem> items)
+    {
+        foreach (var item in items)
+            _screenItems.Add(item);
+    }
 
     // ── Implementor switches from SPECIAL-NAMES ──
 

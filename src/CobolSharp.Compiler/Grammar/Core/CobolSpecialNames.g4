@@ -44,10 +44,11 @@ switchOffClause
     ;
 
 // CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
-// Note: PICTURE lexes as PIC (pushes PICMODE); full WITH PICTURE SYMBOL
-// support requires lexer changes. For now, the optional phrase is omitted.
+// PICMODE exploit: PICTURE triggers PIC token + pushes PICMODE, which captures
+// "SYMBOL" as PIC_STRING. Parser sees: WITH PIC PIC_STRING literal.
+// Semantic validation ensures PIC_STRING == "SYMBOL".
 currencySignClause
-    : CURRENCY SIGN? IS? literal
+    : CURRENCY SIGN? IS? literal (WITH PIC PIC_STRING literal)?
     ;
 
 decimalPointClause

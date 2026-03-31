@@ -13,7 +13,7 @@ options {
 // completely disjoint grammar rules — zero ambiguity.
 tokens { ZERO_ARITH }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml, CobolScreen;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -27,6 +27,22 @@ cobolWord
     | LENGTH       // context: START WITH LENGTH, FUNCTION LENGTH
     | NATIONAL     // context: FOR NATIONAL
     | NORMAL       // context: STOP RUN WITH NORMAL
+    // Screen-related tokens that may be used as data names in non-screen contexts
+    | AUTO
+    | BELL
+    | BLINK
+    | COL
+    | COLUMN
+    | EOL
+    | EOS
+    | ERASE
+    | FULL_
+    | HIGHLIGHT
+    | LOWLIGHT
+    | REQUIRED
+    | SCREEN
+    | SECURE
+    | UNDERLINE_
     ;
 
 // ==========================================

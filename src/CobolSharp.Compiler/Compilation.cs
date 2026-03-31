@@ -206,7 +206,7 @@ public sealed class Compilation
             semanticBuilder.Symbols,
             diagnostics);
 
-        model.SetPicEnvironment(semanticBuilder.CurrencySign, semanticBuilder.DecimalPointIsComma);
+        model.SetPicEnvironment(semanticBuilder.CurrencySign, semanticBuilder.CurrencyOutputChar, semanticBuilder.DecimalPointIsComma);
 
         foreach (var sw in semanticBuilder.ImplementorSwitches)
             model.RegisterImplementorSwitch(sw);
@@ -230,6 +230,9 @@ public sealed class Compilation
 
         foreach (var ext in semanticBuilder.ExtensionClauses)
             model.AddExtensionClause(ext);
+
+        if (semanticBuilder.ScreenItems.Count > 0)
+            model.RegisterScreenItems(semanticBuilder.ScreenItems);
 
         // Populate procedure symbols
         foreach (var sym in semanticBuilder.Symbols.Program.ProcedureDivisionScope.Symbols.Values)

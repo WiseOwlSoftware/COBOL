@@ -2294,5 +2294,149 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitInlineMethodInvocationStatement([NotNull] CobolParserCore.InlineMethodInvocationStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenSection([NotNull] CobolParserCore.ScreenSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenDescriptionEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenDescriptionEntry([NotNull] CobolParserCore.ScreenDescriptionEntryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenName([NotNull] CobolParserCore.ScreenNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenDescriptionBody"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenDescriptionBody([NotNull] CobolParserCore.ScreenDescriptionBodyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenClause([NotNull] CobolParserCore.ScreenClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenLineClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenLineClause([NotNull] CobolParserCore.ScreenLineClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenColumnClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenColumnClause([NotNull] CobolParserCore.ScreenColumnClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenBlankClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenBlankClause([NotNull] CobolParserCore.ScreenBlankClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenEraseClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenEraseClause([NotNull] CobolParserCore.ScreenEraseClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenBellClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenBellClause([NotNull] CobolParserCore.ScreenBellClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenBlinkClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenBlinkClause([NotNull] CobolParserCore.ScreenBlinkClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenHighlightClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenHighlightClause([NotNull] CobolParserCore.ScreenHighlightClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenLowlightClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenLowlightClause([NotNull] CobolParserCore.ScreenLowlightClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenReverseVideoClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenReverseVideoClause([NotNull] CobolParserCore.ScreenReverseVideoClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenUnderlineClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenUnderlineClause([NotNull] CobolParserCore.ScreenUnderlineClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenForegroundColorClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenForegroundColorClause([NotNull] CobolParserCore.ScreenForegroundColorClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenBackgroundColorClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenBackgroundColorClause([NotNull] CobolParserCore.ScreenBackgroundColorClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenAutoClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenAutoClause([NotNull] CobolParserCore.ScreenAutoClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenSecureClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenSecureClause([NotNull] CobolParserCore.ScreenSecureClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenFullClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenFullClause([NotNull] CobolParserCore.ScreenFullClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenRequiredClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenRequiredClause([NotNull] CobolParserCore.ScreenRequiredClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenFromClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenFromClause([NotNull] CobolParserCore.ScreenFromClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenToClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenToClause([NotNull] CobolParserCore.ScreenToClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.screenUsingClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitScreenUsingClause([NotNull] CobolParserCore.ScreenUsingClauseContext context);
 }
 } // namespace CobolSharp.Compiler.Generated

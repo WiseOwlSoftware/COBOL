@@ -9,8 +9,38 @@ options {
 
 @members {
     // Track the type of the last non-WS token emitted, for subscript mode detection.
-    // When '(' follows an IDENTIFIER, we push to SUBSCRIPT mode.
     private int _lastNonWsTokenType = -1;
+
+    // SUBSCRIPT MODE TRIGGER: whitelist approach.
+    //
+    // In COBOL, '(' after a data-name means subscript/reference-modification.
+    // '(' after anything else means arithmetic grouping (e.g., IF (A + B) > C).
+    //
+    // This set contains IDENTIFIER plus every context-sensitive keyword that can
+    // appear as a user-defined data-name. It MUST mirror the parser's cobolWord
+    // rule in CobolParserCore.g4. When adding a token to cobolWord, add it here.
+    //
+    // Safe failure mode: if a token is missing from this set, the parser gets
+    // LPAREN/RPAREN (arithmetic) instead of SUBSCRIPT-mode tokens, producing a
+    // clear parse error on the first subscripted use. Easy to diagnose and fix.
+    //
+    // Why whitelist over blacklist: the data-name set is small (~20 tokens) and
+    // stable. The non-data-name set is large (~200 tokens) and any omission
+    // causes silent wrong behavior. Whitelist matches COBOL semantics exactly.
+    private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new() {
+        IDENTIFIER,
+        // Context-sensitive keywords (mirrors cobolWord in CobolParserCore.g4):
+        LENGTH, NATIONAL, NORMAL,
+        // Intrinsic function names that collide with reserved words
+        // (mirrors functionName in CobolExpressions.g4):
+        DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
+        // Screen-related tokens usable as data names:
+        AUTO, BELL, BLINK, COL, COLUMN, EOL, EOS, ERASE,
+        FULL_, HIGHLIGHT, LOWLIGHT, REQUIRED, SCREEN, SECURE, UNDERLINE_,
+    };
+
+    private bool PreviousTokenCouldBeDataName()
+        => _dataNameTokens.Contains(_lastNonWsTokenType);
 
     public override Antlr4.Runtime.IToken NextToken()
     {
@@ -81,6 +111,9 @@ I_O             : 'I-O' ;
 PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
 // BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
+REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
+FOREGROUND_COLOR: 'FOREGROUND-COLOR' ;
+BACKGROUND_COLOR: 'BACKGROUND-COLOR' ;
 
 // ── Division/section keywords ──
 
@@ -91,6 +124,7 @@ ENVIRONMENT : 'ENVIRONMENT' ;
 DATA        : 'DATA' ;
 PROCEDURE   : 'PROCEDURE' ;
 REPORT      : 'REPORT' ;
+SCREEN      : 'SCREEN' ;
 SECTION     : 'SECTION' ;
 LINKAGE     : 'LINKAGE' ;
 INPUT_OUTPUT : 'INPUT-OUTPUT' ;
@@ -167,8 +201,11 @@ ASCENDING   : 'ASCENDING' ;
 ASSIGN      : 'ASSIGN' ;
 ARE         : 'ARE' ;
 AT          : 'AT' ;
+AUTO        : 'AUTO' ;
 AUTHOR      : 'AUTHOR' ;
 BEFORE      : 'BEFORE' ;
+BELL        : 'BELL' ;
+BLINK       : 'BLINK' ;
 BINARY      : 'BINARY' ;
 BLANK       : 'BLANK' ;
 BLOCK       : 'BLOCK' ;
@@ -181,6 +218,8 @@ CHARACTERS  : 'CHARACTERS' ;
 CLASS       : 'CLASS' ;
 CODE        : 'CODE' ;
 CODE_SET    : 'CODE-SET' ;
+COL         : 'COL' ;
+COLUMN      : 'COLUMN' ;
 COLLATING   : 'COLLATING' ;
 COMMON      : 'COMMON' ;
 COMP        : 'COMP' ;
@@ -221,6 +260,9 @@ DYNAMIC     : 'DYNAMIC' ;
 EDITED      : 'EDITED' ;
 ELSE        : 'ELSE' ;
 END         : 'END' ;
+EOL         : 'EOL' ;
+EOS         : 'EOS' ;
+ERASE       : 'ERASE' ;
 ENTRY       : 'ENTRY' ;
 EQUAL       : 'EQUAL' ;
 ERROR       : 'ERROR' ;
@@ -234,12 +276,15 @@ FALSE_      : 'FALSE' ;
 FILE        : 'FILE' ;
 FILLER      : 'FILLER' ;
 FINAL       : 'FINAL' ;
+FULL_       : 'FULL' ;
 POSITIVE    : 'POSITIVE' ;
 NEGATIVE    : 'NEGATIVE' ;
+REQUIRED    : 'REQUIRED' ;
 RESERVE     : 'RESERVE' ;
 FROM        : 'FROM' ;
 FUNCTION    : 'FUNCTION' ;
 HEADING     : 'HEADING' ;
+HIGHLIGHT   : 'HIGHLIGHT' ;
 INDICATE    : 'INDICATE' ;
 LABEL       : 'LABEL' ;
 LAST        : 'LAST' ;
@@ -283,6 +328,7 @@ LESS        : 'LESS' ;
 LINE        : 'LINE' ;
 LINES       : 'LINES' ;
 LOCK        : 'LOCK' ;
+LOWLIGHT    : 'LOWLIGHT' ;
 METHOD      : 'METHOD' ;
 MODE        : 'MODE' ;
 NATIONAL    : 'NATIONAL' ;
@@ -341,6 +387,7 @@ ROUNDED     : 'ROUNDED' ;
 RIGHT       : 'RIGHT' ;
 RUN         : 'RUN' ;
 SAME        : 'SAME' ;
+SECURE      : 'SECURE' ;
 SECURITY    : 'SECURITY' ;
 SELECT      : 'SELECT' ;
 SELF        : 'SELF' ;
@@ -370,6 +417,7 @@ TRAILING    : 'TRAILING' ;
 TRUE_       : 'TRUE' ;
 TYPE        : 'TYPE' ;
 TYPEDEF     : 'TYPEDEF' ;
+UNDERLINE_  : 'UNDERLINE' ;
 UNIT        : 'UNIT' ;
 UNTIL       : 'UNTIL' ;
 UP          : 'UP' ;
@@ -429,17 +477,7 @@ DOT         : '.' ;
 // Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
 COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
 COMMA       : ',' ;
-LPAREN      : '(' { if (_lastNonWsTokenType == IDENTIFIER
-                          || _lastNonWsTokenType == DISPLAY
-                          || _lastNonWsTokenType == LENGTH
-                          || _lastNonWsTokenType == MERGE
-                          || _lastNonWsTokenType == NATIONAL
-                          || _lastNonWsTokenType == NORMAL
-                          || _lastNonWsTokenType == RANDOM
-                          || _lastNonWsTokenType == SIGN
-                          || _lastNonWsTokenType == SORT
-                          || _lastNonWsTokenType == SUM)
-                         PushMode(SUBSCRIPT); } ;
+LPAREN      : '(' { if (PreviousTokenCouldBeDataName()) PushMode(SUBSCRIPT); } ;
 RPAREN      : ')' ;
 LT          : '<' ;
 GT          : '>' ;

@@ -6,7 +6,65 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
-## Entry 174 — 2026-03-30: ANTLR Review Fixes — cobolWord propagation + dialect gates
+## Entry 176 — 2026-03-31: LPAREN Subscript Trigger Refactor — whitelist HashSet
+
+Production-quality refactor of the LPAREN subscript mode trigger mechanism.
+
+**Problem**: Every new keyword token required updating TWO places: the parser's cobolWord
+rule AND an ever-growing chain of || conditions in the LPAREN lexer action. Adding 16
+screen-related tokens made this untenable.
+
+**Failed approach**: Blacklist (list tokens that are NOT data names). Failed because:
+(1) SUB_RPAREN omission broke reference modification `ITEM(2)(2:2)`, (2) statement
+keywords like IF, EVALUATE incorrectly triggered subscript mode on `IF (condition)`,
+causing 5 NIST regressions.
+
+**Expert analysis**: ANTLR expert and COBOL expert agents independently analyzed the
+problem. ANTLR expert recommended whitelist (small set, safe failure mode). COBOL expert
+identified 12 statement keywords that need blacklisting if using blacklist. Whitelist won:
+19 tokens to maintain vs 200+, and forgetting a whitelist entry = safe parse error vs
+forgetting a blacklist entry = silent wrong behavior.
+
+**Solution**: `_dataNameTokens` HashSet in lexer @members containing IDENTIFIER + all
+cobolWord tokens + functionName tokens. `PreviousTokenCouldBeDataName()` does a single
+`Contains()` call. LPAREN action: `if (PreviousTokenCouldBeDataName()) PushMode(SUBSCRIPT)`.
+Clear comment documenting that `_dataNameTokens` mirrors cobolWord + functionName.
+
+Regression: 922 unit + 329 integration + 95 NIST = 0 failures.
+
+---
+
+## Entry 175 — 2026-03-31: Batch 3 Implementation — M407 + M411
+
+**M407 (CURRENCY SIGN WITH PICTURE SYMBOL)**: Implemented the PICMODE exploit design.
+`WITH PICTURE SYMBOL` triggers the lexer's PICMODE, which captures "SYMBOL" as PIC_STRING.
+Parser sees `WITH PIC PIC_STRING literal`. SemanticBuilder validates PIC_STRING == "SYMBOL",
+extracts literal-7 as CurrencyOutputChar and literal-8 as CurrencySign. PicEnvironment
+gained CurrencyOutputChar field. PicRuntime output placements (3 sites) changed to use
+CurrencyOutputChar. De-editing paths (3 sites) changed to strip CurrencyOutputChar instead
+of hardcoded "$". CIL emission updated for 3-param PicEnvironment ctor. Diagnostics for
+invalid literal-7/literal-8 characters. 6 integration tests: fixed/floating custom currency,
+BLANK WHEN ZERO, explicit dollar, decoupled symbol/output.
+
+**M411 (SCREEN SECTION)**: Grammar island implemented. 17 new lexer tokens (SCREEN, COL,
+COLUMN, BELL, BLINK, HIGHLIGHT, LOWLIGHT, REVERSE-VIDEO, UNDERLINE, FOREGROUND-COLOR,
+BACKGROUND-COLOR, SECURE, AUTO, FULL, ERASE, REQUIRED, EOL, EOS). New CobolScreen.g4
+parser fragment with screenSection, screenDescriptionEntry, and ~15 clause rules. Reuses
+existing pictureClause, valueClause, blankWhenZeroClause, etc. BoundScreenItem class with
+all fields (position, attributes, data binding, hierarchy). SemanticBuilder.VisitScreenSection
+builds screen item tree with level-number stack pattern, validates mutual exclusivity
+(HIGHLIGHT vs LOWLIGHT, USING vs FROM+TO). SemanticModel.ScreenItems property. 12 integration
+tests: empty section, VALUE+LINE+COL, PIC+USING, PIC+FROM+TO, all attributes, colors,
+LINE PLUS/COL PLUS, BLANK SCREEN, ERASE EOL/EOS, SECURE+REQUIRED, nested levels, AUTO+FULL.
+
+All screen-related tokens added to cobolWord for keyword shadowing mitigation. LPAREN
+trigger refactored to use HashSet whitelist (see Entry 176).
+
+Regression: 922 unit + 329 integration + 95 NIST = 0 failures.
+
+---
+
+
 
 ANTLR grammar review agent found 14 warnings and 6 notes. All addressed:
 
