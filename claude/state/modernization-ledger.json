@@ -1122,7 +1122,7 @@
       "severity": "P1",
       "subsystem": "Grammar",
       "status": "in-progress",
-      "description": "Grammar audit verified 2026-03-30. Original 138 gaps, ~102 fixed at session start. Batch 1 closed 7 REJECT gaps (29 remaining). Batch 2 closed 3 REJECT gaps (26 remaining). ANTLR review completed: 14 cobolWord propagation fixes, 4 dialect gates, dialect wiring. Remaining REJECT gaps: M407 (CURRENCY SIGN WITH PICTURE SYMBOL), M411 (SCREEN SECTION). 15 OVERLENIENT gaps (P3). 9 SEMANTIC-ONLY gaps (M302/M304/M310).",
+      "description": "Grammar audit verified 2026-03-30. Original 138 gaps, ~102 fixed at session start. Batch 1 closed 7 REJECT gaps. Batch 2 closed 3 REJECT gaps. ANTLR review completed. Batch 3 DESIGN COMPLETE for remaining 2 REJECT gaps (M407, M411) — implementation pending. 15 OVERLENIENT gaps (P3). 9 SEMANTIC-ONLY gaps (M302/M304/M310). 5 new sub-gaps discovered during Batch 3 design (M429-M433).",
       "deliverables": [
         "Close all 12 REJECT gaps (M400-M411)",
         "Close all 15 OVERLENIENT gaps (M412-M426)",
@@ -1337,6 +1337,20 @@
         "sub_gaps_discovered": [
           "M427",
           "M428"
+        ],
+        "batch_3_design_completed": "2026-03-30",
+        "batch_3_design_docs": [
+          "docs/M407-currency-sign-picmode-refactor.md",
+          "docs/M411-screen-section-grammar-island.md",
+          "docs/batch3-architectural-summary.md"
+        ],
+        "batch_3_implementation_status": "pending",
+        "batch_3_sub_gaps_discovered": [
+          "M429",
+          "M430",
+          "M431",
+          "M432",
+          "M433"
         ],
         "architectural_changes": {
           "cobolWord_rule": "Centralized IDENTIFIER + LENGTH/NATIONAL/NORMAL; propagated to dataReference, qualification, programName, procedureName, fileName, computerName, dataName + 17 secondary positions",
@@ -3899,27 +3913,39 @@
       "title": "CURRENCY SIGN WITH PICTURE SYMBOL",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "CURRENCY SIGN IS literal WITH PICTURE SYMBOL literal phrase is missing from CobolSpecialNames.g4 per §12.3.7.1. Explicitly noted as omitted in code comment at CobolSpecialNames.g4:47-48. Blocked by PICMODE lexer architecture — the lexer pushes a special mode when PIC keyword is detected, preventing complex phrase parsing in environment clauses.",
+      "status": "design-complete",
+      "description": "CURRENCY SIGN IS literal WITH PICTURE SYMBOL literal phrase. Design complete: exploits existing PICMODE to capture SYMBOL as PIC_STRING token (zero lexer changes). PicEnvironment gains CurrencyOutputChar to decouple PIC symbol from output character. 8 files touched, 0 new files. See docs/M407-currency-sign-picmode-refactor.md.",
       "deliverables": [
-        "Refactor PICMODE lexer handling to allow post-PIC-string clauses",
-        "Add CURRENCY SIGN WITH PICTURE SYMBOL grammar rule",
-        "Add parser and integration tests for multi-currency programs"
+        "Design document (COMPLETE): docs/M407-currency-sign-picmode-refactor.md",
+        "Grammar change: currencySignClause WITH PIC PIC_STRING literal (PENDING)",
+        "Runtime change: PicEnvironment.CurrencyOutputChar, PicRuntime output sites (PENDING)",
+        "Binder change: SemanticBuilder, SemanticModel, Compilation passthrough (PENDING)",
+        "CIL change: CilExpressionEmitter PicEnvironment ctor (PENDING)",
+        "Tests: 19 new (4 parser, 2 negative, 5 binder, 5 runtime, 3 integration) (PENDING)"
       ],
       "risks": [
-        "PICMODE lexer refactoring may break existing PIC string parsing",
-        "Financial/currency programs produce incorrect formatted output without this"
+        "CIL ctor signature change requires simultaneous PicEnvironment + CilExpressionEmitter update",
+        "PICMODE exploit depends on PIC_STRING matching 'SYMBOL' — verify with ANTLR test"
       ],
       "test_impact": [
-        "Parser unit tests",
-        "NumericEdited integration tests"
+        "Parser tests: 4 positive + 2 negative",
+        "Binder tests: 5 (CurrencySign/CurrencyOutputChar validation)",
+        "Runtime formatting tests: 5 (fixed/floating/suppression/blank/default)",
+        "Integration tests: 3 (end-to-end compile + run with custom currency)"
       ],
       "dependencies": [
         "M300",
         "M301"
       ],
       "batch": 3,
-      "complexity": "large"
+      "complexity": "large",
+      "evidence": {
+        "design_doc": "docs/M407-currency-sign-picmode-refactor.md",
+        "design_date": "2026-03-30",
+        "design_review": "Approved by Brent — 'Production-quality design'",
+        "implementation_status": "pending"
+      },
+      "notes": "Ready for implementation; no grammar or runtime changes applied yet."
     },
     {
       "id": "M408",
@@ -4009,28 +4035,38 @@
       "title": "SCREEN SECTION",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "SCREEN SECTION is completely missing from CobolData.g4 per §13.4. This is an entire grammar section with its own data description entries, ACCEPT/DISPLAY semantics, and screen field attributes (BLANK, BELL, BLINK, HIGHLIGHT, etc.).",
+      "status": "design-complete",
+      "description": "SCREEN SECTION grammar island. Design complete: new CobolScreen.g4 parser fragment, 16 new lexer tokens, BoundScreenItem/BoundScreenSection binder model, ACCEPT/DISPLAY disambiguation via semantic layer (no grammar change needed). Dialect gating: Option A (always enabled). Runtime I/O intentionally deferred. See docs/M411-screen-section-grammar-island.md.",
       "deliverables": [
-        "Add screenSection grammar rules to CobolData.g4",
-        "Add screen data description entries with all attributes",
-        "Add parser unit tests for screen definitions",
-        "Semantic layer: screen field binding and validation"
+        "Design document (COMPLETE): docs/M411-screen-section-grammar-island.md",
+        "Lexer tokens: 16 new (SCREEN, COL, BELL, BLINK, etc.) (PENDING)",
+        "Grammar: CobolScreen.g4 new file + CobolData.g4 screenSection (PENDING)",
+        "Binder: BoundScreenItem, BoundScreenSection (PENDING)",
+        "Semantic: VisitScreenSection, validation rules, name resolution (PENDING)",
+        "Tests: 23 new (12 parser, 2 negative, 6 binder, 3 integration) (PENDING)"
       ],
       "risks": [
-        "Large scope — entire new section with ~20 clauses",
-        "Requires ACCEPT/DISPLAY statement extensions for screen I/O",
-        "Runtime must support terminal interaction (may need Console abstraction)"
+        "16 new lexer tokens may shadow IDENTIFIER in existing programs (SCREEN, AUTO, FULL, SECURE)",
+        "Hyphenated tokens (REVERSE-VIDEO, FOREGROUND-COLOR, BACKGROUND-COLOR) require careful ordering before IDENTIFIER",
+        "Large scope — grammar island with ~25 new parser rules"
       ],
       "test_impact": [
-        "Parser unit tests",
-        "New screen I/O integration tests"
+        "Parser tests: 12 positive + 2 negative",
+        "Binder tests: 6 (tree structure, FROM/TO/USING resolution, mutual exclusivity)",
+        "Integration tests: 3 (compile with SCREEN SECTION, ACCEPT, DISPLAY)"
       ],
       "dependencies": [
         "M300"
       ],
       "batch": 3,
-      "complexity": "large"
+      "complexity": "large",
+      "evidence": {
+        "design_doc": "docs/M411-screen-section-grammar-island.md",
+        "design_date": "2026-03-30",
+        "design_review": "Approved by Brent — 'Very strong design for a complex feature'",
+        "implementation_status": "pending"
+      },
+      "notes": "Grammar island design complete; runtime I/O intentionally deferred."
     },
     {
       "id": "M412",
@@ -4389,6 +4425,117 @@
       ],
       "dependencies": [
         "M408"
+      ]
+    },
+    {
+      "id": "M429",
+      "title": "Screen I/O runtime — ACCEPT/DISPLAY screen rendering",
+      "severity": "P2",
+      "subsystem": "Runtime",
+      "status": "open",
+      "description": "M411 provides grammar + semantics for SCREEN SECTION, but terminal rendering (cursor positioning, attribute application, input field handling) is not implemented. Requires a Console/terminal abstraction layer.",
+      "deliverables": [
+        "Terminal abstraction interface",
+        "Screen rendering engine",
+        "ACCEPT screen input handler",
+        "DISPLAY screen output handler"
+      ],
+      "risks": [
+        "Platform-specific terminal behavior (Windows vs Unix)",
+        "Requires cursor addressing and attribute control"
+      ],
+      "test_impact": [
+        "Screen I/O integration tests",
+        "Manual visual verification needed"
+      ],
+      "dependencies": [
+        "M411"
+      ]
+    },
+    {
+      "id": "M430",
+      "title": "CRT STATUS data item handling",
+      "severity": "P3",
+      "subsystem": "Runtime / Semantics",
+      "status": "open",
+      "description": "SPECIAL-NAMES CRT STATUS clause specifies a data item updated during ACCEPT screen execution per ISO §9.2.3. Currently parsed but not wired to runtime.",
+      "deliverables": [
+        "Wire CRT STATUS data item to screen ACCEPT",
+        "Set status codes per spec"
+      ],
+      "risks": [
+        "Requires M429 (screen runtime) first"
+      ],
+      "test_impact": [
+        "CRT STATUS integration tests"
+      ],
+      "dependencies": [
+        "M429"
+      ]
+    },
+    {
+      "id": "M431",
+      "title": "CURSOR clause runtime wiring",
+      "severity": "P3",
+      "subsystem": "Runtime / Semantics",
+      "status": "open",
+      "description": "SPECIAL-NAMES CURSOR clause specifies cursor position at ACCEPT start and is updated with line/column at ACCEPT termination. Currently parsed but not wired to runtime.",
+      "deliverables": [
+        "Wire CURSOR data item to screen ACCEPT",
+        "Read initial position, update on termination"
+      ],
+      "risks": [
+        "Requires M429 (screen runtime) first"
+      ],
+      "test_impact": [
+        "CURSOR position integration tests"
+      ],
+      "dependencies": [
+        "M429"
+      ]
+    },
+    {
+      "id": "M432",
+      "title": "Multi-character currency strings (COBOL-2002+)",
+      "severity": "P3",
+      "subsystem": "Runtime / Grammar",
+      "status": "open",
+      "description": "M407 handles single-character currency for COBOL-85. COBOL-2002+ allows multi-character currency strings (e.g., 'EUR '). PicRuntime.FormatByEditPattern operates character-by-character and would need pattern expansion changes for multi-char output.",
+      "deliverables": [
+        "Extend PicEnvironment.CurrencyString to support multi-char",
+        "Update PicRuntime pattern expansion for variable-width currency",
+        "Gate behind is2002()"
+      ],
+      "risks": [
+        "Pattern expansion complexity for variable-width insertions"
+      ],
+      "test_impact": [
+        "Multi-char currency formatting tests"
+      ],
+      "dependencies": [
+        "M407"
+      ]
+    },
+    {
+      "id": "M433",
+      "title": "Lexer keyword shadowing mitigation for SCREEN tokens",
+      "severity": "P2",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "M411 adds 16 new lexer tokens (SCREEN, AUTO, FULL, SECURE, BELL, etc.) that will shadow IDENTIFIER. Programs using these words as data-names will break. Need to assess impact on existing test programs and potentially use cobolWord to allow them in name positions.",
+      "deliverables": [
+        "Audit existing test programs for shadowed names",
+        "Add shadowed tokens to cobolWord if needed",
+        "Document reserved word additions"
+      ],
+      "risks": [
+        "Breaking existing programs that use SCREEN, AUTO, FULL as data-names"
+      ],
+      "test_impact": [
+        "Regression tests for shadowed identifiers"
+      ],
+      "dependencies": [
+        "M411"
       ]
     }
   ]
