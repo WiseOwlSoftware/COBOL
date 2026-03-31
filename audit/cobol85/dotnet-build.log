@@ -1,0 +1,15 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  CobolSharp.Runtime -> E:\CobolSharp\src\CobolSharp.Runtime\bin\Release\net9.0\CobolSharp.Runtime.dll
+  Grammar file is newer than parser. Regenerating...
+  Parser files are up to date.
+  CobolSharp.Compiler -> E:\CobolSharp\src\CobolSharp.Compiler\bin\Release\net9.0\CobolSharp.Compiler.dll
+  CobolSharp.CLI -> E:\CobolSharp\src\CobolSharp.CLI\bin\Release\net9.0\cobolsharp.dll
+  CobolSharp.Tests.Integration -> E:\CobolSharp\tests\CobolSharp.Tests.Integration\bin\Release\net9.0\CobolSharp.Tests.Integration.dll
+  CobolSharp.Tests.Unit -> E:\CobolSharp\tests\CobolSharp.Tests.Unit\bin\Release\net9.0\CobolSharp.Tests.Unit.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.98

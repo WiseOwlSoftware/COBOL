@@ -1,0 +1,15 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  CobolSharp.Runtime -> E:\CobolSharp\src\CobolSharp.Runtime\bin\Release\net9.0\CobolSharp.Runtime.dll
+  Grammar file is newer than parser. Regenerating...
+  Parser files are up to date.
+  CobolSharp.Compiler -> E:\CobolSharp\src\CobolSharp.Compiler\bin\Release\net9.0\CobolSharp.Compiler.dll
+  CobolSharp.Tests.Unit -> E:\CobolSharp\tests\CobolSharp.Tests.Unit\bin\Release\net9.0\CobolSharp.Tests.Unit.dll
+Test run for E:\CobolSharp\tests\CobolSharp.Tests.Unit\bin\Release\net9.0\CobolSharp.Tests.Unit.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: e:\CobolSharp\audit\cobol85\unit.trx
+
+Passed!  - Failed:     0, Passed:   922, Skipped:     0, Total:   922, Duration: 555 ms - CobolSharp.Tests.Unit.dll (net9.0)

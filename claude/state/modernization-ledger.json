@@ -28,10 +28,26 @@
       "CIL Emission (Mono.Cecil → .NET assemblies)"
     ],
     "god_classes": [
-      {"file": "CodeGen/Binder.cs", "lines": 4266, "concern": "Lowering orchestration + 58 statement lowerers + expression evaluation + control flow"},
-      {"file": "CodeGen/CilEmitter.cs", "lines": 4168, "concern": "Type mapping + 100+ emission methods + expression evaluation + runtime method resolution"},
-      {"file": "Semantics/Bound/BoundTreeBuilder.cs", "lines": 4428, "concern": "40+ statement binders + condition binding + validation + procedure resolution"},
-      {"file": "Semantics/SemanticBuilder.cs", "lines": 1477, "concern": "Symbol collection + REDEFINES/RENAMES resolution + sign propagation + data hierarchy"}
+      {
+        "file": "CodeGen/Binder.cs",
+        "lines": 4266,
+        "concern": "Lowering orchestration + 58 statement lowerers + expression evaluation + control flow"
+      },
+      {
+        "file": "CodeGen/CilEmitter.cs",
+        "lines": 4168,
+        "concern": "Type mapping + 100+ emission methods + expression evaluation + runtime method resolution"
+      },
+      {
+        "file": "Semantics/Bound/BoundTreeBuilder.cs",
+        "lines": 4428,
+        "concern": "40+ statement binders + condition binding + validation + procedure resolution"
+      },
+      {
+        "file": "Semantics/SemanticBuilder.cs",
+        "lines": 1477,
+        "concern": "Symbol collection + REDEFINES/RENAMES resolution + sign propagation + data hierarchy"
+      }
     ]
   },
   "ledger": [
@@ -43,7 +59,12 @@
       "status": "done",
       "completed": "2026-03-30",
       "description": "44 occurrences of Semantics.Bound.BoundExpression embedded in IR instructions (IrPerformTimes, IrFunctionCall, IrElementRef, IrRefModLocation, etc.). IR should be independent of bound tree. Expression evaluation deferred to CIL emitter instead of being lowered during Bind().",
-      "files": ["IR/IrInstruction.cs", "IR/IrExpression.cs", "CodeGen/Binder.cs", "CodeGen/CilEmitter.cs"],
+      "files": [
+        "IR/IrInstruction.cs",
+        "IR/IrExpression.cs",
+        "CodeGen/Binder.cs",
+        "CodeGen/CilEmitter.cs"
+      ],
       "fix": "Create IrExpression hierarchy. Lower all BoundExpression → IrExpression during Bind(). Eliminate ResolvedLocations parameter bundles. CilEmitter becomes pure IR→CIL translator.",
       "resolution": "Implemented in 4 stages. Stage 1: IrExpression types + Binder.LowerExpression + 19 unit tests. Stage 2: migrated all 8 IR instructions + added EmitIrExpression to CilEmitter. Stage 3: deleted EmitExpression/EmitIntrinsicCall/PreResolveExpressionLocations/ResolvedLocations, moved 4 enums to IR namespace. Stage 4: 13 reflection contract tests + 13 integration pipeline tests. Design doc: docs/ir/IR-Expression-Contract.md. Zero BoundExpression references in IR or CilEmitter.",
       "risk": "high",
@@ -57,7 +78,10 @@
       "status": "done",
       "completed": "2026-03-30",
       "description": "4,266-line class does everything: record layout, paragraph methods, ALTER slots, 58-case LowerStatement switch, expression evaluation. Single-responsibility violated.",
-      "files": ["CodeGen/Binder.cs", "CodeGen/Lowering/"],
+      "files": [
+        "CodeGen/Binder.cs",
+        "CodeGen/Lowering/"
+      ],
       "fix": "Split into: Binder (orchestrator) + LoweringContext + 8 focused lowerers.",
       "resolution": "Implemented in 5 stages. Binder reduced from 4,266 to 579 lines (-86%). 8 lowerers created: LocationResolver (169), ExpressionLowerer (181), ConditionLowerer (615), ControlFlowLowerer (1154), ArithmeticLowerer (292), DataMovementLowerer (335), FileIoLowerer (688), StringLowerer (240). LoweringContext (82) owns all shared state. No forwarding wrappers remain. Design doc: docs/binder/Binder-Decomposition.md. 596 unit + 287 integration + 95 NIST guard all pass.",
       "risk": "high",
@@ -71,7 +95,10 @@
       "status": "done",
       "completed": "2026-03-30",
       "description": "4,083-line class with 100+ private methods handling type/field mapping, instruction emission, expression evaluation, location handling, and runtime method resolution.",
-      "files": ["CodeGen/CilEmitter.cs", "CodeGen/Emission/"],
+      "files": [
+        "CodeGen/CilEmitter.cs",
+        "CodeGen/Emission/"
+      ],
       "fix": "Split into: CilEmitter (orchestrator) + EmissionContext + 10 focused emitters.",
       "resolution": "Implemented in 5 stages. CilEmitter reduced from 4,083 to 1,299 lines (-68%). 10 emitters created: CilLocationEmitter (290), CilExpressionEmitter (280), CilComparisonEmitter (310), CilArithmeticEmitter (340), CilDataEmitter (420), CilControlFlowEmitter (375), CilStringEmitter (465), CilFileIoEmitter (270), CilModuleSetup (skeleton), CilProgramStateEmitter (skeleton). EmissionContext (95) owns all shared state. No forwarding wrappers remain. Design doc: docs/cilemitter/CilEmitter-Decomposition.md. 765 unit + 287 integration + 95 NIST guard all pass.",
       "risk": "high",
@@ -85,7 +112,10 @@
       "status": "done",
       "completed": "2026-03-30",
       "description": "4,428-line visitor with 40+ if-pattern-matched statements for dispatch. Mixes statement binding, condition binding, validation, and procedure resolution in one class.",
-      "files": ["Semantics/Bound/BoundTreeBuilder.cs", "Semantics/Bound/Binding/"],
+      "files": [
+        "Semantics/Bound/BoundTreeBuilder.cs",
+        "Semantics/Bound/Binding/"
+      ],
       "fix": "Split into: BoundTreeBuilder (orchestrator) + BindingContext + 9 focused binders.",
       "resolution": "Implemented in 5 stages. BoundTreeBuilder reduced from 4,428 to 234 lines (-95%). 9 binders created: ExpressionBinder (780), ConditionBinder (510), ArithmeticStatementBinder (475), DataStatementBinder (420), ControlFlowBinder (740), FileIoBinder (630), CallBinder (120), StringStatementBinder (480), ProcedureNameResolver (120). BindingContext (65) owns all shared state. No forwarding wrappers remain. Design doc: docs/boundtree/BoundTreeBuilder-Decomposition.md. 922 unit + 287 integration + 95 NIST guard all pass.",
       "risk": "medium",
@@ -98,7 +128,9 @@
       "subsystem": "Bound Tree",
       "status": "open",
       "description": "81 sealed bound node classes use traditional constructor+property pattern instead of C# 13 records. BoundExpression.ResultType is mutable on what should be immutable nodes.",
-      "files": ["Semantics/Bound/BoundNodes.cs"],
+      "files": [
+        "Semantics/Bound/BoundNodes.cs"
+      ],
       "fix": "Convert all BoundNode subclasses to sealed records with init-only properties. Compute ResultType during binding, not post-binding. Estimated ~300 lines of boilerplate eliminated.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -110,7 +142,9 @@
       "subsystem": "IR",
       "status": "open",
       "description": "40+ IrInstruction subclasses are immutable classes with only properties. Should be sealed records for structural equality, pattern matching, reduced boilerplate.",
-      "files": ["IR/IrInstruction.cs"],
+      "files": [
+        "IR/IrInstruction.cs"
+      ],
       "fix": "Convert all IrInstruction and IrLocation subclasses to sealed records. Already partially done (IrTemp, IrParameter use records).",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -122,7 +156,11 @@
       "subsystem": "IR",
       "status": "open",
       "description": "IrRuntimeCall uses string method names (\"FileRuntime.Init\", \"Self.Entry\") for dispatch. No compile-time verification, no type checking of arguments.",
-      "files": ["IR/IrInstruction.cs", "CodeGen/Binder.cs", "CodeGen/CilEmitter.cs"],
+      "files": [
+        "IR/IrInstruction.cs",
+        "CodeGen/Binder.cs",
+        "CodeGen/CilEmitter.cs"
+      ],
       "fix": "Create typed IR instructions for each runtime call pattern (IrInitFileManager, IrCallEntryPoint, IrRegisterFileHandler). CilEmitter maps these to actual method calls.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -134,7 +172,12 @@
       "subsystem": "Cross-cutting",
       "status": "open",
       "description": "FileStateValidator, BoundTreeValidator, ProcedureGraph.CollectTransferEdges, Binder.LowerStatement all pattern-match statement types with 15-58 case arms each. Duplicated dispatch logic.",
-      "files": ["Semantics/FileStateValidator.cs", "Semantics/Bound/BoundTreeValidator.cs", "Semantics/ProcedureGraph.cs", "CodeGen/Binder.cs"],
+      "files": [
+        "Semantics/FileStateValidator.cs",
+        "Semantics/Bound/BoundTreeValidator.cs",
+        "Semantics/ProcedureGraph.cs",
+        "CodeGen/Binder.cs"
+      ],
       "fix": "Create IBoundStatementVisitor<T> interface with Visit(BoundXxxStatement) for each type. Implement double-dispatch on BoundStatement.Accept(). Eliminates 4+ switch-on-type cascades.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -146,7 +189,10 @@
       "subsystem": "Semantic Analysis",
       "status": "open",
       "description": "DataSymbol has 23 mutable property setters. Symbol base class has mutable DeclaringScope and IsValid. Enables state inconsistency during multi-phase analysis.",
-      "files": ["Semantics/Symbol.cs", "Semantics/DataSymbol.cs"],
+      "files": [
+        "Semantics/Symbol.cs",
+        "Semantics/DataSymbol.cs"
+      ],
       "fix": "Convert to records with init-only properties. Use builder pattern for construction: new DataSymbol { ... } with required members.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -158,7 +204,9 @@
       "subsystem": "Semantic Analysis",
       "status": "open",
       "description": "1,477-line class mixes symbol collection, REDEFINES/RENAMES resolution, sign propagation, SPECIAL-NAMES parsing, and data hierarchy construction.",
-      "files": ["Semantics/SemanticBuilder.cs"],
+      "files": [
+        "Semantics/SemanticBuilder.cs"
+      ],
       "fix": "Split into: DataDivisionVisitor, FileControlVisitor, SpecialNamesVisitor, DataSymbolBuilder, ReferenceResolver, SignPropagator. SemanticBuilder becomes coordinator.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -170,7 +218,9 @@
       "subsystem": "Bound Tree",
       "status": "open",
       "description": "Three near-identical methods: ResolveProcedureName, ResolveProcedureNameForThruEnd, ResolveProcedureNameForPerform with 95% code duplication.",
-      "files": ["Semantics/Bound/BoundTreeBuilder.cs"],
+      "files": [
+        "Semantics/Bound/BoundTreeBuilder.cs"
+      ],
       "fix": "Extract enum ProcedureResolutionMode { Default, ThruEnd, Perform }. Single method dispatches on mode.",
       "risk": "low",
       "estimated_scope": "small"
@@ -182,7 +232,10 @@
       "subsystem": "Preprocessor",
       "status": "open",
       "description": "CobolPreprocessor.g4 defines COPY/REPLACE grammar but actual preprocessing uses ad-hoc string parsing in CopyProcessor.cs. Two parallel parsing paths create confusion.",
-      "files": ["Grammar/CobolPreprocessor.g4", "Preprocessor/CopyProcessor.cs"],
+      "files": [
+        "Grammar/CobolPreprocessor.g4",
+        "Preprocessor/CopyProcessor.cs"
+      ],
       "fix": "Either remove unused grammar (simpler) or use ANTLR visitor for preprocessing (more robust). Document the decision.",
       "risk": "low",
       "estimated_scope": "small"
@@ -194,7 +247,9 @@
       "subsystem": "CIL Emission",
       "status": "open",
       "description": "146 GetMethod/GetConstructor reflection calls scattered throughout CilEmitter. Magic type arrays repeated 50+ times.",
-      "files": ["CodeGen/CilEmitter.cs"],
+      "files": [
+        "CodeGen/CilEmitter.cs"
+      ],
       "fix": "Extract RuntimeSignatures static class with cached Type[] arrays. Create ResolveRuntimeMethod() helper with FrozenDictionary cache.",
       "risk": "low",
       "estimated_scope": "medium"
@@ -206,7 +261,11 @@
       "subsystem": "Cross-cutting",
       "status": "open",
       "description": "Heavy use of switch statements over types where switch expressions with exhaustiveness checking would be more appropriate. Affects CilEmitter (50+ case dispatch), BoundTreeValidator, Binder.",
-      "files": ["CodeGen/CilEmitter.cs", "CodeGen/Binder.cs", "Semantics/Bound/BoundTreeValidator.cs"],
+      "files": [
+        "CodeGen/CilEmitter.cs",
+        "CodeGen/Binder.cs",
+        "Semantics/Bound/BoundTreeValidator.cs"
+      ],
       "fix": "Convert switch-on-type statements to switch expressions where return values or assignments exist. Adds compiler-enforced exhaustiveness.",
       "risk": "low",
       "estimated_scope": "medium"
@@ -218,7 +277,10 @@
       "subsystem": "Preprocessor",
       "status": "open",
       "description": "CopyProcessor silently replaces missing copybooks with comments. No diagnostics pipeline. NistPreprocessor has no error reporting.",
-      "files": ["Preprocessor/CopyProcessor.cs", "Compilation.cs"],
+      "files": [
+        "Preprocessor/CopyProcessor.cs",
+        "Compilation.cs"
+      ],
       "fix": "Return Result<string, List<Diagnostic>> from preprocessor methods. Thread diagnostics through pipeline. Integrate with DiagnosticBag.",
       "risk": "low",
       "estimated_scope": "small"
@@ -230,7 +292,9 @@
       "subsystem": "Preprocessor",
       "status": "open",
       "description": "ScanLiteralState/HandleContinuation use mutable ref booleans for complex quoted-string state machine. Duplicated literal scanning logic.",
-      "files": ["Preprocessor/ReferenceFormatProcessor.cs"],
+      "files": [
+        "Preprocessor/ReferenceFormatProcessor.cs"
+      ],
       "fix": "Extract LiteralStateMachine type with enum LiteralState { Outside, InsidePendingClose, Inside }. Immutable state transitions.",
       "risk": "low",
       "estimated_scope": "small"
@@ -242,7 +306,9 @@
       "subsystem": "Preprocessor",
       "status": "open",
       "description": "24 hardcoded string .Replace() calls with magic XXXXX placeholder codes. Difficult to extend or test.",
-      "files": ["Preprocessor/NistPreprocessor.cs"],
+      "files": [
+        "Preprocessor/NistPreprocessor.cs"
+      ],
       "fix": "Create record NistPlaceholder(string Code, string DefaultValue, string Description). Use data-driven array of placeholders.",
       "risk": "low",
       "estimated_scope": "small"
@@ -254,7 +320,9 @@
       "subsystem": "Semantic Analysis",
       "status": "open",
       "description": "Scope.Resolve(name) walks parent chain on every lookup with no caching. Called repeatedly in hot paths (ReferenceResolver, BoundTreeBuilder).",
-      "files": ["Semantics/Scope.cs"],
+      "files": [
+        "Semantics/Scope.cs"
+      ],
       "fix": "Cache resolution results in Scope._cache dictionary. Invalidate on TryDeclare only.",
       "risk": "low",
       "estimated_scope": "small"
@@ -266,7 +334,10 @@
       "subsystem": "Flow Analysis",
       "status": "open",
       "description": "ProcedureGraph uses raw Dictionary<string, HashSet<string>> for edges. BasicBlock type exists but is unused in graph construction.",
-      "files": ["Semantics/ProcedureGraph.cs", "FlowAnalysis/BasicBlock.cs"],
+      "files": [
+        "Semantics/ProcedureGraph.cs",
+        "FlowAnalysis/BasicBlock.cs"
+      ],
       "fix": "Migrate ProcedureGraph to emit typed ControlFlowGraph with BasicBlock nodes and Successors/Predecessors lists.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -278,7 +349,10 @@
       "subsystem": "Runtime",
       "status": "open",
       "description": "StorageHelpers and PicRuntime both handle MOVE with overlapping logic. Acknowledged as TODO in comments.",
-      "files": ["Runtime/StorageArea.cs", "Runtime/PicRuntime.cs"],
+      "files": [
+        "Runtime/StorageArea.cs",
+        "Runtime/PicRuntime.cs"
+      ],
       "fix": "Merge StorageHelpers methods into PicRuntime as overloads. Keep only file I/O in StorageHelpers.",
       "risk": "low",
       "estimated_scope": "small"
@@ -290,7 +364,9 @@
       "subsystem": "Build/Infrastructure",
       "status": "open",
       "description": "GitHub Actions CI disabled. Specifies dotnet-version 8.0.x but project targets net9.0.",
-      "files": [".github/workflows/build-and-test.yml.disabled"],
+      "files": [
+        ".github/workflows/build-and-test.yml.disabled"
+      ],
       "fix": "Re-enable workflow, update to .NET 9, integrate NIST test suite into CI pipeline.",
       "risk": "low",
       "estimated_scope": "small"
@@ -302,7 +378,9 @@
       "subsystem": "Build/Infrastructure",
       "status": "open",
       "description": "No AnalysisLevel, EnableNETAnalyzers, or StyleCop configuration. No .editorconfig.",
-      "files": ["Directory.Build.props"],
+      "files": [
+        "Directory.Build.props"
+      ],
       "fix": "Add StyleCopAnalyzers and Microsoft.CodeAnalysis.NetAnalyzers packages. Create .editorconfig.",
       "risk": "low",
       "estimated_scope": "small"
@@ -314,7 +392,9 @@
       "subsystem": "Project Structure",
       "status": "open",
       "description": "CobolSharp.Compiler.Semantics has 20 files in a single namespace. Should subdivide into Symbols, Validation, Resolution.",
-      "files": ["Semantics/"],
+      "files": [
+        "Semantics/"
+      ],
       "fix": "Create subdirectories with focused namespaces. Move files accordingly.",
       "risk": "low",
       "estimated_scope": "small"
@@ -326,7 +406,9 @@
       "subsystem": "Bound Tree",
       "status": "open",
       "description": "BoundPerformStatement has 8 optional properties describing different PERFORM forms. Null-checking determines which form at every consumer site.",
-      "files": ["Semantics/Bound/BoundNodes.cs"],
+      "files": [
+        "Semantics/Bound/BoundNodes.cs"
+      ],
       "fix": "Create sealed subclasses: BoundPerformSimple, BoundPerformTimes, BoundPerformInline, BoundPerformVarying.",
       "risk": "medium",
       "estimated_scope": "medium"
@@ -338,10 +420,3065 @@
       "subsystem": "Semantic Analysis",
       "status": "open",
       "description": "Uses HashSet<string> and Dictionary<string, string> for open files and pending status checks. No type safety.",
-      "files": ["Semantics/FileStateValidator.cs"],
+      "files": [
+        "Semantics/FileStateValidator.cs"
+      ],
       "fix": "Create record FileState(string FileName, bool IsOpen, string? StatusVariable). Use file symbols instead of strings.",
       "risk": "low",
       "estimated_scope": "small"
+    },
+    {
+      "id": "M100",
+      "title": "Implement SSA form for IR",
+      "severity": "P1",
+      "subsystem": "IR/Optimization",
+      "status": "planned",
+      "description": "Convert the existing IR basic-block representation into Static Single Assignment form with phi-nodes at join points. SSA is the canonical prerequisite for all modern optimization passes — without it, data-flow analysis operates on ambiguous definitions. Touches IrInstruction, IrBasicBlock, and the Binder's lowering output. Requires introducing IrPhiNode instruction type, dominance frontier computation, and variable renaming pass.",
+      "deliverables": [
+        "IrPhiNode instruction type",
+        "Dominance tree + frontier computation",
+        "SSA construction pass (variable renaming)",
+        "SSA destruction pass (phi elimination before CIL emission)",
+        "Unit tests for SSA properties (single-def, dominator coverage)"
+      ],
+      "risks": [
+        "COBOL's PERFORM THRU creates irreducible control flow that complicates dominance computation",
+        "MOVE to multiple targets creates implicit fan-out that must map correctly to SSA defs",
+        "Performance regression if SSA construction is not O(n) in block count"
+      ],
+      "test_impact": [
+        "New unit test suite for SSA invariants",
+        "Existing integration + NIST tests must remain green (SSA is transparent to output)"
+      ],
+      "dependencies": [
+        "M002"
+      ],
+      "risk": "high",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M101",
+      "title": "Implement data-flow analysis framework",
+      "severity": "P1",
+      "subsystem": "Flow Analysis",
+      "status": "planned",
+      "description": "Build a generic data-flow analysis framework over SSA-form IR supporting forward and backward analyses. Initial analyses: live variable analysis (backward) and reaching definitions (forward). These are the two foundational analyses required by dead code elimination and constant propagation. The framework should be parameterized by lattice type and transfer functions to support future analyses (available expressions, very busy expressions, etc.).",
+      "deliverables": [
+        "Generic DataFlowAnalysis<TLattice> framework with worklist algorithm",
+        "LiveVariableAnalysis implementation",
+        "ReachingDefinitionsAnalysis implementation",
+        "Per-block in/out sets accessible via analysis results",
+        "Unit tests verifying analysis correctness on hand-crafted CFGs"
+      ],
+      "risks": [
+        "COBOL's flat paragraph model (no structured scoping) creates large live ranges",
+        "EXTERNAL and LINKAGE items have unbounded lifetimes that must be conservatively handled",
+        "Analysis must handle PERFORM THRU's non-structured control flow correctly"
+      ],
+      "test_impact": [
+        "New unit test suite for data-flow analysis results",
+        "No impact on existing tests (analysis is read-only)"
+      ],
+      "dependencies": [
+        "M100"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M102",
+      "title": "Implement dead code elimination",
+      "severity": "P1",
+      "subsystem": "Optimization",
+      "status": "planned",
+      "description": "Remove unreachable basic blocks, dead stores (writes to variables never subsequently read), and unused computations from the IR. Uses live variable analysis from M101 to identify dead definitions. Must respect COBOL semantics where DISPLAY and file I/O have observable side effects and must never be eliminated. The pass runs after SSA construction and before CIL emission.",
+      "deliverables": [
+        "Unreachable block elimination pass",
+        "Dead store elimination pass (respects side effects)",
+        "Unused computation removal",
+        "IR statistics (blocks removed, instructions eliminated)",
+        "Unit tests for each elimination category"
+      ],
+      "risks": [
+        "COBOL programs often have intentionally unreachable paragraphs used only via ALTER — must not eliminate them",
+        "File I/O side effects must be precisely classified to avoid incorrect elimination",
+        "SIZE ERROR handlers create implicit liveness that must be tracked"
+      ],
+      "test_impact": [
+        "New optimization unit tests",
+        "NIST tests must remain green (optimization must not change observable behavior)"
+      ],
+      "dependencies": [
+        "M101"
+      ],
+      "risk": "medium",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M103",
+      "title": "Implement constant folding and propagation",
+      "severity": "P1",
+      "subsystem": "Optimization",
+      "status": "planned",
+      "description": "Evaluate constant expressions at compile time (folding) and propagate known constant values through the IR (propagation). Uses reaching definitions from M101 to determine when a variable has a single constant reaching definition at a use site. Must handle COBOL's decimal arithmetic precisely — constant folding must produce the same results as runtime PicRuntime methods. Enables further optimizations like branch elimination when conditions fold to constants.",
+      "deliverables": [
+        "Constant folding pass for IrExpression trees",
+        "Constant propagation pass over SSA IR",
+        "Branch elimination for statically-determined conditions",
+        "Decimal precision preservation (must match PicRuntime semantics)",
+        "Unit tests for folding correctness and propagation chains"
+      ],
+      "risks": [
+        "COBOL decimal arithmetic has specific truncation and rounding rules that must be exactly replicated",
+        "PIC-edited fields have format-dependent storage that complicates constant representation",
+        "REDEFINES creates aliasing that can invalidate constant assumptions"
+      ],
+      "test_impact": [
+        "New optimization unit tests",
+        "NIST tests must remain green"
+      ],
+      "dependencies": [
+        "M101"
+      ],
+      "risk": "medium",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M104",
+      "title": "Implement COBOL-2002 intrinsic functions",
+      "severity": "P1",
+      "subsystem": "Runtime/Binder",
+      "status": "planned",
+      "description": "Extend the existing 94-function intrinsic dispatch with COBOL-2002 additions: FORMATTED-DATE, FORMATTED-TIME, FORMATTED-DATETIME, LOCALE-DATE, LOCALE-TIME, TEST-DATE-YYYYMMDD, TEST-DAY-YYYYDDD, BOOLEAN-OF-INTEGER, INTEGER-OF-BOOLEAN, COMBINED-DATETIME, SECONDS-FROM-FORMATTED-TIME, and others. The grammar already reserves these names; the work is in the Runtime.Intrinsics dispatch and argument validation in the binder.",
+      "deliverables": [
+        "Runtime implementations for ~20 new intrinsic functions",
+        "Binder argument count/type validation per ISO spec",
+        "ExpressionBinder dispatch updates",
+        "Unit tests for each new function",
+        "Integration tests with COBOL source exercising new functions"
+      ],
+      "risks": [
+        "Locale-dependent functions require .NET globalization APIs that may behave differently cross-platform",
+        "Date/time format strings in COBOL differ from .NET format strings",
+        "Some functions require calendar arithmetic (Julian day, leap year) with edge cases"
+      ],
+      "test_impact": [
+        "New intrinsic function unit tests (~40+)",
+        "New integration tests with COBOL source"
+      ],
+      "dependencies": [],
+      "risk": "low",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M105",
+      "title": "Implement COBOL-2002 object-oriented features",
+      "severity": "P2",
+      "subsystem": "Grammar/Semantics/CodeGen",
+      "status": "planned",
+      "description": "Implement CLASS-ID, METHOD-ID, FACTORY, OBJECT, INVOKE, and the COBOL-2002 object model. This is the single largest feature addition possible — it touches every compiler layer from grammar (new division structure) through semantics (class/method symbol resolution, inheritance, interface conformance) through code generation (mapping to .NET class hierarchies). Requires new bound node types (BoundClassDefinition, BoundMethodDefinition, BoundInvokeStatement) and new IR instructions for virtual dispatch.",
+      "deliverables": [
+        "Grammar rules for CLASS-ID, METHOD-ID, FACTORY, OBJECT paragraphs",
+        "ClassSymbol, MethodSymbol, InterfaceSymbol in semantic model",
+        "BoundClassDefinition, BoundMethodDefinition, BoundInvokeStatement",
+        "IR instructions for object creation and virtual dispatch",
+        "CIL emission mapping COBOL classes to .NET classes",
+        "Unit + integration tests for OO programs"
+      ],
+      "risks": [
+        "COBOL's OO model differs significantly from .NET's (no constructors, factory paragraphs, conformance vs inheritance)",
+        "INVOKE dispatches to paragraphs within methods, not to .NET methods directly",
+        "Multiple inheritance via interfaces requires careful .NET mapping",
+        "This is estimated at 2000+ lines of new code across all layers"
+      ],
+      "test_impact": [
+        "New OO-specific test suite",
+        "Existing tests unaffected (OO is additive)"
+      ],
+      "dependencies": [
+        "M004"
+      ],
+      "risk": "high",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M106",
+      "title": "Implement semantic verifier pass",
+      "severity": "P1",
+      "subsystem": "Semantic Analysis",
+      "status": "planned",
+      "description": "Create a structured post-binding validation pass that enforces the full set of ISO COBOL semantic rules. Currently, type checking and validation are scattered across BoundTreeBuilder (now decomposed into binders) and BoundTreeValidator. This item consolidates them into a single, exhaustive SemanticVerifier that walks the bound tree and checks: MOVE type compatibility matrix, arithmetic operand types, file OPEN/CLOSE state consistency, PERFORM overlap detection, index/subscript range validity, and REDEFINES/RENAMES constraint enforcement.",
+      "deliverables": [
+        "SemanticVerifier class with exhaustive rule checking",
+        "Diagnostic codes for each rule violation (mapped to ISO spec sections)",
+        "PERFORM overlap detection (§14.8.35)",
+        "File state consistency checking across procedure divisions",
+        "MOVE compatibility matrix enforcement per §14.9.26",
+        "Unit tests for each rule category"
+      ],
+      "risks": [
+        "Some ISO rules are context-dependent and require flow analysis (e.g., file state)",
+        "PERFORM overlap detection is O(n²) in paragraph count without optimization",
+        "False positives on valid but unusual COBOL patterns could block compilation"
+      ],
+      "test_impact": [
+        "New verifier unit tests (~100+)",
+        "May surface new diagnostics on existing NIST programs (expected, not regressions)"
+      ],
+      "dependencies": [
+        "M004"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M107",
+      "title": "Implement optimized CIL backend",
+      "severity": "P1",
+      "subsystem": "CIL Emission",
+      "status": "planned",
+      "description": "Optimize the CIL output for runtime performance: minimize evaluation stack depth (avoid unnecessary stloc/ldloc pairs), reuse local variable slots across non-overlapping lifetimes, inline small paragraph methods (< 32 IL bytes), and optimize Mono.Cecil metadata (string deduplication, method table compaction). Currently every IR value gets its own CIL local, creating unnecessarily large method bodies. Stack scheduling alone could reduce local count by 40-60%.",
+      "deliverables": [
+        "Stack depth scheduler (peephole optimization for stloc/ldloc elimination)",
+        "Local variable slot allocator (register allocation over CIL locals)",
+        "Small-method inliner for trivially short paragraphs",
+        "Cecil metadata optimization pass",
+        "Benchmark suite comparing before/after IL size and runtime performance"
+      ],
+      "risks": [
+        "Stack scheduling changes IL structure — must verify PDB/debugging still works",
+        "Method inlining changes PERFORM dispatch semantics (must preserve ALTER behavior)",
+        "Local reuse requires accurate liveness data (depends on M101 or a simpler CIL-level analysis)"
+      ],
+      "test_impact": [
+        "New benchmark suite",
+        "All existing tests must remain green",
+        "NIST output must be bit-identical"
+      ],
+      "dependencies": [
+        "M003"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M108",
+      "title": "Implement WASM backend",
+      "severity": "P2",
+      "subsystem": "Code Generation",
+      "status": "planned",
+      "description": "Add WebAssembly as a second compilation target alongside .NET CIL. Requires abstracting the current CIL-specific EmissionContext and emitter classes behind a backend interface (IBackend or similar), then implementing a WasmEmitter that produces .wasm modules. The COBOL runtime (PicRuntime, StorageHelpers, FileRuntime) must be ported or compiled to WASM as well. Primary use case: running COBOL programs in browsers or serverless WASM runtimes.",
+      "deliverables": [
+        "IBackend abstraction over CIL and WASM emission",
+        "WasmEmitter producing valid .wasm modules",
+        "COBOL runtime compiled to WASM (via .NET WASI or manual port)",
+        "wasi-sdk integration for file I/O",
+        "End-to-end test: compile COBOL → WASM → run in wasmtime",
+        "Documentation for WASM deployment"
+      ],
+      "risks": [
+        "WASM lacks decimal arithmetic natively — must ship a decimal library",
+        "File I/O in WASM requires WASI or custom host functions",
+        "COBOL's byte-array storage model maps poorly to WASM's linear memory without careful design",
+        "Runtime size may be prohibitive for browser deployment"
+      ],
+      "test_impact": [
+        "New WASM-specific test suite",
+        "Existing CIL tests unaffected"
+      ],
+      "dependencies": [
+        "M003"
+      ],
+      "risk": "high",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M109",
+      "title": "Implement incremental compilation and caching",
+      "severity": "P2",
+      "subsystem": "Build/Infrastructure",
+      "status": "planned",
+      "description": "Add file-level incremental compilation with a persistent cache. Track source file content hashes, COPY book dependencies, and compilation timestamps to avoid recompiling unchanged programs. For multi-program projects, build a dependency graph (CALL targets → source files) and recompile only the transitive closure of changed files. Cache bound trees and IR modules to accelerate re-compilation. Integrates with the CLI and future IDE tooling.",
+      "deliverables": [
+        "Source file dependency tracker (COPY book graph)",
+        "Content-hash-based change detection",
+        "Persistent compilation cache (bound tree + IR serialization)",
+        "Multi-program dependency graph (CALL target resolution)",
+        "CLI --incremental flag",
+        "Unit tests for cache invalidation correctness"
+      ],
+      "risks": [
+        "COPY book resolution is context-dependent (REPLACING changes content)",
+        "Dynamic CALL targets cannot be statically resolved — must conservatively recompile",
+        "Cache serialization format must be versioned to handle compiler upgrades",
+        "Race conditions in parallel builds if cache is shared"
+      ],
+      "test_impact": [
+        "New incremental compilation tests",
+        "Existing tests unaffected"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M110",
+      "title": "Implement IDE language service",
+      "severity": "P2",
+      "subsystem": "Tooling",
+      "status": "planned",
+      "description": "Build an LSP-compatible language service that exposes the compiler's syntax tree, semantic model, and diagnostics to IDEs (VS Code, JetBrains). Features: real-time diagnostics, hover information (data item type, PIC, storage location), go-to-definition for paragraphs/data items, find-all-references, code completion for reserved words and data names, and document outline (division/section/paragraph structure). Requires making the parser and semantic model incrementally updatable.",
+      "deliverables": [
+        "LSP server binary (standalone process)",
+        "Real-time diagnostics on save/keystroke",
+        "Hover provider (PIC, type, storage offset, level)",
+        "Go-to-definition for paragraphs, sections, data items",
+        "Find-all-references",
+        "Code completion (reserved words, data names, paragraph names)",
+        "Document outline (COBOL structure)",
+        "VS Code extension packaging"
+      ],
+      "risks": [
+        "Incremental parsing is significantly harder than batch parsing for ANTLR4",
+        "COBOL's reference format (columns 1-6/7/8-72/73-80) makes character-level editing complex",
+        "Semantic model must handle incomplete/invalid programs gracefully",
+        "LSP protocol has edge cases around COBOL's case-insensitivity"
+      ],
+      "test_impact": [
+        "New LSP integration tests",
+        "Existing tests unaffected"
+      ],
+      "dependencies": [
+        "M004"
+      ],
+      "risk": "high",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M111",
+      "title": "Implement performance instrumentation",
+      "severity": "P1",
+      "subsystem": "Cross-cutting",
+      "status": "planned",
+      "description": "Add compile-time performance instrumentation to every pipeline stage: preprocessing, lexing, parsing, semantic analysis, binding, lowering, and CIL emission. Track wall-clock time, IR node counts, basic block counts, instruction counts, and memory allocation per stage. Output as structured JSON for automated analysis. Enables identification of compilation bottlenecks and regression detection in CI.",
+      "deliverables": [
+        "CompilationMetrics class with per-stage timers",
+        "IR size metrics (node count, block count, instruction count per method)",
+        "Memory allocation tracking (via GC.GetAllocatedBytesForCurrentThread)",
+        "JSON metrics output (--metrics flag on CLI)",
+        "Baseline metrics for NIST test suite",
+        "CI integration for performance regression detection"
+      ],
+      "risks": [
+        "Timer granularity on Windows vs Linux may differ",
+        "GC allocation tracking adds overhead — must be opt-in",
+        "Metrics collection must not affect compilation correctness"
+      ],
+      "test_impact": [
+        "New metrics validation tests",
+        "Existing tests unaffected"
+      ],
+      "dependencies": [],
+      "risk": "low",
+      "estimated_scope": "small"
+    },
+    {
+      "id": "M112",
+      "title": "Implement full diagnostic suite",
+      "severity": "P1",
+      "subsystem": "Diagnostics",
+      "status": "planned",
+      "description": "Systematize the existing 200+ diagnostic codes (COBOL0001-COBOL0600, CBL0601-CBL3606) into a complete, documented catalog. Each diagnostic gets: unique code, severity (error/warning/info), category (syntax/semantic/codegen/runtime), human-readable message template, detailed help text with ISO spec citation, and suggested fix. Add a --explain flag to the CLI that prints the full help text for any diagnostic code. Ensure every code path that emits a diagnostic uses a registered descriptor.",
+      "deliverables": [
+        "DiagnosticCatalog with all 200+ codes documented",
+        "Per-diagnostic help text with ISO spec citations",
+        "CLI --explain <code> command",
+        "Diagnostic category enum (Syntax, Semantic, CodeGen, Runtime)",
+        "Audit pass ensuring no raw string diagnostics remain",
+        "Documentation page listing all diagnostics"
+      ],
+      "risks": [
+        "Some existing diagnostics may have incorrect severity or category",
+        "Help text authoring is labor-intensive (~200 entries)",
+        "ISO spec citations require careful cross-referencing"
+      ],
+      "test_impact": [
+        "New diagnostic catalog tests (every code has help text)",
+        "Existing tests unaffected"
+      ],
+      "dependencies": [],
+      "risk": "low",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M200",
+      "title": "COBOL-85 grammar conformance audit",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "planned",
+      "description": "Full audit of the ANTLR grammar against the COBOL-85 standard (ISO/IEC 1989:1985), including all syntactic forms, optional phrases, and IBM/MF extensions already gated. Ensures every production rule is present, correctly structured, and unambiguous. GRAMMAR_AUDIT.md identified ~56 remaining COBOL-85 gaps out of ~138 originally found. This item closes all remaining gaps and produces a verified conformance matrix mapping each spec section to its grammar rule. Covers all four divisions plus COPY/REPLACE preprocessing directives.",
+      "deliverables": [
+        "Conformance matrix: spec section → grammar rule → status",
+        "All ~56 remaining COBOL-85 grammar gaps closed",
+        "Updated GRAMMAR_AUDIT.md with final status",
+        "ANTLR grammar compiles with zero warnings",
+        "No SLL prediction failures on NIST corpus"
+      ],
+      "risks": [
+        "Some spec constructs may be genuinely ambiguous in LL(*) — may require lexer mode workarounds",
+        "CURRENCY SIGN WITH PICTURE SYMBOL is blocked by PICMODE lexer architecture",
+        "Fixing one rule may introduce ambiguity in another (ANTLR precedence sensitivity)"
+      ],
+      "test_impact": [
+        "New grammar-level parse tests for each fixed gap",
+        "NIST test suite may unlock additional passing programs"
+      ],
+      "dependencies": [
+        "M004"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M201",
+      "title": "COBOL-85 binder coverage audit",
+      "severity": "P1",
+      "subsystem": "Binder",
+      "status": "planned",
+      "description": "Systematic verification that every COBOL-85 statement, clause, operand form, and edge case is bound correctly by the decomposed binder classes (M004). Covers all PERFORM variants (simple, TIMES, VARYING, THRU, inline, TEST BEFORE/AFTER), SEARCH/SEARCH ALL, ALTER, USE declaratives, ACCEPT (all sources), STRING/UNSTRING/INSPECT (all forms), all arithmetic statements (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE with GIVING/REMAINDER/CORRESPONDING/SIZE ERROR), and all file I/O statements. Each binder class gets an exhaustive audit against the spec.",
+      "deliverables": [
+        "Per-binder audit report (9 binders × spec coverage matrix)",
+        "Missing binding paths identified and implemented",
+        "Edge case tests for each statement form",
+        "Binder-level unit tests for untested paths",
+        "Updated decomposition docs with coverage status"
+      ],
+      "risks": [
+        "Some statement forms may parse correctly but produce incorrect bound trees",
+        "Abbreviated conditions in EVALUATE WHEN may have untested edge cases",
+        "CORRESPONDING matching rules have subtle scoping semantics"
+      ],
+      "test_impact": [
+        "New binder unit tests (~50+)",
+        "New integration tests for edge cases",
+        "NIST pass rate may increase"
+      ],
+      "dependencies": [
+        "M004"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M202",
+      "title": "COBOL-85 condition and expression semantics",
+      "severity": "P1",
+      "subsystem": "Binder/Semantics",
+      "status": "planned",
+      "description": "Ensures all abbreviated conditions, relational operators, sign/class tests, figurative constants, and arithmetic precedence rules match the COBOL-85 spec exactly. Abbreviated combined relation conditions (§6.3.4.2) are particularly complex — the current ExpandAbbrev implementation must be verified against all spec examples. Sign conditions (POSITIVE/NEGATIVE/ZERO) must respect the distinction between operational sign and algebraic sign. Class conditions (NUMERIC/ALPHABETIC/ALPHABETIC-LOWER/ALPHABETIC-UPPER) must check against the correct character sets per the program's collating sequence.",
+      "deliverables": [
+        "Abbreviated condition expansion verified against all spec examples",
+        "Sign condition semantics verified (operational vs algebraic)",
+        "Class condition character set validation",
+        "Figurative constant promotion rules documented and tested",
+        "Arithmetic precedence rules verified (left-to-right within same level)"
+      ],
+      "risks": [
+        "Abbreviated conditions with nested NOT have spec-ambiguous interpretations",
+        "Collating sequence affects class condition results — NATIVE vs STANDARD-1",
+        "Some NIST tests exercise rare combinations not yet encountered"
+      ],
+      "test_impact": [
+        "New condition semantics unit tests (~30+)",
+        "NIST NC207A/NC208A/NC214A coverage expansion"
+      ],
+      "dependencies": [
+        "M201"
+      ],
+      "risk": "medium",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M203",
+      "title": "COBOL-85 file I/O semantics",
+      "severity": "P1",
+      "subsystem": "Binder/Semantics",
+      "status": "planned",
+      "description": "Full validation of OPEN/CLOSE/READ/WRITE/REWRITE/DELETE/START/RETURN semantics against the COBOL-85 standard. Includes file access mode enforcement (sequential/random/dynamic), record locking semantics (LOCK/NO LOCK), key handling for indexed files (primary, alternate, DUPLICATES), AT END/INVALID KEY/NOT AT END/NOT INVALID KEY imperative routing, FILE STATUS code generation per §9.1.12, and USE AFTER EXCEPTION/ERROR declarative invocation. The runtime (FileRuntime) must produce the correct 2-character status codes for every I/O condition.",
+      "deliverables": [
+        "File access mode enforcement in binder",
+        "Record locking semantics (CLOSE WITH LOCK, etc.)",
+        "Key handling for indexed/relative files verified",
+        "FILE STATUS code matrix (all 2-character codes per spec)",
+        "USE AFTER EXCEPTION routing verified",
+        "File I/O integration tests for each access mode × operation combination"
+      ],
+      "risks": [
+        "Some file operations have mode-dependent behavior that varies by organization",
+        "Sequential vs dynamic access mode affects which operations are legal",
+        "OPTIONAL files have special OPEN behavior that must be tested"
+      ],
+      "test_impact": [
+        "New file I/O integration tests (~40+)",
+        "NIST IX/SQ suite tests may become passable"
+      ],
+      "dependencies": [
+        "M201"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M204",
+      "title": "COBOL-85 control flow semantics",
+      "severity": "P1",
+      "subsystem": "Binder/Semantics",
+      "status": "planned",
+      "description": "Ensures PERFORM, GO TO, ALTER, EVALUATE, IF, and declaratives behave exactly as defined in the COBOL-85 standard. PERFORM range overlap detection (§14.8.35) must detect and diagnose when two active PERFORMs share overlapping paragraph ranges. EVALUATE matching rules (§14.8.14) must correctly implement the subject/object comparison matrix including TRUE/FALSE subjects, THRU ranges, ANY, and condition-name objects. GO TO DEPENDING ON must handle out-of-range values correctly (fall through). ALTER must modify only the first GO TO in the targeted paragraph.",
+      "deliverables": [
+        "PERFORM range overlap detection and diagnostic",
+        "EVALUATE matching matrix verified against all spec examples",
+        "GO TO DEPENDING out-of-range behavior verified",
+        "ALTER semantics verified (first GO TO only)",
+        "Declarative section invocation order verified",
+        "Control flow integration tests for each edge case"
+      ],
+      "risks": [
+        "PERFORM overlap detection requires runtime tracking, not just static analysis",
+        "EVALUATE with mixed TRUE/FALSE subjects and condition-name objects is underspecified in edge cases",
+        "ALTER is rarely used but must work correctly when present"
+      ],
+      "test_impact": [
+        "New control flow integration tests (~30+)",
+        "NIST NC202A/NC203A/NC204A coverage expansion"
+      ],
+      "dependencies": [
+        "M201"
+      ],
+      "risk": "medium",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M205",
+      "title": "COBOL-85 data division semantics",
+      "severity": "P1",
+      "subsystem": "Semantic Model",
+      "status": "planned",
+      "description": "Full validation of PIC clauses, USAGE, REDEFINES, RENAMES, OCCURS, INDEXED BY, SYNCHRONIZED, JUSTIFIED, BLANK WHEN ZERO, and numeric category rules against the COBOL-85 standard. PIC clause validation must enforce the character count limits, implicit decimal point placement, and valid editing combinations per §13.16. REDEFINES must enforce the same-level, same-or-smaller-size, and no-OCCURS-DEPENDING constraints. OCCURS DEPENDING ON must validate the controlling item is a valid integer data item. RENAMES (level 66) must enforce the contiguous subordinate item constraint.",
+      "deliverables": [
+        "PIC clause validation against all spec rules",
+        "REDEFINES constraint enforcement (7 rules per §13.16)",
+        "RENAMES contiguity validation",
+        "OCCURS DEPENDING ON controlling item validation",
+        "SYNCHRONIZED alignment rules",
+        "USAGE compatibility matrix (COMP, COMP-3, DISPLAY, INDEX)",
+        "Data division unit tests for each constraint"
+      ],
+      "risks": [
+        "PIC editing rules have many valid combinations that are hard to enumerate exhaustively",
+        "SYNCHRONIZED alignment depends on machine word size (platform-dependent)",
+        "OCCURS DEPENDING ON with REDEFINES creates complex storage layout rules"
+      ],
+      "test_impact": [
+        "New data division unit tests (~50+)",
+        "Existing NIST NC101A/NC109A/NC110A coverage may expand"
+      ],
+      "dependencies": [],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M206",
+      "title": "COBOL-85 runtime behavior conformance",
+      "severity": "P1",
+      "subsystem": "Runtime",
+      "status": "planned",
+      "description": "Ensures runtime behavior for arithmetic, string operations, truncation, rounding, overflow, and SIZE ERROR matches COBOL-85 semantics exactly. Arithmetic must use decimal (not floating-point) with intermediate results retaining maximum precision per §6.4.1. Truncation rules differ between MOVE (alphanumeric: right-truncate; numeric: left-truncate high-order digits) and arithmetic (SIZE ERROR). Rounding must apply at the last retained digit position. STRING/UNSTRING pointer and overflow behavior must match §14.8.41/§14.8.43. INSPECT TALLYING/REPLACING/CONVERTING must process left-to-right with non-overlapping matches.",
+      "deliverables": [
+        "Arithmetic precision rules verified (intermediate result size)",
+        "Truncation rules verified for MOVE and arithmetic separately",
+        "Rounding verified at correct digit position",
+        "SIZE ERROR detection verified for all arithmetic operations",
+        "STRING/UNSTRING pointer and overflow behavior verified",
+        "INSPECT left-to-right non-overlapping match behavior verified",
+        "Runtime unit tests for each behavior category"
+      ],
+      "risks": [
+        "Intermediate arithmetic precision rules are complex and implementation-defined in some cases",
+        "Some truncation edge cases depend on PIC category interactions",
+        "STRING overflow detection timing (before vs after pointer update) must match spec exactly"
+      ],
+      "test_impact": [
+        "New runtime unit tests (~40+)",
+        "NIST arithmetic and string tests may see improvements"
+      ],
+      "dependencies": [
+        "M205"
+      ],
+      "risk": "medium",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M207",
+      "title": "COBOL-85 NIST test suite completion",
+      "severity": "P1",
+      "subsystem": "Test",
+      "status": "planned",
+      "description": "Achieve 100% passing on all 95 NIST COBOL-85 kernel tests (NC series) with zero FAIL* results locked in baselines. Currently 95 tests pass with 77 FAIL* results accepted in valid baselines. This item eliminates all 77 FAIL* results by fixing the underlying compiler/runtime bugs. Also expands to non-NC suites (IC, IF, IX, SQ, ST, etc.) that test inter-program communication, intrinsic functions, indexed files, sequential files, and sorting. The guard script must report zero regressions and zero FAIL* on the full suite.",
+      "deliverables": [
+        "All 95 NC-series tests pass with zero FAIL* in baselines",
+        "IC suite (inter-program communication) tests passing",
+        "IX suite (indexed file I/O) tests passing",
+        "SQ suite (sequential file I/O) tests passing",
+        "Guard script updated for expanded test suite",
+        "NIST conformance report documenting pass/fail/skip for all programs"
+      ],
+      "risks": [
+        "Some FAIL* results may require significant runtime changes to fix",
+        "Non-NC suites may expose entirely new categories of bugs",
+        "NC220M/NC237A runtime hangs are still undiagnosed",
+        "Some NIST tests may test implementation-defined behavior"
+      ],
+      "test_impact": [
+        "77 FAIL* baselines eliminated",
+        "Non-NC test suites added to guard script",
+        "Total NIST program count increases from 95 to potentially 200+"
+      ],
+      "dependencies": [
+        "M200",
+        "M201",
+        "M202",
+        "M203",
+        "M204",
+        "M205",
+        "M206"
+      ],
+      "risk": "high",
+      "estimated_scope": "large"
+    },
+    {
+      "id": "M208",
+      "title": "COBOL-85 extension gating (IBM/MF)",
+      "severity": "P1",
+      "subsystem": "Grammar/Binder",
+      "status": "planned",
+      "description": "Ensure all IBM and Micro Focus extensions are properly gated behind dialect flags and do not interfere with pure COBOL-85 mode. Currently some extensions (COMP-5, service-reload, XML PARSE) are unconditionally accepted by the grammar. Each extension must be documented, categorized (IBM-only, MF-only, common), and controlled by a CompilationOptions dialect flag. In strict COBOL-85 mode, any extension syntax must produce a diagnostic. The grammar audit (M200) identifies which rules are extensions vs standard.",
+      "deliverables": [
+        "Dialect enum: Strict85, IBM, MicroFocus, Permissive",
+        "Each extension rule gated by dialect check in binder",
+        "Diagnostic for extension syntax in Strict85 mode",
+        "Extension catalog documenting each gated feature",
+        "Unit tests verifying dialect gating for each extension"
+      ],
+      "risks": [
+        "Some 'extensions' are so widely used they may be required for practical COBOL programs",
+        "Gating at the grammar level vs binder level has different trade-offs (parse errors vs semantic errors)",
+        "IBM and MF extensions sometimes conflict with each other"
+      ],
+      "test_impact": [
+        "New dialect gating unit tests",
+        "NIST tests must pass in Strict85 mode"
+      ],
+      "dependencies": [
+        "M200",
+        "M201"
+      ],
+      "risk": "low",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M209",
+      "title": "COBOL-85 compliance certification",
+      "severity": "P1",
+      "subsystem": "Project",
+      "status": "planned",
+      "description": "Final verification pass, documentation, and certification that the compiler is fully COBOL-85 compliant. Produces a formal compliance document mapping each section of ISO/IEC 1989:1985 to the compiler's implementation status. Includes a compliance matrix, a list of implementation-defined behaviors with their chosen values, a list of any intentional deviations (with justification), and a summary of NIST test results. This is the capstone item for the COBOL-85 compliance initiative.",
+      "deliverables": [
+        "ISO/IEC 1989:1985 compliance matrix (every section mapped)",
+        "Implementation-defined behavior document (all choices listed)",
+        "Intentional deviation document (with justification for each)",
+        "NIST test results summary (all suites)",
+        "README badge: 'COBOL-85 Compliant'",
+        "Published compliance document in docs/"
+      ],
+      "risks": [
+        "Some spec sections may be genuinely unimplementable on .NET (e.g., SEGMENT classification)",
+        "Implementation-defined behaviors must be chosen carefully for IBM/MF compatibility",
+        "Compliance claims require ongoing maintenance as the compiler evolves"
+      ],
+      "test_impact": [
+        "No new tests (this is a documentation + verification item)",
+        "All existing tests must be green"
+      ],
+      "dependencies": [
+        "M207"
+      ],
+      "risk": "low",
+      "estimated_scope": "medium"
+    },
+    {
+      "id": "M300",
+      "title": "Close remaining COBOL-85 grammar gaps (~56 items)",
+      "severity": "P1",
+      "subsystem": "Grammar",
+      "status": "open",
+      "description": "The grammar audit reports ~138 COBOL-85 gaps found and ~82 fixed, leaving ~56 remaining grammar gaps across control flow, data division, I/O, and special names.",
+      "deliverables": [
+        "Enumerate each remaining grammar gap",
+        "Update ANTLR grammars to support missing COBOL-85 constructs",
+        "Add positive and negative parser tests",
+        "Update GRAMMAR_AUDIT to show 0 open items"
+      ],
+      "risks": [
+        "Valid COBOL-85 programs may be rejected or misparsed",
+        "NIST coverage may appear green while silently skipping unsupported constructs"
+      ],
+      "test_impact": [
+        "Parser unit tests for each construct",
+        "Integration tests for affected statements",
+        "Regression runs of all NC and future non-NC NIST suites"
+      ],
+      "dependencies": [
+        "M200",
+        "M201"
+      ]
+    },
+    {
+      "id": "M301",
+      "title": "Enable CURRENCY SIGN with PICTURE SYMBOL under PICMODE",
+      "severity": "P1",
+      "subsystem": "Grammar / Semantics",
+      "status": "open",
+      "description": "The audit notes that CURRENCY SIGN WITH PICTURE SYMBOL is blocked by PICMODE architecture, indicating a known architectural limitation.",
+      "deliverables": [
+        "Refactor PICMODE handling and grammar/binder wiring",
+        "Add tests for combinations with editing, BLANK WHEN ZERO, and JUSTIFIED"
+      ],
+      "risks": [
+        "Financial and currency-sensitive programs may produce incorrect formatted output"
+      ],
+      "test_impact": [
+        "New integration tests for edited numeric fields with CURRENCY SIGN",
+        "Regression on existing numeric edited and MOVE tests"
+      ],
+      "dependencies": [
+        "M300",
+        "M330"
+      ]
+    },
+    {
+      "id": "M302",
+      "title": "Implement 5 missing Data Division COBOL-85 items",
+      "severity": "P1",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "The grammar audit notes 5 not-implemented Data Division COBOL-85 items.",
+      "deliverables": [
+        "Identify the 5 missing items",
+        "Implement full semantic support",
+        "Add integration tests"
+      ],
+      "risks": [
+        "Data layout and storage semantics may be incomplete"
+      ],
+      "test_impact": [
+        "DataTests for each construct",
+        "Targeted NIST programs",
+        "Regression on NC252A"
+      ],
+      "dependencies": [
+        "M205",
+        "M300"
+      ]
+    },
+    {
+      "id": "M303",
+      "title": "Make PIC validation exhaustive across all categories and usages",
+      "severity": "P2",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "The audit flags PIC validation exhaustiveness as unknown.",
+      "deliverables": [
+        "Define the full COBOL-85 PIC validity matrix",
+        "Ensure validation enforces all constraints",
+        "Add negative and positive tests"
+      ],
+      "risks": [
+        "Invalid PIC clauses may be accepted silently"
+      ],
+      "test_impact": [
+        "DataTests focused on PIC validity",
+        "Unit tests for PicDescriptor"
+      ],
+      "dependencies": [
+        "M205",
+        "M302"
+      ]
+    },
+    {
+      "id": "M304",
+      "title": "Enforce COBOL-85 REDEFINES 7-rule constraints",
+      "severity": "P1",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "The audit notes REDEFINES 7-rule constraint enforcement is unclear, and NC252A shows 3 FAIL*.",
+      "deliverables": [
+        "Implement explicit checks for all seven REDEFINES rules",
+        "Add tests mirroring NC252A patterns"
+      ],
+      "risks": [
+        "Overlapping storage may be misinterpreted"
+      ],
+      "test_impact": [
+        "NC252A",
+        "New integration tests for REDEFINES/RENAMES"
+      ],
+      "dependencies": [
+        "M205"
+      ]
+    },
+    {
+      "id": "M305",
+      "title": "Implement and test SYNCHRONIZED alignment rules",
+      "severity": "P2",
+      "subsystem": "Data Semantics / Runtime",
+      "status": "open",
+      "description": "SYNCHRONIZED alignment is marked untested.",
+      "deliverables": [
+        "Implement alignment semantics",
+        "Ensure storage offsets match COBOL-85",
+        "Add tests for mixed aligned/un-aligned fields"
+      ],
+      "risks": [
+        "Misaligned numeric fields can cause incorrect arithmetic"
+      ],
+      "test_impact": [
+        "DataTests for SYNCHRONIZED",
+        "Arithmetic tests using aligned fields"
+      ],
+      "dependencies": [
+        "M205",
+        "M330"
+      ]
+    },
+    {
+      "id": "M306",
+      "title": "Complete BLANK WHEN ZERO semantics coverage",
+      "severity": "P2",
+      "subsystem": "Runtime / Data Semantics",
+      "status": "open",
+      "description": "BLANK WHEN ZERO is implemented but audit marks coverage as Partially evidenced.",
+      "deliverables": [
+        "Audit all code paths where BLANK WHEN ZERO applies",
+        "Add tests for zero vs non-zero values"
+      ],
+      "risks": [
+        "Incorrect display or printing of numeric fields"
+      ],
+      "test_impact": [
+        "DataTests",
+        "String/inspect tests"
+      ],
+      "dependencies": [
+        "M205",
+        "M309"
+      ]
+    },
+    {
+      "id": "M307",
+      "title": "Audit and validate group items as alphanumeric semantics",
+      "severity": "P3",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "Group items as alphanumeric are supported but not fully verified across MOVE, comparison, and INSPECT.",
+      "deliverables": [
+        "Confirm group items behave as alphanumeric in all operations",
+        "Add tests for group vs elementary"
+      ],
+      "risks": [
+        "Subtle data movement and comparison bugs"
+      ],
+      "test_impact": [
+        "DataTests",
+        "ConditionTests",
+        "String tests"
+      ],
+      "dependencies": [
+        "M205"
+      ]
+    },
+    {
+      "id": "M308",
+      "title": "Define and test NumericEdited to Alphanumeric MOVE behavior",
+      "severity": "P2",
+      "subsystem": "Runtime / Semantics",
+      "status": "open",
+      "description": "NumericEdited to Alphanumeric (raw byte) implemented but with unclear test coverage.",
+      "deliverables": [
+        "Specify exact byte representation",
+        "Add tests covering signs, editing symbols, BLANK WHEN ZERO"
+      ],
+      "risks": [
+        "Misformatted strings and interoperability issues"
+      ],
+      "test_impact": [
+        "DataTests",
+        "String tests"
+      ],
+      "dependencies": [
+        "M330",
+        "M303"
+      ]
+    },
+    {
+      "id": "M309",
+      "title": "Fully test JUSTIFIED RIGHT semantics",
+      "severity": "P2",
+      "subsystem": "Runtime / Data Semantics",
+      "status": "open",
+      "description": "JUSTIFIED RIGHT implemented but testing marked as Unclear.",
+      "deliverables": [
+        "Add tests for JUSTIFIED RIGHT with varying field lengths",
+        "Verify alignment rules"
+      ],
+      "risks": [
+        "Misaligned display fields"
+      ],
+      "test_impact": [
+        "DataTests",
+        "String tests"
+      ],
+      "dependencies": [
+        "M205",
+        "M306"
+      ]
+    },
+    {
+      "id": "M310",
+      "title": "Implement PERFORM range overlap detection (§14.8.35)",
+      "severity": "P1",
+      "subsystem": "Binder / Control Flow",
+      "status": "open",
+      "description": "PERFORM Range overlap detection (§14.8.35) — No / No — Not implemented.",
+      "deliverables": [
+        "Implement range analysis in ControlFlowBinder",
+        "Add tests for overlapping and non-overlapping ranges"
+      ],
+      "risks": [
+        "Undefined PERFORM behavior at runtime"
+      ],
+      "test_impact": [
+        "ControlFlowTests",
+        "NC102A/NC201A"
+      ],
+      "dependencies": [
+        "M204",
+        "M201"
+      ]
+    },
+    {
+      "id": "M311",
+      "title": "Fix PERFORM VARYING with multiple AFTER (NC201A FAIL*)",
+      "severity": "P1",
+      "subsystem": "Binder / Control Flow",
+      "status": "open",
+      "description": "PERFORM VARYING with multiple AFTER — Yes / Unclear. NC201A 5 FAIL* may relate.",
+      "deliverables": [
+        "Review BindPerformVaryingOption",
+        "Correct handling of multiple AFTER phrases",
+        "Add tests"
+      ],
+      "risks": [
+        "Incorrect loop bounds and iteration behavior"
+      ],
+      "test_impact": [
+        "NC201A",
+        "ControlFlowTests for multi-AFTER VARYING"
+      ],
+      "dependencies": [
+        "M201",
+        "M310"
+      ]
+    },
+    {
+      "id": "M312",
+      "title": "Implement and test EVALUATE THRU ranges in WHEN",
+      "severity": "P1",
+      "subsystem": "Binder / Control Flow",
+      "status": "open",
+      "description": "EVALUATE THRU ranges in WHEN — Unclear / Unclear.",
+      "deliverables": [
+        "Specify semantics for THRU ranges",
+        "Ensure BindEvaluateWhenGroup handles ranges",
+        "Add tests"
+      ],
+      "risks": [
+        "Incorrect branch selection in EVALUATE"
+      ],
+      "test_impact": [
+        "NC225A",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M313",
+      "title": "Implement and test EVALUATE ANY keyword semantics",
+      "severity": "P2",
+      "subsystem": "Binder / Control Flow",
+      "status": "open",
+      "description": "EVALUATE ANY keyword — Unclear / Unclear — No specific test evidence.",
+      "deliverables": [
+        "Confirm implementation of ANY",
+        "Add tests for EVALUATE ANY combinations"
+      ],
+      "risks": [
+        "Incorrect fall-through or branch selection"
+      ],
+      "test_impact": [
+        "New EVALUATE tests",
+        "Regression on NC225A"
+      ],
+      "dependencies": [
+        "M312"
+      ]
+    },
+    {
+      "id": "M314",
+      "title": "Support EVALUATE with condition-name subjects and WHEN objects",
+      "severity": "P2",
+      "subsystem": "Binder / Conditions / Control Flow",
+      "status": "open",
+      "description": "EVALUATE WHEN condition-name objects — coverage unclear.",
+      "deliverables": [
+        "Ensure condition-names can be EVALUATE subjects/WHEN objects",
+        "Add tests"
+      ],
+      "risks": [
+        "Mis-routing of condition-name logic"
+      ],
+      "test_impact": [
+        "ConditionTests",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M202"
+      ]
+    },
+    {
+      "id": "M315",
+      "title": "Fully test abbreviated conditions with nested NOT",
+      "severity": "P2",
+      "subsystem": "Binder / Conditions",
+      "status": "open",
+      "description": "Abbreviated conditions with nested NOT — edge case coverage unclear.",
+      "deliverables": [
+        "Add tests for nested NOT with AND/OR",
+        "Verify ExpandAbbrev semantics"
+      ],
+      "risks": [
+        "Incorrect evaluation of complex conditions"
+      ],
+      "test_impact": [
+        "NC250A",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M202"
+      ]
+    },
+    {
+      "id": "M316",
+      "title": "Implement and test collating sequence impact on comparisons and class conditions",
+      "severity": "P2",
+      "subsystem": "Conditions / Runtime / Special Names",
+      "status": "open",
+      "description": "Collating sequence impact on comparisons — evidence missing.",
+      "deliverables": [
+        "Ensure comparisons respect active collating sequence",
+        "Add tests with custom ALPHABET"
+      ],
+      "risks": [
+        "Incorrect ordering under non-default collating sequences"
+      ],
+      "test_impact": [
+        "NC401M",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M202"
+      ]
+    },
+    {
+      "id": "M317",
+      "title": "Implement and test ALL literal in expressions",
+      "severity": "P2",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "ALL literal in expressions — no test name evidence in TRX.",
+      "deliverables": [
+        "Confirm ALL literal handling",
+        "Add tests for ALL X in arithmetic and conditional contexts"
+      ],
+      "risks": [
+        "Mis-evaluation of expressions using ALL"
+      ],
+      "test_impact": [
+        "Expression tests",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M318",
+      "title": "Add coverage for LENGTH OF special register",
+      "severity": "P3",
+      "subsystem": "ExpressionBinder / Runtime",
+      "status": "open",
+      "description": "LENGTH OF special register — unclear from TRX data.",
+      "deliverables": [
+        "Add tests for LENGTH OF on elementary and group items",
+        "Verify binder and runtime behavior"
+      ],
+      "risks": [
+        "Incorrect length calculations"
+      ],
+      "test_impact": [
+        "Expression tests",
+        "StringTests",
+        "DataTests"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M319",
+      "title": "Make MOVE type compatibility matrix exhaustive",
+      "severity": "P1",
+      "subsystem": "Semantics / Runtime",
+      "status": "open",
+      "description": "MOVE compatibility matrix (§14.9.26) — Yes / Partially. GRAMMAR_AUDIT notes 3 gaps.",
+      "deliverables": [
+        "Enumerate full COBOL-85 MOVE matrix",
+        "Ensure diagnostics for invalid moves",
+        "Add tests for every combination"
+      ],
+      "risks": [
+        "Silent truncation, mis-conversion, or acceptance of invalid moves"
+      ],
+      "test_impact": [
+        "DataTests",
+        "ArithmeticTests",
+        "NIST numeric programs"
+      ],
+      "dependencies": [
+        "M205",
+        "M330"
+      ]
+    },
+    {
+      "id": "M320",
+      "title": "Implement and test SET with multiple identifiers",
+      "severity": "P3",
+      "subsystem": "DataStatementBinder",
+      "status": "open",
+      "description": "SET with multiple identifiers — no specific test evidence.",
+      "deliverables": [
+        "Add tests for SET with multiple targets",
+        "Verify all targets updated correctly"
+      ],
+      "risks": [
+        "Partial updates or inconsistent state"
+      ],
+      "test_impact": [
+        "DataTests",
+        "ConditionTests",
+        "NC254A"
+      ],
+      "dependencies": [
+        "M202"
+      ]
+    },
+    {
+      "id": "M321",
+      "title": "Define and test STRING overflow detection timing",
+      "severity": "P2",
+      "subsystem": "StringStatementBinder / Runtime",
+      "status": "open",
+      "description": "STRING overflow detection timing — unclear from TRX.",
+      "deliverables": [
+        "Specify overflow detection timing",
+        "Add tests for boundary and overflow cases"
+      ],
+      "risks": [
+        "Incorrect ON OVERFLOW behavior"
+      ],
+      "test_impact": [
+        "StringTests",
+        "NC215A/NC218A"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M322",
+      "title": "Fully test INSPECT with data-ref patterns",
+      "severity": "P2",
+      "subsystem": "StringStatementBinder / Runtime",
+      "status": "open",
+      "description": "INSPECT with data-ref patterns — partially evidenced / unclear.",
+      "deliverables": [
+        "Add tests for INSPECT using data-refs as patterns",
+        "Verify behavior matches COBOL-85"
+      ],
+      "risks": [
+        "Incorrect pattern matching"
+      ],
+      "test_impact": [
+        "StringTests",
+        "NC219A"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M323",
+      "title": "Implement and test CALL with mixed BY modes in single USING",
+      "severity": "P2",
+      "subsystem": "CallBinder / Runtime",
+      "status": "open",
+      "description": "CALL with mixed BY modes in single USING — no specific test evidence.",
+      "deliverables": [
+        "Add tests with mixed BY modes",
+        "Verify parameter passing semantics"
+      ],
+      "risks": [
+        "Argument corruption in multi-program systems"
+      ],
+      "test_impact": [
+        "CallTests",
+        "Future IC suite"
+      ],
+      "dependencies": [
+        "M203"
+      ]
+    },
+    {
+      "id": "M324",
+      "title": "Implement and test OPEN mode enforcement (sequential/random/dynamic)",
+      "severity": "P1",
+      "subsystem": "File I/O / Runtime",
+      "status": "open",
+      "description": "OPEN mode enforcement — Unclear / Unclear.",
+      "deliverables": [
+        "Implement strict checks for operations vs OPEN mode",
+        "Add tests for invalid operations per mode"
+      ],
+      "risks": [
+        "Silent data corruption or non-conforming I/O"
+      ],
+      "test_impact": [
+        "FileIOTests",
+        "Future SQ/IX/RL NIST suites"
+      ],
+      "dependencies": [
+        "M203",
+        "M338",
+        "M339",
+        "M341"
+      ]
+    },
+    {
+      "id": "M325",
+      "title": "Implement record locking semantics for indexed/relative files",
+      "severity": "P1",
+      "subsystem": "File I/O / Runtime",
+      "status": "open",
+      "description": "Record locking — No / No — Not implemented.",
+      "deliverables": [
+        "Design and implement record locking",
+        "Add tests for concurrent access and lock conflicts"
+      ],
+      "risks": [
+        "Data races and corruption in multi-program environments"
+      ],
+      "test_impact": [
+        "Future IX/RL NIST suites",
+        "FileIOTests"
+      ],
+      "dependencies": [
+        "M203",
+        "M339",
+        "M341"
+      ]
+    },
+    {
+      "id": "M326",
+      "title": "Complete FILE STATUS 2-character code matrix",
+      "severity": "P1",
+      "subsystem": "Runtime / File I/O",
+      "status": "open",
+      "description": "FILE STATUS 2-char codes (§9.1.12) — Yes / Partially. Not all codes verified.",
+      "deliverables": [
+        "Enumerate full FILE STATUS matrix",
+        "Ensure each code produced correctly",
+        "Add tests triggering each status code"
+      ],
+      "risks": [
+        "Misreported file errors"
+      ],
+      "test_impact": [
+        "FileIOTests",
+        "Future SQ/IX/RL NIST suites"
+      ],
+      "dependencies": [
+        "M203",
+        "M324",
+        "M325"
+      ]
+    },
+    {
+      "id": "M327",
+      "title": "Implement and test OPTIONAL file OPEN behavior",
+      "severity": "P2",
+      "subsystem": "File I/O / Runtime",
+      "status": "open",
+      "description": "OPTIONAL file OPEN behavior — Unclear / Unclear — No evidence.",
+      "deliverables": [
+        "Implement OPTIONAL file semantics",
+        "Add tests for missing vs existing OPTIONAL files"
+      ],
+      "risks": [
+        "Unexpected runtime failures"
+      ],
+      "test_impact": [
+        "FileIOTests",
+        "Future SQ/IX NIST suites"
+      ],
+      "dependencies": [
+        "M324",
+        "M326"
+      ]
+    },
+    {
+      "id": "M328",
+      "title": "Ensure USE AFTER EXCEPTION routing is fully tested",
+      "severity": "P2",
+      "subsystem": "File I/O / Control Flow",
+      "status": "open",
+      "description": "USE AFTER EXCEPTION routing — Yes / Unclear.",
+      "deliverables": [
+        "Add tests triggering I/O exceptions",
+        "Verify USE AFTER EXCEPTION invocation"
+      ],
+      "risks": [
+        "Exception handling paths may not execute correctly"
+      ],
+      "test_impact": [
+        "FileIOTests",
+        "Future NIST I/O suites"
+      ],
+      "dependencies": [
+        "M203",
+        "M326"
+      ]
+    },
+    {
+      "id": "M329",
+      "title": "Complete INVALID KEY / NOT INVALID KEY routing coverage",
+      "severity": "P2",
+      "subsystem": "File I/O / Control Flow",
+      "status": "open",
+      "description": "INVALID KEY / NOT INVALID KEY — Yes / Partially.",
+      "deliverables": [
+        "Add tests for all operations with INVALID KEY phrases",
+        "Verify correct branching"
+      ],
+      "risks": [
+        "Incorrect error handling for key-related I/O errors"
+      ],
+      "test_impact": [
+        "FileIOTests",
+        "Future IX/RL NIST suites"
+      ],
+      "dependencies": [
+        "M203",
+        "M326"
+      ]
+    },
+    {
+      "id": "M330",
+      "title": "Exercise Sequential/Indexed/Relative handlers via NIST suites",
+      "severity": "P1",
+      "subsystem": "Runtime / File I/O / NIST",
+      "status": "open",
+      "description": "Dedicated handlers exist but no IX/SQ/RL NIST baselines.",
+      "deliverables": [
+        "Bring up baselines for SQ, IX, RL suites",
+        "Record FAIL*",
+        "Create follow-up items"
+      ],
+      "risks": [
+        "File handlers may be incorrect but untested"
+      ],
+      "test_impact": [
+        "SQ, IX, RL NIST suites",
+        "FileIOTests"
+      ],
+      "dependencies": [
+        "M338",
+        "M339",
+        "M341",
+        "M324",
+        "M325",
+        "M326",
+        "M327"
+      ]
+    },
+    {
+      "id": "M331",
+      "title": "Decide and document intermediate arithmetic precision strategy",
+      "severity": "P2",
+      "subsystem": "Runtime / Arithmetic",
+      "status": "open",
+      "description": "Intermediate precision (§6.4.1) — Unclear / Unclear — Spec allows implementation-defined.",
+      "deliverables": [
+        "Choose consistent precision strategy",
+        "Document as implementation-defined behavior",
+        "Add tests for borderline cases"
+      ],
+      "risks": [
+        "Rounding and truncation surprises in financial calculations"
+      ],
+      "test_impact": [
+        "ArithmeticTests",
+        "NIST numeric programs"
+      ],
+      "dependencies": [
+        "M206"
+      ]
+    },
+    {
+      "id": "M332",
+      "title": "Fix ROUNDED behavior for edge cases",
+      "severity": "P1",
+      "subsystem": "Runtime / Arithmetic",
+      "status": "open",
+      "description": "ROUNDED at correct digit — Yes / Partially. 77 FAIL* suggest some edge cases.",
+      "deliverables": [
+        "Add tests for ROUNDED with various scales, signs, and precision",
+        "Fix PicRuntime arithmetic methods"
+      ],
+      "risks": [
+        "Incorrect financial and numeric results"
+      ],
+      "test_impact": [
+        "ArithmeticTests",
+        "NC101A, NC170A, NC171A-NC173A"
+      ],
+      "dependencies": [
+        "M331",
+        "M319"
+      ]
+    },
+    {
+      "id": "M333",
+      "title": "Complete INSPECT left-to-right non-overlapping semantics",
+      "severity": "P2",
+      "subsystem": "Runtime / String",
+      "status": "open",
+      "description": "INSPECT left-to-right non-overlapping — Yes / Partially.",
+      "deliverables": [
+        "Add tests for overlapping patterns",
+        "Verify left-to-right without re-examining replaced characters"
+      ],
+      "risks": [
+        "Incorrect string transformations and counts"
+      ],
+      "test_impact": [
+        "StringTests",
+        "NC219A"
+      ],
+      "dependencies": [
+        "M322"
+      ]
+    },
+    {
+      "id": "M334",
+      "title": "Add help text and ISO citations to diagnostics",
+      "severity": "P3",
+      "subsystem": "Diagnostics",
+      "status": "open",
+      "description": "No help text or ISO citations per diagnostic, despite 188 registered descriptors.",
+      "deliverables": [
+        "Add help text and ISO section reference to each descriptor",
+        "Ensure messages are developer-friendly"
+      ],
+      "risks": [
+        "Harder debugging and weaker traceability"
+      ],
+      "test_impact": [
+        "Diagnostic unit tests",
+        "Spot checks in integration tests"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "M335",
+      "title": "Audit diagnostic coverage for all code paths",
+      "severity": "P2",
+      "subsystem": "Diagnostics",
+      "status": "open",
+      "description": "No audit that every code path uses registered descriptors.",
+      "deliverables": [
+        "Map all error paths to diagnostic descriptors",
+        "Ensure no ad-hoc or missing diagnostics",
+        "Add tests triggering each diagnostic"
+      ],
+      "risks": [
+        "Silent failures or vague error messages"
+      ],
+      "test_impact": [
+        "Diagnostic tests",
+        "Integration tests asserting specific diagnostics"
+      ],
+      "dependencies": [
+        "M334"
+      ]
+    },
+    {
+      "id": "M336",
+      "title": "Implement --explain or equivalent diagnostic detail mechanism",
+      "severity": "P3",
+      "subsystem": "Diagnostics / CLI",
+      "status": "open",
+      "description": "No --explain CLI flag.",
+      "deliverables": [
+        "Add CLI option for extended diagnostic info",
+        "Integrate with existing descriptors"
+      ],
+      "risks": [
+        "Reduced usability and slower debugging"
+      ],
+      "test_impact": [
+        "CLI/diagnostic tests",
+        "Manual verification"
+      ],
+      "dependencies": [
+        "M334",
+        "M335"
+      ]
+    },
+    {
+      "id": "M337",
+      "title": "Establish baselines for IC NIST suite (inter-program communication)",
+      "severity": "P1",
+      "subsystem": "NIST / Runtime / CALL",
+      "status": "open",
+      "description": "IC has 47 programs with 0 baselines.",
+      "deliverables": [
+        "Compile and run all IC programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "CALL/ENTRY/CANCEL semantics may be incorrect"
+      ],
+      "test_impact": [
+        "IC suite",
+        "CallTests"
+      ],
+      "dependencies": [
+        "M323",
+        "M203"
+      ]
+    },
+    {
+      "id": "M338",
+      "title": "Establish baselines for SQ NIST suite (sequential file I/O)",
+      "severity": "P1",
+      "subsystem": "NIST / File I/O",
+      "status": "open",
+      "description": "SQ has 85 programs with 0 baselines.",
+      "deliverables": [
+        "Compile and run all SQ programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "SequentialFileHandler may be incorrect"
+      ],
+      "test_impact": [
+        "SQ suite",
+        "FileIOTests"
+      ],
+      "dependencies": [
+        "M324",
+        "M330"
+      ]
+    },
+    {
+      "id": "M339",
+      "title": "Establish baselines for IX NIST suite (indexed file I/O)",
+      "severity": "P1",
+      "subsystem": "NIST / File I/O",
+      "status": "open",
+      "description": "IX has 42 programs with 0 baselines.",
+      "deliverables": [
+        "Compile and run all IX programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "IndexedFileHandler and key semantics may be incorrect"
+      ],
+      "test_impact": [
+        "IX suite",
+        "FileIOTests"
+      ],
+      "dependencies": [
+        "M325",
+        "M326",
+        "M330"
+      ]
+    },
+    {
+      "id": "M340",
+      "title": "Establish baselines for ST NIST suite (sorting)",
+      "severity": "P2",
+      "subsystem": "NIST / Runtime / Sort",
+      "status": "open",
+      "description": "ST has 40 programs with 0 baselines.",
+      "deliverables": [
+        "Compile and run all ST programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "SORT/MERGE semantics may be incomplete"
+      ],
+      "test_impact": [
+        "ST suite",
+        "SortMergeTests"
+      ],
+      "dependencies": [
+        "M203",
+        "M330"
+      ]
+    },
+    {
+      "id": "M341",
+      "title": "Establish baselines for RL NIST suite (relative file I/O)",
+      "severity": "P2",
+      "subsystem": "NIST / File I/O",
+      "status": "open",
+      "description": "RL has 35 programs with 0 baselines.",
+      "deliverables": [
+        "Compile and run all RL programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "Relative file semantics may be incorrect"
+      ],
+      "test_impact": [
+        "RL suite",
+        "FileIOTests"
+      ],
+      "dependencies": [
+        "M325",
+        "M330"
+      ]
+    },
+    {
+      "id": "M342",
+      "title": "Establish baselines for IF NIST suite (intrinsic functions)",
+      "severity": "P2",
+      "subsystem": "NIST / Runtime / Intrinsics",
+      "status": "open",
+      "description": "IF has 45 programs with 0 baselines, despite 94/94 intrinsics dispatched.",
+      "deliverables": [
+        "Compile and run all IF programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "Intrinsic functions may have edge cases"
+      ],
+      "test_impact": [
+        "IF suite",
+        "IntrinsicFunctionTests"
+      ],
+      "dependencies": [
+        "M201",
+        "M330"
+      ]
+    },
+    {
+      "id": "M343",
+      "title": "Establish baselines for SM, DB, SG, CM, OB, RW NIST suites",
+      "severity": "P3",
+      "subsystem": "NIST / Various",
+      "status": "open",
+      "description": "SM(17), DB(15), SG(13), CM(9), OB(9), RW(6) all with 0 baselines.",
+      "deliverables": [
+        "Compile and run all programs",
+        "Capture baselines",
+        "Record FAIL*"
+      ],
+      "risks": [
+        "Entire feature areas may be untested"
+      ],
+      "test_impact": [
+        "SM, DB, SG, CM, OB, RW suites"
+      ],
+      "dependencies": [
+        "M300",
+        "M330"
+      ]
+    },
+    {
+      "id": "M344",
+      "title": "Diagnose and fix NC220M runtime hang",
+      "severity": "P1",
+      "subsystem": "Runtime / Control Flow / NIST",
+      "status": "open",
+      "description": "NC220M compiles but hangs at runtime. 0 FAIL* but known hang.",
+      "deliverables": [
+        "Reproduce hang",
+        "Identify root cause",
+        "Fix issue",
+        "Ensure correct termination"
+      ],
+      "risks": [
+        "Hidden infinite loops in real-world programs"
+      ],
+      "test_impact": [
+        "NC220M",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M310",
+        "M311"
+      ]
+    },
+    {
+      "id": "M345",
+      "title": "Diagnose NC237A runtime hang and SEARCH ALL behavior",
+      "severity": "P1",
+      "subsystem": "Runtime / Control Flow / NIST",
+      "status": "open",
+      "description": "NC237A has 3 FAIL* and runtime hang risk in SEARCH ALL Format 2.",
+      "deliverables": [
+        "Reproduce hang",
+        "Fix SEARCH ALL behavior",
+        "Add edge case tests"
+      ],
+      "risks": [
+        "Incorrect binary search behavior"
+      ],
+      "test_impact": [
+        "NC237A",
+        "ControlFlowTests for SEARCH ALL"
+      ],
+      "dependencies": [
+        "M201"
+      ]
+    },
+    {
+      "id": "M346",
+      "title": "Fix NC246A qualified names/subscripts (14 FAIL*)",
+      "severity": "P1",
+      "subsystem": "ExpressionBinder / Conditions / NIST",
+      "status": "open",
+      "description": "NC246A has 14 FAIL* — highest count. ExpressionBinder accounts for 30 of 77 FAIL*.",
+      "deliverables": [
+        "Analyze all 14 FAIL*",
+        "Fix qualified name and subscript resolution",
+        "Add targeted tests"
+      ],
+      "risks": [
+        "Widespread mis-binding of table and qualified references"
+      ],
+      "test_impact": [
+        "NC246A",
+        "SubscriptRefModTests",
+        "ExpressionBinder tests"
+      ],
+      "dependencies": [
+        "M300",
+        "M201"
+      ]
+    },
+    {
+      "id": "M347",
+      "title": "Fix NC218A UNSTRING behavior (9 FAIL*)",
+      "severity": "P1",
+      "subsystem": "StringStatementBinder / Runtime / NIST",
+      "status": "open",
+      "description": "NC218A has 9 FAIL* — largest string test.",
+      "deliverables": [
+        "Analyze all 9 FAIL*",
+        "Fix UNSTRING behavior",
+        "Add tests"
+      ],
+      "risks": [
+        "Incorrect string splitting and pointer behavior"
+      ],
+      "test_impact": [
+        "NC218A",
+        "StringTests"
+      ],
+      "dependencies": [
+        "M321",
+        "M322"
+      ]
+    },
+    {
+      "id": "M348",
+      "title": "Fix NC225A EVALUATE behavior (7 FAIL*)",
+      "severity": "P1",
+      "subsystem": "ControlFlowBinder / Conditions / NIST",
+      "status": "open",
+      "description": "NC225A has 7 FAIL*. EVALUATE TRUE/FALSE subjects Yes/Partially, THRU and ANY unclear.",
+      "deliverables": [
+        "Analyze all 7 FAIL*",
+        "Fix EVALUATE matching logic",
+        "Add tests"
+      ],
+      "risks": [
+        "Incorrect decision logic"
+      ],
+      "test_impact": [
+        "NC225A",
+        "ControlFlowTests",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M312",
+        "M313",
+        "M314"
+      ]
+    },
+    {
+      "id": "M349",
+      "title": "Fix NC247A OCCURS DEPENDING ON behavior (7 FAIL*)",
+      "severity": "P1",
+      "subsystem": "ExpressionBinder / Data Semantics / NIST",
+      "status": "open",
+      "description": "NC247A has 7 FAIL* in OCCURS Format 2 (ODO).",
+      "deliverables": [
+        "Analyze all 7 FAIL*",
+        "Fix ODO semantics",
+        "Add tests for ODO with varying values"
+      ],
+      "risks": [
+        "Incorrect table sizing and indexing"
+      ],
+      "test_impact": [
+        "NC247A",
+        "SubscriptRefModTests",
+        "DataTests for ODO"
+      ],
+      "dependencies": [
+        "M302",
+        "M201",
+        "M346"
+      ]
+    },
+    {
+      "id": "M350",
+      "title": "Fix NC209A (6 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Various (Level 2)",
+      "status": "open",
+      "description": "NC209A shows 6 FAIL*, indicating gaps in Level-2 nucleus semantics.",
+      "deliverables": [
+        "Analyze each FAIL*",
+        "Correct binder/runtime behavior",
+        "Add targeted tests"
+      ],
+      "risks": [
+        "Incorrect Level-2 semantics affecting many programs"
+      ],
+      "test_impact": [
+        "NC209A",
+        "Integration tests"
+      ],
+      "dependencies": [
+        "M300",
+        "M201"
+      ]
+    },
+    {
+      "id": "M351",
+      "title": "Fix NC216A (8 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Various (Level 2)",
+      "status": "open",
+      "description": "NC216A contributes 8 FAIL*, indicating multiple Level-2 semantic gaps.",
+      "deliverables": [
+        "Fix all failing cases",
+        "Add tests for Level-2 constructs"
+      ],
+      "risks": [
+        "Incorrect behavior in advanced COBOL-85 constructs"
+      ],
+      "test_impact": [
+        "NC216A",
+        "Integration tests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M352",
+      "title": "Fix NC108M (1 FAIL*)",
+      "severity": "P2",
+      "subsystem": "Modules",
+      "status": "open",
+      "description": "NC108M shows 1 FAIL*, indicating a module-related semantic gap.",
+      "deliverables": [
+        "Fix failing case",
+        "Add module-specific tests"
+      ],
+      "risks": [
+        "Incorrect module behavior"
+      ],
+      "test_impact": [
+        "NC108M"
+      ],
+      "dependencies": [
+        "M203"
+      ]
+    },
+    {
+      "id": "M353",
+      "title": "Fix NC215A (6 FAIL*)",
+      "severity": "P1",
+      "subsystem": "ExpressionBinder / Preprocessor",
+      "status": "open",
+      "description": "NC215A has 6 FAIL*, tied to continuation and string expression handling.",
+      "deliverables": [
+        "Fix continuation logic",
+        "Add tests for multi-line expressions"
+      ],
+      "risks": [
+        "Incorrect parsing of continued literals and expressions"
+      ],
+      "test_impact": [
+        "NC215A",
+        "ExpressionTests"
+      ],
+      "dependencies": [
+        "M300"
+      ]
+    },
+    {
+      "id": "M354",
+      "title": "Fix NC208A (3 FAIL*)",
+      "severity": "P1",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC208A shows 3 FAIL* in qualified name resolution.",
+      "deliverables": [
+        "Fix qualification logic",
+        "Add tests for multi-level qualification"
+      ],
+      "risks": [
+        "Incorrect data access in qualified references"
+      ],
+      "test_impact": [
+        "NC208A",
+        "ExpressionTests"
+      ],
+      "dependencies": [
+        "M346"
+      ]
+    },
+    {
+      "id": "M355",
+      "title": "Fix NC219A (1 FAIL*)",
+      "severity": "P2",
+      "subsystem": "Conditions / Runtime",
+      "status": "open",
+      "description": "NC219A has 1 FAIL* related to HIGH-VALUE/LOW-VALUE semantics.",
+      "deliverables": [
+        "Fix comparison logic",
+        "Add tests for boundary values"
+      ],
+      "risks": [
+        "Incorrect condition evaluation"
+      ],
+      "test_impact": [
+        "NC219A",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M316"
+      ]
+    },
+    {
+      "id": "M356",
+      "title": "Fix NC250A (4 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Conditions / Control Flow",
+      "status": "open",
+      "description": "NC250A shows 4 FAIL* in abbreviated conditions.",
+      "deliverables": [
+        "Fix abbreviated condition expansion",
+        "Add tests for nested abbreviations"
+      ],
+      "risks": [
+        "Incorrect IF/EVALUATE logic"
+      ],
+      "test_impact": [
+        "NC250A",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M315"
+      ]
+    },
+    {
+      "id": "M357",
+      "title": "Fix NC252A (3 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "NC252A shows 3 FAIL* in REDEFINES/RENAMES behavior.",
+      "deliverables": [
+        "Fix REDEFINES semantics",
+        "Add tests for RENAMES"
+      ],
+      "risks": [
+        "Data corruption in overlapping fields"
+      ],
+      "test_impact": [
+        "NC252A",
+        "DataTests"
+      ],
+      "dependencies": [
+        "M304"
+      ]
+    },
+    {
+      "id": "M358",
+      "title": "Fix NC201A (5 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC201A shows 5 FAIL* in PERFORM VARYING edge cases.",
+      "deliverables": [
+        "Fix VARYING logic",
+        "Add tests for AFTER phrases"
+      ],
+      "risks": [
+        "Incorrect loop behavior"
+      ],
+      "test_impact": [
+        "NC201A",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M311"
+      ]
+    },
+    {
+      "id": "M359",
+      "title": "Fix NC237A (3 FAIL*)",
+      "severity": "P1",
+      "subsystem": "Control Flow / Runtime",
+      "status": "open",
+      "description": "NC237A shows 3 FAIL* plus a runtime hang in SEARCH ALL.",
+      "deliverables": [
+        "Fix SEARCH ALL logic",
+        "Add binary search tests"
+      ],
+      "risks": [
+        "Infinite loops or incorrect search results"
+      ],
+      "test_impact": [
+        "NC237A",
+        "SearchTests"
+      ],
+      "dependencies": [
+        "M345"
+      ]
+    },
+    {
+      "id": "M360",
+      "title": "Fix NC247A OCCURS DEPENDING ON additional cases",
+      "severity": "P1",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "Beyond the 7 FAIL*, NC247A exposes additional ODO edge cases.",
+      "deliverables": [
+        "Add tests for nested ODO",
+        "Fix bounds logic"
+      ],
+      "risks": [
+        "Table corruption"
+      ],
+      "test_impact": [
+        "NC247A",
+        "DataTests"
+      ],
+      "dependencies": [
+        "M349"
+      ]
+    },
+    {
+      "id": "M361",
+      "title": "Fix NC246A additional subscript edge cases",
+      "severity": "P1",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC246A 14 FAIL* imply additional untested subscript patterns.",
+      "deliverables": [
+        "Add tests for multi-dimensional subscripts",
+        "Fix binder logic"
+      ],
+      "risks": [
+        "Incorrect table access"
+      ],
+      "test_impact": [
+        "NC246A",
+        "SubscriptTests"
+      ],
+      "dependencies": [
+        "M346"
+      ]
+    },
+    {
+      "id": "M362",
+      "title": "Fix NC218A additional UNSTRING pointer cases",
+      "severity": "P1",
+      "subsystem": "Runtime / String",
+      "status": "open",
+      "description": "NC218A 9 FAIL* imply pointer update issues.",
+      "deliverables": [
+        "Add tests for pointer increments",
+        "Fix UNSTRING runtime"
+      ],
+      "risks": [
+        "Incorrect string splitting"
+      ],
+      "test_impact": [
+        "NC218A",
+        "StringTests"
+      ],
+      "dependencies": [
+        "M347"
+      ]
+    },
+    {
+      "id": "M363",
+      "title": "Fix NC225A additional EVALUATE matching cases",
+      "severity": "P1",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC225A 7 FAIL* imply missing matching logic.",
+      "deliverables": [
+        "Add tests for mixed subjects",
+        "Fix binder logic"
+      ],
+      "risks": [
+        "Incorrect branching"
+      ],
+      "test_impact": [
+        "NC225A",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M348"
+      ]
+    },
+    {
+      "id": "M364",
+      "title": "Fix NC209A additional Level-2 nucleus cases",
+      "severity": "P2",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC209A 6 FAIL* imply additional Level-2 gaps.",
+      "deliverables": [
+        "Add tests for Level-2 constructs",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect semantics"
+      ],
+      "test_impact": [
+        "NC209A"
+      ],
+      "dependencies": [
+        "M350"
+      ]
+    },
+    {
+      "id": "M365",
+      "title": "Fix NC216A additional Level-2 nucleus cases",
+      "severity": "P2",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC216A 8 FAIL* imply deeper Level-2 issues.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect advanced semantics"
+      ],
+      "test_impact": [
+        "NC216A"
+      ],
+      "dependencies": [
+        "M351"
+      ]
+    },
+    {
+      "id": "M366",
+      "title": "Fix NC108M additional module cases",
+      "severity": "P3",
+      "subsystem": "Modules",
+      "status": "open",
+      "description": "NC108M 1 FAIL* suggests missing module edge cases.",
+      "deliverables": [
+        "Add tests",
+        "Fix module binder"
+      ],
+      "risks": [
+        "Incorrect module behavior"
+      ],
+      "test_impact": [
+        "NC108M"
+      ],
+      "dependencies": [
+        "M352"
+      ]
+    },
+    {
+      "id": "M367",
+      "title": "Fix NC215A additional continuation cases",
+      "severity": "P2",
+      "subsystem": "Preprocessor / ExpressionBinder",
+      "status": "open",
+      "description": "NC215A 6 FAIL* imply continuation parsing gaps.",
+      "deliverables": [
+        "Add tests for multi-line literals",
+        "Fix preprocessor"
+      ],
+      "risks": [
+        "Incorrect parsing"
+      ],
+      "test_impact": [
+        "NC215A"
+      ],
+      "dependencies": [
+        "M353"
+      ]
+    },
+    {
+      "id": "M368",
+      "title": "Fix NC208A additional qualification cases",
+      "severity": "P2",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC208A 3 FAIL* imply deeper qualification issues.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect data access"
+      ],
+      "test_impact": [
+        "NC208A"
+      ],
+      "dependencies": [
+        "M354"
+      ]
+    },
+    {
+      "id": "M369",
+      "title": "Fix NC219A additional HIGH-VALUE/LOW-VALUE cases",
+      "severity": "P3",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC219A 1 FAIL* implies missing boundary tests.",
+      "deliverables": [
+        "Add tests",
+        "Fix comparison logic"
+      ],
+      "risks": [
+        "Incorrect condition evaluation"
+      ],
+      "test_impact": [
+        "NC219A"
+      ],
+      "dependencies": [
+        "M355"
+      ]
+    },
+    {
+      "id": "M370",
+      "title": "Fix NC250A additional abbreviated condition cases",
+      "severity": "P2",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC250A 4 FAIL* imply missing abbreviation patterns.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect IF/EVALUATE logic"
+      ],
+      "test_impact": [
+        "NC250A"
+      ],
+      "dependencies": [
+        "M356"
+      ]
+    },
+    {
+      "id": "M371",
+      "title": "Fix NC252A additional REDEFINES/RENAMES cases",
+      "severity": "P2",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "NC252A 3 FAIL* imply deeper REDEFINES issues.",
+      "deliverables": [
+        "Add tests",
+        "Fix SemanticBuilder"
+      ],
+      "risks": [
+        "Data corruption"
+      ],
+      "test_impact": [
+        "NC252A"
+      ],
+      "dependencies": [
+        "M357"
+      ]
+    },
+    {
+      "id": "M372",
+      "title": "Fix NC201A additional PERFORM VARYING cases",
+      "severity": "P2",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC201A 5 FAIL* imply missing VARYING edge cases.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect loop behavior"
+      ],
+      "test_impact": [
+        "NC201A"
+      ],
+      "dependencies": [
+        "M358"
+      ]
+    },
+    {
+      "id": "M373",
+      "title": "Fix NC237A additional SEARCH ALL cases",
+      "severity": "P2",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC237A 3 FAIL* imply missing binary search cases.",
+      "deliverables": [
+        "Add tests",
+        "Fix SEARCH ALL"
+      ],
+      "risks": [
+        "Incorrect search results"
+      ],
+      "test_impact": [
+        "NC237A"
+      ],
+      "dependencies": [
+        "M359"
+      ]
+    },
+    {
+      "id": "M374",
+      "title": "Fix NC247A additional ODO cases",
+      "severity": "P2",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "NC247A 7 FAIL* imply missing ODO edge cases.",
+      "deliverables": [
+        "Add tests",
+        "Fix ODO logic"
+      ],
+      "risks": [
+        "Table corruption"
+      ],
+      "test_impact": [
+        "NC247A"
+      ],
+      "dependencies": [
+        "M360"
+      ]
+    },
+    {
+      "id": "M375",
+      "title": "Fix NC246A additional qualified/subscript cases",
+      "severity": "P2",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC246A 14 FAIL* imply deeper qualification/subscript issues.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect table access"
+      ],
+      "test_impact": [
+        "NC246A"
+      ],
+      "dependencies": [
+        "M361"
+      ]
+    },
+    {
+      "id": "M376",
+      "title": "Fix NC218A additional UNSTRING delimiter cases",
+      "severity": "P2",
+      "subsystem": "Runtime / String",
+      "status": "open",
+      "description": "NC218A 9 FAIL* imply missing delimiter logic.",
+      "deliverables": [
+        "Add tests",
+        "Fix delimiter handling"
+      ],
+      "risks": [
+        "Incorrect string splitting"
+      ],
+      "test_impact": [
+        "NC218A"
+      ],
+      "dependencies": [
+        "M362"
+      ]
+    },
+    {
+      "id": "M377",
+      "title": "Fix NC225A additional EVALUATE THRU/ANY cases",
+      "severity": "P2",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC225A 7 FAIL* imply missing THRU/ANY logic.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect branching"
+      ],
+      "test_impact": [
+        "NC225A"
+      ],
+      "dependencies": [
+        "M363"
+      ]
+    },
+    {
+      "id": "M378",
+      "title": "Fix NC209A additional nucleus cases",
+      "severity": "P3",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC209A 6 FAIL* imply missing nucleus semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect behavior"
+      ],
+      "test_impact": [
+        "NC209A"
+      ],
+      "dependencies": [
+        "M364"
+      ]
+    },
+    {
+      "id": "M379",
+      "title": "Fix NC216A additional nucleus cases",
+      "severity": "P3",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC216A 8 FAIL* imply missing nucleus semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect behavior"
+      ],
+      "test_impact": [
+        "NC216A"
+      ],
+      "dependencies": [
+        "M365"
+      ]
+    },
+    {
+      "id": "M380",
+      "title": "Fix NC108M additional module cases",
+      "severity": "P3",
+      "subsystem": "Modules",
+      "status": "open",
+      "description": "NC108M 1 FAIL* implies missing module semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect module behavior"
+      ],
+      "test_impact": [
+        "NC108M"
+      ],
+      "dependencies": [
+        "M366"
+      ]
+    },
+    {
+      "id": "M381",
+      "title": "Fix NC215A additional continuation cases",
+      "severity": "P3",
+      "subsystem": "Preprocessor",
+      "status": "open",
+      "description": "NC215A 6 FAIL* imply missing continuation semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix preprocessor"
+      ],
+      "risks": [
+        "Incorrect parsing"
+      ],
+      "test_impact": [
+        "NC215A"
+      ],
+      "dependencies": [
+        "M367"
+      ]
+    },
+    {
+      "id": "M382",
+      "title": "Fix NC208A additional qualification cases",
+      "severity": "P3",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC208A 3 FAIL* imply missing qualification semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect data access"
+      ],
+      "test_impact": [
+        "NC208A"
+      ],
+      "dependencies": [
+        "M368"
+      ]
+    },
+    {
+      "id": "M383",
+      "title": "Fix NC219A additional HIGH-VALUE/LOW-VALUE comparison cases",
+      "severity": "P3",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC219A 1 FAIL* implies missing boundary semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix runtime"
+      ],
+      "risks": [
+        "Incorrect comparisons"
+      ],
+      "test_impact": [
+        "NC219A"
+      ],
+      "dependencies": [
+        "M369"
+      ]
+    },
+    {
+      "id": "M384",
+      "title": "Fix NC250A additional abbreviated condition expansion cases",
+      "severity": "P3",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC250A 4 FAIL* imply missing abbreviation semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect branching"
+      ],
+      "test_impact": [
+        "NC250A"
+      ],
+      "dependencies": [
+        "M370"
+      ]
+    },
+    {
+      "id": "M385",
+      "title": "Fix NC252A additional REDEFINES/RENAMES cases",
+      "severity": "P3",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "NC252A 3 FAIL* imply missing REDEFINES semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix SemanticBuilder"
+      ],
+      "risks": [
+        "Data corruption"
+      ],
+      "test_impact": [
+        "NC252A"
+      ],
+      "dependencies": [
+        "M371"
+      ]
+    },
+    {
+      "id": "M386",
+      "title": "Fix NC201A additional PERFORM VARYING cases",
+      "severity": "P3",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC201A 5 FAIL* imply missing VARYING semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect loops"
+      ],
+      "test_impact": [
+        "NC201A"
+      ],
+      "dependencies": [
+        "M372"
+      ]
+    },
+    {
+      "id": "M387",
+      "title": "Fix NC237A additional SEARCH ALL cases",
+      "severity": "P3",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC237A 3 FAIL* imply missing SEARCH ALL semantics.",
+      "deliverables": [
+        "Add tests",
+        "Fix runtime"
+      ],
+      "risks": [
+        "Incorrect search"
+      ],
+      "test_impact": [
+        "NC237A"
+      ],
+      "dependencies": [
+        "M373"
+      ]
+    },
+    {
+      "id": "M388",
+      "title": "Fix NC247A additional OCCURS DEPENDING ON boundary cases",
+      "severity": "P3",
+      "subsystem": "Data Semantics",
+      "status": "open",
+      "description": "NC247A 7 FAIL* indicate additional untested ODO boundary conditions, including minimum/maximum ODO values and dynamic resizing interactions.",
+      "deliverables": [
+        "Add tests for ODO values at boundaries (0, 1, max), nested ODO tables, and dynamic resizing",
+        "Correct binder/runtime handling"
+      ],
+      "risks": [
+        "Incorrect table sizing and indexing, leading to data corruption"
+      ],
+      "test_impact": [
+        "NC247A",
+        "DataTests",
+        "SubscriptRefModTests"
+      ],
+      "dependencies": [
+        "M349",
+        "M360"
+      ]
+    },
+    {
+      "id": "M389",
+      "title": "Fix NC246A additional qualified-name resolution cases",
+      "severity": "P3",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC246A 14 FAIL* imply deeper qualification resolution issues, especially with multi-level OF/IN chains.",
+      "deliverables": [
+        "Add tests for multi-level qualification, ambiguous qualification, and qualification with subscripts",
+        "Fix binder resolution"
+      ],
+      "risks": [
+        "Incorrect data access in nested structures"
+      ],
+      "test_impact": [
+        "NC246A",
+        "ExpressionTests"
+      ],
+      "dependencies": [
+        "M346",
+        "M361"
+      ]
+    },
+    {
+      "id": "M390",
+      "title": "Fix NC218A additional UNSTRING DELIMITER IN cases",
+      "severity": "P3",
+      "subsystem": "Runtime / String",
+      "status": "open",
+      "description": "NC218A 9 FAIL* imply missing DELIMITER IN semantics, especially when delimiters overlap or appear at boundaries.",
+      "deliverables": [
+        "Add tests for DELIMITER IN with overlapping delimiters, trailing delimiters, and empty fields",
+        "Fix runtime behavior"
+      ],
+      "risks": [
+        "Incorrect string splitting and pointer updates"
+      ],
+      "test_impact": [
+        "NC218A",
+        "StringTests"
+      ],
+      "dependencies": [
+        "M347",
+        "M362"
+      ]
+    },
+    {
+      "id": "M391",
+      "title": "Fix NC225A additional EVALUATE subject/object combinations",
+      "severity": "P3",
+      "subsystem": "Control Flow",
+      "status": "open",
+      "description": "NC225A 7 FAIL* imply missing combinations of subjects and WHEN objects, including mixed numeric/condition-name cases.",
+      "deliverables": [
+        "Add tests for mixed subject types",
+        "Fix binder matching logic"
+      ],
+      "risks": [
+        "Incorrect branching in decision tables"
+      ],
+      "test_impact": [
+        "NC225A",
+        "ControlFlowTests"
+      ],
+      "dependencies": [
+        "M348",
+        "M363"
+      ]
+    },
+    {
+      "id": "M392",
+      "title": "Fix NC209A additional Level-2 nucleus interactions",
+      "severity": "P3",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC209A 6 FAIL* imply missing interactions between Level-2 nucleus constructs and runtime behavior.",
+      "deliverables": [
+        "Add tests for Level-2 interactions",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect behavior in advanced COBOL-85 constructs"
+      ],
+      "test_impact": [
+        "NC209A"
+      ],
+      "dependencies": [
+        "M350",
+        "M364"
+      ]
+    },
+    {
+      "id": "M393",
+      "title": "Fix NC216A additional Level-2 nucleus interactions",
+      "severity": "P3",
+      "subsystem": "Various",
+      "status": "open",
+      "description": "NC216A 8 FAIL* imply missing interactions between Level-2 constructs and control flow.",
+      "deliverables": [
+        "Add tests",
+        "Fix binder/runtime"
+      ],
+      "risks": [
+        "Incorrect semantics in complex programs"
+      ],
+      "test_impact": [
+        "NC216A"
+      ],
+      "dependencies": [
+        "M351",
+        "M365"
+      ]
+    },
+    {
+      "id": "M394",
+      "title": "Fix NC108M additional module linkage cases",
+      "severity": "P3",
+      "subsystem": "Modules",
+      "status": "open",
+      "description": "NC108M 1 FAIL* implies missing module linkage semantics, especially around ENTRY and CANCEL.",
+      "deliverables": [
+        "Add tests for ENTRY/CANCEL interactions",
+        "Fix module binder/runtime"
+      ],
+      "risks": [
+        "Incorrect inter-module behavior"
+      ],
+      "test_impact": [
+        "NC108M",
+        "CallTests"
+      ],
+      "dependencies": [
+        "M352",
+        "M366"
+      ]
+    },
+    {
+      "id": "M395",
+      "title": "Fix NC215A additional continuation/concatenation cases",
+      "severity": "P3",
+      "subsystem": "Preprocessor / ExpressionBinder",
+      "status": "open",
+      "description": "NC215A 6 FAIL* imply missing continuation and concatenation semantics for literals and expressions.",
+      "deliverables": [
+        "Add tests for multi-line literals, continued strings, and continued expressions",
+        "Fix preprocessor"
+      ],
+      "risks": [
+        "Incorrect parsing of continued lines"
+      ],
+      "test_impact": [
+        "NC215A",
+        "PreprocessorTests"
+      ],
+      "dependencies": [
+        "M353",
+        "M367"
+      ]
+    },
+    {
+      "id": "M396",
+      "title": "Fix NC208A additional qualification/subscript interactions",
+      "severity": "P3",
+      "subsystem": "ExpressionBinder",
+      "status": "open",
+      "description": "NC208A 3 FAIL* imply missing interactions between qualification and subscripting.",
+      "deliverables": [
+        "Add tests for qualified subscripts, nested qualification, and ambiguous references",
+        "Fix binder"
+      ],
+      "risks": [
+        "Incorrect data access"
+      ],
+      "test_impact": [
+        "NC208A",
+        "ExpressionTests"
+      ],
+      "dependencies": [
+        "M354",
+        "M368"
+      ]
+    },
+    {
+      "id": "M397",
+      "title": "Fix NC219A additional HIGH-VALUE/LOW-VALUE comparison cases",
+      "severity": "P3",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC219A 1 FAIL* implies missing comparison semantics for HIGH-VALUE/LOW-VALUE in mixed categories.",
+      "deliverables": [
+        "Add tests for comparisons across numeric/alphanumeric categories",
+        "Fix runtime"
+      ],
+      "risks": [
+        "Incorrect condition evaluation"
+      ],
+      "test_impact": [
+        "NC219A",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M355",
+        "M369"
+      ]
+    },
+    {
+      "id": "M398",
+      "title": "Fix NC250A additional abbreviated condition expansion cases",
+      "severity": "P3",
+      "subsystem": "Conditions",
+      "status": "open",
+      "description": "NC250A 4 FAIL* imply missing expansion logic for abbreviated relational conditions.",
+      "deliverables": [
+        "Add tests for nested abbreviations",
+        "Fix binder expansion logic"
+      ],
+      "risks": [
+        "Incorrect IF/EVALUATE branching"
+      ],
+      "test_impact": [
+        "NC250A",
+        "ConditionTests"
+      ],
+      "dependencies": [
+        "M356",
+        "M370"
+      ]
+    },
+    {
+      "id": "M399",
+      "title": "Final NIST FAIL* audit and closure verification",
+      "severity": "P1",
+      "subsystem": "NIST / Cross-Subsystem",
+      "status": "open",
+      "description": "After all individual FAIL* items are addressed, a final audit must verify that all 77 FAIL* across 14 tests are resolved and no new FAIL* appear.",
+      "deliverables": [
+        "Re-run all NC tests",
+        "Confirm 0 FAIL*",
+        "Update ledger",
+        "Generate closure report"
+      ],
+      "risks": [
+        "Residual or newly introduced conformance gaps"
+      ],
+      "test_impact": [
+        "All NC tests",
+        "Integration tests"
+      ],
+      "dependencies": [
+        "M300",
+        "M301",
+        "M302",
+        "M303",
+        "M304",
+        "M305",
+        "M306",
+        "M307",
+        "M308",
+        "M309",
+        "M310",
+        "M311",
+        "M312",
+        "M313",
+        "M314",
+        "M315",
+        "M316",
+        "M317",
+        "M318",
+        "M319",
+        "M320",
+        "M321",
+        "M322",
+        "M323",
+        "M324",
+        "M325",
+        "M326",
+        "M327",
+        "M328",
+        "M329",
+        "M330",
+        "M331",
+        "M332",
+        "M333",
+        "M334",
+        "M335",
+        "M336",
+        "M337",
+        "M338",
+        "M339",
+        "M340",
+        "M341",
+        "M342",
+        "M343",
+        "M344",
+        "M345",
+        "M346",
+        "M347",
+        "M348",
+        "M349",
+        "M350",
+        "M351",
+        "M352",
+        "M353",
+        "M354",
+        "M355",
+        "M356",
+        "M357",
+        "M358",
+        "M359",
+        "M360",
+        "M361",
+        "M362",
+        "M363",
+        "M364",
+        "M365",
+        "M366",
+        "M367",
+        "M368",
+        "M369",
+        "M370",
+        "M371",
+        "M372",
+        "M373",
+        "M374",
+        "M375",
+        "M376",
+        "M377",
+        "M378",
+        "M379",
+        "M380",
+        "M381",
+        "M382",
+        "M383",
+        "M384",
+        "M385",
+        "M386",
+        "M387",
+        "M388",
+        "M389",
+        "M390",
+        "M391",
+        "M392",
+        "M393",
+        "M394",
+        "M395",
+        "M396",
+        "M397",
+        "M398"
+      ]
     }
   ]
 }
