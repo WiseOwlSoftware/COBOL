@@ -67,41 +67,17 @@ TEST RESULT OF NC225A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-28-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-29-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-30-1   .01
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-31-1   .01        EVALUATE FAILURE
-
-                                     COMPUTED= E
-                                     CORRECT = A                     VI-84 6.12.4 GR3
-
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-31-1   .01        EVALUATE FAILURE
-
-                                     COMPUTED= F
-                                     CORRECT = B                     VI-84 6.12.4 GR3
-
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-32-1   .01        EVALUATE FAILURE
-
-                                     COMPUTED= E
-                                     CORRECT = C                     VI-84 6.12.4 GR3
-
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-32-1   .02        EVALUATE FAILURE
-
-                                     COMPUTED= F
-                                     CORRECT = D                     VI-84 6.12.4 GR3
-
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-31-1   .01
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-31-1   .01
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-32-1   .01
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-32-1   .02
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-33-1   .01
  EVALUATE STATEMENT   PASS  EVA-TEST-GF-33-1   .02
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-34-1   .01        EVALUATE FAILURE
-
-                                     COMPUTED= E
-                                     CORRECT = G                     VI-84 6.12.4 GR3
-
- EVALUATE STATEMENT   FAIL* EVA-TEST-GF-34-1   .02        EVALUATE FAILURE
-
-                                     COMPUTED= F
-                                     CORRECT = H                     VI-84 6.12.4 GR3
-
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-34-1   .01
+ EVALUATE STATEMENT   PASS  EVA-TEST-GF-34-1   .02
  EVALUATE STATEMENT   FAIL* EVA-TEST-GF-35-1   .01        EVALUATE FAILURE
 
-                                     COMPUTED= E
+                                     COMPUTED= G
                                      CORRECT = A                     VI-84 6.12.4 GR3
 
  ***********************************************************************************************************************
@@ -111,8 +87,8 @@ TEST RESULT OF NC225A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC225A
 
-                                                    056 OF 063  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    007 TEST(S) FAILED
+                                                    062 OF 063  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    001 TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

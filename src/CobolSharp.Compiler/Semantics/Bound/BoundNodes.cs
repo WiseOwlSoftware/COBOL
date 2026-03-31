@@ -408,22 +408,24 @@ public enum CorrespondingKind { Move, Add, Subtract }
 public sealed class BoundCorrespondingStatement : BoundStatement
 {
     public CorrespondingKind CorrespondingKind { get; }
-    public DataSymbol SourceGroup { get; }
-    public DataSymbol TargetGroup { get; }
+    public BoundIdentifierExpression SourceGroupExpr { get; }
+    public BoundIdentifierExpression TargetGroupExpr { get; }
+    public DataSymbol SourceGroup => SourceGroupExpr.Symbol;
+    public DataSymbol TargetGroup => TargetGroupExpr.Symbol;
     public IReadOnlyList<(DataSymbol Source, DataSymbol Target)> Pairs { get; }
     public bool IsRounded { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
     public BoundCorrespondingStatement(
         CorrespondingKind kind,
-        DataSymbol sourceGroup, DataSymbol targetGroup,
+        BoundIdentifierExpression sourceGroupExpr, BoundIdentifierExpression targetGroupExpr,
         IReadOnlyList<(DataSymbol Source, DataSymbol Target)> pairs,
         bool isRounded = false,
         BoundSizeErrorClause? sizeError = null)
     {
         CorrespondingKind = kind;
-        SourceGroup = sourceGroup;
-        TargetGroup = targetGroup;
+        SourceGroupExpr = sourceGroupExpr;
+        TargetGroupExpr = targetGroupExpr;
         Pairs = pairs;
         IsRounded = isRounded;
         SizeError = sizeError;
@@ -1079,25 +1081,41 @@ public sealed class BoundArithmeticTarget
 // EVALUATE
 // ═══════════════════════════════════
 
+/// <summary>
+/// Per-subject type in a multi-subject EVALUATE.
+/// Value = compare WHEN operand against subject expression.
+/// True  = WHEN operand is a condition, match when TRUE.
+/// False = WHEN operand is a condition, match when FALSE (negate).
+/// </summary>
+public enum EvaluateSubjectKind { Value, True, False }
+
 public sealed class BoundEvaluateStatement : BoundStatement
 {
-    public IReadOnlyList<BoundExpression> Subjects { get; }  // empty for EVALUATE TRUE/FALSE
+    /// <summary>
+    /// Subject expressions (one per ALSO position). For True/False subjects, the
+    /// expression is null (unused) unless it's a condition-name subject.
+    /// </summary>
+    public IReadOnlyList<BoundExpression> Subjects { get; }
+    public IReadOnlyList<EvaluateSubjectKind> SubjectKinds { get; }
     public IReadOnlyList<BoundEvaluateWhen> Whens { get; }
     public IReadOnlyList<BoundStatement>? WhenOther { get; }
-    public bool IsEvaluateFalse { get; }  // EVALUATE FALSE — invert condition matches
 
-    public bool IsEvaluateTrue => Subjects.Count == 0 && !IsEvaluateFalse;
+    /// <summary>True if ALL subjects are TRUE (legacy compat for simple EVALUATE TRUE).</summary>
+    public bool IsEvaluateTrue => SubjectKinds.Count > 0 && SubjectKinds.All(k => k == EvaluateSubjectKind.True);
+
+    /// <summary>True if ALL subjects are FALSE (legacy compat for simple EVALUATE FALSE).</summary>
+    public bool IsEvaluateFalse => SubjectKinds.Count > 0 && SubjectKinds.All(k => k == EvaluateSubjectKind.False);
 
     public BoundEvaluateStatement(
         IReadOnlyList<BoundExpression> subjects,
+        IReadOnlyList<EvaluateSubjectKind> subjectKinds,
         IReadOnlyList<BoundEvaluateWhen> whens,
-        IReadOnlyList<BoundStatement>? whenOther,
-        bool isEvaluateFalse = false)
+        IReadOnlyList<BoundStatement>? whenOther)
     {
         Subjects = subjects;
+        SubjectKinds = subjectKinds;
         Whens = whens;
         WhenOther = whenOther;
-        IsEvaluateFalse = isEvaluateFalse;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.EvaluateStatement;

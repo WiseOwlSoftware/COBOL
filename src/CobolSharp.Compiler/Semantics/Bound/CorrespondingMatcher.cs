@@ -31,38 +31,10 @@ internal static class CorrespondingMatcher
         var result = new List<(DataSymbol, DataSymbol)>();
         var span = TextSpan.Empty;
 
-        // Collect eligible elementary leaves under each group
-        var sourceLeaves = EnumerateEligibleLeaves(sourceGroup);
-
-        // Index target leaves by relative path (includes leaf name) for O(1) lookup
-        var targetIndex = BuildTargetIndex(targetGroup);
-
-        foreach (var src in sourceLeaves)
-        {
-            var key = GetRelativePath(sourceGroup, src);
-            if (!targetIndex.TryGetValue(key, out var candidates))
-                continue;
-
-            // Ambiguous: multiple target items with same name and qualification
-            if (candidates.Count > 1)
-            {
-                diagnostics.Report(DiagnosticDescriptors.COBOL0410,
-                    location, span, operationName, src.DisplayName, targetGroup.DisplayName);
-                continue;
-            }
-
-            var dst = candidates[0];
-
-            // OCCURS: dimensions from group to leaf must match
-            if (!AreOccursCompatible(sourceGroup, src, targetGroup, dst))
-            {
-                diagnostics.Report(DiagnosticDescriptors.COBOL0411,
-                    location, span, operationName, src.DisplayName, dst.DisplayName);
-                continue;
-            }
-
-            result.Add((src, dst));
-        }
+        // Recursive name-matching per ISO §14.9.26:
+        // At each level, match named children by name. If both are groups, recurse.
+        // If either is elementary, yield the pair (group MOVE in that case).
+        MatchCorrespondingLevel(sourceGroup, targetGroup, result, operationName, diagnostics, location, span);
 
         if (result.Count == 0)
         {
@@ -73,50 +45,81 @@ internal static class CorrespondingMatcher
         return result;
     }
 
-    // ── Leaf enumeration ──
+    // ── Recursive level matching ──
 
     /// <summary>
-    /// Enumerates elementary items eligible for CORRESPONDING matching.
-    /// Per ISO §14.9.26, excludes:
-    /// - FILLER items
-    /// - Items subordinate to a REDEFINES
-    /// - Items with an OCCURS clause (table elements are not individually corresponding)
+    /// Recursively matches children at each group level per ISO §14.9.26.
+    /// For each named child in source, finds matching named child in target.
+    /// If both are groups, recurses. If either is elementary, yields the pair.
+    /// Excludes: FILLER, RENAMES (level 66), REDEFINES, OCCURS items.
     /// </summary>
-    private static IEnumerable<DataSymbol> EnumerateEligibleLeaves(DataSymbol group)
+    private static void MatchCorrespondingLevel(
+        DataSymbol sourceGroup,
+        DataSymbol targetGroup,
+        List<(DataSymbol, DataSymbol)> result,
+        string operationName,
+        DiagnosticBag diagnostics,
+        SourceLocation location,
+        TextSpan span)
     {
-        foreach (var child in group.Children)
+        // Index target's eligible children by name for O(1) lookup
+        var targetByName = new Dictionary<string, List<DataSymbol>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tChild in targetGroup.Children)
         {
-            if (child.IsFiller) continue;
-            if (child.LevelNumber == 66) continue; // skip RENAMES items per ISO §14.9.26
-            if (child.Redefines != null) continue; // skip REDEFINES and all subordinates
-            if (child.Occurs != null) continue;   // skip OCCURS items per ISO §14.9.26
+            if (!IsEligibleChild(tChild)) continue;
+            if (!targetByName.TryGetValue(tChild.DisplayName, out var list))
+                targetByName[tChild.DisplayName] = list = [];
+            list.Add(tChild);
+        }
 
-            if (child.IsElementary)
-                yield return child;
+        foreach (var srcChild in sourceGroup.Children)
+        {
+            if (!IsEligibleChild(srcChild)) continue;
+
+            if (!targetByName.TryGetValue(srcChild.DisplayName, out var candidates))
+                continue;
+
+            if (candidates.Count > 1)
+            {
+                diagnostics.Report(DiagnosticDescriptors.COBOL0410,
+                    location, span, operationName, srcChild.DisplayName, targetGroup.DisplayName);
+                continue;
+            }
+
+            var dstChild = candidates[0];
+
+            // OCCURS: dimensions from group root to this item must match
+            if (!AreOccursCompatible(sourceGroup, srcChild, targetGroup, dstChild))
+            {
+                diagnostics.Report(DiagnosticDescriptors.COBOL0411,
+                    location, span, operationName, srcChild.DisplayName, dstChild.DisplayName);
+                continue;
+            }
+
+            // Both groups → recurse into next level
+            if (srcChild.IsGroup && dstChild.IsGroup)
+            {
+                MatchCorrespondingLevel(srcChild, dstChild, result, operationName, diagnostics, location, span);
+            }
             else
-                foreach (var deep in EnumerateEligibleLeaves(child))
-                    yield return deep;
+            {
+                // Either is elementary → yield the pair (elementary or group MOVE)
+                result.Add((srcChild, dstChild));
+            }
         }
     }
 
-    // ── Target index ──
-
     /// <summary>
-    /// Builds a dictionary mapping relative path → list of target leaves.
-    /// The path includes the leaf name and all intermediate group names,
-    /// enabling qualification-aware O(1) lookup.
+    /// Checks whether a child is eligible for CORRESPONDING matching.
+    /// Excludes FILLER, RENAMES (level 66), REDEFINES, and OCCURS items.
     /// </summary>
-    private static Dictionary<string, List<DataSymbol>> BuildTargetIndex(DataSymbol targetGroup)
+    private static bool IsEligibleChild(DataSymbol child)
     {
-        var index = new Dictionary<string, List<DataSymbol>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var t in EnumerateEligibleLeaves(targetGroup))
-        {
-            var key = GetRelativePath(targetGroup, t);
-            if (!index.TryGetValue(key, out var list))
-                index[key] = list = [];
-            list.Add(t);
-        }
-        return index;
+        if (child.IsFiller) return false;
+        if (child.LevelNumber == 66) return false;
+        if (child.Redefines != null) return false;
+        if (child.Occurs != null) return false;
+        return true;
     }
 
     // ── Qualification ──

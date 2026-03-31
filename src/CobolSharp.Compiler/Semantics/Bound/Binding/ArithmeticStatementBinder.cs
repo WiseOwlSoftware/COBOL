@@ -371,11 +371,11 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (hasError)
-            return new BoundCorrespondingStatement(kind, srcSym, dstSym, []);
+            return new BoundCorrespondingStatement(kind, srcId, dstId, []);
 
         var pairs = CorrespondingMatcher.ComputeCorrespondingPairs(
             srcSym, dstSym, kindName, _ctx.Diagnostics, loc);
-        return new BoundCorrespondingStatement(kind, srcSym, dstSym, pairs, isRounded, sizeError);
+        return new BoundCorrespondingStatement(kind, srcId, dstId, pairs, isRounded, sizeError);
     }
 
     // ── SIZE ERROR CLAUSE ──

@@ -213,69 +213,57 @@ public static class BoundTreeValidator
 
     private static void ValidateEvaluate(BoundEvaluateStatement eval, int line, DiagnosticBag diagnostics)
     {
-        if (eval.IsEvaluateTrue)
+        // Per-subject validation: TRUE/FALSE subjects get boolean check, Value subjects get type check
+        for (int si = 0; si < eval.SubjectKinds.Count; si++)
         {
-            ValidateEvaluateTrue(eval, line, diagnostics);
-        }
-        else
-        {
-            ValidateEvaluateSubjects(eval, line, diagnostics);
+            var kind = eval.SubjectKinds[si];
+            if (kind == EvaluateSubjectKind.True || kind == EvaluateSubjectKind.False)
+            {
+                // CBL2503: EVALUATE TRUE/FALSE WHEN must be boolean
+                foreach (var when in eval.Whens)
+                {
+                    if (si >= when.SubjectConditions.Count) continue;
+                    if (when.SubjectConditions[si] is BoundEvaluateConditionWhen condWhen)
+                    {
+                        var type = condWhen.Condition.ResultType;
+                        if (type != null && !type.IsBoolean)
+                            Report(diagnostics, line, DiagnosticDescriptors.CBL2503);
+                    }
+                }
+            }
+            else
+            {
+                // CBL2501: EVALUATE WHEN type incompatible with subject
+                var subject = eval.Subjects[si];
+                var subjectType = subject?.ResultType;
+                if (subjectType == null) continue;
+
+                foreach (var when in eval.Whens)
+                {
+                    if (si >= when.SubjectConditions.Count) continue;
+                    if (when.SubjectConditions[si] is BoundEvaluateValueCondition valueCond)
+                    {
+                        if (valueCond.IsAny) continue;
+                        foreach (var val in valueCond.Values)
+                        {
+                            if (!IsTypeCompatible(subjectType, val.ResultType))
+                                Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
+                        }
+                        foreach (var range in valueCond.Ranges)
+                        {
+                            if (!IsTypeCompatible(subjectType, range.From.ResultType))
+                                Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
+                            if (!IsTypeCompatible(subjectType, range.To.ResultType))
+                                Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
+                        }
+                    }
+                }
+            }
         }
 
         // CBL2502: EVALUATE missing WHEN OTHER (warning)
         if (eval.WhenOther == null)
             Report(diagnostics, line, DiagnosticDescriptors.CBL2502);
-    }
-
-    private static void ValidateEvaluateTrue(BoundEvaluateStatement eval, int line, DiagnosticBag diagnostics)
-    {
-        // CBL2503: EVALUATE TRUE WHEN must be boolean
-        foreach (var when in eval.Whens)
-        {
-            foreach (var cond in when.SubjectConditions)
-            {
-                if (cond is BoundEvaluateConditionWhen condWhen)
-                {
-                    var type = condWhen.Condition.ResultType;
-                    if (type != null && !type.IsBoolean)
-                        Report(diagnostics, line, DiagnosticDescriptors.CBL2503);
-                }
-            }
-        }
-    }
-
-    private static void ValidateEvaluateSubjects(BoundEvaluateStatement eval, int line, DiagnosticBag diagnostics)
-    {
-        // CBL2501: EVALUATE WHEN type incompatible with subject
-        for (int si = 0; si < eval.Subjects.Count; si++)
-        {
-            var subjectType = eval.Subjects[si].ResultType;
-            if (subjectType == null) continue;
-
-            foreach (var when in eval.Whens)
-            {
-                if (si >= when.SubjectConditions.Count) continue;
-
-                if (when.SubjectConditions[si] is BoundEvaluateValueCondition valueCond)
-                {
-                    if (valueCond.IsAny) continue;
-
-                    foreach (var val in valueCond.Values)
-                    {
-                        if (!IsTypeCompatible(subjectType, val.ResultType))
-                            Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
-                    }
-
-                    foreach (var range in valueCond.Ranges)
-                    {
-                        if (!IsTypeCompatible(subjectType, range.From.ResultType))
-                            Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
-                        if (!IsTypeCompatible(subjectType, range.To.ResultType))
-                            Report(diagnostics, line, DiagnosticDescriptors.CBL2501);
-                    }
-                }
-            }
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════

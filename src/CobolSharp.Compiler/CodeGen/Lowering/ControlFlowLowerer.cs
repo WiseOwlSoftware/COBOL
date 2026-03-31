@@ -557,6 +557,7 @@ internal sealed class ControlFlowLowerer
         // Multi-subject: all subjects must match (AND).
         // Strategy: for each subject, if it fails → jump to nextWhen.
         // If all pass, fall through to whenBody.
+        bool emittedFinalJump = false;
         for (int k = 0; k < subjectCount; k++)
         {
             var cond = when.SubjectConditions[k];
@@ -575,7 +576,14 @@ internal sealed class ControlFlowLowerer
             {
                 // Last subject: if this passes, go to whenBody; if fails, nextWhen
                 LowerEvaluateSubjectMatch(eval, k, cond, whenBody, nextWhen, method, ref block);
+                emittedFinalJump = true;
             }
+        }
+
+        // If the last subject(s) were ANY, no final jump was emitted — all matched, go to whenBody
+        if (!emittedFinalJump)
+        {
+            block.Instructions.Add(new IrJump(whenBody));
         }
     }
 
@@ -597,7 +605,9 @@ internal sealed class ControlFlowLowerer
             // EVALUATE TRUE/FALSE: condition is a standalone boolean
             var condVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
             _ctx.Condition.LowerCondition(condWhen.Condition, condVal, block);
-            if (eval.IsEvaluateFalse)
+            bool isFalseSubject = subjectIndex < eval.SubjectKinds.Count
+                && eval.SubjectKinds[subjectIndex] == EvaluateSubjectKind.False;
+            if (isFalseSubject)
             {
                 // EVALUATE FALSE: match when condition is FALSE
                 block.Instructions.Add(new IrBranchIfFalse(condVal, successBlock));

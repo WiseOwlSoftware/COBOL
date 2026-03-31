@@ -25,8 +25,8 @@ internal sealed class DataMovementLowerer
         {
             foreach (var (src, dst) in corr.Pairs)
             {
-                var srcLoc = _ctx.Location.ResolveLocation(src);
-                var dstLoc = _ctx.Location.ResolveLocation(dst);
+                var srcLoc = ResolveCorrespondingChildLocation(src, corr.SourceGroupExpr);
+                var dstLoc = ResolveCorrespondingChildLocation(dst, corr.TargetGroupExpr);
                 if (srcLoc == null || dstLoc == null) continue;
 
                 block.Instructions.Add(new IrMoveFieldToField(
@@ -41,8 +41,8 @@ internal sealed class DataMovementLowerer
 
         foreach (var (src, dst) in corr.Pairs)
         {
-            var srcLoc = _ctx.Location.ResolveLocation(src);
-            var dstLoc = _ctx.Location.ResolveLocation(dst);
+            var srcLoc = ResolveCorrespondingChildLocation(src, corr.SourceGroupExpr);
+            var dstLoc = ResolveCorrespondingChildLocation(dst, corr.TargetGroupExpr);
             if (srcLoc == null || dstLoc == null) continue;
 
             var accum = _ctx.ValueFactory.Next(IrPrimitiveType.Decimal);
@@ -56,6 +56,53 @@ internal sealed class DataMovementLowerer
         }
 
         return _ctx.Arithmetic.LowerSizeError(corr.SizeError, method, block);
+    }
+
+    /// <summary>
+    /// Resolves a CORRESPONDING child's location, applying the group's subscripts.
+    /// When the group is subscripted, the child's offset is computed relative to
+    /// the subscripted group base, preserving runtime subscript semantics.
+    /// When the group is not subscripted, falls back to plain symbol resolution.
+    /// </summary>
+    private IrLocation? ResolveCorrespondingChildLocation(DataSymbol child, BoundIdentifierExpression groupExpr)
+    {
+        if (!groupExpr.IsSubscripted)
+            return _ctx.Location.ResolveLocation(child);
+
+        // Resolve the group expression (with subscripts) to get the base location
+        var groupLoc = _ctx.Location.ResolveLocation(groupExpr);
+        if (groupLoc == null) return null;
+
+        // Get the child's and group's unsubscripted storage locations
+        var childStorage = _ctx.Semantic.GetStorageLocation(child);
+        var groupStorage = _ctx.Semantic.GetStorageLocation(groupExpr.Symbol);
+        if (!childStorage.HasValue || !groupStorage.HasValue) return null;
+
+        int delta = childStorage.Value.Offset - groupStorage.Value.Offset;
+        var childPic = childStorage.Value.Pic;
+        int childLen = childStorage.Value.Length;
+
+        if (groupLoc is IrStaticLocation staticGroup)
+        {
+            // Constant subscript: compute final offset at compile time
+            return new IrStaticLocation(
+                new StorageLocation(staticGroup.Location.Area,
+                    staticGroup.Location.Offset + delta,
+                    childLen, childPic));
+        }
+        else if (groupLoc is IrElementRef elemRef)
+        {
+            // Variable subscript: create a new IrElementRef with child's offset baked in.
+            // Adjust the base location offset by delta, keep same subscripts/multipliers.
+            var adjustedBase = new StorageLocation(
+                elemRef.BaseLocation.Area,
+                elemRef.BaseLocation.Offset + delta,
+                childLen, childPic);
+            return new IrElementRef(adjustedBase, elemRef.Subscripts, elemRef.Multipliers,
+                childLen, childPic);
+        }
+
+        return null;
     }
 
     public void LowerMove(BoundMoveStatement mv, IrBasicBlock block)

@@ -220,30 +220,32 @@ internal sealed class ControlFlowBinder
 
     internal BoundEvaluateStatement BindEvaluate(CobolParserCore.EvaluateStatementContext ctx)
     {
-        // Bind subjects — detect EVALUATE TRUE
+        // Bind subjects — track per-subject type (Value, True, False)
         var subjects = new List<BoundExpression>();
-        bool isEvaluateTrue = false;
-        BoundClassConditionExpression? evaluateClassCondition = null;
-
-        bool isEvaluateFalse = false;
+        var subjectKinds = new List<EvaluateSubjectKind>();
+        // Per-subject class condition (only for class-condition subjects like EVALUATE X NUMERIC)
+        var classConditions = new List<BoundClassConditionExpression?>();
 
         foreach (var subCtx in ctx.evaluateSubject())
         {
             if (subCtx.booleanLiteral()?.TRUE_() != null)
             {
-                isEvaluateTrue = true;
+                subjectKinds.Add(EvaluateSubjectKind.True);
+                subjects.Add(null!); // placeholder — not used for TRUE subjects
+                classConditions.Add(null);
                 continue;
             }
             if (subCtx.booleanLiteral()?.FALSE_() != null)
             {
-                isEvaluateFalse = true;
+                subjectKinds.Add(EvaluateSubjectKind.False);
+                subjects.Add(null!); // placeholder — not used for FALSE subjects
+                classConditions.Add(null);
                 continue;
             }
             // Check for class condition: EVALUATE X NUMERIC → treat as EVALUATE TRUE
             // where the implicit condition is "X IS [NOT] NUMERIC/ALPHABETIC"
             if (subCtx.classCondition() is { } classCtx && subCtx.valueOperand() is { } classVo)
             {
-                isEvaluateTrue = true;
                 BoundExpression classSubject;
                 if (classVo.arithmeticExpression() is { } classArith)
                     classSubject = _ctx.Expression.BindAdditiveExpression(classArith.additiveExpression());
@@ -257,17 +259,35 @@ internal sealed class ControlFlowBinder
                     : classCtx.ALPHABETIC_LOWER() != null ? ClassConditionKind.AlphabeticLower
                     : classCtx.ALPHABETIC_UPPER() != null ? ClassConditionKind.AlphabeticUpper
                     : ClassConditionKind.Numeric;
-                // Store the class condition as implicit subject condition
-                evaluateClassCondition = new BoundClassConditionExpression(classSubject, classKind, isClassNot);
+                subjectKinds.Add(EvaluateSubjectKind.True);
+                subjects.Add(null!); // placeholder
+                classConditions.Add(new BoundClassConditionExpression(classSubject, classKind, isClassNot));
                 continue;
             }
+            BoundExpression? subjectExpr = null;
             if (subCtx.valueOperand()?.arithmeticExpression() is { } arithCtx)
-                subjects.Add(_ctx.Expression.BindAdditiveExpression(arithCtx.additiveExpression()));
+                subjectExpr = _ctx.Expression.BindAdditiveExpression(arithCtx.additiveExpression());
             else if (subCtx.valueOperand()?.nonNumericLiteral() is { } nonNumCtx)
-                subjects.Add(_ctx.Expression.BindNonNumericLiteral(nonNumCtx));
+                subjectExpr = _ctx.Expression.BindNonNumericLiteral(nonNumCtx);
+            if (subjectExpr == null)
+                continue;
+
+            // Condition-name subjects are boolean — treat like EVALUATE TRUE for this position
+            if (subjectExpr is BoundConditionNameExpression)
+            {
+                subjectKinds.Add(EvaluateSubjectKind.True);
+                subjects.Add(subjectExpr); // condition-name expr used as implicit condition
+                classConditions.Add(null);
+            }
+            else
+            {
+                subjectKinds.Add(EvaluateSubjectKind.Value);
+                subjects.Add(subjectExpr);
+                classConditions.Add(null);
+            }
         }
 
-        int subjectCount = (isEvaluateTrue || isEvaluateFalse) ? 1 : subjects.Count;
+        int subjectCount = subjects.Count;
 
         // Bind WHEN clauses
         var whens = new List<BoundEvaluateWhen>();
@@ -295,7 +315,12 @@ internal sealed class ControlFlowBinder
 
             for (int i = 0; i < subjectCount && i < groups.Length; i++)
             {
-                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isEvaluateTrue || isEvaluateFalse, evaluateClassCondition));
+                var kind = subjectKinds[i];
+                bool isCondSubject = kind == EvaluateSubjectKind.True || kind == EvaluateSubjectKind.False;
+                // For condition-name subjects, pass the subject expression as the implicit condition
+                BoundExpression? condNameSubject = (isCondSubject && subjects[i] is BoundConditionNameExpression)
+                    ? subjects[i] : null;
+                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isCondSubject, classConditions[i], condNameSubject));
             }
             // If fewer groups than subjects → semantic error; fill with "never match"
             // so the WHEN clause doesn't fire (missing subjects are non-matching)
@@ -314,18 +339,24 @@ internal sealed class ControlFlowBinder
             whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
         }
 
-        return new BoundEvaluateStatement(subjects, whens, whenOther, isEvaluateFalse);
+        return new BoundEvaluateStatement(subjects, subjectKinds, whens, whenOther);
     }
 
     internal BoundEvaluateCondition BindEvaluateWhenGroup(
-        CobolParserCore.EvaluateWhenGroupContext groupCtx, bool isEvaluateTrue,
-        BoundClassConditionExpression? classConditionSubject = null)
+        CobolParserCore.EvaluateWhenGroupContext groupCtx, bool isConditionSubject,
+        BoundClassConditionExpression? classConditionSubject = null,
+        BoundExpression? condNameSubject = null)
     {
         var items = groupCtx.evaluateWhenItem();
 
-        if (isEvaluateTrue)
+        if (isConditionSubject)
         {
-            // For EVALUATE TRUE with class condition subject (e.g., EVALUATE X NUMERIC WHEN TRUE),
+            // Handle ANY first — always matches regardless of subject type
+            if (items.Length > 0 && items[0].ANY() != null)
+                return new BoundEvaluateValueCondition(
+                    Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: true);
+
+            // For class condition subjects (e.g., EVALUATE X NUMERIC WHEN TRUE/FALSE),
             // inject the class condition as the WHEN's condition
             if (classConditionSubject != null && items.Length > 0)
             {
@@ -340,7 +371,21 @@ internal sealed class ControlFlowBinder
                         new BoundClassConditionExpression(classConditionSubject.Subject,
                             classConditionSubject.ClassKind, !classConditionSubject.IsNegated));
             }
-            // For EVALUATE TRUE, the WHEN item is a condition
+            // For condition-name subjects (e.g., EVALUATE condName WHEN TRUE/FALSE),
+            // inject the condition-name as the WHEN's condition
+            if (condNameSubject is BoundConditionNameExpression condNameExpr && items.Length > 0)
+            {
+                var item = items[0];
+                var boolLit = item.condition()?.logicalOrExpression()?.logicalAndExpression(0)
+                    ?.unaryLogicalExpression(0)?.primaryCondition()?.booleanLiteral();
+                if (boolLit?.TRUE_() != null)
+                    return new BoundEvaluateConditionWhen(condNameExpr);
+                if (boolLit?.FALSE_() != null)
+                    return new BoundEvaluateConditionWhen(
+                        new BoundConditionNameExpression(condNameExpr.Condition, !condNameExpr.IsNegated,
+                            condNameExpr.ParentExpression));
+            }
+            // For EVALUATE TRUE/FALSE, the WHEN item is a condition
             if (items.Length > 0 && items[0].condition() is { } condCtx)
                 return new BoundEvaluateConditionWhen(_ctx.Condition.BindCondition(condCtx));
             // Fallback: try as valueOperand (bare identifier → condition name)
