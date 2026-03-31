@@ -1,0 +1,571 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+
+using Antlr4.Runtime;
+using CobolSharp.Compiler.Common;
+using CobolSharp.Compiler.Diagnostics;
+using CobolSharp.Compiler.Generated;
+using CobolSharp.Runtime;
+
+namespace CobolSharp.Compiler.Semantics.Bound.Binding;
+
+/// <summary>
+/// String operation binding: BindInspect, BindString, BindUnstring,
+/// plus INSPECT pattern/region/delimiter helpers and validation.
+/// </summary>
+internal sealed class StringStatementBinder
+{
+    private readonly BindingContext _ctx;
+
+    internal StringStatementBinder(BindingContext ctx) => _ctx = ctx;
+
+    private (SourceLocation loc, TextSpan span) DiagAt(int line)
+        => (new SourceLocation("<source>", 0, line, 0), TextSpan.Empty);
+
+    // ── INSPECT ──
+
+    internal BoundStatement? BindInspect(CobolParserCore.InspectStatementContext ctx)
+    {
+        var targetExpr = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
+        if (targetExpr is not BoundIdentifierExpression targetId) return null;
+
+        var tallying = new List<BoundInspectTallyingItem>();
+        var replacing = new List<BoundInspectReplacingItem>();
+        BoundInspectConverting? converting = null;
+
+        var tallyPhrase = ctx.inspectTallyingPhrase();
+        if (tallyPhrase != null)
+        {
+            foreach (var item in tallyPhrase.inspectTallyingItem())
+            {
+                var counterExpr = _ctx.Expression.BindDataReferenceWithSubscripts(item.dataReference());
+                if (counterExpr is not BoundIdentifierExpression counterId) continue;
+
+                foreach (var forClause in item.inspectForClause())
+                {
+                    foreach (var countPhrase in forClause.inspectCountPhrase())
+                    {
+                        InspectTallyKind kind;
+                        InspectPatternValue? pattern = null;
+
+                        if (countPhrase.CHARACTERS() != null)
+                        {
+                            kind = InspectTallyKind.Characters;
+                        }
+                        else if (countPhrase.LEADING() != null)
+                        {
+                            kind = InspectTallyKind.Leading;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+                        else
+                        {
+                            kind = InspectTallyKind.All;
+                            pattern = ExtractInspectPattern(countPhrase.inspectChar());
+                        }
+
+                        var region = BindInspectDelimiters(countPhrase.inspectDelimiters());
+                        tallying.Add(new BoundInspectTallyingItem(counterId, kind, pattern, region));
+                    }
+                }
+            }
+        }
+
+        var replPhrase = ctx.inspectReplacingPhrase();
+        if (replPhrase != null)
+        {
+            foreach (var item in replPhrase.inspectReplacingItem())
+            {
+                InspectReplaceKind kind;
+                if (item.CHARACTERS() != null) kind = InspectReplaceKind.Characters;
+                else if (item.FIRST() != null) kind = InspectReplaceKind.First;
+                else if (item.LEADING() != null) kind = InspectReplaceKind.Leading;
+                else kind = InspectReplaceKind.All;
+
+                InspectPatternValue pattern;
+                InspectPatternValue replacement;
+
+                var inspChars = item.inspectChar();
+                if (item.CHARACTERS() != null)
+                {
+                    pattern = InspectPatternValue.FromLiteral("");
+                    replacement = inspChars.Length > 0
+                        ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
+                }
+                else
+                {
+                    pattern = inspChars.Length > 0
+                        ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
+                    replacement = inspChars.Length > 1
+                        ? ExtractInspectPattern(inspChars[1]) ?? InspectPatternValue.FromLiteral("")
+                        : InspectPatternValue.FromLiteral("");
+                }
+
+                var region = BindInspectDelimiters(item.inspectDelimiters());
+                replacing.Add(new BoundInspectReplacingItem(kind, pattern, replacement, region));
+            }
+        }
+
+        var convPhrase = ctx.inspectConvertingPhrase();
+        if (convPhrase != null)
+        {
+            var inspChars = convPhrase.inspectChar();
+            var fromSet = inspChars.Length > 0
+                ? ExtractInspectPattern(inspChars[0]) ?? InspectPatternValue.FromLiteral("")
+                : InspectPatternValue.FromLiteral("");
+            var toSet = inspChars.Length > 1
+                ? ExtractInspectPattern(inspChars[1]) ?? InspectPatternValue.FromLiteral("")
+                : InspectPatternValue.FromLiteral("");
+            // CONVERTING uses inspectBeforeAfterPhrase*, map to BoundInspectRegion
+            var region = BindInspectBeforeAfter(convPhrase.inspectBeforeAfterPhrase());
+            converting = new BoundInspectConverting(fromSet, toSet, region);
+        }
+
+        var inspectStmt = new BoundInspectStatement(targetId, tallying, replacing, converting);
+        ValidateInspectStatement(inspectStmt, ctx.Start?.Line ?? 0);
+        return inspectStmt;
+    }
+
+    internal InspectPatternValue? ExtractInspectPattern(CobolParserCore.InspectCharContext? ctx)
+    {
+        if (ctx == null) return null;
+        if (ctx.literal() != null)
+            return InspectPatternValue.FromLiteral(ExtractLiteralString(ctx.literal()));
+        if (ctx.dataReference() != null)
+        {
+            var bound = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
+            if (bound is BoundIdentifierExpression idExpr)
+                return InspectPatternValue.FromDataRef(idExpr);
+            // Fallback: unresolved identifier → use name as literal
+            return InspectPatternValue.FromLiteral(ctx.dataReference().IDENTIFIER().GetText());
+        }
+        if (ctx.figurativeConstant() != null)
+        {
+            if (ctx.figurativeConstant().SPACE() != null) return InspectPatternValue.FromLiteral(" ");
+            if (ctx.figurativeConstant().ZERO() != null) return InspectPatternValue.FromLiteral("0");
+            if (ctx.figurativeConstant().HIGH_VALUE() != null) return InspectPatternValue.FromLiteral("\xFF");
+            if (ctx.figurativeConstant().LOW_VALUE() != null) return InspectPatternValue.FromLiteral("\x00");
+            if (ctx.figurativeConstant().QUOTE_() != null) return InspectPatternValue.FromLiteral("\"");
+            return InspectPatternValue.FromLiteral(ctx.figurativeConstant().GetText());
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Bind INSPECT BEFORE/AFTER INITIAL phrases into a BoundInspectRegion.
+    /// </summary>
+    internal BoundInspectRegion BindInspectBeforeAfter(
+        CobolParserCore.InspectBeforeAfterPhraseContext[]? phrases)
+    {
+        if (phrases == null || phrases.Length == 0)
+            return BoundInspectRegion.Empty;
+
+        InspectPatternValue? beforePattern = null;
+        bool beforeInitial = false;
+        InspectPatternValue? afterPattern = null;
+        bool afterInitial = false;
+
+        foreach (var p in phrases)
+        {
+            if (p.BEFORE() != null)
+            {
+                beforePattern = ExtractInspectPattern(p.inspectChar());
+                beforeInitial = p.INITIAL_() != null;
+            }
+            else if (p.AFTER() != null)
+            {
+                afterPattern = ExtractInspectPattern(p.inspectChar());
+                afterInitial = p.INITIAL_() != null;
+            }
+        }
+
+        return new BoundInspectRegion(beforePattern, beforeInitial, afterPattern, afterInitial);
+    }
+
+    internal string ExtractStringValue(
+        CobolParserCore.DataReferenceContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits)
+    {
+        // Return the first available literal or identifier text
+        if (lits != null && lits.Length > 0) return ExtractLiteralString(lits[0]);
+        if (ids != null && ids.Length > 0) return ids[0].GetText();
+        return "";
+    }
+
+    internal string ExtractNthStringValue(
+        CobolParserCore.DataReferenceContext[]? ids,
+        CobolParserCore.LiteralContext[]? lits,
+        int n)
+    {
+        // Combine identifiers and literals in parse order, pick nth
+        // For simplicity: literals first, then identifiers
+        var all = new List<string>();
+        if (ids != null) foreach (var id in ids) all.Add(id.GetText());
+        if (lits != null) foreach (var lit in lits) all.Add(ExtractLiteralString(lit));
+
+        // Actually need to respect parse order. Use child index ordering.
+        // Simpler approach: just use the grammar structure.
+        // For REPLACING: first id/lit pair is pattern, second is replacement
+        // The grammar puts them as separate children: ALL <id|lit> BY <id|lit>
+        // So we need ordered extraction.
+        var ordered = new List<(int index, string value)>();
+        if (ids != null)
+            foreach (var id in ids)
+                ordered.Add((id.SourceInterval.a, id.GetText()));
+        if (lits != null)
+            foreach (var lit in lits)
+                ordered.Add((lit.SourceInterval.a, ExtractLiteralString(lit)));
+        ordered.Sort((a, b) => a.index.CompareTo(b.index));
+
+        return n < ordered.Count ? ordered[n].value : "";
+    }
+
+    internal string ExtractLiteralString(CobolParserCore.LiteralContext lit)
+    {
+        var nonNum = lit.nonNumericLiteral();
+        if (nonNum != null)
+        {
+            // Handle figurative constants (SPACE, ZERO, etc.) inside nonNumericLiteral
+            var fig = nonNum.figurativeConstant();
+            if (fig != null)
+            {
+                if (fig.SPACE() != null) return " ";
+                if (fig.ZERO() != null) return "0";
+                if (fig.HIGH_VALUE() != null) return "\xFF";
+                if (fig.LOW_VALUE() != null) return "\x00";
+                if (fig.QUOTE_() != null) return "\"";
+                // ALL "literal" — extract the literal string
+                if (fig.STRINGLIT() != null)
+                {
+                    string raw = fig.STRINGLIT().GetText();
+                    if (raw.Length >= 2) return raw[1..^1];
+                }
+                return fig.GetText();
+            }
+
+            string text = nonNum.GetText();
+            if (text.Length >= 2 &&
+                ((text[0] == '"' && text[^1] == '"') ||
+                 (text[0] == '\'' && text[^1] == '\'')))
+            {
+                char q = text[0];
+                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+            }
+            return text;
+        }
+        return lit.GetText();
+    }
+
+    internal BoundInspectRegion BindInspectDelimiters(CobolParserCore.InspectDelimitersContext? ctx)
+    {
+        if (ctx == null) return BoundInspectRegion.Empty;
+
+        InspectPatternValue? beforePattern = null;
+        bool beforeInitial = false;
+        InspectPatternValue? afterPattern = null;
+        bool afterInitial = false;
+
+        // Grammar: BEFORE INITIAL? inspectChar (AFTER INITIAL? inspectChar)?
+        //        | AFTER INITIAL? inspectChar (BEFORE INITIAL? inspectChar)?
+        var chars = ctx.inspectChar();
+        var initials = ctx.INITIAL_();
+
+        if (ctx.BEFORE() != null && ctx.AFTER() != null)
+        {
+            // Both present — first matches the leading keyword
+            if (ctx.BEFORE().Symbol.TokenIndex < ctx.AFTER().Symbol.TokenIndex)
+            {
+                beforePattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
+                beforeInitial = initials.Length > 0;
+                afterPattern = chars.Length > 1 ? ExtractInspectPattern(chars[1]) : null;
+                afterInitial = initials.Length > 1;
+            }
+            else
+            {
+                afterPattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
+                afterInitial = initials.Length > 0;
+                beforePattern = chars.Length > 1 ? ExtractInspectPattern(chars[1]) : null;
+                beforeInitial = initials.Length > 1;
+            }
+        }
+        else if (ctx.BEFORE() != null)
+        {
+            beforePattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
+            beforeInitial = initials.Length > 0;
+        }
+        else if (ctx.AFTER() != null)
+        {
+            afterPattern = chars.Length > 0 ? ExtractInspectPattern(chars[0]) : null;
+            afterInitial = initials.Length > 0;
+        }
+
+        return new BoundInspectRegion(beforePattern, beforeInitial, afterPattern, afterInitial);
+    }
+
+    // ── STRING ──
+
+    internal BoundStatement? BindString(CobolParserCore.StringStatementContext ctx)
+    {
+        var sendings = new List<BoundStringSending>();
+        foreach (var phrase in ctx.stringSendingPhrase())
+        {
+            // Grammar: (identifier | literal | figurativeConstant) delimitedByPhrase?
+            BoundExpression value;
+            if (phrase.dataReference() is { } valId)
+                value = _ctx.Expression.BindDataReferenceWithSubscripts(valId);
+            else if (phrase.literal() is { } valLit)
+                value = _ctx.Expression.BindLiteral(valLit);
+            else if (phrase.figurativeConstant() is { } valFig)
+                value = _ctx.Expression.BindFigurativeConstantExpression(valFig);
+            else
+                continue;
+
+            BoundExpression? delimiter = null;
+            bool delimitedBySize = false;
+
+            if (phrase.delimitedByPhrase() is { } delim)
+            {
+                if (delim.SIZE() != null)
+                {
+                    delimitedBySize = true;
+                }
+                else if (delim.dataReference() is { } delimId)
+                {
+                    delimiter = _ctx.Expression.BindDataReferenceWithSubscripts(delimId);
+                }
+                else if (delim.literal() is { } delimLit)
+                {
+                    delimiter = _ctx.Expression.BindLiteral(delimLit);
+                }
+                else if (delim.figurativeConstant() is { } delimFig)
+                {
+                    delimiter = _ctx.Expression.BindFigurativeConstantExpression(delimFig);
+                }
+            }
+
+            sendings.Add(new BoundStringSending(value, delimiter, delimitedBySize));
+        }
+
+        // Propagate delimiters: items without a delimiter inherit from the next item
+        for (int i = sendings.Count - 2; i >= 0; i--)
+        {
+            if (sendings[i].Delimiter == null && !sendings[i].DelimitedBySize)
+            {
+                var next = sendings[i + 1];
+                sendings[i] = new BoundStringSending(sendings[i].Value, next.Delimiter, next.DelimitedBySize);
+            }
+        }
+
+        // INTO
+        var intoPhrase = ctx.stringIntoPhrase();
+        if (intoPhrase == null) return null;
+        var intoExpr = _ctx.Expression.BindDataReferenceWithSubscripts(intoPhrase.dataReference());
+
+        // POINTER
+        BoundExpression? pointer = null;
+        if (ctx.stringWithPointer() is { } ptrCtx)
+            pointer = _ctx.Expression.BindDataReferenceWithSubscripts(ptrCtx.dataReference());
+
+        // ON OVERFLOW / NOT ON OVERFLOW
+        var onOverflow = new List<BoundStatement>();
+        var notOnOverflow = new List<BoundStatement>();
+        if (ctx.stringOnOverflow() is { } ovCtx)
+        {
+            var impStmts = ovCtx.statementBlock();
+            bool isNotOnly = ovCtx.NOT() != null && impStmts.Length == 1;
+            if (isNotOnly)
+            {
+                foreach (var stmt in impStmts[0].statement())
+                {
+                    var bound = _ctx.BindStatement(stmt);
+                    if (bound != null) notOnOverflow.Add(bound);
+                }
+            }
+            else
+            {
+                if (impStmts.Length >= 1)
+                {
+                    foreach (var stmt in impStmts[0].statement())
+                    {
+                        var bound = _ctx.BindStatement(stmt);
+                        if (bound != null) onOverflow.Add(bound);
+                    }
+                }
+                if (impStmts.Length >= 2)
+                {
+                    foreach (var stmt in impStmts[1].statement())
+                    {
+                        var bound = _ctx.BindStatement(stmt);
+                        if (bound != null) notOnOverflow.Add(bound);
+                    }
+                }
+            }
+        }
+
+        var stringStmt = new BoundStringStatement(sendings, intoExpr, pointer, onOverflow, notOnOverflow);
+        ValidateStringStatement(stringStmt, ctx.Start?.Line ?? 0);
+        return stringStmt;
+    }
+
+    // ── UNSTRING ──
+
+    internal BoundStatement? BindUnstring(CobolParserCore.UnstringStatementContext ctx)
+    {
+        // Source identifier
+        var sourceExpr = _ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference());
+
+        // DELIMITED BY phrase (optional) — supports OR-separated delimiters
+        var delimiterItems = new List<(BoundExpression Expr, bool IsAll)>();
+        if (ctx.unstringDelimiterPhrase() is { } delimCtx)
+        {
+            foreach (var item in delimCtx.unstringDelimiterItem())
+            {
+                bool itemAll = item.ALL() != null;
+                BoundExpression itemExpr;
+                if (item.dataReference() is { } delimId)
+                    itemExpr = _ctx.Expression.BindDataReferenceWithSubscripts(delimId);
+                else if (item.literal() is { } delimLit)
+                    itemExpr = _ctx.Expression.BindLiteral(delimLit);
+                else
+                    itemExpr = _ctx.Expression.BindFigurativeConstantExpression(item.figurativeConstant());
+                delimiterItems.Add((itemExpr, itemAll));
+            }
+        }
+        // For backwards compatibility, expose first delimiter as primary
+        BoundExpression? delimiter = delimiterItems.Count > 0 ? delimiterItems[0].Expr : null;
+        bool delimitedByAll = delimiterItems.Count > 0 && delimiterItems[0].IsAll;
+
+        // INTO phrases (one or more)
+        var intos = new List<BoundUnstringInto>();
+        foreach (var intoPhrase in ctx.unstringIntoPhrase())
+        {
+            foreach (var target in intoPhrase.unstringIntoTarget())
+            {
+                var identifiers = target.dataReference();
+                int idIdx = 0;
+
+                // First identifier is the INTO target
+                var targetExpr = _ctx.Expression.BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+
+                // DELIMITER IN (optional)
+                BoundExpression? delimiterIn = null;
+                if (target.DELIMITER() != null && idIdx < identifiers.Length)
+                    delimiterIn = _ctx.Expression.BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+
+                // COUNT IN (optional)
+                BoundExpression? countIn = null;
+                if (target.COUNT() != null && idIdx < identifiers.Length)
+                    countIn = _ctx.Expression.BindDataReferenceWithSubscripts(identifiers[idIdx++]);
+
+                intos.Add(new BoundUnstringInto(targetExpr, countIn, delimiterIn));
+            }
+        }
+
+        // WITH POINTER (optional)
+        BoundExpression? pointer = null;
+        if (ctx.unstringWithPointer() is { } ptrCtx)
+            pointer = _ctx.Expression.BindDataReferenceWithSubscripts(ptrCtx.dataReference());
+
+        // TALLYING IN (optional)
+        BoundExpression? tallying = null;
+        if (ctx.unstringTallying() is { } tallyCtx)
+            tallying = _ctx.Expression.BindDataReferenceWithSubscripts(tallyCtx.dataReference());
+
+        // ON OVERFLOW / NOT ON OVERFLOW
+        var onOverflow = new List<BoundStatement>();
+        var notOnOverflow = new List<BoundStatement>();
+        if (ctx.unstringOnOverflow() is { } ovCtx2)
+        {
+            var impStmts2 = ovCtx2.statementBlock();
+            bool isNotOnly2 = ovCtx2.NOT() != null && impStmts2.Length == 1;
+            if (isNotOnly2)
+            {
+                foreach (var stmt in impStmts2[0].statement())
+                {
+                    var bound = _ctx.BindStatement(stmt);
+                    if (bound != null) notOnOverflow.Add(bound);
+                }
+            }
+            else
+            {
+                if (impStmts2.Length >= 1)
+                {
+                    foreach (var stmt in impStmts2[0].statement())
+                    {
+                        var bound = _ctx.BindStatement(stmt);
+                        if (bound != null) onOverflow.Add(bound);
+                    }
+                }
+                if (impStmts2.Length >= 2)
+                {
+                    foreach (var stmt in impStmts2[1].statement())
+                    {
+                        var bound = _ctx.BindStatement(stmt);
+                        if (bound != null) notOnOverflow.Add(bound);
+                    }
+                }
+            }
+        }
+
+        var unstringStmt = new BoundUnstringStatement(sourceExpr, delimiter, delimitedByAll,
+            intos, pointer, tallying, onOverflow, notOnOverflow);
+        ValidateUnstringStatement(unstringStmt, ctx.Start?.Line ?? 0);
+        return unstringStmt;
+    }
+
+    // ═══════════════════════════════════
+    // Statement-level semantic validation
+    // ═══════════════════════════════════
+
+    internal void ValidateStringStatement(BoundStringStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // INTO must be alphanumeric or group
+        if (stmt.Into is BoundIdentifierExpression intoId && !intoId.Symbol.IsGroup
+            && intoId.Category != CobolCategory.Alphanumeric
+            && intoId.Category != CobolCategory.AlphanumericEdited)
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1301, loc, span);
+        // POINTER must be integer numeric
+        if (stmt.Pointer is BoundIdentifierExpression ptrId
+            && !CategoryCompatibility.IsNumericFamily(ptrId.Category))
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1304, loc, span);
+    }
+
+    internal void ValidateUnstringStatement(BoundUnstringStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Source must be alphanumeric or group
+        if (stmt.Source is BoundIdentifierExpression srcId && !srcId.Symbol.IsGroup
+            && srcId.Category != CobolCategory.Alphanumeric
+            && srcId.Category != CobolCategory.AlphanumericEdited)
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1401, loc, span);
+        // POINTER must be integer numeric
+        if (stmt.Pointer is BoundIdentifierExpression ptrId
+            && !CategoryCompatibility.IsNumericFamily(ptrId.Category))
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1405, loc, span);
+        // TALLYING must be integer numeric
+        if (stmt.Tallying is BoundIdentifierExpression tallyId
+            && !CategoryCompatibility.IsNumericFamily(tallyId.Category))
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1406, loc, span);
+    }
+
+    internal void ValidateInspectStatement(BoundInspectStatement stmt, int line)
+    {
+        var (loc, span) = DiagAt(line);
+        // Target must be alphanumeric, numeric-edited, or group
+        // COBOL-85 §14.9.21: INSPECT operates on the display representation
+        if (stmt.Target.Symbol.IsElementary
+            && stmt.Target.Category != CobolCategory.Alphanumeric
+            && stmt.Target.Category != CobolCategory.AlphanumericEdited
+            && stmt.Target.Category != CobolCategory.Numeric
+            && stmt.Target.Category != CobolCategory.NumericEdited)
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1501, loc, span);
+        // TALLYING counters must be integer numeric
+        foreach (var item in stmt.Tallying)
+        {
+            if (!CategoryCompatibility.IsNumericFamily(item.Counter.Category))
+                _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL1502, loc, span);
+        }
+    }
+}
