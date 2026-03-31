@@ -20,7 +20,9 @@ public class EndToEndTestBase : IDisposable
             Directory.Delete(_tempDir, recursive: true);
     }
 
-    protected (bool success, string stdout, string stderr) CompileAndRun(string cobolSource)
+    protected (bool success, string stdout, string stderr) CompileAndRun(
+        string cobolSource,
+        CobolSharp.Compiler.Semantics.DialectMode dialect = CobolSharp.Compiler.Semantics.DialectMode.Default)
     {
         // Write source to temp file
         string sourcePath = Path.Combine(_tempDir, "test.cob");
@@ -29,6 +31,8 @@ public class EndToEndTestBase : IDisposable
 
         // Compile
         var compilation = new Compilation();
+        if (dialect != CobolSharp.Compiler.Semantics.DialectMode.Default)
+            compilation.Options.Dialect = dialect;
         var result = compilation.Compile(sourcePath, outputPath);
 
         if (!result.Success)

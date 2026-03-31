@@ -23,7 +23,7 @@ reportDescriptionEntry
     ;
 
 reportName
-    : IDENTIFIER
+    : cobolWord
     ;
 
 reportDescriptionClauses
@@ -40,7 +40,7 @@ reportGroupEntry
     ;
 
 reportGroupName
-    : IDENTIFIER
+    : cobolWord
     ;
 
 reportGroupBody

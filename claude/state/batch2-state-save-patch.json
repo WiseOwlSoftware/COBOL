@@ -1,0 +1,186 @@
+{
+  "_meta": {
+    "description": "Batch 2 state-save patch -- grammar fixes, ANTLR review, dialect gating",
+    "generated": "2026-03-30",
+    "instructions": "Apply to modernization-ledger.json and initialization.json"
+  },
+
+  "updates": {
+    "M300": {
+      "title": "Close remaining COBOL-85 grammar gaps (26 verified remaining)",
+      "status": "in-progress",
+      "description": "Grammar audit verified 2026-03-30. Original 138 gaps, ~102 fixed at session start. Batch 1 closed 7 REJECT gaps (29 remaining). Batch 2 closed 3 REJECT gaps (26 remaining). ANTLR review completed: 14 cobolWord propagation fixes, 4 dialect gates, dialect wiring. Remaining REJECT gaps: M407 (CURRENCY SIGN WITH PICTURE SYMBOL), M411 (SCREEN SECTION). 15 OVERLENIENT gaps (P3). 9 SEMANTIC-ONLY gaps (M302/M304/M310).",
+      "analysis_update": {
+        "batch_1_completed": "2026-03-30",
+        "batch_1_items_closed": ["M401", "M403", "M404", "M405", "M406", "M409", "M410"],
+        "batch_2_completed": "2026-03-30",
+        "batch_2_items_closed": ["M400", "M402", "M408"],
+        "batch_2_tests_added": 9,
+        "antlr_review_completed": "2026-03-30",
+        "antlr_review_fixes": 17,
+        "dialect_gates_added": 4,
+        "verified_remaining": 26,
+        "remaining_reject": ["M407", "M411"],
+        "remaining_overlenient": 15,
+        "remaining_semantic_only": 9,
+        "sub_gaps_discovered": ["M427", "M428"],
+        "architectural_changes": {
+          "cobolWord_rule": "Centralized IDENTIFIER + LENGTH/NATIONAL/NORMAL; propagated to dataReference, qualification, programName, procedureName, fileName, computerName, dataName + 17 secondary positions",
+          "lexer_tokens_added": ["LENGTH", "NATIONAL", "NORMAL"],
+          "lparen_trigger_expansion": "Added LENGTH, NATIONAL, NORMAL to subscript-mode trigger list",
+          "dialect_gating": "{is2002()}? predicates on STOP STATUS, START WITH LENGTH, FOR ALPHANUMERIC/NATIONAL on CLASS/ALPHABET/SYMBOLIC CHARACTERS",
+          "dialect_wiring": "DialectLevel made public on CobolParserCoreBase; Options.Dialect wired through Compilation.LexAndParse to parser.DialectLevel; EndToEndTestBase.CompileAndRun gained dialect parameter",
+          "csharp_call_sites_updated": 24
+        }
+      }
+    },
+
+    "M400": {
+      "status": "complete",
+      "description": "SET switch-setting ON/OFF (8 SET formats). Grammar setSwitchStatement was already implemented in prior session. NC174A passes 100% clean (77 PASS, 0 FAIL). No grammar changes needed in Batch 2.",
+      "evidence": "Verified: setSwitchStatement rule in CobolParserCore.g4 handles SET mnemonic-name+ TO (ON|OFF) compound form. Binder in BoundTreeBuilder.cs routes to setSwitchStatement. NC174A regression: 77 PASS, 0 FAIL. Integration test: Set_SwitchOnOff_StillWorks (GrammarBatch2Tests.cs).",
+      "completed_date": "2026-03-30",
+      "deliverables_status": "complete -- no changes needed, already implemented"
+    },
+
+    "M402": {
+      "status": "complete",
+      "description": "SORT Format 2 (table sort). Grammar: made USING/GIVING/PROCEDURE block optional in sortStatement (CobolIO.g4). Made sortKeyPhrase dataReferenceList optional. Binder: null-check in BindSortKeys. Runtime table sort deferred to M427.",
+      "evidence": "Grammar delta: sortStatement input/output block wrapped in ()? (CobolIO.g4 line 312-316). sortKeyPhrase: dataReferenceList? (line 326). Binder: BindSortKeys null-check for optional dataReferenceList (FileIoBinder.cs line 530). ANTLR review: confirmed no ambiguity (C2 evaluated CLEAN). Integration tests: Sort_Format2_TableSort, Sort_Format2_DescendingKey, Sort_Format2_WithDuplicates, Sort_Format1_FileSort_StillWorks (GrammarBatch2Tests.cs). Regression: 922 unit + 311 integration + 95 NIST = 0 failures. Sub-gap: M427 (runtime table sort not implemented).",
+      "completed_date": "2026-03-30",
+      "test_impact": [
+        "Sort_Format2_TableSort_ParsesSuccessfully",
+        "Sort_Format2_DescendingKey_ParsesSuccessfully",
+        "Sort_Format2_WithDuplicates_ParsesSuccessfully",
+        "Sort_Format1_FileSort_StillWorks"
+      ],
+      "deliverables_status": "grammar complete; runtime deferred to M427",
+      "dependencies": ["M300"]
+    },
+
+    "M408": {
+      "status": "complete",
+      "description": "SYMBOLIC CHARACTERS N:N mapping. Grammar: symbolicCharacterEntry changed from IDENTIFIER (IS|ARE) literal to cobolWord+ (IS|ARE) integerLiteral+ for N:N positional mapping. Added FOR (ALPHANUMERIC|NATIONAL) phrase with {is2002()}? gate. IN clause changed to cobolWord. SemanticBuilder updated for parallel name/ordinal array iteration.",
+      "evidence": "Grammar delta: symbolicCharacterEntry rule rewritten (CobolSpecialNames.g4 lines 78-79). FOR phrase with dialect gate (line 74). IN cobolWord (line 75). SemanticBuilder: parallel iteration of cobolWord[] and integerLiteral[] arrays (SemanticBuilder.cs lines 323-336). ANTLR review: C1 downgraded -- grammar is unambiguous for well-formed input; N:M count mismatch deferred to semantic validation (M428). Integration tests: SymbolicCharacters_SingleMapping, SymbolicCharacters_NNMapping, SymbolicCharacters_WithInAlphabet, SymbolicCharacters_ForAlphanumeric (GrammarBatch2Tests.cs). Regression: 0 failures. Sub-gap: M428 (count validation).",
+      "completed_date": "2026-03-30",
+      "test_impact": [
+        "SymbolicCharacters_SingleMapping_StillWorks",
+        "SymbolicCharacters_NNMapping_ParsesSuccessfully",
+        "SymbolicCharacters_WithInAlphabet_ParsesSuccessfully",
+        "SymbolicCharacters_ForAlphanumeric_ParsesSuccessfully (dialect: Cobol2002)"
+      ],
+      "deliverables_status": "grammar + semantic builder complete; count validation deferred to M428",
+      "dependencies": ["M300"]
+    }
+  },
+
+  "new_items": [
+    {
+      "id": "M427",
+      "title": "SORT Format 2 runtime -- table sort binder/lowerer/emitter",
+      "severity": "P2",
+      "subsystem": "Runtime / Binder / Lowerer / Emitter",
+      "status": "open",
+      "description": "SORT Format 2 (table sort) grammar is accepted (M402 complete), but the runtime binder resolves the sort target as a FileSymbol. When the target is a data item with OCCURS, the sort is silently skipped. Need: binder detects table sort target (OCCURS clause), lowerer generates in-memory sort IR, emitter produces Array.Sort or equivalent CIL.",
+      "deliverables": [
+        "Detect table sort target in BindSort (OCCURS clause on target data item)",
+        "Add BoundTableSortStatement or extend BoundSortStatement with IsTableSort flag",
+        "Lower table sort to IR (in-memory sort using key comparisons)",
+        "Emit CIL for in-memory table sort (custom comparer for multi-key ascending/descending)",
+        "Add integration tests verifying actual sort output correctness"
+      ],
+      "risks": [
+        "SORT Format 2 appears to work but silently does nothing",
+        "Multi-key sort with mixed ascending/descending requires custom comparer",
+        "OCCURS DEPENDING ON tables have variable active element count"
+      ],
+      "test_impact": [
+        "Upgrade GrammarBatch2Tests sort tests from parser-only to output-verifying",
+        "New integration tests for multi-key table sort",
+        "New integration tests for SORT with OCCURS DEPENDING ON"
+      ],
+      "dependencies": ["M402"]
+    },
+    {
+      "id": "M428",
+      "title": "Semantic validation: SYMBOLIC CHARACTERS N:N count equality",
+      "severity": "P2",
+      "subsystem": "Semantic Validation",
+      "status": "open",
+      "description": "Grammar accepts mismatched N:M counts in SYMBOLIC CHARACTERS entries (e.g., 3 names mapped to 2 integers). COBOL-85 spec section 12.3.7 rule 16c requires one-to-one correspondence between symbolic-character-1 occurrences and integer-1 occurrences. SemanticBuilder should emit a diagnostic when name count != integer count.",
+      "deliverables": [
+        "Add count validation in SemanticBuilder symbolic character processing",
+        "Emit diagnostic (e.g., COBOL0xxx) when name count != integer count",
+        "Add negative parser test for mismatched counts"
+      ],
+      "risks": [
+        "Incorrect collating sequence definitions accepted silently",
+        "Programs with N:M mismatch produce wrong character mappings at runtime"
+      ],
+      "test_impact": [
+        "Diagnostic unit tests for count mismatch",
+        "Negative integration test for SYMBOLIC CHARACTERS with mismatched counts"
+      ],
+      "dependencies": ["M408"]
+    }
+  ],
+
+  "initialization_patch": {
+    "initialized": true,
+    "last_review_commit": "d7ae7d2",
+    "ledger_path": "claude/state/modernization-ledger.json",
+    "audit_date": "2026-03-30",
+    "ledger_version": 8,
+    "last_audit": "Batch 2 grammar fixes + ANTLR review",
+    "last_updated": "2026-03-30",
+    "next_item": "Begin Batch 3 (PICMODE refactor + SCREEN SECTION)",
+    "ledger_summary": {
+      "total_items": 177,
+      "done": 14,
+      "open": 139,
+      "in_progress": 1,
+      "planned": 23,
+      "p0_critical": 4,
+      "p1_high": 67,
+      "p2_medium": 54,
+      "p3_low": 45,
+      "subsystems_audited": [
+        "Preprocessor",
+        "Grammar/Parser",
+        "Semantic Analysis",
+        "Bound Tree/Flow",
+        "IR/Lowering",
+        "CIL Emission/Runtime",
+        "Project Structure/Build"
+      ],
+      "series": {
+        "M001-M004": "done (god class elimination)",
+        "M005-M025": "open (cleanup, 21 items)",
+        "M100-M112": "planned (features, 13 items)",
+        "M200-M209": "planned (compliance initiative, 10 items)",
+        "M300-M399": "in-progress (compliance gaps, 100 items -- Batch 1+2 done)",
+        "M400-M411": "10 complete, 2 open (M407 CURRENCY, M411 SCREEN)",
+        "M412-M426": "open (OVERLENIENT grammar gaps, 15 items)",
+        "M427-M428": "open (sub-gaps discovered in Batch 2)"
+      }
+    },
+    "cobol85_audit": {
+      "date": "2026-03-30",
+      "artifacts_path": "audit/cobol85/",
+      "unit_tests": 922,
+      "integration_tests": 311,
+      "nist_nc_tests": 95,
+      "nist_nc_fail_star": 77,
+      "nist_nc_clean": 81,
+      "nist_non_nc_baselines": 0,
+      "grammar_gaps_remaining": 26,
+      "grammar_gaps_reject": 2,
+      "grammar_gaps_overlenient": 15,
+      "grammar_gaps_semantic_only": 9,
+      "semantic_rules_unclear": 9,
+      "batch_1_status": "complete",
+      "batch_2_status": "complete",
+      "antlr_review_status": "complete"
+    }
+  }
+}

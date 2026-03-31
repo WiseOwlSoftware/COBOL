@@ -38,7 +38,7 @@ assignClause
     ;
 
 assignTarget
-    : IDENTIFIER
+    : cobolWord
     | STRINGLIT
     ;
 
@@ -288,7 +288,7 @@ startStatement
     ;
 
 startKeyPhrase
-    : KEY IS comparisonExpression startWithLength?
+    : KEY IS comparisonExpression ({is2002()}? startWithLength)?
     ;
 
 startWithLength
@@ -304,13 +304,16 @@ startInvalidKeyPhrase
 // SORT (§14.9.40)
 // ==========================================
 
+// SORT Format 1 (file sort): requires USING/GIVING or INPUT/OUTPUT PROCEDURE
+// SORT Format 2 (table sort, §14.9.40): no USING/GIVING — in-place sort
+// Disambiguation deferred to semantic layer (file vs table target).
 sortStatement
     : SORT sortFileName
       sortKeyPhrase+
       sortDuplicatesPhrase?
       sortCollatingPhrase?
-      ( sortUsingPhrase | sortInputProcedurePhrase )
-      ( sortGivingPhrase | sortOutputProcedurePhrase )
+      ( ( sortUsingPhrase | sortInputProcedurePhrase )
+        ( sortGivingPhrase | sortOutputProcedurePhrase ) )?
       END_SORT?
 
     ;
@@ -320,15 +323,15 @@ sortFileName
     ;
 
 sortKeyPhrase
-    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList
+    : ON? (ASCENDING | DESCENDING) KEY? dataReferenceList?
     ;
 
 sortDuplicatesPhrase
-    : WITH? DUPLICATES IN? IDENTIFIER?    // IDENTIFIER matches ORDER (not a lexer token)
+    : WITH? DUPLICATES IN? cobolWord?    // cobolWord matches ORDER (not a lexer token)
     ;
 
 sortCollatingPhrase
-    : COLLATING SEQUENCE IS? IDENTIFIER (IDENTIFIER)?
+    : COLLATING SEQUENCE IS? cobolWord (cobolWord)?
     ;
 
 sortUsingPhrase

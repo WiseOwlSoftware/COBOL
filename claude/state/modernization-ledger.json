@@ -1118,11 +1118,11 @@
     },
     {
       "id": "M300",
-      "title": "Close remaining COBOL-85 grammar gaps (36 verified remaining)",
+      "title": "Close remaining COBOL-85 grammar gaps (26 verified remaining)",
       "severity": "P1",
       "subsystem": "Grammar",
       "status": "in-progress",
-      "description": "Grammar audit verified 2026-03-30: of 138 COBOL-85 gaps identified, ~102 are fixed. 36 verified remaining → 29 after Batch 1 (7 REJECT gaps closed). Remaining: Data Division 15 open, Procedure Division 3 open, Environment Division 11 open. Batch 1 complete: USE GLOBAL/EXCEPTION/ERROR/modes, STOP RUN STATUS, START WITH LENGTH, ALPHABET FOR, CLASS FOR. Batch 2 next: SET ON/OFF, SORT Format 2, SYMBOLIC CHARACTERS N:N.",
+      "description": "Grammar audit verified 2026-03-30. Original 138 gaps, ~102 fixed at session start. Batch 1 closed 7 REJECT gaps (29 remaining). Batch 2 closed 3 REJECT gaps (26 remaining). ANTLR review completed: 14 cobolWord propagation fixes, 4 dialect gates, dialect wiring. Remaining REJECT gaps: M407 (CURRENCY SIGN WITH PICTURE SYMBOL), M411 (SCREEN SECTION). 15 OVERLENIENT gaps (P3). 9 SEMANTIC-ONLY gaps (M302/M304/M310).",
       "deliverables": [
         "Close all 12 REJECT gaps (M400-M411)",
         "Close all 15 OVERLENIENT gaps (M412-M426)",
@@ -1317,13 +1317,39 @@
           "M409",
           "M410"
         ],
-        "batch_1_tests_added": 15,
-        "verified_remaining_after_batch_1": 29,
-        "architectural_refactors": [
-          "cobolWord rule",
-          "LENGTH/NATIONAL/NORMAL lexer tokens",
-          "LPAREN subscript-mode trigger expansion"
-        ]
+        "batch_2_completed": "2026-03-30",
+        "batch_2_items_closed": [
+          "M400",
+          "M402",
+          "M408"
+        ],
+        "batch_2_tests_added": 9,
+        "antlr_review_completed": "2026-03-30",
+        "antlr_review_fixes": 17,
+        "dialect_gates_added": 4,
+        "verified_remaining": 26,
+        "remaining_reject": [
+          "M407",
+          "M411"
+        ],
+        "remaining_overlenient": 15,
+        "remaining_semantic_only": 9,
+        "sub_gaps_discovered": [
+          "M427",
+          "M428"
+        ],
+        "architectural_changes": {
+          "cobolWord_rule": "Centralized IDENTIFIER + LENGTH/NATIONAL/NORMAL; propagated to dataReference, qualification, programName, procedureName, fileName, computerName, dataName + 17 secondary positions",
+          "lexer_tokens_added": [
+            "LENGTH",
+            "NATIONAL",
+            "NORMAL"
+          ],
+          "lparen_trigger_expansion": "Added LENGTH, NATIONAL, NORMAL to subscript-mode trigger list",
+          "dialect_gating": "{is2002()}? predicates on STOP STATUS, START WITH LENGTH, FOR ALPHANUMERIC/NATIONAL on CLASS/ALPHABET/SYMBOLIC CHARACTERS",
+          "dialect_wiring": "DialectLevel made public on CobolParserCoreBase; Options.Dialect wired through Compilation.LexAndParse to parser.DialectLevel; EndToEndTestBase.CompileAndRun gained dialect parameter",
+          "csharp_call_sites_updated": 24
+        }
       }
     },
     {
@@ -3673,8 +3699,8 @@
       "title": "SET switch-setting ON/OFF (8 SET formats absent)",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "SET TO ON / TO OFF (switch-setting) format is missing from grammar. 8+ SET formats absent per §14.9.39. Valid COBOL-85 programs using SET my-switch TO ON are rejected at parse time.",
+      "status": "complete",
+      "description": "SET switch-setting ON/OFF (8 SET formats). Grammar setSwitchStatement was already implemented in prior session. NC174A passes 100% clean (77 PASS, 0 FAIL). No grammar changes needed in Batch 2.",
       "deliverables": [
         "Add SET switch-setting grammar rules to CobolParserCore.g4",
         "Add parser unit tests for SET ON/OFF forms",
@@ -3692,7 +3718,10 @@
         "M300"
       ],
       "batch": 2,
-      "complexity": "medium"
+      "complexity": "medium",
+      "evidence": "Verified: setSwitchStatement rule in CobolParserCore.g4 handles SET mnemonic-name+ TO (ON|OFF) compound form. Binder in BoundTreeBuilder.cs routes to setSwitchStatement. NC174A regression: 77 PASS, 0 FAIL. Integration test: Set_SwitchOnOff_StillWorks (GrammarBatch2Tests.cs).",
+      "completed_date": "2026-03-30",
+      "deliverables_status": "complete -- no changes needed, already implemented"
     },
     {
       "id": "M401",
@@ -3726,8 +3755,8 @@
       "title": "SORT Format 2 (table sort)",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "SORT Format 2 (table sort — SORT table-name ON KEY) is missing from CobolIO.g4 per §14.9.40.2. Valid COBOL-85 programs using in-memory table sorting are rejected.",
+      "status": "complete",
+      "description": "SORT Format 2 (table sort). Grammar: made USING/GIVING/PROCEDURE block optional in sortStatement (CobolIO.g4). Made sortKeyPhrase dataReferenceList optional. Binder: null-check in BindSortKeys. Runtime table sort deferred to M427.",
       "deliverables": [
         "Add SORT Format 2 grammar rules to CobolIO.g4",
         "Add parser unit tests for table SORT",
@@ -3738,14 +3767,19 @@
         "Requires SortRuntime extension for in-memory sort"
       ],
       "test_impact": [
-        "Parser unit tests",
-        "SortTests integration"
+        "Sort_Format2_TableSort_ParsesSuccessfully",
+        "Sort_Format2_DescendingKey_ParsesSuccessfully",
+        "Sort_Format2_WithDuplicates_ParsesSuccessfully",
+        "Sort_Format1_FileSort_StillWorks"
       ],
       "dependencies": [
         "M300"
       ],
       "batch": 2,
-      "complexity": "medium"
+      "complexity": "medium",
+      "evidence": "Grammar delta: sortStatement input/output block wrapped in ()? (CobolIO.g4 line 312-316). sortKeyPhrase: dataReferenceList? (line 326). Binder: BindSortKeys null-check for optional dataReferenceList (FileIoBinder.cs line 530). ANTLR review: confirmed no ambiguity (C2 evaluated CLEAN). Integration tests: Sort_Format2_TableSort, Sort_Format2_DescendingKey, Sort_Format2_WithDuplicates, Sort_Format1_FileSort_StillWorks (GrammarBatch2Tests.cs). Regression: 922 unit + 311 integration + 95 NIST = 0 failures. Sub-gap: M427 (runtime table sort not implemented).",
+      "completed_date": "2026-03-30",
+      "deliverables_status": "grammar complete; runtime deferred to M427"
     },
     {
       "id": "M403",
@@ -3892,8 +3926,8 @@
       "title": "SYMBOLIC CHARACTERS N:N mapping",
       "severity": "P1",
       "subsystem": "Grammar",
-      "status": "open",
-      "description": "SYMBOLIC CHARACTERS clause is limited to 1:1 mapping (one name per entry). Spec §12.3.7 allows multiple names per entry: SYMBOLIC CHARACTERS sym-1 sym-2 ARE int-1 int-2 IN alphabet-name. Also missing IN alphabet-name phrase.",
+      "status": "complete",
+      "description": "SYMBOLIC CHARACTERS N:N mapping. Grammar: symbolicCharacterEntry changed from IDENTIFIER (IS|ARE) literal to cobolWord+ (IS|ARE) integerLiteral+ for N:N positional mapping. Added FOR (ALPHANUMERIC|NATIONAL) phrase with {is2002()}? gate. IN clause changed to cobolWord. SemanticBuilder updated for parallel name/ordinal array iteration.",
       "deliverables": [
         "Extend symbolicCharactersClause in CobolSpecialNames.g4 for N:N mapping",
         "Add IN alphabet-name optional phrase",
@@ -3903,15 +3937,19 @@
         "Semantic layer must resolve N:N ordinal-to-character mapping"
       ],
       "test_impact": [
-        "NC108M",
-        "NC174A",
-        "Parser unit tests"
+        "SymbolicCharacters_SingleMapping_StillWorks",
+        "SymbolicCharacters_NNMapping_ParsesSuccessfully",
+        "SymbolicCharacters_WithInAlphabet_ParsesSuccessfully",
+        "SymbolicCharacters_ForAlphanumeric_ParsesSuccessfully (dialect: Cobol2002)"
       ],
       "dependencies": [
         "M300"
       ],
       "batch": 2,
-      "complexity": "medium"
+      "complexity": "medium",
+      "evidence": "Grammar delta: symbolicCharacterEntry rule rewritten (CobolSpecialNames.g4 lines 78-79). FOR phrase with dialect gate (line 74). IN cobolWord (line 75). SemanticBuilder: parallel iteration of cobolWord[] and integerLiteral[] arrays (SemanticBuilder.cs lines 323-336). ANTLR review: C1 downgraded -- grammar is unambiguous for well-formed input; N:M count mismatch deferred to semantic validation (M428). Integration tests: SymbolicCharacters_SingleMapping, SymbolicCharacters_NNMapping, SymbolicCharacters_WithInAlphabet, SymbolicCharacters_ForAlphanumeric (GrammarBatch2Tests.cs). Regression: 0 failures. Sub-gap: M428 (count validation).",
+      "completed_date": "2026-03-30",
+      "deliverables_status": "grammar + semantic builder complete; count validation deferred to M428"
     },
     {
       "id": "M409",
@@ -4307,6 +4345,50 @@
       ],
       "dependencies": [
         "M300"
+      ]
+    },
+    {
+      "id": "M427",
+      "title": "SORT Format 2 runtime - table sort binder/lowerer/emitter",
+      "severity": "P2",
+      "subsystem": "Binder / Runtime",
+      "status": "open",
+      "description": "SORT Format 2 grammar accepted (M402) but binder resolves target as file, silently skips for data items. Need binder/lowerer/emitter for in-memory table sort.",
+      "deliverables": [
+        "Detect table sort target",
+        "Lower to IR",
+        "Emit CIL for in-memory sort"
+      ],
+      "risks": [
+        "Multi-key sort with mixed ascending/descending"
+      ],
+      "test_impact": [
+        "GrammarBatch2Tests sort tests"
+      ],
+      "dependencies": [
+        "M402"
+      ]
+    },
+    {
+      "id": "M428",
+      "title": "Semantic validation: SYMBOLIC CHARACTERS N:N count equality",
+      "severity": "P2",
+      "subsystem": "Semantics",
+      "status": "open",
+      "description": "Grammar accepts mismatched N:M counts in SYMBOLIC CHARACTERS entries. Spec requires 1:1 correspondence. SemanticBuilder should emit diagnostic on count mismatch.",
+      "deliverables": [
+        "Add count validation",
+        "Emit diagnostic on mismatch",
+        "Add negative test"
+      ],
+      "risks": [
+        "Silent wrong mapping if not validated"
+      ],
+      "test_impact": [
+        "Diagnostic unit tests"
+      ],
+      "dependencies": [
+        "M408"
       ]
     }
   ]

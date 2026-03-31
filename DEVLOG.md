@@ -6,6 +6,58 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 174 — 2026-03-30: ANTLR Review Fixes — cobolWord propagation + dialect gates
+
+ANTLR grammar review agent found 14 warnings and 6 notes. All addressed:
+
+**cobolWord propagation (W1-W14)**: 17 edits across 6 grammar files — every remaining bare
+IDENTIFIER in name-reference positions changed to cobolWord. Affected rules: assignTarget,
+classDefinitionClause, alphabetClause, alphabetEntry, implementorSwitchEntry, switchOnClause,
+switchOffClause, sortDuplicatesPhrase, sortCollatingPhrase, programCollatingSequenceClause,
+reportName, reportGroupName, dataReferenceAttribute, codeSetClause, labelRecordsClause,
+dataRecordsClause, className, displayUpon.
+
+**Dialect gates (N1-N3)**: Added `{is2002()}?` predicates to STOP STATUS, START WITH LENGTH,
+and FOR ALPHANUMERIC/NATIONAL on CLASS/ALPHABET/SYMBOLIC CHARACTERS. These are COBOL-2002+
+features, not COBOL-85. Default dialect remains 85.
+
+**Dialect wiring**: Made DialectLevel public on CobolParserCoreBase. Wired Options.Dialect
+through Compilation.LexAndParse to parser.DialectLevel. Added dialect parameter to
+EndToEndTestBase.CompileAndRun. COBOL-2002+ tests now set DialectMode.Cobol2002 explicitly.
+
+**New ledger items**: M428 (semantic validation for SYMBOLIC CHARACTERS N:N count equality).
+
+Regression: 922 unit + 311 integration + 95 NIST = 0 failures.
+
+---
+
+## Entry 173 — 2026-03-30: Batch 2 Grammar Fixes — 3 REJECT gaps closed (1 pre-resolved)
+
+Implemented 2 COBOL-85 grammar gaps + confirmed 1 was already resolved:
+
+**M400 (SET ON/OFF)**: Already complete from prior session. NC174A passes 100% clean (77 PASS,
+0 FAIL). Grammar `setSwitchStatement` and binder were working. Marked complete in ledger.
+
+**M402 (SORT Format 2 — table sort)**: Made USING/GIVING/PROCEDURE block optional in
+sortStatement grammar. Made sortKeyPhrase data-name list optional (Format 2 uses table's
+inherent KEY). Added null-check in BindSortKeys for optional dataReferenceList.
+**Sub-gap discovered**: runtime table sort not implemented — binder resolves target as file,
+silently skips for data items. Tracked as new ledger item M427.
+
+**M408 (SYMBOLIC CHARACTERS N:N)**: Rewrote symbolicCharacterEntry from `IDENTIFIER (IS|ARE)
+literal` to `cobolWord+ (IS|ARE) integerLiteral+` for N:N positional mapping. Added FOR
+ALPHANUMERIC/NATIONAL phrase. Updated SemanticBuilder to iterate parallel name/ordinal arrays.
+
+**Architectural**: cobolWord used in symbolicCharacterEntry and IN clause (consistency with
+Batch 1 refactor).
+
+**Tests**: 9 new integration tests in GrammarBatch2Tests.cs — 4 SORT Format 2 variants,
+4 SYMBOLIC CHARACTERS variants, 1 SET ON/OFF regression.
+
+**Regression**: 922 unit + 311 integration + 95 NIST = 0 failures. 9 net new integration tests.
+
+---
+
 ## Entry 172 — 2026-03-30: Batch 1 Grammar Fixes — 7 REJECT gaps closed
 
 Implemented 7 COBOL-85 grammar gaps that were rejecting valid programs:

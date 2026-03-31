@@ -527,7 +527,9 @@ internal sealed class FileIoBinder
         foreach (var phrase in keyPhrases)
         {
             bool ascending = phrase.ASCENDING() != null;
-            foreach (var dataRef in phrase.dataReferenceList().dataReference())
+            var dataRefList = phrase.dataReferenceList();
+            if (dataRefList == null) continue; // Format 2: KEY without data-names uses table's inherent KEY
+            foreach (var dataRef in dataRefList.dataReference())
             {
                 var keySym = _ctx.Semantic.ResolveData(dataRef.GetText());
                 if (keySym != null)

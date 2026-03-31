@@ -368,7 +368,10 @@ public class CobolLexer extends Lexer {
 		case 0:
 			 if (_lastNonWsTokenType == IDENTIFIER
 			                          || _lastNonWsTokenType == DISPLAY
+			                          || _lastNonWsTokenType == LENGTH
 			                          || _lastNonWsTokenType == MERGE
+			                          || _lastNonWsTokenType == NATIONAL
+			                          || _lastNonWsTokenType == NORMAL
 			                          || _lastNonWsTokenType == RANDOM
 			                          || _lastNonWsTokenType == SIGN
 			                          || _lastNonWsTokenType == SORT

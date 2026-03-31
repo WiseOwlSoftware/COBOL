@@ -194,7 +194,7 @@ exitStatement
 // ==========================================
 
 stopStatement
-    : STOP RUN stopStatusPhrase?
+    : STOP RUN ({is2002()}? stopStatusPhrase)?
     | STOP literal                     // STOP literal (Format 2, obsolete)
     ;
 

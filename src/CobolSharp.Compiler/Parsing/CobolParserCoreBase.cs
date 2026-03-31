@@ -14,7 +14,7 @@ public abstract class CobolParserCoreBase : Parser
     /// Dialect level for gating non-COBOL-85 features.
     /// Default is COBOL-85 (strict). Set higher to enable later standards.
     /// </summary>
-    protected int DialectLevel { get; set; } = 85;
+    public int DialectLevel { get; set; } = 85;
 
     protected bool is85()   => DialectLevel >= 85;
     protected bool is2002() => DialectLevel >= 2002;

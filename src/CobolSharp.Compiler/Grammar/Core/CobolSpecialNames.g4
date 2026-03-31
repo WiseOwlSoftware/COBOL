@@ -30,17 +30,17 @@ specialNameEntry
     ;
 
 implementorSwitchEntry
-    : IDENTIFIER (IS IDENTIFIER)? switchOnClause? switchOffClause?
+    : cobolWord (IS cobolWord)? switchOnClause? switchOffClause?
     ;
 
 switchOnClause
-    : ON STATUS IS IDENTIFIER
-    | ON IS? IDENTIFIER
+    : ON STATUS IS cobolWord
+    | ON IS? cobolWord
     ;
 
 switchOffClause
-    : OFF STATUS IS? IDENTIFIER
-    | OFF IS? IDENTIFIER
+    : OFF STATUS IS? cobolWord
+    | OFF IS? cobolWord
     ;
 
 // CURRENCY SIGN IS literal [WITH PICTURE SYMBOL literal]
@@ -56,7 +56,7 @@ decimalPointClause
 
 // CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [FOR {ALPHANUMERIC|NATIONAL}] [IN alphabet-name]
 classDefinitionClause
-    : CLASS IDENTIFIER IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN IDENTIFIER)?
+    : CLASS cobolWord IS? classValueSet ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
     ;
 
 classValueSet
@@ -67,18 +67,21 @@ classValueItem
     : literal ((THRU | THROUGH) literal)?
     ;
 
-// SYMBOLIC CHARACTERS {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
+// SYMBOLIC CHARACTERS [FOR {ALPHANUMERIC|NATIONAL}]
+//   {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
+// N:N positional mapping: first name ↔ first integer, etc. (§12.3.7)
 symbolicCharactersClause
-    : SYMBOLIC CHARACTERS symbolicCharacterEntry+ (IN IDENTIFIER)?
+    : SYMBOLIC CHARACTERS ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))?
+      symbolicCharacterEntry+ (IN cobolWord)?
     ;
 
 symbolicCharacterEntry
-    : IDENTIFIER (IS | ARE) literal
+    : cobolWord+ (IS | ARE) integerLiteral+
     ;
 
 // ALPHABET name IS ... [FOR {ALPHANUMERIC|NATIONAL}]
 alphabetClause
-    : ALPHABET IDENTIFIER IS alphabetDefinition (FOR (ALPHANUMERIC | NATIONAL))?
+    : ALPHABET cobolWord IS alphabetDefinition ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))?
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.
@@ -90,8 +93,8 @@ alphabetDefinition
     ;
 
 alphabetEntry
-    : (IDENTIFIER | literal) ((THRU | THROUGH) (IDENTIFIER | literal))?
-      (ALSO (IDENTIFIER | literal))*
+    : (cobolWord | literal) ((THRU | THROUGH) (cobolWord | literal))?
+      (ALSO (cobolWord | literal))*
     ;
 
 // CRT STATUS IS data-name

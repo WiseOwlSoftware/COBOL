@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "description": "JSON patch for Batch 2 grammar fix completion — 2026-03-30",
+    "instructions": "Apply these changes to modernization-ledger.json and initialization.json"
+  },
+
+  "updates": {
+    "M300": {
+      "description": "Grammar audit verified 2026-03-30: of 138 COBOL-85 gaps identified, ~102 are fixed. 36 verified remaining → 29 after Batch 1 → 26 after Batch 2. Batch 1 complete (7 items). Batch 2 complete (3 items: M400 pre-resolved, M402 grammar done, M408 done). Batch 3 next: CURRENCY WITH PICTURE SYMBOL (M407), SCREEN SECTION (M411).",
+      "analysis_update": {
+        "batch_2_completed": "2026-03-30",
+        "batch_2_items_closed": ["M400", "M402", "M408"],
+        "batch_2_tests_added": 9,
+        "verified_remaining_after_batch_2": 26,
+        "sub_gaps_discovered": ["M427 — SORT Format 2 runtime (table sort binder/lowerer/emitter)"]
+      }
+    },
+
+    "M400": {
+      "status": "complete",
+      "evidence": "Grammar setSwitchStatement was already implemented in prior session. NC174A passes 100% clean (77 PASS, 0 FAIL). Integration test: Set_SwitchOnOff_StillWorks. No grammar changes needed.",
+      "completed_date": "2026-03-30"
+    },
+
+    "M402": {
+      "status": "complete",
+      "evidence": "Grammar: sortStatement input/output block made optional for Format 2 (table sort). sortKeyPhrase dataReferenceList made optional. Binder: BindSortKeys null-check added. Integration tests: Sort_Format2_TableSort, Sort_Format2_DescendingKey, Sort_Format2_WithDuplicates, Sort_Format1_FileSort_StillWorks. Sub-gap: runtime table sort not implemented (M427).",
+      "completed_date": "2026-03-30"
+    },
+
+    "M408": {
+      "status": "complete",
+      "evidence": "Grammar: symbolicCharacterEntry changed from IDENTIFIER (IS|ARE) literal to cobolWord+ (IS|ARE) integerLiteral+ for N:N positional mapping. FOR ALPHANUMERIC/NATIONAL phrase added. IN cobolWord (was IDENTIFIER). SemanticBuilder updated for parallel name/ordinal array iteration. Integration tests: SymbolicCharacters_SingleMapping, SymbolicCharacters_NNMapping, SymbolicCharacters_WithInAlphabet, SymbolicCharacters_ForAlphanumeric.",
+      "completed_date": "2026-03-30"
+    }
+  },
+
+  "new_items": [
+    {
+      "id": "M427",
+      "title": "SORT Format 2 runtime — table sort binder/lowerer/emitter",
+      "severity": "P2",
+      "subsystem": "Binder / Runtime",
+      "status": "open",
+      "description": "SORT Format 2 (table sort) grammar is accepted (M402 complete), but the binder resolves the sort target as a FileSymbol. When the target is a data item with OCCURS, the sort is silently skipped. Need: binder detects table sort target, lowerer generates in-memory sort IR, emitter produces Array.Sort or equivalent.",
+      "deliverables": [
+        "Detect table sort target in BindSort (OCCURS clause on target)",
+        "Add BoundTableSortStatement or extend BoundSortStatement with IsTableSort flag",
+        "Lower table sort to IR (in-memory sort using key comparisons)",
+        "Emit CIL for in-memory table sort",
+        "Add integration tests verifying actual sort output"
+      ],
+      "risks": [
+        "Multi-key sort with mixed ascending/descending requires custom comparer",
+        "OCCURS DEPENDING ON tables have variable size"
+      ],
+      "test_impact": ["GrammarBatch2Tests sort tests (upgrade from parser-only to output-verifying)"],
+      "dependencies": ["M402"]
+    }
+  ],
+
+  "initialization_patch": {
+    "ledger_version": 6,
+    "last_audit": "Batch 2 grammar fixes completed",
+    "last_updated": "2026-03-30",
+    "cobol85_audit_update": {
+      "integration_tests": 311,
+      "grammar_gaps_remaining": 26,
+      "grammar_gaps_reject": 2,
+      "batch_2_status": "complete"
+    },
+    "ledger_summary_update": {
+      "total_items": 176,
+      "done": 14,
+      "open": 137,
+      "in_progress": 1,
+      "planned": 23
+    }
+  }
+}

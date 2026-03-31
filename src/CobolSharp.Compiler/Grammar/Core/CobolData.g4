@@ -83,17 +83,17 @@ recordClause
 
 // CODE-SET clause (§13.18.13)
 codeSetClause
-    : CODE_SET IS? IDENTIFIER
+    : CODE_SET IS? cobolWord
     ;
 
 // LABEL RECORD(S) IS/ARE — obsolete COBOL-85 FD clause, semantically inert
 labelRecordsClause
-    : LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED | IDENTIFIER+)
+    : LABEL (RECORD IS? | RECORDS ARE?) (STANDARD | OMITTED | cobolWord+)
     ;
 
 // DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
 dataRecordsClause
-    : DATA (RECORD IS? | RECORDS ARE?) IDENTIFIER+
+    : DATA (RECORD IS? | RECORDS ARE?) cobolWord+
     ;
 
 // LINAGE clause (ISO §13.16) — page-based printing for sequential files

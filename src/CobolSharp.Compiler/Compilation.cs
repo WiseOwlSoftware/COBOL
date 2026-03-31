@@ -40,7 +40,8 @@ public sealed class Compilation
         string processedText = Preprocess(sourcePath);
 
         // Phase 1: Lex + Parse
-        var tree = LexAndParse(processedText, sourcePath, diagnostics);
+        int dialectLevel = Options.Dialect == Semantics.DialectMode.Default ? 85 : (int)Options.Dialect;
+        var tree = LexAndParse(processedText, sourcePath, diagnostics, dialectLevel);
         if (tree == null)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
@@ -139,7 +140,8 @@ public sealed class Compilation
     private static CobolParserCore.CompilationUnitContext? LexAndParse(
         string processedText,
         string sourcePath,
-        DiagnosticBag diagnostics)
+        DiagnosticBag diagnostics,
+        int dialectLevel = 85)
     {
         var inputStream = new AntlrInputStream(processedText);
         var lexer = new CobolLexer(inputStream);
@@ -151,6 +153,7 @@ public sealed class Compilation
         ZeroTokenRewriter.Rewrite(tokenStream);
 
         var parser = new CobolParserCore(tokenStream);
+        parser.DialectLevel = dialectLevel;
 
         parser.RemoveErrorListeners();
         parser.AddErrorListener(new CobolErrorListener(diagnostics, sourcePath));

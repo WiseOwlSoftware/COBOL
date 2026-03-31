@@ -131,7 +131,7 @@ literalAttribute
     ;
 
 dataReferenceAttribute
-    : IDENTIFIER
+    : cobolWord
     ;
 
 // ------------------------------------------
@@ -243,7 +243,7 @@ objectComputerParagraph
     ;
 
 programCollatingSequenceClause
-    : PROGRAM COLLATING? SEQUENCE IS? IDENTIFIER
+    : PROGRAM COLLATING? SEQUENCE IS? cobolWord
     ;
 
 computerName
@@ -800,7 +800,7 @@ displayStatement
     ;
 
 displayUpon
-    : UPON (dataReference | IDENTIFIER)
+    : UPON cobolWord
     ;
 
 displayNoAdvancing

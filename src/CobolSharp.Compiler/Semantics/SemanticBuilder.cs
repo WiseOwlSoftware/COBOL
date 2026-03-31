@@ -255,7 +255,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // Implementor switch: IDENTIFIER IS IDENTIFIER switchOnClause? switchOffClause?
             if (entry.implementorSwitchEntry() is { } swClause)
             {
-                var ids = swClause.IDENTIFIER();
+                var ids = swClause.cobolWord();
                 if (ids.Length >= 2)
                 {
                     string implName = ids[0].GetText();
@@ -264,10 +264,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     string? offName = null;
 
                     if (swClause.switchOnClause() is { } onClause)
-                        onName = onClause.IDENTIFIER()?.GetText();
+                        onName = onClause.cobolWord()?.GetText();
 
                     if (swClause.switchOffClause() is { } offClause)
-                        offName = offClause.IDENTIFIER()?.GetText();
+                        offName = offClause.cobolWord()?.GetText();
 
                     _implementorSwitches.Add(
                         new ImplementorSwitch(mnemonicName, implName, onName, offName));
@@ -277,7 +277,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // CLASS class-name IS literal [THRU literal] [, literal [THRU literal]]...
             if (entry.classDefinitionClause() is { } classClause)
             {
-                var className = classClause.IDENTIFIER(0)?.GetText();
+                var className = classClause.cobolWord(0)?.GetText();
                 if (className != null && classClause.classValueSet() is { } valueSet)
                 {
                     var validBytes = new HashSet<byte>();
@@ -321,11 +321,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 foreach (var symEntry in symClause.symbolicCharacterEntry())
                 {
-                    var symName = symEntry.IDENTIFIER()?.GetText();
-                    var litCtx = symEntry.literal();
-                    if (symName != null && litCtx != null)
+                    // N:N positional mapping: cobolWord[i] ↔ integerLiteral[i]
+                    var names = symEntry.cobolWord();
+                    var ordinals = symEntry.integerLiteral();
+                    int count = Math.Min(names.Length, ordinals.Length);
+                    for (int i = 0; i < count; i++)
                     {
-                        int ordinal = ExtractIntegerValue(litCtx);
+                        string symName = names[i].GetText();
+                        int ordinal = int.Parse(ordinals[i].GetText());
                         if (ordinal >= 1 && ordinal <= 256)
                         {
                             // COBOL ordinal is 1-based: ordinal 1 = character 0
@@ -338,7 +341,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // ALPHABET alphabet-name IS ...
             if (entry.alphabetClause() is { } alphaClause)
             {
-                var alphaName = alphaClause.IDENTIFIER()?.GetText();
+                var alphaName = alphaClause.cobolWord()?.GetText();
                 if (alphaName != null && alphaClause.alphabetDefinition() is { } alphaDef)
                 {
                     var sequence = BuildAlphabetCollatingSequence(alphaDef);
@@ -360,7 +363,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (ctx.programCollatingSequenceClause() is { } pcsClause)
         {
-            var alphaName = pcsClause.IDENTIFIER()?.GetText();
+            var alphaName = pcsClause.cobolWord()?.GetText();
             if (alphaName != null)
                 _programCollatingSequenceAlphabetName = alphaName;
         }
@@ -433,10 +436,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         {
             // Check for predefined names: STANDARD-1, STANDARD-2, NATIVE
             var firstEntry = entries[0];
-            var ids = firstEntry.IDENTIFIER();
-            if (ids.Length == 1)
+            var words = firstEntry.cobolWord();
+            if (words.Length == 1)
             {
-                var name = ids[0].GetText().ToUpperInvariant();
+                var name = words[0].GetText().ToUpperInvariant();
                 if (name is "STANDARD-1" or "STANDARD-2" or "NATIVE")
                     return AlphabetDefinition.NativeCollatingSequence();
             }
@@ -451,16 +454,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         foreach (var entry in entries)
         {
             var lits = entry.literal();
-            var ids = entry.IDENTIFIER();
+            var words = entry.cobolWord();
 
             // Get the primary value
             int primaryVal = -1;
             if (lits.Length >= 1)
                 primaryVal = ExtractCharacterOrdinal(lits[0]);
-            else if (ids.Length >= 1)
+            else if (words.Length >= 1)
             {
                 // Could be a single character identifier treated as literal
-                var txt = ids[0].GetText();
+                var txt = words[0].GetText();
                 if (txt.Length == 1)
                     primaryVal = (byte)txt[0];
             }

@@ -1,4 +1,5 @@
 using CobolSharp.Compiler;
+using CobolSharp.Compiler.Semantics;
 using Xunit;
 
 namespace CobolSharp.Tests.Integration;
@@ -238,7 +239,7 @@ public class GrammarBatch1Tests : EndToEndTestBase
             MAIN-PARA.
                 DISPLAY "STOP NORMAL".
                 STOP RUN WITH NORMAL STATUS 0.
-            """);
+            """, DialectMode.Cobol2002);
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("STOP NORMAL", stdout);
@@ -258,7 +259,7 @@ public class GrammarBatch1Tests : EndToEndTestBase
             MAIN-PARA.
                 DISPLAY "STOP ERROR".
                 STOP RUN WITH NORMAL STATUS WS-RC.
-            """);
+            """, DialectMode.Cobol2002);
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("STOP ERROR", stdout);
@@ -337,7 +338,7 @@ public class GrammarBatch1Tests : EndToEndTestBase
             MAIN-PARA.
                 DISPLAY "ALPHABET FOR PARSED".
                 STOP RUN.
-            """);
+            """, DialectMode.Cobol2002);
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("ALPHABET FOR PARSED", stdout);
@@ -358,7 +359,7 @@ public class GrammarBatch1Tests : EndToEndTestBase
             MAIN-PARA.
                 DISPLAY "ALPHABET NAT PARSED".
                 STOP RUN.
-            """);
+            """, DialectMode.Cobol2002);
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("ALPHABET NAT PARSED", stdout);
@@ -383,7 +384,7 @@ public class GrammarBatch1Tests : EndToEndTestBase
             MAIN-PARA.
                 DISPLAY "CLASS FOR PARSED".
                 STOP RUN.
-            """);
+            """, DialectMode.Cobol2002);
 
         Assert.True(success, $"Failed: {stderr}");
         Assert.Equal("CLASS FOR PARSED", stdout);
