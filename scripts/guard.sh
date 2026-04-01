@@ -56,7 +56,10 @@ for test in $NIST_TESTS; do
     # Compare output (files written to tests/nist/output/)
     validfile="tests/nist/valid/$test.txt"
     if [ ! -f "$validfile" ]; then
-        echo "  $test: NO VALID FILE — skipping"
+        # No baseline = test has known failures. Still compile/run but don't compare.
+        fail_count=$(grep -c "FAIL\*" "tests/nist/output/$outfile" 2>/dev/null || true)
+        fail_count=${fail_count:-0}
+        echo "  $test: NO BASELINE (${fail_count} FAIL* — pending fix)"
         continue
     fi
 
@@ -94,15 +97,14 @@ if [ $FAILURES -gt 0 ]; then
     exit 1
 fi
 
-# Report total FAIL* across all tests (bugs locked into baselines)
-total_fails=0
+# Verify no baselines contain FAIL* — baselines must be 100% clean
 for f in tests/nist/valid/*.txt; do
     fc=$(grep -c "FAIL\*" "$f" 2>/dev/null || true)
     fc=${fc:-0}
-    total_fails=$((total_fails + fc)) 2>/dev/null || true
+    if [ "$fc" -gt 0 ] 2>/dev/null; then
+        echo "=== ERROR: $(basename "$f") contains $fc FAIL* — remove from valid/ ==="
+        FAILURES=$((FAILURES + 1))
+    fi
 done
-if [ "$total_fails" -gt 0 ] 2>/dev/null; then
-    echo "=== WARNING: $total_fails FAIL* results locked in valid baselines ==="
-fi
 
 echo "=== ALL GREEN ==="
