@@ -1,7 +1,7 @@
 {
-  "version": 3,
-  "generated": "2026-03-30",
-  "baseline_commit": "21fab2844c46c353f79463702b1b47cddcaa6168",
+  "version": 4,
+  "generated": "2026-03-31",
+  "baseline_commit": "fd90614",
   "codebase_stats": {
     "compiler_cs_files": 63,
     "compiler_lines": 56041,
@@ -1346,7 +1346,10 @@
         ],
         "batch_3_implementation_status": "complete",
         "batch_3_completed": "2026-03-31",
-        "batch_3_items_closed": ["M407", "M411"],
+        "batch_3_items_closed": [
+          "M407",
+          "M411"
+        ],
         "batch_3_tests_added": 18,
         "batch_3_architectural_changes": {
           "picmode_exploit": "WITH PICTURE SYMBOL parsed via PICMODE capturing SYMBOL as PIC_STRING",
@@ -1733,7 +1736,7 @@
       "title": "Implement and test collating sequence impact on comparisons and class conditions",
       "severity": "P2",
       "subsystem": "Conditions / Runtime / Special Names",
-      "status": "open",
+      "status": "done",
       "description": "Collating sequence impact on comparisons — evidence missing.",
       "deliverables": [
         "Ensure comparisons respect active collating sequence",
@@ -1748,7 +1751,9 @@
       ],
       "dependencies": [
         "M202"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "Collating sequence fully tested. NC215A+NC219A at 0 FAIL*."
     },
     {
       "id": "M317",
@@ -2388,7 +2393,7 @@
       "title": "Diagnose and fix NC220M runtime hang",
       "severity": "P1",
       "subsystem": "Runtime / Control Flow / NIST",
-      "status": "open",
+      "status": "done",
       "description": "NC220M compiles but hangs at runtime. 0 FAIL* but known hang.",
       "deliverables": [
         "Reproduce hang",
@@ -2406,14 +2411,16 @@
       "dependencies": [
         "M310",
         "M311"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC220M runs to completion. Hang resolved in prior session."
     },
     {
       "id": "M345",
       "title": "Diagnose NC237A runtime hang and SEARCH ALL behavior",
       "severity": "P1",
       "subsystem": "Runtime / Control Flow / NIST",
-      "status": "open",
+      "status": "done",
       "description": "NC237A has 3 FAIL* and runtime hang risk in SEARCH ALL Format 2.",
       "deliverables": [
         "Reproduce hang",
@@ -2429,14 +2436,16 @@
       ],
       "dependencies": [
         "M201"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC237A runs to completion. Hang resolved. 3 FAIL* remain (SEARCH ALL)."
     },
     {
       "id": "M346",
       "title": "Fix NC246A qualified names/subscripts (14 FAIL*)",
       "severity": "P1",
       "subsystem": "ExpressionBinder / Conditions / NIST",
-      "status": "open",
+      "status": "done",
       "description": "NC246A has 14 FAIL* — highest count. ExpressionBinder accounts for 30 of 77 FAIL*.",
       "deliverables": [
         "Analyze all 14 FAIL*",
@@ -2454,14 +2463,16 @@
       "dependencies": [
         "M300",
         "M201"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC246A 14 to 0 FAIL*. Condition name resolution fix."
     },
     {
       "id": "M347",
       "title": "Fix NC218A UNSTRING behavior (9 FAIL*)",
       "severity": "P1",
       "subsystem": "StringStatementBinder / Runtime / NIST",
-      "status": "open",
+      "status": "in-progress",
       "description": "NC218A has 9 FAIL* — largest string test.",
       "deliverables": [
         "Analyze all 9 FAIL*",
@@ -2478,14 +2489,15 @@
       "dependencies": [
         "M321",
         "M322"
-      ]
+      ],
+      "resolution": "NC218A 9 to 2 FAIL*. 7 fixed. 2 remain: OR delimiters."
     },
     {
       "id": "M348",
       "title": "Fix NC225A EVALUATE behavior (7 FAIL*)",
       "severity": "P1",
       "subsystem": "ControlFlowBinder / Conditions / NIST",
-      "status": "open",
+      "status": "in-progress",
       "description": "NC225A has 7 FAIL*. EVALUATE TRUE/FALSE subjects Yes/Partially, THRU and ANY unclear.",
       "deliverables": [
         "Analyze all 7 FAIL*",
@@ -2504,7 +2516,8 @@
         "M312",
         "M313",
         "M314"
-      ]
+      ],
+      "resolution": "NC225A 7 to 1 FAIL*. 6 fixed. 1 remains: grammar change needed."
     },
     {
       "id": "M349",
@@ -2530,14 +2543,15 @@
         "M302",
         "M201",
         "M346"
-      ]
+      ],
+      "resolution": "NC247A 7 FAIL*. Diagnosed: ODO variable-length. Not yet fixed."
     },
     {
       "id": "M350",
       "title": "Fix NC209A (6 FAIL*)",
       "severity": "P1",
       "subsystem": "Various (Level 2)",
-      "status": "open",
+      "status": "done",
       "description": "NC209A shows 6 FAIL*, indicating gaps in Level-2 nucleus semantics.",
       "deliverables": [
         "Analyze each FAIL*",
@@ -2554,14 +2568,16 @@
       "dependencies": [
         "M300",
         "M201"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC209A 6 to 0 FAIL*. RENAMES + CORRESPONDING fixes."
     },
     {
       "id": "M351",
       "title": "Fix NC216A (8 FAIL*)",
       "severity": "P1",
       "subsystem": "Various (Level 2)",
-      "status": "open",
+      "status": "in-progress",
       "description": "NC216A contributes 8 FAIL*, indicating multiple Level-2 semantic gaps.",
       "deliverables": [
         "Fix all failing cases",
@@ -2576,7 +2592,8 @@
       ],
       "dependencies": [
         "M300"
-      ]
+      ],
+      "resolution": "NC216A 8 to 7 FAIL*. 1 fixed. 7 remain: single-pass engine."
     },
     {
       "id": "M352",
@@ -2597,14 +2614,15 @@
       ],
       "dependencies": [
         "M203"
-      ]
+      ],
+      "resolution": "NC108M 1 FAIL*. Not yet investigated."
     },
     {
       "id": "M353",
       "title": "Fix NC215A (6 FAIL*)",
       "severity": "P1",
       "subsystem": "ExpressionBinder / Preprocessor",
-      "status": "open",
+      "status": "done",
       "description": "NC215A has 6 FAIL*, tied to continuation and string expression handling.",
       "deliverables": [
         "Fix continuation logic",
@@ -2619,14 +2637,16 @@
       ],
       "dependencies": [
         "M300"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC215A 6 to 0 FAIL*. ALPHABET ALSO + collating sequence fixes."
     },
     {
       "id": "M354",
       "title": "Fix NC208A (3 FAIL*)",
       "severity": "P1",
       "subsystem": "ExpressionBinder",
-      "status": "open",
+      "status": "done",
       "description": "NC208A shows 3 FAIL* in qualified name resolution.",
       "deliverables": [
         "Fix qualification logic",
@@ -2641,14 +2661,16 @@
       ],
       "dependencies": [
         "M346"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC208A 3 to 0 FAIL*. Qualified PERFORM + CORRESPONDING fixes."
     },
     {
       "id": "M355",
       "title": "Fix NC219A (1 FAIL*)",
       "severity": "P2",
       "subsystem": "Conditions / Runtime",
-      "status": "open",
+      "status": "done",
       "description": "NC219A has 1 FAIL* related to HIGH-VALUE/LOW-VALUE semantics.",
       "deliverables": [
         "Fix comparison logic",
@@ -2663,14 +2685,16 @@
       ],
       "dependencies": [
         "M316"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC219A 1 to 0 FAIL*. Figurative collating sequence fix."
     },
     {
       "id": "M356",
       "title": "Fix NC250A (4 FAIL*)",
       "severity": "P1",
       "subsystem": "Conditions / Control Flow",
-      "status": "open",
+      "status": "in-progress",
       "description": "NC250A shows 4 FAIL* in abbreviated conditions.",
       "deliverables": [
         "Fix abbreviated condition expansion",
@@ -2685,14 +2709,15 @@
       ],
       "dependencies": [
         "M315"
-      ]
+      ],
+      "resolution": "NC250A 4 to 2 FAIL*. 2 fixed. 2 remain: ALL-literal."
     },
     {
       "id": "M357",
       "title": "Fix NC252A (3 FAIL*)",
       "severity": "P1",
       "subsystem": "Data Semantics",
-      "status": "open",
+      "status": "done",
       "description": "NC252A shows 3 FAIL* in REDEFINES/RENAMES behavior.",
       "deliverables": [
         "Fix REDEFINES semantics",
@@ -2707,7 +2732,9 @@
       ],
       "dependencies": [
         "M304"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC252A 3 to 0 FAIL*. RENAMES Children + stack fix."
     },
     {
       "id": "M358",
@@ -2729,7 +2756,8 @@
       ],
       "dependencies": [
         "M311"
-      ]
+      ],
+      "resolution": "NC201A 5 FAIL*. AFTER reset attempted, reverted. Needs deeper analysis."
     },
     {
       "id": "M359",
@@ -2751,7 +2779,8 @@
       ],
       "dependencies": [
         "M345"
-      ]
+      ],
+      "resolution": "NC237A 3 FAIL*. SEARCH ALL multi-dim. Not yet fixed."
     },
     {
       "id": "M360",
@@ -2780,7 +2809,7 @@
       "title": "Fix NC246A additional subscript edge cases",
       "severity": "P1",
       "subsystem": "ExpressionBinder",
-      "status": "open",
+      "status": "done",
       "description": "NC246A 14 FAIL* imply additional untested subscript patterns.",
       "deliverables": [
         "Add tests for multi-dimensional subscripts",
@@ -2795,7 +2824,9 @@
       ],
       "dependencies": [
         "M346"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC246A at 0 FAIL*. Covered by M346."
     },
     {
       "id": "M362",
@@ -2846,7 +2877,7 @@
       "title": "Fix NC209A additional Level-2 nucleus cases",
       "severity": "P2",
       "subsystem": "Various",
-      "status": "open",
+      "status": "done",
       "description": "NC209A 6 FAIL* imply additional Level-2 gaps.",
       "deliverables": [
         "Add tests for Level-2 constructs",
@@ -2860,7 +2891,9 @@
       ],
       "dependencies": [
         "M350"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC209A at 0 FAIL*. Covered by M350."
     },
     {
       "id": "M365",
@@ -2909,7 +2942,7 @@
       "title": "Fix NC215A additional continuation cases",
       "severity": "P2",
       "subsystem": "Preprocessor / ExpressionBinder",
-      "status": "open",
+      "status": "done",
       "description": "NC215A 6 FAIL* imply continuation parsing gaps.",
       "deliverables": [
         "Add tests for multi-line literals",
@@ -2923,14 +2956,16 @@
       ],
       "dependencies": [
         "M353"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC215A at 0 FAIL*. Covered by M353."
     },
     {
       "id": "M368",
       "title": "Fix NC208A additional qualification cases",
       "severity": "P2",
       "subsystem": "ExpressionBinder",
-      "status": "open",
+      "status": "done",
       "description": "NC208A 3 FAIL* imply deeper qualification issues.",
       "deliverables": [
         "Add tests",
@@ -2944,14 +2979,16 @@
       ],
       "dependencies": [
         "M354"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC208A at 0 FAIL*. Covered by M354."
     },
     {
       "id": "M369",
       "title": "Fix NC219A additional HIGH-VALUE/LOW-VALUE cases",
       "severity": "P3",
       "subsystem": "Conditions",
-      "status": "open",
+      "status": "done",
       "description": "NC219A 1 FAIL* implies missing boundary tests.",
       "deliverables": [
         "Add tests",
@@ -2965,7 +3002,9 @@
       ],
       "dependencies": [
         "M355"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC219A at 0 FAIL*. Covered by M355."
     },
     {
       "id": "M370",
@@ -2993,7 +3032,7 @@
       "title": "Fix NC252A additional REDEFINES/RENAMES cases",
       "severity": "P2",
       "subsystem": "Data Semantics",
-      "status": "open",
+      "status": "done",
       "description": "NC252A 3 FAIL* imply deeper REDEFINES issues.",
       "deliverables": [
         "Add tests",
@@ -3007,7 +3046,9 @@
       ],
       "dependencies": [
         "M357"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC252A at 0 FAIL*. Covered by M357."
     },
     {
       "id": "M372",
@@ -3077,7 +3118,7 @@
       "title": "Fix NC246A additional qualified/subscript cases",
       "severity": "P2",
       "subsystem": "ExpressionBinder",
-      "status": "open",
+      "status": "done",
       "description": "NC246A 14 FAIL* imply deeper qualification/subscript issues.",
       "deliverables": [
         "Add tests",
@@ -3091,7 +3132,9 @@
       ],
       "dependencies": [
         "M361"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC246A at 0 FAIL*. Covered by M346."
     },
     {
       "id": "M376",
@@ -3140,7 +3183,7 @@
       "title": "Fix NC209A additional nucleus cases",
       "severity": "P3",
       "subsystem": "Various",
-      "status": "open",
+      "status": "done",
       "description": "NC209A 6 FAIL* imply missing nucleus semantics.",
       "deliverables": [
         "Add tests",
@@ -3154,7 +3197,9 @@
       ],
       "dependencies": [
         "M364"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC209A at 0 FAIL*. Covered by M350."
     },
     {
       "id": "M379",
@@ -3287,7 +3332,7 @@
       "title": "Fix NC252A additional REDEFINES/RENAMES cases",
       "severity": "P3",
       "subsystem": "Data Semantics",
-      "status": "open",
+      "status": "done",
       "description": "NC252A 3 FAIL* imply missing REDEFINES semantics.",
       "deliverables": [
         "Add tests",
@@ -3301,7 +3346,9 @@
       ],
       "dependencies": [
         "M371"
-      ]
+      ],
+      "completed": "2026-03-31",
+      "resolution": "NC252A at 0 FAIL*. Covered by M357."
     },
     {
       "id": "M386",

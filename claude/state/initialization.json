@@ -1,57 +1,29 @@
 {
   "initialized": true,
-  "last_review_commit": "1cea680",
+  "last_review_commit": "fd90614",
   "ledger_path": "claude/state/modernization-ledger.json",
   "audit_date": "2026-03-31",
-  "ledger_version": 12,
-  "last_audit": "NIST FAIL* sweep: 78→34 (44 eliminated in 4 commits)",
+  "ledger_version": 4,
+  "last_audit": "NIST FAIL* sweep: 78 to 28 (50 eliminated in 6 commits). Baselines cleaned: 0 FAIL* in valid/.",
   "last_updated": "2026-03-31",
-  "next_item": "Continue NIST FAIL* reduction (34 remaining): ODO runtime (7), INSPECT single-pass (6), PERFORM VARYING (5), figurative collating (3+1), SEARCH ALL (3), misc (9)",
+  "next_item": "Continue NIST FAIL* reduction (28 remaining across 8 tests): ODO runtime (7), INSPECT single-pass (7), PERFORM VARYING (5), SEARCH ALL (3), OR delimiters (2), ALL-literal (2), EVALUATE grammar (1), NC108M (1)",
   "ledger_summary": {
     "total_items": 182,
-    "done": 19,
-    "open": 134,
-    "in_progress": 1,
-    "planned": 23,
-    "p0_critical": 4,
-    "p1_high": 67,
-    "p2_medium": 54,
-    "p3_low": 45,
-    "subsystems_audited": [
-      "Preprocessor",
-      "Grammar/Parser",
-      "Semantic Analysis",
-      "Bound Tree/Flow",
-      "IR/Lowering",
-      "CIL Emission/Runtime",
-      "Project Structure/Build"
-    ],
-    "series": {
-      "M001-M004": "done (god class elimination)",
-      "M005-M025": "open (cleanup, 21 items)",
-      "M100-M112": "planned (features, 13 items)",
-      "M200-M209": "planned (compliance initiative, 10 items)",
-      "M300-M399": "in-progress (NIST FAIL* sweep active — 78→34)",
-      "M400-M411": "12 complete (all REJECT gaps closed)",
-      "M412-M426": "open (OVERLENIENT grammar gaps, 15 items)",
-      "M427-M428": "complete (Batch 4)",
-      "M429-M432": "open (screen I/O runtime + multi-char currency, 4 items)",
-      "M433": "complete (Batch 4 — keyword shadowing mitigated)"
-    }
+    "done": 35,
+    "open": 118,
+    "in_progress": 5,
+    "planned": 23
   },
   "cobol85_audit": {
     "date": "2026-03-31",
-    "artifacts_path": "audit/cobol85/",
     "unit_tests": 999,
     "integration_tests": 334,
     "nist_nc_tests": 95,
-    "nist_nc_fail_star": 34,
-    "grammar_gaps_remaining": 24,
-    "grammar_gaps_reject": 0,
-    "grammar_gaps_overlenient": 15,
-    "grammar_gaps_semantic_only": 9,
+    "nist_nc_with_clean_baselines": 87,
+    "nist_nc_pending_fix": 8,
+    "nist_fail_star_remaining": 28,
+    "nist_fail_star_eliminated_this_session": 50,
     "bugs_cataloged": 21,
-    "bugs_fixed_this_session": 13,
-    "fail_star_eliminated_this_session": 44
+    "bugs_fixed_this_session": 15
   }
 }
