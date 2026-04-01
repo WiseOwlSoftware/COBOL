@@ -126,8 +126,11 @@ internal sealed class ControlFlowLowerer
             return block;
         }
 
-        // 1. Initialize: MOVE initial TO index
+        // 1. Initialize: MOVE initial TO index.
+        // Per COBOL spec (6.20.4): ALL identifiers (including AFTER levels)
+        // are set to their FROM values before the first UNTIL test.
         EmitVaryingMove(v.Initial, indexLoc, block);
+        EmitAfterReinitialization(v.Next, block);
 
         // 2. Loop structure
         var loopStart = method.CreateBlock("vary.start");
@@ -171,9 +174,12 @@ internal sealed class ControlFlowLowerer
             loopStart.Instructions.Add(new IrBranchIfFalse(condVal, loopIncr));
             loopStart.Instructions.Add(new IrJump(loopEnd));
 
-            // Increment: ADD step TO index
+            // Increment: ADD step TO index, then re-init all AFTER levels.
+            // Per COBOL spec (6.20.4): after incrementing the outer identifier,
+            // all AFTER identifiers are reset to their FROM values.
             method.Blocks.Add(loopIncr);
             EmitVaryingAdd(v.Step, indexLoc, loopIncr);
+            EmitAfterReinitialization(v.Next, loopIncr);
             loopIncr.Instructions.Add(new IrJump(loopBody));
         }
         else
@@ -204,9 +210,13 @@ internal sealed class ControlFlowLowerer
             // Jump to increment block (separate so EXIT PERFORM CYCLE can target it)
             bodyCurrent.Instructions.Add(new IrJump(loopIncr));
 
-            // Increment: ADD step TO index, then re-test
+            // Increment: ADD step TO index, then re-init all AFTER levels, then re-test.
+            // Per COBOL spec (6.20.4): after incrementing the outer identifier,
+            // all AFTER identifiers are reset to their FROM values before the
+            // outer UNTIL condition is tested again.
             method.Blocks.Add(loopIncr);
             EmitVaryingAdd(v.Step, indexLoc, loopIncr);
+            EmitAfterReinitialization(v.Next, loopIncr);
             loopIncr.Instructions.Add(new IrJump(loopStart));
         }
 
@@ -215,6 +225,27 @@ internal sealed class ControlFlowLowerer
 
         method.Blocks.Add(loopEnd);
         return loopEnd;
+    }
+
+    /// <summary>
+    /// Emit re-initialization of all AFTER-level identifiers to their FROM values.
+    /// Per COBOL spec 6.20.4: when an AFTER identifier's UNTIL condition is true,
+    /// the enclosing identifier is incremented and then ALL AFTER identifiers are
+    /// reset to their FROM values before the enclosing UNTIL is re-tested.
+    /// This ensures AFTER variables have their FROM value upon loop exit.
+    /// </summary>
+    private void EmitAfterReinitialization(BoundPerformVarying? afterLevel, IrBasicBlock block)
+    {
+        var current = afterLevel;
+        while (current != null)
+        {
+            var afterIndexLoc = current.IndexExpression != null
+                ? _ctx.Location.ResolveExpressionLocation(current.IndexExpression)
+                : _ctx.Location.ResolveLocation(current.Index);
+            if (afterIndexLoc != null)
+                EmitVaryingMove(current.Initial, afterIndexLoc, block);
+            current = current.Next;
+        }
     }
 
     public void EmitVaryingMove(BoundExpression source, IrLocation dest, IrBasicBlock block)

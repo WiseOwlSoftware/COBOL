@@ -169,17 +169,26 @@ public sealed class ConditionValue
     public decimal? NumericValue { get; }
     public string? StringValue { get; }
 
+    /// <summary>
+    /// True when this value was declared with ALL (e.g., VALUE ALL "BAC").
+    /// The StringValue holds the base pattern; at comparison time the pattern
+    /// must be repeated to fill the parent field length.
+    /// </summary>
+    public bool IsAllLiteral { get; }
+
     public bool IsNumeric => NumericValue.HasValue;
     public bool IsString => StringValue != null;
 
-    private ConditionValue(decimal? numeric, string? str)
+    private ConditionValue(decimal? numeric, string? str, bool isAllLiteral = false)
     {
         NumericValue = numeric;
         StringValue = str;
+        IsAllLiteral = isAllLiteral;
     }
 
     public static ConditionValue FromNumeric(decimal value) => new(value, null);
     public static ConditionValue FromString(string value) => new(null, value);
+    public static ConditionValue FromAllString(string value) => new(null, value, isAllLiteral: true);
 
     /// <summary>Convert from the legacy untyped value.</summary>
     public static ConditionValue FromObject(object value) => value switch

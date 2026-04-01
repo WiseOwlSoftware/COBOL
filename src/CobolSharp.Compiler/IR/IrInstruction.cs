@@ -1510,24 +1510,24 @@ public sealed class IrUnstringInto
 /// The emitter manages a shared pointer local, calls UnstringExtract per INTO,
 /// handles COUNT IN / DELIMITER IN write-back, and writes pointer/tallying back.
 /// </summary>
+/// <summary>A resolved UNSTRING delimiter: either a literal string or a field location, with ALL flag.</summary>
+public sealed record IrUnstringDelimiter(string? LiteralValue, IrLocation? Location, bool IsAll);
+
 public sealed class IrUnstringStatement : IrInstruction
 {
     public IrLocation Source { get; }
-    public string? LiteralDelimiter { get; }
-    public IrLocation? DelimiterLocation { get; }  // field-based delimiter
-    public bool DelimitedByAll { get; }
+    /// <summary>All OR-separated delimiters. Empty list means no delimiter phrase.</summary>
+    public IReadOnlyList<IrUnstringDelimiter> Delimiters { get; }
     public IReadOnlyList<IrUnstringInto> Intos { get; }
     public IrLocation? PointerLocation { get; }
     public IrLocation? TallyingLocation { get; }
 
-    public IrUnstringStatement(IrLocation source, string? literalDelimiter, bool delimitedByAll,
+    public IrUnstringStatement(IrLocation source, IReadOnlyList<IrUnstringDelimiter> delimiters,
         IReadOnlyList<IrUnstringInto> intos, IrLocation? pointerLocation, IrLocation? tallyingLocation,
-        IrValue overflowResult, IrLocation? delimiterLocation = null)
+        IrValue overflowResult)
     {
         Source = source;
-        LiteralDelimiter = literalDelimiter;
-        DelimiterLocation = delimiterLocation;
-        DelimitedByAll = delimitedByAll;
+        Delimiters = delimiters;
         Intos = intos;
         PointerLocation = pointerLocation;
         TallyingLocation = tallyingLocation;

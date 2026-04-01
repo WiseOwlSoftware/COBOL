@@ -1,0 +1,151 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC218A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ PIC X                PASS  UST-TEST-GF-1      .01
+ PIC X                PASS  UST-TEST-GF-1      .02
+ PIC X                PASS  UST-TEST-GF-1      .03
+ PIC X                PASS  UST-TEST-GF-1      .04
+ PIC X                PASS  UST-TEST-GF-1      .05
+ PIC X                PASS  UST-TEST-GF-1      .06
+ PIC X JUST           PASS  UST-TEST-GF-2      .01
+ PIC X JUST           PASS  UST-TEST-GF-2      .02
+ PIC X JUST           PASS  UST-TEST-GF-2      .03
+ PIC X JUST           PASS  UST-TEST-GF-2      .04
+ PIC X JUST           PASS  UST-TEST-GF-2      .05
+ PIC X JUST           PASS  UST-TEST-GF-2      .06
+ PIC XXX              PASS  UST-TEST-GF-3      .01
+ PIC XXX              PASS  UST-TEST-GF-3      .02
+ PIC XXX              PASS  UST-TEST-GF-3      .03
+ PIC XXX              PASS  UST-TEST-GF-3      .04
+ PIC XXX              PASS  UST-TEST-GF-3      .05
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .01
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .02
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .03
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .04
+ PIC XXX JUST         PASS  UST-TEST-GF-4      .05
+ PIC 9                PASS  UST-TEST-GF-5      .01
+ PIC 9                PASS  UST-TEST-GF-5      .02
+ PIC 9                PASS  UST-TEST-GF-5      .03
+ PIC 9                PASS  UST-TEST-GF-5      .04
+ PIC 9                PASS  UST-TEST-GF-5      .05
+ PIC S9               PASS  UST-TEST-GF-6      .01
+ PIC S9               PASS  UST-TEST-GF-6      .02
+ PIC S9               PASS  UST-TEST-GF-6      .03
+ PIC S9               PASS  UST-TEST-GF-6      .04
+ PIC S9               PASS  UST-TEST-GF-6      .05
+ PIC 99               PASS  UST-TEST-GF-7      .01
+ PIC 99               PASS  UST-TEST-GF-7      .02
+ PIC 99               PASS  UST-TEST-GF-7      .03
+ PIC 99               PASS  UST-TEST-GF-7      .04
+ PIC 99               PASS  UST-TEST-GF-7      .05
+ PIC S99              PASS  UST-TEST-GF-8      .01
+ PIC S99              PASS  UST-TEST-GF-8      .02
+ PIC S99              PASS  UST-TEST-GF-8      .03
+ PIC S99              PASS  UST-TEST-GF-8      .04
+ PIC S99              PASS  UST-TEST-GF-8      .05
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .01
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .02
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .03
+ PIC S9 TRAIL SEP     PASS  UST-TEST-GF-9      .04
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .01
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .02
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .03
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .04
+ PIC S9 LEAD SEP      PASS  UST-TEST-GF-10     .05
+ GROUP BOTTOM UP      PASS  UST-TEST-GF-11
+ OVERFLOW TEST        PASS  UST-TEST-GF-12     .01
+ OVERFLOW TEST        PASS  UST-TEST-GF-12     .02
+ OVERFLOW EXPECTED    PASS  UST-TEST-GF-13     .01
+ OVERFLOW EXPECTED    PASS  UST-TEST-GF-13     .02
+ INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .01
+ INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .02
+ INSTANT OVERFLOW     PASS  UST-TEST-GF-14     .03
+ POINTER NOT = 1      PASS  UST-TEST-GF-15     .01
+ POINTER NOT = 1      PASS  UST-TEST-GF-15     .02
+ POINTER NOT = 1      PASS  UST-TEST-GF-15     .03
+ TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .01
+ TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .02
+ TALLY 3 FIELDS TEST  PASS  UST-TEST-GF-16     .03
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .01
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .02
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .03
+ QUAL DEL BY POINT    PASS  UST-TEST-GF-17     .04
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .01
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .02
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .03
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .04
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .05
+ QUAL DEL BY TALLY    PASS  UST-TEST-GF-18     .06
+ QUALIFIED ID1        PASS  UST-TEST-GF-19     .01
+ QUALIFIED ID1        PASS  UST-TEST-GF-19     .02
+ QUALIFIED ID1        PASS  UST-TEST-GF-19     .03
+ MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .01
+ MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .02
+ MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .03
+ MULT RECEIVE AREAS   PASS  UST-TEST-GF-20     .04
+ TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .01
+ TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .02
+ TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .03
+ TRUNCATION CHECKS    PASS  UST-TEST-GF-21     .04
+ PIC X                PASS  UST-TEST-GF-22     .01
+ PIC X                PASS  UST-TEST-GF-22     .02
+ PIC X                PASS  UST-TEST-GF-22     .03
+ PIC X                PASS  UST-TEST-GF-22     .04
+ PIC X                PASS  UST-TEST-GF-22     .05
+ PIC X                PASS  UST-TEST-GF-22     .06
+ OVERFLOW TEST        PASS  UST-TEST-GF-23     .01
+ OVERFLOW TEST        PASS  UST-TEST-GF-23     .02
+ PIC X                PASS  UST-TEST-GF-24     .01
+ PIC X                PASS  UST-TEST-GF-24     .02
+ PIC X                PASS  UST-TEST-GF-24     .03
+ PIC X                PASS  UST-TEST-GF-24     .04
+ PIC X                PASS  UST-TEST-GF-24     .05
+ PIC X                PASS  UST-TEST-GF-24     .06
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .01
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .02
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .01
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .02
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .03
+ OVERFLOW TEST        PASS  UST-TEST-GF-25     .04
+ PIC X                PASS  UST-TEST-GF-27     .01
+ PIC X                PASS  UST-TEST-GF-27     .02
+ PIC X                PASS  UST-TEST-GF-27     .03
+ PIC X                PASS  UST-TEST-GF-27     .04
+ OVERFLOW TEST        PASS  UST-TEST-GF-28     .01
+ PIC X                PASS  UST-TEST-GF-29-1   .01
+ PIC X                PASS  UST-TEST-GF-29-1   .02
+ PIC X                PASS  UST-TEST-GF-29-1   .03
+ PIC X                PASS  UST-TEST-GF-29-1   .04
+ PIC X                PASS  UST-TEST-GF-29-1   .05
+ PIC X                PASS  UST-TEST-GF-29-1   .06
+ PIC X                PASS  UST-TEST-GF-29-1   .07
+ PIC X                PASS  UST-TEST-GF-29-1   .08
+ OVERFLOW TEST        PASS  UST-TEST-GF-30     .01
+ OVERFLOW TEST        PASS  UST-TEST-GF-30     .02
+ OVERFLOW TEST        PASS  UST-TEST-GF-30     .03
+ OVERFLOW TEST        PASS  UST-TEST-GF-30     .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC218A
+
+                                                    125 OF 125  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

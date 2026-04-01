@@ -400,7 +400,7 @@ public static class StorageHelpers
         byte[] srcArea, int srcOffset, int srcLength,
         byte[] destArea, int destOffset, int destLength,
         PicDescriptor destPic,
-        string? delimiter, bool delimitedByAll,
+        string[]? delimiters, bool[]? delimiterAllFlags,
         byte[]? delimOutArea, int delimOutOffset, int delimOutLength,
         ref int pointer,
         ref bool overflow)
@@ -421,7 +421,7 @@ public static class StorageHelpers
         int delimLen = 0;
         string matchedDelim = "";
 
-        if (delimiter == null)
+        if (delimiters == null || delimiters.Length == 0)
         {
             // No delimiter — take field-length characters (not entire remaining source)
             // Per ISO §14.9.44: characters are moved into the receiving field
@@ -430,38 +430,58 @@ public static class StorageHelpers
         }
         else
         {
-            byte[] delimBytes = Encoding.ASCII.GetBytes(delimiter);
-            delimLen = delimBytes.Length;
+            // Scan for the earliest-matching delimiter across all OR-separated delimiters.
+            // Per ISO §14.9.44: "The sending field is examined, beginning at the
+            // current character position, for the occurrence of any one of the delimiters."
+            // If two delimiters match at the same position, the first one listed wins.
+            int bestFound = -1;
+            int bestDelimIdx = -1;
+            int bestDelimByteLen = 0;
 
-            // Scan for delimiter starting from current position
-            int found = -1;
-            for (int i = pos; i <= srcLength - delimLen; i++)
+            for (int d = 0; d < delimiters.Length; d++)
             {
-                bool match = true;
-                for (int k = 0; k < delimLen; k++)
+                byte[] delimBytes = Encoding.ASCII.GetBytes(delimiters[d]);
+                int dLen = delimBytes.Length;
+                if (dLen == 0) continue;
+
+                for (int i = pos; i <= srcLength - dLen; i++)
                 {
-                    if (srcArea[srcOffset + i + k] != delimBytes[k])
+                    bool match = true;
+                    for (int k = 0; k < dLen; k++)
                     {
-                        match = false;
-                        break;
+                        if (srcArea[srcOffset + i + k] != delimBytes[k])
+                        {
+                            match = false;
+                            break;
+                        }
                     }
-                }
-                if (match)
-                {
-                    found = i;
-                    break;
+                    if (match)
+                    {
+                        // Pick earliest position; on tie, first delimiter listed wins
+                        if (bestFound < 0 || i < bestFound)
+                        {
+                            bestFound = i;
+                            bestDelimIdx = d;
+                            bestDelimByteLen = dLen;
+                        }
+                        break; // no need to scan further for this delimiter
+                    }
                 }
             }
 
-            if (found >= 0)
+            if (bestFound >= 0)
             {
-                extractLen = found - pos;
-                matchedDelim = delimiter;
+                extractLen = bestFound - pos;
+                matchedDelim = delimiters[bestDelimIdx];
+                delimLen = bestDelimByteLen;
+                bool isAll = delimiterAllFlags != null && bestDelimIdx < delimiterAllFlags.Length
+                    && delimiterAllFlags[bestDelimIdx];
 
-                // For ALL: skip consecutive occurrences of the delimiter
-                if (delimitedByAll)
+                // For ALL: skip consecutive occurrences of the matched delimiter
+                if (isAll)
                 {
-                    int skipPos = found + delimLen;
+                    byte[] delimBytes = Encoding.ASCII.GetBytes(matchedDelim);
+                    int skipPos = bestFound + delimLen;
                     while (skipPos + delimLen <= srcLength)
                     {
                         bool match = true;
@@ -476,7 +496,7 @@ public static class StorageHelpers
                         if (!match) break;
                         skipPos += delimLen;
                     }
-                    delimLen = skipPos - found; // total delimiter bytes consumed
+                    delimLen = skipPos - bestFound; // total delimiter bytes consumed
                 }
             }
             else

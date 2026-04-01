@@ -592,7 +592,22 @@ internal sealed class ConditionLowerer
                 }
                 else if (from.IsString)
                 {
-                    if (parentCat.IsNumericLike() && decimal.TryParse(from.StringValue!,
+                    var compareStr = from.StringValue!;
+
+                    // ALL literal: repeat the pattern to fill the parent field length
+                    if (from.IsAllLiteral && compareStr.Length > 0)
+                    {
+                        int parentLen = parentLoc.GetPic().StorageLength;
+                        if (compareStr.Length < parentLen)
+                        {
+                            var sb = new System.Text.StringBuilder(parentLen);
+                            while (sb.Length < parentLen)
+                                sb.Append(compareStr);
+                            compareStr = sb.ToString(0, parentLen);
+                        }
+                    }
+
+                    if (parentCat.IsNumericLike() && decimal.TryParse(compareStr,
                         System.Globalization.CultureInfo.InvariantCulture, out var numVal))
                     {
                         block.Instructions.Add(new IrPicCompareLiteral(
@@ -602,7 +617,7 @@ internal sealed class ConditionLowerer
                     else
                     {
                         block.Instructions.Add(new IrStringCompareLiteral(
-                            parentLoc, from.StringValue!, matchVal,
+                            parentLoc, compareStr, matchVal,
                             (int)BoundBinaryOperatorKind.Equal));
                     }
                 }

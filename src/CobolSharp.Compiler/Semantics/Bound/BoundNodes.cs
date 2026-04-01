@@ -1393,11 +1393,14 @@ public sealed class BoundUnstringInto
 /// <summary>
 /// UNSTRING statement: split a source string into multiple destination fields.
 /// </summary>
+/// <summary>A single delimiter in an UNSTRING DELIMITED BY phrase (possibly OR-separated).</summary>
+public sealed record BoundUnstringDelimiter(BoundExpression Expr, bool IsAll);
+
 public sealed class BoundUnstringStatement : BoundStatement
 {
     public BoundExpression Source { get; }
-    public BoundExpression? Delimiter { get; }
-    public bool DelimitedByAll { get; }
+    /// <summary>All OR-separated delimiters from the DELIMITED BY phrase.</summary>
+    public IReadOnlyList<BoundUnstringDelimiter> Delimiters { get; }
     public IReadOnlyList<BoundUnstringInto> Intos { get; }
     public BoundExpression? Pointer { get; }
     public BoundExpression? Tallying { get; }
@@ -1405,14 +1408,13 @@ public sealed class BoundUnstringStatement : BoundStatement
     public IReadOnlyList<BoundStatement> NotOnOverflow { get; }
 
     public BoundUnstringStatement(
-        BoundExpression source, BoundExpression? delimiter, bool delimitedByAll,
+        BoundExpression source, IReadOnlyList<BoundUnstringDelimiter> delimiters,
         IReadOnlyList<BoundUnstringInto> intos, BoundExpression? pointer,
         BoundExpression? tallying,
         IReadOnlyList<BoundStatement> onOverflow, IReadOnlyList<BoundStatement> notOnOverflow)
     {
         Source = source;
-        Delimiter = delimiter;
-        DelimitedByAll = delimitedByAll;
+        Delimiters = delimiters;
         Intos = intos;
         Pointer = pointer;
         Tallying = tallying;

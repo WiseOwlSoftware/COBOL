@@ -152,29 +152,34 @@ internal sealed class StringLowerer
         var srcLoc = _ctx.Location.ResolveExpressionLocation(unstr.Source);
         if (srcLoc == null) return block;
 
-        // Resolve delimiter — literal, figurative constant, or field reference
-        string? literalDelimiter = null;
-        if (unstr.Delimiter is BoundLiteralExpression delimLit && delimLit.Value is string ds)
-            literalDelimiter = ds;
-        else if (unstr.Delimiter is BoundFigurativeExpression fig)
+        // Resolve all OR-separated delimiters
+        var irDelimiters = new List<IrUnstringDelimiter>();
+        foreach (var delim in unstr.Delimiters)
         {
-            literalDelimiter = fig.FigurativeKind switch
-            {
-                Runtime.FigurativeKind.Zero => "0",
-                Runtime.FigurativeKind.Space => " ",
-                Runtime.FigurativeKind.Quote => "\"",
-                Runtime.FigurativeKind.HighValue => "\xFF",
-                Runtime.FigurativeKind.LowValue => "\x00",
-                _ => fig.AllLiteral ?? "0"
-            };
-        }
-        else if (unstr.Delimiter is BoundLiteralExpression numDelim && numDelim.Value is decimal dv)
-            literalDelimiter = dv.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            string? litVal = null;
+            IrLocation? delimLoc = null;
 
-        // Resolve identifier-based delimiter (data reference)
-        IrLocation? delimiterLoc = null;
-        if (literalDelimiter == null && unstr.Delimiter is BoundIdentifierExpression delimId)
-            delimiterLoc = _ctx.Location.ResolveExpressionLocation(delimId);
+            if (delim.Expr is BoundLiteralExpression delimLit && delimLit.Value is string ds)
+                litVal = ds;
+            else if (delim.Expr is BoundFigurativeExpression fig)
+            {
+                litVal = fig.FigurativeKind switch
+                {
+                    Runtime.FigurativeKind.Zero => "0",
+                    Runtime.FigurativeKind.Space => " ",
+                    Runtime.FigurativeKind.Quote => "\"",
+                    Runtime.FigurativeKind.HighValue => "\xFF",
+                    Runtime.FigurativeKind.LowValue => "\x00",
+                    _ => fig.AllLiteral ?? "0"
+                };
+            }
+            else if (delim.Expr is BoundLiteralExpression numDelim && numDelim.Value is decimal dv)
+                litVal = dv.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            else if (delim.Expr is BoundIdentifierExpression delimIdExpr)
+                delimLoc = _ctx.Location.ResolveExpressionLocation(delimIdExpr);
+
+            irDelimiters.Add(new IrUnstringDelimiter(litVal, delimLoc, delim.IsAll));
+        }
 
         // Pointer: resolve if present
         IrLocation? ptrLoc = null;
@@ -206,8 +211,8 @@ internal sealed class StringLowerer
 
         // Emit single IrUnstringStatement
         var overflowResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-        block.Instructions.Add(new IrUnstringStatement(srcLoc, literalDelimiter, unstr.DelimitedByAll,
-            intos, ptrLoc, tallyLoc, overflowResult, delimiterLoc));
+        block.Instructions.Add(new IrUnstringStatement(srcLoc, irDelimiters,
+            intos, ptrLoc, tallyLoc, overflowResult));
 
         // ON OVERFLOW / NOT ON OVERFLOW branching (same pattern as STRING)
         if (unstr.OnOverflow.Count > 0 || unstr.NotOnOverflow.Count > 0)

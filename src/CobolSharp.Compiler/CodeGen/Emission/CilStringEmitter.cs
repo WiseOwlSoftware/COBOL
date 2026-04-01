@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
@@ -190,7 +191,7 @@ internal sealed class CilStringEmitter
                 new[] { typeof(byte[]), typeof(int), typeof(int),
                         typeof(byte[]), typeof(int), typeof(int),
                         typeof(Runtime.PicDescriptor),
-                        typeof(string), typeof(bool),
+                        typeof(string[]), typeof(bool[]),
                         typeof(byte[]), typeof(int), typeof(int),
                         typeof(int).MakeByRefType(), typeof(bool).MakeByRefType() })!);
 
@@ -222,6 +223,63 @@ internal sealed class CilStringEmitter
             il.Append(endCheck);
         }
 
+        // Build delimiter arrays (string[]? and bool[]?) — shared across all INTO iterations.
+        // For field-based delimiters, we must read the field value at runtime each time
+        // (since the field could change), but for literal-only delimiters we build once.
+        var hasFieldDelimiters = unstrStmt.Delimiters.Any(d => d.Location != null);
+        var delimArrLocal = new VariableDefinition(_ctx.Module.ImportReference(typeof(string[])));
+        var delimFlagsLocal = new VariableDefinition(_ctx.Module.ImportReference(typeof(bool[])));
+        _ctx.CurrentMethodDef.Body.Variables.Add(delimArrLocal);
+        _ctx.CurrentMethodDef.Body.Variables.Add(delimFlagsLocal);
+
+        if (unstrStmt.Delimiters.Count > 0)
+        {
+            // Create string[] for delimiters
+            il.Append(il.Create(OpCodes.Ldc_I4, unstrStmt.Delimiters.Count));
+            il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.String));
+            for (int di = 0; di < unstrStmt.Delimiters.Count; di++)
+            {
+                var d = unstrStmt.Delimiters[di];
+                il.Append(il.Create(OpCodes.Dup));
+                il.Append(il.Create(OpCodes.Ldc_I4, di));
+                if (d.LiteralValue != null)
+                    il.Append(il.Create(OpCodes.Ldstr, d.LiteralValue));
+                else if (d.Location != null)
+                {
+                    _ctx.Location.EmitLocationArgs(il, d.Location);
+                    il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                        typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                            new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                }
+                else
+                    il.Append(il.Create(OpCodes.Ldstr, ""));
+                il.Append(il.Create(OpCodes.Stelem_Ref));
+            }
+            il.Append(il.Create(OpCodes.Stloc, delimArrLocal));
+
+            // Create bool[] for ALL flags
+            il.Append(il.Create(OpCodes.Ldc_I4, unstrStmt.Delimiters.Count));
+            il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Boolean));
+            for (int di = 0; di < unstrStmt.Delimiters.Count; di++)
+            {
+                if (unstrStmt.Delimiters[di].IsAll)
+                {
+                    il.Append(il.Create(OpCodes.Dup));
+                    il.Append(il.Create(OpCodes.Ldc_I4, di));
+                    il.Append(il.Create(OpCodes.Ldc_I4_1));
+                    il.Append(il.Create(OpCodes.Stelem_I1));
+                }
+            }
+            il.Append(il.Create(OpCodes.Stloc, delimFlagsLocal));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldnull));
+            il.Append(il.Create(OpCodes.Stloc, delimArrLocal));
+            il.Append(il.Create(OpCodes.Ldnull));
+            il.Append(il.Create(OpCodes.Stloc, delimFlagsLocal));
+        }
+
         // Process each INTO
         foreach (var into in unstrStmt.Intos)
         {
@@ -231,22 +289,9 @@ internal sealed class CilStringEmitter
             // Push dest args (area, offset, length, PicDescriptor)
             _ctx.Location.EmitLocationArgsWithPic(il, into.Target);
 
-            // Push delimiter (string? or null)
-            if (unstrStmt.LiteralDelimiter != null)
-                il.Append(il.Create(OpCodes.Ldstr, unstrStmt.LiteralDelimiter));
-            else if (unstrStmt.DelimiterLocation != null)
-            {
-                // Field-based delimiter: read field as string at runtime
-                _ctx.Location.EmitLocationArgs(il, unstrStmt.DelimiterLocation);
-                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                    typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
-                        new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
-            }
-            else
-                il.Append(il.Create(OpCodes.Ldnull));
-
-            // Push delimitedByAll flag
-            il.Append(il.Create(unstrStmt.DelimitedByAll ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+            // Push delimiter arrays
+            il.Append(il.Create(OpCodes.Ldloc, delimArrLocal));
+            il.Append(il.Create(OpCodes.Ldloc, delimFlagsLocal));
 
             // Push DELIMITER IN args (area, offset, length) or nulls
             if (into.DelimiterIn != null)

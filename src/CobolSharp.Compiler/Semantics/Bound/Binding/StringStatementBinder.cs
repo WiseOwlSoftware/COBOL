@@ -460,9 +460,9 @@ internal sealed class StringStatementBinder
                 delimiterItems.Add((itemExpr, itemAll));
             }
         }
-        // For backwards compatibility, expose first delimiter as primary
-        BoundExpression? delimiter = delimiterItems.Count > 0 ? delimiterItems[0].Expr : null;
-        bool delimitedByAll = delimiterItems.Count > 0 && delimiterItems[0].IsAll;
+        var delimiters = new List<BoundUnstringDelimiter>();
+        foreach (var d in delimiterItems)
+            delimiters.Add(new BoundUnstringDelimiter(d.Expr, d.IsAll));
 
         // INTO phrases (one or more)
         var intos = new List<BoundUnstringInto>();
@@ -536,7 +536,7 @@ internal sealed class StringStatementBinder
             }
         }
 
-        var unstringStmt = new BoundUnstringStatement(sourceExpr, delimiter, delimitedByAll,
+        var unstringStmt = new BoundUnstringStatement(sourceExpr, delimiters,
             intos, pointer, tallying, onOverflow, notOnOverflow);
         ValidateUnstringStatement(unstringStmt, ctx.Start?.Line ?? 0);
         return unstringStmt;

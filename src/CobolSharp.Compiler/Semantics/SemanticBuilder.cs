@@ -991,15 +991,15 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             var rangeCtx = item.valueClauseRange();
                             if (rangeCtx != null)
                             {
-                                var fromVal = ConditionValue.FromObject(ParseConditionClauseOperand(rangeCtx.valueClauseOperand(0)));
-                                var toVal = ConditionValue.FromObject(ParseConditionClauseOperand(rangeCtx.valueClauseOperand(1)));
+                                var fromVal = ParseConditionClauseOperand(rangeCtx.valueClauseOperand(0));
+                                var toVal = ParseConditionClauseOperand(rangeCtx.valueClauseOperand(1));
                                 condSym.AddRange(fromVal, toVal);
                             }
                             else
                             {
                                 foreach (var vco in item.valueClauseOperand())
                                 {
-                                    var fromVal = ConditionValue.FromObject(ParseConditionClauseOperand(vco));
+                                    var fromVal = ParseConditionClauseOperand(vco);
                                     condSym.AddRange(fromVal, null);
                                 }
                             }
@@ -1495,7 +1495,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return (numLit, negated);
     }
 
-    private static object ParseConditionClauseOperand(Generated.CobolParserCore.ValueClauseOperandContext vo)
+    private static ConditionValue ParseConditionClauseOperand(Generated.CobolParserCore.ValueClauseOperandContext vo)
     {
         var nonNum = vo.nonNumericLiteral();
         if (nonNum?.STRINGLIT() is { } slit)
@@ -1504,22 +1504,34 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (text.Length >= 2)
             {
                 char q = text[0];
-                return text[1..^1].Replace(new string(q, 2), new string(q, 1));
+                return ConditionValue.FromString(text[1..^1].Replace(new string(q, 2), new string(q, 1)));
             }
-            return text;
+            return ConditionValue.FromString(text);
         }
         if (nonNum?.figurativeConstant() is { } fig)
         {
+            // ALL STRINGLIT: the pattern string must be repeated to fill parent at comparison time
+            if (fig.ALL() != null && fig.STRINGLIT() is { } allSlit)
+            {
+                var allText = allSlit.GetText();
+                if (allText.Length >= 2)
+                {
+                    char q = allText[0];
+                    return ConditionValue.FromAllString(allText[1..^1].Replace(new string(q, 2), new string(q, 1)));
+                }
+                return ConditionValue.FromAllString(allText);
+            }
+
             var figText = fig.GetText().ToUpperInvariant();
             if (figText.StartsWith("ALL")) figText = figText[3..];
             return figText switch
             {
-                "ZERO" or "ZEROS" or "ZEROES" => (object)0m,
-                "SPACE" or "SPACES" => " ",
-                "QUOTE" or "QUOTES" => "\"",
-                "HIGH-VALUE" or "HIGH-VALUES" => "\xFF",
-                "LOW-VALUE" or "LOW-VALUES" => "\x00",
-                _ => nonNum.GetText()
+                "ZERO" or "ZEROS" or "ZEROES" => ConditionValue.FromNumeric(0m),
+                "SPACE" or "SPACES" => ConditionValue.FromString(" "),
+                "QUOTE" or "QUOTES" => ConditionValue.FromString("\""),
+                "HIGH-VALUE" or "HIGH-VALUES" => ConditionValue.FromString("\xFF"),
+                "LOW-VALUE" or "LOW-VALUES" => ConditionValue.FromString("\x00"),
+                _ => ConditionValue.FromString(nonNum.GetText())
             };
         }
 
@@ -1531,10 +1543,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (decimal.TryParse(text,
                 System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowDecimalPoint,
                 System.Globalization.CultureInfo.InvariantCulture, out var d))
-                return d;
-            return text;
+                return ConditionValue.FromNumeric(d);
+            return ConditionValue.FromString(text);
         }
-        return vo.GetText();
+        return ConditionValue.FromString(vo.GetText());
     }
 
     /// <summary>
