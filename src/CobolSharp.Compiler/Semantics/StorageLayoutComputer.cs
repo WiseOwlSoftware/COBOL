@@ -235,8 +235,12 @@ public static class StorageLayoutComputer
 
         // SYNCHRONIZED (§13.18.55): align to natural boundary.
         // Slack bytes are inserted before the item to reach the alignment boundary.
-        // 2-byte items → half-word (2), 4-byte items → word (4), 8-byte items → doubleword (8).
-        if (item.IsSynchronized && elementSize >= 2)
+        // Only meaningful for binary/computational items (COMP, COMP-1, COMP-2, COMP-3, COMP-5).
+        // DISPLAY items have no natural alignment requirement — SYNC is a no-op.
+        // Alignment is relative to the start of the enclosing 01-level record to ensure
+        // structurally identical records get identical layouts regardless of absolute offset.
+        if (item.IsSynchronized && elementSize >= 2 &&
+            item.Usage is not UsageKind.Display)
         {
             int alignment = elementSize switch
             {
