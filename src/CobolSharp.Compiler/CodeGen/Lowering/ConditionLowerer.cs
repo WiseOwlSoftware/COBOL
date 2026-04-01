@@ -379,8 +379,86 @@ internal sealed class ConditionLowerer
             return;
         }
 
-        string figStr = MakeFigurativeString(fk, loc.FieldWidth, fig.AllLiteral);
-        block.Instructions.Add(new IrStringCompareLiteral(loc.Location!, figStr, result, op));
+        if (_ctx.Semantic.ProgramCollatingSequence is { } seq)
+        {
+            // Under a custom collating sequence, LOW-VALUE and HIGH-VALUE must be
+            // remapped to the characters that hold the minimum/maximum weight,
+            // and all figurative comparisons must use sequence-aware comparison.
+            string figStr = MakeFigurativeStringWithSequence(fk, loc.FieldWidth, fig.AllLiteral, seq);
+            block.Instructions.Add(new IrStringCompareLiteralWithSequence(loc.Location!, figStr, seq, result, op));
+            return;
+        }
+
+        string figStrNative = MakeFigurativeString(fk, loc.FieldWidth, fig.AllLiteral);
+        block.Instructions.Add(new IrStringCompareLiteral(loc.Location!, figStrNative, result, op));
+    }
+
+    /// <summary>
+    /// Creates a figurative string with LOW-VALUE/HIGH-VALUE remapped to the characters
+    /// that have the minimum/maximum weight in the custom collating sequence.
+    /// </summary>
+    internal static string MakeFigurativeStringWithSequence(FigurativeKind kind, int width,
+        string? allLiteral, byte[] collatingSequence)
+    {
+        char fillChar = kind switch
+        {
+            FigurativeKind.Space => ' ',
+            FigurativeKind.Zero => '0',
+            FigurativeKind.Quote => '"',
+            FigurativeKind.LowValue => FindCharWithMinWeight(collatingSequence),
+            FigurativeKind.HighValue => FindCharWithMaxWeight(collatingSequence),
+            _ => ' '
+        };
+
+        if (allLiteral != null)
+        {
+            if (width <= 0 || allLiteral.Length == 0) return allLiteral;
+            var sb = new System.Text.StringBuilder(width);
+            while (sb.Length < width) sb.Append(allLiteral);
+            return sb.ToString(0, width);
+        }
+
+        return width > 0 ? new string(fillChar, width) : fillChar.ToString();
+    }
+
+    /// <summary>
+    /// Finds the character whose ordinal has the lowest weight in the collating sequence.
+    /// When multiple characters share the same minimum weight, returns the one with the
+    /// lowest ordinal (matching COBOL semantics for LOW-VALUE).
+    /// </summary>
+    private static char FindCharWithMinWeight(byte[] collatingSequence)
+    {
+        int minWeight = collatingSequence[0];
+        int minOrdinal = 0;
+        for (int i = 1; i < 256 && i < collatingSequence.Length; i++)
+        {
+            if (collatingSequence[i] < minWeight)
+            {
+                minWeight = collatingSequence[i];
+                minOrdinal = i;
+            }
+        }
+        return (char)minOrdinal;
+    }
+
+    /// <summary>
+    /// Finds the character whose ordinal has the highest weight in the collating sequence.
+    /// When multiple characters share the same maximum weight, returns the one with the
+    /// highest ordinal (matching COBOL semantics for HIGH-VALUE).
+    /// </summary>
+    private static char FindCharWithMaxWeight(byte[] collatingSequence)
+    {
+        int maxWeight = collatingSequence[0];
+        int maxOrdinal = 0;
+        for (int i = 1; i < 256 && i < collatingSequence.Length; i++)
+        {
+            if (collatingSequence[i] > maxWeight)
+            {
+                maxWeight = collatingSequence[i];
+                maxOrdinal = i;
+            }
+        }
+        return (char)maxOrdinal;
     }
 
     internal static bool EvaluateComparisonResult(int sign, BoundBinaryOperatorKind op)

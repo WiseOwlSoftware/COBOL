@@ -15,23 +15,19 @@ TEST RESULT OF NC214M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  ***********************************************************************************************************************
  ACCEPT DATE                ACC-TEST-F2-1                 CHECK VISUALLY
 
-                                     COMPUTED=  000260328.000000000
-                                     CORRECT = DATE YYMMDD FORMAT    VI-72 6.5.4 GR7
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-72 6.5.4 GR7
 
  ACCEPT DAY                 ACC-TEST-F2-2                 CHECK VISUALLY
 
-                                     COMPUTED=  000026087.000000000
-                                     CORRECT = DAY YYDDD FORMAT      VI-72 6.5.4 GR8
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-72 6.5.4 GR8
 
  ACCEPT TIME                ACC-TEST-F2-3                 CHECK VISUALLY
 
-                                     COMPUTED=  020043583.000000000
-                                     CORRECT = HHMMSSFF FORMAT       VI-72 6.5.4 GR9
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-72 6.5.4 GR9
 
  ACCEPT DAY-OF-WEEK         ACC-TEST-F2-4                 CHECK VISUALLY
 
-                                     COMPUTED=  000000006.000000000
-                                     CORRECT = SINGLE DIGIT INTEGER  VI-72 6.5.4 GR10
+*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 VI-72 6.5.4 GR10
 
  ***********************************************************************************************************************
 

@@ -13,25 +13,13 @@ TEST RESULT OF NC215A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  TESTED               FAIL
 
  ***********************************************************************************************************************
- A = LOW-VALUE        FAIL* SEQ-TEST-GF-1
-
-                                     COMPUTED= A NOT = LOW-VALUE
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
+ A = LOW-VALUE        PASS  SEQ-TEST-GF-1
  H I J B SEQUENCE     PASS  SEQ-TEST-GF-2
  I J K L M N EQUAL    PASS  SEQ-TEST-GF-3
  O > THAN N           PASS  SEQ-TEST-GF-4
  A < THAN ZERO        PASS  SEQ-TEST-GF-5
- NINE < THAN SPACE    FAIL* SEQ-TEST-GF-6
-
-                                     COMPUTED= 9 FOUND > THAN SPACE
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
- NINE < THAN QUOTE    FAIL* SEQ-TEST-GF-7
-
-                                     COMPUTED= NINE FOUND >  QUOTE
-                                     CORRECT =                       VI-15 4.5.4 GR4(D)
-
+ NINE < THAN SPACE    PASS  SEQ-TEST-GF-6
+ NINE < THAN QUOTE    PASS  SEQ-TEST-GF-7
  ***********************************************************************************************************************
 
 
@@ -45,8 +33,8 @@ TEST RESULT OF NC215A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC215A
 
-                                                    004 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    003 TEST(S) FAILED
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

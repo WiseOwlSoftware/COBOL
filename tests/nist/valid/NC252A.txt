@@ -41,11 +41,7 @@ TEST RESULT OF NC252A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  RENAMES              PASS  RENAM-TEST-7
  QUALIFIED RENAMES    PASS  RENAM-TEST-8
  QUALIFIED RENAMES    PASS  RENAM-TEST-9
- QUALIFIED RENAMES    FAIL* RENAM-TEST-10
-
-                                     COMPUTED= RENAME-6
-                                     CORRECT = IOWAOREGONFLORIDA
-
+ QUALIFIED RENAMES    PASS  RENAM-TEST-10
  RENAMES A TABLE      PASS  RENAM-TEST-11
  RENAMED DATA ---
    GROUP COMPARISON   PASS  RENAM-TEST-12
@@ -118,8 +114,8 @@ TEST RESULT OF NC252A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC252A
 
-                                                    074 OF 075  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    001 TEST(S) FAILED
+                                                    075 OF 075  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

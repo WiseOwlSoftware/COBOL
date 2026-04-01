@@ -435,6 +435,20 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (text.Length >= 3) // at least "X" (quotes + char)
                 return (byte)text[1];
         }
+        // Figurative constant in non-numeric literal
+        if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
+        {
+            var figText = fig.GetText().ToUpperInvariant();
+            return figText switch
+            {
+                "HIGH-VALUE" or "HIGH-VALUES" => 0xFF,
+                "LOW-VALUE" or "LOW-VALUES" => 0x00,
+                "SPACE" or "SPACES" => 0x20,
+                "ZERO" or "ZEROS" or "ZEROES" => 0x30,
+                "QUOTE" or "QUOTES" => 0x22,
+                _ => -1
+            };
+        }
         // Numeric literal (includes integers)
         if (lit.numericLiteral() is { } numLit)
         {
@@ -576,12 +590,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             // Primary was a literal, so all cobolWords are ALSO entries
                             for (int wi = 0; wi < words.Length; wi++)
                             {
-                                var txt = words[wi].GetText();
-                                if (txt.Length == 1)
-                                {
-                                    int wval = (byte)txt[0];
-                                    if (wval < 256) sequence[wval] = nextWeight;
-                                }
+                                int wval = ResolveAlphabetWordOrdinal(words[wi].GetText());
+                                if (wval >= 0 && wval < 256) sequence[wval] = nextWeight;
                             }
                         }
                         else
@@ -589,12 +599,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                             // Primary was a cobolWord (words[0]), ALSO words are words[1..]
                             for (int wi = 1; wi < words.Length; wi++)
                             {
-                                var txt = words[wi].GetText();
-                                if (txt.Length == 1)
-                                {
-                                    int wval = (byte)txt[0];
-                                    if (wval < 256) sequence[wval] = nextWeight;
-                                }
+                                int wval = ResolveAlphabetWordOrdinal(words[wi].GetText());
+                                if (wval >= 0 && wval < 256) sequence[wval] = nextWeight;
                             }
                         }
                     }
@@ -609,6 +615,26 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         }
 
         return sequence;
+    }
+
+    /// <summary>
+    /// Resolves a cobolWord text to its character ordinal for alphabet definitions.
+    /// Handles figurative constant names (HIGH-VALUE, LOW-VALUE, SPACE, ZERO, QUOTE)
+    /// and single-character identifiers.
+    /// </summary>
+    private static int ResolveAlphabetWordOrdinal(string text)
+    {
+        var upper = text.ToUpperInvariant();
+        return upper switch
+        {
+            "HIGH-VALUE" or "HIGH-VALUES" => 0xFF,
+            "LOW-VALUE" or "LOW-VALUES" => 0x00,
+            "SPACE" or "SPACES" => 0x20,
+            "ZERO" or "ZEROS" or "ZEROES" => 0x30,
+            "QUOTE" or "QUOTES" => 0x22,
+            _ when text.Length == 1 => (byte)text[0],
+            _ => -1
+        };
     }
 
     // ── Data Division ──
@@ -1148,7 +1174,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var root = stackItems[^1]; // bottom = 01-level
                 root.AddChild(data);
             }
-            _dataStack.Clear();
+            // Do NOT clear the stack — subsequent level-66 items for the same
+            // record need the stack intact to find their parent 01-level.
             var renamesCtx = body?.renamesClause();
             if (renamesCtx != null)
             {

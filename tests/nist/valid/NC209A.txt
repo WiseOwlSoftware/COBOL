@@ -33,11 +33,7 @@ TEST RESULT OF NC209A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
    DIFFERENT LEVELS   PASS  MOV-TEST-F2-4      .03
    WITH RENAMES       PASS  MOV-TEST-F2-5      .01
    WITH RENAMES       PASS  MOV-TEST-F2-5      .02
-   WITH RENAMES       FAIL* MOV-TEST-F2-5      .03
-
-                                     COMPUTED= HARRY
-                                     CORRECT = UUUUU                 VI-102 6.18.4 GR1
-
+   WITH RENAMES       PASS  MOV-TEST-F2-5      .03
    WITH RENAMES       PASS  MOV-TEST-F2-5      .04
    WITH RENAMES       PASS  MOV-TEST-F2-5      .05
    WITH RENAMES       PASS  MOV-TEST-F2-5      .06
@@ -57,8 +53,8 @@ TEST RESULT OF NC209A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC209A
 
-                                                    031 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
-                                                    001 TEST(S) FAILED
+                                                    032 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
