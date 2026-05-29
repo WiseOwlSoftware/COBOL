@@ -1,0 +1,59 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF135A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SIN Function         PASS  F-SIN-01
+ SIN Function         PASS  F-SIN-02
+ SIN Function         PASS  F-SIN-03
+ SIN Function         PASS  F-SIN-04
+ SIN Function         PASS  F-SIN-05
+ SIN Function         PASS  F-SIN-06
+ SIN Function         PASS  F-SIN-07
+ SIN Function         PASS  F-SIN-08
+ SIN Function         PASS  F-SIN-09
+ SIN Function         PASS  F-SIN-10
+ SIN Function         PASS  F-SIN-11
+ SIN Function         PASS  F-SIN-12
+ SIN Function         PASS  F-SIN-13
+ SIN Function         PASS  F-SIN-14
+ SIN Function         PASS  F-SIN-15
+ SIN Function         PASS  F-SIN-16
+ SIN Function         PASS  F-SIN-17
+ SIN Function         PASS  F-SIN-18
+ SIN Function         PASS  F-SIN-19
+ SIN Function         PASS  F-SIN-20
+ SIN Function         PASS  F-SIN-21
+ SIN Function         PASS  F-SIN-22
+ SIN Function         PASS  F-SIN-23
+ SIN Function         PASS  F-SIN-24
+ SIN Function         PASS  F-SIN-25
+ SIN Function         PASS  F-SIN-26
+ SIN Function         PASS  F-SIN-27
+ SIN Function         PASS  F-SIN-28
+ SIN Function         PASS  F-SIN-29
+ SIN Function         PASS  F-SIN-30
+ SIN Function         PASS  F-SIN-31
+ SIN Function         PASS  F-SIN-32
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF135A
+
+                                                    032 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

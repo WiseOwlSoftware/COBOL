@@ -1,0 +1,43 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF141A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ VARIANCE Function    PASS  F-VARIANCE-01
+ VARIANCE Function    PASS  F-VARIANCE-02
+ VARIANCE Function    PASS  F-VARIANCE-03
+ VARIANCE Function    PASS  F-VARIANCE-04
+ VARIANCE Function    PASS  F-VARIANCE-05
+ VARIANCE Function    PASS  F-VARIANCE-06
+ VARIANCE Function    PASS  F-VARIANCE-07
+ VARIANCE Function    PASS  F-VARIANCE-08
+ VARIANCE Function    PASS  F-VARIANCE-09
+ VARIANCE Function    PASS  F-VARIANCE-11
+ VARIANCE Function    PASS  F-VARIANCE-12
+ VARIANCE Function    PASS  F-VARIANCE-13
+ VARIANCE Function    PASS  F-VARIANCE-14
+ VARIANCE Function    PASS  F-VARIANCE-15
+ VARIANCE Function    PASS  F-VARIANCE-16
+ VARIANCE Function    PASS  F-VARIANCE-17
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF141A
+
+                                                    016 OF 016  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

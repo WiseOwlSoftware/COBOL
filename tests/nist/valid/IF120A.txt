@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF120A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MEAN Function        PASS  F-MEAN-01
+ MEAN Function        PASS  F-MEAN-02
+ MEAN Function        PASS  F-MEAN-03
+ MEAN Function        PASS  F-MEAN-04
+ MEAN Function        PASS  F-MEAN-05
+ MEAN Function        PASS  F-MEAN-06
+ MEAN Function        PASS  F-MEAN-07
+ MEAN Function        PASS  F-MEAN-08
+ MEAN Function        PASS  F-MEAN-09
+ MEAN Function        PASS  F-MEAN-11
+ MEAN Function        PASS  F-MEAN-12
+ MEAN Function        PASS  F-MEAN-13
+ MEAN Function        PASS  F-MEAN-14
+ MEAN Function        PASS  F-MEAN-15
+ MEAN Function        PASS  F-MEAN-16
+ MEAN Function        PASS  F-MEAN-17
+ MEAN Function        PASS  F-MEAN-18
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF120A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

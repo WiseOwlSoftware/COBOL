@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF106A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ COS Function         PASS  F-COS-01
+ COS Function         PASS  F-COS-02
+ COS Function         PASS  F-COS-03
+ COS Function         PASS  F-COS-04
+ COS Function         PASS  F-COS-05
+ COS Function         PASS  F-COS-06
+ COS Function         PASS  F-COS-07
+ COS Function         PASS  F-COS-08
+ COS Function         PASS  F-COS-09
+ COS Function         PASS  F-COS-10
+ COS Function         PASS  F-COS-11
+ COS Function         PASS  F-COS-12
+ COS Function         PASS  F-COS-13
+ COS Function         PASS  F-COS-14
+ COS Function         PASS  F-COS-16
+ COS Function         PASS  F-COS-18
+ COS Function         PASS  F-COS-19
+ COS Function         PASS  F-COS-20
+ COS Function         PASS  F-COS-21
+ COS Function         PASS  F-COS-22
+ COS Function         PASS  F-COS-23
+ COS Function         PASS  F-COS-24
+ COS Function         PASS  F-COS-25
+ COS Function         PASS  F-COS-26
+ COS Function         PASS  F-COS-27
+ COS Function         PASS  F-COS-28
+ COS Function         PASS  F-COS-29
+ COS Function         PASS  F-COS-30
+ COS Function         PASS  F-COS-31
+ COS Function         PASS  F-COS-32
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF106A
+
+                                                    030 OF 030  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

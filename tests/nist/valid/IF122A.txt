@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF122A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MIDRANGE Function    PASS  F-MIDRANGE-01
+ MIDRANGE Function    PASS  F-MIDRANGE-02
+ MIDRANGE Function    PASS  F-MIDRANGE-03
+ MIDRANGE Function    PASS  F-MIDRANGE-04
+ MIDRANGE Function    PASS  F-MIDRANGE-05
+ MIDRANGE Function    PASS  F-MIDRANGE-06
+ MIDRANGE Function    PASS  F-MIDRANGE-07
+ MIDRANGE Function    PASS  F-MIDRANGE-08
+ MIDRANGE Function    PASS  F-MIDRANGE-09
+ MIDRANGE Function    PASS  F-MIDRANGE-10
+ MIDRANGE Function    PASS  F-MIDRANGE-12
+ MIDRANGE Function    PASS  F-MIDRANGE-13
+ MIDRANGE Function    PASS  F-MIDRANGE-14
+ MIDRANGE Function    PASS  F-MIDRANGE-15
+ MIDRANGE Function    PASS  F-MIDRANGE-16
+ MIDRANGE Function    PASS  F-MIDRANGE-17
+ MIDRANGE Function    PASS  F-MIDRANGE-18
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF122A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

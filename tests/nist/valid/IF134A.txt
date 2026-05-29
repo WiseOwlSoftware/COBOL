@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF134A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ REVERSE Function     PASS  F-REVERSE-01
+ REVERSE Function     PASS  F-REVERSE-02
+ REVERSE Function     PASS  F-REVERSE-03
+ REVERSE Function     PASS  F-REVERSE-04
+ REVERSE Function     PASS  F-REVERSE-05
+ REVERSE Function     PASS  F-REVERSE-06
+ REVERSE Function     PASS  F-REVERSE-07
+ REVERSE Function     PASS  F-REVERSE-08
+ REVERSE Function     PASS  F-REVERSE-09
+ REVERSE Function     PASS  F-REVERSE-10
+ REVERSE Function     PASS  F-REVERSE-11
+ REVERSE Function     PASS  F-REVERSE-12
+ REVERSE Function     PASS  F-REVERSE-13
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF134A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

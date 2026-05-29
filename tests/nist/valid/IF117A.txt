@@ -1,0 +1,59 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF117A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ LOG10 Function       PASS  F-LOG10-01
+ LOG10 Function       PASS  F-LOG10-02
+ LOG10 Function       PASS  F-LOG10-03
+ LOG10 Function       PASS  F-LOG10-04
+ LOG10 Function       PASS  F-LOG10-05
+ LOG10 Function       PASS  F-LOG10-06
+ LOG10 Function       PASS  F-LOG10-08
+ LOG10 Function       PASS  F-LOG10-09
+ LOG10 Function       PASS  F-LOG10-10
+ LOG10 Function       PASS  F-LOG10-11
+ LOG10 Function       PASS  F-LOG10-12
+ LOG10 Function       PASS  F-LOG10-13
+ LOG10 Function       PASS  F-LOG10-14
+ LOG10 Function       PASS  F-LOG10-15
+ LOG10 Function       PASS  F-LOG10-16
+ LOG10 Function       PASS  F-LOG10-17
+ LOG10 Function       PASS  F-LOG10-18
+ LOG10 Function       PASS  F-LOG10-19
+ LOG10 Function       PASS  F-LOG10-20
+ LOG10 Function       PASS  F-LOG10-21
+ LOG10 Function       PASS  F-LOG10-22
+ LOG10 Function       PASS  F-LOG10-23
+ LOG10 Function       PASS  F-LOG10-24
+ LOG10 Function       PASS  F-LOG10-25
+ LOG10 Function       PASS  F-LOG10-26
+ LOG10 Function       PASS  F-LOG10-27
+ LOG10 Function       PASS  F-LOG10-28
+ LOG10 Function       PASS  F-LOG10-29
+ LOG10 Function       PASS  F-LOG10-30
+ LOG10 Function       PASS  F-LOG10-31
+ LOG10 Function       PASS  F-LOG10-32
+ LOG10 Function       PASS  F-LOG10-33
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF117A
+
+                                                    032 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,53 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF136A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SQRT Function        PASS  F-SQRT-01
+ SQRT Function        PASS  F-SQRT-02
+ SQRT Function        PASS  F-SQRT-03
+ SQRT Function        PASS  F-SQRT-04
+ SQRT Function        PASS  F-SQRT-05
+ SQRT Function        PASS  F-SQRT-06
+ SQRT Function        PASS  F-SQRT-07
+ SQRT Function        PASS  F-SQRT-08
+ SQRT Function        PASS  F-SQRT-09
+ SQRT Function        PASS  F-SQRT-10
+ SQRT Function        PASS  F-SQRT-11
+ SQRT Function        PASS  F-SQRT-12
+ SQRT Function        PASS  F-SQRT-13
+ SQRT Function        PASS  F-SQRT-14
+ SQRT Function        PASS  F-SQRT-15
+ SQRT Function        PASS  F-SQRT-16
+ SQRT Function        PASS  F-SQRT-17
+ SQRT Function        PASS  F-SQRT-18
+ SQRT Function        PASS  F-SQRT-19
+ SQRT Function        PASS  F-SQRT-20
+ SQRT Function        PASS  F-SQRT-21
+ SQRT Function        PASS  F-SQRT-22
+ SQRT Function        PASS  F-SQRT-23
+ SQRT Function        PASS  F-SQRT-24
+ SQRT Function        PASS  F-SQRT-25
+ SQRT Function        PASS  F-SQRT-26
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF136A
+
+                                                    026 OF 026  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,42 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF132A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ RANGE Function       PASS  F-RANGE-01
+ RANGE Function       PASS  F-RANGE-02
+ RANGE Function       PASS  F-RANGE-03
+ RANGE Function       PASS  F-RANGE-04
+ RANGE Function       PASS  F-RANGE-05
+ RANGE Function       PASS  F-RANGE-06
+ RANGE Function       PASS  F-RANGE-07
+ RANGE Function       PASS  F-RANGE-08
+ RANGE Function       PASS  F-RANGE-09
+ RANGE Function       PASS  F-RANGE-11
+ RANGE Function       PASS  F-RANGE-12
+ RANGE Function       PASS  F-RANGE-13
+ RANGE Function       PASS  F-RANGE-14
+ RANGE Function       PASS  F-RANGE-15
+ RANGE Function       PASS  F-RANGE-16
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF132A
+
+                                                    015 OF 015  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

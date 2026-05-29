@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF118A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ LOWER-CASE Function  PASS  F-LOWCASE-01
+ LOWER-CASE Function  PASS  F-LOWCASE-02
+ LOWER-CASE Function  PASS  F-LOWCASE-03
+ LOWER-CASE Function  PASS  F-LOWCASE-04
+ LOWER-CASE Function  PASS  F-LOWCASE-05
+ LOWER-CASE Function  PASS  F-LOWCASE-06
+ LOWER-CASE Function  PASS  F-LOWCASE-07
+ LOWER-CASE Function  PASS  F-LOWCASE-08
+ LOWER-CASE Function  PASS  F-LOWCASE-09
+ LOWER-CASE Function  PASS  F-LOWCASE-10
+ LOWER-CASE Function  PASS  F-LOWCASE-11
+ LOWER-CASE Function  PASS  F-LOWCASE-12
+ LOWER-CASE Function  PASS  F-LOWCASE-13
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF118A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

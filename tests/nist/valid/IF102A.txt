@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF102A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ANNUITY Function     PASS  F-ANNUITY-01
+ ANNUITY Function     PASS  F-ANNUITY-02
+ ANNUITY Function     PASS  F-ANNUITY-03
+ ANNUITY Function     PASS  F-ANNUITY-04
+ ANNUITY Function     PASS  F-ANNUITY-05
+ ANNUITY Function     PASS  F-ANNUITY-06
+ ANNUITY Function     PASS  F-ANNUITY-07
+ ANNUITY Function     PASS  F-ANNUITY-08
+ ANNUITY Function     PASS  F-ANNUITY-09
+ ANNUITY Function     PASS  F-ANNUITY-10
+ ANNUITY Function     PASS  F-ANNUITY-11
+ ANNUITY Function     PASS  F-ANNUITY-12
+ ANNUITY Function     PASS  F-ANNUITY-13
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF102A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

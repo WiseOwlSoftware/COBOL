@@ -1,0 +1,47 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF125A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ NUMVAL Function      PASS  F-NUMVAL-01
+ NUMVAL Function      PASS  F-NUMVAL-02
+ NUMVAL Function      PASS  F-NUMVAL-03
+ NUMVAL Function      PASS  F-NUMVAL-04
+ NUMVAL Function      PASS  F-NUMVAL-05
+ NUMVAL Function      PASS  F-NUMVAL-06
+ NUMVAL Function      PASS  F-NUMVAL-07
+ NUMVAL Function      PASS  F-NUMVAL-08
+ NUMVAL Function      PASS  F-NUMVAL-09
+ NUMVAL Function      PASS  F-NUMVAL-10
+ NUMVAL Function      PASS  F-NUMVAL-11
+ NUMVAL Function      PASS  F-NUMVAL-12
+ NUMVAL Function      PASS  F-NUMVAL-13
+ NUMVAL Function      PASS  F-NUMVAL-14
+ NUMVAL Function      PASS  F-NUMVAL-15
+ NUMVAL Function      PASS  F-NUMVAL-16
+ NUMVAL Function      PASS  F-NUMVAL-17
+ NUMVAL Function      PASS  F-NUMVAL-18
+ NUMVAL Function      PASS  F-NUMVAL-19
+ NUMVAL Function      PASS  F-NUMVAL-20
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF125A
+
+                                                    020 OF 020  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF139A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ TAN Function         PASS  F-TAN-01
+ TAN Function         PASS  F-TAN-02
+ TAN Function         PASS  F-TAN-03
+ TAN Function         PASS  F-TAN-04
+ TAN Function         PASS  F-TAN-05
+ TAN Function         PASS  F-TAN-06
+ TAN Function         PASS  F-TAN-07
+ TAN Function         PASS  F-TAN-08
+ TAN Function         PASS  F-TAN-09
+ TAN Function         PASS  F-TAN-10
+ TAN Function         PASS  F-TAN-11
+ TAN Function         PASS  F-TAN-12
+ TAN Function         PASS  F-TAN-13
+ TAN Function         PASS  F-TAN-14
+ TAN Function         PASS  F-TAN-15
+ TAN Function         PASS  F-TAN-16
+ TAN Function         PASS  F-TAN-17
+ TAN Function         PASS  F-TAN-19
+ TAN Function         PASS  F-TAN-20
+ TAN Function         PASS  F-TAN-21
+ TAN Function         PASS  F-TAN-22
+ TAN Function         PASS  F-TAN-23
+ TAN Function         PASS  F-TAN-24
+ TAN Function         PASS  F-TAN-25
+ TAN Function         PASS  F-TAN-27
+ TAN Function         PASS  F-TAN-28
+ TAN Function         PASS  F-TAN-29
+ TAN Function         PASS  F-TAN-30
+ TAN Function         PASS  F-TAN-31
+ TAN Function         PASS  F-TAN-32
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF139A
+
+                                                    030 OF 030  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

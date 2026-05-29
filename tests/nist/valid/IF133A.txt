@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF133A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ REM Function         PASS  F-REM-01
+ REM Function         PASS  F-REM-02
+ REM Function         PASS  F-REM-03
+ REM Function         PASS  F-REM-04
+ REM Function         PASS  F-REM-05
+ REM Function         PASS  F-REM-06
+ REM Function         PASS  F-REM-07
+ REM Function         PASS  F-REM-08
+ REM Function         PASS  F-REM-09
+ REM Function         PASS  F-REM-10
+ REM Function         PASS  F-REM-11
+ REM Function         PASS  F-REM-12
+ REM Function         PASS  F-REM-13
+ REM Function         PASS  F-REM-14
+ REM Function         PASS  F-REM-15
+ REM Function         PASS  F-REM-16
+ REM Function         PASS  F-REM-17
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF133A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

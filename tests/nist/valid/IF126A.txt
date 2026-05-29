@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF126A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ NUMVAL-C Function    PASS  F-NUMVALC-01
+ NUMVAL-C Function    PASS  F-NUMVALC-02
+ NUMVAL-C Function    PASS  F-NUMVALC-03
+ NUMVAL-C Function    PASS  F-NUMVALC-04
+ NUMVAL-C Function    PASS  F-NUMVALC-05
+ NUMVAL-C Function    PASS  F-NUMVALC-06
+ NUMVAL-C Function    PASS  F-NUMVALC-07
+ NUMVAL-C Function    PASS  F-NUMVALC-08
+ NUMVAL-C Function    PASS  F-NUMVALC-09
+ NUMVAL-C Function    PASS  F-NUMVALC-10
+ NUMVAL-C Function    PASS  F-NUMVALC-11
+ NUMVAL-C Function    PASS  F-NUMVALC-12
+ NUMVAL-C Function    PASS  F-NUMVALC-13
+ NUMVAL-C Function    PASS  F-NUMVALC-14
+ NUMVAL-C Function    PASS  F-NUMVALC-15
+ NUMVAL-C Function    PASS  F-NUMVALC-16
+ NUMVAL-C Function    PASS  F-NUMVALC-17
+ NUMVAL-C Function    PASS  F-NUMVALC-18
+ NUMVAL-C Function    PASS  F-NUMVALC-20
+ NUMVAL-C Function    PASS  F-NUMVALC-21
+ NUMVAL-C Function    PASS  F-NUMVALC-22
+ NUMVAL-C Function    PASS  F-NUMVALC-23
+ NUMVAL-C Function    PASS  F-NUMVALC-24
+ NUMVAL-C Function    PASS  F-NUMVALC-25
+ NUMVAL-C Function    PASS  F-NUMVALC-26
+ NUMVAL-C Function    PASS  F-NUMVALC-27
+ NUMVAL-C Function    PASS  F-NUMVALC-28
+ NUMVAL-C Function    PASS  F-NUMVALC-29
+ NUMVAL-C Function    PASS  F-NUMVALC-30
+ NUMVAL-C Function    PASS  F-NUMVALC-31
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF126A
+
+                                                    030 OF 030  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

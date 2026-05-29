@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF124A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MOD Function         PASS  F-MOD-01
+ MOD Function         PASS  F-MOD-02
+ MOD Function         PASS  F-MOD-03
+ MOD Function         PASS  F-MOD-04
+ MOD Function         PASS  F-MOD-05
+ MOD Function         PASS  F-MOD-06
+ MOD Function         PASS  F-MOD-07
+ MOD Function         PASS  F-MOD-08
+ MOD Function         PASS  F-MOD-09
+ MOD Function         PASS  F-MOD-11
+ MOD Function         PASS  F-MOD-12
+ MOD Function         PASS  F-MOD-13
+ MOD Function         PASS  F-MOD-14
+ MOD Function         PASS  F-MOD-15
+ MOD Function         PASS  F-MOD-16
+ MOD Function         PASS  F-MOD-17
+ MOD Function         PASS  F-MOD-18
+ MOD Function         PASS  F-MOD-19
+ MOD Function         PASS  F-MOD-20
+ MOD Function         PASS  F-MOD-21
+ MOD Function         PASS  F-MOD-22
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF124A
+
+                                                    021 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

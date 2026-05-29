@@ -1,0 +1,54 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF104A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ATAN Function        PASS  F-ATAN-01
+ ATAN Function        PASS  F-ATAN-02
+ ATAN Function        PASS  F-ATAN-03
+ ATAN Function        PASS  F-ATAN-04
+ ATAN Function        PASS  F-ATAN-05
+ ATAN Function        PASS  F-ATAN-06
+ ATAN Function        PASS  F-ATAN-07
+ ATAN Function        PASS  F-ATAN-08
+ ATAN Function        PASS  F-ATAN-09
+ ATAN Function        PASS  F-ATAN-10
+ ATAN Function        PASS  F-ATAN-11
+ ATAN Function        PASS  F-ATAN-12
+ ATAN Function        PASS  F-ATAN-13
+ ATAN Function        PASS  F-ATAN-14
+ ATAN Function        PASS  F-ATAN-15
+ ATAN Function        PASS  F-ATAN-16
+ ATAN Function        PASS  F-ATAN-17
+ ATAN Function        PASS  F-ATAN-18
+ ATAN Function        PASS  F-ATAN-19
+ ATAN Function        PASS  F-ATAN-20
+ ATAN Function        PASS  F-ATAN-21
+ ATAN Function        PASS  F-ATAN-22
+ ATAN Function        PASS  F-ATAN-23
+ ATAN Function        PASS  F-ATAN-24
+ ATAN Function        PASS  F-ATAN-25
+ ATAN Function        PASS  F-ATAN-26
+ ATAN Function        PASS  F-ATAN-27
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF104A
+
+                                                    027 OF 027  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

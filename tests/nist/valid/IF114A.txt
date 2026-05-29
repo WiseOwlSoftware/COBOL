@@ -1,0 +1,50 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF114A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ INTEGER-PART Functio PASS  F-INTPART-01
+ INTEGER-PART Functio PASS  F-INTPART-02
+ INTEGER-PART Functio PASS  F-INTPART-03
+ INTEGER-PART Functio PASS  F-INTPART-04
+ INTEGER-PART Functio PASS  F-INTPART-05
+ INTEGER-PART Functio PASS  F-INTPART-06
+ INTEGER-PART Functio PASS  F-INTPART-07
+ INTEGER-PART Functio PASS  F-INTPART-08
+ INTEGER-PART Functio PASS  F-INTPART-09
+ INTEGER-PART Functio PASS  F-INTPART-10
+ INTEGER-PART Functio PASS  F-INTPART-11
+ INTEGER-PART Functio PASS  F-INTPART-12
+ INTEGER-PART Functio PASS  F-INTPART-13
+ INTEGER-PART Functio PASS  F-INTPART-14
+ INTEGER-PART Functio PASS  F-INTPART-15
+ INTEGER-PART Functio PASS  F-INTPART-16
+ INTEGER-PART Functio PASS  F-INTPART-17
+ INTEGER-PART Functio PASS  F-INTPART-18
+ INTEGER-PART Functio PASS  F-INTPART-19
+ INTEGER-PART Functio PASS  F-INTPART-20
+ INTEGER-PART Functio PASS  F-INTPART-21
+ INTEGER-PART Functio PASS  F-INTPART-22
+ INTEGER-PART Functio PASS  F-INTPART-23
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF114A
+
+                                                    023 OF 023  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

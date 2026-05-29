@@ -1,0 +1,53 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ ACOS Function        PASS  F-ACOS-01
+ ACOS Function        PASS  F-ACOS-02
+ ACOS Function        PASS  F-ACOS-03
+ ACOS Function        PASS  F-ACOS-04
+ ACOS Function        PASS  F-ACOS-05
+ ACOS Function        PASS  F-ACOS-06
+ ACOS Function        PASS  F-ACOS-07
+ ACOS Function        PASS  F-ACOS-08
+ ACOS Function        PASS  F-ACOS-09
+ ACOS Function        PASS  F-ACOS-10
+ ACOS Function        PASS  F-ACOS-11
+ ACOS Function        PASS  F-ACOS-12
+ ACOS Function        PASS  F-ACOS-13
+ ACOS Function        PASS  F-ACOS-14
+ ACOS Function        PASS  F-ACOS-15
+ ACOS Function        PASS  F-ACOS-16
+ ACOS Function        PASS  F-ACOS-17
+ ACOS Function        PASS  F-ACOS-18
+ ACOS Function        PASS  F-ACOS-19
+ ACOS Function        PASS  F-ACOS-20
+ ACOS Function        PASS  F-ACOS-21
+ ACOS Function        PASS  F-ACOS-22
+ ACOS Function        PASS  F-ACOS-23
+ ACOS Function        PASS  F-ACOS-24
+ ACOS Function        PASS  F-ACOS-25
+ ACOS Function        PASS  F-ACOS-26
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF101A
+
+                                                    026 OF 026  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

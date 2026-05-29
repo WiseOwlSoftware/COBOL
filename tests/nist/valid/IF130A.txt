@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF130A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-01
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-02
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-03
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-04
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-05
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-06
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-07
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-08
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-09
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-11
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-12
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-13
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-14
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-15
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-16
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-17
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-18
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-19
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-20
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-21
+ PRESENT-VALUE Functi PASS  F-PRES-VAL-22
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF130A
+
+                                                    021 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

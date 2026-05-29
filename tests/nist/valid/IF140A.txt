@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IF140A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ UPPER-CASE Function  PASS  F-UPCASE-01
+ UPPER-CASE Function  PASS  F-UPCASE-02
+ UPPER-CASE Function  PASS  F-UPCASE-03
+ UPPER-CASE Function  PASS  F-UPCASE-04
+ UPPER-CASE Function  PASS  F-UPCASE-05
+ UPPER-CASE Function  PASS  F-UPCASE-06
+ UPPER-CASE Function  PASS  F-UPCASE-07
+ UPPER-CASE Function  PASS  F-UPCASE-08
+ UPPER-CASE Function  PASS  F-UPCASE-09
+ UPPER-CASE Function  PASS  F-UPCASE-10
+ UPPER-CASE Function  PASS  F-UPCASE-11
+ UPPER-CASE Function  PASS  F-UPCASE-12
+ UPPER-CASE Function  PASS  F-UPCASE-13
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IF140A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
