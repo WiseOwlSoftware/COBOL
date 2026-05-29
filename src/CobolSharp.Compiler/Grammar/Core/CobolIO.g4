@@ -389,16 +389,18 @@ mergeOutputProcedurePhrase
 // ==========================================
 
 returnStatement
-    : RETURN fileName RECORD
+    : RETURN fileName RECORD?
       (INTO dataReference)?
       returnAtEndPhrase?
       END_RETURN?
 
     ;
 
+// AT is optional in the AT END phrase (ISO §14.9.39 — "AT" is an optional reserved word),
+// and RECORD above is optional, so "RETURN f END …" and "RETURN f RECORD AT END …" both parse.
 returnAtEndPhrase
-    : AT END statementBlock
-      (NOT AT END statementBlock)?
+    : AT? END statementBlock
+      (NOT AT? END statementBlock)?
     ;
 
 // ==========================================
