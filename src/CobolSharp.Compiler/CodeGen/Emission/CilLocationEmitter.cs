@@ -126,11 +126,18 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
     {
-        // Push base area (EXTERNAL-aware)
-        EmitLoadBackingArrayOrExternal(il, e.BaseLocation.Area, e.BaseLocation.Offset, out var elemAdjOffset);
-
-        // Push base offset — accumulates displacement from each dimension
-        il.Append(il.Create(OpCodes.Ldc_I4, elemAdjOffset));
+        // Push base (array, baseOffset). A LINKAGE base resolves through the CobolDataPointer
+        // (runtime offset); WorkingStorage/EXTERNAL/etc. use a compile-time offset.
+        if (e.BaseLocation.Area == StorageAreaKind.LinkageSection)
+        {
+            EmitLinkageBufferAndOffset(il, e.BaseLocation.Offset);
+        }
+        else
+        {
+            EmitLoadBackingArrayOrExternal(il, e.BaseLocation.Area, e.BaseLocation.Offset, out var elemAdjOffset);
+            // Push base offset — accumulates displacement from each dimension
+            il.Append(il.Create(OpCodes.Ldc_I4, elemAdjOffset));
+        }
 
         var toInt32 = _ctx.Module.ImportReference(
             typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
@@ -165,8 +172,15 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitOdoGroupLocationArgs(ILProcessor il, IR.IrOdoGroupLocation o)
     {
-        EmitLoadBackingArrayOrExternal(il, o.Base.Area, o.Base.Offset, out var adjOffset);
-        il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
+        if (o.Base.Area == StorageAreaKind.LinkageSection)
+        {
+            EmitLinkageBufferAndOffset(il, o.Base.Offset);
+        }
+        else
+        {
+            EmitLoadBackingArrayOrExternal(il, o.Base.Area, o.Base.Offset, out var adjOffset);
+            il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
+        }
 
         // Fixed (non-ODO) part of the length, known at compile time.
         int fixedPart = o.Base.Length - o.MaxOccurs * o.ElementSize;
@@ -229,6 +243,11 @@ internal sealed class CilLocationEmitter
         // Push base location (area, baseOffset)
         switch (r.Base)
         {
+            case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
+                // Reference-modified USING parameter: base via the CobolDataPointer.
+                EmitLinkageBufferAndOffset(il, s.Location.Offset);
+                break;
+
             case IR.IrStaticLocation s
                 when s.Location.Area == StorageAreaKind.WorkingStorage
                   && TryGetExternalField(s.Location.Offset, out var rmExtField, out var rmAdjOffset):
@@ -309,60 +328,57 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitLinkageLocationArgs(ILProcessor il, IR.IrStaticLocation s)
     {
-        // Find which LINKAGE parameter field this item belongs to.
-        // Try to match the item name directly first, then search for a parent match.
-        FieldDefinition? field = null;
-        string? matchedName = null;
+        // Push (Buffer, pointer.Offset + relativeOffset) from the matching CobolDataPointer,
+        // then the item length.
+        EmitLinkageBufferAndOffset(il, s.Location.Offset);
+        il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
+    }
 
-        // Try exact match (for 01-level LINKAGE items)
-        if (_ctx.SemanticModel != null)
+    /// <summary>
+    /// Find the CobolDataPointer field for the USING parameter whose storage range contains
+    /// <paramref name="relOffset"/> (a LINKAGE-section offset), or null if it is unmapped.
+    /// </summary>
+    private FieldDefinition? FindLinkageField(int relOffset)
+    {
+        if (_ctx.SemanticModel == null) return null;
+        foreach (var param in _ctx.SemanticModel.ProcedureUsingParameters)
         {
-            foreach (var param in _ctx.SemanticModel.ProcedureUsingParameters)
-            {
-                if (_ctx.LinkageFields.TryGetValue(param.Name, out var f))
-                {
-                    // Check if this storage location falls within this parameter's range
-                    var paramLoc = _ctx.SemanticModel.GetStorageLocation(param);
-                    if (paramLoc.HasValue &&
-                        s.Location.Offset >= paramLoc.Value.Offset &&
-                        s.Location.Offset < paramLoc.Value.Offset + paramLoc.Value.Length)
-                    {
-                        field = f;
-                        matchedName = param.Name;
-                        break;
-                    }
-                }
-            }
+            if (!_ctx.LinkageFields.TryGetValue(param.Name, out var f)) continue;
+            var paramLoc = _ctx.SemanticModel.GetStorageLocation(param);
+            if (paramLoc.HasValue &&
+                relOffset >= paramLoc.Value.Offset &&
+                relOffset < paramLoc.Value.Offset + paramLoc.Value.Length)
+                return f;
         }
+        return null;
+    }
 
+    /// <summary>
+    /// Push [CobolDataPointer.Buffer, pointer.Offset + relOffset] for a LINKAGE-section location.
+    /// This is the (array, base-offset) pair the element-address and ref-mod composition expect,
+    /// except the LINKAGE base offset is a RUNTIME value (the caller's argument position) rather
+    /// than a compile-time constant — so a subscripted or reference-modified USING parameter must
+    /// route through here instead of EmitLoadBackingArray (which has no LINKAGE backing array).
+    /// Falls back to [null, relOffset] for a LINKAGE item not bound to any USING parameter.
+    /// </summary>
+    internal void EmitLinkageBufferAndOffset(ILProcessor il, int relOffset)
+    {
+        var field = FindLinkageField(relOffset);
         if (field != null)
         {
-            // Load CobolDataPointer.Buffer
             il.Append(il.Create(OpCodes.Ldsflda, field));
-            var bufferGetter = _ctx.Module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Buffer")!.GetGetMethod()!);
-            il.Append(il.Create(OpCodes.Call, bufferGetter));
-
-            // Offset = CobolDataPointer.Offset + relative offset within the parameter
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(CobolDataPointer).GetProperty("Buffer")!.GetGetMethod()!)));
             il.Append(il.Create(OpCodes.Ldsflda, field));
-            var offsetGetter = _ctx.Module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!);
-            il.Append(il.Create(OpCodes.Call, offsetGetter));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset)); // relative offset
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!)));
+            il.Append(il.Create(OpCodes.Ldc_I4, relOffset));
             il.Append(il.Create(OpCodes.Add));
-
-            // Length
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
         }
         else
         {
-            // Fallback: LINKAGE item not mapped to a USING parameter
-            // (may happen for LINKAGE items not in the USING clause)
-            // Push nulls that will likely cause a runtime NullReferenceException
-            // if actually accessed — this is correct behavior for unmapped LINKAGE
             il.Append(il.Create(OpCodes.Ldnull));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Offset));
-            il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
+            il.Append(il.Create(OpCodes.Ldc_I4, relOffset));
         }
     }
 
