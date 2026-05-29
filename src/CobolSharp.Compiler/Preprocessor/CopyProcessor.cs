@@ -141,7 +141,10 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
                 string copybookText = NormalizeCopybook(File.ReadAllText(copybookPath));
 
                 foreach (var (from, to) in replacements)
+                {
+                    if (string.IsNullOrEmpty(from)) continue; // malformed/empty operand — skip
                     copybookText = copybookText.Replace(from, to, StringComparison.OrdinalIgnoreCase);
+                }
 
                 copybookText = ExpandCopyStatements(copybookText, alreadyIncluded, depth + 1);
 
