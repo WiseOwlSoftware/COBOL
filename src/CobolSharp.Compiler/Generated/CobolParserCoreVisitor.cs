@@ -1095,6 +1095,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDataRecordsClause([NotNull] CobolParserCore.DataRecordsClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.valueOfClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitValueOfClause([NotNull] CobolParserCore.ValueOfClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.linageClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

@@ -67,6 +67,7 @@ fileDescriptionClause
     | codeSetClause
     | labelRecordsClause
     | dataRecordsClause
+    | valueOfClause
     | linageClause
     | genericFileDescriptionClause
     ;
@@ -95,6 +96,13 @@ labelRecordsClause
 // DATA RECORD(S) IS/ARE — obsolete COBOL-74 FD clause, semantically inert
 dataRecordsClause
     : DATA (RECORD IS? | RECORDS ARE?) cobolWord+
+    ;
+
+// VALUE OF implementor-name IS data-name/literal — obsolete COBOL-85 FD clause
+// (§13.18 removed feature), semantically inert. Operands are implementor-defined label
+// fields; consume the word/literal/IS sequence until the next clause keyword or the period.
+valueOfClause
+    : VALUE OF (cobolWord | literal | IS)+
     ;
 
 // LINAGE clause (ISO §13.16) — page-based printing for sequential files
