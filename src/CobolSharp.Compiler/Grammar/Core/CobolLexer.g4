@@ -543,6 +543,12 @@ SUB_OF              : 'OF' ;
 SUB_IN              : 'IN' ;
 SUB_ALL             : 'ALL' ;
 
+// Sign immediately adjacent to a decimal literal: -15.6, +0.2, -.5 (signed decimal
+// argument to an intrinsic function, ISO §15). MUST precede SIGNED_INTEGERLIT so the
+// fractional part is not orphaned: ANTLR longest-match makes "-15.6" one SIGNED_DECIMALLIT
+// rather than SIGNED_INTEGERLIT "-15" + SUB_DECIMALLIT ".6" (which silently dropped the .6).
+SIGNED_DECIMALLIT   : [+-] [0-9]+ '.' [0-9]+ | [+-] '.' [0-9]+ ;
+
 // Sign immediately followed by digits: +1, -10 (signed literal subscript)
 SIGNED_INTEGERLIT   : [+-] [0-9]+ ;
 

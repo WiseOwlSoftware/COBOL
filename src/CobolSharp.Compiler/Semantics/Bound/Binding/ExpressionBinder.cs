@@ -616,6 +616,7 @@ internal sealed class ExpressionBinder
 
                     if (!endsWithOperator && !endsWithQualifier && !endsWithFunction &&
                         (nextType == CobolParserCore.SIGNED_INTEGERLIT
+                         || nextType == CobolParserCore.SIGNED_DECIMALLIT
                          || nextType == CobolParserCore.SUB_IDENTIFIER
                          || nextType == CobolParserCore.SUB_INTEGERLIT
                          || nextType == CobolParserCore.SUB_ALL))
@@ -879,7 +880,7 @@ internal sealed class ExpressionBinder
         }
 
         if (tok.Type == CobolParserCore.SUB_INTEGERLIT || tok.Type == CobolParserCore.SUB_DECIMALLIT
-            || tok.Type == CobolParserCore.SIGNED_INTEGERLIT)
+            || tok.Type == CobolParserCore.SIGNED_INTEGERLIT || tok.Type == CobolParserCore.SIGNED_DECIMALLIT)
         {
             pos++;
             return new BoundLiteralExpression(
