@@ -151,18 +151,21 @@ public static class StorageLayoutComputer
         if (currentLsFamily != null)
             lsOffset = currentLsFamily.NextSiblingOffset;
 
-        // Linkage section: each 01-level item gets its own layout starting at offset 0.
-        // LINKAGE items don't share a contiguous buffer — each is backed by a separate
-        // CobolDataPointer passed via CALL USING. The offset is relative to the parameter.
-        int linkageSize = 0;
+        // Linkage section: 01/77-level items are laid out CONTIGUOUSLY (each after the previous),
+        // so every LINKAGE item has a unique offset. This is required to identify which USING
+        // parameter a reference belongs to — items are still each backed by a separate
+        // CobolDataPointer (CALL USING), and the per-parameter displacement is recovered at emit
+        // time as (item offset − parameter base offset). Laying every parameter at offset 0 would
+        // make the offset ranges overlap, so a reference to the 2nd/3rd parameter would resolve to
+        // the 1st and corrupt it.
+        int linkageOffset = 0;
         foreach (var data in model.DataItemsInOrder)
         {
             if (data.LevelNumber is not (1 or 77) || data.Area != StorageAreaKind.LinkageSection)
                 continue;
-            int itemOffset = 0;
-            LayoutItem(data, StorageAreaKind.LinkageSection, ref itemOffset, model);
-            linkageSize = Math.Max(linkageSize, itemOffset);
+            LayoutItem(data, StorageAreaKind.LinkageSection, ref linkageOffset, model);
         }
+        int linkageSize = linkageOffset;
 
         model.WorkingStorageSize = wsOffset > 0 ? wsOffset : MinimumAreaSize;
         model.FileSectionSize = maxRecordSize > 0 ? maxRecordSize : MinimumAreaSize;

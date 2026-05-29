@@ -337,9 +337,12 @@ internal sealed class CilLocationEmitter
     /// <summary>
     /// Find the CobolDataPointer field for the USING parameter whose storage range contains
     /// <paramref name="relOffset"/> (a LINKAGE-section offset), or null if it is unmapped.
+    /// <paramref name="paramBaseOffset"/> receives the parameter's own base LINKAGE offset, so the
+    /// caller can compute the displacement WITHIN the parameter (relOffset - paramBaseOffset).
     /// </summary>
-    private FieldDefinition? FindLinkageField(int relOffset)
+    private FieldDefinition? FindLinkageField(int relOffset, out int paramBaseOffset)
     {
+        paramBaseOffset = 0;
         if (_ctx.SemanticModel == null) return null;
         foreach (var param in _ctx.SemanticModel.ProcedureUsingParameters)
         {
@@ -348,22 +351,28 @@ internal sealed class CilLocationEmitter
             if (paramLoc.HasValue &&
                 relOffset >= paramLoc.Value.Offset &&
                 relOffset < paramLoc.Value.Offset + paramLoc.Value.Length)
+            {
+                paramBaseOffset = paramLoc.Value.Offset;
                 return f;
+            }
         }
         return null;
     }
 
     /// <summary>
-    /// Push [CobolDataPointer.Buffer, pointer.Offset + relOffset] for a LINKAGE-section location.
-    /// This is the (array, base-offset) pair the element-address and ref-mod composition expect,
-    /// except the LINKAGE base offset is a RUNTIME value (the caller's argument position) rather
-    /// than a compile-time constant — so a subscripted or reference-modified USING parameter must
-    /// route through here instead of EmitLoadBackingArray (which has no LINKAGE backing array).
-    /// Falls back to [null, relOffset] for a LINKAGE item not bound to any USING parameter.
+    /// Push [CobolDataPointer.Buffer, pointer.Offset + (relOffset - paramBase)] for a LINKAGE
+    /// location. The pointer addresses the caller's argument storage, so the displacement must be
+    /// taken WITHIN the matched USING parameter (relOffset - parameter's base LINKAGE offset), NOT
+    /// the absolute LINKAGE offset — otherwise the 2nd and later parameters (whose base offset is
+    /// non-zero) read/write the wrong bytes of the caller's data. (The 1st parameter has base 0,
+    /// so single-parameter CALLs were unaffected and masked this bug.) This is the (array,
+    /// base-offset) pair the element-address and ref-mod composition expect; the LINKAGE base
+    /// offset is a runtime value, so a subscripted or ref-modified USING parameter routes here
+    /// instead of EmitLoadBackingArray. Falls back to [null, 0] for an unbound LINKAGE item.
     /// </summary>
     internal void EmitLinkageBufferAndOffset(ILProcessor il, int relOffset)
     {
-        var field = FindLinkageField(relOffset);
+        var field = FindLinkageField(relOffset, out int paramBase);
         if (field != null)
         {
             il.Append(il.Create(OpCodes.Ldsflda, field));
@@ -372,13 +381,13 @@ internal sealed class CilLocationEmitter
             il.Append(il.Create(OpCodes.Ldsflda, field));
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                 typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!)));
-            il.Append(il.Create(OpCodes.Ldc_I4, relOffset));
+            il.Append(il.Create(OpCodes.Ldc_I4, relOffset - paramBase));
             il.Append(il.Create(OpCodes.Add));
         }
         else
         {
             il.Append(il.Create(OpCodes.Ldnull));
-            il.Append(il.Create(OpCodes.Ldc_I4, relOffset));
+            il.Append(il.Create(OpCodes.Ldc_I4, relOffset - paramBase));
         }
     }
 
