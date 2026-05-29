@@ -1,0 +1,41 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SM201A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                                                          OUTPUT OF SM201A IS USED AS
+                                                          INPUT FOR SM202A.
+ COPY 01 LEVEL ---
+   REPLACING          PASS  COPY-TEST-1
+   (NO REPLACING)     PASS  COPY-TEST-2
+   REPLACING          PASS  COPY-TEST-3
+   REPLACING          PASS  COPY-TEST-4
+   REPLACING          PASS  COPY-TEST-5
+   (NOT REPLACING)    PASS  COPY-TEST-6
+   (NOT REPLACING)    PASS  COPY-TEST-7
+   (NOT REPLACING)    PASS  COPY-TEST-8
+ COPY PARA REPLACING  PASS  COPY-TEST-9
+ COPY FD REPLACING    PASS  COPY-TEST-10                  OUTPUT PASSED ONTO SM202
+ PSEUDO TEXT          PASS  COPY-TEST-11
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SM201A
+
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

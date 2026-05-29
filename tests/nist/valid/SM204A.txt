@@ -1,0 +1,33 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SM204A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                                                          ALL TESTS IN SM204A CHECK
+                                                          OUTPUT OF SM203A.
+ COPY ENV DIV REPLAC  PASS  COPY-TEST-2
+ COPY ENV DIV REPLAC  PASS  COPY-TEST-3
+ COPY ENV DIV REPLAC  PASS  COPY-TEST-4
+ COPY SPECIAL-NAMES   PASS  COPY-TEST-5
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SM204A
+
+                                                    004 OF 004  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
