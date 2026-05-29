@@ -4,6 +4,35 @@ Paste this at the start of the next session to restore full context.
 
 ---
 
+## 0. Update — late 2026-05-29 (SM COPY complete + SORT hang fix)
+
+- **SM suite: 12/17 CLEAN, baselined.** Implemented the full COBOL-85 source-text-manipulation
+  feature set to spec: a text-word REPLACE/COPY REPLACING engine (whitespace/line-break-insensitive
+  matching; `( ) .` are text words; comma/semicolon are space-equivalent per GR6(b); literal quotes
+  preserved; comment lines transparent but debug-line content participates), qualified REPLACING
+  operands (`OF/IN` + subscript), `VALUE OF` FD clause, mid-line COPY, NIST archive-marker strip,
+  and `COPY … OF/IN library-name` multi-library resolution. DEVLOG 209–214.
+- **Guard now 149 NIST (95 NC + 42 IF + 12 SM)**, ALL GREEN (1000 unit / 336 integration).
+- **SORT hang fixed** (DEVLOG 215): `FileRuntime.IsAtEnd` now treats FileNotOpen/FileNotFound/
+  PermanentError as end-of-data, so SORT … USING (and any READ … AT END) over a missing file
+  terminates instead of spinning. 7 of 8 ST timeouts cleared.
+
+### THE dominant remaining obstacle: producer/consumer file orchestration
+The remaining SM (SM104A) and most of ST/SQ/IX/RL depend on **companion files**: one program
+writes a file (e.g. ST104A creates `SORTIN-1E`, SM103A creates TEST-FILE) and a later program
+reads it. `run-suite.sh`/`guard.sh` run each test in isolation, so consumers see no input →
+NO_OUTPUT or FAIL*. The NIST ASSIGN targets are `XXXXX###` placeholders; whether two programs
+share a physical file depends on NistPreprocessor's substitution. **Next design decision:** how to
+orchestrate these chains — run producers before consumers in a shared cwd (and map the shared
+ASSIGN placeholders to a common filename), or supply `.dat` fixtures. This blocks the file-bound
+tests across several suites and should be solved once, centrally.
+
+### ST (sort/merge) snapshot after the hang fix
+total=40: CLEAN=8, FAIL*=15, COMPILE_FAIL=8, NO_OUTPUT=8, RUNTIME=1 (ST132A still hangs —
+different cause). Most NO_OUTPUT/FAIL* are the companion-file issue above; FAIL* also include
+genuine sort-output correctness. COMPILE_FAIL (ST115A/117A/131A/135A/139A/140A/144A/147A) are
+unparsed SORT/MERGE forms to investigate.
+
 ## 1. Session Summary
 
 Depth-first NIST suite push, continuing the "run all NIST suites group by group, each to 100%"
