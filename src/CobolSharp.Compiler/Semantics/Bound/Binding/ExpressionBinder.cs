@@ -146,6 +146,17 @@ internal sealed class ExpressionBinder
             }
         }
 
+        // Expand the ALL subscript (ISO §15.4): FUNCTION f(table(ALL)) passes every occurrence
+        // of the table as a separate argument. Replace each table(ALL) reference in-place with
+        // one element reference per occurrence (table(1), table(2), …, table(n)).
+        if (args.Any(IsAllSubscriptedRef))
+        {
+            var expanded = new List<BoundExpression>(args.Count);
+            foreach (var a in args)
+                expanded.AddRange(ExpandAllSubscript(a));
+            args = expanded;
+        }
+
         // FUNCTION LENGTH returns the defined size of the operand, not its content length.
         // Per ISO §15.24: "the value returned is the number of character positions
         // in argument-1". Resolved at bind time — no runtime call needed.
@@ -177,6 +188,44 @@ internal sealed class ExpressionBinder
         }
 
         return new BoundFunctionCallExpression(funcName, args.AsReadOnly(), category);
+    }
+
+    /// <summary>True if the expression is a table reference whose subscript is the ALL keyword.</summary>
+    private static bool IsAllSubscriptedRef(BoundExpression e) =>
+        e is BoundIdentifierExpression { Subscripts: { } subs }
+        && subs.Any(s => s is BoundLiteralExpression { Value: string sv }
+            && string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Expand a table(ALL) reference into one reference per occurrence: table(1) … table(n).
+    /// Non-ALL expressions pass through unchanged. The occurrence count comes from the table's
+    /// OCCURS clause. Only the (single) ALL dimension is expanded; fixed subscripts are kept.
+    /// </summary>
+    private static IEnumerable<BoundExpression> ExpandAllSubscript(BoundExpression e)
+    {
+        if (e is not BoundIdentifierExpression id || id.Subscripts is null)
+            return new[] { e };
+
+        int allPos = -1;
+        for (int i = 0; i < id.Subscripts.Count; i++)
+            if (id.Subscripts[i] is BoundLiteralExpression { Value: string sv }
+                && string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase))
+            { allPos = i; break; }
+        if (allPos < 0) return new[] { e };
+
+        int n = id.Symbol.Occurs?.MaxOccurs ?? 0;
+        if (n <= 0) return new[] { e };
+
+        var result = new List<BoundExpression>(n);
+        for (int idx = 1; idx <= n; idx++)
+        {
+            var newSubs = new List<BoundExpression>(id.Subscripts)
+            {
+                [allPos] = new BoundLiteralExpression((decimal)idx, CobolCategory.Numeric)
+            };
+            result.Add(new BoundIdentifierExpression(id.Symbol, id.Category, newSubs));
+        }
+        return result;
     }
 
     // ── LITERALS ──
