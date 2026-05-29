@@ -118,7 +118,9 @@ internal sealed class DataMovementLowerer
 
         foreach (var t in mv.Targets)
         {
-            var destLoc = _ctx.Location.ResolveExpressionLocation(t);
+            // MOVE target is a receiving operand: an ODO group whose DEPENDING ON object is
+            // within it uses its maximum length (ISO OCCURS GR 7) so every occurrence is written.
+            var destLoc = _ctx.Location.ResolveExpressionLocation(t, receiving: true);
             if (destLoc == null) continue;
 
             if (mv.Source is BoundFigurativeExpression fig)

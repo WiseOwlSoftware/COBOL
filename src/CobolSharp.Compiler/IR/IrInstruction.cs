@@ -861,6 +861,33 @@ public sealed class IrRefModLocation : IrLocation
 }
 
 /// <summary>
+/// A whole-item reference to a group (or table) whose length varies at runtime
+/// because it contains a trailing OCCURS DEPENDING ON table. The effective byte
+/// length is computed at runtime as:
+///   length = maxLength - (maxOccurs - dependingOnValue) * elementSize
+/// (equivalently fixedPart + dependingOnValue * elementSize for a trailing ODO),
+/// where maxLength is the compile-time layout size. Used wherever such a group is
+/// an operand of a group MOVE, comparison, INSPECT, STRING, or UNSTRING so the
+/// inactive trailing occurrences are excluded (ISO 1989:1985 13.18.36.3).
+/// </summary>
+public sealed class IrOdoGroupLocation : IrLocation
+{
+    public CodeGen.StorageLocation Base { get; }   // compile-time max-length location
+    public int MaxOccurs { get; }
+    public int ElementSize { get; }
+    public IrLocation DependingOnLocation { get; }  // numeric field holding the active count
+
+    public IrOdoGroupLocation(CodeGen.StorageLocation @base, int maxOccurs, int elementSize,
+        IrLocation dependingOnLocation)
+    {
+        Base = @base;
+        MaxOccurs = maxOccurs;
+        ElementSize = elementSize;
+        DependingOnLocation = dependingOnLocation;
+    }
+}
+
+/// <summary>
 /// Wraps an IrLocation with a cache key so that the CIL emitter computes
 /// (area, offset, length) once into locals and reuses them on subsequent
 /// encounters with the same key.  Used by MOVE when the source has subscripts

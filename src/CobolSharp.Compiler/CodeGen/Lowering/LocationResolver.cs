@@ -25,14 +25,14 @@ internal sealed class LocationResolver
     /// Supports 1D, 2D, and 3D OCCURS (COBOL-85 max 3 dimensions).
     /// Returns null only if the symbol has no registered storage location.
     /// </summary>
-    public IrLocation? ResolveLocation(BoundIdentifierExpression id)
+    public IrLocation? ResolveLocation(BoundIdentifierExpression id, bool receiving = false)
     {
         var baseLoc = _ctx.Semantic.GetStorageLocation(id.Symbol);
         if (!baseLoc.HasValue) return null;
 
-        // Non-subscripted: static location
+        // Non-subscripted: whole-item reference (static, or ODO-variable-length group).
         if (!id.IsSubscripted)
-            return new IrStaticLocation(baseLoc.Value);
+            return ResolveWholeItem(id.Symbol, baseLoc.Value, receiving);
 
         // Collect OCCURS dimension info by walking the symbol tree
         // from the item upward, collecting each OCCURS level
@@ -126,11 +126,73 @@ internal sealed class LocationResolver
     /// Used for record buffers, file status variables, INITIALIZE items,
     /// PERFORM VARYING index, and condition parents.
     /// </summary>
-    public IrLocation? ResolveLocation(DataSymbol sym)
+    public IrLocation? ResolveLocation(DataSymbol sym, bool receiving = false)
     {
         var loc = _ctx.Semantic.GetStorageLocation(sym);
         if (!loc.HasValue) return null;
-        return new IrStaticLocation(loc.Value);
+        return ResolveWholeItem(sym, loc.Value, receiving);
+    }
+
+    /// <summary>
+    /// Resolve a whole-item (non-subscripted) reference. If the item contains a trailing
+    /// OCCURS DEPENDING ON table, return an IrOdoGroupLocation so the effective byte length
+    /// is computed at runtime from the DEPENDING ON value; otherwise a plain IrStaticLocation.
+    ///
+    /// ISO 1989:1985 OCCURS clause GR 7: when the DEPENDING ON object is within the group,
+    /// a SENDING operand uses the current value but a RECEIVING operand uses the MAXIMUM
+    /// length (so all occurrences are written). When the DEPENDING ON object is outside the
+    /// group, the current value is used regardless of direction.
+    /// </summary>
+    private IrLocation ResolveWholeItem(DataSymbol sym, StorageLocation loc, bool receiving)
+    {
+        // Runtime length is only computed for areas backed by a contiguous byte[] we can
+        // re-slice (WORKING-STORAGE, LOCAL-STORAGE, FILE SECTION). LINKAGE keeps the
+        // compile-time layout length.
+        bool sliceable = loc.Area is StorageAreaKind.WorkingStorage
+            or StorageAreaKind.LocalStorage or StorageAreaKind.FileSection;
+
+        if (sliceable && FindDependingOnArray(sym) is { } odo
+            && odo.Occurs?.DependingOnSymbol is { } dependOn
+            && odo.ElementSize > 0)
+        {
+            bool dependOnInside = IsDescendant(sym, dependOn);
+            if (!(receiving && dependOnInside))
+            {
+                var dependOnLoc = ResolveLocation(dependOn);
+                if (dependOnLoc != null)
+                    return new IrOdoGroupLocation(loc, odo.Occurs.MaxOccurs, odo.ElementSize, dependOnLoc);
+            }
+        }
+
+        return new IrStaticLocation(loc);
+    }
+
+    /// <summary>True if <paramref name="node"/> is subordinate to <paramref name="ancestor"/>.</summary>
+    private static bool IsDescendant(DataSymbol ancestor, DataSymbol node)
+    {
+        for (var p = node.Parent; p != null; p = p.Parent)
+            if (ReferenceEquals(p, ancestor)) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Find the trailing OCCURS DEPENDING ON table at or beneath <paramref name="sym"/>.
+    /// Children are scanned last-first so the trailing (variable-length) table is found.
+    /// Returns null if there is no DEPENDING ON table in the subtree.
+    /// </summary>
+    private static DataSymbol? FindDependingOnArray(DataSymbol sym)
+    {
+        if (sym.Occurs?.DependingOnSymbol != null)
+            return sym;
+
+        for (int i = sym.Children.Count - 1; i >= 0; i--)
+        {
+            var child = sym.Children[i];
+            if (child.LevelNumber == 66 || child.Redefines != null) continue;
+            if (FindDependingOnArray(child) is { } found)
+                return found;
+        }
+        return null;
     }
 
     /// <summary>
@@ -138,11 +200,11 @@ internal sealed class LocationResolver
     /// Handles BoundIdentifierExpression (with subscripts) and
     /// BoundReferenceModificationExpression (subscripts + substring).
     /// </summary>
-    public IrLocation? ResolveExpressionLocation(BoundExpression expr)
+    public IrLocation? ResolveExpressionLocation(BoundExpression expr, bool receiving = false)
     {
         return expr switch
         {
-            BoundIdentifierExpression id => ResolveLocation(id),
+            BoundIdentifierExpression id => ResolveLocation(id, receiving),
             BoundReferenceModificationExpression refMod => ResolveRefModLocation(refMod),
             _ => null
         };

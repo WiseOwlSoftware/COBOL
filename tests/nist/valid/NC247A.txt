@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF NC247A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OCCURS DEPENDING ON  PASS  IF-TEST-GF-1                  9 ACTIVE: 123456789
+ OCCURS DEPENDING ON  PASS  IF-TEST-GF-2                  9 ACTIVE: 123456789
+ OCCURS DEPENDING ON  PASS  INS-TEST-F1-1                 9 ACTIVE: 123456789
+ OCCURS DEPENDING ON  PASS  INS-TEST-F1-2                 3 ACTIVE: 123
+ OCCURS DEPENDING ON  PASS  MOV-TEST-F1-1                 FULL ODO + BASE SEGMENT SOURCE
+ OCCURS DEPENDING ON  PASS  MOV-TEST-F1-2                 PART ODO + BASE SEGMENT SOURCE
+ OCCURS DEPENDING ON  PASS  MOV-TEST-F1-3                 FULL ODO +BASE SEG RECEIVING
+ OCCURS DEPENDING ON  PASS  MOV-TEST-F1-4                 PART ODO + BASE SEG RECEIVING
+ OCCURS DEPENDING ON  ***** MOV-TEST-F1-5                 ****TEST DELETED****
+ OCCURS DEPENDING ON  PASS  MOV-TEST-F1-6
+ OCCURS DEPENDING ON  PASS  SCH-TEST-F1-1                 SEARCH FULL ODO TABLE
+ OCCURS DEPENDING ON  PASS  SCH-TEST-F1-2                 SEARCH PARTIAL ODO TABLE
+ OCCURS DEPENDING ON  PASS  SCH-TEST-F2-3                 SEARCH ALL FULL ODO TABLE
+ OCCURS DEPENDING ON  PASS  SCH-TEST-4                    SEARCH ALL PARTIAL ODO TABLE
+ OCCURS DEPENDING ON  PASS  STR-TEST-GF-1                 STRING FULL ODO AND LITERAL
+ OCCURS DEPENDING ON  PASS  STR-TEST-GF-2                 STRING PARTIAL ODO AND LITERAL
+ OCCURS DEPENDING ON  PASS  STR-TEST-GF-3                 STRING LITERAL AND PARTIAL ODO
+ OCCURS DEPENDING ON  PASS  STR-TEST-GF-4                 PARTIAL ODO/UNNEEDED OVERFLOW
+ OCCURS DEPENDING ON  PASS  UST-TEST-GF-1                 UNSTRING FULL ODO
+ OCCURS DEPENDING ON  PASS  UST-TEST-GF-2                 UNSTRING PARTIAL ODO
+ OCCURS DEPENDING ON  PASS  UST-TEST-GF-3                 UNSTRING DELIMITED PARTIAL ODO
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  NC247A
+
+                                                    020 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    001 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

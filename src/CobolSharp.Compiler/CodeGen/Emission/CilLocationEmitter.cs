@@ -52,6 +52,10 @@ internal sealed class CilLocationEmitter
                 il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
                 break;
 
+            case IR.IrOdoGroupLocation o:
+                EmitOdoGroupLocationArgs(il, o);
+                break;
+
             case IR.IrElementRef e:
                 EmitElementAddress(il, e);
                 il.Append(il.Create(OpCodes.Ldc_I4, e.ElementSize));
@@ -152,6 +156,34 @@ internal sealed class CilLocationEmitter
         }
 
         // Stack: [area, effectiveOffset]
+    }
+
+    /// <summary>
+    /// Push (area, offset, runtimeLength) for an ODO-variable-length group/table.
+    /// runtimeLength = (maxLength - maxOccurs*elementSize) + dependingOnValue*elementSize,
+    /// i.e. the compile-time layout size with the inactive trailing occurrences removed.
+    /// </summary>
+    internal void EmitOdoGroupLocationArgs(ILProcessor il, IR.IrOdoGroupLocation o)
+    {
+        EmitLoadBackingArrayOrExternal(il, o.Base.Area, o.Base.Offset, out var adjOffset);
+        il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
+
+        // Fixed (non-ODO) part of the length, known at compile time.
+        int fixedPart = o.Base.Length - o.MaxOccurs * o.ElementSize;
+        il.Append(il.Create(OpCodes.Ldc_I4, fixedPart));
+
+        // + dependingOnValue * elementSize, read at runtime.
+        EmitLocationArgsWithPic(il, o.DependingOnLocation);
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+        il.Append(il.Create(OpCodes.Ldc_I4, o.ElementSize));
+        il.Append(il.Create(OpCodes.Mul));
+        il.Append(il.Create(OpCodes.Add));
+
+        // Stack: [area, offset, runtimeLength]
     }
 
     /// <summary>

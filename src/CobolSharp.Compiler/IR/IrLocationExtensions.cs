@@ -19,6 +19,7 @@ public static class IrLocationExtensions
         {
             IrCachedLocation c => c.Inner.GetPic(),
             IrStaticLocation s => s.Location.Pic,
+            IrOdoGroupLocation o => o.Base.Pic,
             IrElementRef e => e.ElementPic,
             IrRefModLocation r => r.Base.GetPic(),
             _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
