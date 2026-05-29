@@ -255,12 +255,14 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             string libraryName = ReadWord(text, ref afterCopy);
             SkipWhitespace(text, ref afterCopy);
 
-            // Optional library qualifier: COPY text-name (IN | OF) library-name.
+            // Optional library qualifier: COPY text-name (IN | OF) library-name. The library
+            // name selects which copy library the text-name is taken from (ISO §7.4.2).
+            string? libraryQualifier = null;
             if (afterCopy < text.Length && (MatchWord(text, afterCopy, "IN") || MatchWord(text, afterCopy, "OF")))
             {
                 afterCopy += 2;
                 SkipWhitespace(text, ref afterCopy);
-                ReadWord(text, ref afterCopy); // library-name — we search all paths regardless
+                libraryQualifier = ReadWord(text, ref afterCopy);
                 SkipWhitespace(text, ref afterCopy);
             }
 
@@ -276,7 +278,7 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
                 afterCopy++;
             if (afterCopy < text.Length) afterCopy++;
 
-            string? copybookPath = FindCopybook(libraryName);
+            string? copybookPath = FindCopybook(libraryName, libraryQualifier);
             if (copybookPath != null && alreadyIncluded.Add(copybookPath))
             {
                 // Library text is itself in reference (fixed) format — normalize it to free
@@ -554,13 +556,32 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
         return text[start..pos];
     }
 
-    private string? FindCopybook(string libraryName)
+    private string? FindCopybook(string textName, string? libraryName = null)
     {
+        // COPY text-name OF/IN library-name selects the copy library (ISO §7.4.2). A library
+        // name is resolved to a same-named subdirectory of a search path, so the same text-name
+        // can resolve to different text in different libraries. If the qualified library has no
+        // such member, fall back to the unqualified search (a single default library).
+        if (!string.IsNullOrEmpty(libraryName))
+        {
+            foreach (var searchPath in _searchPaths)
+            {
+                string libDir = Path.Combine(searchPath, libraryName);
+                if (!Directory.Exists(libDir)) continue;
+                foreach (var ext in CopybookExtensions)
+                {
+                    string fullPath = Path.Combine(libDir, textName + ext);
+                    if (File.Exists(fullPath))
+                        return fullPath;
+                }
+            }
+        }
+
         foreach (var searchPath in _searchPaths)
         {
             foreach (var ext in CopybookExtensions)
             {
-                string fullPath = Path.Combine(searchPath, libraryName + ext);
+                string fullPath = Path.Combine(searchPath, textName + ext);
                 if (File.Exists(fullPath))
                     return fullPath;
             }
