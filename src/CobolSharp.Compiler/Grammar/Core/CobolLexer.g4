@@ -550,6 +550,10 @@ SIGNED_INTEGERLIT   : [+-] [0-9]+ ;
 SUB_INTEGERLIT      : [0-9]+ ;
 SUB_DECIMALLIT      : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 
+// Alphanumeric literal — needed for string-valued intrinsic-function arguments,
+// e.g. FUNCTION LOWER-CASE("ABC"), FUNCTION NUMVAL("12.3"). Mirrors STRINGLIT.
+SUB_STRINGLIT       : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\'' ;
+
 // Data-name / index-name (must follow keywords to avoid capturing OF/IN/ALL)
 SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* | [a-z] [a-z0-9-]* [a-z0-9] | [a-z] ;
 

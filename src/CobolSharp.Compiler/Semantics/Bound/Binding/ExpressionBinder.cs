@@ -834,6 +834,17 @@ internal sealed class ExpressionBinder
                 CobolCategory.Numeric);
         }
 
+        // Alphanumeric literal argument (e.g. FUNCTION LOWER-CASE("ABC")).
+        if (tok.Type == CobolParserCore.SUB_STRINGLIT)
+        {
+            pos++;
+            string text = tok.Text;
+            string value = text.Length >= 2
+                ? text[1..^1].Replace(new string(text[0], 2), new string(text[0], 1))
+                : text;
+            return new BoundLiteralExpression(value, CobolCategory.Alphanumeric);
+        }
+
         if (tok.Type == CobolParserCore.SUB_IDENTIFIER)
         {
             // Nested intrinsic-function call as an argument, e.g. ACOS(FUNCTION ACOS(D / D)).
