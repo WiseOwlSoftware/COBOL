@@ -232,11 +232,10 @@ public static class SymbolValidator
                 diagnostics.Report(DiagnosticDescriptors.CBL3110, loc, span, data.DisplayName);
             }
 
-            // REDEFINES not allowed in LINKAGE SECTION 01-level items
-            if (data.Redefines != null && data.LevelNumber == 1)
-            {
-                diagnostics.Report(DiagnosticDescriptors.CBL3111, loc, span, data.DisplayName);
-            }
+            // REDEFINES IS permitted in the LINKAGE SECTION (ISO §13.18.44 lists no
+            // section/level restriction for it), including 01-level entries — a data item may
+            // redefine another at the same level. NIST IC237A exercises this. (Previously this
+            // was incorrectly flagged as an error.)
         }
     }
 

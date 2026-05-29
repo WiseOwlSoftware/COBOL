@@ -68,8 +68,16 @@ fileDescriptionClause
     | labelRecordsClause
     | dataRecordsClause
     | valueOfClause
+    | fileGlobalExternalClause
     | linageClause
     | genericFileDescriptionClause
+    ;
+
+// IS GLOBAL / IS EXTERNAL on an FD (§13.18.30/§13.18.23): GLOBAL makes the file-name and
+// record visible to contained programs; EXTERNAL shares the file across the run unit.
+// Parsed here; GLOBAL visibility is handled by nested-program name resolution.
+fileGlobalExternalClause
+    : IS? (GLOBAL | EXTERNAL)
     ;
 
 // BLOCK CONTAINS clause (§13.18.10)

@@ -423,8 +423,10 @@ public class SymbolValidatorTests : DiagnosticTestBase
     }
 
     [Fact]
-    public void CBL3111_LinkageRedefinesOn01()
+    public void LinkageRedefinesOn01_IsAllowed()
     {
+        // REDEFINES is permitted in the LINKAGE SECTION, including 01-level entries
+        // (ISO §13.18.44 imposes no such section/level restriction). NIST IC237A relies on it.
         var source = @"
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TESTPROG.
@@ -437,7 +439,7 @@ public class SymbolValidatorTests : DiagnosticTestBase
            STOP RUN.
 ";
         var diags = GetDiagnostics(source);
-        AssertHasDiagnostic(diags, "CBL3111");
+        AssertNoDiagnostic(diags, "CBL3111");
     }
 
     // ═══════════════════════════════════════════════════════════════

@@ -153,6 +153,7 @@ closeOption
 readStatement
     : READ (fileName | FILE fileName)
       readDirection?
+      RECORD?
       readInto?
       readKey?
       readAtEnd?
