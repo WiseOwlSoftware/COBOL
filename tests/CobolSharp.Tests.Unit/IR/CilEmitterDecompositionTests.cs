@@ -188,7 +188,7 @@ public class CilEmitterDecompositionTests
             "EmitPicCompare", "EmitPicAdd", "EmitMoveFieldToField",
             "EmitStringStatement", "EmitUnstringStatement",
             "EmitWriteRecordFromStorage", "EmitReadRecordToStorage",
-            "EmitSortInit", "EmitInspectTally", "EmitAccept",
+            "EmitSortInit", "EmitInspectTallying", "EmitAccept",
             "EmitPicDisplay", "EmitMoveFigurative"
         };
         var cilMethods = typeof(CilEmitter).GetMethods(
@@ -348,8 +348,8 @@ public class CilEmitterDecompositionTests
     [Theory]
     [InlineData("EmitStringStatement")]
     [InlineData("EmitUnstringStatement")]
-    [InlineData("EmitInspectTally")]
-    [InlineData("EmitInspectReplace")]
+    [InlineData("EmitInspectTallying")]
+    [InlineData("EmitInspectReplacing")]
     [InlineData("EmitInspectConvert")]
     [InlineData("EmitIrInspectPatternValue")]
     [InlineData("EmitIrInspectPatternValueAsOptionalString")]

@@ -936,48 +936,68 @@ public sealed class IrInspectPatternValue
     public static IrInspectPatternValue FromLocation(IrLocation loc) => new(null, loc);
 }
 
-public sealed class IrInspectTally : IrInstruction
+/// <summary>One TALLYING operand: counter, kind, pattern, and BEFORE/AFTER region delimiters.</summary>
+public sealed class IrInspectTallyOp
 {
-    public IrLocation Target { get; }
     public IrLocation Counter { get; }
     public InspectTallyKind Kind { get; }
-    public IrInspectPatternValue? Pattern { get; }
+    public IrInspectPatternValue? Pattern { get; }       // null for CHARACTERS
     public IrInspectPatternValue? BeforePattern { get; }
-    public bool BeforeInitial { get; }
     public IrInspectPatternValue? AfterPattern { get; }
-    public bool AfterInitial { get; }
 
-    public IrInspectTally(IrLocation target, IrLocation counter,
-        InspectTallyKind kind, IrInspectPatternValue? pattern,
-        IrInspectPatternValue? beforePattern, bool beforeInitial,
-        IrInspectPatternValue? afterPattern, bool afterInitial)
+    public IrInspectTallyOp(IrLocation counter, InspectTallyKind kind, IrInspectPatternValue? pattern,
+        IrInspectPatternValue? beforePattern, IrInspectPatternValue? afterPattern)
     {
-        Target = target; Counter = counter; Kind = kind; Pattern = pattern;
-        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
-        AfterPattern = afterPattern; AfterInitial = afterInitial;
+        Counter = counter; Kind = kind; Pattern = pattern;
+        BeforePattern = beforePattern; AfterPattern = afterPattern;
     }
 }
 
-public sealed class IrInspectReplace : IrInstruction
+/// <summary>
+/// All TALLYING operands of a single INSPECT statement, executed as one comparison cycle
+/// (ISO 6.17.3 GR 8). Operands are tried in source order at each position; first match wins.
+/// </summary>
+public sealed class IrInspectTallying : IrInstruction
 {
     public IrLocation Target { get; }
+    public IReadOnlyList<IrInspectTallyOp> Ops { get; }
+
+    public IrInspectTallying(IrLocation target, IReadOnlyList<IrInspectTallyOp> ops)
+    {
+        Target = target; Ops = ops;
+    }
+}
+
+/// <summary>One REPLACING operand: kind, pattern, replacement, and BEFORE/AFTER region delimiters.</summary>
+public sealed class IrInspectReplaceOp
+{
     public InspectReplaceKind Kind { get; }
-    public IrInspectPatternValue Pattern { get; }
+    public IrInspectPatternValue? Pattern { get; }       // null for CHARACTERS
     public IrInspectPatternValue Replacement { get; }
     public IrInspectPatternValue? BeforePattern { get; }
-    public bool BeforeInitial { get; }
     public IrInspectPatternValue? AfterPattern { get; }
-    public bool AfterInitial { get; }
 
-    public IrInspectReplace(IrLocation target,
-        InspectReplaceKind kind,
-        IrInspectPatternValue pattern, IrInspectPatternValue replacement,
-        IrInspectPatternValue? beforePattern, bool beforeInitial,
-        IrInspectPatternValue? afterPattern, bool afterInitial)
+    public IrInspectReplaceOp(InspectReplaceKind kind, IrInspectPatternValue? pattern,
+        IrInspectPatternValue replacement,
+        IrInspectPatternValue? beforePattern, IrInspectPatternValue? afterPattern)
     {
-        Target = target; Kind = kind; Pattern = pattern; Replacement = replacement;
-        BeforePattern = beforePattern; BeforeInitial = beforeInitial;
-        AfterPattern = afterPattern; AfterInitial = afterInitial;
+        Kind = kind; Pattern = pattern; Replacement = replacement;
+        BeforePattern = beforePattern; AfterPattern = afterPattern;
+    }
+}
+
+/// <summary>
+/// All REPLACING operands of a single INSPECT statement, executed as one comparison cycle
+/// (ISO 6.17.3 GR 8). Operands are tried in source order at each position; first match wins.
+/// </summary>
+public sealed class IrInspectReplacing : IrInstruction
+{
+    public IrLocation Target { get; }
+    public IReadOnlyList<IrInspectReplaceOp> Ops { get; }
+
+    public IrInspectReplacing(IrLocation target, IReadOnlyList<IrInspectReplaceOp> ops)
+    {
+        Target = target; Ops = ops;
     }
 }
 

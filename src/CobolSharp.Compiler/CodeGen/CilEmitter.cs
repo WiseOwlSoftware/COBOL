@@ -890,8 +890,8 @@ public sealed class CilEmitter
             // ── String operations ──
             case IrStringStatement strStmt: _ctx.String.EmitStringStatement(il, strStmt, getLocal); break;
             case IrUnstringStatement unstrStmt: _ctx.String.EmitUnstringStatement(il, unstrStmt, getLocal); break;
-            case IrInspectTally it: _ctx.String.EmitInspectTally(il, it); break;
-            case IrInspectReplace ir: _ctx.String.EmitInspectReplace(il, ir); break;
+            case IrInspectTallying it: _ctx.String.EmitInspectTallying(il, it); break;
+            case IrInspectReplacing ir: _ctx.String.EmitInspectReplacing(il, ir); break;
             case IrInspectConvert ic: _ctx.String.EmitInspectConvert(il, ic); break;
 
             // ── File I/O ──

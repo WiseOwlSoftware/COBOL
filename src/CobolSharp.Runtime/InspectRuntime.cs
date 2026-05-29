@@ -7,16 +7,30 @@ namespace CobolSharp.Runtime;
 /// <summary>
 /// Runtime helpers for INSPECT TALLYING, REPLACING, and CONVERTING.
 /// All methods operate on a byte[] storage area as ASCII text.
+///
+/// TALLYING and REPLACING each execute as a SINGLE left-to-right comparison cycle
+/// over their ordered operands (ISO/IEC 1989:1985 6.17.3, General Rules 8–9, 12, 17):
+/// at each character position the operands are tried in source order; the first that
+/// matches tallies/replaces, the position advances past the matched characters, and the
+/// cycle restarts from the first operand. CHARACTERS always matches the current single
+/// character; LEADING/FIRST carry per-operand eligibility that terminates once their
+/// contiguous run (LEADING) or single match (FIRST) is consumed. This shared cycle is
+/// why, e.g., "ALL A" preceding "LEADING AH" leaves the latter with a count of zero —
+/// the leading 'A' is consumed by the earlier operand before LEADING is ever tried.
 /// </summary>
 public static class InspectRuntime
 {
+    // Operand-kind ordinals shared with the IR enums (InspectTallyKind / InspectReplaceKind).
+    private const int TallyAll = 0, TallyLeading = 1, TallyCharacters = 2;
+    private const int ReplaceAll = 0, ReplaceFirst = 1, ReplaceLeading = 2, ReplaceCharacters = 3;
+
     /// <summary>
     /// Compute the scan region [start, end) within the field, applying BEFORE/AFTER delimiters.
     /// </summary>
     private static (int start, int end) ComputeRegion(
         string text,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+        string? beforePattern,
+        string? afterPattern)
     {
         int start = 0;
         int end = text.Length;
@@ -24,19 +38,14 @@ public static class InspectRuntime
         if (afterPattern != null && afterPattern.Length > 0)
         {
             int idx = text.IndexOf(afterPattern, StringComparison.Ordinal);
-            if (idx >= 0)
-                start = idx + afterPattern.Length;
-            else
-                start = end; // AFTER pattern not found: empty region
+            start = idx >= 0 ? idx + afterPattern.Length : end; // not found: empty region
         }
 
         if (beforePattern != null && beforePattern.Length > 0)
         {
-            int searchFrom = start;
-            int idx = text.IndexOf(beforePattern, searchFrom, StringComparison.Ordinal);
-            if (idx >= 0)
-                end = idx;
-            // If not found, end stays at text.Length (entire remainder)
+            int idx = text.IndexOf(beforePattern, start, StringComparison.Ordinal);
+            if (idx >= 0) end = idx;
+            // not found: end stays at text.Length (entire remainder)
         }
 
         if (start > end) start = end;
@@ -46,233 +55,193 @@ public static class InspectRuntime
     // ── TALLYING ──
 
     /// <summary>
-    /// INSPECT target TALLYING counter FOR ALL pattern [BEFORE/AFTER].
-    /// Counts occurrences and adds the count to the counter field.
+    /// Execute one TALLYING comparison cycle over the ordered operands and return the
+    /// per-operand match counts (parallel to the input arrays). The caller adds each
+    /// count to its counter field. <paramref name="kinds"/> uses TallyAll/Leading/Characters.
     /// </summary>
-    public static void TallyAllAndStore(
-        byte[] targetArea, int targetOffset, int targetLength,
-        string pattern,
-        byte[] counterArea, int counterOffset, int counterLength, PicDescriptor counterPic,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        int count = TallyAll(targetArea, targetOffset, targetLength, pattern,
-            beforePattern, beforeInitial, afterPattern, afterInitial);
-        if (count > 0)
-            AddToCounter(counterArea, counterOffset, counterLength, counterPic, count);
-    }
-
-    /// <summary>
-    /// INSPECT target TALLYING counter FOR LEADING pattern [BEFORE/AFTER].
-    /// </summary>
-    public static void TallyLeadingAndStore(
-        byte[] targetArea, int targetOffset, int targetLength,
-        string pattern,
-        byte[] counterArea, int counterOffset, int counterLength, PicDescriptor counterPic,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        int count = TallyLeading(targetArea, targetOffset, targetLength, pattern,
-            beforePattern, beforeInitial, afterPattern, afterInitial);
-        if (count > 0)
-            AddToCounter(counterArea, counterOffset, counterLength, counterPic, count);
-    }
-
-    /// <summary>
-    /// INSPECT target TALLYING counter FOR CHARACTERS [BEFORE/AFTER].
-    /// </summary>
-    public static void TallyCharactersAndStore(
-        byte[] targetArea, int targetOffset, int targetLength,
-        byte[] counterArea, int counterOffset, int counterLength, PicDescriptor counterPic,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        int count = TallyCharacters(targetArea, targetOffset, targetLength,
-            beforePattern, beforeInitial, afterPattern, afterInitial);
-        if (count > 0)
-            AddToCounter(counterArea, counterOffset, counterLength, counterPic, count);
-    }
-
-    private static void AddToCounter(byte[] area, int offset, int length, PicDescriptor pic, int count)
-    {
-        decimal current = PicRuntime.DecodeNumeric(area, offset, length, pic);
-        decimal result = current + count;
-        PicRuntime.EncodeNumeric(area, offset, length, pic, result);
-    }
-
-    /// <summary>
-    /// INSPECT target TALLYING counter FOR ALL pattern [BEFORE/AFTER].
-    /// Returns the count of non-overlapping occurrences in the scan region.
-    /// </summary>
-    public static int TallyAll(
+    public static int[] TallyingPass(
         byte[] area, int offset, int length,
-        string pattern,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+        int[] kinds, string?[] patterns,
+        string?[] befores, string?[] afters)
     {
         string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
+        int n = kinds.Length;
+        var counts = new int[n];
+        var regionStart = new int[n];
+        var regionEnd = new int[n];
+        var live = new bool[n];        // LEADING: run still matchable
+        var expectedPos = new int[n];  // LEADING: position the next contiguous match must occupy (-1 = not yet started)
 
-        if (pattern.Length == 0) return 0;
-
-        int count = 0;
-        int pos = start;
-        while (pos <= end - pattern.Length)
+        for (int k = 0; k < n; k++)
         {
-            int idx = text.IndexOf(pattern, pos, end - pos, StringComparison.Ordinal);
-            if (idx < 0) break;
-            count++;
-            pos = idx + pattern.Length;
+            (regionStart[k], regionEnd[k]) = ComputeRegion(text, befores[k], afters[k]);
+            live[k] = true;
+            expectedPos[k] = -1;
         }
-        return count;
-    }
 
-    /// <summary>
-    /// INSPECT target TALLYING counter FOR LEADING pattern [BEFORE/AFTER].
-    /// Counts consecutive occurrences starting at the beginning of the scan region.
-    /// </summary>
-    public static int TallyLeading(
-        byte[] area, int offset, int length,
-        string pattern,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-
-        if (pattern.Length == 0) return 0;
-
-        int count = 0;
-        int pos = start;
-        while (pos <= end - pattern.Length)
+        int pos = 0;
+        int len = text.Length;
+        while (pos < len)
         {
-            if (text.AsSpan(pos, pattern.Length).SequenceEqual(pattern.AsSpan()))
+            bool matched = false;
+            for (int k = 0; k < n; k++)
             {
-                count++;
-                pos += pattern.Length;
+                bool inRegion = pos >= regionStart[k] && pos < regionEnd[k];
+
+                if (kinds[k] == TallyCharacters)
+                {
+                    if (!inRegion) continue;
+                    counts[k]++;
+                    pos += 1;
+                    matched = true;
+                    break;
+                }
+
+                string pat = patterns[k] ?? "";
+                if (pat.Length == 0) continue;
+                bool fits = inRegion && pos + pat.Length <= regionEnd[k];
+                bool isMatch = fits && text.AsSpan(pos, pat.Length).SequenceEqual(pat.AsSpan());
+
+                if (kinds[k] == TallyLeading)
+                {
+                    if (!live[k]) continue;
+                    if (expectedPos[k] < 0)
+                    {
+                        if (!inRegion) continue;   // not yet at the region: wait, no match
+                        expectedPos[k] = pos;      // first eligible participating cycle
+                    }
+                    if (pos == expectedPos[k] && isMatch)
+                    {
+                        counts[k]++;
+                        pos += pat.Length;
+                        expectedPos[k] = pos;
+                        matched = true;
+                        break;
+                    }
+                    live[k] = false;               // contiguity broken — LEADING run ends
+                    continue;
+                }
+
+                // TallyAll
+                if (isMatch)
+                {
+                    counts[k]++;
+                    pos += pat.Length;
+                    matched = true;
+                    break;
+                }
             }
-            else
-                break;
+            if (!matched) pos += 1;
         }
-        return count;
+        return counts;
     }
 
-    /// <summary>
-    /// INSPECT target TALLYING counter FOR CHARACTERS [BEFORE/AFTER].
-    /// Counts the number of characters in the scan region.
-    /// </summary>
-    public static int TallyCharacters(
-        byte[] area, int offset, int length,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+    /// <summary>Add an integer count into a numeric counter field (TALLYING accumulates).</summary>
+    public static void AddCountToField(byte[] area, int offset, int length, PicDescriptor pic, int count)
     {
-        string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-        return end - start;
+        if (count == 0) return;
+        decimal current = PicRuntime.DecodeNumeric(area, offset, length, pic);
+        PicRuntime.EncodeNumeric(area, offset, length, pic, current + count);
     }
 
     // ── REPLACING ──
 
     /// <summary>
-    /// INSPECT target REPLACING ALL pattern BY replacement [BEFORE/AFTER].
+    /// Execute one REPLACING comparison cycle over the ordered operands, modifying the
+    /// field in place. <paramref name="kinds"/> uses ReplaceAll/First/Leading/Characters.
+    /// ALL/FIRST/LEADING replacements are equal-length with their pattern; CHARACTERS uses
+    /// the first character of its replacement. Regions are fixed before the scan begins.
     /// </summary>
-    public static void ReplaceAll(
+    public static void ReplacingPass(
         byte[] area, int offset, int length,
-        string pattern, string replacement,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+        int[] kinds, string?[] patterns, string?[] replacements,
+        string?[] befores, string?[] afters)
     {
         string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-
-        if (pattern.Length == 0 || pattern.Length != replacement.Length) return;
-
+        int n = kinds.Length;
         var chars = text.ToCharArray();
-        int pos = start;
-        while (pos <= end - pattern.Length)
+        var regionStart = new int[n];
+        var regionEnd = new int[n];
+        var live = new bool[n];        // FIRST/LEADING: still eligible
+        var expectedPos = new int[n];  // LEADING: contiguous match position (-1 = not started)
+
+        for (int k = 0; k < n; k++)
         {
-            int idx = text.IndexOf(pattern, pos, end - pos, StringComparison.Ordinal);
-            if (idx < 0) break;
-            replacement.CopyTo(0, chars, idx, replacement.Length);
-            pos = idx + pattern.Length;
+            (regionStart[k], regionEnd[k]) = ComputeRegion(text, befores[k], afters[k]);
+            live[k] = true;
+            expectedPos[k] = -1;
         }
 
-        // Write back
-        byte[] result = Encoding.ASCII.GetBytes(chars);
-        Array.Copy(result, 0, area, offset, length);
-    }
-
-    /// <summary>
-    /// INSPECT target REPLACING FIRST pattern BY replacement [BEFORE/AFTER].
-    /// </summary>
-    public static void ReplaceFirst(
-        byte[] area, int offset, int length,
-        string pattern, string replacement,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-
-        if (pattern.Length == 0 || pattern.Length != replacement.Length) return;
-
-        int idx = text.IndexOf(pattern, start, end - start, StringComparison.Ordinal);
-        if (idx < 0) return;
-
-        var chars = text.ToCharArray();
-        replacement.CopyTo(0, chars, idx, replacement.Length);
-        byte[] result = Encoding.ASCII.GetBytes(chars);
-        Array.Copy(result, 0, area, offset, length);
-    }
-
-    /// <summary>
-    /// INSPECT target REPLACING LEADING pattern BY replacement [BEFORE/AFTER].
-    /// </summary>
-    public static void ReplaceLeading(
-        byte[] area, int offset, int length,
-        string pattern, string replacement,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-
-        if (pattern.Length == 0 || pattern.Length != replacement.Length) return;
-
-        var chars = text.ToCharArray();
-        int pos = start;
-        while (pos <= end - pattern.Length)
+        int pos = 0;
+        int len = text.Length;
+        while (pos < len)
         {
-            if (text.AsSpan(pos, pattern.Length).SequenceEqual(pattern.AsSpan()))
+            bool matched = false;
+            for (int k = 0; k < n; k++)
             {
-                replacement.CopyTo(0, chars, pos, replacement.Length);
-                pos += pattern.Length;
+                bool inRegion = pos >= regionStart[k] && pos < regionEnd[k];
+
+                if (kinds[k] == ReplaceCharacters)
+                {
+                    if (!inRegion) continue;
+                    string rep = replacements[k] ?? " ";
+                    chars[pos] = rep.Length > 0 ? rep[0] : ' ';
+                    pos += 1;
+                    matched = true;
+                    break;
+                }
+
+                string pat = patterns[k] ?? "";
+                string repl = replacements[k] ?? "";
+                if (pat.Length == 0 || pat.Length != repl.Length) continue;
+                bool fits = inRegion && pos + pat.Length <= regionEnd[k];
+                bool isMatch = fits && text.AsSpan(pos, pat.Length).SequenceEqual(pat.AsSpan());
+
+                if (kinds[k] == ReplaceFirst)
+                {
+                    if (!live[k]) continue;
+                    if (isMatch)
+                    {
+                        repl.CopyTo(0, chars, pos, repl.Length);
+                        live[k] = false;          // only the first occurrence
+                        pos += pat.Length;
+                        matched = true;
+                        break;
+                    }
+                    continue;
+                }
+
+                if (kinds[k] == ReplaceLeading)
+                {
+                    if (!live[k]) continue;
+                    if (expectedPos[k] < 0)
+                    {
+                        if (!inRegion) continue;
+                        expectedPos[k] = pos;
+                    }
+                    if (pos == expectedPos[k] && isMatch)
+                    {
+                        repl.CopyTo(0, chars, pos, repl.Length);
+                        pos += pat.Length;
+                        expectedPos[k] = pos;
+                        matched = true;
+                        break;
+                    }
+                    live[k] = false;
+                    continue;
+                }
+
+                // ReplaceAll
+                if (isMatch)
+                {
+                    repl.CopyTo(0, chars, pos, repl.Length);
+                    pos += pat.Length;
+                    matched = true;
+                    break;
+                }
             }
-            else
-                break;
+            if (!matched) pos += 1;
         }
-
-        byte[] result = Encoding.ASCII.GetBytes(chars);
-        Array.Copy(result, 0, area, offset, length);
-    }
-
-    /// <summary>
-    /// INSPECT target REPLACING CHARACTERS BY replacement [BEFORE/AFTER].
-    /// Replaces every character in the scan region with the replacement character.
-    /// </summary>
-    public static void ReplaceCharacters(
-        byte[] area, int offset, int length,
-        string replacement,
-        string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
-    {
-        string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
-
-        char replChar = replacement.Length > 0 ? replacement[0] : ' ';
-        var chars = text.ToCharArray();
-        for (int i = start; i < end; i++)
-            chars[i] = replChar;
 
         byte[] result = Encoding.ASCII.GetBytes(chars);
         Array.Copy(result, 0, area, offset, length);
@@ -292,7 +261,7 @@ public static class InspectRuntime
         string? afterPattern, bool afterInitial)
     {
         string text = Encoding.ASCII.GetString(area, offset, length);
-        var (start, end) = ComputeRegion(text, beforePattern, beforeInitial, afterPattern, afterInitial);
+        var (start, end) = ComputeRegion(text, beforePattern, afterPattern);
 
         int mapLen = Math.Min(fromSet.Length, toSet.Length);
         var chars = text.ToCharArray();

@@ -395,95 +395,106 @@ internal sealed class CilStringEmitter
         il.Append(il.Create(OpCodes.Stloc, resultLocal));
     }
 
-    internal void EmitInspectTally(ILProcessor il, IrInspectTally it)
+    internal void EmitInspectTallying(ILProcessor il, IrInspectTallying inspect)
     {
-        // Target area/offset/length
-        _ctx.Location.EmitLocationArgs(il, it.Target);
+        int n = inspect.Ops.Count;
 
-        string methodName;
+        // Marshal the operands into parallel arrays for a single comparison cycle.
+        var kinds = EmitInspectIntArray(il, n, i => (int)inspect.Ops[i].Kind);
+        var patterns = EmitInspectStringArray(il, n, i => inspect.Ops[i].Pattern);
+        var befores = EmitInspectStringArray(il, n, i => inspect.Ops[i].BeforePattern);
+        var afters = EmitInspectStringArray(il, n, i => inspect.Ops[i].AfterPattern);
 
-        if (it.Kind == IR.InspectTallyKind.Characters)
+        // counts = InspectRuntime.TallyingPass(area, offset, length, kinds, patterns, befores, afters)
+        var counts = new VariableDefinition(_ctx.Module.ImportReference(typeof(int[])));
+        _ctx.CurrentMethodDef!.Body.Variables.Add(counts);
+        _ctx.Location.EmitLocationArgs(il, inspect.Target);
+        il.Append(il.Create(OpCodes.Ldloc, kinds));
+        il.Append(il.Create(OpCodes.Ldloc, patterns));
+        il.Append(il.Create(OpCodes.Ldloc, befores));
+        il.Append(il.Create(OpCodes.Ldloc, afters));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod("TallyingPass",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
+        il.Append(il.Create(OpCodes.Stloc, counts));
+
+        // Add each operand's count into its counter field.
+        var addMethod = _ctx.Module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod("AddCountToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor), typeof(int) })!);
+        for (int i = 0; i < n; i++)
         {
-            methodName = "TallyCharactersAndStore";
+            _ctx.Location.EmitLocationArgsWithPic(il, inspect.Ops[i].Counter);
+            il.Append(il.Create(OpCodes.Ldloc, counts));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldelem_I4));
+            il.Append(il.Create(OpCodes.Call, addMethod));
         }
-        else
-        {
-            methodName = it.Kind == IR.InspectTallyKind.Leading
-                ? "TallyLeadingAndStore" : "TallyAllAndStore";
-            EmitIrInspectPatternValue(il, it.Pattern);
-        }
-
-        // Counter area/offset/length/pic
-        _ctx.Location.EmitLocationArgsWithPic(il, it.Counter);
-
-        // Region args
-        EmitIrInspectPatternValueAsOptionalString(il, it.BeforePattern);
-        il.Append(il.Create(it.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-        EmitIrInspectPatternValueAsOptionalString(il, it.AfterPattern);
-        il.Append(il.Create(it.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-        System.Type[] paramTypes;
-        if (it.Kind == IR.InspectTallyKind.Characters)
-        {
-            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int),
-                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                typeof(string), typeof(bool), typeof(string), typeof(bool) };
-        }
-        else
-        {
-            paramTypes = new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string),
-                typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                typeof(string), typeof(bool), typeof(string), typeof(bool) };
-        }
-
-        var method = _ctx.Module.ImportReference(
-            typeof(Runtime.InspectRuntime).GetMethod(methodName, paramTypes)!);
-        il.Append(il.Create(OpCodes.Call, method));
     }
 
-    internal void EmitInspectReplace(ILProcessor il, IrInspectReplace ir)
+    internal void EmitInspectReplacing(ILProcessor il, IrInspectReplacing inspect)
     {
-        _ctx.Location.EmitLocationArgs(il, ir.Target);
+        int n = inspect.Ops.Count;
 
-        if (ir.Kind == IR.InspectReplaceKind.Characters)
+        var kinds = EmitInspectIntArray(il, n, i => (int)inspect.Ops[i].Kind);
+        var patterns = EmitInspectStringArray(il, n, i => inspect.Ops[i].Pattern);
+        var replacements = EmitInspectStringArray(il, n, i => inspect.Ops[i].Replacement);
+        var befores = EmitInspectStringArray(il, n, i => inspect.Ops[i].BeforePattern);
+        var afters = EmitInspectStringArray(il, n, i => inspect.Ops[i].AfterPattern);
+
+        // InspectRuntime.ReplacingPass(area, offset, length, kinds, patterns, replacements, befores, afters)
+        _ctx.Location.EmitLocationArgs(il, inspect.Target);
+        il.Append(il.Create(OpCodes.Ldloc, kinds));
+        il.Append(il.Create(OpCodes.Ldloc, patterns));
+        il.Append(il.Create(OpCodes.Ldloc, replacements));
+        il.Append(il.Create(OpCodes.Ldloc, befores));
+        il.Append(il.Create(OpCodes.Ldloc, afters));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Runtime.InspectRuntime).GetMethod("ReplacingPass",
+                new[] { typeof(byte[]), typeof(int), typeof(int),
+                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
+    }
+
+    /// <summary>Build an int[] local from a per-index selector (kinds for INSPECT operands).</summary>
+    private VariableDefinition EmitInspectIntArray(ILProcessor il, int count, System.Func<int, int> selector)
+    {
+        var local = new VariableDefinition(_ctx.Module.ImportReference(typeof(int[])));
+        _ctx.CurrentMethodDef!.Body.Variables.Add(local);
+        il.Append(il.Create(OpCodes.Ldc_I4, count));
+        il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Int32));
+        for (int i = 0; i < count; i++)
         {
-            // REPLACING CHARACTERS BY x — no pattern, just replacement
-            EmitIrInspectPatternValue(il, ir.Replacement);
-            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
-            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
-            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            var charsMethod = _ctx.Module.ImportReference(
-                typeof(Runtime.InspectRuntime).GetMethod("ReplaceCharacters",
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(string),
-                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, charsMethod));
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldc_I4, selector(i)));
+            il.Append(il.Create(OpCodes.Stelem_I4));
         }
-        else
+        il.Append(il.Create(OpCodes.Stloc, local));
+        return local;
+    }
+
+    /// <summary>
+    /// Build a string[] local from a per-index pattern selector. Literal patterns are baked
+    /// at compile time; data-ref patterns are read from their field at runtime; null patterns
+    /// (e.g. CHARACTERS, or absent BEFORE/AFTER) become null array elements.
+    /// </summary>
+    private VariableDefinition EmitInspectStringArray(
+        ILProcessor il, int count, System.Func<int, IR.IrInspectPatternValue?> selector)
+    {
+        var local = new VariableDefinition(_ctx.Module.ImportReference(typeof(string[])));
+        _ctx.CurrentMethodDef!.Body.Variables.Add(local);
+        il.Append(il.Create(OpCodes.Ldc_I4, count));
+        il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.String));
+        for (int i = 0; i < count; i++)
         {
-            string methodName = ir.Kind switch
-            {
-                IR.InspectReplaceKind.First => "ReplaceFirst",
-                IR.InspectReplaceKind.Leading => "ReplaceLeading",
-                _ => "ReplaceAll"
-            };
-
-            EmitIrInspectPatternValue(il, ir.Pattern);
-            EmitIrInspectPatternValue(il, ir.Replacement);
-            EmitIrInspectPatternValueAsOptionalString(il, ir.BeforePattern);
-            il.Append(il.Create(ir.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-            EmitIrInspectPatternValueAsOptionalString(il, ir.AfterPattern);
-            il.Append(il.Create(ir.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
-
-            var method = _ctx.Module.ImportReference(
-                typeof(Runtime.InspectRuntime).GetMethod(methodName,
-                    new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(string), typeof(string),
-                        typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, method));
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            EmitIrInspectPatternValueAsOptionalString(il, selector(i));
+            il.Append(il.Create(OpCodes.Stelem_Ref));
         }
+        il.Append(il.Create(OpCodes.Stloc, local));
+        return local;
     }
 
     internal void EmitInspectConvert(ILProcessor il, IrInspectConvert ic)

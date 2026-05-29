@@ -22,26 +22,39 @@ internal sealed class StringLowerer
         var targetLoc = _ctx.Location.ResolveLocation(stmt.Target);
         if (targetLoc == null) return;
 
-        foreach (var t in stmt.Tallying)
+        // All TALLYING operands form a single comparison cycle (ISO 6.17.3 GR 8),
+        // so they are grouped into one IR instruction rather than lowered independently.
+        if (stmt.Tallying.Count > 0)
         {
-            var counterLoc = _ctx.Location.ResolveLocation(t.Counter);
-            if (counterLoc == null) continue;
-
-            block.Instructions.Add(new IrInspectTally(
-                targetLoc, counterLoc, (IR.InspectTallyKind)t.Kind,
-                LowerInspectPattern(t.Pattern),
-                LowerInspectPattern(t.Region.BeforePattern), t.Region.BeforeInitial,
-                LowerInspectPattern(t.Region.AfterPattern), t.Region.AfterInitial));
+            var tallyOps = new List<IR.IrInspectTallyOp>(stmt.Tallying.Count);
+            foreach (var t in stmt.Tallying)
+            {
+                var counterLoc = _ctx.Location.ResolveLocation(t.Counter);
+                if (counterLoc == null) continue;
+                tallyOps.Add(new IR.IrInspectTallyOp(
+                    counterLoc, (IR.InspectTallyKind)t.Kind,
+                    LowerInspectPattern(t.Pattern),
+                    LowerInspectPattern(t.Region.BeforePattern),
+                    LowerInspectPattern(t.Region.AfterPattern)));
+            }
+            if (tallyOps.Count > 0)
+                block.Instructions.Add(new IrInspectTallying(targetLoc, tallyOps));
         }
 
-        foreach (var r in stmt.Replacing)
+        if (stmt.Replacing.Count > 0)
         {
-            block.Instructions.Add(new IrInspectReplace(
-                targetLoc, (IR.InspectReplaceKind)r.Kind,
-                LowerInspectPattern(r.Pattern)!,
-                LowerInspectPattern(r.Replacement)!,
-                LowerInspectPattern(r.Region.BeforePattern), r.Region.BeforeInitial,
-                LowerInspectPattern(r.Region.AfterPattern), r.Region.AfterInitial));
+            var replaceOps = new List<IR.IrInspectReplaceOp>(stmt.Replacing.Count);
+            foreach (var r in stmt.Replacing)
+            {
+                replaceOps.Add(new IR.IrInspectReplaceOp(
+                    (IR.InspectReplaceKind)r.Kind,
+                    LowerInspectPattern(r.Pattern),
+                    LowerInspectPattern(r.Replacement)!,
+                    LowerInspectPattern(r.Region.BeforePattern),
+                    LowerInspectPattern(r.Region.AfterPattern)));
+            }
+            if (replaceOps.Count > 0)
+                block.Instructions.Add(new IrInspectReplacing(targetLoc, replaceOps));
         }
 
         if (stmt.Converting != null)
