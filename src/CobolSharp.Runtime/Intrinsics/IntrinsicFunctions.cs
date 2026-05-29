@@ -45,8 +45,16 @@ public static class IntrinsicFunctions
     public static decimal Factorial(decimal value)
     {
         int n = (int)value;
+        if (n < 0) return 0m;   // negative argument: EC-ARGUMENT-FUNCTION, defined result 0
         decimal result = 1;
-        for (int i = 2; i <= n; i++) result *= i;
+        try
+        {
+            for (int i = 2; i <= n; i++) result *= i;
+        }
+        catch (OverflowException)
+        {
+            return decimal.MaxValue;   // result exceeds the decimal range (n ≳ 28)
+        }
         return result;
     }
     public static decimal Mod(decimal value, decimal divisor) => value - divisor * Math.Floor(value / divisor);

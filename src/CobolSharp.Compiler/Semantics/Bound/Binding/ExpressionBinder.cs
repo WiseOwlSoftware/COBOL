@@ -637,12 +637,15 @@ internal sealed class ExpressionBinder
         if (tokens.Count == 0)
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
-        // A segment containing a multiplicative/power operator is a full arithmetic
-        // expression (intrinsic-function arguments such as "9 * A", "B / 2", "IND(5) / 9").
-        // Ordinary subscripts (name, name ± int, qualified names) never contain these, so
-        // they continue through the simpler path below unchanged.
+        // A segment that is a full arithmetic expression or a nested intrinsic-function call
+        // (intrinsic-function arguments such as "9 * A", "B / 2", "FUNCTION INTEGER(1.6)") is
+        // parsed by the arithmetic parser. Ordinary subscripts (name, name ± int, qualified
+        // names) never contain a mult/power operator or the FUNCTION keyword, so they continue
+        // through the simpler path below unchanged.
         if (tokens.Any(t => t.Type is CobolParserCore.SUB_STAR or CobolParserCore.SUB_SLASH
-                or CobolParserCore.SUB_POWER))
+                or CobolParserCore.SUB_POWER
+                || (t.Type == CobolParserCore.SUB_IDENTIFIER
+                    && string.Equals(t.Text, "FUNCTION", StringComparison.OrdinalIgnoreCase))))
             return BindSubscriptTokensAsArithmetic(tokens);
 
         // Single SIGNED_INTEGERLIT: +8, -3
