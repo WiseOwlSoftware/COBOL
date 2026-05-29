@@ -711,6 +711,49 @@ internal sealed class ExpressionBinder
         else
             sym2 = _ctx.Semantic.ResolveData(baseName);
 
+        // Nested subscript or reference-modification on the base reference, e.g. an
+        // intrinsic-function argument like MEDIAN(IND(1), IND(2)) or REVERSE(WS(1:3)).
+        // The base identifier is followed by a balanced SUB_LPAREN … SUB_RPAREN group;
+        // inside SUBSCRIPT mode a nested '(' pushes another SUBSCRIPT mode (CobolLexer.g4),
+        // so the inner subscripts/colon arrive as ordinary SUBSCRIPT tokens. Without this,
+        // the subscript was silently dropped and the whole base table was read.
+        int lparenIdx = tokens.FindIndex(t => t.Type == CobolParserCore.SUB_LPAREN);
+        if (sym2 != null && lparenIdx >= 0)
+        {
+            var inner = new List<IToken>();
+            int pdepth = 0;
+            for (int i = lparenIdx; i < tokens.Count; i++)
+            {
+                var t = tokens[i];
+                if (t.Type == CobolParserCore.SUB_LPAREN) { pdepth++; if (pdepth == 1) continue; }
+                else if (t.Type == CobolParserCore.SUB_RPAREN) { pdepth--; if (pdepth == 0) break; }
+                inner.Add(t);
+            }
+            var cat2 = sym2.ResolvedType?.Category ?? CobolCategory.Numeric;
+
+            int innerColon = inner.FindIndex(t => t.Type == CobolParserCore.SUB_COLON);
+            if (innerColon >= 0)
+            {
+                var startToks = inner.GetRange(0, innerColon);
+                var lenToks = innerColon + 1 < inner.Count
+                    ? inner.GetRange(innerColon + 1, inner.Count - innerColon - 1)
+                    : new List<IToken>();
+                var startE = BindSubscriptTokensAsArithmetic(startToks);
+                BoundExpression? lenE = lenToks.Any(t => t.Type != CobolParserCore.SUB_WS)
+                    ? BindSubscriptTokensAsArithmetic(lenToks) : null;
+                var rmBase = new BoundIdentifierExpression(sym2, cat2);
+                _ctx.Typed(rmBase);
+                return _ctx.Typed(new BoundReferenceModificationExpression(rmBase, startE, lenE));
+            }
+
+            var innerSubs = new List<BoundExpression>();
+            foreach (var seg in SplitSubscriptTokens(inner))
+                innerSubs.Add(BindSubscriptSegment(seg));
+            var subscriptedId = new BoundIdentifierExpression(sym2, cat2, innerSubs);
+            _ctx.Typed(subscriptedId);
+            return subscriptedId;
+        }
+
         BoundExpression baseExpr2 = sym2 != null
             ? new BoundIdentifierExpression(sym2, sym2.ResolvedType?.Category ?? CobolCategory.Numeric)
             : new BoundLiteralExpression(baseName, CobolCategory.Alphanumeric);

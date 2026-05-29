@@ -139,8 +139,12 @@ internal sealed class CilExpressionEmitter
 
                 case IR.IrAlphanumericArg alphaArg:
                     _ctx.Location.EmitLocationArgs(il, alphaArg.Source);
+                    // Intrinsic arguments are the field's FULL content including trailing spaces
+                    // (ISO §15): REVERSE/UPPER-CASE/LOWER-CASE must preserve width, LENGTH must
+                    // report the defined size, and space-trimming functions (TRIM, NUMVAL*) do
+                    // their own internal trimming — so read raw, never pre-trimmed.
                     il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                        typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                        typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsRawString",
                             new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
                     break;
 
