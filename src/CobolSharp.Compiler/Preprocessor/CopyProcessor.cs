@@ -144,6 +144,15 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             char c = text[i];
             if (char.IsWhiteSpace(c)) { i++; continue; }
 
+            // Comment lines are not text words (ISO §7.3.2): a free-form '*>' comment (which a
+            // fixed-form comment or debug line was normalized into) is transparent to REPLACE
+            // matching, so a pseudo-text operand can span words separated by comment lines.
+            if (c == '*' && i + 1 < n && text[i + 1] == '>')
+            {
+                while (i < n && text[i] != '\n') i++;
+                continue;
+            }
+
             if (c is '(' or ')')
             {
                 words.Add(new TextWord(c.ToString(), i, i + 1));
