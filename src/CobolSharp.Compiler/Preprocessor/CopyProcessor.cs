@@ -96,7 +96,7 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
 
         while (pos < text.Length)
         {
-            int copyIdx = FindKeywordAtLineStart(text, pos, "COPY");
+            int copyIdx = FindCopyKeyword(text, pos);
             if (copyIdx < 0)
             {
                 result.Append(text, pos, text.Length - pos);
@@ -110,6 +110,15 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
 
             string libraryName = ReadWord(text, ref afterCopy);
             SkipWhitespace(text, ref afterCopy);
+
+            // Optional library qualifier: COPY text-name (IN | OF) library-name.
+            if (afterCopy < text.Length && (MatchWord(text, afterCopy, "IN") || MatchWord(text, afterCopy, "OF")))
+            {
+                afterCopy += 2;
+                SkipWhitespace(text, ref afterCopy);
+                ReadWord(text, ref afterCopy); // library-name — we search all paths regardless
+                SkipWhitespace(text, ref afterCopy);
+            }
 
             var replacements = new List<(string from, string to)>();
             if (afterCopy < text.Length && MatchWord(text, afterCopy, "REPLACING"))
@@ -126,7 +135,10 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             string? copybookPath = FindCopybook(libraryName);
             if (copybookPath != null && alreadyIncluded.Add(copybookPath))
             {
-                string copybookText = File.ReadAllText(copybookPath);
+                // Library text is itself in reference (fixed) format — normalize it to free
+                // form (strip sequence/identification areas, expand continuations) exactly as
+                // the main source was, so inserted lines align in the program's source area.
+                string copybookText = NormalizeCopybook(File.ReadAllText(copybookPath));
 
                 foreach (var (from, to) in replacements)
                     copybookText = copybookText.Replace(from, to, StringComparison.OrdinalIgnoreCase);
@@ -173,6 +185,83 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             while (pos < text.Length && text[pos] != '\n')
                 pos++;
             if (pos < text.Length) pos++;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Normalize copy-library text to free form. Library members are reference (fixed) format,
+    /// but CCVS members use non-standard indicator letters (C, G) in column 7 that the general
+    /// <see cref="ReferenceFormatProcessor.IsFixedForm"/> heuristic rejects. Detect fixed form
+    /// from the sequence-number area (columns 1-6 numeric) instead, then convert; fall back to
+    /// the general normalizer for anything that does not look like a sequence-numbered member.
+    /// </summary>
+    private static string NormalizeCopybook(string text)
+    {
+        var lines = text.Split('\n');
+        int seqLines = 0, total = 0;
+        foreach (var raw in lines)
+        {
+            var line = raw.TrimEnd('\r');
+            if (string.IsNullOrWhiteSpace(line) || line.Length < 7) continue;
+            total++;
+            bool seqDigits = true, anyDigit = false;
+            for (int i = 0; i < 6 && i < line.Length; i++)
+            {
+                if (char.IsDigit(line[i])) anyDigit = true;
+                else if (line[i] != ' ') { seqDigits = false; break; }
+            }
+            if (seqDigits && anyDigit) seqLines++;
+        }
+        bool fixedForm = total > 0 && seqLines * 100 / total >= 50;
+        return fixedForm
+            ? ReferenceFormatProcessor.ConvertFixedToFree(text)
+            : ReferenceFormatProcessor.NormalizeToFreeForm(text);
+    }
+
+    /// <summary>
+    /// Find the next COPY statement keyword from <paramref name="startPos"/>. Unlike a
+    /// line-start scan, COPY may appear anywhere a separator is allowed — after a level number
+    /// (77 COPY K1W03.), after a data-name (01 TST-TEST COPY K101A.), or inside a statement
+    /// (ADD COPY K1P01. TO …). The scan honours source structure: it never matches inside an
+    /// alphanumeric literal ("… COPY …") nor inside a free-form '*&gt;' comment, and requires
+    /// word boundaries so COPYSECT-1 is not mistaken for COPY.
+    /// </summary>
+    private static int FindCopyKeyword(string text, int startPos)
+    {
+        bool inString = false;
+        char quote = '"';
+        for (int i = startPos; i < text.Length; i++)
+        {
+            char c = text[i];
+
+            if (inString)
+            {
+                if (c == quote)
+                {
+                    if (i + 1 < text.Length && text[i + 1] == quote) { i++; continue; } // doubled quote
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (c == '"' || c == '\'') { inString = true; quote = c; continue; }
+
+            // Free-form comment: '*>' to end of line.
+            if (c == '*' && i + 1 < text.Length && text[i + 1] == '>')
+            {
+                while (i < text.Length && text[i] != '\n') i++;
+                continue;
+            }
+
+            if ((c is 'C' or 'c') && MatchWord(text, i, "COPY"))
+            {
+                bool boundBefore = i == 0 || (!char.IsLetterOrDigit(text[i - 1]) && text[i - 1] is not ('-' or '_'));
+                int after = i + 4;
+                bool boundAfter = after >= text.Length || (!char.IsLetterOrDigit(text[after]) && text[after] is not ('-' or '_'));
+                if (boundBefore && boundAfter)
+                    return i;
+            }
         }
         return -1;
     }

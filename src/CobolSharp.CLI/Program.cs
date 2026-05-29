@@ -101,6 +101,7 @@ public class Program
         string? outputPath = null;
         string standard = "cobol85";
         string? nistTestName = null;
+        var copyPaths = new List<string>();
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -116,6 +117,10 @@ public class Program
                     Console.Error.WriteLine($"Error: unknown standard '{standard}'. Use: cobol85, cobol2002, cobol2014, cobol2023");
                     return 1;
                 }
+            }
+            else if ((args[i] == "--copy-path" || args[i] == "-I") && i + 1 < args.Length)
+            {
+                copyPaths.Add(args[++i]);
             }
             else if (args[i] == "--nist")
             {
@@ -164,7 +169,17 @@ public class Program
             if (nistTestName == "")
                 nistTestName = Path.GetFileNameWithoutExtension(sourcePath);
             compilation.NistTestName = nistTestName;
+
+            // Auto-discover the NIST copy library (sibling of the programs/ directory),
+            // so COPY statements resolve without the harness needing an explicit path.
+            string srcDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
+            string nistCopyLib = Path.GetFullPath(Path.Combine(srcDir, "..", "copylib"));
+            if (Directory.Exists(nistCopyLib))
+                copyPaths.Add(nistCopyLib);
         }
+
+        foreach (var p in copyPaths)
+            compilation.AddCopySearchPath(p);
 
         var result = compilation.Compile(sourcePath, outputPath);
 
