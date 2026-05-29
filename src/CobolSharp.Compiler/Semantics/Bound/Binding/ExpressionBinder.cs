@@ -208,35 +208,50 @@ internal sealed class ExpressionBinder
             && string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Expand a table(ALL) reference into one reference per occurrence: table(1) … table(n).
-    /// Non-ALL expressions pass through unchanged. The occurrence count comes from the table's
-    /// OCCURS clause. Only the (single) ALL dimension is expanded; fixed subscripts are kept.
+    /// Expand a table(ALL) reference (ISO §15.4) into one reference per occurrence. ALL may appear
+    /// in any/all subscript positions of a multi-dimensional table, so the expansion is the
+    /// cartesian product over every ALL position: each position's range comes from the OCCURS
+    /// bound of the table level corresponding to that subscript position (outermost subscript ↔
+    /// outermost OCCURS). Fixed subscripts are kept; the references are produced in row-major
+    /// (leftmost-varies-slowest) order.
     /// </summary>
     private static IEnumerable<BoundExpression> ExpandAllSubscript(BoundExpression e)
     {
         if (e is not BoundIdentifierExpression id || id.Subscripts is null)
             return new[] { e };
 
-        int allPos = -1;
-        for (int i = 0; i < id.Subscripts.Count; i++)
-            if (id.Subscripts[i] is BoundLiteralExpression { Value: string sv }
-                && string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase))
-            { allPos = i; break; }
-        if (allPos < 0) return new[] { e };
+        // OCCURS bounds for this item's nesting, outermost-first to align with subscript order.
+        var bounds = new List<int>();
+        for (var sym = id.Symbol; sym != null; sym = sym.Parent)
+            if (sym.Occurs != null) bounds.Add(sym.Occurs.MaxOccurs);
+        bounds.Reverse();
 
-        int n = id.Symbol.Occurs?.MaxOccurs ?? 0;
-        if (n <= 0) return new[] { e };
-
-        var result = new List<BoundExpression>(n);
-        for (int idx = 1; idx <= n; idx++)
+        // Start with the original subscripts; expand each ALL position by its OCCURS bound.
+        var combos = new List<List<BoundExpression>> { new(id.Subscripts) };
+        for (int pos = 0; pos < id.Subscripts.Count; pos++)
         {
-            var newSubs = new List<BoundExpression>(id.Subscripts)
-            {
-                [allPos] = new BoundLiteralExpression((decimal)idx, CobolCategory.Numeric)
-            };
-            result.Add(new BoundIdentifierExpression(id.Symbol, id.Category, newSubs));
+            if (id.Subscripts[pos] is not BoundLiteralExpression { Value: string sv }
+                || !string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            int count = pos < bounds.Count ? bounds[pos] : id.Symbol.Occurs?.MaxOccurs ?? 0;
+            if (count <= 0) return new[] { e };
+
+            var expanded = new List<List<BoundExpression>>(combos.Count * count);
+            foreach (var combo in combos)
+                for (int idx = 1; idx <= count; idx++)
+                {
+                    var next = new List<BoundExpression>(combo)
+                    {
+                        [pos] = new BoundLiteralExpression((decimal)idx, CobolCategory.Numeric)
+                    };
+                    expanded.Add(next);
+                }
+            combos = expanded;
         }
-        return result;
+
+        return combos.Select(subs =>
+            (BoundExpression)new BoundIdentifierExpression(id.Symbol, id.Category, subs));
     }
 
     // ── LITERALS ──
