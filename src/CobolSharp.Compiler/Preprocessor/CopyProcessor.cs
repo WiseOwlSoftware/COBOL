@@ -79,11 +79,121 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
         return result.ToString();
     }
 
+    /// <summary>A COBOL text-word (ISO §7.3.2) with its span in the source string.</summary>
+    private readonly record struct TextWord(string Value, int Start, int End);
+
+    /// <summary>
+    /// Apply COBOL REPLACE / COPY REPLACING substitutions on a TEXT-WORD basis. Pseudo-text
+    /// matching ignores the amount of intervening white space and line breaks (ISO §7.4.6 /
+    /// §7.5): each operand is a sequence of text words, matched word-for-word against the source
+    /// words. A match's original span is replaced verbatim by the replacement text. Matching is
+    /// left-to-right; at each position the first operand (in source order) that matches wins, and
+    /// inserted text is not rescanned. This replaces a naive substring replace, which could not
+    /// match multi-line pseudo-text nor respect word boundaries (".", "(", ")" are their own words).
+    /// </summary>
     private static string ApplyReplacements(string text, List<(string from, string to)> replacements)
     {
-        foreach (var (from, to) in replacements)
-            text = text.Replace(from, to, StringComparison.OrdinalIgnoreCase);
-        return text;
+        var active = replacements
+            .Select(r => (tokens: TokenizeTextWords(r.from).Select(w => w.Value).ToList(), r.to))
+            .Where(r => r.tokens.Count > 0)   // empty/malformed operand cannot match
+            .ToList();
+        if (active.Count == 0) return text;
+
+        var words = TokenizeTextWords(text);
+        var sb = new StringBuilder();
+        int copiedUpTo = 0; // chars of `text` already emitted
+        int w = 0;
+        while (w < words.Count)
+        {
+            bool matched = false;
+            foreach (var (tokens, to) in active)
+            {
+                if (w + tokens.Count > words.Count) continue;
+                bool eq = true;
+                for (int k = 0; k < tokens.Count; k++)
+                    if (!string.Equals(words[w + k].Value, tokens[k], StringComparison.OrdinalIgnoreCase))
+                    { eq = false; break; }
+                if (!eq) continue;
+
+                int matchStart = words[w].Start;
+                int matchEnd = words[w + tokens.Count - 1].End;
+                sb.Append(text, copiedUpTo, matchStart - copiedUpTo);
+                sb.Append(to);
+                copiedUpTo = matchEnd;
+                w += tokens.Count;
+                matched = true;
+                break;
+            }
+            if (!matched) w++;
+        }
+        sb.Append(text, copiedUpTo, text.Length - copiedUpTo);
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Tokenize COBOL text into text-words with their source spans. White space separates words;
+    /// '(' and ')' and a separator period (a '.' not acting as a decimal point) are standalone
+    /// words; an alphanumeric literal ("…" or '…') is a single word. Used for REPLACE matching.
+    /// </summary>
+    private static List<TextWord> TokenizeTextWords(string text)
+    {
+        var words = new List<TextWord>();
+        int i = 0, n = text.Length;
+        while (i < n)
+        {
+            char c = text[i];
+            if (char.IsWhiteSpace(c)) { i++; continue; }
+
+            if (c is '(' or ')')
+            {
+                words.Add(new TextWord(c.ToString(), i, i + 1));
+                i++;
+                continue;
+            }
+
+            if (c is '"' or '\'')
+            {
+                int start = i;
+                char q = c;
+                i++;
+                while (i < n && text[i] != q) i++;
+                if (i < n) i++; // closing quote
+                words.Add(new TextWord(text[start..i], start, i));
+                continue;
+            }
+
+            // A separator period/comma/semicolon is its own text word.
+            if (IsSeparatorPunctuation(text, i))
+            {
+                words.Add(new TextWord(text[i].ToString(), i, i + 1));
+                i++;
+                continue;
+            }
+
+            int ws = i;
+            while (i < n)
+            {
+                char d = text[i];
+                if (char.IsWhiteSpace(d) || d is '(' or ')' or '"' or '\'') break;
+                if (IsSeparatorPunctuation(text, i)) break;
+                i++;
+            }
+            words.Add(new TextWord(text[ws..i], ws, i));
+        }
+        return words;
+    }
+
+    /// <summary>
+    /// True if the character at <paramref name="i"/> is a COBOL separator punctuation that stands
+    /// as its own text word (ISO §8.3.1.1): a period, comma, or semicolon that is NOT acting as a
+    /// decimal point — i.e. not immediately followed by a digit. ('(' and ')' are handled
+    /// separately as they are always separators.)
+    /// </summary>
+    private static bool IsSeparatorPunctuation(string text, int i)
+    {
+        char c = text[i];
+        if (c is not ('.' or ',' or ';')) return false;
+        return i + 1 >= text.Length || !char.IsDigit(text[i + 1]);
     }
 
     private string ExpandCopyStatements(string text, HashSet<string> alreadyIncluded, int depth)
@@ -140,11 +250,9 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
                 // the main source was, so inserted lines align in the program's source area.
                 string copybookText = NormalizeCopybook(File.ReadAllText(copybookPath));
 
-                foreach (var (from, to) in replacements)
-                {
-                    if (string.IsNullOrEmpty(from)) continue; // malformed/empty operand — skip
-                    copybookText = copybookText.Replace(from, to, StringComparison.OrdinalIgnoreCase);
-                }
+                // COPY … REPLACING uses the same text-word matching as REPLACE (ISO §7.4.6):
+                // operands match library text-words ignoring intervening white space/line breaks.
+                copybookText = ApplyReplacements(copybookText, replacements);
 
                 copybookText = ExpandCopyStatements(copybookText, alreadyIncluded, depth + 1);
 
@@ -343,10 +451,73 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             return text[start..pos];
         }
 
-        string word = ReadWord(text, ref pos);
-        if (string.IsNullOrEmpty(word) && pos < text.Length)
+        // identifier-1/2 or word-1/2 (COBOL-85 COPY … REPLACING): a data-name with optional
+        // OF/IN qualifiers and an optional subscript — e.g. WRK IN GRP-002 (1). A plain word
+        // (including a signed number such as +2) is the degenerate single-text-word case. The
+        // verbatim span is returned: for matching it is tokenized into text words, and as a
+        // replacement it is inserted as written.
+        int idStart = pos;
+        if (string.IsNullOrEmpty(ReadTextWord(text, ref pos)))
+        {
+            if (pos < text.Length) pos++; // make progress on an unexpected character
+            return text[idStart..pos];
+        }
+
+        // OF/IN qualifier chain.
+        while (true)
+        {
+            int mark = pos;
+            SkipWhitespace(text, ref pos);
+            string kw = ReadTextWord(text, ref pos);
+            if (string.Equals(kw, "OF", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(kw, "IN", StringComparison.OrdinalIgnoreCase))
+            {
+                SkipWhitespace(text, ref pos);
+                ReadTextWord(text, ref pos); // qualifier data-name
+                continue;
+            }
+            pos = mark; // not a qualifier — leave it for the next operand
+            break;
+        }
+
+        // Optional subscript: a balanced ( … ) group immediately following the name.
+        int beforeSub = pos;
+        SkipWhitespace(text, ref pos);
+        if (pos < text.Length && text[pos] == '(')
+        {
+            int depth = 0;
+            while (pos < text.Length)
+            {
+                char d = text[pos];
+                if (d == '(') depth++;
+                else if (d == ')') { depth--; pos++; if (depth == 0) break; continue; }
+                pos++;
+            }
+        }
+        else
+        {
+            pos = beforeSub;
+        }
+
+        return text[idStart..pos];
+    }
+
+    /// <summary>
+    /// Read one COBOL text word starting at <paramref name="pos"/>: a maximal run of characters
+    /// that are not white space, parentheses, quotes, or a separator period/comma/semicolon.
+    /// (Quotes and parentheses are handled by the callers.) Used to read REPLACING operands.
+    /// </summary>
+    private static string ReadTextWord(string text, ref int pos)
+    {
+        int start = pos;
+        while (pos < text.Length)
+        {
+            char d = text[pos];
+            if (char.IsWhiteSpace(d) || d is '(' or ')' or '"' or '\'') break;
+            if (IsSeparatorPunctuation(text, pos)) break;
             pos++;
-        return word;
+        }
+        return text[start..pos];
     }
 
     private string? FindCopybook(string libraryName)
