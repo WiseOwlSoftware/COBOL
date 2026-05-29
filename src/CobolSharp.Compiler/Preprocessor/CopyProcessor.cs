@@ -142,7 +142,9 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
         while (i < n)
         {
             char c = text[i];
-            if (char.IsWhiteSpace(c)) { i++; continue; }
+            // White space and the separator comma/semicolon are equivalent and insignificant
+            // (COBOL-85 REPLACE/COPY matching) — skip them.
+            if (char.IsWhiteSpace(c) || IsSpaceEquivalentSeparator(text, i)) { i++; continue; }
 
             // Comment lines are not text words (ISO §7.3.2): a free-form '*>' comment (which a
             // fixed-form comment or debug line was normalized into) is transparent to REPLACE
@@ -184,7 +186,7 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             {
                 char d = text[i];
                 if (char.IsWhiteSpace(d) || d is '(' or ')' or '"' or '\'') break;
-                if (IsSeparatorPunctuation(text, i)) break;
+                if (IsSeparatorPunctuation(text, i) || IsSpaceEquivalentSeparator(text, i)) break;
                 i++;
             }
             words.Add(new TextWord(text[ws..i], ws, i));
@@ -193,15 +195,27 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
     }
 
     /// <summary>
-    /// True if the character at <paramref name="i"/> is a COBOL separator punctuation that stands
-    /// as its own text word (ISO §8.3.1.1): a period, comma, or semicolon that is NOT acting as a
-    /// decimal point — i.e. not immediately followed by a digit. ('(' and ')' are handled
-    /// separately as they are always separators.)
+    /// True if the character at <paramref name="i"/> is a separator period — a '.' that stands as
+    /// its own text word, i.e. not acting as a decimal point (not immediately followed by a digit).
+    /// The separator comma and semicolon are NOT text words: per COBOL-85 they are equivalent to a
+    /// space in REPLACE/COPY matching (handled by <see cref="IsSpaceEquivalentSeparator"/>).
     /// </summary>
     private static bool IsSeparatorPunctuation(string text, int i)
     {
+        if (text[i] != '.') return false;
+        return i + 1 >= text.Length || !char.IsDigit(text[i + 1]);
+    }
+
+    /// <summary>
+    /// True if the character at <paramref name="i"/> is a separator comma or semicolon. COBOL-85
+    /// treats these as equivalent to a space when matching pseudo-text (so "MOVE; X , Y" and
+    /// "MOVE X Y" match), so the tokenizer skips them like white space rather than emitting a word.
+    /// A comma/semicolon immediately followed by a digit is left intact (possible decimal comma).
+    /// </summary>
+    private static bool IsSpaceEquivalentSeparator(string text, int i)
+    {
         char c = text[i];
-        if (c is not ('.' or ',' or ';')) return false;
+        if (c is not (',' or ';')) return false;
         return i + 1 >= text.Length || !char.IsDigit(text[i + 1]);
     }
 
@@ -523,7 +537,7 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
         {
             char d = text[pos];
             if (char.IsWhiteSpace(d) || d is '(' or ')' or '"' or '\'') break;
-            if (IsSeparatorPunctuation(text, pos)) break;
+            if (IsSeparatorPunctuation(text, pos) || IsSpaceEquivalentSeparator(text, pos)) break;
             pos++;
         }
         return text[start..pos];
