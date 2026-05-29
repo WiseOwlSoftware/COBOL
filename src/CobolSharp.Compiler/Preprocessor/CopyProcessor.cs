@@ -146,11 +146,22 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             // (COBOL-85 REPLACE/COPY matching) — skip them.
             if (char.IsWhiteSpace(c) || IsSpaceEquivalentSeparator(text, i)) { i++; continue; }
 
-            // Comment lines are not text words (ISO §7.3.2): a free-form '*>' comment (which a
-            // fixed-form comment or debug line was normalized into) is transparent to REPLACE
-            // matching, so a pseudo-text operand can span words separated by comment lines.
+            // Comment lines are not text words (ISO §7.3.2): an ordinary '*>' comment is
+            // transparent to REPLACE matching, so a pseudo-text operand can span words separated
+            // by comment lines. A DEBUG line, however, is conditionally-compiled SOURCE, and
+            // COPY/REPLACE (text manipulation) runs before the debugging-mode determination — so
+            // its content DOES participate. The normalizer renders fixed-form comment lines as
+            // "*> …" and debug lines as "*> DEBUG: …"; here we skip only the "*> DEBUG:" prefix
+            // (tokenizing the content) but drop ordinary comment lines whole.
             if (c == '*' && i + 1 < n && text[i + 1] == '>')
             {
+                const string debugPrefix = "*> DEBUG:";
+                if (i + debugPrefix.Length <= n &&
+                    string.CompareOrdinal(text, i, debugPrefix, 0, debugPrefix.Length) == 0)
+                {
+                    i += debugPrefix.Length;
+                    continue;
+                }
                 while (i < n && text[i] != '\n') i++;
                 continue;
             }
