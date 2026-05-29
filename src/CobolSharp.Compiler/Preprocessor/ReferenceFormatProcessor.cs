@@ -158,6 +158,18 @@ public static class ReferenceFormatProcessor
                     pendingQuote = false;
                     break;
 
+                // CCVS optional/alternate source lines: the file-I/O suites tag auxiliary or
+                // alternate-configuration lines in the indicator column — 'P' (an optional scratch
+                // file such as the INDEXED RAW-DATA member, assigned to an X-card the program's
+                // header does not declare) and 'J' (an alternate ASSIGN target beside the primary
+                // space-indicator one). The primary configuration is the space-indicator lines, so
+                // these alternates are excluded for a standard run (treated as comment lines).
+                case 'P' or 'p' or 'J' or 'j':
+                    result.AppendLine($"*> {sourceArea.TrimEnd()}");
+                    inLiteral = false;
+                    pendingQuote = false;
+                    break;
+
                 case '-':
                     HandleContinuation(result, sourceArea,
                         ref inLiteral, ref pendingQuote);
