@@ -191,12 +191,16 @@ public static class IntrinsicFunctions
         }
         return result;
     }
+    // FUNCTION CHAR(n): the character in ORDINAL POSITION n of the collating sequence
+    // (ISO §15.9). Ordinal position is 1-based, so position n maps to character code n-1.
     public static string Char(decimal code)
     {
-        int c = ToInt(code);
+        int c = ToInt(code) - 1;
         return c is < 0 or > 0xFFFF ? " " : ((char)c).ToString();
     }
-    public static decimal Ord(string value) => value.Length > 0 ? (decimal)value[0] : 0;
+    // FUNCTION ORD(c): the 1-based ordinal position of c in the collating sequence
+    // (ISO §15.36) — the inverse of CHAR, so character code k is at ordinal position k+1.
+    public static decimal Ord(string value) => value.Length > 0 ? (decimal)value[0] + 1 : 0;
 
     // ═══════════════════════════════════════════════════
     // Date/Time functions

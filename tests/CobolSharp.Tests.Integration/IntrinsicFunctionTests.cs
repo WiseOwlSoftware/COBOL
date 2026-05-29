@@ -460,7 +460,8 @@ public class IntrinsicFunctionTests : EndToEndTestBase
             """);
 
         Assert.True(success, $"Execution failed: {stderr}");
-        Assert.Equal("00065", stdout);
+        // ISO §15.36: ORD returns the 1-based ordinal position; 'A' is ASCII 65 → position 66.
+        Assert.Equal("00066", stdout);
     }
 
     [Fact]
@@ -517,7 +518,7 @@ public class IntrinsicFunctionTests : EndToEndTestBase
             01 WS-RESULT PIC X(5) VALUE SPACES.
             PROCEDURE DIVISION.
             MAIN-PARA.
-                MOVE FUNCTION CHAR(65) TO WS-RESULT.
+                MOVE FUNCTION CHAR(66) TO WS-RESULT.
                 DISPLAY WS-RESULT.
                 STOP RUN.
             """);

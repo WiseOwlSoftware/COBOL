@@ -161,16 +161,7 @@ internal sealed class ExpressionBinder
         // Per ISO §15.24: "the value returned is the number of character positions
         // in argument-1". Resolved at bind time — no runtime call needed.
         if (funcName.Equals("LENGTH", StringComparison.OrdinalIgnoreCase) && args.Count == 1)
-        {
-            decimal lengthValue = 0;
-            if (args[0] is BoundIdentifierExpression idExpr)
-                lengthValue = idExpr.Symbol.ElementSize;
-            else if (args[0] is BoundLiteralExpression litExpr && litExpr.Value is string s)
-                lengthValue = s.Length;
-            else if (args[0] is BoundLiteralExpression numLit && numLit.Value is decimal d)
-                lengthValue = d; // already a number (e.g., from nested function)
-            return new BoundLiteralExpression(lengthValue, CobolCategory.Numeric);
-        }
+            return new BoundLiteralExpression(StaticLength(args[0]), CobolCategory.Numeric);
 
         var category = BindingContext.AlphanumericFunctions.Contains(funcName)
             ? CobolCategory.Alphanumeric
@@ -189,6 +180,26 @@ internal sealed class ExpressionBinder
 
         return new BoundFunctionCallExpression(funcName, args.AsReadOnly(), category);
     }
+
+    /// <summary>
+    /// Compute FUNCTION LENGTH at bind time (ISO §15.24: number of character positions in
+    /// argument-1). The length-preserving string functions (REVERSE/UPPER-CASE/LOWER-CASE)
+    /// report the length of their own single argument, so LENGTH(REVERSE(x)) == LENGTH(x) and
+    /// nested forms recurse. A numeric literal that survived from a folded nested function is
+    /// already its own value.
+    /// </summary>
+    private static decimal StaticLength(BoundExpression arg) => arg switch
+    {
+        BoundIdentifierExpression idExpr => idExpr.Symbol.ElementSize,
+        BoundLiteralExpression { Value: string s } => s.Length,
+        BoundLiteralExpression { Value: decimal d } => d,
+        BoundFunctionCallExpression fn when fn.Arguments.Count == 1
+            && (fn.FunctionName.Equals("REVERSE", StringComparison.OrdinalIgnoreCase)
+                || fn.FunctionName.Equals("UPPER-CASE", StringComparison.OrdinalIgnoreCase)
+                || fn.FunctionName.Equals("LOWER-CASE", StringComparison.OrdinalIgnoreCase))
+            => StaticLength(fn.Arguments[0]),
+        _ => 0
+    };
 
     /// <summary>True if the expression is a table reference whose subscript is the ALL keyword.</summary>
     private static bool IsAllSubscriptedRef(BoundExpression e) =>

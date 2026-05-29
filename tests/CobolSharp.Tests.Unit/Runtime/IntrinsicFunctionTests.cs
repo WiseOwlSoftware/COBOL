@@ -64,11 +64,17 @@ public class IntrinsicFunctionTests
     public void Substitute_Replaces() =>
         Assert.Equal("Hello Earth", IntrinsicFunctions.Substitute("Hello World", "World", "Earth"));
 
+    // CHAR/ORD use 1-based ordinal position (ISO §15.9/§15.36): 'A' is ASCII code 65, which
+    // is ordinal position 66 in the collating sequence. CHAR and ORD are inverses.
     [Fact]
-    public void Char_AsciiCode() => Assert.Equal("A", IntrinsicFunctions.Char(65m));
+    public void Char_OrdinalPosition() => Assert.Equal("A", IntrinsicFunctions.Char(66m));
 
     [Fact]
-    public void Ord_CharToCode() => Assert.Equal(65m, IntrinsicFunctions.Ord("A"));
+    public void Ord_OrdinalPosition() => Assert.Equal(66m, IntrinsicFunctions.Ord("A"));
+
+    [Fact]
+    public void CharOrd_AreInverses() =>
+        Assert.Equal("A", IntrinsicFunctions.Char(IntrinsicFunctions.Ord("A")));
 
     [Fact]
     public void CurrentDate_Has21Chars()
