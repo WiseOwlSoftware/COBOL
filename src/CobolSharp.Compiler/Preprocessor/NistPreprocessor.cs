@@ -48,6 +48,13 @@ public static class NistPreprocessor
         // XXXXX058: control card file assignment
         source = source.Replace("XXXXX058", "\"CONTROL\"");
 
+        // NOTE: XXXXP### / XXXXD### (produce/consume data files passed between CCVS programs)
+        // are intentionally NOT remapped here yet. Mapping them by number to a shared file is
+        // correct in principle, but the producer/consumer chain also needs reliable sequential
+        // WRITE persistence and run-order orchestration (a producer must run, flush its file, and
+        // the consumer read it). That is a dedicated file-I/O effort tracked for the ST/SQ/IX/RL
+        // suites; remapping prematurely only exposed stale-file dependencies. See session-state.
+
         // ── SPECIAL-NAMES ──
 
         // XXXXX051: implementor switch name 1 (SPECIAL-NAMES ... IS switch-name)
