@@ -6,6 +6,74 @@ and lessons learned — intended as source material for a series of articles.
 
 ---
 
+## Entry 185 — 2026-05-28: Figurative condition-name values must fill the parent field — NC250A 100% (20 remaining)
+
+**Bug (NC250A IF--TEST-26):** `IF B OF IF-D33 AND NOT B OF IF-D32` where `IF-D33`
+is `PIC X(4)` set to QUOTE and `88 B VALUE QUOTE`. Expected PASS, got FAIL.
+
+**Root cause** — `SemanticBuilder.ParseConditionClauseOperand` translated the
+figurative `QUOTE` in a level-88 VALUE clause to `ConditionValue.FromString("\"")` —
+a *single* quote character. At comparison time the lowerer space-pads the 1-char
+literal to the parent's 4 bytes (`"` + 3 spaces) and compares against the field's
+actual `""""`, which never matches. `SPACE` only "worked" by coincidence (its pad
+character is also space). The note in the test confirms the intent: "TEST OF
+ALPHANUMERIC FIELD FOR FIG-QUOTES."
+
+**Fix** — A character figurative assumes the *size of its associated field*
+(ISO 1989:1985 8.3.1.2) — semantically `ALL <char>`. The repeat-to-fill machinery
+already existed via `ConditionValue.FromAllString` / `IsAllLiteral` (Entry 183).
+Changed `SPACE`, `QUOTE`, `HIGH-VALUE`, `LOW-VALUE` to `FromAllString` so the
+lowerer expands the single-char pattern to the parent's `StorageLength` before
+comparing. `ZERO` stays `FromNumeric(0)` — it must compare numerically against
+numeric condition-name parents.
+
+Empirically isolated first: `IF IF-D33 = QUOTE` was already TRUE (direct figurative
+comparison works), but `IF B` (88 VALUE QUOTE) was FALSE — pinpointing the 88-value
+path, not qualification or the combined/NOT condition (the session-state's prior
+guess). NC250A: 1→0 FAIL*, now 115/115. Guard green.
+
+**Known latent issue (not a NIST blocker, logged for later):** `IF <qualified-cond>
+AND NOT <qualified-cond> DISPLAY ... ELSE DISPLAY ...` (qualified condition-name in a
+combined condition followed by an inline statement) mis-parses in synthetic repros
+("no viable alternative at 'DISPLAY'"). No NIST test exercises this — NC250A uses
+`PERFORM PASS/FAIL` and parses/passes correctly. Fixing it would touch the ANTLR
+grammar (requires approval), so deferred.
+
+---
+
+## Entry 184 — 2026-05-28: INITIALIZE must initialize every OCCURS occurrence — NC201A 100% (21→ remaining)
+
+**Session setup:** the build was blocked by `NU1507` — a `demeanor` GitHub Packages
+source had been added to the *global* NuGet config since the last session, and with
+central package management + `TreatWarningsAsErrors` two unmapped sources are an
+error. Added a repo-local `nuget.config` that `<clear/>`s inherited sources and pins
+nuget.org (CobolSharp's only feed), making the build reproducible without touching
+global state.
+
+**Bug (NC201A PFM-TEST-F4-24, "manipulating subscripts", GR10(d)):** a
+`PERFORM ... VARYING PFM-F4-24-A(S1) FROM 10 BY PFM-F4-24-C(S2) UNTIL ...` whose body
+mutates S1/S2. Expected S1=4, A(4)=80; got S1=2, `COMPUTED=8224`. `8224` = `0x2020`
+= two ASCII spaces read as an `Int16`.
+
+**Root cause** — `INITIALIZE FILLER-A` failed to zero the `PIC S9(3) COMP OCCURS 10`
+array. `DataMovementLowerer.InitializeDataItem` resolved the *whole* 20-byte array as
+one location and emitted a single `IrPicMoveLiteralNumeric`; the COMP encoder handles
+2/4/8-byte widths only, so 20 bytes fell through and the storage kept its space fill.
+With `A(2)/A(3)` left at 8224 (> 70) the VARYING loop exited after one iteration. (The
+augment and runtime subscript re-evaluation were correct all along — disproving the
+session-state's "COMP subscript multiplier" theory.)
+
+**Fix** — Made INITIALIZE OCCURS-aware (ISO 1989:1985 14.x: INITIALIZE applies to
+*each* occurrence of a table element). `InitializeDataItem` now carries a subscript
+path: when an item (group or elementary) has `Occurs.MaxOccurs > 1` it iterates
+1..MaxOccurs, recursing per occurrence; the elementary leaf is resolved per-occurrence
+by synthesizing a constant-subscript `BoundIdentifierExpression` and reusing
+`LocationResolver`'s compile-time offset folding (which also narrows the PIC to a
+single element). Handles nested/multi-dim OCCURS and group OCCURS uniformly.
+NC201A: 2→0 FAIL*, now 59/59. Guard green.
+
+---
+
 ## Entry 183 — 2026-03-31: ALL-literal + OR delimiters + PERFORM VARYING — 6 more fixed (22 remaining)
 
 **ALL-literal condition** (NC250A IF--TEST-28): `ConditionValue.FromAllString` +

@@ -1524,13 +1524,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
             var figText = fig.GetText().ToUpperInvariant();
             if (figText.StartsWith("ALL")) figText = figText[3..];
+            // Character figuratives assume the size of the parent field — i.e. the
+            // single character repeated to fill it (ISO 1989:1985 8.3.1.2). Mark them
+            // IsAllLiteral so the lowerer expands the pattern to the parent's length;
+            // otherwise QUOTE on a PIC X(4) field would compare a 1-char '"' (space
+            // padded) against the 4-char field and never match. ZERO stays numeric so
+            // it compares correctly against numeric condition-name parents.
             return figText switch
             {
                 "ZERO" or "ZEROS" or "ZEROES" => ConditionValue.FromNumeric(0m),
-                "SPACE" or "SPACES" => ConditionValue.FromString(" "),
-                "QUOTE" or "QUOTES" => ConditionValue.FromString("\""),
-                "HIGH-VALUE" or "HIGH-VALUES" => ConditionValue.FromString("\xFF"),
-                "LOW-VALUE" or "LOW-VALUES" => ConditionValue.FromString("\x00"),
+                "SPACE" or "SPACES" => ConditionValue.FromAllString(" "),
+                "QUOTE" or "QUOTES" => ConditionValue.FromAllString("\""),
+                "HIGH-VALUE" or "HIGH-VALUES" => ConditionValue.FromAllString("\xFF"),
+                "LOW-VALUE" or "LOW-VALUES" => ConditionValue.FromAllString("\x00"),
                 _ => ConditionValue.FromString(nonNum.GetText())
             };
         }

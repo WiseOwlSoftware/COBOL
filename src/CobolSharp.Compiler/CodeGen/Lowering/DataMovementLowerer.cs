@@ -183,25 +183,60 @@ internal sealed class DataMovementLowerer
     public void LowerInitialize(BoundInitializeStatement stmt, IrBasicBlock block)
     {
         foreach (var target in stmt.Targets)
-            InitializeDataItem(target, stmt, block);
+            InitializeDataItem(target, [], stmt, block);
     }
 
-    private void InitializeDataItem(DataSymbol item, BoundInitializeStatement stmt, IrBasicBlock block)
+    /// <summary>
+    /// Lower INITIALIZE for one data item, expanding OCCURS tables so that every
+    /// occurrence is initialized independently (ISO 1989:1985 14.x: INITIALIZE
+    /// applies to each occurrence of a table element). <paramref name="subscriptPath"/>
+    /// accumulates the 1-based occurrence index for each enclosing OCCURS level,
+    /// outermost first, mirroring the order LocationResolver collects OCCURS levels.
+    /// </summary>
+    private void InitializeDataItem(
+        DataSymbol item, List<int> subscriptPath, BoundInitializeStatement stmt, IrBasicBlock block)
     {
         if (item.IsFiller) return;
 
+        // A table (OCCURS) item — whether group or elementary — is initialized one
+        // occurrence at a time. Resolving the whole array as a single field is wrong:
+        // for COMP/BINARY tables it can't even be encoded (a 10-element S9(3) COMP
+        // array is 20 bytes, not a single 20-byte integer) and silently leaves the
+        // storage untouched.
+        if (item.Occurs is { MaxOccurs: > 1 })
+        {
+            for (int i = 1; i <= item.Occurs.MaxOccurs; i++)
+            {
+                subscriptPath.Add(i);
+                InitializeOccurrence(item, subscriptPath, stmt, block);
+                subscriptPath.RemoveAt(subscriptPath.Count - 1);
+            }
+            return;
+        }
+
+        InitializeOccurrence(item, subscriptPath, stmt, block);
+    }
+
+    /// <summary>
+    /// Initialize a single occurrence (this item's OCCURS, if any, is already accounted
+    /// for in <paramref name="subscriptPath"/>): recurse into group members, or assign
+    /// the per-occurrence elementary location.
+    /// </summary>
+    private void InitializeOccurrence(
+        DataSymbol item, List<int> subscriptPath, BoundInitializeStatement stmt, IrBasicBlock block)
+    {
         if (item.IsGroup)
         {
             foreach (var child in item.Children)
             {
                 if (child.LevelNumber == 66) continue; // RENAMES are aliases
                 if (child.Redefines != null) continue;
-                InitializeDataItem(child, stmt, block);
+                InitializeDataItem(child, subscriptPath, stmt, block);
             }
             return;
         }
 
-        var loc = _ctx.Location.ResolveLocation(item);
+        var loc = ResolveInitializeLocation(item, subscriptPath);
         if (loc == null) return;
 
         var pic = loc.GetPic();
@@ -223,6 +258,26 @@ internal sealed class DataMovementLowerer
             block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
         else
             block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Space));
+    }
+
+    /// <summary>
+    /// Resolve the storage location for one occurrence of an elementary item. With no
+    /// enclosing OCCURS the whole field is resolved directly; otherwise a constant
+    /// subscript list selects the occurrence, reusing LocationResolver's compile-time
+    /// offset folding (which also narrows the PIC descriptor to a single element).
+    /// </summary>
+    private IrLocation? ResolveInitializeLocation(DataSymbol item, List<int> subscriptPath)
+    {
+        if (subscriptPath.Count == 0)
+            return _ctx.Location.ResolveLocation(item);
+
+        var subscripts = new List<BoundExpression>(subscriptPath.Count);
+        foreach (var index in subscriptPath)
+            subscripts.Add(new BoundLiteralExpression((decimal)index, CobolCategory.Numeric));
+
+        var category = item.ResolvedType?.Category ?? CobolCategory.Numeric;
+        return _ctx.Location.ResolveLocation(
+            new BoundIdentifierExpression(item, category, subscripts));
     }
 
     internal static InitializeCategory ClassifyInitializeCategory(CobolCategory cat)
