@@ -288,11 +288,17 @@ public static class FileRuntime
     }
 
     /// <summary>
-    /// Check if a file has reached end-of-file.
+    /// Check whether a sequential read loop should terminate: true at end-of-file, and also for
+    /// the terminal statuses where no further record can ever be obtained — the file was never
+    /// opened (e.g. OPEN INPUT on a missing file), not found, or a permanent I/O error. Without
+    /// the latter, a read-until-AT-END loop (a plain READ … AT END or a SORT … USING input pass)
+    /// would spin forever on a file that never delivers a record.
     /// </summary>
     public static bool IsAtEnd(string fileName)
     {
-        return _lastStatus.TryGetValue(fileName, out var status) && status == FileStatus.AtEnd;
+        return _lastStatus.TryGetValue(fileName, out var status) && status is
+            FileStatus.AtEnd or FileStatus.FileNotOpen or FileStatus.FileNotFound
+            or FileStatus.PermanentError;
     }
 
     /// <summary>
