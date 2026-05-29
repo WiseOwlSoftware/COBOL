@@ -203,10 +203,12 @@ primaryExpression
     | LPAREN arithmeticExpression RPAREN
     ;
 
-// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions)
-// The function name + arguments are parsed via functionName + optional subscriptPart.
-// Arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
-// No-arg functions (e.g., FUNCTION PI) have no subscriptPart.
+// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15).
+// Arguments (if any) are captured in SUBSCRIPT lexer mode (like subscripts) so the COBOL
+// comma/space separators that delimit arguments are preserved — e.g. MAX(-4, 7, 3, -8) must
+// stay four arguments, not be re-read as "3 - 8". The binder then parses each comma/space-
+// delimited segment as a full arithmetic expression (ISO §15 allows arithmetic-expression
+// arguments). No-arg functions (e.g. FUNCTION PI) have no subscriptPart.
 functionCall
     : FUNCTION functionName subscriptPart?
     ;

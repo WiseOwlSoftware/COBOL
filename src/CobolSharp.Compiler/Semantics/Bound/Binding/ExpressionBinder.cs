@@ -129,7 +129,9 @@ internal sealed class ExpressionBinder
     {
         // FUNCTION functionName subscriptPart? — the function name comes from the
         // functionName rule (IDENTIFIER or a reserved-word alternative like SIGN/SUM/RANDOM).
-        // Arguments (if any) are captured as subscriptPart tokens by the SUBSCRIPT lexer mode.
+        // Arguments (if any) are captured as SUBSCRIPT-mode tokens; InterpretSubscriptTokens
+        // splits them on the COBOL comma/space separators and binds each as an arithmetic
+        // expression (ISO §15).
         var funcName = ctx.functionName()?.GetText() ?? "UNKNOWN";
 
         var args = new List<BoundExpression>();
@@ -139,8 +141,6 @@ internal sealed class ExpressionBinder
             var subOrRefMod = subPart.subscriptOrRefMod();
             if (subOrRefMod != null)
             {
-                // Reuse the subscript token interpreter — it splits comma-separated
-                // expressions which is exactly what function arguments are.
                 var (subExprs, _) = InterpretSubscriptTokens(subOrRefMod);
                 args.AddRange(subExprs);
             }
@@ -554,17 +554,21 @@ internal sealed class ExpressionBinder
     {
         var segments = new List<List<IToken>>();
         var current = new List<IToken>();
+        int depth = 0;   // nested-paren depth: only split at depth 0
 
         for (int i = 0; i < tokens.Count; i++)
         {
             var t = tokens[i];
-            if (t.Type == CobolParserCore.SUB_COMMA || t.Type == CobolParserCore.SUB_SEMICOLON)
+            if (t.Type == CobolParserCore.SUB_LPAREN) { depth++; current.Add(t); continue; }
+            if (t.Type == CobolParserCore.SUB_RPAREN) { if (depth > 0) depth--; current.Add(t); continue; }
+
+            if (depth == 0 && (t.Type == CobolParserCore.SUB_COMMA || t.Type == CobolParserCore.SUB_SEMICOLON))
             {
                 if (current.Count > 0) segments.Add(current);
                 current = new List<IToken>();
                 continue;
             }
-            if (t.Type == CobolParserCore.SUB_WS)
+            if (depth == 0 && t.Type == CobolParserCore.SUB_WS)
             {
                 // Multi-space is a subscript separator. Single space could be part of
                 // relative subscripting (IDENT + N). Check: if next non-WS is a sign
@@ -584,13 +588,22 @@ internal sealed class ExpressionBinder
                     // segment doesn't end with an operator (which would mean the
                     // WS is inside a relative subscript: IDENT + N)
                     var lastNonWs = current.FindLast(x => x.Type != CobolParserCore.SUB_WS);
+                    // A trailing arithmetic operator means the WS is inside an expression
+                    // (e.g. "9 * A", "B / 2", "X + N") — do not split the argument here.
                     bool endsWithOperator = lastNonWs != null &&
-                        (lastNonWs.Type == CobolParserCore.SUB_PLUS || lastNonWs.Type == CobolParserCore.SUB_MINUS);
+                        (lastNonWs.Type == CobolParserCore.SUB_PLUS || lastNonWs.Type == CobolParserCore.SUB_MINUS
+                         || lastNonWs.Type == CobolParserCore.SUB_STAR || lastNonWs.Type == CobolParserCore.SUB_SLASH
+                         || lastNonWs.Type == CobolParserCore.SUB_POWER);
                     // Don't split after OF/IN — these are qualification keywords
                     bool endsWithQualifier = lastNonWs != null &&
                         (lastNonWs.Type == CobolParserCore.SUB_OF || lastNonWs.Type == CobolParserCore.SUB_IN);
+                    // Don't split after the FUNCTION keyword — the following name is part of a
+                    // nested intrinsic-function call (e.g. ACOS(FUNCTION ACOS(D / D))).
+                    bool endsWithFunction = lastNonWs != null
+                        && lastNonWs.Type == CobolParserCore.SUB_IDENTIFIER
+                        && string.Equals(lastNonWs.Text, "FUNCTION", StringComparison.OrdinalIgnoreCase);
 
-                    if (!endsWithOperator && !endsWithQualifier &&
+                    if (!endsWithOperator && !endsWithQualifier && !endsWithFunction &&
                         (nextType == CobolParserCore.SIGNED_INTEGERLIT
                          || nextType == CobolParserCore.SUB_IDENTIFIER
                          || nextType == CobolParserCore.SUB_INTEGERLIT
@@ -623,6 +636,14 @@ internal sealed class ExpressionBinder
 
         if (tokens.Count == 0)
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+
+        // A segment containing a multiplicative/power operator is a full arithmetic
+        // expression (intrinsic-function arguments such as "9 * A", "B / 2", "IND(5) / 9").
+        // Ordinary subscripts (name, name ± int, qualified names) never contain these, so
+        // they continue through the simpler path below unchanged.
+        if (tokens.Any(t => t.Type is CobolParserCore.SUB_STAR or CobolParserCore.SUB_SLASH
+                or CobolParserCore.SUB_POWER))
+            return BindSubscriptTokensAsArithmetic(tokens);
 
         // Single SIGNED_INTEGERLIT: +8, -3
         if (tokens.Count == 1 && tokens[0].Type == CobolParserCore.SIGNED_INTEGERLIT)
@@ -701,68 +722,198 @@ internal sealed class ExpressionBinder
         return baseExpr2;
     }
 
-    /// <summary>Bind a token list as an arithmetic expression (for ref-mod or relative subscript).</summary>
+    /// <summary>
+    /// Bind a flat SUBSCRIPT-mode token list as a full arithmetic expression. Used for
+    /// reference-modification operands, relative subscripts, and intrinsic-function arguments
+    /// (ISO §15). Recursive descent with COBOL precedence: additive → multiplicative → power
+    /// → unary → primary, where a primary is a parenthesized expression, a numeric literal, or
+    /// a (possibly qualified and/or subscripted) data reference. Whitespace tokens are skipped.
+    /// </summary>
     internal BoundExpression BindSubscriptTokensAsArithmetic(List<IToken> tokens)
     {
-        // Remove leading/trailing WS
-        while (tokens.Count > 0 && tokens[0].Type == CobolParserCore.SUB_WS)
-            tokens.RemoveAt(0);
-        while (tokens.Count > 0 && tokens[^1].Type == CobolParserCore.SUB_WS)
-            tokens.RemoveAt(tokens.Count - 1);
+        int pos = 0;
+        var expr = ParseSubAdditive(tokens, ref pos);
+        return expr ?? new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    }
 
-        if (tokens.Count == 0)
-            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    private static int SkipSubWs(List<IToken> toks, int pos)
+    {
+        while (pos < toks.Count && toks[pos].Type == CobolParserCore.SUB_WS) pos++;
+        return pos;
+    }
 
-        // Build expression from tokens: handle identifiers, integers, +/- operators
-        BoundExpression? result = null;
-        BoundBinaryOperatorKind pendingOp = default;
-        bool hasPendingOp = false;
+    private static int PeekSubType(List<IToken> toks, int pos)
+    {
+        pos = SkipSubWs(toks, pos);
+        return pos < toks.Count ? toks[pos].Type : -1;
+    }
 
-        for (int i = 0; i < tokens.Count; i++)
+    private BoundExpression ParseSubAdditive(List<IToken> toks, ref int pos)
+    {
+        var left = ParseSubMultiplicative(toks, ref pos);
+        while (true)
         {
-            var t = tokens[i];
+            int t = PeekSubType(toks, pos);
+            if (t != CobolParserCore.SUB_PLUS && t != CobolParserCore.SUB_MINUS) break;
+            pos = SkipSubWs(toks, pos) + 1;
+            var right = ParseSubMultiplicative(toks, ref pos);
+            var op = t == CobolParserCore.SUB_PLUS ? BoundBinaryOperatorKind.Add : BoundBinaryOperatorKind.Subtract;
+            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
 
-            BoundExpression? term = null;
-            if (t.Type == CobolParserCore.SUB_IDENTIFIER)
-            {
-                var sym = _ctx.Semantic.ResolveData(t.Text);
-                term = sym != null
-                    ? new BoundIdentifierExpression(sym, sym.ResolvedType?.Category ?? CobolCategory.Numeric)
-                    : (BoundExpression)new BoundLiteralExpression(t.Text, CobolCategory.Alphanumeric);
-            }
-            else if (t.Type == CobolParserCore.SUB_INTEGERLIT || t.Type == CobolParserCore.SIGNED_INTEGERLIT)
-            {
-                term = new BoundLiteralExpression(
-                    decimal.Parse(t.Text, System.Globalization.CultureInfo.InvariantCulture),
-                    CobolCategory.Numeric);
-            }
-            else if (t.Type == CobolParserCore.SUB_PLUS)
-            {
-                pendingOp = BoundBinaryOperatorKind.Add;
-                hasPendingOp = true;
-                continue;
-            }
-            else if (t.Type == CobolParserCore.SUB_MINUS)
-            {
-                pendingOp = BoundBinaryOperatorKind.Subtract;
-                hasPendingOp = true;
-                continue;
-            }
-            else continue; // skip OF, IN, etc. for now
+    private BoundExpression ParseSubMultiplicative(List<IToken> toks, ref int pos)
+    {
+        var left = ParseSubPower(toks, ref pos);
+        while (true)
+        {
+            int t = PeekSubType(toks, pos);
+            if (t != CobolParserCore.SUB_STAR && t != CobolParserCore.SUB_SLASH) break;
+            pos = SkipSubWs(toks, pos) + 1;
+            var right = ParseSubPower(toks, ref pos);
+            var op = t == CobolParserCore.SUB_STAR ? BoundBinaryOperatorKind.Multiply : BoundBinaryOperatorKind.Divide;
+            left = new BoundBinaryExpression(left, op, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
 
-            if (term != null)
-            {
-                if (result == null)
-                    result = term;
-                else if (hasPendingOp)
-                {
-                    result = new BoundBinaryExpression(result, pendingOp, term, CobolCategory.Numeric);
-                    hasPendingOp = false;
-                }
-            }
+    private BoundExpression ParseSubPower(List<IToken> toks, ref int pos)
+    {
+        var left = ParseSubUnary(toks, ref pos);
+        if (PeekSubType(toks, pos) == CobolParserCore.SUB_POWER)
+        {
+            pos = SkipSubWs(toks, pos) + 1;
+            var right = ParseSubPower(toks, ref pos); // right-associative
+            return new BoundBinaryExpression(left, BoundBinaryOperatorKind.Power, right, CobolCategory.Numeric);
+        }
+        return left;
+    }
+
+    private BoundExpression ParseSubUnary(List<IToken> toks, ref int pos)
+    {
+        int t = PeekSubType(toks, pos);
+        if (t == CobolParserCore.SUB_PLUS || t == CobolParserCore.SUB_MINUS)
+        {
+            pos = SkipSubWs(toks, pos) + 1;
+            var operand = ParseSubUnary(toks, ref pos);
+            if (t == CobolParserCore.SUB_PLUS) return operand;
+            return new BoundBinaryExpression(
+                new BoundLiteralExpression(0m, CobolCategory.Numeric),
+                BoundBinaryOperatorKind.Subtract, operand, CobolCategory.Numeric);
+        }
+        return ParseSubPrimary(toks, ref pos);
+    }
+
+    private BoundExpression ParseSubPrimary(List<IToken> toks, ref int pos)
+    {
+        pos = SkipSubWs(toks, pos);
+        if (pos >= toks.Count) return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        var tok = toks[pos];
+
+        // Parenthesized sub-expression
+        if (tok.Type == CobolParserCore.SUB_LPAREN)
+        {
+            pos++;
+            var inner = ParseSubAdditive(toks, ref pos);
+            pos = SkipSubWs(toks, pos);
+            if (pos < toks.Count && toks[pos].Type == CobolParserCore.SUB_RPAREN) pos++;
+            return inner;
         }
 
-        return result ?? new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        if (tok.Type == CobolParserCore.SUB_INTEGERLIT || tok.Type == CobolParserCore.SUB_DECIMALLIT
+            || tok.Type == CobolParserCore.SIGNED_INTEGERLIT)
+        {
+            pos++;
+            return new BoundLiteralExpression(
+                decimal.Parse(tok.Text, System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowLeadingSign,
+                    System.Globalization.CultureInfo.InvariantCulture),
+                CobolCategory.Numeric);
+        }
+
+        if (tok.Type == CobolParserCore.SUB_IDENTIFIER)
+        {
+            // Nested intrinsic-function call as an argument, e.g. ACOS(FUNCTION ACOS(D / D)).
+            // In SUBSCRIPT mode the FUNCTION keyword and the function name are plain
+            // SUB_IDENTIFIERs, so recognize "FUNCTION name (args)" here.
+            if (string.Equals(tok.Text, "FUNCTION", StringComparison.OrdinalIgnoreCase))
+            {
+                pos++;
+                pos = SkipSubWs(toks, pos);
+                string fname = (pos < toks.Count && toks[pos].Type == CobolParserCore.SUB_IDENTIFIER)
+                    ? toks[pos++].Text : "UNKNOWN";
+                var fargs = new List<BoundExpression>();
+                if (PeekSubType(toks, pos) == CobolParserCore.SUB_LPAREN)
+                {
+                    pos = SkipSubWs(toks, pos);
+                    var innerToks = CollectBalancedSubTokens(toks, ref pos);
+                    var (innerExprs, _) = InterpretCollectedSubscriptTokens(innerToks);
+                    fargs.AddRange(innerExprs);
+                }
+                var fcat = BindingContext.AlphanumericFunctions.Contains(fname)
+                    ? CobolCategory.Alphanumeric : CobolCategory.Numeric;
+                return new BoundFunctionCallExpression(fname, fargs.AsReadOnly(), fcat);
+            }
+
+            pos++;
+            string baseName = tok.Text;
+            var qualNames = new List<string>();
+            // Qualification: OF/IN data-name ...
+            while (PeekSubType(toks, pos) is CobolParserCore.SUB_OF or CobolParserCore.SUB_IN)
+            {
+                pos = SkipSubWs(toks, pos) + 1;
+                pos = SkipSubWs(toks, pos);
+                if (pos < toks.Count && toks[pos].Type == CobolParserCore.SUB_IDENTIFIER)
+                    qualNames.Add(toks[pos++].Text);
+            }
+            // Nested subscript: name(subscripts)
+            List<BoundExpression>? subs = null;
+            if (PeekSubType(toks, pos) == CobolParserCore.SUB_LPAREN)
+            {
+                pos = SkipSubWs(toks, pos);
+                var inner = CollectBalancedSubTokens(toks, ref pos);
+                var (innerExprs, _) = InterpretCollectedSubscriptTokens(inner);
+                subs = innerExprs;
+            }
+
+            var sym = qualNames.Count > 0 ? ResolveQualifiedName(baseName, qualNames) : _ctx.Semantic.ResolveData(baseName);
+            if (sym == null)
+                return new BoundLiteralExpression(baseName, CobolCategory.Alphanumeric);
+            var cat = sym.ResolvedType?.Category ?? CobolCategory.Numeric;
+            return _ctx.Typed(new BoundIdentifierExpression(sym, cat, subs));
+        }
+
+        // Unknown token — consume and yield 0 so parsing can continue.
+        pos++;
+        return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+    }
+
+    /// <summary>Collect the tokens inside a balanced SUB_LPAREN…SUB_RPAREN (excluding the outer parens).</summary>
+    private static List<IToken> CollectBalancedSubTokens(List<IToken> toks, ref int pos)
+    {
+        var inner = new List<IToken>();
+        if (pos >= toks.Count || toks[pos].Type != CobolParserCore.SUB_LPAREN) return inner;
+        pos++; // consume '('
+        int depth = 1;
+        while (pos < toks.Count && depth > 0)
+        {
+            int tt = toks[pos].Type;
+            if (tt == CobolParserCore.SUB_LPAREN) depth++;
+            else if (tt == CobolParserCore.SUB_RPAREN) { depth--; if (depth == 0) { pos++; break; } }
+            inner.Add(toks[pos]);
+            pos++;
+        }
+        return inner;
+    }
+
+    /// <summary>Interpret a collected inner token list as a subscript list (split on commas/spaces, bind each).</summary>
+    private (List<BoundExpression> Exprs, bool IsRefMod) InterpretCollectedSubscriptTokens(List<IToken> tokens)
+    {
+        var segments = SplitSubscriptTokens(tokens);
+        var subs = new List<BoundExpression>(segments.Count);
+        foreach (var seg in segments)
+            subs.Add(BindSubscriptSegment(seg));
+        return (subs, false);
     }
 
     /// <summary>

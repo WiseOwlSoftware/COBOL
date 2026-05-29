@@ -553,9 +553,15 @@ SUB_DECIMALLIT      : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 // Data-name / index-name (must follow keywords to avoid capturing OF/IN/ALL)
 SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* | [a-z] [a-z0-9-]* [a-z0-9] | [a-z] ;
 
-// Operators and punctuation
+// Operators and punctuation. Arithmetic operators (*, /, **) are needed because
+// intrinsic-function arguments — captured in this mode to preserve comma/space
+// separators — may be full arithmetic expressions (ISO §15), e.g. MEAN(9 * A, B / 2).
+// SUB_POWER must precede SUB_STAR so '**' is one token, not two.
 SUB_PLUS            : '+' ;
 SUB_MINUS           : '-' ;
+SUB_POWER           : '**' ;
+SUB_STAR            : '*' ;
+SUB_SLASH           : '/' ;
 SUB_COMMA           : ',' ;
 SUB_SEMICOLON       : ';' ;  // §8.3.5: semicolon is interchangeable with comma
 SUB_COLON           : ':' ;

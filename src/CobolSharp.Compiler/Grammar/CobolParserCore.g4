@@ -328,6 +328,9 @@ subToken
     | SIGNED_INTEGERLIT
     | SUB_PLUS
     | SUB_MINUS
+    | SUB_POWER
+    | SUB_STAR
+    | SUB_SLASH
     | SUB_COMMA
     | SUB_SEMICOLON
     | SUB_COLON

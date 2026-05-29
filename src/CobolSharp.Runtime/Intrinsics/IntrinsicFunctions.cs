@@ -16,18 +16,32 @@ public static class IntrinsicFunctions
     // Math functions
     // ═══════════════════════════════════════════════════
 
+    /// <summary>
+    /// Convert a double result to decimal without throwing. Out-of-domain math results
+    /// (NaN — e.g. ACOS of |x|&gt;1, SQRT of a negative, LOG of ≤0) map to 0 (COBOL treats
+    /// these as the EC-ARGUMENT-FUNCTION condition with a default result rather than a fatal
+    /// crash); ±Infinity and finite values beyond the decimal range clamp to decimal.Max/Min.
+    /// </summary>
+    internal static decimal FromDouble(double d)
+    {
+        if (double.IsNaN(d)) return 0m;
+        if (double.IsPositiveInfinity(d) || d > (double)decimal.MaxValue) return decimal.MaxValue;
+        if (double.IsNegativeInfinity(d) || d < (double)decimal.MinValue) return decimal.MinValue;
+        return (decimal)d;
+    }
+
     public static decimal Abs(decimal value) => Math.Abs(value);
-    public static decimal Acos(decimal value) => (decimal)Math.Acos((double)value);
-    public static decimal Asin(decimal value) => (decimal)Math.Asin((double)value);
-    public static decimal Atan(decimal value) => (decimal)Math.Atan((double)value);
-    public static decimal Cos(decimal value) => (decimal)Math.Cos((double)value);
-    public static decimal Sin(decimal value) => (decimal)Math.Sin((double)value);
-    public static decimal Tan(decimal value) => (decimal)Math.Tan((double)value);
-    public static decimal Sqrt(decimal value) => (decimal)Math.Sqrt((double)value);
-    public static decimal Log(decimal value) => (decimal)Math.Log((double)value);
-    public static decimal Log10(decimal value) => (decimal)Math.Log10((double)value);
-    public static decimal Exp(decimal value) => (decimal)Math.Exp((double)value);
-    public static decimal Exp10(decimal value) => (decimal)Math.Pow(10, (double)value);
+    public static decimal Acos(decimal value) => FromDouble(Math.Acos((double)value));
+    public static decimal Asin(decimal value) => FromDouble(Math.Asin((double)value));
+    public static decimal Atan(decimal value) => FromDouble(Math.Atan((double)value));
+    public static decimal Cos(decimal value) => FromDouble(Math.Cos((double)value));
+    public static decimal Sin(decimal value) => FromDouble(Math.Sin((double)value));
+    public static decimal Tan(decimal value) => FromDouble(Math.Tan((double)value));
+    public static decimal Sqrt(decimal value) => FromDouble(Math.Sqrt((double)value));
+    public static decimal Log(decimal value) => FromDouble(Math.Log((double)value));
+    public static decimal Log10(decimal value) => FromDouble(Math.Log10((double)value));
+    public static decimal Exp(decimal value) => FromDouble(Math.Exp((double)value));
+    public static decimal Exp10(decimal value) => FromDouble(Math.Pow(10, (double)value));
     public static decimal Factorial(decimal value)
     {
         int n = (int)value;

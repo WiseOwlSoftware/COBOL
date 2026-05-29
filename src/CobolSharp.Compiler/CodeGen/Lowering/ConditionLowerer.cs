@@ -34,7 +34,9 @@ internal sealed class ConditionLowerer
         public FigurativeKind FigurativeKind { get; init; }
         public string? AllLiteral { get; init; }
         public int FieldWidth { get; init; }
-        public BoundBinaryExpression? ArithExpr { get; init; }
+        // Any numeric-valued expression evaluated via the arithmetic accumulator path
+        // (arithmetic binary expression, or a numeric intrinsic-function call).
+        public BoundExpression? ArithExpr { get; init; }
 
         private ComparisonOperand(ComparisonOperandKind kind) { Kind = kind; }
 
@@ -46,7 +48,7 @@ internal sealed class ConditionLowerer
             new(ComparisonOperandKind.StringLiteral) { StringValue = value, Category = CobolCategory.Alphanumeric };
         public static ComparisonOperand FromFigurative(FigurativeKind kind, string? allLiteral = null) =>
             new(ComparisonOperandKind.Figurative) { FigurativeKind = kind, AllLiteral = allLiteral };
-        public static ComparisonOperand FromArithmeticExpression(BoundBinaryExpression expr) =>
+        public static ComparisonOperand FromArithmeticExpression(BoundExpression expr) =>
             new(ComparisonOperandKind.ArithmeticExpression) { ArithExpr = expr, Category = CobolCategory.Numeric };
     }
 
@@ -88,6 +90,12 @@ internal sealed class ConditionLowerer
                     or BoundBinaryOperatorKind.Divide
                     or BoundBinaryOperatorKind.Power:
                 return ComparisonOperand.FromArithmeticExpression(arith);
+
+            // A numeric intrinsic-function call (FUNCTION ACOS(...), FUNCTION MEAN(...), …)
+            // used directly as a comparison operand is evaluated like an arithmetic
+            // expression — lowered to the decimal accumulator and compared numerically.
+            case BoundFunctionCallExpression fn when fn.Category.IsNumericLike():
+                return ComparisonOperand.FromArithmeticExpression(fn);
 
             default:
                 return null;
