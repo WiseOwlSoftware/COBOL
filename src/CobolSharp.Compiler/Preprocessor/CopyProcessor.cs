@@ -331,14 +331,16 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
 
         if (pos < text.Length && text[pos] is '"' or '\'')
         {
+            // An alphanumeric literal operand. The quotation marks are part of the literal
+            // token (REPLACE …-1 BY "TRUE " must yield a quoted literal in the source, not the
+            // bare word TRUE), so include them in the returned text.
             char quote = text[pos];
-            pos++;
             int start = pos;
+            pos++;
             while (pos < text.Length && text[pos] != quote)
                 pos++;
-            string result = text[start..pos];
-            if (pos < text.Length) pos++;
-            return result;
+            if (pos < text.Length) pos++; // consume closing quote
+            return text[start..pos];
         }
 
         string word = ReadWord(text, ref pos);
