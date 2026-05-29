@@ -85,9 +85,16 @@ evaluateSubject
     | valueOperand (IS? NOT? classCondition)?            // EVALUATE X [NUMERIC / class test]
     ;
 
+// One or more consecutive WHEN phrases share the following imperative (ISO 1989:1985
+// 14.8.4): "WHEN a  WHEN b  WHEN c  imperative" executes the imperative if a, b, OR c
+// matches. Each phrase is bound to its own match arm over the shared body.
 evaluateWhenClause
-    : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)* statementBlock*
+    : evaluateWhenPhrase+ statementBlock*
     | WHEN OTHER statementBlock*
+    ;
+
+evaluateWhenPhrase
+    : WHEN evaluateWhenGroup (ALSO evaluateWhenGroup)*
     ;
 
 evaluateWhenGroup

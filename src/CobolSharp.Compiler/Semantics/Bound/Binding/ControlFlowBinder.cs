@@ -309,25 +309,10 @@ internal sealed class ControlFlowBinder
                 continue;
             }
 
-            // Normal WHEN: bind per-subject groups (separated by ALSO)
-            var groups = whenClause.evaluateWhenGroup();
-            var subjectConditions = new List<BoundEvaluateCondition>();
-
-            for (int i = 0; i < subjectCount && i < groups.Length; i++)
-            {
-                var kind = subjectKinds[i];
-                bool isCondSubject = kind == EvaluateSubjectKind.True || kind == EvaluateSubjectKind.False;
-                // For condition-name subjects, pass the subject expression as the implicit condition
-                BoundExpression? condNameSubject = (isCondSubject && subjects[i] is BoundConditionNameExpression)
-                    ? subjects[i] : null;
-                subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isCondSubject, classConditions[i], condNameSubject));
-            }
-            // If fewer groups than subjects → semantic error; fill with "never match"
-            // so the WHEN clause doesn't fire (missing subjects are non-matching)
-            for (int i = groups.Length; i < subjectCount; i++)
-                subjectConditions.Add(new BoundEvaluateValueCondition(
-                    Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: false));
-
+            // Bind the shared imperative once: consecutive WHEN phrases (WHEN a WHEN b ...)
+            // before a single statement list all execute that list (ISO 14.8.4 — the
+            // phrases are OR'd). Each phrase becomes its own match arm over this body, so
+            // the first phrase that matches runs it.
             var stmts = new List<BoundStatement>();
             foreach (var imp in whenClause.statementBlock())
                 foreach (var stmt in imp.statement())
@@ -336,7 +321,29 @@ internal sealed class ControlFlowBinder
                     if (bound != null) stmts.Add(bound);
                 }
 
-            whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
+            foreach (var phrase in whenClause.evaluateWhenPhrase())
+            {
+                // Per-subject groups (separated by ALSO) within this phrase.
+                var groups = phrase.evaluateWhenGroup();
+                var subjectConditions = new List<BoundEvaluateCondition>();
+
+                for (int i = 0; i < subjectCount && i < groups.Length; i++)
+                {
+                    var kind = subjectKinds[i];
+                    bool isCondSubject = kind == EvaluateSubjectKind.True || kind == EvaluateSubjectKind.False;
+                    // For condition-name subjects, pass the subject expression as the implicit condition
+                    BoundExpression? condNameSubject = (isCondSubject && subjects[i] is BoundConditionNameExpression)
+                        ? subjects[i] : null;
+                    subjectConditions.Add(BindEvaluateWhenGroup(groups[i], isCondSubject, classConditions[i], condNameSubject));
+                }
+                // If fewer groups than subjects → semantic error; fill with "never match"
+                // so the WHEN clause doesn't fire (missing subjects are non-matching)
+                for (int i = groups.Length; i < subjectCount; i++)
+                    subjectConditions.Add(new BoundEvaluateValueCondition(
+                        Array.Empty<BoundExpression>(), Array.Empty<BoundEvaluateRange>(), isAny: false));
+
+                whens.Add(new BoundEvaluateWhen(subjectConditions, stmts));
+            }
         }
 
         return new BoundEvaluateStatement(subjects, subjectKinds, whens, whenOther);

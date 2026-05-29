@@ -2163,6 +2163,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitEvaluateWhenClause([NotNull] CobolParserCore.EvaluateWhenClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEvaluateWhenPhrase([NotNull] CobolParserCore.EvaluateWhenPhraseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.evaluateWhenGroup"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
