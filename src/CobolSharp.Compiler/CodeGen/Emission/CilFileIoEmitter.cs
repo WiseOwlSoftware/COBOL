@@ -157,11 +157,12 @@ internal sealed class CilFileIoEmitter
         IrCheckFileAtEnd chk,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        // FileRuntime.IsAtEnd(string fileName)
+        // FileRuntime.IsAtEnd (AT END condition, status "10") or IsReadExhausted (EOF or any
+        // terminal unreadable status — for compiler-generated loop termination).
         il.Append(il.Create(OpCodes.Ldstr, chk.FileName));
         var method = _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod(
-                "IsAtEnd",
+                chk.TreatErrorsAsEnd ? "IsReadExhausted" : "IsAtEnd",
                 new[] { typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
         if (chk.Result.HasValue)

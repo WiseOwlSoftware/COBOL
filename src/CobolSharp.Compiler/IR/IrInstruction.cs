@@ -653,16 +653,21 @@ public sealed class IrCheckFileInvalidKey : IrInstruction
 }
 
 /// <summary>
-/// Check if a file is at EOF after a READ. Sets result bool to true if at end.
+/// Check a file's read status after a READ. Sets result bool. By default this is the AT END
+/// CONDITION (status "10" only) driving an AT END / NOT AT END branch. When
+/// <see cref="TreatErrorsAsEnd"/> is set, it is a loop-exhaustion check (EOF OR any terminal
+/// unreadable status) used by compiler-generated read loops so they terminate on error too.
 /// </summary>
 public sealed class IrCheckFileAtEnd : IrInstruction
 {
     public string FileName { get; }
+    public bool TreatErrorsAsEnd { get; }
 
-    public IrCheckFileAtEnd(string fileName, IrValue result)
+    public IrCheckFileAtEnd(string fileName, IrValue result, bool treatErrorsAsEnd = false)
     {
         FileName = fileName;
         Result = result;
+        TreatErrorsAsEnd = treatErrorsAsEnd;
     }
 }
 

@@ -288,13 +288,25 @@ public static class FileRuntime
     }
 
     /// <summary>
-    /// Check whether a sequential read loop should terminate: true at end-of-file, and also for
-    /// the terminal statuses where no further record can ever be obtained — the file was never
-    /// opened (e.g. OPEN INPUT on a missing file), not found, or a permanent I/O error. Without
-    /// the latter, a read-until-AT-END loop (a plain READ … AT END or a SORT … USING input pass)
-    /// would spin forever on a file that never delivers a record.
+    /// The AT END condition (ISO §14.9.21): true only at end-of-file (status "10"). A non-EOF
+    /// unsuccessful read (file not open, not found, permanent error) is NOT an AT END condition —
+    /// it sets FILE STATUS and is handled by a USE procedure — so it must not drive the AT END
+    /// imperative. Compiler-generated read loops that must terminate on any exhaustion use
+    /// <see cref="IsReadExhausted"/> instead.
     /// </summary>
     public static bool IsAtEnd(string fileName)
+    {
+        return _lastStatus.TryGetValue(fileName, out var status) && status == FileStatus.AtEnd;
+    }
+
+    /// <summary>
+    /// True when no further record can be obtained: end-of-file OR a terminal status (file never
+    /// opened — e.g. OPEN INPUT on a missing file — not found, or a permanent I/O error). Used by
+    /// compiler-generated read loops (e.g. the SORT … USING input pass) so they terminate instead
+    /// of spinning on a file that never delivers a record. This is loop termination, NOT the AT END
+    /// condition (see <see cref="IsAtEnd"/>).
+    /// </summary>
+    public static bool IsReadExhausted(string fileName)
     {
         return _lastStatus.TryGetValue(fileName, out var status) && status is
             FileStatus.AtEnd or FileStatus.FileNotOpen or FileStatus.FileNotFound

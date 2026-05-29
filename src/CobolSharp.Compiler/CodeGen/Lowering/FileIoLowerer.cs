@@ -574,7 +574,9 @@ internal sealed class FileIoLowerer
         // Read record from input file
         loopHead.Instructions.Add(new IrReadRecordToStorage(inputName, inputLoc));
         var atEndVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-        loopHead.Instructions.Add(new IrCheckFileAtEnd(inputName, atEndVal));
+        // Loop termination: stop on EOF OR any terminal unreadable status (a missing input file
+        // must not spin), not the AT END condition.
+        loopHead.Instructions.Add(new IrCheckFileAtEnd(inputName, atEndVal, treatErrorsAsEnd: true));
         loopHead.Instructions.Add(new IrBranch(atEndVal, loopExit, loopBody));
 
         method.Blocks.Add(loopBody);
