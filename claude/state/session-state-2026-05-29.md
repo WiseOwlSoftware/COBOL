@@ -58,18 +58,21 @@ unparsed SORT/MERGE forms to investigate.
 SQ 85: CLEAN 2, **COMPILE_FAIL 81**. IX 42: CLEAN 1, **COMPILE_FAIL 40**. RL 35: CLEAN 4,
 **COMPILE_FAIL 23**. ST 40: CLEAN 10, COMPILE_FAIL 8, NO_OUTPUT 7, FAIL* 13, RUNTIME 1 (ST132A).
 
-**THE file-I/O wall = COMPILE_FAIL (144/162), two root causes:**
-1. **CCVS column-7 conditional lines.** Lines carry a non-standard letter in the indicator column
-   (col 7) marking an optional-feature group — e.g. SQ102A's `P` lines define an entire INDEXED
-   `RAW-DATA` file (SELECT + FD + every OPEN/READ/REWRITE/CLOSE is `P`-marked, a coherent block).
-   `ConvertFixedToFree` currently treats any non-`*`/`/`/`D` indicator as normal code (default
-   case), injecting that block inline and derailing the parse. Caveat: SM104A's K1FDA used `C`/`G`
-   indicators that legitimately ARE code (a VALUE OF clause split across lines) — so a blanket
-   "exclude all lettered lines" would regress SM104A. The CCVS X-card/TPF convention assigns
-   per-letter include/exclude semantics; needs the CCVS source-formatter rules (or an
-   empirically-derived letter table) — the single highest-leverage file-I/O fix (~144 compiles).
-2. **SELECT/FD grammar gaps**: hyphenated `RECORD-KEY` (vs `RECORD KEY`), `STATUS data-name`
-   without `FILE`, `ORGANIZATION`/`ACCESS` clause ordering/splitting, etc. (RL101A, SQ102A/103A).
+**THE file-I/O wall = COMPILE_FAIL (144/162). Two root causes; #1 now partly handled:**
+1. **CCVS column-7 conditional lines — DONE for P/J (DEVLOG 217).** `ConvertFixedToFree` already
+   excluded `D`/`S`/`Y` as optional/comment lines (why NC/IF compile despite their `S`/`Y` code);
+   added `P`/`J` (the file-I/O auxiliary scratch file + alternate ASSIGN target). `A`/`B`/`C`/`G`
+   stay code (NC/SM use them). `P`/`J` are absent from the guarded suites → guard-safe. This
+   removed the spurious-second-SELECT errors but did NOT clear many compiles on its own (cause #2).
+2. **SELECT/FD grammar gaps (the remaining wall).** The standard (space-indicator) FILE-CONTROL
+   content itself has forms the grammar rejects:
+   - A bare organization keyword: SQ102A `SELECT SQ-FS1  ACCESS MODE IS SEQUENTIAL  SEQUENTIAL
+     ASSIGN TO …` — the lone `SEQUENTIAL` (organization clause without `ORGANIZATION IS`).
+   - `STATUS data-name` without the `FILE` keyword (RL101A `STATUS RL-FS2-STATUS`).
+   - Clause spread across continuation/multiple lines; clause ordering.
+   - INDEXED `RECORD KEY` / alternate-key and relative `RELATIVE KEY` clause forms.
+   These need a careful FILE-CONTROL grammar pass against ISO §9 (SELECT) — the highest-leverage
+   remaining file-I/O work, then the INDEXED/RELATIVE runtime for correct results.
 
 Also: 8 ST COMPILE_FAIL (SORT/MERGE forms) and ST132A still hangs (a non-USING cause).
 
