@@ -75,8 +75,16 @@ Finish SM to 100%, then continue depth-first: IC → SQ → IX → RL → ST →
   - Likely fix: rework `ApplyReplacements`/`ParseReplacements` for COBOL pseudo-text semantics
     (match on token sequences ignoring whitespace runs, span source lines, handle `==…==` with
     embedded doubled quotes and continuation `-` lines).
-- **6 FAIL*** (compile+run, value correctness): SM104A(1), SM105A(6), SM201A(1), SM202A(1),
-  SM205A(8), SM207A(1) — inspect each CCVS `COMPUTED= / CORRECT=` in `tests/nist/output/<lc>.txt`.
+- **6 FAIL*** (compile+run, value correctness) — each a distinct feature, diagnosed:
+  - **SM104A** COPY-TEST-3 = `DECIMAL-POINT IS COMMA` (European format; COMPUTED 0 vs
+    `12.345.678,91`); COPY-TEST-4 = COPY of ENVIRONMENT DIVISION entries not taking effect.
+  - **SM201A** COPY-TEST-11 / **SM206A** = multi-line pseudo-text COPY REPLACING (same root).
+  - **SM202A** COPY-TEST-17 = REPLACE with multiple BY-literal operands only partially applied
+    (`TRUE TWO ABCDE 12` vs `TRUE TWO + 2 = 4`).
+  - **SM205A** (8) = SORT/COPY value tail (RETURN now parses; inspect report).
+  - **SM207A** QUAL-TEST-02 = library-qualified COPY (`COPY text IN library`): we ignore the
+    qualifier and search a single flat `copylib/`, so same-named members in different libraries
+    collide ("TEXT COPIED FROM WRONG LIBRARY"). Needs library-name → directory mapping.
 - **2 NO_OUTPUT**: SM301M/SM401M — verify they are flagging modules (no CCVS report), like
   IF401M/402M/403M; if so, leave unguarded.
 - When a test hits 0 FAIL*, copy `tests/nist/output/<lc>.txt` → `tests/nist/valid/<TEST>.txt`
