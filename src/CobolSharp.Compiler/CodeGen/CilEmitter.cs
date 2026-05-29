@@ -883,6 +883,7 @@ public sealed class CilEmitter
             case IrDecimalCompare decCmp: _ctx.Comparison.EmitDecimalCompare(il, decCmp, getLocal); break;
             case IrDecimalCompareLiteral decLitCmp: _ctx.Comparison.EmitDecimalCompareLiteral(il, decLitCmp, getLocal); break;
             case IrStringCompareLiteral strCmp: _ctx.Comparison.EmitStringCompareLiteral(il, strCmp, getLocal); break;
+            case IrStringExprCompare strExprCmp: _ctx.Comparison.EmitStringExprCompare(il, strExprCmp, getLocal); break;
             case IrStringCompare strFldCmp: _ctx.Comparison.EmitStringCompare(il, strFldCmp, getLocal); break;
             case IrStringCompareWithSequence seqCmp: _ctx.Comparison.EmitStringCompareWithSequence(il, seqCmp, getLocal); break;
             case IrStringCompareLiteralWithSequence seqLitCmp: _ctx.Comparison.EmitStringCompareLiteralWithSequence(il, seqLitCmp, getLocal); break;

@@ -148,6 +148,12 @@ internal sealed class CilExpressionEmitter
                     EmitIrExpression(il, numArg.Expression);
                     il.Append(il.Create(OpCodes.Box, _ctx.Module.ImportReference(typeof(decimal))));
                     break;
+
+                case IR.IrStringExprArg strExprArg when strExprArg.Expression is IR.IrIntrinsicCall nested:
+                    // Nested alphanumeric function: Call returns the String object directly —
+                    // store it as-is (no decimal box).
+                    EmitIrIntrinsicCall(il, nested);
+                    break;
             }
 
             il.Append(il.Create(OpCodes.Stelem_Ref));

@@ -1489,6 +1489,30 @@ public sealed class IrStringCompareLiteralWithSequence : IrInstruction
 }
 
 /// <summary>
+/// Compare a string-VALUED expression (e.g. an alphanumeric intrinsic-function result such as
+/// FUNCTION UPPER-CASE(x)) against another operand given as a field location or a literal.
+/// The left expression is evaluated to a System.String; the right is read as a string; the two
+/// are compared with StorageHelpers.CompareStringValues (trailing-space-insensitive).
+/// </summary>
+public sealed class IrStringExprCompare : IrInstruction
+{
+    public IrExpression LeftStringExpr { get; }
+    public IrLocation? RightLocation { get; }
+    public string? RightLiteral { get; }
+    public int OperatorKind { get; }
+
+    public IrStringExprCompare(IrExpression leftStringExpr, IrLocation? rightLocation,
+        string? rightLiteral, IrValue result, int operatorKind)
+    {
+        LeftStringExpr = leftStringExpr;
+        RightLocation = rightLocation;
+        RightLiteral = rightLiteral;
+        Result = result;
+        OperatorKind = operatorKind;
+    }
+}
+
+/// <summary>
 /// One sending item in a STRING statement.
 /// </summary>
 public sealed class IrStringSending

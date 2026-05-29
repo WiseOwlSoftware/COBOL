@@ -239,6 +239,46 @@ internal sealed class CilComparisonEmitter
         }
     }
 
+    internal void EmitStringExprCompare(ILProcessor il, IrStringExprCompare cmp,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        // Left: evaluate the (alphanumeric) intrinsic-function call to a System.String.
+        if (cmp.LeftStringExpr is IR.IrIntrinsicCall callExpr)
+        {
+            _ctx.Expression.EmitIrIntrinsicCall(il, callExpr);
+            il.Append(il.Create(OpCodes.Castclass, _ctx.Module.TypeSystem.String));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldstr, ""));
+        }
+
+        // Right: literal string, or the field content read as a string.
+        if (cmp.RightLiteral != null)
+        {
+            il.Append(il.Create(OpCodes.Ldstr, cmp.RightLiteral));
+        }
+        else if (cmp.RightLocation != null)
+        {
+            _ctx.Location.EmitLocationArgs(il, cmp.RightLocation);
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldstr, ""));
+        }
+
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Runtime.StorageHelpers).GetMethod("CompareStringValues",
+                new[] { typeof(string), typeof(string) })!)));
+        EmitCompareResultToBool(il, cmp.OperatorKind);
+
+        if (cmp.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(cmp.Result.Value)));
+    }
+
     internal void EmitStringCompare(ILProcessor il, IrStringCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {

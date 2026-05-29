@@ -93,6 +93,19 @@ internal sealed class ExpressionLowerer
                             break;
                         }
 
+                        // Nested alphanumeric function result (e.g. LOWER-CASE(FUNCTION LOWER-CASE("X")))
+                        // — a String value, not a decimal.
+                        case BoundFunctionCallExpression fnArg
+                            when fnArg.Category is Runtime.CobolCategory.Alphanumeric
+                                or Runtime.CobolCategory.Alphabetic
+                                or Runtime.CobolCategory.AlphanumericEdited:
+                        {
+                            var inner = LowerExpression(fnArg);
+                            if (inner == null) return null;
+                            args.Add(new IrStringExprArg(inner));
+                            break;
+                        }
+
                         default:
                         {
                             var lowered = LowerExpression(arg);

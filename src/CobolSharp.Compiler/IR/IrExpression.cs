@@ -142,6 +142,18 @@ public sealed class IrLiteralStringArg : IrFunctionArg
 }
 
 /// <summary>
+/// String-valued expression argument: an alphanumeric intrinsic-function call used as an
+/// argument to another function (e.g. LOWER-CASE(FUNCTION LOWER-CASE("X"))). Evaluated to a
+/// System.String at runtime — NOT a decimal — so it must not go through the numeric arg path.
+/// </summary>
+public sealed class IrStringExprArg : IrFunctionArg
+{
+    public IrExpression Expression { get; }
+
+    public IrStringExprArg(IrExpression expression) => Expression = expression;
+}
+
+/// <summary>
 /// Intrinsic function call: FUNCTION name(args).
 /// Arguments are IrFunctionArg instances (numeric, alphanumeric, or string literal).
 /// </summary>

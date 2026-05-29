@@ -234,10 +234,65 @@ internal sealed class ConditionLowerer
         _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0503, SourceLocation.None, TextSpan.Empty, cond.GetType().Name);
     }
 
+    /// <summary>
+    /// If one side of the comparison is an alphanumeric intrinsic-function call, lower it to a
+    /// string-value comparison (IrStringExprCompare) against the other operand (a literal,
+    /// figurative, or field). The function is normalized to the left, flipping the operator if
+    /// it was on the right. Returns false if neither side is an alphanumeric function (or the
+    /// other operand can't be resolved), so the caller uses the normal comparison path.
+    /// </summary>
+    private bool TryLowerStringFunctionComparison(BoundBinaryExpression bin, IrValue result, IrBasicBlock block)
+    {
+        bool leftIsStrFn = bin.Left is BoundFunctionCallExpression lf && !lf.Category.IsNumericLike();
+        bool rightIsStrFn = bin.Right is BoundFunctionCallExpression rf && !rf.Category.IsNumericLike();
+        if (!leftIsStrFn && !rightIsStrFn) return false;
+
+        BoundExpression fnExpr;
+        BoundExpression other;
+        int op = (int)bin.OperatorKind;
+        if (leftIsStrFn)
+        {
+            fnExpr = bin.Left; other = bin.Right;
+        }
+        else
+        {
+            fnExpr = bin.Right; other = bin.Left;
+            op = (int)FlipComparisonOp((BoundBinaryOperatorKind)op);
+        }
+
+        var fnIr = _ctx.Expression.LowerExpression(fnExpr);
+        if (fnIr == null) return false;
+
+        string? rightLiteral = null;
+        IrLocation? rightLocation = null;
+        switch (other)
+        {
+            case BoundLiteralExpression { Value: string s }:
+                rightLiteral = s;
+                break;
+            case BoundFigurativeExpression figg:
+                rightLiteral = MakeFigurativeString((FigurativeKind)figg.FigurativeKind, 0, figg.AllLiteral);
+                break;
+            default:
+                rightLocation = _ctx.Location.ResolveExpressionLocation(other);
+                if (rightLocation == null) return false;
+                break;
+        }
+
+        block.Instructions.Add(new IrStringExprCompare(fnIr, rightLocation, rightLiteral, result, op));
+        return true;
+    }
+
     // ── Comparison matrix dispatch ──
 
     public void LowerComparison(BoundBinaryExpression binCond, IrValue result, IrBasicBlock block)
     {
+        // An alphanumeric intrinsic-function call as a comparison operand (e.g.
+        // IF FUNCTION UPPER-CASE(X) = "ABC") is evaluated to a string and compared by value.
+        // (Numeric function calls are handled by NormalizeOperand's arithmetic-expression path.)
+        if (TryLowerStringFunctionComparison(binCond, result, block))
+            return;
+
         var left = NormalizeOperand(binCond.Left);
         var right = NormalizeOperand(binCond.Right);
 

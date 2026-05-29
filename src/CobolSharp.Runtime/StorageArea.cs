@@ -241,6 +241,14 @@ public static class StorageHelpers
         return string.Compare(field, trimmedValue, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Compare two alphanumeric VALUES (e.g. an intrinsic-function result vs. a literal or
+    /// field content). Trailing spaces are insignificant — equivalent to COBOL space-padding
+    /// the shorter operand to the longer before comparing by the native collating sequence.
+    /// </summary>
+    public static int CompareStringValues(string left, string right)
+        => string.Compare((left ?? "").TrimEnd(), (right ?? "").TrimEnd(), StringComparison.Ordinal);
+
     // ── STRING runtime ──
 
     /// <summary>
