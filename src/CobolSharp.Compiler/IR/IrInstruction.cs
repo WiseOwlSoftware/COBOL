@@ -458,11 +458,21 @@ public sealed class IrFunctionCall : IrInstruction
     public IReadOnlyList<IrFunctionArg> Arguments { get; }
     public IrLocation Destination { get; }
 
-    public IrFunctionCall(string functionName, IReadOnlyList<IrFunctionArg> arguments, IrLocation destination)
+    /// <summary>
+    /// Whether the function's result is a string (alphanumeric) rather than a decimal.
+    /// Derived from the binder-computed result category, which already accounts for
+    /// category-polymorphic functions (MAX/MIN over all-alphanumeric arguments) — so the
+    /// emitter must use this flag rather than a static function-name list.
+    /// </summary>
+    public bool ReturnsString { get; }
+
+    public IrFunctionCall(string functionName, IReadOnlyList<IrFunctionArg> arguments,
+        IrLocation destination, bool returnsString)
     {
         FunctionName = functionName;
         Arguments = arguments;
         Destination = destination;
+        ReturnsString = returnsString;
     }
 }
 

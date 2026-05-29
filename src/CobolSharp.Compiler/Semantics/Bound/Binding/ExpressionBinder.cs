@@ -165,6 +165,17 @@ internal sealed class ExpressionBinder
             ? CobolCategory.Alphanumeric
             : CobolCategory.Numeric;
 
+        // MAX and MIN are category-polymorphic (ISO §15.x): their result category follows the
+        // arguments. With all-alphanumeric arguments they return the selected string, so the
+        // result must be treated as alphanumeric (otherwise the string result is unboxed to
+        // decimal at the call site). ORD-MAX/ORD-MIN always return a numeric ordinal.
+        if ((funcName.Equals("MAX", StringComparison.OrdinalIgnoreCase)
+                || funcName.Equals("MIN", StringComparison.OrdinalIgnoreCase))
+            && args.Count > 0 && args.All(a => !a.Category.IsNumericLike()))
+        {
+            category = CobolCategory.Alphanumeric;
+        }
+
         return new BoundFunctionCallExpression(funcName, args.AsReadOnly(), category);
     }
 

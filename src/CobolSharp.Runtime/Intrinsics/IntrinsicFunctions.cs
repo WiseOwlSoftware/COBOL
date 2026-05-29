@@ -44,19 +44,17 @@ public static class IntrinsicFunctions
     public static decimal Exp10(decimal value) => FromDouble(Math.Pow(10, (double)value));
     public static decimal Factorial(decimal value)
     {
-        int n = (int)value;
-        if (n < 0) return 0m;   // negative argument: EC-ARGUMENT-FUNCTION, defined result 0
+        if (value < 0m) return 0m;          // negative: EC-ARGUMENT-FUNCTION, defined result 0
+        if (value >= 28m) return decimal.MaxValue; // 28! exceeds the decimal range
+        int n = (int)value;                 // now safely in range
         decimal result = 1;
-        try
-        {
-            for (int i = 2; i <= n; i++) result *= i;
-        }
-        catch (OverflowException)
-        {
-            return decimal.MaxValue;   // result exceeds the decimal range (n ≳ 28)
-        }
+        for (int i = 2; i <= n; i++) result *= i;
         return result;
     }
+
+    /// <summary>Clamp a decimal to the Int32 range without throwing (for intrinsic int conversions).</summary>
+    private static int ToInt(decimal value)
+        => value > int.MaxValue ? int.MaxValue : value < int.MinValue ? int.MinValue : (int)value;
     public static decimal Mod(decimal value, decimal divisor) => value - divisor * Math.Floor(value / divisor);
     public static decimal Rem(decimal value, decimal divisor) => value - divisor * Math.Truncate(value / divisor);
     public static decimal Integer(decimal value) => Math.Floor(value);
@@ -193,7 +191,11 @@ public static class IntrinsicFunctions
         }
         return result;
     }
-    public static string Char(decimal code) => ((char)(int)code).ToString();
+    public static string Char(decimal code)
+    {
+        int c = ToInt(code);
+        return c is < 0 or > 0xFFFF ? " " : ((char)c).ToString();
+    }
     public static decimal Ord(string value) => value.Length > 0 ? (decimal)value[0] : 0;
 
     // ═══════════════════════════════════════════════════
@@ -217,38 +219,59 @@ public static class IntrinsicFunctions
     /// <summary>DATE-OF-INTEGER: convert integer date (days since epoch) to YYYYMMDD</summary>
     public static decimal DateOfInteger(decimal integerDate)
     {
-        var date = new DateTime(1601, 1, 1).AddDays((double)integerDate - 1);
-        return decimal.Parse(date.ToString("yyyyMMdd", CultureInfo.InvariantCulture));
+        try
+        {
+            var date = new DateTime(1601, 1, 1).AddDays((double)integerDate - 1);
+            return decimal.Parse(date.ToString("yyyyMMdd", CultureInfo.InvariantCulture));
+        }
+        catch (ArgumentOutOfRangeException) { return 0m; }
     }
 
     /// <summary>INTEGER-OF-DATE: convert YYYYMMDD to integer date</summary>
     public static decimal IntegerOfDate(decimal yyyymmdd)
     {
-        int d = (int)yyyymmdd;
+        int d = ToInt(yyyymmdd);
         int year = d / 10000;
         int month = (d / 100) % 100;
         int day = d % 100;
-        var date = new DateTime(year, month, day);
-        var epoch = new DateTime(1601, 1, 1);
-        return (decimal)(date - epoch).Days + 1;
+        try
+        {
+            var date = new DateTime(year, month, day);
+            var epoch = new DateTime(1601, 1, 1);
+            return (decimal)(date - epoch).Days + 1;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return 0m;   // invalid date argument: EC-ARGUMENT-FUNCTION, defined result 0
+        }
     }
 
     /// <summary>DAY-OF-INTEGER: convert integer date to YYYYDDD</summary>
     public static decimal DayOfInteger(decimal integerDate)
     {
-        var date = new DateTime(1601, 1, 1).AddDays((double)integerDate - 1);
+        DateTime date;
+        try { date = new DateTime(1601, 1, 1).AddDays((double)integerDate - 1); }
+        catch (ArgumentOutOfRangeException) { return 0m; }
         return year4(date) * 1000 + date.DayOfYear;
     }
 
     /// <summary>INTEGER-OF-DAY: convert YYYYDDD to integer date</summary>
     public static decimal IntegerOfDay(decimal yyyyddd)
     {
-        int d = (int)yyyyddd;
+        int d = ToInt(yyyyddd);
         int year = d / 1000;
         int dayOfYear = d % 1000;
-        var date = new DateTime(year, 1, 1).AddDays(dayOfYear - 1);
-        var epoch = new DateTime(1601, 1, 1);
-        return (decimal)(date - epoch).Days + 1;
+        try
+        {
+            if (year < 1 || year > 9999 || dayOfYear < 1 || dayOfYear > 366) return 0m;
+            var date = new DateTime(year, 1, 1).AddDays(dayOfYear - 1);
+            var epoch = new DateTime(1601, 1, 1);
+            return (decimal)(date - epoch).Days + 1;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return 0m;
+        }
     }
 
     /// <summary>

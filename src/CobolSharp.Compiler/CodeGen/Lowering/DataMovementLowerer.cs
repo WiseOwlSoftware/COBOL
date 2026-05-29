@@ -166,8 +166,16 @@ internal sealed class DataMovementLowerer
             {
                 var irCall = _ctx.Expression.LowerExpression(func) as IrIntrinsicCall;
                 if (irCall != null)
+                {
+                    // Carry the binder-computed result category to the emitter so it can
+                    // dispatch string-vs-numeric correctly — including category-polymorphic
+                    // MAX/MIN, which a static name list cannot classify.
+                    bool returnsString = func.Category is Runtime.CobolCategory.Alphanumeric
+                        or Runtime.CobolCategory.Alphabetic
+                        or Runtime.CobolCategory.AlphanumericEdited;
                     block.Instructions.Add(new IrFunctionCall(
-                        irCall.FunctionName, irCall.Arguments, destLoc));
+                        irCall.FunctionName, irCall.Arguments, destLoc, returnsString));
+                }
             }
             else
             {

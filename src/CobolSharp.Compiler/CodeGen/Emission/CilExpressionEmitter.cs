@@ -172,13 +172,10 @@ internal sealed class CilExpressionEmitter
     /// </summary>
     internal void EmitFunctionCall(ILProcessor il, IR.IrFunctionCall funcCall)
     {
-        // Determine if this function returns a string result
-        bool isStringFunction = funcCall.FunctionName.ToUpperInvariant() switch
-        {
-            "LOWER-CASE" or "UPPER-CASE" or "REVERSE" or "TRIM" or "CONCATENATE"
-                or "SUBSTITUTE" or "CHAR" or "CURRENT-DATE" or "WHEN-COMPILED" => true,
-            _ => false
-        };
+        // The binder already classified the result category (including category-polymorphic
+        // MAX/MIN over all-alphanumeric arguments), so trust that flag rather than re-deriving
+        // from a static function-name list that cannot express polymorphism.
+        bool isStringFunction = funcCall.ReturnsString;
 
         var irCall = new IR.IrIntrinsicCall(funcCall.FunctionName, funcCall.Arguments);
         if (isStringFunction)
