@@ -27,6 +27,14 @@ orchestrate these chains — run producers before consumers in a shared cwd (and
 ASSIGN placeholders to a common filename), or supply `.dat` fixtures. This blocks the file-bound
 tests across several suites and should be solved once, centrally.
 
+**Concrete lead (file-I/O):** `XXXXP###`/`XXXXD###` are produce/consume file placeholders paired
+by number (XXXXP002 written, XXXXD002 read = same file). Remapping both to a shared **quoted**
+literal `"TF002"` regressed SM204A, while the current **unquoted** implementor-name form
+(`XXXXD002`) lets SM203A→SM204A share a file correctly. So `CobolFileManager`/ASSIGN handling
+differs between a quoted-literal target and an unquoted implementor-name target — investigate that
+path (and whether sequential WRITE actually flushes a persistent file) before remapping. The
+reverted remap lives in git history (commit "Revert premature XXXXP/XXXXD remap").
+
 ### ST (sort/merge) snapshot after the hang fix
 total=40: CLEAN=8, FAIL*=15, COMPILE_FAIL=8, NO_OUTPUT=8, RUNTIME=1 (ST132A still hangs —
 different cause). Most NO_OUTPUT/FAIL* are the companion-file issue above; FAIL* also include
