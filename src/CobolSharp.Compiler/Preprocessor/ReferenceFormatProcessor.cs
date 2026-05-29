@@ -27,6 +27,28 @@ public static class ReferenceFormatProcessor
     private const int FixedFormThresholdPercent = 60;
 
     /// <summary>
+    /// Remove NIST CCVS archive-control lines ('*HEADER,…' and '*END-OF,…') that delimit
+    /// members inside newcob.val. They begin in column 1 (the sequence area), so reference-format
+    /// normalization would otherwise read column 7 as an indicator and emit the rest of the line
+    /// (e.g. ',SM102A') as stray code. These markers are never valid COBOL, so strip them from
+    /// the raw text before any other processing.
+    /// </summary>
+    public static string StripNistArchiveMarkers(string sourceText)
+    {
+        var lines = sourceText.Split('\n');
+        var kept = new List<string>(lines.Length);
+        foreach (var line in lines)
+        {
+            string trimmed = line.TrimStart();
+            if (trimmed.StartsWith("*HEADER,", StringComparison.Ordinal) ||
+                trimmed.StartsWith("*END-OF,", StringComparison.Ordinal))
+                continue;
+            kept.Add(line);
+        }
+        return string.Join('\n', kept);
+    }
+
+    /// <summary>
     /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText)

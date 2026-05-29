@@ -57,11 +57,14 @@ public class Program
     {
         string? sourcePath = null;
         string? outputPath = null;
+        var copyPaths = new List<string>();
 
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "-o" && i + 1 < args.Length)
                 outputPath = args[++i];
+            else if ((args[i] == "--copy-path" || args[i] == "-I") && i + 1 < args.Length)
+                copyPaths.Add(args[++i]);
             else if (!args[i].StartsWith('-'))
                 sourcePath = args[i];
         }
@@ -75,11 +78,17 @@ public class Program
         string rawText = File.ReadAllText(sourcePath);
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
-        // Phase 0a: Reference format normalization
+        // Auto-discover a sibling copylib/ directory (NIST layout), mirroring compile mode.
+        string siblingCopyLib = Path.GetFullPath(Path.Combine(sourceDir, "..", "copylib"));
+        if (Directory.Exists(siblingCopyLib))
+            copyPaths.Add(siblingCopyLib);
+
+        // Phase 0a: Reference format normalization (drop NIST archive markers first)
+        rawText = ReferenceFormatProcessor.StripNistArchiveMarkers(rawText);
         string normalized = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
 
         // Phase 0b: COPY/REPLACE expansion
-        var copyProcessor = new CopyProcessor([]);
+        var copyProcessor = new CopyProcessor(copyPaths);
         string processed = copyProcessor.Process(normalized, sourceDir);
 
         if (outputPath != null)

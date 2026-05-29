@@ -128,6 +128,7 @@ public sealed class Compilation
         string rawText = File.ReadAllText(sourcePath);
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
+        rawText = ReferenceFormatProcessor.StripNistArchiveMarkers(rawText);
         string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
 
         if (NistTestName != null)
