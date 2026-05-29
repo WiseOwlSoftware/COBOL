@@ -48,12 +48,15 @@ public static class NistPreprocessor
         // XXXXX058: control card file assignment
         source = source.Replace("XXXXX058", "\"CONTROL\"");
 
-        // NOTE: XXXXP### / XXXXD### (produce/consume data files passed between CCVS programs)
-        // are intentionally NOT remapped here yet. Mapping them by number to a shared file is
-        // correct in principle, but the producer/consumer chain also needs reliable sequential
-        // WRITE persistence and run-order orchestration (a producer must run, flush its file, and
-        // the consumer read it). That is a dedicated file-I/O effort tracked for the ST/SQ/IX/RL
-        // suites; remapping prematurely only exposed stale-file dependencies. See session-state.
+        // XXXXP### / XXXXD### : produce/consume sequential data files passed between CCVS
+        // programs. The X-card convention pairs them by number — XXXXP002 (written by SM203A via
+        // its COPY'd FILE-CONTROL) and XXXXD002 (read by SM204A) denote the SAME physical file,
+        // as do ST104A's XXXXP001 and ST105A's XXXXD001. Map both to one quoted filename keyed by
+        // the number so the producer's output is read by the consumer (run in a shared directory),
+        // independent of the differing SELECT names. Runs after COPY expansion (see
+        // Compilation.Preprocess) so placeholders inside copied library text are mapped too.
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"XXXX[PD](\d+)", "\"TF$1\"");
 
         // ── SPECIAL-NAMES ──
 

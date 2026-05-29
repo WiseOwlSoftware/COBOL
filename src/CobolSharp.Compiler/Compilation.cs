@@ -131,11 +131,19 @@ public sealed class Compilation
         rawText = ReferenceFormatProcessor.StripNistArchiveMarkers(rawText);
         string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
 
-        if (NistTestName != null)
-            normalizedText = NistPreprocessor.Process(normalizedText, NistTestName);
-
+        // COPY expansion runs BEFORE NIST placeholder substitution so that XXXXX###/XXXXP###/
+        // XXXXD### placeholders inside copied library text are substituted too — e.g. a file's
+        // ASSIGN target supplied by a COPY (K3FCB) must map to the same physical file as the
+        // matching placeholder in the consumer's own source. COPY library-name qualifiers are
+        // raw placeholders (XXXXX047) resolved against the copy library directory, so expanding
+        // first does not disturb them.
         var copyProcessor = new CopyProcessor(_copySearchPaths);
-        return copyProcessor.Process(normalizedText, sourceDir);
+        string expandedText = copyProcessor.Process(normalizedText, sourceDir);
+
+        if (NistTestName != null)
+            expandedText = NistPreprocessor.Process(expandedText, NistTestName);
+
+        return expandedText;
     }
 
     private static CobolParserCore.CompilationUnitContext? LexAndParse(
