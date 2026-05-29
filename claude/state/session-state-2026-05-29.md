@@ -41,6 +41,38 @@ different cause). Most NO_OUTPUT/FAIL* are the companion-file issue above; FAIL*
 genuine sort-output correctness. COMPILE_FAIL (ST115A/117A/131A/135A/139A/140A/144A/147A) are
 unparsed SORT/MERGE forms to investigate.
 
+## 0b. Update — file-I/O subsystem (producer/consumer orchestration fixed; COMPILE_FAIL is the wall)
+
+**Producer/consumer orchestration — FIXED (DEVLOG 216, committed, guard-green 149 NIST).**
+- NistPreprocessor maps `XXXX[PD](\d+)` → `"TF$1"`: produce/consume placeholders that share a
+  number now resolve to one physical file (e.g. `tf001.txt`), independent of differing SELECT
+  names (ST104A `SORTOUT-1D`/XXXXP001 ↔ ST105A `SORTIN-1E`/XXXXD001).
+- `Compilation.Preprocess` reordered to normalize → **COPY** → NIST, so placeholders inside a
+  COPY'd FILE-CONTROL (SM203A copies K3FCB `ASSIGN TO XXXXP002`) are mapped too.
+- Verified end-to-end: SM203A→SM204A and ST104A→ST105A share a file; consumer hits 0 FAIL*.
+- ASSIGN→host path: `FileRuntime.ResolveHostPath` lowercases + appends `.txt` (MYDATA→mydata.txt);
+  a quoted-literal ASSIGN uses the literal, an unquoted name falls back to `fileSym.Name`
+  (Binder.cs ~221). Sequential WRITE DOES persist (I had looked for the wrong filename earlier).
+
+**File-I/O suite snapshot (after orchestration fix):**
+SQ 85: CLEAN 2, **COMPILE_FAIL 81**. IX 42: CLEAN 1, **COMPILE_FAIL 40**. RL 35: CLEAN 4,
+**COMPILE_FAIL 23**. ST 40: CLEAN 10, COMPILE_FAIL 8, NO_OUTPUT 7, FAIL* 13, RUNTIME 1 (ST132A).
+
+**THE file-I/O wall = COMPILE_FAIL (144/162), two root causes:**
+1. **CCVS column-7 conditional lines.** Lines carry a non-standard letter in the indicator column
+   (col 7) marking an optional-feature group — e.g. SQ102A's `P` lines define an entire INDEXED
+   `RAW-DATA` file (SELECT + FD + every OPEN/READ/REWRITE/CLOSE is `P`-marked, a coherent block).
+   `ConvertFixedToFree` currently treats any non-`*`/`/`/`D` indicator as normal code (default
+   case), injecting that block inline and derailing the parse. Caveat: SM104A's K1FDA used `C`/`G`
+   indicators that legitimately ARE code (a VALUE OF clause split across lines) — so a blanket
+   "exclude all lettered lines" would regress SM104A. The CCVS X-card/TPF convention assigns
+   per-letter include/exclude semantics; needs the CCVS source-formatter rules (or an
+   empirically-derived letter table) — the single highest-leverage file-I/O fix (~144 compiles).
+2. **SELECT/FD grammar gaps**: hyphenated `RECORD-KEY` (vs `RECORD KEY`), `STATUS data-name`
+   without `FILE`, `ORGANIZATION`/`ACCESS` clause ordering/splitting, etc. (RL101A, SQ102A/103A).
+
+Also: 8 ST COMPILE_FAIL (SORT/MERGE forms) and ST132A still hangs (a non-USING cause).
+
 ## 1. Session Summary
 
 Depth-first NIST suite push, continuing the "run all NIST suites group by group, each to 100%"
