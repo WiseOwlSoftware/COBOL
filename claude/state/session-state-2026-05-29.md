@@ -76,6 +76,33 @@ SQ 85: CLEAN 2, **COMPILE_FAIL 81**. IX 42: CLEAN 1, **COMPILE_FAIL 40**. RL 35:
 
 Also: 8 ST COMPILE_FAIL (SORT/MERGE forms) and ST132A still hangs (a non-USING cause).
 
+## 0c. Spec-audit follow-ups (generalizing the "too narrow" fixes)
+
+A self-audit reviewed the session's fixes for spec-generality. Outcomes (DEVLOG 221–223):
+- **table(ALL) → multi-dimensional** (DONE, E221): cartesian product over all ALL positions, each
+  using its dimension's OCCURS bound.
+- **AT END vs I/O-error** (DONE, E222): `IsAtEnd` strict ("10") for the AT END condition; new
+  `IsReadExhausted` (EOF + terminal errors) for compiler-generated loop termination
+  (`IrCheckFileAtEnd.TreatErrorsAsEnd`). Fixes the over-broad Entry-215 anti-hang.
+- **Runtime FUNCTION LENGTH for ref-mod** (DONE, E223): `LENGTH(x(s:l))`→`l`, `x(s:)`→`size−s+1`;
+  also fixed a real bug — `InterpretSubscriptTokens` matched a NESTED ref-mod colon (now depth-0
+  only), so `LENGTH(WS(1:N))` / `f(T(I)(1:3))` parse correctly.
+- **FACTORIAL/CHAR out-of-range** (NO CHANGE, spec-acceptable): COBOL-85 has no exception-condition
+  framework, so a too-large result is undefined; the clamp + `ON SIZE ERROR` at the store works.
+
+**Deferred as larger subsystems (not narrow fixes):**
+- **CHAR/ORD program collating sequence**: custom collating is bypassed EVERYWHERE (even
+  `CompareAlphanumeric` uses raw byte order; `ALPHABET` ordering is parsed but discarded). CHAR/ORD
+  native is correct for every sequence the suite uses (NATIVE/STANDARD-1/STANDARD-2 ≡ ASCII). Doing
+  CHAR/ORD alone would be inconsistent — needs a holistic collating-sequence feature (table model
+  threaded to comparisons/SORT/INSPECT/class-conditions/CHAR/ORD). See [[reference_nist_xcards]].
+- **General CCVS column-7 X-card model**: the P/J exclusion is the scoped version; a full model
+  (per-letter include/exclude, FD GLOBAL visibility) is part of the file-I/O continuation.
+
+**Minor follow-ups noted:** LENGTH of an ODO group still returns max layout size, not the current
+DEPENDING ON size; `COMPUTE` of a value wider than the receiver (no ON SIZE ERROR) can blank the
+field instead of truncating (extreme edge — 19-digit result into PIC 9(18)).
+
 ## 1. Session Summary
 
 Depth-first NIST suite push, continuing the "run all NIST suites group by group, each to 100%"
