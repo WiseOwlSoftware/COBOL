@@ -296,7 +296,7 @@ public class BinderDecompositionTests
     [InlineData("LowerSearch")]
     [InlineData("LowerSearchAll")]
     [InlineData("EmitBinarySearchNode")]
-    [InlineData("ExtractFirstRelationalComparison")]
+    [InlineData("ExtractSearchKeys")]
     public void ControlFlowLowerer_contains_method(string methodName)
     {
         var type = typeof(ControlFlowLowerer);

@@ -996,19 +996,17 @@ internal sealed class ControlFlowLowerer
         if (occurs?.DependingOnSymbol != null)
             odoLoc = _ctx.Location.ResolveLocation(occurs.DependingOnSymbol);
 
-        // Determine sort direction from table's KEY clause.
-        // ASCENDING KEY → key < target means search right (higher indices).
-        // DESCENDING KEY → key < target means search left (lower indices).
-        bool isAscending = occurs == null || occurs.AscendingKeys.Count > 0 || occurs.DescendingKeys.Count == 0;
-
-        // Extract the first relational comparison from the WHEN condition
-        // to build a less-than test for binary search direction.
-        var directionComparison = ExtractFirstRelationalComparison(when.Condition);
+        // Extract the ordered key comparisons from the WHEN condition. Each ANDed
+        // "key = target" is matched to one of the table's ASCENDING/DESCENDING keys so
+        // its individual sort direction is known — this is what lets a mixed-direction
+        // multi-key table (e.g. ASCENDING GRP-1 DESCENDING SEC) binary-search correctly.
+        // An empty list means the condition couldn't be classified → linear-scan fallback.
+        var searchKeys = ExtractSearchKeys(when.Condition, searchAll.Table.Symbol);
 
         // Compile-time unrolled binary search tree.
         // For a table of size N, we generate ceil(log2(N))+1 levels of
         // if-else blocks. Each node: set index=mid, test equality, if no match
-        // test direction comparison and branch to left or right subtree.
+        // compare keys in priority order and branch to left or right subtree.
         var atEndBlock = method.CreateBlock("searchall.atend");
         var exitBlock = method.CreateBlock("searchall.exit");
 
@@ -1016,7 +1014,7 @@ internal sealed class ControlFlowLowerer
         block.Instructions.Add(new IrInitArithmeticStatus());
 
         // Generate the unrolled binary search tree
-        EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+        EmitBinarySearchNode(searchAll, when, searchKeys,
             indexLoc, 1, upperBound, method, block, atEndBlock, exitBlock, odoLoc);
 
         // AT END
@@ -1038,8 +1036,7 @@ internal sealed class ControlFlowLowerer
     public void EmitBinarySearchNode(
         BoundSearchAllStatement searchAll,
         BoundSearchWhenClause when,
-        BoundBinaryExpression? directionComparison,
-        bool isAscending,
+        IReadOnlyList<SearchKey> searchKeys,
         IrLocation indexLoc,
         int lo, int hi,
         IrMethod method,
@@ -1072,7 +1069,7 @@ internal sealed class ControlFlowLowerer
                 block.Instructions.Add(new IrBranchIfFalse(odoCheck, inBoundsBlock));
                 block.Instructions.Add(new IrJump(odoLeftBlock));
                 method.Blocks.Add(odoLeftBlock);
-                EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+                EmitBinarySearchNode(searchAll, when, searchKeys,
                     indexLoc, lo, mid - 1, method, odoLeftBlock, atEndBlock, exitBlock, odoLoc);
             }
             else
@@ -1113,42 +1110,23 @@ internal sealed class ControlFlowLowerer
             return;
         }
 
-        if (directionComparison != null)
+        if (searchKeys.Count > 0)
         {
-            // Build a less-than comparison from the WHEN's equality comparison
-            var lessComparison = new BoundBinaryExpression(
-                directionComparison.Left,
-                BoundBinaryOperatorKind.Less,
-                directionComparison.Right,
-                directionComparison.Category);
+            var leftBlock = method.CreateBlock("searchall.left");   // lo..mid-1
+            var rightBlock = method.CreateBlock("searchall.right"); // mid+1..hi
 
-            var lessVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-            _ctx.Condition.LowerCondition(lessComparison, lessVal, noMatchBlock);
-
-            var leftBlock = method.CreateBlock("searchall.left");
-            var rightBlock = method.CreateBlock("searchall.right");
-
-            // For ASCENDING: key < target → search right half (higher indices)
-            // For DESCENDING: key < target → search left half (lower indices)
-            if (isAscending)
-            {
-                noMatchBlock.Instructions.Add(new IrBranchIfFalse(lessVal, leftBlock));
-                noMatchBlock.Instructions.Add(new IrJump(rightBlock));
-            }
-            else
-            {
-                noMatchBlock.Instructions.Add(new IrBranchIfFalse(lessVal, rightBlock));
-                noMatchBlock.Instructions.Add(new IrJump(leftBlock));
-            }
+            // Decide direction by comparing keys in priority order; branch at the
+            // first key that differs from its target, using THAT key's direction.
+            EmitSearchKeyDirection(searchKeys, 0, leftBlock, rightBlock, atEndBlock, method, noMatchBlock);
 
             // Left subtree: lo..mid-1
             method.Blocks.Add(leftBlock);
-            EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+            EmitBinarySearchNode(searchAll, when, searchKeys,
                 indexLoc, lo, mid - 1, method, leftBlock, atEndBlock, exitBlock, odoLoc);
 
             // Right subtree: mid+1..hi
             method.Blocks.Add(rightBlock);
-            EmitBinarySearchNode(searchAll, when, directionComparison, isAscending,
+            EmitBinarySearchNode(searchAll, when, searchKeys,
                 indexLoc, mid + 1, hi, method, rightBlock, atEndBlock, exitBlock, odoLoc);
         }
         else
@@ -1185,24 +1163,122 @@ internal sealed class ControlFlowLowerer
     }
 
     /// <summary>
-    /// Extract the first relational (Equal) comparison from a SEARCH ALL WHEN condition.
-    /// The condition may be a single equality or ANDed equalities. We extract the first
-    /// one to use for binary search direction testing.
+    /// One key of a SEARCH ALL WHEN condition: the table key data reference, the value
+    /// it is compared against, and whether that key is sorted ASCENDING or DESCENDING.
     /// </summary>
-    public static BoundBinaryExpression? ExtractFirstRelationalComparison(BoundExpression condition)
-    {
-        if (condition is BoundBinaryExpression bin)
-        {
-            if (bin.OperatorKind == BoundBinaryOperatorKind.Equal)
-                return bin;
+    public readonly record struct SearchKey(BoundExpression Key, BoundExpression Target, bool Ascending);
 
-            if (bin.OperatorKind == BoundBinaryOperatorKind.And)
+    /// <summary>
+    /// Emit the direction decision for one binary-search node, comparing the table keys
+    /// in priority order. At the first key whose value differs from its WHEN target,
+    /// branch into the lo half (<paramref name="leftBlock"/>) or hi half
+    /// (<paramref name="rightBlock"/>) according to that key's own ASCENDING/DESCENDING
+    /// direction, so mixed-direction multi-key tables search correctly. Falling off the
+    /// end means every key matched (already handled by the equality test that precedes
+    /// this), so route to <paramref name="fallthrough"/>.
+    /// </summary>
+    private void EmitSearchKeyDirection(
+        IReadOnlyList<SearchKey> keys, int keyIndex,
+        IrBasicBlock leftBlock, IrBasicBlock rightBlock, IrBasicBlock fallthrough,
+        IrMethod method, IrBasicBlock block)
+    {
+        if (keyIndex >= keys.Count)
+        {
+            block.Instructions.Add(new IrJump(fallthrough));
+            return;
+        }
+
+        var key = keys[keyIndex];
+
+        // key == target → equal on this key, defer to the next (lower-priority) key.
+        var eqVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+        _ctx.Condition.LowerCondition(
+            new BoundBinaryExpression(key.Key, BoundBinaryOperatorKind.Equal, key.Target, key.Key.Category),
+            eqVal, block);
+
+        var differsBlock = method.CreateBlock("searchall.keydiff");
+        var nextKeyBlock = method.CreateBlock("searchall.keynext");
+        block.Instructions.Add(new IrBranchIfFalse(eqVal, differsBlock));
+        block.Instructions.Add(new IrJump(nextKeyBlock));
+
+        // This key differs from its target: test key < target.
+        method.Blocks.Add(differsBlock);
+        var lessVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+        _ctx.Condition.LowerCondition(
+            new BoundBinaryExpression(key.Key, BoundBinaryOperatorKind.Less, key.Target, key.Key.Category),
+            lessVal, differsBlock);
+
+        // ASCENDING: key < target → target sits at a higher index → search right half.
+        // DESCENDING: key < target → target sits at a lower index  → search left half.
+        if (key.Ascending)
+        {
+            differsBlock.Instructions.Add(new IrBranchIfFalse(lessVal, leftBlock));
+            differsBlock.Instructions.Add(new IrJump(rightBlock));
+        }
+        else
+        {
+            differsBlock.Instructions.Add(new IrBranchIfFalse(lessVal, rightBlock));
+            differsBlock.Instructions.Add(new IrJump(leftBlock));
+        }
+
+        // Equal on this key: recurse to the next key.
+        method.Blocks.Add(nextKeyBlock);
+        EmitSearchKeyDirection(keys, keyIndex + 1, leftBlock, rightBlock, fallthrough, method, nextKeyBlock);
+    }
+
+    /// <summary>
+    /// Extract the ordered key comparisons from a SEARCH ALL WHEN condition. Each ANDed
+    /// equality "key = target" is matched (by name) to one of the table's
+    /// ASCENDING/DESCENDING keys to recover its sort direction. Keys are returned in
+    /// WHEN order, which the spec requires to be key-priority order. Returns an empty
+    /// list if any conjunct cannot be classified, signalling the caller to fall back to
+    /// a linear scan (always correct, just slower).
+    /// </summary>
+    public List<SearchKey> ExtractSearchKeys(BoundExpression condition, DataSymbol tableSymbol)
+    {
+        var keys = new List<SearchKey>();
+        return CollectSearchKeys(condition, tableSymbol, keys) ? keys : [];
+    }
+
+    private static bool CollectSearchKeys(BoundExpression condition, DataSymbol tableSymbol, List<SearchKey> keys)
+    {
+        if (condition is not BoundBinaryExpression bin) return false;
+
+        if (bin.OperatorKind == BoundBinaryOperatorKind.And)
+            return CollectSearchKeys(bin.Left, tableSymbol, keys)
+                && CollectSearchKeys(bin.Right, tableSymbol, keys);
+
+        if (bin.OperatorKind == BoundBinaryOperatorKind.Equal)
+        {
+            // The key data item may appear on either side of the equality.
+            if (TryClassifyKey(bin.Left, bin.Right, tableSymbol, out var sk)
+                || TryClassifyKey(bin.Right, bin.Left, tableSymbol, out sk))
             {
-                // Try left side first, then right
-                return ExtractFirstRelationalComparison(bin.Left)
-                    ?? ExtractFirstRelationalComparison(bin.Right);
+                keys.Add(sk);
+                return true;
             }
         }
-        return null;
+        return false;
+    }
+
+    private static bool TryClassifyKey(
+        BoundExpression candidateKey, BoundExpression target, DataSymbol tableSymbol, out SearchKey key)
+    {
+        key = default;
+        if (candidateKey is not BoundIdentifierExpression id) return false;
+        var occurs = tableSymbol.Occurs;
+        if (occurs == null) return false;
+
+        var name = id.Symbol.Name;
+        bool ascending;
+        if (occurs.AscendingKeys.Any(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase)))
+            ascending = true;
+        else if (occurs.DescendingKeys.Any(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase)))
+            ascending = false;
+        else
+            return false;
+
+        key = new SearchKey(candidateKey, target, ascending);
+        return true;
     }
 }
