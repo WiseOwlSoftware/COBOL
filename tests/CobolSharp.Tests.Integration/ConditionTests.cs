@@ -492,4 +492,31 @@ public class ConditionTests : EndToEndTestBase
         Assert.Equal("B-LT-A", lines[1]);
     }
 
+    [Fact]
+    public void Combined_QualifiedConditionNames_WithInlineStatement()
+    {
+        // A combined condition whose terms are QUALIFIED condition-names (B OF D33 / B OF D32),
+        // followed by an inline THEN/ELSE statement. B is ambiguous (defined under both D33 and
+        // D32) so qualification is required. B OF D33 (D33 = QUOTE) is TRUE; B OF D32 (12.34 is
+        // not in 2..4) is FALSE so NOT B OF D32 is TRUE; TRUE AND TRUE => PASS.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. QCOND.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 D32 PIC S9(4)V99 VALUE 12.34.
+               88 B VALUES ARE 2 THRU 4.
+            01 D33 PIC X(4).
+               88 B VALUE QUOTE.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE QUOTE TO D33.
+                IF B OF D33 AND NOT B OF D32 DISPLAY "PASS" ELSE DISPLAY "FAIL".
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("PASS", stdout);
+    }
+
 }

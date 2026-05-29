@@ -63,11 +63,16 @@ Parser auto-regenerates on build (GenerateIfNewer.ps1, needs Java).
 
 ## 5. Known gaps / next frontier
 
-- INSPECT REPLACING on a signed numeric does not yet de-sign with sign retention on
-  write-back (no NIST coverage; GR 4d).
-- Latent parser issue: `IF <qualified-cond> AND NOT <qualified-cond> DISPLAY ... ELSE ...`
-  (qualified condition-name in a combined condition followed by an inline DISPLAY) mis-parses;
-  no NIST test hits it (NC250A uses PERFORM). Would need grammar work.
+- **INSPECT REPLACING on a signed numeric — RESOLVED (DEVLOG 191).** `ReplacingPass` now
+  de-signs per GR 4d (runs the cycle over the absolute digits, re-encodes with the original
+  sign retained). Test: `StringTests.Inspect_Replacing_OnSignedNumeric_DeSignsAndRetainsSign`.
+  Only edge left: a non-numeric replacement (e.g. REPLACING a digit BY a letter) leaves the
+  field unchanged — undefined in the spec, no NIST coverage.
+- **"Qualified-cond combined-condition parse" — NOT A BUG (DEVLOG 191).** The earlier note
+  was a false alarm: the repro was a 97-char fixed-form line truncated correctly at column 72.
+  The compiler is correct (free-form + short fixed-form both work). Regression test:
+  `ConditionTests.Combined_QualifiedConditionNames_WithInlineStatement`. NOTE: keep generated
+  fixed-form repros within columns 8–72.
 - Non-NC NIST suites (IC, IF, IX, SQ, ST) not yet attempted — the next major target.
 
 ## 6. Continuity rules (unchanged)

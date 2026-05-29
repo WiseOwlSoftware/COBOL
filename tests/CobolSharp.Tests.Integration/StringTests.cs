@@ -308,6 +308,39 @@ public class StringTests : EndToEndTestBase
         Assert.Equal("OVF", stdout);
     }
 
+    [Fact]
+    public void Inspect_Replacing_OnSignedNumeric_DeSignsAndRetainsSign()
+    {
+        // ISO 1989:1985 14.9.22 GR 4d: a signed numeric item is inspected as though moved
+        // to an UNSIGNED numeric item (operational sign removed), and the original sign is
+        // retained on completion. PIC S9(5) -12345 is stored with a trailing overpunch
+        // ("1234N"), so REPLACING ALL "5" must see the de-signed digits "12345", replace the
+        // '5' -> "12348", and keep the value negative => -12348.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INSPSGN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 N PIC S9(5) VALUE -12345.
+            01 ABSV PIC 9(5).
+            01 SGN PIC X.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                INSPECT N REPLACING ALL "5" BY "8".
+                MOVE N TO ABSV.
+                IF N IS NEGATIVE
+                    MOVE "-" TO SGN
+                ELSE
+                    MOVE "+" TO SGN
+                END-IF.
+                DISPLAY SGN ABSV.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("-12348", stdout);
+    }
+
     // ── SECTION control flow ──
 
 }

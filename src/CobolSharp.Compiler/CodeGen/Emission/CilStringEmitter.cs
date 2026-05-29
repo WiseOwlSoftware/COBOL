@@ -443,8 +443,8 @@ internal sealed class CilStringEmitter
         var befores = EmitInspectStringArray(il, n, i => inspect.Ops[i].BeforePattern);
         var afters = EmitInspectStringArray(il, n, i => inspect.Ops[i].AfterPattern);
 
-        // InspectRuntime.ReplacingPass(area, offset, length, kinds, patterns, replacements, befores, afters)
-        _ctx.Location.EmitLocationArgs(il, inspect.Target);
+        // InspectRuntime.ReplacingPass(area, offset, length, targetPic, kinds, patterns, replacements, befores, afters)
+        _ctx.Location.EmitLocationArgsWithPic(il, inspect.Target);   // area, offset, length, pic (pic drives GR 4d de-signing)
         il.Append(il.Create(OpCodes.Ldloc, kinds));
         il.Append(il.Create(OpCodes.Ldloc, patterns));
         il.Append(il.Create(OpCodes.Ldloc, replacements));
@@ -452,7 +452,7 @@ internal sealed class CilStringEmitter
         il.Append(il.Create(OpCodes.Ldloc, afters));
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.InspectRuntime).GetMethod("ReplacingPass",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
     }
 

@@ -169,15 +169,65 @@ public static class InspectRuntime
     /// field in place. <paramref name="kinds"/> uses ReplaceAll/First/Leading/Characters.
     /// ALL/FIRST/LEADING replacements are equal-length with their pattern; CHARACTERS uses
     /// the first character of its replacement. Regions are fixed before the scan begins.
+    ///
+    /// Per ISO 1989:1985 14.9.22 GR 4d, a signed numeric DISPLAY identifier-1 is inspected
+    /// as though moved to an unsigned numeric item: the replacement cycle runs over the
+    /// de-signed (absolute) digits, and the original sign is retained on completion.
     /// </summary>
     public static void ReplacingPass(
-        byte[] area, int offset, int length,
+        byte[] area, int offset, int length, PicDescriptor targetPic,
         int[] kinds, string?[] patterns, string?[] replacements,
         string?[] befores, string?[] afters)
     {
+        bool signedNumeric = targetPic.IsNumeric && targetPic.IsSigned
+            && targetPic.Usage == UsageKind.Display && !targetPic.HasEditing;
+
+        if (signedNumeric)
+        {
+            // Inspect the de-signed digits; retain the original sign on completion (GR 4d).
+            decimal original = PicRuntime.DecodeNumeric(area, offset, length, targetPic);
+            bool negative = original < 0m;
+            int fractionScale = targetPic.FractionDigits + targetPic.LeadingScaleDigits;
+            var chars = PicRuntime.FormatNumericForDisplay(
+                Math.Abs(original), fractionScale, targetPic.TotalDigits).ToCharArray();
+
+            RunReplaceCycle(new string(chars), chars, kinds, patterns, replacements, befores, afters);
+
+            // Re-encode the (possibly modified) digits with the retained sign. If the
+            // replacement left a non-digit, the result is not a valid number — leave the
+            // field unchanged rather than corrupt it (this case is undefined in the spec).
+            if (decimal.TryParse(new string(chars), System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var magnitude))
+            {
+                decimal divisor = 1m;
+                for (int i = 0; i < fractionScale; i++) divisor *= 10m;
+                decimal value = magnitude / divisor;
+                if (negative) value = -value;
+                PicRuntime.EncodeNumeric(area, offset, length, targetPic, value);
+            }
+            return;
+        }
+
         string text = Encoding.ASCII.GetString(area, offset, length);
+        var rawChars = text.ToCharArray();
+        RunReplaceCycle(text, rawChars, kinds, patterns, replacements, befores, afters);
+        byte[] result = Encoding.ASCII.GetBytes(rawChars);
+        Array.Copy(result, 0, area, offset, length);
+    }
+
+    /// <summary>
+    /// The shared REPLACING comparison cycle: scan <paramref name="text"/> left-to-right,
+    /// trying operands in order, and write replacements into <paramref name="chars"/>
+    /// (same length as text; positions never shift because replacements are equal-length
+    /// or single-character). Matching reads <paramref name="text"/> (the pre-modification
+    /// content), so an earlier replacement cannot create a spurious later match.
+    /// </summary>
+    private static void RunReplaceCycle(
+        string text, char[] chars,
+        int[] kinds, string?[] patterns, string?[] replacements,
+        string?[] befores, string?[] afters)
+    {
         int n = kinds.Length;
-        var chars = text.ToCharArray();
         var regionStart = new int[n];
         var regionEnd = new int[n];
         var live = new bool[n];        // FIRST/LEADING: still eligible
@@ -260,9 +310,6 @@ public static class InspectRuntime
             }
             if (!matched) pos += 1;
         }
-
-        byte[] result = Encoding.ASCII.GetBytes(chars);
-        Array.Copy(result, 0, area, offset, length);
     }
 
     // ── CONVERTING ──
