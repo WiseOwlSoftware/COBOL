@@ -405,17 +405,17 @@ internal sealed class CilStringEmitter
         var befores = EmitInspectStringArray(il, n, i => inspect.Ops[i].BeforePattern);
         var afters = EmitInspectStringArray(il, n, i => inspect.Ops[i].AfterPattern);
 
-        // counts = InspectRuntime.TallyingPass(area, offset, length, kinds, patterns, befores, afters)
+        // counts = InspectRuntime.TallyingPass(area, offset, length, targetPic, kinds, patterns, befores, afters)
         var counts = new VariableDefinition(_ctx.Module.ImportReference(typeof(int[])));
         _ctx.CurrentMethodDef!.Body.Variables.Add(counts);
-        _ctx.Location.EmitLocationArgs(il, inspect.Target);
+        _ctx.Location.EmitLocationArgsWithPic(il, inspect.Target);   // area, offset, length, pic (pic drives GR 4d de-signing)
         il.Append(il.Create(OpCodes.Ldloc, kinds));
         il.Append(il.Create(OpCodes.Ldloc, patterns));
         il.Append(il.Create(OpCodes.Ldloc, befores));
         il.Append(il.Create(OpCodes.Ldloc, afters));
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.InspectRuntime).GetMethod("TallyingPass",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
                         typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
         il.Append(il.Create(OpCodes.Stloc, counts));
 

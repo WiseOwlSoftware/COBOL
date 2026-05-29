@@ -60,11 +60,11 @@ public static class InspectRuntime
     /// count to its counter field. <paramref name="kinds"/> uses TallyAll/Leading/Characters.
     /// </summary>
     public static int[] TallyingPass(
-        byte[] area, int offset, int length,
+        byte[] area, int offset, int length, PicDescriptor targetPic,
         int[] kinds, string?[] patterns,
         string?[] befores, string?[] afters)
     {
-        string text = Encoding.ASCII.GetString(area, offset, length);
+        string text = ReadInspectTarget(area, offset, length, targetPic);
         int n = kinds.Length;
         var counts = new int[n];
         var regionStart = new int[n];
@@ -134,6 +134,24 @@ public static class InspectRuntime
             if (!matched) pos += 1;
         }
         return counts;
+    }
+
+    /// <summary>
+    /// Read identifier-1's content for inspection. ISO 1989:1985 14.9.22 GR 4d: a signed
+    /// numeric DISPLAY item is inspected as though moved to an unsigned numeric item — i.e.
+    /// the operational sign is removed and the (absolute) digits are examined, so e.g. -12345
+    /// is inspected as "12345" (no embedded overpunch sign character). The stored sign is
+    /// unaffected. Non-signed items are inspected as their raw character content.
+    /// </summary>
+    private static string ReadInspectTarget(byte[] area, int offset, int length, PicDescriptor pic)
+    {
+        if (pic.IsNumeric && pic.IsSigned && pic.Usage == UsageKind.Display && !pic.HasEditing)
+        {
+            decimal value = Math.Abs(PicRuntime.DecodeNumeric(area, offset, length, pic));
+            int fractionScale = pic.FractionDigits + pic.LeadingScaleDigits;
+            return PicRuntime.FormatNumericForDisplay(value, fractionScale, pic.TotalDigits);
+        }
+        return Encoding.ASCII.GetString(area, offset, length);
     }
 
     /// <summary>Add an integer count into a numeric counter field (TALLYING accumulates).</summary>

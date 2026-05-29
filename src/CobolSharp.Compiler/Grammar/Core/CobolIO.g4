@@ -516,9 +516,16 @@ inspectForClause
     : FOR inspectCountPhrase+
     ;
 
+// ALL/LEADING are transitive across the bare operands that follow them (GR 10), so a
+// count phrase may omit the adjective: "FOR LEADING ""S"" ""S"" ""T""" lists three
+// operands. That bare form is ambiguous with the next counter in multi-counter TALLYING
+// ("c1 FOR ALL x  c2 FOR ALL y"): a greedy parser swallows c2 as a pattern of c1. The
+// IsBareInspectOperand() predicate resolves it — a data-name immediately followed by FOR
+// is the next counter, so the bare alternative declines it and the count-phrase loop ends.
 inspectCountPhrase
     : CHARACTERS inspectDelimiters?
-    | (ALL | LEADING | FIRST | TRAILING)? inspectChar inspectDelimiters?
+    | (ALL | LEADING | FIRST | TRAILING) inspectChar inspectDelimiters?
+    | {IsBareInspectOperand()}? inspectChar inspectDelimiters?
     ;
 
 inspectChar

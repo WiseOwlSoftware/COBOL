@@ -45,4 +45,14 @@ public abstract class CobolParserCoreBase : Parser
         var prevToken = TokenStream.Get(tokenIndex - 1);
         return prevToken.Line < tokenLine;
     }
+
+    /// <summary>
+    /// Predicate for the bare (adjective-less) INSPECT TALLYING count phrase. An ALL or
+    /// LEADING adjective is transitive across the operands that follow it (ISO 1989:1985
+    /// 14.9.22 GR 10), so "FOR LEADING ""S"" ""S"" ""T""" lists three operands under one
+    /// counter. But a data-name immediately followed by FOR is the NEXT tallying counter,
+    /// not a transitive operand. Returning false there stops the count-phrase repetition so
+    /// the data-name begins a new inspectTallyingItem instead of being swallowed as a pattern.
+    /// </summary>
+    protected bool IsBareInspectOperand() => TokenStream.LA(2) != CobolLexer.FOR;
 }
