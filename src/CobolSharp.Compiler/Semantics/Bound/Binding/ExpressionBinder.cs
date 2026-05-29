@@ -699,12 +699,15 @@ internal sealed class ExpressionBinder
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
 
         // A segment that is a full arithmetic expression or a nested intrinsic-function call
-        // (intrinsic-function arguments such as "9 * A", "B / 2", "FUNCTION INTEGER(1.6)") is
-        // parsed by the arithmetic parser. Ordinary subscripts (name, name ± int, qualified
-        // names) never contain a mult/power operator or the FUNCTION keyword, so they continue
-        // through the simpler path below unchanged.
+        // (intrinsic-function arguments such as "9 * A", "B / 2", "E + .001", "B - 2",
+        // "FUNCTION INTEGER(1.6)") is parsed by the arithmetic parser. This includes additive
+        // operators: a relative subscript "IDENT ± integer" yields the same bound tree through
+        // the arithmetic parser, while expressions like "E + .001" or "1 - .1" are ONLY handled
+        // correctly there — the simpler relative-offset path below recognises just IDENT ± INT
+        // and silently dropped a decimal or second operand. A single SIGNED literal (+8, -3) has
+        // no separate SUB_PLUS/SUB_MINUS token, so it still takes the simple path.
         if (tokens.Any(t => t.Type is CobolParserCore.SUB_STAR or CobolParserCore.SUB_SLASH
-                or CobolParserCore.SUB_POWER
+                or CobolParserCore.SUB_POWER or CobolParserCore.SUB_PLUS or CobolParserCore.SUB_MINUS
                 || (t.Type == CobolParserCore.SUB_IDENTIFIER
                     && string.Equals(t.Text, "FUNCTION", StringComparison.OrdinalIgnoreCase))))
             return BindSubscriptTokensAsArithmetic(tokens);
