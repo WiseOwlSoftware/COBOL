@@ -157,11 +157,12 @@ internal sealed class ExpressionBinder
             args = expanded;
         }
 
-        // FUNCTION LENGTH returns the defined size of the operand, not its content length.
-        // Per ISO §15.24: "the value returned is the number of character positions
-        // in argument-1". Resolved at bind time — no runtime call needed.
+        // FUNCTION LENGTH returns the number of character positions in argument-1 (ISO §15.24).
+        // For a fixed operand this is the defined size, folded at bind time; for a
+        // reference-modified operand the length may be runtime (x(s:l) → l), so BindLength
+        // returns a runtime expression in that case.
         if (funcName.Equals("LENGTH", StringComparison.OrdinalIgnoreCase) && args.Count == 1)
-            return new BoundLiteralExpression(StaticLength(args[0]), CobolCategory.Numeric);
+            return BindLength(args[0]);
 
         var category = BindingContext.AlphanumericFunctions.Contains(funcName)
             ? CobolCategory.Alphanumeric
@@ -188,6 +189,33 @@ internal sealed class ExpressionBinder
     /// nested forms recurse. A numeric literal that survived from a folded nested function is
     /// already its own value.
     /// </summary>
+    /// <summary>
+    /// Bind FUNCTION LENGTH(arg). A reference-modified operand x(s:l) has length l — which may be
+    /// a runtime expression — and x(s:) (rest of field) has length (defined-size − s + 1); both
+    /// are returned as expressions. Every other operand has a compile-time-constant length folded
+    /// by <see cref="StaticLength"/>.
+    /// </summary>
+    private BoundExpression BindLength(BoundExpression arg)
+    {
+        if (arg is BoundReferenceModificationExpression refMod)
+        {
+            // Explicit length: x(start:length) → length (literal or runtime).
+            if (refMod.Length != null)
+                return refMod.Length;
+
+            // Rest of field: defined-size − (start − 1).
+            decimal baseLen = refMod.Base.Symbol.ElementSize;
+            var startMinus1 = new BoundBinaryExpression(
+                refMod.Start, BoundBinaryOperatorKind.Subtract,
+                new BoundLiteralExpression(1m, CobolCategory.Numeric), CobolCategory.Numeric);
+            return new BoundBinaryExpression(
+                new BoundLiteralExpression(baseLen, CobolCategory.Numeric),
+                BoundBinaryOperatorKind.Subtract, startMinus1, CobolCategory.Numeric);
+        }
+
+        return new BoundLiteralExpression(StaticLength(arg), CobolCategory.Numeric);
+    }
+
     private static decimal StaticLength(BoundExpression arg) => arg switch
     {
         BoundIdentifierExpression idExpr => idExpr.Symbol.ElementSize,
@@ -600,8 +628,18 @@ internal sealed class ExpressionBinder
         var tokens = new List<IToken>();
         CollectLeafTokens(ctx, tokens);
 
-        // Check for colon → ref-mod
-        int colonIdx = tokens.FindIndex(t => t.Type == CobolParserCore.SUB_COLON);
+        // Check for a ref-mod colon — but only at depth 0. A colon inside nested parentheses
+        // belongs to a subscript operand's own reference modification (e.g. LENGTH(WS(1:N)) or
+        // f(T(I)(1:3))) and must be left for that operand's segment binding, not treated as the
+        // outer operand's ref-mod separator.
+        int colonIdx = -1;
+        for (int i = 0, d = 0; i < tokens.Count; i++)
+        {
+            int tt = tokens[i].Type;
+            if (tt == CobolParserCore.SUB_LPAREN) d++;
+            else if (tt == CobolParserCore.SUB_RPAREN) { if (d > 0) d--; }
+            else if (tt == CobolParserCore.SUB_COLON && d == 0) { colonIdx = i; break; }
+        }
         if (colonIdx >= 0)
         {
             // Ref-mod: split on colon, parse each half as arithmetic expression
