@@ -13,17 +13,23 @@ CobolSharp-private submodule). Refer to it for all specification, behavior, synt
 questions. It is the authoritative source — do not guess or assume COBOL semantics without
 consulting it. Initialize the submodule with: `git submodule update --init --recursive`
 
-## Session Resume Context (updated 2026-03-28)
+## Session Resume Context (updated 2026-05-29)
+
+**→ Start a new session from `resume-prompt.md` (repo root)** — it is the authoritative,
+up-to-date resume orientation. `claude/state/session-state-2026-05-29.md` has full detail.
 
 ### Current State
-- **Branch**: main
-- **Unit tests**: 421 pass
-- **Integration tests**: 274 pass, 1 skip (12 focused test files)
-- **NIST tests at 100%** (95 in guard)
-- **Intrinsic functions**: 94/94 dispatched, all tested
-- **Diagnostic descriptors**: 200+ (COBOL0001-COBOL0600 + CBL0601-CBL3606)
-- **Grammar files**: 14 files, 3,225+ lines
-- **Source of truth**: GRAMMAR_AUDIT.md (consolidated from all audit docs)
+- **Branch**: main; working tree clean; guard ALL GREEN.
+- **Guard** (`bash scripts/guard.sh`): 1000 unit / 336 integration / **149 NIST baselines
+  (95 NC + 42 IF + 12 SM)** — all must stay green, baselines 0 FAIL*.
+- **NIST suites**: NC 100%, **IF 100%**, **SM COPY-feature 100%**, **IC in progress 16/47**.
+  SQ/IX/RL/ST surveyed, paused (file-I/O FILE-CONTROL wall + collating subsystem remain).
+- DEVLOG is at entry 223. The block below is HISTORICAL (the 2026-03-28 session); see
+  resume-prompt.md / DEVLOG 196–223 for everything since.
+
+### (historical) Current State as of 2026-03-28
+- **Unit tests**: 421 pass · **Integration**: 274 · **NIST**: 95 in guard
+- **Intrinsic functions**: 94/94 dispatched · **Source of truth**: GRAMMAR_AUDIT.md
 
 ### What was done this session (2026-03-27/28/29)
 - **NIST expansion (65→95)**: 30 new tests via grammar fixes (DISPLAY UPON, SET ON/OFF,
