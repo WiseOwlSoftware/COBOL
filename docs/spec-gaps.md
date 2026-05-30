@@ -10,10 +10,14 @@ Repro programs: `/e/tmp/repro/`, `/e/tmp/wct/`.
 
 ## Honest headline
 Of three originally-suspected silent-correctness bugs: **one was never a bug** (ON SIZE ERROR),
-**one is a real open bug** (LENGTH of an OCCURS DEPENDING ON group), and **one is real and only
-partially addressed** (WHEN-COMPILED — emitter special-case added but not yet effective on the MOVE
-path). Net: **no silent bug from this sweep is fully fixed yet.** Guard stays ALL GREEN
-(1000 / 343 / 148) because these are latent gaps with no baselined coverage.
+**one is fixed and verified** (WHEN-COMPILED — baked at compile time; cross-run stable), and **one
+is a real open bug** (LENGTH of an OCCURS DEPENDING ON group). Guard stays ALL GREEN
+(1000 / 343 / 148); the remaining gap is latent with no baselined coverage.
+
+> Note: the `IntrinsicWhenCompiledTests` integration test checks format + compile-date only. The
+> compile-time-baked (cross-run-stable) property is verified manually (DEVLOG 230) — running the same
+> compiled DLL twice yields an identical timestamp — because a test can't easily assert "compiled
+> earlier than now" deterministically.
 
 ---
 
@@ -21,7 +25,7 @@ path). Net: **no silent bug from this sweep is fully fixed yet.** Guard stays AL
 
 | # | Area | Status | Notes |
 |---|------|--------|-------|
-| 1 | `FUNCTION WHEN-COMPILED` | **IN PROGRESS — not effective** | Must return compile time; still returns the execution-time clock for `MOVE FUNCTION WHEN-COMPILED`. A baked-constant special-case was added to `CilExpressionEmitter.EmitIrIntrinsicCall` (correct, in HEAD) but the value reaches the program via a path that bypasses it (the `IrFunctionCall` MOVE lowering). Proven: same DLL, two runs, different timestamps. **The `IntrinsicWhenCompiledTests` test does NOT guard this — it checks only format+date.** Next: trace `DataMovementLowerer`→`EmitFunctionCall`→`EmitIrIntrinsicCall` and ensure WHEN-COMPILED is baked on every path (or fold to a constant in the binder). |
+| 1 | `FUNCTION WHEN-COMPILED` | **FIXED & VERIFIED** (commit 00713a9, DEVLOG 228/230) | Now baked at compile time: `CilExpressionEmitter.EmitIrIntrinsicCall` special-cases WHEN-COMPILED and emits `Ldstr` of a constant captured once at compiler-process start. Effective on the MOVE path (`EmitFunctionCall`→`EmitIrIntrinsicCall`). Verified cross-run stable: the same DLL run twice prints an identical timestamp. (An intermediate DEVLOG-229 claim that it was "still broken" was a test-harness error — stale DLL + path race — corrected in DEVLOG 230.) |
 | 2 | `ON SIZE ERROR` (all arithmetic) | **VERIFIED-WORKS** | Fires for DIVIDE-by-0 and ADD/SUBTRACT/MULTIPLY/COMPUTE overflow (incl. `… GIVING`). The "missing" impression came from dead code (`CobolProgram.DivideInto`, no IR caller) + a wrong test expectation (SUBTRACT into an *unsigned* receiver stores the absolute value per ISO → no size error). |
 | 3 | `LENGTH` / `FUNCTION LENGTH` of an OCCURS DEPENDING ON group | **OPEN BUG** | Returns the **max** layout, not the current DEPENDING-ON length: `FUNCTION LENGTH(TBL)` over `ELT … OCCURS 1 TO 10 DEPENDING ON N` returns 40 for both N=3 and N=7 (spec: 12, 28). Root cause: `ExpressionBinder.BindLength`/`StaticLength` fold to compile-time `Symbol.ElementSize` with no ODO branch. Fix: compute base + dependingOnValue×elementSize at runtime for an ODO group (and `LENGTH OF`). |
 
