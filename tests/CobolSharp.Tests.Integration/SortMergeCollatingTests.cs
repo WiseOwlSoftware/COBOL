@@ -152,14 +152,9 @@ public class SortMergeCollatingTests : EndToEndTestBase
 
     // Numeric sort keys compare by value and must ignore any collating sequence:
     // even under REV-ORDER, an ascending numeric sort orders 1 before 2.
-    // SKIPPED: exposes a SEPARATE pre-existing bug — numeric SORT keys are misclassified
-    // as non-numeric (FileIoLowerer.BuildKeysSpec sees a null/non-numeric pic for the SD
-    // key via _ctx.Semantic.GetPicDescriptor, so isNumeric=0 reaches SortRuntime). Before
-    // collating, raw-byte order of unsigned DISPLAY digits matched numeric order, masking it;
-    // now collating is wrongly applied to a numeric key. Fix is numeric key classification
-    // in BuildKeysSpec (find GetPicDescriptor for SD elementary items), NOT the collating
-    // path. See docs/collating-subsystem-plan.md "Gap 1 follow-up".
-    [Fact(Skip = "Pre-existing numeric SORT-key misclassification; see docs/collating-subsystem-plan.md")]
+    // (Regression guard for the BuildKeySpecField numeric-classification fix: keys are now
+    // classified via the live ResolveLocation().GetPic() path, not the dead pic registry.)
+    [Fact]
     public void SortNumericKey_IgnoresCollatingSequence()
     {
         var (success, stdout, stderr) = CompileAndRun("""

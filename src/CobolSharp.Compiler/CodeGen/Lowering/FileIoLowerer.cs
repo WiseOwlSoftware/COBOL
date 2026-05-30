@@ -542,21 +542,16 @@ internal sealed class FileIoLowerer
 
     private string BuildTableKeysSpec(IReadOnlyList<BoundSortKey> keys, DataSymbol tableItem)
     {
+        var tableLoc = _ctx.Semantic.GetStorageLocation(tableItem);
+        if (!tableLoc.HasValue) return "";
+        int tableBaseOffset = tableLoc.Value.Offset;
+
         var specs = new List<string>();
         foreach (var key in keys)
         {
-            var keySym = key.Key;
-            // Key offset relative to the table entry start
-            var keyLoc = _ctx.Semantic.GetStorageLocation(keySym);
-            var tableLoc = _ctx.Semantic.GetStorageLocation(tableItem);
-            if (!keyLoc.HasValue || !tableLoc.HasValue) continue;
-
-            int relativeOffset = keyLoc.Value.Offset - tableLoc.Value.Offset;
-            int length = keyLoc.Value.Length;
-            bool asc = key.IsAscending;
-
-            // Check if numeric
-            specs.Add($"{relativeOffset},{length},{(asc ? "1" : "0")}");
+            // Offset is relative to the table entry start; skip keys with no storage location.
+            if (!_ctx.Semantic.GetStorageLocation(key.Key).HasValue) continue;
+            specs.Add(BuildKeySpecField(key, tableBaseOffset));
         }
         return string.Join(";", specs);
     }
@@ -663,24 +658,32 @@ internal sealed class FileIoLowerer
         var sdRecord = sortFile.Record;
         var sdRecLoc = sdRecord != null ? _ctx.Semantic.GetStorageLocation(sdRecord) : null;
         int sdBaseOffset = sdRecLoc?.Offset ?? 0;
+        return string.Join(";", keys.Select(k => BuildKeySpecField(k, sdBaseOffset)));
+    }
 
-        return string.Join(";", keys.Select(k =>
-        {
-            var keyLoc = _ctx.Semantic.GetStorageLocation(k.Key);
-            int keyOff = keyLoc.HasValue ? keyLoc.Value.Offset - sdBaseOffset : 0;
-            int keyLen = keyLoc.HasValue ? keyLoc.Value.Length : 0;
-            var pic = _ctx.Semantic.GetPicDescriptor(k.Key);
-            // Extended format: offset,length,asc,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale
-            int usage = pic != null ? (int)pic.Usage : 0;
-            int isSigned = pic is { IsSigned: true } ? 1 : 0;
-            int signStorage = pic != null ? (int)pic.SignStorage : 0;
-            int fractionDigits = pic?.FractionDigits ?? 0;
-            int totalDigits = pic?.TotalDigits ?? 0;
-            int leadingScale = pic?.LeadingScaleDigits ?? 0;
-            int trailingScale = pic?.TrailingScaleDigits ?? 0;
-            bool isNumeric = pic is { IsNumeric: true };
-            return $"{keyOff},{keyLen},{(k.IsAscending ? "1" : "0")},{(isNumeric ? "1" : "0")},{usage},{isSigned},{signStorage},{fractionDigits},{totalDigits},{leadingScale},{trailingScale}";
-        }));
+    /// <summary>
+    /// Encode one sort/merge key as
+    /// "offset,length,asc,isNumeric,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale"
+    /// with offset relative to <paramref name="baseOffset"/>. The PIC is read from the key's
+    /// resolved IrLocation (the live path used throughout lowering) — NOT the unused SemanticModel
+    /// pic registry, which is never populated — so numeric keys are flagged and the runtime compares
+    /// them by value, never applying a collating sequence (ISO/IEC 1989:2023 14.9.40 / 14.9.22).
+    /// </summary>
+    private string BuildKeySpecField(BoundSortKey key, int baseOffset)
+    {
+        var keyLoc = _ctx.Semantic.GetStorageLocation(key.Key);
+        int keyOff = keyLoc.HasValue ? keyLoc.Value.Offset - baseOffset : 0;
+        int keyLen = keyLoc.HasValue ? keyLoc.Value.Length : 0;
+        var pic = _ctx.Location.ResolveLocation(key.Key)?.GetPic();
+        int usage = pic != null ? (int)pic.Usage : 0;
+        int isSigned = pic is { IsSigned: true } ? 1 : 0;
+        int signStorage = pic != null ? (int)pic.SignStorage : 0;
+        int fractionDigits = pic?.FractionDigits ?? 0;
+        int totalDigits = pic?.TotalDigits ?? 0;
+        int leadingScale = pic?.LeadingScaleDigits ?? 0;
+        int trailingScale = pic?.TrailingScaleDigits ?? 0;
+        bool isNumeric = pic is { IsNumeric: true };
+        return $"{keyOff},{keyLen},{(key.IsAscending ? "1" : "0")},{(isNumeric ? "1" : "0")},{usage},{isSigned},{signStorage},{fractionDigits},{totalDigits},{leadingScale},{trailingScale}";
     }
 
     // ── MERGE ──
