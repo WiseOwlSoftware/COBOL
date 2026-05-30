@@ -168,3 +168,22 @@ Gap 1 code complete; guard was ALL GREEN (exit 0) before commit.
 NEXT SESSION VERIFY FIRST: `git log --oneline -3` — confirm the 'SORT/MERGE collating sequence' commit landed.
 If working tree dirty / commit absent, re-stage the 9 files (BoundNodes, FileIoBinder, IrInstruction, FileIoLowerer, CilFileIoEmitter, SortRuntime, SortMergeCollatingTests, DEVLOG.md, this doc) and commit with the message in DEVLOG 224.
 Then: (a) fix numeric SORT-key misclassification (BuildKeysSpec/GetPicDescriptor) + unskip SortNumericKey_IgnoresCollatingSequence; (b) Gap 2 FUNCTION CHAR/ORD under PCS.
+
+---
+
+## FINAL STATUS (2026-05-29) — supersedes all provisional notes above
+
+Ignore the earlier "deferred to a fresh session", "Not committed", "test skipped", and "Fix next
+session" notes — they were written mid-session and are obsolete. Actual end state:
+
+- **Gap 1 (SORT/MERGE/TABLE-SORT collating) — DONE and COMMITTED** (0a7caae). The "parsed only"
+  status for the SORT collating grammar row above is now "DONE".
+- **Numeric-key misclassification — FOUND and FIXED, COMMITTED** (8900437). `BuildKeySpecField`
+  derives the key PIC via `_ctx.Location.ResolveLocation(key.Key)?.GetPic()` (the live path); the
+  dead `SemanticModel` pic registry (`RegisterPicDescriptor`/`GetPicDescriptor`/`_picDescriptors`,
+  zero callers) is no longer used and is flagged for a separate zero-dead-code deletion.
+- All 4 SortMergeCollatingTests PASS (numeric test un-skipped). Guard ALL GREEN: 1000 unit /
+  340 (+1 unrelated skip) integration / 149 NIST baselines 0 FAIL*.
+- **Remaining: Gap 2 only** — FUNCTION CHAR/ORD under a program collating sequence (native ASCII
+  today). See the Gap 2 section above; lower priority (no NIST test exercises it under a non-native
+  PCS).
