@@ -115,10 +115,28 @@ internal sealed class CilExpressionEmitter
     }
 
     /// <summary>
+    /// The compilation timestamp, captured once when this compiler process starts, formatted
+    /// identically to the runtime FUNCTION WHEN-COMPILED (21-char yyyyMMddHHmmssff±hhmm). FUNCTION
+    /// WHEN-COMPILED must return the time the program was COMPILED (ISO/IEC 1989:2023), so it is
+    /// baked as a constant at emit time rather than calling the runtime clock at execution.
+    /// </summary>
+    private static readonly string WhenCompiledTimestamp =
+        Runtime.Intrinsics.IntrinsicFunctions.WhenCompiled();
+
+    /// <summary>
     /// Emit an IR-native intrinsic function call, leaving an object on the IL stack.
     /// </summary>
     internal void EmitIrIntrinsicCall(ILProcessor il, IR.IrIntrinsicCall call)
     {
+        // FUNCTION WHEN-COMPILED yields the compile-time timestamp, baked as a constant — the runtime
+        // WhenCompiled() returns the execution-time clock, which is wrong. Same value for every use in
+        // a compilation; leaves a string on the stack, matching the alphanumeric-result contract.
+        if (call.FunctionName.Equals("WHEN-COMPILED", StringComparison.OrdinalIgnoreCase))
+        {
+            il.Append(il.Create(OpCodes.Ldstr, WhenCompiledTimestamp));
+            return;
+        }
+
         // Push function name first (matches Call(string, object[]) signature)
         il.Append(il.Create(OpCodes.Ldstr, call.FunctionName.ToUpperInvariant()));
 
