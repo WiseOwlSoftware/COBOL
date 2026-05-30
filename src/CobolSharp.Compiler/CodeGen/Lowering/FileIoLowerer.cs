@@ -479,7 +479,8 @@ internal sealed class FileIoLowerer
         }
 
         // Phase 2: Sort the records
-        block.Instructions.Add(new IrSortSort(sortFileName, BuildKeysSpec(sort.SortFile, sort.Keys)));
+        block.Instructions.Add(new IrSortSort(sortFileName, BuildKeysSpec(sort.SortFile, sort.Keys),
+            ResolveCollating(sort.CollatingAlphabetName)));
 
         // Phase 3: Output — return sorted records
         if (sort.GivingFiles != null)
@@ -520,9 +521,23 @@ internal sealed class FileIoLowerer
         // Build keys spec string: "relOffset,length,asc;..."
         var keysSpec = BuildTableKeysSpec(tableSort.Keys, tableSym);
 
-        block.Instructions.Add(new IrTableSort(tableLoc, entrySize, entryCount, keysSpec));
+        block.Instructions.Add(new IrTableSort(tableLoc, entrySize, entryCount, keysSpec,
+            ResolveCollating(tableSort.CollatingAlphabetName)));
 
         return block;
+    }
+
+    /// <summary>
+    /// Resolve a SORT/MERGE collating sequence to a 256-byte code→weight table.
+    /// Precedence (ISO/IEC 1989:2023 14.9.40 / 14.9.22): the statement's COLLATING SEQUENCE
+    /// phrase if present; otherwise the program collating sequence; otherwise null (native).
+    /// </summary>
+    private byte[]? ResolveCollating(string? alphabetName)
+    {
+        if (alphabetName != null &&
+            _ctx.Semantic.ResolveAlphabetDefinition(alphabetName) is { } def)
+            return def.CollatingSequence;
+        return _ctx.Semantic.ProgramCollatingSequence;
     }
 
     private string BuildTableKeysSpec(IReadOnlyList<BoundSortKey> keys, DataSymbol tableItem)
@@ -692,7 +707,8 @@ internal sealed class FileIoLowerer
         // Merge: read from all USING files, sort by keys
         var inputNames = string.Join(";", merge.UsingFiles.Select(f => f.Name));
         var keysSpec = BuildKeysSpec(merge.MergeFile, merge.Keys);
-        block.Instructions.Add(new IrSortMerge(mergeFileName, inputNames, keysSpec));
+        block.Instructions.Add(new IrSortMerge(mergeFileName, inputNames, keysSpec,
+            ResolveCollating(merge.CollatingAlphabetName)));
 
         // Output phase
         if (merge.GivingFiles != null)

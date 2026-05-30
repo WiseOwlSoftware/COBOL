@@ -1524,11 +1524,19 @@ public sealed class BoundSortStatement : BoundStatement
     public ParagraphSymbol? OutputProcedure { get; }
     public ParagraphSymbol? OutputProcedureThru { get; }
 
+    /// <summary>
+    /// Alphabet-name from the statement's COLLATING SEQUENCE phrase (null if absent).
+    /// Resolved to a collating table — with the program collating sequence as fallback —
+    /// during lowering (ISO/IEC 1989:2023 14.9.40 SORT).
+    /// </summary>
+    public string? CollatingAlphabetName { get; }
+
     public BoundSortStatement(FileSymbol sortFile, IReadOnlyList<BoundSortKey> keys,
         bool duplicatesInOrder,
         IReadOnlyList<FileSymbol>? usingFiles, IReadOnlyList<FileSymbol>? givingFiles,
         ParagraphSymbol? inputProcedure, ParagraphSymbol? inputProcedureThru,
-        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru)
+        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru,
+        string? collatingAlphabetName)
     {
         SortFile = sortFile;
         Keys = keys;
@@ -1539,6 +1547,7 @@ public sealed class BoundSortStatement : BoundStatement
         InputProcedureThru = inputProcedureThru;
         OutputProcedure = outputProcedure;
         OutputProcedureThru = outputProcedureThru;
+        CollatingAlphabetName = collatingAlphabetName;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.SortStatement;
@@ -1556,11 +1565,20 @@ public sealed class BoundTableSortStatement : BoundStatement
     /// <summary>WITH DUPLICATES IN ORDER.</summary>
     public bool DuplicatesInOrder { get; }
 
-    public BoundTableSortStatement(DataSymbol tableItem, IReadOnlyList<BoundSortKey> keys, bool duplicatesInOrder)
+    /// <summary>
+    /// Alphabet-name from the statement's COLLATING SEQUENCE phrase (null if absent).
+    /// Resolved to a collating table — with the program collating sequence as fallback —
+    /// during lowering (ISO/IEC 1989:2023 14.9.40 SORT).
+    /// </summary>
+    public string? CollatingAlphabetName { get; }
+
+    public BoundTableSortStatement(DataSymbol tableItem, IReadOnlyList<BoundSortKey> keys, bool duplicatesInOrder,
+        string? collatingAlphabetName)
     {
         TableItem = tableItem;
         Keys = keys;
         DuplicatesInOrder = duplicatesInOrder;
+        CollatingAlphabetName = collatingAlphabetName;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.TableSortStatement;
@@ -1579,9 +1597,17 @@ public sealed class BoundMergeStatement : BoundStatement
     public ParagraphSymbol? OutputProcedure { get; }
     public ParagraphSymbol? OutputProcedureThru { get; }
 
+    /// <summary>
+    /// Alphabet-name from the statement's COLLATING SEQUENCE phrase (null if absent).
+    /// Resolved to a collating table — with the program collating sequence as fallback —
+    /// during lowering (ISO/IEC 1989:2023 14.9.22 MERGE).
+    /// </summary>
+    public string? CollatingAlphabetName { get; }
+
     public BoundMergeStatement(FileSymbol mergeFile, IReadOnlyList<BoundSortKey> keys,
         IReadOnlyList<FileSymbol> usingFiles, IReadOnlyList<FileSymbol>? givingFiles,
-        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru)
+        ParagraphSymbol? outputProcedure, ParagraphSymbol? outputProcedureThru,
+        string? collatingAlphabetName)
     {
         MergeFile = mergeFile;
         Keys = keys;
@@ -1589,6 +1615,7 @@ public sealed class BoundMergeStatement : BoundStatement
         GivingFiles = givingFiles;
         OutputProcedure = outputProcedure;
         OutputProcedureThru = outputProcedureThru;
+        CollatingAlphabetName = collatingAlphabetName;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.MergeStatement;

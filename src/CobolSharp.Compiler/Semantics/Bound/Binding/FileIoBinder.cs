@@ -469,8 +469,17 @@ internal sealed class FileIoBinder
         return new BoundSortStatement(fileSym, keys, duplicates,
             usingFiles, givingFiles,
             inputProc, inputProcThru,
-            outputProc, outputProcThru);
+            outputProc, outputProcThru,
+            ExtractCollatingName(ctx.sortCollatingPhrase()));
     }
+
+    /// <summary>
+    /// alphabet-name-1 from a SORT/MERGE COLLATING SEQUENCE phrase (the alphanumeric
+    /// collating sequence); null when the phrase is absent. alphabet-name-2 (national)
+    /// is not captured — national sort keys are out of scope.
+    /// </summary>
+    private static string? ExtractCollatingName(CobolParserCore.SortCollatingPhraseContext? phrase)
+        => phrase?.cobolWord() is { Length: > 0 } words ? words[0].GetText() : null;
 
     // ── TABLE SORT (Format 2) ──
 
@@ -514,7 +523,8 @@ internal sealed class FileIoBinder
         }
 
         bool duplicates = ctx.sortDuplicatesPhrase() != null;
-        return new BoundTableSortStatement(tableSym, keys, duplicates);
+        return new BoundTableSortStatement(tableSym, keys, duplicates,
+            ExtractCollatingName(ctx.sortCollatingPhrase()));
     }
 
     // ── MERGE ──
@@ -555,7 +565,8 @@ internal sealed class FileIoBinder
         }
 
         return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,
-            outputProc, outputProcThru);
+            outputProc, outputProcThru,
+            ExtractCollatingName(ctx.sortCollatingPhrase()));
     }
 
     // ── RELEASE ──

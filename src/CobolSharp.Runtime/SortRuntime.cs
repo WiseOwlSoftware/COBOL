@@ -49,13 +49,13 @@ public static class SortRuntime
     /// keysSpec format: "offset,length,asc,isNumeric,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale;..."
     /// Legacy format "offset,length,asc;..." is also accepted (treated as alphanumeric byte comparison).
     /// </summary>
-    public static void SortRecords(string fileName, string keysSpec)
+    public static void SortRecords(string fileName, string keysSpec, byte[]? collating = null)
     {
         var keys = ParseKeysSpec(keysSpec);
-        SortRecordsInternal(fileName, keys);
+        SortRecordsInternal(fileName, keys, collating);
     }
 
-    private static void SortRecordsInternal(string fileName, SortKeySpec[] keys)
+    private static void SortRecordsInternal(string fileName, SortKeySpec[] keys, byte[]? collating)
     {
         if (!_sortFiles.TryGetValue(fileName, out var sf))
             throw new InvalidOperationException($"SORT file '{fileName}' not initialized");
@@ -71,17 +71,17 @@ public static class SortRuntime
         IOrderedEnumerable<byte[]> ordered;
         var firstKey = keys[0];
         if (firstKey.IsAscending)
-            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey));
+            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey, collating));
         else
-            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey, collating));
 
         for (int k = 1; k < keys.Length; k++)
         {
             var key = keys[k];
             if (key.IsAscending)
-                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key, collating));
             else
-                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key, collating));
         }
 
         // Materialize before clearing — LINQ is lazy, so the source list must survive enumeration
@@ -96,14 +96,16 @@ public static class SortRuntime
     /// inputFileNames: semicolon-delimited file names.
     /// keysSpec format: "offset,length,asc,isNumeric,usage,isSigned,signStorage,fractionDigits,totalDigits,leadingScale,trailingScale;..."
     /// </summary>
-    public static void MergeRecords(string mergeFileName, string inputFileNamesStr, string keysSpec)
+    public static void MergeRecords(string mergeFileName, string inputFileNamesStr, string keysSpec,
+        byte[]? collating = null)
     {
         var inputFileNames = inputFileNamesStr.Split(';');
         var keys = ParseKeysSpec(keysSpec);
-        MergeRecordsInternal(mergeFileName, inputFileNames, keys);
+        MergeRecordsInternal(mergeFileName, inputFileNames, keys, collating);
     }
 
-    private static void MergeRecordsInternal(string mergeFileName, string[] inputFileNames, SortKeySpec[] keys)
+    private static void MergeRecordsInternal(string mergeFileName, string[] inputFileNames, SortKeySpec[] keys,
+        byte[]? collating)
     {
         if (!_sortFiles.TryGetValue(mergeFileName, out var sf))
             throw new InvalidOperationException($"MERGE file '{mergeFileName}' not initialized");
@@ -134,17 +136,17 @@ public static class SortRuntime
         IOrderedEnumerable<byte[]> ordered;
         var firstKey = keys[0];
         if (firstKey.IsAscending)
-            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey));
+            ordered = sf.Records.OrderBy(r => r, new SortKeyComparer(firstKey, collating));
         else
-            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+            ordered = sf.Records.OrderByDescending(r => r, new SortKeyComparer(firstKey, collating));
 
         for (int k = 1; k < keys.Length; k++)
         {
             var key = keys[k];
             if (key.IsAscending)
-                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key, collating));
             else
-                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key, collating));
         }
 
         // Materialize before clearing — LINQ is lazy, so the source list must survive enumeration
@@ -238,8 +240,12 @@ public static class SortRuntime
         return keys;
     }
 
-    /// <summary>Comparer for a single sort key, used with LINQ OrderBy/ThenBy.</summary>
-    private sealed class SortKeyComparer(SortKeySpec key) : IComparer<byte[]>
+    /// <summary>
+    /// Comparer for a single sort key, used with LINQ OrderBy/ThenBy.
+    /// <paramref name="collating"/> is the 256-byte code→weight table for alphanumeric keys;
+    /// null means native (raw unsigned byte) order.
+    /// </summary>
+    private sealed class SortKeyComparer(SortKeySpec key, byte[]? collating) : IComparer<byte[]>
     {
         public int Compare(byte[]? a, byte[]? b)
         {
@@ -249,14 +255,16 @@ public static class SortRuntime
 
             if (key.IsNumeric && key.Pic != null)
             {
-                // Decode numeric values and compare as decimals
+                // Numeric keys compare by value — never by collating sequence (ISO 14.9.40/14.9.22).
                 decimal valA = PicRuntime.DecodeNumeric(a, key.Offset, key.Length, key.Pic);
                 decimal valB = PicRuntime.DecodeNumeric(b, key.Offset, key.Length, key.Pic);
                 return valA.CompareTo(valB);
             }
 
-            // Alphanumeric: unsigned byte-by-byte comparison (EBCDIC/ASCII collating sequence)
-            return CompareBytes(a, b, key.Offset, key.Length);
+            // Alphanumeric: apply the collating sequence when one is in effect, else raw byte order.
+            return collating != null
+                ? CompareBytesWithSequence(a, b, key.Offset, key.Length, collating)
+                : CompareBytes(a, b, key.Offset, key.Length);
         }
     }
 
@@ -269,6 +277,25 @@ public static class SortRuntime
             if (offI >= a.Length || offI >= b.Length) break;
             int cmp = a[offI].CompareTo(b[offI]);
             if (cmp != 0) return cmp;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Compare two byte arrays at given offset/length using a custom collating sequence
+    /// (256-byte table mapping character ordinal → sort weight). Mirrors
+    /// <see cref="PicRuntime.CompareAlphanumericWithSequence"/> so relation conditions and
+    /// sort keys order alphanumeric data identically under a program collating sequence.
+    /// </summary>
+    private static int CompareBytesWithSequence(byte[] a, byte[] b, int offset, int length, byte[] collating)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            int offI = offset + i;
+            if (offI >= a.Length || offI >= b.Length) break;
+            int wa = collating[a[offI]];
+            int wb = collating[b[offI]];
+            if (wa != wb) return wa < wb ? -1 : 1;
         }
         return 0;
     }
@@ -302,7 +329,8 @@ public static class SortRuntime
     /// <param name="entrySize">Size of each OCCURS entry in bytes.</param>
     /// <param name="entryCount">Number of OCCURS entries.</param>
     /// <param name="keysSpec">Key specification: "offset,length,asc;..." where offset is relative to entry start.</param>
-    public static void SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec)
+    public static void SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec,
+        byte[]? collating = null)
     {
         if (entryCount <= 1) return;
 
@@ -317,7 +345,7 @@ public static class SortRuntime
         }
 
         // Stable sort using the same comparison logic as file sort
-        var sorted = StableSort(entries, keys);
+        var sorted = StableSort(entries, keys, collating);
 
         // Copy sorted entries back into storage
         for (int i = 0; i < entryCount; i++)
@@ -326,24 +354,24 @@ public static class SortRuntime
         }
     }
 
-    private static byte[][] StableSort(byte[][] entries, SortKeySpec[] keys)
+    private static byte[][] StableSort(byte[][] entries, SortKeySpec[] keys, byte[]? collating)
     {
         if (keys.Length == 0) return entries;
 
         IOrderedEnumerable<byte[]> ordered;
         var firstKey = keys[0];
         if (firstKey.IsAscending)
-            ordered = entries.OrderBy(r => r, new SortKeyComparer(firstKey));
+            ordered = entries.OrderBy(r => r, new SortKeyComparer(firstKey, collating));
         else
-            ordered = entries.OrderByDescending(r => r, new SortKeyComparer(firstKey));
+            ordered = entries.OrderByDescending(r => r, new SortKeyComparer(firstKey, collating));
 
         for (int k = 1; k < keys.Length; k++)
         {
             var key = keys[k];
             if (key.IsAscending)
-                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenBy(r => r, new SortKeyComparer(key, collating));
             else
-                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key));
+                ordered = ordered.ThenByDescending(r => r, new SortKeyComparer(key, collating));
         }
 
         return ordered.ToArray();

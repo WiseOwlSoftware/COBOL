@@ -726,11 +726,14 @@ public sealed class IrSortSort : IrInstruction
 {
     public string FileName { get; }
     public string KeysSpec { get; }
+    /// <summary>Collating table (256-byte code→weight) for alphanumeric keys; null = native byte order.</summary>
+    public byte[]? CollatingSequence { get; }
 
-    public IrSortSort(string fileName, string keysSpec)
+    public IrSortSort(string fileName, string keysSpec, byte[]? collatingSequence)
     {
         FileName = fileName;
         KeysSpec = keysSpec;
+        CollatingSequence = collatingSequence;
     }
 }
 
@@ -773,13 +776,17 @@ public sealed class IrTableSort : IrInstruction
     public int EntrySize { get; }
     public int EntryCount { get; }
     public string KeysSpec { get; }
+    /// <summary>Collating table (256-byte code→weight) for alphanumeric keys; null = native byte order.</summary>
+    public byte[]? CollatingSequence { get; }
 
-    public IrTableSort(IrLocation tableLocation, int entrySize, int entryCount, string keysSpec)
+    public IrTableSort(IrLocation tableLocation, int entrySize, int entryCount, string keysSpec,
+        byte[]? collatingSequence)
     {
         TableLocation = tableLocation;
         EntrySize = entrySize;
         EntryCount = entryCount;
         KeysSpec = keysSpec;
+        CollatingSequence = collatingSequence;
     }
 }
 
@@ -791,12 +798,16 @@ public sealed class IrSortMerge : IrInstruction
     public string MergeFileName { get; }
     public string InputFileNames { get; } // semicolon-delimited
     public string KeysSpec { get; }
+    /// <summary>Collating table (256-byte code→weight) for alphanumeric keys; null = native byte order.</summary>
+    public byte[]? CollatingSequence { get; }
 
-    public IrSortMerge(string mergeFileName, string inputFileNames, string keysSpec)
+    public IrSortMerge(string mergeFileName, string inputFileNames, string keysSpec,
+        byte[]? collatingSequence)
     {
         MergeFileName = mergeFileName;
         InputFileNames = inputFileNames;
         KeysSpec = keysSpec;
+        CollatingSequence = collatingSequence;
     }
 }
 

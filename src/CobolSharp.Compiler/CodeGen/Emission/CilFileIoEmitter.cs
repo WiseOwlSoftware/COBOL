@@ -231,9 +231,10 @@ internal sealed class CilFileIoEmitter
     {
         il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
         il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        EmitCollatingArg(il, inst.CollatingSequence);
         var m = _ctx.Module.ImportReference(
             typeof(SortRuntime).GetMethod("SortRecords",
-                new[] { typeof(string), typeof(string) })!);
+                new[] { typeof(string), typeof(string), typeof(byte[]) })!);
         il.Append(il.Create(OpCodes.Call, m));
     }
 
@@ -259,9 +260,10 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, inst.EntrySize));
         il.Append(il.Create(OpCodes.Ldc_I4, inst.EntryCount));
         il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        EmitCollatingArg(il, inst.CollatingSequence);
         var m = _ctx.Module.ImportReference(
             typeof(SortRuntime).GetMethod("SortTable",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string), typeof(byte[]) })!);
         il.Append(il.Create(OpCodes.Call, m));
     }
 
@@ -279,9 +281,22 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Ldstr, inst.MergeFileName));
         il.Append(il.Create(OpCodes.Ldstr, inst.InputFileNames));
         il.Append(il.Create(OpCodes.Ldstr, inst.KeysSpec));
+        EmitCollatingArg(il, inst.CollatingSequence);
         var m = _ctx.Module.ImportReference(
             typeof(SortRuntime).GetMethod("MergeRecords",
-                new[] { typeof(string), typeof(string), typeof(string) })!);
+                new[] { typeof(string), typeof(string), typeof(string), typeof(byte[]) })!);
         il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    /// <summary>
+    /// Push the optional collating-sequence argument: the baked 256-byte table, or null
+    /// (native byte order). Mirrors how comparison emission bakes the collating table inline.
+    /// </summary>
+    private void EmitCollatingArg(ILProcessor il, byte[]? collatingSequence)
+    {
+        if (collatingSequence == null)
+            il.Append(il.Create(OpCodes.Ldnull));
+        else
+            _ctx.Expression.EmitByteArrayLiteral(il, collatingSequence);
     }
 }
