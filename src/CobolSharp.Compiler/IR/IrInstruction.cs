@@ -466,6 +466,12 @@ public sealed class IrFunctionCall : IrInstruction
     /// </summary>
     public bool ReturnsString { get; }
 
+    /// <summary>
+    /// Program collating sequence (256-byte code→weight table) for collating-sensitive functions
+    /// (CHAR, ORD); null = native ordinal order. Resolved at lowering time (ISO §15.15, §15.36).
+    /// </summary>
+    public byte[]? CollatingSequence { get; init; }
+
     public IrFunctionCall(string functionName, IReadOnlyList<IrFunctionArg> arguments,
         IrLocation destination, bool returnsString)
     {

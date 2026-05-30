@@ -163,10 +163,33 @@ internal sealed class CilExpressionEmitter
             il.Append(il.Create(OpCodes.Stelem_Ref));
         }
 
-        // Call IntrinsicFunctions.Call(string, object[])
+        // Push the program collating sequence (null = native) so CHAR/ORD honor a custom
+        // PROGRAM COLLATING SEQUENCE (ISO/IEC 1989:2023 §15.15, §15.36). Only CHAR/ORD read it;
+        // every other function ignores the argument. The table is baked inline only when a custom
+        // sequence is actually in effect for THIS function — otherwise ldnull keeps the native path.
+        EmitCollatingSequenceArg(il, call);
+
+        // Call IntrinsicFunctions.Call(string, object[], byte[])
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.Intrinsics.IntrinsicFunctions).GetMethod("Call",
-                new[] { typeof(string), typeof(object[]) })!)));
+                new[] { typeof(string), typeof(object[]), typeof(byte[]) })!)));
+    }
+
+    /// <summary>
+    /// Push the collating-sequence argument for IntrinsicFunctions.Call. Bakes the program collating
+    /// sequence (256-byte code→weight table) — resolved at lowering time and carried on the IR node —
+    /// inline for the collating-sensitive functions (CHAR, ORD) when one is in effect; otherwise
+    /// pushes null (native ordinal order). Mirrors the compile-time-baked-byte[] pattern used by
+    /// comparison and SORT/MERGE collating.
+    /// </summary>
+    private void EmitCollatingSequenceArg(ILProcessor il, IR.IrIntrinsicCall call)
+    {
+        bool collatingSensitive = call.FunctionName.Equals("CHAR", StringComparison.OrdinalIgnoreCase)
+            || call.FunctionName.Equals("ORD", StringComparison.OrdinalIgnoreCase);
+        if (call.CollatingSequence != null && collatingSensitive)
+            EmitByteArrayLiteral(il, call.CollatingSequence);
+        else
+            il.Append(il.Create(OpCodes.Ldnull));
     }
 
     /// <summary>
@@ -181,7 +204,10 @@ internal sealed class CilExpressionEmitter
         // from a static function-name list that cannot express polymorphism.
         bool isStringFunction = funcCall.ReturnsString;
 
-        var irCall = new IR.IrIntrinsicCall(funcCall.FunctionName, funcCall.Arguments);
+        var irCall = new IR.IrIntrinsicCall(funcCall.FunctionName, funcCall.Arguments)
+        {
+            CollatingSequence = funcCall.CollatingSequence
+        };
         if (isStringFunction)
         {
             // String-returning function: push dest args first, then call function, store to field.

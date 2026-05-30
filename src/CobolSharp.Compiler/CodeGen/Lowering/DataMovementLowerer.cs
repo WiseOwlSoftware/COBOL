@@ -174,7 +174,10 @@ internal sealed class DataMovementLowerer
                         or Runtime.CobolCategory.Alphabetic
                         or Runtime.CobolCategory.AlphanumericEdited;
                     block.Instructions.Add(new IrFunctionCall(
-                        irCall.FunctionName, irCall.Arguments, destLoc, returnsString));
+                        irCall.FunctionName, irCall.Arguments, destLoc, returnsString)
+                    {
+                        CollatingSequence = irCall.CollatingSequence
+                    });
                 }
             }
             else

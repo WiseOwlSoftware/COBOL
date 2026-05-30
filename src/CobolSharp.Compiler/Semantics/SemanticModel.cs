@@ -176,10 +176,6 @@ public sealed class SemanticModel
     public void RegisterUseDeclarative(string fileName, string sectionName)
         => _useDeclaratives[fileName] = sectionName;
 
-    // ── PIC descriptors per data symbol ──
-
-    private readonly Dictionary<DataSymbol, PicDescriptor> _picDescriptors = [];
-
     // ── Storage sizes (set by ComputeStorageLayout) ──
 
     public int WorkingStorageSize { get; set; }
@@ -265,9 +261,6 @@ public sealed class SemanticModel
     public string? GetParagraphSection(string paragraphName)
         => _paragraphSection.TryGetValue(paragraphName, out var sec) ? sec : null;
 
-    public void RegisterPicDescriptor(DataSymbol symbol, PicDescriptor pic)
-        => _picDescriptors[symbol] = pic;
-
     public void RegisterStorageLocation(DataSymbol symbol, StorageLocation loc)
         => _storageLocations[symbol] = loc;
 
@@ -275,9 +268,6 @@ public sealed class SemanticModel
         => _nodeToSymbol[parseNode] = symbol;
 
     // ── Queries (consumed by binder) ──
-
-    public PicDescriptor? GetPicDescriptor(DataSymbol symbol)
-        => _picDescriptors.TryGetValue(symbol, out var pic) ? pic : null;
 
     public StorageLocation? GetStorageLocation(DataSymbol symbol)
         => _storageLocations.TryGetValue(symbol, out var loc) ? loc : null;

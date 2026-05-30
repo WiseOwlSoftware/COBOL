@@ -115,7 +115,10 @@ internal sealed class ExpressionLowerer
                         }
                     }
                 }
-                return new IrIntrinsicCall(func.FunctionName, args);
+                return new IrIntrinsicCall(func.FunctionName, args)
+                {
+                    CollatingSequence = _ctx.Semantic.ProgramCollatingSequence
+                };
             }
 
             default:

@@ -191,16 +191,37 @@ public static class IntrinsicFunctions
         }
         return result;
     }
-    // FUNCTION CHAR(n): the character in ORDINAL POSITION n of the collating sequence
-    // (ISO §15.9). Ordinal position is 1-based, so position n maps to character code n-1.
-    public static string Char(decimal code)
+    // FUNCTION CHAR(n): the character in ORDINAL POSITION n of the alphanumeric program collating
+    // sequence (ISO §15.15). Ordinal position is 1-based.
+    //   • Native (collating == null): position n maps to character code n-1.
+    //   • Custom sequence (collating[code] = weight): return the FIRST (lowest) code whose weight
+    //     equals n-1 (§15.15.4 rule 2 — first character defined for that position).
+    public static string Char(decimal code, byte[]? collating = null)
     {
-        int c = ToInt(code) - 1;
-        return c is < 0 or > 0xFFFF ? " " : ((char)c).ToString();
+        int n = ToInt(code);
+        if (collating == null)
+        {
+            int c = n - 1;
+            return c is < 0 or > 0xFFFF ? " " : ((char)c).ToString();
+        }
+        int wanted = n - 1;
+        for (int i = 0; i < collating.Length; i++)
+            if (collating[i] == wanted)
+                return ((char)i).ToString();
+        return " ";
     }
-    // FUNCTION ORD(c): the 1-based ordinal position of c in the collating sequence
-    // (ISO §15.36) — the inverse of CHAR, so character code k is at ordinal position k+1.
-    public static decimal Ord(string value) => value.Length > 0 ? (decimal)value[0] + 1 : 0;
+    // FUNCTION ORD(c): the 1-based ordinal position of c in the alphanumeric program collating
+    // sequence (ISO §15.36) — the inverse of CHAR.
+    //   • Native (collating == null): character code k is at ordinal position k+1.
+    //   • Custom sequence: position is the character's weight + 1.
+    public static decimal Ord(string value, byte[]? collating = null)
+    {
+        if (value.Length == 0) return 0;
+        int code = value[0];
+        return collating == null || code >= collating.Length
+            ? (decimal)code + 1
+            : (decimal)collating[code] + 1;
+    }
 
     // ═══════════════════════════════════════════════════
     // Date/Time functions
@@ -739,7 +760,7 @@ public static class IntrinsicFunctions
     /// Dispatch a COBOL intrinsic function call by name.
     /// Returns the result as object (decimal or string).
     /// </summary>
-    public static object Call(string functionName, object[] args)
+    public static object Call(string functionName, object[] args, byte[]? collating = null)
     {
         decimal[] numArgs = args.Where(a => a is decimal).Cast<decimal>().ToArray();
         string[] strArgs = args.Select(a => a?.ToString() ?? "").ToArray();
@@ -805,8 +826,8 @@ public static class IntrinsicFunctions
             "CONCATENATE" => Concatenate(strArgs),
             "CONCAT" => Concatenate(strArgs),
             "SUBSTITUTE" when strArgs.Length >= 3 => Substitute(strArgs[0], strArgs[1..]),
-            "CHAR" => Char(numArgs[0]),
-            "ORD" => Ord(strArgs[0]),
+            "CHAR" => Char(numArgs[0], collating),
+            "ORD" => Ord(strArgs[0], collating),
 
             // Date/Time
             "CURRENT-DATE" => CurrentDate(),
