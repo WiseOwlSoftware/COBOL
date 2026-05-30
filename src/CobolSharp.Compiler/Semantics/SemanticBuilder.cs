@@ -498,10 +498,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     /// </summary>
     private byte[] BuildAlphabetCollatingSequence(CobolParserCore.AlphabetDefinitionContext alphaDef)
     {
+        // NATIVE / STANDARD-1 / STANDARD-2 are dedicated lexer tokens forming their own
+        // alphabetDefinition alternatives (NOT an alphabetEntry/cobolWord). On this ASCII host all
+        // three ARE the native (identity) collating sequence. Detect them via the token accessors —
+        // otherwise STANDARD-* fell through to the user-defined branch with zero entries and built an
+        // all-255 table (every char weight 255 → every string compares equal to every other, so even
+        // "ABCD" = SPACE became vacuously true).
+        if (alphaDef.NATIVE() != null || alphaDef.STANDARD_1() != null || alphaDef.STANDARD_2() != null)
+            return AlphabetDefinition.NativeCollatingSequence();
+
         var entries = alphaDef.alphabetEntry();
         if (entries.Length == 1)
         {
-            // Check for predefined names: STANDARD-1, STANDARD-2, NATIVE
+            // Defensive fallback: a predefined name that reached the parser as a cobolWord.
             var firstEntry = entries[0];
             var words = firstEntry.cobolWord();
             if (words.Length == 1)

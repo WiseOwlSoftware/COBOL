@@ -14,97 +14,28 @@ TEST RESULT OF IF119A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  ***********************************************************************************************************************
  MAX Function         PASS  F-MAX-01
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-02
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-03
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-04
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-05
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-06
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-07
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-08
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-09
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-10
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-11
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-12
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-13
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-14
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-15
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-17
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-18
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-19
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-20
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-21
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-22
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-23
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  MAX Function         PASS  F-MAX-24
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-52 2.23
-
  ***********************************************************************************************************************
 
 

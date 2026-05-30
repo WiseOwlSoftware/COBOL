@@ -14,37 +14,13 @@ TEST RESULT OF IF105A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  ***********************************************************************************************************************
  CHAR Function        PASS  F-CHAR-01
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-02
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-03
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-04
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-05
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-06
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-07
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  CHAR Function        PASS  F-CHAR-08
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-37 2.9
-
  ***********************************************************************************************************************
 
 

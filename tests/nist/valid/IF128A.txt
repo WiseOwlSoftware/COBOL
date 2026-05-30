@@ -14,69 +14,21 @@ TEST RESULT OF IF128A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
  ***********************************************************************************************************************
  ORD-MAX Function     PASS  F-ORD-MAX-01
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-02
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-03
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-04
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-05
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-06
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-07
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-08
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-09
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-10
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-11
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-12
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-13
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-14
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-15
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ORD-MAX Function     PASS  F-ORD-MAX-16
-
-*** INFORMATION ***NO FURTHER INFORMATION, SEE PROGRAM.                 See ref. A-61 2.32
-
  ***********************************************************************************************************************
 
 

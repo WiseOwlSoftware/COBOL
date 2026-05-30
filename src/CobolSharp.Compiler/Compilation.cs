@@ -229,11 +229,17 @@ public sealed class Compilation
         foreach (var alphaDef in semanticBuilder.AlphabetDefinitions)
             model.RegisterAlphabetDefinition(alphaDef);
 
-        // Resolve PROGRAM COLLATING SEQUENCE (needs alphabet definitions registered first)
+        // Resolve PROGRAM COLLATING SEQUENCE (needs alphabet definitions registered first).
+        // An identity sequence (NATIVE / STANDARD-1 / STANDARD-2 on this ASCII host) is behaviorally
+        // identical to having no program collating sequence, so normalize it to null: every consumer
+        // then uses the proven native comparison path (which is trailing-space-insensitive like COBOL
+        // alphanumeric comparison), instead of the weight-table path. Only a genuinely reordered
+        // alphabet is stored, so it is still honored. This keeps STANDARD-* programs (e.g. the CCVS
+        // boilerplate's `ALPHABET x IS STANDARD-2`) comparing exactly as native.
         if (semanticBuilder.ProgramCollatingSequenceAlphabetName is { } pcsName)
         {
             var alphaDef = model.ResolveAlphabetDefinition(pcsName);
-            if (alphaDef != null)
+            if (alphaDef != null && !IsIdentityCollation(alphaDef.CollatingSequence))
                 model.SetProgramCollatingSequence(alphaDef.CollatingSequence);
         }
 
@@ -285,6 +291,20 @@ public sealed class Compilation
         }
 
         return model;
+    }
+
+    /// <summary>
+    /// True when a 256-entry collating table is the identity mapping (weight[i] == i), i.e. it
+    /// reorders nothing. NATIVE / STANDARD-1 / STANDARD-2 produce identity on this ASCII host, and
+    /// an identity program collating sequence is indistinguishable from having none — so callers
+    /// normalize it to null and use the native comparison path.
+    /// </summary>
+    private static bool IsIdentityCollation(byte[] sequence)
+    {
+        if (sequence.Length != 256) return false;
+        for (int i = 0; i < 256; i++)
+            if (sequence[i] != (byte)i) return false;
+        return true;
     }
 
     private static CompilationResult EmitAssembly(
