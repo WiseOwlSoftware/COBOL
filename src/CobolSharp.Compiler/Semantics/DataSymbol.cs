@@ -126,6 +126,13 @@ public sealed class DataSymbol : Symbol
     public StorageAreaKind Area { get; set; }
 
     /// <summary>
+    /// For a FILE SECTION 01-level record, the FD/SD file that owns it; null otherwise.
+    /// Records sharing an owner share one record buffer (implicit REDEFINES, ISO §13.18.42);
+    /// records under different FDs must occupy distinct storage so WRITEs do not alias.
+    /// </summary>
+    public FileSymbol? OwningFile { get; set; }
+
+    /// <summary>
     /// Sign storage from explicit SIGN clause. Null means no explicit clause
     /// (default is trailing overpunch for signed DISPLAY fields).
     /// </summary>

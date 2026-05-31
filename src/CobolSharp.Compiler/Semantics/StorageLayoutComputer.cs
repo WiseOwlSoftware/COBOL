@@ -93,18 +93,36 @@ public static class StorageLayoutComputer
         if (currentFamily != null)
             wsOffset = currentFamily.NextSiblingOffset;
 
-        // File section: all 01-level records under the same FD share the same record buffer
-        // (implicit REDEFINES). Layout each at offset 0 and take the max size.
-        int maxRecordSize = 0;
+        // File section: 01-level records under the SAME FD share one record buffer (implicit
+        // REDEFINES, ISO §13.18.42), so they lay out at that FD's base offset. Records under
+        // DIFFERENT FDs must occupy DISTINCT storage — otherwise a WRITE to one file would read
+        // the bytes another file's MOVE just wrote into a shared area (e.g. SQ128A: two files
+        // populated by interleaved MOVE/WRITE both ended up with the second file's data). Give
+        // each FD its own base, advancing past the previous FD's record area. Records of one FD
+        // are contiguous in source order, so a change of OwningFile marks an FD boundary.
+        int fileBase = 0;
+        int currentFdMax = 0;
+        FileSymbol? currentFdGroup = null;
+        bool sawFileRecord = false;
         foreach (var data in model.DataItemsInOrder)
         {
-            if (data.LevelNumber == 1 && data.Area == StorageAreaKind.FileSection)
+            if (data.LevelNumber != 1 || data.Area != StorageAreaKind.FileSection)
+                continue;
+
+            if (!sawFileRecord || !ReferenceEquals(data.OwningFile, currentFdGroup))
             {
-                int recOffset = 0;
-                LayoutItem(data, StorageAreaKind.FileSection, ref recOffset, model);
-                maxRecordSize = Math.Max(maxRecordSize, recOffset);
+                // New FD: advance the base past the previous FD's record area.
+                fileBase += currentFdMax;
+                currentFdGroup = data.OwningFile;
+                currentFdMax = 0;
+                sawFileRecord = true;
             }
+
+            int recOffset = fileBase;
+            LayoutItem(data, StorageAreaKind.FileSection, ref recOffset, model);
+            currentFdMax = Math.Max(currentFdMax, recOffset - fileBase);
         }
+        int maxRecordSize = fileBase + currentFdMax;
 
         // Level-66 RENAMES: alias an existing contiguous byte range.
         // Must run after all records are laid out so FROM/THRU have storage locations.

@@ -1,0 +1,44 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ128A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OPEN OUT  1 & 2            OPN-TEST-GF-01
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ OPEN OUT  1 & 2      PASS  OPN-TEST-GF-02
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ CLOSE FILE 1 & 2     PASS  CLOSE-TEST-GF-01
+ OPEN INPUT 1 & 2     PASS  OPEN-TEST-GF-02
+ VERIFY FILE SQ-FS1   PASS  READ-TEST-F1-01               FIRST RECORD IS VALID
+ VERIFY FILE SQ-FS2   PASS  READ-TEST-F1                  FIRST RECORD IS VALID
+ OPEN FILE SQ-FS3     PASS  OPEN-TEST-GF-03
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ CLOSE FILE SQ-FS1    PASS  CLOSE-TEST-02
+ CLOSE FILE SQ-FS2    PASS  CLOSE-TEST-02
+ CLOSE FILE SQ-FS3    PASS  CLOSE-TEST-02
+ END OF SQ128A VALIDATION TESTS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ128A    NTIS DISTRIBUTION COBOL 85
+
+                                                    009 OF 009  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

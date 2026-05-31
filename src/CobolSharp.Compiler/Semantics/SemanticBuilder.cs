@@ -1169,6 +1169,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             {
                 _currentFdFile.Record = data;
             }
+
+            // Tag every FILE SECTION 01 record with its owning FD so storage layout can give
+            // each file a distinct record buffer (records within one FD share; across FDs they
+            // must not alias). _currentArea guards against tagging WORKING-STORAGE 01s.
+            if (_currentFdFile != null && level == 1 && _currentArea == StorageAreaKind.FileSection)
+            {
+                data.OwningFile = _currentFdFile;
+            }
         }
         else if (level == 66)
         {
