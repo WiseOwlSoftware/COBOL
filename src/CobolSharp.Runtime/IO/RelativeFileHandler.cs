@@ -67,7 +67,8 @@ public class RelativeFileHandler : IFileHandler
 
     public string ReadNext(byte[] recordBuffer)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // READ on a file connector not open in input/I-O mode is status 47 (ISO §9.1.13.7), not 42.
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
         _currentRecord++;
@@ -76,7 +77,7 @@ public class RelativeFileHandler : IFileHandler
 
     public string ReadPrevious(byte[] recordBuffer)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
         if (_currentRecord <= 1) return FileStatus.AtEnd;
@@ -86,7 +87,7 @@ public class RelativeFileHandler : IFileHandler
 
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
         int recordNum = int.Parse(System.Text.Encoding.ASCII.GetString(keyValue).Trim());
@@ -96,7 +97,8 @@ public class RelativeFileHandler : IFileHandler
 
     public string Write(byte[] recordData)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // WRITE on a file connector not open in the correct mode is status 48 (ISO §9.1.13.7), not 42.
+        if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
         if (_openMode == FileOpenMode.Input)
             return FileStatus.WriteNotOpenForOutput;
         try
@@ -109,9 +111,12 @@ public class RelativeFileHandler : IFileHandler
 
     public string Rewrite(byte[] recordData)
     {
-        if (!IsOpen || _currentRecord == 0) return FileStatus.FileNotOpen;
-        if (_openMode != FileOpenMode.InputOutput)
+        // REWRITE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
+        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
+        if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
+        if (_currentRecord == 0)
+            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
         try
         {
             _stream!.Seek((long)(_currentRecord - 1) * _recordLength, SeekOrigin.Begin);
@@ -123,10 +128,13 @@ public class RelativeFileHandler : IFileHandler
 
     public string Delete()
     {
-        // Mark record as deleted by filling with high-values
-        if (!IsOpen || _currentRecord == 0) return FileStatus.FileNotOpen;
-        if (_openMode != FileOpenMode.InputOutput)
+        // Mark record as deleted by filling with high-values.
+        // DELETE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
+        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
+        if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
+        if (_currentRecord == 0)
+            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
         try
         {
             byte[] deleted = new byte[_recordLength];

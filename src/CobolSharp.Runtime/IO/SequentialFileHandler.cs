@@ -106,7 +106,9 @@ public class SequentialFileHandler : IFileHandler
 
     public string ReadNext(byte[] recordBuffer)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // A READ on a file connector not open in the input or I-O mode is status 47 (ISO §9.1.13.7);
+        // a closed file is, by definition, not open in those modes. Status 42 is CLOSE/UNLOCK-only.
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
@@ -152,7 +154,9 @@ public class SequentialFileHandler : IFileHandler
 
     public string Write(byte[] recordData)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // A WRITE on a file connector not open in the correct mode is status 48 (ISO §9.1.13.7),
+        // not 42 (which is CLOSE/UNLOCK-only). A closed file is not open in output/extend/I-O.
+        if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
         if (_openMode == FileOpenMode.Input)
             return FileStatus.WriteNotOpenForOutput;
 
@@ -181,9 +185,9 @@ public class SequentialFileHandler : IFileHandler
 
     public string Rewrite(byte[] recordData)
     {
-        // For sequential files, rewrite replaces the last-read record
-        if (!IsOpen || _stream == null) return FileStatus.FileNotOpen;
-        if (_openMode != FileOpenMode.InputOutput)
+        // For sequential files, rewrite replaces the last-read record. A REWRITE on a file connector
+        // not open in the I-O mode is status 49 (ISO §9.1.13.7), not 42 (CLOSE/UNLOCK-only).
+        if (!IsOpen || _openMode != FileOpenMode.InputOutput || _stream == null)
             return FileStatus.DeleteRewriteNotOpenForIO;
 
         try

@@ -121,7 +121,8 @@ public class IndexedFileHandler : IFileHandler
 
     public string ReadNext(byte[] recordBuffer)
     {
-        if (!IsOpen || _enumerator == null) return FileStatus.FileNotOpen;
+        // READ on a file connector not open in input/I-O mode is status 47 (ISO §9.1.13.7), not 42.
+        if (!IsOpen || _enumerator == null) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
@@ -143,7 +144,7 @@ public class IndexedFileHandler : IFileHandler
     /// </summary>
     public string ReadPrevious(byte[] recordBuffer)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
@@ -199,7 +200,7 @@ public class IndexedFileHandler : IFileHandler
     /// </summary>
     public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
@@ -231,7 +232,8 @@ public class IndexedFileHandler : IFileHandler
 
     public string Write(byte[] recordData)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // WRITE on a file connector not open in the correct mode is status 48 (ISO §9.1.13.7), not 42.
+        if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
         if (_openMode == FileOpenMode.Input)
             return FileStatus.WriteNotOpenForOutput;
 
@@ -270,9 +272,12 @@ public class IndexedFileHandler : IFileHandler
 
     public string Rewrite(byte[] recordData)
     {
-        if (!IsOpen || _currentKey == null) return FileStatus.FileNotOpen;
-        if (_openMode != FileOpenMode.InputOutput)
+        // REWRITE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
+        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
+        if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
+        if (_currentKey == null)
+            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
 
         string newKey = ExtractKey(recordData);
         if (newKey != _currentKey)
@@ -284,9 +289,12 @@ public class IndexedFileHandler : IFileHandler
 
     public string Delete()
     {
-        if (!IsOpen || _currentKey == null) return FileStatus.FileNotOpen;
-        if (_openMode != FileOpenMode.InputOutput)
+        // DELETE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
+        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
+        if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
+        if (_currentKey == null)
+            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
 
         _records!.Remove(_currentKey);
         _currentKey = null;
@@ -295,7 +303,8 @@ public class IndexedFileHandler : IFileHandler
 
     public string Start(byte[] keyValue, StartCondition condition)
     {
-        if (!IsOpen) return FileStatus.FileNotOpen;
+        // START on a file connector not open in input/I-O mode is status 47 (ISO §9.1.13.7), not 42.
+        if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
