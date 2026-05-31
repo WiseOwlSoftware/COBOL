@@ -88,6 +88,69 @@ public class IntrinsicFunctionTests : EndToEndTestBase
     }
 
     [Fact]
+    public void Function_Length_OdoGroup_UsesCurrentDependingValue()
+    {
+        // ISO §15.50.4 rule 4(b)/rule 7: the length of a group with a subordinate OCCURS
+        // DEPENDING ON item is the CURRENT depending-on length, not the maximum layout.
+        // ELT is X(4) OCCURS 1 TO 10 DEPENDING ON N, so LENGTH(TBL) = N * 4 (12 then 28),
+        // not the max 40. Both lengths are emitted on one line to stay newline-agnostic.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ODOLEN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 N   PIC 9(2).
+            01 L3  PIC 9(4).
+            01 L7  PIC 9(4).
+            01 TBL.
+               05 ELT PIC X(4) OCCURS 1 TO 10 DEPENDING ON N.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 3 TO N.
+                COMPUTE L3 = FUNCTION LENGTH(TBL).
+                MOVE 7 TO N.
+                COMPUTE L7 = FUNCTION LENGTH(TBL).
+                DISPLAY L3 "/" L7.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("0012/0028", stdout);
+    }
+
+    [Fact]
+    public void Function_Length_OdoGroup_WithFixedHeaderAndNesting()
+    {
+        // A fixed header (5) plus a fixed OCCURS 3 enclosing the variable table exercises the
+        // repetition factor: LENGTH(REC) = 5 + 3 * (N * 4) = 5 + 12N (41 then 89), not the
+        // maximum 5 + 3*40 = 125.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ODOLEN2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 N   PIC 9(2).
+            01 L3  PIC 9(4).
+            01 L7  PIC 9(4).
+            01 REC.
+               05 HDR PIC X(5).
+               05 GRP OCCURS 3 TIMES.
+                  10 ELT PIC X(4) OCCURS 1 TO 10 DEPENDING ON N.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 3 TO N.
+                COMPUTE L3 = FUNCTION LENGTH(REC).
+                MOVE 7 TO N.
+                COMPUTE L7 = FUNCTION LENGTH(REC).
+                DISPLAY L3 "/" L7.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Execution failed: {stderr}");
+        Assert.Equal("0041/0089", stdout);
+    }
+
+    [Fact]
     public void Function_UpperCase_ConvertsString()
     {
         var (success, stdout, stderr) = CompileAndRun("""

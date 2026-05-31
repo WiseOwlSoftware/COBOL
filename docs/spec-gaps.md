@@ -9,10 +9,10 @@ Corrected after end-to-end verification (see DEVLOG 228 + the 229 correction). T
 Repro programs: `/e/tmp/repro/`, `/e/tmp/wct/`.
 
 ## Honest headline
-Of three originally-suspected silent-correctness bugs: **one was never a bug** (ON SIZE ERROR),
-**one is fixed and verified** (WHEN-COMPILED — baked at compile time; cross-run stable), and **one
-is a real open bug** (LENGTH of an OCCURS DEPENDING ON group). Guard stays ALL GREEN
-(1000 / 343 / 148); the remaining gap is latent with no baselined coverage.
+All three originally-suspected silent-correctness bugs are now resolved: **one was never a bug**
+(ON SIZE ERROR), and **two are fixed and verified** — WHEN-COMPILED (baked at compile time;
+cross-run stable) and LENGTH of an OCCURS DEPENDING ON group (now computed at runtime from the
+current depending-on value, DEVLOG 231). Guard stays ALL GREEN (1000 / 345 / 148).
 
 > Note: the `IntrinsicWhenCompiledTests` integration test checks format + compile-date only. The
 > compile-time-baked (cross-run-stable) property is verified manually (DEVLOG 230) — running the same
@@ -27,7 +27,7 @@ is a real open bug** (LENGTH of an OCCURS DEPENDING ON group). Guard stays ALL G
 |---|------|--------|-------|
 | 1 | `FUNCTION WHEN-COMPILED` | **FIXED & VERIFIED** (commit 00713a9, DEVLOG 228/230) | Now baked at compile time: `CilExpressionEmitter.EmitIrIntrinsicCall` special-cases WHEN-COMPILED and emits `Ldstr` of a constant captured once at compiler-process start. Effective on the MOVE path (`EmitFunctionCall`→`EmitIrIntrinsicCall`). Verified cross-run stable: the same DLL run twice prints an identical timestamp. (An intermediate DEVLOG-229 claim that it was "still broken" was a test-harness error — stale DLL + path race — corrected in DEVLOG 230.) |
 | 2 | `ON SIZE ERROR` (all arithmetic) | **VERIFIED-WORKS** | Fires for DIVIDE-by-0 and ADD/SUBTRACT/MULTIPLY/COMPUTE overflow (incl. `… GIVING`). The "missing" impression came from dead code (`CobolProgram.DivideInto`, no IR caller) + a wrong test expectation (SUBTRACT into an *unsigned* receiver stores the absolute value per ISO → no size error). |
-| 3 | `LENGTH` / `FUNCTION LENGTH` of an OCCURS DEPENDING ON group | **OPEN BUG** | Returns the **max** layout, not the current DEPENDING-ON length: `FUNCTION LENGTH(TBL)` over `ELT … OCCURS 1 TO 10 DEPENDING ON N` returns 40 for both N=3 and N=7 (spec: 12, 28). Root cause: `ExpressionBinder.BindLength`/`StaticLength` fold to compile-time `Symbol.ElementSize` with no ODO branch. Fix: compute base + dependingOnValue×elementSize at runtime for an ODO group (and `LENGTH OF`). |
+| 3 | `FUNCTION LENGTH` of an OCCURS DEPENDING ON group | **FIXED & VERIFIED** (DEVLOG 231) | Was returning the **max** layout (40 for both N=3 and N=7); now returns the current DEPENDING-ON length (12, 28). `ExpressionBinder.BuildVariableLengthExpression` emits a runtime expression `maxLength − Σ (maxOccurs − dependingValue) × repetition × elementSize` when the argument has a subordinate ODO table (ISO §15.50.4 rule 4(b)/rule 7); the repetition factor handles a variable table nested inside fixed OCCURS levels. Guarded by the `Function_Length_OdoGroup_*` tests. (No `LENGTH OF` special register exists in the grammar — only `FUNCTION LENGTH` — so that form is out of scope.) |
 
 ---
 
@@ -41,7 +41,7 @@ Each compiled and produced correct output:
 | `INSPECT … CONVERTING` | "abcde" CONVERTING "abc"→"ABC" → "ABCDE" ✓ |
 | Abbreviated combined condition (`IF X = 4 OR 5`) | matches ✓ |
 | Multi-target `SET … TO TRUE` | both 88s set ✓ |
-| `OCCURS … DEPENDING ON` (variable-length table) | compiles + runs ✓ (but `LENGTH` of the group is wrong — see #3) |
+| `OCCURS … DEPENDING ON` (variable-length table) | compiles + runs ✓ (`LENGTH` of the group now correct — see #3) |
 | `DIVIDE … GIVING … REMAINDER` | 17 BY 5 → Q=3 R=2 ✓ |
 | `FUNCTION REM` / `FUNCTION MOD` | REM(17,5)=2, MOD(−17,5)=3 ✓ |
 
@@ -74,10 +74,9 @@ or re-scope to the specific unparsed variants (if any) that still fail.
 ---
 
 ## Recommended priority
-1. **Finish WHEN-COMPILED (#1)** — small once the MOVE path is traced; add a cross-run-stability test.
-2. **ODO-group LENGTH (#3)** — runtime length computation; moderate.
-3. **CLEANUP** (§2 stale diagnostics, §4 dead code) — low risk, high clarity.
-4. **NATIONAL / SORT-external / Screen I/O** — feature work, schedule by need.
+1. **CLEANUP** (§2 stale diagnostics, §4 dead code) — low risk, high clarity.
+2. **NATIONAL / SORT-external / Screen I/O** — feature work, schedule by need.
 
-_§2, §3, §4 and item #2/#3 in §1 are empirically verified. Item #1 (WHEN-COMPILED) is confirmed
-still-broken. Guard ALL GREEN throughout (1000 / 343 / 148)._
+_All §1 silent-correctness items are resolved (WHEN-COMPILED and ODO-group LENGTH fixed & verified;
+ON SIZE ERROR was never broken). §2, §3, §4 are empirically verified. Guard ALL GREEN throughout
+(1000 / 345 / 148)._

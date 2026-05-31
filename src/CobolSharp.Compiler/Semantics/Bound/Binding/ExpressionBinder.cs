@@ -213,6 +213,13 @@ internal sealed class ExpressionBinder
                 BoundBinaryOperatorKind.Subtract, startMinus1, CobolCategory.Numeric);
         }
 
+        // A group (or table) with a subordinate OCCURS … DEPENDING ON item is variable-length:
+        // ISO §15.50.4 rule 4(b)/rule 7 — its length uses the CURRENT depending-on value(s), not
+        // the maximum (compile-time) layout. Emit a runtime length expression in that case.
+        if (arg is BoundIdentifierExpression idExpr
+            && BuildVariableLengthExpression(idExpr) is { } variableLength)
+            return variableLength;
+
         return new BoundLiteralExpression(StaticLength(arg), CobolCategory.Numeric);
     }
 
@@ -228,6 +235,79 @@ internal sealed class ExpressionBinder
             => StaticLength(fn.Arguments[0]),
         _ => 0
     };
+
+    /// <summary>
+    /// FUNCTION LENGTH of a variable-length group (ISO §15.50.4 rule 4(b), rule 7): when one or
+    /// more subordinate items carry OCCURS … DEPENDING ON, the length is computed at runtime from
+    /// the current depending-on value(s), not the maximum (compile-time) layout. The value is the
+    /// maximum layout reduced by each variable table's unused tail —
+    /// <c>maxLength − Σ (maxOccurs − dependingValue) × repetition × elementSize</c> — where
+    /// <c>repetition</c> is the product of the (fixed) OCCURS counts of any tables enclosing the
+    /// variable table within the argument. Returns null when no subordinate ODO table exists (the
+    /// length is then a compile-time constant folded by <see cref="StaticLength"/>).
+    /// </summary>
+    private static BoundExpression? BuildVariableLengthExpression(BoundIdentifierExpression idExpr)
+    {
+        var tables = new List<(DataSymbol Table, int Repetition)>();
+        CollectDependingTables(idExpr.Symbol, repetition: 1, tables);
+        if (tables.Count == 0)
+            return null;
+
+        BoundExpression length = new BoundLiteralExpression(
+            (decimal)idExpr.Symbol.ElementSize, CobolCategory.Numeric);
+
+        foreach (var (table, repetition) in tables)
+        {
+            var dependingOn = table.Occurs!.DependingOnSymbol;
+            if (dependingOn is null)
+                return null; // unresolved DEPENDING ON — fall back to the constant fold
+
+            var depCategory = dependingOn.ResolvedType?.Category ?? CobolCategory.Numeric;
+            // unused occurrences = maxOccurs − currentOccurrences
+            var unusedOccurrences = new BoundBinaryExpression(
+                new BoundLiteralExpression((decimal)table.Occurs.MaxOccurs, CobolCategory.Numeric),
+                BoundBinaryOperatorKind.Subtract,
+                new BoundIdentifierExpression(dependingOn, depCategory),
+                CobolCategory.Numeric);
+            // unused bytes = unused occurrences × (repetition × elementSize)
+            var unusedBytes = new BoundBinaryExpression(
+                unusedOccurrences, BoundBinaryOperatorKind.Multiply,
+                new BoundLiteralExpression((decimal)(repetition * table.ElementSize), CobolCategory.Numeric),
+                CobolCategory.Numeric);
+            length = new BoundBinaryExpression(
+                length, BoundBinaryOperatorKind.Subtract, unusedBytes, CobolCategory.Numeric);
+        }
+
+        return length;
+    }
+
+    /// <summary>
+    /// Walk the subordinate items of <paramref name="node"/>, collecting every table described with
+    /// OCCURS … DEPENDING ON together with its repetition factor — the product of the maximum OCCURS
+    /// counts of the tables enclosing it within the LENGTH argument. RENAMES (66) and condition-name
+    /// (88) entries are aliases, not storage, and are skipped. (Complex ODO — a DEPENDING ON table
+    /// nested inside another DEPENDING ON table, COBOL-2002+ — uses the inner table's maximum
+    /// repetition rather than the outer current count; this is approximate but rare.)
+    /// </summary>
+    private static void CollectDependingTables(
+        DataSymbol node, int repetition, List<(DataSymbol, int)> acc)
+    {
+        foreach (var child in node.Children)
+        {
+            if (child.LevelNumber is 66 or 88)
+                continue;
+
+            int childRepetition = repetition;
+            if (child.Occurs is { } occurs)
+            {
+                if (occurs.DependingOnName != null)
+                    acc.Add((child, repetition));
+                childRepetition = repetition * occurs.MaxOccurs;
+            }
+
+            CollectDependingTables(child, childRepetition, acc);
+        }
+    }
 
     /// <summary>True if the expression is a table reference whose subscript is the ALL keyword.</summary>
     private static bool IsAllSubscriptedRef(BoundExpression e) =>
