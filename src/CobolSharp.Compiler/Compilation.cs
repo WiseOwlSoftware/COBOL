@@ -48,13 +48,18 @@ public sealed class Compilation
         // Phase 2: Validate grammar invariants (debug only)
         Semantics.GrammarInvariants.ValidateSentenceAndStatementBoundaries(tree);
 
-        // Phase 3: Collect all program contexts (top-level and nested)
-        var programContexts = CollectProgramContexts(tree);
+        // Phase 3: Collect all program contexts (top-level and nested), tracking containment.
+        var programParents = new Dictionary<ParserRuleContext, ParserRuleContext?>();
+        var programContexts = CollectProgramContexts(tree, programParents);
         if (programContexts.Count == 0)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
-        // Phase 4: Process each program through semantic analysis, binding, and IR generation
+        // Phase 4: Process each program through semantic analysis, binding, and IR generation.
+        // Containing programs precede their contained programs (collection order), so each program's
+        // ancestors are already built and laid out when we reach it — needed for GLOBAL inheritance.
         var compiledPrograms = new List<CompiledProgram>();
+        var modelByContext = new Dictionary<ParserRuleContext, Semantics.SemanticModel>();
+        var idByContext = new Dictionary<ParserRuleContext, string>();
         foreach (var progCtx in programContexts)
         {
             string programId = ExtractProgramIdFromContext(progCtx)
@@ -70,6 +75,13 @@ public sealed class Compilation
             Semantics.DataItemClassifier.Validate(semanticModel, diagnostics);
             Semantics.FileStatusValidator.Validate(semanticModel, diagnostics);
             Semantics.SymbolValidator.Validate(semanticModel, diagnostics);
+
+            // Make IS GLOBAL items declared in containing programs visible here, sharing the
+            // containing program's storage at runtime (ISO §8.4.5).
+            InheritGlobalItems(progCtx, semanticModel, programParents, modelByContext, idByContext);
+
+            modelByContext[progCtx] = semanticModel;
+            idByContext[progCtx] = programId;
 
             // Bind -> IR
             var binder = new CodeGen.Binder(semanticModel, diagnostics, Options);
@@ -93,7 +105,8 @@ public sealed class Compilation
     /// Each context represents an independent COBOL program to compile.
     /// </summary>
     private static List<ParserRuleContext> CollectProgramContexts(
-        CobolParserCore.CompilationUnitContext tree)
+        CobolParserCore.CompilationUnitContext tree,
+        Dictionary<ParserRuleContext, ParserRuleContext?> parents)
     {
         var result = new List<ParserRuleContext>();
 
@@ -102,7 +115,8 @@ public sealed class Compilation
             foreach (var programUnit in group.programUnit())
             {
                 result.Add(programUnit);
-                CollectNestedPrograms(programUnit.nestedProgram(), result);
+                parents[programUnit] = null;
+                CollectNestedPrograms(programUnit.nestedProgram(), programUnit, result, parents);
             }
         }
 
@@ -110,17 +124,66 @@ public sealed class Compilation
     }
 
     /// <summary>
-    /// Recursively collect nested program contexts.
+    /// Recursively collect nested (contained) program contexts, recording each one's containing
+    /// program in <paramref name="parents"/> so GLOBAL inheritance can walk the containment chain.
     /// </summary>
     private static void CollectNestedPrograms(
         CobolParserCore.NestedProgramContext[] nestedPrograms,
-        List<ParserRuleContext> result)
+        ParserRuleContext parent,
+        List<ParserRuleContext> result,
+        Dictionary<ParserRuleContext, ParserRuleContext?> parents)
     {
         foreach (var nested in nestedPrograms)
         {
             result.Add(nested);
-            CollectNestedPrograms(nested.nestedProgram(), result);
+            parents[nested] = parent;
+            CollectNestedPrograms(nested.nestedProgram(), nested, result, parents);
         }
+    }
+
+    /// <summary>
+    /// Make data items declared IS GLOBAL in containing programs visible in <paramref name="model"/>.
+    /// ISO §8.4.5: a global name is available to the program that declares it and to every program
+    /// contained within it (directly or indirectly), unless that contained program declares the same
+    /// name itself (which shadows the global). The item keeps its storage in the declaring program's
+    /// ProgramState; its StorageLocation is tagged with that program's id so the emitter reads the
+    /// shared bytes (see <see cref="CodeGen.StorageLocation.OwnerProgramId"/>).
+    /// </summary>
+    private static void InheritGlobalItems(
+        ParserRuleContext progCtx,
+        Semantics.SemanticModel model,
+        IReadOnlyDictionary<ParserRuleContext, ParserRuleContext?> parents,
+        IReadOnlyDictionary<ParserRuleContext, Semantics.SemanticModel> modelByContext,
+        IReadOnlyDictionary<ParserRuleContext, string> idByContext)
+    {
+        // Walk outward through containing programs, nearest first (nearest declaration wins).
+        var ancestor = parents.TryGetValue(progCtx, out var p) ? p : null;
+        while (ancestor != null)
+        {
+            if (modelByContext.TryGetValue(ancestor, out var ancestorModel)
+                && idByContext.TryGetValue(ancestor, out var ownerId))
+            {
+                foreach (var item in ancestorModel.DataItemsInOrder)
+                {
+                    if (!item.IsGlobal) continue; // IS GLOBAL is set on the 01/77 declaring item
+                    foreach (var member in EnumerateSelfAndDescendants(item))
+                    {
+                        if (member.IsFiller) continue; // FILLER is unreferenceable
+                        if (ancestorModel.GetStorageLocation(member) is not { } loc) continue;
+                        model.TryInheritGlobal(member, loc with { OwnerProgramId = ownerId });
+                    }
+                }
+            }
+            ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
+        }
+    }
+
+    private static IEnumerable<Semantics.DataSymbol> EnumerateSelfAndDescendants(Semantics.DataSymbol item)
+    {
+        yield return item;
+        foreach (var child in item.Children)
+            foreach (var d in EnumerateSelfAndDescendants(child))
+                yield return d;
     }
 
     private string Preprocess(string sourcePath)

@@ -32,6 +32,12 @@ internal sealed class CilLocationEmitter
                 EmitCachedLocationArgs(il, cached);
                 break;
 
+            case IR.IrStaticLocation s when s.Location.OwnerProgramId != null:
+                // GLOBAL item inherited from a containing program: load that program's State, so the
+                // storage is shared between the declaring and the contained program (ISO §8.4.5).
+                EmitForeignGlobalLocationArgs(il, s.Location);
+                break;
+
             case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
                 // LINKAGE item: load from CobolDataPointer static field
                 EmitLinkageLocationArgs(il, s);
@@ -280,6 +286,46 @@ internal sealed class CilLocationEmitter
         il.Append(il.Create(OpCodes.Ldloc, lengthLocal));
 
         // Stack: [area, substringOffset, substringLength]
+    }
+
+    /// <summary>
+    /// Emit (array, offset, length) for a GLOBAL item that a contained program inherits from a
+    /// containing program. The bytes live in the containing program's ProgramState, so we load that
+    /// program type's static <c>State</c> field (all program types share one module and the
+    /// container is emitted first) and the appropriate backing array, then the owner-relative offset.
+    /// </summary>
+    private void EmitForeignGlobalLocationArgs(ILProcessor il, StorageLocation loc)
+    {
+        var stateField = ResolveForeignStateField(loc.OwnerProgramId!)
+            ?? throw new InvalidOperationException(
+                $"Containing program '{loc.OwnerProgramId}' not found for a GLOBAL reference.");
+
+        il.Append(il.Create(OpCodes.Ldsfld, stateField));
+        string propertyName = loc.Area switch
+        {
+            StorageAreaKind.WorkingStorage => "WorkingStorage",
+            StorageAreaKind.FileSection    => "FileSection",
+            _ => "WorkingStorage"
+        };
+        var getter = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ProgramState).GetProperty(propertyName)!.GetGetMethod()!);
+        il.Append(il.Create(OpCodes.Callvirt, getter));
+        il.Append(il.Create(OpCodes.Ldc_I4, loc.Offset));
+        il.Append(il.Create(OpCodes.Ldc_I4, loc.Length));
+    }
+
+    /// <summary>Find the static <c>State</c> field of another program type in the shared module.</summary>
+    private FieldReference? ResolveForeignStateField(string ownerProgramId)
+    {
+        foreach (var type in _ctx.Module.Types)
+        {
+            if (!string.Equals(type.Name, ownerProgramId, StringComparison.OrdinalIgnoreCase))
+                continue;
+            foreach (var field in type.Fields)
+                if (field.Name == "State")
+                    return field;
+        }
+        return null;
     }
 
     internal void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)

@@ -264,6 +264,20 @@ public sealed class SemanticModel
     public void RegisterStorageLocation(DataSymbol symbol, StorageLocation loc)
         => _storageLocations[symbol] = loc;
 
+    /// <summary>
+    /// Make an item declared IS GLOBAL in a containing program resolvable by name in this program
+    /// (ISO §8.4.5), mapping it to the owning program's storage via <paramref name="ownerLocation"/>
+    /// (whose <see cref="CodeGen.StorageLocation.OwnerProgramId"/> is set). Returns false if the name
+    /// is already declared locally — a local declaration shadows the inherited global.
+    /// </summary>
+    public bool TryInheritGlobal(DataSymbol symbol, StorageLocation ownerLocation)
+    {
+        if (!Symbols.Program.DataDivisionScope.TryDeclare(symbol, out _))
+            return false;
+        RegisterStorageLocation(symbol, ownerLocation);
+        return true;
+    }
+
     public void RegisterNodeSymbol(object parseNode, Symbol symbol)
         => _nodeToSymbol[parseNode] = symbol;
 

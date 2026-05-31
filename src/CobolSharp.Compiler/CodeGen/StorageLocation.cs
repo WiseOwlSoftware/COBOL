@@ -14,11 +14,19 @@ namespace CobolSharp.Compiler.CodeGen;
 /// <param name="Offset">Byte offset from the start of the storage area.</param>
 /// <param name="Length">Total byte length, including OCCURS expansion.</param>
 /// <param name="Pic">PIC descriptor carrying category, editing, sign, and format metadata for runtime dispatch.</param>
+/// <param name="OwnerProgramId">
+/// Normally null (the item lives in the current program's ProgramState). Non-null for a data item
+/// that a contained program inherits from a containing program's IS GLOBAL declaration (ISO §8.4.5):
+/// the offset is in <em>that</em> program's WORKING-STORAGE, so the emitter loads the owner program
+/// type's static <c>State</c> field instead of the current program's. The storage is thereby shared
+/// between the declaring program and its contained programs.
+/// </param>
 public readonly record struct StorageLocation(
     StorageAreaKind Area,
     int Offset,
     int Length,
-    PicDescriptor Pic);
+    PicDescriptor Pic,
+    string? OwnerProgramId = null);
 
 /// <summary>
 /// Compiler-side bridge that creates <see cref="PicDescriptor"/> instances from

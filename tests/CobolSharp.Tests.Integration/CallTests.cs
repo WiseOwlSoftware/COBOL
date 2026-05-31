@@ -284,4 +284,39 @@ public class CallTests : EndToEndTestBase
         Assert.Equal("OUTER END", lines[2]);
     }
 
+    [Fact]
+    public void NestedProgram_ReferencesContainingGlobalItem_SharesStorage()
+    {
+        // ISO §8.4.5: a contained program may reference a containing program's IS GLOBAL item, and
+        // the storage is SHARED — GINNER's `ADD 10` updates the same GCOUNT that GOUTER set to 1, so
+        // GOUTER sees 11 after the call. The contained program does not redeclare GCOUNT.
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GOUTER.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 GREC IS GLOBAL.
+               05 GCOUNT PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE 1 TO GCOUNT.
+                CALL "GINNER".
+                DISPLAY GCOUNT.
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. GINNER.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            PROCEDURE DIVISION.
+            INNERP.
+                ADD 10 TO GCOUNT.
+                EXIT PROGRAM.
+            END PROGRAM GINNER.
+            END PROGRAM GOUTER.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("0011", stdout);
+    }
+
 }
