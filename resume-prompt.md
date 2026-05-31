@@ -9,8 +9,8 @@ Paste this to start a new session. It orients you fast; the linked docs have the
 - **specs/ISO_COBOL.md** is the authoritative COBOL spec (submodule — `git submodule update --init --recursive` if absent). Implement from the spec, not from assumptions.
 
 ## Current state (branch `main`, all committed, guard GREEN)
-- **Guard** (`bash scripts/guard.sh`): 1000 unit / 348 integration (347 pass + 1 unrelated skip) / **152 NIST baselines (94 NC + 42 IF + 12 SM + 4 IC)**. Must stay ALL GREEN; baselines must stay 0 FAIL*. (NC214M was dropped — live ACCEPT FROM DATE/DAY/TIME, inherently non-deterministic; DEVLOG 226.)
-- **Suites:** NC 100%, **IF 100%** (42 baselined), **SM COPY-feature 100%** (12 baselined). **IC in progress: 20/47 CLEAN (IC203A, IC224A, IC225A, IC228A baselined, DEVLOG 233–236).** SQ/IX/RL/ST surveyed but paused.
+- **Guard** (`bash scripts/guard.sh`): 1000 unit / 348 integration (347 pass + 1 unrelated skip) / **181 NIST baselines (94 NC + 42 IF + 12 SM + 4 IC + 23 SQ + 5 RL + 1 IX)**. Must stay ALL GREEN; baselines must stay 0 FAIL*. (NC214M was dropped — live ACCEPT FROM DATE/DAY/TIME, inherently non-deterministic; DEVLOG 226.)
+- **Suites:** NC 100%, **IF 100%** (42 baselined), **SM COPY-feature 100%** (12 baselined). **IC: 20/47** (IC203A/224A/225A/228A; DEVLOG 233–236). **File-I/O wall broken (DEVLOG 237–240):** the FILE-CONTROL/READ/USE grammar + FILE STATUS/REWRITE checks were over-strict vs ISO — fixed. **SQ 2→75 compiling, 23 baselined; RL 5 baselined; IX 1 baselined.**
 - Spec-audit follow-ups done (DEVLOG 221–223): multi-dim `table(ALL)`, AT-END-vs-I/O-error split, runtime `FUNCTION LENGTH` for ref-mod.
 - **Collating subsystem COMPLETE (DEVLOG 224–227):** comparisons, SORT/MERGE/table-sort keys, and FUNCTION CHAR/ORD all honor the alphanumeric program collating sequence. The STANDARD-2 all-255-table bug (which made `"ABCD" = SPACE` vacuously true) is fixed; identity sequences normalize to null. 8 contaminated NIST baselines corrected; NC214M dropped (non-deterministic). See `project_collating_gap` + `docs/collating-baseline-finding.md`.
 
@@ -27,7 +27,10 @@ Drive NIST suites group-by-group to 100% (depth-first: IF→SM→**IC**→SQ→I
    - **IC401M**: flagging-conformance module (no CCVS report by design) — **exclude** from baselining, like IF401M/402M/403M.
    - ~21 NO_OUTPUT (rc=139) are callee-only subprogram halves — not real tests, exclude.
 2. **Collating-sequence subsystem — COMPLETE** (`project_collating_gap`; DEVLOG 224–227). Comparisons, SORT/MERGE/table-sort keys, and FUNCTION CHAR/ORD all honor the program collating sequence. Nothing left except (optional) national CHAR-NATIONAL collating. Continue with IC or the file-I/O wall instead.
-3. **File-I/O FILE-CONTROL wall** (`project_fileio_remaining`): SQ/IX/RL are ~144/162 COMPILE_FAIL on CCVS-specific FILE-CONTROL forms; producer/consumer orchestration + SORT-USING hang already fixed.
+3. **File-I/O FILE-CONTROL wall — IN PROGRESS** (`project_fileio_remaining`; DEVLOG 237–240). The CCVS FILE-CONTROL forms turned out to be spec-CONFORMANT (the grammar was over-strict): clauses order-free (§12.4.5.2), `[ORGANIZATION IS]`/`[FILE]`/`[IS]`/`[AT]`/`[STANDARD]`/`[ON]` optional, 2-char-group FILE STATUS valid (§12.4.5.8.3), qualified FILE STATUS name, REWRITE valid on sequential (§14.9.35). **SQ 2→75 compiling, 23 baselined; RL 5; IX 1.** Remaining:
+   - **SQ:** 10 COMPILE_FAIL (parse forms — LINAGE-COUNTER special register, FD `RECORD … CHARACTERS`, `RECORD DELIMITER` clause, +2); 18 FAIL* + 3 RUNTIME (sequential runtime correctness tail); 31 NO_OUTPUT.
+   - **IX/RL:** 37 COMPILE_FAIL on indexed/relative-specific PARSE forms — dominant: INVALID KEY phrase placement (×8), `START … KEY IS EQUAL` relational (×6), RECORD/ALTERNATE KEY data-name forms. Then the indexed/relative runtime FAIL* tail.
+   - **ST (sort/merge):** not re-surveyed under the new grammar; 8 SORT/MERGE COMPILE_FAIL + ST132A hang were noted earlier.
 
 ## Tooling
 - Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`
