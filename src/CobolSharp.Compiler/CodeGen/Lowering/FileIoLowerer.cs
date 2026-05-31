@@ -257,13 +257,35 @@ internal sealed class FileIoLowerer
     }
 
     /// <summary>
-    /// True for a RECORD IS VARYING file with SEQUENTIAL organization. The variable-length record
-    /// machinery (no-trim WRITE, read-into-largest, length store) applies only to sequential files —
-    /// relative and indexed records occupy fixed-size slots regardless of any VARYING clause.
+    /// True for a variable-length-record file with SEQUENTIAL organization. The variable-length
+    /// record machinery (no-trim WRITE, read-into-largest, length store) applies only to sequential
+    /// files — relative and indexed records occupy fixed-size slots regardless of any VARYING clause.
+    /// A file is variable-length if it has an explicit RECORD IS VARYING clause OR multiple 01 record
+    /// descriptions of differing sizes (implicitly variable per ISO §13.18.43).
     /// </summary>
-    private static bool IsVaryingSequential(FileSymbol? file)
-        => file?.IsRecordVarying == true
-           && file.Organization is null or "SEQUENTIAL" or "LINE SEQUENTIAL";
+    private bool IsVaryingSequential(FileSymbol? file)
+    {
+        if (file is null) return false;
+        if (file.Organization is not (null or "SEQUENTIAL" or "LINE SEQUENTIAL")) return false;
+        return file.IsRecordVarying || FileHasMultipleRecordSizes(file);
+    }
+
+    /// <summary>
+    /// True when the FD has two or more 01 record descriptions of differing storage sizes — which
+    /// makes the file's records variable-length even without a RECORD VARYING clause (ISO §13.18.43).
+    /// </summary>
+    private bool FileHasMultipleRecordSizes(FileSymbol file)
+    {
+        int firstLen = -1;
+        foreach (var d in _ctx.Semantic.DataItemsInOrder)
+        {
+            if (d.LevelNumber != 1 || !ReferenceEquals(d.OwningFile, file)) continue;
+            int len = _ctx.Semantic.GetStorageLocation(d)?.Length ?? 0;
+            if (firstLen < 0) firstLen = len;
+            else if (len != firstLen) return true;
+        }
+        return false;
+    }
 
     /// <summary>
     /// Location to READ a record into. For a fixed-length file this is the FD's record. For a
