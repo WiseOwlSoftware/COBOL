@@ -46,12 +46,13 @@ public class SequentialFileHandler : IFileHandler
         if (IsOpen) return FileStatus.FileAlreadyOpen;
 
         _openMode = mode;
+        bool fileExists = File.Exists(ExternalName);
         try
         {
             switch (mode)
             {
                 case FileOpenMode.Input:
-                    if (!File.Exists(ExternalName))
+                    if (!fileExists)
                         return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
                     if (_lineSequential)
                         _reader = new StreamReader(ExternalName, Encoding.ASCII);
@@ -67,6 +68,10 @@ public class SequentialFileHandler : IFileHandler
                     break;
 
                 case FileOpenMode.Extend:
+                    // OPEN EXTEND/I-O on a non-optional file that is not present is status 35
+                    // (ISO §9.1.13.4 item 5); an optional missing file is created with status 05.
+                    if (!fileExists && !IsOptional)
+                        return FileStatus.FileNotFound;
                     if (_lineSequential)
                         _writer = new StreamWriter(ExternalName, true, Encoding.ASCII);
                     else
@@ -74,12 +79,18 @@ public class SequentialFileHandler : IFileHandler
                     break;
 
                 case FileOpenMode.InputOutput:
+                    if (!fileExists && !IsOptional)
+                        return FileStatus.FileNotFound;
                     _stream = new FileStream(ExternalName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                     break;
             }
             // Initialize LINAGE-COUNTER for files with LINAGE clause
             if (LinageBody > 0)
                 LinageCounter = 1;
+            // Optional file created on first I-O/EXTEND open → status 05 (ISO §9.1.13.2 item 5a).
+            if (!fileExists && IsOptional &&
+                (mode == FileOpenMode.Extend || mode == FileOpenMode.InputOutput))
+                return FileStatus.OptionalFileNotFound;
             return FileStatus.Success;
         }
         catch (UnauthorizedAccessException)
@@ -155,9 +166,11 @@ public class SequentialFileHandler : IFileHandler
     public string Write(byte[] recordData)
     {
         // A WRITE on a file connector not open in the correct mode is status 48 (ISO §9.1.13.7),
-        // not 42 (which is CLOSE/UNLOCK-only). A closed file is not open in output/extend/I-O.
+        // not 42 (which is CLOSE/UNLOCK-only). For a sequential-access file, WRITE is valid only
+        // in the OUTPUT or EXTEND mode (item 8a) — I-O mode supports READ/REWRITE, not WRITE — so
+        // any mode other than OUTPUT/EXTEND (Input, I-O, or closed) yields 48.
         if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
-        if (_openMode == FileOpenMode.Input)
+        if (_openMode != FileOpenMode.Output && _openMode != FileOpenMode.Extend)
             return FileStatus.WriteNotOpenForOutput;
 
         try

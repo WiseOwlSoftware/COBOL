@@ -216,11 +216,16 @@ public sealed class Binder
             // Sort-merge files (SD) don't have physical handlers
             if (fileSym.IsSortMerge) continue;
 
-            // Resolve external path: literal ASSIGN target uses the target value,
-            // identifier ASSIGN target (like NIST's XXXXX055) uses the COBOL file name
+            // Resolve external path: a literal ASSIGN target ("TFIL1", "TF002") is an explicit,
+            // possibly-shared physical name (e.g. NIST producer/consumer files) and is used as-is.
+            // A non-literal target (an implementor-name / identifier, like NIST's bare XXXXX014)
+            // names a file PRIVATE to this program; qualify it with the program-id so two programs
+            // that happen to use the same SELECT name (e.g. SQ130A and SQ156A both SELECT SQ-FS1)
+            // do not collide on one host file — which would let one program's leftover file defeat
+            // another's "file is absent" semantics.
             string externalName = (fileSym.AssignIsLiteral && fileSym.AssignTarget != null)
                 ? fileSym.AssignTarget
-                : fileSym.Name;
+                : $"{boundProgram.Program.Name}-{fileSym.Name}";
             string externalPath = FileRuntime.ResolveHostPath(externalName);
 
             int recordLength = fileSym.RecordLength;
