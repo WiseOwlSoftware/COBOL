@@ -1,0 +1,44 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ112A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE 150 RECORDS          WRITE-TEST-GF-01
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000150
+
+ VERIFY FILE SQ-FS1   PASS  READ-TEST-GF-01
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000150
+
+ WRITE 150 RECS 2ND         WRITE-TEST-GF-02
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000150
+
+ VERIFY FILE SQ-FS1   PASS  READ-TEST-GF-02
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000150
+
+ READ...RECORD AT END PASS  READ-TEST-GF-03
+ READ...AT END...     PASS  READ-TEST-GF-04
+ READ...RECORD END... PASS  READ-TEST-GF-05
+ READ...END...        PASS  READ-TEST-GF-06
+ READ FILE SQ-FS1     PASS  SEQ-TEST-005
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ112A    NTIS DISTRIBUTION COBOL 85
+
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1,0 +1,40 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ108A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE FILE SQ-FS8         SEQ-TEST-019
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000710
+
+ VERIFY FILE SQ-FS8   PASS  SEQ-TEST-020
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000710
+
+ READ 141 INTO 87     PASS  READ-TEST-GF-01               READ...RECORD INTO...AT END  01 LEVEL
+ READ 141 INTO 120    PASS  READ-TEST-GF-02               READ...INTO...AT END 02 LEVEL
+ READ 141 INTO 148    PASS  READ-TEST-GF-03               READ...RECORD INTO...END 01 LEVEL
+ READ 141 INTO 141    PASS  READ-TEST-GF-04               READ...INTO...END  01 LEVEL
+ READ 141 INTO 120    PASS  READ-TEST-GF-05               READ INTO SUBSCRIPTED DATA ITEM 05 LEVEL
+ READ 141 INTO 141    PASS  READ-TEST-GF-06               CHECK OF FD RECORD ON RD INTO 01 LEVEL
+ READ SQ-FS8 INTO END PASS  SEQ-TEST-21
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ108A    NTIS DISTRIBUTION COBOL 85
+
+                                                    008 OF 008  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

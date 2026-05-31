@@ -1,0 +1,38 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ217A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE FILE SQ-FS1   PASS  WRITE-TEST-GF-01
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ VERIFY FILE SQ-FS1   PASS  READ-TEST-F1-01
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000750
+
+ LEV 2 PADDING CHARS  PASS  READ-TEST-F1-02               READ...RECORD AT END ...
+ LEV 2 PADDING CHARS  PASS  READ-TEST-F1-03               READ...AT END...
+ LEV 2 PADDING CHARS  PASS  READ-TEST-F1-04               READ...RECORD END...
+ LEV 2 PADDING CHARS  PASS  READ-TEST-F1-05               READ...END...
+ READ FILE SQ-FS1     PASS  READ-TEST-06
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ217A    NTIS DISTRIBUTION COBOL 85
+
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

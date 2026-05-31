@@ -1,0 +1,35 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ117A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE...FROM EQUAL   PASS  WRTE-TEST-GF-01
+ WRITE .. FROM LARGER PASS  WRTE-TEST-GF-02
+ WRITE ... FROP SHORT PASS  WRTE-TEST-GF-03
+ WRITE ... FROM 02 SH PASS  WRTE-TEST-GF-04
+ WRITE .. FROM SHORT  PASS  WRTE-TEST-GF-05
+ WRITE .. FROM SHORT  PASS  WRTE-TEST-GF-06
+ WRITE .. FROM SAME S PASS  WRTE-TEST-GF-07
+ READ FILE SQ-FS9     PASS  SEQ-TEST-022
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ117A    NTIS DISTRIBUTION COBOL 85
+
+                                                    008 OF 008  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
