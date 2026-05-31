@@ -381,18 +381,12 @@ public static partial class DiagnosticDescriptors
         "This SET form may not be supported. Supported forms: SET identifier TO value, SET condition TO TRUE/FALSE, SET index UP/DOWN BY integer.");
     public static readonly DiagnosticDescriptor COBOL0103 = new("COBOL0103", DiagnosticSeverity.Warning,
         "SEARCH statement may not be fully supported.");
-    public static readonly DiagnosticDescriptor COBOL0104 = new("COBOL0104", DiagnosticSeverity.Warning,
-        "OCCURS DEPENDING ON (variable-length tables) is not yet supported.");
-    public static readonly DiagnosticDescriptor COBOL0105 = new("COBOL0105", DiagnosticSeverity.Warning,
-        "INSPECT CONVERTING is not yet supported.");
-    public static readonly DiagnosticDescriptor COBOL0106 = new("COBOL0106", DiagnosticSeverity.Warning,
-        "INITIALIZE REPLACING is not yet supported.");
+    // COBOL0104 (OCCURS DEPENDING ON), 0105 (INSPECT CONVERTING) and 0106 (INITIALIZE REPLACING)
+    // were "not yet supported" hints for features that now work; removed (DEVLOG 232).
     public static readonly DiagnosticDescriptor COBOL0107 = new("COBOL0107", DiagnosticSeverity.Warning,
         "EVALUATE with ALSO (multi-subject) may not be fully supported.");
-    public static readonly DiagnosticDescriptor COBOL0108 = new("COBOL0108", DiagnosticSeverity.Warning,
-        "Multi-target SET (SET id1 id2 TO value) is not yet supported. Use separate SET statements for each target.");
-    public static readonly DiagnosticDescriptor COBOL0109 = new("COBOL0109", DiagnosticSeverity.Warning,
-        "PERFORM VARYING with AFTER clause (nested varying) is not yet supported.");
+    // COBOL0108 (multi-target SET) and 0109 (PERFORM VARYING … AFTER) were "not yet supported"
+    // hints for features that now work; removed (DEVLOG 232).
     public static readonly DiagnosticDescriptor COBOL0110 = new("COBOL0110", DiagnosticSeverity.Warning,
         "Statement not recognized or not yet implemented: '{0}'.");
 
@@ -429,8 +423,8 @@ public static partial class DiagnosticDescriptors
         "A literal value is expected here, not a data-name.");
     public static readonly DiagnosticDescriptor COBOL0310 = new("COBOL0310", DiagnosticSeverity.Warning,
         "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.");
-    public static readonly DiagnosticDescriptor COBOL0311 = new("COBOL0311", DiagnosticSeverity.Warning,
-        "NOT {0} (abbreviated condition) is not yet supported. Use the word form instead.");
+    // COBOL0311 ("NOT = / NOT > / NOT < abbreviated condition not yet supported") was a hint for a
+    // feature that now works; removed (DEVLOG 232).
     public static readonly DiagnosticDescriptor COBOL0312 = new("COBOL0312", DiagnosticSeverity.Warning,
         "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.");
 

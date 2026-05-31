@@ -45,10 +45,12 @@ Each compiled and produced correct output:
 | `DIVIDE … GIVING … REMAINDER` | 17 BY 5 → Q=3 R=2 ✓ |
 | `FUNCTION REM` / `FUNCTION MOD` | REM(17,5)=2, MOD(−17,5)=3 ✓ |
 
-→ **CLEANUP**: the stale "not yet supported" hints in `CobolErrorStrategy.cs` /
-`DiagnosticDescriptors.cs` (COBOL0100/0104/0105/0106/0393/0395/0433 …) only surface on a parse error,
-so they don't affect successful compiles — but they misrepresent the compiler's capabilities. Remove
-or re-scope to the specific unparsed variants (if any) that still fail.
+→ **CLEANUP — DONE (DEVLOG 232).** The stale "not yet supported" parse-error hints in
+`CobolErrorStrategy.cs` / `DiagnosticDescriptors.cs` were removed for features verified to work
+end-to-end: COBOL0104 (OCCURS DEPENDING ON), 0105 (INSPECT CONVERTING), 0106 (INITIALIZE REPLACING),
+0108 (multi-target SET), 0109 (PERFORM VARYING … AFTER), and 0311 (NOT-= abbreviated condition).
+Kept: 0100/0101/0102/0103 (partial/degradation/generic guidance) and 0107 (EVALUATE ALSO, hedged).
+The audit's COBOL0393/0395/0433 do not exist in the codebase.
 
 ---
 
@@ -63,13 +65,13 @@ or re-scope to the specific unparsed variants (if any) that still fail.
 
 ---
 
-## 4. Dead code to remove (not spec bugs; zero-dead-code doctrine)
+## 4. Dead code — REMOVED (DEVLOG 232)
 
-| Location | Why dead |
-|----------|----------|
-| `CobolProgram.cs` arithmetic helpers (`DivideInto`, `DivideGiving`, `MultiplyBy`, …) | Legacy; live arithmetic goes through IR + `PicRuntime`. No IR caller. (False lead for bug #2.) |
-| `CilEmitter.EmitRuntimeCall` DISPLAY = `Console.WriteLine("statement executed")` (`CilEmitter.cs:1193`) | Old stub; real DISPLAY lowers elsewhere. |
-| `DiagnosticDescriptors` COBOL0467 ("user CLASS condition … evaluates to false") | No caller; live `EmitUserClassCondition`→`IsInUserClass` works. |
+| Location | Disposition |
+|----------|-------------|
+| `CobolProgram.cs` arithmetic helpers (`AddTo`, `SubtractFrom`, `MultiplyBy`, `DivideInto`, `DivideGiving`) | **Removed.** Zero emitter callers — live arithmetic lowers to IR + `PicRuntime`. |
+| `CilEmitter.EmitRuntimeCall` legacy `CobolRuntime.Display` branch + the dead `CobolRuntime.OpenOutput` alternative | **Removed.** No IR producer emits `CobolRuntime.Display`; real DISPLAY lowers via its own emitter. (`CobolRuntime.WriteText` / `FileRuntime.OpenOutput` are live and kept.) |
+| `DiagnosticDescriptors` COBOL0467 | **Not present** — the audit was wrong; no such descriptor exists, nothing to remove. |
 
 ---
 

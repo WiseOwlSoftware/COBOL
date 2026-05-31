@@ -1190,16 +1190,10 @@ public sealed class CilEmitter
     private void EmitRuntimeCall(ILProcessor il, IrRuntimeCall rtc,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        // For now, DISPLAY emits Console.WriteLine("statement executed")
-        // Other runtime calls are NOPs
-        if (rtc.MethodName == "CobolRuntime.Display")
-        {
-            // Argument is already on the stack (pushed by preceding IrLoadConst).
-            var consoleWriteLine = _module.ImportReference(
-                typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
-            il.Append(il.Create(OpCodes.Call, consoleWriteLine));
-        }
-        else if (rtc.MethodName == "CobolRuntime.WriteText")
+        // Dispatch an IrRuntimeCall to its runtime helper by method name. (Real DISPLAY lowers via
+        // its own emitter, not here; the legacy "CobolRuntime.Display" branch had no IR producer
+        // and was removed — DEVLOG 232.)
+        if (rtc.MethodName == "CobolRuntime.WriteText")
         {
             // Two args on stack: fileName, text
             var writeText = _module.ImportReference(
@@ -1224,7 +1218,7 @@ public sealed class CilEmitter
                     Type.EmptyTypes)!);
             il.Append(il.Create(OpCodes.Call, m));
         }
-        else if (rtc.MethodName is "CobolRuntime.OpenOutput" or "FileRuntime.OpenOutput")
+        else if (rtc.MethodName == "FileRuntime.OpenOutput")
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("OpenOutput",

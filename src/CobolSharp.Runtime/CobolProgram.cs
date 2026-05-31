@@ -83,57 +83,9 @@ public abstract class CobolProgram
     protected static void MoveQuote(CobolField target) => target.SetQuotes();
     protected static void MoveAll(string literal, CobolField target) => target.SetAll(literal);
 
-    /// <summary>
-    /// ADD: target = target + value
-    /// </summary>
-    protected static void AddTo(decimal value, CobolField target)
-    {
-        target.SetNumericValue(target.GetNumericValue() + value);
-    }
-
-    /// <summary>
-    /// SUBTRACT: target = target - value
-    /// </summary>
-    protected static void SubtractFrom(decimal value, CobolField target)
-    {
-        target.SetNumericValue(target.GetNumericValue() - value);
-    }
-
-    /// <summary>
-    /// MULTIPLY: target = target * value
-    /// </summary>
-    protected static void MultiplyBy(decimal value, CobolField target)
-    {
-        target.SetNumericValue(target.GetNumericValue() * value);
-    }
-
-    /// <summary>
-    /// DIVIDE: target = target / value (truncated to field's decimal places)
-    /// </summary>
-    protected static void DivideInto(decimal value, CobolField target)
-    {
-        if (value == 0)
-        {
-            // COBOL SIZE ERROR condition — for now, leave target unchanged
-            return;
-        }
-        target.SetNumericValue(target.GetNumericValue() / value);
-    }
-
-    /// <summary>
-    /// DIVIDE giving quotient and remainder: quotient = dividend / divisor
-    /// </summary>
-    protected static void DivideGiving(decimal dividend, decimal divisor,
-        CobolField quotient, CobolField? remainder)
-    {
-        if (divisor == 0) return;
-        decimal q = Math.Truncate(dividend / divisor);
-        quotient.SetNumericValue(q);
-        if (remainder != null)
-        {
-            remainder.SetNumericValue(dividend - (q * divisor));
-        }
-    }
+    // Arithmetic is lowered to IR and executed via PicRuntime (ON SIZE ERROR aware); the old
+    // AddTo/SubtractFrom/MultiplyBy/DivideInto/DivideGiving helpers had no emitter caller and
+    // were removed (DEVLOG 232).
 
     // ── File I/O helpers ──
 

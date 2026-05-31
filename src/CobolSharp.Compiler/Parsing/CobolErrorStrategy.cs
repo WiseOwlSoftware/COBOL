@@ -103,10 +103,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var hints = new List<DiagnosticHint>();
         var stream = (ITokenStream)recognizer.InputStream;
         var prev = GetToken(stream, token.TokenIndex - 1);
-        var next = GetToken(stream, token.TokenIndex + 1);
         var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
         string tokenUpper = token.Text?.ToUpperInvariant() ?? "";
-        string prevUpper = prev?.Text?.ToUpperInvariant() ?? "";
 
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))
@@ -187,68 +185,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             IsInRule(ruleStack, "dataDescriptionEntry"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0310, "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.", 10));
 
-        // 18. DEPENDING ON not supported
-        if (tokenUpper == "DEPENDING" || (tokenUpper == "ON" && prevUpper == "DEPENDING"))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0104, "OCCURS DEPENDING ON (variable-length tables) is not yet supported.", 5));
-
-        // 19. CONVERTING in INSPECT
-        if (tokenUpper == "CONVERTING" && IsInRule(ruleStack, "inspectStatement"))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0105, "INSPECT CONVERTING is not yet supported.", 5));
-
-        // 20. REPLACING in INITIALIZE
-        if (tokenUpper == "REPLACING" && IsInRule(ruleStack, "initializeStatement"))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0106, "INITIALIZE REPLACING is not yet supported.", 5));
-
-        // 21. Complex EVALUATE forms
+        // 18. Complex EVALUATE forms
         if (tokenUpper == "ALSO" && IsInRule(ruleStack, "evaluateStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0107, "EVALUATE with ALSO (multi-subject) may not be fully supported.", 10));
 
-        // 22. NOT = / NOT > / NOT < abbreviated conditions
-        // Parser chokes because relationalOperator has NOT EQUAL (word) but not NOT EQUALS (= symbol).
-        // Detect both: offending token is '=' after NOT, or offending token is 'NOT' before '='.
-        // No rule-stack check — the NOT + operator-symbol pattern is distinctive enough.
-        if (token.Type is CobolLexer.EQUALS or CobolLexer.GT or CobolLexer.LT &&
-            prevUpper == "NOT")
-        {
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0311,
-                $"NOT {token.Text} (abbreviated condition) is not yet supported. Use the word form instead: NOT EQUAL TO, NOT GREATER THAN, NOT LESS THAN.",
-                3));
-        }
-        if (tokenUpper == "NOT" && next != null &&
-            next.Type is CobolLexer.EQUALS or CobolLexer.GT or CobolLexer.LT)
-        {
-            string sym = next.Text ?? "=";
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0311,
-                $"NOT {sym} (abbreviated condition) is not yet supported. Use the word form instead: NOT EQUAL TO, NOT GREATER THAN, NOT LESS THAN.",
-                3));
-        }
-
-        // 23. Multi-target SET (multiple identifiers before TO/UP/DOWN)
-        // The grammar allows only one identifier before TO/UP/DOWN.
-        // NoViableAlternative doesn't provide expected tokens, so also check rule context.
-        if (IsIdentifier(token) &&
-            (IsInRule(ruleStack, "setToValueStatement") || IsInRule(ruleStack, "setIndexStatement") ||
-             IsInRule(ruleStack, "setStatement")))
-        {
-            bool expectsTo = expectedTokens?.Contains("'TO'") == true ||
-                             expectedTokens?.Contains("'UP'") == true ||
-                             expectedTokens?.Contains("'DOWN'") == true;
-            // Fire either when expected tokens include TO/UP/DOWN, or when we're in a SET
-            // rule context (NoViableAlternative case, where expectedTokens is null)
-            if (expectsTo || expectedTokens == null)
-                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0108,
-                    "Multi-target SET (SET id1 id2 TO value) is not yet supported. Use separate SET statements for each target.",
-                    5));
-        }
-
-        // 24. PERFORM VARYING with AFTER clause (detected when AFTER appears in perform context)
-        if (tokenUpper == "AFTER" && IsInRule(ruleStack, "performStatement") &&
-            !IsInRule(ruleStack, "inspectStatement"))
-            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0109,
-                "PERFORM VARYING with AFTER clause (nested varying) is not yet supported.",
-                5));
-
-        // 25. FILE CONTROL / SELECT context errors
+        // 19. FILE CONTROL / SELECT context errors
         if (IsInRule(ruleStack, "fileControlParagraph") &&
             !IsIdentifier(token) && !IsLiteral(token) &&
             tokenUpper != "SELECT" && tokenUpper != "ASSIGN" && tokenUpper != "FILE_CONTROL")
