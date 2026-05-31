@@ -621,11 +621,15 @@ public sealed class BoundEntryStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.EntryStatement;
 }
 
-/// <summary>CANCEL — remove programs from the registry so next CALL re-initializes them.</summary>
+/// <summary>One CANCEL operand: a literal program-name (IsDynamic=false) or a data-name whose
+/// runtime content is the program-name to cancel (IsDynamic=true, ISO §14.9.5 GR1a).</summary>
+public readonly record struct BoundCancelTarget(string Name, bool IsDynamic);
+
+/// <summary>CANCEL — mark programs to return to their initial state on the next CALL (§14.9.5).</summary>
 public sealed class BoundCancelStatement : BoundStatement
 {
-    public IReadOnlyList<string> ProgramNames { get; }
-    public BoundCancelStatement(IReadOnlyList<string> programNames) => ProgramNames = programNames;
+    public IReadOnlyList<BoundCancelTarget> Targets { get; }
+    public BoundCancelStatement(IReadOnlyList<BoundCancelTarget> targets) => Targets = targets;
     public override BoundNodeKind Kind => BoundNodeKind.CancelStatement;
 }
 

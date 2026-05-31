@@ -337,11 +337,22 @@ public sealed class IrGoBack : IrInstruction { }
 /// <summary>STOP RUN — terminate the entire run unit by throwing StopRunException.</summary>
 public sealed class IrStopRun : IrInstruction { }
 
-/// <summary>CANCEL: remove a program from the registry.</summary>
+/// <summary>
+/// CANCEL: mark a program to return to its initial state on the next CALL (ISO §14.9.5).
+/// The static form (CANCEL "literal") carries the literal program-name. The dynamic form
+/// (CANCEL identifier) carries the storage location from which the program-name is read at runtime.
+/// </summary>
 public sealed class IrCancelProgram : IrInstruction
 {
     public string ProgramName { get; }
-    public IrCancelProgram(string programName) => ProgramName = programName;
+    public bool IsDynamic { get; }
+    public IrLocation? TargetLocation { get; }
+    public IrCancelProgram(string programName, bool isDynamic = false, IrLocation? targetLocation = null)
+    {
+        ProgramName = programName;
+        IsDynamic = isDynamic;
+        TargetLocation = targetLocation;
+    }
 }
 
 /// <summary>Check whether the last CALL raised an exception (target not found, etc.).</summary>

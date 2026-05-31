@@ -20,6 +20,14 @@ public static class CobolProgramRegistry
     private static readonly Dictionary<string, CobolProgramEntry> _registry =
         new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Programs that were canceled and must be returned to their initial state on the next CALL
+    /// (ISO §14.9.5 GR3). The flag is consumed (cleared) by the program's Entry method when it
+    /// next runs, via <see cref="ConsumeReinitFlag"/>.
+    /// </summary>
+    private static readonly HashSet<string> _needsReinit =
+        new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Register a program's entry point by PROGRAM-ID.</summary>
     public static void Register(string programId, CobolProgramEntry entry)
     {
@@ -44,10 +52,27 @@ public static class CobolProgramRegistry
         return entry;
     }
 
-    /// <summary>Remove a program from the registry (CANCEL statement).</summary>
+    /// <summary>
+    /// CANCEL a program (ISO §14.9.5): it ceases its logical relationship to the run unit, and the
+    /// next CALL must find it in its initial state. Canceling a program that was never called or is
+    /// already canceled has no effect (GR7). The actual re-initialization happens in the program's
+    /// Entry method, which calls <see cref="ConsumeReinitFlag"/> on its next activation.
+    /// </summary>
     public static void Cancel(string programId)
     {
         _registry.Remove(programId);
+        _needsReinit.Add(programId);
+    }
+
+    /// <summary>
+    /// Called by a program's Entry method: returns true (and clears the flag) when the program must
+    /// be returned to its initial state because it was canceled since its last activation
+    /// (ISO §14.9.5 GR3). Returns false for a program that has not been canceled, so a normal
+    /// CALL leaves WORKING-STORAGE in its last-used state (§14.6.2.3.2 — static items persist).
+    /// </summary>
+    public static bool ConsumeReinitFlag(string programId)
+    {
+        return _needsReinit.Remove(programId);
     }
 
     /// <summary>

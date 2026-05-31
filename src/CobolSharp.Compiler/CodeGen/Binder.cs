@@ -376,8 +376,18 @@ public sealed class Binder
             case BoundCallStatement call:
                 return LowerCall(call, method, block);
             case BoundCancelStatement cancel:
-                foreach (var name in cancel.ProgramNames)
-                    block.Instructions.Add(new IrCancelProgram(name));
+                foreach (var target in cancel.Targets)
+                {
+                    IrLocation? targetLoc = null;
+                    if (target.IsDynamic)
+                    {
+                        // CANCEL identifier: read the program-name from the data item at runtime.
+                        var targetSym = _semantic.ResolveData(target.Name);
+                        if (targetSym != null)
+                            targetLoc = _ctx.Location.ResolveLocation(targetSym);
+                    }
+                    block.Instructions.Add(new IrCancelProgram(target.Name, target.IsDynamic, targetLoc));
+                }
                 break;
             case BoundStopStatement:
                 block.Instructions.Add(new IrStopRun());

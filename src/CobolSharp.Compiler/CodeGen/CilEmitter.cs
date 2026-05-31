@@ -233,10 +233,23 @@ public sealed class CilEmitter
     {
         var il = _entryMethod!.Body.GetILProcessor();
 
-        // INITIAL programs: re-initialize ProgramState at each Entry call
-        if (ir.IsInitial && _initializeStateMethod != null)
+        // Return the program to its initial state when required (ISO §14.6.2.3.2; §14.9.5 GR3):
+        //  - an INITIAL program: on every activation;
+        //  - any program: on the first CALL after it was CANCELed (the registry flag is consumed).
+        // Otherwise WORKING-STORAGE keeps its last-used state across calls (static items persist).
+        if (ir.IsInitial)
         {
-            il.Append(il.Create(OpCodes.Call, _initializeStateMethod));
+            il.Append(il.Create(OpCodes.Call, _initializeStateMethod!));
+        }
+        else
+        {
+            var skipReinit = il.Create(OpCodes.Nop);
+            il.Append(il.Create(OpCodes.Ldstr, ir.Name));
+            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                typeof(CobolProgramRegistry).GetMethod("ConsumeReinitFlag", new[] { typeof(string) })!)));
+            il.Append(il.Create(OpCodes.Brfalse, skipReinit));
+            il.Append(il.Create(OpCodes.Call, _initializeStateMethod!));
+            il.Append(skipReinit);
         }
 
         // LOCAL-STORAGE: re-initialize to defaults on every invocation (§13.8)
@@ -370,7 +383,8 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// Create a static ProgramState field and static constructor that allocates it.
+    /// Create the static ProgramState field, an InitializeState() method that puts the program into
+    /// its initial state, and a static constructor that performs the first initialization.
     /// </summary>
     private void EmitProgramState(IrModule ir)
     {
@@ -387,30 +401,41 @@ public sealed class CilEmitter
             _module.ImportReference(typeof(CobolSharp.Runtime.ProgramState)));
         _programType!.Fields.Add(_programStateField);
 
-        // Static constructor: .cctor
+        // InitializeState(): (re)allocate ProgramState and apply every initial-state action —
+        // ProgramState allocation, EXTERNAL binding, VALUE clauses, ALTER defaults, LOCAL-STORAGE
+        // snapshot. Called once from .cctor and again from Entry to return the program to its
+        // initial state — on every activation of an INITIAL program, and on the first CALL after a
+        // CANCEL (ISO §14.6.2.3.2 Initial state; §14.9.5 GR3). Re-running it does not disturb
+        // EXTERNAL data (its storage is the shared array; EXTERNAL items cannot carry VALUE), so
+        // §14.9.5 GR8 is preserved.
+        _initializeStateMethod = new MethodDefinition(
+            "InitializeState",
+            MethodAttributes.Private | MethodAttributes.Static,
+            _module.TypeSystem.Void);
+        _programType.Methods.Add(_initializeStateMethod);
+
+        var initIl = _initializeStateMethod.Body.GetILProcessor();
+        EmitProgramStateAllocation(initIl, wsSize, fileSize, lsSize);
+        EmitExternalStorageInitialization(initIl);
+        // M003: Sync after EXTERNAL init so VALUE clause init can use location emitters
+        SyncToContext();
+        EmitValueClauseInitialization(initIl);
+        EmitAlterTableInitialization(initIl, ir);
+        // Snapshot LOCAL-STORAGE defaults after VALUE clause init (used by ReinitializeLocalStorage).
+        if (lsSize > 0)
+            EmitLocalStorageDefaultsSnapshot(initIl, lsSize);
+        initIl.Append(initIl.Create(OpCodes.Ret));
+
+        // Static constructor: .cctor — first initialization.
         var cctor = new MethodDefinition(
             ".cctor",
             MethodAttributes.Private | MethodAttributes.Static |
             MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
             _module.TypeSystem.Void);
         _programType.Methods.Add(cctor);
-
-        var il = cctor.Body.GetILProcessor();
-        var ctor = EmitProgramStateAllocation(il, wsSize, fileSize, lsSize);
-        EmitExternalStorageInitialization(il);
-        // M003: Sync after EXTERNAL init so VALUE clause init can use location emitters
-        SyncToContext();
-        EmitValueClauseInitialization(il);
-        EmitAlterTableInitialization(il, ir);
-
-        // Snapshot LOCAL-STORAGE defaults after VALUE clause initialization.
-        // This snapshot is used by ReinitializeLocalStorage() on each program invocation.
-        if (lsSize > 0)
-            EmitLocalStorageDefaultsSnapshot(il, lsSize);
-
-        il.Append(il.Create(OpCodes.Ret));
-
-        EmitResetStateMethod(ir, ctor, wsSize, fileSize, lsSize);
+        var cctorIl = cctor.Body.GetILProcessor();
+        cctorIl.Append(cctorIl.Create(OpCodes.Call, _initializeStateMethod));
+        cctorIl.Append(cctorIl.Create(OpCodes.Ret));
     }
 
     /// <summary>Emit ProgramState allocation: new ProgramState(wsSize, fileSize, lsSize) → static field.</summary>
@@ -546,26 +571,6 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Stelem_I4));
         }
         il.Append(il.Create(OpCodes.Stsfld, _alterTableField));
-    }
-
-    /// <summary>For INITIAL programs, generate ResetState that re-creates ProgramState.</summary>
-    private void EmitResetStateMethod(IrModule ir, MethodReference ctor, int wsSize, int fileSize, int lsSize)
-    {
-        if (!ir.IsInitial) return;
-
-        _initializeStateMethod = new MethodDefinition(
-            "ResetState",
-            MethodAttributes.Private | MethodAttributes.Static,
-            _module.TypeSystem.Void);
-        _programType!.Methods.Add(_initializeStateMethod);
-
-        var resetIl = _initializeStateMethod.Body.GetILProcessor();
-        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, wsSize));
-        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, fileSize));
-        resetIl.Append(resetIl.Create(OpCodes.Ldc_I4, lsSize));
-        resetIl.Append(resetIl.Create(OpCodes.Newobj, ctor));
-        resetIl.Append(resetIl.Create(OpCodes.Stsfld, _programStateField!));
-        resetIl.Append(resetIl.Create(OpCodes.Ret));
     }
 
     /// <summary>
@@ -926,7 +931,18 @@ public sealed class CilEmitter
             case IrRuntimeCall rtc: EmitRuntimeCall(il, rtc, getLocal); break;
 
             case IrCancelProgram cancelProg:
-                il.Append(il.Create(OpCodes.Ldstr, cancelProg.ProgramName));
+                if (cancelProg.IsDynamic && cancelProg.TargetLocation != null)
+                {
+                    // CANCEL identifier: read the program-name from storage at runtime.
+                    _ctx.Location.EmitLocationArgsWithPic(il, cancelProg.TargetLocation);
+                    il.Append(il.Create(OpCodes.Call,
+                        _module.ImportReference(typeof(PicRuntime).GetMethod("GetDisplayString",
+                            new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+                }
+                else
+                {
+                    il.Append(il.Create(OpCodes.Ldstr, cancelProg.ProgramName));
+                }
                 il.Append(il.Create(OpCodes.Call,
                     _module.ImportReference(typeof(CobolProgramRegistry).GetMethod("Cancel",
                         new[] { typeof(string) })!)));

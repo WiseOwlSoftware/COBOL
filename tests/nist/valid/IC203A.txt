@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC203A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ INITIAL STATE        PASS  CALL-TEST-04       .01
+ INITIAL STATE        PASS  CALL-TEST-04       .02
+ INITIAL STATE        PASS  CALL-TEST-04       .03
+ STATE UNCHANGED      PASS  CALL-TEST-05       .01
+ STATE UNCHANGED      PASS  CALL-TEST-05       .02
+ STATE UNCHANGED      PASS  CALL-TEST-05       .03
+ SET TO INITIAL STATE PASS  CNCL-TEST-01       .01
+ SET TO INITIAL STATE PASS  CNCL-TEST-01       .02
+ SET TO INITIAL STATE PASS  CNCL-TEST-01       .03
+ SET TO INITIAL STATE PASS  CNCL-TEST-02       .01
+ SET TO INITIAL STATE PASS  CNCL-TEST-02       .02
+ SET TO INITIAL STATE PASS  CNCL-TEST-02       .03
+ PREVIOUSLY CANCELED  PASS  CNCL-TEST-03       .01
+ PREVIOUSLY CANCELED  PASS  CNCL-TEST-03       .02
+ PREVIOUSLY CANCELED  PASS  CNCL-TEST-03       .03
+ CANCEL UNCALLED PROG PASS  CNCL-TEST-04
+ CANCEL IN SUBPROGRAM PASS  CNCL-TEST-05
+ CALL CANCELED PROG   PASS  CNCL-TEST-06       .01
+ CALL CANCELED PROG   PASS  CNCL-TEST-06       .02
+ CALL CANCELED PROG   PASS  CNCL-TEST-06       .03
+ CANCEL 3 PROGS       PASS  CNCL-TEST-07
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC203A
+
+                                                    021 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

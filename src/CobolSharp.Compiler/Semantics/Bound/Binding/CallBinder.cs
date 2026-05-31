@@ -126,15 +126,17 @@ internal sealed class CallBinder
 
     internal BoundCancelStatement BindCancel(CobolParserCore.CancelStatementContext ctx)
     {
-        var names = new List<string>();
+        var targets = new List<BoundCancelTarget>();
         foreach (var target in ctx.cancelTarget())
         {
             if (target.literal() is { } lit)
-                names.Add(lit.GetText().Trim('"', '\''));
+                // CANCEL "literal" — the program-name is the literal value (static).
+                targets.Add(new BoundCancelTarget(lit.GetText().Trim('"', '\''), IsDynamic: false));
             else if (target.dataReference() is { } dr)
-                names.Add(dr.cobolWord().GetText());
+                // CANCEL identifier — the program-name is the data item's runtime content (dynamic).
+                targets.Add(new BoundCancelTarget(dr.cobolWord().GetText(), IsDynamic: true));
         }
-        return new BoundCancelStatement(names);
+        return new BoundCancelStatement(targets);
     }
 
     // ── ENTRY ──
