@@ -539,6 +539,45 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
 }
 
 /// <summary>
+/// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
+/// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
+/// trailing-space trimming. ISO §13.18.43 / §14.9.51.
+/// </summary>
+public sealed class IrWriteRecordVariable : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    /// <summary>
+    /// The DEPENDING data item supplying the byte count at runtime, or null for a VARYING file
+    /// without DEPENDING — in which case the record's own declared length is written (no trimming).
+    /// </summary>
+    public IrLocation? LengthLocation { get; }
+
+    public IrWriteRecordVariable(string fileName, IrLocation record, IrLocation? lengthLocation)
+    {
+        FileName = fileName;
+        Record = record;
+        LengthLocation = lengthLocation;
+    }
+}
+
+/// <summary>
+/// After a READ of a RECORD IS VARYING … DEPENDING ON file, store the actual record length
+/// (FileRuntime.GetLastRecordLength) into the DEPENDING data item. ISO §13.18.43.
+/// </summary>
+public sealed class IrStoreRecordLength : IrInstruction
+{
+    public string CobolFileName { get; }
+    public IrLocation LengthVariable { get; }
+
+    public IrStoreRecordLength(string cobolFileName, IrLocation lengthVariable)
+    {
+        CobolFileName = cobolFileName;
+        LengthVariable = lengthVariable;
+    }
+}
+
+/// <summary>
 /// REWRITE record — replaces the last-read record in a file.
 /// </summary>
 public sealed class IrRewriteRecordFromStorage : IrInstruction

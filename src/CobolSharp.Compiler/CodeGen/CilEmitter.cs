@@ -902,6 +902,8 @@ public sealed class CilEmitter
 
             // ── File I/O ──
             case IrWriteRecordFromStorage wr: _ctx.FileIo.EmitWriteRecordFromStorage(il, wr); break;
+            case IrWriteRecordVariable wrv: _ctx.FileIo.EmitWriteRecordVariable(il, wrv); break;
+            case IrStoreRecordLength srl: _ctx.FileIo.EmitStoreRecordLength(il, srl); break;
             case IrRewriteRecordFromStorage rw: _ctx.FileIo.EmitRewriteRecordFromStorage(il, rw); break;
             case IrWriteAdvancing waa: _ctx.FileIo.EmitWriteAdvancing(il, waa); break;
             case IrReadRecordToStorage rd: _ctx.FileIo.EmitReadRecordToStorage(il, rd); break;

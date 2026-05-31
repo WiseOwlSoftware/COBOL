@@ -104,6 +104,26 @@ public sealed class FileSymbol : Symbol
     /// <summary>The 01-level record DataSymbol under this FD.</summary>
     public DataSymbol? Record { get; set; }
 
+    /// <summary>
+    /// True when the FD has a RECORD IS VARYING clause (with or without DEPENDING ON). Variable-length
+    /// records are written for their exact length without trailing-space trimming and read into the
+    /// largest record area, so a maximum-length record round-trips.
+    /// </summary>
+    public bool IsRecordVarying { get; set; }
+
+    /// <summary>
+    /// RECORD IS VARYING … DEPENDING ON data-name (ISO §13.18.43): the data-name that, on READ,
+    /// receives the actual record length and, on WRITE/REWRITE, supplies the record length.
+    /// Null when the FD has no VARYING…DEPENDING ON clause (fixed-length record or VARYING w/o DEPENDING).
+    /// </summary>
+    public string? RecordVaryingDependingOn { get; set; }
+
+    /// <summary>VARYING IN SIZE FROM minimum (0 if unspecified).</summary>
+    public int RecordVaryingMin { get; set; }
+
+    /// <summary>VARYING IN SIZE TO maximum (0 if unspecified).</summary>
+    public int RecordVaryingMax { get; set; }
+
     /// <summary>Record length in bytes (computed from PIC layout).</summary>
     public int RecordLength { get; set; }
 

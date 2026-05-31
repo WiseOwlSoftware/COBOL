@@ -29,6 +29,12 @@ public class IndexedFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _records != null;
 
+    /// <summary>Indexed records are fixed-length; the record length is constant.</summary>
+    public int LastRecordLength => _recordLength;
+
+    /// <summary>Indexed records are fixed-length — variable write is an ordinary write.</summary>
+    public string WriteVariable(byte[] recordData) => Write(recordData);
+
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
     public bool IsOptional { get; set; }
 

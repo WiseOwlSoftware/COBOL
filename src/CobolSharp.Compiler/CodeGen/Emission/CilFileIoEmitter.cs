@@ -38,6 +38,61 @@ internal sealed class CilFileIoEmitter
     }
 
     /// <summary>
+    /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
+    /// count read at runtime from the DEPENDING data item, without trailing-space trimming.
+    /// Calls StorageHelpers.WriteRecordVariableToFile(string, byte[], int, int).
+    /// </summary>
+    internal void EmitWriteRecordVariable(ILProcessor il, IrWriteRecordVariable wr)
+    {
+        // fileName
+        il.Append(il.Create(OpCodes.Ldstr, wr.FileName));
+
+        // Record area + offset + the record's declared size.
+        _ctx.Location.EmitLocationArgs(il, wr.Record); // byte[], offset, size
+
+        if (wr.LengthLocation != null)
+        {
+            // DEPENDING ON present: the depending data item supplies the length at runtime.
+            il.Append(il.Create(OpCodes.Pop));             // discard declared size
+            _ctx.Location.EmitLocationArgs(il, wr.LengthLocation); // byte[], offset, size
+            var readInt = _ctx.Module.ImportReference(
+                typeof(StorageHelpers).GetMethod("ReadFieldAsInt",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, readInt));   // -> int length
+        }
+        // else: VARYING without DEPENDING — keep the record's declared size as the length.
+
+        var method = _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod(
+                "WriteRecordVariableToFile",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
+    /// Store the actual record length into the RECORD VARYING DEPENDING ON data item after a READ:
+    /// MoveIntToField(area, offset, size, FileRuntime.GetLastRecordLength(name)).
+    /// </summary>
+    internal void EmitStoreRecordLength(ILProcessor il, IrStoreRecordLength srl)
+    {
+        // Push area, offset, size for the depending field.
+        _ctx.Location.EmitLocationArgs(il, srl.LengthVariable);
+
+        // FileRuntime.GetLastRecordLength(name) -> int
+        il.Append(il.Create(OpCodes.Ldstr, srl.CobolFileName));
+        var getLen = _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("GetLastRecordLength", new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, getLen));
+
+        // StorageHelpers.MoveIntToField(area, offset, size, value)
+        var moveInt = _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod(
+                "MoveIntToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, moveInt));
+    }
+
+    /// <summary>
     /// WRITE AFTER ADVANCING: calls FileRuntime.WriteAfterAdvancing(string, byte[], int, int, int).
     /// </summary>
     /// <summary>

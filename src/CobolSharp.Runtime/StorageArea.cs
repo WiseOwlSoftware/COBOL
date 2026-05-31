@@ -211,6 +211,33 @@ public static class StorageHelpers
     }
 
     /// <summary>
+    /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write exactly <paramref name="size"/>
+    /// bytes of the record area (the depending data item's runtime value) without trimming.
+    /// </summary>
+    public static void WriteRecordVariableToFile(string fileName, byte[] area, int offset, int size)
+    {
+        FileRuntime.WriteRecordVariable(fileName, area, offset, size);
+    }
+
+    /// <summary>
+    /// Store an integer into an unsigned DISPLAY numeric field (PIC 9(n)) as right-justified, zero-padded
+    /// ASCII digits; truncates the high-order digits if the value exceeds the field width. Used to set the
+    /// RECORD VARYING DEPENDING ON item after a READ.
+    /// </summary>
+    public static void MoveIntToField(byte[] area, int offset, int size, int value)
+    {
+        if (size <= 0) return;
+        string digits = (value < 0 ? -(long)value : value)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        // Right-justify into the field: low-order digits land at the rightmost positions.
+        for (int i = 0; i < size; i++)
+        {
+            int digitIndex = digits.Length - size + i; // position in `digits` for column i
+            area[offset + i] = digitIndex >= 0 ? (byte)digits[digitIndex] : (byte)'0';
+        }
+    }
+
+    /// <summary>
     /// READ: read next record from file into storage area.
     /// Returns true if a record was read, false if at end-of-file.
     /// </summary>

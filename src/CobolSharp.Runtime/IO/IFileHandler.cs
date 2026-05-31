@@ -32,6 +32,20 @@ public interface IFileHandler : IDisposable
     /// <summary>Write a record.</summary>
     string Write(byte[] recordData);
 
+    /// <summary>
+    /// Write a variable-length record (RECORD IS VARYING … DEPENDING ON): <paramref name="recordData"/>
+    /// is exactly the bytes to write, with no trailing-space trimming, so the on-disk length round-trips
+    /// to <see cref="LastRecordLength"/> on read-back.
+    /// </summary>
+    string WriteVariable(byte[] recordData);
+
+    /// <summary>
+    /// Character length of the most recently read record. For line-sequential files this is the line
+    /// length; for fixed-format files it is the record size. Used to set the RECORD VARYING DEPENDING
+    /// ON data item after a READ (ISO §13.18.43).
+    /// </summary>
+    int LastRecordLength { get; }
+
     /// <summary>Rewrite the current record.</summary>
     string Rewrite(byte[] recordData);
 

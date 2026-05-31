@@ -370,6 +370,11 @@ public sealed class SemanticModel
     /// <summary>Find the FileSymbol whose FD record matches the given DataSymbol.</summary>
     public FileSymbol? ResolveFileForRecord(DataSymbol record)
     {
+        // Every FILE SECTION 01 record carries its owning FD (not just the FD's first record), so a
+        // WRITE/REWRITE of a secondary record (e.g. the long alternative of a RECORD VARYING file)
+        // resolves to its file rather than falling back to a no-op.
+        if (record.OwningFile != null)
+            return record.OwningFile;
         foreach (var sym in Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
         {
             if (sym.Record == record)

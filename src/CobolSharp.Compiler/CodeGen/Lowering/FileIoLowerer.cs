@@ -48,6 +48,15 @@ internal sealed class FileIoLowerer
                     fileName, recordLoc, wr.AdvancingLines.Value, !wr.IsAfterAdvancing,
                     advancingLocation: advLoc));
             }
+            else if (IsVaryingSequential(wr.File))
+            {
+                // RECORD IS VARYING (sequential): write without trailing-space trimming. With DEPENDING
+                // ON the length is the depending item's runtime value; otherwise it is the written
+                // record's own declared size (ISO §13.18.43 / §14.9.51). A lengthLoc of null selects the
+                // latter. Relative/indexed records occupy fixed-size slots, so they use the fixed write.
+                var lengthLoc = ResolveRecordLengthLocation(wr.File);
+                block.Instructions.Add(new IrWriteRecordVariable(fileName, recordLoc, lengthLoc));
+            }
             else
             {
                 block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc));
@@ -137,7 +146,9 @@ internal sealed class FileIoLowerer
         var recordSym = read.File.Record;
         if (recordSym != null)
         {
-            var recordLoc = _ctx.Location.ResolveLocation(recordSym);
+            // For RECORD VARYING, read into the LARGEST record area under the FD so a maximum-length
+            // record is not truncated to the first record's size (and the recovered length is right).
+            var recordLoc = ResolveReadRecordLocation(read.File, recordSym);
             if (recordLoc != null)
             {
                 if (read.IsPrevious)
@@ -173,6 +184,11 @@ internal sealed class FileIoLowerer
 
         // Update FILE STATUS
         EmitFileStatus(read.File, block);
+
+        // RECORD IS VARYING … DEPENDING ON: store the actual record length into the depending item.
+        var readLengthLoc = ResolveRecordLengthLocation(read.File);
+        if (readLengthLoc != null)
+            block.Instructions.Add(new IrStoreRecordLength(read.File.Name, readLengthLoc));
 
         // If INTO specified, MOVE FD record to INTO target
         if (read.Into != null && recordSym != null)
@@ -224,6 +240,49 @@ internal sealed class FileIoLowerer
         if (statusLoc == null) return;
 
         block.Instructions.Add(new IrStoreFileStatus(file.Name, statusLoc));
+    }
+
+    /// <summary>
+    /// Resolve the storage location of a file's RECORD IS VARYING … DEPENDING ON data item, or null
+    /// if the file has no such clause (fixed-length record). Used to set the length after READ and to
+    /// supply the byte count for a variable-length WRITE.
+    /// </summary>
+    private IrLocation? ResolveRecordLengthLocation(FileSymbol? file)
+    {
+        if (!IsVaryingSequential(file) || file!.RecordVaryingDependingOn == null) return null;
+        var sym = _ctx.Semantic.ResolveData(file.RecordVaryingDependingOn);
+        return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
+    }
+
+    /// <summary>
+    /// True for a RECORD IS VARYING file with SEQUENTIAL organization. The variable-length record
+    /// machinery (no-trim WRITE, read-into-largest, length store) applies only to sequential files —
+    /// relative and indexed records occupy fixed-size slots regardless of any VARYING clause.
+    /// </summary>
+    private static bool IsVaryingSequential(FileSymbol? file)
+        => file?.IsRecordVarying == true
+           && file.Organization is null or "SEQUENTIAL" or "LINE SEQUENTIAL";
+
+    /// <summary>
+    /// Location to READ a record into. For a fixed-length file this is the FD's record. For a
+    /// RECORD VARYING file it is the LARGEST 01 record under the FD (its storage spans the whole
+    /// record area), so a maximum-length record is read in full and its length recovered correctly.
+    /// </summary>
+    private IrLocation? ResolveReadRecordLocation(FileSymbol file, DataSymbol recordSym)
+    {
+        if (IsVaryingSequential(file))
+        {
+            DataSymbol largest = recordSym;
+            int largestLen = _ctx.Semantic.GetStorageLocation(recordSym)?.Length ?? 0;
+            foreach (var d in _ctx.Semantic.DataItemsInOrder)
+            {
+                if (d.LevelNumber != 1 || !ReferenceEquals(d.OwningFile, file)) continue;
+                int len = _ctx.Semantic.GetStorageLocation(d)?.Length ?? 0;
+                if (len > largestLen) { largest = d; largestLen = len; }
+            }
+            return _ctx.Location.ResolveLocation(largest);
+        }
+        return _ctx.Location.ResolveLocation(recordSym);
     }
 
     /// <summary>

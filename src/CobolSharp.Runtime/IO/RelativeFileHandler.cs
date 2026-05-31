@@ -17,6 +17,12 @@ public class RelativeFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _stream != null;
 
+    /// <summary>Relative records are fixed-length; the record length is constant.</summary>
+    public int LastRecordLength => _recordLength;
+
+    /// <summary>Relative records are fixed-length — variable write is an ordinary write.</summary>
+    public string WriteVariable(byte[] recordData) => Write(recordData);
+
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
     public bool IsOptional { get; set; }
 
@@ -103,7 +109,7 @@ public class RelativeFileHandler : IFileHandler
             return FileStatus.WriteNotOpenForOutput;
         try
         {
-            _stream!.Write(recordData, 0, _recordLength);
+            _stream!.Write(ToSlot(recordData), 0, _recordLength);
             return FileStatus.Success;
         }
         catch (IOException) { return FileStatus.PermanentError; }
@@ -120,10 +126,25 @@ public class RelativeFileHandler : IFileHandler
         try
         {
             _stream!.Seek((long)(_currentRecord - 1) * _recordLength, SeekOrigin.Begin);
-            _stream.Write(recordData, 0, _recordLength);
+            _stream.Write(ToSlot(recordData), 0, _recordLength);
             return FileStatus.Success;
         }
         catch (IOException) { return FileStatus.PermanentError; }
+    }
+
+    /// <summary>
+    /// Normalize a record to the file's fixed slot size: a relative record always occupies
+    /// <see cref="_recordLength"/> bytes regardless of the supplied buffer's length (a shorter
+    /// record — e.g. one alternative of a RECORD VARYING file — is space-padded; a longer one is
+    /// truncated), so a slot write never reads past the source buffer.
+    /// </summary>
+    private byte[] ToSlot(byte[] recordData)
+    {
+        if (recordData.Length == _recordLength) return recordData;
+        byte[] slot = new byte[_recordLength];
+        Array.Fill(slot, (byte)' ');
+        Array.Copy(recordData, 0, slot, 0, Math.Min(recordData.Length, _recordLength));
+        return slot;
     }
 
     public string Delete()
@@ -156,9 +177,12 @@ public class RelativeFileHandler : IFileHandler
             long offset = (long)(recordNum - 1) * _recordLength;
             if (offset >= _stream!.Length) return FileStatus.AtEnd;
             _stream.Seek(offset, SeekOrigin.Begin);
-            int read = _stream.Read(buffer, 0, _recordLength);
-            if (read < _recordLength)
-                Array.Fill(buffer, (byte)' ', read, _recordLength - read);
+            // The caller's record buffer may differ from the fixed slot size (e.g. a VARYING file's
+            // alternative record). Read at most the buffer's length, then space-fill any remainder.
+            int toRead = Math.Min(_recordLength, buffer.Length);
+            int read = _stream.Read(buffer, 0, toRead);
+            if (read < buffer.Length)
+                Array.Fill(buffer, (byte)' ', read, buffer.Length - read);
             return FileStatus.Success;
         }
         catch (IOException) { return FileStatus.PermanentError; }

@@ -20,6 +20,9 @@ public class SequentialFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _stream != null || _reader != null || _writer != null;
 
+    /// <summary>Character length of the most recently read record (for RECORD VARYING DEPENDING ON).</summary>
+    public int LastRecordLength { get; private set; }
+
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
     public bool IsOptional { get; set; }
 
@@ -134,6 +137,9 @@ public class SequentialFileHandler : IFileHandler
                 Array.Fill(recordBuffer, (byte)' ');
                 byte[] lineBytes = Encoding.ASCII.GetBytes(line);
                 Array.Copy(lineBytes, 0, recordBuffer, 0, Math.Min(lineBytes.Length, recordBuffer.Length));
+                // The line length IS the record length for a variable-length (line-sequential) record,
+                // capped at the record area (a longer line is truncated into the buffer).
+                LastRecordLength = Math.Min(lineBytes.Length, recordBuffer.Length);
                 return FileStatus.Success;
             }
 
@@ -146,6 +152,7 @@ public class SequentialFileHandler : IFileHandler
                     // Pad remaining with spaces
                     Array.Fill(recordBuffer, (byte)' ', bytesRead, _recordLength - bytesRead);
                 }
+                LastRecordLength = bytesRead;
                 return FileStatus.Success;
             }
 
@@ -188,6 +195,34 @@ public class SequentialFileHandler : IFileHandler
                 return FileStatus.Success;
             }
 
+            return FileStatus.PermanentError;
+        }
+        catch (IOException)
+        {
+            return FileStatus.PermanentError;
+        }
+    }
+
+    public string WriteVariable(byte[] recordData)
+    {
+        // RECORD VARYING: recordData is exactly the bytes to write. Unlike Write (which TrimEnds for
+        // line-sequential), the explicit length governs — emit the bytes verbatim so the on-disk line
+        // length equals the record length and round-trips on read-back.
+        if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
+        if (_openMode != FileOpenMode.Output && _openMode != FileOpenMode.Extend)
+            return FileStatus.WriteNotOpenForOutput;
+        try
+        {
+            if (_lineSequential && _writer != null)
+            {
+                _writer.WriteLine(Encoding.ASCII.GetString(recordData));
+                return FileStatus.Success;
+            }
+            if (_stream != null)
+            {
+                _stream.Write(recordData, 0, recordData.Length);
+                return FileStatus.Success;
+            }
             return FileStatus.PermanentError;
         }
         catch (IOException)

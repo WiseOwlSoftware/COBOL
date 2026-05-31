@@ -776,6 +776,31 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return result;
     }
 
+    public override object? VisitRecordClause(CobolParserCore.RecordClauseContext ctx)
+    {
+        // RECORD IS VARYING IN SIZE [FROM m] [TO n] CHARACTERS [DEPENDING ON data-name] (§13.18.43).
+        // Capture the DEPENDING-ON name (and min/max) so READ can set the actual record length and
+        // WRITE/REWRITE can use it. Only the VARYING form carries this; the fixed-length form does not.
+        if (_currentFdFile != null && ctx.VARYING() != null)
+        {
+            _currentFdFile.IsRecordVarying = true;
+            var lits = ctx.integerLiteral();
+            // FROM m TO n → lits[0]=min, lits[1]=max; a lone literal is treated as the max.
+            if (lits.Length >= 2)
+            {
+                if (int.TryParse(lits[0].GetText(), out int min)) _currentFdFile.RecordVaryingMin = min;
+                if (int.TryParse(lits[1].GetText(), out int max)) _currentFdFile.RecordVaryingMax = max;
+            }
+            else if (lits.Length == 1 && int.TryParse(lits[0].GetText(), out int only))
+            {
+                _currentFdFile.RecordVaryingMax = only;
+            }
+            if (ctx.dataReference() is { } dref)
+                _currentFdFile.RecordVaryingDependingOn = dref.cobolWord().GetText();
+        }
+        return base.VisitRecordClause(ctx);
+    }
+
     public override object? VisitLinageClause(CobolParserCore.LinageClauseContext ctx)
     {
         if (_currentFdFile != null)

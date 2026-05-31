@@ -14,6 +14,7 @@ public static class FileRuntime
 {
     private static CobolFileManager? _manager;
     private static readonly Dictionary<string, string> _lastStatus = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, int> _lastRecordLength = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> _afterAdvancingFiles = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> _lockedFiles = new(StringComparer.OrdinalIgnoreCase);
 
@@ -25,6 +26,7 @@ public static class FileRuntime
         _manager?.Dispose();
         _manager = new CobolFileManager();
         _lastStatus.Clear();
+        _lastRecordLength.Clear();
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
     }
@@ -279,6 +281,9 @@ public static class FileRuntime
         byte[] tempBuf = new byte[length];
         string status = _manager!.ReadNext(fileName, tempBuf);
         _lastStatus[fileName] = status;
+        // Record the actual record length for RECORD VARYING DEPENDING ON (0 at end-of-file).
+        _lastRecordLength[fileName] = status == FileStatus.AtEnd
+            ? 0 : (_manager.GetHandler(fileName)?.LastRecordLength ?? length);
 
         if (status == FileStatus.AtEnd)
             return false;
@@ -286,6 +291,26 @@ public static class FileRuntime
         Array.Copy(tempBuf, 0, buffer, offset, length);
         return status is FileStatus.Success or FileStatus.DuplicateAlternateKey;
     }
+
+    /// <summary>
+    /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write exactly <paramref name="length"/>
+    /// bytes of the record area without trailing-space trimming, so the on-disk length round-trips.
+    /// </summary>
+    public static void WriteRecordVariable(string fileName, byte[] recordBytes, int offset, int length)
+    {
+        EnsureManager();
+        if (length < 0) length = 0;
+        byte[] recordSlice = new byte[length];
+        Array.Copy(recordBytes, offset, recordSlice, 0, length);
+        var handler = _manager!.GetHandler(fileName);
+        _lastStatus[fileName] = handler?.WriteVariable(recordSlice) ?? FileStatus.FileNotOpen;
+    }
+
+    /// <summary>
+    /// Length of the most recently read record, for the RECORD VARYING DEPENDING ON data item.
+    /// </summary>
+    public static int GetLastRecordLength(string cobolName)
+        => _lastRecordLength.TryGetValue(cobolName, out var len) ? len : 0;
 
     /// <summary>
     /// The AT END condition (ISO §14.9.21): true only at end-of-file (status "10"). A non-EOF
@@ -386,6 +411,7 @@ public static class FileRuntime
         _manager?.Dispose();
         _manager = null;
         _lastStatus.Clear();
+        _lastRecordLength.Clear();
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
     }
