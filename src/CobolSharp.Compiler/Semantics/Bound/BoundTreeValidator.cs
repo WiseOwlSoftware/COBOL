@@ -267,7 +267,7 @@ public static class BoundTreeValidator
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // File I/O organization validation (CBL1601, CBL1901, CBL2001)
+    // File I/O organization validation (CBL1601, CBL2001)
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>CBL1601: START not allowed on sequential files. CBL1603: KEY operand check.</summary>
@@ -318,12 +318,12 @@ public static class BoundTreeValidator
         // When a data-item advancing operand is added, validate its type here.
     }
 
-    /// <summary>CBL1901: REWRITE not allowed on sequential files. CBL1902: FROM incompatible.</summary>
+    /// <summary>CBL1902: REWRITE FROM incompatible. (REWRITE is valid for all organizations —
+    /// sequential, relative, and indexed — per ISO §14.9.35; it requires I-O mode and a prior READ
+    /// at runtime, not a particular organization. The only sequential-specific syntax restriction is
+    /// that INVALID KEY may not be used, ISO §14.9.35.3 — enforced elsewhere if at all.)</summary>
     private static void ValidateRewrite(BoundRewriteStatement rewrite, int line, DiagnosticBag diagnostics)
     {
-        if (IsSequentialOrganization(rewrite.File))
-            Report(diagnostics, line, DiagnosticDescriptors.CBL1901);
-
         // CBL1902: REWRITE FROM source must be compatible with record
         if (rewrite.From != null)
         {

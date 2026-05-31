@@ -359,8 +359,11 @@ public class BoundTreeValidatorTests : DiagnosticTestBase
     }
 
     [Fact]
-    public void CBL1901_RewriteOnSequentialFile()
+    public void Rewrite_OnSequentialFile_IsAllowed()
     {
+        // ISO §14.9.35: REWRITE is valid for sequential organization (file open I-O, after a
+        // successful READ) — it is NOT an organization error. (The only sequential-specific syntax
+        // restriction is that the INVALID KEY phrase may not be used, §14.9.35.3.)
         var source = @"
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TESTPROG.
@@ -380,7 +383,7 @@ public class BoundTreeValidatorTests : DiagnosticTestBase
            STOP RUN.
 ";
         var diags = GetDiagnostics(source);
-        AssertHasDiagnostic(diags, "CBL1901");
+        AssertNoDiagnostic(diags, "CBL1901");
     }
 
     [Fact]

@@ -145,10 +145,10 @@ public static partial class DiagnosticDescriptors
         "WRITE ADVANCING item must be integer numeric");
 
     // ══════════════════════════════════════
-    // CBL1901–1902: REWRITE
+    // CBL1902: REWRITE
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor CBL1901 = new("CBL1901", DiagnosticSeverity.Error,
-        "REWRITE not allowed for file organization");
+    // CBL1901 ("REWRITE not allowed for file organization") was removed (DEVLOG 238): REWRITE is
+    // valid for sequential, relative, and indexed organizations per ISO §14.9.35.
     public static readonly DiagnosticDescriptor CBL1902 = new("CBL1902", DiagnosticSeverity.Error,
         "REWRITE FROM source incompatible with record");
 

@@ -28,22 +28,26 @@ public static class FileStatusValidator
                 continue;
             }
 
-            // Must be elementary alphanumeric
+            // ISO §12.4.5.8.3: the FILE STATUS item shall be a two-character data item of category
+            // alphanumeric, and (rule 3) shall not be a variable-length group. A *fixed-length*
+            // group of two alphanumeric characters qualifies — a group item is category alphanumeric
+            // — so only variable-length groups are rejected (e.g. the CCVS suite routinely declares
+            // FILE STATUS as a 2-byte group of two PIC X items).
             if (statusSym.IsGroup)
             {
-                diagnostics.Report(DiagnosticDescriptors.CBL3203, loc, span);
-                continue;
+                if (HasVariableLength(statusSym))
+                    diagnostics.Report(DiagnosticDescriptors.CBL3203, loc, span);
+                else if (statusSym.ElementSize < 2)
+                    diagnostics.Report(DiagnosticDescriptors.CBL3202, loc, span);
             }
-
-            // Must be alphanumeric with length >= 2
-            var type = statusSym.ResolvedType;
-            if (type == null || !type.IsAlphanumeric)
+            else
             {
-                diagnostics.Report(DiagnosticDescriptors.CBL3202, loc, span);
-            }
-            else if (type.Pic != null && type.Pic.Length < 2)
-            {
-                diagnostics.Report(DiagnosticDescriptors.CBL3202, loc, span);
+                // Elementary: must be alphanumeric with length >= 2.
+                var type = statusSym.ResolvedType;
+                if (type == null || !type.IsAlphanumeric)
+                    diagnostics.Report(DiagnosticDescriptors.CBL3202, loc, span);
+                else if (type.Pic != null && type.Pic.Length < 2)
+                    diagnostics.Report(DiagnosticDescriptors.CBL3202, loc, span);
             }
 
             // Cannot be REDEFINES or RENAMES
@@ -52,5 +56,17 @@ public static class FileStatusValidator
                 diagnostics.Report(DiagnosticDescriptors.CBL3204, loc, span);
             }
         }
+    }
+
+    /// <summary>True if the item or any subordinate is described with OCCURS … DEPENDING ON, making
+    /// it a variable-length group (disallowed as a FILE STATUS item, ISO §12.4.5.8.3 rule 3).</summary>
+    private static bool HasVariableLength(DataSymbol item)
+    {
+        if (item.Occurs?.DependingOnName != null)
+            return true;
+        foreach (var child in item.Children)
+            if (HasVariableLength(child))
+                return true;
+        return false;
     }
 }

@@ -718,7 +718,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (clause.recordKeyClause() is { } keyClause)
                 fileSym.RecordKey = keyClause.dataReference().GetText();
             if (clause.fileStatusClause() is { } statusClause)
-                fileSym.FileStatus = statusClause.dataReference().GetText();
+                // Use the base data-name only — a "STATUS data-name IN group" qualifier is a
+                // dataReferenceSuffix that GetText() would concatenate; the (flat) data scope
+                // resolves the item by its own name.
+                fileSym.FileStatus = statusClause.dataReference().cobolWord().GetText();
             if (clause.alternateKeyClause() is { } altKeyClause)
             {
                 string altKeyName = altKeyClause.dataReference().GetText();
