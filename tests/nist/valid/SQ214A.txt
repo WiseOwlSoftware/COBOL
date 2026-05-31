@@ -1,0 +1,32 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ214A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OCCURS DEPENDING ON  PASS  WRITE-TEST-GF-01              WRITE FROM PARTIAL ODO
+ OCCURS DEPENDING ON  PASS  READ-TEST-GF-01               READ PARTIAL ODO INTO FULL ODO
+ OCCURS DEPENDING ON  PASS  WRITE-TEST-GF-02              WRITE FROM FULL ODO
+ OCCURS DEPENDING ON  PASS  READ-TEST-GF-02               READ FULL ODO INTO FULL ODO
+ OCCURS DEPENDING ON  PASS  READ-TEST-GF-03               READ FULL ODO INTO PARTIAL ODO
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ214A    NTIS DISTRIBUTION COBOL 85
+
+                                                    005 OF 005  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

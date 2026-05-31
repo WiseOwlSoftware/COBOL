@@ -190,11 +190,13 @@ internal sealed class FileIoLowerer
         if (readLengthLoc != null)
             block.Instructions.Add(new IrStoreRecordLength(read.File.Name, readLengthLoc));
 
-        // If INTO specified, MOVE FD record to INTO target
+        // If INTO specified, MOVE FD record to INTO target. The INTO target is a RECEIVING operand:
+        // when it is a group whose OCCURS DEPENDING ON object is inside the group, the MAXIMUM length
+        // is used (ISO §13.18.38 OCCURS GR — receiving operand), so all occurrences are moved.
         if (read.Into != null && recordSym != null)
         {
             var srcLoc = _ctx.Location.ResolveLocation(recordSym);
-            var dstLoc = _ctx.Location.ResolveLocation(read.Into);
+            var dstLoc = _ctx.Location.ResolveLocation(read.Into, receiving: true);
             if (srcLoc != null && dstLoc != null)
             {
                 block.Instructions.Add(new IrMoveFieldToField(
