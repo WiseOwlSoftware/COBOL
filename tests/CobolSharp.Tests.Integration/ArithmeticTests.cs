@@ -494,4 +494,25 @@ public class ArithmeticTests : EndToEndTestBase
         Assert.Equal("00025", stdout);
     }
 
+    [Fact]
+    public void Add_UndefinedTarget_DiagnosesInsteadOfCrashing()
+    {
+        // An undefined data-name is treated as a literal, which cannot receive a result. The binder
+        // must report COBOL0415 and skip the statement, never throw an unhandled exception.
+        var (success, _, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BADADD.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9 VALUE 1.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ADD 1 TO NOPE.
+                STOP RUN.
+            """);
+
+        Assert.False(success);
+        Assert.Contains("COBOL0415", stderr);
+    }
+
 }

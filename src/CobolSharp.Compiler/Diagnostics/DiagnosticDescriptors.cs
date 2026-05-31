@@ -533,6 +533,12 @@ public static partial class DiagnosticDescriptors
         "{0} CORRESPONDING: '{1}' is a RENAMES item and cannot participate.");
 
     // ══════════════════════════════════════
+    // COBOL0415: Arithmetic statement with no valid receiving item / operand
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOL0415 = new("COBOL0415", DiagnosticSeverity.Error,
+        "{0} statement has no valid receiving data item or operand — check that the data-names are defined (an undefined name is treated as a literal and cannot receive a result).");
+
+    // ══════════════════════════════════════
     // CBL2606: Sign condition on non-numeric
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL2606 = new("CBL2606", DiagnosticSeverity.Error,

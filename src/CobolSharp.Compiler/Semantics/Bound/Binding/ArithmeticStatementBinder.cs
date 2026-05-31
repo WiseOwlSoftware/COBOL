@@ -20,16 +20,28 @@ internal sealed class ArithmeticStatementBinder
 
     internal ArithmeticStatementBinder(BindingContext ctx) => _ctx = ctx;
 
+    /// <summary>
+    /// Report a malformed arithmetic statement (COBOL0415) and skip it instead of crashing. Reached
+    /// when a receiving item or required operand fails to resolve — most often an undefined data-name
+    /// (the binder treats an unresolved name as a literal, and a literal cannot receive a result).
+    /// Returns null so the statement is dropped from the bound tree and compilation reports the error.
+    /// </summary>
+    private BoundStatement? ReportInvalidArithmetic(string verb, int line)
+    {
+        _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0415,
+            new SourceLocation("<source>", 0, line, 0), TextSpan.Empty, verb);
+        return null;
+    }
+
     // ── MULTIPLY ──
 
-    internal BoundStatement BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
+    internal BoundStatement? BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
     {
         var operand = _ctx.Expression.BindSimpleOperand(ctx.multiplyOperand());
 
         var byCtxs = ctx.multiplyByOperand();
         if (byCtxs.Length == 0)
-            throw new InvalidOperationException(
-                $"MULTIPLY statement has no BY operand (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("MULTIPLY", ctx.Start?.Line ?? 0);
 
         // First BY operand is always the second factor
         var firstByReceiver = byCtxs[0].receivingOperand();
@@ -63,8 +75,7 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (targets.Count == 0)
-            throw new InvalidOperationException(
-                $"MULTIPLY statement has no valid receiving items (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("MULTIPLY", ctx.Start?.Line ?? 0);
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return ValidatedArithmetic(ArithmeticKind.Multiply, new[] { operand }, byOperand, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
@@ -72,25 +83,24 @@ internal sealed class ArithmeticStatementBinder
 
     // ── ADD ──
 
-    internal BoundStatement BindAdd(CobolParserCore.AddStatementContext ctx)
+    internal BoundStatement? BindAdd(CobolParserCore.AddStatementContext ctx)
     {
         // ADD CORRESPONDING source TO target [ROUNDED] [ON SIZE ERROR ...]
         if (ctx.CORRESPONDING() != null)
         {
             return BindCorresponding(CorrespondingKind.Add, ctx.dataReference(), ctx,
                 ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
-                ?? throw new InvalidOperationException(
-                    $"ADD CORRESPONDING: could not resolve operands (line {ctx.Start?.Line})");
+                ?? ReportInvalidArithmetic("ADD", ctx.Start?.Line ?? 0);
         }
 
         // ADD operand(s) TO target1 [ROUNDED] target2 [ROUNDED] ...
         var operandList = ctx.addOperandList();
         if (operandList == null)
-            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("ADD", ctx.Start?.Line ?? 0);
 
         var addOps = operandList.addOperand();
         if (addOps.Length == 0)
-            throw new InvalidOperationException($"ADD statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("ADD", ctx.Start?.Line ?? 0);
 
         // Bind all operands
         var operands = new List<BoundExpression>();
@@ -121,8 +131,7 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (targets.Count == 0)
-            throw new InvalidOperationException(
-                $"ADD statement has no targets (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("ADD", ctx.Start?.Line ?? 0);
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return ValidatedArithmetic(ArithmeticKind.Add, operands, null, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
@@ -130,26 +139,25 @@ internal sealed class ArithmeticStatementBinder
 
     // ── SUBTRACT ──
 
-    internal BoundStatement BindSubtract(CobolParserCore.SubtractStatementContext ctx)
+    internal BoundStatement? BindSubtract(CobolParserCore.SubtractStatementContext ctx)
     {
         // SUBTRACT CORRESPONDING source FROM target [ROUNDED] [ON SIZE ERROR ...]
         if (ctx.CORRESPONDING() != null)
         {
             return BindCorresponding(CorrespondingKind.Subtract, ctx.dataReference(), ctx,
                 ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
-                ?? throw new InvalidOperationException(
-                    $"SUBTRACT CORRESPONDING: could not resolve operands (line {ctx.Start?.Line})");
+                ?? ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
         }
 
         // SUBTRACT operand(s) FROM target1 [ROUNDED] target2 [ROUNDED] ...
         // Multiple operands: SUBTRACT A B C FROM T → T = T - (A + B + C)
         var operandList = ctx.subtractOperandList();
         if (operandList == null)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
 
         var subOperands = operandList.subtractOperand();
         if (subOperands.Length == 0)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
 
         // Bind all operands (simple identifiers or literals)
         var operands = new List<BoundExpression>();
@@ -159,7 +167,7 @@ internal sealed class ArithmeticStatementBinder
         // FROM targets or literal (subtractFromPhrase → subtractFromOperand)
         var fromPhrase = ctx.subtractFromPhrase();
         if (fromPhrase == null)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
 
         var fromOperand = fromPhrase.subtractFromOperand();
         var fromTargetCtxs = fromOperand.receivingArithmeticOperand();
@@ -179,7 +187,7 @@ internal sealed class ArithmeticStatementBinder
 
         // If no targets and no GIVING, it's an error
         if (targets.Count == 0 && ctx.subtractGivingPhrase() == null)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
 
         // GIVING phrase: SUBTRACT a FROM b GIVING c [ROUNDED] → c = b - a
         bool isGiving = false;
@@ -206,7 +214,7 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (targets.Count == 0)
-            throw new InvalidOperationException($"SUBTRACT statement has no valid targets (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
 
         var sizeError = BindSizeErrorClause(ctx.arithmeticOnSizeError());
         return ValidatedArithmetic(ArithmeticKind.Subtract, operands, givingMinuend, targets, isGiving, sizeError: sizeError, line: ctx.Start?.Line ?? 0);
@@ -214,12 +222,12 @@ internal sealed class ArithmeticStatementBinder
 
     // ── DIVIDE ──
 
-    internal BoundStatement BindDivide(CobolParserCore.DivideStatementContext ctx)
+    internal BoundStatement? BindDivide(CobolParserCore.DivideStatementContext ctx)
     {
         // DIVIDE operand INTO/BY ...
         var operandCtx = ctx.divideOperand();
         if (operandCtx == null)
-            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("DIVIDE", ctx.Start?.Line ?? 0);
 
         var firstOperand = _ctx.Expression.BindSimpleOperand(operandCtx);
         bool isByForm = ctx.divideByPhrase() != null;
@@ -272,7 +280,7 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (targets.Count == 0)
-            throw new InvalidOperationException($"DIVIDE statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("DIVIDE", ctx.Start?.Line ?? 0);
 
         // REMAINDER
         BoundIdentifierExpression? remainderTarget = null;
@@ -290,12 +298,12 @@ internal sealed class ArithmeticStatementBinder
 
     // ── COMPUTE ──
 
-    internal BoundStatement BindCompute(CobolParserCore.ComputeStatementContext ctx)
+    internal BoundStatement? BindCompute(CobolParserCore.ComputeStatementContext ctx)
     {
         // COMPUTE target1 [ROUNDED] target2 [ROUNDED] = expression
         var storeCtxs = ctx.computeStore();
         if (storeCtxs.Length == 0)
-            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("COMPUTE", ctx.Start?.Line ?? 0);
 
         var targets = new List<BoundArithmeticTarget>();
         foreach (var s in storeCtxs)
@@ -306,7 +314,7 @@ internal sealed class ArithmeticStatementBinder
         }
 
         if (targets.Count == 0)
-            throw new InvalidOperationException($"COMPUTE statement has no valid targets or operands (line {ctx.Start?.Line})");
+            return ReportInvalidArithmetic("COMPUTE", ctx.Start?.Line ?? 0);
 
         // Bind the full arithmetic expression (recursive tree walk)
         var expr = _ctx.Expression.BindAdditiveExpression(ctx.arithmeticExpression().additiveExpression());
