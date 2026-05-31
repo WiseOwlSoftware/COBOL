@@ -1,0 +1,38 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ109M
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE FILE SQ-FS1         SEQ-TEST-001                  CLOSE REEL DELETED
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ VERIFY FILE SQ-FS1   PASS  SEQ-TEST-002
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000750
+
+ READ...RECORD AT END PASS  READ-TEST-GF-01
+ READ...AT END...     PASS  READ-TEST-GF-02
+ READ...RECORD END... PASS  READ-TEST-GF-03
+ READ...END...        PASS  READ-TEST-GF-04
+ READ FILE SQ-FS1     PASS  SEQ-TEST-003
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ109M    NTIS DISTRIBUTION COBOL 85
+
+                                                    006 OF 006  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

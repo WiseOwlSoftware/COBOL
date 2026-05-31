@@ -164,7 +164,14 @@ public static class ReferenceFormatProcessor
                 // header does not declare) and 'J' (an alternate ASSIGN target beside the primary
                 // space-indicator one). The primary configuration is the space-indicator lines, so
                 // these alternates are excluded for a standard run (treated as comment lines).
-                case 'P' or 'p' or 'J' or 'j':
+                //
+                // 'H' tags the multi-reel/multi-volume tape feature (CLOSE … REEL/UNIT, REELUNIT
+                // counters) — an optional feature CobolSharp does not support; the CCVS pairs each
+                // 'H' block with an 'I' replacement line (e.g. MOVE "CLOSE REEL DELETED" TO RE-MARK)
+                // that becomes the controlling IF's body once the 'H' lines (which carry the period)
+                // are deleted. Excluding 'H' and keeping 'I' (a normal line) yields the intended
+                // no-multi-reel program — and stops CLOSE … REEL from prematurely closing the file.
+                case 'P' or 'p' or 'J' or 'j' or 'H' or 'h':
                     result.AppendLine($"*> {sourceArea.TrimEnd()}");
                     inLiteral = false;
                     pendingQuote = false;
