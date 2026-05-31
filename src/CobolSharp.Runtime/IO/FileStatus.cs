@@ -15,6 +15,9 @@ public static class FileStatus
     public const string DuplicateAlternateKey = "02";
     /// <summary>Status 04 — record length does not match FD RECORD CONTAINS (length mismatch).</summary>
     public const string RecordLengthMismatch = "04";
+    /// <summary>Status 07 — successful CLOSE with REEL/UNIT/NO REWIND/FOR REMOVAL (or OPEN NO REWIND)
+    /// referencing a physical file on a non-reel/unit medium (ISO §9.1.13.2 item 6).</summary>
+    public const string CloseNonReelMedium = "07";
     /// <summary>Status 10 — sequential READ reached end-of-file (AT END condition).</summary>
     public const string AtEnd = "10";
     /// <summary>Status 21 — key value not in ascending sequence for sequential WRITE to indexed file.</summary>

@@ -1,0 +1,46 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ124A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                   TESTED                   FAIL
+
+ ***********************************************************************************************************************
+ SEQ-TEST-OP-01.01 OPEN, CREATE FILE        PASS
+ SEQ-TEST-WR-02.01 WRITE FIRST RECORD       PASS
+ SEQ-TEST-CR-03.01 CLOSE UNIT, NON-UNIT     PASS
+ SEQ-TEST-WR-04.01 WRITE SECOND RECORD      PASS
+ SEQ-TEST-CL-05.01 CLOSE AFTER CLOSE REEL   PASS
+ SEQ-TEST-OP-06.01 OPEN FILE FOR INPUT      PASS
+ SEQ-TEST-CU-07.01 CLOSE UNIT, NON-UNIT     PASS
+ SEQ-TEST-RD-08.01 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-08.02 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-08.03 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-08.04 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-09.01 READ SECOND RECORD       PASS
+ SEQ-TEST-RD-09.02 READ SECOND RECORD       PASS
+ SEQ-TEST-RD-09.03 READ SECOND RECORD       PASS
+ SEQ-TEST-RD-09.04 READ SECOND RECORD       PASS
+ SEQ-TEST-RD-10.01 READ TO GIVE AT END      PASS
+ SEQ-TEST-RD-10.02 READ TO GIVE AT END      PASS
+ SEQ-TEST-RD-10.03 READ TO GIVE AT END      PASS
+ SEQ-TEST-CL-11.01 CLOSE AFTER READING      PASS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ124A
+
+                                                    019 OF 019  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

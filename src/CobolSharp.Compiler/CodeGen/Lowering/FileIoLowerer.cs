@@ -122,9 +122,14 @@ internal sealed class FileIoLowerer
             {
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFileWithLock", new[] { fnVal }));
             }
+            else if (phrase.Option is CloseOption.Reel or CloseOption.Unit)
+            {
+                // CLOSE … REEL/UNIT on a disk medium: file stays OPEN, I-O status 07 (ISO §9.1.13.2 item 6).
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseReelUnit", new[] { fnVal }));
+            }
             else
             {
-                // REEL, UNIT, NO REWIND are no-ops on disk — use standard close
+                // Plain CLOSE (and NO REWIND, which on disk closes normally) — standard close.
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.CloseFile", new[] { fnVal }));
             }
 

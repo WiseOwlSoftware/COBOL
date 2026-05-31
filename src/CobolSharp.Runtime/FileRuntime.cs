@@ -178,6 +178,21 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// CLOSE file-name REEL / UNIT. On a non-reel (disk) medium this is a no-op that advances past the
+    /// current volume: the file connector REMAINS OPEN and the I-O status is 07 (ISO §9.1.13.2 item 6),
+    /// so subsequent WRITE/READ continue against the same file. On a not-open file it is 42, as for any
+    /// CLOSE (ISO §9.1.13.7).
+    /// </summary>
+    public static void CloseReelUnit(string fileName)
+    {
+        EnsureManager();
+        var handler = _manager!.GetHandler(fileName);
+        _lastStatus[fileName] = handler is { IsOpen: true }
+            ? FileStatus.CloseNonReelMedium
+            : FileStatus.FileNotOpen;
+    }
+
+    /// <summary>
     /// WRITE record-name: plain WRITE (data path).
     /// Delegates to handler.Write which does line-sequential formatting (TrimEnd + WriteLine).
     /// </summary>

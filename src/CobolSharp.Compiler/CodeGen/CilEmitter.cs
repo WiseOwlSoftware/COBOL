@@ -1278,6 +1278,13 @@ public sealed class CilEmitter
                     new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "FileRuntime.CloseReelUnit")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseReelUnit",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         else if (rtc.MethodName == "FileRuntime.RegisterAlternateKey")
         {
             var m = _module.ImportReference(
