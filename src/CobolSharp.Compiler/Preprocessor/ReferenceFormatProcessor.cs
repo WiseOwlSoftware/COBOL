@@ -165,13 +165,15 @@ public static class ReferenceFormatProcessor
                 // space-indicator one). The primary configuration is the space-indicator lines, so
                 // these alternates are excluded for a standard run (treated as comment lines).
                 //
-                // 'H' tags the multi-reel/multi-volume tape feature (CLOSE … REEL/UNIT, REELUNIT
-                // counters) — an optional feature CobolSharp does not support; the CCVS pairs each
-                // 'H' block with an 'I' replacement line (e.g. MOVE "CLOSE REEL DELETED" TO RE-MARK)
-                // that becomes the controlling IF's body once the 'H' lines (which carry the period)
-                // are deleted. Excluding 'H' and keeping 'I' (a normal line) yields the intended
-                // no-multi-reel program — and stops CLOSE … REEL from prematurely closing the file.
-                case 'P' or 'p' or 'J' or 'j' or 'H' or 'h':
+                // 'H' (CLOSE … REEL) and 'E' (CLOSE … UNIT) tag the multi-reel/multi-volume tape
+                // feature (with REELUNIT counters) — an optional feature CobolSharp does not support;
+                // the CCVS pairs each such block with a replacement line ('I' for REEL, 'F' for UNIT,
+                // e.g. MOVE "CLOSE REEL DELETED" TO RE-MARK) that becomes the controlling IF's body
+                // once the 'H'/'E' lines (which carry the period) are deleted. Excluding 'H'/'E' and
+                // keeping the replacement (a normal line) yields the intended no-multi-volume program
+                // — and stops CLOSE … REEL/UNIT from prematurely closing the file mid write-loop.
+                // (Only 'H'/'E' are excluded; 'F' is also used as ordinary code in the IC suite.)
+                case 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e':
                     result.AppendLine($"*> {sourceArea.TrimEnd()}");
                     inLiteral = false;
                     pendingQuote = false;
