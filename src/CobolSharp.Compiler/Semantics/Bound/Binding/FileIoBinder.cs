@@ -328,10 +328,19 @@ internal sealed class FileIoBinder
         var fileSym = _ctx.Semantic.ResolveFile(fileNameCtx.GetText());
         if (fileSym == null) return null;
 
-        // KEY IS relationalExpression (optional)
+        // KEY [IS] relational-operator data-name (optional). The left operand is the key of
+        // reference (implicit); we carry the operator on a BoundBinaryExpression so the lowerer can
+        // map it to a StartCondition. (§14.9.41 GR8: if the KEY phrase is omitted, EQUAL is assumed.)
         BoundExpression? keyCondition = null;
         if (ctx.startKeyPhrase() is { } keyCtx)
-            keyCondition = _ctx.Condition.BindComparison(keyCtx.comparisonExpression());
+        {
+            // Operator omitted (KEY IS data-name) → EQUAL is assumed.
+            var op = keyCtx.comparisonOperator() is { } opCtx
+                ? ConditionBinder.ParseComparisonOperator(opCtx)
+                : BoundBinaryOperatorKind.Equal;
+            var keyExpr = _ctx.Expression.BindDataReferenceWithSubscripts(keyCtx.dataReference());
+            keyCondition = new BoundBinaryExpression(keyExpr, op, keyExpr, CobolCategory.Unknown);
+        }
 
         var invalidKey = new List<BoundStatement>();
         var notInvalidKey = new List<BoundStatement>();

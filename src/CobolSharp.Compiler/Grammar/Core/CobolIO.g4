@@ -82,12 +82,14 @@ accessMode
     | DYNAMIC
     ;
 
+// IS is an optional word in the RECORD KEY / ALTERNATE RECORD KEY clauses (ISO §12.4.5 — the CCVS
+// suite writes "RECORD KEY data-name" without IS).
 recordKeyClause
-    : RECORD KEY IS dataReference
+    : RECORD KEY IS? dataReference
     ;
 
 alternateKeyClause
-    : ALTERNATE RECORD? KEY IS dataReference
+    : ALTERNATE RECORD? KEY IS? dataReference
       (WITH? DUPLICATES)?
     ;
 
@@ -296,8 +298,13 @@ startStatement
 
     ;
 
+// ISO §14.9.41: START … KEY [IS] [relational-operator] {data-name | record-key-name}. The phrase is
+// an optional relational operator + key data-name (the left operand — the key of reference — is
+// implicit), NOT a full comparison. The operator may be omitted (then EQUAL is assumed), e.g.
+// "START f KEY IS data-name". comparisonOperator absorbs its own leading IS, so a separate optional
+// IS handles the no-operator form.
 startKeyPhrase
-    : KEY IS comparisonExpression ({is2002()}? startWithLength)?
+    : KEY IS? comparisonOperator? dataReference ({is2002()}? startWithLength)?
     ;
 
 startWithLength
