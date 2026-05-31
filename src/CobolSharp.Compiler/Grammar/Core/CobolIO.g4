@@ -25,9 +25,10 @@ fileControlParagraph
     : FILE_CONTROL DOT fileControlClauseGroup*
     ;
 
+// ISO §12.4.5.2 SR1: SELECT comes first; all following clauses (including ASSIGN) may appear in
+// ANY ORDER. So ASSIGN is just one of the order-free fileControlClauses, not a fixed-position slot.
 fileControlClauseGroup
     : SELECT OPTIONAL? fileName
-      assignClause?
       fileControlClauses*
       DOT
     ;
@@ -43,7 +44,8 @@ assignTarget
     ;
 
 fileControlClauses
-    : organizationClause
+    : assignClause
+    | organizationClause
     | accessModeClause
     | recordKeyClause
     | alternateKeyClause
@@ -57,8 +59,10 @@ fileReserveClause
     : RESERVE integerLiteral (AREA | AREAS)?
     ;
 
+// ISO §12.4.5.10: the leading "ORGANIZATION IS" is optional — a bare organization type
+// (e.g. a lone SEQUENTIAL) is a valid ORGANIZATION clause.
 organizationClause
-    : ORGANIZATION IS? organizationType
+    : (ORGANIZATION IS?)? organizationType
     ;
 
 organizationType
@@ -87,8 +91,10 @@ alternateKeyClause
       (WITH? DUPLICATES)?
     ;
 
+// ISO §12.4.5.8.2: only STATUS is a required keyword (FILE STATUS IS data-name-1, STATUS underlined);
+// FILE and IS are optional, so a bare "STATUS data-name" is a valid FILE STATUS clause.
 fileStatusClause
-    : FILE STATUS IS dataReference
+    : FILE? STATUS IS? dataReference
     ;
 
 relativeKeyClause
@@ -174,9 +180,11 @@ readKey
     : KEY IS dataReference
     ;
 
+// AT is an optional word in the at-end phrase (ISO §6 optional-word rule; the CCVS suite and
+// mainstream compilers accept "READ … RECORD END …" without AT).
 readAtEnd
-    : AT END statementBlock
-      (NOT AT END statementBlock)?
+    : AT? END statementBlock
+      (NOT AT? END statementBlock)?
     ;
 
 readInvalidKey

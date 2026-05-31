@@ -685,29 +685,25 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.OPTIONAL() != null)
             fileSym.IsOptional = true;
 
-        // ASSIGN TO
-        var assignClause = ctx.assignClause();
-        var assignCtx = assignClause?.assignTarget();
-        if (assignCtx != null)
-        {
-            string assignText = assignCtx.GetText();
-            // String literal → explicit host path; identifier → implementor-defined
-            if (assignText.Length >= 2 &&
-                (assignText[0] == '"' || assignText[0] == '\''))
-            {
-                fileSym.AssignTarget = assignText[1..^1];
-                fileSym.AssignIsLiteral = true;
-            }
-            else
-            {
-                fileSym.AssignTarget = assignText;
-                fileSym.AssignIsLiteral = false;
-            }
-        }
-
-        // Clauses
+        // Clauses (ASSIGN, ORGANIZATION, ACCESS, keys, FILE STATUS) — any order per ISO §12.4.5.2 SR1.
         foreach (var clause in ctx.fileControlClauses())
         {
+            if (clause.assignClause()?.assignTarget() is { } assignCtx)
+            {
+                string assignText = assignCtx.GetText();
+                // String literal → explicit host path; identifier → implementor-defined
+                if (assignText.Length >= 2 &&
+                    (assignText[0] == '"' || assignText[0] == '\''))
+                {
+                    fileSym.AssignTarget = assignText[1..^1];
+                    fileSym.AssignIsLiteral = true;
+                }
+                else
+                {
+                    fileSym.AssignTarget = assignText;
+                    fileSym.AssignIsLiteral = false;
+                }
+            }
             if (clause.organizationClause() is { } orgClause)
             {
                 var orgType = orgClause.organizationType();

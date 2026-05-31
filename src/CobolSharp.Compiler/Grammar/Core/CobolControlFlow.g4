@@ -176,8 +176,10 @@ alterEntry
 useStatement
     // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1
     : USE GLOBAL? BEFORE REPORTING procedureName
-    // Format 1: USE [GLOBAL] AFTER STANDARD {EXCEPTION | ERROR} PROCEDURE ON {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
-    | USE GLOBAL? AFTER STANDARD (EXCEPTION | ERROR) PROCEDURE ON useOnTarget
+    // Format 1: USE [GLOBAL] AFTER [STANDARD] {EXCEPTION | ERROR} PROCEDURE [ON] {file-name+ | INPUT | OUTPUT | I-O | EXTEND}
+    // STANDARD and ON are accepted as optional words: the CCVS suite and mainstream compilers write
+    // both "USE GLOBAL AFTER ERROR PROCEDURE ON INPUT" and "USE AFTER STANDARD ERROR PROCEDURE OUTPUT".
+    | USE GLOBAL? AFTER STANDARD? (EXCEPTION | ERROR) PROCEDURE ON? useOnTarget
     ;
 
 useOnTarget
