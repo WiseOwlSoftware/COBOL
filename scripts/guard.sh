@@ -16,7 +16,7 @@ echo "=== NIST regression ==="
 cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
-# All NIST tests currently at 100% — must stay green (95 NC + 42 IF = 137 tests).
+# All NIST tests currently at 100% — must stay green (94 NC + 42 IF + 12 SM + 2 IC = 150 tests).
 # IF401M/402M/403M are flagging-conformance modules: they emit no CCVS report by
 # design, so they are intentionally NOT guarded (nothing to compare).
 NIST_TESTS="
@@ -37,6 +37,7 @@ IF131A IF132A IF133A IF134A IF135A IF136A IF137A IF138A IF139A IF140A
 IF141A IF142A
 SM101A SM102A SM103A SM106A SM107A SM201A SM202A SM203A SM204A SM206A
 SM207A SM208A
+IC224A IC225A
 "
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)

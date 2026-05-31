@@ -45,40 +45,47 @@ internal sealed class CallBinder
             return null;
         }
 
-        // USING arguments
+        // USING arguments. The BY REFERENCE / BY CONTENT / BY VALUE phrase is transitive: it applies
+        // to every argument that follows it until another such phrase is encountered (ISO §14.8 CALL,
+        // general rule 5). Before any phrase the default is BY REFERENCE. The grammar attaches a
+        // phrase only to its first data-name, so bare arguments inherit the most recent explicit mode.
         var arguments = new List<BoundCallArgument>();
         if (ctx.callUsingPhrase() is { } usingCtx)
         {
+            var currentMode = ParameterMode.ByReference;
             foreach (var argCtx in usingCtx.callArgument())
             {
                 if (argCtx.callByReference() is { } byRef)
                 {
+                    currentMode = ParameterMode.ByReference;
                     var expr = _ctx.Expression.BindDataReferenceWithSubscripts(byRef.dataReference());
                     if (expr != null)
-                        arguments.Add(new BoundCallArgument(ParameterMode.ByReference, expr));
+                        arguments.Add(new BoundCallArgument(currentMode, expr));
                 }
                 else if (argCtx.callByContent() is { } byContent)
                 {
+                    currentMode = ParameterMode.ByContent;
                     BoundExpression? expr = null;
                     if (byContent.dataReference() is { } dr)
                         expr = _ctx.Expression.BindDataReferenceWithSubscripts(dr);
                     else if (byContent.literal() is { } lit)
                         expr = _ctx.Expression.BindLiteral(lit);
                     if (expr != null)
-                        arguments.Add(new BoundCallArgument(ParameterMode.ByContent, expr));
+                        arguments.Add(new BoundCallArgument(currentMode, expr));
                 }
                 else if (argCtx.callByValue() is { } byValue)
                 {
+                    currentMode = ParameterMode.ByValue;
                     var expr = _ctx.Expression.BindAdditiveExpression(byValue.arithmeticExpression().additiveExpression());
                     if (expr != null)
-                        arguments.Add(new BoundCallArgument(ParameterMode.ByValue, expr));
+                        arguments.Add(new BoundCallArgument(currentMode, expr));
                 }
                 else if (argCtx.dataReference() is { } bareRef)
                 {
-                    // Bare argument without BY keyword = BY REFERENCE (default)
+                    // Bare argument: inherit the most recent explicit mode (transitive); default BY REFERENCE.
                     var expr = _ctx.Expression.BindDataReferenceWithSubscripts(bareRef);
                     if (expr != null)
-                        arguments.Add(new BoundCallArgument(ParameterMode.ByReference, expr));
+                        arguments.Add(new BoundCallArgument(currentMode, expr));
                 }
             }
         }
