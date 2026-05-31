@@ -1,0 +1,54 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL107A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OPEN OUTPUT RL-FR7         REL-TEST-001
+ OPEN OUTPUT RL-FR8         REL-TEST-002
+ WRITE RL-FR7         PASS  REL-TEST-003
+ WRITE RL-FR7         PASS  REL-TEST-004
+ WRITE RL-FR7         PASS  REL-TEST-005
+ WRITE RL-FR7         PASS  REL-TEST-006
+ WRITE RL-FR7         PASS  REL-TEST-007
+ WRITE RL-FR8         PASS  REL-TEST-008
+ CLOSE RL-FR7               REL-TEST-009
+ CLOSE RL-FR8               REL-TEST-010
+ OPEN INPUT RL-FR8          REL-TEST-011
+ OPEN I-O RL-FR7            REL-TEST-012
+ READ RL-FR7          PASS  REL-TEST-013
+ READ RL-FR8          PASS  REL-TEST-014
+ READ RL-FR7          PASS  REL-TEST-015
+ READ RL-FR7          PASS  REL-TEST-016
+ WRITE RL-FR7         PASS  REL-TEST-017
+ READ RL-FR7          PASS  REL-TEST-018
+ READ RL-FR7          PASS  REL-TEST-019
+ READ RL-FR8          PASS  REL-TEST-020
+ INVALID KEY RL-FR7   PASS  REL-TEST-021
+ INVALID KEY RL-FR7   PASS  REL-TEST-022
+ INVALID KEY RL-FR8   PASS  REL-TEST-023
+ INVALID KEY RL-FR7   PASS  REL-TEST-024
+ REWRITE RL-FR7       PASS  REL-TEST-025
+ CLOSE RL-FR8               REL-TEST-026
+ CLOSE RL-FR7               REL-TEST-027
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL107A
+
+                                                    019 OF 019  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

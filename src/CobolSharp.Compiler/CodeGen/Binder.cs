@@ -266,6 +266,19 @@ public sealed class Binder
                     }
                 }
             }
+            // For RELATIVE files, carry the RELATIVE KEY data item's digit capacity in keyLength so
+            // the runtime can raise boundary/overflow status when a relative record number exceeds it
+            // (ISO §9.1.13.4). Relative files have no record-embedded key offset/length.
+            else if (org == "RELATIVE" && fileSym.RelativeKey != null)
+            {
+                var keySym = _semantic.ResolveData(fileSym.RelativeKey);
+                if (keySym != null)
+                {
+                    var keyLoc = _semantic.GetStorageLocation(keySym);
+                    if (keyLoc.HasValue)
+                        keyLength = keyLoc.Value.Pic.TotalDigits;
+                }
+            }
 
             var nameVal = _valueFactory.Next(IrPrimitiveType.String);
             var pathVal = _valueFactory.Next(IrPrimitiveType.String);
@@ -340,6 +353,19 @@ public sealed class Binder
                 block.Instructions.Add(new IrLoadConst(linBotVal, fileSym.LinageBottom));
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetFileLinage",
                     new[] { linNameVal, linBodyVal, linFootVal, linTopVal, linBotVal }));
+            }
+
+            // RELATIVE access mode: RANDOM/DYNAMIC position WRITE/REWRITE/DELETE by the RELATIVE KEY;
+            // SEQUENTIAL (or unspecified) appends on WRITE and uses the current record.
+            if (org == "RELATIVE")
+            {
+                bool sequential = fileSym.AccessMode is null or "SEQUENTIAL";
+                var relNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                var relSeqVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                block.Instructions.Add(new IrLoadConst(relNameVal, fileSym.Name));
+                block.Instructions.Add(new IrLoadConst(relSeqVal, sequential));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetRelativeAccess",
+                    new[] { relNameVal, relSeqVal }));
             }
         }
 

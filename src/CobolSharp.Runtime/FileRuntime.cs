@@ -46,7 +46,9 @@ public static class FileRuntime
         IFileHandler handler = organization switch
         {
             "INDEXED" => new IndexedFileHandler(externalPath, recordLength, keyOffset, keyLength),
-            "RELATIVE" => new RelativeFileHandler(externalPath, recordLength),
+            // For RELATIVE files keyLength carries the RELATIVE KEY data item's digit capacity
+            // (relative files address records by slot number, not a record-embedded key range).
+            "RELATIVE" => new RelativeFileHandler(externalPath, recordLength, keyLength),
             _ => new SequentialFileHandler(externalPath, recordLength, lineSequential)
         };
         EnsureManager();
@@ -65,6 +67,42 @@ public static class FileRuntime
         if (handler is SequentialFileHandler seq) seq.IsOptional = true;
         else if (handler is IndexedFileHandler idx) idx.IsOptional = true;
         else if (handler is RelativeFileHandler rel) rel.IsOptional = true;
+    }
+
+    /// <summary>
+    /// Set the access mode for a RELATIVE file: sequential=true (ACCESS SEQUENTIAL) appends on WRITE
+    /// and uses the current record for REWRITE/DELETE; sequential=false (RANDOM/DYNAMIC) positions
+    /// WRITE/REWRITE/DELETE by the RELATIVE KEY (the pending key set just before the operation).
+    /// </summary>
+    public static void SetRelativeAccess(string cobolName, bool sequential)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is RelativeFileHandler rel)
+            rel.SequentialAccess = sequential;
+    }
+
+    /// <summary>
+    /// Set the RELATIVE KEY value for the next keyed WRITE/REWRITE/DELETE on a RELATIVE file.
+    /// Read from the RELATIVE KEY data item (a DISPLAY numeric slot number) just before the operation.
+    /// </summary>
+    public static void SetRelativeKey(string cobolName, byte[] keyArea, int keyOffset, int keySize)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is RelativeFileHandler rel)
+        {
+            string text = Encoding.ASCII.GetString(keyArea, keyOffset, keySize).Trim();
+            rel.SetPendingKey(int.TryParse(text, out int n) ? n : 0);
+        }
+    }
+
+    /// <summary>
+    /// Relative record number ("slot") the most recent successful WRITE/READ on a RELATIVE file acted
+    /// on, for the caller to MOVE into the RELATIVE KEY data item (ISO §14.9.51/§14.9.30). 0 if n/a.
+    /// </summary>
+    public static int GetRelativeSlot(string cobolName)
+    {
+        EnsureManager();
+        return _manager!.GetHandler(cobolName) is RelativeFileHandler rel ? rel.CurrentSlot : 0;
     }
 
     /// <summary>
@@ -296,11 +334,13 @@ public static class FileRuntime
         byte[] tempBuf = new byte[length];
         string status = _manager!.ReadNext(fileName, tempBuf);
         _lastStatus[fileName] = status;
-        // Record the actual record length for RECORD VARYING DEPENDING ON (0 at end-of-file).
-        _lastRecordLength[fileName] = status == FileStatus.AtEnd
+        // No record is made available at end-of-file (10) or relative-key overflow (14, ISO §14.9.30).
+        bool noRecord = status is FileStatus.AtEnd or FileStatus.RelativeKeyOverflow;
+        // Record the actual record length for RECORD VARYING DEPENDING ON (0 when no record).
+        _lastRecordLength[fileName] = noRecord
             ? 0 : (_manager.GetHandler(fileName)?.LastRecordLength ?? length);
 
-        if (status == FileStatus.AtEnd)
+        if (noRecord)
             return false;
 
         Array.Copy(tempBuf, 0, buffer, offset, length);
@@ -336,7 +376,11 @@ public static class FileRuntime
     /// </summary>
     public static bool IsAtEnd(string fileName)
     {
-        return _lastStatus.TryGetValue(fileName, out var status) && status == FileStatus.AtEnd;
+        // The at-end condition includes relative-key overflow ("14") as well as end-of-file ("10")
+        // (ISO §14.7.4 / §9.1.13.5 — a sequential relative READ whose record number exceeds the
+        // relative key data item's digit size raises the at-end condition).
+        return _lastStatus.TryGetValue(fileName, out var status)
+            && status is FileStatus.AtEnd or FileStatus.RelativeKeyOverflow;
     }
 
     /// <summary>
@@ -349,8 +393,8 @@ public static class FileRuntime
     public static bool IsReadExhausted(string fileName)
     {
         return _lastStatus.TryGetValue(fileName, out var status) && status is
-            FileStatus.AtEnd or FileStatus.FileNotOpen or FileStatus.FileNotFound
-            or FileStatus.PermanentError;
+            FileStatus.AtEnd or FileStatus.RelativeKeyOverflow or FileStatus.FileNotOpen
+            or FileStatus.FileNotFound or FileStatus.PermanentError;
     }
 
     /// <summary>

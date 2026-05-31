@@ -904,6 +904,8 @@ public sealed class CilEmitter
             case IrWriteRecordFromStorage wr: _ctx.FileIo.EmitWriteRecordFromStorage(il, wr); break;
             case IrWriteRecordVariable wrv: _ctx.FileIo.EmitWriteRecordVariable(il, wrv); break;
             case IrStoreRecordLength srl: _ctx.FileIo.EmitStoreRecordLength(il, srl); break;
+            case IrSetRelativeKey srk: _ctx.FileIo.EmitSetRelativeKey(il, srk); break;
+            case IrStoreRelativeKey strk: _ctx.FileIo.EmitStoreRelativeKey(il, strk); break;
             case IrRewriteRecordFromStorage rw: _ctx.FileIo.EmitRewriteRecordFromStorage(il, rw); break;
             case IrWriteAdvancing waa: _ctx.FileIo.EmitWriteAdvancing(il, waa); break;
             case IrReadRecordToStorage rd: _ctx.FileIo.EmitReadRecordToStorage(il, rd); break;
@@ -1312,6 +1314,13 @@ public sealed class CilEmitter
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetFileLinage",
                     new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.SetRelativeAccess")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetRelativeAccess",
+                    new[] { typeof(string), typeof(bool) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now

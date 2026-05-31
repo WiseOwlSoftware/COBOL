@@ -578,6 +578,40 @@ public sealed class IrStoreRecordLength : IrInstruction
 }
 
 /// <summary>
+/// Before a random/dynamic WRITE/REWRITE/DELETE on a RELATIVE file, convey the program's RELATIVE
+/// KEY value to the runtime so the operation positions to that slot (FileRuntime.SetRelativeKey).
+/// ISO §14.9.51 / §14.9.35 / §14.9.12.
+/// </summary>
+public sealed class IrSetRelativeKey : IrInstruction
+{
+    public string CobolFileName { get; }
+    public IrLocation KeyVariable { get; }
+
+    public IrSetRelativeKey(string cobolFileName, IrLocation keyVariable)
+    {
+        CobolFileName = cobolFileName;
+        KeyVariable = keyVariable;
+    }
+}
+
+/// <summary>
+/// After a sequential WRITE or a READ on a RELATIVE file, move the relative record number of the
+/// record released/made-available (FileRuntime.GetRelativeSlot) into the RELATIVE KEY data item.
+/// ISO §14.9.51 GR (sequential WRITE) / §14.9.30 GR 25 (READ).
+/// </summary>
+public sealed class IrStoreRelativeKey : IrInstruction
+{
+    public string CobolFileName { get; }
+    public IrLocation KeyVariable { get; }
+
+    public IrStoreRelativeKey(string cobolFileName, IrLocation keyVariable)
+    {
+        CobolFileName = cobolFileName;
+        KeyVariable = keyVariable;
+    }
+}
+
+/// <summary>
 /// REWRITE record — replaces the last-read record in a file.
 /// </summary>
 public sealed class IrRewriteRecordFromStorage : IrInstruction

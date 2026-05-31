@@ -945,10 +945,15 @@ public class FileIOTests : EndToEndTestBase
             PROCEDURE DIVISION.
             MAIN-PARA.
                 OPEN OUTPUT REL-FILE.
+            *> DYNAMIC access: WRITE positions by the RELATIVE KEY, which the program must set
+            *> before each WRITE (ISO 14.9.51 GR 29b). Only ACCESS SEQUENTIAL auto-assigns it.
+                MOVE 1 TO WS-KEY.
                 MOVE "FIRST     " TO REL-REC.
                 WRITE REL-REC.
+                MOVE 2 TO WS-KEY.
                 MOVE "SECOND    " TO REL-REC.
                 WRITE REL-REC.
+                MOVE 3 TO WS-KEY.
                 MOVE "THIRD     " TO REL-REC.
                 WRITE REL-REC.
                 CLOSE REL-FILE.

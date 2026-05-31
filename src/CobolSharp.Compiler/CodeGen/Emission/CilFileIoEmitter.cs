@@ -93,6 +93,37 @@ internal sealed class CilFileIoEmitter
     }
 
     /// <summary>
+    /// Before a random/dynamic relative WRITE/REWRITE/DELETE: FileRuntime.SetRelativeKey(name, area,
+    /// offset, size) reads the RELATIVE KEY data item and records the target slot.
+    /// </summary>
+    internal void EmitSetRelativeKey(ILProcessor il, IrSetRelativeKey srk)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, srk.CobolFileName));
+        _ctx.Location.EmitLocationArgs(il, srk.KeyVariable); // byte[], offset, size
+        var m = _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("SetRelativeKey",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+    }
+
+    /// <summary>
+    /// After a sequential relative WRITE or a relative READ: store the acted-on slot
+    /// (FileRuntime.GetRelativeSlot) into the RELATIVE KEY data item via MoveIntToField.
+    /// </summary>
+    internal void EmitStoreRelativeKey(ILProcessor il, IrStoreRelativeKey srk)
+    {
+        _ctx.Location.EmitLocationArgs(il, srk.KeyVariable); // byte[], offset, size
+        il.Append(il.Create(OpCodes.Ldstr, srk.CobolFileName));
+        var getSlot = _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("GetRelativeSlot", new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, getSlot));
+        var moveInt = _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod("MoveIntToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, moveInt));
+    }
+
+    /// <summary>
     /// WRITE AFTER ADVANCING: calls FileRuntime.WriteAfterAdvancing(string, byte[], int, int, int).
     /// </summary>
     /// <summary>

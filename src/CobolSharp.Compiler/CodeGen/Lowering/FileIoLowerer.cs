@@ -39,6 +39,11 @@ internal sealed class FileIoLowerer
                         fromLoc.GetPic(), recordLoc.GetPic()));
             }
 
+            // RELATIVE random/dynamic WRITE positions by the RELATIVE KEY (ISO §14.9.51): convey the
+            // program's key value to the runtime before the write.
+            if (IsRelativeRandom(wr.File) && ResolveRelativeKeyLocation(wr.File) is { } wKey)
+                block.Instructions.Add(new IrSetRelativeKey(fileName, wKey));
+
             if (wr.AdvancingLines.HasValue)
             {
                 IrLocation? advLoc = null;
@@ -61,6 +66,12 @@ internal sealed class FileIoLowerer
             {
                 block.Instructions.Add(new IrWriteRecordFromStorage(fileName, recordLoc));
             }
+
+            // RELATIVE sequential WRITE: the system assigns the next relative record number and MOVEs
+            // it into the RELATIVE KEY data item (ISO §14.9.51 GR, sequential access).
+            if (IsRelative(wr.File) && !IsRelativeRandom(wr.File)
+                && ResolveRelativeKeyLocation(wr.File) is { } wStoreKey)
+                block.Instructions.Add(new IrStoreRelativeKey(fileName, wStoreKey));
         }
         else
         {
@@ -195,6 +206,15 @@ internal sealed class FileIoLowerer
         if (readLengthLoc != null)
             block.Instructions.Add(new IrStoreRecordLength(read.File.Name, readLengthLoc));
 
+        // RELATIVE sequential READ (NEXT/PREVIOUS) moves the made-available record's relative number
+        // into the RELATIVE KEY data item (ISO §14.9.30 GR 25). A keyed (random) read leaves the
+        // program-supplied key as-is, so it is excluded.
+        bool relKeyedRead = !read.IsPrevious && !read.IsNext
+            && read.File.AccessMode is "RANDOM" or "DYNAMIC";
+        if (IsRelative(read.File) && !relKeyedRead
+            && ResolveRelativeKeyLocation(read.File) is { } rdKey)
+            block.Instructions.Add(new IrStoreRelativeKey(read.File.Name, rdKey));
+
         // If INTO specified, MOVE FD record to INTO target. The INTO target is a RECEIVING operand:
         // when it is a group whose OCCURS DEPENDING ON object is inside the group, the MAXIMUM length
         // is used (ISO §13.18.38 OCCURS GR — receiving operand), so all occurrences are moved.
@@ -258,6 +278,21 @@ internal sealed class FileIoLowerer
     {
         if (!IsVaryingSequential(file) || file!.RecordVaryingDependingOn == null) return null;
         var sym = _ctx.Semantic.ResolveData(file.RecordVaryingDependingOn);
+        return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
+    }
+
+    private static bool IsRelative(FileSymbol? f) => f?.Organization == "RELATIVE";
+
+    /// <summary>RELATIVE file in random or dynamic access — WRITE/REWRITE/DELETE position by the
+    /// RELATIVE KEY; sequential access appends / uses the current record (ISO §14.9.x).</summary>
+    private static bool IsRelativeRandom(FileSymbol? f)
+        => IsRelative(f) && f!.AccessMode is "RANDOM" or "DYNAMIC";
+
+    /// <summary>Storage location of a file's RELATIVE KEY data item, or null.</summary>
+    private IrLocation? ResolveRelativeKeyLocation(FileSymbol? f)
+    {
+        if (f?.RelativeKey == null) return null;
+        var sym = _ctx.Semantic.ResolveData(f.RelativeKey);
         return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
     }
 
@@ -393,6 +428,10 @@ internal sealed class FileIoLowerer
                         fromLoc.GetPic(), recordLoc.GetPic()));
             }
 
+            // RELATIVE random/dynamic REWRITE replaces the record at the RELATIVE KEY (ISO §14.9.35).
+            if (IsRelativeRandom(rw.File) && ResolveRelativeKeyLocation(rw.File) is { } rwKey)
+                block.Instructions.Add(new IrSetRelativeKey(cobolName, rwKey));
+
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
         }
         EmitFileStatus(rw.File, block);
@@ -403,6 +442,9 @@ internal sealed class FileIoLowerer
     public IrBasicBlock LowerDelete(BoundDeleteStatement del, IrMethod method, IrBasicBlock block)
     {
         string cobolName = del.File.Name;
+        // RELATIVE random/dynamic DELETE removes the record at the RELATIVE KEY (ISO §14.9.12 GR 4).
+        if (IsRelativeRandom(del.File) && ResolveRelativeKeyLocation(del.File) is { } delKey)
+            block.Instructions.Add(new IrSetRelativeKey(cobolName, delKey));
         block.Instructions.Add(new IrDeleteRecord(cobolName));
         EmitFileStatus(del.File, block);
 
