@@ -99,11 +99,18 @@ internal sealed class CilFileIoEmitter
     internal void EmitSetRelativeKey(ILProcessor il, IrSetRelativeKey srk)
     {
         il.Append(il.Create(OpCodes.Ldstr, srk.CobolFileName));
-        _ctx.Location.EmitLocationArgs(il, srk.KeyVariable); // byte[], offset, size
-        var m = _ctx.Module.ImportReference(
+        // Decode the RELATIVE KEY data item to its integer value PIC-aware (DISPLAY / COMP / COMP-3),
+        // NOT by parsing its raw bytes as ASCII — relative keys are routinely USAGE COMP, whose bytes
+        // are binary. This is the same decode the subscript/EVALUATE paths use.
+        _ctx.Location.EmitLocationArgsWithPic(il, srk.KeyVariable); // byte[], offset, length, PicDescriptor
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod("SetRelativeKey",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, m));
+                new[] { typeof(string), typeof(int) })!)));
     }
 
     /// <summary>
@@ -112,15 +119,17 @@ internal sealed class CilFileIoEmitter
     /// </summary>
     internal void EmitStoreRelativeKey(ILProcessor il, IrStoreRelativeKey srk)
     {
-        _ctx.Location.EmitLocationArgs(il, srk.KeyVariable); // byte[], offset, size
+        // Encode the relative record number into the RELATIVE KEY data item PIC-aware (DISPLAY / COMP /
+        // COMP-3), the inverse of the decode used to read it — so a USAGE COMP key round-trips.
+        _ctx.Location.EmitLocationArgsWithPic(il, srk.KeyVariable); // byte[], offset, length, PicDescriptor
         il.Append(il.Create(OpCodes.Ldstr, srk.CobolFileName));
-        var getSlot = _ctx.Module.ImportReference(
-            typeof(FileRuntime).GetMethod("GetRelativeSlot", new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, getSlot));
-        var moveInt = _ctx.Module.ImportReference(
-            typeof(StorageHelpers).GetMethod("MoveIntToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
-        il.Append(il.Create(OpCodes.Call, moveInt));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("GetRelativeSlot", new[] { typeof(string) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(System.Convert).GetMethod("ToDecimal", new[] { typeof(int) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("EncodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor), typeof(decimal) })!)));
     }
 
     /// <summary>

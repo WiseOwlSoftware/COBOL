@@ -186,7 +186,14 @@ internal sealed class FileIoLowerer
                         var keySym = _ctx.Semantic.ResolveData(keyName!);
                         var keyLoc = keySym != null ? _ctx.Location.ResolveLocation(keySym) : null;
                         if (keyLoc != null)
+                        {
+                            // RELATIVE random/dynamic READ positions by the RELATIVE KEY, decoded
+                            // PIC-aware to the relative record number (ISO §14.9.30). INDEXED keyed
+                            // reads keep using the key bytes (the alphanumeric record key).
+                            if (IsRelative(read.File))
+                                block.Instructions.Add(new IrSetRelativeKey(cobolName, keyLoc));
                             block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
+                        }
                         else
                             block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
                     }

@@ -82,17 +82,15 @@ public static class FileRuntime
     }
 
     /// <summary>
-    /// Set the RELATIVE KEY value for the next keyed WRITE/REWRITE/DELETE on a RELATIVE file.
-    /// Read from the RELATIVE KEY data item (a DISPLAY numeric slot number) just before the operation.
+    /// Set the RELATIVE KEY value (relative record number) for the next keyed WRITE/REWRITE/DELETE/READ
+    /// on a RELATIVE file. The compiler decodes the RELATIVE KEY data item PIC-aware (DISPLAY/COMP/
+    /// COMP-3) and passes the integer here, so binary (COMP) keys are handled correctly.
     /// </summary>
-    public static void SetRelativeKey(string cobolName, byte[] keyArea, int keyOffset, int keySize)
+    public static void SetRelativeKey(string cobolName, int key)
     {
         EnsureManager();
         if (_manager!.GetHandler(cobolName) is RelativeFileHandler rel)
-        {
-            string text = Encoding.ASCII.GetString(keyArea, keyOffset, keySize).Trim();
-            rel.SetPendingKey(int.TryParse(text, out int n) ? n : 0);
-        }
+            rel.SetPendingKey(key);
     }
 
     /// <summary>

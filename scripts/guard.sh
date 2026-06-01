@@ -17,7 +17,11 @@ cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/out
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 5 RL + 1 IX = 197 tests).
+# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 7 RL + 1 IX = 199 tests).
+# RL101A→RL102A→RL103A are a producer/updater/verifier chain over the shared relative file TF021
+# (XXXX[PD]021): RL101A creates 500 records, RL102A REWRITEs 100, RL103A verifies. They MUST stay
+# consecutive in this list (the loop does not clean data files between tests, so TF021 carries over),
+# and ahead of any other TF021 producer (e.g. RL201A).
 # RL210A was dropped: its earlier "clean" baseline was a vacuous pass — it writes a second 01
 # record (RL-VS1R1) whose WRITE was silently a no-op (ResolveFileForRecord returned null for any
 # record but the FD's first), so the relative file was never properly populated. With that fixed
@@ -47,7 +51,7 @@ IC203A IC224A IC225A IC228A
 SQ101M SQ102A SQ104A SQ108A SQ111A SQ112A SQ113A SQ117A SQ126A SQ127A
 SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ204A SQ207M SQ211A SQ213A
 SQ214A SQ217A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ302M
-RL101A RL107A RL201A RL209A RL302M
+RL101A RL102A RL103A RL107A RL201A RL209A RL302M
 IX302M
 "
 

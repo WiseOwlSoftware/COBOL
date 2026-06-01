@@ -196,7 +196,9 @@ public class RelativeFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode is FileOpenMode.Output or FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
-        int slot = ParseKey(keyValue);
+        // The relative record number is the pending key, decoded PIC-aware by the compiler before the
+        // read (the byte form in keyValue would mis-decode a USAGE COMP relative key).
+        int slot = _pendingKey;
         if (!_records!.TryGetValue(slot, out var rec))
             return FileStatus.RecordNotFound; // 23 — no record at the relative key (INVALID KEY)
         _currentRecord = slot;
