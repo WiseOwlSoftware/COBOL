@@ -1,0 +1,47 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL207A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ READ RANDOM          PASS  REL-TEST-003       .01
+ READ RANDOM          PASS  REL-TEST-003       .02
+ READ RANDOM          PASS  REL-TEST-003       .03
+ READ RANDOM          PASS  REL-TEST-003       .04
+ REWRITE              PASS  REL-TEST-004       .01
+ REWRITE              PASS  REL-TEST-004       .02
+ REWRITE              PASS  REL-TEST-004       .03
+ READ RANDOM          PASS  REL-TEST-005       .01
+ READ RANDOM          PASS  REL-TEST-005       .02
+ READ RANDOM          PASS  REL-TEST-005       .03
+ READ RANDOM          PASS  REL-TEST-005       .04
+ VAR. SIZE REC UPDATE PASS  REL-TEST-006       .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-007       .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-008       .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-009-1     .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-009-2     .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-009-3     .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-010-1     .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-010-2     .05
+ VAR. SIZE REC UPDATE PASS  REL-TEST-010-3     .05
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL207A
+
+                                                    020 OF 020  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

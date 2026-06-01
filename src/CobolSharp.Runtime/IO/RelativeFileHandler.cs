@@ -15,19 +15,27 @@ namespace CobolSharp.Runtime.IO;
 /// </summary>
 public class RelativeFileHandler : IFileHandler
 {
-    private readonly int _recordLength;
+    private readonly int _recordLength;        // maximum record size (the slot/record-area width)
     private readonly int _relativeKeyDigits;   // digit capacity of the RELATIVE KEY (0 = unknown)
     private SortedDictionary<int, byte[]>? _records;  // occupied slots; null when closed
     private int _currentRecord;                // last slot read/positioned (0 = none)
     private int _pendingKey;                   // relative key value for the next keyed WRITE/REWRITE/DELETE
+    private int _lastRecordLength;             // actual length of the most recently read record
     private FileOpenMode _openMode;
     private string? _dataFilePath;
 
     public string ExternalName { get; }
     public bool IsOpen => _records != null;
 
-    /// <summary>Relative records are fixed-length; the record length is constant.</summary>
-    public int LastRecordLength => _recordLength;
+    /// <summary>Actual character length of the most recently read record. For a fixed-length file this
+    /// is always the record length; for RECORD IS VARYING it is the length the record was written with,
+    /// recovered from the per-slot length stored on disk (for the DEPENDING ON data item).</summary>
+    public int LastRecordLength => _lastRecordLength;
+
+    /// <summary>When true the file has variable-length records (RECORD IS VARYING, or multiple 01
+    /// records of differing sizes — ISO §13.18.43). Each slot then stores its own length, persisted as
+    /// a 4-byte little-endian prefix so the length round-trips across run units.</summary>
+    public bool IsRecordVarying { get; set; }
 
     /// <summary>When true (ACCESS MODE SEQUENTIAL) WRITE appends to the next slot and REWRITE/DELETE
     /// act on the current record; when false (RANDOM/DYNAMIC) they act on the slot given by the
@@ -46,6 +54,7 @@ public class RelativeFileHandler : IFileHandler
         ExternalName = externalName;
         _recordLength = recordLength;
         _relativeKeyDigits = relativeKeyDigits;
+        _lastRecordLength = recordLength;
     }
 
     /// <summary>Set the relative record number for the next keyed WRITE/REWRITE/DELETE
@@ -98,15 +107,36 @@ public class RelativeFileHandler : IFileHandler
     private void LoadFromFile()
     {
         using var stream = new FileStream(_dataFilePath!, FileMode.Open, FileAccess.Read);
+        if (IsRecordVarying)
+        {
+            // Variable format: each slot is [4-byte LE actual-length][_recordLength data]. A length of
+            // 0xFFFFFFFF marks a gap (never-written / deleted slot). The stored record is the leading
+            // `len` bytes of the data area.
+            byte[] lenBuf = new byte[4];
+            byte[] data = new byte[_recordLength];
+            int slot = 0;
+            while (stream.Read(lenBuf, 0, 4) == 4 && stream.Read(data, 0, _recordLength) == _recordLength)
+            {
+                slot++;
+                uint len = (uint)(lenBuf[0] | (lenBuf[1] << 8) | (lenBuf[2] << 16) | (lenBuf[3] << 24));
+                if (len == 0xFFFFFFFF) continue; // gap
+                if (len > (uint)_recordLength) len = (uint)_recordLength;
+                var rec = new byte[len];
+                Array.Copy(data, 0, rec, 0, (int)len);
+                _records![slot] = rec;
+            }
+            return;
+        }
+
         byte[] buf = new byte[_recordLength];
-        int slot = 0;
+        int fslot = 0;
         while (stream.Read(buf, 0, _recordLength) == _recordLength)
         {
-            slot++;
+            fslot++;
             // A slot is occupied unless it is all-0x00 (never written / OS zero-fill) or all-0xFF
             // (a deleted/empty marker).
             if (!IsEmptySlot(buf))
-                _records![slot] = (byte[])buf.Clone();
+                _records![fslot] = (byte[])buf.Clone();
         }
     }
 
@@ -146,6 +176,33 @@ public class RelativeFileHandler : IFileHandler
         if (_records!.Count == 0) return;
         int max = 0;
         foreach (var k in _records.Keys) if (k > max) max = k;
+
+        if (IsRecordVarying)
+        {
+            // [4-byte LE actual-length][_recordLength data] per slot; gap = length 0xFFFFFFFF.
+            byte[] lenBuf = new byte[4];
+            byte[] data = new byte[_recordLength];
+            for (int slot = 1; slot <= max; slot++)
+            {
+                if (_records.TryGetValue(slot, out var rec))
+                {
+                    uint len = (uint)Math.Min(rec.Length, _recordLength);
+                    lenBuf[0] = (byte)len; lenBuf[1] = (byte)(len >> 8);
+                    lenBuf[2] = (byte)(len >> 16); lenBuf[3] = (byte)(len >> 24);
+                    Array.Fill(data, (byte)' ');
+                    Array.Copy(rec, 0, data, 0, (int)len);
+                }
+                else
+                {
+                    lenBuf[0] = lenBuf[1] = lenBuf[2] = lenBuf[3] = 0xFF; // gap
+                    Array.Fill(data, (byte)0xFF);
+                }
+                stream.Write(lenBuf, 0, 4);
+                stream.Write(data, 0, _recordLength);
+            }
+            return;
+        }
+
         byte[] gap = new byte[_recordLength];
         Array.Fill(gap, (byte)0xFF);
         for (int slot = 1; slot <= max; slot++)
@@ -168,6 +225,7 @@ public class RelativeFileHandler : IFileHandler
             if (_relativeKeyDigits > 0 && kv.Key >= Pow10(_relativeKeyDigits))
                 return FileStatus.RelativeKeyOverflow; // 14
             _currentRecord = kv.Key;
+            _lastRecordLength = kv.Value.Length;
             CopyToBuffer(kv.Value, recordBuffer);
             return FileStatus.Success;
         }
@@ -187,6 +245,7 @@ public class RelativeFileHandler : IFileHandler
         }
         if (best == 0) return FileStatus.AtEnd;
         _currentRecord = best;
+        _lastRecordLength = _records[best].Length;
         CopyToBuffer(_records[best], recordBuffer);
         return FileStatus.Success;
     }
@@ -202,38 +261,42 @@ public class RelativeFileHandler : IFileHandler
         if (!_records!.TryGetValue(slot, out var rec))
             return FileStatus.RecordNotFound; // 23 — no record at the relative key (INVALID KEY)
         _currentRecord = slot;
+        _lastRecordLength = rec.Length;
         CopyToBuffer(rec, recordBuffer);
         return FileStatus.Success;
     }
 
     public string Write(byte[] recordData)
     {
+        string status = SelectWriteSlot(out int slot);
+        if (status != FileStatus.Success) return status;
+        _records![slot] = ToSlot(recordData);
+        _currentRecord = slot;
+        return FileStatus.Success;
+    }
+
+    /// <summary>Select the target slot for a WRITE (shared by fixed and variable writes). §14.9.51 GR:
+    /// sequential access assigns the next ascending relative number (digit-overflow → 24); random/dynamic
+    /// uses the program-set RELATIVE KEY (key &lt; 1 → 34, already-occupied slot → 22).</summary>
+    private string SelectWriteSlot(out int slot)
+    {
+        slot = 0;
         // WRITE on a file connector not open in the correct mode is status 48 (ISO §9.1.13.7).
         if (!IsOpen) return FileStatus.WriteNotOpenForOutput;
-        if (_openMode == FileOpenMode.Input)
-            return FileStatus.WriteNotOpenForOutput;
+        if (_openMode == FileOpenMode.Input) return FileStatus.WriteNotOpenForOutput;
 
-        int slot;
         if (SequentialAccess)
         {
-            // §14.9.51 GR (sequential access): the operating environment assigns the next ascending
-            // relative record number (OUTPUT starts at 1; EXTEND at highest+1). If that number needs
-            // more significant digits than the RELATIVE KEY data item holds, status 24.
             slot = NextSequentialSlot();
             if (_relativeKeyDigits > 0 && slot >= Pow10(_relativeKeyDigits))
                 return FileStatus.BoundaryViolation; // 24
         }
         else
         {
-            // §14.9.51 GR (random/dynamic access): the program sets the relative key. A key below 1
-            // is status 34; a key naming an already-occupied slot is the invalid-key duplicate, 22.
             slot = _pendingKey;
             if (slot < 1) return FileStatus.SequentialBoundaryViolation; // 34
-            if (_records!.ContainsKey(slot))
-                return FileStatus.DuplicateKey; // 22 (INVALID KEY)
+            if (_records!.ContainsKey(slot)) return FileStatus.DuplicateKey; // 22 (INVALID KEY)
         }
-        _records![slot] = ToSlot(recordData);
-        _currentRecord = slot;
         return FileStatus.Success;
     }
 
@@ -271,8 +334,20 @@ public class RelativeFileHandler : IFileHandler
         return FileStatus.Success;
     }
 
-    /// <summary>Relative records are fixed-length — variable write is an ordinary write.</summary>
-    public string WriteVariable(byte[] recordData) => Write(recordData);
+    /// <summary>Variable-length WRITE (RECORD IS VARYING): store the record at its actual length (the
+    /// caller passed exactly the depending-on byte count), not padded to the slot width, so the length
+    /// round-trips on read-back via the per-slot length prefix. Slot selection is identical to Write.</summary>
+    public string WriteVariable(byte[] recordData)
+    {
+        string status = SelectWriteSlot(out int slot);
+        if (status != FileStatus.Success) return status;
+        int len = Math.Min(recordData.Length, _recordLength);
+        var rec = new byte[len];
+        Array.Copy(recordData, 0, rec, 0, len);
+        _records![slot] = rec;
+        _currentRecord = slot;
+        return FileStatus.Success;
+    }
 
     public string Start(byte[] keyValue, StartCondition condition)
     {

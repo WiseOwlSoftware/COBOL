@@ -53,12 +53,13 @@ internal sealed class FileIoLowerer
                     fileName, recordLoc, wr.AdvancingLines.Value, !wr.IsAfterAdvancing,
                     advancingLocation: advLoc));
             }
-            else if (IsVaryingSequential(wr.File))
+            else if (IsVaryingRecord(wr.File))
             {
-                // RECORD IS VARYING (sequential): write without trailing-space trimming. With DEPENDING
-                // ON the length is the depending item's runtime value; otherwise it is the written
-                // record's own declared size (ISO §13.18.43 / §14.9.51). A lengthLoc of null selects the
-                // latter. Relative/indexed records occupy fixed-size slots, so they use the fixed write.
+                // RECORD IS VARYING: write without trailing-space trimming. With DEPENDING ON the length
+                // is the depending item's runtime value; otherwise it is the written record's own declared
+                // size (ISO §13.18.43 / §14.9.51). A lengthLoc of null selects the latter. For a RELATIVE
+                // file the variable write stores the record at its actual length in its slot (the slot
+                // carries a per-record length); the RELATIVE KEY handling above/below still applies.
                 var lengthLoc = ResolveRecordLengthLocation(wr.File);
                 block.Instructions.Add(new IrWriteRecordVariable(fileName, recordLoc, lengthLoc));
             }
@@ -283,7 +284,7 @@ internal sealed class FileIoLowerer
     /// </summary>
     private IrLocation? ResolveRecordLengthLocation(FileSymbol? file)
     {
-        if (!IsVaryingSequential(file) || file!.RecordVaryingDependingOn == null) return null;
+        if (!IsVaryingRecord(file) || file!.RecordVaryingDependingOn == null) return null;
         var sym = _ctx.Semantic.ResolveData(file.RecordVaryingDependingOn);
         return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
     }
@@ -318,6 +319,20 @@ internal sealed class FileIoLowerer
     }
 
     /// <summary>
+    /// True for a variable-length-record file that the variable-record machinery (no-trim WRITE,
+    /// read-into-largest, length store) applies to: SEQUENTIAL (explicit RECORD VARYING or multiple 01
+    /// sizes) or RELATIVE (explicit RECORD VARYING — relative slots now carry a per-record length, see
+    /// RelativeFileHandler). INDEXED is excluded. The RELATIVE case must match the runtime flag set in
+    /// Binder (FileRuntime.SetRelativeVarying), so it keys on the explicit clause only.
+    /// </summary>
+    private bool IsVaryingRecord(FileSymbol? file)
+    {
+        if (file is null) return false;
+        if (IsRelative(file)) return file.IsRecordVarying;
+        return IsVaryingSequential(file);
+    }
+
+    /// <summary>
     /// True when the FD has two or more 01 record descriptions of differing storage sizes — which
     /// makes the file's records variable-length even without a RECORD VARYING clause (ISO §13.18.43).
     /// </summary>
@@ -341,7 +356,7 @@ internal sealed class FileIoLowerer
     /// </summary>
     private IrLocation? ResolveReadRecordLocation(FileSymbol file, DataSymbol recordSym)
     {
-        if (IsVaryingSequential(file))
+        if (IsVaryingRecord(file))
         {
             DataSymbol largest = recordSym;
             int largestLen = _ctx.Semantic.GetStorageLocation(recordSym)?.Length ?? 0;

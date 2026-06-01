@@ -81,6 +81,15 @@ public static class FileRuntime
             rel.SequentialAccess = sequential;
     }
 
+    /// <summary>Mark a RELATIVE file as having variable-length records (RECORD IS VARYING) so each slot
+    /// stores and persists its own length. Must agree with the compiler's variable-write decision.</summary>
+    public static void SetRelativeVarying(string cobolName, bool varying)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is RelativeFileHandler rel)
+            rel.IsRecordVarying = varying;
+    }
+
     /// <summary>
     /// Set the RELATIVE KEY value (relative record number) for the next keyed WRITE/REWRITE/DELETE/READ
     /// on a RELATIVE file. The compiler decodes the RELATIVE KEY data item PIC-aware (DISPLAY/COMP/

@@ -17,7 +17,12 @@ cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/out
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 15 RL + 2 IX = 208 tests).
+# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 17 RL + 2 IX = 210 tests).
+# RL206A→RL207A are a producer/consumer pair over TF021 with VARIABLE-LENGTH records (RECORD IS
+# VARYING): RL206A creates the file (each slot stores its own length, persisted length-prefixed), RL207A
+# verifies/updates it. They MUST stay consecutive, AND a fixed-format TF021 producer must follow (RL209A
+# opens OUTPUT, re-creating TF021 in the fixed format) so the later fixed TF021 readers are unaffected —
+# each producer re-creates the file in its own format, so consecutive chains are self-sufficient.
 # RL105A/RL118A are self-contained (each opens its relative file OUTPUT, populates it, and verifies in
 # one run), so they carry no chain dependency. RL108A→RL109A→RL110A are a producer/updater/verifier
 # chain over the shared relative file TF061 (XXXXX061): RL108A creates 500 records (ACCESS SEQUENTIAL),
@@ -66,7 +71,7 @@ IC203A IC224A IC225A IC228A
 SQ101M SQ102A SQ104A SQ108A SQ111A SQ112A SQ113A SQ117A SQ126A SQ127A
 SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ204A SQ207M SQ211A SQ213A
 SQ214A SQ217A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ302M
-RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL209A RL302M
+RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL209A RL302M
 IX107A IX302M
 "
 

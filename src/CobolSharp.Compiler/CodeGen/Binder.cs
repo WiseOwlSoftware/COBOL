@@ -366,6 +366,18 @@ public sealed class Binder
                 block.Instructions.Add(new IrLoadConst(relSeqVal, sequential));
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetRelativeAccess",
                     new[] { relNameVal, relSeqVal }));
+
+                // RECORD IS VARYING on a relative file: each slot stores its own length (persisted as a
+                // length prefix). Must agree with FileIoLowerer.IsVaryingRecord (relative → explicit clause).
+                if (fileSym.IsRecordVarying)
+                {
+                    var relVarNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                    var relVarVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    block.Instructions.Add(new IrLoadConst(relVarNameVal, fileSym.Name));
+                    block.Instructions.Add(new IrLoadConst(relVarVal, true));
+                    block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetRelativeVarying",
+                        new[] { relVarNameVal, relVarVal }));
+                }
             }
         }
 
