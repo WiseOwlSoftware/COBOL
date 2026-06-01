@@ -103,8 +103,13 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     var bound = _ctx.FileIo.BindUse(useCtx);
                     if (!bound.IsBeforeReporting)
                     {
+                        // file-name-scoped: USE … ON file-name-1 …
                         foreach (var fileName in bound.FileNames)
                             _semantic.RegisterUseDeclarative(fileName, sectionName);
+                        // open-mode-scoped: USE … ON INPUT/OUTPUT/I-O/EXTEND — applies to every file
+                        // open in that mode, dispatched by the file's runtime open mode.
+                        if (bound.TargetMode is { } mode)
+                            _semantic.RegisterUseDeclarativeForMode(mode, sectionName);
                     }
                 }
             }

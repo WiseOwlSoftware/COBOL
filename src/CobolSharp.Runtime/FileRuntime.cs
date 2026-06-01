@@ -17,6 +17,10 @@ public static class FileRuntime
     private static readonly Dictionary<string, int> _lastRecordLength = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> _afterAdvancingFiles = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> _lockedFiles = new(StringComparer.OrdinalIgnoreCase);
+    // Open-mode scope of each currently-open file, for dispatching open-mode-scoped USE declaratives
+    // (USE AFTER ERROR PROCEDURE ON INPUT/OUTPUT/I-O/EXTEND). Encoded as the UseScope.* values below;
+    // set on the OPEN attempt (so a failed OPEN still routes to the mode's declarative), cleared on CLOSE.
+    private static readonly Dictionary<string, int> _openModeScope = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Initialize the file manager. Called once at program start.
@@ -29,6 +33,7 @@ public static class FileRuntime
         _lastRecordLength.Clear();
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
+        _openModeScope.Clear();
     }
 
     /// <summary>
@@ -144,6 +149,7 @@ public static class FileRuntime
     {
         if (CheckLocked(fileName)) return;
         EnsureManager();
+        _openModeScope[fileName] = UseScopeOutput;
         string status = _manager!.Open(fileName, FileOpenMode.Output);
         _lastStatus[fileName] = status;
     }
@@ -155,6 +161,7 @@ public static class FileRuntime
     {
         if (CheckLocked(fileName)) return;
         EnsureManager();
+        _openModeScope[fileName] = UseScopeInput;
         string status = _manager!.Open(fileName, FileOpenMode.Input);
         _lastStatus[fileName] = status;
     }
@@ -166,6 +173,7 @@ public static class FileRuntime
     {
         if (CheckLocked(fileName)) return;
         EnsureManager();
+        _openModeScope[fileName] = UseScopeIO;
         string status = _manager!.Open(fileName, FileOpenMode.InputOutput);
         _lastStatus[fileName] = status;
     }
@@ -177,6 +185,7 @@ public static class FileRuntime
     {
         if (CheckLocked(fileName)) return;
         EnsureManager();
+        _openModeScope[fileName] = UseScopeExtend;
         string status = _manager!.Open(fileName, FileOpenMode.Extend);
         _lastStatus[fileName] = status;
     }
@@ -457,6 +466,34 @@ public static class FileRuntime
         return false;
     }
 
+    // USE-declarative scope encoding (must match FileIoLowerer): -1 = file-name-scoped (applies to
+    // the file regardless of mode); 0/1/2/3 = open-mode-scoped (INPUT/OUTPUT/I-O/EXTEND).
+    private const int UseScopeFileName = -1;
+    private const int UseScopeInput = 0;
+    private const int UseScopeOutput = 1;
+    private const int UseScopeIO = 2;
+    private const int UseScopeExtend = 3;
+
+    /// <summary>
+    /// Decide whether a USE AFTER STANDARD ERROR/EXCEPTION declarative with the given scope should run
+    /// after the last I/O on <paramref name="fileName"/> (ISO §14.9.49 / §9.1.13). It runs only when:
+    /// (1) the last I-O status indicates an unsuccessful (exception) condition — i.e. it is NOT one of
+    /// the successful codes 00/02/04/05/07 — and (2) the declarative's scope applies: a file-name-scoped
+    /// declarative (scope -1) always applies to its file; an open-mode-scoped declarative applies only
+    /// when the file was opened in that mode. The compiler emits this at I/O sites that have no explicit
+    /// AT END / INVALID KEY phrase (which would otherwise handle the condition themselves).
+    /// </summary>
+    public static bool ShouldRunUseDeclarative(string fileName, int scope)
+    {
+        if (!_lastStatus.TryGetValue(fileName, out var status)) return false;
+        // Successful completion (status class 0: 00 successful, 02 dup-key-ok, 04 length, 05 optional-
+        // absent-on-open, 07 no-reel) is not an exception — no declarative.
+        if (status is FileStatus.Success or FileStatus.DuplicateAlternateKey
+            or "04" or "05" or "07") return false;
+        if (scope == UseScopeFileName) return true;
+        return _openModeScope.TryGetValue(fileName, out var m) && m == scope;
+    }
+
     /// <summary>
     /// Resolve COBOL file name to host file path.
     /// Used during handler registration to compute the external file name.
@@ -480,6 +517,7 @@ public static class FileRuntime
         _lastRecordLength.Clear();
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
+        _openModeScope.Clear();
     }
 
     private static void EnsureManager()

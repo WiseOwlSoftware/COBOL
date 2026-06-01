@@ -169,12 +169,25 @@ public sealed class SemanticModel
     private readonly Dictionary<string, string> _useDeclaratives =
         new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Map from file name to the declarative section that handles its I/O errors.</summary>
+    /// <summary>Map from file name to the declarative section that handles its I/O errors
+    /// (USE AFTER STANDARD ERROR PROCEDURE ON file-name…).</summary>
     public IReadOnlyDictionary<string, string> UseDeclaratives => _useDeclaratives;
 
-    /// <summary>Register a USE AFTER ERROR declarative for a file.</summary>
+    /// <summary>Register a file-name-scoped USE AFTER ERROR declarative.</summary>
     public void RegisterUseDeclarative(string fileName, string sectionName)
         => _useDeclaratives[fileName] = sectionName;
+
+    // Open-mode-scoped USE declaratives (USE AFTER ERROR PROCEDURE ON INPUT/OUTPUT/I-O/EXTEND):
+    // they apply to every file currently open in that mode, so they are keyed by mode, not file name.
+    private readonly Dictionary<Bound.OpenMode, string> _useDeclarativesByMode = new();
+
+    /// <summary>Map from open mode to the declarative section that handles I/O errors for files
+    /// opened in that mode.</summary>
+    public IReadOnlyDictionary<Bound.OpenMode, string> UseDeclarativesByMode => _useDeclarativesByMode;
+
+    /// <summary>Register an open-mode-scoped USE AFTER ERROR declarative.</summary>
+    public void RegisterUseDeclarativeForMode(Bound.OpenMode mode, string sectionName)
+        => _useDeclarativesByMode[mode] = sectionName;
 
     // ── Storage sizes (set by ComputeStorageLayout) ──
 

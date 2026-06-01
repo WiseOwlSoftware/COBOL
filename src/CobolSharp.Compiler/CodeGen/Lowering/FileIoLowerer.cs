@@ -376,64 +376,80 @@ internal sealed class FileIoLowerer
     }
 
     /// <summary>
-    /// Emit USE AFTER EXCEPTION declarative check: if a USE declarative is registered
-    /// for this file and the last I/O status indicates an error, PERFORM the declarative section.
-    /// Returns the (possibly new) current block after branching.
+    /// Emit USE AFTER STANDARD ERROR/EXCEPTION declarative dispatch (ISO §14.9.49) at an I/O site that
+    /// has no explicit AT END / INVALID KEY phrase. If the last I/O on the file raised an exception
+    /// condition, PERFORM the applicable declarative section. A file-name-scoped declarative for this
+    /// file takes precedence; otherwise each open-mode-scoped declarative (USE … ON INPUT/OUTPUT/I-O/
+    /// EXTEND) is dispatched at runtime by the file's actual open mode (FileRuntime.ShouldRunUseDeclarative).
+    /// Returns the (possibly new) current block after the branches.
     /// </summary>
     private IrBasicBlock EmitUseDeclarative(FileSymbol file, IrMethod method, IrBasicBlock block)
     {
-        if (!_ctx.Semantic.UseDeclaratives.TryGetValue(file.Name, out var sectionName))
-            return block;
+        // Build the candidate (scope, section) list. UseScope: -1 file-name; 0/1/2/3 INPUT/OUTPUT/I-O/EXTEND.
+        var candidates = new List<(int scope, string section)>();
+        if (_ctx.Semantic.UseDeclaratives.TryGetValue(file.Name, out var fileSection))
+            candidates.Add((-1, fileSection)); // file-name-specific takes precedence; no mode fallbacks
+        else
+            foreach (var kv in _ctx.Semantic.UseDeclarativesByMode)
+                candidates.Add((UseModeScope(kv.Key), kv.Value));
 
-        // Find the first paragraph of the declarative section
-        var sectionParas = _ctx.Semantic.GetSectionParagraphs(sectionName);
-        if (sectionParas == null || sectionParas.Count == 0)
-            return block;
+        foreach (var (scope, section) in candidates)
+        {
+            var sectionParas = _ctx.Semantic.GetSectionParagraphs(section);
+            if (sectionParas == null || sectionParas.Count == 0) continue;
+            if (!_ctx.ParagraphMethods.ContainsKey(sectionParas[0])) continue;
 
-        string firstPara = sectionParas[0];
-        if (!_ctx.ParagraphMethods.TryGetValue(firstPara, out var paraMethod))
-            return block;
+            var cond = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckUseDeclarative(file.Name, scope, cond));
 
-        // Check if file status != "00" (error occurred)
-        var errorVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-        block.Instructions.Add(new IrCheckFileInvalidKey(file.Name, errorVal));
+            var useBlock = method.CreateBlock("use.handler");
+            var afterBlock = method.CreateBlock("use.after");
+            block.Instructions.Add(new IrBranch(cond, useBlock, afterBlock));
 
-        var useBlock = method.CreateBlock("use.handler");
-        var afterBlock = method.CreateBlock("use.after");
-        block.Instructions.Add(new IrBranch(errorVal, useBlock, afterBlock));
+            method.Blocks.Add(useBlock);
+            EmitPerformDeclarativeSection(sectionParas, useBlock);
+            useBlock.Instructions.Add(new IrJump(afterBlock));
 
-        // USE handler: PERFORM the declarative section
-        method.Blocks.Add(useBlock);
+            method.Blocks.Add(afterBlock);
+            block = afterBlock; // chain: the next candidate's check follows this branch's join
+        }
+        return block;
+    }
+
+    /// <summary>Map a USE-declarative open-mode scope to the runtime UseScope encoding used by
+    /// FileRuntime.ShouldRunUseDeclarative.</summary>
+    private static int UseModeScope(OpenMode mode) => mode switch
+    {
+        OpenMode.Input => 0,
+        OpenMode.Output => 1,
+        OpenMode.IO => 2,
+        OpenMode.Extend => 3,
+        _ => -1,
+    };
+
+    /// <summary>PERFORM a declarative SECTION: one paragraph as a plain PERFORM, multiple as PERFORM THRU
+    /// (first THRU last paragraph of the section), so control returns after the section's last paragraph.</summary>
+    private void EmitPerformDeclarativeSection(IReadOnlyList<string> sectionParas, IrBasicBlock useBlock)
+    {
         if (sectionParas.Count == 1)
         {
-            useBlock.Instructions.Add(new IrPerform(paraMethod));
+            if (_ctx.ParagraphMethods.TryGetValue(sectionParas[0], out var pm))
+                useBlock.Instructions.Add(new IrPerform(pm));
+            return;
         }
-        else
+        int startIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[0], -1);
+        int endIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[^1], -1);
+        if (startIdx < 0 || endIdx < 0) return;
+        var methods = new List<IrMethod>();
+        for (int i = startIdx; i <= endIdx; i++)
         {
-            // PERFORM THRU all paragraphs in the section
-            int startIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[0], -1);
-            int endIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[^1], -1);
-            if (startIdx >= 0 && endIdx >= 0)
-            {
-                var methods = new List<IrMethod>();
-                for (int i = startIdx; i <= endIdx; i++)
-                {
-                    var pName = _ctx.ParagraphsByIndex[i];
-                    if (_ctx.ParagraphMethods.TryGetValue(pName, out var pm))
-                        methods.Add(pm);
-                    else
-                    {
-                        _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, pName);
-                        continue;
-                    }
-                }
-                useBlock.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
-            }
+            var pName = _ctx.ParagraphsByIndex[i];
+            if (_ctx.ParagraphMethods.TryGetValue(pName, out var pm))
+                methods.Add(pm);
+            else
+                _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0501, SourceLocation.None, TextSpan.Empty, pName);
         }
-        useBlock.Instructions.Add(new IrJump(afterBlock));
-
-        method.Blocks.Add(afterBlock);
-        return afterBlock;
+        useBlock.Instructions.Add(new IrPerformThru(startIdx, endIdx, methods));
     }
 
     // ── REWRITE ──

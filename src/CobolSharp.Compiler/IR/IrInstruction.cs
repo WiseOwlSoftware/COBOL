@@ -743,6 +743,25 @@ public sealed class IrCheckFileInvalidKey : IrInstruction
 }
 
 /// <summary>
+/// Decide whether a USE AFTER ERROR/EXCEPTION declarative of the given scope should run after the last
+/// I/O on the file (ISO §14.9.49). Sets <see cref="IrInstruction.Result"/> bool via
+/// FileRuntime.ShouldRunUseDeclarative(fileName, scope). Scope: -1 = file-name-scoped; 0/1/2/3 =
+/// open-mode-scoped INPUT/OUTPUT/I-O/EXTEND.
+/// </summary>
+public sealed class IrCheckUseDeclarative : IrInstruction
+{
+    public string FileName { get; }
+    public int Scope { get; }
+
+    public IrCheckUseDeclarative(string fileName, int scope, IrValue result)
+    {
+        FileName = fileName;
+        Scope = scope;
+        Result = result;
+    }
+}
+
+/// <summary>
 /// Check a file's read status after a READ. Sets result bool. By default this is the AT END
 /// CONDITION (status "10" only) driving an AT END / NOT AT END branch. When
 /// <see cref="TreatErrorsAsEnd"/> is set, it is a loop-exhaustion check (EOF OR any terminal

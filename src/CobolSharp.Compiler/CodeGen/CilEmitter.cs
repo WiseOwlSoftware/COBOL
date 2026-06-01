@@ -916,6 +916,7 @@ public sealed class CilEmitter
             case IrDeleteRecord del: _ctx.FileIo.EmitDeleteRecord(il, del); break;
             case IrStartFile sf: _ctx.FileIo.EmitStartFile(il, sf); break;
             case IrCheckFileInvalidKey cik: _ctx.FileIo.EmitCheckFileInvalidKey(il, cik, getLocal); break;
+            case IrCheckUseDeclarative cud: _ctx.FileIo.EmitCheckUseDeclarative(il, cud, getLocal); break;
             case IrSortInit sortInit: _ctx.FileIo.EmitSortInit(il, sortInit); break;
             case IrSortRelease sortRel: _ctx.FileIo.EmitSortRelease(il, sortRel); break;
             case IrSortSort sortSort: _ctx.FileIo.EmitSortSort(il, sortSort); break;
