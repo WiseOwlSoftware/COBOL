@@ -46,10 +46,13 @@ public class Program
         Console.WriteLine("Options:");
         Console.WriteLine("  -o <output>              Output file path (default: <program-id>.dll)");
         Console.WriteLine("  --standard <version>     COBOL standard version (default: cobol85)");
-        Console.WriteLine("                           Values: cobol85, cobol2002, cobol2014, cobol2023");
+        Console.WriteLine("                           Values: default (permissive), cobol85, cobol2002,");
+        Console.WriteLine("                           cobol2014, cobol2023. Named versions reject");
+        Console.WriteLine("                           non-standard constructs; 'default' accepts them.");
         Console.WriteLine("  --nist [name]            Enable NIST test suite preprocessing");
         Console.WriteLine("                           Replaces XXXXX### placeholders; derives test");
-        Console.WriteLine("                           name from source filename if not specified");
+        Console.WriteLine("                           name from source filename if not specified.");
+        Console.WriteLine("                           Implies --standard default unless one is given.");
         Console.WriteLine("  -h, --help               Show this help message");
     }
 
@@ -109,6 +112,7 @@ public class Program
         string? sourcePath = null;
         string? outputPath = null;
         string standard = "cobol85";
+        bool standardSpecified = false;
         string? nistTestName = null;
         var copyPaths = new List<string>();
 
@@ -121,9 +125,10 @@ public class Program
             else if (args[i] == "--standard" && i + 1 < args.Length)
             {
                 standard = args[++i].ToLowerInvariant();
-                if (standard is not ("cobol85" or "cobol2002" or "cobol2014" or "cobol2023"))
+                standardSpecified = true;
+                if (standard is not ("default" or "cobol85" or "cobol2002" or "cobol2014" or "cobol2023"))
                 {
-                    Console.Error.WriteLine($"Error: unknown standard '{standard}'. Use: cobol85, cobol2002, cobol2014, cobol2023");
+                    Console.Error.WriteLine($"Error: unknown standard '{standard}'. Use: default, cobol85, cobol2002, cobol2014, cobol2023");
                     return 1;
                 }
             }
@@ -146,6 +151,14 @@ public class Program
                 return 1;
             }
         }
+
+        // The NIST CCVS suite is written in the permissive 1980s/90s dialect (it contains a small
+        // number of non-standard constructs the era's compilers tolerated — see
+        // docs/dialect-strictness.md). Unless an explicit --standard is given, --nist runs in the
+        // permissive Default dialect so those documented leniencies are accepted; named-strict modes
+        // (e.g. --standard cobol2023) still reject them.
+        if (nistTestName != null && !standardSpecified)
+            standard = "default";
 
         if (sourcePath is null)
         {

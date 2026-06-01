@@ -559,4 +559,13 @@ public static partial class DiagnosticDescriptors
         "Bare GO TO (without target) deleted from COBOL standard in 2002; not allowed in {0} mode");
     public static readonly DiagnosticDescriptor CBL3606 = new("CBL3606", DiagnosticSeverity.Warning,
         "Bare GO TO (without target) is obsolete; removed from COBOL-2002 and later standards");
+
+    // ══════════════════════════════════════
+    // CBL3611–3612: non-standard CCVS dialect leniencies (see docs/dialect-strictness.md).
+    // Leniency L1: 'KEY' omitted from the INVALID KEY phrase.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL3611 = new("CBL3611", DiagnosticSeverity.Error,
+        "'KEY' is required in the INVALID KEY phrase; the no-KEY form is a non-standard CCVS leniency not allowed in {0} mode");
+    public static readonly DiagnosticDescriptor CBL3612 = new("CBL3612", DiagnosticSeverity.Warning,
+        "'KEY' omitted from the INVALID KEY phrase; non-standard (accepted as a CCVS leniency)");
 }

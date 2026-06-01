@@ -189,9 +189,15 @@ readAtEnd
       (NOT AT? END statementBlock)?
     ;
 
+// Leniency L1 (see docs/dialect-strictness.md): the grammar parses the permissive superset
+// "INVALID KEY?" — 'KEY' is required by the ISO statement formats (unbracketed), but the CCVS suite
+// and 1980s/90s compilers tolerate "INVALID <imperative>" without it. The dropped 'KEY' is accepted
+// in DialectMode.Default and diagnosed under named-strict modes by
+// DialectStrictnessChecks.CheckInvalidKeyNoiseWord (called from FileIoBinder). 'INVALID' is a reserved
+// word, so this relaxation is unambiguous. Applies to all five INVALID KEY phrases below.
 readInvalidKey
-    : INVALID KEY statementBlock
-      (NOT INVALID KEY statementBlock)?
+    : INVALID KEY? statementBlock
+      (NOT INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -225,8 +231,8 @@ writeAtEndOfPage
     ;
 
 writeInvalidKey
-    : INVALID KEY statementBlock
-      (NOT INVALID KEY statementBlock)?
+    : INVALID KEY? statementBlock
+      (NOT INVALID KEY? statementBlock)?
     ;
 
 recordName
@@ -250,8 +256,8 @@ rewriteFrom
     ;
 
 rewriteInvalidKeyPhrase
-    : INVALID KEY statementBlock
-      (NOT INVALID KEY statementBlock)?
+    : INVALID KEY? statementBlock
+      (NOT INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -266,8 +272,8 @@ deleteStatement
     ;
 
 deleteInvalidKeyPhrase
-    : INVALID KEY statementBlock
-      (NOT INVALID KEY statementBlock)?
+    : INVALID KEY? statementBlock
+      (NOT INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -312,8 +318,8 @@ startWithLength
     ;
 
 startInvalidKeyPhrase
-    : INVALID KEY statementBlock
-      (NOT INVALID KEY statementBlock)?
+    : INVALID KEY? statementBlock
+      (NOT INVALID KEY? statementBlock)?
     ;
 
 // ==========================================

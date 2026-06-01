@@ -78,6 +78,7 @@ internal sealed class FileIoBinder
         var notInvalidKey = new List<BoundStatement>();
         if (ctx.writeInvalidKey() is { } wikCtx)
         {
+            DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, wikCtx);
             var impStmts = wikCtx.statementBlock();
             if (impStmts.Length >= 1)
                 foreach (var stmt in impStmts[0].statement())
@@ -225,6 +226,7 @@ internal sealed class FileIoBinder
         var notInvalidKey = new List<BoundStatement>();
         if (ctx.readInvalidKey() is { } ikCtx)
         {
+            DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
             var impStmts = ikCtx.statementBlock();
             if (impStmts.Length >= 1)
                 foreach (var stmt in impStmts[0].statement())
@@ -268,6 +270,7 @@ internal sealed class FileIoBinder
         var notInvalidKey = new List<BoundStatement>();
         if (ctx.rewriteInvalidKeyPhrase() is { } rikCtx)
         {
+            DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, rikCtx);
             var impStmts = rikCtx.statementBlock();
             if (impStmts.Length >= 1)
                 foreach (var stmt in impStmts[0].statement())
@@ -300,6 +303,7 @@ internal sealed class FileIoBinder
         var notInvalidKey = new List<BoundStatement>();
         if (ctx.deleteInvalidKeyPhrase() is { } ikCtx)
         {
+            DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
             var impStmts = ikCtx.statementBlock();
             if (impStmts.Length >= 1)
                 foreach (var stmt in impStmts[0].statement())
@@ -346,6 +350,7 @@ internal sealed class FileIoBinder
         var notInvalidKey = new List<BoundStatement>();
         if (ctx.startInvalidKeyPhrase() is { } ikCtx)
         {
+            DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
             var impStmts = ikCtx.statementBlock();
             if (impStmts.Length >= 1)
                 foreach (var stmt in impStmts[0].statement())
