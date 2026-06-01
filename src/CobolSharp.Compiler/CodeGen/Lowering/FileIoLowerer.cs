@@ -353,6 +353,10 @@ internal sealed class FileIoLowerer
     /// Location to READ a record into. For a fixed-length file this is the FD's record. For a
     /// RECORD VARYING file it is the LARGEST 01 record under the FD (its storage spans the whole
     /// record area), so a maximum-length record is read in full and its length recovered correctly.
+    /// The location is resolved as a RECEIVING operand so that an 01 containing an OCCURS DEPENDING
+    /// table (a format-3 variable record, ISO §13.18.43) uses its MAXIMUM length for the read buffer —
+    /// otherwise the buffer would be sized by the depending item's (pre-read) value and truncate the
+    /// table's bytes.
     /// </summary>
     private IrLocation? ResolveReadRecordLocation(FileSymbol file, DataSymbol recordSym)
     {
@@ -366,7 +370,7 @@ internal sealed class FileIoLowerer
                 int len = _ctx.Semantic.GetStorageLocation(d)?.Length ?? 0;
                 if (len > largestLen) { largest = d; largestLen = len; }
             }
-            return _ctx.Location.ResolveLocation(largest);
+            return _ctx.Location.ResolveLocation(largest, receiving: true);
         }
         return _ctx.Location.ResolveLocation(recordSym);
     }

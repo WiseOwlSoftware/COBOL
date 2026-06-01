@@ -17,7 +17,7 @@ cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/out
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 17 RL + 2 IX = 210 tests).
+# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 19 RL + 2 IX = 212 tests).
 # RL206A→RL207A are a producer/consumer pair over TF021 with VARIABLE-LENGTH records (RECORD IS
 # VARYING): RL206A creates the file (each slot stores its own length, persisted length-prefixed), RL207A
 # verifies/updates it. They MUST stay consecutive, AND a fixed-format TF021 producer must follow (RL209A
@@ -42,11 +42,13 @@ CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 # COMP relative keys): RL201A creates, RL202A randomly REWRITE/DELETEs, RL203A verifies. They too
 # MUST stay consecutive. RL201A opens OUTPUT (recreating TF021), so it is safe to run after the
 # RL1xx chain; RL209A (also XXXXP021) likewise opens OUTPUT, so it is safe after RL203A.
-# RL210A was dropped: its earlier "clean" baseline was a vacuous pass — it writes a second 01
-# record (RL-VS1R1) whose WRITE was silently a no-op (ResolveFileForRecord returned null for any
-# record but the FD's first), so the relative file was never properly populated. With that fixed
-# (records now resolve to their FD via OwningFile), RL210A genuinely exercises relative + ODO +
-# RECORD VARYING I/O and reveals 300 real failures — a relative-file subsystem gap, not yet passing.
+# RL210A/RL211A are self-contained format-3 variable-record tests (RECORD IS VARYING with an OCCURS
+# DEPENDING table inside the record, and mixed 120/140-byte 01 formats). They write 200×120 + 300×140
+# records and verify the ODO content round-trips. They had a long history of vacuous/failing baselines
+# (the no-op secondary-record WRITE, then 300/500 genuine failures); now genuinely pass once the READ
+# buffer for a varying record uses the record's MAXIMUM length (ResolveReadRecordLocation resolves the
+# largest 01 as a receiving operand) — see DEVLOG 257. They open OUTPUT (self-contained), so they leave
+# a varying-format TF021 that the following fixed-format producer (RL209A) re-creates.
 # IF401M/402M/403M are flagging-conformance modules: they emit no CCVS report by
 # design, so they are intentionally NOT guarded (nothing to compare).
 NIST_TESTS="
@@ -71,7 +73,7 @@ IC203A IC224A IC225A IC228A
 SQ101M SQ102A SQ104A SQ108A SQ111A SQ112A SQ113A SQ117A SQ126A SQ127A
 SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ204A SQ207M SQ211A SQ213A
 SQ214A SQ217A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ302M
-RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL209A RL302M
+RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL210A RL211A RL209A RL302M
 IX107A IX302M
 "
 
