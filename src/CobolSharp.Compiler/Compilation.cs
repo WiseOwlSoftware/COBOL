@@ -66,7 +66,7 @@ public sealed class Compilation
                 ?? Path.GetFileNameWithoutExtension(sourcePath);
             bool isInitial = ExtractIsInitialFromContext(progCtx);
 
-            var semanticModel = BuildSemanticModel(progCtx, programId, diagnostics);
+            var semanticModel = BuildSemanticModel(progCtx, programId, diagnostics, Options);
             semanticModel.Program.IsInitial = isInitial;
 
             // Validate and compute layout
@@ -255,10 +255,11 @@ public sealed class Compilation
     private static Semantics.SemanticModel BuildSemanticModel(
         ParserRuleContext programTree,
         string programId,
-        DiagnosticBag diagnostics)
+        DiagnosticBag diagnostics,
+        Semantics.CompilationOptions options)
     {
         // Pass 1: Declaration collection
-        var semanticBuilder = new Semantics.SemanticBuilder(programId, 1);
+        var semanticBuilder = new Semantics.SemanticBuilder(programId, 1, options);
         semanticBuilder.Visit(programTree);
         semanticBuilder.ResolveRedefines();
         semanticBuilder.ResolveRenames();

@@ -17,11 +17,18 @@ cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/out
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 11 RL + 1 IX = 203 tests).
-# RL105A and RL108A are self-contained (each opens its relative file OUTPUT, populates it, and
-# verifies in one run), so they carry no chain dependency and are listed ahead of the TF021 chains
-# (which re-create the file anyway). They compile only under the L1 dialect leniency (INVALID KEY
-# with KEY omitted, accepted in Default/--nist mode) — see docs/dialect-strictness.md.
+# (94 NC + 42 IF + 12 SM + 4 IC + 39 SQ + 15 RL + 2 IX = 208 tests).
+# RL105A/RL118A are self-contained (each opens its relative file OUTPUT, populates it, and verifies in
+# one run), so they carry no chain dependency. RL108A→RL109A→RL110A are a producer/updater/verifier
+# chain over the shared relative file TF061 (XXXXX061): RL108A creates 500 records (ACCESS SEQUENTIAL),
+# RL109A REWRITEs every 5th record by COMP relative key (ACCESS RANDOM), RL110A verifies (ACCESS
+# SEQUENTIAL); they MUST stay consecutive. RL107A→RL117A is a producer/consumer pair over TF022
+# (XXXXX022): RL107A creates it, RL117A verifies it — they MUST stay consecutive, with no other TF022
+# writer (e.g. RL118A) between them. The XXXXX### ASSIGN targets of RELATIVE/INDEXED files are mapped to
+# a shared "TF###" literal so these chains share one on-disk file across run units; SEQUENTIAL files
+# keep program-id-qualified isolation (DEVLOG 244). Several of these compile only under the L1/L2 dialect
+# leniencies (INVALID KEY / RELATIVE KEY with KEY omitted, accepted in Default/--nist) — see
+# docs/dialect-strictness.md.
 # RL101A→RL102A→RL103A are a producer/updater/verifier chain over the shared relative file TF021
 # (XXXX[PD]021): RL101A creates 500 records, RL102A REWRITEs 100, RL103A verifies. They MUST stay
 # consecutive in this list (the loop does not clean data files between tests, so TF021 carries over),
@@ -59,8 +66,8 @@ IC203A IC224A IC225A IC228A
 SQ101M SQ102A SQ104A SQ108A SQ111A SQ112A SQ113A SQ117A SQ126A SQ127A
 SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ204A SQ207M SQ211A SQ213A
 SQ214A SQ217A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ302M
-RL105A RL108A RL101A RL102A RL103A RL107A RL201A RL202A RL203A RL209A RL302M
-IX302M
+RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL209A RL302M
+IX107A IX302M
 "
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)

@@ -61,9 +61,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public SymbolTable Symbols => _symbols;
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
-    public SemanticBuilder(string programName, int line)
+    private readonly CompilationOptions _options;
+
+    public SemanticBuilder(string programName, int line, CompilationOptions? options = null)
     {
         _symbols = new SymbolTable(programName, line);
+        _options = options ?? new CompilationOptions();
     }
 
     /// <summary>
@@ -729,7 +732,22 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 fileSym.AlternateKeys.Add(new AlternateKeyInfo(altKeyName, duplicates));
             }
             if (clause.relativeKeyClause() is { } relKeyClause)
+            {
                 fileSym.RelativeKey = relKeyClause.dataReference().GetText();
+                // Leniency L2 (docs/dialect-strictness.md): ISO §12.4.5.13 requires the KEY keyword.
+                // The data-name is captured either way (so the file works in all modes); the no-KEY form
+                // is accepted in Default and diagnosed under named-strict modes.
+                if (relKeyClause.KEY() == null)
+                {
+                    var tok = relKeyClause.Start;
+                    var loc = new Common.SourceLocation("<source>", 0, tok.Line, tok.Column);
+                    var span = new Common.TextSpan(tok.StartIndex, relKeyClause.Stop?.StopIndex ?? tok.StopIndex);
+                    if (_options.Dialect >= DialectMode.StrictCobol85)
+                        _diagnostics.Report(DiagnosticDescriptors.CBL3613, loc, span, _options.DialectName);
+                    else if (_options.WarnNonStandard)
+                        _diagnostics.Report(DiagnosticDescriptors.CBL3614, loc, span);
+                }
+            }
         }
 
         _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);

@@ -419,7 +419,7 @@ internal sealed class FileIoLowerer
 
     // ── REWRITE ──
 
-    public void LowerRewrite(BoundRewriteStatement rw, IrBasicBlock block)
+    public IrBasicBlock LowerRewrite(BoundRewriteStatement rw, IrMethod method, IrBasicBlock block)
     {
         string cobolName = rw.File.Name;
         var recordLoc = _ctx.Location.ResolveLocation(rw.Record);
@@ -442,6 +442,18 @@ internal sealed class FileIoLowerer
             block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
         }
         EmitFileStatus(rw.File, block);
+
+        // INVALID KEY / NOT INVALID KEY branching (ISO §14.9.35 — the invalid key condition exists
+        // when the relative key names no existing record). Without this the imperative-statements
+        // (e.g. NOT INVALID KEY GO TO …) never execute and control falls through past the REWRITE.
+        if (rw.InvalidKey.Count > 0 || rw.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
+            return _ctx.Condition.LowerConditionalBranch(rw.InvalidKey, rw.NotInvalidKey, invalidResult, method, block, "rewrite");
+        }
+
+        return block;
     }
 
     // ── DELETE ──

@@ -1,0 +1,35 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL117A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE RL-FD2        PASS  REL-TEST-009       .01
+ CREATE RL-FD2        PASS  REL-TEST-009       .02
+ CREATE RL-FD2        PASS  REL-TEST-009       .03
+ CREATE RL-FD2        PASS  REL-TEST-009       .04
+ CREATE RL-FD2        PASS  REL-TEST-009       .05
+ CREATE RL-FD2        ***** REL-TEST-1                    ****TEST DELETED****
+ CREATE RL-FD2        ***** REL-TEST-2                    ****TEST DELETED****
+ CREATE RL-FD2        PASS  REL-TEST-3
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL117A
+
+                                                    006 OF 008  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    002 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

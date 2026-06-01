@@ -45,11 +45,16 @@ assignTarget
 
 fileControlClauses
     : assignClause
+    // relativeKeyClause precedes organizationClause: both can begin with RELATIVE (organizationType
+    // has a bare RELATIVE), and under leniency L2 `RELATIVE data-name` (no KEY) is the key clause while
+    // a lone RELATIVE is the organization. Trying the key clause first means `RELATIVE <data-name>`
+    // binds the key; a bare RELATIVE (no following data-name) fails the key clause and falls through to
+    // organizationClause. `ORGANIZATION RELATIVE` is unaffected (it begins with ORGANIZATION).
+    | relativeKeyClause
     | organizationClause
     | accessModeClause
     | recordKeyClause
     | alternateKeyClause
-    | relativeKeyClause
     | fileStatusClause
     | fileReserveClause
     | vendorFileControlClause
@@ -99,8 +104,14 @@ fileStatusClause
     : FILE? STATUS IS? dataReference
     ;
 
+// Leniency L2 (see docs/dialect-strictness.md): ISO §12.4.5.13 requires `RELATIVE KEY IS data-name`,
+// but the CCVS suite writes `RELATIVE data-name` without KEY (e.g. RL109A `RELATIVE RL-FR1-KEY`). The
+// grammar parses the permissive superset `RELATIVE KEY? IS? dataReference`; the no-KEY form is accepted
+// in DialectMode.Default and diagnosed under named-strict modes by
+// DialectStrictnessChecks.CheckRelativeKeyNoiseWord (called from SemanticBuilder). The dataReference is
+// captured as the relative key either way, so random/dynamic WRITE/REWRITE/DELETE position correctly.
 relativeKeyClause
-    : RELATIVE KEY IS? dataReference
+    : RELATIVE KEY? IS? dataReference
     ;
 
 vendorFileControlClause

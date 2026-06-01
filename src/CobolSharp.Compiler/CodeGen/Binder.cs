@@ -495,8 +495,7 @@ public sealed class Binder
             case BoundReadStatement read:
                 return _ctx.FileIo.LowerRead(read, method, block);
             case BoundRewriteStatement rw:
-                _ctx.FileIo.LowerRewrite(rw, block);
-                break;
+                return _ctx.FileIo.LowerRewrite(rw, method, block);
             case BoundDeleteStatement del:
                 return _ctx.FileIo.LowerDelete(del, method, block);
             case BoundStartStatement start:

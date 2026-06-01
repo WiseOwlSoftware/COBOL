@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL110A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ READ SEQUENTIAL      PASS  REL-TEST-006       .01
+ READ SEQUENTIAL      PASS  REL-TEST-006       .02
+ READ SEQUENTIAL      PASS  REL-TEST-006       .03
+ READ SEQUENTIAL      PASS  REL-TEST-006       .04
+ READ SEQUENTIAL      PASS  REL-TEST-006       .05
+ READ SEQUENTIAL            REL-TEST-006       .06        STATUS AFTER OPEN
+*** INFORMATION ***         000000000000000099      INFORMATION         VII-26 4.5.4
+
+ DELETE               PASS  REL-TEST-007       .01        AT END PATH TAKEN
+ READ UPDATED FILE    PASS  REL-TEST-008       .01
+ READ UPDATED FILE    PASS  REL-TEST-008       .02
+ READ UPDATED FILE    PASS  REL-TEST-008       .03
+ READ UPDATED FILE    PASS  REL-TEST-008       .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL110A
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

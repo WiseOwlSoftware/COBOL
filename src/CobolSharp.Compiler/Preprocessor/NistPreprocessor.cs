@@ -58,6 +58,24 @@ public static class NistPreprocessor
         source = System.Text.RegularExpressions.Regex.Replace(
             source, @"XXXX[PD](\d+)", "\"TF$1\"");
 
+        // XXXXX### as an ASSIGN TO operand denotes a data file identified by X-card number ### (a test
+        // header reads e.g. `X-61 - "LITERAL" IN "ASSIGN TO" CLAUSE FOR ... DATA FILE`). For RELATIVE and
+        // INDEXED files the X (permanent) variant is the SAME physical file as the matching
+        // XXXXP###/XXXXD### produce/consume variants and is shared across run units (e.g. RL108A creates
+        // `XXXXX061`, RL109A/RL110A consume it; RL107A creates `XXXXX022`, RL117A consumes it), so map it
+        // to a shared "TF###" literal. SEQUENTIAL files are deliberately left alone: their XXXXX###
+        // ASSIGN targets stay program-id-qualified for test isolation (DEVLOG 244 — e.g. SQ130A's
+        // XXXXX014/062 absent-file status checks must not collide with another run unit's file). The
+        // organization is therefore the discriminator. Anchored to the SELECT entry (SELECT…period) so a
+        // RELATIVE/INDEXED entry's operand is mapped while a sequential entry's is not; runs after COPY
+        // expansion (copied FILE-CONTROL is in place) and after the specific 001/002/055/058 numbers.
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"SELECT\b[\s\S]*?\.",
+            m => System.Text.RegularExpressions.Regex.IsMatch(m.Value, @"\b(RELATIVE|INDEXED)\b")
+                ? System.Text.RegularExpressions.Regex.Replace(
+                    m.Value, @"(ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)", "$1\"TF$2\"")
+                : m.Value);
+
         // ── SPECIAL-NAMES ──
 
         // XXXXX051: implementor switch name 1 (SPECIAL-NAMES ... IS switch-name)
