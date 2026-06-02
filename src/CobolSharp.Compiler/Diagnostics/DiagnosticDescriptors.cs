@@ -574,4 +574,10 @@ public static partial class DiagnosticDescriptors
         "'KEY' is required in the RELATIVE KEY clause; the no-KEY form is a non-standard CCVS leniency not allowed in {0} mode");
     public static readonly DiagnosticDescriptor CBL3614 = new("CBL3614", DiagnosticSeverity.Warning,
         "'KEY' omitted from the RELATIVE KEY clause; non-standard (accepted as a CCVS leniency)");
+
+    // Leniency L3: 'KEY' omitted from the RECORD KEY / ALTERNATE RECORD KEY clause (ISO §12.4.5.12 requires it).
+    public static readonly DiagnosticDescriptor CBL3615 = new("CBL3615", DiagnosticSeverity.Error,
+        "'KEY' is required in the RECORD KEY clause; the no-KEY form is a non-standard CCVS leniency not allowed in {0} mode");
+    public static readonly DiagnosticDescriptor CBL3616 = new("CBL3616", DiagnosticSeverity.Warning,
+        "'KEY' omitted from the RECORD KEY clause; non-standard (accepted as a CCVS leniency)");
 }

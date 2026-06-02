@@ -1,0 +1,38 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX202A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ READ RANDOM          PASS  READ-TEST-F2-01
+ READ RANDOM          PASS  READ-TEST-F2-01-1             READ TOO LESS RECORDS
+ READ RANDOM          PASS  READ-TEST-F2-01-2             READ TOO MUCH RECORDS
+ READ RANDOM          PASS  READ-TEST-F2-01-3             READ WRONG    RECORDS
+ READ INVALID         PASS  RWRT-TEST-GF-01-1
+ READ INVALID         PASS  RWRT-TEST-GF-03-1
+ REWRITE              PASS  RWRT-TEST-GF-02-1
+ READ                 PASS  READ-TEST-F2-02
+ READ                 PASS  READ-TEST-F2-02-1
+ READ                 PASS  READ-TEST-F2-02-2
+ READ                 PASS  READ-TEST-F2-02-3
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX202A
+
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

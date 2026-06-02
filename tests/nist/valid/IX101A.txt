@@ -1,0 +1,33 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX101A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ FILE CREATE IX-FS1   PASS  WRITE-TEST-GF-01
+*** INFORMATION ***        FILE CREATED, LFILE       000000000000000500
+
+ FILE CREATE IX-FS1   PASS  READ-TEST-GF-01
+*** INFORMATION ***        FILE VERIFIED, LFILE      000000000000000500
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX101A
+
+                                                    002 OF 002  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

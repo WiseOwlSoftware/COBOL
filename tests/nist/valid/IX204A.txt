@@ -1,0 +1,40 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX204A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE  IX-FD2.       PASS  WRITE-TEST-GF-01
+ WRITE  IX-FD2.       PASS  WRITE-TEST-GF-02
+ OPEN OUTPUT 00       PASS  WRITE-TEST-GF-03
+ WRITE STATUS 00      PASS  WRITE-TEST-GF-04
+ WRITE STATUS 00      PASS  WRITE-TEST-GF-05
+ CLOSE: STATUS: 00    PASS  WRITE-TEST-GF-06
+ REWRITE IX-FD2       PASS  RWRT-TEST-GF-01
+ UPDATE  IX-FD2       PASS  RWRT-TEST-GF-02
+ OPEN I-O STATUS: 00  PASS  RWRT-TEST-GF-03
+ READ I-O STATUS 10   PASS  RWRT-TEST-GF-04
+ UPDATE  IX-FD2       PASS  RWRT-TEST-GF-05
+ STATUS: 10           PASS  RWRT-TEST-GF-06
+ CLOSE . LOCK: 00     PASS  RWRT-TEST-GF-07
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX204A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

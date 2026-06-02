@@ -18,11 +18,13 @@ public class IndexedFileHandler : IFileHandler
     private readonly List<AlternateKeyDescriptor> _alternateKeys = [];
     private SortedDictionary<string, byte[]>? _records;
     private readonly List<SortedDictionary<string, List<byte[]>>> _alternateIndices = [];
-    private IEnumerator<KeyValuePair<string, byte[]>>? _enumerator;
-    private string? _currentKey;
-#pragma warning disable CS0414
-    private bool _pastEnd; // reserved for future ReadPrevious
-#pragma warning restore CS0414
+    // Sequential position is tracked by key, not a live enumerator: a SortedDictionary enumerator is
+    // invalidated the moment an interleaved WRITE/REWRITE/DELETE mutates the collection (the common
+    // DYNAMIC READ-NEXT-with-positioned-write pattern), which threw "Collection was modified". Each
+    // READ NEXT re-derives the next key from _records, so it is robust to mutation between reads.
+    private string? _currentKey;     // key of the last record returned (null = positioned before the first)
+    private bool _readNextInclusive; // true after START: the next READ NEXT returns the record AT _currentKey, not after it
+    private bool _pastEnd;           // true after a READ NEXT hit AT END (drives ReadPrevious's first-back behavior)
     private string? _dataFilePath;
     private FileOpenMode _openMode;
 
@@ -120,28 +122,47 @@ public class IndexedFileHandler : IFileHandler
         }
 
         _records = null;
-        _enumerator = null;
         _currentKey = null;
+        _readNextInclusive = false;
+        _pastEnd = false;
         return FileStatus.Success;
     }
 
     public string ReadNext(byte[] recordBuffer)
     {
         // READ on a file connector not open in input/I-O mode is status 47 (ISO §9.1.13.7), not 42.
-        if (!IsOpen || _enumerator == null) return FileStatus.ReadNotOpenForInput;
+        if (!IsOpen || _records == null) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
-        _pastEnd = false;
-        if (!_enumerator.MoveNext())
+        // Find the next record in key order: the smallest key > _currentKey (or >= when positioned by
+        // START), or the smallest key overall when positioned before the first. Re-derived from _records
+        // each call so an interleaved WRITE/REWRITE/DELETE never corrupts the position (no live enumerator).
+        string? target = null;
+        foreach (var k in _records.Keys)
+        {
+            if (_currentKey == null)
+            {
+                target = k; break;
+            }
+            int cmp = string.Compare(k, _currentKey, StringComparison.Ordinal);
+            if (cmp > 0 || (_readNextInclusive && cmp == 0))
+            {
+                target = k; break;
+            }
+        }
+        _readNextInclusive = false;
+
+        if (target == null)
         {
             _pastEnd = true;
             return FileStatus.AtEnd;
         }
 
-        var record = _enumerator.Current.Value;
+        var record = _records[target];
         Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
-        _currentKey = _enumerator.Current.Key;
+        _currentKey = target;
+        _pastEnd = false;
         return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
@@ -220,6 +241,8 @@ public class IndexedFileHandler : IFileHandler
 
             Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
             _currentKey = ExtractKey(record);
+            _readNextInclusive = false; // a following READ NEXT continues from the record after this one
+            _pastEnd = false;
             return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
         }
 
@@ -233,6 +256,8 @@ public class IndexedFileHandler : IFileHandler
         var found = records[0]; // First matching record
         Array.Copy(found, recordBuffer, Math.Min(found.Length, recordBuffer.Length));
         _currentKey = ExtractKey(found);
+        _readNextInclusive = false; // a following READ NEXT continues from the record after this one
+        _pastEnd = false;
         return HasDuplicateAlternateKey(found) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
@@ -340,12 +365,11 @@ public class IndexedFileHandler : IFileHandler
         if (firstKey == null)
             return FileStatus.RecordNotFound;
 
-        // Position enumerator at all records from firstKey onward.
-        // ReadNext will call MoveNext to get the first record.
-        _enumerator = _records
-            .Where(r => string.Compare(r.Key, firstKey, StringComparison.Ordinal) >= 0)
-            .GetEnumerator();
+        // Position so the next READ NEXT returns the record AT firstKey (START does not itself read —
+        // ISO §14.9.41 GR8: it sets the file position indicator to the first record satisfying the relation).
         _currentKey = firstKey;
+        _readNextInclusive = true;
+        _pastEnd = false;
         return FileStatus.Success;
     }
 
@@ -394,7 +418,11 @@ public class IndexedFileHandler : IFileHandler
 
     private void ResetEnumerator()
     {
-        _enumerator = _records?.GetEnumerator();
+        // Reset the sequential position to before the first record (OPEN INPUT/I-O establishes the
+        // file position indicator at the first record; the first READ NEXT then returns it).
+        _currentKey = null;
+        _readNextInclusive = false;
+        _pastEnd = false;
     }
 
     public void Dispose()

@@ -719,7 +719,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (clause.accessModeClause() is { } accessClause)
                 fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
             if (clause.recordKeyClause() is { } keyClause)
+            {
                 fileSym.RecordKey = keyClause.dataReference().GetText();
+                // Leniency L3 (docs/dialect-strictness.md): ISO §12.4.5.12 requires the KEY keyword.
+                CheckRecordKeyNoiseWord(keyClause, keyClause.KEY() == null);
+            }
             if (clause.fileStatusClause() is { } statusClause)
                 // Use the base data-name only — a "STATUS data-name IN group" qualifier is a
                 // dataReferenceSuffix that GetText() would concatenate; the (flat) data scope
@@ -730,6 +734,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 string altKeyName = altKeyClause.dataReference().GetText();
                 bool duplicates = altKeyClause.DUPLICATES() != null;
                 fileSym.AlternateKeys.Add(new AlternateKeyInfo(altKeyName, duplicates));
+                // Leniency L3: KEY is also required in ALTERNATE RECORD KEY (§12.4.5.12).
+                CheckRecordKeyNoiseWord(altKeyClause, altKeyClause.KEY() == null);
             }
             if (clause.relativeKeyClause() is { } relKeyClause)
             {
@@ -752,6 +758,24 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
         return base.VisitFileControlClauseGroup(ctx);
+    }
+
+    /// <summary>
+    /// Leniency L3 (docs/dialect-strictness.md): the RECORD KEY / ALTERNATE RECORD KEY clause with the
+    /// required KEY keyword omitted (ISO §12.4.5.12 — KEY is unbracketed → required; the CCVS suite writes
+    /// `RECORD data-name`). The data-name is captured as the key either way (so the file works in all
+    /// modes); the no-KEY form is accepted in Default and diagnosed under named-strict modes.
+    /// </summary>
+    private void CheckRecordKeyNoiseWord(Antlr4.Runtime.ParserRuleContext clause, bool noKey)
+    {
+        if (!noKey) return;
+        var tok = clause.Start;
+        var loc = new Common.SourceLocation("<source>", 0, tok.Line, tok.Column);
+        var span = new Common.TextSpan(tok.StartIndex, clause.Stop?.StopIndex ?? tok.StopIndex);
+        if (_options.Dialect >= DialectMode.StrictCobol85)
+            _diagnostics.Report(DiagnosticDescriptors.CBL3615, loc, span, _options.DialectName);
+        else if (_options.WarnNonStandard)
+            _diagnostics.Report(DiagnosticDescriptors.CBL3616, loc, span);
     }
 
     // ═══════════════════════════════════

@@ -53,8 +53,10 @@ fileControlClauses
     | relativeKeyClause
     | organizationClause
     | accessModeClause
-    // recordKeyClause and recordDelimiterClause both begin with RECORD; the second token (KEY vs
-    // DELIMITER) disambiguates, so either order parses, but list recordKeyClause first.
+    // recordKeyClause and recordDelimiterClause both begin with RECORD. With KEY now optional in
+    // recordKeyClause (leniency L3), disambiguation rests on the operand: DELIMITER is a reserved token
+    // so `RECORD DELIMITER …` cannot satisfy recordKeyClause's dataReference and falls through to
+    // recordDelimiterClause. List recordKeyClause first; the parser back-tracks to the delimiter form.
     | recordKeyClause
     | recordDelimiterClause
     | alternateKeyClause
@@ -106,12 +108,20 @@ accessMode
 
 // IS is an optional word in the RECORD KEY / ALTERNATE RECORD KEY clauses (ISO §12.4.5 — the CCVS
 // suite writes "RECORD KEY data-name" without IS).
+//
+// Leniency L3 (see docs/dialect-strictness.md): ISO §12.4.5.12 requires `RECORD KEY IS data-name`
+// (KEY is unbracketed → required), but the CCVS suite writes `RECORD data-name` without KEY (e.g.
+// IX103A `RECORD IX-FS1-KEY`). The grammar parses the permissive superset `RECORD KEY? IS?
+// dataReference`; the no-KEY form is accepted in DialectMode.Default and diagnosed under named-strict
+// modes by the inline check in SemanticBuilder.VisitFileControlClauseGroup (CBL3615/3616). Disambiguation
+// from recordDelimiterClause still holds: DELIMITER is a reserved token, so `RECORD DELIMITER …` cannot
+// match dataReference and falls through to recordDelimiterClause (likewise RECORD CONTAINS/VARYING in an FD).
 recordKeyClause
-    : RECORD KEY IS? dataReference
+    : RECORD KEY? IS? dataReference
     ;
 
 alternateKeyClause
-    : ALTERNATE RECORD? KEY IS? dataReference
+    : ALTERNATE RECORD? KEY? IS? dataReference
       (WITH? DUPLICATES)?
     ;
 

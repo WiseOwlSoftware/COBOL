@@ -99,8 +99,13 @@ noise), which is why the suite still "passed."
 Notes:
 - **L1** is the first to be implemented (DEVLOG 254): lowest risk, and it gates the RL update/delete
   producer chains (RL109A→RL110A, RL206A→RL207A→RL208A) at the *compile* step.
-- **L2/L3** are deferred (data-name-anchored ambiguity; and they additionally need indexed/relative
-  runtime correctness behind them, so they yield few baselines alone).
+- **L2** is implemented (DEVLOG 255): `relativeKeyClause : RELATIVE KEY? IS? dataReference`, gated by
+  CBL3613/3614 — unblocked the relative DYNAMIC delete/read chains.
+- **L3** is implemented (DEVLOG 269): `recordKeyClause : RECORD KEY? IS? dataReference` and
+  `alternateKeyClause : ALTERNATE RECORD? KEY? IS? …`, gated by CBL3615/3616
+  (`SemanticBuilder.CheckRecordKeyNoiseWord`). Disambiguation from `recordDelimiterClause` / FD
+  `RECORD CONTAINS|VARYING` holds because those second-words are reserved tokens (can't match the key
+  clause's dataReference). Paired with indexed READ-NEXT runtime correctness, it yielded 12 IX baselines.
 - **L4** is partially in place already (the grammar currently treats `STANDARD` as optional in USE);
   it should be re-audited and routed through the same dialect gate rather than left unconditional.
 
