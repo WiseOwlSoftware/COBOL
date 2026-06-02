@@ -13,6 +13,28 @@ CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ213A
  TESTED               FAIL
 
  ***********************************************************************************************************************
+ CREATE FILE SQ-FS1   PASS  OPEN-TEST-GF-01-02
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ OPEN O SQ-FS1 EXTEND PASS  OPEN-TEST-GF-01-03
+        *** INFORMATION  ***                      FILE EXTENDED RECS=       000000000000001000
+
+ VERIFY FILE SQ-FS1   PASS  READ-TEST-F1-01
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000001000
+
+ CREATE FILE SQ-FS2   PASS  WRITE-TEST-GF-01
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000001000
+
+ VERIFY FILE SQ-FS2   PASS  READ-TEST-F1-02
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000001000
+
+ USE PROCEDURE TESTS  PASS  USE-TEST-GF-01
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000001000
+
+ USE PROCEDURE TESTS  PASS  USE-TEST-GF-02
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000001000
+
+END OF SQ213A VALIDATION TESTS
  ***********************************************************************************************************************
 
 
@@ -20,7 +42,7 @@ CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ213A
 
                                                     END OF TEST-  SQ213A    NTIS DISTRIBUTION COBOL 85
 
-                                                    000 OF 000  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION

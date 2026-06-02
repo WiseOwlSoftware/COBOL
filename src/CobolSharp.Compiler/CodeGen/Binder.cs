@@ -381,15 +381,32 @@ public sealed class Binder
             }
         }
 
-        // Collect paragraph methods in declaration order for Entry method.
-        // Declarative paragraphs are excluded from the main dispatch — they're only
-        // invoked via PERFORM from USE AFTER EXCEPTION handlers.
+        // Collect paragraph methods for the Entry dispatch in paragraph-index order — INCLUDING
+        // declaratives — so ParagraphDispatchOrder[pc] resolves the paragraph whose index is pc.
+        // Every pc value (fall-through myIndex+1, GO TO, PERFORM THRU, GO TO DEPENDING) is in this
+        // declarative-inclusive index space; excluding declaratives here previously left the switch
+        // off by the number of leading DECLARATIVES paragraphs, so any program with declaratives
+        // dispatched to the wrong paragraph and looped forever (DEVLOG: SQ105A hang).
+        //
+        // Declaratives are only ENTERED via PERFORM from the USE handler (EmitPerformDeclarativeSection,
+        // which emits IrPerform / IrPerformThru — direct calls, not this switch), so the main loop
+        // never lands on a declarative index: it starts at EntryParagraphIndex (the first non-
+        // declarative paragraph) and main-flow control never targets a declarative.
+        // Name-based lookup matches the rest of the dispatch machinery (GO TO targets resolve via
+        // ParagraphIndices[name]); a paragraph name always resolves, so every paragraph is added and
+        // the list position equals the paragraph index (the pc value). Duplicate paragraph names
+        // across sections are a separate, pre-existing concern not addressed here.
+        int firstNonDeclarative = -1;
+        int idx = 0;
         foreach (var para in boundProgram.Paragraphs)
         {
-            if (para.IsDeclarative) continue;
+            if (firstNonDeclarative < 0 && !para.IsDeclarative)
+                firstNonDeclarative = idx;
             if (_ctx.ParagraphMethods.TryGetValue(para.Symbol.Name, out var m))
                 module.ParagraphDispatchOrder.Add(m);
+            idx++;
         }
+        module.EntryParagraphIndex = firstNonDeclarative < 0 ? 0 : firstNonDeclarative;
 
         // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
         block.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));

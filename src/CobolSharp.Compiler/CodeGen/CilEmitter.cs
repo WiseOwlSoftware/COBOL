@@ -300,7 +300,7 @@ public sealed class CilEmitter
         // Paragraph dispatch loop
         if (ir.ParagraphDispatchOrder.Count > 0)
         {
-            EmitParagraphDispatchInline(il, ir.ParagraphDispatchOrder, _entryMethod);
+            EmitParagraphDispatchInline(il, ir.ParagraphDispatchOrder, _entryMethod, ir.EntryParagraphIndex);
         }
 
         // Normal return: 0
@@ -337,15 +337,16 @@ public sealed class CilEmitter
     /// while (pc >= 0 && pc < N) { pc = paragraphs[pc](); }
     /// </summary>
     private void EmitParagraphDispatchInline(ILProcessor il,
-        IReadOnlyList<IrMethod> paragraphs, MethodDefinition md)
+        IReadOnlyList<IrMethod> paragraphs, MethodDefinition md, int entryIndex)
     {
         int count = paragraphs.Count;
 
         var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);
         md.Body.Variables.Add(pcLocal);
 
-        // pc = 0
-        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        // pc = entryIndex (first non-declarative paragraph; skips leading DECLARATIVES, which
+        // remain in the switch only so the USE handler's PERFORM can reach them by index)
+        il.Append(il.Create(OpCodes.Ldc_I4, entryIndex));
         il.Append(il.Create(OpCodes.Stloc, pcLocal));
 
         var loopLabel = il.Create(OpCodes.Nop);
@@ -374,7 +375,7 @@ public sealed class CilEmitter
         {
             il.Append(caseLabels[i]);
             var target = _methodMap[paragraphs[i]];
-            il.Append(il.Create(OpCodes.Call, target));
+            il.Append(il.Create(OpCodes.Call, target));   // pc = paragraph(): next pc
             il.Append(il.Create(OpCodes.Stloc, pcLocal));
             il.Append(il.Create(OpCodes.Br, loopLabel));
         }
@@ -1197,7 +1198,7 @@ public sealed class CilEmitter
         {
             il.Append(caseLabels[i]);
             var target = _methodMap[paragraphs[i]];
-            il.Append(il.Create(OpCodes.Call, target));
+            il.Append(il.Create(OpCodes.Call, target));   // pc = paragraph(): next pc
             il.Append(il.Create(OpCodes.Stloc, pcLocal));
             il.Append(il.Create(OpCodes.Br, loopLabel));
         }

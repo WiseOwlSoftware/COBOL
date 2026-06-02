@@ -1,0 +1,49 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ105A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                   TESTED                   FAIL
+
+ ***********************************************************************************************************************
+ SEQ-TEST-WR-01.01 CREATE 980 RECORD FILE   PASS
+ SEQ-TEST-WR-01.02 CREATE 980 RECORD FILE   PASS
+ SEQ-TEST-GF-02.01 OPEN FILE FOR CHECK      PASS
+ SEQ-TEST-GF-02.02 OPEN FILE FOR CHECK      PASS
+ SEQ-TEST-GF-03.01 READ ... RECORD          PASS
+ SEQ-TEST-GF-03.02 READ ... RECORD          PASS
+ SEQ-TEST-GF-03.03 READ ... RECORD          PASS
+ SEQ-TEST-GF-03.04 READ ... RECORD          PASS
+ SEQ-TEST-GF-04.01 READ ... RECORD, EOF     PASS
+ SEQ-TEST-GF-04.02 READ ... RECORD, EOF     PASS
+ SEQ-TEST-GF-05.01 CLOSE AFTER READ         PASS
+ SEQ-TEST-GF-05.02 CLOSE AFTER READ         PASS
+ SEQ-TEST-GF-06.01 OPEN FILE FOR CHECK      PASS
+ SEQ-TEST-GF-06.02 OPEN FILE FOR CHECK      PASS
+ SEQ-TEST-GF-07.01 READ ...                 PASS
+ SEQ-TEST-GF-07.02 READ ...                 PASS
+ SEQ-TEST-GF-07.03 READ ...                 PASS
+ SEQ-TEST-GF-07.04 READ ...                 PASS
+ SEQ-TEST-GF-08.01 READ ... EOF             PASS
+ SEQ-TEST-GF-08.02 READ ... EOF             PASS
+ SEQ-TEST-GF-09.01 CLOSE AFTER READ         PASS
+ SEQ-TEST-GF-09.02 CLOSE AFTER READ         PASS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ105A
+
+                                                    022 OF 022  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

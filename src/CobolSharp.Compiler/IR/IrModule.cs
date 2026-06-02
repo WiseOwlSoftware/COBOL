@@ -30,10 +30,20 @@ public sealed class IrModule(string name)
     public List<int> AlterDefaults { get; } = [];
 
     /// <summary>
-    /// Ordered list of paragraph methods for the Entry dispatch loop.
+    /// Ordered list of paragraph methods for the Entry dispatch loop. Position == paragraph
+    /// index (the pc value returned by fall-through/GO TO/PERFORM), INCLUDING declarative
+    /// paragraphs, so the dispatch switch and every pc value share one index space.
     /// Set by CreateEntryPoint; used by CilEmitter.EmitEntryMethod.
     /// </summary>
     public List<IrMethod> ParagraphDispatchOrder { get; } = [];
+
+    /// <summary>
+    /// Index (into ParagraphDispatchOrder) of the first non-declarative paragraph — the program's
+    /// entry point per ISO §14.4 (execution begins at the first paragraph after END DECLARATIVES).
+    /// The dispatch loop starts pc here so leading DECLARATIVES paragraphs are skipped; they remain
+    /// in the switch at their own indices because the USE handler reaches them via PERFORM.
+    /// </summary>
+    public int EntryParagraphIndex { get; set; }
 
     /// <summary>True if this program is declared IS INITIAL (re-initialize WORKING-STORAGE per CALL).</summary>
     public bool IsInitial { get; set; }
