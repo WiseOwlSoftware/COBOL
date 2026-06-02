@@ -35,6 +35,13 @@ public class SequentialFileHandler : IFileHandler
     private long _varyReadFrameStart;
     private int _varyReadDataLen;
 
+    // Sequential read-position state (ISO §14.9.30 GR21 / §14.9.35 GR5). _lastReadUnsuccessful is set
+    // when a READ fails (at-end or error) and no reposition has occurred since — a subsequent sequential
+    // READ then returns '46'. _prevOpWasSuccessfulRead is true only immediately after a successful READ;
+    // a sequential REWRITE requires it (else '43'). Both reset at OPEN; any non-READ op clears the latter.
+    private bool _lastReadUnsuccessful;
+    private bool _prevOpWasSuccessfulRead;
+
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
     public bool IsOptional { get; set; }
 
@@ -61,6 +68,9 @@ public class SequentialFileHandler : IFileHandler
         if (IsOpen) return FileStatus.FileAlreadyOpen;
 
         _openMode = mode;
+        // OPEN re-establishes the file position; clear the sequential read-position state (§14.9.30/§14.9.35).
+        _lastReadUnsuccessful = false;
+        _prevOpWasSuccessfulRead = false;
         bool fileExists = File.Exists(ExternalName);
         try
         {
@@ -138,6 +148,21 @@ public class SequentialFileHandler : IFileHandler
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
+        // ISO §14.9.30 GR21: a sequential READ when the previous READ was unsuccessful (at-end/error) and
+        // no reposition has occurred is itself unsuccessful with status 46 — no valid next record exists.
+        if (_lastReadUnsuccessful)
+            return FileStatus.NoValidNextRecord;
+
+        string s = ReadNextCore(recordBuffer);
+        // Track read-position state for §14.9.30 GR21 (46) and §14.9.35 GR5 (REWRITE 43).
+        _prevOpWasSuccessfulRead = s == FileStatus.Success;
+        if (s != FileStatus.Success)
+            _lastReadUnsuccessful = true;
+        return s;
+    }
+
+    private string ReadNextCore(byte[] recordBuffer)
+    {
         try
         {
             if (_lineSequential && _reader != null)
@@ -285,6 +310,14 @@ public class SequentialFileHandler : IFileHandler
         // not open in the I-O mode is status 49 (ISO §9.1.13.7), not 42 (CLOSE/UNLOCK-only).
         if (!IsOpen || _openMode != FileOpenMode.InputOutput || _stream == null)
             return FileStatus.DeleteRewriteNotOpenForIO;
+
+        // ISO §14.9.35 GR5: in sequential access the immediately previous I-O must have been a successful
+        // READ; otherwise status 43 and the record is left unchanged. (A second REWRITE, or a REWRITE
+        // after an at-end READ, fails here.)
+        if (!_prevOpWasSuccessfulRead)
+            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
+        // This REWRITE becomes the previous I-O, so a following REWRITE without an intervening READ → 43.
+        _prevOpWasSuccessfulRead = false;
 
         try
         {
