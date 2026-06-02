@@ -281,11 +281,12 @@ public static class BoundTreeValidator
             && start.KeyCondition is not BoundIdentifierExpression)
             Report(diagnostics, line, DiagnosticDescriptors.CBL1602);
 
-        // CBL1603: START KEY operand not a record key of file
+        // CBL1603: START KEY operand not a record key of file. The KEY operand may name the prime record
+        // key OR any alternate record key (ISO §14.9.41 — START positions on the prime or an alternate key).
         if (start.KeyCondition is BoundBinaryExpression binExpr
             && binExpr.Left is BoundIdentifierExpression keyId
             && start.File.RecordKey != null
-            && !string.Equals(keyId.Symbol.Name, start.File.RecordKey, StringComparison.OrdinalIgnoreCase))
+            && !IsRecordOrAlternateKey(start.File, keyId.Symbol.Name))
         {
             Report(diagnostics, line, DiagnosticDescriptors.CBL1603);
         }
@@ -391,9 +392,10 @@ public static class BoundTreeValidator
         if (read.KeyDataName != null && !IsIndexedOrganization(read.File))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1702);
 
-        // CBL1703: READ KEY not a record/alternate key of file
+        // CBL1703: READ KEY not a record/alternate key of file. KEY IS data-name may name the prime record
+        // key OR any alternate record key (ISO §14.9.30 — a random/dynamic READ may key on either).
         if (read.KeyDataName != null && read.File.RecordKey != null
-            && !string.Equals(read.KeyDataName, read.File.RecordKey, StringComparison.OrdinalIgnoreCase))
+            && !IsRecordOrAlternateKey(read.File, read.KeyDataName))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1703);
 
         // CBL1704: READ INTO target must be alphanumeric or group
@@ -409,12 +411,16 @@ public static class BoundTreeValidator
     // OPEN validation (CBL0701)
     // ═══════════════════════════════════════════════════════════════
 
-    /// <summary>CBL0701: OPEN EXTEND only allowed on sequential files.</summary>
+    /// <summary>CBL0701: OPEN EXTEND requires sequential access mode (ISO §14.9.30 GR2). EXTEND is valid for
+    /// sequential, relative, AND indexed organizations (it positions after the last record / highest prime
+    /// key — §14.9.30 GR15); only RANDOM/DYNAMIC access makes it invalid.</summary>
     private static void ValidateOpen(BoundOpenStatement open, int line, DiagnosticBag diagnostics)
     {
         foreach (var file in open.Files)
         {
-            if (open.Mode == OpenMode.Extend && !IsSequentialOrganization(file))
+            bool sequentialAccess = file.AccessMode == null
+                || string.Equals(file.AccessMode, "SEQUENTIAL", StringComparison.OrdinalIgnoreCase);
+            if (open.Mode == OpenMode.Extend && !sequentialAccess)
                 Report(diagnostics, line, DiagnosticDescriptors.CBL0701, file.Name);
         }
     }
@@ -425,6 +431,18 @@ public static class BoundTreeValidator
 
     private static bool IsIndexedOrganization(FileSymbol file)
         => string.Equals(file.Organization, "INDEXED", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>True if <paramref name="name"/> is the file's prime record key or any of its alternate
+    /// record keys — the set of data items valid as a START / READ KEY operand (ISO §14.9.41 / §14.9.30).</summary>
+    private static bool IsRecordOrAlternateKey(FileSymbol file, string name)
+    {
+        if (file.RecordKey != null && string.Equals(name, file.RecordKey, StringComparison.OrdinalIgnoreCase))
+            return true;
+        foreach (var ak in file.AlternateKeys)
+            if (string.Equals(name, ak.DataName, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
 
     // ═══════════════════════════════════════════════════════════════
     // Helpers

@@ -82,13 +82,21 @@ public class IndexedFileHandler : IFileHandler
         foreach (var _ in _alternateKeys)
             _alternateIndices.Add(new SortedDictionary<string, List<byte[]>>(StringComparer.Ordinal));
 
-        if (mode == FileOpenMode.Input || mode == FileOpenMode.InputOutput)
+        if (mode == FileOpenMode.Input || mode == FileOpenMode.InputOutput || mode == FileOpenMode.Extend)
         {
             if (!File.Exists(_dataFilePath))
             {
                 if (mode == FileOpenMode.Input)
                     return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
-                return FileStatus.Success;
+                if (mode == FileOpenMode.Extend)
+                {
+                    // EXTEND on a missing file: an optional file is created (status 05); a non-optional file
+                    // is a permanent error (35, ISO §9.1.13.2). The new file starts empty.
+                    if (!IsOptional) return FileStatus.FileNotFound;
+                    ResetEnumerator();
+                    return FileStatus.OptionalFileNotFound;
+                }
+                return FileStatus.Success; // I-O on a missing file: create empty
             }
 
             // Load all records from file
@@ -107,6 +115,11 @@ public class IndexedFileHandler : IFileHandler
             {
                 return FileStatus.PermanentError;
             }
+
+            // EXTEND positions after the last logical record — the highest prime key (ISO §14.9.30 GR15) —
+            // so the ascending-order WRITE check (status 21) requires appended keys to exceed it.
+            if (mode == FileOpenMode.Extend && _records.Count > 0)
+                _lastWrittenKey = _records.Keys.Last();
         }
 
         ResetEnumerator();
