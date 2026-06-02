@@ -1,0 +1,45 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX109A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OPEN OUTPUT: 00 EXP. PASS  OPN-TEST-GF-01-0
+ WRITE: 00 EXPECTED   PASS  WRI-TEST-GF-01-0
+ CREATE FILE IX-FS3         WRI-TEST-GF-01-1
+*** INFORMATION ***        FILE CREATED, RECS =      000000000000000050
+
+ WRITE:       21 EXP. PASS  WRI-TEST-GF-02-0
+ CLOSE OUTPUT:00 EXP. PASS  CLO-TEST-GF-01-0
+ OPEN INPUT:  00 EXP. PASS  OPN-TEST-GF-02-0
+ READ (USE):  00 EXP. PASS  REA-TEST-F1-01-0
+ VERIFY FILE IX-FS3   PASS  REA-TEST-F1-02-0
+*** INFORMATION ***        FILE VERIFIED RECS =      000000000000000050
+
+ READ :       10 EXP. PASS  REA-TEST-F1-03-0
+ CLOSE INPUT: 00 EXP. PASS  CLO-TEST-GF-02-0
+ OPEN  INPUT: 00 EXP. PASS  OPN-TEST-GF-03-0
+ READ...END:  00 EXP. PASS  REA-TEST-F1-04-0
+ READ...END:  10 EXP. PASS  REA-TEST-F1-05-0
+ READ.        46 EXP. PASS  REA-TEST-F1-06-0
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX109A
+
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

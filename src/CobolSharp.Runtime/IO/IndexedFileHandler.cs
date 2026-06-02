@@ -33,6 +33,10 @@ public class IndexedFileHandler : IFileHandler
     public bool SequentialAccess { get; set; } = true;
     private bool _prevOpWasSuccessfulRead;
     private bool _lastReadUnsuccessful;
+    // ACCESS SEQUENTIAL WRITE releases records in ascending primary-key order; a key not greater than the
+    // previously written record's key is the invalid-key condition, status 21 (ISO §14.9.51 GR). Tracks the
+    // last successfully written key (reset at OPEN). RANDOM/DYNAMIC WRITE has no ordering requirement.
+    private string? _lastWrittenKey;
     private string? _dataFilePath;
     private FileOpenMode _openMode;
 
@@ -71,6 +75,7 @@ public class IndexedFileHandler : IFileHandler
         _openMode = mode;
         _dataFilePath = ExternalName;
         _records = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
+        _lastWrittenKey = null; // ascending-order WRITE check restarts each OPEN
 
         // Initialize alternate indices
         _alternateIndices.Clear();
@@ -290,6 +295,14 @@ public class IndexedFileHandler : IFileHandler
             return FileStatus.WriteNotOpenForOutput;
 
         string key = ExtractKey(recordData);
+
+        // ACCESS SEQUENTIAL: records must be released in ascending primary-key order; a key not greater
+        // than the previously written one is the invalid-key condition, status 21 (ISO §14.9.51 GR). This
+        // precedes the duplicate-key check because an equal key is also out-of-sequence in sequential access.
+        if (SequentialAccess && _lastWrittenKey != null
+            && string.Compare(key, _lastWrittenKey, StringComparison.Ordinal) <= 0)
+            return FileStatus.KeyOutOfSequence;
+
         if (_records!.ContainsKey(key))
             return FileStatus.DuplicateKey;
 
@@ -319,6 +332,7 @@ public class IndexedFileHandler : IFileHandler
 
         _records[key] = (byte[])recordData.Clone();
         IndexAlternateKeys(recordData);
+        _lastWrittenKey = key; // for the ACCESS SEQUENTIAL ascending-order check (status 21)
         _prevOpWasSuccessfulRead = false; // a WRITE is not a READ — a following sequential DELETE/REWRITE is 43
         return hasDuplicateAlt ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
