@@ -793,6 +793,34 @@ public sealed class IrCheckEndOfPage : IrInstruction
     }
 }
 
+/// <summary>Evaluate the LINAGE clause's page parameters at OPEN OUTPUT and apply them to the file's
+/// runtime linage state (ISO §13.18.34 GR6b: data-name values are read at OPEN OUTPUT; GR7d: the
+/// LINAGE-COUNTER is reset to one). Each phrase is either a data-name (a non-null IrLocation, decoded to
+/// an integer at runtime) or an integer literal (the *Const fallback when the location is null).</summary>
+public sealed class IrInitLinage : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation? BodyLoc { get; }
+    public int BodyConst { get; }
+    public IrLocation? FootingLoc { get; }
+    public int FootingConst { get; }
+    public IrLocation? TopLoc { get; }
+    public int TopConst { get; }
+    public IrLocation? BottomLoc { get; }
+    public int BottomConst { get; }
+
+    public IrInitLinage(string fileName,
+        IrLocation? bodyLoc, int bodyConst, IrLocation? footingLoc, int footingConst,
+        IrLocation? topLoc, int topConst, IrLocation? bottomLoc, int bottomConst)
+    {
+        FileName = fileName;
+        BodyLoc = bodyLoc; BodyConst = bodyConst;
+        FootingLoc = footingLoc; FootingConst = footingConst;
+        TopLoc = topLoc; TopConst = topConst;
+        BottomLoc = bottomLoc; BottomConst = bottomConst;
+    }
+}
+
 /// <summary>
 /// Store the most recent file status code into a FILE STATUS variable.
 /// </summary>

@@ -827,12 +827,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             var intLit = ctx.integerLiteral();
             if (intLit != null && int.TryParse(intLit.GetText(), out int body))
                 _currentFdFile.LinageBody = body;
+            else if (ctx.dataReference() is { } bodyRef)
+                _currentFdFile.LinageBodyName = bodyRef.GetText();
 
             if (ctx.linageFootingPhrase() is { } footCtx)
             {
                 var footInt = footCtx.integerLiteral();
                 if (footInt != null && int.TryParse(footInt.GetText(), out int foot))
                     _currentFdFile.LinageFooting = foot;
+                else if (footCtx.dataReference() is { } footRef)
+                    _currentFdFile.LinageFootingName = footRef.GetText();
             }
 
             if (ctx.linageLinesAtTopPhrase() is { } topCtx)
@@ -840,6 +844,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var topInt = topCtx.integerLiteral();
                 if (topInt != null && int.TryParse(topInt.GetText(), out int top))
                     _currentFdFile.LinageTop = top;
+                else if (topCtx.dataReference() is { } topRef)
+                    _currentFdFile.LinageTopName = topRef.GetText();
             }
 
             if (ctx.linageLinesAtBottomPhrase() is { } botCtx)
@@ -847,6 +853,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var botInt = botCtx.integerLiteral();
                 if (botInt != null && int.TryParse(botInt.GetText(), out int bot))
                     _currentFdFile.LinageBottom = bot;
+                else if (botCtx.dataReference() is { } botRef)
+                    _currentFdFile.LinageBottomName = botRef.GetText();
             }
         }
         return base.VisitLinageClause(ctx);

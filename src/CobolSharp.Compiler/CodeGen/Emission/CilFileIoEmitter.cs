@@ -281,6 +281,35 @@ internal sealed class CilFileIoEmitter
             il.Append(il.Create(OpCodes.Pop));
     }
 
+    internal void EmitInitLinage(ILProcessor il, IrInitLinage init)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, init.FileName));
+        EmitLinagePhrase(il, init.BodyLoc, init.BodyConst);
+        EmitLinagePhrase(il, init.FootingLoc, init.FootingConst);
+        EmitLinagePhrase(il, init.TopLoc, init.TopConst);
+        EmitLinagePhrase(il, init.BottomLoc, init.BottomConst);
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("InitLinage",
+                new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(int) })!)));
+    }
+
+    /// <summary>Push one LINAGE phrase value as int32: a data-name is decoded from its storage
+    /// (DecodeNumeric → ToInt32); an integer-literal phrase pushes its constant directly.</summary>
+    private void EmitLinagePhrase(ILProcessor il, IR.IrLocation? loc, int constVal)
+    {
+        if (loc == null)
+        {
+            il.Append(il.Create(OpCodes.Ldc_I4, constVal));
+            return;
+        }
+        _ctx.Location.EmitLocationArgsWithPic(il, loc);
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+    }
+
     // ── DELETE / START / INVALID KEY ──
 
     internal void EmitDeleteRecord(ILProcessor il, IrDeleteRecord del)

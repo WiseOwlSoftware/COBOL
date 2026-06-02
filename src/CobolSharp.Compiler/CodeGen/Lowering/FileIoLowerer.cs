@@ -122,6 +122,13 @@ internal sealed class FileIoLowerer
             block.Instructions.Add(new IrLoadConst(fnVal, cobolName));
             block.Instructions.Add(new IrRuntimeCall(null, runtimeMethod, new[] { fnVal }));
 
+            // LINAGE with data-name phrases (ISO §13.18.34 GR6b): the page parameters are the runtime
+            // values of those data items, read at completion of OPEN OUTPUT; the counter is then reset to
+            // one (GR7d). Integer-only LINAGE was applied at registration, so only the data-name form
+            // needs this OPEN-time evaluation.
+            if (open.Mode == OpenMode.Output && file.HasLinageDataNames)
+                block.Instructions.Add(BuildInitLinage(file));
+
             // Update FILE STATUS if declared
             EmitFileStatus(file, block);
 
@@ -298,6 +305,19 @@ internal sealed class FileIoLowerer
         if (!IsVaryingRecord(file) || file!.RecordVaryingDependingOn == null) return null;
         var sym = _ctx.Semantic.ResolveData(file.RecordVaryingDependingOn);
         return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
+    }
+
+    /// <summary>Build the OPEN-OUTPUT LINAGE initialization for a file with data-name phrases: each phrase
+    /// is the location of its data-name (decoded at runtime) or the captured integer-literal value.</summary>
+    private IrInitLinage BuildInitLinage(FileSymbol file)
+    {
+        IrLocation? Loc(string? name)
+            => name != null && _ctx.Semantic.ResolveData(name) is { } s ? _ctx.Location.ResolveLocation(s) : null;
+        return new IrInitLinage(file.Name,
+            Loc(file.LinageBodyName), file.LinageBody,
+            Loc(file.LinageFootingName), file.LinageFooting,
+            Loc(file.LinageTopName), file.LinageTop,
+            Loc(file.LinageBottomName), file.LinageBottom);
     }
 
     private static bool IsRelative(FileSymbol? f) => f?.Organization == "RELATIVE";

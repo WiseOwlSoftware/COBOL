@@ -113,6 +113,17 @@ public sealed class FileSymbol : Symbol
     /// <summary>LINAGE LINES AT BOTTOM (default 0).</summary>
     public int LinageBottom { get; set; }
 
+    // Data-name forms of the LINAGE phrases (ISO §13.18.34): when a phrase is a data-name rather than an
+    // integer literal, its runtime value is read at OPEN OUTPUT (GR6b). Null = phrase is a literal/absent.
+    public string? LinageBodyName { get; set; }
+    public string? LinageFootingName { get; set; }
+    public string? LinageTopName { get; set; }
+    public string? LinageBottomName { get; set; }
+
+    /// <summary>True when any LINAGE phrase uses a data-name (so its value must be evaluated at OPEN).</summary>
+    public bool HasLinageDataNames =>
+        LinageBodyName != null || LinageFootingName != null || LinageTopName != null || LinageBottomName != null;
+
     /// <summary>The 01-level record DataSymbol under this FD.</summary>
     public DataSymbol? Record { get; set; }
 

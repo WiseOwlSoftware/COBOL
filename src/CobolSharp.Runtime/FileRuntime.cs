@@ -142,6 +142,23 @@ public static class FileRuntime
         }
     }
 
+    /// <summary>Apply LINAGE page parameters evaluated at OPEN OUTPUT (ISO §13.18.34 GR6b for data-name
+    /// phrases) and reset the LINAGE-COUNTER to one (GR7d). For an integer-only LINAGE clause the params
+    /// were already set at registration, but re-applying here is harmless and keeps the OPEN-time reset
+    /// uniform.</summary>
+    public static void InitLinage(string cobolName, int body, int footing, int top, int bottom)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is SequentialFileHandler seq)
+        {
+            seq.LinageBody = body;
+            seq.LinageFooting = footing;
+            seq.LinageTop = top;
+            seq.LinageBottom = bottom;
+            seq.LinageCounter = 1;
+        }
+    }
+
     /// <summary>Whether the most recent WRITE to a LINAGE file raised the end-of-page condition
     /// (ISO §14.9.51 GR26) — drives the AT END-OF-PAGE / NOT AT END-OF-PAGE phrase branch.</summary>
     public static bool WasEndOfPage(string cobolName)
