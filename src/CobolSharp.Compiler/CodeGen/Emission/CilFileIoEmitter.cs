@@ -141,7 +141,18 @@ internal sealed class CilFileIoEmitter
     internal void EmitRewriteRecordFromStorage(ILProcessor il, IrRewriteRecordFromStorage rw)
     {
         il.Append(il.Create(OpCodes.Ldstr, rw.FileName));
-        _ctx.Location.EmitLocationArgs(il, rw.Record);
+        _ctx.Location.EmitLocationArgs(il, rw.Record); // byte[], offset, declared size
+
+        if (rw.LengthLocation != null)
+        {
+            // RECORD VARYING DEPENDING ON: the depending item supplies the rewrite length at runtime
+            // (so §14.9.35 GR16 sees the true length, not the record-name's declared size).
+            il.Append(il.Create(OpCodes.Pop)); // discard declared size
+            _ctx.Location.EmitLocationArgs(il, rw.LengthLocation);
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(StorageHelpers).GetMethod("ReadFieldAsInt",
+                    new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+        }
 
         var method = _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod(

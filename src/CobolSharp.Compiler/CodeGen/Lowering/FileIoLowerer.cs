@@ -476,7 +476,13 @@ internal sealed class FileIoLowerer
             if (IsRelativeRandom(rw.File) && ResolveRelativeKeyLocation(rw.File) is { } rwKey)
                 block.Instructions.Add(new IrSetRelativeKey(cobolName, rwKey));
 
-            block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc));
+            // RECORD VARYING on a record-SEQUENTIAL file: the rewrite length is the DEPENDING ON item's
+            // runtime value (not the record-name's declared size), so a different-size REWRITE is detected
+            // per §14.9.35 GR16 (status 44). RELATIVE files are excluded — their handler carries a per-slot
+            // length and §14.9.35 GR18 permits a relative REWRITE to differ in length.
+            var rwLengthLoc = !IsRelative(rw.File) && IsVaryingRecord(rw.File)
+                ? ResolveRecordLengthLocation(rw.File) : null;
+            block.Instructions.Add(new IrRewriteRecordFromStorage(cobolName, recordLoc, rwLengthLoc));
         }
         EmitFileStatus(rw.File, block);
 
@@ -490,7 +496,9 @@ internal sealed class FileIoLowerer
             return _ctx.Condition.LowerConditionalBranch(rw.InvalidKey, rw.NotInvalidKey, invalidResult, method, block, "rewrite");
         }
 
-        return block;
+        // No INVALID KEY phrase: a REWRITE that raises an exception condition invokes the applicable
+        // USE AFTER EXCEPTION/ERROR declarative (ISO §14.9.49) — e.g. a status-44 different-length REWRITE.
+        return rw.File != null ? EmitUseDeclarative(rw.File, method, block) : block;
     }
 
     // ── DELETE ──

@@ -618,11 +618,16 @@ public sealed class IrRewriteRecordFromStorage : IrInstruction
 {
     public string FileName { get; }
     public IrLocation Record { get; }
+    /// <summary>For a RECORD VARYING file, the DEPENDING ON data item supplying the rewrite length at
+    /// runtime (the number of bytes being rewritten). Null for a fixed-length record (use the record's
+    /// declared size). Lets §14.9.35 GR16 compare the true rewrite length against the replaced record's.</summary>
+    public IrLocation? LengthLocation { get; }
 
-    public IrRewriteRecordFromStorage(string fileName, IrLocation record)
+    public IrRewriteRecordFromStorage(string fileName, IrLocation record, IrLocation? lengthLocation = null)
     {
         FileName = fileName;
         Record = record;
+        LengthLocation = lengthLocation;
     }
 }
 
