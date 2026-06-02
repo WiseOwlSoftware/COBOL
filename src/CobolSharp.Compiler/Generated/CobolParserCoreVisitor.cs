@@ -1671,17 +1671,29 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIoControlParagraph([NotNull] CobolParserCore.IoControlParagraphContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlEntry"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.ioControlClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitIoControlEntry([NotNull] CobolParserCore.IoControlEntryContext context);
+	Result VisitIoControlClause([NotNull] CobolParserCore.IoControlClauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.sameClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitSameClause([NotNull] CobolParserCore.SameClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multipleFileClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultipleFileClause([NotNull] CobolParserCore.MultipleFileClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.multipleFileTapeEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMultipleFileTapeEntry([NotNull] CobolParserCore.MultipleFileTapeEntryContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.openStatement"/>.
 	/// </summary>
@@ -1694,6 +1706,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitOpenClause([NotNull] CobolParserCore.OpenClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.openFileSpec"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOpenFileSpec([NotNull] CobolParserCore.OpenFileSpecContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.openMode"/>.
 	/// </summary>

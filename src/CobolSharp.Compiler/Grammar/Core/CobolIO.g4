@@ -135,18 +135,34 @@ vendorFileControlClause
     : genericClause
     ;
 
-// I-O-CONTROL.
+// I-O-CONTROL. The paragraph holds one or more clauses terminated by a period; per ISO §12.4.6 the
+// clauses are not individually period-terminated, but compilers commonly tolerate a period after each,
+// so accept an optional period after every clause (SQ206A writes two SAME clauses before one period).
 ioControlParagraph
-    : I_O_CONTROL DOT ioControlEntry*
+    : I_O_CONTROL DOT (ioControlClause DOT?)*
     ;
 
-ioControlEntry
-    : sameClause DOT
-    | genericClause DOT
+ioControlClause
+    : sameClause
+    | multipleFileClause
+    | genericClause
     ;
 
+// ISO §12.4.6.4 SAME clause. In every format only SAME (and RECORD/SORT/SORT-MERGE) is a required word;
+// AREA and FOR are optional words (Format 1 `SAME AREA FOR file-1 …` underlines only SAME), so the
+// "SAME AREA" clause may be written `SAME file-1 file-2` (as SQ206A does). Files may be comma-separated.
 sameClause
-    : SAME (RECORD? AREA | SORT AREA | IDENTIFIER AREA) FOR? fileName (fileName)+
+    : SAME (RECORD | SORT | SORT_MERGE)? AREA? FOR? fileName (COMMA? fileName)*
+    ;
+
+// MULTIPLE FILE TAPE clause (obsolete; removed from later standards). Describes several files sharing
+// one physical reel — irrelevant to disk storage, so parsed and ignored.
+multipleFileClause
+    : MULTIPLE FILE TAPE? (CONTAINS? multipleFileTapeEntry (COMMA? multipleFileTapeEntry)*)?
+    ;
+
+multipleFileTapeEntry
+    : fileName (POSITION integerLiteral)?
     ;
 
 // ==========================================
@@ -158,7 +174,13 @@ openStatement
     ;
 
 openClause
-    : openMode dataReference+
+    : openMode openFileSpec+
+    ;
+
+// Each opened file may carry an obsolete tape phrase (ISO §14.9.25): REVERSED or WITH NO REWIND —
+// vertical/tape positioning hints with no effect on disk files, parsed and ignored.
+openFileSpec
+    : dataReference (REVERSED | WITH? NO REWIND)?
     ;
 
 openMode

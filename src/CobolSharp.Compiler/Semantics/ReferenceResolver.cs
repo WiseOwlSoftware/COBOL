@@ -102,8 +102,9 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
     {
         foreach (var clause in ctx.openClause())
         {
-            foreach (var id in clause.dataReference())
+            foreach (var spec in clause.openFileSpec())
             {
+                var id = spec.dataReference();
                 string name = id.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
                     Error(id, $"OPEN target '{name}' is not a declared file.");

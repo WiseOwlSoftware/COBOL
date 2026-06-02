@@ -142,9 +142,10 @@ internal sealed class FileIoBinder
             };
 
             var files = new List<FileSymbol>();
-            foreach (var idCtx in clause.dataReference())
+            foreach (var spec in clause.openFileSpec())
             {
-                string name = idCtx.cobolWord().GetText();
+                // The REVERSED / WITH NO REWIND tape phrase (if any) is ignored; only the file matters.
+                string name = spec.dataReference().cobolWord().GetText();
                 var fileSym = _ctx.Semantic.ResolveFile(name);
                 if (fileSym != null)
                     files.Add(fileSym);

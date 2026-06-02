@@ -1694,11 +1694,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitVendorFileControlClause(ctx);
     }
 
-    public override object? VisitIoControlEntry(
-        CobolParserCore.IoControlEntryContext ctx)
+    public override object? VisitIoControlClause(
+        CobolParserCore.IoControlClauseContext ctx)
     {
+        // SAME and MULTIPLE FILE clauses are storage/tape hints with no effect on CobolSharp; only the
+        // vendor/unknown generic clause needs capturing.
         CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
-        return base.VisitIoControlEntry(ctx);
+        return base.VisitIoControlClause(ctx);
     }
 
     // ── SCREEN SECTION ──
