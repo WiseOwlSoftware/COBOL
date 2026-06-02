@@ -346,9 +346,11 @@ internal sealed class ControlFlowLowerer
             endIdx = thruIdx;
         }
 
-        // Ensure valid range (section THRU may produce reversed indices)
-        if (endIdx < startIdx)
-            (startIdx, endIdx) = (endIdx, startIdx);
+        // NOTE: do NOT normalise an inverted range (endIdx < startIdx). PERFORM proc-1 THRU proc-2
+        // where proc-2 physically precedes proc-1 is legal (ISO §14.9.30) — control enters at proc-1
+        // and returns when proc-2 falls off its end. The shared Dispatch helper handles this by
+        // following control flow from the true startIdx and exiting on the true endIdx's fall-through;
+        // swapping to a contiguous [min,max] block would execute the wrong paragraphs (NC102A).
 
         if (startIdx == endIdx)
         {
@@ -731,6 +733,13 @@ internal sealed class ControlFlowLowerer
 
     // ── GO TO ──
 
+    /// <summary>Resolve a bound paragraph reference to its paragraph index (the pc value), preferring
+    /// the symbol's own index so duplicate paragraph names in different sections resolve correctly;
+    /// falls back to name-based lookup. This must agree with the symbol-ordered dispatch table.</summary>
+    private bool TryResolveParagraphIndex(ParagraphSymbol target, out int index)
+        => _ctx.ParagraphSymbolIndices.TryGetValue(target, out index)
+           || _ctx.ParagraphIndices.TryGetValue(target.Name, out index);
+
     public void LowerGoTo(BoundGoToStatement gt, IrBasicBlock block)
     {
         // Bare GO TO (no target) — target set by ALTER at runtime
@@ -754,15 +763,18 @@ internal sealed class ControlFlowLowerer
             // Check if this paragraph is an ALTER target — use indirection table
             if (_ctx.CurrentParagraphName != null && _ctx.AlterSlots.TryGetValue(_ctx.CurrentParagraphName, out int slot))
             {
-                // Record the default GO TO target for this alter slot
-                if (_ctx.ParagraphIndices.TryGetValue(gt.Target.Name, out int defaultTarget))
+                // Record the default GO TO target for this alter slot (symbol-based; see below)
+                if (TryResolveParagraphIndex(gt.Target, out int defaultTarget))
                     _ctx.AlterDefaults[slot] = defaultTarget;
                 block.Instructions.Add(new IrReturnAlterable(slot));
                 return;
             }
 
-            // Simple GO TO: unconditional branch to paragraph (non-alterable)
-            if (_ctx.ParagraphIndices.TryGetValue(gt.Target.Name, out int targetIndex))
+            // Simple GO TO: unconditional branch to paragraph (non-alterable). Resolve the bound
+            // ParagraphSymbol's own index (symbol-based) so a GO TO to one of several duplicate
+            // paragraph names lands on the correct paragraph — the dispatch table is symbol-ordered,
+            // and name-based lookup would pick the last-defined duplicate.
+            if (TryResolveParagraphIndex(gt.Target, out int targetIndex))
                 block.Instructions.Add(new IrReturnConst(targetIndex));
             else
                 _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0506, SourceLocation.None, TextSpan.Empty, gt.Target.Name);
@@ -783,11 +795,11 @@ internal sealed class ControlFlowLowerer
             return;
         }
 
-        // Build list of target paragraph indices
+        // Build list of target paragraph indices (symbol-based, for duplicate-name correctness)
         var targetIndices = new List<int>();
         foreach (var target in gt.Targets)
         {
-            if (_ctx.ParagraphIndices.TryGetValue(target.Name, out int idx))
+            if (TryResolveParagraphIndex(target, out int idx))
                 targetIndices.Add(idx);
             else
             {

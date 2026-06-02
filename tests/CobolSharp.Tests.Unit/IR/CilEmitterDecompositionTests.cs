@@ -159,7 +159,7 @@ public class CilEmitterDecompositionTests
     [InlineData("EmitCheckCallException")]
     [InlineData("EmitCall")]
     [InlineData("EmitParagraphDispatch")]
-    [InlineData("EmitParagraphDispatchInline")]
+    [InlineData("EmitDispatchHelper")]
     [InlineData("EmitProgramState")]
     [InlineData("SeedPrimitiveTypes")]
     [InlineData("DefineType")]

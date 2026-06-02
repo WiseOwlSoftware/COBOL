@@ -155,83 +155,20 @@ internal sealed class CilControlFlowEmitter
     }
 
     /// <summary>
-    /// PERFORM THRU: dynamic dispatch loop respecting GO TO returns.
-    /// Generated IL:
-    ///   int pc = startIndex;
-    ///   LOOP: if (pc &lt; startIndex || pc &gt; endIndex) goto EXIT;
-    ///         switch (pc - startIndex) { case 0: pc = Para_A(); break; case 1: pc = Para_B(); ... }
-    ///         goto LOOP;
-    ///   EXIT:
+    /// PERFORM proc-1 THRU proc-2: delegate to the shared Dispatch helper with the range's TRUE
+    /// endpoints — <c>Dispatch(startIndex, endIndex)</c>. Dispatch enters at startIndex, follows the
+    /// program's control flow anywhere (GO TOs leaving/re-entering the range, and inverted ranges
+    /// where proc-2 physically precedes proc-1), and returns when proc-2 (endIndex) falls off its end
+    /// (ISO §14.9.30). The returned pc is discarded (PERFORM is a call, not a branch); a propagated
+    /// STOP RUN (−1) is likewise discarded here, matching the prior physical-range behaviour.
+    /// thru.Paragraphs is unused — the helper switches over the full paragraph table.
     /// </summary>
     internal void EmitPerformThru(ILProcessor il, IrPerformThru thru, MethodDefinition md)
     {
-        int rangeSize = thru.EndIndex - thru.StartIndex + 1;
-
-        // Local: int pc
-        var pcLocal = new VariableDefinition(_ctx.Module.TypeSystem.Int32);
-        md.Body.Variables.Add(pcLocal);
-
-        // pc = startIndex
         il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-        il.Append(il.Create(OpCodes.Stloc, pcLocal));
-
-        // LOOP:
-        var loopLabel = il.Create(OpCodes.Nop);
-        il.Append(loopLabel);
-
-        // EXIT label (appended later)
-        var exitLabel = il.Create(OpCodes.Nop);
-
-        // if (pc < startIndex) goto EXIT
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-        il.Append(il.Create(OpCodes.Blt, exitLabel));
-
-        // if (pc > endIndex) goto EXIT
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
         il.Append(il.Create(OpCodes.Ldc_I4, thru.EndIndex));
-        il.Append(il.Create(OpCodes.Bgt, exitLabel));
-
-        // switch (pc - startIndex)
-        var caseLabels = new Instruction[rangeSize];
-        for (int i = 0; i < rangeSize; i++)
-            caseLabels[i] = il.Create(OpCodes.Nop);
-
-        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        if (thru.StartIndex != 0)
-        {
-            il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
-            il.Append(il.Create(OpCodes.Sub));
-        }
-        il.Append(il.Create(OpCodes.Switch, caseLabels));
-
-        // Default: goto EXIT (shouldn't happen but safety)
-        il.Append(il.Create(OpCodes.Br, exitLabel));
-
-        // Case bodies
-        for (int i = 0; i < rangeSize; i++)
-        {
-            il.Append(caseLabels[i]);
-            var para = thru.Paragraphs[i];
-            if (para != null)
-            {
-                var target = _ctx.MethodMap[para];
-                il.Append(il.Create(OpCodes.Call, target));
-                il.Append(il.Create(OpCodes.Stloc, pcLocal)); // pc = returned value
-            }
-            else
-            {
-                // Unresolved paragraph: advance pc by 1
-                il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-                il.Append(il.Create(OpCodes.Ldc_I4_1));
-                il.Append(il.Create(OpCodes.Add));
-                il.Append(il.Create(OpCodes.Stloc, pcLocal));
-            }
-            il.Append(il.Create(OpCodes.Br, loopLabel));
-        }
-
-        // EXIT:
-        il.Append(exitLabel);
+        il.Append(il.Create(OpCodes.Call, _ctx.DispatchMethod));
+        il.Append(il.Create(OpCodes.Pop));
     }
 
     // ── GO TO DEPENDING ──

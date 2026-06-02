@@ -41,6 +41,9 @@ TEST RESULT OF NC102A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  PERFORM THRU         PASS  PFM-TEST-F1-7
  PERFORM THRU, TIMES  PASS  PFM-TEST-F2-4
  NESTED PERFORM       PASS  PFM-TEST-F1-8
+ NESTED PERFORM       PASS  PFM-TEST-F2-5
+ NESTED PERFORM       PASS  PFM-TEST-F1-9
+ PERFORM GO TO PARAS  PASS  PFM-TEST-F1-10
  PERFORM ... TIMES    PASS  PFM-TEST-F2-6
  PERFORM ... TIMES    PASS  PFM-TEST-F1-11-1
  PERFORM ... TIMES    PASS  PFM-TEST-F1-11-2
@@ -59,7 +62,7 @@ TEST RESULT OF NC102A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC102A
 
-                                                    039 OF 039  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    042 OF 042  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION

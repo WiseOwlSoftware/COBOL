@@ -54,6 +54,16 @@ internal sealed class EmissionContext
 
     public MethodDefinition? EntryMethod { get; set; }
 
+    /// <summary>
+    /// Shared paragraph-dispatch helper: <c>int Dispatch(int startPc, int exitPc)</c>. Runs the
+    /// program's control flow from startPc following each paragraph's returned next-pc; returns when
+    /// the paragraph at exitPc completes by falling through (returns exitPc+1), or when pc goes
+    /// out of range (STOP RUN/EXIT PROGRAM → −1, or off the end). The main loop calls it with
+    /// exitPc = −1 (no exit paragraph); PERFORM…THRU calls it with the THRU range's true endpoints.
+    /// Used by CilControlFlowEmitter.EmitPerformThru. Null if the program has no paragraphs.
+    /// </summary>
+    public MethodDefinition? DispatchMethod { get; set; }
+
     // ── EXTERNAL storage ──
 
     /// <summary>Static fields for EXTERNAL data items, keyed by data name (case-insensitive).</summary>

@@ -392,17 +392,20 @@ public sealed class Binder
         // which emits IrPerform / IrPerformThru — direct calls, not this switch), so the main loop
         // never lands on a declarative index: it starts at EntryParagraphIndex (the first non-
         // declarative paragraph) and main-flow control never targets a declarative.
-        // Name-based lookup matches the rest of the dispatch machinery (GO TO targets resolve via
-        // ParagraphIndices[name]); a paragraph name always resolves, so every paragraph is added and
-        // the list position equals the paragraph index (the pc value). Duplicate paragraph names
-        // across sections are a separate, pre-existing concern not addressed here.
+        // Symbol-based lookup so each list position holds THIS paragraph's own method — duplicate
+        // paragraph names in different sections each get their own entry (a name-based lookup would
+        // put the last-defined duplicate's method at every same-name position). This must agree with
+        // GO TO / GO TO DEPENDING / fall-through, which all resolve the bound ParagraphSymbol's index
+        // (ControlFlowLowerer.TryResolveParagraphIndex, ParagraphSymbolIndices). Name fallback for
+        // safety; a paragraph always resolves, so every paragraph is added and list position == index.
         int firstNonDeclarative = -1;
         int idx = 0;
         foreach (var para in boundProgram.Paragraphs)
         {
             if (firstNonDeclarative < 0 && !para.IsDeclarative)
                 firstNonDeclarative = idx;
-            if (_ctx.ParagraphMethods.TryGetValue(para.Symbol.Name, out var m))
+            if (_ctx.ParagraphSymbolMethods.TryGetValue(para.Symbol, out var m)
+                || _ctx.ParagraphMethods.TryGetValue(para.Symbol.Name, out m))
                 module.ParagraphDispatchOrder.Add(m);
             idx++;
         }

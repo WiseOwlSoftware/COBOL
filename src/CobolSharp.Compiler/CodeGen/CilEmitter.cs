@@ -27,6 +27,7 @@ public sealed class CilEmitter
     /// <summary>Static fields for LINKAGE SECTION parameters, keyed by USING parameter name (case-insensitive).</summary>
     private readonly Dictionary<string, FieldDefinition> _linkageFields = new(StringComparer.OrdinalIgnoreCase);
     private MethodDefinition? _currentMethodDef;
+    private MethodDefinition? _dispatchMethod;
     private VariableDefinition? _arithmeticStatusLocal;
     /// <summary>
     /// Cache for IrCachedLocation: maps cache key → (area, offset, length) locals.
@@ -118,6 +119,7 @@ public sealed class CilEmitter
         _ctx.ArithmeticStatusLocal = _arithmeticStatusLocal;
         _ctx.SemanticModel = _semanticModel;
         _ctx.EntryMethod = _entryMethod;
+        _ctx.DispatchMethod = _dispatchMethod;
         _ctx.LastCallResultField = _lastCallResultField;
         // Sync collection contents: copy CilEmitter's collections into _ctx's collections.
         // MethodMap (needed by CilControlFlowEmitter for PERFORM/THRU dispatch)
@@ -180,6 +182,9 @@ public sealed class CilEmitter
 
         // 4. Create Entry method signature and LINKAGE fields (before emitting bodies)
         CreateEntryMethodSignature(ir);
+
+        // 4b. Emit the shared paragraph-dispatch helper before any body (PERFORM…THRU calls it).
+        EmitDispatchHelper(ir);
 
         // M003: Sync all CilEmitter fields to EmissionContext before method body emission
         SyncToContext();
@@ -297,10 +302,15 @@ public sealed class CilEmitter
             il.Append(afterLabel);
         }
 
-        // Paragraph dispatch loop
-        if (ir.ParagraphDispatchOrder.Count > 0)
+        // Paragraph dispatch loop — delegate to the shared Dispatch helper, starting at the first
+        // non-declarative paragraph (EntryParagraphIndex) with no exit paragraph (exitPc = -1, so the
+        // exit-paragraph check never fires; the loop runs until STOP RUN/off-end).
+        if (ir.ParagraphDispatchOrder.Count > 0 && _dispatchMethod != null)
         {
-            EmitParagraphDispatchInline(il, ir.ParagraphDispatchOrder, _entryMethod, ir.EntryParagraphIndex);
+            il.Append(il.Create(OpCodes.Ldc_I4, ir.EntryParagraphIndex));
+            il.Append(il.Create(OpCodes.Ldc_I4_M1));
+            il.Append(il.Create(OpCodes.Call, _dispatchMethod));
+            il.Append(il.Create(OpCodes.Pop));
         }
 
         // Normal return: 0
@@ -333,54 +343,106 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// Emit the paragraph dispatch loop inline into a method (Entry or legacy Main).
-    /// while (pc >= 0 && pc < N) { pc = paragraphs[pc](); }
+    /// Emit the shared paragraph-dispatch helper: <c>int Dispatch(int startPc, int exitPc)</c>.
+    ///
+    /// This is the single engine for ALL paragraph control flow — the main program loop and every
+    /// PERFORM…THRU both call it. Each paragraph method returns the next pc (fall-through = myIndex+1,
+    /// GO TO = target index, STOP RUN/EXIT PROGRAM/GOBACK = −1). The helper runs:
+    /// <code>
+    ///   pc = startPc;
+    ///   while (pc &gt;= 0 &amp;&amp; pc &lt; N) {
+    ///       bool atExit = (pc == exitPc);
+    ///       pc = paragraphs[pc]();           // execute paragraph, follow its returned next-pc
+    ///       if (atExit &amp;&amp; pc == exitPc + 1) break;   // exit paragraph fell through → return
+    ///   }
+    ///   return pc;
+    /// </code>
+    /// This is a RETURN-ADDRESS model, not a physical-range model: it follows control flow ANYWHERE
+    /// (GO TOs that leave and re-enter the range, and inverted THRU ranges where the exit paragraph
+    /// physically precedes the entry), returning only when the named exit paragraph (exitPc) completes
+    /// by falling off its end. The main loop passes exitPc = −1 so that check never fires and it runs
+    /// until STOP RUN (pc &lt; 0) or off the end (pc &gt;= N).
     /// </summary>
-    private void EmitParagraphDispatchInline(ILProcessor il,
-        IReadOnlyList<IrMethod> paragraphs, MethodDefinition md, int entryIndex)
+    private void EmitDispatchHelper(IrModule ir)
     {
+        var paragraphs = ir.ParagraphDispatchOrder;
         int count = paragraphs.Count;
+        if (count == 0) return;
 
-        var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);
+        var md = new MethodDefinition(
+            "Dispatch",
+            MethodAttributes.Private | MethodAttributes.Static,
+            _module.TypeSystem.Int32);
+        md.Parameters.Add(new ParameterDefinition("startPc", ParameterAttributes.None, _module.TypeSystem.Int32));
+        md.Parameters.Add(new ParameterDefinition("exitPc", ParameterAttributes.None, _module.TypeSystem.Int32));
+        _programType!.Methods.Add(md);
+        _dispatchMethod = md;
+
+        md.Body.InitLocals = true;
+        var il = md.Body.GetILProcessor();
+
+        var pcLocal = new VariableDefinition(_module.TypeSystem.Int32);    // current pc
+        var atExitLocal = new VariableDefinition(_module.TypeSystem.Int32); // (pc == exitPc) before the call
         md.Body.Variables.Add(pcLocal);
+        md.Body.Variables.Add(atExitLocal);
 
-        // pc = entryIndex (first non-declarative paragraph; skips leading DECLARATIVES, which
-        // remain in the switch only so the USE handler's PERFORM can reach them by index)
-        il.Append(il.Create(OpCodes.Ldc_I4, entryIndex));
+        // pc = startPc
+        il.Append(il.Create(OpCodes.Ldarg_0));
         il.Append(il.Create(OpCodes.Stloc, pcLocal));
 
         var loopLabel = il.Create(OpCodes.Nop);
-        il.Append(loopLabel);
-
+        var checkLabel = il.Create(OpCodes.Nop);
         var exitLabel = il.Create(OpCodes.Nop);
 
-        // if pc < 0, goto EXIT
+        il.Append(loopLabel);
+
+        // if (pc < 0) goto EXIT          — STOP RUN / EXIT PROGRAM / GOBACK
         il.Append(il.Create(OpCodes.Ldloc, pcLocal));
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Blt, exitLabel));
+        // if (pc >= count) goto EXIT     — fell off the end of the program
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ldc_I4, count));
+        il.Append(il.Create(OpCodes.Bge, exitLabel));
 
-        // switch (pc)
+        // atExit = (pc == exitPc) ? 1 : 0   — capture BEFORE the call (the call overwrites pc)
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ldarg_1));
+        il.Append(il.Create(OpCodes.Ceq));
+        il.Append(il.Create(OpCodes.Stloc, atExitLocal));
+
+        // switch (pc) { case i: pc = Para_i(); goto CHECK; }
         var caseLabels = new Instruction[count];
         for (int i = 0; i < count; i++)
             caseLabels[i] = il.Create(OpCodes.Nop);
-
         il.Append(il.Create(OpCodes.Ldloc, pcLocal));
         il.Append(il.Create(OpCodes.Switch, caseLabels));
+        il.Append(il.Create(OpCodes.Br, exitLabel)); // default (unreachable: pc in [0,count) here)
 
-        // Default: goto EXIT
-        il.Append(il.Create(OpCodes.Br, exitLabel));
-
-        // Case bodies
         for (int i = 0; i < count; i++)
         {
             il.Append(caseLabels[i]);
-            var target = _methodMap[paragraphs[i]];
-            il.Append(il.Create(OpCodes.Call, target));   // pc = paragraph(): next pc
+            il.Append(il.Create(OpCodes.Call, _methodMap[paragraphs[i]])); // pc = paragraph(): next pc
             il.Append(il.Create(OpCodes.Stloc, pcLocal));
-            il.Append(il.Create(OpCodes.Br, loopLabel));
+            il.Append(il.Create(OpCodes.Br, checkLabel));
         }
 
+        // CHECK: if (atExit && pc == exitPc + 1) return; else loop
+        il.Append(checkLabel);
+        il.Append(il.Create(OpCodes.Ldloc, atExitLocal));
+        il.Append(il.Create(OpCodes.Brfalse, loopLabel));        // not the exit paragraph → keep going
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ldarg_1));
+        il.Append(il.Create(OpCodes.Ldc_I4_1));
+        il.Append(il.Create(OpCodes.Add));
+        il.Append(il.Create(OpCodes.Bne_Un, loopLabel));         // exit paragraph GO TO'd elsewhere → keep going
+        // else: exit paragraph fell through to exitPc+1 → return from PERFORM range
+        il.Append(il.Create(OpCodes.Br, exitLabel));
+
+        // EXIT: return pc
         il.Append(exitLabel);
+        il.Append(il.Create(OpCodes.Ldloc, pcLocal));
+        il.Append(il.Create(OpCodes.Ret));
     }
 
     /// <summary>
