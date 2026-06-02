@@ -19,7 +19,13 @@ public class SequentialFileHandler : IFileHandler
     private FileOpenMode _openMode;
 
     public string ExternalName { get; }
-    public bool IsOpen => _stream != null || _reader != null || _writer != null;
+    public bool IsOpen => _stream != null || _reader != null || _writer != null || _optionalAbsentInput;
+
+    // True after OPEN INPUT on a SELECT OPTIONAL file that was not present: the open is successful
+    // (status 05) and the connector is positioned at end-of-file, so the first (and every) READ raises
+    // the AT END condition with status 10 (ISO §9.1.13.2 — optional file not present on OPEN INPUT).
+    // No host stream is opened; this flag keeps IsOpen true and routes READ to AT END.
+    private bool _optionalAbsentInput;
 
     /// <summary>Character length of the most recently read record (for RECORD VARYING DEPENDING ON).</summary>
     public int LastRecordLength { get; private set; }
@@ -71,6 +77,7 @@ public class SequentialFileHandler : IFileHandler
         // OPEN re-establishes the file position; clear the sequential read-position state (§14.9.30/§14.9.35).
         _lastReadUnsuccessful = false;
         _prevOpWasSuccessfulRead = false;
+        _optionalAbsentInput = false;
         bool fileExists = File.Exists(ExternalName);
         try
         {
@@ -78,7 +85,13 @@ public class SequentialFileHandler : IFileHandler
             {
                 case FileOpenMode.Input:
                     if (!fileExists)
-                        return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.FileNotFound;
+                    {
+                        if (!IsOptional) return FileStatus.FileNotFound;
+                        // OPTIONAL file not present: OPEN INPUT succeeds (05) and is positioned at
+                        // end-of-file so the first READ raises AT END (ISO §9.1.13.2).
+                        _optionalAbsentInput = true;
+                        return FileStatus.OptionalFileNotFound;
+                    }
                     if (_lineSequential)
                         _reader = new StreamReader(ExternalName, Encoding.ASCII);
                     else
@@ -137,6 +150,7 @@ public class SequentialFileHandler : IFileHandler
         _reader = null;
         _writer = null;
         _stream = null;
+        _optionalAbsentInput = false;
         return FileStatus.Success;
     }
 
@@ -147,6 +161,15 @@ public class SequentialFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
+
+        // An OPTIONAL file that was not present at OPEN INPUT is positioned at end-of-file: the first
+        // (and every) READ raises the AT END condition with status 10 (ISO §9.1.13.2). No record is read.
+        if (_optionalAbsentInput)
+        {
+            _prevOpWasSuccessfulRead = false;
+            _lastReadUnsuccessful = true;
+            return FileStatus.AtEnd;
+        }
 
         // ISO §14.9.30 GR21: a sequential READ when the previous READ was unsuccessful (at-end/error) and
         // no reposition has occurred is itself unsuccessful with status 46 — no valid next record exists.

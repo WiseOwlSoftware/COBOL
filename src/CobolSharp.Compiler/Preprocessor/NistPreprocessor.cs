@@ -39,11 +39,13 @@ public static class NistPreprocessor
         // XXXXX055: printer assignment → string literal with test name
         source = source.Replace("XXXXX055", $"\"{testName}\"");
 
-        // XXXXX001: sequential file assignment (used by NC401M, SQ, IX, ST, RL tests)
-        source = source.Replace("XXXXX001", "\"TFIL1\"");
-
-        // XXXXX002: second sequential file assignment
-        source = source.Replace("XXXXX002", "\"TFIL2\"");
+        // XXXXX001 / XXXXX002 are data-file ASSIGN targets. They are NOT special-cased to a shared literal
+        // here — they flow through the organization-aware mapping below (line 72) like every other
+        // XXXXX### data file: a RELATIVE/INDEXED file maps to a shared "TF###" (so producer/consumer run
+        // units share one physical file), while a SEQUENTIAL file's target is left as the implementor-name
+        // so the Binder qualifies it per program-id for test isolation (DEVLOG 244/255). A blanket
+        // `XXXXX001 → "TFIL1"` literal here previously defeated that isolation, so an OPEN-INPUT-on-an-
+        // absent-file test (SQ141A/SQ142A) saw a leftover shared file and got status 00 instead of 35.
 
         // XXXXX058: control card file assignment
         source = source.Replace("XXXXX058", "\"CONTROL\"");
