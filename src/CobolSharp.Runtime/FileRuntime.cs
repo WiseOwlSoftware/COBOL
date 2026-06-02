@@ -537,12 +537,22 @@ public static class FileRuntime
     /// AT END / INVALID KEY phrase (which would otherwise handle the condition themselves).
     /// </summary>
     public static bool ShouldRunUseDeclarative(string fileName, int scope)
+        => ShouldRunUseDeclarative(fileName, scope, excludeAtEnd: false, excludeInvalidKey: false);
+
+    public static bool ShouldRunUseDeclarative(string fileName, int scope,
+        bool excludeAtEnd, bool excludeInvalidKey)
     {
         if (!_lastStatus.TryGetValue(fileName, out var status)) return false;
         // Successful completion (status class 0: 00 successful, 02 dup-key-ok, 04 length, 05 optional-
         // absent-on-open, 07 no-reel) is not an exception — no declarative.
         if (status is FileStatus.Success or FileStatus.DuplicateAlternateKey
             or "04" or "05" or "07") return false;
+        // A condition serviced by a handling phrase on the originating statement is not serviced by the
+        // declarative (ISO §14.6.6): an AT END phrase handles the at-end condition (10); an INVALID KEY
+        // phrase handles the invalid-key conditions (21/22/23/24). The declarative still fires for any
+        // other exception (e.g. 30/35/47/48/49) that the phrase does not handle.
+        if (excludeAtEnd && status == FileStatus.AtEnd) return false;
+        if (excludeInvalidKey && status is "21" or "22" or "23" or "24") return false;
         if (scope == UseScopeFileName) return true;
         return _openModeScope.TryGetValue(fileName, out var m) && m == scope;
     }

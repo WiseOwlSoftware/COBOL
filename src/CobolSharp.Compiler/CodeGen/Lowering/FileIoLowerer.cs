@@ -90,6 +90,13 @@ internal sealed class FileIoLowerer
         if (wr.File != null)
             EmitFileStatus(wr.File, block);
 
+        // USE AFTER EXCEPTION: a WRITE exception (e.g. 48 not-open, or 21/22/24 on an indexed/relative file
+        // with no INVALID KEY phrase) fires the applicable USE declarative (ISO §14.6.6). An INVALID KEY
+        // phrase, when present, services the invalid-key conditions itself, so those are excluded.
+        if (wr.File != null)
+            block = EmitUseDeclarative(wr.File, method, block,
+                excludeInvalidKey: wr.InvalidKey.Count > 0 || wr.NotInvalidKey.Count > 0);
+
         // AT END-OF-PAGE / NOT AT END-OF-PAGE (LINAGE files, ISO §14.9.51 GR26-28): after the WRITE,
         // branch on whether the end-of-page condition was raised.
         if (wr.AtEndOfPage.Count > 0 || wr.NotAtEndOfPage.Count > 0)
@@ -256,8 +263,19 @@ internal sealed class FileIoLowerer
             }
         }
 
+        bool hasAtEnd = read.AtEnd.Count > 0 || read.NotAtEnd.Count > 0;
+        bool hasInvalidKey = read.InvalidKey.Count > 0 || read.NotInvalidKey.Count > 0;
+
+        // USE AFTER EXCEPTION: a READ exception that the statement's own phrase does not service fires the
+        // applicable USE declarative (ISO §14.6.6). An AT END phrase services the at-end condition (10) and
+        // an INVALID KEY phrase the invalid-key conditions — those are excluded here so the declarative does
+        // not double-handle them — but a not-open / other exception (47, …) still fires the declarative even
+        // when a phrase is present. With no phrase, every exception (including at-end) fires the declarative.
+        block = EmitUseDeclarative(read.File, method, block,
+            excludeAtEnd: hasAtEnd, excludeInvalidKey: hasInvalidKey);
+
         // AT END / NOT AT END branching
-        if (read.AtEnd.Count > 0 || read.NotAtEnd.Count > 0)
+        if (hasAtEnd)
         {
             var atEndResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckFileAtEnd(cobolName, atEndResult));
@@ -265,15 +283,12 @@ internal sealed class FileIoLowerer
         }
 
         // INVALID KEY branching
-        if (read.InvalidKey.Count > 0 || read.NotInvalidKey.Count > 0)
+        if (hasInvalidKey)
         {
             var invalidResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
             block.Instructions.Add(new IrCheckFileInvalidKey(cobolName, invalidResult));
             return _ctx.Condition.LowerConditionalBranch(read.InvalidKey, read.NotInvalidKey, invalidResult, method, block, "read");
         }
-
-        // USE AFTER EXCEPTION: fire declarative handler if no explicit AT END/INVALID KEY
-        block = EmitUseDeclarative(read.File, method, block);
 
         return block;
     }
@@ -385,7 +400,8 @@ internal sealed class FileIoLowerer
     /// EXTEND) is dispatched at runtime by the file's actual open mode (FileRuntime.ShouldRunUseDeclarative).
     /// Returns the (possibly new) current block after the branches.
     /// </summary>
-    private IrBasicBlock EmitUseDeclarative(FileSymbol file, IrMethod method, IrBasicBlock block)
+    private IrBasicBlock EmitUseDeclarative(FileSymbol file, IrMethod method, IrBasicBlock block,
+        bool excludeAtEnd = false, bool excludeInvalidKey = false)
     {
         // Build the candidate (scope, section) list. UseScope: -1 file-name; 0/1/2/3 INPUT/OUTPUT/I-O/EXTEND.
         var candidates = new List<(int scope, string section)>();
@@ -402,7 +418,7 @@ internal sealed class FileIoLowerer
             if (!_ctx.ParagraphMethods.ContainsKey(sectionParas[0])) continue;
 
             var cond = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-            block.Instructions.Add(new IrCheckUseDeclarative(file.Name, scope, cond));
+            block.Instructions.Add(new IrCheckUseDeclarative(file.Name, scope, cond, excludeAtEnd, excludeInvalidKey));
 
             var useBlock = method.CreateBlock("use.handler");
             var afterBlock = method.CreateBlock("use.after");
@@ -486,6 +502,14 @@ internal sealed class FileIoLowerer
         }
         EmitFileStatus(rw.File, block);
 
+        // USE AFTER EXCEPTION/ERROR: a REWRITE exception the statement's INVALID KEY phrase does not
+        // service (e.g. 44 different-length, 49 not-open, 43 no-prior-read) invokes the applicable
+        // declarative (ISO §14.9.49 / §14.6.6). The invalid-key conditions are excluded when an
+        // INVALID KEY phrase is present, since that phrase services them.
+        if (rw.File != null)
+            block = EmitUseDeclarative(rw.File, method, block,
+                excludeInvalidKey: rw.InvalidKey.Count > 0 || rw.NotInvalidKey.Count > 0);
+
         // INVALID KEY / NOT INVALID KEY branching (ISO §14.9.35 — the invalid key condition exists
         // when the relative key names no existing record). Without this the imperative-statements
         // (e.g. NOT INVALID KEY GO TO …) never execute and control falls through past the REWRITE.
@@ -496,9 +520,7 @@ internal sealed class FileIoLowerer
             return _ctx.Condition.LowerConditionalBranch(rw.InvalidKey, rw.NotInvalidKey, invalidResult, method, block, "rewrite");
         }
 
-        // No INVALID KEY phrase: a REWRITE that raises an exception condition invokes the applicable
-        // USE AFTER EXCEPTION/ERROR declarative (ISO §14.9.49) — e.g. a status-44 different-length REWRITE.
-        return rw.File != null ? EmitUseDeclarative(rw.File, method, block) : block;
+        return block;
     }
 
     // ── DELETE ──
@@ -511,6 +533,12 @@ internal sealed class FileIoLowerer
             block.Instructions.Add(new IrSetRelativeKey(cobolName, delKey));
         block.Instructions.Add(new IrDeleteRecord(cobolName));
         EmitFileStatus(del.File, block);
+
+        // USE AFTER EXCEPTION: a DELETE exception that the statement's INVALID KEY phrase does not service
+        // (e.g. 49 not-open, or 43 no-prior-read in sequential access) fires the USE declarative (ISO
+        // §14.6.6). When an INVALID KEY phrase is present it services the invalid-key conditions itself.
+        block = EmitUseDeclarative(del.File, method, block,
+            excludeInvalidKey: del.InvalidKey.Count > 0 || del.NotInvalidKey.Count > 0);
 
         // INVALID KEY / NOT INVALID KEY branching
         if (del.InvalidKey.Count > 0 || del.NotInvalidKey.Count > 0)

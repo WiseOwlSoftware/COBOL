@@ -757,12 +757,22 @@ public sealed class IrCheckUseDeclarative : IrInstruction
 {
     public string FileName { get; }
     public int Scope { get; }
+    // When the originating I/O statement carries a handling phrase, that phrase — not the declarative —
+    // services its own condition (ISO §14.6.6). ExcludeAtEnd suppresses the declarative for the at-end
+    // condition (status 10) when an AT END phrase is present; ExcludeInvalidKey suppresses it for the
+    // invalid-key conditions (21/22/23/24) when an INVALID KEY phrase is present. The declarative still
+    // fires for every other exception (e.g. 47/48/49 not-open), which the phrase does not handle.
+    public bool ExcludeAtEnd { get; }
+    public bool ExcludeInvalidKey { get; }
 
-    public IrCheckUseDeclarative(string fileName, int scope, IrValue result)
+    public IrCheckUseDeclarative(string fileName, int scope, IrValue result,
+        bool excludeAtEnd = false, bool excludeInvalidKey = false)
     {
         FileName = fileName;
         Scope = scope;
         Result = result;
+        ExcludeAtEnd = excludeAtEnd;
+        ExcludeInvalidKey = excludeInvalidKey;
     }
 }
 

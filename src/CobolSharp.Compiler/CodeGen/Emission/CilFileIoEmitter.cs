@@ -355,15 +355,17 @@ internal sealed class CilFileIoEmitter
             il.Append(il.Create(OpCodes.Stloc, getLocal(cik.Result.Value)));
     }
 
-    /// <summary>FileRuntime.ShouldRunUseDeclarative(fileName, scope) -> bool.</summary>
+    /// <summary>FileRuntime.ShouldRunUseDeclarative(fileName, scope, excludeAtEnd, excludeInvalidKey) -> bool.</summary>
     internal void EmitCheckUseDeclarative(ILProcessor il, IrCheckUseDeclarative cud,
         Func<IrValue, VariableDefinition> getLocal)
     {
         il.Append(il.Create(OpCodes.Ldstr, cud.FileName));
         il.Append(il.Create(OpCodes.Ldc_I4, cud.Scope));
+        il.Append(il.Create(cud.ExcludeAtEnd ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(cud.ExcludeInvalidKey ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         var method = _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod("ShouldRunUseDeclarative",
-                new[] { typeof(string), typeof(int) })!);
+                new[] { typeof(string), typeof(int), typeof(bool), typeof(bool) })!);
         il.Append(il.Create(OpCodes.Call, method));
         if (cud.Result.HasValue)
             il.Append(il.Create(OpCodes.Stloc, getLocal(cud.Result.Value)));
