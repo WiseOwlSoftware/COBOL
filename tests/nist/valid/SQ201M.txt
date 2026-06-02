@@ -1,0 +1,949 @@
+
+ LINAGE-CT AFTER OPEN PASS  WRT-TEST-01                   FILE IS CLOSED, THEN OPENED
+
+
+
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ201M
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+
+
+
+TEST WRT-TEST-01 MUST BE PRINTED BEFORE THE HEADER OF THIS LIST
+
+
+
+THIS PROGRAM TESTS THE STATEMENT:
+
+   WRITE ...   ADVANCING ...
+
+THE RULES ARE DESCRIBED ON PAGE VII-52 THROUGH VII-56.
+
+
+
+THE LOGICAL PAGE SIZE IS EQUAL TO       66
+ L-C AFTER WRITE PAGE PASS  WRT-TEST-02
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ L-C AFT PAGE OVERFLW PASS  WRT-TEST-03
+
+ L-C AFT WRT W/O ADV  PASS  WRT-TEST-04
+
+
+
+
+
+ L-C AFT WRT ADV INT  PASS  WRT-TEST-05
+
+
+
+
+ L-C AFT WRT ADV ID-2 PASS  WRT-TEST-06
+
+
+
+
+
+
+
+
+
+
+THE FOLLOWING SQ201M TESTS CANNOT BE TESTED USING THE NORMAL PASS/FAIL METHODS.  A VISUAL CHECK WILL HAVE TO TO BE MADE
+TO DETERMINE THE ACCURACY OF EACH TEST
+
+
+
+
+
+
+
+
+
+
+ WRT AFT ADV PAGE           WRT-TEST-07THIS LINE WAS WRITTEN BY A WRITE ADVANCING PAGE OPERATION.  IT SHOULD APPEAR AS THE FIRST LINE OF A NEW LOGICAL PAGE.
+
+
+
+
+          THIS IS A TEST FOR THE EOP PHRASE.  50 LINES SHOULD PRINT IN THE PAGE BODY INCLUDING 44 DETAIL LINES AND
+          6 FOOTING LINES.  THESE LINES SHOULD BE CONSECUTIVE ON ONE LOGICAL PAGE AND BE FOLLOWED BY 16 TOP AND BOTTOM
+          BLANK LINES.  THE CORRECT AND COMPUTED LINAGE-COUNTER VALUES IN THE FOOTING LINES SHOULD BE EQUAL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    THIS IS LINE 001 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 002 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 003 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 004 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 005 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 006 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 007 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 008 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 009 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 010 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 011 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 012 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 013 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 014 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 015 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 016 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 017 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 018 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 019 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 020 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 021 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 022 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 023 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 024 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 025 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 026 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 027 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 028 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 029 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 030 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 031 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 032 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 033 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 034 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 035 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 036 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 037 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 038 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 039 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 040 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 041 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 042 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 043 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 044 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 045 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 046 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 047 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 048 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 049 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 050 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 051 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 052 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 053 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 054 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 055 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 056 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 057 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 058 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 059 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 060 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 061 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 062 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 063 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 064 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 065 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 066 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 067 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 068 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 069 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 070 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 071 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 072 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 073 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 074 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 075 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 076 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 077 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 078 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 079 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 080 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 081 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 082 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 083 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 084 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 085 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 086 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 087 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 088 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 089 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 090 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 091 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 092 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 093 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 094 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 095 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 096 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 097 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 098 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 099 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 100 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 101 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 102 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 103 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 104 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 105 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 106 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 107 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 108 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 109 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 110 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 111 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 112 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 113 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 114 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 115 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 116 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 117 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 118 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 119 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 120 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 121 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 122 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 123 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 124 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 125 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 126 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 127 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 128 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 129 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 130 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 131 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 132 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+
+ NOT END-OF-PAGE      PASS  VAR-TEST-008
+
+
+
+
+
+
+
+
+
+          THIS IS A TEST FOR THE EOP PHRASE.  50 LINES SHOULD PRINT IN THE PAGE BODY INCLUDING 44 DETAIL LINES AND
+          6 FOOTING LINES.  THESE LINES SHOULD BE CONSECUTIVE ON ONE LOGICAL PAGE AND BE FOLLOWED BY 16 TOP AND BOTTOM
+          BLANK LINES.  THE CORRECT AND COMPUTED LINAGE-COUNTER VALUES IN THE FOOTING LINES SHOULD BE EQUAL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    THIS IS LINE 001 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 002 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 003 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 004 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 005 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 006 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 007 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 008 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 009 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 010 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 011 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 012 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 013 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 014 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 015 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 016 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 017 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 018 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 019 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 020 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 021 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 022 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 023 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 024 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 025 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 026 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 027 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 028 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 029 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 030 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 031 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 032 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 033 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 034 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 035 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 036 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 037 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 038 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 039 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 040 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 041 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 042 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 043 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 044 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 045 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 046 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 047 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 048 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 049 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 050 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 051 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 052 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 053 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 054 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 055 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 056 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 057 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 058 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 059 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 060 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 061 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 062 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 063 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 064 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 065 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 066 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 067 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 068 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 069 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 070 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 071 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 072 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 073 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 074 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 075 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 076 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 077 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 078 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 079 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 080 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 081 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 082 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 083 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 084 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 085 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 086 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 087 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 088 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 089 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 090 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 091 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 092 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 093 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 094 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 095 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 096 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 097 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 098 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 099 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 100 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 101 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 102 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 103 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 104 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 105 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 106 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 107 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 108 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 109 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 110 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 111 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 112 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 113 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 114 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 115 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 116 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 117 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 118 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 119 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 120 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 121 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 122 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 123 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 124 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 125 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 126 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 127 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 128 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 129 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 130 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 131 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 132 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+
+ NOT AT EOP           PASS  VAR-TEST-009
+
+
+
+
+
+
+
+
+
+          THIS IS A TEST FOR THE EOP PHRASE.  50 LINES SHOULD PRINT IN THE PAGE BODY INCLUDING 44 DETAIL LINES AND
+          6 FOOTING LINES.  THESE LINES SHOULD BE CONSECUTIVE ON ONE LOGICAL PAGE AND BE FOLLOWED BY 16 TOP AND BOTTOM
+          BLANK LINES.  THE CORRECT AND COMPUTED LINAGE-COUNTER VALUES IN THE FOOTING LINES SHOULD BE EQUAL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    THIS IS LINE 001 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 002 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 003 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 004 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 005 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 006 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 007 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 008 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 009 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 010 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 011 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 012 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 013 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 014 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 015 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 016 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 017 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 018 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 019 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 020 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 021 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 022 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 023 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 024 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 025 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 026 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 027 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 028 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 029 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 030 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 031 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 032 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 033 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 034 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 035 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 036 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 037 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 038 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 039 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 040 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 041 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 042 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 043 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 044 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 045 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 046 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 047 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 048 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 049 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 050 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 051 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 052 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 053 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 054 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 055 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 056 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 057 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 058 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 059 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 060 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 061 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 062 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 063 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 064 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 065 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 066 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 067 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 068 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 069 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 070 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 071 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 072 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 073 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 074 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 075 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 076 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 077 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 078 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 079 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 080 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 081 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 082 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 083 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 084 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 085 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 086 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 087 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 088 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 089 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 090 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 091 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 092 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 093 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 094 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 095 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 096 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 097 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 098 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 099 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 100 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 101 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 102 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 103 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 104 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 105 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 106 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 107 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 108 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 109 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 110 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 111 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 112 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 113 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 114 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 115 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 116 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 117 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 118 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 119 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 120 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 121 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 122 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 123 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 124 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 125 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 126 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 127 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 128 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 129 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 130 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 131 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 132 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+
+ NOT END-OF-PAGE      PASS  VAR-TEST-010
+
+
+
+
+
+ END-WRITE;NOT END-OF PASS  VAR-TEST-010-1
+
+
+
+
+
+
+
+
+
+          THIS IS A TEST FOR THE EOP PHRASE.  50 LINES SHOULD PRINT IN THE PAGE BODY INCLUDING 44 DETAIL LINES AND
+          6 FOOTING LINES.  THESE LINES SHOULD BE CONSECUTIVE ON ONE LOGICAL PAGE AND BE FOLLOWED BY 16 TOP AND BOTTOM
+          BLANK LINES.  THE CORRECT AND COMPUTED LINAGE-COUNTER VALUES IN THE FOOTING LINES SHOULD BE EQUAL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    THIS IS LINE 001 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 002 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 003 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 004 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 005 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 006 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 007 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 008 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 009 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 010 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 011 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 012 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 013 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 014 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 015 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 016 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 017 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 018 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 019 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 020 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 021 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 022 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 023 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 024 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 025 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 026 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 027 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 028 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 029 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 030 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 031 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 032 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 033 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 034 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 035 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 036 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 037 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 038 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 039 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 040 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 041 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 042 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 043 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 044 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 045 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 046 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 047 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 048 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 049 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 050 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 051 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 052 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 053 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 054 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 055 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 056 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 057 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 058 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 059 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 060 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 061 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 062 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 063 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 064 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 065 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 066 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 067 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 068 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 069 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 070 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 071 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 072 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 073 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 074 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 075 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 076 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 077 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 078 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 079 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 080 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 081 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 082 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 083 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 084 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 085 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 086 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 087 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 088 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+                    THIS IS LINE 089 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 01.
+                    THIS IS LINE 090 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 02.
+                    THIS IS LINE 091 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 03.
+                    THIS IS LINE 092 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 04.
+                    THIS IS LINE 093 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 05.
+                    THIS IS LINE 094 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 06.
+                    THIS IS LINE 095 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 07.
+                    THIS IS LINE 096 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 08.
+                    THIS IS LINE 097 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 09.
+                    THIS IS LINE 098 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 10.
+                    THIS IS LINE 099 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 11.
+                    THIS IS LINE 100 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 12.
+                    THIS IS LINE 101 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 13.
+                    THIS IS LINE 102 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 14.
+                    THIS IS LINE 103 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 15.
+                    THIS IS LINE 104 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 16.
+                    THIS IS LINE 105 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 17.
+                    THIS IS LINE 106 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 18.
+                    THIS IS LINE 107 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 19.
+                    THIS IS LINE 108 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 20.
+                    THIS IS LINE 109 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 21.
+                    THIS IS LINE 110 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 22.
+                    THIS IS LINE 111 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 23.
+                    THIS IS LINE 112 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 24.
+                    THIS IS LINE 113 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 25.
+                    THIS IS LINE 114 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 26.
+                    THIS IS LINE 115 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 27.
+                    THIS IS LINE 116 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 28.
+                    THIS IS LINE 117 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 29.
+                    THIS IS LINE 118 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 30.
+                    THIS IS LINE 119 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 31.
+                    THIS IS LINE 120 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 32.
+                    THIS IS LINE 121 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 33.
+                    THIS IS LINE 122 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 34.
+                    THIS IS LINE 123 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 35.
+                    THIS IS LINE 124 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 36.
+                    THIS IS LINE 125 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 37.
+                    THIS IS LINE 126 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 38.
+                    THIS IS LINE 127 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 39.
+                    THIS IS LINE 128 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 40.
+                    THIS IS LINE 129 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 41.
+                    THIS IS LINE 130 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 42.
+                    THIS IS LINE 131 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 43.
+                    THIS IS LINE 132 OF 132 DETAIL LINES.                               LINAGE-COUNTER IS 44.
+                    THIS IS LINE 001 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 45.  LINAGE-COUNTER IS 45.
+                    THIS IS LINE 002 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 46.  LINAGE-COUNTER IS 46.
+                    THIS IS LINE 003 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 47.  LINAGE-COUNTER IS 47.
+                    THIS IS LINE 004 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 48.  LINAGE-COUNTER IS 48.
+                    THIS IS LINE 005 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 49.  LINAGE-COUNTER IS 49.
+                    THIS IS LINE 006 OF 6 FOOTING LINES.  LINAGE-COUNTER SHOULD BE 50.  LINAGE-COUNTER IS 50.
+
+ NOT EOP              PASS  VAR-TEST-011
+
+
+
+
+
+ END-WRITE; NOT EOP   PASS  VAR-TEST-011-1
+
+
+
+
+
+END OF SQ201M VALIDATION TESTS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ201M    NTIS DISTRIBUTION COBOL 85
+
+                                                    012 OF 023  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    011 TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

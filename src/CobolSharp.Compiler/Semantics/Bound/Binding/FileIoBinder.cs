@@ -100,8 +100,28 @@ internal sealed class FileIoBinder
                 }
         }
 
+        // AT END-OF-PAGE / NOT AT END-OF-PAGE (EOP) phrases — for LINAGE files (ISO §14.9.51).
+        var atEndOfPage = new List<BoundStatement>();
+        var notAtEndOfPage = new List<BoundStatement>();
+        if (ctx.writeAtEndOfPage() is { } eopCtx)
+        {
+            var eopBlocks = eopCtx.statementBlock();
+            if (eopBlocks.Length >= 1)
+                foreach (var stmt in eopBlocks[0].statement())
+                {
+                    var bound = _ctx.BindStatement(stmt);
+                    if (bound != null) atEndOfPage.Add(bound);
+                }
+            if (eopBlocks.Length >= 2)
+                foreach (var stmt in eopBlocks[1].statement())
+                {
+                    var bound = _ctx.BindStatement(stmt);
+                    if (bound != null) notAtEndOfPage.Add(bound);
+                }
+        }
+
         return new BoundWriteStatement(fileSym, recordSym, from, advancingLines, isAfterAdvancing, invalidKey, notInvalidKey,
-            advancingExpression: advancingExpression);
+            advancingExpression: advancingExpression, atEndOfPage: atEndOfPage, notAtEndOfPage: notAtEndOfPage);
     }
 
     // ── OPEN ──

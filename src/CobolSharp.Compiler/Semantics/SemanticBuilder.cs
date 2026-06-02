@@ -823,6 +823,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (_currentFdFile != null)
         {
+            _currentFdFile.HasLinage = true;
             var intLit = ctx.integerLiteral();
             if (intLit != null && int.TryParse(intLit.GetText(), out int body))
                 _currentFdFile.LinageBody = body;

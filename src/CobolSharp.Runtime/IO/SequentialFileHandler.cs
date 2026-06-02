@@ -349,14 +349,28 @@ public class SequentialFileHandler : IFileHandler
         EndOfPage = false;
         if (LinageBody <= 0) return false;
 
+        if (lines < 0)
+        {
+            // ADVANCING PAGE: LINAGE-COUNTER is reset to one on the new page (ISO §13.18.34 GR7c1).
+            LinageCounter = 1;
+            return false;
+        }
+
+        // ADVANCING n (n>=0) or plain WRITE (n=1): the counter is incremented (GR7c2/c3).
         LinageCounter += lines;
-        if (LinageFooting > 0 && LinageCounter >= LinageFooting)
-            EndOfPage = true;
 
         if (LinageCounter > LinageBody)
         {
-            // Page overflow — emit bottom margin + top margin blank lines, reset counter
+            // Page overflow (§14.9.51 GR26a): the lines do not fit in the page body. The device is
+            // repositioned to the first line of the succeeding page and the counter resets to 1
+            // (GR7c4). An end-of-page (overflow) condition exists.
             LinageCounter = 1;
+            EndOfPage = true;
+        }
+        else if (LinageFooting > 0 && LinageCounter >= LinageFooting)
+        {
+            // Footing-area end-of-page (§14.9.51 GR26b): a FOOTING is specified and this WRITE prints
+            // within the footing area (counter at or beyond the footing start, still on the page).
             EndOfPage = true;
         }
         return EndOfPage;

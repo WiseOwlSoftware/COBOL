@@ -544,8 +544,7 @@ public sealed class Binder
 
             // ── File I/O → _ctx.FileIo ──
             case BoundWriteStatement wr:
-                _ctx.FileIo.LowerWrite(wr, block);
-                break;
+                return _ctx.FileIo.LowerWrite(wr, method, block);
             case BoundOpenStatement open:
                 return _ctx.FileIo.LowerOpen(open, method, block);
             case BoundCloseStatement close:

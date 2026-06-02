@@ -21,7 +21,7 @@ internal sealed class FileIoLowerer
 
     // ── WRITE ──
 
-    public void LowerWrite(BoundWriteStatement wr, IrBasicBlock block)
+    public IrBasicBlock LowerWrite(BoundWriteStatement wr, IrMethod method, IrBasicBlock block)
     {
         string fileName = wr.File?.Name ?? "PRINT-FILE";
 
@@ -89,6 +89,17 @@ internal sealed class FileIoLowerer
         // Update FILE STATUS if declared
         if (wr.File != null)
             EmitFileStatus(wr.File, block);
+
+        // AT END-OF-PAGE / NOT AT END-OF-PAGE (LINAGE files, ISO §14.9.51 GR26-28): after the WRITE,
+        // branch on whether the end-of-page condition was raised.
+        if (wr.AtEndOfPage.Count > 0 || wr.NotAtEndOfPage.Count > 0)
+        {
+            var eopResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckEndOfPage(fileName, eopResult));
+            return _ctx.Condition.LowerConditionalBranch(
+                wr.AtEndOfPage, wr.NotAtEndOfPage, eopResult, method, block, "write");
+        }
+        return block;
     }
 
     // ── OPEN ──

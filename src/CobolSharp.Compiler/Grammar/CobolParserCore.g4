@@ -293,7 +293,12 @@ dataReferenceList
     ;
 
 dataReference
-    : cobolWord dataReferenceSuffix*
+    // LINAGE-COUNTER special register (ISO §8.4.3.14): a read-only unsigned integer holding the
+    // current line within the page body of a LINAGE file, optionally qualified by file-name when more
+    // than one LINAGE file exists. Listed first so the distinct LINAGE_COUNTER token is recognized as
+    // the register rather than a data name.
+    : LINAGE_COUNTER ((OF | IN) cobolWord)?
+    | cobolWord dataReferenceSuffix*
     ;
 
 dataReferenceSuffix

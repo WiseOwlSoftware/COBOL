@@ -76,6 +76,18 @@ public sealed class IrLoadNumeric : IrExpression
 }
 
 /// <summary>
+/// The LINAGE-COUNTER special register value for a file: a runtime read of the file's current line
+/// within the page body (ISO §8.4.3.14). Emitted as a call to FileRuntime.GetLinageCounter, leaving a
+/// decimal on the stack like any other numeric expression.
+/// </summary>
+public sealed class IrLinageCounter : IrExpression
+{
+    public string FileName { get; }
+
+    public IrLinageCounter(string fileName) => FileName = fileName;
+}
+
+/// <summary>
 /// Binary arithmetic operation: left op right.
 /// Covers Add, Subtract, Multiply, Divide, Remainder, Power.
 /// </summary>

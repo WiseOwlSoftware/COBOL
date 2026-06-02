@@ -780,6 +780,19 @@ public sealed class IrCheckFileAtEnd : IrInstruction
     }
 }
 
+/// <summary>Set Result to whether the most recent WRITE to a LINAGE file raised the end-of-page
+/// condition (ISO §14.9.51 GR26) — used to branch on the AT END-OF-PAGE / NOT AT END-OF-PAGE phrase.</summary>
+public sealed class IrCheckEndOfPage : IrInstruction
+{
+    public string FileName { get; }
+
+    public IrCheckEndOfPage(string fileName, IrValue result)
+    {
+        FileName = fileName;
+        Result = result;
+    }
+}
+
 /// <summary>
 /// Store the most recent file status code into a FILE STATUS variable.
 /// </summary>

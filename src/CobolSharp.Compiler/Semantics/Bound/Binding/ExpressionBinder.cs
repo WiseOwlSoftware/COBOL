@@ -547,6 +547,20 @@ internal sealed class ExpressionBinder
     /// </summary>
     internal BoundExpression BindDataReferenceWithSubscripts(CobolParserCore.DataReferenceContext idCtx)
     {
+        // LINAGE-COUNTER special register (ISO §8.4.3.14): not a data name, so it has no cobolWord
+        // base — resolve it to the (optionally file-qualified) LINAGE file's runtime counter.
+        if (idCtx.LINAGE_COUNTER() != null)
+        {
+            var qual = idCtx.cobolWord(); // present only as the OF/IN file-name qualifier
+            var linageFile = qual != null
+                ? _ctx.Semantic.ResolveFile(qual.GetText())
+                : _ctx.Semantic.FindLinageFile();
+            if (linageFile != null)
+                return new BoundLinageCounterExpression(linageFile);
+            // No LINAGE file in scope — bind to 0 so analysis continues (no valid LINAGE-COUNTER).
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        }
+
         string name = idCtx.cobolWord().GetText();
         var tails = idCtx.dataReferenceSuffix();
 

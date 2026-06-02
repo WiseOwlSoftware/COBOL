@@ -142,6 +142,23 @@ public static class FileRuntime
         }
     }
 
+    /// <summary>Whether the most recent WRITE to a LINAGE file raised the end-of-page condition
+    /// (ISO §14.9.51 GR26) — drives the AT END-OF-PAGE / NOT AT END-OF-PAGE phrase branch.</summary>
+    public static bool WasEndOfPage(string cobolName)
+    {
+        EnsureManager();
+        return _manager!.GetHandler(cobolName) is SequentialFileHandler { EndOfPage: true };
+    }
+
+    /// <summary>Read the LINAGE-COUNTER of a file (ISO §8.4.3.14): the current line within the page body.
+    /// Returns the runtime counter as a decimal (the form numeric expressions expect). 0 if the file is
+    /// unknown/not a sequential LINAGE file.</summary>
+    public static decimal GetLinageCounter(string cobolName)
+    {
+        EnsureManager();
+        return _manager!.GetHandler(cobolName) is SequentialFileHandler seq ? seq.LinageCounter : 0m;
+    }
+
     /// <summary>
     /// Register an alternate key for an indexed file (after RegisterFileHandlerWithOrg).
     /// </summary>
@@ -267,6 +284,11 @@ public static class FileRuntime
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
         string status = _manager!.Write(fileName, recordSlice);
         _lastStatus[fileName] = status;
+        // A plain WRITE (no ADVANCING phrase) to a logical-page (LINAGE) file advances the
+        // LINAGE-COUNTER by one (ISO §13.18.34 GR7c3).
+        if (status == FileStatus.Success
+            && _manager.GetHandler(fileName) is SequentialFileHandler { LinageBody: > 0 } seq)
+            seq.AdvanceLinageCounter(1);
     }
 
     /// <summary>
@@ -294,6 +316,10 @@ public static class FileRuntime
             _afterAdvancingFiles.Add(fileName);
             if (isBefore) { handler.WriteRawText(text); EmitAdvance(handler, advanceLines); }
             else          { EmitAdvance(handler, advanceLines); handler.WriteRawText(text); }
+            // Maintain LINAGE-COUNTER for a logical-page (LINAGE) file (ISO §13.18.34 GR7): the counter
+            // advances by the ADVANCING value (PAGE = reset), tracking the current page-body line.
+            if (handler.LinageBody > 0)
+                handler.AdvanceLinageCounter(advanceLines);
             _lastStatus[fileName] = FileStatus.Success;
         }
         else

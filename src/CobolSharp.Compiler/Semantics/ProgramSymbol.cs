@@ -99,6 +99,11 @@ public sealed class FileSymbol : Symbol
     /// record-sequential. Set during WRITE binding.</summary>
     public bool WrittenWithAdvancing { get; set; }
 
+    /// <summary>True when the FD has a LINAGE clause (the file is a logical-page/report file with a
+    /// LINAGE-COUNTER, ISO §13.18.34). Set even when the LINAGE phrases use data-names (whose runtime
+    /// values are read at OPEN), unlike LinageBody which only holds an integer-literal page size.</summary>
+    public bool HasLinage { get; set; }
+
     /// <summary>LINAGE body line count (0 = no LINAGE clause). May be a data-name or integer.</summary>
     public int LinageBody { get; set; }
     /// <summary>LINAGE FOOTING line number (0 = no footing).</summary>

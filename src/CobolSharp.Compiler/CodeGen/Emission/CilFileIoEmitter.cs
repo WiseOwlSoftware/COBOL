@@ -266,6 +266,21 @@ internal sealed class CilFileIoEmitter
             il.Append(il.Create(OpCodes.Pop));
     }
 
+    internal void EmitCheckEndOfPage(
+        ILProcessor il,
+        IrCheckEndOfPage chk,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, chk.FileName));
+        var method = _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("WasEndOfPage", new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+        if (chk.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(chk.Result.Value)));
+        else
+            il.Append(il.Create(OpCodes.Pop));
+    }
+
     // ── DELETE / START / INVALID KEY ──
 
     internal void EmitDeleteRecord(ILProcessor il, IrDeleteRecord del)

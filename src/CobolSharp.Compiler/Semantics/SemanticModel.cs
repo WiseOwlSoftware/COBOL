@@ -318,6 +318,16 @@ public sealed class SemanticModel
     public FileSymbol? ResolveFile(string name)
         => Symbols.Program.GlobalScope.Resolve<FileSymbol>(name);
 
+    /// <summary>The FD with a LINAGE clause, for an unqualified LINAGE-COUNTER reference (ISO §8.4.3.14
+    /// SR3 / §13.18.34 — unqualified is valid only when a single LINAGE file exists). Returns the first
+    /// LINAGE file; null if none.</summary>
+    public FileSymbol? FindLinageFile()
+    {
+        foreach (var sym in Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
+            if (sym.HasLinage) return sym;
+        return null;
+    }
+
     /// <summary>Resolve a level-88 condition name.</summary>
     public ConditionSymbol? ResolveConditionName(string name)
         => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);

@@ -38,6 +38,13 @@ internal sealed class CilExpressionEmitter
                                 typeof(Runtime.PicDescriptor) })!)));
                 break;
 
+            case IR.IrLinageCounter lc:
+                il.Append(il.Create(OpCodes.Ldstr, lc.FileName));
+                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                    typeof(Runtime.FileRuntime).GetMethod("GetLinageCounter",
+                        new[] { typeof(string) })!)));
+                break;
+
             case IR.IrBinaryExpr bin:
                 EmitIrExpression(il, bin.Left);
                 EmitIrExpression(il, bin.Right);

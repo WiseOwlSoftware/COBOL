@@ -40,6 +40,9 @@ internal sealed class ExpressionLowerer
                 return loc != null ? new IrLoadNumeric(loc) : null;
             }
 
+            case BoundLinageCounterExpression lc:
+                return new IrLinageCounter(lc.File.Name);
+
             case BoundReferenceModificationExpression refMod:
             {
                 var loc = _ctx.Location.ResolveRefModLocation(refMod);

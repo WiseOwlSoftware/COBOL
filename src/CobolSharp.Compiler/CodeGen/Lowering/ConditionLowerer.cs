@@ -97,6 +97,11 @@ internal sealed class ConditionLowerer
             case BoundFunctionCallExpression fn when fn.Category.IsNumericLike():
                 return ComparisonOperand.FromArithmeticExpression(fn);
 
+            // LINAGE-COUNTER special register: a runtime numeric value, compared like an arithmetic
+            // expression (lowered to the decimal accumulator → IrLinageCounter).
+            case BoundLinageCounterExpression lc:
+                return ComparisonOperand.FromArithmeticExpression(lc);
+
             default:
                 return null;
         }

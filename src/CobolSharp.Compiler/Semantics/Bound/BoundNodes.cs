@@ -34,6 +34,7 @@ public enum BoundNodeKind
     BinaryExpression,
     ConditionNameExpression,
     ReferenceModificationExpression,
+    LinageCounterExpression,
     SearchStatement,
     SearchAllStatement,
     StringStatement,
@@ -128,6 +129,24 @@ public sealed class BoundIdentifierExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.IdentifierExpression;
+}
+
+/// <summary>
+/// The LINAGE-COUNTER special register (ISO §8.4.3.14): a read-only unsigned integer holding the
+/// current line within the page body of the associated LINAGE file. Resolves to a runtime read of the
+/// file's linage counter; it is not backed by program storage (so it is a value, not a location).
+/// </summary>
+public sealed class BoundLinageCounterExpression : BoundExpression
+{
+    public FileSymbol File { get; }
+
+    public BoundLinageCounterExpression(FileSymbol file)
+        : base(CobolCategory.Numeric)
+    {
+        File = file;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.LinageCounterExpression;
 }
 
 /// <summary>
@@ -499,11 +518,16 @@ public sealed class BoundWriteStatement : BoundStatement
     public IReadOnlyList<BoundStatement> InvalidKey { get; }
     /// <summary>NOT INVALID KEY imperative statements.</summary>
     public IReadOnlyList<BoundStatement> NotInvalidKey { get; }
+    /// <summary>AT END-OF-PAGE / AT EOP imperative statements (LINAGE files, ISO §14.9.51).</summary>
+    public IReadOnlyList<BoundStatement> AtEndOfPage { get; }
+    /// <summary>NOT AT END-OF-PAGE / NOT AT EOP imperative statements.</summary>
+    public IReadOnlyList<BoundStatement> NotAtEndOfPage { get; }
 
     public BoundWriteStatement(FileSymbol? file, DataSymbol record, BoundExpression? from,
         int? advancingLines = null, bool isAfterAdvancing = true,
         IReadOnlyList<BoundStatement>? invalidKey = null, IReadOnlyList<BoundStatement>? notInvalidKey = null,
-        BoundExpression? advancingExpression = null)
+        BoundExpression? advancingExpression = null,
+        IReadOnlyList<BoundStatement>? atEndOfPage = null, IReadOnlyList<BoundStatement>? notAtEndOfPage = null)
     {
         File = file;
         Record = record;
@@ -513,6 +537,8 @@ public sealed class BoundWriteStatement : BoundStatement
         AdvancingExpression = advancingExpression;
         InvalidKey = invalidKey ?? Array.Empty<BoundStatement>();
         NotInvalidKey = notInvalidKey ?? Array.Empty<BoundStatement>();
+        AtEndOfPage = atEndOfPage ?? Array.Empty<BoundStatement>();
+        NotAtEndOfPage = notAtEndOfPage ?? Array.Empty<BoundStatement>();
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.WriteStatement;
