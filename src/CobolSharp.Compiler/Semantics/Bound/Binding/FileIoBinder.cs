@@ -69,6 +69,12 @@ internal sealed class FileIoBinder
             }
         }
 
+        // A WRITE … ADVANCING marks the file as a printed-page (report/listing) file — ADVANCING is
+        // the spec's vertical page-positioning feature (ISO §14.9.51), meaningful only for a printer.
+        // Such a file is line-rendered (each record is a page line), not binary record-sequential.
+        if (fileSym != null && advCtx != null)
+            fileSym.WrittenWithAdvancing = true;
+
         BoundExpression? from = null;
         if (ctx.writeFrom() is { } fromCtx)
             from = _ctx.Expression.BindDataReferenceWithSubscripts(fromCtx.dataReference());

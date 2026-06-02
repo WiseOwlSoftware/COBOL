@@ -1394,6 +1394,13 @@ public sealed class CilEmitter
                     new[] { typeof(string), typeof(bool) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "FileRuntime.SetSequentialVarying")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetSequentialVarying",
+                    new[] { typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         // Other runtime calls: NOP for now
     }
 

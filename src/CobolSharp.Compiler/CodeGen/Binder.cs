@@ -237,10 +237,22 @@ public sealed class Binder
             }
             if (recordLength == 0) recordLength = 132; // Default for print files
 
-            // Line-sequential for SEQUENTIAL org (default) and LINE SEQUENTIAL
-            bool lineSequential = fileSym.Organization == null
-                || fileSym.Organization == "SEQUENTIAL"
-                || fileSym.Organization == "LINE SEQUENTIAL";
+            // Per ISO §9.1.2 / §12.4.5.2: ORGANIZATION SEQUENTIAL (and the unspecified default) is RECORD
+            // sequential — fixed-length records stored contiguously, no line delimiters — so REWRITE can
+            // replace a record in place and READ/REWRITE are length-consistent (a line-sequential file
+            // cannot, because trimming + newline framing makes records variable on disk).
+            //
+            // A line-RENDERED host representation (trimmed text, one line per record) is used for:
+            //   • ORGANIZATION LINE SEQUENTIAL (the explicit text organization), and
+            //   • printer/report files — those written with WRITE … ADVANCING (§14.9.51 vertical page
+            //     positioning) or declared with a LINAGE clause (§13.18.30 logical page). These are the
+            //     spec's printer-file features; real implementations key the same decision off the
+            //     ASSIGN device (IBM SYSOUT, MF PRINTER), which the NIST suite encodes as XXXXX055. A
+            //     printer file's records are page lines, never read back as binary records.
+            // Everything else is record-sequential binary.
+            bool lineSequential = fileSym.Organization == "LINE SEQUENTIAL"
+                || fileSym.WrittenWithAdvancing
+                || fileSym.LinageBody > 0;
 
             string org = fileSym.Organization ?? "SEQUENTIAL";
             int keyOffset = 0, keyLength = 0;
@@ -296,6 +308,20 @@ public sealed class Binder
             block.Instructions.Add(new IrLoadConst(keyLenVal, keyLength));
             block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.RegisterFileHandlerWithOrg",
                 new[] { nameVal, pathVal, recLenVal, lineSeqVal, orgVal, keyOffVal, keyLenVal }));
+
+            // A record-sequential file with variable-length records (RECORD IS VARYING or multiple 01
+            // sizes) stores each record length-framed so lengths round-trip without line delimiters
+            // (ISO §13.18.43 — the length-determination method is implementor-defined). Line-sequential
+            // files frame by newline instead, so the flag only applies to record-sequential.
+            if (!lineSequential && org == "SEQUENTIAL" && _semantic.IsVariableLengthSequential(fileSym))
+            {
+                var seqVarNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                var seqVarVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                block.Instructions.Add(new IrLoadConst(seqVarNameVal, fileSym.Name));
+                block.Instructions.Add(new IrLoadConst(seqVarVal, true));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetSequentialVarying",
+                    new[] { seqVarNameVal, seqVarVal }));
+            }
 
             // Register alternate keys for INDEXED files
             if (org == "INDEXED")

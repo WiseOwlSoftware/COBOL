@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Buffers.Binary;
 using System.Text;
 
 namespace CobolSharp.Runtime.IO;
@@ -22,6 +23,17 @@ public class SequentialFileHandler : IFileHandler
 
     /// <summary>Character length of the most recently read record (for RECORD VARYING DEPENDING ON).</summary>
     public int LastRecordLength { get; private set; }
+
+    /// <summary>True for a record-sequential file with variable-length records (RECORD IS VARYING or
+    /// multiple 01 sizes). Each record is stored length-framed: a 4-byte little-endian length prefix
+    /// followed by the data bytes. Fixed-length record-sequential files store contiguous fixed-size
+    /// records. Has no effect on line-sequential files (which frame by newline). Set at registration.</summary>
+    public bool IsRecordVarying { get; set; }
+
+    // For a variable-length REWRITE: the file offset of the most recently read record's length prefix,
+    // and that record's data length — so REWRITE can replace it in place and enforce ISO §14.9.35 GR16.
+    private long _varyReadFrameStart;
+    private int _varyReadDataLen;
 
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
     public bool IsOptional { get; set; }
@@ -143,6 +155,9 @@ public class SequentialFileHandler : IFileHandler
                 return FileStatus.Success;
             }
 
+            if (_stream != null && IsRecordVarying)
+                return ReadNextVarying(recordBuffer);
+
             if (_stream != null)
             {
                 int bytesRead = _stream.Read(recordBuffer, 0, _recordLength);
@@ -162,6 +177,34 @@ public class SequentialFileHandler : IFileHandler
         {
             return FileStatus.PermanentError;
         }
+    }
+
+    /// <summary>Read the next length-framed record from a record-sequential variable-length file:
+    /// a 4-byte little-endian length prefix, then that many data bytes. The data is copied into the
+    /// (largest-record-sized) buffer and the remainder space-padded; LastRecordLength is the data length
+    /// so a RECORD VARYING DEPENDING ON item receives the true length. Records to be read into a smaller
+    /// area are still consumed in full so the file position stays record-aligned.</summary>
+    private string ReadNextVarying(byte[] recordBuffer)
+    {
+        long frameStart = _stream!.Position;
+        byte[] lenBuf = new byte[4];
+        int n = 0;
+        while (n < 4) { int r = _stream.Read(lenBuf, n, 4 - n); if (r == 0) break; n += r; }
+        if (n == 0) return FileStatus.AtEnd;
+        if (n < 4) return FileStatus.PermanentError; // truncated frame
+        int len = BinaryPrimitives.ReadInt32LittleEndian(lenBuf);
+
+        Array.Fill(recordBuffer, (byte)' ');
+        int toRead = Math.Min(len, recordBuffer.Length);
+        int got = 0;
+        while (got < toRead) { int r = _stream.Read(recordBuffer, got, toRead - got); if (r == 0) break; got += r; }
+        // Consume any data bytes beyond the receiving area so the next read stays record-aligned.
+        if (len > toRead) _stream.Seek(len - toRead, SeekOrigin.Current);
+
+        LastRecordLength = len;
+        _varyReadFrameStart = frameStart;
+        _varyReadDataLen = len;
+        return FileStatus.Success;
     }
 
     public string ReadPrevious(byte[] recordBuffer) =>
@@ -220,6 +263,11 @@ public class SequentialFileHandler : IFileHandler
             }
             if (_stream != null)
             {
+                // Record-sequential variable-length: frame the record with a 4-byte length prefix so
+                // its length round-trips on read-back without relying on a delimiter (ISO §13.18.43).
+                byte[] lenBuf = new byte[4];
+                BinaryPrimitives.WriteInt32LittleEndian(lenBuf, recordData.Length);
+                _stream.Write(lenBuf, 0, 4);
                 _stream.Write(recordData, 0, recordData.Length);
                 return FileStatus.Success;
             }
@@ -240,6 +288,27 @@ public class SequentialFileHandler : IFileHandler
 
         try
         {
+            if (IsRecordVarying)
+            {
+                // ISO §14.9.35 GR16: for a record-sequential file the rewritten record's length must
+                // equal the replaced record's length; otherwise the REWRITE is unsuccessful (status 44)
+                // and the record is left unchanged.
+                if (recordData.Length != _varyReadDataLen)
+                    return FileStatus.RecordBoundaryViolation;
+                _stream.Seek(_varyReadFrameStart, SeekOrigin.Begin);
+                byte[] lenBuf = new byte[4];
+                BinaryPrimitives.WriteInt32LittleEndian(lenBuf, recordData.Length);
+                _stream.Write(lenBuf, 0, 4);
+                _stream.Write(recordData, 0, recordData.Length);
+                // Position is now back at the end of this record (frameStart + 4 + len) for the next read.
+                return FileStatus.Success;
+            }
+
+            // Fixed-length record-sequential: the record being replaced is _recordLength bytes. GR16 —
+            // a length other than _recordLength is unsuccessful (44). (A fixed record-name is always
+            // _recordLength, so this only guards a malformed caller.)
+            if (recordData.Length != _recordLength)
+                return FileStatus.RecordBoundaryViolation;
             _stream.Seek(-_recordLength, SeekOrigin.Current);
             _stream.Write(recordData, 0, _recordLength);
             return FileStatus.Success;

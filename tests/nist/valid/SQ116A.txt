@@ -1,0 +1,42 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ116A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE FILE SQ-FS6         SEQ-WRITE-023
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000550
+
+ VERIFY FILE SQ-FS6   PASS  SEQ-TEST-024
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000550
+
+ REWRITE...FROM 01 L  PASS  RWRT-TEST-GF-01
+ RWRT; LARGER RECORDS PASS  RWRT-TEST-GF-02
+ RWRT; SHORTER RECORD PASS  RWRT-TEST-GF-03
+ RWRT FROM 139        PASS  RWRT-TEST-GF-04
+ RWRT SHORTER RECORDS PASS  RWRT-TEST-GF-05
+ RWRT FROM 02 LEVEL   PASS  RWRT-TEST-GF-06
+ RWRT FROM 05 LEVEL   PASS  RWRT-TEST-GF-07
+ RECORD NOT REWRITTEN PASS  RWRT-TEST-GF-08
+ READ LAST RECORD     PASS  SEQ-TEST-025
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ116A    NTIS DISTRIBUTION COBOL 85
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

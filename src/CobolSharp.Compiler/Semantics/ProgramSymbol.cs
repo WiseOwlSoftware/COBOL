@@ -92,6 +92,13 @@ public sealed class FileSymbol : Symbol
     /// <summary>True if SELECT OPTIONAL was specified.</summary>
     public bool IsOptional { get; set; }
 
+    /// <summary>True when this file is written anywhere with the WRITE … ADVANCING phrase — the spec's
+    /// vertical page-positioning feature (ISO §14.9.51), which is meaningful only for a printer/report
+    /// file. Together with a LINAGE clause it marks the file as a printed-page (listing) file whose
+    /// records are page lines, so its host representation is line-rendered text rather than binary
+    /// record-sequential. Set during WRITE binding.</summary>
+    public bool WrittenWithAdvancing { get; set; }
+
     /// <summary>LINAGE body line count (0 = no LINAGE clause). May be a data-name or integer.</summary>
     public int LinageBody { get; set; }
     /// <summary>LINAGE FOOTING line number (0 = no footing).</summary>

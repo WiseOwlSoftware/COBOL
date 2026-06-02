@@ -395,4 +395,27 @@ public sealed class SemanticModel
         }
         return null;
     }
+
+    /// <summary>
+    /// True when a SEQUENTIAL file (record sequential or line sequential) has variable-length records —
+    /// either an explicit RECORD IS VARYING clause, or two or more 01 record descriptions of differing
+    /// storage sizes (implicitly variable, ISO §13.18.43). Record-sequential variable-length records are
+    /// stored length-framed; fixed-length records are stored contiguous fixed-size. The single source of
+    /// truth for this decision, shared by Binder (handler registration) and FileIoLowerer (WRITE/READ
+    /// lowering) so they cannot disagree.
+    /// </summary>
+    public bool IsVariableLengthSequential(FileSymbol file)
+    {
+        if (file.Organization is not (null or "SEQUENTIAL" or "LINE SEQUENTIAL")) return false;
+        if (file.IsRecordVarying) return true;
+        int firstLen = -1;
+        foreach (var d in _dataItemsInOrder)
+        {
+            if (d.LevelNumber != 1 || !ReferenceEquals(d.OwningFile, file)) continue;
+            int len = GetStorageLocation(d)?.Length ?? 0;
+            if (firstLen < 0) firstLen = len;
+            else if (len != firstLen) return true;
+        }
+        return false;
+    }
 }

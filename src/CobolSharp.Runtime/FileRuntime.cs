@@ -95,6 +95,16 @@ public static class FileRuntime
             rel.IsRecordVarying = varying;
     }
 
+    /// <summary>Mark a record-sequential file as having variable-length records (RECORD IS VARYING or
+    /// multiple 01 sizes) so each record is stored length-framed (4-byte length prefix + data) rather
+    /// than as a fixed-size slot. Must agree with the compiler's variable-write decision.</summary>
+    public static void SetSequentialVarying(string cobolName, bool varying)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is SequentialFileHandler seq)
+            seq.IsRecordVarying = varying;
+    }
+
     /// <summary>
     /// Set the RELATIVE KEY value (relative record number) for the next keyed WRITE/REWRITE/DELETE/READ
     /// on a RELATIVE file. The compiler decodes the RELATIVE KEY data item PIC-aware (DISPLAY/COMP/
