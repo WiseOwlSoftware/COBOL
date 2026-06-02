@@ -25,6 +25,14 @@ public class IndexedFileHandler : IFileHandler
     private string? _currentKey;     // key of the last record returned (null = positioned before the first)
     private bool _readNextInclusive; // true after START: the next READ NEXT returns the record AT _currentKey, not after it
     private bool _pastEnd;           // true after a READ NEXT hit AT END (drives ReadPrevious's first-back behavior)
+    // ACCESS SEQUENTIAL: DELETE/REWRITE act on the last-read record and require an immediately preceding
+    // successful READ (ISO §9.1.13.6). _prevOpWasSuccessfulRead is true only right after a successful
+    // READ; any WRITE/REWRITE/DELETE/START clears it, so a sequential DELETE/REWRITE not directly after a
+    // READ returns 43. _lastReadUnsuccessful drives the 46 on a sequential READ after an at-end READ
+    // (ISO §14.9.30 GR). RANDOM/DYNAMIC access ignores both (it positions by key).
+    public bool SequentialAccess { get; set; } = true;
+    private bool _prevOpWasSuccessfulRead;
+    private bool _lastReadUnsuccessful;
     private string? _dataFilePath;
     private FileOpenMode _openMode;
 
@@ -125,6 +133,8 @@ public class IndexedFileHandler : IFileHandler
         _currentKey = null;
         _readNextInclusive = false;
         _pastEnd = false;
+        _prevOpWasSuccessfulRead = false;
+        _lastReadUnsuccessful = false;
         return FileStatus.Success;
     }
 
@@ -134,6 +144,12 @@ public class IndexedFileHandler : IFileHandler
         if (!IsOpen || _records == null) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
+
+        // A sequential READ NEXT after an unsuccessful (at-end) READ with no intervening reposition is
+        // itself unsuccessful — no valid next record — status 46 (ISO §14.9.30 GR). A START/READ-by-key
+        // repositions and clears the flag.
+        if (_lastReadUnsuccessful)
+            return FileStatus.NoValidNextRecord;
 
         // Find the next record in key order: the smallest key > _currentKey (or >= when positioned by
         // START), or the smallest key overall when positioned before the first. Re-derived from _records
@@ -156,6 +172,8 @@ public class IndexedFileHandler : IFileHandler
         if (target == null)
         {
             _pastEnd = true;
+            _lastReadUnsuccessful = true;
+            _prevOpWasSuccessfulRead = false;
             return FileStatus.AtEnd;
         }
 
@@ -163,6 +181,7 @@ public class IndexedFileHandler : IFileHandler
         Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
         _currentKey = target;
         _pastEnd = false;
+        _prevOpWasSuccessfulRead = true;
         return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
@@ -243,6 +262,8 @@ public class IndexedFileHandler : IFileHandler
             _currentKey = ExtractKey(record);
             _readNextInclusive = false; // a following READ NEXT continues from the record after this one
             _pastEnd = false;
+            _prevOpWasSuccessfulRead = true; // a keyed READ satisfies the sequential DELETE/REWRITE prerequisite
+            _lastReadUnsuccessful = false;
             return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
         }
 
@@ -298,37 +319,69 @@ public class IndexedFileHandler : IFileHandler
 
         _records[key] = (byte[])recordData.Clone();
         IndexAlternateKeys(recordData);
+        _prevOpWasSuccessfulRead = false; // a WRITE is not a READ — a following sequential DELETE/REWRITE is 43
         return hasDuplicateAlt ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
     public string Rewrite(byte[] recordData)
     {
         // REWRITE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
-        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
         if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
-        if (_currentKey == null)
-            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
 
+        if (SequentialAccess)
+        {
+            // ACCESS SEQUENTIAL: REWRITE replaces the last-read record and requires the immediately
+            // preceding operation to have been a successful READ (status 43 if not, ISO §9.1.13.6); the
+            // primary key may not change (status 21, ISO §14.9.35).
+            if (!_prevOpWasSuccessfulRead || _currentKey == null)
+            {
+                _prevOpWasSuccessfulRead = false;
+                return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
+            }
+            string seqKey = ExtractKey(recordData);
+            _prevOpWasSuccessfulRead = false; // the REWRITE consumes the read position
+            if (seqKey != _currentKey)
+                return FileStatus.KeyOutOfSequence;
+            _records![_currentKey] = (byte[])recordData.Clone();
+            return FileStatus.Success;
+        }
+
+        // ACCESS RANDOM/DYNAMIC: REWRITE the record identified by the primary key in the record area; no
+        // prior read is required. The record must already exist (status 23 — invalid key — if not).
         string newKey = ExtractKey(recordData);
-        if (newKey != _currentKey)
-            return FileStatus.KeyOutOfSequence; // Key cannot change on rewrite
-
-        _records![_currentKey] = (byte[])recordData.Clone();
+        if (!_records!.ContainsKey(newKey))
+            return FileStatus.RecordNotFound;
+        _records[newKey] = (byte[])recordData.Clone();
+        _currentKey = newKey;
         return FileStatus.Success;
     }
 
     public string Delete()
     {
         // DELETE on a file connector not open in I-O mode is status 49 (ISO §9.1.13.7), not 42.
-        // With no successfully-read current record, it is status 43 (ISO §9.1.13.6).
         if (!IsOpen || _openMode != FileOpenMode.InputOutput)
             return FileStatus.DeleteRewriteNotOpenForIO;
-        if (_currentKey == null)
-            return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
 
-        _records!.Remove(_currentKey);
-        _currentKey = null;
+        if (SequentialAccess)
+        {
+            // ACCESS SEQUENTIAL: DELETE removes the last-read record and requires the immediately
+            // preceding operation to have been a successful READ (status 43 if not, ISO §9.1.13.6).
+            if (!_prevOpWasSuccessfulRead || _currentKey == null)
+            {
+                _prevOpWasSuccessfulRead = false;
+                return FileStatus.NoSuccessfulReadBeforeDeleteRewrite;
+            }
+            _records!.Remove(_currentKey);
+            _prevOpWasSuccessfulRead = false; // the DELETE consumes the read position
+            return FileStatus.Success;
+        }
+
+        // ACCESS RANDOM/DYNAMIC: DELETE the record identified by the primary key (set into the RECORD KEY
+        // data item before the statement); no prior read is required. Status 23 if no such record.
+        if (_currentKey == null || !_records!.ContainsKey(_currentKey))
+            return FileStatus.RecordNotFound;
+        _records.Remove(_currentKey);
         return FileStatus.Success;
     }
 
@@ -367,9 +420,13 @@ public class IndexedFileHandler : IFileHandler
 
         // Position so the next READ NEXT returns the record AT firstKey (START does not itself read —
         // ISO §14.9.41 GR8: it sets the file position indicator to the first record satisfying the relation).
+        // START is not a READ, so it does not satisfy a sequential DELETE/REWRITE's read prerequisite, but
+        // it does clear the at-end state (the position is re-established).
         _currentKey = firstKey;
         _readNextInclusive = true;
         _pastEnd = false;
+        _prevOpWasSuccessfulRead = false;
+        _lastReadUnsuccessful = false;
         return FileStatus.Success;
     }
 
@@ -423,6 +480,8 @@ public class IndexedFileHandler : IFileHandler
         _currentKey = null;
         _readNextInclusive = false;
         _pastEnd = false;
+        _prevOpWasSuccessfulRead = false;
+        _lastReadUnsuccessful = false;
     }
 
     public void Dispose()

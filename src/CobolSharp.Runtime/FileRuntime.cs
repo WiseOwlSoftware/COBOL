@@ -86,6 +86,19 @@ public static class FileRuntime
             rel.SequentialAccess = sequential;
     }
 
+    /// <summary>
+    /// Set the access mode for an INDEXED file: sequential=true (ACCESS SEQUENTIAL) deletes/rewrites the
+    /// current (last-read) record — requiring an immediately preceding successful READ (status 43 if not,
+    /// ISO §9.1.13.6) — and may not change the primary key on REWRITE (21); sequential=false
+    /// (RANDOM/DYNAMIC) deletes/rewrites the record identified by the primary key with no prior read.
+    /// </summary>
+    public static void SetIndexedAccess(string cobolName, bool sequential)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is IndexedFileHandler ix)
+            ix.SequentialAccess = sequential;
+    }
+
     /// <summary>Mark a RELATIVE file as having variable-length records (RECORD IS VARYING) so each slot
     /// stores and persists its own length. Must agree with the compiler's variable-write decision.</summary>
     public static void SetRelativeVarying(string cobolName, bool varying)

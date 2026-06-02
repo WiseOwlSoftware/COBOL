@@ -1,0 +1,45 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX106A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE RL-FR1         PASS  WRITE-TEST-GF-01
+*** INFORMATION ***         000000000000000225       000000000000000225
+
+ READ RL-FR1          PASS  WRITE-TEST-GF-02
+*** INFORMATION ***         000000000000000225       000000000000000225
+
+ WRITE IX-FS1         PASS  WRITE-TEST-GF-02-2
+*** INFORMATION ***         000000000000000225       000000000000000225
+
+ WRITE SQ-FS1         PASS  WRITE-TEST-GF-02-3
+*** INFORMATION ***         000000000000000225       000000000000000225
+
+ OPEN ALL - SEPARATE  PASS  READ-TEST-F2-01-02
+ OPEN ALL 3 IN 1 LINE PASS  READ-TEST-F2-02
+ DELETE RL RECORD     PASS  DELETE-TEST-GF-01
+ REWRITE RL RECORD    PASS  REWRITE-TEST-GF-01
+ REWRITE SQ           PASS  REWRITE-TEST-GF-02
+ REWRITE IX           PASS  REWRITE-TEST-GF-03
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX106A
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

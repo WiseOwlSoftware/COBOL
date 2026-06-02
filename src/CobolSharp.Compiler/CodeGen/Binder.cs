@@ -323,6 +323,20 @@ public sealed class Binder
                     new[] { seqVarNameVal, seqVarVal }));
             }
 
+            // INDEXED access mode: SEQUENTIAL (or unspecified — the indexed default) deletes/rewrites the
+            // current (last-read) record and requires a preceding successful READ (43 if not); RANDOM/DYNAMIC
+            // delete/rewrite the record identified by the primary key with no prior read (ISO §9.1.13.6).
+            if (org == "INDEXED")
+            {
+                bool ixSequential = fileSym.AccessMode is null or "SEQUENTIAL";
+                var ixNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                var ixSeqVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                block.Instructions.Add(new IrLoadConst(ixNameVal, fileSym.Name));
+                block.Instructions.Add(new IrLoadConst(ixSeqVal, ixSequential));
+                block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetIndexedAccess",
+                    new[] { ixNameVal, ixSeqVal }));
+            }
+
             // Register alternate keys for INDEXED files
             if (org == "INDEXED")
             {

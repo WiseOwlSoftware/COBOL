@@ -1389,6 +1389,13 @@ public sealed class CilEmitter
                     new[] { typeof(string), typeof(bool) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "FileRuntime.SetIndexedAccess")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetIndexedAccess",
+                    new[] { typeof(string), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         else if (rtc.MethodName == "FileRuntime.SetRelativeVarying")
         {
             var m = _module.ImportReference(
