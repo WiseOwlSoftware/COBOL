@@ -1599,6 +1599,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFileReserveClause([NotNull] CobolParserCore.FileReserveClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.paddingCharacterClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPaddingCharacterClause([NotNull] CobolParserCore.PaddingCharacterClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.recordDelimiterClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRecordDelimiterClause([NotNull] CobolParserCore.RecordDelimiterClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.organizationClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

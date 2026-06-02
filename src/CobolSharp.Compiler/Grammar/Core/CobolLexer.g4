@@ -354,6 +354,7 @@ OVERFLOW    : 'OVERFLOW' ;
 PACKED      : 'PACKED' ;
 PAGE        : 'PAGE' ;
 PAGE_COUNTER : 'PAGE-COUNTER' ;
+PADDING     : 'PADDING' ;
 PARAGRAPH   : 'PARAGRAPH' ;
 PF          : 'PF' ;
 PH          : 'PH' ;

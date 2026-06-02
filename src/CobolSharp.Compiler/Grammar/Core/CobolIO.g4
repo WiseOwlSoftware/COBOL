@@ -53,15 +53,32 @@ fileControlClauses
     | relativeKeyClause
     | organizationClause
     | accessModeClause
+    // recordKeyClause and recordDelimiterClause both begin with RECORD; the second token (KEY vs
+    // DELIMITER) disambiguates, so either order parses, but list recordKeyClause first.
     | recordKeyClause
+    | recordDelimiterClause
     | alternateKeyClause
     | fileStatusClause
     | fileReserveClause
+    | paddingCharacterClause
     | vendorFileControlClause
     ;
 
 fileReserveClause
     : RESERVE integerLiteral (AREA | AREAS)?
+    ;
+
+// ISO §12.4.5.9 PADDING CHARACTER clause: PADDING [CHARACTER] IS {data-name-1 | literal-1}.
+// An obsolete block-padding control with no effect on CobolSharp's record model — parsed and ignored.
+paddingCharacterClause
+    : PADDING CHARACTER? IS? (literal | dataReference)
+    ;
+
+// ISO §12.4.5.11 RECORD DELIMITER clause: RECORD DELIMITER IS {STANDARD-1 | feature-name-1}. Specifies
+// the method of determining the length of a variable-length record; CobolSharp length-frames variable
+// records itself (4-byte prefix), so this is parsed and ignored.
+recordDelimiterClause
+    : RECORD DELIMITER IS? (STANDARD_1 | cobolWord)
     ;
 
 // ISO §12.4.5.10: the leading "ORGANIZATION IS" is optional — a bare organization type
