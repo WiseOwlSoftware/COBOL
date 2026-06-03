@@ -487,7 +487,11 @@ public class IndexedFileHandler : IFileHandler
         foreach (var kv in _records!)
         {
             string r = KeyForReference(kv.Value);
-            int cmp = string.Compare(r, targetKey, StringComparison.Ordinal);
+            // Generic (partial) key START: the operand is a leftmost portion of the key, so compare only the
+            // key's leading bytes against the (shorter) search value (ISO §14.9.41). A full-key START has
+            // targetKey.Length == r.Length, so no truncation occurs.
+            string rCmp = r.Length > targetKey.Length ? r.Substring(0, targetKey.Length) : r;
+            int cmp = string.Compare(rCmp, targetKey, StringComparison.Ordinal);
             bool matches = condition switch
             {
                 StartCondition.Equal => cmp == 0,

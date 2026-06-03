@@ -15,15 +15,24 @@ namespace CobolSharp.Compiler.Semantics.Bound;
 /// </summary>
 public static class BoundTreeValidator
 {
-    public static void Validate(BoundProgram program, DiagnosticBag diagnostics)
+    // Scoped to a single Validate call (the binder runs one program at a time). Lets the START / READ KEY
+    // checks resolve storage offsets to recognize a generic-key prefix (ISO §14.9.41) — see ResolveKeyOfReference.
+    private static SemanticModel? _model;
+
+    public static void Validate(BoundProgram program, DiagnosticBag diagnostics, SemanticModel model)
     {
-        foreach (var para in program.Paragraphs)
+        _model = model;
+        try
         {
-            int line = para.Symbol.Line;
-            foreach (var sentence in para.Sentences)
-                foreach (var stmt in sentence.Statements)
-                    WalkStatement(stmt, line, diagnostics);
+            foreach (var para in program.Paragraphs)
+            {
+                int line = para.Symbol.Line;
+                foreach (var sentence in para.Sentences)
+                    foreach (var stmt in sentence.Statements)
+                        WalkStatement(stmt, line, diagnostics);
+            }
         }
+        finally { _model = null; }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -282,11 +291,13 @@ public static class BoundTreeValidator
             Report(diagnostics, line, DiagnosticDescriptors.CBL1602);
 
         // CBL1603: START KEY operand not a record key of file. The KEY operand may name the prime record
-        // key OR any alternate record key (ISO §14.9.41 — START positions on the prime or an alternate key).
+        // key, any alternate record key, OR a generic-key prefix — a data item at a key's leftmost byte
+        // that is no longer than the key (ISO §14.9.41). ResolveKeyOfReference accepts all three (returns
+        // null only when the operand is none of them).
         if (start.KeyCondition is BoundBinaryExpression binExpr
             && binExpr.Left is BoundIdentifierExpression keyId
             && start.File.RecordKey != null
-            && !IsRecordOrAlternateKey(start.File, keyId.Symbol.Name))
+            && _model?.ResolveKeyOfReference(start.File, keyId.Symbol) == null)
         {
             Report(diagnostics, line, DiagnosticDescriptors.CBL1603);
         }

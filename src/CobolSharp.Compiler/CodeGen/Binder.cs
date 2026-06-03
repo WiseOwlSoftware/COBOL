@@ -64,7 +64,7 @@ public sealed class Binder
         var builder = new BoundTreeBuilder(_semantic, _diagnostics, _options);
         var boundProgram = builder.Build(tree);
         Semantics.ProcedureGraph.Analyze(boundProgram, _semantic, _diagnostics);
-        Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics);
+        Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics, _semantic);
         Semantics.FileStateValidator.Validate(boundProgram, _diagnostics);
 
         // Phase 2: Build record types

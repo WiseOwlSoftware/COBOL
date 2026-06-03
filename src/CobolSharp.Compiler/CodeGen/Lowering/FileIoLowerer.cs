@@ -559,15 +559,16 @@ internal sealed class FileIoLowerer
     {
         string cobolName = start.File.Name;
 
-        // The KEY operand names the key of reference — the prime record key OR an alternate record key
-        // (ISO §14.9.41). The search value is that data item's current value, and its index (-1 prime,
-        // 0+ alternate) is conveyed to the runtime so the subsequent READ NEXT sequences on the same key.
-        // With no KEY phrase the prime record key is implied.
+        // The KEY operand names the key of reference — the prime record key, an alternate record key, or a
+        // generic-key prefix of one (ISO §14.9.41). The search value is that data item's current value,
+        // truncated by the runtime to the operand's length (so a shorter generic operand positions on the
+        // matching leftmost portion). Its index (-1 prime, 0+ alternate) is conveyed so a subsequent READ
+        // NEXT sequences on the same key. With no KEY phrase the prime record key is implied.
         int condition = 0; // StartCondition.Equal (default)
-        string? operandName = start.KeyCondition switch
+        var operandSym = start.KeyCondition switch
         {
-            BoundBinaryExpression be when be.Left is BoundIdentifierExpression bid => bid.Symbol.Name,
-            BoundIdentifierExpression id => id.Symbol.Name,
+            BoundBinaryExpression be when be.Left is BoundIdentifierExpression bid => bid.Symbol,
+            BoundIdentifierExpression id => id.Symbol,
             _ => null
         };
         if (start.KeyCondition is BoundBinaryExpression keyExpr)
@@ -583,17 +584,14 @@ internal sealed class FileIoLowerer
             };
         }
 
-        string? keyName = operandName ?? start.File.RecordKey;
-        if (keyName != null)
+        // No KEY phrase → the prime record key.
+        operandSym ??= start.File.RecordKey != null ? _ctx.Semantic.ResolveData(start.File.RecordKey) : null;
+        if (operandSym != null)
         {
-            int keyIndex = ResolveStartKeyIndex(start.File, keyName);
-            var keySym = _ctx.Semantic.ResolveData(keyName);
-            if (keySym != null)
-            {
-                var keyLoc = _ctx.Location.ResolveLocation(keySym);
-                if (keyLoc != null)
-                    block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition, keyIndex));
-            }
+            int keyIndex = _ctx.Semantic.ResolveKeyOfReference(start.File, operandSym) ?? -1;
+            var keyLoc = _ctx.Location.ResolveLocation(operandSym);
+            if (keyLoc != null)
+                block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition, keyIndex));
         }
 
         EmitFileStatus(start.File, block);

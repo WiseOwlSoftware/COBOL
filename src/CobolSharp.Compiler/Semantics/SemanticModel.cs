@@ -306,6 +306,39 @@ public sealed class SemanticModel
     public DataSymbol? ResolveData(string name)
         => Symbols.Program.DataDivisionScope.Resolve<DataSymbol>(name);
 
+    /// <summary>
+    /// Resolve a START / READ KEY operand to its key of reference: -1 for the prime record key, 0+ for an
+    /// alternate record key index, or null if the operand is neither a key nor a leftmost generic-key prefix.
+    /// A generic key (ISO §14.9.41) is a data item that begins at a key's leftmost byte and is no longer than
+    /// that key — it names the leftmost portion of the key to position on (a partial-key START). Storage
+    /// offsets are available because this runs after <see cref="StorageLayoutComputer"/>.
+    /// </summary>
+    public int? ResolveKeyOfReference(FileSymbol file, DataSymbol operand)
+    {
+        if (file.RecordKey != null &&
+            string.Equals(operand.Name, file.RecordKey, StringComparison.OrdinalIgnoreCase))
+            return -1;
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            if (string.Equals(operand.Name, file.AlternateKeys[i].DataName, StringComparison.OrdinalIgnoreCase))
+                return i;
+
+        // Generic key: a leftmost prefix of one of the keys (same start offset, length not greater).
+        var opLoc = GetStorageLocation(operand);
+        if (opLoc == null) return null;
+        if (IsLeftmostPrefix(opLoc.Value, file.RecordKey)) return -1;
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            if (IsLeftmostPrefix(opLoc.Value, file.AlternateKeys[i].DataName)) return i;
+        return null;
+    }
+
+    private bool IsLeftmostPrefix(CodeGen.StorageLocation opLoc, string? keyName)
+    {
+        if (keyName == null) return false;
+        var keySym = ResolveData(keyName);
+        var keyLoc = keySym != null ? GetStorageLocation(keySym) : null;
+        return keyLoc != null && opLoc.Offset == keyLoc.Value.Offset && opLoc.Length <= keyLoc.Value.Length;
+    }
+
     /// <summary>Resolve a paragraph name.</summary>
     public ParagraphSymbol? ResolveParagraph(string name)
         => Symbols.Program.ProcedureDivisionScope.Resolve<ParagraphSymbol>(name);
