@@ -824,7 +824,12 @@ internal sealed class FileIoLowerer
 
         var inputRecord = inputFile.Record;
         if (inputRecord == null) return;
-        var inputLoc = _ctx.Location.ResolveLocation(inputRecord);
+        // A variable-length input file is read into its LARGEST record area (so long records are not
+        // truncated to the first record's size) and released at its actual length (below).
+        bool varying = IsVaryingRecord(inputFile);
+        var inputLoc = varying
+            ? ResolveReadRecordLocation(inputFile, inputRecord)
+            : _ctx.Location.ResolveLocation(inputRecord);
         if (inputLoc == null) return;
 
         // OPEN INPUT input-file
@@ -849,11 +854,20 @@ internal sealed class FileIoLowerer
         loopHead.Instructions.Add(new IrBranch(atEndVal, loopExit, loopBody));
 
         method.Blocks.Add(loopBody);
-        // Copy input record → SD record, then release to sort
-        var inputPic = inputLoc.GetPic();
-        var sdPic = sdLoc.GetPic();
-        loopBody.Instructions.Add(new IrMoveFieldToField(inputLoc, sdLoc, inputPic, sdPic));
-        loopBody.Instructions.Add(new IrSortRelease(sortName, sdLoc));
+        if (varying)
+        {
+            // Release the record just read at its ACTUAL length (the input record's layout matches the SD
+            // record's, so the sort keys land at the same offsets); no fixed-size SD copy that would truncate.
+            loopBody.Instructions.Add(new IrSortReleaseVariable(sortName, inputLoc, inputName));
+        }
+        else
+        {
+            // Copy input record → SD record, then release to sort
+            var inputPic = inputLoc.GetPic();
+            var sdPic = sdLoc.GetPic();
+            loopBody.Instructions.Add(new IrMoveFieldToField(inputLoc, sdLoc, inputPic, sdPic));
+            loopBody.Instructions.Add(new IrSortRelease(sortName, sdLoc));
+        }
         loopBody.Instructions.Add(new IrJump(loopHead));
 
         method.Blocks.Add(loopExit);
@@ -874,7 +888,13 @@ internal sealed class FileIoLowerer
 
         var outputRecord = outputFile.Record;
         if (outputRecord == null) return;
-        var outputLoc = _ctx.Location.ResolveLocation(outputRecord);
+        // For a variable-length output file, RETURN sorted records into the LARGEST record area (so a
+        // max-length record is not truncated into the smallest SD/output record) and re-emit each at its
+        // own length (below).
+        bool varying = IsVaryingRecord(outputFile);
+        var outputLoc = varying
+            ? ResolveReadRecordLocation(outputFile, outputRecord)
+            : _ctx.Location.ResolveLocation(outputRecord);
         if (outputLoc == null) return;
 
         // OPEN OUTPUT output-file
@@ -890,17 +910,26 @@ internal sealed class FileIoLowerer
         block.Instructions.Add(new IrJump(loopHead));
         method.Blocks.Add(loopHead);
 
-        // Return next sorted record into SD record
+        // Return next sorted record. For a variable file, return directly into the largest output record
+        // buffer (no truncation) and write it at its own length; otherwise into the SD record then copy.
         var retResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
-        loopHead.Instructions.Add(new IrSortReturn(sortName, sdLoc, retResult));
+        var returnTarget = varying ? outputLoc : sdLoc;
+        loopHead.Instructions.Add(new IrSortReturn(sortName, returnTarget, retResult));
         loopHead.Instructions.Add(new IrBranch(retResult, loopBody, loopExit));
 
         method.Blocks.Add(loopBody);
-        // Copy SD record → output record, then write
-        var sdPic = sdLoc.GetPic();
-        var outPic = outputLoc.GetPic();
-        loopBody.Instructions.Add(new IrMoveFieldToField(sdLoc, outputLoc, sdPic, outPic));
-        loopBody.Instructions.Add(new IrWriteRecordFromStorage(outputName, outputLoc));
+        if (varying)
+        {
+            loopBody.Instructions.Add(new IrSortGivingWriteVariable(outputName, outputLoc, sortName));
+        }
+        else
+        {
+            // Copy SD record → output record, then write
+            var sdPic = sdLoc.GetPic();
+            var outPic = outputLoc.GetPic();
+            loopBody.Instructions.Add(new IrMoveFieldToField(sdLoc, outputLoc, sdPic, outPic));
+            loopBody.Instructions.Add(new IrWriteRecordFromStorage(outputName, outputLoc));
+        }
         loopBody.Instructions.Add(new IrJump(loopHead));
 
         method.Blocks.Add(loopExit);

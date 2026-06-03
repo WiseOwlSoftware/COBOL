@@ -913,6 +913,46 @@ public sealed class IrSortRelease : IrInstruction
 }
 
 /// <summary>
+/// Release a VARIABLE-length record to the sort file: SortRuntime.ReleaseRecord(fileName, area, offset,
+/// length) where the byte count is the actual length of the record just read from <see cref="LengthFileName"/>
+/// (FileRuntime.GetLastRecordLength), not the record's declared max size — so each record keeps its own
+/// length through the sort (a SORT … USING over a variable-length file).
+/// </summary>
+public sealed class IrSortReleaseVariable : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    public string LengthFileName { get; }
+
+    public IrSortReleaseVariable(string fileName, IrLocation record, string lengthFileName)
+    {
+        FileName = fileName;
+        Record = record;
+        LengthFileName = lengthFileName;
+    }
+}
+
+/// <summary>
+/// Write a VARIABLE-length record returned from the sort to a GIVING output file:
+/// StorageHelpers.WriteRecordVariableToFile(outputFileName, area, offset, length) where the byte count is the
+/// actual length of the record produced by the most recent RETURN (SortRuntime.GetLastReturnedLength of
+/// <see cref="SortFileName"/>) — so a variable-length SORT … GIVING re-emits each record at its own length.
+/// </summary>
+public sealed class IrSortGivingWriteVariable : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    public string SortFileName { get; }
+
+    public IrSortGivingWriteVariable(string fileName, IrLocation record, string sortFileName)
+    {
+        FileName = fileName;
+        Record = record;
+        SortFileName = sortFileName;
+    }
+}
+
+/// <summary>
 /// Sort the collected records: SortRuntime.SortRecords(fileName, keysSpec).
 /// keysSpec is "offset,length,asc;..." encoded string.
 /// </summary>

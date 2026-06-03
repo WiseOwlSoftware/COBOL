@@ -435,6 +435,36 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Stloc, local));
     }
 
+    /// <summary>Variable-length SORT … USING release: SortRuntime.ReleaseRecord(sortName, area, offset,
+    /// GetLastRecordLength(inputFile)) — releases exactly the bytes just read, not the record's declared max.</summary>
+    internal void EmitSortReleaseVariable(ILProcessor il, IrSortReleaseVariable inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));      // sortName
+        _ctx.Location.EmitLocationArgs(il, inst.Record);         // area, offset, declaredSize
+        il.Append(il.Create(OpCodes.Pop));                       // drop declaredSize
+        il.Append(il.Create(OpCodes.Ldstr, inst.LengthFileName)); // input file name
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("GetLastRecordLength", new[] { typeof(string) })!))); // -> actual length
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("ReleaseRecord",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!)));
+    }
+
+    /// <summary>Variable-length SORT … GIVING write: StorageHelpers.WriteRecordVariableToFile(outputFile,
+    /// area, offset, GetLastReturnedLength(sortFile)) — re-emits the returned record at its own length.</summary>
+    internal void EmitSortGivingWriteVariable(ILProcessor il, IrSortGivingWriteVariable inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));      // output file name
+        _ctx.Location.EmitLocationArgs(il, inst.Record);         // area, offset, declaredSize
+        il.Append(il.Create(OpCodes.Pop));                       // drop declaredSize
+        il.Append(il.Create(OpCodes.Ldstr, inst.SortFileName));  // sort file name
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("GetLastReturnedLength", new[] { typeof(string) })!))); // -> length
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod("WriteRecordVariableToFile",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!)));
+    }
+
     internal void EmitTableSort(ILProcessor il, IrTableSort inst)
     {
         // SortRuntime.SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec)

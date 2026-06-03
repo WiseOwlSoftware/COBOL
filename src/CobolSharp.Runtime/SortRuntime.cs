@@ -169,6 +169,7 @@ public static class SortRuntime
             return false;
 
         var record = sf.Records[sf.ReturnIndex++];
+        sf.LastReturnedLength = record.Length; // actual byte length of this record (for a variable-length GIVING)
         int copyLen = Math.Min(length, record.Length);
         Array.Copy(record, 0, storageArea, offset, copyLen);
         // Pad with spaces if record is shorter than target
@@ -177,6 +178,11 @@ public static class SortRuntime
 
         return true;
     }
+
+    /// <summary>Actual byte length of the record produced by the most recent <see cref="ReturnRecord"/> —
+    /// the length to write on a variable-length-record SORT … GIVING (each record keeps its own length).</summary>
+    public static int GetLastReturnedLength(string fileName)
+        => _sortFiles.TryGetValue(fileName, out var sf) ? sf.LastReturnedLength : 0;
 
     /// <summary>
     /// Clean up a sort file after the SORT/MERGE statement completes.
@@ -315,6 +321,7 @@ public static class SortRuntime
         public int RecordLength { get; } = recordLength;
         public List<byte[]> Records { get; } = [];
         public int ReturnIndex { get; set; }
+        public int LastReturnedLength { get; set; }
     }
 
     // ══════════════════════════════════════════════════════════
