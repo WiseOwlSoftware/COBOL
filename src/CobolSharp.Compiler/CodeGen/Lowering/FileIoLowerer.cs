@@ -668,7 +668,11 @@ internal sealed class FileIoLowerer
             if (ret.Into != null)
             {
                 var srcLoc = _ctx.Location.ResolveLocation(recordSym);
-                var dstLoc = _ctx.Location.ResolveLocation(ret.Into);
+                // RETURN INTO an OCCURS DEPENDING ON group must copy the group's MAXIMUM length: the
+                // depending item lives inside the record being moved, so sizing the destination by its
+                // (stale, pre-move) value would copy too few table elements and then overwrite the count
+                // (ISO §14.9.30 GR — the returned record is moved per a MOVE; format-3 ODO, cf. DEVLOG 257).
+                var dstLoc = _ctx.Location.ResolveLocation(ret.Into, receiving: true);
                 if (srcLoc != null && dstLoc != null)
                     notAtEndBlock.Instructions.Add(new IrMoveFieldToField(srcLoc, dstLoc,
                         srcLoc.GetPic(), dstLoc.GetPic()));
@@ -694,7 +698,11 @@ internal sealed class FileIoLowerer
             if (ret.Into != null)
             {
                 var srcLoc = _ctx.Location.ResolveLocation(recordSym);
-                var dstLoc = _ctx.Location.ResolveLocation(ret.Into);
+                // RETURN INTO an OCCURS DEPENDING ON group must copy the group's MAXIMUM length: the
+                // depending item lives inside the record being moved, so sizing the destination by its
+                // (stale, pre-move) value would copy too few table elements and then overwrite the count
+                // (ISO §14.9.30 GR — the returned record is moved per a MOVE; format-3 ODO, cf. DEVLOG 257).
+                var dstLoc = _ctx.Location.ResolveLocation(ret.Into, receiving: true);
                 if (srcLoc != null && dstLoc != null)
                     block.Instructions.Add(new IrMoveFieldToField(srcLoc, dstLoc,
                         srcLoc.GetPic(), dstLoc.GetPic()));
