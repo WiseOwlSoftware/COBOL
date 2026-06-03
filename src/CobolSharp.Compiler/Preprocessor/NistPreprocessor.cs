@@ -50,33 +50,52 @@ public static class NistPreprocessor
         // XXXXX058: control card file assignment
         source = source.Replace("XXXXX058", "\"CONTROL\"");
 
-        // XXXXP### / XXXXD### : produce/consume sequential data files passed between CCVS
-        // programs. The X-card convention pairs them by number — XXXXP002 (written by SM203A via
-        // its COPY'd FILE-CONTROL) and XXXXD002 (read by SM204A) denote the SAME physical file,
-        // as do ST104A's XXXXP001 and ST105A's XXXXD001. Map both to one quoted filename keyed by
-        // the number so the producer's output is read by the consumer (run in a shared directory),
-        // independent of the differing SELECT names. Runs after COPY expansion (see
-        // Compilation.Preprocess) so placeholders inside copied library text are mapped too.
+        // Data-file ASSIGN targets shared across run units by X-card number, mapped (per SELECT…period
+        // entry, after COPY expansion) to one "TF###" literal so a producer's output is read by the matching
+        // consumer in a shared directory:
+        //   • XXXXD### (consume) — ALWAYS shared. It deliberately reads a file another program produced
+        //     (XXXXP002 written by SM203A ↔ XXXXD002 read by SM204A; ST104A's XXXXP001 ↔ ST105A's XXXXD001),
+        //     including an OPTIONAL consumer that expects the file present (SQ203A's "FILE PRESENT" test).
+        //   • XXXXP### (produce) and the RELATIVE/INDEXED XXXXX### (permanent) variant — shared too, but
+        //     ONLY for a non-OPTIONAL SELECT (e.g. RL108A creates XXXXX061, RL109A/RL110A consume it).
+        // A SEQUENTIAL XXXXX### is left as an implementor-name so the Binder qualifies it per program-id for
+        // absent-file isolation (DEVLOG 244 — SQ130A's XXXXX014/062). A SELECT OPTIONAL file tests
+        // presence/absence PER PROGRAM, so its own/produce target (XXXXP###, or a RELATIVE/INDEXED XXXXX###)
+        // is likewise left implementor-name-qualified — otherwise another run unit's leftover TF### makes an
+        // "absent optional" file appear present (IX216A/217A/218A: OPEN INPUT/EXTEND of an absent optional
+        // indexed file must give 05 / READ → AT END 10, not 00 from a producer's shared TF###).
+        // Region pattern: a SELECT entry runs from the SELECT keyword to its terminating period. Two
+        // hazards drive the exact shape of this regex, both rooted in NormalizeToFreeForm rewriting
+        // fixed-form indicator-column lines into free-form "*> …" comment lines that survive in this text:
+        //   (1) It must NOT stop at the first literal '.', because CCVS routinely interposes "*> …" comment
+        //       lines (e.g. SM203A/SM204A's "…DURING EXTRACTION." note) BETWEEN `SELECT TEST-FILE ASSIGN TO`
+        //       and the `XXXXD002.` operand. A naive `[\s\S]*?\.` stops at the comment's period, leaving the
+        //       operand (which sits AFTER the comments) unmapped → producer and consumer then qualify TF002
+        //       per-program and stop sharing a file (SM204A read an empty file). So the alternation consumes
+        //       whole "*> …" comment lines (periods and all), terminating only at the entry's REAL period.
+        //   (2) But (1) makes the body skip comment periods, so it MUST be anchored to a real-code SELECT —
+        //       `(?m)^[ \t]*SELECT` — never a "SELECT" sitting INSIDE a "*> …" comment. The file-I/O suites
+        //       comment out an optional scratch-file SELECT (indicator 'P', e.g. SQ130A/141A/142A's INDEXED
+        //       RAW-DATA on X-card 62). Matching that commented "SELECT" would let the comment-skipping body
+        //       run past the whole comment block into real code (no real period until then), and because the
+        //       comment says INDEXED it would wrongly map the following SEQUENTIAL XXXXX001/014 — destroying
+        //       the per-program isolation those absent-file status tests depend on.
         source = System.Text.RegularExpressions.Regex.Replace(
-            source, @"XXXX[PD](\d+)", "\"TF$1\"");
-
-        // XXXXX### as an ASSIGN TO operand denotes a data file identified by X-card number ### (a test
-        // header reads e.g. `X-61 - "LITERAL" IN "ASSIGN TO" CLAUSE FOR ... DATA FILE`). For RELATIVE and
-        // INDEXED files the X (permanent) variant is the SAME physical file as the matching
-        // XXXXP###/XXXXD### produce/consume variants and is shared across run units (e.g. RL108A creates
-        // `XXXXX061`, RL109A/RL110A consume it; RL107A creates `XXXXX022`, RL117A consumes it), so map it
-        // to a shared "TF###" literal. SEQUENTIAL files are deliberately left alone: their XXXXX###
-        // ASSIGN targets stay program-id-qualified for test isolation (DEVLOG 244 — e.g. SQ130A's
-        // XXXXX014/062 absent-file status checks must not collide with another run unit's file). The
-        // organization is therefore the discriminator. Anchored to the SELECT entry (SELECT…period) so a
-        // RELATIVE/INDEXED entry's operand is mapped while a sequential entry's is not; runs after COPY
-        // expansion (copied FILE-CONTROL is in place) and after the specific 001/002/055/058 numbers.
-        source = System.Text.RegularExpressions.Regex.Replace(
-            source, @"SELECT\b[\s\S]*?\.",
-            m => System.Text.RegularExpressions.Regex.IsMatch(m.Value, @"\b(RELATIVE|INDEXED)\b")
-                ? System.Text.RegularExpressions.Regex.Replace(
-                    m.Value, @"(ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)", "$1\"TF$2\"")
-                : m.Value);
+            source, @"(?m)^[ \t]*SELECT\b(?:\*>[^\n]*\n|[^.])*\.",
+            m =>
+            {
+                string sel = System.Text.RegularExpressions.Regex.Replace(
+                    m.Value, @"XXXXD(\d+)", "\"TF$1\"");
+                bool optional = System.Text.RegularExpressions.Regex.IsMatch(sel, @"\bSELECT\s+OPTIONAL\b");
+                if (!optional)
+                {
+                    sel = System.Text.RegularExpressions.Regex.Replace(sel, @"XXXXP(\d+)", "\"TF$1\"");
+                    if (System.Text.RegularExpressions.Regex.IsMatch(sel, @"\b(RELATIVE|INDEXED)\b"))
+                        sel = System.Text.RegularExpressions.Regex.Replace(
+                            sel, @"(ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)", "$1\"TF$2\"");
+                }
+                return sel;
+            });
 
         // ── SPECIAL-NAMES ──
 

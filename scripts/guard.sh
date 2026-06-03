@@ -16,8 +16,17 @@ echo "=== NIST regression ==="
 cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
 CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 
+# Start each run from a clean DATA-file state so the guard is deterministic and reproducible from any prior
+# state. Producer/consumer chains (RL/SQ/IX) rebuild WITHIN this run because the producer runs before the
+# consumer in NIST_TESTS order (the loop still does not clean BETWEEN tests, so TF### carries over once
+# created). Critically, absent-file tests (e.g. IX216A/217A OPEN I-O/EXTEND of an OPTIONAL file, expecting
+# status 05 = "not present, created") must NOT see the file they themselves created on a previous invocation;
+# without this start-clean such a test passes once then fails forever. Only data/report .txt files are
+# removed — the compiled .dll/.runtimeconfig.json stay.
+rm -f tests/nist/output/*.txt
+
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 35 IX = 265 tests).
+# (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 38 IX = 268 tests).
 # RL206A→RL207A are a producer/consumer pair over TF021 with VARIABLE-LENGTH records (RECORD IS
 # VARYING): RL206A creates the file (each slot stores its own length, persisted length-prefixed), RL207A
 # verifies/updates it. They MUST stay consecutive, AND a fixed-format TF021 producer must follow (RL209A
@@ -74,7 +83,7 @@ SQ101M SQ102A SQ104A SQ105A SQ108A SQ111A SQ112A SQ113A SQ114A SQ116A SQ117A SQ1
 SQ133A SQ136A SQ144A SQ141A SQ142A SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ203A SQ204A SQ206A SQ207M SQ211A SQ213A
 SQ214A SQ216A SQ217A SQ218A SQ219A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ227A SQ228A SQ201M SQ208M SQ209M SQ210M SQ302M
 RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL210A RL211A RL209A RL302M
-IX101A IX102A IX103A IX104A IX105A IX106A IX107A IX108A IX109A IX111A IX112A IX113A IX114A IX115A IX116A IX117A IX118A IX119A IX120A IX121A IX201A IX202A IX203A IX204A IX205A IX206A IX207A IX208A IX209A IX210A IX211A IX212A IX213A IX214A IX302M
+IX101A IX102A IX103A IX104A IX105A IX106A IX107A IX108A IX109A IX111A IX112A IX113A IX114A IX115A IX116A IX117A IX118A IX119A IX120A IX121A IX201A IX202A IX203A IX204A IX205A IX206A IX207A IX208A IX209A IX210A IX211A IX212A IX213A IX214A IX216A IX217A IX218A IX302M
 "
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)

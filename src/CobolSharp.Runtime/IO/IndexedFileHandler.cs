@@ -105,7 +105,10 @@ public class IndexedFileHandler : IFileHandler
                     ResetEnumerator();
                     return FileStatus.OptionalFileNotFound;
                 }
-                return FileStatus.Success; // I-O on a missing file: create empty
+                // I-O on a missing file: create it empty. For an OPTIONAL file this is reported as status 05
+                // (optional file not present, now created — ISO §9.1.13.4); a non-optional file opens 00.
+                ResetEnumerator();
+                return IsOptional ? FileStatus.OptionalFileNotFound : FileStatus.Success;
             }
 
             // Load all records from file. A variable-length file is length-framed (4-byte LE length prefix
