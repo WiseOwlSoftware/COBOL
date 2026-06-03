@@ -1,0 +1,44 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST114M    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+        ************   ST113 WILL NOT PRODUCE ANY PRINTED REPORT   ************
+ ***********************************************************************************************************************
+
+
+
+
+
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-1
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-2
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-3
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-4
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-5
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-6
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-7
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-8
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-9
+ SORT, MULTIPLE REEL  PASS  SORT-TEST-10
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  ST114M
+
+                                                    010 OF 010  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
