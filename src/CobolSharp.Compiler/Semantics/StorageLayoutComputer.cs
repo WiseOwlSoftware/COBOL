@@ -100,10 +100,17 @@ public static class StorageLayoutComputer
         // populated by interleaved MOVE/WRITE both ended up with the second file's data). Give
         // each FD its own base, advancing past the previous FD's record area. Records of one FD
         // are contiguous in source order, so a change of OwningFile marks an FD boundary.
+        // Files joined by a SAME [RECORD] AREA clause (ISO §12.4.6.4) share one record area: the first FD of
+        // the group claims a fresh base and the rest reuse it (their 01 records alias, so reading one file's
+        // record overwrites the others'). Files not in any group each get their own base. leaderBase maps a
+        // group's representative name (FileSymbol.SameRecordAreaLeader, or the file's own name when ungrouped)
+        // to its base; nextFreeBase tracks the first byte past every record area allocated so far.
         int fileBase = 0;
         int currentFdMax = 0;
+        int nextFreeBase = 0;
         FileSymbol? currentFdGroup = null;
         bool sawFileRecord = false;
+        var leaderBase = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var data in model.DataItemsInOrder)
         {
             if (data.LevelNumber != 1 || data.Area != StorageAreaKind.FileSection)
@@ -111,18 +118,28 @@ public static class StorageLayoutComputer
 
             if (!sawFileRecord || !ReferenceEquals(data.OwningFile, currentFdGroup))
             {
-                // New FD: advance the base past the previous FD's record area.
-                fileBase += currentFdMax;
+                // Close the previous FD: the next free base is past the largest record area used so far.
+                nextFreeBase = Math.Max(nextFreeBase, fileBase + currentFdMax);
                 currentFdGroup = data.OwningFile;
                 currentFdMax = 0;
                 sawFileRecord = true;
+
+                string leaderKey = data.OwningFile?.SameRecordAreaLeader
+                    ?? data.OwningFile?.Name ?? "";
+                if (leaderBase.TryGetValue(leaderKey, out int sharedBase))
+                    fileBase = sharedBase; // a SAME-AREA peer: reuse the group's shared record base
+                else
+                {
+                    fileBase = nextFreeBase; // first FD of this group (or an ungrouped FD): fresh base
+                    leaderBase[leaderKey] = fileBase;
+                }
             }
 
             int recOffset = fileBase;
             LayoutItem(data, StorageAreaKind.FileSection, ref recOffset, model);
             currentFdMax = Math.Max(currentFdMax, recOffset - fileBase);
         }
-        int maxRecordSize = fileBase + currentFdMax;
+        int maxRecordSize = Math.Max(nextFreeBase, fileBase + currentFdMax);
 
         // Level-66 RENAMES: alias an existing contiguous byte range.
         // Must run after all records are laid out so FROM/THRU have storage locations.

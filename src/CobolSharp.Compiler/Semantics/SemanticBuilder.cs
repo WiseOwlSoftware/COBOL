@@ -1721,10 +1721,40 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public override object? VisitIoControlClause(
         CobolParserCore.IoControlClauseContext ctx)
     {
-        // SAME and MULTIPLE FILE clauses are storage/tape hints with no effect on CobolSharp; only the
-        // vendor/unknown generic clause needs capturing.
+        // SAME [RECORD] AREA (ISO §12.4.6.4): the named files share one record storage area, so their 01
+        // records must be laid out at a single base (reading one file's record overwrites the others' —
+        // IX206A). SAME SORT / SORT-MERGE AREA concerns sort work areas, not record areas, so it is ignored
+        // (CobolSharp sorts in memory). MULTIPLE FILE is a tape hint with no effect.
+        if (ctx.sameClause() is { } same && same.SORT() == null && same.SORT_MERGE() == null)
+            RecordSameRecordAreaGroup(same);
+
         CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
         return base.VisitIoControlClause(ctx);
+    }
+
+    /// <summary>Union the files of a SAME [RECORD] AREA clause into one record-area group by stamping each
+    /// FileSymbol's <see cref="FileSymbol.SameRecordAreaLeader"/> with a shared representative name. If any
+    /// file is already in a group, that group's leader is adopted and the groups merge (re-pointing every
+    /// file that referenced the absorbed leader), so chained SAME clauses coalesce.</summary>
+    private void RecordSameRecordAreaGroup(CobolParserCore.SameClauseContext same)
+    {
+        var files = same.fileName()
+            .Select(fn => _symbols.Program.GlobalScope.Resolve<FileSymbol>(fn.GetText()))
+            .Where(f => f != null).Cast<FileSymbol>().ToList();
+        if (files.Count < 2) return; // a single file shares with nothing
+
+        string leader = files.Select(f => f.SameRecordAreaLeader).FirstOrDefault(l => l != null)
+            ?? files[0].Name;
+        var allFiles = _symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>().ToList();
+        foreach (var f in files)
+        {
+            string? old = f.SameRecordAreaLeader;
+            if (old != null && !string.Equals(old, leader, StringComparison.OrdinalIgnoreCase))
+                foreach (var g in allFiles)
+                    if (string.Equals(g.SameRecordAreaLeader, old, StringComparison.OrdinalIgnoreCase))
+                        g.SameRecordAreaLeader = leader;
+            f.SameRecordAreaLeader = leader;
+        }
     }
 
     // ── SCREEN SECTION ──

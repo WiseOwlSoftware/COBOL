@@ -86,6 +86,12 @@ public sealed class FileSymbol : Symbol
     /// <summary>FILE STATUS identifier name (PIC XX variable).</summary>
     public string? FileStatus { get; set; }
 
+    /// <summary>SAME [RECORD] AREA clause (ISO §12.4.6.4): the representative file name of the group of
+    /// files that share one record storage area. All files in a group carry the same leader name, and their
+    /// 01 records are laid out at one shared base offset (so reading one file's record overwrites the
+    /// others'). Null when the file is not named in any SAME [RECORD] AREA clause.</summary>
+    public string? SameRecordAreaLeader { get; set; }
+
     /// <summary>RELATIVE KEY identifier name (for RELATIVE organization).</summary>
     public string? RelativeKey { get; set; }
 
