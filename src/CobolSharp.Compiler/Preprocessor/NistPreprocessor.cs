@@ -61,6 +61,20 @@ public static class NistPreprocessor
         source = System.Text.RegularExpressions.Regex.Replace(
             source, @"(?<![A-Za-z0-9])XXXXX065(?![A-Za-z0-9])", "204");
 
+        // XXXXX063: the implementor's native collating sequence as a 51-character nonnumeric literal — the
+        // 51 distinct key characters the ST sort/merge tests use, listed in ascending native-collating order.
+        // CobolSharp's native sequence is ASCII, so this is those characters sorted by ASCII code: a leading
+        // space, then "$$", then "()*+,-./", then "0-9", then ";<=>", then "A-Z" (51 chars total). ST137A
+        // redefines it as ASCIIS — the expected post-sort key order it compares the sorted file against;
+        // ST147A uses it for both its key source and its expected order (a MERGE of already-collated inputs).
+        // Left unsubstituted the expected-order item is blank and every collation check has nothing to compare
+        // against (ST137A's SRT-TEST-003..005 fail). Token-boundary anchored so it never matches the embedded
+        // "…XXXXXXXX063A…" inside IX106A's baselined test-data literal. A MatchEvaluator emits the literal
+        // (its '$' characters are passed through verbatim, not interpreted as a replacement template).
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX063(?![A-Za-z0-9])",
+            _ => "\" $$()*+,-./0123456789;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ\"");
+
         // Data-file ASSIGN targets shared across run units by X-card number, mapped (per SELECT…period
         // entry, after COPY expansion) to one "TF###" literal so a producer's output is read by the matching
         // consumer in a shared directory:

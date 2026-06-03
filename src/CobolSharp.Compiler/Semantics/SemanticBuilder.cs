@@ -858,6 +858,26 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (ctx.dataReference() is { } dref)
                 _currentFdFile.RecordVaryingDependingOn = dref.cobolWord().GetText();
         }
+        // Format 2: RECORD CONTAINS integer-1 TO integer-2 CHARACTERS (no VARYING keyword) ALSO declares a
+        // variable-length record when integer-1 ≠ integer-2 (ISO §13.18.43). Unlike the explicit VARYING
+        // form there is no DEPENDING ON object: the record's length is determined by its own content — e.g.
+        // an embedded OCCURS DEPENDING ON group, where the WRITE/REWRITE length is the record's runtime size
+        // (the IrOdoGroupLocation computes it) and a READ recovers the length from the length-framed store.
+        // Flag it varying so the same length-framed I/O path the explicit VARYING form uses applies; a
+        // min == max range (e.g. "100 TO 100") is fixed and left alone.
+        else if (_currentFdFile != null && ctx.TO() != null)
+        {
+            var lits = ctx.integerLiteral();
+            if (lits.Length >= 2
+                && int.TryParse(lits[0].GetText(), out int min)
+                && int.TryParse(lits[1].GetText(), out int max)
+                && min != max)
+            {
+                _currentFdFile.IsRecordVarying = true;
+                _currentFdFile.RecordVaryingMin = min;
+                _currentFdFile.RecordVaryingMax = max;
+            }
+        }
         return base.VisitRecordClause(ctx);
     }
 
