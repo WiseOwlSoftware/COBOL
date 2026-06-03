@@ -184,6 +184,15 @@ public static class SortRuntime
     public static int GetLastReturnedLength(string fileName)
         => _sortFiles.TryGetValue(fileName, out var sf) ? sf.LastReturnedLength : 0;
 
+    /// <summary>Reset the return cursor to the first sorted record. A SORT/MERGE … GIVING with more than
+    /// one output file writes the ENTIRE sorted result to each file (ISO §14.9.24/§14.9.45), so the return
+    /// stream is rewound before each GIVING file's write loop.</summary>
+    public static void RewindReturn(string fileName)
+    {
+        if (_sortFiles.TryGetValue(fileName, out var sf))
+            sf.ReturnIndex = 0;
+    }
+
     /// <summary>
     /// Clean up a sort file after the SORT/MERGE statement completes.
     /// </summary>

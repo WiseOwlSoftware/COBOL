@@ -410,6 +410,14 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, m));
     }
 
+    /// <summary>SortRuntime.RewindReturn(fileName) — reset the return cursor before a GIVING file's write loop.</summary>
+    internal void EmitSortRewind(ILProcessor il, IrSortRewind inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("RewindReturn", new[] { typeof(string) })!)));
+    }
+
     internal void EmitSortSort(ILProcessor il, IrSortSort inst)
     {
         il.Append(il.Create(OpCodes.Ldstr, inst.FileName));

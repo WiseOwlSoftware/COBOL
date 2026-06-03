@@ -641,7 +641,7 @@ internal sealed class FileIoBinder
             if (dataRefList == null) continue; // Format 2: KEY without data-names uses table's inherent KEY
             foreach (var dataRef in dataRefList.dataReference())
             {
-                var keySym = _ctx.Semantic.ResolveData(dataRef.GetText());
+                var keySym = ResolveKeyDataReference(dataRef);
                 if (keySym != null)
                     keys.Add(new BoundSortKey(keySym, ascending));
             }
@@ -658,12 +658,26 @@ internal sealed class FileIoBinder
             bool ascending = phrase.ASCENDING() != null;
             foreach (var dataRef in phrase.dataReferenceList().dataReference())
             {
-                var keySym = _ctx.Semantic.ResolveData(dataRef.GetText());
+                var keySym = ResolveKeyDataReference(dataRef);
                 if (keySym != null)
                     keys.Add(new BoundSortKey(keySym, ascending));
             }
         }
         return keys;
+    }
+
+    /// <summary>Resolve a SORT/MERGE key data reference to its data item, honoring OF/IN qualifiers. A
+    /// qualified key such as <c>A-KEY OF SORT-KEY</c> must NOT be resolved via <c>GetText()</c> (which
+    /// concatenates to "A-KEYOFSORT-KEY" and resolves to nothing — leaving the SORT/MERGE with no keys, so
+    /// records come back in input order). The base name + qualifier chain resolve to the correct field.</summary>
+    private DataSymbol? ResolveKeyDataReference(CobolParserCore.DataReferenceContext dataRef)
+    {
+        string baseName = dataRef.cobolWord().GetText();
+        var quals = new List<string>();
+        foreach (var suffix in dataRef.dataReferenceSuffix())
+            if (suffix.qualification()?.cobolWord()?.GetText() is { } q)
+                quals.Add(q);
+        return _ctx.Semantic.ResolveQualifiedData(baseName, quals);
     }
 
     internal List<FileSymbol> ResolveFileList(CobolParserCore.DataReferenceListContext listCtx)

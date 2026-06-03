@@ -1,0 +1,35 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST107A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SORT, MIXED CLASSES  PASS  SORT-TEST-1
+ SORT, MIXED CLASSES  PASS  SORT-TEST-2
+ SORT, MIXED CLASSES        SORT-TEST-3                   TEST UNNECESSARY - BYPASSED
+ SORT, MIXED CLASSES        SORT-TEST-4                   TEST UNNECESSARY - BYPASSED
+ SORT, MIXED CLASSES  PASS  SORT-TEST-5
+ SORT, MIXED CLASSES  PASS  SORT-TEST-6
+ SORT, MIXED CLASSES  PASS  SORT-TEST-7
+ SORT, MIXED CLASSES  PASS  SORT-TEST-8
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  ST107A
+
+                                                    006 OF 006  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

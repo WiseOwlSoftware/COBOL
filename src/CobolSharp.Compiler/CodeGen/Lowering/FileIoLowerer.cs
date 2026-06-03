@@ -897,6 +897,11 @@ internal sealed class FileIoLowerer
             : _ctx.Location.ResolveLocation(outputRecord);
         if (outputLoc == null) return;
 
+        // Rewind the return cursor so this GIVING file receives the FULL sorted result — a SORT/MERGE with
+        // several GIVING files writes the whole result to each (ISO §14.9.24/§14.9.45), and the previous
+        // GIVING file consumed the return stream.
+        block.Instructions.Add(new IrSortRewind(sortName));
+
         // OPEN OUTPUT output-file
         var openNameVal = _ctx.ValueFactory.Next(IrPrimitiveType.String);
         block.Instructions.Add(new IrLoadConst(openNameVal, outputName));

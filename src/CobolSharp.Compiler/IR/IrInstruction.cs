@@ -953,6 +953,17 @@ public sealed class IrSortGivingWriteVariable : IrInstruction
 }
 
 /// <summary>
+/// Rewind the sort/merge return cursor to the first sorted record (SortRuntime.RewindReturn). Emitted
+/// before each GIVING file's write loop so a multi-file SORT/MERGE … GIVING writes the full result to each
+/// output file (ISO §14.9.24/§14.9.45).
+/// </summary>
+public sealed class IrSortRewind : IrInstruction
+{
+    public string FileName { get; }
+    public IrSortRewind(string fileName) => FileName = fileName;
+}
+
+/// <summary>
 /// Sort the collected records: SortRuntime.SortRecords(fileName, keysSpec).
 /// keysSpec is "offset,length,asc;..." encoded string.
 /// </summary>
