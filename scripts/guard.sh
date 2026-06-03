@@ -26,7 +26,7 @@ CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 rm -f tests/nist/output/*.txt
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 40 IX + 27 ST = 297 tests).
+# (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 40 IX + 28 ST = 298 tests).
 # ST chains: ST101A (builds the SORT output file TF002) -> ST102A (updates it; NO_OUTPUT producer, runs but
 # is not baselined) -> ST103A (verifies). ST104A (builds TF001) -> ST105A (verifies). ST112M (builds a
 # 3-reel file; emits only a 000-of-000 builder comment, so NOT baselined) -> ST113M (sorts; NO_OUTPUT) ->
@@ -35,7 +35,10 @@ rm -f tests/nist/output/*.txt
 # ST124A (the second variable-length SORT chain). ST115A (builds a 204-record file — XXXXX065 "number of
 # records" is substituted to 204 = 51*4; 000-of-000 builder, NOT baselined) -> ST116A (the BIG-SORT,
 # NO_OUTPUT) -> ST117A (verifies the native-collating sort of all 204 records, 1/1). Keep each chain's
-# members consecutive, producers ahead of consumers.
+# members consecutive, producers ahead of consumers. ST119A (SORTs, writes TF001 via XXXXP001 — baselined)
+# -> ST120A (SORT USING TF001 GIVING TF002, the USING/GIVING feature; NO_OUTPUT producer) -> ST121A
+# (verifies the TF002 sort, 9/9). These three MUST stay consecutive and ahead of ST122A, which re-creates
+# TF002 in a variable-length format.
 # RL206A→RL207A are a producer/consumer pair over TF021 with VARIABLE-LENGTH records (RECORD IS
 # VARYING): RL206A creates the file (each slot stores its own length, persisted length-prefixed), RL207A
 # verifies/updates it. They MUST stay consecutive, AND a fixed-format TF021 producer must follow (RL209A
@@ -93,7 +96,7 @@ SQ133A SQ136A SQ144A SQ141A SQ142A SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ1
 SQ214A SQ216A SQ217A SQ218A SQ219A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ227A SQ228A SQ201M SQ208M SQ209M SQ210M SQ302M
 RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL210A RL211A RL209A RL302M
 IX101A IX102A IX103A IX104A IX105A IX106A IX107A IX108A IX109A IX110A IX111A IX112A IX113A IX114A IX115A IX116A IX117A IX118A IX119A IX120A IX121A IX201A IX202A IX203A IX204A IX205A IX206A IX207A IX208A IX209A IX210A IX211A IX212A IX213A IX214A IX215A IX216A IX217A IX218A IX302M
-ST101A ST102A ST103A ST104A ST105A ST106A ST107A ST108A ST109A ST110A ST111A ST112M ST113M ST114M ST115A ST116A ST117A ST118A ST119A ST122A ST123A ST124A ST125A ST126A ST127A ST131A ST132A ST133A ST134A ST135A ST136A ST139A ST140A ST144A ST146A ST147A
+ST101A ST102A ST103A ST104A ST105A ST106A ST107A ST108A ST109A ST110A ST111A ST112M ST113M ST114M ST115A ST116A ST117A ST118A ST119A ST120A ST121A ST122A ST123A ST124A ST125A ST126A ST127A ST131A ST132A ST133A ST134A ST135A ST136A ST139A ST140A ST144A ST146A ST147A
 "
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)
