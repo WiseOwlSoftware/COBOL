@@ -1,54 +1,163 @@
-# CobolSharp — Session Resume Prompt (2026-06-02)
+# CobolSharp — Session Resume Prompt (2026-06-03)
 
-Paste this to start a new session. It orients you fast; the linked docs have the detail.
-This file IS the authoritative, current resume orientation — the "Current state" and "Pick up here"
-sections below are up to date as of 2026-06-02 (DEVLOG entry 283).
+Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 294.
 
 ## Read first
-- **CLAUDE.md** (project root) → which points to **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status), **DEVLOG.md** (decision narrative — now at entry 283).
-- **docs/dialect-strictness.md** — the dialect/strictness model (version axis vs strictness axis) and the registry of CCVS non-conformant constructs (leniencies L1–L5; L4 deferred). **Discipline rule: every grammar leniency must be dialect-gated through `DialectStrictnessChecks` from the moment it is added — never an unconditional grammar relaxation.** `--nist` implies `--standard default` (permissive); named-strict modes (e.g. `--standard cobol2023`) reject the leniencies.
-- **DEVLOG.md entries 231–253** are the recent narrative (ODO-LENGTH, cleanup, BY CONTENT, CANCEL, crash-hardening, nested GLOBAL, file-I/O wall, then the file-I/O runtime-correctness tail in 242–245: not-open status codes, multi-file storage aliasing, open-mode status, file isolation, and variable-length RECORD VARYING records; then the relative subsystem in 251–253: slot model, PIC-aware COMP relative keys, and two producer/updater/verifier chains over TF021 baselined). `claude/state/session-state-2026-05-29.md` is older full detail (historical).
-- Memory index is loaded automatically; key entries: `project_nist_progress`, `project_fileio_remaining`, `project_collating_gap`, `reference_nist_xcards`.
-- **specs/ISO_COBOL.md** is the authoritative COBOL spec (submodule — `git submodule update --init --recursive` if absent). Implement from the spec, not from assumptions. (The spec markdown preserves required-keyword underlining as `<u>…</u>` in figure-style formats but NOT inside ``` code blocks — check the figure form when a keyword's optionality matters.)
+- **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
+  **DEVLOG.md** (decision narrative — now at entry 294).
+- **specs/ISO_COBOL.md** is the authoritative spec (submodule — `git submodule update --init --recursive` if
+  absent). **Implement from the spec, not from assumptions.** The markdown preserves required-keyword
+  underlining as `<u>…</u>` in figure-style formats but NOT inside ``` code blocks — check the figure form
+  when a keyword's optionality matters.
+- **docs/dialect-strictness.md** — the two-axis dialect model (version `--standard` vs strictness) and the
+  registry of CCVS non-conformant constructs (leniencies L1–L5; L4 deferred). **Discipline rule: every
+  grammar leniency is dialect-gated through `DialectStrictnessChecks` from the moment it is added — never an
+  unconditional grammar relaxation.** `--nist` implies `--standard default` (permissive); named-strict modes
+  (e.g. `--standard cobol2023`) reject the leniencies.
+- Memory index loads automatically. Key entries: `project_nist_progress` (suite-by-suite), `project_fileio_remaining`
+  (file-I/O history + RL208A), `project_dialect_strictness` (leniency registry), `reference_nist_xcards`
+  (X-card model), `project_collating_gap`.
 
-## Current state (branch `main`, all committed, guard GREEN)
-- **Guard** (`bash scripts/guard.sh`): 1000 unit / 348 integration (347 pass + 1 unrelated skip) / **299 NIST baselines (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 40 IX + 29 ST)**. Must stay ALL GREEN; baselines must stay 0 FAIL*. (NC214M dropped — non-deterministic ACCEPT, DEVLOG 226. RL210A dropped — its old "clean" baseline was a vacuous pass; with WRITEs now real it reveals 300 genuine relative+ODO+VARYING failures, DEVLOG 245.)
-- **IX suite COMPLETE (DEVLOG 281–282): 40/42 baselined.** IX215A (qualified/REDEFINES key resolution — base-name+OF/IN qualifiers stored separately; `SemanticModel.ResolveKeyData`/`ResolveQualifiedData`; position-based `ResolveKeyOfReference` per ISO §14.9.41; DELETE-by-key via `IrSetIndexedKey`; duplicate-alt-key ARRIVAL order via per-record `_arrival`). IX110A (guard placement after producer IX109A — not a compiler bug). Remaining IX301M/IX401M are flagging modules (no CCVS report, excluded by design).
-- **ST suite COMPLETE (DEVLOG 283–293): 29/40 baselined; the other 11 are 10 NO_OUTPUT producers/builders + 1 flagging module — every ST program accounted for.** Baselined verifiers: ST101A/103A/104A/105A/106A/107A/108A/111A/114M/117A/118A/119A/121A/124A/125A/126A/127A/131A/132A/133A/134A/135A/136A/137A/139A/140A/144A/146A/147A. NO_OUTPUT producers/builders in the guard (feed chains, not baselined): ST102A, ST109A/ST110A, ST112M/ST113M, ST115A/ST116A, ST120A, ST122A/ST123A. **ST301M is a compile-time flagging module (no CCVS report — excluded by design, like IX301M/IX401M).** Compiler bugs fixed across the campaign: SORT/MERGE INPUT/OUTPUT PROCEDURE naming a SECTION runs the WHOLE section (ResolveProcedureNameForPerform, DEVLOG 284); COLLATING-optional leniency L5 (CBL3617/3618); variable-length-record file SORT…USING…GIVING threads the actual record length (IrSortReleaseVariable/IrSortGivingWriteVariable, DEVLOG 288 → ST111A/124A); qualified SORT/MERGE keys were dropped via GetText() concatenation → ran with zero keys (ResolveKeyDataReference, DEVLOG 289 → ST139A/140A/144A/147A/107A/126A); multi-file GIVING rewinds the return cursor per file (DEVLOG 289); RETURN INTO an OCCURS DEPENDING ON record uses the group's MAX length (receiving:true, DEVLOG 290 → ST146A); XXXXX065 record-count X-card substitution unblocks the ST115A→ST116A→ST117A chain (DEVLOG 291); ST121A was a 3-program chain (ST119A→ST120A→ST121A), not a compiler bug (DEVLOG 292); **Format-2 variable-length record `RECORD CONTAINS m TO n` now recognized as varying (VisitRecordClause, ISO §13.18.43 — was crashing the fixed WRITE path) + XXXXX063 native-collating-sequence X-card substitution → ST137A 6/6, and ST147A re-baselined (its NATIVE COLL.SEQUENCE checks were comparing blank-vs-blank with the placeholder unsubstituted; now real, DEVLOG 293).**
-- **Suites:** NC 100%, **IF 100%** (42 baselined), **SM COPY-feature 100%** (12 baselined). **IC: 20/47** (IC203A/224A/225A/228A; DEVLOG 233–236). **File-I/O wall broken (DEVLOG 237–253):** the FILE-CONTROL/READ/USE grammar + FILE STATUS/REWRITE checks were over-strict vs ISO — fixed. **SQ 59 baselined (FAIL* tail clear — OPEN-absent/OPTIONAL done, DEVLOG 268); RL 17 baselined (TF021/TF061/TF022 producer/updater/verifier chains + format-3 varying); IX 35 baselined — L3 RECORD-KEY-optional leniency + indexed READ-NEXT enumerator fix (269), USE-declarative-on-non-phrase-exception (270), access-mode-aware DELETE/REWRITE + read-position 43/46 (271), sequential WRITE ascending-key 21 (272), alternate-key START/READ + EXTEND validation unblocked (273); alternate-key-of-reference runtime → IX212A/213A (274); SAME RECORD AREA (record-area aliasing) → IX205A/206A (275); generic/partial-key START → IX209A/210A/214A (276); READ/WRITE optional-word parse forms → IX108A/211A (277); variable-length indexed records → IX105A (278); column-7 X-card matched-variant U excluded → IX207A/208A (279); SELECT-OPTIONAL absent-file isolation (OPTIONAL-aware X-card mapping + comment-line-anchored SELECT-region regex + OPEN I-O missing-optional → 05) → IX216A/217A/218A (280).** (Historical through DEVLOG 280; IX is now COMPLETE 40/42 — see the IX-suite-COMPLETE line above.)
-- **ORGANIZATION SEQUENTIAL is record-sequential (binary), not line-sequential (DEVLOG 261).** Per ISO §9.1.2/§12.4.5.2 the default + `SEQUENTIAL` are record sequential (fixed contiguous records / length-framed variable), which alone supports fixed-length in-place REWRITE; only `LINE SEQUENTIAL` is text. **Printer/report files** (written with `WRITE…ADVANCING` §14.9.51, or with `LINAGE` §13.18.30 — the spec's device-proxy; real impls key off the ASSIGN device, NIST's PRINT-FILE→XXXXX055) stay line-rendered. Fixed REWRITE on sequential data files → **SQ116A 10/10 + SQ121A 3/3** baselined. Variable seq = 4-byte length-prefix framing (`SemanticModel.IsVariableLengthSequential` + `FileRuntime.SetSequentialVarying`); REWRITE enforces §14.9.35 GR16 (len ≠ replaced → status 44).
-- **Paragraph-dispatch engine reworked (DEVLOG 259–260) — now fully consistent.** (259) Off-by-N for DECLARATIVES: every `pc` value lives in declarative-inclusive index space but the switch excluded declaratives → programs with leading DECLARATIVES looped forever; fixed by including declaratives in `ParagraphDispatchOrder` + starting the main loop at `EntryParagraphIndex`. (260) Control transfer made fully **symbol-based** (dispatch order + GO TO + GO TO DEPENDING resolve the bound `ParagraphSymbol`, not the name — duplicate paragraph names across sections now work), and PERFORM…THRU rebuilt on a **return-address model** via one shared `Dispatch(startPc, exitPc)` helper per program (`EmitDispatchHelper`) used by both the main loop and every THRU — follows control flow anywhere and returns when the exit paragraph falls through, fixing inverted/non-contiguous ranges (the old physical-range model + range-swap was wrong). **SQ105A 22/22, SQ213A 7/7, SQ114A 15/15, NC102A 42/42 (was vacuous 39/39), NC208A 24/24 (was a latent 23/24 fail — qualified GO TO to a dup name).** All baselined.
-- **File-I/O runtime-correctness tail in progress (DEVLOG 242–251):** spec-correct not-open I-O status (READ/START 47, WRITE 48, DELETE/REWRITE 49, CLOSE 42 only) across all 3 handlers; multi-file FILE SECTION storage was aliasing (all 01 records at offset 0 — fixed to per-FD bases, silent data corruption); sequential WRITE in I-O mode → 48; OPEN I-O/EXTEND on missing non-optional file → 35 (05 if optional); non-literal ASSIGN host paths now program-id-qualified for test isolation; **variable-length records (RECORD VARYING, or multiple 01 sizes) for sequential files** (no-trim WRITE, read-into-largest, length round-trip); **ResolveFileForRecord resolves ANY 01 record to its FD via OwningFile** (was first-record-only → secondary-record WRITEs were silent no-ops); RelativeFileHandler made slot-size-robust; **READ INTO a receiving ODO group uses MAX length** (§13.18.38); **CCVS column-7 'H'/'E' multi-reel/unit lines excluded** (CLOSE…REEL/UNIT was closing files mid-loop); **CLOSE…REEL/UNIT now gives status 07 and keeps the file open** (§9.1.13.2/§14.9.10). +16 SQ baselined (128A/130A/149A/154A/156A/220A–224A/106A/107A/109M/110M/124A/214A).
-- Spec-audit follow-ups done (DEVLOG 221–223): multi-dim `table(ALL)`, AT-END-vs-I/O-error split, runtime `FUNCTION LENGTH` for ref-mod.
-- **Collating subsystem COMPLETE (DEVLOG 224–227):** comparisons, SORT/MERGE/table-sort keys, and FUNCTION CHAR/ORD all honor the alphanumeric program collating sequence. The STANDARD-2 all-255-table bug (which made `"ABCD" = SPACE` vacuously true) is fixed; identity sequences normalize to null. 8 contaminated NIST baselines corrected; NC214M dropped (non-deterministic). See `project_collating_gap` + `docs/collating-baseline-finding.md`.
+## What "operational" means (the finish line)
+Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly one accounted-for class:
+1. **Baselined** — in `NIST_TESTS` (scripts/guard.sh) with a `tests/nist/valid/<T>.txt` at **0 FAIL\***,
+   and its CCVS report is **non-vacuous** (tests EXECUTED > 0, footer "TEST(S) FAILED" = 0).
+2. **NO_OUTPUT producer/builder** — runs in the guard ahead of a baselined consumer to build/sort a shared
+   file (e.g. ST115A/ST116A; the 10 ST producers). Not baselined, but feeds a chain.
+3. **Documented exclusion** — a flagging "M" module (compile-time FLAG test, no CCVS report: IF401M, IX301M/401M,
+   SQ303M/401M, RL301M/401M, ST301M, SM301M/401M, …), or a non-deterministic test (NC214M, ACCEPT FROM
+   DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
+A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Standing directive (autonomous)
-Drive NIST suites group-by-group to 100% (depth-first: IF→SM→**IC**→SQ→IX→RL→ST), implementing missing COBOL-85 features per the spec. **Grammar changes are pre-authorized for the NIST effort** — log each in DEVLOG, rely on the full guard, commit (see memory `feedback_autonomous_grammar_nist`). Run `scripts/guard.sh` after meaningful changes; never change valid COBOL source to dodge a compiler bug; every commit needs a DEVLOG entry; commit messages end with the `Co-Authored-By: Claude Opus 4.8 (1M context)` trailer. Don't touch global NuGet config.
+## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 299 NIST)
+| Suite | Present | Baselined | Survey (CLEAN/FAIL\*/CF/NO/RT) | Status |
+|-------|--:|--:|--|--|
+| **NC** nucleus            | 95 | 94 | — | ✅ COMPLETE (NC214M dropped: non-deterministic ACCEPT) |
+| **IF** intrinsics         | 45 | 42 | — | ✅ COMPLETE (IF401M/402M/403M flagging) |
+| **IX** indexed I/O        | 42 | 40 | — | ✅ COMPLETE (IX301M/401M flagging) |
+| **ST** sort/merge         | 40 | 29 +10 prod | — | ✅ COMPLETE (ST301M flagging) — every program accounted for |
+| **SM** COPY/REPLACE       | 17 | 12 | 15/0/0/2/0 | ◐ **3 CLEAN un-baselined: SM104A/105A/205A** (+SM301M/401M flagging) |
+| **SQ** sequential I/O     | 85 | 59 | (re-survey) | ◐ FAIL\*-tail clear; ~24 un-surveyed + SQ303M/401M flagging |
+| **RL** relative I/O       | 35 | 19 | (re-survey) | ◐ chains done; **RL208A FAIL\*** + ~13 un-surveyed + RL301M/401M flagging |
+| **IC** inter-program CALL | 47 |  4 | 20/2/4/21/0 | ⚠ **20 CLEAN, only 4 baselined** — biggest headroom (vacuous-verify needed) |
+| **DB** debug              | 15 |  0 | 0/0/15/0/0 | ✗ whole Debug module unimplemented |
+| **SG** segmentation       | 13 |  0 | 0/0/13/0/0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) |
+| **CM** communication      |  9 |  0 | 0/0/9/0/0  | ✗ whole Communication module (OBSOLETE in COBOL-2002) |
+| **RW** report writer      |  6 |  0 | 0/0/6/0/0  | ✗ whole Report Writer module unimplemented |
+| **OBSQ** obsolete-seq     |  4 |  0 | 4/0/0/0/0  | ◐ **all 4 CLEAN un-baselined: OBSQ1A/3A/4A/5A** |
+| **OBNC/OBIC** obsolete    |  5 |  0 | 0/0/4/1/0  | ✗ obsolete-feature NC/IC variants |
+| **EXEC** EXEC85           |  1 |  0 | 0/0/1/0/0  | ✗ EXEC85 driver (COMPILE_FAIL) |
 
-## Pick up here (any of)
-**DONE (DEVLOG 259–260):** the paragraph-dispatch engine is now correct and fully consistent — declarative
-off-by-N fixed (259), control transfer symbol-based for duplicate names, and PERFORM…THRU on a shared
-return-address `Dispatch(startPc,exitPc)` helper that handles inverted/non-contiguous ranges (260).
-SQ105A/SQ213A/SQ114A/NC102A/NC208A all baselined. Possible low-priority follow-on: a **guard-criterion
-sweep** — the guard baselines on `FAIL*` *detail* lines being 0, but a test can report `NNN TEST(S)
-FAILED` in its footer with the detail line suppressed (NC208A was such a latent capture). Worth auditing
-existing baselines for footer "TEST(S) FAILED" > 0.
-0. **Spec-conformance follow-ups** (`docs/spec-gaps.md`, DEVLOG 228–232): empirical audit done. All three silent-correctness bugs resolved — `FUNCTION WHEN-COMPILED` (228/230), ODO-group `FUNCTION LENGTH` (231), ON SIZE ERROR was never broken — and the low-risk CLEANUP is DONE (232: removed stale "not supported" diagnostics + dead `CobolProgram` arithmetic / `CilEmitter` DISPLAY stub; COBOL0467 never existed). Remaining genuine gaps only: NATIONAL/PIC N (ASCII-backed stub), in-memory SORT/MERGE, Screen I/O placeholders.
-1. **IC suite — at its non-file-I/O ceiling, 20/47** (DEVLOG 233–236: transitive BY CONTENT → IC224A+IC225A; CANCEL +dynamic → IC203A; arithmetic crash-hardening; nested-program GLOBAL with shared storage → IC228A). Every remaining actionable IC test is **file-I/O-blocked** (IC233A/234A `USE…ERROR` declarative on a file error + `SELECT OPTIONAL`/`OPEN INPUT`/`READ`; IC235A/227A/114A EXTERNAL + sequential I/O) — so they advance with the file-I/O wall (item 3), not separately. IC401M is a flagging module (exclude); ~21 NO_OUTPUT rc=139 are callee-only halves (exclude). Note: IC233A's `USE GLOBAL AFTER ERROR` omits the spec-required `STANDARD` (ISO §14.9.49.2 — code-block format, underlining unconfirmed), so accept only as a documented leniency. **GLOBAL follow-ups** (DEVLOG 236, deferred, not blocking anything): subscripted/ref-modded inherited globals (extend `OwnerProgramId` through the element/ref-mod address paths), level-88 condition names under a global group, FILE SECTION globals.
-2. **Collating-sequence subsystem — COMPLETE** (`project_collating_gap`; DEVLOG 224–227). Comparisons, SORT/MERGE/table-sort keys, and FUNCTION CHAR/ORD all honor the program collating sequence. Nothing left except (optional) national CHAR-NATIONAL collating. Continue with IC or the file-I/O wall instead.
-3. **File-I/O FILE-CONTROL wall — IN PROGRESS** (`project_fileio_remaining`; DEVLOG 237–253). The CCVS FILE-CONTROL forms turned out to be spec-CONFORMANT (the grammar was over-strict): clauses order-free (§12.4.5.2), `[ORGANIZATION IS]`/`[FILE]`/`[IS]`/`[AT]`/`[STANDARD]`/`[ON]` optional, 2-char-group FILE STATUS valid (§12.4.5.8.3), qualified FILE STATUS name, REWRITE valid on sequential (§14.9.35). **SQ 39 baselined; RL 9; IX 1.** Runtime-correctness tail underway (DEVLOG 242–253): not-open I-O status codes, multi-file storage aliasing, WRITE-in-I-O→48, OPEN-missing→35, per-program file isolation, variable-length records, READ-INTO receiving-ODO max length, CCVS 'H'/'E' multi-volume exclusion, relative slot model + PIC-aware COMP relative keys. Remaining:
-   - **SQ:** 10 COMPILE_FAIL (parse forms — LINAGE-COUNTER special register, FD `RECORD … CHARACTERS`, `RECORD DELIMITER` clause, +2); ~4 FAIL* + 31 NO_OUTPUT. **Variable-length records (RECORD VARYING, or multiple 01 sizes — DEVLOG 245/247), READ-INTO receiving-ODO max length (246), and CCVS 'H'/'E' multi-volume exclusion (248/249) are DONE → SQ106A/107A/109M/110M/214A/220A–224A CLEAN.** **SQ105A 22/22 + SQ213A 7/7 (259, dispatch off-by-N); SQ116A 10/10 + SQ121A 3/3 (261, record-sequential REWRITE); SQ216A/218A/219A (262, PADDING CHARACTER + RECORD DELIMITER clauses); SQ201M/208M/209M/210M (263–264, full LINAGE subsystem: LINAGE-COUNTER register + integer & data-name page params + counter advance/reset/overflow + footing/overflow EOP + AT/NOT-AT END-OF-PAGE) all baselined.** **SQ FAIL* tail now CLEAR (DEVLOG 265–268):** SQ206A (SAME AREA + MULTIPLE FILE TAPE + OPEN REVERSED, 265); SQ227A/228A (variable-length REWRITE GR16 + REWRITE USE declarative, 266); SQ133A/136A/144A (sequential read-position state 46/43, 267); **SQ141A/142A/203A (OPEN-absent / SELECT OPTIONAL, 268 — see below).** Remaining SQ non-baselined are only flagging modules (**SQ303M/SQ401M** — no CCVS report, excluded like IF401M) and two runtime hangs (**SQ105A** var-REWRITE / **SQ114A** earlier). **DEVLOG 268 (OPEN-absent/OPTIONAL):** (a) the NIST preprocessor's blanket `XXXXX001/002 → "TFIL1"/"TFIL2"` *shared literal* defeated per-program isolation (a prior test's leftover made an "absent" file present → OPEN INPUT 00 not 35); removed it so both flow through the org-aware path (SEQUENTIAL → program-id-qualified, RELATIVE/INDEXED → shared `TF###`). (b) `SequentialFileHandler` OPEN INPUT on a SELECT OPTIONAL absent file now *succeeds* (`05`) via `_optionalAbsentInput` (keeps `IsOpen` true) and positions at EOF so the first READ raises AT END `10` (ISO §9.1.13.2) — fixes both the `READ … AT END` phrasing and the no-phrase + `USE … EXCEPTION` declarative phrasing.
-   - **Relative key-positioned I/O subsystem — BUILT + COMP keys DONE (DEVLOG 251–253).** `RelativeFileHandler` is a slot model (in-memory `SortedDictionary<int,byte[]>` of occupied slots, persisted sparse) with key-positioned WRITE (random §14.9.51 GR29b: program sets key, occupied→22, <1→34; sequential auto-assigns + MOVEs to key, digit-overflow→24), READ-by-key (absent→23), READ NEXT (skips gaps, MOVEs number to key, found-record digit-overflow→14), REWRITE/DELETE by key/current. Compiler emits SetRelativeAccess + IrSetRelativeKey (before random WRITE/REWRITE/DELETE **and keyed READ**) + IrStoreRelativeKey (after sequential WRITE / non-keyed READ). **COMP relative keys fixed (252):** key conveyed as a PIC-aware integer via `PicRuntime.DecodeNumeric`/`EncodeNumeric` (was ASCII), so `PIC 9(n) COMP` keys round-trip. **Two TF021 producer/updater/verifier chains baselined: RL101A→RL102A→RL103A (1xx, DISPLAY/COMP keys, 252) and RL201A→RL202A→RL203A (2xx, DYNAMIC, COMP keys, 253), plus RL107A/RL209A/RL302M → 9 RL CLEAN.** (RL210A/211A's multiple-record-format/ODO-record on a relative file is still unbuilt — distinct from key positioning.)
-   - **IX (indexed): 38/42 baselined (DEVLOG 269–280).** Done: L3 leniency `RECORD KEY?`/`ALTERNATE RECORD KEY?` optional (CBL3615/3616, [[project_dialect_strictness]]); `IndexedFileHandler` READ-NEXT position-by-key (was a live SortedDictionary enumerator → "Collection was modified" crash on DYNAMIC read-with-write); USE declarative fires on a non-phrase exception across READ/WRITE/REWRITE/DELETE (excludeAtEnd/excludeInvalidKey gating); access-mode-aware DELETE/REWRITE (`SetIndexedAccess`: SEQUENTIAL last-read record 43/21, RANDOM/DYNAMIC by key 23) + read-position 46; ACCESS SEQUENTIAL WRITE ascending-key 21; EXTEND runtime (load+append); over-strict START/READ-KEY (accept alt keys, CBL1603/1703) + OPEN EXTEND (access-mode, CBL0701) removed; alternate-key-of-reference runtime (`_keyOfReference`, (KeyForReference,prime) order re-derived from `_records`, all alt-key views `_records`-derived via CountByAlternate, REWRITE alt-key 22, `_currentRefKey` survives DELETE) → IX212A/213A; SAME RECORD AREA shared FD base (275) → IX205A/206A; generic/partial-key START via `SemanticModel.ResolveKeyOfReference` (276) → IX209A/210A/214A; READ/WRITE optional-word parse forms — `NOT INVALID KEY` standalone, `NEXT`/`PREVIOUS` without RECORD, `KEY` without IS (277) → IX108A/211A; variable-length indexed records — `SetIndexedVarying` + length-framed persistence + per-record `LastRecordLength` (278) → IX105A; **column-7 `T`/`U` X-card matched-variant — `U` excluded so base+`T` is the active layout (279) → IX207A (duplicate-alt-key read) / IX208A (alt-key relational START GREATER/NOT-LESS/EQUAL)**; **SELECT-OPTIONAL absent-file isolation (280) → IX216A/217A/218A** — `NistPreprocessor` reworked to ONE SELECT-scoped OPTIONAL-aware pass (`XXXXD` always shared for consumers like SQ203A; `XXXXP`/RELATIVE-INDEXED-`XXXXX` shared only for non-OPTIONAL, so an OPTIONAL file stays program-qualified = genuinely absent per run unit), the SELECT-region regex now `(?m)^[ \t]*SELECT\b(?:\*>[^\n]*\n|[^.])*\.` (consumes `*> …` comment lines so it spans past CCVS's interposed comments to the real period — fixed SM204A's TF002 chain — yet anchored to a real-code line so a commented-out `P`-indicator SELECT can't capture/mis-map the following sequential XXXXX — kept SQ130A/141A/142A isolation), `IndexedFileHandler` OPEN I-O on a missing OPTIONAL file → 05, and a guard start-clean (`rm -f tests/nist/output/*.txt`) for determinism. **Remaining 4 (left undone):** **(a) IX215A** START on a REDEFINES-of-key (`R-REDF-RECKEY-1-7 REDEFINES …`) + qualified key names with three identically-named `IX-FD3-KEY` keys — needs qualified-name key matching + duplicate-key disambiguation (deep). **(b) IX110A** order-fragile — IX103A's delete test depletes TF024 before it. **(c)/(d) IX301M/IX401M** flagging modules (no CCVS report — excluded by design, like IF401M).
-   - **RL: 11 baselined — RL101A/102A/103A/105A/107A/108A/201A/202A/203A/209A/302M;** RL210A dropped (multiple-record-format/ODO relative subsystem, separate). **Dialect leniency L1 (DEVLOG 254):** `INVALID KEY?` (KEY optional, the CCVS no-KEY form) is now parsed in the permissive superset and dialect-gated via `DialectStrictnessChecks` (`CBL3611` error under named-strict, accepted under `--nist`/Default). This unblocked compiles (COMPILE_FAIL 12→5) → **RL105A** (creates+verifies 3 relative files) and **RL108A** (TF061 bundle) baselined as self-contained tests. RL207A NOT baselined (depends on still-failing RL206A). All former blockers RESOLVED (DEVLOG 252–254):
-     1. **COMP relative keys — DONE (252).** `EmitSetRelativeKey`/`EmitStoreRelativeKey` now convey the key as a PIC-aware integer (`PicRuntime.DecodeNumeric`/`EncodeNumeric` via `EmitLocationArgsWithPic`), not ASCII; `FileRuntime.SetRelativeKey(name,int)`; `RelativeFileHandler.ReadByKey` uses the pending key. `PIC 9(n) COMP` keys round-trip.
-     2. **Producer→updater→consumer orchestration — DONE for the two TF021 chains.** The guard runs NIST_TESTS in list order in one dir without cleaning data files, so a chain baselines if its members are consecutive and ahead of any other producer of the same file. Baselined: RL101A→RL102A→RL103A and RL201A→RL202A→RL203A (both over TF021, ordered consecutively in `scripts/guard.sh`; RL209A/RL302M follow safely as they re-create their files).
-     - **Relative DYNAMIC delete/read gap FIXED (DEVLOG 255) + variable-length relative records (DEVLOG 256) → RL109A/110A/117A/118A/206A/207A + IX107A baselined (17 RL, 2 IX).** 255's three root causes: (1) `XXXXX###` data-file ASSIGN maps to a shared `"TF###"` literal **for RELATIVE/INDEXED SELECTs only** (organization-aware in `NistPreprocessor`; SEQUENTIAL keeps DEVLOG-244 isolation — why SQ130A's `XXXXX014/062` must NOT be remapped). **(DEVLOG 268: `XXXXX001/002` are no longer special-cased to the shared `"TFIL1"/"TFIL2"` literal — they now flow through this same org-aware path, so a SEQUENTIAL `XXXXX001` is program-id-qualified like every other sequential data file; the old blanket literal defeated absent-file isolation in SQ141A/142A/203A.) (2) **L2** — `relativeKeyClause : RELATIVE KEY? IS? dataReference`, ordered *before* `organizationClause`, dialect-gated (CBL3613/3614); (3) **REWRITE INVALID KEY phrases now lowered** (`LowerRewrite` was a general gap). 256 added **variable-length relative records**: `RelativeFileHandler.IsRecordVarying` + `WriteVariable` stores actual length + per-slot length-prefixed persistence (`[4-byte len][max data]`, gap 0xFFFFFFFF); lowerer `IsVaryingRecord` extends varying paths to RELATIVE; Binder emits `FileRuntime.SetRelativeVarying` (NB: a new emitted runtime call needs an explicit **CilEmitter** case or it NOPs with args on the stack → `InvalidProgramException`). **RL210A/RL211A DONE (DEVLOG 257):** format-3 (`RECORD IS VARYING` + OCCURS-DEPENDING table inside the record, mixed 120/140 01 formats) — the WRITE was already right (256); the read-into-largest buffer just needed `receiving: true` (MAX length) so the ODO bytes weren't truncated. **Remaining RL: RL208A only** (2 FAIL* — 5-record gap in the RL207A→RL208A delete/update chain: RL207A's `UPDATE-NUMBER=98` boundary rewrites don't all reach the consumer; a known latent bug is `RelativeFileHandler.Rewrite` padding varying records to max instead of storing the actual length — fixing it needs a variable-REWRITE path like WriteVariable, but no current test forces it and RL207A is baselined, so change carefully). **COMP-keyed START** still ASCII `ParseKey` (deferred). **Deferred leniencies:** L3 `RECORD data-name` no-KEY (IX), L4 `USE…ERROR` sans `STANDARD`. Guard does NOT clean data files between tests; RELATIVE/INDEXED `XXXXX###` share `TF###` by number, so order producer→consumer chains consecutively (RL108A→109A→110A/TF061; RL107A→RL117A/TF022; RL206A→RL207A/TF021 **varying** — each producer opens OUTPUT recreating the file in its own format, so varying + fixed TF021 chains coexist if consecutive).
-   - **Runtime-correctness long tail:** the now-compiling SQ/IX/RL tests mostly FAIL*/NO_OUTPUT on DISTINCT runtime bugs, each its own small investigation. Method that works: run the test, find the FAIL* line's COMPUTED vs CORRECT, trace to the responsible `FileRuntime`/handler path, cite the ISO §9.1.13 status rule, fix the pattern across all 3 handlers, baseline. **Watch test isolation:** absent-file tests need their host file truly absent — non-literal ASSIGN paths are now program-id-qualified (DEVLOG 244), but a test that creates its own file then re-runs must not leave a file an absent-file sub-test depends on.
-   - **ST (sort/merge):** not re-surveyed under the new grammar; 8 SORT/MERGE COMPILE_FAIL + ST132A hang were noted earlier.
+Survey any suite: `bash scripts/run-suite.sh <PREFIX>` → per-test `CLEAN | N FAIL* | COMPILE_FAIL | NO_OUTPUT | RUNTIME(rc)` + a footer `=== PREFIX: total=… ===`. It does NOT create baselines.
+
+## Roadmap to full coverage (priority order)
+
+### Phase 1 — Quick baseline wins (~22 candidates, little/no code). Verify-non-vacuous, then baseline.
+The survey already shows these CLEAN but not yet in the guard. For EACH: confirm the report is non-vacuous
+(tests EXECUTED > 0, footer "TEST(S) FAILED" = 0, COMPUTED vs CORRECT meaningful), confirm determinism
+(run twice, diff), order any producer ahead of its consumer, then add to `NIST_TESTS` + capture
+`tests/nist/valid/<T>.txt`, and run the full guard.
+- **SM104A / SM105A / SM205A** — CLEAN COPY/REPLACE tests not yet baselined. Likely the easiest wins.
+- **OBSQ1A / OBSQ3A / OBSQ4A / OBSQ5A** — obsolete-sequential, all 4 CLEAN. Check they don't depend on an
+  obsolete feature that's only *parsed-and-ignored* (which would make them vacuous).
+- **IC: 15 CLEAN candidates** — IC101A/103A/108A/112A/115A/201A/206A/207A/209A/213A/216A/222A/223A/226A/237A
+  (IC116M is flagging; IC203A/224A/225A/228A already baselined). **⚠ CAUTION — IC "CLEAN" is vacuous-prone:**
+  the earlier session deliberately baselined only 4. An IC caller that `CALL`s a **separately-compiled** callee
+  will, under the guard's one-`.cob`→one-`.dll` build, either not link or silently no-op while the test still
+  prints PASS. Before baselining any IC test, verify the inter-program transfer ACTUALLY happened (the callee's
+  effect shows in COMPUTED). Self-contained IC tests (caller + callee as nested/contained programs in ONE file)
+  are genuinely baselineable; caller+separate-callee pairs need the multi-program link (Phase 4).
+
+### Phase 2 — SQ/RL un-surveyed tail (runtime-correctness, the proven file-I/O method).
+~24 SQ + ~13 RL programs are neither baselined nor known-excluded. Re-survey (`run-suite.sh SQ` / `RL`), then
+per result: **FAIL\*** → read the failing line's COMPUTED vs CORRECT, trace to the responsible
+`FileRuntime`/`*FileHandler` path, cite the ISO §9.1.13 status rule, **fix the pattern across all 3 handlers**
+(Sequential/Indexed/Relative), baseline. **NO_OUTPUT** → it's a producer; order it consecutively ahead of its
+consumer in the guard (data files are NOT cleaned between tests; RELATIVE/INDEXED `XXXXX###` share `TF###` by
+number). **COMPILE_FAIL** → a parse form; add the grammar leniency dialect-gated (never unconditional).
+
+### Phase 3 — RL208A (the ONE known open file-I/O compiler bug).
+2 FAIL\*, 5-record gap in the RL207A→RL208A delete/update chain. Latent: `RelativeFileHandler.Rewrite` pads a
+varying record to max length (via `ToSlot`) instead of storing the ACTUAL length — needs a variable-REWRITE
+path mirroring `WriteVariable`. RL207A is baselined, so change carefully + full-guard.
+
+### Phase 4 — IC genuine remaining (the real inter-program work).
+- **Multi-program compile/link** for caller + separately-compiled callee (the 21 NO_OUTPUT callee halves + the
+  4 COMPILE_FAIL + 2 FAIL\*). The grammar + multi-program compilation pipeline exist (nested programs); the gap
+  is letting a guard test bundle a caller with its callee file(s) so the CALL resolves at runtime.
+- **IC233A/234A** — `USE GLOBAL AFTER ERROR` declaratives on a file error + `SELECT OPTIONAL`/`OPEN INPUT`/`READ`
+  (note IC233A omits the spec-required `STANDARD` — accept only as a documented leniency, ISO §14.9.49.2).
+- **IC235A/227A/114A** — EXTERNAL data + sequential file I/O.
+- Deferred GLOBAL follow-ups (not blocking): subscripted/ref-modded inherited globals (extend `OwnerProgramId`
+  through element/ref-mod address paths), level-88 under a global group, FILE SECTION globals.
+
+### Phase 5 — Whole unimplemented modules (LARGE; several OBSOLETE — needs a scope decision from the user).
+Each is an entire COBOL module with no current support (all COMPILE_FAIL). **Recommend asking the user which
+to implement vs formally exclude as out-of-scope**, then document the decision (a one-line exclusion class in
+the guard comment + memory, like the flagging modules):
+- **DB** (Debug, 15) — `USE FOR DEBUGGING`, `DEBUG-ITEM`, debugging lines (COBOL-85 optional module).
+- **RW** (Report Writer, 6) — `RD` report descriptions, `GENERATE`/`INITIATE`/`TERMINATE` (sizable optional module).
+- **SG** (Segmentation, 13) — `SECTION` segment-numbers / overlay (OBSOLETE, removed in COBOL-2002).
+- **CM** (Communication, 9) — `CD` entries, `SEND`/`RECEIVE` (OBSOLETE, removed in COBOL-2002).
+- **OBNC/OBIC** (5) + **EXEC85** (1) — obsolete-feature variants / EXEC driver.
+The defensible default for full *modern*-COBOL conformance: **exclude CM, SG, OBNC, OBIC, EXEC as out-of-scope
+obsolete/non-standard**, and treat DB + RW as optional stretch features. Confirm with the user before either
+sinking weeks into an obsolete module OR declaring it excluded.
+
+## Process rules (non-negotiable — from PROMPT.md + memory feedback_*)
+- **Run `bash scripts/guard.sh` after meaningful changes; it must stay ALL GREEN, baselines 0 FAIL\*.**
+- **NEVER edit a NIST `.cob` source to dodge a compiler bug — fix the compiler.** (Verified clean: no
+  `tests/nist/programs/*.cob` has ever been modified.) X-card placeholder substitution happens in
+  `NistPreprocessor` at compile time (source untouched) — that is required, not a workaround.
+- **Grammar/semantic changes are pre-authorized for the NIST effort** — log in DEVLOG, rely on the full guard,
+  commit. But every leniency must be **dialect-gated** (strict modes still error).
+- **Every commit needs ≥1 DEVLOG entry**; write it as you go, not batched. Commit messages end with the
+  `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>` trailer.
+- **Verify output is CORRECT, not just that it ran** — the vacuous-pass trap (a test self-certifying PASS with
+  degenerate data, e.g. ST147A's blank-vs-blank collating checks before XXXXX063 was substituted).
+- Keep PROJECT_PLAN.md, this file, and memory synced. Don't touch global NuGet config.
+- **Guard soundness note:** the guard asserts 0 `FAIL\*` *detail* lines but does NOT check the footer
+  `NNN TEST(S) FAILED` total — a suppressed-detail failure can slip through (NC208A did once). A footer-total
+  sweep of existing baselines is a worthwhile hardening task.
+
+## Architecture quick-reference (the pipeline + the files you'll touch most)
+Grammar (`src/CobolSharp.Compiler/Grammar/Core/*.g4`) → `SemanticBuilder` (builds symbols; FD/RECORD clauses) →
+`StorageLayoutComputer` (per-FD byte layout) → `Binder`/`FileIoBinder` (`BindingContext`, `BoundTreeValidator`,
+`DialectStrictnessChecks`) → IR lowering (`FileIoLowerer`, `LocationResolver`, `ControlFlowLowerer`) → CIL
+emission (`CilEmitter`, `CilFileIoEmitter`, `CilLocationEmitter`) → `CobolSharp.Runtime` (`FileRuntime`,
+`IO/{Sequential,Indexed,Relative}FileHandler`, `SortRuntime`, `StorageHelpers`).
+- **Single source of truth for variable-length records:** `SemanticModel.IsVariableLengthSequential`
+  (= `IsRecordVarying || HasMultipleRecordSizes`); `FileSymbol.IsRecordVarying` is set in
+  `SemanticBuilder.VisitRecordClause` for BOTH `RECORD IS VARYING` (Format 3) AND `RECORD CONTAINS m TO n`
+  (Format 2, m≠n, ISO §13.18.43). Binder + FileIoLowerer both derive from it, so they can't disagree.
+- **Key resolution (qualified / position-based):** `SemanticModel.ResolveQualifiedData` (base + OF/IN quals —
+  NEVER `dataReference().GetText()`, which concatenates "A OF B"→"AOFB"), `ResolveKeyData`, position-based
+  `ResolveKeyOfReference` (ISO §14.9.41).
+- **Paragraph dispatch:** symbol-based control transfer (dup names OK) + return-address `Dispatch(startPc,exitPc)`
+  helper (`CilEmitter.EmitDispatchHelper`) for PERFORM…THRU; declaratives are in `ParagraphDispatchOrder`, main
+  loop starts at `EntryParagraphIndex`.
+- **X-cards** (`NistPreprocessor` + `ReferenceFormatProcessor`): `XXXXX###`/`XXXXP###`(produce)/`XXXXD###`(consume)
+  placeholders → substituted at compile time; column-7 indicator letters select TPF/X-card line variants. See
+  `reference_nist_xcards`. **Boundary-anchor** any new substitution (`(?<![A-Za-z0-9])XXXXX0NN(?![A-Za-z0-9])`)
+  so it can't corrupt an embedded test-data literal (cf. IX106A's `…XXXXXXXX065A…`); use a `MatchEvaluator` if
+  the replacement contains regex-special chars like `$`.
+- **GOTCHA (costs an afternoon):** a NEW emitted `IrRuntimeCall`/IR node needs an explicit `CilEmitter` dispatch
+  case, or it falls through to the `// NOP` tail with its args left on the stack → `InvalidProgramException` at
+  Main. A stale `tests/nist/output/<t>.txt` can mask it — check the exit code and `rm` the output first.
 
 ## Tooling
-- Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`
-- Survey a suite: `bash scripts/run-suite.sh <PREFIX>` (NC/IF/SM/IC/SQ/IX/RL/ST) → CLEAN | N FAIL* | COMPILE_FAIL | NO_OUTPUT | RUNTIME
-- NIST run convention: `export COBOL_SWITCH_1=ON`. Capture guard output to a file + `echo "guard exit=$?"` (piping to grep masks the exit code).
-- Preprocess (debug COPY/REPLACE, copylib auto-resolved): `cobolsharp preprocess <file> -o <out>`
+- Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`  (CLI dll: `src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll`)
+- Compile one test: `dotnet <cli.dll> --nist tests/nist/programs/<T>.cob -o tests/nist/output/<T>.dll`
+- Run it: `(cd tests/nist/output && timeout 30 dotnet <T>.dll)` — always copy `CobolSharp.Runtime.dll` into
+  `tests/nist/output/` first; use a `timeout` + a file-size guard for SORT/build tests (an unsubstituted
+  record-count X-card once grew an 8.2 GB report).
+- Survey a suite: `bash scripts/run-suite.sh <PREFIX>`. NIST run convention: `export COBOL_SWITCH_1=ON`.
+  Capture guard output to a file + `echo "guard exit=$?"` (piping to grep masks the exit code).
+- Preprocess (debug COPY/REPLACE + X-cards): `cobolsharp preprocess <file> -o <out>`.
+
+## How we got here (one line)
+NC/IF complete early; collating subsystem (DEVLOG 224–227); spec-audit follow-ups (228–232); IC to its
+non-file-I/O ceiling (233–236); the file-I/O FILE-CONTROL "wall" broken as over-strict-grammar-vs-spec
+(237–268); paragraph-dispatch engine reworked (259–260); IX suite complete (269–282); ST suite complete
+(283–294). Full detail in DEVLOG.md + `project_nist_progress` / `project_fileio_remaining`.
