@@ -471,19 +471,7 @@ internal sealed class FileIoBinder
             usingFiles = ResolveFileList(usingCtx.dataReferenceList());
         }
         else if (ctx.sortInputProcedurePhrase() is { } inputCtx)
-        {
-            var procNames = inputCtx.procedureName();
-            if (procNames.Length >= 1)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
-                inputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
-            }
-            if (procNames.Length >= 2)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
-                inputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
-            }
-        }
+            (inputProc, inputProcThru) = ResolveSortMergeProcedure(inputCtx.procedureName());
 
         // GIVING / OUTPUT PROCEDURE
         IReadOnlyList<FileSymbol>? givingFiles = null;
@@ -493,19 +481,7 @@ internal sealed class FileIoBinder
             givingFiles = ResolveFileList(givingCtx.dataReferenceList());
         }
         else if (ctx.sortOutputProcedurePhrase() is { } outputCtx)
-        {
-            var procNames = outputCtx.procedureName();
-            if (procNames.Length >= 1)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
-                outputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
-            }
-            if (procNames.Length >= 2)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
-                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
-            }
-        }
+            (outputProc, outputProcThru) = ResolveSortMergeProcedure(outputCtx.procedureName());
 
         DialectStrictnessChecks.CheckCollatingNoiseWord(_ctx, ctx.sortCollatingPhrase());
         return new BoundSortStatement(fileSym, keys, duplicates,
@@ -522,6 +498,30 @@ internal sealed class FileIoBinder
     /// </summary>
     private static string? ExtractCollatingName(CobolParserCore.SortCollatingPhraseContext? phrase)
         => phrase?.cobolWord() is { Length: > 0 } words ? words[0].GetText() : null;
+
+    /// <summary>
+    /// Resolve a SORT/MERGE INPUT/OUTPUT PROCEDURE phrase to (first paragraph, thru paragraph). With an
+    /// explicit THRU the two procedure-names bound the range directly. With a SINGLE procedure-name that
+    /// names a SECTION, the procedure is the WHOLE section (ISO §14.9.45/§14.9.24) — so it resolves to the
+    /// section's first AND last paragraph, exactly as a plain <c>PERFORM section</c> does. (Resolving only
+    /// the first paragraph with no THRU would run just that one paragraph and silently skip the rest of the
+    /// section — e.g. a SORT INPUT PROCEDURE whose RELEASE statements live past the first paragraph would
+    /// release nothing.)
+    /// </summary>
+    private (ParagraphSymbol? proc, ParagraphSymbol? thru) ResolveSortMergeProcedure(
+        CobolParserCore.ProcedureNameContext[] procNames)
+    {
+        if (procNames.Length == 0) return (null, null);
+        var (n1, q1) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
+        if (procNames.Length >= 2)
+        {
+            var (n2, q2) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
+            return (_ctx.ProcedureName.ResolveProcedureName(n1, q1),
+                    _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n2, q2));
+        }
+        // Single procedure-name: a paragraph runs alone (thru == null); a section runs in full.
+        return _ctx.ProcedureName.ResolveProcedureNameForPerform(n1, q1);
+    }
 
     // ── TABLE SORT (Format 2) ──
 
@@ -593,19 +593,7 @@ internal sealed class FileIoBinder
             givingFiles = ResolveFileList(givingCtx.dataReferenceList());
         }
         else if (ctx.mergeOutputProcedurePhrase() is { } outputCtx)
-        {
-            var procNames = outputCtx.procedureName();
-            if (procNames.Length >= 1)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[0]);
-                outputProc = _ctx.ProcedureName.ResolveProcedureName(n, q);
-            }
-            if (procNames.Length >= 2)
-            {
-                var (n, q) = ProcedureNameResolver.ExtractProcedureNameWithQualifier(procNames[1]);
-                outputProcThru = _ctx.ProcedureName.ResolveProcedureNameForThruEnd(n, q);
-            }
-        }
+            (outputProc, outputProcThru) = ResolveSortMergeProcedure(outputCtx.procedureName());
 
         DialectStrictnessChecks.CheckCollatingNoiseWord(_ctx, ctx.sortCollatingPhrase());
         return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,
