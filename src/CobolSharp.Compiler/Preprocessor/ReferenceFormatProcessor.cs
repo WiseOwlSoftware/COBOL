@@ -173,7 +173,15 @@ public static class ReferenceFormatProcessor
                 // keeping the replacement (a normal line) yields the intended no-multi-volume program
                 // — and stops CLOSE … REEL/UNIT from prematurely closing the file mid write-loop.
                 // (Only 'H'/'E' are excluded; 'F' is also used as ordinary code in the IC suite.)
-                case 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e':
+                //
+                // 'T'/'U' are a matched ALTERNATE PAIR that completes an intentionally-incomplete record
+                // layout (IX207A/IX208A): the base (space-indicator) FD record omits the key/alternate-key
+                // filler bytes, and exactly ONE of the T or U variant lines supplies them — base+T and
+                // base+U each total the declared RECORD length, but keeping BOTH overflows it and shifts the
+                // key offsets away from the fixed-width FILE-RECORD-INFO work area the records are written
+                // through. The test's own working-storage key images use the 'T' form, so 'T' is the active
+                // configuration (kept as ordinary code) and 'U' is the excluded alternate.
+                case 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u':
                     result.AppendLine($"*> {sourceArea.TrimEnd()}");
                     inLiteral = false;
                     pendingQuote = false;
