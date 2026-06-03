@@ -200,9 +200,10 @@ internal sealed class FileIoLowerer
                 }
                 else
                 {
-                    // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey
-                    // For INDEXED files, use RECORD KEY; for RELATIVE files, use RELATIVE KEY
-                    string? keyName = read.File.RecordKey ?? read.File.RelativeKey;
+                    // Keyed read: RANDOM/DYNAMIC access without NEXT → ReadByKey. The KEY IS operand names
+                    // the key of reference — the prime record key OR an alternate record key (ISO §14.9.30);
+                    // with no KEY phrase the prime key is implied. For RELATIVE files the RELATIVE KEY is used.
+                    string? keyName = read.KeyDataName ?? read.File.RecordKey ?? read.File.RelativeKey;
                     bool isKeyedRead = !read.IsNext &&
                         read.File.AccessMode is "RANDOM" or "DYNAMIC" &&
                         keyName != null;
@@ -215,10 +216,11 @@ internal sealed class FileIoLowerer
                         {
                             // RELATIVE random/dynamic READ positions by the RELATIVE KEY, decoded
                             // PIC-aware to the relative record number (ISO §14.9.30). INDEXED keyed
-                            // reads keep using the key bytes (the alphanumeric record key).
+                            // reads keep using the key bytes (the alphanumeric record/alternate key).
                             if (IsRelative(read.File))
                                 block.Instructions.Add(new IrSetRelativeKey(cobolName, keyLoc));
-                            block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc));
+                            int keyIndex = ResolveStartKeyIndex(read.File, keyName!);
+                            block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc, keyIndex));
                         }
                         else
                             block.Instructions.Add(new IrReadRecordToStorage(cobolName, recordLoc));
@@ -557,32 +559,40 @@ internal sealed class FileIoLowerer
     {
         string cobolName = start.File.Name;
 
-        // Resolve key from the file's RECORD KEY
-        var recordKey = start.File.RecordKey;
-        if (recordKey != null)
+        // The KEY operand names the key of reference — the prime record key OR an alternate record key
+        // (ISO §14.9.41). The search value is that data item's current value, and its index (-1 prime,
+        // 0+ alternate) is conveyed to the runtime so the subsequent READ NEXT sequences on the same key.
+        // With no KEY phrase the prime record key is implied.
+        int condition = 0; // StartCondition.Equal (default)
+        string? operandName = start.KeyCondition switch
         {
-            var keySym = _ctx.Semantic.ResolveData(recordKey);
+            BoundBinaryExpression be when be.Left is BoundIdentifierExpression bid => bid.Symbol.Name,
+            BoundIdentifierExpression id => id.Symbol.Name,
+            _ => null
+        };
+        if (start.KeyCondition is BoundBinaryExpression keyExpr)
+        {
+            condition = keyExpr.OperatorKind switch
+            {
+                BoundBinaryOperatorKind.Equal => 0,
+                BoundBinaryOperatorKind.Greater => 1,
+                BoundBinaryOperatorKind.GreaterOrEqual => 2,
+                BoundBinaryOperatorKind.Less => 3,
+                BoundBinaryOperatorKind.LessOrEqual => 4,
+                _ => 0
+            };
+        }
+
+        string? keyName = operandName ?? start.File.RecordKey;
+        if (keyName != null)
+        {
+            int keyIndex = ResolveStartKeyIndex(start.File, keyName);
+            var keySym = _ctx.Semantic.ResolveData(keyName);
             if (keySym != null)
             {
                 var keyLoc = _ctx.Location.ResolveLocation(keySym);
                 if (keyLoc != null)
-                {
-                    // Extract key condition from bound tree (default: Equal)
-                    int condition = 0; // StartCondition.Equal
-                    if (start.KeyCondition is BoundBinaryExpression keyExpr)
-                    {
-                        condition = keyExpr.OperatorKind switch
-                        {
-                            BoundBinaryOperatorKind.Equal => 0,
-                            BoundBinaryOperatorKind.Greater => 1,
-                            BoundBinaryOperatorKind.GreaterOrEqual => 2,
-                            BoundBinaryOperatorKind.Less => 3,
-                            BoundBinaryOperatorKind.LessOrEqual => 4,
-                            _ => 0
-                        };
-                    }
-                    block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition));
-                }
+                    block.Instructions.Add(new IrStartFile(cobolName, keyLoc, condition, keyIndex));
             }
         }
 
@@ -597,6 +607,18 @@ internal sealed class FileIoLowerer
         }
 
         return block;
+    }
+
+    /// <summary>The key-of-reference index for a START / READ KEY operand: -1 for the prime record key, or
+    /// the 0-based alternate-key index (ISO §14.9.41). Defaults to -1 (prime) when the name matches neither.</summary>
+    private static int ResolveStartKeyIndex(FileSymbol file, string keyName)
+    {
+        if (file.RecordKey != null && string.Equals(keyName, file.RecordKey, System.StringComparison.OrdinalIgnoreCase))
+            return -1;
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            if (string.Equals(keyName, file.AlternateKeys[i].DataName, System.StringComparison.OrdinalIgnoreCase))
+                return i;
+        return -1;
     }
 
     // ── RETURN (sort/merge) ──

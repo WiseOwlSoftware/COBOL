@@ -394,15 +394,16 @@ public static class FileRuntime
     /// Extracts key bytes and calls IFileHandler.ReadByKey.
     /// </summary>
     public static void ReadByKey(string fileName, byte[] recArea, int recOffset, int recSize,
-        byte[] keyArea, int keyOffset, int keySize)
+        byte[] keyArea, int keyOffset, int keySize, int keyIndex)
     {
         EnsureManager();
         byte[] keyValue = new byte[keySize];
         Array.Copy(keyArea, keyOffset, keyValue, 0, keySize);
         byte[] tempBuf = new byte[recSize];
-        string status = _manager!.ReadByKey(fileName, tempBuf, keyValue);
+        string status = _manager!.ReadByKey(fileName, tempBuf, keyValue, keyIndex);
         _lastStatus[fileName] = status;
-        if (status == FileStatus.Success)
+        // The record is made available on a successful read, including the duplicate-alternate-key case (02).
+        if (status is FileStatus.Success or FileStatus.DuplicateAlternateKey)
             Array.Copy(tempBuf, 0, recArea, recOffset, recSize);
     }
 
@@ -512,12 +513,13 @@ public static class FileRuntime
     /// <summary>
     /// START: position an indexed file for subsequent READ NEXT.
     /// </summary>
-    public static void StartFile(string fileName, byte[] keyArea, int keyOffset, int keyLength, int condition)
+    public static void StartFile(string fileName, byte[] keyArea, int keyOffset, int keyLength,
+        int condition, int keyIndex)
     {
         EnsureManager();
         byte[] keyValue = new byte[keyLength];
         Array.Copy(keyArea, keyOffset, keyValue, 0, keyLength);
-        string status = _manager!.Start(fileName, keyValue, (IO.StartCondition)condition);
+        string status = _manager!.Start(fileName, keyValue, (IO.StartCondition)condition, keyIndex);
         _lastStatus[fileName] = status;
     }
 

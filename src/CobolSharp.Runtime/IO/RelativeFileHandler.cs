@@ -250,8 +250,9 @@ public class RelativeFileHandler : IFileHandler
         return FileStatus.Success;
     }
 
-    public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
+    public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex = -1)
     {
+        // keyIndex is ignored: a relative file is keyed only by its relative record number.
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode is FileOpenMode.Output or FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
@@ -349,8 +350,9 @@ public class RelativeFileHandler : IFileHandler
         return FileStatus.Success;
     }
 
-    public string Start(byte[] keyValue, StartCondition condition)
+    public string Start(byte[] keyValue, StartCondition condition, int keyIndex = -1)
     {
+        // keyIndex is ignored: a relative file has a single (relative) key, no alternate keys.
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         int target = ParseKey(keyValue);
         // Position so the next READ NEXT returns the first record satisfying the condition.

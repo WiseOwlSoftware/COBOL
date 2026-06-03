@@ -27,7 +27,9 @@ public interface IFileHandler : IDisposable
     string ReadPrevious(byte[] recordBuffer);
 
     /// <summary>Read a specific record by key (random/indexed access).</summary>
-    string ReadByKey(byte[] recordBuffer, byte[] keyValue);
+    /// <summary>Read a record by key. keyIndex is the key of reference: -1 = prime record key, 0+ =
+    /// alternate record key index (indexed files; ISO §14.9.30). Handlers without alternate keys ignore it.</summary>
+    string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex = -1);
 
     /// <summary>Write a record.</summary>
     string Write(byte[] recordData);
@@ -52,8 +54,10 @@ public interface IFileHandler : IDisposable
     /// <summary>Delete the current record.</summary>
     string Delete();
 
-    /// <summary>Position to a record by key for subsequent sequential reads.</summary>
-    string Start(byte[] keyValue, StartCondition condition);
+    /// <summary>Position to a record by key for subsequent sequential reads. keyIndex is the key of
+    /// reference: -1 = prime record key, 0+ = alternate record key index (indexed files; ISO §14.9.41).
+    /// Handlers without alternate keys (sequential, relative) ignore it.</summary>
+    string Start(byte[] keyValue, StartCondition condition, int keyIndex = -1);
 }
 
 /// <summary>

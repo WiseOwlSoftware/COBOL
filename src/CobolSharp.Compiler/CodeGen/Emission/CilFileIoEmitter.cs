@@ -226,12 +226,13 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Ldstr, rbk.FileName));
         _ctx.Location.EmitLocationArgs(il, rbk.Record);
         _ctx.Location.EmitLocationArgs(il, rbk.Key);
+        il.Append(il.Create(OpCodes.Ldc_I4, rbk.KeyIndex));
 
         var method = _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod(
                 "ReadByKey",
                 new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int) })!);
+                        typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 
@@ -337,9 +338,10 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Ldstr, sf.FileName));
         _ctx.Location.EmitLocationArgs(il, sf.KeyLocation);
         il.Append(il.Create(OpCodes.Ldc_I4, sf.Condition));
+        il.Append(il.Create(OpCodes.Ldc_I4, sf.KeyIndex));
         var method = _ctx.Module.ImportReference(
             typeof(FileRuntime).GetMethod("StartFile",
-                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

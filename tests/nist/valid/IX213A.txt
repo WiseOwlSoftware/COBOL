@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX213A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE INVALID KEY    PASS  WRITE-TEST-GF-01              CREATE IX-FS1
+ READ...RECORD KEY    PASS  READ-TEST-F2-01               RETRIEVED BY ALTERNATE KEY 1
+ READ...RECORD KEY    PASS  READ-TEST-F2-02               RETRIEVED BY ALTERNATE KEY 8
+ DELETE...RECORD      PASS  DELETE-TEST-GF-01             DELETES RECORD FOUND IN READ-TEST-GF-02
+ READ...RECORD KEY    PASS  READ-TEST-F2-03               RETRIEVED BY ALTERNATE KEY 4
+ REWRITE...INVALID... PASS  REWRITE-TEST-GF-01            REWRITE-S RECORD FOUND IN READ-TEST-F2-03
+ READ...RECORD KEY    PASS  READ-TEST-F2-04               INVALID KEY PATH SHOULD BE TAKEN
+ START...KEY IS EQUAL PASS  START-TEST-GF-01              RETRIEVED BY ALTERNATE KEY 3
+ START...KEY >        PASS  START-TEST-GF-02              RETRIEVED BY ALTERNATE KEY 6
+ START...KEY >        PASS  START-TEST-GF-03              RETRIEVED BY ALTERNATE KEY 10
+ READ...RECORD KEY    PASS  READ-TEST-F2-05               RETRIEVED BY ALTERNATE KEY 8
+ READ...RECORD KEY    PASS  READ-TEST-F2-06               RETRIEVED BY ALTERNATE KEY 4
+ READ...RECORD KEY    PASS  READ-TEST-F2-07               RETRIEVED BY PRIMARY KEY
+ DELETE...RECORD      PASS  DELETE-TEST-GF-02             DELETES RECORD FOUND IN READ-TEST-F2-07
+ READ...RECORD KEY    PASS  READ-TEST-F2-08               RETRIEVED BY ALTERNATE KEY 9
+ REWRITE...INVALID... PASS  REWRITE-TEST-GF-02            REWRITES RECORD FOUND IN READ-TEST-GF-08
+ READ...RECORD KEY    PASS  READ-TEST-F2-09               RETRIEVED BY ALTERNATE KEY 5
+ READ...RECORD KEY    PASS  READ-TEST-F2-10               RETRIEVED BY ALTERNATE KEY 9
+ READ...RECORD KEY    PASS  READ-TEST-F2-11               RETRIEVED BY ALTERNATE KEY 7
+ DELETE...RECORD      PASS  DELETE-TEST-GF-03             DELETES RECORD FOUND IN READ-TEST-F2-11
+ READ...RECORD KEY    PASS  READ-TEST-F2-12               RETRIEVED BY ALTERNATE KEY 5
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX213A
+
+                                                    021 OF 021  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

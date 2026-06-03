@@ -56,11 +56,11 @@ public class CobolFileManager : IDisposable
     }
 
     /// <summary>Read a specific record by key (random/indexed access).</summary>
-    public string ReadByKey(string cobolFileName, byte[] recordBuffer, byte[] keyValue)
+    public string ReadByKey(string cobolFileName, byte[] recordBuffer, byte[] keyValue, int keyIndex = -1)
     {
         var handler = GetHandler(cobolFileName);
         if (handler == null) return FileStatus.FileNotOpen;
-        return handler.ReadByKey(recordBuffer, keyValue);
+        return handler.ReadByKey(recordBuffer, keyValue, keyIndex);
     }
 
     /// <summary>Write a record to a file.</summary>
@@ -87,12 +87,13 @@ public class CobolFileManager : IDisposable
         return handler.Delete();
     }
 
-    /// <summary>Start (position) a file for subsequent reads.</summary>
-    public string Start(string cobolFileName, byte[] keyValue, StartCondition condition)
+    /// <summary>Start (position) a file for subsequent reads. keyIndex is the key of reference: -1 = prime
+    /// record key, 0+ = alternate record key index (ISO §14.9.41).</summary>
+    public string Start(string cobolFileName, byte[] keyValue, StartCondition condition, int keyIndex = -1)
     {
         var handler = GetHandler(cobolFileName);
         if (handler == null) return FileStatus.FileNotOpen;
-        return handler.Start(keyValue, condition);
+        return handler.Start(keyValue, condition, keyIndex);
     }
 
     public void Dispose()

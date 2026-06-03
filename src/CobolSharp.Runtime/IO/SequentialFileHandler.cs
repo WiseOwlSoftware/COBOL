@@ -258,7 +258,7 @@ public class SequentialFileHandler : IFileHandler
     public string ReadPrevious(byte[] recordBuffer) =>
         FileStatus.PermanentError; // Not supported for sequential files
 
-    public string ReadByKey(byte[] recordBuffer, byte[] keyValue) =>
+    public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex = -1) =>
         FileStatus.PermanentError; // Not supported for sequential files
 
     public string Write(byte[] recordData)
@@ -434,7 +434,7 @@ public class SequentialFileHandler : IFileHandler
 
     public string Delete() => FileStatus.PermanentError; // Not supported for sequential files
 
-    public string Start(byte[] keyValue, StartCondition condition) =>
+    public string Start(byte[] keyValue, StartCondition condition, int keyIndex = -1) =>
         FileStatus.PermanentError; // Not supported for sequential files
 
     public void Dispose()

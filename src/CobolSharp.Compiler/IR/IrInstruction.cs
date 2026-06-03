@@ -696,12 +696,17 @@ public sealed class IrReadByKey : IrInstruction
     public string FileName { get; }
     public IrLocation Record { get; }
     public IrLocation Key { get; }
+    // Key of reference: -1 = prime record key, 0+ = alternate record key index. A random/dynamic READ may
+    // name an alternate key (READ … KEY IS alt-key, ISO §14.9.30); the chosen key becomes the key of
+    // reference for a subsequent READ NEXT.
+    public int KeyIndex { get; }
 
-    public IrReadByKey(string fileName, IrLocation record, IrLocation key)
+    public IrReadByKey(string fileName, IrLocation record, IrLocation key, int keyIndex = -1)
     {
         FileName = fileName;
         Record = record;
         Key = key;
+        KeyIndex = keyIndex;
     }
 }
 
@@ -723,12 +728,17 @@ public sealed class IrStartFile : IrInstruction
     public string FileName { get; }
     public IrLocation KeyLocation { get; }
     public int Condition { get; }
+    // Key of reference: -1 = prime record key, 0+ = alternate record key index. START may position on the
+    // prime key or any alternate key (ISO §14.9.41); the chosen key becomes the key of reference for the
+    // subsequent sequential READ NEXT ordering.
+    public int KeyIndex { get; }
 
-    public IrStartFile(string fileName, IrLocation keyLocation, int condition)
+    public IrStartFile(string fileName, IrLocation keyLocation, int condition, int keyIndex = -1)
     {
         FileName = fileName;
         KeyLocation = keyLocation;
         Condition = condition;
+        KeyIndex = keyIndex;
     }
 }
 

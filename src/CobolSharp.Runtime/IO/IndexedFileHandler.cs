@@ -16,15 +16,23 @@ public class IndexedFileHandler : IFileHandler
     private readonly int _keyOffset;
     private readonly int _keyLength;
     private readonly List<AlternateKeyDescriptor> _alternateKeys = [];
+    // The single source of truth: prime key -> record. All alternate-key views (lookup, duplicate checks,
+    // alternate key-of-reference sequencing) are derived from this on demand, so a REWRITE/DELETE can never
+    // leave a stale secondary index (an earlier clone-based _alternateIndices did).
     private SortedDictionary<string, byte[]>? _records;
-    private readonly List<SortedDictionary<string, List<byte[]>>> _alternateIndices = [];
     // Sequential position is tracked by key, not a live enumerator: a SortedDictionary enumerator is
     // invalidated the moment an interleaved WRITE/REWRITE/DELETE mutates the collection (the common
     // DYNAMIC READ-NEXT-with-positioned-write pattern), which threw "Collection was modified". Each
     // READ NEXT re-derives the next key from _records, so it is robust to mutation between reads.
-    private string? _currentKey;     // key of the last record returned (null = positioned before the first)
+    private string? _currentKey;     // PRIME key of the last record returned (null = positioned before the first)
+    private string? _currentRefKey;  // its key-of-reference value, cached so the position survives a DELETE
+                                     // of the current record (it is no longer in _records to re-extract from)
     private bool _readNextInclusive; // true after START: the next READ NEXT returns the record AT _currentKey, not after it
     private bool _pastEnd;           // true after a READ NEXT hit AT END (drives ReadPrevious's first-back behavior)
+    // Key of reference (ISO §9.1.13): -1 = prime record key, 0+ = alternate record key index. Set by START
+    // and by a keyed READ; it governs the ordering of a subsequent sequential READ NEXT — by prime key, or
+    // by the chosen alternate key (ascending alt value, then prime key for records sharing an alt value).
+    private int _keyOfReference = -1;
     // ACCESS SEQUENTIAL: DELETE/REWRITE act on the last-read record and require an immediately preceding
     // successful READ (ISO §9.1.13.6). _prevOpWasSuccessfulRead is true only right after a successful
     // READ; any WRITE/REWRITE/DELETE/START clears it, so a sequential DELETE/REWRITE not directly after a
@@ -77,11 +85,6 @@ public class IndexedFileHandler : IFileHandler
         _records = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
         _lastWrittenKey = null; // ascending-order WRITE check restarts each OPEN
 
-        // Initialize alternate indices
-        _alternateIndices.Clear();
-        foreach (var _ in _alternateKeys)
-            _alternateIndices.Add(new SortedDictionary<string, List<byte[]>>(StringComparer.Ordinal));
-
         if (mode == FileOpenMode.Input || mode == FileOpenMode.InputOutput || mode == FileOpenMode.Extend)
         {
             if (!File.Exists(_dataFilePath))
@@ -108,7 +111,6 @@ public class IndexedFileHandler : IFileHandler
                 {
                     string key = ExtractKey(buffer);
                     _records[key] = (byte[])buffer.Clone();
-                    IndexAlternateKeys(buffer);
                 }
             }
             catch (IOException)
@@ -149,10 +151,12 @@ public class IndexedFileHandler : IFileHandler
 
         _records = null;
         _currentKey = null;
+        _currentRefKey = null;
         _readNextInclusive = false;
         _pastEnd = false;
         _prevOpWasSuccessfulRead = false;
         _lastReadUnsuccessful = false;
+        _keyOfReference = -1;
         return FileStatus.Success;
     }
 
@@ -169,21 +173,47 @@ public class IndexedFileHandler : IFileHandler
         if (_lastReadUnsuccessful)
             return FileStatus.NoValidNextRecord;
 
-        // Find the next record in key order: the smallest key > _currentKey (or >= when positioned by
-        // START), or the smallest key overall when positioned before the first. Re-derived from _records
-        // each call so an interleaved WRITE/REWRITE/DELETE never corrupts the position (no live enumerator).
-        string? target = null;
-        foreach (var k in _records.Keys)
+        // Find the next record in KEY-OF-REFERENCE order. Re-derived from _records each call so an
+        // interleaved WRITE/REWRITE/DELETE never corrupts the position (no live enumerator). Records are
+        // ordered by the (reference-key value, prime key) tuple, so an alternate key of reference walks
+        // alternate-key order and breaks ties between duplicate alternate keys by prime key.
+        string? target;
+        if (_readNextInclusive && _currentKey != null && _records.ContainsKey(_currentKey))
         {
-            if (_currentKey == null)
+            // START positioned the file at _currentKey; the next READ NEXT returns that very record.
+            target = _currentKey;
+        }
+        else
+        {
+            // Current position tuple = (reference key of the last record, its prime key). Use the cached
+            // reference value (_currentRefKey) so a DELETE of the current record — which removes it from
+            // _records — does not lose the position and restart the scan from the beginning.
+            string? curRef = _currentKey == null ? null : _currentRefKey;
+            string? bestPrime = null, bestRef = null;
+            foreach (var kv in _records)
             {
-                target = k; break;
+                string r = KeyForReference(kv.Value);
+                string p = kv.Key;
+                if (_currentKey != null)
+                {
+                    int c = string.Compare(r, curRef, StringComparison.Ordinal);
+                    bool after = c > 0 || (c == 0 && string.Compare(p, _currentKey, StringComparison.Ordinal) > 0);
+                    if (!after) continue;
+                }
+                if (bestRef == null)
+                {
+                    bestRef = r; bestPrime = p;
+                }
+                else
+                {
+                    int c = string.Compare(r, bestRef, StringComparison.Ordinal);
+                    if (c < 0 || (c == 0 && string.Compare(p, bestPrime, StringComparison.Ordinal) < 0))
+                    {
+                        bestRef = r; bestPrime = p;
+                    }
+                }
             }
-            int cmp = string.Compare(k, _currentKey, StringComparison.Ordinal);
-            if (cmp > 0 || (_readNextInclusive && cmp == 0))
-            {
-                target = k; break;
-            }
+            target = bestPrime;
         }
         _readNextInclusive = false;
 
@@ -198,6 +228,7 @@ public class IndexedFileHandler : IFileHandler
         var record = _records[target];
         Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
         _currentKey = target;
+        _currentRefKey = KeyForReference(record);
         _pastEnd = false;
         _prevOpWasSuccessfulRead = true;
         return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
@@ -255,14 +286,11 @@ public class IndexedFileHandler : IFileHandler
         return HasDuplicateAlternateKey(prevRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
-    public string ReadByKey(byte[] recordBuffer, byte[] keyValue)
-        => ReadByKey(recordBuffer, keyValue, keyIndex: -1);
-
     /// <summary>
     /// Read by key with optional alternate key index.
     /// keyIndex = -1 means primary key; 0+ means alternate key index.
     /// </summary>
-    public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex)
+    public string ReadByKey(byte[] recordBuffer, byte[] keyValue, int keyIndex = -1)
     {
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
@@ -278,6 +306,8 @@ public class IndexedFileHandler : IFileHandler
 
             Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
             _currentKey = ExtractKey(record);
+            _keyOfReference = -1; // a primary-key READ makes the prime key the key of reference
+            _currentRefKey = _currentKey;
             _readNextInclusive = false; // a following READ NEXT continues from the record after this one
             _pastEnd = false;
             _prevOpWasSuccessfulRead = true; // a keyed READ satisfies the sequential DELETE/REWRITE prerequisite
@@ -285,18 +315,33 @@ public class IndexedFileHandler : IFileHandler
             return HasDuplicateAlternateKey(record) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
         }
 
-        // Alternate key lookup
-        if (keyIndex >= _alternateIndices.Count)
+        // Alternate key lookup. Derived from _records (not the write-time clone index, which a REWRITE/
+        // DELETE would leave stale): the record whose alternate[keyIndex] value equals the search key, with
+        // the smallest prime key among duplicates — consistent with the alternate key-of-reference READ NEXT
+        // ordering, so READ … KEY then READ NEXT walk the same sequence.
+        if (keyIndex >= _alternateKeys.Count)
             return FileStatus.RecordNotFound;
 
-        if (!_alternateIndices[keyIndex].TryGetValue(key, out var records) || records.Count == 0)
-            return FileStatus.RecordNotFound;
+        string? foundPrime = null;
+        byte[]? found = null;
+        foreach (var kv in _records!)
+        {
+            if (ExtractAlternateKey(kv.Value, keyIndex) != key) continue;
+            if (foundPrime == null || string.Compare(kv.Key, foundPrime, StringComparison.Ordinal) < 0)
+            {
+                foundPrime = kv.Key; found = kv.Value;
+            }
+        }
+        if (found == null) return FileStatus.RecordNotFound;
 
-        var found = records[0]; // First matching record
         Array.Copy(found, recordBuffer, Math.Min(found.Length, recordBuffer.Length));
-        _currentKey = ExtractKey(found);
+        _currentKey = foundPrime;
+        _keyOfReference = keyIndex; // an alternate-key READ makes that alternate the key of reference
+        _currentRefKey = key;       // the matched alternate value
         _readNextInclusive = false; // a following READ NEXT continues from the record after this one
         _pastEnd = false;
+        _prevOpWasSuccessfulRead = true;
+        _lastReadUnsuccessful = false;
         return HasDuplicateAlternateKey(found) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
 
@@ -319,32 +364,21 @@ public class IndexedFileHandler : IFileHandler
         if (_records!.ContainsKey(key))
             return FileStatus.DuplicateKey;
 
-        // Check alternate key uniqueness (for non-DUPLICATES keys)
-        for (int i = 0; i < _alternateKeys.Count; i++)
-        {
-            if (!_alternateKeys[i].AllowDuplicates)
-            {
-                string altKey = ExtractAlternateKey(recordData, i);
-                if (_alternateIndices[i].ContainsKey(altKey))
-                    return FileStatus.DuplicateKey;
-            }
-        }
-
-        // Check if any alternate key with DUPLICATES allowed already has a matching value.
-        // If so, the WRITE succeeds but returns status "02" (duplicate alternate key exists).
+        // Alternate key uniqueness: writing a value that already exists under an alternate key declared
+        // WITHOUT DUPLICATES is the invalid-key condition, status 22 (ISO §14.9.51 GR). An alternate key
+        // declared WITH DUPLICATES instead allows it but the WRITE completes with status 02.
         bool hasDuplicateAlt = false;
         for (int i = 0; i < _alternateKeys.Count; i++)
         {
-            if (_alternateKeys[i].AllowDuplicates)
+            string altKey = ExtractAlternateKey(recordData, i);
+            if (CountByAlternate(i, altKey, excludePrime: null) > 0)
             {
-                string altKey = ExtractAlternateKey(recordData, i);
-                if (_alternateIndices[i].TryGetValue(altKey, out var existing) && existing.Count > 0)
-                    hasDuplicateAlt = true;
+                if (!_alternateKeys[i].AllowDuplicates) return FileStatus.DuplicateKey;
+                hasDuplicateAlt = true;
             }
         }
 
         _records[key] = (byte[])recordData.Clone();
-        IndexAlternateKeys(recordData);
         _lastWrittenKey = key; // for the ACCESS SEQUENTIAL ascending-order check (status 21)
         _prevOpWasSuccessfulRead = false; // a WRITE is not a READ — a following sequential DELETE/REWRITE is 43
         return hasDuplicateAlt ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
@@ -370,6 +404,8 @@ public class IndexedFileHandler : IFileHandler
             _prevOpWasSuccessfulRead = false; // the REWRITE consumes the read position
             if (seqKey != _currentKey)
                 return FileStatus.KeyOutOfSequence;
+            if (CheckRewriteAlternateKeys(recordData, _currentKey) is { } seqDup)
+                return seqDup;
             _records![_currentKey] = (byte[])recordData.Clone();
             return FileStatus.Success;
         }
@@ -379,9 +415,27 @@ public class IndexedFileHandler : IFileHandler
         string newKey = ExtractKey(recordData);
         if (!_records!.ContainsKey(newKey))
             return FileStatus.RecordNotFound;
+        if (CheckRewriteAlternateKeys(recordData, newKey) is { } dup)
+            return dup;
         _records[newKey] = (byte[])recordData.Clone();
         _currentKey = newKey;
         return FileStatus.Success;
+    }
+
+    /// <summary>Validate alternate-key uniqueness for a REWRITE: a value that already exists on another
+    /// record (excluding the one at <paramref name="primeKey"/> being replaced) under an alternate key
+    /// declared WITHOUT DUPLICATES is the invalid-key condition, status 22 (ISO §14.9.35 GR). Returns the
+    /// status to report, or null if the rewrite is permitted.</summary>
+    private string? CheckRewriteAlternateKeys(byte[] recordData, string primeKey)
+    {
+        for (int i = 0; i < _alternateKeys.Count; i++)
+        {
+            if (_alternateKeys[i].AllowDuplicates) continue;
+            string altKey = ExtractAlternateKey(recordData, i);
+            if (CountByAlternate(i, altKey, excludePrime: primeKey) > 0)
+                return FileStatus.DuplicateKey;
+        }
+        return null;
     }
 
     public string Delete()
@@ -412,20 +466,28 @@ public class IndexedFileHandler : IFileHandler
         return FileStatus.Success;
     }
 
-    public string Start(byte[] keyValue, StartCondition condition)
+    public string Start(byte[] keyValue, StartCondition condition, int keyIndex = -1)
     {
         // START on a file connector not open in input/I-O mode is status 47 (ISO §9.1.13.7), not 42.
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
+        // The START establishes the key of reference (prime or an alternate key, ISO §14.9.41); it governs
+        // both the comparison here and the subsequent READ NEXT ordering. The search key value is the
+        // current value of the named key data item, supplied by the caller.
+        _keyOfReference = keyIndex >= 0 && keyIndex < _alternateKeys.Count ? keyIndex : -1;
         string targetKey = Encoding.ASCII.GetString(keyValue);
 
-        // Find the first key that satisfies the condition
-        string? firstKey = null;
-        foreach (var entry in _records!)
+        // Find the record positioned by the relation, ordered by the (reference-key value, prime key) tuple:
+        // the smallest such record satisfying the relation. For EQUAL/GREATER[-OR-EQUAL] that is the first
+        // matching record in key-of-reference order; for LESS[-OR-EQUAL] it is the smallest matching record
+        // (a subsequent ascending READ NEXT then proceeds from there).
+        string? firstPrime = null, firstRef = null;
+        foreach (var kv in _records!)
         {
-            int cmp = string.Compare(entry.Key, targetKey, StringComparison.Ordinal);
+            string r = KeyForReference(kv.Value);
+            int cmp = string.Compare(r, targetKey, StringComparison.Ordinal);
             bool matches = condition switch
             {
                 StartCondition.Equal => cmp == 0,
@@ -435,21 +497,33 @@ public class IndexedFileHandler : IFileHandler
                 StartCondition.LessThanOrEqual => cmp <= 0,
                 _ => false
             };
-            if (matches)
+            if (!matches) continue;
+            if (firstRef == null)
             {
-                firstKey = entry.Key;
-                break;
+                firstRef = r; firstPrime = kv.Key;
+            }
+            else
+            {
+                int c = string.Compare(r, firstRef, StringComparison.Ordinal);
+                if (c < 0 || (c == 0 && string.Compare(kv.Key, firstPrime, StringComparison.Ordinal) < 0))
+                {
+                    firstRef = r; firstPrime = kv.Key;
+                }
             }
         }
 
-        if (firstKey == null)
+        if (firstPrime == null)
+        {
+            _keyOfReference = -1;
             return FileStatus.RecordNotFound;
+        }
 
-        // Position so the next READ NEXT returns the record AT firstKey (START does not itself read —
+        // Position so the next READ NEXT returns the record AT firstPrime (START does not itself read —
         // ISO §14.9.41 GR8: it sets the file position indicator to the first record satisfying the relation).
         // START is not a READ, so it does not satisfy a sequential DELETE/REWRITE's read prerequisite, but
         // it does clear the at-end state (the position is re-established).
-        _currentKey = firstKey;
+        _currentKey = firstPrime;
+        _currentRefKey = firstRef;
         _readNextInclusive = true;
         _pastEnd = false;
         _prevOpWasSuccessfulRead = false;
@@ -468,34 +542,42 @@ public class IndexedFileHandler : IFileHandler
         return Encoding.ASCII.GetString(record, desc.Offset, desc.Length);
     }
 
-    private void IndexAlternateKeys(byte[] record)
+    /// <summary>The value of the current key of reference for a record: the prime key when
+    /// <see cref="_keyOfReference"/> is -1, otherwise the indexed alternate key's value. Guards against a
+    /// stale/out-of-range index by falling back to the prime key.</summary>
+    private string KeyForReference(byte[] record)
+        => _keyOfReference >= 0 && _keyOfReference < _alternateKeys.Count
+            ? ExtractAlternateKey(record, _keyOfReference)
+            : ExtractKey(record);
+
+    /// <summary>Number of records whose alternate-key <paramref name="altKeyIndex"/> value equals
+    /// <paramref name="altValue"/>, optionally excluding the record with prime key <paramref name="excludePrime"/>.
+    /// Derived from <see cref="_records"/> so it reflects every WRITE/REWRITE/DELETE.</summary>
+    private int CountByAlternate(int altKeyIndex, string altValue, string? excludePrime)
     {
-        for (int i = 0; i < _alternateKeys.Count; i++)
+        int n = 0;
+        foreach (var kv in _records!)
         {
-            string altKey = ExtractAlternateKey(record, i);
-            if (!_alternateIndices[i].TryGetValue(altKey, out var list))
-            {
-                list = [];
-                _alternateIndices[i][altKey] = list;
-            }
-            list.Add((byte[])record.Clone());
+            if (excludePrime != null && string.Equals(kv.Key, excludePrime, StringComparison.Ordinal)) continue;
+            if (ExtractAlternateKey(kv.Value, altKeyIndex) == altValue) n++;
         }
+        return n;
     }
 
     /// <summary>
-    /// Check if any alternate key (with DUPLICATES) has more than one record for this record's alt key value.
-    /// Returns true if status "02" should be returned (duplicate alternate key exists).
+    /// True if a record returned by READ should carry status "02": some alternate key declared WITH
+    /// DUPLICATES has another record sharing this record's value for it (ISO §14.9.30 — duplicate alternate
+    /// key indicator). The record itself is already in <see cref="_records"/>, so it is excluded by prime key.
     /// </summary>
     private bool HasDuplicateAlternateKey(byte[] record)
     {
+        string prime = ExtractKey(record);
         for (int i = 0; i < _alternateKeys.Count; i++)
         {
-            if (_alternateKeys[i].AllowDuplicates)
-            {
-                string altKey = ExtractAlternateKey(record, i);
-                if (_alternateIndices[i].TryGetValue(altKey, out var list) && list.Count > 1)
-                    return true;
-            }
+            if (!_alternateKeys[i].AllowDuplicates) continue;
+            string altKey = ExtractAlternateKey(record, i);
+            if (CountByAlternate(i, altKey, excludePrime: prime) >= 1)
+                return true;
         }
         return false;
     }
@@ -503,12 +585,15 @@ public class IndexedFileHandler : IFileHandler
     private void ResetEnumerator()
     {
         // Reset the sequential position to before the first record (OPEN INPUT/I-O establishes the
-        // file position indicator at the first record; the first READ NEXT then returns it).
+        // file position indicator at the first record; the first READ NEXT then returns it). The key of
+        // reference defaults to the prime record key (ISO §9.1.13).
         _currentKey = null;
+        _currentRefKey = null;
         _readNextInclusive = false;
         _pastEnd = false;
         _prevOpWasSuccessfulRead = false;
         _lastReadUnsuccessful = false;
+        _keyOfReference = -1;
     }
 
     public void Dispose()
