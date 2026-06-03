@@ -1,0 +1,41 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC106A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SEPARATE INDEXES     PASS  LINK-TEST-01       .01
+ SEPARATE INDEXES     PASS  LINK-TEST-01       .02
+ INDEX DATA ITEM      PASS  LINK-TEST-02       .01
+ INDEX DATA ITEM      PASS  LINK-TEST-02       .02
+ SUBPROGRAM INDEX     PASS  LINK-TEST-03       .01
+ SUBPROGRAM INDEX     PASS  LINK-TEST-03       .02
+ INDEX DATA ITEM      PASS  LINK-TEST-04       .01
+ INDEX DATA ITEM      PASS  LINK-TEST-04       .02
+ INDEX DATA ITEM      PASS  LINK-TEST-04       .03
+ TABLE REFERENCES     PASS  LINK-TEST-05       .01
+ TABLE REFERENCES     PASS  LINK-TEST-05       .02
+ REDEFINED ITEM       PASS  LINK-TEST-06       .01
+ REDEFINED ITEM       PASS  LINK-TEST-06       .02
+ REDEFINED ITEM       PASS  LINK-TEST-06       .03
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC106A
+
+                                                    014 OF 014  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

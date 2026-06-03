@@ -1351,7 +1351,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         var indexSym = new DataSymbol(indexName, indexName, 77,
                             "S9(9)", Runtime.UsageKind.Comp, null, null, ctx.Start.Line);
                         indexSym.HasExplicitUsage = true;
-                        indexSym.Area = _currentArea;
+                        // An index-name (from INDEXED BY) is implementation storage owned by
+                        // THIS program, never a passable USING parameter — so it always needs
+                        // real backing storage in WORKING-STORAGE, regardless of where the
+                        // associated OCCURS table is declared. A LINKAGE/FILE-SECTION table's
+                        // index-name must NOT inherit that section's area: LINKAGE has no backing
+                        // storage (its area is bound only for actual USING params, so a
+                        // non-parameter index-name resolves to a null area → NRE in the encode
+                        // path), and FILE-SECTION storage is the shared record buffer. (ISO §8.5.1.2:
+                        // an index-name names a compiler-allocated index, distinct from any data item.)
+                        indexSym.Area = StorageAreaKind.WorkingStorage;
                         // Resolve PIC for the INDEX item so it gets proper storage layout
                         var idxDiagBag = new DiagnosticBag();
                         var idxPicEnv = new Runtime.PicEnvironment(_currencySign, _currencyOutputChar, _decimalPointIsComma);
