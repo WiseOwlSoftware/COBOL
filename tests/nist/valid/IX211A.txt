@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX211A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE-FILE-FD1      PASS  WRITE-TEST-GF-01              RECORDS IN FILE
+*** INFORMATION ***         000000000000000200       000000000000000200
+
+ READ FILE IX-FD1     PASS  READ-TEST-F1-01               RECORDS IN FILE
+*** INFORMATION ***         000000000000000200       000000000000000200
+
+ START & READ NEXT    PASS  READ-TEST-F1-02
+ REWRITE              PASS  RWRT-TEST-GF-01
+ READ NEXT AT END     PASS  READ-TEST-F1-03
+ READ NEXT 4 RECS     PASS  READ-TEST-F1-04
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .05
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .06
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .07
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .08
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .09
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .10
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .11
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .12
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .13
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .14
+ READ  UPDATED RECS   PASS  READ-TEST-F1-      .15
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX211A
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

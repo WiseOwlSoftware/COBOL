@@ -231,7 +231,7 @@ readStatement
     ;
 
 readDirection
-    : (NEXT | PREVIOUS) RECORD
+    : (NEXT | PREVIOUS) RECORD?
     ;
 
 readInto
@@ -239,7 +239,7 @@ readInto
     ;
 
 readKey
-    : KEY IS dataReference
+    : KEY IS? dataReference
     ;
 
 // AT is an optional word in the at-end phrase (ISO §6 optional-word rule; the CCVS suite and
@@ -258,6 +258,7 @@ readAtEnd
 readInvalidKey
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
+    | NOT INVALID KEY? statementBlock
     ;
 
 // ==========================================
@@ -293,6 +294,7 @@ writeAtEndOfPage
 writeInvalidKey
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
+    | NOT INVALID KEY? statementBlock
     ;
 
 recordName
@@ -318,6 +320,7 @@ rewriteFrom
 rewriteInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
+    | NOT INVALID KEY? statementBlock
     ;
 
 // ==========================================
@@ -334,6 +337,7 @@ deleteStatement
 deleteInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
+    | NOT INVALID KEY? statementBlock
     ;
 
 // ==========================================
@@ -380,6 +384,7 @@ startWithLength
 startInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
+    | NOT INVALID KEY? statementBlock
     ;
 
 // ==========================================
