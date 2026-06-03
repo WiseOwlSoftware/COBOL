@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST127A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+                                                          THE COLLATING SEQUENCE
+                                                          RENDERS TESTS 1 THRU 8
+                                                          UNNECESSARY.
+ SORT - 8 ASC. KEYS   PASS  SORT-TEST-9
+ SORT - 8 ASC. KEYS   PASS  SORT-TEST-10
+ SORT - 8 ASC. KEYS   PASS  SORT-TEST-11
+ SORT - 8 ASC. KEYS   PASS  SORT-TEST-12
+ DUPLICATE KEYS       PASS  SORT-TEST-18-1
+ DUPLICATE KEYS       PASS  SORT-TEST-18-2
+ DUPLICATE KEYS       PASS  SORT-TEST-19-1
+ DUPLICATE KEYS       PASS  SORT-TEST-19-2
+ DUPLICATE KEYS       PASS  SORT-TEST-20-1
+ DUPLICATE KEYS       PASS  SORT-TEST-20-2
+ DUPLICATE KEYS       PASS  SORT-TEST-21-1
+ DUPLICATE KEYS       PASS  SORT-TEST-21-2
+ DUPLICATE KEYS       PASS  SORT-TEST-22-1
+ DUPLICATE KEYS       PASS  SORT-TEST-22-2
+ DUPLICATE KEYS       PASS  SORT-TEST-23-1
+ DUPLICATE KEYS       PASS  SORT-TEST-23-2
+ DUPLICATE KEYS       PASS  SORT-TEST-24-1
+ DUPLICATE KEYS       PASS  SORT-TEST-24-2
+ DUPLICATE KEYS       PASS  SORT-TEST-25-1
+ DUPLICATE KEYS       PASS  SORT-TEST-25-2
+ DUPLICATE KEYS       PASS  SORT-TEST-26-1
+ DUPLICATE KEYS       PASS  SORT-TEST-26-2
+ DUPLICATE KEYS       PASS  SORT-TEST-13
+ DUPLICATE KEYS       PASS  SORT-TEST-14
+ DUPLICATE KEYS       PASS  SORT-TEST-15
+ DUPLICATE KEYS       PASS  SORT-TEST-16
+ DUPLICATE KEYS       PASS  SORT-TEST-17
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  ST127A
+
+                                                    027 OF 027  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
