@@ -335,6 +335,19 @@ public sealed class Binder
                 block.Instructions.Add(new IrLoadConst(ixSeqVal, ixSequential));
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetIndexedAccess",
                     new[] { ixNameVal, ixSeqVal }));
+
+                // Variable-length records (RECORD IS VARYING or multiple 01 sizes): each record carries its
+                // own length, stored length-framed so a SHORT vs LONG record round-trips with the right
+                // length (ISO §13.18.43). Must agree with FileIoLowerer.IsVaryingRecord (INDEXED branch).
+                if (fileSym.IsRecordVarying || _semantic.HasMultipleRecordSizes(fileSym))
+                {
+                    var ixvNameVal = _valueFactory.Next(IrPrimitiveType.String);
+                    var ixvVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    block.Instructions.Add(new IrLoadConst(ixvNameVal, fileSym.Name));
+                    block.Instructions.Add(new IrLoadConst(ixvVal, true));
+                    block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetIndexedVarying",
+                        new[] { ixvNameVal, ixvVal }));
+                }
             }
 
             // Register alternate keys for INDEXED files

@@ -1,0 +1,54 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX105A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE SHORT & LONG   PASS  WRITE-TEST-GF-01              FILE IX-FR1 CREATED (180 RECORDS)
+ READ TO VERIFY       PASS  READ-TEST-F2-01               180 RECORDS VERIFIED
+ READ  SHORT RECORDS        READ-TEST-GF-02               INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        SHORT RECORD CREATED     EXPECT SHORT RECORD
+
+ READ LONG   RECORDS  PASS  READ-TEST-F2-03
+ READ LONG   RECORDS                                      INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        VARIABLE LTH CREATED     EXPECT VARIABLE LTH
+
+ WRITE IX-FS2         PASS  WRITE-TEST-GF-02              FILE IX-FR2 CREATED (101 RECORDS)
+ READ IX-FS2 VERIFY   PASS  READ-TEST-F2-05               101 RECORDS VERIFIED
+ READ                       READ-TEST-F2-06               INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        SHORT RECORD CREATED     EXPECT SHORT RECORD
+
+ READ                 PASS  READ-TEST-F2-07
+ READ                                                     INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        VARIABLE LTH CREATED     EXPECT VARIABLE LTH
+
+ WRITE IX-FS3         PASS  WRITE-TEST-GF-03              FILE IX-FR3 CREATED (120 RECORDS)
+ READ IX-FS3 VERIFY   PASS  READ-TEST-F2-08
+ READ  SHORT RECORDS        READ-TEST-F2-09               INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        SHORT RECORD CREATED     EXPECT SHORT RECORD
+
+ READ LONG   RECORDS  PASS  READ-TEST-012
+ READ LONG   RECORDS        READ-TEST-012                 INFO ONLY-SEE PROGRAM
+*** INFORMATION ***        VARIABLE LTH CREATED     EXPECT VARIABLE LTH
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX105A
+
+                                                    009 OF 009  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

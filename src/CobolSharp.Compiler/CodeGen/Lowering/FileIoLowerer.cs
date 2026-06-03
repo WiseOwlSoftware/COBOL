@@ -355,16 +355,17 @@ internal sealed class FileIoLowerer
     /// <summary>
     /// True for a variable-length-record file that the variable-record machinery (no-trim WRITE,
     /// read-into-largest, length store) applies to: SEQUENTIAL (explicit RECORD VARYING or multiple 01
-    /// sizes) or RELATIVE (explicit RECORD VARYING — relative slots now carry a per-record length, see
-    /// RelativeFileHandler). INDEXED is excluded. The RELATIVE case must match the runtime flag set in
-    /// Binder (FileRuntime.SetRelativeVarying), so it keys on the explicit clause only. The SEQUENTIAL
-    /// case delegates to SemanticModel.IsVariableLengthSequential — the single source of truth shared
-    /// with Binder's handler registration (FileRuntime.SetSequentialVarying), so they cannot disagree.
+    /// sizes), RELATIVE (explicit RECORD VARYING — relative slots carry a per-record length), or INDEXED
+    /// (explicit RECORD VARYING or multiple 01 sizes — indexed records carry a per-key length). Each case
+    /// must match the runtime flag set in Binder (FileRuntime.SetSequentialVarying / SetRelativeVarying /
+    /// SetIndexedVarying), so they cannot disagree.
     /// </summary>
     private bool IsVaryingRecord(FileSymbol? file)
     {
         if (file is null) return false;
         if (IsRelative(file)) return file.IsRecordVarying;
+        if (string.Equals(file.Organization, "INDEXED", System.StringComparison.OrdinalIgnoreCase))
+            return file.IsRecordVarying || _ctx.Semantic.HasMultipleRecordSizes(file);
         return _ctx.Semantic.IsVariableLengthSequential(file);
     }
 

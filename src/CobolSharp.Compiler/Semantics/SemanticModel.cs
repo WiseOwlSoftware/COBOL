@@ -450,7 +450,13 @@ public sealed class SemanticModel
     public bool IsVariableLengthSequential(FileSymbol file)
     {
         if (file.Organization is not (null or "SEQUENTIAL" or "LINE SEQUENTIAL")) return false;
-        if (file.IsRecordVarying) return true;
+        return file.IsRecordVarying || HasMultipleRecordSizes(file);
+    }
+
+    /// <summary>True if the FD declares record descriptions of differing sizes (multiple 01 records under one
+    /// FD with different lengths) — an implicit variable-length record (ISO §13.18.43). Org-independent.</summary>
+    public bool HasMultipleRecordSizes(FileSymbol file)
+    {
         int firstLen = -1;
         foreach (var d in _dataItemsInOrder)
         {

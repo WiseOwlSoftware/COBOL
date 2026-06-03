@@ -99,6 +99,15 @@ public static class FileRuntime
             ix.SequentialAccess = sequential;
     }
 
+    /// <summary>Mark an INDEXED file as having variable-length records (RECORD IS VARYING or multiple 01
+    /// sizes) so each record is stored at its actual length and persisted length-framed.</summary>
+    public static void SetIndexedVarying(string cobolName, bool varying)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is IndexedFileHandler ix)
+            ix.IsRecordVarying = varying;
+    }
+
     /// <summary>Mark a RELATIVE file as having variable-length records (RECORD IS VARYING) so each slot
     /// stores and persists its own length. Must agree with the compiler's variable-write decision.</summary>
     public static void SetRelativeVarying(string cobolName, bool varying)

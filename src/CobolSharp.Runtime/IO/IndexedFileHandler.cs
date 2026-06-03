@@ -51,10 +51,16 @@ public class IndexedFileHandler : IFileHandler
     public string ExternalName { get; }
     public bool IsOpen => _records != null;
 
-    /// <summary>Indexed records are fixed-length; the record length is constant.</summary>
-    public int LastRecordLength => _recordLength;
+    /// <summary>True for a variable-length-record indexed file (RECORD IS VARYING or multiple 01 sizes):
+    /// each record is stored at its actual length and persisted length-framed.</summary>
+    public bool IsRecordVarying { get; set; }
 
-    /// <summary>Indexed records are fixed-length — variable write is an ordinary write.</summary>
+    /// <summary>Character length of the most recently read record (for RECORD VARYING DEPENDING ON / a
+    /// variable-record's actual length). Fixed-length files always read a full record.</summary>
+    public int LastRecordLength { get; private set; }
+
+    /// <summary>Variable-length WRITE: store the record at its actual length (the written 01's size).
+    /// For a fixed-length file this is an ordinary write.</summary>
     public string WriteVariable(byte[] recordData) => Write(recordData);
 
     /// <summary>When true (SELECT OPTIONAL), OPEN INPUT on a missing file returns "05" instead of "35".</summary>
@@ -102,10 +108,24 @@ public class IndexedFileHandler : IFileHandler
                 return FileStatus.Success; // I-O on a missing file: create empty
             }
 
-            // Load all records from file
+            // Load all records from file. A variable-length file is length-framed (4-byte LE length prefix
+            // + that many data bytes); a fixed file stores contiguous _recordLength records.
             try
             {
                 using var stream = new FileStream(_dataFilePath, FileMode.Open, FileAccess.Read);
+                if (IsRecordVarying)
+                {
+                    var lenBuf = new byte[4];
+                    while (ReadFull(stream, lenBuf, 4))
+                    {
+                        int len = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(lenBuf);
+                        var data = new byte[len];
+                        if (!ReadFull(stream, data, len)) break;
+                        _records[ExtractKey(data)] = data;
+                    }
+                    ResetEnumerator();
+                    return FileStatus.Success;
+                }
                 byte[] buffer = new byte[_recordLength];
                 while (stream.Read(buffer, 0, _recordLength) == _recordLength)
                 {
@@ -140,7 +160,25 @@ public class IndexedFileHandler : IFileHandler
                 using var stream = new FileStream(_dataFilePath, FileMode.Create, FileAccess.Write);
                 foreach (var record in _records!.Values)
                 {
-                    stream.Write(record, 0, _recordLength);
+                    if (IsRecordVarying)
+                    {
+                        // Length-framed: 4-byte LE length prefix + the record's actual bytes.
+                        var lenBuf = new byte[4];
+                        System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(lenBuf, record.Length);
+                        stream.Write(lenBuf, 0, 4);
+                        stream.Write(record, 0, record.Length);
+                    }
+                    else
+                    {
+                        // Fixed: write exactly _recordLength bytes (pad a short record with spaces).
+                        if (record.Length >= _recordLength)
+                            stream.Write(record, 0, _recordLength);
+                        else
+                        {
+                            stream.Write(record, 0, record.Length);
+                            for (int i = record.Length; i < _recordLength; i++) stream.WriteByte((byte)' ');
+                        }
+                    }
                 }
             }
             catch (IOException)
@@ -226,7 +264,7 @@ public class IndexedFileHandler : IFileHandler
         }
 
         var record = _records[target];
-        Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
+        CopyOut(record, recordBuffer);
         _currentKey = target;
         _currentRefKey = KeyForReference(record);
         _pastEnd = false;
@@ -248,7 +286,7 @@ public class IndexedFileHandler : IFileHandler
             // No current position — start from the last record
             var lastEntry = _records!.LastOrDefault();
             if (lastEntry.Key == null) return FileStatus.AtEnd;
-            Array.Copy(lastEntry.Value, recordBuffer, Math.Min(lastEntry.Value.Length, recordBuffer.Length));
+            CopyOut(lastEntry.Value, recordBuffer);
             _currentKey = lastEntry.Key;
             _pastEnd = false;
             return HasDuplicateAlternateKey(lastEntry.Value) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
@@ -261,7 +299,7 @@ public class IndexedFileHandler : IFileHandler
             _pastEnd = false;
             if (_records!.TryGetValue(_currentKey, out var currentRecord))
             {
-                Array.Copy(currentRecord, recordBuffer, Math.Min(currentRecord.Length, recordBuffer.Length));
+                CopyOut(currentRecord, recordBuffer);
                 return HasDuplicateAlternateKey(currentRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
             }
             return FileStatus.AtEnd;
@@ -281,7 +319,7 @@ public class IndexedFileHandler : IFileHandler
         if (prevKey == null || prevRecord == null)
             return FileStatus.AtEnd;
 
-        Array.Copy(prevRecord, recordBuffer, Math.Min(prevRecord.Length, recordBuffer.Length));
+        CopyOut(prevRecord, recordBuffer);
         _currentKey = prevKey;
         return HasDuplicateAlternateKey(prevRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
     }
@@ -304,7 +342,7 @@ public class IndexedFileHandler : IFileHandler
             if (!_records!.TryGetValue(key, out var record))
                 return FileStatus.RecordNotFound;
 
-            Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
+            CopyOut(record, recordBuffer);
             _currentKey = ExtractKey(record);
             _keyOfReference = -1; // a primary-key READ makes the prime key the key of reference
             _currentRefKey = _currentKey;
@@ -334,7 +372,7 @@ public class IndexedFileHandler : IFileHandler
         }
         if (found == null) return FileStatus.RecordNotFound;
 
-        Array.Copy(found, recordBuffer, Math.Min(found.Length, recordBuffer.Length));
+        CopyOut(found, recordBuffer);
         _currentKey = foundPrime;
         _keyOfReference = keyIndex; // an alternate-key READ makes that alternate the key of reference
         _currentRefKey = key;       // the matched alternate value
@@ -553,6 +591,23 @@ public class IndexedFileHandler : IFileHandler
         => _keyOfReference >= 0 && _keyOfReference < _alternateKeys.Count
             ? ExtractAlternateKey(record, _keyOfReference)
             : ExtractKey(record);
+
+    /// <summary>Read exactly <paramref name="count"/> bytes into <paramref name="buf"/>; false on a short
+    /// read (end of stream). Used by the length-framed variable-record load.</summary>
+    private static bool ReadFull(System.IO.Stream s, byte[] buf, int count)
+    {
+        int got = 0;
+        while (got < count) { int r = s.Read(buf, got, count - got); if (r == 0) return false; got += r; }
+        return true;
+    }
+
+    /// <summary>Copy a stored record into the caller's receiving area and record its actual length
+    /// (LastRecordLength). A shorter variable-length record leaves the remainder of the area unchanged.</summary>
+    private void CopyOut(byte[] record, byte[] recordBuffer)
+    {
+        Array.Copy(record, recordBuffer, Math.Min(record.Length, recordBuffer.Length));
+        LastRecordLength = record.Length;
+    }
 
     /// <summary>Number of records whose alternate-key <paramref name="altKeyIndex"/> value equals
     /// <paramref name="altValue"/>, optionally excluding the record with prime key <paramref name="excludePrime"/>.
