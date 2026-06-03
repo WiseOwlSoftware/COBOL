@@ -92,18 +92,25 @@ callers all need real features:
 - **IC114A** — file-I/O chain consumer (1 FAIL\* + binary report output).
 - Deferred GLOBAL follow-ups: subscripted/ref-modded inherited globals, level-88 under a global group.
 
-### Phase 5 — Whole unimplemented modules (LARGE; several OBSOLETE — needs a scope decision from the user).
-Each is an entire COBOL module with no current support (all COMPILE_FAIL). **Recommend asking the user which
-to implement vs formally exclude as out-of-scope**, then document the decision (a one-line exclusion class in
-the guard comment + memory, like the flagging modules):
-- **DB** (Debug, 15) — `USE FOR DEBUGGING`, `DEBUG-ITEM`, debugging lines (COBOL-85 optional module).
-- **RW** (Report Writer, 6) — `RD` report descriptions, `GENERATE`/`INITIATE`/`TERMINATE` (sizable optional module).
-- **SG** (Segmentation, 13) — `SECTION` segment-numbers / overlay (OBSOLETE, removed in COBOL-2002).
-- **CM** (Communication, 9) — `CD` entries, `SEND`/`RECEIVE` (OBSOLETE, removed in COBOL-2002).
-- **OBNC/OBIC** (5) + **EXEC85** (1) — obsolete-feature variants / EXEC driver.
-The defensible default for full *modern*-COBOL conformance: **exclude CM, SG, OBNC, OBIC, EXEC as out-of-scope
-obsolete/non-standard**, and treat DB + RW as optional stretch features. Confirm with the user before either
-sinking weeks into an obsolete module OR declaring it excluded.
+### Phase 5 — Whole unimplemented modules. ✅ SCOPE DECIDED (DEVLOG 301): exclude obsolete; defer DB/RW.
+The user's decision (2026-06-03) for the *modern*-COBOL "operational" target:
+- **EXCLUDED as out-of-scope obsolete/non-standard** (documented exclusion class, like the flagging-`M`
+  modules — do NOT baseline, do NOT implement): **CM** (Communication, 9 — OBSOLETE), **SG** (Segmentation,
+  13 — OBSOLETE), **OBNC/OBIC** (5 — obsolete variants), **EXEC85** (1 — non-standard driver).
+- **DEFERRED optional stretch** (in-scope only as future enhancements, NOT required for "operational"):
+  **DB** (Debug, 15 — `USE FOR DEBUGGING`/`DEBUG-ITEM`), **RW** (Report Writer, 6 — `RD`/`GENERATE`).
+**⇒ The suite is "OPERATIONAL" now:** 350 baselined + NO_OUTPUT producers + flagging-`M` modules + the
+obsolete-exclusion class account for every NIST program except the genuine in-scope remaining work below
+(Phases 2–4). Only revisit DB/RW if the user later wants the stretch coverage.
+
+### Remaining genuine in-scope work (the actual next-session targets)
+- **RL runtime bugs** (Phase 2/3): RL106A (2 FAIL\*), RL119A (1 FAIL\*), RL205A (9 FAIL\*), RL213A (20 FAIL\*),
+  RL111A (real FAIL\* "WRITE TO FILE OPENED INPUT" + a `D-CLOSE-FILES` infinite-recursion **stack overflow**),
+  RL208A (the known `RelativeFileHandler.Rewrite` pads-varying-to-max bug). Use the proven per-test method.
+- **IC inter-program features** (Phase 4): IC233A/234A (`USE GLOBAL AFTER ERROR` + **GLOBAL FILE inheritance**
+  into a contained program — extend the DEVLOG-236 GLOBAL-data mechanism to FILE SECTION; the blocker is the
+  COMPILE_FAIL "OPEN target 'TEST-FILE' is not a declared file"), IC227A/235A (EXTERNAL file/data), IC114A
+  (file-chain + binary report).
 
 ## Process rules (non-negotiable — from PROMPT.md + memory feedback_*)
 - **Run `bash scripts/guard.sh` after meaningful changes; it must stay ALL GREEN, baselines 0 FAIL\*.**

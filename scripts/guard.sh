@@ -26,7 +26,13 @@ CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 rm -f tests/nist/output/*.txt
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 12 SM + 4 IC + 59 SQ + 19 RL + 40 IX + 29 ST = 299 tests).
+# (94 NC + 42 IF + 15 SM + 18 IC + 83 SQ + 26 RL + 40 IX + 29 ST + 3 OBSQ = 350 tests).
+#
+# Out-of-scope exclusion class (DEVLOG 301 scope decision — NOT baselined, NOT implemented; like the
+# flagging-"M" modules these are documented-excluded for modern-COBOL "operational" conformance):
+#   CM (Communication, OBSOLETE) · SG (Segmentation, OBSOLETE) · OBNC/OBIC (obsolete variants) · EXEC85.
+# Deferred OPTIONAL stretch (in-scope only as future enhancements, NOT required for operational):
+#   DB (Debug) · RW (Report Writer).
 # ST chains: ST101A (builds the SORT output file TF002) -> ST102A (updates it; NO_OUTPUT producer, runs but
 # is not baselined) -> ST103A (verifies). ST104A (builds TF001) -> ST105A (verifies). ST112M (builds a
 # 3-reel file; emits only a 000-of-000 builder comment, so NOT baselined) -> ST113M (sorts; NO_OUTPUT) ->
