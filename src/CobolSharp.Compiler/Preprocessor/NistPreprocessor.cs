@@ -50,6 +50,17 @@ public static class NistPreprocessor
         // XXXXX058: control card file assignment
         source = source.Replace("XXXXX058", "\"CONTROL\"");
 
+        // XXXXX065: "4-digit integer for the NUMBER OF RECORDS" the ST115A/ST117A SORT chain builds into its
+        // input file (used as a PROCEDURE-division loop bound `… GREATER THAN XXXXX065` and divided by 51 to
+        // get NUMBER-OF-SETS — ST117A `DIVIDE XXXXX065 BY 51`). Left unsubstituted it is a bogus loop bound
+        // and the file-build loop never terminates. Must be a multiple of 51 (51 records per set); 204 = 4
+        // sets keeps the test meaningful and fast. Match only the STANDALONE token (alphanumeric boundaries
+        // both sides) — IX106A embeds the 5-char string "XXXXX065" inside a longer test-data literal
+        // ("…XXXXXXXXXX065ALTKEY1…", i.e. preceded by 'X' and followed by 'A'); a plain .Replace would
+        // corrupt that baselined literal, so the lookbehind/lookahead excludes it.
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX065(?![A-Za-z0-9])", "204");
+
         // Data-file ASSIGN targets shared across run units by X-card number, mapped (per SELECT…period
         // entry, after COPY expansion) to one "TF###" literal so a producer's output is read by the matching
         // consumer in a shared directory:
