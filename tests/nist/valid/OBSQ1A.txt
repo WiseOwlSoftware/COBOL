@@ -1,0 +1,38 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS74 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  OBSQ1A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ CREATE FILE SQ-FS1         SEQ-TEST-001
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000000750
+
+ VERIFY FILE SQ-FS1   PASS  SEQ-TEST-002
+        *** INFORMATION  ***                      FILE VERIFIED RECS =      000000000000000750
+
+ LEV 1 READ STATEMENT PASS  READ-TEST-01                  READ...RECORD AT END ...
+ LEV 1 READ STATEMENT PASS  READ-TEST-02                  READ...AT END...
+ LEV 1 READ STATEMENT PASS  READ-TEST-03                  READ...RECORD END...
+ LEV 1 READ STATEMENT PASS  READ-TEST-04                  READ...END...
+ READ FILE SQ-FS1     PASS  SEQ-TEST-003
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  OBSQ1A    NTIS DISTRIBUTION COBOL 74
+
+                                                    006 OF 006  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974
