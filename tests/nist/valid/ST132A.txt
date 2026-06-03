@@ -1,0 +1,33 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST132A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SORT, OUTPUT PROC    PASS  SORT-TEST-16
+ SORT, OUTPUT PROC    PASS  SORT-TEST-17
+ SORT, OUTPUT PROC    PASS  SORT-TEST-18                  MINOR *CLOSE REEL* DELETED
+ SORT, OUTPUT PROC    PASS  SORT-TEST-19
+ SORT, OUTPUT PROC    PASS  SORT-TEST-20
+ 2 SORTS ON ONE FILE  PASS  SORT-TEST-21
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  ST132A
+
+                                                    006 OF 006  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

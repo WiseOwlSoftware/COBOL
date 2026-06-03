@@ -1,0 +1,48 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST133A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ FIRST SORT DONE
+ TAPE COPY DONE
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-1
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-2
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-3
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-4
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-5
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-6
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-7
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-8
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-9
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-10
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-11
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-12
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-13
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-14
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-15
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-16
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-17
+ NUMERIC KEY CHECKS   PASS  SORT-TEST-18
+ SECOND SORT DONE
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  ST133A
+
+                                                    018 OF 018  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
