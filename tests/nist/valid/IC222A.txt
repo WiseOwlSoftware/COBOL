@@ -1,0 +1,43 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC222A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ AVAILABLE ON         PASS  CALL-TEST-1        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-1        .02
+ NO PROGRAM ON        PASS  CALL-TEST-2        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-2        .02
+ AVAILABLE  ON NOT ON PASS  CALL-TEST-3        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-3        .02
+ CALL ON EXCEPTION    PASS  CALL-TEST-4        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-4        .02
+ AVAILABLE  -- NOT ON PASS  CALL-TEST-5        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-5        .02
+ AVAILABLE  -- ---    PASS  CALL-TEST-6        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-6        .02
+ AVAILABLE  OV ---    PASS  CALL-TEST-7        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-7        .02
+ NO PROGRAM OV ---    PASS  CALL-TEST-8        .01
+ END-CALL OBSERVANCE  PASS  CALL-TEST-8        .02
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC222A
+
+                                                    016 OF 016  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

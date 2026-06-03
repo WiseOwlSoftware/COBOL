@@ -1,0 +1,31 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC226A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ EXTERNAL CLAUSE      PASS  EXT-TEST-01-01-1   .01
+ EXTERNAL CLAUSE      PASS  CALL-TEST-01-01-2  .02
+ EXTERNAL CLAUSE      PASS  CALL-TEST-01-01-3  .03
+ EXTERNAL CLAUSE      PASS  CALL-TEST-01-01-4  .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC226A
+
+                                                    004 OF 004  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

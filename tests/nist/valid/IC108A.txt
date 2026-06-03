@@ -1,0 +1,36 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC108A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ SUBPROGRAM CALLS     PASS  CALL-TEST-07       .01
+ SUBPROGRAM CALLS     PASS  CALL-TEST-07       .02
+ SUBPROGRAM CALLS     PASS  CALL-TEST-07       .03
+ SUBPRGMS CALLED ONCE PASS  CALL-TEST-08       .01
+ SUBPRGMS CALLED ONCE PASS  CALL-TEST-08       .02
+ SUBPRGMS CALLED ONCE PASS  CALL-TEST-08       .03
+ USING OPERANDS       PASS  LINK-TEST-07       .01
+ USING OPERANDS       PASS  LINK-TEST-07       .02
+ USING OPERANDS       PASS  LINK-TEST-07       .03
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC108A
+
+                                                    009 OF 009  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
