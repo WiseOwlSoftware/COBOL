@@ -50,4 +50,22 @@ internal static class DialectStrictnessChecks
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3612,
                 MakeLocation(phrase), MakeSpan(phrase));
     }
+
+    /// <summary>
+    /// Leniency L5 — the SORT/MERGE collating phrase with the required <c>COLLATING</c> keyword omitted
+    /// (e.g. <c>MERGE … SEQUENCE alphabet-name</c>). <c>COLLATING</c> is unbracketed in the ISO SORT/MERGE
+    /// formats so it is required; <c>SEQUENCE</c> is a reserved word so dropping <c>COLLATING</c> is
+    /// unambiguous but non-conformant.
+    /// </summary>
+    internal static void CheckCollatingNoiseWord(BindingContext ctx, CobolParserCore.SortCollatingPhraseContext? phrase)
+    {
+        if (phrase == null || phrase.COLLATING() != null) return; // absent phrase or conformant — nothing to flag
+
+        if (ctx.Options.Dialect >= DialectMode.StrictCobol85)
+            ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3617,
+                MakeLocation(phrase), MakeSpan(phrase), ctx.Options.DialectName);
+        else if (ctx.Options.WarnNonStandard)
+            ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3618,
+                MakeLocation(phrase), MakeSpan(phrase));
+    }
 }

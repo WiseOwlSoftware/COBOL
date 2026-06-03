@@ -10894,9 +10894,14 @@ they carry no producer/consumer chain dependency: **ST104A** (1/1), **ST108A** (
 347 integration / **276 NIST** (… + 40 IX + **6 ST**), 0 regressions.
 
 Survey leads for the rest (each its own investigation):
-- **ST139A COMPILE_FAIL** — MERGE `SEQUENCE alphabet-name` with the COLLATING keyword omitted; the grammar's
-  `sortCollatingPhrase` requires `COLLATING SEQUENCE`. Per the ISO format COLLATING is a keyword, so this is a
-  CCVS leniency to be grammar-relaxed + dialect-gated (like the L1/L2/L3 KEY-omitted leniencies).
+- **ST139A COMPILE_FAIL — FIXED (leniency L5, CBL3617/3618).** MERGE `SEQUENCE alphabet-name` with the
+  COLLATING keyword omitted; `sortCollatingPhrase` required `COLLATING SEQUENCE`. The ISO format shows
+  `[ COLLATING SEQUENCE … ]` in a code block (which doesn't preserve required-keyword underlining, so the
+  requirement is ambiguous) — treated as a CCVS leniency: grammar relaxed to `COLLATING? SEQUENCE IS? …`,
+  dialect-gated via `DialectStrictnessChecks.CheckCollatingNoiseWord` (strict modes error CBL3617; Default/
+  --nist accept, warn CBL3618). ST139A COMPILE_FAIL → compiles (now 7 FAIL* — still needs the custom-alphabet
+  MERGE to honor the program alphabet + other merge features). Grammar change shared by SORT/MERGE; full guard
+  ALL GREEN, 0 regressions.
 - **Mixed ASC/DESC procedural SORT returns COMPUTED=0** (ST101A; likely ST131A) — a SORT with mixed
   ascending/descending keys and a multi-paragraph OUTPUT PROCEDURE (`OUTP1 THRU OUTP3` spanning embedded CCVS
   boilerplate) returns zero-key records. SortRuntime *does* honor descending keys (OrderByDescending), so the

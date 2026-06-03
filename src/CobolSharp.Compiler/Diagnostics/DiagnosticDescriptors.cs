@@ -580,4 +580,12 @@ public static partial class DiagnosticDescriptors
         "'KEY' is required in the RECORD KEY clause; the no-KEY form is a non-standard CCVS leniency not allowed in {0} mode");
     public static readonly DiagnosticDescriptor CBL3616 = new("CBL3616", DiagnosticSeverity.Warning,
         "'KEY' omitted from the RECORD KEY clause; non-standard (accepted as a CCVS leniency)");
+
+    // Leniency L5: 'COLLATING' omitted from the SORT/MERGE COLLATING SEQUENCE phrase (ISO §14.9.45/§14.9.24
+    // — COLLATING is a required keyword; CCVS ST139A writes `SEQUENCE alphabet-name`). (L4 is USE…ERROR
+    // without STANDARD, still deferred.)
+    public static readonly DiagnosticDescriptor CBL3617 = new("CBL3617", DiagnosticSeverity.Error,
+        "'COLLATING' is required in the SORT/MERGE COLLATING SEQUENCE phrase; the no-COLLATING form is a non-standard CCVS leniency not allowed in {0} mode");
+    public static readonly DiagnosticDescriptor CBL3618 = new("CBL3618", DiagnosticSeverity.Warning,
+        "'COLLATING' omitted from the SORT/MERGE SEQUENCE phrase; non-standard (accepted as a CCVS leniency)");
 }

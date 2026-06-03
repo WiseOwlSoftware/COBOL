@@ -418,7 +418,10 @@ sortDuplicatesPhrase
     ;
 
 sortCollatingPhrase
-    : COLLATING SEQUENCE IS? cobolWord (cobolWord)?
+    // COLLATING is required by the ISO SORT/MERGE format; the CCVS suite (ST139A) writes the phrase as
+    // `SEQUENCE alphabet-name` with COLLATING omitted, so the keyword is OPTIONAL in the permissive
+    // superset and the omission is flagged under strict modes (leniency L5, docs/dialect-strictness.md).
+    : COLLATING? SEQUENCE IS? cobolWord (cobolWord)?
     ;
 
 sortUsingPhrase

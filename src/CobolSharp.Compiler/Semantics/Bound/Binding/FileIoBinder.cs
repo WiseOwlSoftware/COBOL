@@ -507,6 +507,7 @@ internal sealed class FileIoBinder
             }
         }
 
+        DialectStrictnessChecks.CheckCollatingNoiseWord(_ctx, ctx.sortCollatingPhrase());
         return new BoundSortStatement(fileSym, keys, duplicates,
             usingFiles, givingFiles,
             inputProc, inputProcThru,
@@ -564,6 +565,7 @@ internal sealed class FileIoBinder
         }
 
         bool duplicates = ctx.sortDuplicatesPhrase() != null;
+        DialectStrictnessChecks.CheckCollatingNoiseWord(_ctx, ctx.sortCollatingPhrase());
         return new BoundTableSortStatement(tableSym, keys, duplicates,
             ExtractCollatingName(ctx.sortCollatingPhrase()));
     }
@@ -605,6 +607,7 @@ internal sealed class FileIoBinder
             }
         }
 
+        DialectStrictnessChecks.CheckCollatingNoiseWord(_ctx, ctx.sortCollatingPhrase());
         return new BoundMergeStatement(fileSym, keys, usingFiles, givingFiles,
             outputProc, outputProcThru,
             ExtractCollatingName(ctx.sortCollatingPhrase()));
