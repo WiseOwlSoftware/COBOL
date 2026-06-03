@@ -1,0 +1,32 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ135A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+    FEATURE               PASS  PARAGRAPH-NAME                                                 REMARKS
+    TESTED                FAIL
+
+ ***********************************************************************************************************************
+ CLOSE OF CLOSED FILE     PASS  CLOSE-TEST-02 .01
+
+ABNORMAL TERMINATION AT THIS POINT IS ACCEPTABLE
+
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ135A
+
+                                                    001 OF 001  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

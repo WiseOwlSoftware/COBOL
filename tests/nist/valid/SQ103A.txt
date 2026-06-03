@@ -1,0 +1,57 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ103A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                    TESTED                  FAIL
+
+ ***********************************************************************************************************************
+ SEQ-TEST-GF-01.01 OPEN OUTPUT, TAPE FILE   PASS
+ SEQ-TEST-GF-01.02 OPEN OUTPUT, TAPE FILE   PASS
+ SEQ-TEST-GF-02.01 WRITE 500 RECORDS        PASS
+ SEQ-TEST-GF-02.02 WRITE 500 RECORDS        PASS
+ SEQ-TEST-GF-03.01 CLOSE FILE FROM OUTPUT   PASS
+ SEQ-TEST-GF-03.02 CLOSE FILE FROM OUTPUT   PASS
+ SEQ-TEST-GF-04.01 OPEN NEWLY-WRITTEN FILE  PASS
+ SEQ-TEST-GF-04.02 OPEN NEWLY-WRITTEN FILE  PASS
+ SEQ-TEST-GF-05.01 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-05.02 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-05.03 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-05.04 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-05.05 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-05.06 READ 500 RECORD FILE     PASS
+ SEQ-TEST-GF-06.01 CLOSE FILE FROM INPUT    PASS
+ SEQ-TEST-GF-06.02 CLOSE FILE FROM INPUT    PASS
+ SEQ-TEST-GF-07.01 OPEN FILE FOR INPUT      PASS
+ SEQ-TEST-GF-07.02 OPEN FILE FOR INPUT      PASS
+ SEQ-TEST-GF-08.01 READ ... RECORD          PASS
+ SEQ-TEST-GF-08.02 READ ... RECORD          PASS
+ SEQ-TEST-GF-08.03 READ ... RECORD          PASS
+ SEQ-TEST-GF-08.04 READ ... RECORD          PASS
+ SEQ-TEST-GF-09.01 READ ...                 PASS
+ SEQ-TEST-GF-09.02 READ ...                 PASS
+ SEQ-TEST-GF-09.03 READ ...                 PASS
+ SEQ-TEST-GF-09.04 READ ...                 PASS
+ SEQ-TEST-GF-10.01 READ ... RAISING AT END  PASS
+ SEQ-TEST-GF-10.02 READ ... RAISING AT END  PASS
+ SEQ-TEST-GF-11.01 CLOSE FILE FROM INPUT    PASS
+ SEQ-TEST-GF-11.02 CLOSE FILE FROM INPUT    PASS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ103A
+
+                                                    030 OF 030  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

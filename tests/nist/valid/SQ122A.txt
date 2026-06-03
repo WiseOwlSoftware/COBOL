@@ -1,0 +1,38 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ122A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                   TESTED                   FAIL
+
+ ***********************************************************************************************************************
+ SEQ-TEST-OP-01.01 OPEN, CREATE FILE        PASS
+ SEQ-TEST-WR-02.01 WRITE ONE RECORD         PASS
+ SEQ-TEST-CL-03.01 CLOSE AFTER CREATE       PASS
+ SEQ-TEST-OP-04.01 OPEN, TO READ FILE       PASS
+ SEQ-TEST-RD-05.01 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-06.01 READ, GIVING AT END      PASS
+ SEQ-TEST-RD-07    READ AFTER AT END        PASS
+
+ABNORMAL TERMINATION AT THIS POINT IS ACCEPTABLE
+
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ122A
+
+                                                    007 OF 007  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

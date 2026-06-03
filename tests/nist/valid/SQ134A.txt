@@ -1,0 +1,46 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ134A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                   TESTED                   FAIL
+
+ ***********************************************************************************************************************
+ SEQ-TEST-OP-01.01 OPEN, CREATE FILE        PASS
+ SEQ-TEST-OP-01.02 OPEN, CREATE FILE        PASS
+ SEQ-TEST-WR-02.01 WRITE A RECORD           PASS
+ SEQ-TEST-WR-02.02 WRITE A RECORD           PASS
+ SEQ-TEST-CL-03.01 CLOSE FILE               PASS
+ SEQ-TEST-CL-03.02 CLOSE FILE               PASS
+ SEQ-TEST-OP-04.01 OPEN FILE FOR I-O        PASS
+ SEQ-TEST-OP-04.02 OPEN FILE FOR I-O        PASS
+ SEQ-TEST-RD-05.01 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-05.02 READ FIRST RECORD        PASS
+ SEQ-TEST-RD-05.03 READ FIRST RECORD        PASS
+ DCL-REWRITE-01.01 REWRITE SHORTER RECORD   PASS
+ DCL-REWRITE-01.02 REWRITE SHORTER RECORD   PASS
+ DCL-REWRITE-01.03 REWRITE SHORTER RECORD   PASS
+
+ABNORMAL TERMINATION AT THIS POINT IS ACCEPTABLE
+
+
+ SEQ-TEST-RW-06.01 REWRITE SMALLER RECORD   PASS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ134A
+
+                                                    015 OF 015  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

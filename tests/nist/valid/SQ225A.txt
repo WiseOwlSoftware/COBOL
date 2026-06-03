@@ -1,0 +1,34 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF SQ225A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ PARAGRAPH-NAME    FEATURE                  PASS          REMARKS
+                   TESTED                   FAIL
+
+ ***********************************************************************************************************************
+ DECL-OPEN-TEST.01 EXEC USE ON OPEN FAILURE PASS
+
+ABNORMAL TERMINATION AT THIS POINT IS ACCEPTABLE
+
+
+ OPEN-TEST-01  .01 OPEN ABSENT FILE EXTEND  PASS
+ OPEN-TEST-01  .02 OPEN ABSENT FILE EXTEND  PASS
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ225A
+
+                                                    003 OF 003  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986
