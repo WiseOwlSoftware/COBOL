@@ -114,6 +114,21 @@ internal sealed class CilFileIoEmitter
     }
 
     /// <summary>
+    /// Before a RANDOM/DYNAMIC INDEXED DELETE: pass the prime RECORD KEY bytes (from the record-key data
+    /// item) to FileRuntime.SetIndexedKey(string, byte[], int, int) so the handler deletes the identified
+    /// record. The key is alphanumeric (the record/alternate key bytes), so it is passed raw — unlike a
+    /// RELATIVE key, which is PIC-decoded to an integer.
+    /// </summary>
+    internal void EmitSetIndexedKey(ILProcessor il, IrSetIndexedKey sik)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, sik.CobolFileName));
+        _ctx.Location.EmitLocationArgs(il, sik.KeyVariable); // byte[], offset, length
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("SetIndexedKey",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!)));
+    }
+
+    /// <summary>
     /// After a sequential relative WRITE or a relative READ: store the acted-on slot
     /// (FileRuntime.GetRelativeSlot) into the RELATIVE KEY data item via MoveIntToField.
     /// </summary>

@@ -77,8 +77,15 @@ public sealed class FileSymbol : Symbol
     /// <summary>SEQUENTIAL, RANDOM, or DYNAMIC.</summary>
     public string? AccessMode { get; set; }
 
-    /// <summary>RECORD KEY identifier name (for INDEXED).</summary>
+    /// <summary>RECORD KEY base data-name (for INDEXED) — the leftmost <c>cobolWord</c> of the key's
+    /// data reference, WITHOUT any OF/IN qualifiers (those are in <see cref="RecordKeyQualifiers"/>).</summary>
     public string? RecordKey { get; set; }
+
+    /// <summary>OF/IN qualifiers of the RECORD KEY data reference, innermost-first as written (e.g. for
+    /// <c>IX-FD3-KEY IN IX-FD3-RECKEY-AREA</c> this is [IX-FD3-RECKEY-AREA]). Empty when the key is an
+    /// unqualified, unique data-name. Needed when several keys share a base name (ISO §12.4.5.12 allows
+    /// qualified key references), so each key resolves to its own record position.</summary>
+    public List<string> RecordKeyQualifiers { get; } = [];
 
     /// <summary>ALTERNATE RECORD KEY entries (for INDEXED files).</summary>
     public List<AlternateKeyInfo> AlternateKeys { get; } = [];
@@ -164,9 +171,10 @@ public sealed class FileSymbol : Symbol
 }
 
 /// <summary>
-/// ALTERNATE RECORD KEY descriptor: data-name and whether duplicates are allowed.
+/// ALTERNATE RECORD KEY descriptor: base data-name, its OF/IN qualifiers (innermost-first, empty when
+/// unqualified — see <see cref="FileSymbol.RecordKeyQualifiers"/>), and whether duplicates are allowed.
 /// </summary>
-public sealed record AlternateKeyInfo(string DataName, bool AllowDuplicates);
+public sealed record AlternateKeyInfo(string DataName, IReadOnlyList<string> Qualifiers, bool AllowDuplicates);
 
 /// <summary>
 /// A level-88 condition-name. Bound to a parent data item and carries one or more

@@ -210,7 +210,16 @@ internal sealed class FileIoLowerer
 
                     if (isKeyedRead)
                     {
-                        var keySym = _ctx.Semantic.ResolveData(keyName!);
+                        // The key of reference is the explicit KEY operand, or (no KEY phrase) the prime
+                        // record key — resolved qualifier-aware so an INDEXED file whose prime key shares a
+                        // base name with its alternate keys still positions on the right record bytes.
+                        DataSymbol? keySym;
+                        if (read.KeyDataName != null)
+                            keySym = _ctx.Semantic.ResolveData(read.KeyDataName);
+                        else if (!IsRelative(read.File))
+                            keySym = _ctx.Semantic.ResolveKeyData(read.File, -1);
+                        else
+                            keySym = _ctx.Semantic.ResolveData(keyName!);
                         var keyLoc = keySym != null ? _ctx.Location.ResolveLocation(keySym) : null;
                         if (keyLoc != null)
                         {
@@ -219,7 +228,7 @@ internal sealed class FileIoLowerer
                             // reads keep using the key bytes (the alphanumeric record/alternate key).
                             if (IsRelative(read.File))
                                 block.Instructions.Add(new IrSetRelativeKey(cobolName, keyLoc));
-                            int keyIndex = ResolveStartKeyIndex(read.File, keyName!);
+                            int keyIndex = _ctx.Semantic.ResolveKeyOfReference(read.File, keySym!) ?? -1;
                             block.Instructions.Add(new IrReadByKey(cobolName, recordLoc, keyLoc, keyIndex));
                         }
                         else
@@ -349,6 +358,20 @@ internal sealed class FileIoLowerer
     {
         if (f?.RelativeKey == null) return null;
         var sym = _ctx.Semantic.ResolveData(f.RelativeKey);
+        return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
+    }
+
+    /// <summary>INDEXED file in random or dynamic access — DELETE positions by the prime RECORD KEY data
+    /// item; sequential access deletes the last-read record (ISO §14.9.10 GR).</summary>
+    private static bool IsIndexedRandom(FileSymbol? f)
+        => string.Equals(f?.Organization, "INDEXED", System.StringComparison.OrdinalIgnoreCase)
+           && f!.AccessMode is "RANDOM" or "DYNAMIC";
+
+    /// <summary>Storage location of a file's prime RECORD KEY data item (qualifier-aware), or null.</summary>
+    private IrLocation? ResolveIndexedKeyLocation(FileSymbol? f)
+    {
+        if (f == null) return null;
+        var sym = _ctx.Semantic.ResolveKeyData(f, -1);
         return sym != null ? _ctx.Location.ResolveLocation(sym) : null;
     }
 
@@ -534,6 +557,11 @@ internal sealed class FileIoLowerer
         // RELATIVE random/dynamic DELETE removes the record at the RELATIVE KEY (ISO §14.9.12 GR 4).
         if (IsRelativeRandom(del.File) && ResolveRelativeKeyLocation(del.File) is { } delKey)
             block.Instructions.Add(new IrSetRelativeKey(cobolName, delKey));
+        // INDEXED random/dynamic DELETE removes the record whose prime RECORD KEY equals the value in the
+        // record-key data item (ISO §14.9.10 GR) — convey that key (a DELETE writes no record, so it is not
+        // otherwise available to the handler). SEQUENTIAL access deletes the last-read record (no key).
+        else if (IsIndexedRandom(del.File) && ResolveIndexedKeyLocation(del.File) is { } ixDelKey)
+            block.Instructions.Add(new IrSetIndexedKey(cobolName, ixDelKey));
         block.Instructions.Add(new IrDeleteRecord(cobolName));
         EmitFileStatus(del.File, block);
 
@@ -585,8 +613,8 @@ internal sealed class FileIoLowerer
             };
         }
 
-        // No KEY phrase → the prime record key.
-        operandSym ??= start.File.RecordKey != null ? _ctx.Semantic.ResolveData(start.File.RecordKey) : null;
+        // No KEY phrase → the prime record key (qualifier-aware, so a qualified prime key resolves).
+        operandSym ??= _ctx.Semantic.ResolveKeyData(start.File, -1);
         if (operandSym != null)
         {
             int keyIndex = _ctx.Semantic.ResolveKeyOfReference(start.File, operandSym) ?? -1;
@@ -606,18 +634,6 @@ internal sealed class FileIoLowerer
         }
 
         return block;
-    }
-
-    /// <summary>The key-of-reference index for a START / READ KEY operand: -1 for the prime record key, or
-    /// the 0-based alternate-key index (ISO §14.9.41). Defaults to -1 (prime) when the name matches neither.</summary>
-    private static int ResolveStartKeyIndex(FileSymbol file, string keyName)
-    {
-        if (file.RecordKey != null && string.Equals(keyName, file.RecordKey, System.StringComparison.OrdinalIgnoreCase))
-            return -1;
-        for (int i = 0; i < file.AlternateKeys.Count; i++)
-            if (string.Equals(keyName, file.AlternateKeys[i].DataName, System.StringComparison.OrdinalIgnoreCase))
-                return i;
-        return -1;
     }
 
     // ── RETURN (sort/merge) ──

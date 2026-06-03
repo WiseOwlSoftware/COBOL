@@ -140,6 +140,23 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// Set the pending prime RECORD KEY for the next RANDOM/DYNAMIC INDEXED DELETE: the alphanumeric key
+    /// bytes from the record-key data item identify the record to delete (ISO §14.9.10 GR). The key is the
+    /// raw bytes at <paramref name="offset"/>..<paramref name="offset"/>+<paramref name="length"/> of the
+    /// record area (a DELETE writes no record, so the handler cannot otherwise see the key).
+    /// </summary>
+    public static void SetIndexedKey(string cobolName, byte[] buffer, int offset, int length)
+    {
+        EnsureManager();
+        if (_manager!.GetHandler(cobolName) is IndexedFileHandler ix)
+        {
+            var key = new byte[length];
+            System.Array.Copy(buffer, offset, key, 0, length);
+            ix.SetPendingKey(key);
+        }
+    }
+
+    /// <summary>
     /// Relative record number ("slot") the most recent successful WRITE/READ on a RELATIVE file acted
     /// on, for the caller to MOVE into the RELATIVE KEY data item (ISO §14.9.51/§14.9.30). 0 if n/a.
     /// </summary>

@@ -260,7 +260,7 @@ public sealed class Binder
             // For INDEXED files, resolve RECORD KEY to get offset/length
             if (org == "INDEXED" && fileSym.RecordKey != null)
             {
-                var keySym = _semantic.ResolveData(fileSym.RecordKey);
+                var keySym = _semantic.ResolveKeyData(fileSym, -1);
                 if (keySym != null)
                 {
                     var keyLoc = _semantic.GetStorageLocation(keySym);
@@ -353,9 +353,10 @@ public sealed class Binder
             // Register alternate keys for INDEXED files
             if (org == "INDEXED")
             {
-                foreach (var altKey in fileSym.AlternateKeys)
+                for (int ak = 0; ak < fileSym.AlternateKeys.Count; ak++)
                 {
-                    var altKeySym = _semantic.ResolveData(altKey.DataName);
+                    var altKey = fileSym.AlternateKeys[ak];
+                    var altKeySym = _semantic.ResolveKeyData(fileSym, ak);
                     if (altKeySym == null) continue;
                     var altKeyLoc = _semantic.GetStorageLocation(altKeySym);
                     if (!altKeyLoc.HasValue) continue;

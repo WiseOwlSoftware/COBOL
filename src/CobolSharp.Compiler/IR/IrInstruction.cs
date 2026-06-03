@@ -595,6 +595,25 @@ public sealed class IrSetRelativeKey : IrInstruction
 }
 
 /// <summary>
+/// Before a RANDOM/DYNAMIC INDEXED DELETE, convey the prime RECORD KEY value (read from the record-key
+/// data item in the record area) to the handler so it deletes the identified record (ISO §14.9.10 GR —
+/// the record to delete is the one whose prime key equals the RECORD KEY data item). A keyed READ passes
+/// the key in its call and a REWRITE carries it in the record content, but a DELETE writes no record, so
+/// the key must be set explicitly.
+/// </summary>
+public sealed class IrSetIndexedKey : IrInstruction
+{
+    public string CobolFileName { get; }
+    public IrLocation KeyVariable { get; }
+
+    public IrSetIndexedKey(string cobolFileName, IrLocation keyVariable)
+    {
+        CobolFileName = cobolFileName;
+        KeyVariable = keyVariable;
+    }
+}
+
+/// <summary>
 /// After a sequential WRITE or a READ on a RELATIVE file, move the relative record number of the
 /// record released/made-available (FileRuntime.GetRelativeSlot) into the RELATIVE KEY data item.
 /// ISO §14.9.51 GR (sequential WRITE) / §14.9.30 GR 25 (READ).

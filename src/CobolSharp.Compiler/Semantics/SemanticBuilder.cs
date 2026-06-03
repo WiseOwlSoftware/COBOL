@@ -472,6 +472,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return null;
     }
 
+    /// <summary>Extract ALL OF/IN qualifiers from a dataReference, in source order (innermost-first), e.g.
+    /// for <c>A OF B OF C</c> returns [B, C]. Empty when the reference is an unqualified data-name.</summary>
+    private static List<string> ExtractQualifiers(CobolParserCore.DataReferenceContext dataRef)
+    {
+        var qualifiers = new List<string>();
+        foreach (var suffix in dataRef.dataReferenceSuffix())
+        {
+            if (suffix.qualification()?.cobolWord()?.GetText() is { } q)
+                qualifiers.Add(q);
+        }
+        return qualifiers;
+    }
+
     /// <summary>Extract the text content of a string literal (without quotes).</summary>
     private static string? ExtractLiteralText(CobolParserCore.LiteralContext lit)
     {
@@ -720,7 +733,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 fileSym.AccessMode = accessClause.accessMode().GetText().ToUpperInvariant();
             if (clause.recordKeyClause() is { } keyClause)
             {
-                fileSym.RecordKey = keyClause.dataReference().GetText();
+                // Store the base data-name and its OF/IN qualifiers separately (not GetText(), which would
+                // concatenate them) so a qualified key like `IX-FD3-KEY IN IX-FD3-RECKEY-AREA` resolves to
+                // the correct record position even when several keys share the base name (ISO §12.4.5.12).
+                fileSym.RecordKey = keyClause.dataReference().cobolWord().GetText();
+                fileSym.RecordKeyQualifiers.AddRange(ExtractQualifiers(keyClause.dataReference()));
                 // Leniency L3 (docs/dialect-strictness.md): ISO §12.4.5.12 requires the KEY keyword.
                 CheckRecordKeyNoiseWord(keyClause, keyClause.KEY() == null);
             }
@@ -731,9 +748,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 fileSym.FileStatus = statusClause.dataReference().cobolWord().GetText();
             if (clause.alternateKeyClause() is { } altKeyClause)
             {
-                string altKeyName = altKeyClause.dataReference().GetText();
+                string altKeyName = altKeyClause.dataReference().cobolWord().GetText();
+                var altQualifiers = ExtractQualifiers(altKeyClause.dataReference());
                 bool duplicates = altKeyClause.DUPLICATES() != null;
-                fileSym.AlternateKeys.Add(new AlternateKeyInfo(altKeyName, duplicates));
+                fileSym.AlternateKeys.Add(new AlternateKeyInfo(altKeyName, altQualifiers, duplicates));
                 // Leniency L3: KEY is also required in ALTERNATE RECORD KEY (§12.4.5.12).
                 CheckRecordKeyNoiseWord(altKeyClause, altKeyClause.KEY() == null);
             }

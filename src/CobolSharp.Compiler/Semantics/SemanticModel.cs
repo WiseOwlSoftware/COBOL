@@ -307,36 +307,87 @@ public sealed class SemanticModel
         => Symbols.Program.DataDivisionScope.Resolve<DataSymbol>(name);
 
     /// <summary>
-    /// Resolve a START / READ KEY operand to its key of reference: -1 for the prime record key, 0+ for an
-    /// alternate record key index, or null if the operand is neither a key nor a leftmost generic-key prefix.
-    /// A generic key (ISO §14.9.41) is a data item that begins at a key's leftmost byte and is no longer than
-    /// that key — it names the leftmost portion of the key to position on (a partial-key START). Storage
-    /// offsets are available because this runs after <see cref="StorageLayoutComputer"/>.
+    /// Resolve a data-name with OF/IN qualifiers (innermost-first, as stored in <see
+    /// cref="FileSymbol.RecordKeyQualifiers"/>). With no qualifiers this is just <see cref="ResolveData"/>;
+    /// otherwise the outermost qualifier is resolved first and the chain is walked inward, so a base name
+    /// shared by several items (e.g. three <c>IX-FD3-KEY</c> keys) resolves to the one under the named group.
     /// </summary>
-    public int? ResolveKeyOfReference(FileSymbol file, DataSymbol operand)
+    public DataSymbol? ResolveQualifiedData(string name, IReadOnlyList<string> qualifiers)
     {
-        if (file.RecordKey != null &&
-            string.Equals(operand.Name, file.RecordKey, StringComparison.OrdinalIgnoreCase))
-            return -1;
-        for (int i = 0; i < file.AlternateKeys.Count; i++)
-            if (string.Equals(operand.Name, file.AlternateKeys[i].DataName, StringComparison.OrdinalIgnoreCase))
-                return i;
+        if (qualifiers.Count == 0) return ResolveData(name);
+        var context = ResolveData(qualifiers[^1]);
+        if (context == null) return null;
+        for (int i = qualifiers.Count - 2; i >= 0; i--)
+        {
+            context = FindChildData(context, qualifiers[i]);
+            if (context == null) return null;
+        }
+        return FindChildData(context, name);
+    }
 
-        // Generic key: a leftmost prefix of one of the keys (same start offset, length not greater).
-        var opLoc = GetStorageLocation(operand);
-        if (opLoc == null) return null;
-        if (IsLeftmostPrefix(opLoc.Value, file.RecordKey)) return -1;
-        for (int i = 0; i < file.AlternateKeys.Count; i++)
-            if (IsLeftmostPrefix(opLoc.Value, file.AlternateKeys[i].DataName)) return i;
+    /// <summary>Find a descendant data item by name within a group (depth-first).</summary>
+    private static DataSymbol? FindChildData(DataSymbol parent, string name)
+    {
+        foreach (var child in parent.Children)
+        {
+            if (string.Equals(child.Name, name, StringComparison.OrdinalIgnoreCase))
+                return child;
+            if (FindChildData(child, name) is { } deep) return deep;
+        }
         return null;
     }
 
-    private bool IsLeftmostPrefix(CodeGen.StorageLocation opLoc, string? keyName)
+    /// <summary>Resolve a file's record key to its data item: <paramref name="keyIndex"/> -1 = the prime
+    /// RECORD KEY, 0+ = the matching ALTERNATE RECORD KEY. Honors each key's OF/IN qualifiers so keys that
+    /// share a base name resolve to distinct record positions. Null if the file declares no such key.</summary>
+    public DataSymbol? ResolveKeyData(FileSymbol file, int keyIndex)
     {
-        if (keyName == null) return false;
-        var keySym = ResolveData(keyName);
+        if (keyIndex < 0)
+            return file.RecordKey != null ? ResolveQualifiedData(file.RecordKey, file.RecordKeyQualifiers) : null;
+        if (keyIndex >= file.AlternateKeys.Count) return null;
+        var ak = file.AlternateKeys[keyIndex];
+        return ResolveQualifiedData(ak.DataName, ak.Qualifiers);
+    }
+
+    /// <summary>
+    /// Resolve a START / READ KEY operand to its key of reference: -1 for the prime record key, 0+ for an
+    /// alternate record key index, or null if the operand is neither a key nor a leftmost generic-key prefix.
+    /// Per ISO §14.9.41 the operand identifies a key by POSITION — it must begin at the key's leftmost byte
+    /// and be no longer than the key (so a shorter generic operand positions on the matching leftmost
+    /// portion, a longer or differently-placed operand is invalid). Comparing storage locations (not names)
+    /// is what lets identically-named qualified keys, a REDEFINES of a key, and a leftmost subfield all
+    /// resolve correctly. Storage offsets are available because this runs after <see
+    /// cref="StorageLayoutComputer"/>; a name-equality fallback covers the (post-layout-shouldn't-happen)
+    /// case where a location is unavailable.
+    /// </summary>
+    public int? ResolveKeyOfReference(FileSymbol file, DataSymbol operand)
+    {
+        var opLoc = GetStorageLocation(operand);
+        if (opLoc == null)
+        {
+            // Locations unavailable — fall back to base-name equality (only correct for unique key names).
+            if (file.RecordKey != null && string.Equals(operand.Name, file.RecordKey, StringComparison.OrdinalIgnoreCase))
+                return -1;
+            for (int i = 0; i < file.AlternateKeys.Count; i++)
+                if (string.Equals(operand.Name, file.AlternateKeys[i].DataName, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            return null;
+        }
+        if (IsKeyPrefix(opLoc.Value, ResolveKeyData(file, -1))) return -1;
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            if (IsKeyPrefix(opLoc.Value, ResolveKeyData(file, i))) return i;
+        return null;
+    }
+
+    /// <summary>True when <paramref name="opLoc"/> begins at the key's leftmost byte (same storage area and
+    /// offset) and is no longer than the key — the ISO §14.9.41 key-of-reference / generic-key test.</summary>
+    private bool IsKeyPrefix(CodeGen.StorageLocation opLoc, DataSymbol? keySym)
+    {
         var keyLoc = keySym != null ? GetStorageLocation(keySym) : null;
-        return keyLoc != null && opLoc.Offset == keyLoc.Value.Offset && opLoc.Length <= keyLoc.Value.Length;
+        return keyLoc != null
+            && opLoc.Area == keyLoc.Value.Area
+            && opLoc.Offset == keyLoc.Value.Offset
+            && opLoc.Length <= keyLoc.Value.Length;
     }
 
     /// <summary>Resolve a paragraph name.</summary>
