@@ -1,7 +1,14 @@
 # CobolSharp — Session Resume Prompt (2026-06-03)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 294.
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 300.
+
+**Latest session (DEVLOG 296–300): 299 → 350 NIST baselines (+51).** Phase-1 quick wins (SM104A/105A/205A +
+OBSQ1A/4A/5A), IC self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix
+(IC106A/IC207A), and the Phase-2 SQ tail (**SQ suite COMPLETE**, +24) and RL tail (+7). **Method lesson baked
+in: `run-suite.sh` reports chain consumers "CLEAN" off STALE `TF###` files (it never cleans data files) AND a
+stale report can hide a crash — so re-verify every candidate from a clean output dir, checking rc=0 + a freshly
+written report, never just a 0-`FAIL*` grep.**
 
 ## Read first
 - **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
@@ -30,67 +37,60 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 299 NIST)
-| Suite | Present | Baselined | Survey (CLEAN/FAIL\*/CF/NO/RT) | Status |
-|-------|--:|--:|--|--|
-| **NC** nucleus            | 95 | 94 | — | ✅ COMPLETE (NC214M dropped: non-deterministic ACCEPT) |
-| **IF** intrinsics         | 45 | 42 | — | ✅ COMPLETE (IF401M/402M/403M flagging) |
-| **IX** indexed I/O        | 42 | 40 | — | ✅ COMPLETE (IX301M/401M flagging) |
-| **ST** sort/merge         | 40 | 29 +10 prod | — | ✅ COMPLETE (ST301M flagging) — every program accounted for |
-| **SM** COPY/REPLACE       | 17 | 12 | 15/0/0/2/0 | ◐ **3 CLEAN un-baselined: SM104A/105A/205A** (+SM301M/401M flagging) |
-| **SQ** sequential I/O     | 85 | 59 | (re-survey) | ◐ FAIL\*-tail clear; ~24 un-surveyed + SQ303M/401M flagging |
-| **RL** relative I/O       | 35 | 19 | (re-survey) | ◐ chains done; **RL208A FAIL\*** + ~13 un-surveyed + RL301M/401M flagging |
-| **IC** inter-program CALL | 47 |  4 | 20/2/4/21/0 | ⚠ **20 CLEAN, only 4 baselined** — biggest headroom (vacuous-verify needed) |
-| **DB** debug              | 15 |  0 | 0/0/15/0/0 | ✗ whole Debug module unimplemented |
-| **SG** segmentation       | 13 |  0 | 0/0/13/0/0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) |
-| **CM** communication      |  9 |  0 | 0/0/9/0/0  | ✗ whole Communication module (OBSOLETE in COBOL-2002) |
-| **RW** report writer      |  6 |  0 | 0/0/6/0/0  | ✗ whole Report Writer module unimplemented |
-| **OBSQ** obsolete-seq     |  4 |  0 | 4/0/0/0/0  | ◐ **all 4 CLEAN un-baselined: OBSQ1A/3A/4A/5A** |
-| **OBNC/OBIC** obsolete    |  5 |  0 | 0/0/4/1/0  | ✗ obsolete-feature NC/IC variants |
-| **EXEC** EXEC85           |  1 |  0 | 0/0/1/0/0  | ✗ EXEC85 driver (COMPILE_FAIL) |
+## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 350 NIST)
+| Suite | Present | Baselined | Status |
+|-------|--:|--:|--|
+| **NC** nucleus            | 95 | 94 | ✅ COMPLETE (NC214M dropped: non-deterministic ACCEPT) |
+| **IF** intrinsics         | 45 | 42 | ✅ COMPLETE (IF401M/402M/403M flagging) |
+| **IX** indexed I/O        | 42 | 40 | ✅ COMPLETE (IX301M/401M flagging) |
+| **ST** sort/merge         | 40 | 29 +10 prod | ✅ COMPLETE (ST301M flagging) — every program accounted for |
+| **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
+| **SQ** sequential I/O     | 85 | 83 | ✅ COMPLETE (DEVLOG 299: +24 tail; SQ303M/401M flagging) |
+| **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
+| **RL** relative I/O       | 35 | 26 | ◐ DEVLOG 300: +7 tail. Deferred bugs: RL106A/119A/205A/213A (FAIL\*), RL111A (close stack-overflow), RL208A (Rewrite-pads-varying, Phase 3); RL212A producer; RL301M/401M flagging |
+| **IC** inter-program CALL | 47 | 18 | ◐ all self-contained callers baselined. Remaining: IC114A (file chain), IC227A/235A (EXTERNAL), IC233A/234A (USE GLOBAL AFTER ERROR — needs GLOBAL FILE inheritance); ~23 callee halves + IC116M/401M excluded |
+| **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
+| **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
+| **CM** communication      |  9 |  0 | ✗ whole Communication module (OBSOLETE in COBOL-2002) (Phase 5) |
+| **RW** report writer      |  6 |  0 | ✗ whole Report Writer module unimplemented (Phase 5) |
+| **OBNC/OBIC** obsolete    |  5 |  0 | ✗ obsolete-feature NC/IC variants (Phase 5) |
+| **EXEC** EXEC85           |  1 |  0 | ✗ EXEC85 driver (COMPILE_FAIL) (Phase 5) |
 
 Survey any suite: `bash scripts/run-suite.sh <PREFIX>` → per-test `CLEAN | N FAIL* | COMPILE_FAIL | NO_OUTPUT | RUNTIME(rc)` + a footer `=== PREFIX: total=… ===`. It does NOT create baselines.
 
 ## Roadmap to full coverage (priority order)
 
-### Phase 1 — Quick baseline wins (~22 candidates, little/no code). Verify-non-vacuous, then baseline.
-The survey already shows these CLEAN but not yet in the guard. For EACH: confirm the report is non-vacuous
-(tests EXECUTED > 0, footer "TEST(S) FAILED" = 0, COMPUTED vs CORRECT meaningful), confirm determinism
-(run twice, diff), order any producer ahead of its consumer, then add to `NIST_TESTS` + capture
-`tests/nist/valid/<T>.txt`, and run the full guard.
-- **SM104A / SM105A / SM205A** — CLEAN COPY/REPLACE tests not yet baselined. Likely the easiest wins.
-- **OBSQ1A / OBSQ3A / OBSQ4A / OBSQ5A** — obsolete-sequential, all 4 CLEAN. Check they don't depend on an
-  obsolete feature that's only *parsed-and-ignored* (which would make them vacuous).
-- **IC: 15 CLEAN candidates** — IC101A/103A/108A/112A/115A/201A/206A/207A/209A/213A/216A/222A/223A/226A/237A
-  (IC116M is flagging; IC203A/224A/225A/228A already baselined). **⚠ CAUTION — IC "CLEAN" is vacuous-prone:**
-  the earlier session deliberately baselined only 4. An IC caller that `CALL`s a **separately-compiled** callee
-  will, under the guard's one-`.cob`→one-`.dll` build, either not link or silently no-op while the test still
-  prints PASS. Before baselining any IC test, verify the inter-program transfer ACTUALLY happened (the callee's
-  effect shows in COMPUTED). Self-contained IC tests (caller + callee as nested/contained programs in ONE file)
-  are genuinely baselineable; caller+separate-callee pairs need the multi-program link (Phase 4).
+### Phase 1 — Quick baseline wins. ✅ DONE (DEVLOG 296–298).
+SM104A/105A/205A + OBSQ1A/4A/5A baselined; the 18 self-contained IC callers baselined (incl. IC106A/IC207A
+after the index-name-in-LINKAGE compiler fix, DEVLOG 298). **The vacuous-trap caution proved real and is now
+the standing method (see header):** verify from a clean dir, rc=0 + fresh report, callee-effect-in-COMPUTED.
 
-### Phase 2 — SQ/RL un-surveyed tail (runtime-correctness, the proven file-I/O method).
-~24 SQ + ~13 RL programs are neither baselined nor known-excluded. Re-survey (`run-suite.sh SQ` / `RL`), then
-per result: **FAIL\*** → read the failing line's COMPUTED vs CORRECT, trace to the responsible
-`FileRuntime`/`*FileHandler` path, cite the ISO §9.1.13 status rule, **fix the pattern across all 3 handlers**
-(Sequential/Indexed/Relative), baseline. **NO_OUTPUT** → it's a producer; order it consecutively ahead of its
-consumer in the guard (data files are NOT cleaned between tests; RELATIVE/INDEXED `XXXXX###` share `TF###` by
-number). **COMPILE_FAIL** → a parse form; add the grammar leniency dialect-gated (never unconditional).
+### Phase 2 — SQ/RL un-surveyed tail. ◐ SQ ✅ DONE, RL mostly done (DEVLOG 299–300).
+**SQ COMPLETE** (+24, all self-contained — the maturing FILE-CONTROL/status subsystem had silently made them
+pass). **RL +7** (RL104A/112A/113A/114A/115A/116A/204A). The proven method for the rest: **FAIL\*** → read
+COMPUTED vs CORRECT, trace to `FileRuntime`/`*FileHandler`, cite ISO §9.1.13, fix the pattern across all 3
+handlers, baseline. Remaining RL bugs to chase: **RL106A** (2 FAIL\*), **RL119A** (1 FAIL\*), **RL205A**
+(9 FAIL\*), **RL213A** (20 FAIL\*), **RL111A** (real FAIL\* "WRITE TO FILE OPENED INPUT" + a `D-CLOSE-FILES`
+infinite-recursion **stack overflow** in the dispatch — a control-flow bug worth fixing on its own).
 
-### Phase 3 — RL208A (the ONE known open file-I/O compiler bug).
-2 FAIL\*, 5-record gap in the RL207A→RL208A delete/update chain. Latent: `RelativeFileHandler.Rewrite` pads a
-varying record to max length (via `ToSlot`) instead of storing the ACTUAL length — needs a variable-REWRITE
-path mirroring `WriteVariable`. RL207A is baselined, so change carefully + full-guard.
+### Phase 3 — RL208A (the ONE long-known open file-I/O compiler bug).
+5 FAIL\*, gap in the RL207A→RL208A delete/update chain (it consumes XXXXD021 from producer RL212A). Latent:
+`RelativeFileHandler.Rewrite` pads a varying record to max length instead of the ACTUAL length — needs a
+variable-REWRITE path mirroring `WriteVariable`. RL207A is baselined, so change carefully + full-guard.
 
-### Phase 4 — IC genuine remaining (the real inter-program work).
-- **Multi-program compile/link** for caller + separately-compiled callee (the 21 NO_OUTPUT callee halves + the
-  4 COMPILE_FAIL + 2 FAIL\*). The grammar + multi-program compilation pipeline exist (nested programs); the gap
-  is letting a guard test bundle a caller with its callee file(s) so the CALL resolves at runtime.
-- **IC233A/234A** — `USE GLOBAL AFTER ERROR` declaratives on a file error + `SELECT OPTIONAL`/`OPEN INPUT`/`READ`
-  (note IC233A omits the spec-required `STANDARD` — accept only as a documented leniency, ISO §14.9.49.2).
-- **IC235A/227A/114A** — EXTERNAL data + sequential file I/O.
-- Deferred GLOBAL follow-ups (not blocking): subscripted/ref-modded inherited globals (extend `OwnerProgramId`
-  through element/ref-mod address paths), level-88 under a global group, FILE SECTION globals.
+### Phase 4 — IC genuine remaining (the real inter-program work). The IC suite is fully MAPPED (DEVLOG 297):
+24 standalone callers (18 baselined) + ~23 callee-only halves (excluded) + IC116M/401M flagging. Remaining
+callers all need real features:
+- **IC233A/234A** — `USE GLOBAL AFTER ERROR PROCEDURE` declaratives on a file error. Blocker today is a
+  COMPILE_FAIL: "OPEN target 'TEST-FILE' is not a declared file" — the contained program IC233A-1 OPENs/READs
+  a **`FD … GLOBAL` file declared in the containing program**, which we don't inherit. Needs GLOBAL FILE
+  inheritance into contained programs (extend the GLOBAL-data mechanism from DEVLOG 236 to FILE SECTION) +
+  the USE GLOBAL declarative firing on the contained program's I/O error. (IC233A also omits the spec-required
+  `STANDARD` — accept only as a documented leniency, ISO §14.9.49.2.)
+- **IC227A/235A** — EXTERNAL clause. IC227A 16/23 (3 FAIL\*) needs EXTERNAL **file** semantics; IC235A
+  COMPILE_FAIL "Name 'PRINT-FILE' conflicts" (multi-program EXTERNAL naming).
+- **IC114A** — file-I/O chain consumer (1 FAIL\* + binary report output).
+- Deferred GLOBAL follow-ups: subscripted/ref-modded inherited globals, level-88 under a global group.
 
 ### Phase 5 — Whole unimplemented modules (LARGE; several OBSOLETE — needs a scope decision from the user).
 Each is an entire COBOL module with no current support (all COMPILE_FAIL). **Recommend asking the user which
@@ -160,4 +160,5 @@ emission (`CilEmitter`, `CilFileIoEmitter`, `CilLocationEmitter`) → `CobolShar
 NC/IF complete early; collating subsystem (DEVLOG 224–227); spec-audit follow-ups (228–232); IC to its
 non-file-I/O ceiling (233–236); the file-I/O FILE-CONTROL "wall" broken as over-strict-grammar-vs-spec
 (237–268); paragraph-dispatch engine reworked (259–260); IX suite complete (269–282); ST suite complete
-(283–294). Full detail in DEVLOG.md + `project_nist_progress` / `project_fileio_remaining`.
+(283–294); Phase-1 quick wins + IC self-contained callers + index-name-in-LINKAGE fix + SQ/RL tails
+(296–300, 299→350). Full detail in DEVLOG.md + `project_nist_progress` / `project_fileio_remaining`.
