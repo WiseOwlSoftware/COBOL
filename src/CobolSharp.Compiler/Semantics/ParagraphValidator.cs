@@ -34,13 +34,10 @@ public static class ParagraphValidator
         {
             if (SuspiciousNames.Contains(para.Name))
             {
-                diagnostics.Add(new Diagnostic(
-                    "SEM",
-                    DiagnosticSeverity.Warning,
-                    $"Paragraph '{para.Name}' has a name that matches a COBOL keyword — " +
-                    "this may indicate a parsing error (e.g., unconsumed keyword from a statement clause).",
-                    new SourceLocation("<source>", 0, para.Line, 0),
-                    TextSpan.Empty));
+                diagnostics.Report(DiagnosticDescriptors.CBL3122,
+                    new SourceLocation(model.SourceName, 0, para.Line, 0),
+                    TextSpan.Empty,
+                    para.Name);
             }
         }
     }

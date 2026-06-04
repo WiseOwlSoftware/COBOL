@@ -73,7 +73,7 @@ internal sealed class DataStatementBinder
 
         // MOVE type enforcement
         {
-            var moveLoc = new SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0);
+            var moveLoc = new SourceLocation(_ctx.SourceName, 0, ctx.Start?.Line ?? 0, 0);
             var moveSpan = TextSpan.Empty;
             foreach (var tgt in targets)
             {

@@ -20,7 +20,7 @@ internal sealed class StringStatementBinder
     internal StringStatementBinder(BindingContext ctx) => _ctx = ctx;
 
     private (SourceLocation loc, TextSpan span) DiagAt(int line)
-        => (new SourceLocation("<source>", 0, line, 0), TextSpan.Empty);
+        => (new SourceLocation(_ctx.SourceName, 0, line, 0), TextSpan.Empty);
 
     // ── INSPECT ──
 

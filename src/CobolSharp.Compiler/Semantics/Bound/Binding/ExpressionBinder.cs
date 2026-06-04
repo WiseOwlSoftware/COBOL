@@ -679,7 +679,7 @@ internal sealed class ExpressionBinder
 
         int subscriptCount = subs.Count;
         int line = idCtx.Start?.Line ?? 0;
-        var loc = new SourceLocation("<source>", 0, line, 0);
+        var loc = new SourceLocation(_ctx.SourceName, 0, line, 0);
         var span = TextSpan.Empty;
 
         if (subscriptCount > 0 && occursDepth == 0)

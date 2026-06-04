@@ -42,8 +42,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         _ctx.Typed = expr => Typed(expr);
     }
 
-    private static SourceLocation MakeLocation(ParserRuleContext ctx) =>
-        new("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+    private SourceLocation MakeLocation(ParserRuleContext ctx) =>
+        new(_semantic.SourceName, 0, ctx.Start.Line, ctx.Start.Column);
     private static TextSpan MakeSpan(ParserRuleContext ctx) =>
         new(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex);
 
@@ -245,7 +245,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.useStatement() is { }) return new BoundExitStatement(); // USE is a no-op stub
 
         _diagnostics.Report(DiagnosticDescriptors.COBOL0110,
-            new Common.SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0),
+            new Common.SourceLocation(_semantic.SourceName, 0, ctx.Start?.Line ?? 0, 0),
             Common.TextSpan.Empty,
             $"{ctx.GetText()[..Math.Min(30, ctx.GetText().Length)]}...");
         return null;

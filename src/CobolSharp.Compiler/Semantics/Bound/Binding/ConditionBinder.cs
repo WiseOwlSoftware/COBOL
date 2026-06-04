@@ -211,7 +211,7 @@ internal sealed class ConditionBinder
         // Check 12: Sign condition requires a numeric operand (ISO section 6.3.4.1)
         if (!subject.Category.IsNumericLike() && subject.Category != CobolCategory.Unknown)
         {
-            var loc = new SourceLocation("<source>", 0, ctx.Start?.Line ?? 0, 0);
+            var loc = new SourceLocation(_ctx.SourceName, 0, ctx.Start?.Line ?? 0, 0);
             var span = TextSpan.Empty;
             _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL2606, loc, span);
         }

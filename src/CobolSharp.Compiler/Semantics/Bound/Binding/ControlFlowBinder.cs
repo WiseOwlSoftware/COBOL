@@ -19,13 +19,13 @@ internal sealed class ControlFlowBinder
 
     internal ControlFlowBinder(BindingContext ctx) => _ctx = ctx;
 
-    private static SourceLocation MakeLocation(ParserRuleContext ctx) =>
-        new("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+    private SourceLocation MakeLocation(ParserRuleContext ctx) =>
+        new(_ctx.SourceName, 0, ctx.Start.Line, ctx.Start.Column);
     private static TextSpan MakeSpan(ParserRuleContext ctx) =>
         new(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex);
 
     private (SourceLocation loc, TextSpan span) DiagAt(int line)
-        => (new SourceLocation("<source>", 0, line, 0), TextSpan.Empty);
+        => (new SourceLocation(_ctx.SourceName, 0, line, 0), TextSpan.Empty);
 
     // ── PERFORM ──
 

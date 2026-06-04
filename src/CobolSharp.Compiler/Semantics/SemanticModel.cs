@@ -18,6 +18,13 @@ public sealed class SemanticModel
     public DiagnosticBag Diagnostics { get; }
 
     /// <summary>
+    /// Path of the source file being compiled. Threaded from <see cref="Compilation.Compile"/> so every
+    /// post-parse diagnostic (semantic, binder, flow) reports the real file path instead of a placeholder.
+    /// Defaults to the <see cref="Common.SourceLocation.None"/> sentinel until set.
+    /// </summary>
+    public string SourceName { get; set; } = "<source>";
+
+    /// <summary>
     /// Program-level PIC formatting environment (CURRENCY SIGN, DECIMAL-POINT IS COMMA).
     /// Set from SPECIAL-NAMES during semantic analysis. Default: '$', period as decimal.
     /// </summary>

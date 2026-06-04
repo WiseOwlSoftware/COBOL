@@ -18,7 +18,7 @@ public static class FileStatusValidator
         {
             if (fileSym.FileStatus == null) continue;
 
-            var loc = new SourceLocation("<source>", 0, fileSym.Line, 0);
+            var loc = new SourceLocation(model.SourceName, 0, fileSym.Line, 0);
             var span = TextSpan.Empty;
 
             var statusSym = model.ResolveData(fileSym.FileStatus);

@@ -14,20 +14,25 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 {
     private readonly SymbolTable _symbols;
     private readonly List<Diagnostic> _diagnostics;
+    private readonly string _sourceName;
 
-    public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics)
+    public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics, string sourceName = "<source>")
     {
         _symbols = symbols;
         _diagnostics = diagnostics;
+        _sourceName = sourceName;
     }
 
-    private void Error(ParserRuleContext ctx, string message)
+    private void Error(ParserRuleContext ctx, DiagnosticDescriptor descriptor, params object[] args)
     {
+        string message = args.Length > 0
+            ? string.Format(descriptor.MessageTemplate, args)
+            : descriptor.MessageTemplate;
         _diagnostics.Add(new Diagnostic(
-            "SEM",
-            DiagnosticSeverity.Error,
+            descriptor.Code,
+            descriptor.DefaultSeverity,
             message,
-            new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column),
+            new Common.SourceLocation(_sourceName, 0, ctx.Start.Line, ctx.Start.Column),
             new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
     }
 
@@ -53,7 +58,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
                 var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
 
                 if (sym is not (ParagraphSymbol or SectionSymbol))
-                    Error(procName, $"PERFORM target '{name}' is not a paragraph or section.");
+                    Error(procName, DiagnosticDescriptors.CBL3120, "PERFORM", name);
             }
         }
 
@@ -72,7 +77,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
 
             if (sym is not (ParagraphSymbol or SectionSymbol))
-                Error(pn, $"GO TO target '{name}' is not a paragraph or section.");
+                Error(pn, DiagnosticDescriptors.CBL3120, "GO TO", name);
         }
 
         return base.VisitGoToStatement(ctx);
@@ -87,7 +92,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
         {
             string name = fileCtx.GetText();
             if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
-                Error(fileCtx, $"READ target '{name}' is not a declared file.");
+                Error(fileCtx, DiagnosticDescriptors.CBL3121, "READ", name);
         }
         return base.VisitReadStatement(ctx);
     }
@@ -107,7 +112,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
                 var id = spec.dataReference();
                 string name = id.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
-                    Error(id, $"OPEN target '{name}' is not a declared file.");
+                    Error(id, DiagnosticDescriptors.CBL3121, "OPEN", name);
             }
         }
         return base.VisitOpenStatement(ctx);
@@ -122,7 +127,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             {
                 string name = fn.GetText();
                 if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
-                    Error(fn, $"CLOSE target '{name}' is not a declared file.");
+                    Error(fn, DiagnosticDescriptors.CBL3121, "CLOSE", name);
             }
         }
         return base.VisitCloseStatement(ctx);

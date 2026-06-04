@@ -48,7 +48,7 @@ public static class ProcedureGraph
                 if (!EndsWithTransfer(program.Paragraphs[i]))
                 {
                     diagnostics.Report(DiagnosticDescriptors.CBL3002,
-                        new SourceLocation("<source>", 0, program.Paragraphs[i].Symbol.Line, 0),
+                        new SourceLocation(model.SourceName, 0, program.Paragraphs[i].Symbol.Line, 0),
                         TextSpan.Empty, fromSection, toSection);
                 }
             }
@@ -87,7 +87,7 @@ public static class ProcedureGraph
             if (!reachable.Contains(para.Symbol.Name))
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL3001,
-                    new SourceLocation("<source>", 0, para.Symbol.Line, 0),
+                    new SourceLocation(model.SourceName, 0, para.Symbol.Line, 0),
                     TextSpan.Empty, para.Symbol.Name);
             }
         }

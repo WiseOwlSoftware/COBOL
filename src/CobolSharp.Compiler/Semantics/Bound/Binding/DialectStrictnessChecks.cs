@@ -21,8 +21,8 @@ namespace CobolSharp.Compiler.Semantics.Bound.Binding;
 /// </summary>
 internal static class DialectStrictnessChecks
 {
-    private static SourceLocation MakeLocation(ParserRuleContext ctx) =>
-        new("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+    private static SourceLocation MakeLocation(string sourceName, ParserRuleContext ctx) =>
+        new(sourceName, 0, ctx.Start.Line, ctx.Start.Column);
 
     private static TextSpan MakeSpan(ParserRuleContext ctx) =>
         new(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex);
@@ -45,10 +45,10 @@ internal static class DialectStrictnessChecks
 
         if (ctx.Options.Dialect >= DialectMode.StrictCobol85)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3611,
-                MakeLocation(phrase), MakeSpan(phrase), ctx.Options.DialectName);
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.DialectName);
         else if (ctx.Options.WarnNonStandard)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3612,
-                MakeLocation(phrase), MakeSpan(phrase));
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase));
     }
 
     /// <summary>
@@ -63,9 +63,9 @@ internal static class DialectStrictnessChecks
 
         if (ctx.Options.Dialect >= DialectMode.StrictCobol85)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3617,
-                MakeLocation(phrase), MakeSpan(phrase), ctx.Options.DialectName);
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.DialectName);
         else if (ctx.Options.WarnNonStandard)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3618,
-                MakeLocation(phrase), MakeSpan(phrase));
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase));
     }
 }

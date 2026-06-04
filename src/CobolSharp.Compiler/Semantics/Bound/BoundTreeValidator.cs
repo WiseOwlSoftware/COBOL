@@ -488,7 +488,7 @@ public static class BoundTreeValidator
         params object[] args)
     {
         diagnostics.Report(descriptor,
-            new SourceLocation("<source>", 0, line, 0),
+            new SourceLocation(_model?.SourceName ?? "<source>", 0, line, 0),
             TextSpan.Empty,
             args);
     }

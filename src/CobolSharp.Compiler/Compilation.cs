@@ -66,7 +66,7 @@ public sealed class Compilation
                 ?? Path.GetFileNameWithoutExtension(sourcePath);
             bool isInitial = ExtractIsInitialFromContext(progCtx);
 
-            var semanticModel = BuildSemanticModel(progCtx, programId, diagnostics, Options);
+            var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, diagnostics, Options);
             semanticModel.Program.IsInitial = isInitial;
 
             // Validate and compute layout
@@ -255,11 +255,12 @@ public sealed class Compilation
     private static Semantics.SemanticModel BuildSemanticModel(
         ParserRuleContext programTree,
         string programId,
+        string sourcePath,
         DiagnosticBag diagnostics,
         Semantics.CompilationOptions options)
     {
         // Pass 1: Declaration collection
-        var semanticBuilder = new Semantics.SemanticBuilder(programId, 1, options);
+        var semanticBuilder = new Semantics.SemanticBuilder(programId, 1, options, sourcePath);
         semanticBuilder.Visit(programTree);
         semanticBuilder.ResolveRedefines();
         semanticBuilder.ResolveRenames();
@@ -267,7 +268,7 @@ public sealed class Compilation
 
         // Pass 2: Reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
-        var resolver = new Semantics.ReferenceResolver(semanticBuilder.Symbols, semDiagnostics);
+        var resolver = new Semantics.ReferenceResolver(semanticBuilder.Symbols, semDiagnostics, sourcePath);
         resolver.Visit(programTree);
 
         foreach (var d in semDiagnostics)
@@ -278,6 +279,7 @@ public sealed class Compilation
             semanticBuilder.Symbols.Program,
             semanticBuilder.Symbols,
             diagnostics);
+        model.SourceName = sourcePath;
 
         model.SetPicEnvironment(semanticBuilder.CurrencySign, semanticBuilder.CurrencyOutputChar, semanticBuilder.DecimalPointIsComma);
 

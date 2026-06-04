@@ -18,6 +18,10 @@ internal sealed class BindingContext
     public DiagnosticBag Diagnostics { get; }
     public CompilationOptions Options { get; }
 
+    /// <summary>The real source file path, surfaced from the semantic model so every binder
+    /// builds diagnostic locations with the actual file name (not a placeholder).</summary>
+    public string SourceName => Semantic.SourceName;
+
     // ── Built during visit ──
 
     public List<BoundParagraph> Paragraphs { get; } = new();

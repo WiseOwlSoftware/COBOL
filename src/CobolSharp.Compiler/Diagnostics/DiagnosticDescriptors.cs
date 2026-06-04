@@ -283,6 +283,29 @@ public static partial class DiagnosticDescriptors
         "GLOBAL clause on '{0}': nested program visibility not yet supported at runtime; item treated as local");
 
     // ══════════════════════════════════════
+    // CBL3120–3127: Reference-resolution / SPECIAL-NAMES / SCREEN semantic errors.
+    // These replaced the bare ad-hoc "SEM" code (DEVLOG 304): every diagnostic now carries a
+    // registry descriptor so it can be documented, suppressed, and asserted on by code.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL3120 = new("CBL3120", DiagnosticSeverity.Error,
+        "{0} target '{1}' is not a paragraph or section");
+    public static readonly DiagnosticDescriptor CBL3121 = new("CBL3121", DiagnosticSeverity.Error,
+        "{0} target '{1}' is not a declared file");
+    public static readonly DiagnosticDescriptor CBL3122 = new("CBL3122", DiagnosticSeverity.Warning,
+        "Paragraph '{0}' has a name that matches a COBOL keyword — this may indicate a parsing error " +
+        "(e.g., an unconsumed keyword from a statement clause)");
+    public static readonly DiagnosticDescriptor CBL3123 = new("CBL3123", DiagnosticSeverity.Error,
+        "CURRENCY SIGN clause: expected a picture SYMBOL after WITH PICTURE, but found '{0}'");
+    public static readonly DiagnosticDescriptor CBL3124 = new("CBL3124", DiagnosticSeverity.Error,
+        "CURRENCY symbol cannot be {0}");
+    public static readonly DiagnosticDescriptor CBL3125 = new("CBL3125", DiagnosticSeverity.Error,
+        "SYMBOLIC CHARACTERS: {0} name(s) but {1} ordinal(s) — counts must be equal");
+    public static readonly DiagnosticDescriptor CBL3126 = new("CBL3126", DiagnosticSeverity.Error,
+        "SCREEN item: HIGHLIGHT and LOWLIGHT are mutually exclusive");
+    public static readonly DiagnosticDescriptor CBL3127 = new("CBL3127", DiagnosticSeverity.Error,
+        "SCREEN item: USING cannot be combined with FROM or TO");
+
+    // ══════════════════════════════════════
     // CBL3201–3206: File status
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3201 = new("CBL3201", DiagnosticSeverity.Error,

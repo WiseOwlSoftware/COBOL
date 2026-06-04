@@ -54,7 +54,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private void CaptureGenericClause(CobolParserCore.GenericClauseContext? ctx, GenericClauseContext context)
     {
         if (ctx == null) return;
-        _extensionClauses.Add(ExtensionClauseNode.FromParseTree(ctx, context, "<source>"));
+        _extensionClauses.Add(ExtensionClauseNode.FromParseTree(ctx, context, _sourceName));
     }
 
     public IReadOnlyList<Diagnostic> Diagnostics => _diagnostics.Diagnostics;
@@ -62,11 +62,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public IReadOnlyList<DataSymbol> DataItemsInOrder => _dataItemsInOrder;
 
     private readonly CompilationOptions _options;
+    private readonly string _sourceName;
 
-    public SemanticBuilder(string programName, int line, CompilationOptions? options = null)
+    public SemanticBuilder(string programName, int line, CompilationOptions? options = null,
+        string sourceName = "<source>")
     {
         _symbols = new SymbolTable(programName, line);
         _options = options ?? new CompilationOptions();
+        _sourceName = sourceName;
     }
 
     /// <summary>
@@ -174,7 +177,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private void RenamesError(DataSymbol data, DiagnosticDescriptor desc, params object[] args)
     {
         _diagnostics.Report(desc,
-            new Common.SourceLocation("<source>", 0, data.Line, 0),
+            new Common.SourceLocation(_sourceName, 0, data.Line, 0),
             Common.TextSpan.Empty, args);
     }
 
@@ -209,11 +212,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             PropagateSignRecursive(child, effective);
     }
 
-    private void Error(ParserRuleContext ctx, string message)
+    private void Error(ParserRuleContext ctx, DiagnosticDescriptor descriptor, params object[] args)
     {
-        _diagnostics.ReportError("SEM", message,
-            new Common.SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column),
-            new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex));
+        _diagnostics.Report(descriptor,
+            new Common.SourceLocation(_sourceName, 0, ctx.Start.Line, ctx.Start.Column),
+            new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex),
+            args);
     }
 
     // ── SPECIAL-NAMES ──
@@ -266,7 +270,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     // Validate PIC_STRING == "SYMBOL"
                     if (!string.Equals(picStr.GetText(), "SYMBOL", StringComparison.OrdinalIgnoreCase))
                     {
-                        Error(currClause, $"Expected SYMBOL after WITH PICTURE, got '{picStr.GetText()}'");
+                        Error(currClause, DiagnosticDescriptors.CBL3123, picStr.GetText());
                     }
                     else if (literals.Length >= 2)
                     {
@@ -280,11 +284,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                 char lit8 = text8[1];
                                 // Validate: literal-8 must not be digit, letter, or space
                                 if (char.IsDigit(lit8))
-                                    Error(currClause, "Currency symbol cannot be a digit");
+                                    Error(currClause, DiagnosticDescriptors.CBL3124, "a digit");
                                 else if (char.IsLetter(lit8))
-                                    Error(currClause, "Currency symbol cannot be an alphabetic letter");
+                                    Error(currClause, DiagnosticDescriptors.CBL3124, "an alphabetic letter");
                                 else if (lit8 == ' ')
-                                    Error(currClause, "Currency symbol cannot be a space");
+                                    Error(currClause, DiagnosticDescriptors.CBL3124, "a space");
                                 else
                                 {
                                     // literal-8 = PIC symbol, literal-7 = output char
@@ -379,7 +383,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var names = symEntry.cobolWord();
                     var ordinals = symEntry.integerLiteral();
                     if (names.Length != ordinals.Length)
-                        Error(symEntry, $"SYMBOLIC CHARACTERS: {names.Length} name(s) but {ordinals.Length} ordinal(s) — counts must be equal");
+                        Error(symEntry, DiagnosticDescriptors.CBL3125, names.Length, ordinals.Length);
                     int count = Math.Min(names.Length, ordinals.Length);
                     for (int i = 0; i < count; i++)
                     {
@@ -764,7 +768,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 if (relKeyClause.KEY() == null)
                 {
                     var tok = relKeyClause.Start;
-                    var loc = new Common.SourceLocation("<source>", 0, tok.Line, tok.Column);
+                    var loc = new Common.SourceLocation(_sourceName, 0, tok.Line, tok.Column);
                     var span = new Common.TextSpan(tok.StartIndex, relKeyClause.Stop?.StopIndex ?? tok.StopIndex);
                     if (_options.Dialect >= DialectMode.StrictCobol85)
                         _diagnostics.Report(DiagnosticDescriptors.CBL3613, loc, span, _options.DialectName);
@@ -788,7 +792,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (!noKey) return;
         var tok = clause.Start;
-        var loc = new Common.SourceLocation("<source>", 0, tok.Line, tok.Column);
+        var loc = new Common.SourceLocation(_sourceName, 0, tok.Line, tok.Column);
         var span = new Common.TextSpan(tok.StartIndex, clause.Stop?.StopIndex ?? tok.StopIndex);
         if (_options.Dialect >= DialectMode.StrictCobol85)
             _diagnostics.Report(DiagnosticDescriptors.CBL3615, loc, span, _options.DialectName);
@@ -824,7 +828,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 fileSym = new FileSymbol(name, nameCtx.Start.Line);
                 _symbols.Program.GlobalScope.TryDeclare(fileSym, out _);
                 _diagnostics.Report(DiagnosticDescriptors.CBL0601,
-                    new Common.SourceLocation("<source>", 0, nameCtx.Start.Line, nameCtx.Start.Column),
+                    new Common.SourceLocation(_sourceName, 0, nameCtx.Start.Line, nameCtx.Start.Column),
                     new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex),
                     name);
             }
@@ -1228,7 +1232,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (clauses.Length > 0 && clauses[0].redefinesClause() == null)
             {
                 _diagnostics.Report(DiagnosticDescriptors.CBL0808,
-                    new Common.SourceLocation("<source>", 0, line, 0),
+                    new Common.SourceLocation(_sourceName, 0, line, 0),
                     Common.TextSpan.Empty,
                     displayName);
             }
@@ -1909,9 +1913,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 // Validate mutual exclusivity
                 if (item.Highlight && item.Lowlight)
-                    Error(entryCtx, "HIGHLIGHT and LOWLIGHT are mutually exclusive");
+                    Error(entryCtx, DiagnosticDescriptors.CBL3126);
                 if (item.UsingField != null && (item.FromSource != null || item.ToTarget != null))
-                    Error(entryCtx, "USING cannot be combined with FROM or TO");
+                    Error(entryCtx, DiagnosticDescriptors.CBL3127);
             }
 
             // Build hierarchy using level numbers (same pattern as data items)

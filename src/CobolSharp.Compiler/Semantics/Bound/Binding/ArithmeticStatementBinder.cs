@@ -29,7 +29,7 @@ internal sealed class ArithmeticStatementBinder
     private BoundStatement? ReportInvalidArithmetic(string verb, int line)
     {
         _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0415,
-            new SourceLocation("<source>", 0, line, 0), TextSpan.Empty, verb);
+            new SourceLocation(_ctx.SourceName, 0, line, 0), TextSpan.Empty, verb);
         return null;
     }
 
@@ -343,7 +343,7 @@ internal sealed class ArithmeticStatementBinder
 
         var srcSym = srcId.Symbol;
         var dstSym = dstId.Symbol;
-        var loc = new SourceLocation("<source>", 0, ctx.Start.Line, ctx.Start.Column);
+        var loc = new SourceLocation(_ctx.SourceName, 0, ctx.Start.Line, ctx.Start.Column);
         var span = TextSpan.Empty;
         var kindName = kind.ToString().ToUpperInvariant();
         bool hasError = false;
@@ -465,7 +465,7 @@ internal sealed class ArithmeticStatementBinder
     {
         var stmt = new BoundArithmeticStatement(kind, operands, receiver, targets,
             isGiving, isByForm, remainderTarget, sizeError);
-        var loc = new SourceLocation("<source>", 0, line, 0);
+        var loc = new SourceLocation(_ctx.SourceName, 0, line, 0);
         var span = TextSpan.Empty;
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, _ctx.Diagnostics, loc, span);
         return stmt;

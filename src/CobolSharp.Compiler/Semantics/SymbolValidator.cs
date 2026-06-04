@@ -38,16 +38,16 @@ public static class SymbolValidator
     {
         var program = model.Program;
 
-        ProcessRejections(program.GlobalScope, diagnostics);
-        ProcessRejections(program.DataDivisionScope, diagnostics);
-        ProcessRejections(program.ProcedureDivisionScope, diagnostics);
+        ProcessRejections(program.GlobalScope, model.SourceName, diagnostics);
+        ProcessRejections(program.DataDivisionScope, model.SourceName, diagnostics);
+        ProcessRejections(program.ProcedureDivisionScope, model.SourceName, diagnostics);
 
         // Section-level scopes (paragraph duplicates within a section)
         foreach (var section in model.SectionsInOrder)
-            ProcessRejections(section.Scope, diagnostics);
+            ProcessRejections(section.Scope, model.SourceName, diagnostics);
     }
 
-    private static void ProcessRejections(Scope scope, DiagnosticBag diagnostics)
+    private static void ProcessRejections(Scope scope, string sourceName, DiagnosticBag diagnostics)
     {
         foreach (var (rejected, existing) in scope.Rejections)
         {
@@ -91,7 +91,7 @@ public static class SymbolValidator
 
             rejected.IsValid = false;
 
-            var loc = new SourceLocation("<source>", 0, rejected.Line, 0);
+            var loc = new SourceLocation(sourceName, 0, rejected.Line, 0);
             var span = TextSpan.Empty;
 
             // Choose diagnostic based on symbol kinds
@@ -151,7 +151,7 @@ public static class SymbolValidator
         {
             if (data.Redefines == null) continue;
 
-            var loc = new SourceLocation("<source>", 0, data.Line, 0);
+            var loc = new SourceLocation(model.SourceName, 0, data.Line, 0);
             var span = TextSpan.Empty;
             var target = data.Redefines;
 
@@ -205,7 +205,7 @@ public static class SymbolValidator
             // of the storage area described by data-name-2."
             if (thruLoc.Value.Offset < fromLoc.Value.Offset)
             {
-                var loc = new SourceLocation("<source>", 0, data.Line, 0);
+                var loc = new SourceLocation(model.SourceName, 0, data.Line, 0);
                 diagnostics.Report(DiagnosticDescriptors.CBL0813, loc, TextSpan.Empty,
                     data.Renames.ThruSymbol.DisplayName,
                     data.Renames.FromSymbol.DisplayName);
@@ -223,7 +223,7 @@ public static class SymbolValidator
         {
             if (data.Area != StorageAreaKind.LinkageSection) continue;
 
-            var loc = new SourceLocation("<source>", 0, data.Line, 0);
+            var loc = new SourceLocation(model.SourceName, 0, data.Line, 0);
             var span = TextSpan.Empty;
 
             // VALUE not allowed on LINKAGE items (except 88-level)
@@ -251,7 +251,7 @@ public static class SymbolValidator
             if (param.Area != StorageAreaKind.LinkageSection)
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL3108,
-                    new SourceLocation("<source>", 0, param.Line, 0), TextSpan.Empty,
+                    new SourceLocation(model.SourceName, 0, param.Line, 0), TextSpan.Empty,
                     param.DisplayName);
             }
         }
@@ -261,7 +261,7 @@ public static class SymbolValidator
             && ret.Area != StorageAreaKind.LinkageSection)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL3109,
-                new SourceLocation("<source>", 0, ret.Line, 0), TextSpan.Empty,
+                new SourceLocation(model.SourceName, 0, ret.Line, 0), TextSpan.Empty,
                 ret.DisplayName);
         }
     }
@@ -274,7 +274,7 @@ public static class SymbolValidator
     {
         foreach (var data in model.DataItemsInOrder)
         {
-            var loc = new SourceLocation("<source>", 0, data.Line, 0);
+            var loc = new SourceLocation(model.SourceName, 0, data.Line, 0);
             var span = TextSpan.Empty;
 
             if (data.IsExternal)

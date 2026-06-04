@@ -16,7 +16,7 @@ public static class DataItemClassifier
     {
         foreach (var data in model.DataItemsInOrder)
         {
-            var loc = new SourceLocation("<source>", 0, data.Line, 0);
+            var loc = new SourceLocation(model.SourceName, 0, data.Line, 0);
             var span = TextSpan.Empty;
 
             ValidateOccurs(data, loc, span, diagnostics, model);
