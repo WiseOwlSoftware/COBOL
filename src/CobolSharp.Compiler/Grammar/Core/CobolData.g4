@@ -70,7 +70,13 @@ fileDescriptionClause
     | valueOfClause
     | fileGlobalExternalClause
     | linageClause
+    | reportClause
     | genericFileDescriptionClause
+    ;
+
+// REPORT(S) clause (§13.18.46): names the report(s) produced on this file by the Report Writer.
+reportClause
+    : (REPORT IS? | REPORTS ARE?) reportName+
     ;
 
 // IS GLOBAL / IS EXTERNAL on an FD (§13.18.30/§13.18.23): GLOBAL makes the file-name and

@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-// REPORT SECTION rules (COBOL-85).
-// Imported by CobolParserCore.g4 — no options block.
+// REPORT SECTION rules (COBOL-85, ISO 1989:1985 §13.8/§13.14/§13.15; clauses §13.18.12/14/16/28/37/39/53/54/57).
+// Imported by CobolParserCore.g4 — no options block of its own beyond tokenVocab.
 
 parser grammar CobolReportWriter;
 
@@ -11,62 +11,139 @@ options {
 }
 
 // ==========================================
-// REPORT SECTION (COBOL-85)
+// REPORT SECTION
 // ==========================================
 
 reportSection
     : REPORT SECTION DOT reportDescriptionEntry*
     ;
 
+// RD report-name [report-description-clause]... .  [report-group-entry]...
 reportDescriptionEntry
-    : RD reportName reportDescriptionClauses? DOT reportGroupEntry*
+    : RD reportName reportDescriptionClause* DOT reportGroupEntry*
     ;
 
 reportName
     : cobolWord
     ;
 
-reportDescriptionClauses
-    : reportDescriptionClause+
+reportDescriptionClause
+    : reportGlobalClause
+    | reportCodeClause
+    | reportControlClause
+    | reportPageClause
     ;
 
-// For now, accept standard/vendor clauses generically; binder interprets.
-reportDescriptionClause
-    : genericClause
+// IS GLOBAL (§13.18.23)
+reportGlobalClause
+    : IS? GLOBAL
     ;
+
+// CODE literal (§13.18.12) — a 2-char prefix written on every line of the report.
+reportCodeClause
+    : CODE IS? (literal | dataReference)
+    ;
+
+// CONTROL(S) {FINAL | data-name}... (§13.18.16) — the control hierarchy (major→minor).
+reportControlClause
+    : (CONTROL IS? | CONTROLS ARE?) (FINAL | dataReference)+
+    ;
+
+// PAGE LIMIT IS n LINES [HEADING n] [FIRST DETAIL n] [LAST DETAIL n] [FOOTING n] (§13.18.37)
+reportPageClause
+    : PAGE (LIMIT IS? | LIMITS ARE?)? integerLiteral (LINE | LINES)?
+      reportPageSubclause*
+    ;
+
+reportPageSubclause
+    : HEADING IS? integerLiteral
+    | FIRST DETAIL IS? integerLiteral
+    | LAST DETAIL IS? integerLiteral
+    | FOOTING IS? integerLiteral
+    ;
+
+// ==========================================
+// REPORT GROUP DESCRIPTION ENTRY (§13.15)
+// ==========================================
 
 reportGroupEntry
-    : levelNumber reportGroupName? reportGroupBody DOT
+    : levelNumber reportGroupName? reportGroupClause* DOT
     ;
 
 reportGroupName
     : cobolWord
     ;
 
-reportGroupBody
-    : reportGroupClause*
-    ;
-
 reportGroupClause
     : reportTypeClause
+    | reportLineClause
+    | reportNextGroupClause
+    | reportColumnClause
+    | reportSourceClause
     | reportSumClause
-    | genericReportGroupClause
+    | reportGroupIndicateClause
+    | pictureClause
+    | usageClause
+    | signClause
+    | justifiedClause
+    | blankWhenZeroClause
+    | occursClause
+    | valueClause
     ;
 
-// TYPE DETAIL / TYPE CONTROL FOOTING / TYPE PAGE HEADING / etc.
+// TYPE IS {REPORT HEADING|RH | PAGE HEADING|PH | CONTROL HEADING|CH [FINAL|data] | DETAIL|DE |
+//          CONTROL FOOTING|CF [FINAL|data] | PAGE FOOTING|PF | REPORT FOOTING|RF}  (§13.18.57)
 reportTypeClause
-    : TYPE IDENTIFIER (IDENTIFIER)*
+    : TYPE IS? reportGroupType
     ;
 
-// SUM data-name [OF report-name] [, data-name [OF report-name]]...
+reportGroupType
+    : (REPORT HEADING | RH)
+    | (PAGE HEADING | PH)
+    | (CONTROL HEADING | CH) (FINAL | dataReference)?
+    | (DETAIL | DE)
+    | (CONTROL FOOTING | CF) (FINAL | dataReference)?
+    | (PAGE FOOTING | PF)
+    | (REPORT FOOTING | RF)
+    ;
+
+// LINE NUMBER IS {integer [ON NEXT PAGE] | PLUS integer | NEXT PAGE}  (§13.18.28)
+reportLineClause
+    : LINE NUMBER? IS? (PLUSWORD integerLiteral | integerLiteral (ON? NEXT PAGE)? | NEXT PAGE)
+    ;
+
+// NEXT GROUP IS {integer | PLUS integer | NEXT PAGE}  (§13.18.39)
+reportNextGroupClause
+    : NEXT GROUP IS? (PLUSWORD integerLiteral | integerLiteral | NEXT PAGE)
+    ;
+
+// COLUMN NUMBER IS integer  (§13.18.14)
+reportColumnClause
+    : COLUMN NUMBER? IS? integerLiteral
+    ;
+
+// SOURCE IS identifier  (§13.18.53)
+reportSourceClause
+    : SOURCE IS? dataReference
+    ;
+
+// SUM data-name... [UPON data-name...] [RESET ON {FINAL|data-name}]  (§13.18.54)
 reportSumClause
-    : SUM sumItem (COMMA sumItem)*
+    : SUM sumOperand (COMMA? sumOperand)*
+      (UPON dataReference (COMMA? dataReference)*)?
+      reportSumReset?
     ;
 
-sumItem
+sumOperand
     : dataReference (OF reportName)?
     ;
 
-genericReportGroupClause
-    : genericClause
+reportSumReset
+    : RESET ON? (FINAL | dataReference)
+    ;
+
+// GROUP INDICATE  (§13.18.28 group-indicate phrase) — print this field only on the first
+// detail of a page or after a control break.
+reportGroupIndicateClause
+    : GROUP INDICATE?
     ;

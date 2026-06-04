@@ -1821,13 +1821,6 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         return base.VisitGenericDataClause(ctx);
     }
 
-    public override object? VisitGenericReportGroupClause(
-        CobolParserCore.GenericReportGroupClauseContext ctx)
-    {
-        CaptureGenericClause(ctx.genericClause(), GenericClauseContext.ReportGroup);
-        return base.VisitGenericReportGroupClause(ctx);
-    }
-
     public override object? VisitVendorFileControlClause(
         CobolParserCore.VendorFileControlClauseContext ctx)
     {

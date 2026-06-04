@@ -283,6 +283,7 @@ REQUIRED    : 'REQUIRED' ;
 RESERVE     : 'RESERVE' ;
 FROM        : 'FROM' ;
 FUNCTION    : 'FUNCTION' ;
+GROUP       : 'GROUP' ;
 HEADING     : 'HEADING' ;
 HIGHLIGHT   : 'HIGHLIGHT' ;
 INDICATE    : 'INDICATE' ;
@@ -362,6 +363,7 @@ PH          : 'PH' ;
 // Handles: PIC X(120), PIC IS S9(18), PICTURE $$$,$$9.99CR, etc.
 PIC         : ('PIC' | 'PICTURE') -> pushMode(PICMODE) ;
 POINTER     : 'POINTER' ;
+PLUSWORD    : 'PLUS' ;       // the reserved WORD PLUS (LINE/NEXT GROUP relative); distinct from PLUS ('+')
 PREVIOUS    : 'PREVIOUS' ;
 PRINTING    : 'PRINTING' ;
 PROGRAM     : 'PROGRAM' ;

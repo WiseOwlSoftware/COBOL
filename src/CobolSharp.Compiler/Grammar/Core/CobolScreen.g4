@@ -61,14 +61,14 @@ screenClause
     ;
 
 // LINE NUMBER IS [PLUS | +] {identifier | integer}
-// Note: the word PLUS lexes as IDENTIFIER, the symbol + lexes as PLUS
+// PLUSWORD = the reserved word PLUS; PLUS = the '+' symbol (both mean a relative line/column).
 screenLineClause
-    : LINE NUMBER? IS? (IDENTIFIER | PLUS)? (dataReference | integerLiteral)
+    : LINE NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD)? (dataReference | integerLiteral)
     ;
 
 // {COLUMN | COL} NUMBER IS [PLUS | +] {identifier | integer}
 screenColumnClause
-    : (COLUMN | COL) NUMBER? IS? (IDENTIFIER | PLUS)? (dataReference | integerLiteral)
+    : (COLUMN | COL) NUMBER? IS? (IDENTIFIER | PLUS | PLUSWORD)? (dataReference | integerLiteral)
     ;
 
 // BLANK {LINE | SCREEN}

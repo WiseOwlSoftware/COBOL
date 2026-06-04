@@ -1065,6 +1065,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFileDescriptionClause([NotNull] CobolParserCore.FileDescriptionClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportClause([NotNull] CobolParserCore.ReportClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.fileGlobalExternalClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1497,17 +1503,41 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitReportName([NotNull] CobolParserCore.ReportNameContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClauses"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportDescriptionClauses([NotNull] CobolParserCore.ReportDescriptionClausesContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.reportDescriptionClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitReportDescriptionClause([NotNull] CobolParserCore.ReportDescriptionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGlobalClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGlobalClause([NotNull] CobolParserCore.ReportGlobalClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportCodeClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportCodeClause([NotNull] CobolParserCore.ReportCodeClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportControlClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportControlClause([NotNull] CobolParserCore.ReportControlClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportPageClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportPageClause([NotNull] CobolParserCore.ReportPageClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportPageSubclause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportPageSubclause([NotNull] CobolParserCore.ReportPageSubclauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupEntry"/>.
 	/// </summary>
@@ -1521,12 +1551,6 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitReportGroupName([NotNull] CobolParserCore.ReportGroupNameContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupBody"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitReportGroupBody([NotNull] CobolParserCore.ReportGroupBodyContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -1539,23 +1563,59 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitReportTypeClause([NotNull] CobolParserCore.ReportTypeClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupType"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupType([NotNull] CobolParserCore.ReportGroupTypeContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportLineClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportLineClause([NotNull] CobolParserCore.ReportLineClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportNextGroupClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportNextGroupClause([NotNull] CobolParserCore.ReportNextGroupClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportColumnClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportColumnClause([NotNull] CobolParserCore.ReportColumnClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSourceClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportSourceClause([NotNull] CobolParserCore.ReportSourceClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSumClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitReportSumClause([NotNull] CobolParserCore.ReportSumClauseContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.sumItem"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.sumOperand"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitSumItem([NotNull] CobolParserCore.SumItemContext context);
+	Result VisitSumOperand([NotNull] CobolParserCore.SumOperandContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.genericReportGroupClause"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportSumReset"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitGenericReportGroupClause([NotNull] CobolParserCore.GenericReportGroupClauseContext context);
+	Result VisitReportSumReset([NotNull] CobolParserCore.ReportSumResetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.reportGroupIndicateClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReportGroupIndicateClause([NotNull] CobolParserCore.ReportGroupIndicateClauseContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.inputOutputSection"/>.
 	/// </summary>
