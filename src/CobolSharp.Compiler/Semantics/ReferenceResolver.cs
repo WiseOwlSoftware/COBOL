@@ -15,17 +15,15 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
     private readonly SymbolTable _symbols;
     private readonly List<Diagnostic> _diagnostics;
     private readonly string _sourceName;
-    private readonly CompilationOptions _options;
     private readonly HashSet<string> _knownNames;
     private bool _inProcedureDivision;
 
     public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics, string sourceName,
-        CompilationOptions options, IEnumerable<string> knownNames)
+        IEnumerable<string> knownNames)
     {
         _symbols = symbols;
         _diagnostics = diagnostics;
         _sourceName = sourceName;
-        _options = options;
         _knownNames = new HashSet<string>(knownNames, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -44,12 +42,13 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     // ── Undefined data-name detection (ISO §8.4.2.1: uniqueness/validity of reference) ──
     // Without this, the binder demotes an unresolved name to an alphanumeric literal and lowering
-    // silently drops it, so `MOVE 5 TO NONEXISTENT-ITEM.` compiles clean and exits 0 — the
+    // silently drops it, so `MOVE 5 TO NONEXISTENT-ITEM.` compiled clean and exited 0 — the
     // assessment's #1 commercial gap. ONE centralized pass over operand-position data references
     // (not 66 scattered binder return-null sites) flags any whose BASE name resolves to no symbol of
-    // any kind. Dialect-gated: error only under named-strict modes (COBOL-85+); Default / --nist keep
-    // the existing lenient behavior, so the 349 NIST baselines are unaffected by construction. The
-    // staged rollout (flip Default to error after a clean-corpus dry-run) closes the gap. (DEVLOG 305)
+    // any kind. Active in ALL dialects (DEVLOG 310): the staged rollout completed once the corpus
+    // dry-run was clean (0/349, after the IC228A inherited-GLOBAL fix). `_knownNames` includes the
+    // SPECIAL-NAMES names AND the IS GLOBAL names inherited from containing programs (both threaded in
+    // via Compilation), neither of which lives in this program's own Scope. (DEVLOG 305/310)
 
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
     {
@@ -60,7 +59,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitDataReference(CobolParserCore.DataReferenceContext ctx)
     {
-        if (_inProcedureDivision && _options.Dialect >= DialectMode.StrictCobol85)
+        if (_inProcedureDivision)
             CheckUndefinedDataName(ctx);
         return base.VisitDataReference(ctx);
     }
@@ -83,7 +82,21 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
         _symbols.Program.DataDivisionScope.Resolve(name) != null
         || _symbols.Program.GlobalScope.Resolve(name) != null
         || _symbols.Program.ProcedureDivisionScope.Resolve(name) != null
-        || _knownNames.Contains(name);
+        || _knownNames.Contains(name)
+        || SpecialRegisters.Contains(name);
+
+    // COBOL special registers that lex as ordinary identifiers (LINAGE-COUNTER / LINE-COUNTER /
+    // PAGE-COUNTER are distinct tokens handled elsewhere). These are RECOGNIZED COBOL names, not
+    // "undefined", so the undefined-name check must not flag them — even when a given register is not yet
+    // implemented (visible/known is a separate concern from supported). Covers the COBOL-85 debugging
+    // module registers (ISO §14.x DEBUG-ITEM) and the universal vendor SORT/RETURN-CODE registers, which
+    // the permissive Default dialect accepts. (DEVLOG 310)
+    private static readonly HashSet<string> SpecialRegisters = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "RETURN-CODE", "SORT-RETURN", "SORT-CONTROL", "SORT-CORE-SIZE", "SORT-FILE-SIZE", "SORT-MODE-SIZE",
+        "TALLY", "DEBUG-ITEM", "DEBUG-LINE", "DEBUG-NAME", "DEBUG-CONTENTS",
+        "DEBUG-SUB-1", "DEBUG-SUB-2", "DEBUG-SUB-3",
+    };
 
     private static string ExtractProcedureName(CobolParserCore.ProcedureNameContext ctx)
     {

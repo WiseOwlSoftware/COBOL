@@ -71,6 +71,10 @@ public sealed class FileSymbol : Symbol
     /// <summary>True if ASSIGN target was a string literal (explicit path), false if identifier.</summary>
     public bool AssignIsLiteral { get; set; }
 
+    /// <summary>FD ... IS GLOBAL (§13.18.30): the file-name, its record, and all subordinate names are
+    /// visible to contained programs (ISO §8.4.6.2).</summary>
+    public bool IsGlobal { get; set; }
+
     /// <summary>SEQUENTIAL, RELATIVE, or INDEXED.</summary>
     public string? Organization { get; set; }
 

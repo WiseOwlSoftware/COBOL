@@ -33,8 +33,10 @@ defaults to `--standard cobol85` = strict, so ordinary `cobolsharp foo.cob` user
 - **#6 (308)** CLI top-level try/catch → internal-compiler-error, **exit 70** (EX_SOFTWARE).
 - **#10 (309)** runtime arg guards + **CobolRuntimeException** (RT####) on FileRuntime/PicRuntime/SortRuntime.
 
-**Next (priority order):** (a) **Default-flip follow-ups** — fix the IC228A GLOBAL-inheritance ordering, then
-enable CBL3128 in Default; CBL0814 is already corpus-clean to flip. (b) **Deferred P1 sub-items** — the PIC
+**Next (priority order):** (a) **Default-flip follow-ups** — **CBL3128 is now flipped to default-on (DEVLOG
+310)**: the IC228A ordering + 6 more false-positive sources an adversarial sweep found (the 0/349 dry-run was
+INSUFFICIENT — always run the adversarial false-positive sweep when flipping a gated check). **CBL0814 (PIC)
+is next** (dry-run already 0/349 clean). (b) **Deferred P1 sub-items** — the PIC
 structural rules (V/., P-run, S-first, Z/*); CopyProcessor REPLACE-malformed (CBL3623–5) + copybook
 source-mapping; StorageArea ref-mod-aware guards; the **emitted-Main top-level catch (Layer 2)**, which pairs
 with the P2 `Dispatch` recursion guard. (c) **P2 codegen hardening** (IL verify in guard, `IrRuntimeCall`

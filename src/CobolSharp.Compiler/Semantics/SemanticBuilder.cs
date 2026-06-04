@@ -313,23 +313,29 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (entry.implementorSwitchEntry() is { } swClause)
             {
                 var ids = swClause.cobolWord();
-                if (ids.Length >= 2)
+                if (ids.Length >= 1)
                 {
                     string implName = ids[0].GetText();
-                    string mnemonicName = ids[1].GetText();
-                    string? onName = null;
-                    string? offName = null;
+                    // Option 1 (ISO §12.3): 'switch-name IS mnemonic [ON/OFF STATUS ...]' — ids[1] is the
+                    // mnemonic. Option 2: 'switch-name ON STATUS IS cond-1 [OFF STATUS IS cond-2]' with NO
+                    // mnemonic (ids.Length == 1) — the ON/OFF condition-names are referenced directly. Both
+                    // forms must register so the condition-names bind and are whitelisted (DEVLOG 310).
+                    string mnemonicName = ids.Length >= 2 ? ids[1].GetText() : implName;
+                    string? onName = swClause.switchOnClause()?.cobolWord()?.GetText();
+                    string? offName = swClause.switchOffClause()?.cobolWord()?.GetText();
 
-                    if (swClause.switchOnClause() is { } onClause)
-                        onName = onClause.cobolWord()?.GetText();
-
-                    if (swClause.switchOffClause() is { } offClause)
-                        offName = offClause.cobolWord()?.GetText();
-
-                    _implementorSwitches.Add(
-                        new ImplementorSwitch(mnemonicName, implName, onName, offName));
+                    // Register only a genuine switch: a mnemonic (Option 1) or a status condition (Option 2).
+                    if (ids.Length >= 2 || onName != null || offName != null)
+                        _implementorSwitches.Add(
+                            new ImplementorSwitch(mnemonicName, implName, onName, offName));
                 }
             }
+
+            // CHANNEL integer IS mnemonic (§12.4.4): a printer-channel mnemonic-name, referenced in
+            // WRITE ... AFTER ADVANCING mnemonic. Capture the mnemonic (reusing the implementor-switch
+            // carrier) so it is whitelisted and not flagged undefined (CBL3128). (DEVLOG 310)
+            if (entry.channelClause() is { } chClause && chClause.dataReference()?.GetText() is { } chName)
+                _implementorSwitches.Add(new ImplementorSwitch(chName, "CHANNEL", null, null));
 
             // CLASS class-name IS literal [THRU literal] [, literal [THRU literal]]...
             if (entry.classDefinitionClause() is { } classClause)
@@ -832,6 +838,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     new Common.TextSpan(nameCtx.Start.StartIndex, nameCtx.Stop?.StopIndex ?? nameCtx.Start.StopIndex),
                     name);
             }
+            // FD ... IS GLOBAL (§13.18.30): mark the file so its record + subordinate names are inherited
+            // by contained programs (and not falsely flagged as undefined there). (DEVLOG 310)
+            if (ctx.fileDescriptionClauses() is { } fdClauses)
+                foreach (var c in fdClauses.fileDescriptionClause())
+                    if (c.fileGlobalExternalClause()?.GLOBAL() != null) { fileSym.IsGlobal = true; break; }
             _currentFdFile = fileSym;
         }
         _dataStack.Clear();

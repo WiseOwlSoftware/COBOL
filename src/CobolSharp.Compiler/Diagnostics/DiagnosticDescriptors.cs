@@ -306,9 +306,9 @@ public static partial class DiagnosticDescriptors
         "SCREEN item: USING cannot be combined with FROM or TO");
 
     // ══════════════════════════════════════
-    // CBL3128: Undefined data-name reference (ISO §8.4.2.1 uniqueness of reference). New strictness;
-    // dialect-gated to named-strict modes (COBOL-85+) so permissive Default / --nist are unaffected —
-    // the staged rollout toward closing the assessment's #1 commercial gap (DEVLOG 305).
+    // CBL3128: Undefined data-name reference (ISO §8.4.2.1 uniqueness of reference). Active in ALL
+    // dialects (DEVLOG 310): the staged rollout completed once the corpus dry-run was clean (0/349,
+    // after the IC228A inherited-GLOBAL fix), closing the assessment's #1 commercial gap (DEVLOG 305/310).
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3128 = new("CBL3128", DiagnosticSeverity.Error,
         "Undefined data-name '{0}': not declared as a data item, condition-name, index-name, file-name, or special register");

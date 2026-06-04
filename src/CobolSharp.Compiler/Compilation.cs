@@ -66,7 +66,13 @@ public sealed class Compilation
                 ?? Path.GetFileNameWithoutExtension(sourcePath);
             bool isInitial = ExtractIsInitialFromContext(progCtx);
 
-            var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, diagnostics, Options);
+            // Names of IS GLOBAL items declared in containing programs are visible here (ISO §8.4.5) but
+            // are not added to this program's scope until InheritGlobalItems runs below (after the model is
+            // built). So feed them into the undefined-data-name check's whitelist now, computed from the
+            // already-built ancestor models — otherwise a contained program's reference to an inherited
+            // global (e.g. IC228A's GLO-DATA-1..4) would be falsely flagged CBL3128. (DEVLOG 310)
+            var inheritedGlobalNames = CollectInheritedGlobalNames(progCtx, programParents, modelByContext);
+            var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, inheritedGlobalNames, diagnostics, Options);
             semanticModel.Program.IsInitial = isInitial;
 
             // Validate and compute layout
@@ -259,6 +265,56 @@ public sealed class Compilation
     /// <see cref="Semantics.ReferenceResolver"/> whitelists these so its undefined-data-name check
     /// (CBL3128) does not flag them.
     /// </summary>
+    /// <summary>
+    /// Names of IS GLOBAL data items (and their non-FILLER members) declared in every containing program of
+    /// <paramref name="progCtx"/> (ISO §8.4.5), gathered from the already-built ancestor models. Used to
+    /// whitelist inherited globals in the undefined-data-name check (CBL3128), which runs before
+    /// <see cref="InheritGlobalItems"/> adds them to this program's scope.
+    /// </summary>
+    private static IEnumerable<string> CollectInheritedGlobalNames(
+        ParserRuleContext progCtx,
+        IReadOnlyDictionary<ParserRuleContext, ParserRuleContext?> parents,
+        IReadOnlyDictionary<ParserRuleContext, Semantics.SemanticModel> modelByContext)
+    {
+        var ancestor = parents.TryGetValue(progCtx, out var p) ? p : null;
+        while (ancestor != null)
+        {
+            if (modelByContext.TryGetValue(ancestor, out var ancestorModel))
+            {
+                // Data items + their members, plus the INDEXED BY index-names of any OCCURS table under a
+                // global item (ISO §8.4.5: such an index-name possesses the global attribute). Index-names
+                // are yielded even for a FILLER table since the index itself is still referenceable.
+                // A record/field is inherited if it is an IS GLOBAL data item, OR it belongs to an
+                // FD ... IS GLOBAL file (ISO §8.4.6.2: a global file-name's record + all subordinate names
+                // are global). Index-names of an OCCURS table under either are yielded too (§8.4.5), even
+                // for a FILLER table since the index itself is still referenceable.
+                foreach (var item in ancestorModel.DataItemsInOrder)
+                {
+                    if (!(item.IsGlobal || item.OwningFile is { IsGlobal: true })) continue;
+                    foreach (var member in EnumerateSelfAndDescendants(item))
+                    {
+                        if (!member.IsFiller)
+                            yield return member.DisplayName;
+                        if (member.Occurs is { } occ)
+                            foreach (var idx in occ.IndexNames)
+                                yield return idx;
+                    }
+                }
+
+                // ISO §8.4.5/§8.4.6.2: condition-names associated with a global name are themselves global.
+                // They are ConditionSymbols (not in DataItemsInOrder/Children), so enumerate the scope and
+                // yield those whose parent data item lies under an IS GLOBAL item or a GLOBAL FD record.
+                foreach (var cond in ancestorModel.Symbols.Program.DataDivisionScope
+                             .GetAllSymbols<Semantics.ConditionSymbol>())
+                {
+                    for (var d = cond.ParentDataItem; d != null; d = d.Parent)
+                        if (d.IsGlobal || d.OwningFile is { IsGlobal: true }) { yield return cond.Name; break; }
+                }
+            }
+            ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
+        }
+    }
+
     private static IEnumerable<string> CollectSpecialNames(Semantics.SemanticBuilder b)
     {
         foreach (var sw in b.ImplementorSwitches)
@@ -270,12 +326,24 @@ public sealed class Compilation
         foreach (var (name, _) in b.SymbolicCharacters) yield return name;
         foreach (var c in b.ClassDefinitions) yield return c.Name;
         foreach (var a in b.AlphabetDefinitions) yield return a.Name;
+        // SCREEN SECTION screen-names are referenced by DISPLAY/ACCEPT but live in no Scope (DEVLOG 310).
+        foreach (var screenName in CollectScreenNames(b.ScreenItems)) yield return screenName;
+    }
+
+    private static IEnumerable<string> CollectScreenNames(IEnumerable<Semantics.Bound.BoundScreenItem> items)
+    {
+        foreach (var s in items)
+        {
+            if (s.Name != null) yield return s.Name;
+            foreach (var n in CollectScreenNames(s.Children)) yield return n;
+        }
     }
 
     private static Semantics.SemanticModel BuildSemanticModel(
         ParserRuleContext programTree,
         string programId,
         string sourcePath,
+        IEnumerable<string> inheritedGlobalNames,
         DiagnosticBag diagnostics,
         Semantics.CompilationOptions options)
     {
@@ -289,7 +357,8 @@ public sealed class Compilation
         // Pass 2: Reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
         var resolver = new Semantics.ReferenceResolver(
-            semanticBuilder.Symbols, semDiagnostics, sourcePath, options, CollectSpecialNames(semanticBuilder));
+            semanticBuilder.Symbols, semDiagnostics, sourcePath,
+            CollectSpecialNames(semanticBuilder).Concat(inheritedGlobalNames));
         resolver.Visit(programTree);
 
         foreach (var d in semDiagnostics)
