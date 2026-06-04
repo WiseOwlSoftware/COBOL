@@ -1,11 +1,20 @@
 # CobolSharp — Session Resume Prompt (2026-06-04)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 316
-(guard 1040 unit / 347 int / **354 NIST**).
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 320
+(guard 1040 unit / 347 int / **359 NIST**).
 
-**Latest session (DEVLOG 311–316): NIST 349→354 — SQ212A + 4 file-I/O/IC fixes, mostly from a parallel
-diagnosis workflow.** First SQ212A (311–312): variable-length WRITE/REWRITE out-of-bounds → **I-O status 44**
+**Latest session (DEVLOG 311–320): NIST 349→359 (+10) — SQ212A + the ENTIRE remaining file-I/O/IC backlog, via
+two parallel multi-agent workflows.** A 9-agent **diagnosis** workflow root-caused the backlog, then a 4-agent
+**worktree-isolated implementation** workflow implemented + full-guard-verified the four fixes in parallel; I
+integrated each onto main sequentially (3-way merge, guard-gated). Integrated DEVLOG 317–320: **RL213A** (OPTIONAL
+cross-program consumer shares the producer's `TF021` — NistPreprocessor allow-list), **IC114A** (a CALLed
+subprogram registers its own file connectors at `Entry`, not in its dead `Main`), **IC227A** (`FD … IS EXTERNAL`
+record area shared across programs — EXTERNAL machinery extended to FileSection with an Area discriminator),
+**IC233A/IC234A** (the GLOBAL-FILE feature: inherit ancestor `FD … IS GLOBAL` files into contained programs +
+cross-program GLOBAL USE-declarative dispatch via a new run-unit `GlobalUseDeclarativeRegistry`). **The diagnosed
+file-I/O/IC backlog is COMPLETE** except IX108A (a separate `END-WRITE`/scope-terminator fail, not the NOT-INVALID
+bug). Earlier in the session (DEVLOG 311–316): First SQ212A (311–312): variable-length WRITE/REWRITE out-of-bounds → **I-O status 44**
 (ISO §9.1.13) instead of crashing, which exposed+fixed a USE-procedure **declaratives-return** bug (return at
 the declarative's designated exit, not its CLOSE-FILES/footer/STOP-RUN termination tail; the right rule is "last
 trivial exit-point paragraph only when a terminating paragraph follows it" — two wrong heuristics each passed
@@ -67,43 +76,17 @@ RL208A 313, RL205A 314, RL111A 315, IC235A 316 — all DONE~~; **remaining 4 bel
 9-agent diagnosis**). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
 (bare "FLOW" code) are a known verify-then-delete cleanup (PROMPT.md zero-dead-code).**
 
-### Remaining file-I/O/IC backlog — DIAGNOSED, ready to execute (from the DEVLOG 311–316 parallel diagnosis)
-Each was root-caused in an isolated scratch dir; the fixes are sequential + guard-gated. Verify each from a
-clean dir (rc=0 + fresh report + footer "NO TEST(S) FAILED" + EXECUTED>0) before baselining.
-- **RL213A** (20 FAIL\*, chain RL212A→RL213A) — RL213A's RL-FS1 is `SELECT OPTIONAL … XXXXX021`; the
-  NistPreprocessor OPTIONAL-suppression (correct for the self-producing IX216A/217A/218A absent-optional family)
-  stops it sharing the `TF021` file RL212A produces (XXXXP021), so its EXTEND appends to a fresh empty file.
-  Fix: a per-test allow-list in `NistPreprocessor` SELECT-rewrite — still map OPTIONAL RELATIVE/INDEXED `XXXXX###`
-  → `"TF###"` for `{("RL213A","021")}` (a XXXXD-like consume). Then add RL212A (producer, NO_OUTPUT) + RL213A to
-  the guard, consecutive. *Note: the per-test-name allow-list is a smell — confirm the approach is acceptable, or
-  find a producer-aware discriminator.* `easy`.
-- **IC114A** (1 FAIL\* + binary report) — a CALLed subprogram's internal file connectors are registered ONLY in
-  its dead `Main` (the assembly entry is the run-unit main; a sub-program is entered via `Entry`), so IC115A's
-  SQ-FS3 I/O all no-ops. Fix: split the file-handler registration out of `Binder.CreateEntryPoint`'s Main into a
-  parameterless `RegisterFiles` IR method; call it once (a `_filesRegistered` static guard) at the top of `Entry`;
-  keep `FileRuntime.Init` (manager wipe) ONLY in the run-unit Main. Secondary: exclude column-7 indicator `X`/`x`
-  in `ReferenceFormatProcessor` (the XFILE-DUMP NUL bytes; IC112A also has X-cards — confirm green). `medium`
-  (broad Main/Entry codegen; watch the CANCEL+re-CALL idempotence — tie the flag reset to `ConsumeReinitFlag`).
-- **IC227A** (3 FAIL\*) — an `FD … IS EXTERNAL` record area is NOT shared across separately-compiled programs;
-  only `01 … EXTERNAL` in WORKING-STORAGE is. `SemanticBuilder.VisitFileDescriptionEntry` reads only the GLOBAL
-  alternative of `fileGlobalExternalClause`, never EXTERNAL; `EmitExternalStorageInitialization` registers only
-  `Area==WorkingStorage`. Fix: add `FileSymbol.IsExternal`, propagate to the FD's 01 `DataSymbol.IsExternal`;
-  register EXTERNAL `Area==FileSection` 01s too; **add a `StorageAreaKind Area` discriminator to the
-  `_externalRanges`/`ExternalRanges` tuple** (CilEmitter + EmissionContext) and to the CilLocationEmitter redirect
-  gates (else a FileSection range at offset N wrongly redirects a WS reference at N — would corrupt IC226A).
-  `medium` (5 files; the Area discriminator is REQUIRED for correctness).
-- **IC233A / IC234A** (COMPILE_FAIL "OPEN target 'TEST-FILE' is not a declared file") — GLOBAL FILE inheritance
-  into contained programs is unimplemented (DEVLOG 236 deferred FILE SECTION globals). **Part A** (unblocks the
-  compile): `Compilation.InheritGlobalItems` also inherits each ancestor `FD … IS GLOBAL` FileSymbol into the
-  contained program's GlobalScope (new `SemanticModel.TryInheritGlobalFile`); `CollectInheritedGlobalNames` also
-  yields the GLOBAL file's NAME (so CBL3128 doesn't fire). **Part B** (the real PASS): cross-program GLOBAL `USE`
-  declarative dispatch — thread `BoundUseStatement.IsGlobal` (dropped today at BoundTreeBuilder) into the
-  SemanticModel, thread ancestor models into `LoweringContext`, and in `FileIoLowerer.EmitUseDeclarative` walk
-  outward to PERFORM a containing program's GLOBAL declarative when the local program has none (§14.9.49.4 GR4).
-  `hard` (2-part; do IC233A — single CALL level — before IC234A's 4-level GLOBAL-attribute + open-mode filtering).
-- **IX108A** (000 OF 001, 001 FAILED, no detail line) — NOT the RL205A NOT-INVALID bug (that fix did not change
-  it). A test that never records a result; exercises `END-WRITE`/`END-DELETE`/`END-REWRITE` scope terminators.
-  Separate, undiagnosed; left as a known-fail.
+### Remaining file-I/O/IC backlog — ✅ DONE (DEVLOG 317–320), one item left
+The whole DEVLOG-311 diagnosed file-I/O/IC backlog is integrated and baselined (NIST 354→359): **RL213A**
+(OPTIONAL cross-program consumer share, 317), **IC114A** (subprogram file-reg at Entry, 318), **IC227A**
+(FD-EXTERNAL record sharing, 319), **IC233A/IC234A** (GLOBAL-FILE inheritance + cross-program GLOBAL USE
+dispatch, 320). Implemented in parallel worktree-isolated agents, integrated onto main one-at-a-time, guard-gated.
+- **IX108A** — the ONE remaining diagnosed file-I/O fail (`000 OF 001`, `001 FAILED`, no detail line). NOT the
+  RL205A NOT-INVALID bug (that fix didn't change it). A test that never records a result; exercises the
+  `END-WRITE`/`END-DELETE`/`END-REWRITE` explicit scope terminators. Separate, undiagnosed; left as a known-fail.
+  Other long-tail known-fails: SQ212A's IX108A-class, the deferred RL/IC GLOBAL follow-ups (subscripted/ref-modded
+  inherited globals, level-88 under a global group). Next-session candidates: Phase 5 stretch (DB/RW modules) or
+  the dead-code cleanup (`FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`).
 
 ## Read first
 - **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
@@ -133,7 +116,7 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 354 NIST honest)
+## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 359 NIST honest)
 | Suite | Present | Baselined | Status |
 |-------|--:|--:|--|
 | **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
@@ -143,8 +126,8 @@ A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must sta
 | **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
 | **SQ** sequential I/O     | 85 | 83 | ✅ +SQ212A (var-length WRITE/REWRITE→status 44 + USE-return fix, DEVLOG 311–312); SQ303M/401M flagging |
 | **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
-| **RL** relative I/O       | 35 | 31 | ◐ +RL208A/205A/111A (DEVLOG 313–315). Remaining: **RL213A** (OPTIONAL XXXXX021 not shared with producer RL212A — NistPreprocessor allow-list, see below); RL212A producer; RL301M/401M flagging |
-| **IC** inter-program CALL | 47 | 19 | ◐ +IC235A nested-program scoping (DEVLOG 316). Remaining (all DIAGNOSED, see below): IC114A (subprogram file-reg), IC227A (FD EXTERNAL record sharing), IC233A/234A (GLOBAL FILE inheritance, 2-part); ~23 callee halves + IC116M/401M excluded |
+| **RL** relative I/O       | 35 | 32 | ✅ +RL208A/205A/111A/213A (DEVLOG 313–317). RL212A producer; RL301M/401M flagging |
+| **IC** inter-program CALL | 47 | 23 | ✅ +IC235A/114A/227A/233A/234A (DEVLOG 316–320 — nested scoping, subprogram file-reg, FD EXTERNAL, GLOBAL FILE). All in-scope callers baselined; ~23 callee halves + IC116M/401M excluded |
 | **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
 | **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
 | **CM** communication      |  9 |  0 | ✗ whole Communication module (OBSOLETE in COBOL-2002) (Phase 5) |
