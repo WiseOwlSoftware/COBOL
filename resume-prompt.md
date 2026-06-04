@@ -1,8 +1,22 @@
-# CobolSharp — Session Resume Prompt (2026-06-03)
+# CobolSharp — Session Resume Prompt (2026-06-04)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 310
-(P1 diagnostics-on-invalid-input COMPLETE + CBL3128 flipped default-on; guard 1040 unit / 347 int / 349 NIST).
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 312
+(guard 1040 unit / 347 int / **350 NIST**).
+
+**Latest session (DEVLOG 311–312): SQ212A fixed + baselined (NIST 349→350).** A diagnosed feature-fix from the
+file-I/O backlog: **(311)** variable-length WRITE/REWRITE of an out-of-bounds record now sets **I-O status 44**
+(ISO §9.1.13 boundary violation) instead of crashing (RT0001) — RECORD VARYING min/max bounds plumbed to all
+three handlers via `Set{Sequential,Relative,Indexed}Varying`, one centralized `FileRuntime.VaryingBoundsViolated`
+check in WriteRecordVariable + Rewrite. That exposed **(312)** a USE-procedure declaratives-return bug (the
+DEVLOG 259–260 class): the USE PERFORM-THRU ended at the section's *physical* last paragraph, so SQ212A's handler
+`GO TO EXIT-PARA. EXIT.` fell through into the section's termination tail (CLOSE-FILES→footer→STOP RUN) and
+re-printed the CCVS footer per exception. Fixed by ending the THRU at the declarative's designated exit — the
+section's last paragraph by default, or the last trivial exit-point paragraph when a STOP RUN/EXIT PROGRAM/GOBACK
+termination tail follows it (`Binder.ScanDeclarativeControlPoints` → `LoweringContext.ExitPointParagraphs` +
+`TerminatingParagraphs`; `FileIoLowerer.EmitPerformDeclarativeSection`). **Method lesson reinforced:** two exit
+heuristics each passed SQ212A alone but the full guard caught them breaking 17 other SQ tests — verify a
+control-flow change against the whole suite, not just its target test.
 
 **Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
 self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
@@ -41,8 +55,8 @@ is next** (dry-run already 0/349 clean). (b) **Deferred P1 sub-items** — the P
 structural rules (V/., P-run, S-first, Z/*); CopyProcessor REPLACE-malformed (CBL3623–5) + copybook
 source-mapping; StorageArea ref-mod-aware guards; the **emitted-Main top-level catch (Layer 2)**, which pairs
 with the P2 `Dispatch` recursion guard. (c) **P2 codegen hardening** (IL verify in guard, `IrRuntimeCall`
-fail-fast, `Dispatch` recursion = RL111A). (d) **Diagnosed feature fixes** (SQ212A, RL205A/213A/208A,
-IC233A/234A/227A/235A/114A). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
+fail-fast, `Dispatch` recursion = RL111A). (d) **Diagnosed feature fixes** (~~SQ212A done DEVLOG 311–312~~,
+RL205A/213A/208A, IC233A/234A/227A/235A/114A). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
 (bare "FLOW" code) are a known verify-then-delete cleanup (PROMPT.md zero-dead-code).**
 
 ## Read first
@@ -73,7 +87,7 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 349 NIST honest)
+## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 350 NIST honest)
 | Suite | Present | Baselined | Status |
 |-------|--:|--:|--|
 | **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
@@ -81,7 +95,7 @@ A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must sta
 | **IX** indexed I/O        | 42 | 39 | ◐ IX108A removed (footer 001 FAILED — real bug, remaining work); IX301M/401M flagging |
 | **ST** sort/merge         | 40 | 29 +10 prod | ✅ COMPLETE (ST301M flagging) — every program accounted for |
 | **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
-| **SQ** sequential I/O     | 85 | 82 | ◐ SQ212A removed (crashes in WriteRecordVariable — var-seq WRITE, remaining work); SQ303M/401M flagging |
+| **SQ** sequential I/O     | 85 | 83 | ✅ +SQ212A (var-length WRITE/REWRITE→status 44 + USE-return fix, DEVLOG 311–312); SQ303M/401M flagging |
 | **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
 | **RL** relative I/O       | 35 | 28 | ◐ +RL106A/119A fixed (DEVLOG 303). Remaining bugs: RL205A/213A (FAIL\*), RL111A (close stack-overflow=P2), RL208A (Rewrite-pads-varying, Phase 3); RL212A producer; RL301M/401M flagging |
 | **IC** inter-program CALL | 47 | 18 | ◐ all self-contained callers baselined. Remaining: IC114A (file chain), IC227A/235A (EXTERNAL), IC233A/234A (USE GLOBAL AFTER ERROR — needs GLOBAL FILE inheritance); ~23 callee halves + IC116M/401M excluded |
