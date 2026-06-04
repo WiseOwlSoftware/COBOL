@@ -252,6 +252,25 @@ public sealed class Compilation
         return parser.NumberOfSyntaxErrors > 0 ? null : tree;
     }
 
+    /// <summary>
+    /// SPECIAL-NAMES-declared names that are valid references but live outside any Scope: mnemonic-names
+    /// and their ON/OFF switch conditions, symbolic characters, user CLASS names, and ALPHABET names.
+    /// <see cref="Semantics.ReferenceResolver"/> whitelists these so its undefined-data-name check
+    /// (CBL3128) does not flag them.
+    /// </summary>
+    private static IEnumerable<string> CollectSpecialNames(Semantics.SemanticBuilder b)
+    {
+        foreach (var sw in b.ImplementorSwitches)
+        {
+            yield return sw.Name;
+            if (sw.OnValueName != null) yield return sw.OnValueName;
+            if (sw.OffValueName != null) yield return sw.OffValueName;
+        }
+        foreach (var (name, _) in b.SymbolicCharacters) yield return name;
+        foreach (var c in b.ClassDefinitions) yield return c.Name;
+        foreach (var a in b.AlphabetDefinitions) yield return a.Name;
+    }
+
     private static Semantics.SemanticModel BuildSemanticModel(
         ParserRuleContext programTree,
         string programId,
@@ -268,7 +287,8 @@ public sealed class Compilation
 
         // Pass 2: Reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
-        var resolver = new Semantics.ReferenceResolver(semanticBuilder.Symbols, semDiagnostics, sourcePath);
+        var resolver = new Semantics.ReferenceResolver(
+            semanticBuilder.Symbols, semDiagnostics, sourcePath, options, CollectSpecialNames(semanticBuilder));
         resolver.Visit(programTree);
 
         foreach (var d in semDiagnostics)

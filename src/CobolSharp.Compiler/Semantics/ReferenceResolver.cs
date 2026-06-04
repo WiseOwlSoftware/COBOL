@@ -15,12 +15,18 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
     private readonly SymbolTable _symbols;
     private readonly List<Diagnostic> _diagnostics;
     private readonly string _sourceName;
+    private readonly CompilationOptions _options;
+    private readonly HashSet<string> _knownNames;
+    private bool _inProcedureDivision;
 
-    public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics, string sourceName = "<source>")
+    public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics, string sourceName,
+        CompilationOptions options, IEnumerable<string> knownNames)
     {
         _symbols = symbols;
         _diagnostics = diagnostics;
         _sourceName = sourceName;
+        _options = options;
+        _knownNames = new HashSet<string>(knownNames, StringComparer.OrdinalIgnoreCase);
     }
 
     private void Error(ParserRuleContext ctx, DiagnosticDescriptor descriptor, params object[] args)
@@ -35,6 +41,49 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             new Common.SourceLocation(_sourceName, 0, ctx.Start.Line, ctx.Start.Column),
             new Common.TextSpan(ctx.Start.StartIndex, ctx.Stop?.StopIndex ?? ctx.Start.StopIndex)));
     }
+
+    // ── Undefined data-name detection (ISO §8.4.2.1: uniqueness/validity of reference) ──
+    // Without this, the binder demotes an unresolved name to an alphanumeric literal and lowering
+    // silently drops it, so `MOVE 5 TO NONEXISTENT-ITEM.` compiles clean and exits 0 — the
+    // assessment's #1 commercial gap. ONE centralized pass over operand-position data references
+    // (not 66 scattered binder return-null sites) flags any whose BASE name resolves to no symbol of
+    // any kind. Dialect-gated: error only under named-strict modes (COBOL-85+); Default / --nist keep
+    // the existing lenient behavior, so the 349 NIST baselines are unaffected by construction. The
+    // staged rollout (flip Default to error after a clean-corpus dry-run) closes the gap. (DEVLOG 305)
+
+    public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
+    {
+        _inProcedureDivision = true;
+        try { return base.VisitProcedureDivision(ctx); }
+        finally { _inProcedureDivision = false; }
+    }
+
+    public override object? VisitDataReference(CobolParserCore.DataReferenceContext ctx)
+    {
+        if (_inProcedureDivision && _options.Dialect >= DialectMode.StrictCobol85)
+            CheckUndefinedDataName(ctx);
+        return base.VisitDataReference(ctx);
+    }
+
+    private void CheckUndefinedDataName(CobolParserCore.DataReferenceContext ctx)
+    {
+        if (ctx.LINAGE_COUNTER() != null) return;          // special register (ISO §8.4.3.14)
+        var baseWord = ctx.cobolWord();                     // base name; OF/IN qualifiers are nested qualification nodes
+        if (baseWord == null) return;
+        string name = baseWord.GetText();
+        if (IsDefinedName(name)) return;
+        Error(baseWord, DiagnosticDescriptors.CBL3128, name);
+    }
+
+    // A name is "defined" if it resolves to any symbol kind in any scope (data item, level-88
+    // condition-name, index-name, file connector, paragraph/section) or is a known SPECIAL-NAMES name
+    // (mnemonic, switch ON/OFF condition, symbolic character, class, alphabet) — none of which live in a
+    // Scope. Untyped Scope.Resolve returns any kind, so a real declaration is never false-flagged.
+    private bool IsDefinedName(string name) =>
+        _symbols.Program.DataDivisionScope.Resolve(name) != null
+        || _symbols.Program.GlobalScope.Resolve(name) != null
+        || _symbols.Program.ProcedureDivisionScope.Resolve(name) != null
+        || _knownNames.Contains(name);
 
     private static string ExtractProcedureName(CobolParserCore.ProcedureNameContext ctx)
     {
