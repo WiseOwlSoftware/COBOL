@@ -26,7 +26,10 @@ CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
 rm -f tests/nist/output/*.txt
 
 # All NIST tests currently at 100% — must stay green
-# (94 NC + 42 IF + 15 SM + 18 IC + 83 SQ + 26 RL + 40 IX + 29 ST + 3 OBSQ = 350 tests).
+# (93 NC + 42 IF + 15 SM + 18 IC + 82 SQ + 26 RL + 39 IX + 29 ST + 3 OBSQ = 347 tests).
+# (DEVLOG 302: removed 3 false-greens caught by the new footer/empty-baseline checks — NC303M & SQ212A
+#  were 0-byte vacuous baselines, IX108A's footer reported 001 TEST(S) FAILED. They are genuine
+#  remaining-work items, NOT passing tests; SQ212A crashes in FileRuntime.WriteRecordVariable.)
 #
 # Out-of-scope exclusion class (DEVLOG 301 scope decision — NOT baselined, NOT implemented; like the
 # flagging-"M" modules these are documented-excluded for modern-COBOL "operational" conformance):
@@ -91,7 +94,7 @@ NC170A NC171A NC172A NC173A NC174A NC175A NC176A NC177A
 NC201A NC202A NC203A NC204M NC205A NC206A NC207A NC208A NC209A NC210A NC211A NC215A NC216A NC217A NC218A NC219A NC220M NC221A NC222A NC223A NC224A
 NC225A NC231A NC232A NC233A NC234A NC235A NC236A NC237A NC238A NC245A NC246A NC247A
 NC239A NC240A NC250A NC241A NC242A NC243A NC244A NC248A NC251A NC252A NC253A NC254A
-NC302M NC303M
+NC302M
 NC401M
 IF101A IF102A IF103A IF104A IF105A IF106A IF107A IF108A IF109A IF110A
 IF111A IF112A IF113A IF114A IF115A IF116A IF117A IF118A IF119A IF120A
@@ -104,9 +107,9 @@ IC101A IC103A IC106A IC108A IC112A IC201A IC203A IC207A IC209A IC213A IC216A IC2
 SQ101M SQ102A SQ104A SQ105A SQ108A SQ111A SQ112A SQ113A SQ114A SQ116A SQ117A SQ121A SQ126A SQ127A
 SQ133A SQ136A SQ144A SQ141A SQ142A SQ106A SQ107A SQ109M SQ110M SQ124A SQ128A SQ130A SQ131A SQ143A SQ146A SQ149A SQ150A SQ154A SQ155A SQ156A SQ202A SQ203A SQ204A SQ206A SQ207M SQ211A SQ213A
 SQ214A SQ216A SQ217A SQ218A SQ219A SQ220A SQ221A SQ222A SQ223A SQ224A SQ230A SQ227A SQ228A SQ201M SQ208M SQ209M SQ210M SQ302M
-SQ103A SQ115A SQ122A SQ123A SQ125A SQ129A SQ132A SQ134A SQ135A SQ137A SQ138A SQ139A SQ140A SQ147A SQ148A SQ151A SQ152A SQ153A SQ205A SQ212A SQ215A SQ225A SQ226A SQ229A
+SQ103A SQ115A SQ122A SQ123A SQ125A SQ129A SQ132A SQ134A SQ135A SQ137A SQ138A SQ139A SQ140A SQ147A SQ148A SQ151A SQ152A SQ153A SQ205A SQ215A SQ225A SQ226A SQ229A
 RL105A RL118A RL108A RL109A RL110A RL101A RL102A RL103A RL107A RL117A RL201A RL202A RL203A RL206A RL207A RL210A RL211A RL209A RL104A RL112A RL113A RL114A RL115A RL116A RL204A RL302M
-IX101A IX102A IX103A IX104A IX105A IX106A IX107A IX108A IX109A IX110A IX111A IX112A IX113A IX114A IX115A IX116A IX117A IX118A IX119A IX120A IX121A IX201A IX202A IX203A IX204A IX205A IX206A IX207A IX208A IX209A IX210A IX211A IX212A IX213A IX214A IX215A IX216A IX217A IX218A IX302M
+IX101A IX102A IX103A IX104A IX105A IX106A IX107A IX109A IX110A IX111A IX112A IX113A IX114A IX115A IX116A IX117A IX118A IX119A IX120A IX121A IX201A IX202A IX203A IX204A IX205A IX206A IX207A IX208A IX209A IX210A IX211A IX212A IX213A IX214A IX215A IX216A IX217A IX218A IX302M
 ST101A ST102A ST103A ST104A ST105A ST106A ST107A ST108A ST109A ST110A ST111A ST112M ST113M ST114M ST115A ST116A ST117A ST118A ST119A ST120A ST121A ST122A ST123A ST124A ST125A ST126A ST127A ST131A ST132A ST133A ST134A ST135A ST136A ST137A ST139A ST140A ST144A ST146A ST147A
 OBSQ1A OBSQ3A OBSQ4A OBSQ5A
 "
@@ -166,7 +169,17 @@ for test in $NIST_TESTS; do
     # Check for FAIL* in output — these are real test failures, not acceptable baselines
     fail_count=$(grep -c "FAIL\*" "$actual" 2>/dev/null || true)
     fail_count=${fail_count:-0}
-    if [ "$fail_count" -gt 0 ] 2>/dev/null; then
+    # Footer-total check: the AUTHORITATIVE CCVS pass/fail signal is the report footer
+    # "NNN TEST(S) FAILED" total, not just the per-paragraph FAIL* detail lines. A test can
+    # fail-to-execute (e.g. "000 OF 001 EXECUTED" + "001 TEST(S) FAILED") with ZERO FAIL* detail
+    # lines, which the FAIL*-grep alone would pass as MATCH (the IX108A false-green). "NO TEST(S)
+    # FAILED" does not match [0-9]+ so it is treated as zero.
+    footer_failed=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$actual" 2>/dev/null | grep -oE "^[0-9]+" | head -1)
+    footer_failed=${footer_failed:-0}
+    if [ "$footer_failed" -gt 0 ] 2>/dev/null; then
+        echo "  $test: FOOTER ${footer_failed} TEST(S) FAILED — REGRESSION!"
+        FAILURES=$((FAILURES + 1))
+    elif [ "$fail_count" -gt 0 ] 2>/dev/null; then
         echo "  $test: MATCH (${fail_count} FAIL*)"
     else
         echo "  $test: MATCH"
@@ -178,12 +191,25 @@ if [ $FAILURES -gt 0 ]; then
     exit 1
 fi
 
-# Verify no baselines contain FAIL* — baselines must be 100% clean
+# Verify every baseline is clean and non-vacuous — baselines must be 100% trustworthy.
+# (1) a 0-byte baseline matches any empty/crash output vacuously; (2) a FAIL* detail line is a real
+# failure; (3) a nonzero footer "NNN TEST(S) FAILED" is a real failure even with no FAIL* detail line.
 for f in tests/nist/valid/*.txt; do
+    if [ ! -s "$f" ]; then
+        echo "=== ERROR: $(basename "$f") is EMPTY — a 0-byte baseline passes vacuously; remove from valid/ ==="
+        FAILURES=$((FAILURES + 1))
+        continue
+    fi
     fc=$(grep -c "FAIL\*" "$f" 2>/dev/null || true)
     fc=${fc:-0}
     if [ "$fc" -gt 0 ] 2>/dev/null; then
         echo "=== ERROR: $(basename "$f") contains $fc FAIL* — remove from valid/ ==="
+        FAILURES=$((FAILURES + 1))
+    fi
+    ff=$(grep -oE "[0-9]+ TEST\(S\) FAILED" "$f" 2>/dev/null | grep -oE "^[0-9]+" | head -1)
+    ff=${ff:-0}
+    if [ "$ff" -gt 0 ] 2>/dev/null; then
+        echo "=== ERROR: $(basename "$f") footer reports $ff TEST(S) FAILED — not a clean baseline; remove from valid/ ==="
         FAILURES=$((FAILURES + 1))
     fi
 done

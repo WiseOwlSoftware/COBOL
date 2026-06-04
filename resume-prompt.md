@@ -3,12 +3,18 @@
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
 This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 300.
 
-**Latest session (DEVLOG 296–300): 299 → 350 NIST baselines (+51).** Phase-1 quick wins (SM104A/105A/205A +
-OBSQ1A/4A/5A), IC self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix
-(IC106A/IC207A), and the Phase-2 SQ tail (**SQ suite COMPLETE**, +24) and RL tail (+7). **Method lesson baked
-in: `run-suite.sh` reports chain consumers "CLEAN" off STALE `TF###` files (it never cleans data files) AND a
-stale report can hide a crash — so re-verify every candidate from a clean output dir, checking rc=0 + a freshly
-written report, never just a 0-`FAIL*` grep.**
+**Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
+self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
+SQ tail (+24) and RL tail (+7). Then the owner reframed the goal to **production/commercial COBOL-85 +
+extensibility, rewrite-on-the-table**; two evidence-based workflows (10-dim architecture audit + 11-test
+root-cause diagnosis) answered it: **NO REWRITE — 8× targeted-refactor / 2× incremental / 0× rewrite.** Full
+synthesis + prioritized commercial-hardening roadmap in **`docs/ARCHITECTURE_ASSESSMENT.md`** (read it first).
+**P0 done (DEVLOG 302):** the guard was lying — it never parsed the CCVS footer total, so 3 false-greens hid in
+"350" (SQ212A 0-byte *crash*, IX108A footer 001 FAILED, NC303M 0-byte flag module). Hardened the guard (footer
++ 0-byte checks) and removed them → **honest 347**. **Method lessons baked in:** `run-suite.sh` reports chain
+consumers "CLEAN" off STALE `TF###`, and a 0-byte/stale report hides a crash — verify every candidate from a
+clean dir with **rc=0 + freshly-written report + footer "NO TEST(S) FAILED" + EXECUTED>0**, never just a
+0-`FAIL*` grep. **Next per the roadmap: P1 diagnostics-on-invalid-input + the diagnosed RL/IC feature fixes.**
 
 ## Read first
 - **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
@@ -37,15 +43,15 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 350 NIST)
+## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 347 NIST honest)
 | Suite | Present | Baselined | Status |
 |-------|--:|--:|--|
-| **NC** nucleus            | 95 | 94 | ✅ COMPLETE (NC214M dropped: non-deterministic ACCEPT) |
+| **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
 | **IF** intrinsics         | 45 | 42 | ✅ COMPLETE (IF401M/402M/403M flagging) |
-| **IX** indexed I/O        | 42 | 40 | ✅ COMPLETE (IX301M/401M flagging) |
+| **IX** indexed I/O        | 42 | 39 | ◐ IX108A removed (footer 001 FAILED — real bug, remaining work); IX301M/401M flagging |
 | **ST** sort/merge         | 40 | 29 +10 prod | ✅ COMPLETE (ST301M flagging) — every program accounted for |
 | **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
-| **SQ** sequential I/O     | 85 | 83 | ✅ COMPLETE (DEVLOG 299: +24 tail; SQ303M/401M flagging) |
+| **SQ** sequential I/O     | 85 | 82 | ◐ SQ212A removed (crashes in WriteRecordVariable — var-seq WRITE, remaining work); SQ303M/401M flagging |
 | **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
 | **RL** relative I/O       | 35 | 26 | ◐ DEVLOG 300: +7 tail. Deferred bugs: RL106A/119A/205A/213A (FAIL\*), RL111A (close stack-overflow), RL208A (Rewrite-pads-varying, Phase 3); RL212A producer; RL301M/401M flagging |
 | **IC** inter-program CALL | 47 | 18 | ◐ all self-contained callers baselined. Remaining: IC114A (file chain), IC227A/235A (EXTERNAL), IC233A/234A (USE GLOBAL AFTER ERROR — needs GLOBAL FILE inheritance); ~23 callee halves + IC116M/401M excluded |
