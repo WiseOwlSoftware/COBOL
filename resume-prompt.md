@@ -1,7 +1,7 @@
 # CobolSharp — Session Resume Prompt (2026-06-03)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 303.
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 309.
 
 **Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
 self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
@@ -15,10 +15,32 @@ synthesis + prioritized commercial-hardening roadmap in **`docs/ARCHITECTURE_ASS
 consumers "CLEAN" off STALE `TF###`, and a 0-byte/stale report hides a crash — verify every candidate from a
 clean dir with **rc=0 + freshly-written report + footer "NO TEST(S) FAILED" + EXECUTED>0**, never just a
 0-`FAIL*` grep. **Then started the diagnosed feature fixes (DEVLOG 303): RL119A (OPEN I-O missing-non-optional
-→35) + RL106A (varying relative records size by MAX not first-01) → 349.** **Next per the roadmap: continue the
-diagnosed RL/IC fixes (SQ212A var-DEPENDING WRITE crash, RL205A/213A/208A, IC233A/234A GLOBAL-FILE-inherit,
-IC227A/235A EXTERNAL, IC114A) + P1 diagnostics-on-invalid-input + P2 codegen hardening (IL verify, IrRuntimeCall
-fail-fast, Dispatch recursion guard).**
+→35) + RL106A (varying relative records size by MAX not first-01) → 349.**
+
+**This session (DEVLOG 304–309): P1 commercial-hardening "diagnostics on invalid input" — ALL 6 ITEMS DONE.**
+Guard ALL GREEN throughout: **1034 unit / 347 integration / 349 NIST** (NIST count unchanged — these are
+diagnostics on *invalid* input, gated so valid programs are unaffected). Owner directives: **sequential +
+guard-gated** (one item, full guard, commit, repeat) and **new strictness dialect-gated to named-strict modes
+first** so the permissive Default/--nist path (= the 349 baselines) is unaffected *by construction*. (The CLI
+defaults to `--standard cobol85` = strict, so ordinary `cobolsharp foo.cob` users DO get the new checks.)
+- **#7 (304)** real source path in *every* diagnostic + retired the bare `"SEM"` code → descriptors CBL3120–3127.
+- **#5 (305)** undefined data-name **CBL3128** — one centralized `ReferenceResolver` pass (not 66 sites),
+  strict-gated. Default-flip dry-run: **348/349 clean; only IC228A** false-positives (GLOBAL data inherited
+  from a *containing* program, since `InheritGlobalItems` runs after `ReferenceResolver`) = the lone flip blocker.
+- **#8 (306)** PICTURE-validity **CBL0814** (strict-gated; dry-run **0/349 clean**) + level-number **CBL0815**
+  (unconditional — replaces a crash-prone `int.Parse`).
+- **#9 (307)** CopyProcessor diagnostics — missing **CBL3620** (gated) / circular **CBL3621** / depth **CBL3622**.
+- **#6 (308)** CLI top-level try/catch → internal-compiler-error, **exit 70** (EX_SOFTWARE).
+- **#10 (309)** runtime arg guards + **CobolRuntimeException** (RT####) on FileRuntime/PicRuntime/SortRuntime.
+
+**Next (priority order):** (a) **Default-flip follow-ups** — fix the IC228A GLOBAL-inheritance ordering, then
+enable CBL3128 in Default; CBL0814 is already corpus-clean to flip. (b) **Deferred P1 sub-items** — the PIC
+structural rules (V/., P-run, S-first, Z/*); CopyProcessor REPLACE-malformed (CBL3623–5) + copybook
+source-mapping; StorageArea ref-mod-aware guards; the **emitted-Main top-level catch (Layer 2)**, which pairs
+with the P2 `Dispatch` recursion guard. (c) **P2 codegen hardening** (IL verify in guard, `IrRuntimeCall`
+fail-fast, `Dispatch` recursion = RL111A). (d) **Diagnosed feature fixes** (SQ212A, RL205A/213A/208A,
+IC233A/234A/227A/235A/114A). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
+(bare "FLOW" code) are a known verify-then-delete cleanup (PROMPT.md zero-dead-code).**
 
 ## Read first
 - **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
