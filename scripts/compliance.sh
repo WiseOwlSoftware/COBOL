@@ -21,14 +21,16 @@ MODULES=(
   "IX|Indexed I-O|core"
   "RL|Relative I-O|core"
   "ST|Sort-Merge|core"
-  "DB|Debug|module"
-  "RW|Report Writer|module"
-  "SG|Segmentation|module"
-  "CM|Communication|module"
-  "OBNC|Obsolete Nucleus|obsolete"
-  "OBIC|Obsolete Inter-Program|obsolete"
+  "RW|Report Writer|live"
+  "DB|Debug|removed"
+  "SG|Segmentation|removed"
+  "CM|Communication|removed"
+  "OBNC|Obsolete Nucleus|removed"
+  "OBIC|Obsolete Inter-Program|removed"
   "EXEC|EXEC85 (EXCLUDED)|excluded"
 )
+# status: core/live = baseline target; removed = parse+dialect-flag only (NOT a baseline target,
+# their …A NIST tests stay un-baselined by design — see docs/COBOL85_COMPLIANCE_PLAN.md §4); excluded = out.
 
 count() { ls $1 2>/dev/null | grep -E "/${2}[0-9]" | wc -l | tr -d ' '; }
 
@@ -46,11 +48,15 @@ for m in "${MODULES[@]}"; do
   [ "$status" = "excluded" ] && mark="—"
   printf "  %-28s %8s %10s %6s%%  %s %s\n" "$name" "$p" "$b" "$pct" "$mark" "$status"
   tot_present=$((tot_present+p)); tot_base=$((tot_base+b))
-  if [ "$status" != "excluded" ]; then tot_present_inscope=$((tot_present_inscope+p)); tot_base_inscope=$((tot_base_inscope+b)); fi
+  # Baseline target = the LIVE feature set: core modules + Report Writer. Removed/obsolete modules are
+  # parse+dialect-flag only (their …A tests don't baseline), so they're NOT in the baseline-target denominator.
+  if [ "$status" = "core" ] || [ "$status" = "live" ]; then
+    tot_present_inscope=$((tot_present_inscope+p)); tot_base_inscope=$((tot_base_inscope+b)); fi
 done
 printf "  %s\n" "--------------------------------------------------------------------------------"
 printf "  %-28s %8s %10s %6s%%\n" "ALL NIST programs" "$tot_present" "$tot_base" "$((100*tot_base/tot_present))"
-printf "  %-28s %8s %10s %6s%%   (excludes EXEC85)\n" "IN-SCOPE (target)" "$tot_present_inscope" "$tot_base_inscope" "$((100*tot_base_inscope/tot_present_inscope))"
+printf "  %-28s %8s %10s %6s%%   (core + Report Writer)\n" "BASELINE TARGET (live)" "$tot_present_inscope" "$tot_base_inscope" "$((100*tot_base_inscope/tot_present_inscope))"
+echo "  (Removed modules DB/SG/CM/OBNC/OBIC = parse + dialect-flag only — not a baseline target.)"
 echo
 echo "  Note: PRESENT counts every NIST .cob; some non-baselined are excluded-by-design within a ✅ module"
 echo "  (flagging '…M' modules emit no CCVS report; NO_OUTPUT producers feed chains; PROCEDURE DIVISION USING"

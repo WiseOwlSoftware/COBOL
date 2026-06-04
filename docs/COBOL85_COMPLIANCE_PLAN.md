@@ -63,25 +63,48 @@ sequential guard-gated integration onto `main`**. NIST programs validate; additi
 - **WS-DASH — Compliance dashboard.** A `scripts/compliance.sh` that reports per-module NIST pass% + a
   spec-feature checklist (from §2 + WS-SPEC), so "% to 100%" is always measurable and regressions visible.
 
-## 4. Scope — DECIDED (owner, 2026-06-04): literal 100%, exhaustive
+## 4. Scope — DECIDED (owner, 2026-06-04, REVISED): multi-version (85→2023), live-features-first
 
-Owner chose **literal 100% COBOL-85 — all modules** and an **exhaustive spec-feature coverage** bar (overrides
-the DEVLOG-301 "operational" exclusion):
+The true goal is a compiler that supports **every ISO COBOL version 1985 → 2023**, dialect-gated. Spec evidence
+from the repo's own `specs/ISO_COBOL.md` (ISO 1989:2023) reshapes the obsolete-module question:
 
-- **IN SCOPE — every module:** Debug (DB), Report Writer (RW), Segmentation (SG), **Communication (CM) via a
-  synthetic in-process Message Control System** for the `…A` tests + flag-only for the `…M` conformance tests,
-  and the OBNC/OBIC obsolete-feature variants. Plus WS-IC (tail), WS-SPEC, WS-FLAG, WS-DASH.
-- **EXCLUDED:** EXEC85 only (a non-standard test driver, not a COBOL-85 language feature) — documented exclusion.
-- **Compliance bar = EXHAUSTIVE:** beyond passing every in-scope NIST program at 0 `FAIL*` + correct flagging,
-  author a passing test for **every statement / clause / option in the COBOL-85 spec** (an encyclopedic corpus
-  under `tests/nist/extra/` + integration tests), tracked by `scripts/compliance.sh` against a per-feature
-  checklist derived from the ISO TOC. This is the WS-SPEC workstream, run continuously alongside the modules.
+| Feature | In ISO 2023? | Decision |
+|---|---|---|
+| **Report Writer** | ✅ `A.4.11`, **Optional element list** | **IMPLEMENT** — live in every version, not a dead-end |
+| Segmentation | ❌ 0 hits — gone | **parse + dialect-flag only** (no runtime) |
+| Debug module (`USE FOR DEBUGGING`/`DEBUG-ITEM`) | ❌ removed 2002 | **parse + dialect-flag only** (debug lines already preprocessed) |
+| Communication (`CD`/`SEND`/`RECEIVE`) | ❌ removed 2002 | **parse + dialect-flag only** (no synthetic MCS) |
+| Obsolete elements (`ALTER`, `GO TO` w/o name, …) | archaic | **parse + dialect-flag** (`ALTER` already built) |
 
-### Execution waves (by tractability / dependency)
-1. **Wave 1 (S/M, independent):** Debug, Segmentation, OBNC/OBIC obsolete variants, IC-tail verification.
-2. **Wave 2 (L/XL):** Report Writer (its own multi-agent sub-effort: grammar/parse · runtime · codegen · verbs).
-3. **Wave 3 (XL + infra):** Communication (synthetic MCS · CD/SEND/RECEIVE · flagging).
-4. **Continuous:** WS-SPEC exhaustive test corpus, WS-DASH dashboard, WS-FLAG flagging conformance.
+**Principle:** fully implement features that are LIVE across 85→2023; for features REMOVED after '85, build only
+*parse + dialect gating* (accept under `--standard cobol85`, flag-as-removed under `--standard cobol2002+`) — NOT
+their runtime semantics. Building a synthetic MCS / segment re-init / DEBUG-ITEM fire-machinery is effort that
+only serves '85 and is non-conformant for later versions; it is explicitly out of scope. EXEC85 excluded.
+
+**Consequence for NIST:** the full `…A` tests of the removed modules (DB/SG/CM) will NOT baseline (they need the
+runtime) — documented as "version-removed module, parse+flag only." Their `…M` flagging tests are satisfied by
+the correct *diagnostics* under the strict dialect. NIST CCVS85 remains the validation backbone for the core
+modules **+ Report Writer**.
+
+### Revised workstreams
+- **WS-RW — Report Writer (IMPLEMENT, flagship live work).** Full module: grammar · runtime · codegen · verbs.
+- **WS-DIALECT — parse + version-gate the removed features.** Grammar to ACCEPT `USE FOR DEBUGGING`, `CD`/`SEND`/
+  `RECEIVE`, section segment-numbers, `SEGMENT-LIMIT`, and the obsolete-element statements; `DialectStrictnessChecks`
+  to flag each as removed under `--standard >= cobol2002`. Satisfies the `…M` flagging tests + makes the cobol85
+  dialect accept the constructs. (Replaces the old WS-DB/WS-SG/WS-CM/WS-OBS "implement" workstreams.)
+- **WS-IC — Inter-Program tail verification** (unchanged).
+- **WS-SPEC — exhaustive spec-feature corpus** for the LIVE feature set (`tests/nist/extra/` + integration tests).
+- **WS-DASH — compliance dashboard** (`scripts/compliance.sh`), reclassified: baseline-target = core + Report
+  Writer; removed modules tracked as "parse+flag", not baseline.
+- **WS-FORWARD — the forward track (the real multi-version value).** Stand up the dialect/version architecture as
+  the centerpiece, then implement COBOL-2002/2014/2023 additions (free-form source, user-defined functions,
+  dynamic-capacity tables, bit/boolean, FUNCTION growth, …) with a **custom conformance corpus** (no NIST suite
+  exists past '85). This is the long-horizon track and where most future effort goes.
+
+### Execution order
+1. **Now:** WS-RW (Report Writer — the flagship live module) + WS-DIALECT (parse+flag removed) in parallel.
+2. **Then:** WS-IC tail, WS-SPEC core-feature corpus, dashboard reclassification.
+3. **Long horizon:** WS-FORWARD (dialect architecture + 2002/2014/2023 features + custom corpus).
 
 ## 5. Execution & measurement
 
