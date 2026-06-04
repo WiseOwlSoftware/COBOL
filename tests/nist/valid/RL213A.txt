@@ -1,0 +1,33 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL213A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ EXTEND FILE RL-FS1         REL-TEST-001
+*** INFORMATION ***        FILE EXTENDED, LFILE      000000000000000520
+
+ EXTEND FILE RL-FS1   PASS  REL-TEST-002
+*** INFORMATION ***        FILE VERIFIED, LFILE      000000000000000520
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL213A
+
+                                                    521 OF 521  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

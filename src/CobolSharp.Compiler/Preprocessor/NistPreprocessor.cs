@@ -26,6 +26,19 @@ namespace CobolSharp.Compiler.Preprocessor;
 public static class NistPreprocessor
 {
     /// <summary>
+    /// Per-test allow-list of (NIST test name, X-card number) pairs whose SELECT OPTIONAL
+    /// RELATIVE/INDEXED file's permanent <c>XXXXX###</c> ASSIGN target must STILL be mapped to the
+    /// shared <c>"TF###"</c> physical file — i.e. the OPTIONAL file is read from a file a SEPARATE
+    /// producer program wrote. By default an OPTIONAL RELATIVE/INDEXED target is left implementor-name-
+    /// qualified for per-program absent-file isolation (IX216A/217A/218A, SQ202A/203A); this list is the
+    /// narrow set of cross-program consumers that legitimately need the producer's shared file instead.
+    ///   • ("RL213A","021") — RL212A writes 500 records to RL-FS1 (non-OPTIONAL XXXXP021 → "TF021");
+    ///     RL213A SELECT OPTIONAL RL-FS1 ASSIGN TO XXXXX021 OPENs EXTEND, appends 501–520, re-reads 520.
+    /// </summary>
+    private static readonly System.Collections.Generic.HashSet<(string Test, string XCard)> OptionalSharedAssign =
+        new() { ("RL213A", "021") };
+
+    /// <summary>
     /// Replace NIST XXXXX placeholders in COBOL source text.
     /// </summary>
     /// <param name="source">Raw or normalized COBOL source text.</param>
@@ -118,6 +131,27 @@ public static class NistPreprocessor
                     if (System.Text.RegularExpressions.Regex.IsMatch(sel, @"\b(RELATIVE|INDEXED)\b"))
                         sel = System.Text.RegularExpressions.Regex.Replace(
                             sel, @"(ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)", "$1\"TF$2\"");
+                }
+                else if (System.Text.RegularExpressions.Regex.IsMatch(sel, @"\b(RELATIVE|INDEXED)\b"))
+                {
+                    // A SELECT OPTIONAL RELATIVE/INDEXED file normally keeps its implementor-name (so the
+                    // Binder qualifies it per program-id) — that isolation is REQUIRED by the self-producing
+                    // "absent optional" family (IX216A/217A/218A OPEN INPUT/EXTEND of an absent optional
+                    // indexed file expects status 05/AT-END 10, NOT 00 from a leftover shared TF###; likewise
+                    // SQ202A/203A). But a HANDFUL of OPTIONAL consumers legitimately read a file a SEPARATE
+                    // producer program created and therefore MUST share that producer's "TF###". RL213A is
+                    // one: RL212A (a distinct program) writes 500 records to RL-FS1 via the non-OPTIONAL
+                    // `ASSIGN TO XXXXP021` → "TF021", then RL213A `SELECT OPTIONAL RL-FS1 ASSIGN TO XXXXX021`
+                    // OPENs EXTEND, appends 501–520, and re-reads all 520. Left implementor-name-qualified,
+                    // RL213A's RL-FS1 resolves to its own empty per-program file and every record-number check
+                    // FAILs (ISO §13.18.43 OPTIONAL phrase governs only presence semantics, not the physical
+                    // assignment target). The allow-list maps the OPTIONAL XXXXX### → "TF###" for exactly the
+                    // (test, X-card) pairs that are cross-program consumers, never touching the isolation family.
+                    sel = System.Text.RegularExpressions.Regex.Replace(
+                        sel, @"(ASSIGN\s+(?:TO\s+)?)XXXXX(\d+)",
+                        mm => OptionalSharedAssign.Contains((testName, mm.Groups[2].Value))
+                            ? mm.Groups[1].Value + "\"TF" + mm.Groups[2].Value + "\""
+                            : mm.Value);
                 }
                 return sel;
             });
