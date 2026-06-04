@@ -10,30 +10,69 @@ namespace CobolSharp.CLI;
 /// </summary>
 public class Program
 {
+    /// <summary>BSD sysexits.h EX_SOFTWARE: an internal software error, returned for an unexpected
+    /// (uncaught) compiler exception. Distinct from 0 (success) and 1 (a normal, diagnosed failure).</summary>
+    private const int ExitInternalError = 70;
+
     public static int Main(string[] args)
     {
-        if (args.Length == 0 || args[0] is "-h" or "--help")
+        try
         {
-            PrintUsage();
-            return 0;
-        }
-
-        // Explicit subcommand: preprocess
-        if (args[0] == "preprocess")
-        {
-            if (args.Length < 2)
+            if (args.Length == 0 || args[0] is "-h" or "--help")
             {
-                Console.Error.WriteLine("Error: no source file specified.");
-                Console.Error.WriteLine("Usage: cobolsharp preprocess <file.cob> [-o <output>]");
-                return 1;
+                PrintUsage();
+                return 0;
             }
 
-            return RunPreprocess(args[1..]);
-        }
+            // Explicit subcommand: preprocess
+            if (args[0] == "preprocess")
+            {
+                if (args.Length < 2)
+                {
+                    Console.Error.WriteLine("Error: no source file specified.");
+                    Console.Error.WriteLine("Usage: cobolsharp preprocess <file.cob> [-o <output>]");
+                    return 1;
+                }
 
-        // Default: compile. Accept "compile" as optional explicit subcommand.
-        var compileArgs = args[0] == "compile" ? args[1..] : args;
-        return RunCompile(compileArgs);
+                return RunPreprocess(args[1..]);
+            }
+
+            // Default: compile. Accept "compile" as optional explicit subcommand.
+            var compileArgs = args[0] == "compile" ? args[1..] : args;
+            return RunCompile(compileArgs);
+        }
+        catch (Exception ex)
+        {
+            // An UNEXPECTED exception is an internal compiler bug: every expected, already-diagnosed
+            // failure returns 0/1 cleanly via the dispatch above and never reaches here. Surface a
+            // diagnosable internal-compiler-error to stderr (never a raw CLR crash dump) and return a
+            // dedicated non-crash exit code, so a code-generation defect is reportable rather than an
+            // opaque process abort (rc 134/139-class). (DEVLOG 308)
+            string? src = TryFindSourceArg(args);
+            Console.Error.WriteLine(
+                $"<cobolsharp>: error COBOL0600: Internal compiler error: {ex.GetType().Name}: " +
+                $"{ex.Message}. Please report this, including the stack trace below.");
+            if (src != null)
+                Console.Error.WriteLine($"  Source: {src}");
+            Console.Error.WriteLine(ex.ToString());
+            return ExitInternalError;
+        }
+    }
+
+    /// <summary>
+    /// Best-effort recovery of the source path from <paramref name="args"/> for the internal-error
+    /// message: the first non-option, non-subcommand token, skipping the value of a value-taking option.
+    /// </summary>
+    private static string? TryFindSourceArg(string[] args)
+    {
+        for (int i = 0; i < args.Length; i++)
+        {
+            string a = args[i];
+            if (a is "compile" or "preprocess") continue;
+            if (a is "-o" or "--standard" or "--copy-path" or "-I") { i++; continue; } // skip option value
+            if (!a.StartsWith('-')) return a;
+        }
+        return null;
     }
 
     private static void PrintUsage()
