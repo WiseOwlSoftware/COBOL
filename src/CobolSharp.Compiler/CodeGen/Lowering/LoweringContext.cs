@@ -29,6 +29,26 @@ internal sealed class LoweringContext
         new(StringComparer.OrdinalIgnoreCase);
     public List<string> ParagraphsByIndex { get; } = new();
 
+    /// <summary>Names of "trivial" paragraphs — those with no statements, or whose statements are solely
+    /// bare EXIT/CONTINUE (both lower to BoundExitStatement) — i.e. usable as a COBOL "common end point"
+    /// (ISO §14.9.17). A declarative section's USE procedure returns at its LAST such
+    /// paragraph (the designated exit), NOT the section's physical last paragraph, so the handler's
+    /// <c>GO TO exit-para</c> returns to the I/O continuation instead of falling through into an abort/
+    /// termination tail that some CCVS declaratives place after the exit paragraph in the same section (the
+    /// SQ212A bug). When the exit paragraph IS the section's last paragraph (the common case — e.g. an empty
+    /// <c>END-DECLS.</c> or <c>EXIT-PARA. EXIT.</c> just before END DECLARATIVES) this equals the section's
+    /// last paragraph, so behaviour is unchanged.</summary>
+    public HashSet<string> ExitPointParagraphs { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Names of paragraphs that contain a run-unit/program terminator (STOP RUN, EXIT PROGRAM, or
+    /// GOBACK). Used together with <see cref="ExitPointParagraphs"/> to detect a declarative section's
+    /// "termination tail": when a terminating paragraph follows the section's last trivial exit paragraph,
+    /// the USE procedure returns at that exit paragraph rather than falling through into the tail (the
+    /// SQ212A bug). Without a trailing terminator the section's last paragraph remains the exit, so the
+    /// common case — and CCVS declaratives whose last paragraph IS the handler's exit (SQ133A/SQ141A) — is
+    /// unchanged.</summary>
+    public HashSet<string> TerminatingParagraphs { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Maps ParagraphSymbol → IrMethod for section-qualified disambiguation.</summary>
     public Dictionary<ParagraphSymbol, IrMethod> ParagraphSymbolMethods { get; } = new();
     /// <summary>Maps ParagraphSymbol → paragraph index for section-qualified disambiguation.</summary>

@@ -1,0 +1,47 @@
+
+                            FEDERAL SOFTWARE TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS85 FSTC COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  SQ212A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE SHORTER RECORD PASS  DECL-STATUS-44-0              3 SHORTER RECORDS
+ WRITE SHORTER RECORD PASS  DECL-STATUS-44-0
+ WRITE SHORTER RECORD PASS  DECL-STATUS-44-0
+ CREATE FILE SQ-VS7         WRITE-TEST-GF-01              FILE CONTAINS 18 THRU 2048 CHAR RECS
+        *** INFORMATION  ***                      FILE CREATED, RECS =      000000000000002031
+
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0              9 LONGER RECORDS
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ WRITE LONGER RECORDS PASS  DECL-STATUS-44-0
+ READ 1030 RECORDS    PASS  READ-TEST-F1-01
+ READ 1001 RECORDS    PASS  READ-TEST-F1-02
+ AT END               PASS  READ-TEST-F1-03
+ RWRT SMALLER RECORD  PASS  REWRITE-44-1
+ RWRT LARGER RECORD   PASS  REWRITE-44-2
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  SQ212A    NTIS DISTRIBUTION COBOL 85
+
+                                                    017 OF 017  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

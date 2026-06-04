@@ -77,6 +77,11 @@ public sealed class Binder
         // Phase 3.5: Pre-scan for ALTER targets
         ScanAlterTargets(boundProgram);
 
+        // Phase 3.6: Classify declarative control points (exit-point + terminating paragraphs) used to place
+        // a USE procedure's return at the declarative's designated exit, not the section's physical last
+        // paragraph — see FileIoLowerer.EmitPerformDeclarativeSection.
+        ScanDeclarativeControlPoints(boundProgram);
+
         // Phase 4: Lower all paragraph bodies
         LowerAllParagraphs(boundProgram);
 
@@ -119,6 +124,40 @@ public sealed class Binder
                                 _ctx.AlterDefaults.Add(-1);
                             }
                         }
+    }
+
+    /// <summary>
+    /// Classify each paragraph for declarative USE-procedure exit placement (see
+    /// FileIoLowerer.EmitPerformDeclarativeSection):
+    /// <list type="bullet">
+    /// <item><b>Exit-point</b> (<see cref="LoweringContext.ExitPointParagraphs"/>): no statements (an empty
+    /// label, e.g. an <c>END-DECLS.</c> just before END DECLARATIVES) or solely bare EXIT/CONTINUE (both
+    /// lower to <see cref="BoundExitStatement"/>) — the COBOL "common end point" idiom (ISO §14.9.17). Empty
+    /// paragraphs MUST count: many CCVS declaratives end with an empty <c>END-DECLS.</c> exit label, and
+    /// excluding it would mis-pick an earlier bare-EXIT THRU-target as the exit (the SQ133A-family).</item>
+    /// <item><b>Terminating</b> (<see cref="LoweringContext.TerminatingParagraphs"/>): contains a top-level
+    /// STOP RUN, EXIT PROGRAM, or GOBACK. A terminating paragraph that FOLLOWS the section's last exit-point
+    /// paragraph marks a termination tail the USE procedure must not fall through into (the SQ212A bug).</item>
+    /// </list>
+    /// </summary>
+    private void ScanDeclarativeControlPoints(BoundProgram boundProgram)
+    {
+        foreach (var para in boundProgram.Paragraphs)
+        {
+            bool allExit = true;   // vacuously true for an empty paragraph
+            bool terminates = false;
+            foreach (var sentence in para.Sentences)
+                foreach (var stmt in sentence.Statements)
+                {
+                    if (stmt is not BoundExitStatement) allExit = false;
+                    if (stmt is BoundStopStatement or BoundExitProgramStatement or BoundGoBackStatement)
+                        terminates = true;
+                }
+            if (allExit)
+                _ctx.ExitPointParagraphs.Add(para.Symbol.Name);
+            if (terminates)
+                _ctx.TerminatingParagraphs.Add(para.Symbol.Name);
+        }
     }
 
     private void LowerAllParagraphs(BoundProgram boundProgram)

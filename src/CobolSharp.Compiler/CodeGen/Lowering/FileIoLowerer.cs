@@ -481,8 +481,29 @@ internal sealed class FileIoLowerer
                 useBlock.Instructions.Add(new IrPerform(pm));
             return;
         }
+        // A USE procedure returns to the I/O continuation when it completes — at the declarative section's
+        // designated exit. Normally that is the section's physical last paragraph (the handler's
+        // `GO TO end-decls` falls off the section end and returns; SQ133A/SQ141A, and the common case). But
+        // some CCVS declaratives place a TERMINATION TAIL — CLOSE-FILES → footer → STOP RUN — AFTER the
+        // handler's exit paragraph in the same section; with the exit set to the physical last paragraph the
+        // handler's `GO TO exit-para. EXIT.` fell THROUGH into that tail and re-printed the CCVS footer on
+        // every I/O exception (the SQ212A bug). Detect that case: if a terminating paragraph (STOP RUN /
+        // EXIT PROGRAM / GOBACK) FOLLOWS the section's last trivial exit-point paragraph, end the PERFORM
+        // THRU at that exit paragraph so the handler returns there instead of running the tail.
+        string exitPara = sectionParas[^1];
+        int lastExitIdx = -1;
+        for (int i = sectionParas.Count - 1; i >= 0; i--)
+            if (_ctx.ExitPointParagraphs.Contains(sectionParas[i])) { lastExitIdx = i; break; }
+        if (lastExitIdx >= 0)
+        {
+            bool tailTerminates = false;
+            for (int j = lastExitIdx + 1; j < sectionParas.Count; j++)
+                if (_ctx.TerminatingParagraphs.Contains(sectionParas[j])) { tailTerminates = true; break; }
+            if (tailTerminates) exitPara = sectionParas[lastExitIdx];
+        }
+
         int startIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[0], -1);
-        int endIdx = _ctx.ParagraphIndices.GetValueOrDefault(sectionParas[^1], -1);
+        int endIdx = _ctx.ParagraphIndices.GetValueOrDefault(exitPara, -1);
         if (startIdx < 0 || endIdx < 0) return;
         var methods = new List<IrMethod>();
         for (int i = startIdx; i <= endIdx; i++)
