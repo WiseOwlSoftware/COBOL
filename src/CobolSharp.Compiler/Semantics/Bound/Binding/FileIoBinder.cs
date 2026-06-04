@@ -85,19 +85,7 @@ internal sealed class FileIoBinder
         if (ctx.writeInvalidKey() is { } wikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, wikCtx);
-            var impStmts = wikCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) invalidKey.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notInvalidKey.Add(bound);
-                }
+            BindInvalidKeyBlocks(wikCtx.statementBlock(), wikCtx.NOT(), invalidKey, notInvalidKey);
         }
 
         // AT END-OF-PAGE / NOT AT END-OF-PAGE (EOP) phrases — for LINAGE files (ISO §14.9.51).
@@ -254,19 +242,7 @@ internal sealed class FileIoBinder
         if (ctx.readInvalidKey() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            var impStmts = ikCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) invalidKey.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notInvalidKey.Add(bound);
-                }
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
         }
 
         return new BoundReadStatement(fileSym, intoId, direction, keyDataName, atEnd, notAtEnd, invalidKey, notInvalidKey);
@@ -298,19 +274,7 @@ internal sealed class FileIoBinder
         if (ctx.rewriteInvalidKeyPhrase() is { } rikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, rikCtx);
-            var impStmts = rikCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) invalidKey.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notInvalidKey.Add(bound);
-                }
+            BindInvalidKeyBlocks(rikCtx.statementBlock(), rikCtx.NOT(), invalidKey, notInvalidKey);
         }
 
         return new BoundRewriteStatement(fileSym, recordSym, from, invalidKey, notInvalidKey);
@@ -331,19 +295,7 @@ internal sealed class FileIoBinder
         if (ctx.deleteInvalidKeyPhrase() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            var impStmts = ikCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) invalidKey.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notInvalidKey.Add(bound);
-                }
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
         }
 
         return new BoundDeleteStatement(fileSym, invalidKey, notInvalidKey);
@@ -378,22 +330,33 @@ internal sealed class FileIoBinder
         if (ctx.startInvalidKeyPhrase() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            var impStmts = ikCtx.statementBlock();
-            if (impStmts.Length >= 1)
-                foreach (var stmt in impStmts[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) invalidKey.Add(bound);
-                }
-            if (impStmts.Length >= 2)
-                foreach (var stmt in impStmts[1].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notInvalidKey.Add(bound);
-                }
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
         }
 
         return new BoundStartStatement(fileSym, keyCondition, invalidKey, notInvalidKey);
+    }
+
+    /// <summary>
+    /// Bind the INVALID KEY / NOT INVALID KEY statement blocks shared by the WRITE/READ/REWRITE/DELETE/START
+    /// phrases. The grammar is identical for all five: <c>INVALID KEY? block (NOT INVALID KEY? block)? | NOT
+    /// INVALID KEY? block</c>. TWO blocks ⇒ [0] is the INVALID-KEY block and [1] the NOT-INVALID-KEY block.
+    /// ONE block WITH a NOT token ⇒ the standalone <c>NOT INVALID KEY block</c> form, whose single block is
+    /// the NOT-INVALID-KEY block — NOT the INVALID-KEY block. (A NOT in the first alternative always brings a
+    /// second block, so "one block + a NOT token" uniquely identifies the NOT-only form.) ONE block, no NOT ⇒
+    /// the <c>INVALID KEY block</c> form. ISO §9.1.14. Binding the NOT-only block as the INVALID-KEY block was
+    /// the RL205A (8 of 9 FAIL*) and IX108A failure.
+    /// </summary>
+    private void BindInvalidKeyBlocks(
+        CobolParserCore.StatementBlockContext[] blocks, Antlr4.Runtime.Tree.ITerminalNode? notToken,
+        List<BoundStatement> invalidKey, List<BoundStatement> notInvalidKey)
+    {
+        if (blocks.Length == 0) return;
+        var firstTarget = blocks.Length == 1 && notToken != null ? notInvalidKey : invalidKey;
+        foreach (var stmt in blocks[0].statement())
+            if (_ctx.BindStatement(stmt) is { } bound) firstTarget.Add(bound);
+        if (blocks.Length >= 2)
+            foreach (var stmt in blocks[1].statement())
+                if (_ctx.BindStatement(stmt) is { } bound) notInvalidKey.Add(bound);
     }
 
     // ── RETURN ──

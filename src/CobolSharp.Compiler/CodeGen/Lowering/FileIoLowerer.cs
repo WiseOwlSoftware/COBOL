@@ -634,8 +634,13 @@ internal sealed class FileIoLowerer
             };
         }
 
-        // No KEY phrase → the prime record key (qualifier-aware, so a qualified prime key resolves).
+        // No KEY phrase → the prime record key (qualifier-aware, so a qualified prime key resolves), or for
+        // a RELATIVE file the RELATIVE KEY data item (ISO §14.9.41.4 GR8: an omitted KEY phrase behaves as
+        // though KEY IS EQUAL TO the data-name in the RELATIVE KEY clause). ResolveKeyData(-1) returns the
+        // prime RECORD KEY, which is null for a relative file, so fall back to RelativeKey — mirroring the
+        // READ chain's `RecordKey ?? RelativeKey`. condition is already 0 (Equal), satisfying GR8.
         operandSym ??= _ctx.Semantic.ResolveKeyData(start.File, -1);
+        operandSym ??= start.File.RelativeKey != null ? _ctx.Semantic.ResolveData(start.File.RelativeKey) : null;
         if (operandSym != null)
         {
             int keyIndex = _ctx.Semantic.ResolveKeyOfReference(start.File, operandSym) ?? -1;
