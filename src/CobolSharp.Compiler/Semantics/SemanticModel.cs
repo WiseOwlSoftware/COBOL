@@ -501,7 +501,34 @@ public sealed class SemanticModel
     public bool IsVariableLengthSequential(FileSymbol file)
     {
         if (file.Organization is not (null or "SEQUENTIAL" or "LINE SEQUENTIAL")) return false;
-        return file.IsRecordVarying || HasMultipleRecordSizes(file);
+        return IsVariableLengthRecord(file);
+    }
+
+    /// <summary>True if the file has variable-length records by EITHER an explicit RECORD IS VARYING /
+    /// Format-2 RECORD CONTAINS m TO n clause (<see cref="FileSymbol.IsRecordVarying"/>) OR multiple
+    /// differently-sized 01 record descriptions. ORGANIZATION-INDEPENDENT — unlike
+    /// <see cref="IsVariableLengthSequential"/>, which additionally requires a sequential organization
+    /// (that gate is specific to the length-framed *sequential* on-disk storage decision; the
+    /// RELATIVE/INDEXED handlers frame per-slot and so need the org-agnostic test).</summary>
+    public bool IsVariableLengthRecord(FileSymbol file)
+        => file.IsRecordVarying || HasMultipleRecordSizes(file);
+
+    /// <summary>The MAXIMUM record length in bytes for a file: the larger of
+    /// <see cref="FileSymbol.RecordVaryingMax"/> and every level-1 record declared under the FD. The
+    /// record area and every runtime file handler's slot/buffer size MUST use this maximum (ISO §13.18.43:
+    /// for Format-2 RECORD CONTAINS integer-2 TO integer-3, integer-3 is the maximum number of bytes in any
+    /// record), NEVER the first/minimum 01 — otherwise LONG records are truncated to the first record's
+    /// (possibly minimum) size (the RL106A bug: RL-FR6's 56-byte 6A precedes its 102-byte 6B).</summary>
+    public int MaxRecordLength(FileSymbol file)
+    {
+        int max = file.RecordVaryingMax;
+        foreach (var d in _dataItemsInOrder)
+        {
+            if (d.LevelNumber != 1 || !ReferenceEquals(d.OwningFile, file)) continue;
+            int len = GetStorageLocation(d)?.Length ?? 0;
+            if (len > max) max = len;
+        }
+        return max;
     }
 
     /// <summary>True if the FD declares record descriptions of differing sizes (multiple 01 records under one

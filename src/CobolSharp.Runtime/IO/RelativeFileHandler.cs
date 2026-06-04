@@ -85,10 +85,25 @@ public class RelativeFileHandler : IFileHandler
 
                 case FileOpenMode.InputOutput:
                 case FileOpenMode.Extend:
-                    if (exists) LoadFromFile();
-                    // A missing optional file is created on first open (status 05); otherwise created
-                    // empty here (the standard permits creating a relative I-O/EXTEND file).
-                    if (!exists && IsOptional) return FileStatus.OptionalFileNotFound;
+                    if (exists)
+                    {
+                        LoadFromFile();
+                    }
+                    else if (IsOptional)
+                    {
+                        // A missing OPTIONAL file is created on first open (status 05); _records stays
+                        // initialized so subsequent WRITEs succeed and CLOSE persists it (ISO §9.1.13 item 4).
+                        return FileStatus.OptionalFileNotFound;
+                    }
+                    else
+                    {
+                        // A missing NON-optional file is a permanent error — creation on OPEN I-O/EXTEND
+                        // is permitted ONLY for an OPTIONAL file (ISO §9.1.13 item 5; mirrors the
+                        // Sequential/Indexed handlers). Previously this wrongly returned 00 and silently
+                        // created an empty file.
+                        _records = null;
+                        return FileStatus.FileNotFound;
+                    }
                     break;
 
                 case FileOpenMode.Output:

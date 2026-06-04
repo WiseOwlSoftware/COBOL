@@ -231,9 +231,21 @@ public sealed class Binder
             int recordLength = fileSym.RecordLength;
             if (recordLength == 0 && fileSym.Record != null)
             {
-                var recLoc = _semantic.GetStorageLocation(fileSym.Record);
-                if (recLoc.HasValue)
-                    recordLength = recLoc.Value.Length;
+                if (_semantic.IsVariableLengthRecord(fileSym))
+                {
+                    // Variable-length records (RECORD VARYING, Format-2 RECORD CONTAINS m TO n, or multiple
+                    // differently-sized 01s): the handler's slot/buffer must hold the MAXIMUM record, not the
+                    // first 01 (which may be the minimum — RL-FR6's 56-byte 6A precedes its 102-byte 6B), or
+                    // LONG records get truncated to the min (ISO §13.18.43). Per-slot/per-record length
+                    // framing then recovers each record's actual length on READ.
+                    recordLength = _semantic.MaxRecordLength(fileSym);
+                }
+                else
+                {
+                    var recLoc = _semantic.GetStorageLocation(fileSym.Record);
+                    if (recLoc.HasValue)
+                        recordLength = recLoc.Value.Length;
+                }
             }
             if (recordLength == 0) recordLength = 132; // Default for print files
 
