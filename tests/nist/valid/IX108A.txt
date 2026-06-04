@@ -1,0 +1,59 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IX108A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ WRITE NOT INVALID EN PASS  WRITE-TEST-GF-01
+ CREATE IX-FS2        PASS  WRITE-TEST-GF-02
+ READ NOT AT END      PASS  READ-TEST-F1-01
+ READ . NOT INV. . EN PASS  READ-TEST-F1-02-1
+ END-READ.            PASS  READ-TEST-F1-02-2
+ IF . READ . NOT INV. PASS  READ-TEST-F1-03-1
+ IF . READ . NOT INV. PASS  READ-TEST-F1-03-2
+ IF . READ . NOT INV. PASS  READ-TEST-F1-03-3
+ READ NOT INVALID.    PASS  READ-TEST-F2-01
+ READ . NOT INV. . EN PASS  READ-TEST-F2-02-1
+ END-READ.            PASS  READ-TEST-F2-02-2
+ IF . READ . NOT INV. PASS  READ-TEST-F2-03-1
+ IF . READ . NOT INV. PASS  READ-TEST-F2-03-2
+ IF . READ . NOT INV. PASS  READ-TEST-F2-03-3
+ DELETE NOT INVALID.  PASS  DELETE-TEST-GF-01
+ DELETE NOT INV. . EN PASS  DELETE-TEST-GF-02-1
+ END-DELETE.          PASS  DELETE-TEST-GF-02-2
+ IF .DELETE. NOT INV. PASS  DELETE-TEST-GF-03-1
+ END-DELETE           PASS  DELETE-TEST-GF-03-2
+ END-DELETE           PASS  DELETE-TEST-GF-03-3
+ REWRITE NOT INVALID. PASS  REWRITE-TEST-GF-01
+ REWRITE NOT INV. . E PASS  REWRITE-TEST-GF-02-1
+ END-REWRITE.         PASS  REWRITE-TEST-GF-02-2
+ IF .REWRITE. NOT INV PASS  REWRITE-TEST-GF-03-1
+ END-REWRITE          PASS  REWRITE-TEST-GF-03-2
+ END-REWRITE          PASS  REWRITE-TEST-GF-03-3
+ REWRITE NOT INVALID. PASS  RWR-SEQ-TEST-GF-01
+ REWRITE NOT INV. . E PASS  RWR-SEQ-TEST-GF-02-1
+ END-REWRITE.         PASS  RWR-SEQ-TEST-GF-02-2
+ IF .REWRITE. NOT INV PASS  RWR-SEQ-TEST-GF-03-1
+ END-REWRITE          PASS  RWR-SEQ-TEST-GF-03-2
+ END-REWRITE          PASS  RWR-SEQ-TEST-GF-03-3
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IX108A
+
+                                                    032 OF 032  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

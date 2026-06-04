@@ -97,6 +97,21 @@ internal sealed class FileIoLowerer
             block = EmitUseDeclarative(wr.File, method, block,
                 excludeInvalidKey: wr.InvalidKey.Count > 0 || wr.NotInvalidKey.Count > 0);
 
+        // INVALID KEY / NOT INVALID KEY (indexed/relative WRITE — ISO §14.9.51 GR11 / §9.1.14): branch on the
+        // invalid-key condition after the write — the INVALID KEY imperative on a duplicate/boundary key (21/22/
+        // 24), the NOT INVALID KEY imperative on success. Without this the WRITE's bound INVALID/NOT-INVALID
+        // blocks were never emitted at all (every other I/O statement — READ/REWRITE/DELETE/START — has this
+        // branch, WRITE alone was missing it): IX108A's `WRITE … NOT INVALID` block, which sets a
+        // success flag, never ran → the test's success check failed. Mutually exclusive with AT END-OF-PAGE
+        // (a LINAGE printer-file phrase), so at most one of the two branches is emitted.
+        if (wr.InvalidKey.Count > 0 || wr.NotInvalidKey.Count > 0)
+        {
+            var invalidResult = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrCheckFileInvalidKey(fileName, invalidResult));
+            return _ctx.Condition.LowerConditionalBranch(
+                wr.InvalidKey, wr.NotInvalidKey, invalidResult, method, block, "write");
+        }
+
         // AT END-OF-PAGE / NOT AT END-OF-PAGE (LINAGE files, ISO §14.9.51 GR26-28): after the WRITE,
         // branch on whether the end-of-page condition was raised.
         if (wr.AtEndOfPage.Count > 0 || wr.NotAtEndOfPage.Count > 0)

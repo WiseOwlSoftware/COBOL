@@ -32,7 +32,9 @@ TEST RESULT OF RL111A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  NEW COBOL85 TESTS    PASS  REL-TEST-030-1
  NEW COBOL85 TESTS    PASS  REL-TEST-030-2
  NEW COBOL85 TESTS    PASS  REL-TEST-030-3
+ NEW COBOL85 TESTS    PASS  REL-TEST-040-1
  NEW COBOL85 TESTS    PASS  REL-TEST-040-2
+ NEW COBOL85 TESTS    PASS  REL-TEST-050-1
  NEW COBOL85 TESTS    PASS  REL-TEST-050-2
  NEW COBOL85 TESTS    PASS  REL-TEST-060-1
  ***********************************************************************************************************************
@@ -42,7 +44,7 @@ TEST RESULT OF RL111A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  RL111A
 
-                                                    022 OF 022  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    024 OF 024  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
                                                     NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
