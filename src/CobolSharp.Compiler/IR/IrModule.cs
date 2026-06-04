@@ -49,6 +49,16 @@ public sealed class IrModule(string name)
     public bool IsInitial { get; set; }
 
     /// <summary>
+    /// Parameterless method that registers this program's file connectors (RegisterFileHandlerWithOrg
+    /// + the per-file Set* calls), produced by CreateEntryPoint. It is NOT FileRuntime.Init (that stays
+    /// in Main, the run-unit entry, so a sub-program never disposes the caller's open files). CilEmitter
+    /// calls it from Entry once per activation, guarded by a per-program _filesRegistered flag, so a
+    /// CALLed subprogram's internal files are registered on its own activation (ISO §14.6) and its open
+    /// file/position survives subsequent CALLs. Null only if CreateEntryPoint has not run yet.
+    /// </summary>
+    public IrMethod? RegisterFilesMethod { get; set; }
+
+    /// <summary>
     /// PROCEDURE DIVISION USING parameter names (LINKAGE SECTION item names).
     /// Positional: UsingParameterNames[i] maps to Entry args[i].
     /// Empty if no USING clause.

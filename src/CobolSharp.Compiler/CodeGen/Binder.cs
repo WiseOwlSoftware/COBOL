@@ -244,10 +244,24 @@ public sealed class Binder
     private void CreateEntryPoint(IrModule module, BoundProgram boundProgram)
     {
         var main = new IrMethod("Main", returnType: IrPrimitiveType.Void);
-        var block = new IrBasicBlock("main_entry");
+        var mainBlock = new IrBasicBlock("main_entry");
 
-        // Initialize file manager
-        block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.Init", Array.Empty<IrValue>()));
+        // Initialize the file manager. This belongs ONLY to the run-unit main's Main (the assembly
+        // entry point): Init disposes the prior CobolFileManager and allocates a fresh one, which
+        // would close every file the CALLING program left open. A CALLed subprogram is NEVER entered
+        // through Main (it is entered via Entry from CobolProgramRegistry), so its file connectors are
+        // registered by RegisterFiles, which is called from Entry once per activation — see
+        // CilEmitter.EmitEntryMethodBody. (ISO §14.6 — a called program's internal file connectors are
+        // established when the program is activated.)
+        mainBlock.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.Init", Array.Empty<IrValue>()));
+
+        // Per-file connector registration lives in its own parameterless RegisterFiles method (not in
+        // Main), so that Entry — the path EVERY activation takes, including a CALLed subprogram's —
+        // can register this program's files without re-running FileRuntime.Init. Main reaches it via
+        // Self.Entry below; CilEmitter guards the RegisterFiles call with a per-program _filesRegistered
+        // flag so it runs once per activation and subsequent CALLs preserve the open file/position.
+        var regFiles = new IrMethod("RegisterFiles", returnType: IrPrimitiveType.Void);
+        var block = new IrBasicBlock("register_files");
 
         // Register file handlers at startup for each SELECT (skip SD sort-merge files)
         foreach (var fileSym in _semantic.Symbols.Program.GlobalScope.GetAllSymbols<FileSymbol>())
@@ -535,10 +549,16 @@ public sealed class Binder
         }
         module.EntryParagraphIndex = firstNonDeclarative < 0 ? 0 : firstNonDeclarative;
 
-        // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
-        block.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));
+        // Finalize the RegisterFiles method (the per-file loop above filled `block` = register_files).
+        // CilEmitter calls it from Entry, guarded by the per-program _filesRegistered flag.
+        regFiles.Blocks.Add(block);
+        module.Methods.Add(regFiles);
+        module.RegisterFilesMethod = regFiles;
 
-        main.Blocks.Add(block);
+        // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
+        mainBlock.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));
+
+        main.Blocks.Add(mainBlock);
         module.Methods.Insert(0, main);
     }
 

@@ -63,6 +63,22 @@ public static class FileRuntime
     public static void RegisterFileHandlerWithOrg(string cobolName, string externalPath,
         int recordLength, bool lineSequential, string organization, int keyOffset, int keyLength)
     {
+        EnsureManager();
+
+        // Register-if-absent. Every program (run-unit main AND every CALLed subprogram) registers its
+        // own internal file connectors from its Entry method (ISO §14.6 — a called program's connectors
+        // are established when it is activated). The runtime keys connectors by bare COBOL file name in
+        // ONE shared manager, so when a subprogram SELECTs a name the caller already registered — the
+        // NIST IC suite's shared PRINT-FILE: the main opens it, then CALLs a subprogram that also has
+        // `SELECT PRINT-FILE` and WRITEs the same report — the existing OPEN connector must be kept, not
+        // replaced with a fresh closed one (which would lose the caller's open file → the report would
+        // come out empty: IC101A/IC103A/…). A genuinely-new name (IC115A's SQ-FS3, absent from the
+        // manager) is registered normally. The per-program _filesRegistered flag (CilEmitter) already
+        // prevents a program re-registering its OWN files across repeat CALLs; this guard additionally
+        // prevents a subprogram from clobbering a DIFFERENT program's same-named open connector.
+        if (_manager!.GetHandler(cobolName) != null)
+            return;
+
         IFileHandler handler = organization switch
         {
             "INDEXED" => new IndexedFileHandler(externalPath, recordLength, keyOffset, keyLength),
@@ -71,8 +87,7 @@ public static class FileRuntime
             "RELATIVE" => new RelativeFileHandler(externalPath, recordLength, keyLength),
             _ => new SequentialFileHandler(externalPath, recordLength, lineSequential)
         };
-        EnsureManager();
-        _manager!.RegisterFile(cobolName, handler);
+        _manager.RegisterFile(cobolName, handler);
         _lastStatus[cobolName] = FileStatus.Success;
     }
 

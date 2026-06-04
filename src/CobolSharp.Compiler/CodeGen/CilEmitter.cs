@@ -28,6 +28,15 @@ public sealed class CilEmitter
     private readonly Dictionary<string, FieldDefinition> _linkageFields = new(StringComparer.OrdinalIgnoreCase);
     private MethodDefinition? _currentMethodDef;
     private MethodDefinition? _dispatchMethod;
+    /// <summary>
+    /// Per-program static bool: true once this program's file connectors have been registered for the
+    /// current activation. Entry tests-and-sets it so RegisterFiles runs exactly once per activation —
+    /// the run-unit main registers on its first (only) Entry; a CALLed subprogram registers on its own
+    /// first Entry and SKIPS on subsequent CALLs so its open file/position is preserved. Reset to false
+    /// on the re-initialization path (INITIAL program activation, or first CALL after CANCEL) so a
+    /// canceled-and-re-CALLed program re-registers fresh connectors.
+    /// </summary>
+    private FieldDefinition? _filesRegisteredField;
     private VariableDefinition? _arithmeticStatusLocal;
     /// <summary>
     /// Cache for IrCachedLocation: maps cache key → (area, offset, length) locals.
@@ -242,9 +251,15 @@ public sealed class CilEmitter
         //  - an INITIAL program: on every activation;
         //  - any program: on the first CALL after it was CANCELed (the registry flag is consumed).
         // Otherwise WORKING-STORAGE keeps its last-used state across calls (static items persist).
+        // When the program IS re-initialized, also clear _filesRegistered so its file connectors are
+        // re-registered below (a canceled-and-re-CALLed program, or each activation of an INITIAL
+        // program, gets fresh connectors — ISO §14.9.5 GR3 returns the program to its initial state,
+        // which includes its file connectors).
         if (ir.IsInitial)
         {
             il.Append(il.Create(OpCodes.Call, _initializeStateMethod!));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Stsfld, _filesRegisteredField!));
         }
         else
         {
@@ -254,6 +269,8 @@ public sealed class CilEmitter
                 typeof(CobolProgramRegistry).GetMethod("ConsumeReinitFlag", new[] { typeof(string) })!)));
             il.Append(il.Create(OpCodes.Brfalse, skipReinit));
             il.Append(il.Create(OpCodes.Call, _initializeStateMethod!));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Stsfld, _filesRegisteredField!));
             il.Append(skipReinit);
         }
 
@@ -300,6 +317,26 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Stsfld, field));
 
             il.Append(afterLabel);
+        }
+
+        // Register this program's file connectors once per activation, before any paragraph runs.
+        //   if (!_filesRegistered) { RegisterFiles(); _filesRegistered = true; }
+        // This is the ONLY place a CALLed subprogram registers its internal files (its Main is dead
+        // code — the run unit is entered through the run-unit main's Main, every subprogram through
+        // Entry). The test-and-set means a re-CALL without an intervening CANCEL keeps the existing,
+        // possibly-open connectors (so an OPEN file and its position survive across CALLs, ISO §14.6),
+        // while the re-init path above cleared the flag for a fresh activation. FileRuntime.Init is NOT
+        // called here — that belongs to the run-unit main's Main alone, so a subprogram never disposes
+        // the caller's open files.
+        if (ir.RegisterFilesMethod != null && _methodMap.TryGetValue(ir.RegisterFilesMethod, out var regFilesMd))
+        {
+            var skipRegister = il.Create(OpCodes.Nop);
+            il.Append(il.Create(OpCodes.Ldsfld, _filesRegisteredField!));
+            il.Append(il.Create(OpCodes.Brtrue, skipRegister));
+            il.Append(il.Create(OpCodes.Call, regFilesMd));
+            il.Append(il.Create(OpCodes.Ldc_I4_1));
+            il.Append(il.Create(OpCodes.Stsfld, _filesRegisteredField!));
+            il.Append(skipRegister);
         }
 
         // Paragraph dispatch loop — delegate to the shared Dispatch helper, starting at the first
@@ -463,6 +500,14 @@ public sealed class CilEmitter
             FieldAttributes.Public | FieldAttributes.Static,
             _module.ImportReference(typeof(CobolSharp.Runtime.ProgramState)));
         _programType!.Fields.Add(_programStateField);
+
+        // Static bool: have this program's file connectors been registered for the current activation?
+        // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
+        _filesRegisteredField = new FieldDefinition(
+            "_filesRegistered",
+            FieldAttributes.Private | FieldAttributes.Static,
+            _module.TypeSystem.Boolean);
+        _programType.Fields.Add(_filesRegisteredField);
 
         // InitializeState(): (re)allocate ProgramState and apply every initial-state action —
         // ProgramState allocation, EXTERNAL binding, VALUE clauses, ALTER defaults, LOCAL-STORAGE
