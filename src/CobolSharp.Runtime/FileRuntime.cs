@@ -100,31 +100,49 @@ public static class FileRuntime
     }
 
     /// <summary>Mark an INDEXED file as having variable-length records (RECORD IS VARYING or multiple 01
-    /// sizes) so each record is stored at its actual length and persisted length-framed.</summary>
-    public static void SetIndexedVarying(string cobolName, bool varying)
+    /// sizes) so each record is stored at its actual length and persisted length-framed. <paramref
+    /// name="minSize"/>/<paramref name="maxSize"/> are the RECORD IS VARYING size bounds used for the
+    /// ISO §9.1.13 status-44 WRITE boundary check (minSize 0 = no lower bound).</summary>
+    public static void SetIndexedVarying(string cobolName, bool varying, int minSize, int maxSize)
     {
         EnsureManager();
         if (_manager!.GetHandler(cobolName) is IndexedFileHandler ix)
+        {
             ix.IsRecordVarying = varying;
+            ix.MinVaryingRecordSize = minSize;
+            ix.MaxVaryingRecordSize = maxSize;
+        }
     }
 
     /// <summary>Mark a RELATIVE file as having variable-length records (RECORD IS VARYING) so each slot
-    /// stores and persists its own length. Must agree with the compiler's variable-write decision.</summary>
-    public static void SetRelativeVarying(string cobolName, bool varying)
+    /// stores and persists its own length. Must agree with the compiler's variable-write decision.
+    /// <paramref name="minSize"/>/<paramref name="maxSize"/> are the RECORD IS VARYING size bounds for the
+    /// ISO §9.1.13 status-44 WRITE boundary check (minSize 0 = no lower bound).</summary>
+    public static void SetRelativeVarying(string cobolName, bool varying, int minSize, int maxSize)
     {
         EnsureManager();
         if (_manager!.GetHandler(cobolName) is RelativeFileHandler rel)
+        {
             rel.IsRecordVarying = varying;
+            rel.MinVaryingRecordSize = minSize;
+            rel.MaxVaryingRecordSize = maxSize;
+        }
     }
 
     /// <summary>Mark a record-sequential file as having variable-length records (RECORD IS VARYING or
     /// multiple 01 sizes) so each record is stored length-framed (4-byte length prefix + data) rather
-    /// than as a fixed-size slot. Must agree with the compiler's variable-write decision.</summary>
-    public static void SetSequentialVarying(string cobolName, bool varying)
+    /// than as a fixed-size slot. Must agree with the compiler's variable-write decision. <paramref
+    /// name="minSize"/>/<paramref name="maxSize"/> are the RECORD IS VARYING size bounds for the
+    /// ISO §9.1.13 status-44 WRITE boundary check (minSize 0 = no lower bound).</summary>
+    public static void SetSequentialVarying(string cobolName, bool varying, int minSize, int maxSize)
     {
         EnsureManager();
         if (_manager!.GetHandler(cobolName) is SequentialFileHandler seq)
+        {
             seq.IsRecordVarying = varying;
+            seq.MinVaryingRecordSize = minSize;
+            seq.MaxVaryingRecordSize = maxSize;
+        }
     }
 
     /// <summary>
@@ -469,11 +487,34 @@ public static class FileRuntime
     {
         EnsureManager();
         if (length < 0) length = 0;
+        var handler = _manager!.GetHandler(fileName);
+        // ISO §9.1.13, I-O status 44 (boundary violation, 4a): a variable-length WRITE whose record length
+        // is larger than the largest — or smaller than the smallest — record permitted by the RECORD IS
+        // VARYING clause is unsuccessful; the record is NOT transferred and the I-O status is set to "44".
+        if (VaryingBoundsViolated(handler, length))
+        {
+            _lastStatus[fileName] = FileStatus.RecordBoundaryViolation;
+            return;
+        }
         RuntimeGuard.Buffer(recordBytes, offset, length, "WRITE", fileName);
         byte[] recordSlice = new byte[length];
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
-        var handler = _manager!.GetHandler(fileName);
         _lastStatus[fileName] = handler?.WriteVariable(recordSlice) ?? FileStatus.FileNotOpen;
+    }
+
+    /// <summary>
+    /// ISO §9.1.13, I-O status 44 (boundary violation, 4a): true when a variable-length record of
+    /// <paramref name="length"/> bytes is larger than the largest or smaller than the smallest record
+    /// permitted by the file's RECORD IS VARYING clause, so the WRITE/REWRITE must be rejected with no
+    /// record transfer. Max/min of 0 mean "no bound on that side" (a fixed-length file — whose writes
+    /// never reach this path — or a variable file with no explicit FROM minimum).
+    /// </summary>
+    private static bool VaryingBoundsViolated(IO.IFileHandler? handler, int length)
+    {
+        if (handler is null) return false;
+        int max = handler.MaxVaryingRecordSize;
+        int min = handler.MinVaryingRecordSize;
+        return (max > 0 && length > max) || (min > 0 && length < min);
     }
 
     /// <summary>
@@ -526,6 +567,16 @@ public static class FileRuntime
     public static void Rewrite(string fileName, byte[] recordBytes, int offset, int length)
     {
         EnsureManager();
+        // ISO §9.1.13, I-O status 44 (boundary violation, 4a): a REWRITE of a record larger than the
+        // largest — or smaller than the smallest — record permitted by the RECORD IS VARYING clause is
+        // unsuccessful; the record is left unchanged and the I-O status is set to "44". (For a record-
+        // sequential file an in-bounds length that merely differs from the read record's length is also 44,
+        // enforced separately by the handler's §14.9.35 GR16 check.)
+        if (VaryingBoundsViolated(_manager!.GetHandler(fileName), length))
+        {
+            _lastStatus[fileName] = FileStatus.RecordBoundaryViolation;
+            return;
+        }
         RuntimeGuard.Buffer(recordBytes, offset, length, "REWRITE", fileName);
         byte[] recordSlice = new byte[length];
         Array.Copy(recordBytes, offset, recordSlice, 0, length);

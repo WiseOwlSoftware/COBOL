@@ -329,10 +329,17 @@ public sealed class Binder
             {
                 var seqVarNameVal = _valueFactory.Next(IrPrimitiveType.String);
                 var seqVarVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                // Convey the RECORD IS VARYING size bounds (min..max) so the runtime can enforce the
+                // ISO §9.1.13 status-44 boundary check on a variable WRITE (a record longer than the
+                // largest or shorter than the smallest permitted). min = 0 ⇒ no lower bound.
+                var seqVarMinVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                var seqVarMaxVal = _valueFactory.Next(IrPrimitiveType.Int32);
                 block.Instructions.Add(new IrLoadConst(seqVarNameVal, fileSym.Name));
                 block.Instructions.Add(new IrLoadConst(seqVarVal, true));
+                block.Instructions.Add(new IrLoadConst(seqVarMinVal, fileSym.RecordVaryingMin));
+                block.Instructions.Add(new IrLoadConst(seqVarMaxVal, _semantic.MaxRecordLength(fileSym)));
                 block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetSequentialVarying",
-                    new[] { seqVarNameVal, seqVarVal }));
+                    new[] { seqVarNameVal, seqVarVal, seqVarMinVal, seqVarMaxVal }));
             }
 
             // INDEXED access mode: SEQUENTIAL (or unspecified — the indexed default) deletes/rewrites the
@@ -355,10 +362,16 @@ public sealed class Binder
                 {
                     var ixvNameVal = _valueFactory.Next(IrPrimitiveType.String);
                     var ixvVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    // RECORD IS VARYING size bounds (min..max) for the ISO §9.1.13 status-44 WRITE
+                    // boundary check; min = 0 ⇒ no lower bound (e.g. multiple-01 sizes, no FROM).
+                    var ixvMinVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                    var ixvMaxVal = _valueFactory.Next(IrPrimitiveType.Int32);
                     block.Instructions.Add(new IrLoadConst(ixvNameVal, fileSym.Name));
                     block.Instructions.Add(new IrLoadConst(ixvVal, true));
+                    block.Instructions.Add(new IrLoadConst(ixvMinVal, fileSym.RecordVaryingMin));
+                    block.Instructions.Add(new IrLoadConst(ixvMaxVal, _semantic.MaxRecordLength(fileSym)));
                     block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetIndexedVarying",
-                        new[] { ixvNameVal, ixvVal }));
+                        new[] { ixvNameVal, ixvVal, ixvMinVal, ixvMaxVal }));
                 }
             }
 
@@ -439,10 +452,16 @@ public sealed class Binder
                 {
                     var relVarNameVal = _valueFactory.Next(IrPrimitiveType.String);
                     var relVarVal = _valueFactory.Next(IrPrimitiveType.Bool);
+                    // RECORD IS VARYING size bounds (min..max) for the ISO §9.1.13 status-44 WRITE
+                    // boundary check; min = 0 ⇒ no lower bound.
+                    var relVarMinVal = _valueFactory.Next(IrPrimitiveType.Int32);
+                    var relVarMaxVal = _valueFactory.Next(IrPrimitiveType.Int32);
                     block.Instructions.Add(new IrLoadConst(relVarNameVal, fileSym.Name));
                     block.Instructions.Add(new IrLoadConst(relVarVal, true));
+                    block.Instructions.Add(new IrLoadConst(relVarMinVal, fileSym.RecordVaryingMin));
+                    block.Instructions.Add(new IrLoadConst(relVarMaxVal, _semantic.MaxRecordLength(fileSym)));
                     block.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.SetRelativeVarying",
-                        new[] { relVarNameVal, relVarVal }));
+                        new[] { relVarNameVal, relVarVal, relVarMinVal, relVarMaxVal }));
                 }
             }
         }

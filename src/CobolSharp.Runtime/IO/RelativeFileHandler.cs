@@ -37,6 +37,14 @@ public class RelativeFileHandler : IFileHandler
     /// a 4-byte little-endian prefix so the length round-trips across run units.</summary>
     public bool IsRecordVarying { get; set; }
 
+    /// <summary>Upper bound (largest permitted record length) for the ISO §9.1.13 status-44 variable-WRITE
+    /// boundary check; 0 = no upper bound. Set from the RECORD IS VARYING clause at registration.</summary>
+    public int MaxVaryingRecordSize { get; set; }
+
+    /// <summary>Lower bound (smallest permitted record length) for the status-44 check; 0 = no lower
+    /// bound.</summary>
+    public int MinVaryingRecordSize { get; set; }
+
     /// <summary>When true (ACCESS MODE SEQUENTIAL) WRITE appends to the next slot and REWRITE/DELETE
     /// act on the current record; when false (RANDOM/DYNAMIC) they act on the slot given by the
     /// RELATIVE KEY (the pending key set just before the operation).</summary>

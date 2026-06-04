@@ -1404,21 +1404,21 @@ public sealed class CilEmitter
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetIndexedVarying",
-                    new[] { typeof(string), typeof(bool) })!);
+                    new[] { typeof(string), typeof(bool), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "FileRuntime.SetRelativeVarying")
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetRelativeVarying",
-                    new[] { typeof(string), typeof(bool) })!);
+                    new[] { typeof(string), typeof(bool), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "FileRuntime.SetSequentialVarying")
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetSequentialVarying",
-                    new[] { typeof(string), typeof(bool) })!);
+                    new[] { typeof(string), typeof(bool), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now

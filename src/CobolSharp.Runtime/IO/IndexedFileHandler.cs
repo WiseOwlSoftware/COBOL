@@ -67,6 +67,14 @@ public class IndexedFileHandler : IFileHandler
     /// each record is stored at its actual length and persisted length-framed.</summary>
     public bool IsRecordVarying { get; set; }
 
+    /// <summary>Upper bound (largest permitted record length) for the ISO §9.1.13 status-44 variable-WRITE
+    /// boundary check; 0 = no upper bound. Set from the RECORD IS VARYING clause at registration.</summary>
+    public int MaxVaryingRecordSize { get; set; }
+
+    /// <summary>Lower bound (smallest permitted record length) for the status-44 check; 0 = no lower
+    /// bound.</summary>
+    public int MinVaryingRecordSize { get; set; }
+
     /// <summary>Character length of the most recently read record (for RECORD VARYING DEPENDING ON / a
     /// variable-record's actual length). Fixed-length files always read a full record.</summary>
     public int LastRecordLength { get; private set; }

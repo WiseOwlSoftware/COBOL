@@ -36,6 +36,14 @@ public class SequentialFileHandler : IFileHandler
     /// records. Has no effect on line-sequential files (which frame by newline). Set at registration.</summary>
     public bool IsRecordVarying { get; set; }
 
+    /// <summary>Upper bound (largest permitted record length) for the ISO §9.1.13 status-44 variable-WRITE
+    /// boundary check; 0 = no upper bound. Set from the RECORD IS VARYING clause at registration.</summary>
+    public int MaxVaryingRecordSize { get; set; }
+
+    /// <summary>Lower bound (smallest permitted record length) for the status-44 check; 0 = no lower
+    /// bound.</summary>
+    public int MinVaryingRecordSize { get; set; }
+
     // For a variable-length REWRITE: the file offset of the most recently read record's length prefix,
     // and that record's data length — so REWRITE can replace it in place and enforce ISO §14.9.35 GR16.
     private long _varyReadFrameStart;

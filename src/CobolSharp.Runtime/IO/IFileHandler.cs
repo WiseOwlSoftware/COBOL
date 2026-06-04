@@ -48,6 +48,15 @@ public interface IFileHandler : IDisposable
     /// </summary>
     int LastRecordLength { get; }
 
+    /// <summary>For a variable-length file (RECORD IS VARYING / multiple 01 record sizes), the largest
+    /// record length permitted; a WRITE of a longer record is a boundary violation (I-O status 44,
+    /// ISO §9.1.13). 0 = no upper bound (a fixed-length file, whose writes never reach this check).</summary>
+    int MaxVaryingRecordSize { get; }
+
+    /// <summary>For a RECORD IS VARYING FROM <i>min</i> file, the smallest record length permitted; a WRITE
+    /// of a shorter record is a boundary violation (I-O status 44, ISO §9.1.13). 0 = no lower bound.</summary>
+    int MinVaryingRecordSize { get; }
+
     /// <summary>Rewrite the current record.</summary>
     string Rewrite(byte[] recordData);
 
