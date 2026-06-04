@@ -1,8 +1,33 @@
 # CobolSharp — Session Resume Prompt (2026-06-04)
 
-Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 321
+Paste this to start a new session. **Mission (REFRAMED 2026-06-04): a multi-version COBOL compiler (ISO 85→2023),
+dialect-gated — implement features LIVE across all versions, parse+flag features REMOVED after '85.** NIST CCVS85
+remains the validation backbone for the core modules + Report Writer.
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 323
 (guard 1040 unit / 347 int / **360 NIST**).
+
+**═══ THIS SESSION (DEVLOG 322–323): scope reframe + Report Writer workstream started ═══**
+The owner reframed the end goal to **multi-version (85→2023), live-features-first** (see
+`docs/COBOL85_COMPLIANCE_PLAN.md` §4 + `scripts/compliance.sh`): the 8 core NIST modules are COMPLETE; the only
+LIVE-in-2023 unimplemented module is **Report Writer** (ISO 2023 §A.4.11) — IMPLEMENT it. The removed modules
+(DB/SG/CM/obsolete) become **parse + dialect-flag only** (WS-DIALECT), NOT runtime — they're non-conformant in
+2002+, so building their runtime serves only '85. Report Writer build is staged in `docs/REPORT_WRITER_ROADMAP.md`
+(design in `docs/REPORT_WRITER_DESIGN.json`). **Done this session (both committed, guard ALL GREEN):**
+- **RW Stage 0 (322):** the obsolete IDENTIFICATION comment-entry paragraphs (AUTHOR/INSTALLATION/…) have
+  free-form bodies un-parseable by a token grammar (embedded periods, number lines, reserved words in address
+  text). Fixed **column-aware in `ReferenceFormatProcessor.ConvertFixedToFree`** — comment out the whole obsolete
+  paragraph until the next Area-A header. No grammar change. Also unblocks DB/SG/CM old-vintage headers.
+- **RW Stage 1a (323):** the **declarative** REPORT SECTION grammar — FD `reportClause` (REPORT IS) +
+  `CobolReportWriter.g4` rewritten (RD + PAGE LIMIT/CONTROL/CODE; report groups with TYPE/LINE/COLUMN/SOURCE/SUM/
+  GROUP INDICATE, reusing picture/usage/etc.). Added lexer tokens `GROUP` + `PLUSWORD` (the word PLUS; fixed a
+  screen-section IDENTIFIER hack the guard caught). **RW101A's entire data division now parses; fails only at the
+  executable verbs (`INITIATE`, line 346).**
+- **RESUME AT → RW Increment B** (one atomic unit, parse+bind+emit together): the verbs INITIATE/GENERATE/
+  TERMINATE — grammar (Stage 1b) + ReportSymbol/ReportGroupSymbol model + LINE-COUNTER/PAGE-COUNTER (Stage 2) +
+  `ReportWriterRuntime` (Stage 3: INITIATE resets counters, GENERATE places SOURCE by COLUMN/advances by LINE,
+  page-fit vs PAGE LIMIT, TERMINATE) + bound nodes/IR/**CilEmitter dispatch cases** (Stage 4) + baseline RW101A…RW6
+  (Stage 5). RW101A is the MINIMAL case (1 DETAIL group, no control breaks/SUM); it verifies LINE-COUNTER. See
+  `project_reportwriter` memory + `docs/REPORT_WRITER_ROADMAP.md` Stages 2–5.
 
 **Latest session (DEVLOG 311–321): NIST 349→360 (+11) — SQ212A + the ENTIRE remaining file-I/O/IC backlog, via
 two parallel multi-agent workflows.** A 9-agent **diagnosis** workflow root-caused the backlog, then a 4-agent
@@ -129,7 +154,7 @@ A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must sta
 | **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
 | **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
 | **CM** communication      |  9 |  0 | ✗ whole Communication module (OBSOLETE in COBOL-2002) (Phase 5) |
-| **RW** report writer      |  6 |  0 | ✗ whole Report Writer module unimplemented (Phase 5) |
+| **RW** report writer      |  6 |  0 | ◐ IMPLEMENTING (LIVE module). Stage 0+1a done (DEVLOG 322–323): data division parses; resume at Increment B (verbs+runtime+codegen). See `project_reportwriter` |
 | **OBNC/OBIC** obsolete    |  5 |  0 | ✗ obsolete-feature NC/IC variants (Phase 5) |
 | **EXEC** EXEC85           |  1 |  0 | ✗ EXEC85 driver (COMPILE_FAIL) (Phase 5) |
 
@@ -169,16 +194,20 @@ callers all need real features:
 - **IC114A** — file-I/O chain consumer (1 FAIL\* + binary report output).
 - Deferred GLOBAL follow-ups: subscripted/ref-modded inherited globals, level-88 under a global group.
 
-### Phase 5 — Whole unimplemented modules. ✅ SCOPE DECIDED (DEVLOG 301): exclude obsolete; defer DB/RW.
-The user's decision (2026-06-03) for the *modern*-COBOL "operational" target:
-- **EXCLUDED as out-of-scope obsolete/non-standard** (documented exclusion class, like the flagging-`M`
-  modules — do NOT baseline, do NOT implement): **CM** (Communication, 9 — OBSOLETE), **SG** (Segmentation,
-  13 — OBSOLETE), **OBNC/OBIC** (5 — obsolete variants), **EXEC85** (1 — non-standard driver).
-- **DEFERRED optional stretch** (in-scope only as future enhancements, NOT required for "operational"):
-  **DB** (Debug, 15 — `USE FOR DEBUGGING`/`DEBUG-ITEM`), **RW** (Report Writer, 6 — `RD`/`GENERATE`).
-**⇒ The suite is "OPERATIONAL" now:** 350 baselined + NO_OUTPUT producers + flagging-`M` modules + the
-obsolete-exclusion class account for every NIST program except the genuine in-scope remaining work below
-(Phases 2–4). Only revisit DB/RW if the user later wants the stretch coverage.
+### Phase 5 — Whole unimplemented modules. ✅ SCOPE REVISED (DEVLOG 322, 2026-06-04): multi-version, live-first.
+Supersedes the 2026-06-03 "defer DB/RW" decision. The end goal is a compiler for **every ISO COBOL 85→2023**,
+so the question is "is the feature LIVE in 2023?" (full `docs/COBOL85_COMPLIANCE_PLAN.md` §4):
+- **IMPLEMENT — Report Writer (RW, 6)**: LIVE in ISO 2023 (§A.4.11, optional element), not a dead-end. The
+  flagship live-module work. ◐ IN PROGRESS (Stage 0+1a done; resume at Increment B — see top of file).
+- **PARSE + DIALECT-FLAG ONLY (WS-DIALECT), no runtime** — features REMOVED after '85: **DB** (Debug,
+  `USE FOR DEBUGGING`/`DEBUG-ITEM`, removed 2002), **SG** (Segmentation, gone), **CM** (Communication, removed
+  2002), **OBNC/OBIC** obsolete elements. Grammar ACCEPTS them under `--standard cobol85`; `DialectStrictnessChecks`
+  flags-as-removed under `cobol2002+` (satisfies the `…M` flagging tests). Building their RUNTIME is out of scope
+  (serves only '85, non-conformant later). Their full `…A` tests do NOT baseline (documented: parse+flag only).
+- **EXCLUDED**: **EXEC85** (1 — non-standard test driver).
+**⇒ Baseline target (live) = core 8 modules + Report Writer.** `scripts/compliance.sh` reports it (currently
+~86% = 360/416; → ~100% when RW baselines). Long horizon: **WS-FORWARD** — the dialect/version architecture +
+COBOL-2002/2014/2023 features with a custom conformance corpus (no NIST suite exists past '85).
 
 ### Remaining genuine in-scope work (the actual next-session targets)
 - **RL runtime bugs** (Phase 2/3): RL106A (2 FAIL\*), RL119A (1 FAIL\*), RL205A (9 FAIL\*), RL213A (20 FAIL\*),
