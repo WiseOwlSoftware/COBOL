@@ -63,16 +63,25 @@ sequential guard-gated integration onto `main`**. NIST programs validate; additi
 - **WS-DASH — Compliance dashboard.** A `scripts/compliance.sh` that reports per-module NIST pass% + a
   spec-feature checklist (from §2 + WS-SPEC), so "% to 100%" is always measurable and regressions visible.
 
-## 4. Scope decision (the one branch point — see the question posed alongside this plan)
+## 4. Scope — DECIDED (owner, 2026-06-04): literal 100%, exhaustive
 
-COBOL-2002 marked **Communication, Segmentation, Debug, and Report Writer as obsolete**; the owner's earlier
-"operational" decision (DEVLOG 301) excluded CM/SG and deferred DB/RW. A literal "100% COBOL-85" re-opens them.
-The branch is mainly **Communication** (needs a synthetic MCS to run SEND/RECEIVE meaningfully) and, to a lesser
-degree, Segmentation. DB and RW are full, testable modules and are planned in regardless.
+Owner chose **literal 100% COBOL-85 — all modules** and an **exhaustive spec-feature coverage** bar (overrides
+the DEVLOG-301 "operational" exclusion):
 
-- **Tier 1 (planned in):** RW, DB, IC-tail, OBNC/OBIC, WS-SPEC, WS-FLAG, WS-DASH.
-- **Tier 2 (recommended):** SG (segment-priority semantics — tractable + testable).
-- **Tier 3 (literal-100% only):** CM (synthetic MCS), EXEC85.
+- **IN SCOPE — every module:** Debug (DB), Report Writer (RW), Segmentation (SG), **Communication (CM) via a
+  synthetic in-process Message Control System** for the `…A` tests + flag-only for the `…M` conformance tests,
+  and the OBNC/OBIC obsolete-feature variants. Plus WS-IC (tail), WS-SPEC, WS-FLAG, WS-DASH.
+- **EXCLUDED:** EXEC85 only (a non-standard test driver, not a COBOL-85 language feature) — documented exclusion.
+- **Compliance bar = EXHAUSTIVE:** beyond passing every in-scope NIST program at 0 `FAIL*` + correct flagging,
+  author a passing test for **every statement / clause / option in the COBOL-85 spec** (an encyclopedic corpus
+  under `tests/nist/extra/` + integration tests), tracked by `scripts/compliance.sh` against a per-feature
+  checklist derived from the ISO TOC. This is the WS-SPEC workstream, run continuously alongside the modules.
+
+### Execution waves (by tractability / dependency)
+1. **Wave 1 (S/M, independent):** Debug, Segmentation, OBNC/OBIC obsolete variants, IC-tail verification.
+2. **Wave 2 (L/XL):** Report Writer (its own multi-agent sub-effort: grammar/parse · runtime · codegen · verbs).
+3. **Wave 3 (XL + infra):** Communication (synthetic MCS · CD/SEND/RECEIVE · flagging).
+4. **Continuous:** WS-SPEC exhaustive test corpus, WS-DASH dashboard, WS-FLAG flagging conformance.
 
 ## 5. Execution & measurement
 
