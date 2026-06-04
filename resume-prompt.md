@@ -1,7 +1,7 @@
 # CobolSharp — Session Resume Prompt (2026-06-03)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 300.
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 303.
 
 **Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
 self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
@@ -14,11 +14,16 @@ synthesis + prioritized commercial-hardening roadmap in **`docs/ARCHITECTURE_ASS
 + 0-byte checks) and removed them → **honest 347**. **Method lessons baked in:** `run-suite.sh` reports chain
 consumers "CLEAN" off STALE `TF###`, and a 0-byte/stale report hides a crash — verify every candidate from a
 clean dir with **rc=0 + freshly-written report + footer "NO TEST(S) FAILED" + EXECUTED>0**, never just a
-0-`FAIL*` grep. **Next per the roadmap: P1 diagnostics-on-invalid-input + the diagnosed RL/IC feature fixes.**
+0-`FAIL*` grep. **Then started the diagnosed feature fixes (DEVLOG 303): RL119A (OPEN I-O missing-non-optional
+→35) + RL106A (varying relative records size by MAX not first-01) → 349.** **Next per the roadmap: continue the
+diagnosed RL/IC fixes (SQ212A var-DEPENDING WRITE crash, RL205A/213A/208A, IC233A/234A GLOBAL-FILE-inherit,
+IC227A/235A EXTERNAL, IC114A) + P1 diagnostics-on-invalid-input + P2 codegen hardening (IL verify, IrRuntimeCall
+fail-fast, Dispatch recursion guard).**
 
 ## Read first
 - **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
-  **DEVLOG.md** (decision narrative — now at entry 294).
+  **DEVLOG.md** (decision narrative — now at entry 303), **docs/ARCHITECTURE_ASSESSMENT.md** (the
+  no-rewrite verdict + commercial-hardening roadmap — READ THIS for the strategic direction).
 - **specs/ISO_COBOL.md** is the authoritative spec (submodule — `git submodule update --init --recursive` if
   absent). **Implement from the spec, not from assumptions.** The markdown preserves required-keyword
   underlining as `<u>…</u>` in figure-style formats but NOT inside ``` code blocks — check the figure form
@@ -43,7 +48,7 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 347 NIST honest)
+## Current coverage (branch `main`, all committed, guard GREEN: 1000 unit / 347 integration / 349 NIST honest)
 | Suite | Present | Baselined | Status |
 |-------|--:|--:|--|
 | **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
@@ -53,7 +58,7 @@ A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must sta
 | **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
 | **SQ** sequential I/O     | 85 | 82 | ◐ SQ212A removed (crashes in WriteRecordVariable — var-seq WRITE, remaining work); SQ303M/401M flagging |
 | **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
-| **RL** relative I/O       | 35 | 26 | ◐ DEVLOG 300: +7 tail. Deferred bugs: RL106A/119A/205A/213A (FAIL\*), RL111A (close stack-overflow), RL208A (Rewrite-pads-varying, Phase 3); RL212A producer; RL301M/401M flagging |
+| **RL** relative I/O       | 35 | 28 | ◐ +RL106A/119A fixed (DEVLOG 303). Remaining bugs: RL205A/213A (FAIL\*), RL111A (close stack-overflow=P2), RL208A (Rewrite-pads-varying, Phase 3); RL212A producer; RL301M/401M flagging |
 | **IC** inter-program CALL | 47 | 18 | ◐ all self-contained callers baselined. Remaining: IC114A (file chain), IC227A/235A (EXTERNAL), IC233A/234A (USE GLOBAL AFTER ERROR — needs GLOBAL FILE inheritance); ~23 callee halves + IC116M/401M excluded |
 | **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
 | **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
