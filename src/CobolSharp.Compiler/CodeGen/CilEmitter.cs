@@ -704,7 +704,15 @@ public sealed class CilEmitter
 
         foreach (var data in _semanticModel.DataItemsInOrder)
         {
-            if (!data.IsExternal || data.LevelNumber != 1 || data.Area != StorageAreaKind.WorkingStorage)
+            // EXTERNAL level-01 records share storage across the run unit (§13.18.22). Two cases:
+            //   • WORKING-STORAGE 01 ... IS EXTERNAL (IC226A)
+            //   • the 01 record of an FD ... IS EXTERNAL file — Area=FileSection (IC227A); the record AREA
+            //     is the externalized entity, keyed by the record name.
+            // Both are keyed by the record NAME, so the same name in a separately-compiled program resolves
+            // to the same ExternalStorage byte[]. The Area is carried into _externalRanges so the redirect
+            // only fires for references in the SAME area (a FileSection range never redirects a WS offset).
+            if (!data.IsExternal || data.LevelNumber != 1
+                || data.Area is not (StorageAreaKind.WorkingStorage or StorageAreaKind.FileSection))
                 continue;
             var loc = _semanticModel.GetStorageLocation(data);
             if (!loc.HasValue) continue;
@@ -718,7 +726,7 @@ public sealed class CilEmitter
             _programType!.Fields.Add(extField);
             _externalFields[data.Name] = extField;
 
-            _externalRanges.Add((loc.Value.Offset, loc.Value.Length, extField));
+            _externalRanges.Add((data.Area, loc.Value.Offset, loc.Value.Length, extField));
 
             il.Append(il.Create(OpCodes.Ldstr, externalName));
             il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
@@ -733,8 +741,10 @@ public sealed class CilEmitter
     /// <summary>Static fields for EXTERNAL data items, keyed by data name (case-insensitive).</summary>
     private readonly Dictionary<string, FieldDefinition> _externalFields = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>EXTERNAL record offset ranges in WorkingStorage: (wsOffset, wsLength) → (extField, baseOffset).</summary>
-    private readonly List<(int WsOffset, int WsLength, FieldDefinition ExtField)> _externalRanges = [];
+    /// <summary>EXTERNAL record offset ranges: (area, offset, length) → shared byte[] field. The Area
+    /// discriminator keeps WorkingStorage and FileSection offset namespaces from cross-redirecting (see
+    /// <see cref="Emission.EmissionContext.ExternalRanges"/>).</summary>
+    private readonly List<(StorageAreaKind Area, int Offset, int Length, FieldDefinition ExtField)> _externalRanges = [];
 
 
     private void SeedPrimitiveTypes()

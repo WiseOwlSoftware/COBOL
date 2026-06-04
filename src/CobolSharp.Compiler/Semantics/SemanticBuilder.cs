@@ -857,9 +857,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
             // FD ... IS GLOBAL (§13.18.30): mark the file so its record + subordinate names are inherited
             // by contained programs (and not falsely flagged as undefined there). (DEVLOG 310)
+            // FD ... IS EXTERNAL (§13.18.22): the file and its record AREA are shared across the run unit;
+            // mark the file so the 01-record below is externalized (record-area sharing across separately
+            // compiled programs — IC227A). GLOBAL and EXTERNAL are alternatives of the same FD clause.
             if (ctx.fileDescriptionClauses() is { } fdClauses)
                 foreach (var c in fdClauses.fileDescriptionClause())
-                    if (c.fileGlobalExternalClause()?.GLOBAL() != null) { fileSym.IsGlobal = true; break; }
+                    if (c.fileGlobalExternalClause() is { } gx)
+                    {
+                        if (gx.GLOBAL() != null) fileSym.IsGlobal = true;
+                        if (gx.EXTERNAL() != null) fileSym.IsExternal = true;
+                    }
             _currentFdFile = fileSym;
         }
         _dataStack.Clear();
@@ -1338,6 +1345,13 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             if (_currentFdFile != null && _currentFdFile.Record == null && level == 1)
             {
                 _currentFdFile.Record = data;
+
+                // FD ... IS EXTERNAL (§13.18.22): the externalized entity is the file's record AREA, keyed
+                // by the 01 record-NAME. Propagate the FD's EXTERNAL flag onto the record DataSymbol so
+                // storage emission allocates a shared ExternalStorage byte[] for it — the same record name
+                // in a separately-compiled program then resolves to the same bytes (IC227A record sharing).
+                if (_currentFdFile.IsExternal)
+                    data.IsExternal = true;
             }
 
             // Tag every FILE SECTION 01 record with its owning FD so storage layout can give

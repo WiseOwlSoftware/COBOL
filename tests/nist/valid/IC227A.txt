@@ -1,0 +1,50 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC227A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985,1986
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ EXTERNAL FILE RECORD PASS  EXT-REC-TEST-01    .01
+ EXTERNAL FILE RECORD PASS  EXT-REC-TEST-01    .02
+ EXTERNAL FILE RECORD PASS  EXT-REC-TEST-01    .03
+ EXTERNAL FILE WRITE  PASS  EXT-FILE-TEST-02   .01
+ EXTERNAL FILE WRITE  PASS  EXT-FILE-TEST-02   .02
+ EXTERNAL FILE WRITE  PASS  EXT-FILE-TEST-03   .01
+ EXTERNAL FILE CLOSE  PASS  EXT-FILE-TEST-04   .01
+ EXTERNAL FILE CLOSE  PASS  EXT-FILE-TEST-04   .02
+ EXTERNAL FILE OPEN   PASS  EXT-FILE-TEST-05   .01
+ EXTERNAL FILE OPEN   PASS  EXT-FILE-TEST-05   .02
+ EXTERNAL FILE OPEN   ***** EXT-FILE-TEST-05   .03        ****TEST DELETED****
+ EXTERNAL FILE OPEN   ***** EXT-FILE-TEST-05   .04        ****TEST DELETED****
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-06   .01
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-06   .02
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-07   .01
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-07   .02
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-07   .03
+ EXTERNAL FILE READ   PASS  EXT-FILE-TEST-07   .04
+ EXTERNAL FILE EOF    PASS  EXT-FILE-TEST-08   .01
+ EXTERNAL FILE EOF    PASS  EXT-FILE-TEST-08   .02
+ EXTERNAL FILE EOF    ***** EXT-FILE-TEST-08   .03        ****TEST DELETED****
+ EXTERNAL FILE EOF    ***** EXT-FILE-TEST-08   .04        ****TEST DELETED****
+ EXTERNAL FILE CLOSE  PASS  EXT-FILE-TEST-09   .01
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC227A
+
+                                                    019 OF 023  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    004 TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.              COPYRIGHT 1985,1986

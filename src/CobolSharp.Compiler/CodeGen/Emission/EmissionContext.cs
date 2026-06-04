@@ -69,8 +69,12 @@ internal sealed class EmissionContext
     /// <summary>Static fields for EXTERNAL data items, keyed by data name (case-insensitive).</summary>
     public Dictionary<string, FieldDefinition> ExternalFields { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>EXTERNAL record offset ranges in WorkingStorage: (wsOffset, wsLength) to (extField).</summary>
-    public List<(int WsOffset, int WsLength, FieldDefinition ExtField)> ExternalRanges { get; } = [];
+    /// <summary>EXTERNAL record offset ranges: (area, offset, length) → shared byte[] field. The Area
+    /// discriminator is REQUIRED — WorkingStorage and FileSection have independent offset namespaces, so a
+    /// FileSection range at offset N must NOT redirect a WorkingStorage reference at N (and vice-versa).
+    /// EXTERNAL WS records live here with Area=WorkingStorage (IC226A); FD ... IS EXTERNAL record areas with
+    /// Area=FileSection (IC227A).</summary>
+    public List<(StorageAreaKind Area, int Offset, int Length, FieldDefinition ExtField)> ExternalRanges { get; } = [];
 
     // ── CALL support ──
 

@@ -44,9 +44,10 @@ internal sealed class CilLocationEmitter
                 break;
 
             case IR.IrStaticLocation s
-                when s.Location.Area == StorageAreaKind.WorkingStorage
-                  && TryGetExternalField(s.Location.Offset, out var extField, out var adjOffset):
-                // EXTERNAL item: load from shared ExternalStorage byte[]
+                when TryGetExternalField(s.Location.Area, s.Location.Offset, out var extField, out var adjOffset):
+                // EXTERNAL item: load from shared ExternalStorage byte[]. Fires for an EXTERNAL WS record
+                // (Area=WorkingStorage, IC226A) or an FD ... IS EXTERNAL record area (Area=FileSection,
+                // IC227A); TryGetExternalField matches the range registered for this reference's own area.
                 il.Append(il.Create(OpCodes.Ldsfld, extField!));
                 il.Append(il.Create(OpCodes.Ldc_I4, adjOffset));
                 il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
@@ -255,8 +256,7 @@ internal sealed class CilLocationEmitter
                 break;
 
             case IR.IrStaticLocation s
-                when s.Location.Area == StorageAreaKind.WorkingStorage
-                  && TryGetExternalField(s.Location.Offset, out var rmExtField, out var rmAdjOffset):
+                when TryGetExternalField(s.Location.Area, s.Location.Offset, out var rmExtField, out var rmAdjOffset):
                 il.Append(il.Create(OpCodes.Ldsfld, rmExtField!));
                 il.Append(il.Create(OpCodes.Ldc_I4, rmAdjOffset));
                 break;
@@ -358,7 +358,7 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitLoadBackingArrayOrExternal(ILProcessor il, StorageAreaKind area, int wsOffset, out int adjustedOffset)
     {
-        if (area == StorageAreaKind.WorkingStorage && TryGetExternalField(wsOffset, out var extField, out adjustedOffset))
+        if (TryGetExternalField(area, wsOffset, out var extField, out adjustedOffset))
         {
             il.Append(il.Create(OpCodes.Ldsfld, extField!));
             return;
@@ -438,18 +438,21 @@ internal sealed class CilLocationEmitter
     }
 
     /// <summary>
-    /// Try to find the EXTERNAL byte[] field for a WorkingStorage offset.
-    /// Returns true if the offset falls within an EXTERNAL record's range.
+    /// Try to find the EXTERNAL byte[] field for an offset in the given storage area.
+    /// Returns true if the offset falls within an EXTERNAL record's range REGISTERED FOR THAT AREA.
+    /// The area match is required: WorkingStorage and FileSection have independent offset namespaces, so a
+    /// FileSection EXTERNAL range at offset N must not redirect a WorkingStorage reference at N (which would
+    /// corrupt IC226A's EXTERNAL WS), and vice-versa.
     /// adjustedOffset is the offset relative to the EXTERNAL array (always starts at 0).
     /// </summary>
-    internal bool TryGetExternalField(int wsOffset, out FieldDefinition? extField, out int adjustedOffset)
+    internal bool TryGetExternalField(StorageAreaKind area, int offset, out FieldDefinition? extField, out int adjustedOffset)
     {
-        foreach (var (rangeOffset, rangeLength, field) in _ctx.ExternalRanges)
+        foreach (var (rangeArea, rangeOffset, rangeLength, field) in _ctx.ExternalRanges)
         {
-            if (wsOffset >= rangeOffset && wsOffset < rangeOffset + rangeLength)
+            if (rangeArea == area && offset >= rangeOffset && offset < rangeOffset + rangeLength)
             {
                 extField = field;
-                adjustedOffset = wsOffset - rangeOffset;
+                adjustedOffset = offset - rangeOffset;
                 return true;
             }
         }

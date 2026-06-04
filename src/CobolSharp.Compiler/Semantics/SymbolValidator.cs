@@ -279,8 +279,12 @@ public static class SymbolValidator
 
             if (data.IsExternal)
             {
-                // §13.18.22: EXTERNAL only on level-01 in WORKING-STORAGE
-                if (data.LevelNumber != 1 || data.Area != StorageAreaKind.WorkingStorage)
+                // §13.18.22: EXTERNAL applies to a level-01 item in WORKING-STORAGE, or to the level-01
+                // record of an FD ... IS EXTERNAL file (the file's record AREA is externalized). Both are
+                // legal; flag any other placement (a subordinate item or a non-01 level).
+                bool legalExternal = data.LevelNumber == 1
+                    && data.Area is StorageAreaKind.WorkingStorage or StorageAreaKind.FileSection;
+                if (!legalExternal)
                 {
                     diagnostics.Report(DiagnosticDescriptors.CBL3115, loc, span,
                         data.DisplayName);

@@ -75,6 +75,14 @@ public sealed class FileSymbol : Symbol
     /// visible to contained programs (ISO §8.4.6.2).</summary>
     public bool IsGlobal { get; set; }
 
+    /// <summary>FD ... IS EXTERNAL (§13.18.22): the file connector AND its record area are shared across
+    /// every separately-compiled program in the run unit that describes the same file. The externalized
+    /// record-AREA is keyed by the 01-level record-NAME (both programs name the record identically), so a
+    /// MOVE/READ/WRITE to the record in one program is visible to the others. Propagated to the FD's
+    /// level-01 record DataSymbol (<see cref="DataSymbol.IsExternal"/>) so storage emission registers a
+    /// shared <c>ExternalStorage</c> byte[] for it.</summary>
+    public bool IsExternal { get; set; }
+
     /// <summary>SEQUENTIAL, RELATIVE, or INDEXED.</summary>
     public string? Organization { get; set; }
 
