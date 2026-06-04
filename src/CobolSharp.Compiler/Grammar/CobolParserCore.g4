@@ -298,6 +298,11 @@ dataReference
     // than one LINAGE file exists. Listed first so the distinct LINAGE_COUNTER token is recognized as
     // the register rather than a data name.
     : LINAGE_COUNTER ((OF | IN) cobolWord)?
+    // LINE-COUNTER / PAGE-COUNTER special registers (ISO §8.4.3.15/§13.x): read-only counters the Report
+    // Writer Control System maintains per report, optionally qualified by report-name. Listed before the
+    // generic data-name alternative so the distinct tokens are recognized as registers, not data names.
+    | LINE_COUNTER ((OF | IN) cobolWord)?
+    | PAGE_COUNTER ((OF | IN) cobolWord)?
     | cobolWord dataReferenceSuffix*
     ;
 
@@ -482,6 +487,9 @@ statement
     | subtractStatement
     | unstringStatement
     | writeStatement
+    | initiateStatement
+    | generateStatement
+    | terminateStatement
     | {is2014()}? jsonStatement
     | {is2014()}? xmlStatement
     | {is2002()}? invokeStatement

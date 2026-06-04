@@ -682,6 +682,12 @@ public sealed class Binder
                 return _ctx.FileIo.LowerOpen(open, method, block);
             case BoundCloseStatement close:
                 return _ctx.FileIo.LowerClose(close, method, block);
+            case BoundInitiateStatement initRpt:
+                return _ctx.FileIo.LowerInitiate(initRpt, method, block);
+            case BoundGenerateStatement genRpt:
+                return _ctx.FileIo.LowerGenerate(genRpt, method, block);
+            case BoundTerminateStatement termRpt:
+                return _ctx.FileIo.LowerTerminate(termRpt, method, block);
             case BoundReadStatement read:
                 return _ctx.FileIo.LowerRead(read, method, block);
             case BoundRewriteStatement rw:

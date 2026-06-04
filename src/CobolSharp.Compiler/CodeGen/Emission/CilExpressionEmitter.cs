@@ -45,6 +45,20 @@ internal sealed class CilExpressionEmitter
                         new[] { typeof(string) })!)));
                 break;
 
+            case IR.IrLineCounter lineCtr:
+                il.Append(il.Create(OpCodes.Ldstr, lineCtr.ReportName));
+                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                    typeof(Runtime.ReportWriterRuntime).GetMethod("GetLineCounter",
+                        new[] { typeof(string) })!)));
+                break;
+
+            case IR.IrPageCounter pageCtr:
+                il.Append(il.Create(OpCodes.Ldstr, pageCtr.ReportName));
+                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                    typeof(Runtime.ReportWriterRuntime).GetMethod("GetPageCounter",
+                        new[] { typeof(string) })!)));
+                break;
+
             case IR.IrBinaryExpr bin:
                 EmitIrExpression(il, bin.Left);
                 EmitIrExpression(il, bin.Right);

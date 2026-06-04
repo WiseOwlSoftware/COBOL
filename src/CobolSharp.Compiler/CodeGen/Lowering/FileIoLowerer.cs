@@ -193,6 +193,68 @@ internal sealed class FileIoLowerer
         return block;
     }
 
+    // ── Report Writer: INITIATE / GENERATE / TERMINATE (ISO §14.9.21/19/62) ──
+
+    public IrBasicBlock LowerInitiate(BoundInitiateStatement init, IrMethod method, IrBasicBlock block)
+    {
+        foreach (var report in init.Reports)
+        {
+            var rn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            var fn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            var lw = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var pl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var ld = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            block.Instructions.Add(new IrLoadConst(rn, report.Name));
+            block.Instructions.Add(new IrLoadConst(fn, report.HostFileName ?? ""));
+            block.Instructions.Add(new IrLoadConst(lw, report.LineWidth));
+            block.Instructions.Add(new IrLoadConst(pl, report.PageLimitLines));
+            block.Instructions.Add(new IrLoadConst(ld, report.LastDetailLine));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.InitiateReport",
+                new[] { rn, fn, lw, pl, ld }));
+        }
+        return block;
+    }
+
+    public IrBasicBlock LowerTerminate(BoundTerminateStatement term, IrMethod method, IrBasicBlock block)
+    {
+        foreach (var report in term.Reports)
+        {
+            var rn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(rn, report.Name));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.TerminateReport", new[] { rn }));
+        }
+        return block;
+    }
+
+    public IrBasicBlock LowerGenerate(BoundGenerateStatement gen, IrMethod method, IrBasicBlock block)
+    {
+        string reportName = gen.Report.Name;
+        foreach (var line in gen.Lines)
+        {
+            // Clear the line buffer to spaces, then place each SOURCE field at its COLUMN.
+            var rnBegin = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(rnBegin, reportName));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.BeginLine", new[] { rnBegin }));
+
+            foreach (var field in line.Fields)
+            {
+                var srcLoc = _ctx.Location.ResolveExpressionLocation(field.Source);
+                if (srcLoc == null) continue;
+                block.Instructions.Add(new IrReportPlaceField(reportName, field.Column, field.FieldWidth, srcLoc));
+            }
+
+            // Emit the composed line through the report's file, advancing LINE-COUNTER/PAGE-COUNTER.
+            var rnEmit = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            var adv = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var np = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            block.Instructions.Add(new IrLoadConst(rnEmit, reportName));
+            block.Instructions.Add(new IrLoadConst(adv, line.Advance));
+            block.Instructions.Add(new IrLoadConst(np, line.NextPage));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.EmitGroup", new[] { rnEmit, adv, np }));
+        }
+        return block;
+    }
+
     // ── READ ──
 
     public IrBasicBlock LowerRead(BoundReadStatement read, IrMethod method, IrBasicBlock block)

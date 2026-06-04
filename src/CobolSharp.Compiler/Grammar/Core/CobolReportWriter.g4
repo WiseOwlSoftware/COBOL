@@ -147,3 +147,24 @@ reportSumReset
 reportGroupIndicateClause
     : GROUP INDICATE?
     ;
+
+// ==========================================
+// REPORT WRITER PROCEDURE-DIVISION VERBS (§14.9.x)
+// ==========================================
+
+// INITIATE report-name... (§14.9.21) — begin report processing: reset LINE-COUNTER/PAGE-COUNTER + SUM counters.
+initiateStatement
+    : INITIATE reportName+
+    ;
+
+// GENERATE {report-group-name | report-name} (§14.9.19) — produce a detail line (or summary reporting).
+// The operand is a report-group-name (detail reporting) or a report-name (summary reporting); the binder
+// distinguishes by resolving the name against the report model.
+generateStatement
+    : GENERATE reportName
+    ;
+
+// TERMINATE report-name... (§14.9.62) — end report processing: produce final CONTROL/REPORT FOOTINGs.
+terminateStatement
+    : TERMINATE reportName+
+    ;

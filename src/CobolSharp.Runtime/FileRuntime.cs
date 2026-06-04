@@ -49,6 +49,7 @@ public static class FileRuntime
         _lockedFiles.Clear();
         _openModeScope.Clear();
         _activeUseDeclaratives.Clear();
+        ReportWriterRuntime.Reset();
     }
 
     /// <summary>

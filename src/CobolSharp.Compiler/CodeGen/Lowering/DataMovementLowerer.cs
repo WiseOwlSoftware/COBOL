@@ -109,7 +109,8 @@ internal sealed class DataMovementLowerer
     {
         IrLocation? preResolvedSrc = null;
         if (mv.Source is not BoundFigurativeExpression and not BoundLiteralExpression
-            and not BoundFunctionCallExpression and not BoundLinageCounterExpression)
+            and not BoundFunctionCallExpression and not BoundLinageCounterExpression
+            and not BoundLineCounterExpression and not BoundPageCounterExpression)
         {
             preResolvedSrc = _ctx.Location.ResolveExpressionLocation(mv.Source);
             if (preResolvedSrc is IrElementRef or IrRefModLocation && mv.Targets.Count > 1)
@@ -162,10 +163,11 @@ internal sealed class DataMovementLowerer
                     }
                 }
             }
-            else if (mv.Source is BoundLinageCounterExpression)
+            else if (mv.Source is BoundLinageCounterExpression
+                or BoundLineCounterExpression or BoundPageCounterExpression)
             {
-                // LINAGE-COUNTER is a runtime numeric value (no storage): evaluate it and store the
-                // result into the receiving item with normal numeric MOVE conversion (IrComputeStore).
+                // LINAGE-COUNTER / LINE-COUNTER / PAGE-COUNTER are runtime numeric values (no storage):
+                // evaluate and store into the receiving item with normal numeric MOVE conversion.
                 var irExpr = _ctx.Expression.LowerExpression(mv.Source);
                 if (irExpr != null)
                     block.Instructions.Add(new IrComputeStore(irExpr, destLoc, mv.IsRounded ? 1 : 0));

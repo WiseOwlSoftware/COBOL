@@ -539,6 +539,27 @@ public sealed class IrWriteRecordFromStorage : IrInstruction
 }
 
 /// <summary>
+/// Report Writer SOURCE placement (ISO §14.9.19): copy a SOURCE field's bytes into the active report line
+/// buffer at COLUMN, truncated to the report field's width. Emitted as a call to
+/// ReportWriterRuntime.PlaceField with the source storage location (area/offset/size).
+/// </summary>
+public sealed class IrReportPlaceField : IrInstruction
+{
+    public string ReportName { get; }
+    public int Column { get; }
+    public int FieldWidth { get; }
+    public IrLocation Source { get; }
+
+    public IrReportPlaceField(string reportName, int column, int fieldWidth, IrLocation source)
+    {
+        ReportName = reportName;
+        Column = column;
+        FieldWidth = fieldWidth;
+        Source = source;
+    }
+}
+
+/// <summary>
 /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
 /// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
 /// trailing-space trimming. ISO §13.18.43 / §14.9.51.

@@ -1110,6 +1110,7 @@ public sealed class CilEmitter
 
             // ── File I/O ──
             case IrWriteRecordFromStorage wr: _ctx.FileIo.EmitWriteRecordFromStorage(il, wr); break;
+            case IrReportPlaceField rpf: _ctx.FileIo.EmitReportPlaceField(il, rpf); break;
             case IrWriteRecordVariable wrv: _ctx.FileIo.EmitWriteRecordVariable(il, wrv); break;
             case IrStoreRecordLength srl: _ctx.FileIo.EmitStoreRecordLength(il, srl); break;
             case IrSetRelativeKey srk: _ctx.FileIo.EmitSetRelativeKey(il, srk); break;
@@ -1589,6 +1590,35 @@ public sealed class CilEmitter
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.FileRuntime).GetMethod("SetSequentialVarying",
                     new[] { typeof(string), typeof(bool), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        // ── Report Writer (ISO §14.9) ──
+        else if (rtc.MethodName == "ReportWriterRuntime.InitiateReport")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("InitiateReport",
+                    new[] { typeof(string), typeof(string), typeof(int), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.BeginLine")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("BeginLine",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.EmitGroup")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("EmitGroup",
+                    new[] { typeof(string), typeof(int), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.TerminateReport")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("TerminateReport",
+                    new[] { typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         // Other runtime calls: NOP for now

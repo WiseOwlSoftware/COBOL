@@ -38,6 +38,25 @@ internal sealed class CilFileIoEmitter
     }
 
     /// <summary>
+    /// Report Writer SOURCE placement (ISO §14.9.19): push reportName, COLUMN, field width, then the source
+    /// storage location (area/offset/size), and call ReportWriterRuntime.PlaceField to copy the bytes into
+    /// the active report line buffer.
+    /// </summary>
+    internal void EmitReportPlaceField(ILProcessor il, IrReportPlaceField rpf)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, rpf.ReportName));
+        il.Append(il.Create(OpCodes.Ldc_I4, rpf.Column));
+        il.Append(il.Create(OpCodes.Ldc_I4, rpf.FieldWidth));
+        // Load source area, offset, size (byte[], int, int).
+        _ctx.Location.EmitLocationArgs(il, rpf.Source);
+        var method = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod(
+                "PlaceField",
+                new[] { typeof(string), typeof(int), typeof(int), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
+    /// <summary>
     /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
     /// count read at runtime from the DEPENDING data item, without trailing-space trimming.
     /// Calls StorageHelpers.WriteRecordVariableToFile(string, byte[], int, int).

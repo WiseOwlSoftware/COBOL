@@ -43,6 +43,12 @@ internal sealed class ExpressionLowerer
             case BoundLinageCounterExpression lc:
                 return new IrLinageCounter(lc.File.Name);
 
+            case BoundLineCounterExpression lcnt:
+                return new IrLineCounter(lcnt.Report.Name);
+
+            case BoundPageCounterExpression pcnt:
+                return new IrPageCounter(pcnt.Report.Name);
+
             case BoundReferenceModificationExpression refMod:
             {
                 var loc = _ctx.Location.ResolveRefModLocation(refMod);

@@ -175,6 +175,81 @@ internal sealed class FileIoBinder
         return new BoundCloseStatement(phrases);
     }
 
+    // ── Report Writer: INITIATE / GENERATE / TERMINATE (ISO §14.9.21/19/62) ──
+
+    internal BoundStatement BindInitiate(CobolParserCore.InitiateStatementContext ctx)
+    {
+        var reports = new List<ReportSymbol>();
+        foreach (var rn in ctx.reportName())
+            if (_ctx.Semantic.ResolveReport(rn.GetText()) is { } r) reports.Add(r);
+        return new BoundInitiateStatement(reports);
+    }
+
+    internal BoundStatement BindTerminate(CobolParserCore.TerminateStatementContext ctx)
+    {
+        var reports = new List<ReportSymbol>();
+        foreach (var rn in ctx.reportName())
+            if (_ctx.Semantic.ResolveReport(rn.GetText()) is { } r) reports.Add(r);
+        return new BoundTerminateStatement(reports);
+    }
+
+    internal BoundStatement BindGenerate(CobolParserCore.GenerateStatementContext ctx)
+    {
+        string name = ctx.reportName().GetText();
+        // GENERATE report-group-name (detail reporting, §14.9.19) — the common case.
+        if (_ctx.Semantic.ResolveReportGroup(name) is { } rg)
+            return new BoundGenerateStatement(rg.Report, rg.Group, BuildReportLines(rg.Group));
+        // GENERATE report-name (summary reporting) — recognized but not yet produced; bind an empty
+        // generate so the program still compiles and runs (no detail line emitted).
+        if (_ctx.Semantic.ResolveReport(name) is { } report)
+            return new BoundGenerateStatement(report, null, []);
+        return new BoundCompoundStatement([]);
+    }
+
+    /// <summary>Flatten a report group's entries into print lines: a LINE clause starts a new line (with its
+    /// advance), and each COLUMN+SOURCE item places a field on the current line.</summary>
+    private IReadOnlyList<BoundReportLine> BuildReportLines(ReportGroupSymbol group)
+    {
+        var lines = new List<BoundReportLine>();
+        List<BoundReportField>? fields = null;
+        int advance = 1;
+        bool nextPage = false;
+
+        void Flush()
+        {
+            if (fields != null)
+                lines.Add(new BoundReportLine(advance, nextPage, fields));
+            fields = null;
+        }
+
+        foreach (var g in group.SelfAndDescendants())
+        {
+            if (g.HasLine || g.LineNextPage)
+            {
+                Flush();
+                fields = [];
+                advance = g.LineValue > 0 ? g.LineValue : 1;   // relative PLUS n (absolute handled later)
+                nextPage = g.LineNextPage;
+            }
+            if (g.HasColumn && g.SourceName != null)
+            {
+                fields ??= [];
+                if (BindReportSource(g.SourceName) is { } src)
+                    fields.Add(new BoundReportField(g.ColumnValue, g.FieldWidth, src));
+            }
+        }
+        Flush();
+        return lines;
+    }
+
+    private BoundExpression? BindReportSource(string name)
+    {
+        var sym = _ctx.Semantic.ResolveData(name);
+        if (sym == null) return null;
+        var cat = sym.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
+        return new BoundIdentifierExpression(sym, cat);
+    }
+
     // ── READ ──
 
     internal BoundStatement? BindRead(CobolParserCore.ReadStatementContext ctx)

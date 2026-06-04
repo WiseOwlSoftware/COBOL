@@ -561,6 +561,24 @@ internal sealed class ExpressionBinder
             return new BoundLiteralExpression(0m, CobolCategory.Numeric);
         }
 
+        // LINE-COUNTER / PAGE-COUNTER special registers (ISO §8.4.3.15): the Report Writer's per-report line
+        // and page counters, optionally qualified by report-name. Like LINAGE-COUNTER they have no cobolWord
+        // base, so they are resolved here before generic data-name resolution dereferences a null cobolWord.
+        if (idCtx.LINE_COUNTER() != null)
+        {
+            var qual = idCtx.cobolWord();
+            var report = qual != null ? _ctx.Semantic.ResolveReport(qual.GetText()) : _ctx.Semantic.FindFirstReport();
+            if (report != null) return new BoundLineCounterExpression(report);
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        }
+        if (idCtx.PAGE_COUNTER() != null)
+        {
+            var qual = idCtx.cobolWord();
+            var report = qual != null ? _ctx.Semantic.ResolveReport(qual.GetText()) : _ctx.Semantic.FindFirstReport();
+            if (report != null) return new BoundPageCounterExpression(report);
+            return new BoundLiteralExpression(0m, CobolCategory.Numeric);
+        }
+
         string name = idCtx.cobolWord().GetText();
         var tails = idCtx.dataReferenceSuffix();
 

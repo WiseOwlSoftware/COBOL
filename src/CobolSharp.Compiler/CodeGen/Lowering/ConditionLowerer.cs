@@ -102,6 +102,13 @@ internal sealed class ConditionLowerer
             case BoundLinageCounterExpression lc:
                 return ComparisonOperand.FromArithmeticExpression(lc);
 
+            // LINE-COUNTER / PAGE-COUNTER special registers: runtime numeric values (Report Writer),
+            // compared like an arithmetic expression (lowered to IrLineCounter / IrPageCounter).
+            case BoundLineCounterExpression lineCtr:
+                return ComparisonOperand.FromArithmeticExpression(lineCtr);
+            case BoundPageCounterExpression pageCtr:
+                return ComparisonOperand.FromArithmeticExpression(pageCtr);
+
             default:
                 return null;
         }
@@ -314,6 +321,16 @@ internal sealed class ConditionLowerer
             (left, right) = (right, left);
             op = (int)FlipComparisonOp(binCond.OperatorKind);
         }
+
+        // A figurative ZERO compared with a numeric arithmetic expression (e.g. IF LINE-COUNTER = ZERO) is
+        // the numeric value 0 (ISO §8.3.1.2), so normalize it to a numeric literal and let the numeric
+        // arithmetic-expression cases handle it.
+        if (left.Kind == ComparisonOperandKind.ArithmeticExpression
+            && right.Kind == ComparisonOperandKind.Figurative && right.FigurativeKind == FigurativeKind.Zero)
+            right = ComparisonOperand.FromNumeric(0m);
+        else if (right.Kind == ComparisonOperandKind.ArithmeticExpression
+            && left.Kind == ComparisonOperandKind.Figurative && left.FigurativeKind == FigurativeKind.Zero)
+            left = ComparisonOperand.FromNumeric(0m);
 
         bool useNumeric = IsNumericComparison(left, right);
 

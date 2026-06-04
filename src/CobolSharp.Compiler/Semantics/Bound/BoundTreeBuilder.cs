@@ -255,6 +255,9 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.nextSentenceStatement() is { }) return new BoundNextSentenceStatement();
         if (ctx.openStatement() is { } openCtx) return _ctx.FileIo.BindOpen(openCtx);
         if (ctx.closeStatement() is { } closeCtx) return _ctx.FileIo.BindClose(closeCtx);
+        if (ctx.initiateStatement() is { } initRptCtx) return _ctx.FileIo.BindInitiate(initRptCtx);
+        if (ctx.generateStatement() is { } genRptCtx) return _ctx.FileIo.BindGenerate(genRptCtx);
+        if (ctx.terminateStatement() is { } termRptCtx) return _ctx.FileIo.BindTerminate(termRptCtx);
         if (ctx.readStatement() is { } readCtx) return _ctx.FileIo.BindRead(readCtx);
         if (ctx.addStatement() is { } addCtx) return _ctx.Arithmetic.BindAdd(addCtx);
         if (ctx.subtractStatement() is { } sub) return _ctx.Arithmetic.BindSubtract(sub);

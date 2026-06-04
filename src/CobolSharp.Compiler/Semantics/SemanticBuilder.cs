@@ -862,17 +862,176 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             // compiled programs — IC227A). GLOBAL and EXTERNAL are alternatives of the same FD clause.
             if (ctx.fileDescriptionClauses() is { } fdClauses)
                 foreach (var c in fdClauses.fileDescriptionClause())
+                {
                     if (c.fileGlobalExternalClause() is { } gx)
                     {
                         if (gx.GLOBAL() != null) fileSym.IsGlobal = true;
                         if (gx.EXTERNAL() != null) fileSym.IsExternal = true;
                     }
+                    // REPORT(S) IS/ARE report-name… (§13.18.46): record which file each report is written to,
+                    // applied to the ReportSymbol's HostFileName when the REPORT SECTION's RD is visited.
+                    if (c.reportClause() is { } rc)
+                        foreach (var rn in rc.reportName())
+                            _reportToFile[rn.GetText()] = name;
+                }
             _currentFdFile = fileSym;
         }
         _dataStack.Clear();
         var result = base.VisitFileDescriptionEntry(ctx);
         _currentFdFile = null;
         return result;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // REPORT SECTION (ISO §13.14/§13.15) — build the report symbol model (RD + report group tree).
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>report-name → host file-name, captured from each FD's REPORT IS clause.</summary>
+    private readonly Dictionary<string, string> _reportToFile = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Current RD report symbol — set during RD visiting so report group entries can be linked.</summary>
+    private ReportSymbol? _currentReport;
+    /// <summary>Level-number stack for building the report group tree (mirrors <see cref="_dataStack"/>).</summary>
+    private readonly Stack<ReportGroupSymbol> _reportGroupStack = [];
+
+    public override object? VisitReportDescriptionEntry(CobolParserCore.ReportDescriptionEntryContext ctx)
+    {
+        var nameCtx = ctx.reportName();
+        if (nameCtx == null) return base.VisitReportDescriptionEntry(ctx);
+
+        string name = nameCtx.GetText();
+        var report = new ReportSymbol(name, nameCtx.Start.Line);
+        if (_reportToFile.TryGetValue(name, out var host)) report.HostFileName = host;
+
+        foreach (var clause in ctx.reportDescriptionClause())
+        {
+            if (clause.reportGlobalClause() != null) report.IsGlobal = true;
+            if (clause.reportCodeClause()?.literal() is { } codeLit) report.CodeValue = codeLit.GetText();
+            if (clause.reportControlClause() is { } cc)
+            {
+                if (cc.FINAL() != null) report.ControlFields.Add("FINAL");
+                foreach (var dr in cc.dataReference()) report.ControlFields.Add(dr.GetText());
+            }
+            if (clause.reportPageClause() is { } pc)
+            {
+                if (pc.integerLiteral() is { } pl && int.TryParse(pl.GetText(), out int lines))
+                    report.PageLimitLines = lines;
+                foreach (var sub in pc.reportPageSubclause())
+                {
+                    if (sub.integerLiteral() is not { } si || !int.TryParse(si.GetText(), out int v)) continue;
+                    if (sub.HEADING() != null) report.HeadingLine = v;
+                    else if (sub.FIRST() != null) report.FirstDetailLine = v;
+                    else if (sub.LAST() != null) report.LastDetailLine = v;
+                    else if (sub.FOOTING() != null) report.FootingLine = v;
+                }
+            }
+        }
+        if (report.LastDetailLine == 0) report.LastDetailLine = report.PageLimitLines;
+        if (report.FootingLine == 0) report.FootingLine = report.PageLimitLines;
+
+        _symbols.Program.GlobalScope.TryDeclare(report, out _);
+        _currentReport = report;
+        _reportGroupStack.Clear();
+        var result = base.VisitReportDescriptionEntry(ctx);
+        // Compute the composed line width: the widest column-end over all elementary fields (default 132).
+        int width = 0;
+        foreach (var g in report.AllGroups())
+            if (g.HasColumn && g.FieldWidth > 0)
+                width = Math.Max(width, g.ColumnValue - 1 + g.FieldWidth);
+        report.LineWidth = width > 0 ? width : 132;
+        _currentReport = null;
+        return result;
+    }
+
+    public override object? VisitReportGroupEntry(CobolParserCore.ReportGroupEntryContext ctx)
+    {
+        if (_currentReport == null || ctx.levelNumber() == null
+            || !int.TryParse(ctx.levelNumber().GetText(), out int level))
+            return base.VisitReportGroupEntry(ctx);
+
+        string name = ctx.reportGroupName()?.GetText() ?? $"FILLER${_fillerCounter++}";
+        var group = new ReportGroupSymbol(name, level, ctx.levelNumber().Start.Line) { OwningReport = _currentReport };
+
+        foreach (var clause in ctx.reportGroupClause())
+        {
+            if (clause.reportTypeClause()?.reportGroupType() is { } gt)
+            {
+                group.GroupKind = ReportGroupTypeOf(gt);
+                if (gt.dataReference() is { } cf) group.ControlField = cf.GetText();
+                else if (gt.FINAL() != null) group.ControlField = "FINAL";
+            }
+            if (clause.reportLineClause() is { } lc)
+            {
+                group.HasLine = true;
+                if (lc.NEXT() != null && lc.PAGE() != null) group.LineNextPage = true;
+                else if (lc.integerLiteral() is { } li && int.TryParse(li.GetText(), out int lv))
+                {
+                    group.LineValue = lv;
+                    group.LineRelative = lc.PLUSWORD() != null;
+                }
+            }
+            if (clause.reportColumnClause()?.integerLiteral() is { } colLit
+                && int.TryParse(colLit.GetText(), out int col))
+            {
+                group.HasColumn = true;
+                group.ColumnValue = col;
+            }
+            if (clause.reportSourceClause()?.dataReference() is { } src) group.SourceName = src.GetText();
+            if (clause.reportSumClause() is { } sumc)
+                foreach (var op in sumc.sumOperand()) group.SumFields.Add(op.dataReference().GetText());
+            if (clause.pictureClause()?.PIC_STRING() is { } pic)
+            {
+                group.PicString = pic.GetText();
+                group.FieldWidth = ReportFieldWidth(group.PicString);
+            }
+            if (clause.valueClause() is { } vc && vc.GetText() is { } vtext) group.ValueLiteral = vtext;
+        }
+
+        // Build the level-number tree (mirrors VisitDataDescriptionEntry's _dataStack logic).
+        while (_reportGroupStack.Count > 0 && _reportGroupStack.Peek().Level >= level)
+            _reportGroupStack.Pop();
+        if (_reportGroupStack.Count > 0)
+        {
+            var parent = _reportGroupStack.Peek();
+            group.Parent = parent;
+            parent.Children.Add(group);
+        }
+        else
+        {
+            _currentReport.TopGroups.Add(group);
+        }
+        _reportGroupStack.Push(group);
+
+        // Report group names are referenceable by GENERATE; declare them so name resolution sees them.
+        if (ctx.reportGroupName() != null)
+            _symbols.Program.DataDivisionScope.TryDeclare(group, out _);
+
+        return base.VisitReportGroupEntry(ctx);
+    }
+
+    private static ReportGroupKind ReportGroupTypeOf(CobolParserCore.ReportGroupTypeContext gt)
+    {
+        if (gt.RH() != null || gt.REPORT() != null && gt.HEADING() != null) return ReportGroupKind.ReportHeading;
+        if (gt.PH() != null || gt.PAGE() != null && gt.HEADING() != null) return ReportGroupKind.PageHeading;
+        if (gt.CH() != null || gt.CONTROL() != null && gt.HEADING() != null) return ReportGroupKind.ControlHeading;
+        if (gt.DE() != null || gt.DETAIL() != null) return ReportGroupKind.Detail;
+        if (gt.CF() != null || gt.CONTROL() != null && gt.FOOTING() != null) return ReportGroupKind.ControlFooting;
+        if (gt.PF() != null || gt.PAGE() != null && gt.FOOTING() != null) return ReportGroupKind.PageFooting;
+        if (gt.RF() != null || gt.REPORT() != null && gt.FOOTING() != null) return ReportGroupKind.ReportFooting;
+        return ReportGroupKind.None;
+    }
+
+    /// <summary>Receiving width (bytes) of a report field from its PIC string (DISPLAY usage).</summary>
+    private static int ReportFieldWidth(string picString)
+    {
+        try
+        {
+            var desc = Runtime.PicDescriptorFactory.FromPicBody(
+                picString.Trim(), Runtime.UsageKind.Display, isSigned: false,
+                signStorage: Runtime.SignStorageKind.None);
+            return desc.StorageLength;
+        }
+        catch { return 0; }
     }
 
     public override object? VisitRecordClause(CobolParserCore.RecordClauseContext ctx)

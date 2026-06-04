@@ -87,6 +87,22 @@ public sealed class IrLinageCounter : IrExpression
     public IrLinageCounter(string fileName) => FileName = fileName;
 }
 
+/// <summary>The LINE-COUNTER special register (ISO §8.4.3.15): a runtime read of a report's current line,
+/// emitted as a call to ReportWriterRuntime.GetLineCounter leaving a decimal on the IL stack.</summary>
+public sealed class IrLineCounter : IrExpression
+{
+    public string ReportName { get; }
+    public IrLineCounter(string reportName) => ReportName = reportName;
+}
+
+/// <summary>The PAGE-COUNTER special register (ISO §8.4.3.15): a runtime read of a report's current page,
+/// emitted as a call to ReportWriterRuntime.GetPageCounter leaving a decimal on the IL stack.</summary>
+public sealed class IrPageCounter : IrExpression
+{
+    public string ReportName { get; }
+    public IrPageCounter(string reportName) => ReportName = reportName;
+}
+
 /// <summary>
 /// Binary arithmetic operation: left op right.
 /// Covers Add, Subtract, Multiply, Divide, Remainder, Power.

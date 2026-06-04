@@ -58,6 +58,11 @@ public enum BoundNodeKind
     MergeStatement,
     ReleaseStatement,
     SetSwitchStatement,
+    InitiateStatement,
+    GenerateStatement,
+    TerminateStatement,
+    LineCounterExpression,
+    PageCounterExpression,
 }
 
 public abstract class BoundNode
@@ -147,6 +152,62 @@ public sealed class BoundLinageCounterExpression : BoundExpression
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.LinageCounterExpression;
+}
+
+/// <summary>LINE-COUNTER special register (ISO §8.4.3.15): the RWCS's current line within the page of a
+/// report. Read-only; resolves to a runtime read of the report's counter.</summary>
+public sealed class BoundLineCounterExpression : BoundExpression
+{
+    public ReportSymbol Report { get; }
+    public BoundLineCounterExpression(ReportSymbol report) : base(CobolCategory.Numeric) => Report = report;
+    public override BoundNodeKind Kind => BoundNodeKind.LineCounterExpression;
+}
+
+/// <summary>PAGE-COUNTER special register (ISO §8.4.3.15): the RWCS's current page number for a report.</summary>
+public sealed class BoundPageCounterExpression : BoundExpression
+{
+    public ReportSymbol Report { get; }
+    public BoundPageCounterExpression(ReportSymbol report) : base(CobolCategory.Numeric) => Report = report;
+    public override BoundNodeKind Kind => BoundNodeKind.PageCounterExpression;
+}
+
+// ── Report Writer verbs (ISO §14.9.19/21/62) ──
+
+/// <summary>INITIATE report-name… (§14.9.21).</summary>
+public sealed class BoundInitiateStatement : BoundStatement
+{
+    public IReadOnlyList<ReportSymbol> Reports { get; }
+    public BoundInitiateStatement(IReadOnlyList<ReportSymbol> reports) => Reports = reports;
+    public override BoundNodeKind Kind => BoundNodeKind.InitiateStatement;
+}
+
+/// <summary>TERMINATE report-name… (§14.9.62).</summary>
+public sealed class BoundTerminateStatement : BoundStatement
+{
+    public IReadOnlyList<ReportSymbol> Reports { get; }
+    public BoundTerminateStatement(IReadOnlyList<ReportSymbol> reports) => Reports = reports;
+    public override BoundNodeKind Kind => BoundNodeKind.TerminateStatement;
+}
+
+/// <summary>One SOURCE field of a report line: its COLUMN, receiving width, and the bound source value.</summary>
+public sealed record BoundReportField(int Column, int FieldWidth, BoundExpression Source);
+
+/// <summary>One print line of a GENERATEd report group: the LINE NUMBER advance and the fields on it.</summary>
+public sealed record BoundReportLine(int Advance, bool NextPage, IReadOnlyList<BoundReportField> Fields);
+
+/// <summary>GENERATE report-group-name (§14.9.19): emit the group's print lines (detail reporting).</summary>
+public sealed class BoundGenerateStatement : BoundStatement
+{
+    public ReportSymbol Report { get; }
+    public ReportGroupSymbol? Group { get; }
+    public IReadOnlyList<BoundReportLine> Lines { get; }
+    public BoundGenerateStatement(ReportSymbol report, ReportGroupSymbol? group, IReadOnlyList<BoundReportLine> lines)
+    {
+        Report = report;
+        Group = group;
+        Lines = lines;
+    }
+    public override BoundNodeKind Kind => BoundNodeKind.GenerateStatement;
 }
 
 /// <summary>

@@ -31,6 +31,10 @@ public enum SymbolKind
     Method,
     /// <summary>A compiler-generated local variable (e.g., temporaries for expressions).</summary>
     Local,
+    /// <summary>An RD report descriptor in the REPORT SECTION (ISO §13.14).</summary>
+    Report,
+    /// <summary>A report group entry (or subordinate item) under an RD (ISO §13.15).</summary>
+    ReportGroup,
 }
 
 /// <summary>

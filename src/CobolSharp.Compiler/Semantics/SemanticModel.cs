@@ -450,6 +450,29 @@ public sealed class SemanticModel
         return null;
     }
 
+    /// <summary>Resolve an RD report-name from the REPORT SECTION.</summary>
+    public ReportSymbol? ResolveReport(string name)
+        => Symbols.Program.GlobalScope.Resolve<ReportSymbol>(name);
+
+    /// <summary>The first report, for an unqualified LINE-COUNTER/PAGE-COUNTER reference (valid only when a
+    /// single report exists, ISO §8.4.3.15). Returns null if none.</summary>
+    public ReportSymbol? FindFirstReport()
+    {
+        foreach (var sym in Symbols.Program.GlobalScope.GetAllSymbols<ReportSymbol>())
+            return sym;
+        return null;
+    }
+
+    /// <summary>The report whose RD names a report group entry with this name (to resolve a GENERATE
+    /// report-group-name to its owning report).</summary>
+    public (ReportSymbol Report, ReportGroupSymbol Group)? ResolveReportGroup(string name)
+    {
+        foreach (var report in Symbols.Program.GlobalScope.GetAllSymbols<ReportSymbol>())
+            if (report.FindGroup(name) is { } g)
+                return (report, g);
+        return null;
+    }
+
     /// <summary>Resolve a level-88 condition name.</summary>
     public ConditionSymbol? ResolveConditionName(string name)
         => Symbols.Program.DataDivisionScope.Resolve<ConditionSymbol>(name);
