@@ -336,6 +336,7 @@ public static class FileRuntime
     public static void WriteRecord(string fileName, byte[] recordBytes, int offset, int length)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(recordBytes, offset, length, "WRITE", fileName);
         byte[] recordSlice = new byte[length];
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
         string status = _manager!.Write(fileName, recordSlice);
@@ -404,6 +405,7 @@ public static class FileRuntime
     public static bool ReadPreviousRecord(string fileName, byte[] buffer, int offset, int length)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(buffer, offset, length, "READ PREVIOUS", fileName);
         byte[] tempBuf = new byte[length];
         string status = _manager!.ReadPrevious(fileName, tempBuf);
         _lastStatus[fileName] = status;
@@ -423,6 +425,8 @@ public static class FileRuntime
         byte[] keyArea, int keyOffset, int keySize, int keyIndex)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(recArea, recOffset, recSize, "READ KEY", fileName);
+        RuntimeGuard.Buffer(keyArea, keyOffset, keySize, "READ KEY", fileName);
         byte[] keyValue = new byte[keySize];
         Array.Copy(keyArea, keyOffset, keyValue, 0, keySize);
         byte[] tempBuf = new byte[recSize];
@@ -440,6 +444,7 @@ public static class FileRuntime
     public static bool ReadRecord(string fileName, byte[] buffer, int offset, int length)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(buffer, offset, length, "READ", fileName);
         byte[] tempBuf = new byte[length];
         string status = _manager!.ReadNext(fileName, tempBuf);
         _lastStatus[fileName] = status;
@@ -464,6 +469,7 @@ public static class FileRuntime
     {
         EnsureManager();
         if (length < 0) length = 0;
+        RuntimeGuard.Buffer(recordBytes, offset, length, "WRITE", fileName);
         byte[] recordSlice = new byte[length];
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
         var handler = _manager!.GetHandler(fileName);
@@ -520,6 +526,7 @@ public static class FileRuntime
     public static void Rewrite(string fileName, byte[] recordBytes, int offset, int length)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(recordBytes, offset, length, "REWRITE", fileName);
         byte[] recordSlice = new byte[length];
         Array.Copy(recordBytes, offset, recordSlice, 0, length);
         string status = _manager!.Rewrite(fileName, recordSlice);
@@ -543,6 +550,7 @@ public static class FileRuntime
         int condition, int keyIndex)
     {
         EnsureManager();
+        RuntimeGuard.Buffer(keyArea, keyOffset, keyLength, "START", fileName);
         byte[] keyValue = new byte[keyLength];
         Array.Copy(keyArea, keyOffset, keyValue, 0, keyLength);
         string status = _manager!.Start(fileName, keyValue, (IO.StartCondition)condition, keyIndex);

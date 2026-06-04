@@ -1488,6 +1488,7 @@ public static class PicRuntime
     public static decimal DecodeNumeric(
         byte[] area, int offset, int length, PicDescriptor pic)
     {
+        RuntimeGuard.Buffer(area, offset, length, "numeric-decode");
         return pic.Usage switch
         {
             UsageKind.Display => DecodeDisplay(area, offset, length, pic),
@@ -1831,6 +1832,7 @@ public static class PicRuntime
     public static void EncodeNumeric(
         byte[] area, int offset, int length, PicDescriptor pic, decimal value)
     {
+        RuntimeGuard.Buffer(area, offset, length, "numeric-encode");
         switch (pic.Usage)
         {
             case UsageKind.Comp3:

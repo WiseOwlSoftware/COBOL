@@ -37,7 +37,8 @@ public static class SortRuntime
     public static void ReleaseRecord(string fileName, byte[] storageArea, int offset, int length)
     {
         if (!_sortFiles.TryGetValue(fileName, out var sf))
-            throw new InvalidOperationException($"SORT file '{fileName}' not initialized");
+            throw new CobolRuntimeException("RT0002", "RELEASE", fileName, "SORT file not initialized");
+        RuntimeGuard.Buffer(storageArea, offset, length, "RELEASE", fileName);
 
         var record = new byte[length];
         Array.Copy(storageArea, offset, record, 0, length);
@@ -58,7 +59,7 @@ public static class SortRuntime
     private static void SortRecordsInternal(string fileName, SortKeySpec[] keys, byte[]? collating)
     {
         if (!_sortFiles.TryGetValue(fileName, out var sf))
-            throw new InvalidOperationException($"SORT file '{fileName}' not initialized");
+            throw new CobolRuntimeException("RT0002", "SORT", fileName, "SORT file not initialized");
 
         // Use LINQ OrderBy/ThenBy which is guaranteed stable (preserves original order for equal keys).
         // This is required by COBOL's WITH DUPLICATES IN ORDER semantics.
@@ -108,7 +109,7 @@ public static class SortRuntime
         byte[]? collating)
     {
         if (!_sortFiles.TryGetValue(mergeFileName, out var sf))
-            throw new InvalidOperationException($"MERGE file '{mergeFileName}' not initialized");
+            throw new CobolRuntimeException("RT0002", "MERGE", mergeFileName, "MERGE file not initialized");
 
         // For merge, we collect all input records then sort (equivalent to merge for correctness)
         // A true k-way merge is an optimization for later
