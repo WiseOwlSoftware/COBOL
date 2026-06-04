@@ -1410,6 +1410,20 @@ public sealed class CilEmitter
                     new[] { typeof(string), typeof(bool) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "FileRuntime.EnterUseDeclarative")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("EnterUseDeclarative",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "FileRuntime.ExitUseDeclarative")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("ExitUseDeclarative",
+                    new[] { typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         else if (rtc.MethodName == "FileRuntime.SetIndexedVarying")
         {
             var m = _module.ImportReference(

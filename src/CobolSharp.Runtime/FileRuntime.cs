@@ -22,6 +22,20 @@ public static class FileRuntime
     // set on the OPEN attempt (so a failed OPEN still routes to the mode's declarative), cleared on CLOSE.
     private static readonly Dictionary<string, int> _openModeScope = new(StringComparer.OrdinalIgnoreCase);
 
+    // Files whose USE declarative is currently executing. ISO §14.9.49.4 GR2: a USE procedure must not be
+    // re-invoked while it is still active (else EC-FLOW-USE). Bracketed by Enter/ExitUseDeclarative around the
+    // declarative PERFORM so a declarative whose own body does I/O on its file (e.g. CLOSE) does not recurse
+    // into itself — RL111A's D-CLOSE-FILES re-dispatched forever (a CLOSE on the already-closed file → status
+    // 42 → re-fire the same declarative) and stack-overflowed.
+    private static readonly HashSet<string> _activeUseDeclaratives = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Mark a file's USE declarative active so a re-entrant exception during its execution does not
+    /// re-invoke it (ISO §14.9.49.4 GR2). Emitted by the lowerer immediately before the declarative PERFORM.</summary>
+    public static void EnterUseDeclarative(string fileName) => _activeUseDeclaratives.Add(fileName);
+
+    /// <summary>Clear a file's active-declarative flag when its USE procedure returns (emitted after the PERFORM).</summary>
+    public static void ExitUseDeclarative(string fileName) => _activeUseDeclaratives.Remove(fileName);
+
     /// <summary>
     /// Initialize the file manager. Called once at program start.
     /// </summary>
@@ -34,6 +48,7 @@ public static class FileRuntime
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
         _openModeScope.Clear();
+        _activeUseDeclaratives.Clear();
     }
 
     /// <summary>
@@ -642,6 +657,9 @@ public static class FileRuntime
     public static bool ShouldRunUseDeclarative(string fileName, int scope,
         bool excludeAtEnd, bool excludeInvalidKey)
     {
+        // ISO §14.9.49.4 GR2: do not re-invoke a USE procedure already active for this file — a declarative
+        // whose body does I/O on its own file (e.g. CLOSE) would otherwise recurse into itself (RL111A).
+        if (_activeUseDeclaratives.Contains(fileName)) return false;
         if (!_lastStatus.TryGetValue(fileName, out var status)) return false;
         // Successful completion (status class 0: 00 successful, 02 dup-key-ok, 04 length, 05 optional-
         // absent-on-open, 07 no-reel) is not an exception — no declarative.
@@ -681,6 +699,7 @@ public static class FileRuntime
         _afterAdvancingFiles.Clear();
         _lockedFiles.Clear();
         _openModeScope.Clear();
+        _activeUseDeclaratives.Clear();
     }
 
     private static void EnsureManager()

@@ -451,7 +451,16 @@ internal sealed class FileIoLowerer
             block.Instructions.Add(new IrBranch(cond, useBlock, afterBlock));
 
             method.Blocks.Add(useBlock);
+            // Mark the declarative active across the PERFORM so a re-entrant exception raised by the
+            // declarative's own I/O (e.g. a CLOSE on its file) does not re-invoke it (ISO §14.9.49.4 GR2 —
+            // RL111A's D-CLOSE-FILES infinite re-dispatch / stack overflow).
+            var enterNameVal = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            useBlock.Instructions.Add(new IrLoadConst(enterNameVal, file.Name));
+            useBlock.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.EnterUseDeclarative", new[] { enterNameVal }));
             EmitPerformDeclarativeSection(sectionParas, useBlock);
+            var exitNameVal = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            useBlock.Instructions.Add(new IrLoadConst(exitNameVal, file.Name));
+            useBlock.Instructions.Add(new IrRuntimeCall(null, "FileRuntime.ExitUseDeclarative", new[] { exitNameVal }));
             useBlock.Instructions.Add(new IrJump(afterBlock));
 
             method.Blocks.Add(afterBlock);
