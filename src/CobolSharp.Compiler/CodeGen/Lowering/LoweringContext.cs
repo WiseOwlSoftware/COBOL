@@ -94,6 +94,16 @@ internal sealed class LoweringContext
 
     public Func<BoundStatement, IrMethod, IrBasicBlock, IrBasicBlock> LowerStatement { get; set; } = null!;
 
+    // ── Inherited GLOBAL USE declaratives (from containing programs) ──
+    // GLOBAL USE AFTER ERROR declaratives declared in this program's containing programs (ISO §14.9.49.4
+    // GR4 / §8.4.6.2.2). When an I/O statement here raises an exception this program has no USE declarative
+    // for, the applicable containing-program GLOBAL declarative is dispatched at runtime via
+    // GlobalUseDeclarativeRegistry. Scope: -1 file-name (FileName set); 0/1/2/3 INPUT/OUTPUT/I-O/EXTEND.
+    // Empty for a top-level program or one whose ancestors declare no GLOBAL USE declarative.
+
+    public IReadOnlyList<(int Scope, string? FileName)> InheritedGlobalUseDeclaratives { get; set; }
+        = System.Array.Empty<(int, string?)>();
+
     // ── Constructor ──
 
     public LoweringContext(SemanticModel semantic, DiagnosticBag diagnostics,

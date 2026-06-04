@@ -33,7 +33,8 @@ public sealed class Binder
     // Created in constructor; methods will move to these classes in Stages 2-4.
     internal readonly LoweringContext _ctx;
 
-    public Binder(SemanticModel semantic, DiagnosticBag diagnostics, CompilationOptions? options = null)
+    public Binder(SemanticModel semantic, DiagnosticBag diagnostics, CompilationOptions? options = null,
+        IReadOnlyList<(int Scope, string? FileName)>? inheritedGlobalUseDeclaratives = null)
     {
         _semantic = semantic;
         _layout = new RecordLayoutBuilder();
@@ -42,6 +43,8 @@ public sealed class Binder
 
         // M002: Build lowering context with shared state
         _ctx = new LoweringContext(semantic, diagnostics, _options, _valueFactory);
+        if (inheritedGlobalUseDeclaratives is { Count: > 0 })
+            _ctx.InheritedGlobalUseDeclaratives = inheritedGlobalUseDeclaratives;
 
         // M002: Create lowerer instances (empty shells — methods move in Stages 2-4)
         _ctx.Location = new LocationResolver(_ctx);
@@ -554,6 +557,18 @@ public sealed class Binder
         regFiles.Blocks.Add(block);
         module.Methods.Add(regFiles);
         module.RegisterFilesMethod = regFiles;
+
+        // GLOBAL USE declaratives this program exposes to its contained programs (ISO §14.9.49.4 GR4):
+        // resolve each declarative section to its inclusive paragraph-index range so CilEmitter can emit
+        // and register a cross-program handler that runs the section via the shared Dispatch helper.
+        foreach (var g in _semantic.GlobalUseDeclaratives)
+        {
+            var paras = _semantic.GetSectionParagraphs(g.SectionName);
+            if (paras is not { Count: > 0 }) continue;
+            if (!_ctx.ParagraphIndices.TryGetValue(paras[0], out int start)) continue;
+            if (!_ctx.ParagraphIndices.TryGetValue(paras[^1], out int end)) continue;
+            module.GlobalUseHandlers.Add((g.Scope, g.FileName, start, end));
+        }
 
         // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
         mainBlock.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));

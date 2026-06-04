@@ -37,6 +37,9 @@ public sealed class CilEmitter
     /// canceled-and-re-CALLed program re-registers fresh connectors.
     /// </summary>
     private FieldDefinition? _filesRegisteredField;
+    /// <summary>The program type's static constructor — GLOBAL USE handler registration is inserted
+    /// before its terminal Ret in a late phase (after the Dispatch helper and handler bodies exist).</summary>
+    private MethodDefinition? _cctorMethod;
     private VariableDefinition? _arithmeticStatusLocal;
     /// <summary>
     /// Cache for IrCachedLocation: maps cache key → (area, offset, length) locals.
@@ -208,6 +211,92 @@ public sealed class CilEmitter
         // 7. Generate alternate Entry methods for ENTRY statements
         foreach (var ep in ir.EntryPoints)
             EmitAlternateEntryMethod(ir, ep.Name, ep.UsingParams);
+
+        // 8. GLOBAL USE declarative handlers: emit a public static handler per entry that runs the
+        // declarative section via the Dispatch helper, and register it in GlobalUseDeclarativeRegistry
+        // from the static constructor (so a contained program can dispatch it). Done last, after the
+        // Dispatch helper and all paragraph bodies exist.
+        EmitGlobalUseHandlers(ir);
+    }
+
+    /// <summary>
+    /// Emit and register this program's GLOBAL USE AFTER ERROR declarative handlers (ISO §14.9.49.4 GR4).
+    /// For each handler: a public static <c>__GlobalUse_i()</c> method runs the declarative section's
+    /// paragraph range through the shared <c>Dispatch(start, end)</c> helper; the static constructor then
+    /// registers a delegate to it in <c>GlobalUseDeclarativeRegistry</c> keyed by scope (or file name).
+    /// </summary>
+    private void EmitGlobalUseHandlers(IrModule ir)
+    {
+        if (ir.GlobalUseHandlers.Count == 0 || _dispatchMethod == null || _cctorMethod == null)
+            return;
+
+        // Registration is inserted before the cctor's terminal Ret so it runs at type init.
+        var cctorIl = _cctorMethod.Body.GetILProcessor();
+        var cctorRet = _cctorMethod.Body.Instructions[_cctorMethod.Body.Instructions.Count - 1];
+
+        var actionCtor = _module.ImportReference(
+            typeof(Action).GetConstructor(new[] { typeof(object), typeof(IntPtr) })!);
+        var regForMode = _module.ImportReference(
+            typeof(GlobalUseDeclarativeRegistry).GetMethod("RegisterForMode",
+                new[] { typeof(int), typeof(Action) })!);
+        var regForFile = _module.ImportReference(
+            typeof(GlobalUseDeclarativeRegistry).GetMethod("RegisterForFile",
+                new[] { typeof(string), typeof(Action) })!);
+
+        for (int i = 0; i < ir.GlobalUseHandlers.Count; i++)
+        {
+            var (scope, fileName, start, end) = ir.GlobalUseHandlers[i];
+
+            // public static void __GlobalUse_i() { Dispatch(start, end); }
+            var handler = new MethodDefinition(
+                $"__GlobalUse_{i}",
+                MethodAttributes.Public | MethodAttributes.Static,
+                _module.TypeSystem.Void);
+            _programType!.Methods.Add(handler);
+            var hIl = handler.Body.GetILProcessor();
+            hIl.Append(hIl.Create(OpCodes.Ldc_I4, start));
+            hIl.Append(hIl.Create(OpCodes.Ldc_I4, end));
+            hIl.Append(hIl.Create(OpCodes.Call, _dispatchMethod));
+            hIl.Append(hIl.Create(OpCodes.Pop)); // discard the returned next-pc
+            hIl.Append(hIl.Create(OpCodes.Ret));
+
+            // Registration in the static constructor: new Action(__GlobalUse_i) → Register*.
+            if (scope < 0 && fileName != null)
+            {
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldstr, fileName));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldnull));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldftn, handler));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Newobj, actionCtor));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Call, regForFile));
+            }
+            else
+            {
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldc_I4, scope));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldnull));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Ldftn, handler));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Newobj, actionCtor));
+                cctorIl.InsertBefore(cctorRet, cctorIl.Create(OpCodes.Call, regForMode));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Emit a contained program's cross-program GLOBAL USE declarative dispatch (ISO §14.9.49.4 GR4):
+    /// GlobalUseDeclarativeRegistry.Dispatch(fileName, scope, excludeAtEnd, excludeInvalidKey). The
+    /// registry applies the same exception gate as a local declarative and runs the containing program's
+    /// registered handler when it fires.
+    /// </summary>
+    private void EmitDispatchGlobalUse(ILProcessor il, IrDispatchGlobalUse dgu)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, dgu.FileName));
+        il.Append(il.Create(OpCodes.Ldc_I4, dgu.Scope));
+        il.Append(il.Create(dgu.ExcludeAtEnd ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(dgu.ExcludeInvalidKey ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        var m = _module.ImportReference(
+            typeof(GlobalUseDeclarativeRegistry).GetMethod("Dispatch",
+                new[] { typeof(string), typeof(int), typeof(bool), typeof(bool) })!);
+        il.Append(il.Create(OpCodes.Call, m));
+        il.Append(il.Create(OpCodes.Pop)); // discard the bool result
     }
 
     private MethodDefinition? _entryMethod;
@@ -541,6 +630,7 @@ public sealed class CilEmitter
             MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
             _module.TypeSystem.Void);
         _programType.Methods.Add(cctor);
+        _cctorMethod = cctor;
         var cctorIl = cctor.Body.GetILProcessor();
         cctorIl.Append(cctorIl.Create(OpCodes.Call, _initializeStateMethod));
         cctorIl.Append(cctorIl.Create(OpCodes.Ret));
@@ -1038,6 +1128,7 @@ public sealed class CilEmitter
             case IrStartFile sf: _ctx.FileIo.EmitStartFile(il, sf); break;
             case IrCheckFileInvalidKey cik: _ctx.FileIo.EmitCheckFileInvalidKey(il, cik, getLocal); break;
             case IrCheckUseDeclarative cud: _ctx.FileIo.EmitCheckUseDeclarative(il, cud, getLocal); break;
+            case IrDispatchGlobalUse dgu: EmitDispatchGlobalUse(il, dgu); break;
             case IrSortInit sortInit: _ctx.FileIo.EmitSortInit(il, sortInit); break;
             case IrSortRelease sortRel: _ctx.FileIo.EmitSortRelease(il, sortRel); break;
             case IrSortReleaseVariable sortRelV: _ctx.FileIo.EmitSortReleaseVariable(il, sortRelV); break;

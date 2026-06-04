@@ -806,6 +806,30 @@ public sealed class IrCheckUseDeclarative : IrInstruction
 }
 
 /// <summary>
+/// Dispatch a CONTAINING program's GLOBAL USE AFTER ERROR declarative after an I/O operation in this
+/// (contained) program that this program has no USE declarative for (ISO §14.9.49.4 GR4 /
+/// §8.4.6.2.2). Emits a call to GlobalUseDeclarativeRegistry.Dispatch(fileName, scope, excludeAtEnd,
+/// excludeInvalidKey), which applies the same ShouldRunUseDeclarative gate as a local declarative and,
+/// when it fires, invokes the containing program's registered handler. Scope: -1 file-name; 0/1/2/3
+/// open-mode INPUT/OUTPUT/I-O/EXTEND.
+/// </summary>
+public sealed class IrDispatchGlobalUse : IrInstruction
+{
+    public string FileName { get; }
+    public int Scope { get; }
+    public bool ExcludeAtEnd { get; }
+    public bool ExcludeInvalidKey { get; }
+
+    public IrDispatchGlobalUse(string fileName, int scope, bool excludeAtEnd, bool excludeInvalidKey)
+    {
+        FileName = fileName;
+        Scope = scope;
+        ExcludeAtEnd = excludeAtEnd;
+        ExcludeInvalidKey = excludeInvalidKey;
+    }
+}
+
+/// <summary>
 /// Check a file's read status after a READ. Sets result bool. By default this is the AT END
 /// CONDITION (status "10" only) driving an AT END / NOT AT END branch. When
 /// <see cref="TreatErrorsAsEnd"/> is set, it is a loop-exhaustion check (EOF OR any terminal

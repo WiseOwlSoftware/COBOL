@@ -70,6 +70,16 @@ public sealed class IrModule(string name)
     /// USING parameter names. Registered in CobolProgramRegistry under their own names.
     /// </summary>
     public List<(string Name, IReadOnlyList<string> UsingParams)> EntryPoints { get; } = [];
+
+    /// <summary>
+    /// GLOBAL USE AFTER ERROR declaratives this program exposes to its CONTAINED programs
+    /// (ISO §14.9.49.4 GR4 / §8.4.6.2.2). Each entry names the dispatch scope (-1 file-name; 0/1/2/3
+    /// INPUT/OUTPUT/I-O/EXTEND), the optional file name (for scope -1), and the inclusive paragraph-index
+    /// range of the declarative section in <see cref="ParagraphDispatchOrder"/>. CilEmitter emits a public
+    /// static handler per entry that runs that range via the shared Dispatch helper, and registers it in
+    /// <c>GlobalUseDeclarativeRegistry</c> during InitializeState so a contained program can invoke it.
+    /// </summary>
+    public List<(int Scope, string? FileName, int StartIndex, int EndIndex)> GlobalUseHandlers { get; } = [];
 }
 
 /// <summary>

@@ -466,8 +466,51 @@ internal sealed class FileIoLowerer
             method.Blocks.Add(afterBlock);
             block = afterBlock; // chain: the next candidate's check follows this branch's join
         }
+
+        // Cross-program GLOBAL declarative dispatch (ISO §14.9.49.4 GR4 / §8.4.6.2.2): if a CONTAINING
+        // program declares a USE GLOBAL declarative applicable to this file and THIS program declares no
+        // applicable declarative of its own (a local one takes precedence), invoke the containing
+        // program's registered handler at runtime. The registry applies the same exception gate as a
+        // local declarative. File-name-scoped globals (scope -1 for this file) take precedence over
+        // open-mode-scoped globals (ISO §14.9.49.4 GR4); only one is dispatched.
+        if (!_ctx.Semantic.UseDeclaratives.ContainsKey(file.Name)
+            && _ctx.InheritedGlobalUseDeclaratives.Count > 0)
+        {
+            bool hasFileScoped = false;
+            foreach (var g in _ctx.InheritedGlobalUseDeclaratives)
+                if (g.Scope < 0 && string.Equals(g.FileName, file.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    block.Instructions.Add(new IrDispatchGlobalUse(file.Name, -1, excludeAtEnd, excludeInvalidKey));
+                    hasFileScoped = true;
+                    break;
+                }
+
+            if (!hasFileScoped)
+            {
+                // Open-mode-scoped globals: at most one per mode. The runtime dispatch checks the file's
+                // actual open mode, so emitting one Dispatch per inherited mode-scope is safe (only the
+                // matching mode fires). A local mode-scoped declarative for the same mode already handled
+                // the condition above, so skip a mode this program declares locally.
+                foreach (var g in _ctx.InheritedGlobalUseDeclaratives)
+                {
+                    if (g.Scope < 0) continue;
+                    if (_ctx.Semantic.UseDeclarativesByMode.ContainsKey(ScopeToMode(g.Scope))) continue;
+                    block.Instructions.Add(new IrDispatchGlobalUse(file.Name, g.Scope, excludeAtEnd, excludeInvalidKey));
+                }
+            }
+        }
         return block;
     }
+
+    /// <summary>Inverse of <see cref="UseModeScope"/>: map the shared scope encoding back to an OpenMode
+    /// (used to test whether this program declares a local mode-scoped declarative for the same mode).</summary>
+    private static OpenMode ScopeToMode(int scope) => scope switch
+    {
+        0 => OpenMode.Input,
+        1 => OpenMode.Output,
+        2 => OpenMode.IO,
+        _ => OpenMode.Extend,
+    };
 
     /// <summary>Map a USE-declarative open-mode scope to the runtime UseScope encoding used by
     /// FileRuntime.ShouldRunUseDeclarative.</summary>

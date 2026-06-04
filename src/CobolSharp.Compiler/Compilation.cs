@@ -89,8 +89,14 @@ public sealed class Compilation
             modelByContext[progCtx] = semanticModel;
             idByContext[progCtx] = programId;
 
+            // GLOBAL USE AFTER ERROR declaratives declared in containing programs (ISO §14.9.49.4 GR4):
+            // an I/O exception here that this program has no USE declarative for is serviced by the
+            // nearest containing program's applicable GLOBAL declarative — dispatched at runtime via
+            // GlobalUseDeclarativeRegistry. Gather the ancestors' GLOBAL declaratives for the lowerer.
+            var inheritedGlobalUse = CollectInheritedGlobalUseDeclaratives(progCtx, programParents, modelByContext);
+
             // Bind -> IR
-            var binder = new CodeGen.Binder(semanticModel, diagnostics, Options);
+            var binder = new CodeGen.Binder(semanticModel, diagnostics, Options, inheritedGlobalUse);
             var irModule = binder.Bind(progCtx);
 
             compiledPrograms.Add(new CompiledProgram(programId, irModule, semanticModel));
@@ -178,6 +184,27 @@ public sealed class Compilation
                         if (ancestorModel.GetStorageLocation(member) is not { } loc) continue;
                         model.TryInheritGlobal(member, loc with { OwnerProgramId = ownerId });
                     }
+                }
+
+                // FD ... IS GLOBAL: the file-name, its record, and every subordinate field are referenceable
+                // (OPEN/READ/CLOSE) here (ISO §8.4.6.2.2). Inherit the FileSymbol into this program's
+                // GlobalScope so ResolveFile finds it, and inherit each non-FILLER record field's storage
+                // (tagged with the owner program so the emitter reads the shared FILE-SECTION bytes — the
+                // record area is itself shared, §8.4.6.2). The runtime FileRuntime state is name-keyed and
+                // already shared, so no re-registration is needed; the contained program references the same
+                // open file by name.
+                foreach (var file in ancestorModel.Symbols.Program.GlobalScope
+                             .GetAllSymbols<Semantics.FileSymbol>())
+                {
+                    if (!file.IsGlobal) continue;
+                    if (!model.TryInheritGlobalFile(file)) continue; // a local file of the same name shadows it
+                    if (file.Record is { } record)
+                        foreach (var member in EnumerateSelfAndDescendants(record))
+                        {
+                            if (member.IsFiller) continue;
+                            if (ancestorModel.GetStorageLocation(member) is not { } loc) continue;
+                            model.TryInheritGlobal(member, loc with { OwnerProgramId = ownerId });
+                        }
                 }
             }
             ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
@@ -281,6 +308,15 @@ public sealed class Compilation
         {
             if (modelByContext.TryGetValue(ancestor, out var ancestorModel))
             {
+                // An FD ... IS GLOBAL file-NAME is itself a global name (ISO §8.4.6.2.2): it is referenceable
+                // (OPEN/READ/CLOSE) in every contained program. Yield it so the contained program's
+                // undefined-data-name check (CBL3128) and file-reference check (CBL3121) accept it; the
+                // FileSymbol itself is inherited into this program's GlobalScope by InheritGlobalItems.
+                foreach (var file in ancestorModel.Symbols.Program.GlobalScope
+                             .GetAllSymbols<Semantics.FileSymbol>())
+                    if (file.IsGlobal)
+                        yield return file.Name;
+
                 // Data items + their members, plus the INDEXED BY index-names of any OCCURS table under a
                 // global item (ISO §8.4.5: such an index-name possesses the global attribute). Index-names
                 // are yielded even for a FILLER table since the index itself is still referenceable.
@@ -313,6 +349,29 @@ public sealed class Compilation
             }
             ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
         }
+    }
+
+    /// <summary>
+    /// GLOBAL USE AFTER ERROR declaratives (scope + optional file name) declared in every containing
+    /// program of <paramref name="progCtx"/> (ISO §14.9.49.4 GR4), nearest-first. A contained program
+    /// dispatches the applicable one at runtime when an I/O exception arises that it has no USE
+    /// declarative of its own for. Empty for a top-level program.
+    /// </summary>
+    private static IReadOnlyList<(int Scope, string? FileName)> CollectInheritedGlobalUseDeclaratives(
+        ParserRuleContext progCtx,
+        IReadOnlyDictionary<ParserRuleContext, ParserRuleContext?> parents,
+        IReadOnlyDictionary<ParserRuleContext, Semantics.SemanticModel> modelByContext)
+    {
+        var result = new List<(int, string?)>();
+        var ancestor = parents.TryGetValue(progCtx, out var p) ? p : null;
+        while (ancestor != null)
+        {
+            if (modelByContext.TryGetValue(ancestor, out var ancestorModel))
+                foreach (var g in ancestorModel.GlobalUseDeclaratives)
+                    result.Add((g.Scope, g.FileName));
+            ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
+        }
+        return result;
     }
 
     private static IEnumerable<string> CollectSpecialNames(Semantics.SemanticBuilder b)

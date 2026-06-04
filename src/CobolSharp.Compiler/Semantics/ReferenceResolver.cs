@@ -162,13 +162,20 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
 
     // ── Resolve file names in I/O statements ──
 
+    // A file reference is valid if a FileSymbol of that name is declared in this program OR the name is an
+    // FD ... IS GLOBAL file inherited from a containing program (ISO §8.4.6.2.2) — such inherited global
+    // file-names are threaded in via _knownNames, since the inherited FileSymbol is not added to this
+    // program's GlobalScope until after this resolution pass (see Compilation.InheritGlobalItems).
+    private bool IsDeclaredFile(string name) =>
+        _symbols.Program.GlobalScope.Resolve<FileSymbol>(name) != null || _knownNames.Contains(name);
+
     public override object? VisitReadStatement(CobolParserCore.ReadStatementContext ctx)
     {
         var fileCtx = ctx.fileName();
         if (fileCtx != null)
         {
             string name = fileCtx.GetText();
-            if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
+            if (!IsDeclaredFile(name))
                 Error(fileCtx, DiagnosticDescriptors.CBL3121, "READ", name);
         }
         return base.VisitReadStatement(ctx);
@@ -188,7 +195,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             {
                 var id = spec.dataReference();
                 string name = id.GetText();
-                if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
+                if (!IsDeclaredFile(name))
                     Error(id, DiagnosticDescriptors.CBL3121, "OPEN", name);
             }
         }
@@ -203,7 +210,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             if (fn != null)
             {
                 string name = fn.GetText();
-                if (_symbols.Program.GlobalScope.Resolve<FileSymbol>(name) is null)
+                if (!IsDeclaredFile(name))
                     Error(fn, DiagnosticDescriptors.CBL3121, "CLOSE", name);
             }
         }

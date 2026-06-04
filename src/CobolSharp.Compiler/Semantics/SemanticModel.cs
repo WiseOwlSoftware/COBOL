@@ -196,6 +196,26 @@ public sealed class SemanticModel
     public void RegisterUseDeclarativeForMode(Bound.OpenMode mode, string sectionName)
         => _useDeclarativesByMode[mode] = sectionName;
 
+    // ── GLOBAL USE declaratives (USE GLOBAL AFTER ERROR …) ──
+    // A USE GLOBAL declarative in THIS program also handles I/O exceptions arising in CONTAINED programs
+    // that have no applicable USE declarative of their own (ISO §14.9.49.4 GR4 / §8.4.6.2.2). These are
+    // recorded so the container can emit a registered cross-program handler and a contained program can
+    // dispatch it. Scope: -1 = file-name-scoped (FileName set); 0/1/2/3 = INPUT/OUTPUT/I-O/EXTEND.
+
+    /// <summary>A GLOBAL USE AFTER ERROR declarative: its scope, optional file name, and the declarative
+    /// section that handles the condition.</summary>
+    public sealed record GlobalUseDeclarative(int Scope, string? FileName, string SectionName);
+
+    private readonly List<GlobalUseDeclarative> _globalUseDeclaratives = [];
+
+    /// <summary>GLOBAL USE AFTER ERROR declaratives declared in this program (in declaration order).</summary>
+    public IReadOnlyList<GlobalUseDeclarative> GlobalUseDeclaratives => _globalUseDeclaratives;
+
+    /// <summary>Register a GLOBAL USE AFTER ERROR declarative (file-name-scoped: scope -1, FileName set;
+    /// open-mode-scoped: scope 0/1/2/3, FileName null).</summary>
+    public void RegisterGlobalUseDeclarative(int scope, string? fileName, string sectionName)
+        => _globalUseDeclaratives.Add(new GlobalUseDeclarative(scope, fileName, sectionName));
+
     // ── Storage sizes (set by ComputeStorageLayout) ──
 
     public int WorkingStorageSize { get; set; }
@@ -297,6 +317,17 @@ public sealed class SemanticModel
         RegisterStorageLocation(symbol, ownerLocation);
         return true;
     }
+
+    /// <summary>
+    /// Make a file-name declared FD ... IS GLOBAL in a containing program resolvable by name in this
+    /// program (ISO §8.4.6.2.2), so OPEN/READ/CLOSE here bind to the containing program's file connector.
+    /// The same <see cref="FileSymbol"/> instance is shared (its <see cref="FileSymbol.Record"/> is the
+    /// containing program's record); the runtime FileRuntime state is name-keyed so the open file is
+    /// already shared. Returns false if a file of the same name is already declared locally (which shadows
+    /// the inherited global).
+    /// </summary>
+    public bool TryInheritGlobalFile(FileSymbol file)
+        => Symbols.Program.GlobalScope.TryDeclare(file, out _);
 
     public void RegisterNodeSymbol(object parseNode, Symbol symbol)
         => _nodeToSymbol[parseNode] = symbol;

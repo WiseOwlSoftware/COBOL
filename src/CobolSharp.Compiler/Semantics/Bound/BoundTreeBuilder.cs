@@ -119,11 +119,23 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
                     {
                         // file-name-scoped: USE … ON file-name-1 …
                         foreach (var fileName in bound.FileNames)
+                        {
                             _semantic.RegisterUseDeclarative(fileName, sectionName);
+                            // USE GLOBAL … ON file-name also services exceptions in contained programs
+                            // (ISO §14.9.49.4 GR4): record it for cross-program dispatch (scope -1).
+                            if (bound.IsGlobal)
+                                _semantic.RegisterGlobalUseDeclarative(-1, fileName, sectionName);
+                        }
                         // open-mode-scoped: USE … ON INPUT/OUTPUT/I-O/EXTEND — applies to every file
                         // open in that mode, dispatched by the file's runtime open mode.
                         if (bound.TargetMode is { } mode)
+                        {
                             _semantic.RegisterUseDeclarativeForMode(mode, sectionName);
+                            // USE GLOBAL … ON INPUT/OUTPUT/I-O/EXTEND also services contained-program
+                            // exceptions on files open in that mode (ISO §14.9.49.4 GR4).
+                            if (bound.IsGlobal)
+                                _semantic.RegisterGlobalUseDeclarative(UseModeScope(mode), null, sectionName);
+                        }
                     }
                 }
             }
@@ -132,6 +144,17 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         // Continue visiting children (declarative paragraphs become bound paragraphs)
         return base.VisitDeclarativeSection(ctx);
     }
+
+    /// <summary>Map a USE-declarative open mode to the scope encoding shared by FileIoLowerer /
+    /// FileRuntime / GlobalUseDeclarativeRegistry (INPUT=0, OUTPUT=1, I-O=2, EXTEND=3).</summary>
+    private static int UseModeScope(OpenMode mode) => mode switch
+    {
+        OpenMode.Input => 0,
+        OpenMode.Output => 1,
+        OpenMode.IO => 2,
+        OpenMode.Extend => 3,
+        _ => -1,
+    };
 
     public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
     {
