@@ -3,10 +3,21 @@
 Paste this to start a new session. **Mission (REFRAMED 2026-06-04): a multi-version COBOL compiler (ISO 85→2023),
 dialect-gated — implement features LIVE across all versions, parse+flag features REMOVED after '85.** NIST CCVS85
 remains the validation backbone for the core modules + Report Writer.
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 323
-(guard 1040 unit / 347 int / **360 NIST**).
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 325
+(guard 1040 unit / 347 int / **364 NIST**).
 
-**═══ THIS SESSION (DEVLOG 322–323): scope reframe + Report Writer workstream started ═══**
+**═══ THIS SESSION (DEVLOG 322–325): scope reframe + Report Writer module COMPLETE (NIST 360→364) ═══**
+The Report Writer — the flagship LIVE COBOL-85 module — is now functionally complete: **RW101A/102A/103A/104A all
+baselined** (RW301M/302M are …M flagging tests). Built the whole subsystem this session: Stage 0 (obsolete
+comment-entry unblock), Stage 1a (declarative REPORT SECTION grammar), Increment B (INITIATE/GENERATE/TERMINATE +
+LINE-COUNTER/PAGE-COUNTER special registers + ReportWriterRuntime), and page mechanics (PAGE HEADING/FOOTING
+auto-presentation, FIRST DETAIL positioning — the runtime owns the page logic in EmitGroup). Two parallel recon
+workflows mapped the integration points + the ISO §14.9 page algorithm. See `project_reportwriter` memory.
+**Next RW (future, NOT needed for NIST): control breaks / SUM / GROUP INDICATE (WS-SPEC increments).** Remaining
+modules: WS-DIALECT (parse+flag removed DB/SG/CM + the …M flagging diagnostics incl. RW301M/302M), WS-IC tail,
+WS-FORWARD (multi-version 2002/2014/2023).
+
+**═══ EARLIER THIS SESSION (DEVLOG 322–323): scope reframe + RW grammar ═══**
 The owner reframed the end goal to **multi-version (85→2023), live-features-first** (see
 `docs/COBOL85_COMPLIANCE_PLAN.md` §4 + `scripts/compliance.sh`): the 8 core NIST modules are COMPLETE; the only
 LIVE-in-2023 unimplemented module is **Report Writer** (ISO 2023 §A.4.11) — IMPLEMENT it. The removed modules
@@ -154,7 +165,7 @@ A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must sta
 | **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
 | **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
 | **CM** communication      |  9 |  0 | ✗ whole Communication module (OBSOLETE in COBOL-2002) (Phase 5) |
-| **RW** report writer      |  6 |  0 | ◐ IMPLEMENTING (LIVE module). Stage 0+1a done (DEVLOG 322–323): data division parses; resume at Increment B (verbs+runtime+codegen). See `project_reportwriter` |
+| **RW** report writer      |  6 |  4 | ✅ COMPLETE (LIVE module — DEVLOG 322–325): RW101A-104A baselined (verbs + LINE/PAGE-COUNTER + page mechanics); RW301M/302M flagging. See `project_reportwriter` |
 | **OBNC/OBIC** obsolete    |  5 |  0 | ✗ obsolete-feature NC/IC variants (Phase 5) |
 | **EXEC** EXEC85           |  1 |  0 | ✗ EXEC85 driver (COMPILE_FAIL) (Phase 5) |
 

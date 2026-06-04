@@ -22,7 +22,7 @@ additional test cases (`tests/nist/extra/` + integration tests) so each spec fea
 | Sort-Merge | ST | 40 | 29 (+10 prod) | ✅ COMPLETE (ST301M flag) |
 | Source Text (COPY/REPLACE) | SM | 17 | 15 | ✅ COMPLETE (SM301M/401M flag) |
 | Intrinsic Functions | IF | 45 | 42 | ✅ COMPLETE (IF401M/402M/403M flag) |
-| **Report Writer** | RW | 6 | **0** | ✗ UNIMPLEMENTED (all COMPILE_FAIL) |
+| Report Writer | RW | 6 | 4 | ✅ COMPLETE (RW101A-104A baselined; RW301M/302M flagging — DEVLOG 322-325) |
 | **Communication** | CM | 9 | **0** | ✗ UNIMPLEMENTED — needs a Message Control System (obsolete in COBOL-2002) |
 | **Debug** | DB | 15 | **0** | ✗ UNIMPLEMENTED (all COMPILE_FAIL) |
 | **Segmentation** | SG | 13 | **0** | ✗ UNIMPLEMENTED (all COMPILE_FAIL) |
