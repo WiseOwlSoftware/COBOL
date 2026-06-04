@@ -953,7 +953,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var nameCtx = ctx.dataName();
         if (levelCtx == null) return base.VisitDataDescriptionEntry(ctx);
 
-        int level = int.Parse(levelCtx.GetText());
+        // ISO §8.5.1.2: valid level numbers are 1-49, 66, 77, 88. The grammar's INTEGERLIT permits any
+        // digit run, so int.Parse would OverflowException on a huge level; TryParse + range check
+        // diagnoses bad input gracefully instead of crashing. Unconditional (no valid program has an
+        // out-of-range level, so it never fires on the corpus). (DEVLOG 306)
+        if (!int.TryParse(levelCtx.GetText(), out int level)
+            || !(level is (>= 1 and <= 49) or 66 or 77 or 88))
+        {
+            _diagnostics.Report(DiagnosticDescriptors.CBL0815,
+                new Common.SourceLocation(_sourceName, 0, levelCtx.Start.Line, levelCtx.Start.Column),
+                new Common.TextSpan(levelCtx.Start.StartIndex, levelCtx.Stop?.StopIndex ?? levelCtx.Start.StopIndex),
+                levelCtx.GetText(), nameCtx?.GetText() ?? "FILLER");
+            return base.VisitDataDescriptionEntry(ctx); // skip malformed entry; do not crash
+        }
         string displayName = nameCtx?.GetText() ?? "FILLER";
         int line = levelCtx.Start.Line;
 
@@ -1271,6 +1283,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             displayName, picString, usage, diagBag, line, blankWhenZero, picEnv);
         foreach (var d in diagBag.Diagnostics)
             _diagnostics.Add(d);
+
+        // PICTURE-validity (ISO §13.18.40.3 SR2/SR8): the runtime PIC parser silently skips unrecognized
+        // symbols (its default arm), so a mixed picture like 9Q9 compiles with the Q swallowed. Flag the
+        // illegal symbol. Dialect-gated to named-strict modes (staged like CBL3128) so the permissive
+        // Default / --nist corpus is unaffected by construction. (DEVLOG 306)
+        if (picString != null && _options.Dialect >= DialectMode.StrictCobol85
+            && PicUsageResolver.FindIllegalPicSymbol(picString, picEnv) is { } badSym)
+        {
+            _diagnostics.Report(DiagnosticDescriptors.CBL0814,
+                new Common.SourceLocation(_sourceName, 0, line, 0), Common.TextSpan.Empty,
+                picString, displayName, badSym);
+        }
 
         data.InitialValue = initialValue;
         data.Area = _currentArea;

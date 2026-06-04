@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Compiler;
 using CobolSharp.Compiler.Diagnostics;
+using CobolSharp.Compiler.Semantics;
 using Xunit;
 
 namespace CobolSharp.Tests.Unit.Semantics;
@@ -12,9 +13,16 @@ namespace CobolSharp.Tests.Unit.Semantics;
 public abstract class DiagnosticTestBase
 {
     /// <summary>
-    /// Compile COBOL source text and return all diagnostics.
+    /// Compile COBOL source text in the permissive Default dialect and return all diagnostics.
     /// </summary>
     protected static IReadOnlyList<Diagnostic> GetDiagnostics(string cobolSource)
+        => GetDiagnostics(cobolSource, DialectMode.Default);
+
+    /// <summary>
+    /// Compile COBOL source text under the given dialect and return all diagnostics. Use
+    /// <see cref="DialectMode.StrictCobol85"/> to exercise dialect-gated diagnostics (e.g. CBL3128, CBL0814).
+    /// </summary>
+    protected static IReadOnlyList<Diagnostic> GetDiagnostics(string cobolSource, DialectMode dialect)
     {
         string tempDir = Path.Combine(Path.GetTempPath(), "cobolsharp_test_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(tempDir);
@@ -23,7 +31,7 @@ public abstract class DiagnosticTestBase
             string srcPath = Path.Combine(tempDir, "TEST.cbl");
             File.WriteAllText(srcPath, cobolSource);
 
-            var compilation = new Compilation();
+            var compilation = new Compilation { Options = new CompilationOptions { Dialect = dialect } };
             var result = compilation.Compile(srcPath, Path.Combine(tempDir, "TEST.dll"));
             return result.Diagnostics;
         }

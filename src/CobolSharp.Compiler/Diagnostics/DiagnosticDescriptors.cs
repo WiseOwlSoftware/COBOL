@@ -378,6 +378,17 @@ public static partial class DiagnosticDescriptors
         "JUSTIFIED only allowed on alphanumeric elementary item '{0}'");
 
     // ══════════════════════════════════════
+    // CBL0814–0815: PICTURE / level-number validity (ISO §13.18.40.3, §8.5.1.2)
+    // CBL0814 is dialect-gated to named-strict modes (illegal-symbol detection — staged like CBL3128);
+    // CBL0815 (level number) is unconditional: no valid program has an out-of-range level, so it never
+    // fires on the corpus and it replaces a crash-prone int.Parse. (DEVLOG 306)
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL0814 = new("CBL0814", DiagnosticSeverity.Error,
+        "Illegal PICTURE '{0}' for item '{1}': '{2}' is not a valid PICTURE symbol");
+    public static readonly DiagnosticDescriptor CBL0815 = new("CBL0815", DiagnosticSeverity.Error,
+        "Invalid level number '{0}' for '{1}': level numbers must be 1-49, 66, 77, or 88");
+
+    // ══════════════════════════════════════
     // CBL0808: REDEFINES clause ordering (§13.18.44 SR 1)
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL0808 = new("CBL0808", DiagnosticSeverity.Warning,

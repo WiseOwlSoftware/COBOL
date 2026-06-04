@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler;
-using CobolSharp.Compiler.Diagnostics;
 using CobolSharp.Compiler.Semantics;
 using Xunit;
 
@@ -15,24 +13,6 @@ namespace CobolSharp.Tests.Unit.Semantics;
 /// </summary>
 public class UndefinedDataNameTests : DiagnosticTestBase
 {
-    /// <summary>Compile under StrictCobol85, where CBL3128 is active.</summary>
-    private static IReadOnlyList<Diagnostic> GetStrictDiagnostics(string cobolSource)
-    {
-        string tempDir = Path.Combine(Path.GetTempPath(), "cobolsharp_test_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(tempDir);
-        try
-        {
-            string srcPath = Path.Combine(tempDir, "TEST.cbl");
-            File.WriteAllText(srcPath, cobolSource);
-            var compilation = new Compilation
-            {
-                Options = new CompilationOptions { Dialect = DialectMode.StrictCobol85 }
-            };
-            return compilation.Compile(srcPath, Path.Combine(tempDir, "TEST.dll")).Diagnostics;
-        }
-        finally { try { Directory.Delete(tempDir, true); } catch { } }
-    }
-
     private const string MoveToUndefined = @"
        IDENTIFICATION DIVISION.
        PROGRAM-ID. TESTPROG.
@@ -48,7 +28,7 @@ public class UndefinedDataNameTests : DiagnosticTestBase
     [Fact]
     public void Strict_MoveToUndefinedName_ReportsCBL3128()
     {
-        var diags = GetStrictDiagnostics(MoveToUndefined);
+        var diags = GetDiagnostics(MoveToUndefined, DialectMode.StrictCobol85);
         AssertHasDiagnostic(diags, "CBL3128");
     }
 
@@ -57,8 +37,7 @@ public class UndefinedDataNameTests : DiagnosticTestBase
     {
         // Staged rollout: permissive Default (and --nist) must NOT fire — the gate that keeps the 349
         // NIST baselines green by construction.
-        var diags = GetDiagnostics(MoveToUndefined);
-        AssertNoDiagnostic(diags, "CBL3128");
+        AssertNoDiagnostic(GetDiagnostics(MoveToUndefined), "CBL3128");
     }
 
     [Fact]
@@ -72,7 +51,7 @@ public class UndefinedDataNameTests : DiagnosticTestBase
            DISPLAY UNDEF-VAR.
            STOP RUN.
 ";
-        AssertHasDiagnostic(GetStrictDiagnostics(src), "CBL3128");
+        AssertHasDiagnostic(GetDiagnostics(src, DialectMode.StrictCobol85), "CBL3128");
     }
 
     [Fact]
@@ -92,7 +71,7 @@ public class UndefinedDataNameTests : DiagnosticTestBase
            DISPLAY WS-A.
            STOP RUN.
 ";
-        AssertNoDiagnostic(GetStrictDiagnostics(src), "CBL3128");
+        AssertNoDiagnostic(GetDiagnostics(src, DialectMode.StrictCobol85), "CBL3128");
     }
 
     [Fact]
@@ -112,7 +91,7 @@ public class UndefinedDataNameTests : DiagnosticTestBase
            MOVE SPACE TO FLD-A OF GRP-A.
            STOP RUN.
 ";
-        AssertNoDiagnostic(GetStrictDiagnostics(src), "CBL3128");
+        AssertNoDiagnostic(GetDiagnostics(src, DialectMode.StrictCobol85), "CBL3128");
     }
 
     [Fact]
@@ -134,6 +113,6 @@ public class UndefinedDataNameTests : DiagnosticTestBase
            MOVE SPACE TO FLD OF GRP-A.
            STOP RUN.
 ";
-        AssertNoDiagnostic(GetStrictDiagnostics(src), "CBL3128");
+        AssertNoDiagnostic(GetDiagnostics(src, DialectMode.StrictCobol85), "CBL3128");
     }
 }

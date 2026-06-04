@@ -49,6 +49,39 @@ public static class PicUsageResolver
         return new DataTypeSymbol(name, isNumeric, isAlpha, isBool, layout, usage);
     }
 
+    /// <summary>
+    /// Returns the first character in <paramref name="picBody"/> that is not a valid PICTURE symbol
+    /// (ISO §13.18.40.3 SR2/SR8), or null if every symbol is valid. The runtime
+    /// <see cref="PicDescriptorFactory.FromPicBody"/> silently skips unrecognized characters (its
+    /// <c>default</c> arm), so a mixed picture like <c>9Q9</c> compiles with the Q swallowed; this
+    /// compiler-side scan surfaces that. Valid symbols: 9 X A N S V P Z * + - , . / B 0, the program's
+    /// currency symbol, and the two-character CR / DB. Scans the EXPANDED pattern so repeat counts like
+    /// <c>9(5)</c> (the parentheses/integer are syntax, not symbols) are not mistaken for illegal chars.
+    /// </summary>
+    public static char? FindIllegalPicSymbol(string picBody, PicEnvironment? environment = null)
+    {
+        var env = environment ?? PicEnvironment.Default;
+        char currency = char.ToUpperInvariant(env.CurrencySign);
+        string expanded = PicDescriptorFactory.ExpandPattern(picBody.Trim().ToUpperInvariant());
+        for (int i = 0; i < expanded.Length; i++)
+        {
+            char c = expanded[i];
+            if (IsValidPicSymbol(c, currency)) continue;
+            // ';' is a COBOL separator (equivalent to a space, never a picture symbol); the PIC lexer can
+            // capture a trailing one into the picture token, so ignore it rather than flag it.
+            if (c is ';' or ' ') continue;
+            if (c == 'C' && i + 1 < expanded.Length && expanded[i + 1] == 'R') { i++; continue; } // CR
+            if (c == 'D' && i + 1 < expanded.Length && expanded[i + 1] == 'B') { i++; continue; } // DB
+            return c;
+        }
+        return null;
+    }
+
+    private static bool IsValidPicSymbol(char c, char currency) =>
+        c is '9' or 'X' or 'A' or 'N' or 'S' or 'V' or 'P' or 'Z' or '*'
+          or '+' or '-' or ',' or '.' or '/' or 'B' or '0'
+        || c == currency;
+
     private static string BuildTypeName(string dataName, PicLayout? pic, UsageKind usage)
     {
         if (pic == null)
