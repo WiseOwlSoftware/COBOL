@@ -1,0 +1,34 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  RW102A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ INITIATE REPORT      PASS  INIT-TEST-03.01
+ INITIATE REPORT      PASS  INIT-TEST-03.02
+ GENERATE 20 LINES    PASS  GENER-TEST-7.01
+ GENERATE 20 LINES    PASS  GENER-TEST-7.02
+ TERMINATE REPORT           TERM-TEST-02                  CHECK RWCS OUTPUT REPORT
+        *** INFORMATION  ***                      1 PAGE REPORT            20 LINES PER PAGE
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RW102A    NTIS DISTRIBUTION COBOL 74
+
+                                                    004 OF 004  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974
