@@ -630,4 +630,17 @@ public static partial class DiagnosticDescriptors
         "'COLLATING' is required in the SORT/MERGE COLLATING SEQUENCE phrase; the no-COLLATING form is a non-standard CCVS leniency not allowed in {0} mode");
     public static readonly DiagnosticDescriptor CBL3618 = new("CBL3618", DiagnosticSeverity.Warning,
         "'COLLATING' omitted from the SORT/MERGE SEQUENCE phrase; non-standard (accepted as a CCVS leniency)");
+
+    // ══════════════════════════════════════
+    // CBL3620–3622: COPY preprocessing (ISO §7.2.3). CBL3620 (missing copybook) is dialect-gated to
+    // named-strict modes — Default/--nist keep the lenient "*> ... not found" comment so the NIST
+    // copy-library suite is unaffected; CBL3621 (circular) / CBL3622 (depth) are unconditional, since
+    // a recursive/over-deep include is always a real bug and never occurs in the corpus. (DEVLOG 307)
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor CBL3620 = new("CBL3620", DiagnosticSeverity.Error,
+        "COPY copybook '{0}' not found. Searched: {1}");
+    public static readonly DiagnosticDescriptor CBL3621 = new("CBL3621", DiagnosticSeverity.Error,
+        "Circular COPY: copybook '{0}' is already being included");
+    public static readonly DiagnosticDescriptor CBL3622 = new("CBL3622", DiagnosticSeverity.Error,
+        "COPY nesting too deep (limit {0}); possible recursive include");
 }

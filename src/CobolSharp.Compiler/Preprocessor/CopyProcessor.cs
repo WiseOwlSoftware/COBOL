@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using CobolSharp.Compiler.Common;
+using CobolSharp.Compiler.Diagnostics;
 
 namespace CobolSharp.Compiler.Preprocessor;
 
@@ -8,7 +10,11 @@ namespace CobolSharp.Compiler.Preprocessor;
 /// Handles COPY statement preprocessing. COPY inserts the contents of a copybook
 /// (library text) into the source before lexing. Supports COPY ... REPLACING.
 /// </summary>
-public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
+public sealed class CopyProcessor(
+    IEnumerable<string>? searchPaths = null,
+    DiagnosticBag? diagnostics = null,
+    string sourceName = "<source>",
+    bool strict = false)
 {
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;
@@ -18,8 +24,27 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
 
     private readonly List<string> _searchPaths = new(searchPaths ?? []);
 
+    // Diagnostic plumbing (DEVLOG 307). Optional so the standalone preprocess CLI and tests can construct
+    // a CopyProcessor without a bag; when absent, behavior is unchanged (silent). `strict` gates the
+    // missing-copybook error to named-strict dialects so the permissive Default/--nist path is unaffected.
+    private readonly DiagnosticBag? _diagnostics = diagnostics;
+    private readonly string _sourceName = sourceName;
+    private readonly bool _strict = strict;
+
     /// <summary>Add a directory to search for copybooks.</summary>
     public void AddSearchPath(string path) => _searchPaths.Add(path);
+
+    private void Report(DiagnosticDescriptor descriptor, int line, params object[] args)
+        => _diagnostics?.Report(descriptor, new SourceLocation(_sourceName, 0, line, 0), TextSpan.Empty, args);
+
+    /// <summary>0-based line number of <paramref name="index"/> within <paramref name="text"/>.</summary>
+    private static int LineOf(string text, int index)
+    {
+        int line = 0;
+        for (int i = 0; i < index && i < text.Length; i++)
+            if (text[i] == '\n') line++;
+        return line;
+    }
 
     /// <summary>
     /// Process all COPY and REPLACE statements in the source text.
@@ -233,7 +258,10 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
     private string ExpandCopyStatements(string text, HashSet<string> alreadyIncluded, int depth)
     {
         if (depth > MaxCopyDepth)
+        {
+            Report(DiagnosticDescriptors.CBL3622, 0, MaxCopyDepth);
             return text;
+        }
 
         var result = new StringBuilder();
         int pos = 0;
@@ -279,7 +307,23 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
             if (afterCopy < text.Length) afterCopy++;
 
             string? copybookPath = FindCopybook(libraryName, libraryQualifier);
-            if (copybookPath != null && alreadyIncluded.Add(copybookPath))
+            if (copybookPath == null)
+            {
+                // ISO §7.2.3.4 GR 2: library text shall be available to the compiler. Hard error under
+                // named-strict dialects; Default/--nist keep the lenient comment fallback (NIST safe).
+                if (_strict)
+                    Report(DiagnosticDescriptors.CBL3620, LineOf(text, copyIdx),
+                        libraryName, string.Join("; ", _searchPaths));
+                result.AppendLine($"*> COPY {libraryName} — copybook not found");
+            }
+            else if (!alreadyIncluded.Add(copybookPath))
+            {
+                // ISO §7.2.3.3 SR 1: a COPY shall not directly or indirectly include itself. Always an
+                // error (a real bug; never occurs in the corpus).
+                Report(DiagnosticDescriptors.CBL3621, LineOf(text, copyIdx), libraryName);
+                result.AppendLine($"*> COPY {libraryName} — circular include skipped");
+            }
+            else
             {
                 // Library text is itself in reference (fixed) format — normalize it to free
                 // form (strip sequence/identification areas, expand continuations) exactly as
@@ -297,10 +341,6 @@ public sealed class CopyProcessor(IEnumerable<string>? searchPaths = null)
                 result.AppendLine();
 
                 alreadyIncluded.Remove(copybookPath);
-            }
-            else
-            {
-                result.AppendLine($"*> COPY {libraryName} — copybook not found");
             }
 
             pos = afterCopy;

@@ -37,7 +37,7 @@ public sealed class Compilation
         var diagnostics = new DiagnosticBag();
 
         // Phase 0: Preprocess
-        string processedText = Preprocess(sourcePath);
+        string processedText = Preprocess(sourcePath, diagnostics);
 
         // Phase 1: Lex + Parse
         int dialectLevel = Options.Dialect == Semantics.DialectMode.Default ? 85 : (int)Options.Dialect;
@@ -186,7 +186,7 @@ public sealed class Compilation
                 yield return d;
     }
 
-    private string Preprocess(string sourcePath)
+    private string Preprocess(string sourcePath, DiagnosticBag diagnostics)
     {
         string rawText = File.ReadAllText(sourcePath);
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
@@ -200,7 +200,8 @@ public sealed class Compilation
         // matching placeholder in the consumer's own source. COPY library-name qualifiers are
         // raw placeholders (XXXXX047) resolved against the copy library directory, so expanding
         // first does not disturb them.
-        var copyProcessor = new CopyProcessor(_copySearchPaths);
+        var copyProcessor = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath,
+            strict: Options.Dialect != Semantics.DialectMode.Default);
         string expandedText = copyProcessor.Process(normalizedText, sourceDir);
 
         if (NistTestName != null)
