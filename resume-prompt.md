@@ -1,10 +1,10 @@
 # CobolSharp — Session Resume Prompt (2026-06-04)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 320
-(guard 1040 unit / 347 int / **359 NIST**).
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 321
+(guard 1040 unit / 347 int / **360 NIST**).
 
-**Latest session (DEVLOG 311–320): NIST 349→359 (+10) — SQ212A + the ENTIRE remaining file-I/O/IC backlog, via
+**Latest session (DEVLOG 311–321): NIST 349→360 (+11) — SQ212A + the ENTIRE remaining file-I/O/IC backlog, via
 two parallel multi-agent workflows.** A 9-agent **diagnosis** workflow root-caused the backlog, then a 4-agent
 **worktree-isolated implementation** workflow implemented + full-guard-verified the four fixes in parallel; I
 integrated each onto main sequentially (3-way merge, guard-gated). Integrated DEVLOG 317–320: **RL213A** (OPTIONAL
@@ -13,8 +13,7 @@ subprogram registers its own file connectors at `Entry`, not in its dead `Main`)
 record area shared across programs — EXTERNAL machinery extended to FileSection with an Area discriminator),
 **IC233A/IC234A** (the GLOBAL-FILE feature: inherit ancestor `FD … IS GLOBAL` files into contained programs +
 cross-program GLOBAL USE-declarative dispatch via a new run-unit `GlobalUseDeclarativeRegistry`). **The diagnosed
-file-I/O/IC backlog is COMPLETE** except IX108A (a separate `END-WRITE`/scope-terminator fail, not the NOT-INVALID
-bug). Earlier in the session (DEVLOG 311–316): First SQ212A (311–312): variable-length WRITE/REWRITE out-of-bounds → **I-O status 44**
+file-I/O/IC backlog is COMPLETE** plus IX108A (321 — WRITE was the only I/O statement not emitting its INVALID/NOT-INVALID blocks; also un-skipped 2 latent RL111A tests). Earlier in the session (DEVLOG 311–316): First SQ212A (311–312): variable-length WRITE/REWRITE out-of-bounds → **I-O status 44**
 (ISO §9.1.13) instead of crashing, which exposed+fixed a USE-procedure **declaratives-return** bug (return at
 the declarative's designated exit, not its CLOSE-FILES/footer/STOP-RUN termination tail; the right rule is "last
 trivial exit-point paragraph only when a terminating paragraph follows it" — two wrong heuristics each passed
@@ -76,15 +75,14 @@ RL208A 313, RL205A 314, RL111A 315, IC235A 316 — all DONE~~; **remaining 4 bel
 9-agent diagnosis**). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
 (bare "FLOW" code) are a known verify-then-delete cleanup (PROMPT.md zero-dead-code).**
 
-### Remaining file-I/O/IC backlog — ✅ DONE (DEVLOG 317–320), one item left
+### File-I/O/IC backlog — ✅ COMPLETE (DEVLOG 317–321)
 The whole DEVLOG-311 diagnosed file-I/O/IC backlog is integrated and baselined (NIST 354→359): **RL213A**
 (OPTIONAL cross-program consumer share, 317), **IC114A** (subprogram file-reg at Entry, 318), **IC227A**
 (FD-EXTERNAL record sharing, 319), **IC233A/IC234A** (GLOBAL-FILE inheritance + cross-program GLOBAL USE
 dispatch, 320). Implemented in parallel worktree-isolated agents, integrated onto main one-at-a-time, guard-gated.
-- **IX108A** — the ONE remaining diagnosed file-I/O fail (`000 OF 001`, `001 FAILED`, no detail line). NOT the
-  RL205A NOT-INVALID bug (that fix didn't change it). A test that never records a result; exercises the
-  `END-WRITE`/`END-DELETE`/`END-REWRITE` explicit scope terminators. Separate, undiagnosed; left as a known-fail.
-  Other long-tail known-fails: SQ212A's IX108A-class, the deferred RL/IC GLOBAL follow-ups (subscripted/ref-modded
+- **IX108A** ✅ DONE (321) — `LowerWrite` never emitted the invalid-key branch (every other I/O statement did);
+  WRITE's INVALID/NOT-INVALID blocks were dropped compiler-wide. Adding the branch → 032 OF 032, and un-skipped 2
+  latent RL111A tests (022→024, baseline regenerated). The diagnosed backlog is now fully cleared. Other long-tail known-fails: SQ212A's IX108A-class, the deferred RL/IC GLOBAL follow-ups (subscripted/ref-modded
   inherited globals, level-88 under a global group). Next-session candidates: Phase 5 stretch (DB/RW modules) or
   the dead-code cleanup (`FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`).
 
@@ -116,12 +114,12 @@ Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly o
    DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
 A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 359 NIST honest)
+## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 360 NIST honest)
 | Suite | Present | Baselined | Status |
 |-------|--:|--:|--|
 | **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
 | **IF** intrinsics         | 45 | 42 | ✅ COMPLETE (IF401M/402M/403M flagging) |
-| **IX** indexed I/O        | 42 | 39 | ◐ IX108A removed (footer 001 FAILED — real bug, remaining work); IX301M/401M flagging |
+| **IX** indexed I/O        | 42 | 40 | ✅ +IX108A (DEVLOG 321 — WRITE invalid-key branch); IX301M/401M flagging |
 | **ST** sort/merge         | 40 | 29 +10 prod | ✅ COMPLETE (ST301M flagging) — every program accounted for |
 | **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
 | **SQ** sequential I/O     | 85 | 83 | ✅ +SQ212A (var-length WRITE/REWRITE→status 44 + USE-return fix, DEVLOG 311–312); SQ303M/401M flagging |
