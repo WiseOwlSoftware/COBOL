@@ -72,6 +72,23 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         _sourceName = sourceName;
     }
 
+    // The parse-tree node this builder was entered on (the program being built). A contained (nested)
+    // program is its OWN source element with its own SemanticModel — Compilation builds each separately —
+    // so the per-program walk must NOT descend into contained programs (their names are LOCAL to their own
+    // element, ISO §8.4.6). Absorbing them re-declares the container's file/record/USING names (IC235A:
+    // PRINT-FILE/PRINT-REC → CBL3107/3101; contained USING params → CBL3108). GLOBAL inheritance into a
+    // contained program is handled separately on the independently-built ancestor models.
+    private Antlr4.Runtime.Tree.IParseTree? _walkRoot;
+
+    public override object? Visit(Antlr4.Runtime.Tree.IParseTree tree)
+    {
+        _walkRoot ??= tree;
+        return base.Visit(tree);
+    }
+
+    public override object? VisitNestedProgram(CobolParserCore.NestedProgramContext context)
+        => ReferenceEquals(context, _walkRoot) ? base.VisitNestedProgram(context) : DefaultResult;
+
     /// <summary>
     /// Pass 2: Resolve all deferred REDEFINES references now that all data items
     /// are registered in the symbol table.

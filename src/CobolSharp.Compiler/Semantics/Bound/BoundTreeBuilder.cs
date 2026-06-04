@@ -80,6 +80,20 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return expr;
     }
 
+    // Do not bind statements inside a CONTAINED (nested) program — it is its own source element with its own
+    // BoundProgram (the Binder builds each separately). Descending from the containing program's walk would
+    // absorb the contained program's procedure code into the container's bound tree (ISO §8.4.6 — IC235A).
+    private Antlr4.Runtime.Tree.IParseTree? _walkRoot;
+
+    public override object? Visit(Antlr4.Runtime.Tree.IParseTree tree)
+    {
+        _walkRoot ??= tree;
+        return base.Visit(tree);
+    }
+
+    public override object? VisitNestedProgram(CobolParserCore.NestedProgramContext context)
+        => ReferenceEquals(context, _walkRoot) ? base.VisitNestedProgram(context) : DefaultResult;
+
     public BoundProgram Build(Antlr4.Runtime.ParserRuleContext tree)
     {
         Visit(tree);

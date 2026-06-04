@@ -27,6 +27,21 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
         _knownNames = new HashSet<string>(knownNames, StringComparer.OrdinalIgnoreCase);
     }
 
+    // Do not resolve references inside a CONTAINED (nested) program — it is its own source element, resolved
+    // by its own ReferenceResolver pass (Compilation builds each separately). Descending into it from the
+    // containing program's walk would resolve the contained program's references in the wrong scope (IC235A:
+    // contained USING params ELEM-NON-01/SUBSCRIPTED-DATA resolve to the container's WORKING-STORAGE → CBL3108).
+    private Antlr4.Runtime.Tree.IParseTree? _walkRoot;
+
+    public override object? Visit(Antlr4.Runtime.Tree.IParseTree tree)
+    {
+        _walkRoot ??= tree;
+        return base.Visit(tree);
+    }
+
+    public override object? VisitNestedProgram(CobolParserCore.NestedProgramContext context)
+        => ReferenceEquals(context, _walkRoot) ? base.VisitNestedProgram(context) : DefaultResult;
+
     private void Error(ParserRuleContext ctx, DiagnosticDescriptor descriptor, params object[] args)
     {
         string message = args.Length > 0

@@ -1,0 +1,39 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF IC235A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ MULTIPLE EXIT PROGRM PASS  EXIT-TEST-01
+ MULTIPLE EXIT PROGRM PASS  EXIT-TEST-02
+ MULTIPLE EXIT PROGRM PASS  EXIT-TEST-03
+ MULTIPLE EXIT PROGRM PASS  EXIT-TEST-04
+ CALL USING DN SERIES PASS  CALL-TEST-06       .01
+ CALL USING DN SERIES PASS  CALL-TEST-06       .02
+ CALL USING DN SERIES PASS  CALL-TEST-06       .03
+ CALL USING DN SERIES PASS  CALL-TEST-06       .04
+ CALL USING DN SERIES PASS  CALL-TEST-06       .05
+ CALL USING DN SERIES PASS  CALL-TEST-06       .06
+ CALL USING DN SERIES PASS  CALL-TEST-06       .07
+ CALL USING DN SERIES PASS  CALL-TEST-06       .08
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  IC235A
+
+                                                    012 OF 012  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985
