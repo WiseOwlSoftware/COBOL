@@ -26,6 +26,25 @@ public static class ReferenceFormatProcessor
     /// <summary>Minimum percentage of lines that must match fixed-form pattern for detection.</summary>
     private const int FixedFormThresholdPercent = 60;
 
+    /// <summary>Width of Area A (columns 8-11). A division/section/paragraph header begins here;
+    /// continuation/free text of a comment-entry is indented into Area B (column 12+).</summary>
+    private const int AreaAWidth = 4;
+
+    /// <summary>
+    /// The obsolete IDENTIFICATION DIVISION "comment-entry" paragraphs (ISO 1989:1985 §III; obsolete,
+    /// removed in COBOL-2002). Their content is free-form commentary — any characters, including embedded
+    /// periods, reserved words, numbers and quoted strings, spanning one or more lines until the next
+    /// Area-A header. That free text cannot be reliably bounded by a token grammar (e.g. the FCTC address
+    /// in RW101A's INSTALLATION contains "...AUTOMATED DATA AND..." and "5203 LEESBURG PIKE"), so we treat
+    /// the whole paragraph as commentary in the column-aware preprocessor: comment out the header and its
+    /// content up to the next Area-A header. The paragraphs are optional (identificationParagraph*), so the
+    /// parser simply never sees them — no grammar change, no embedded-period/terminating-period edge cases.
+    /// </summary>
+    private static readonly HashSet<string> CommentEntryParagraphs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "AUTHOR", "INSTALLATION", "DATE-WRITTEN", "DATE-COMPILED", "SECURITY", "REMARKS",
+    };
+
     /// <summary>
     /// Remove NIST CCVS archive-control lines ('*HEADER,…' and '*END-OF,…') that delimit
     /// members inside newcob.val. They begin in column 1 (the sequence area), so reference-format
@@ -127,6 +146,10 @@ public static class ReferenceFormatProcessor
         bool inLiteral = false;
         bool pendingQuote = false; // true when last char was first half of potential "" pair
 
+        // True while inside an obsolete IDENTIFICATION comment-entry paragraph (AUTHOR/INSTALLATION/etc.):
+        // its free-text body is commented out until the next Area-A header. See CommentEntryParagraphs.
+        bool inCommentEntry = false;
+
         foreach (var rawLine in lines)
         {
             var line = rawLine.TrimEnd('\r');
@@ -143,6 +166,44 @@ public static class ReferenceFormatProcessor
             string sourceArea = line[SourceAreaStart..];
             if (sourceArea.Length > SourceAreaWidth)
                 sourceArea = sourceArea[..SourceAreaWidth];
+
+            // Obsolete comment-entry handling: applies only to ordinary code lines (the '-' continuation
+            // and the '*'/'/'/'D'/excluded-indicator lines fall through to the switch, which already
+            // comments or joins them — a comment-entry body is plain space-indicator text).
+            bool excludedIndicator =
+                indicator is '*' or '/' or 'D' or 'd' or 'S' or 's' or 'Y' or 'y'
+                          or 'P' or 'p' or 'J' or 'j' or 'H' or 'h' or 'E' or 'e' or 'U' or 'u' or '-';
+            if (!excludedIndicator)
+            {
+                string? firstAreaAWord = FirstAreaAWord(sourceArea);
+                if (firstAreaAWord is not null && CommentEntryParagraphs.Contains(firstAreaAWord))
+                {
+                    // Start (or continue, for back-to-back comment paragraphs) a comment-entry.
+                    inCommentEntry = true;
+                    result.AppendLine($"*> {sourceArea.TrimEnd()}");
+                    inLiteral = false;
+                    pendingQuote = false;
+                    continue;
+                }
+                if (inCommentEntry)
+                {
+                    if (firstAreaAWord is not null)
+                    {
+                        // An Area-A header that is NOT a comment paragraph = the next real paragraph or
+                        // division (ENVIRONMENT/DATA/PROCEDURE/section/program). End the comment-entry and
+                        // let this line be processed normally below.
+                        inCommentEntry = false;
+                    }
+                    else
+                    {
+                        // Area-B free text of the comment-entry: keep as commentary.
+                        result.AppendLine($"*> {sourceArea.TrimEnd()}");
+                        inLiteral = false;
+                        pendingQuote = false;
+                        continue;
+                    }
+                }
+            }
 
             switch (indicator)
             {
@@ -204,6 +265,23 @@ public static class ReferenceFormatProcessor
         }
 
         return result.ToString();
+    }
+
+    /// <summary>
+    /// If the source area begins with a word in Area A (its first non-space character falls within
+    /// columns 8-11, i.e. the first <see cref="AreaAWidth"/> characters), return that word (the run of
+    /// non-space, non-period characters), else null. Used to detect division/section/paragraph headers,
+    /// which begin in Area A, versus Area-B continuation/free text, which is indented to column 12+.
+    /// </summary>
+    private static string? FirstAreaAWord(string sourceArea)
+    {
+        int start = 0;
+        while (start < sourceArea.Length && sourceArea[start] == ' ') start++;
+        if (start >= sourceArea.Length || start >= AreaAWidth)
+            return null; // blank line, or text begins in Area B (not a header)
+        int end = start;
+        while (end < sourceArea.Length && sourceArea[end] is not (' ' or '.')) end++;
+        return sourceArea[start..end];
     }
 
     /// <summary>

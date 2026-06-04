@@ -7,7 +7,25 @@ stages — each builds + guard-gates green before the next. NIST targets: RW101A
 Spec: ISO §13.8 (Report Section), §13.14 (RD entry), §13.15 (report group entry), §13.18.12/14/16/28/37/39/46/
 53/54/57/63 (CODE/COLUMN/CONTROL/GROUP-INDICATE/NEXT-GROUP/PAGE/REPORT/SOURCE/SUM/TYPE/VALUE clauses), §14 verbs.
 
+## Stage 0 — Unblock the header (a WS-DIALECT prerequisite, NOT report-writer code)
+**Finding (2026-06-04):** RW101A fails at line 11 — `error COBOL0001: unexpected '5203'` — in the obsolete
+`INSTALLATION` paragraph's free-text address block, BEFORE any REPORT SECTION. The RW lexer tokens (RD, SUM,
+DETAIL, …) and `reportSection` ALREADY exist. The real blocker is the identification-division **comment-entry**
+paragraphs: `authorContent`/`installationContent`/… are `~DOT+` (CobolParserCore.g4:172-210), which stops at the
+FIRST embedded period (`…SERVICE.`), so a multi-line comment-entry with embedded periods / a number-starting line
+(`5203 LEESBURG PIKE`) / a quoted line (`" HIGH "`) breaks. Per ISO §13.x a comment-entry is *any* characters
+across one or more lines until the next paragraph-name or division header — embedded periods are text, not
+terminators. **Fix (a WS-DIALECT item, likely the cleanest):** consume the obsolete comment paragraphs
+(`AUTHOR`/`INSTALLATION`/`DATE-WRITTEN`/`DATE-COMPILED`/`SECURITY`/`REMARKS`) and their free text in the
+preprocessor (`ReferenceFormatProcessor`) when an Area-A paragraph header is seen — blank/comment the content to
+the next Area-A header. (Column-aware so it never eats real code — regression surface = every program's ID
+division, so full-guard carefully.) An ANTLR-only non-greedy `.*?` content rule is the fragile alternative.
+This must land before Report Writer Stages 1-5 can even compile RW101A. **DoD:** RW101A parses past its header.
+
 ## Stage 1 — Grammar + parse (foundation; highest regression risk → isolate + full-guard)
+**Note:** much of this already exists (`CobolReportWriter.g4` has `reportSection`/`RD`/`reportGroupEntry`/SUM).
+After Stage 0, re-probe RW101A to see how far the *existing* report-writer grammar gets, and fill only the gaps
+(the design's full clause set: LINE/COLUMN/NEXT GROUP/TYPE variants/PAGE LIMIT/CONTROL/GROUP INDICATE).
 - `CobolData.g4`: add `reportClause : REPORT IS? reportName` to the FD/SD clause list (§13.18.46).
 - `CobolReportWriter.g4` (replace the stub): `reportSection`, `reportDescriptionEntry` (RD + CODE/CONTROL/PAGE
   LIMIT [HEADING/FIRST DETAIL/LAST DETAIL/FOOTING]/IS GLOBAL), `reportGroupEntry` (level + name + `TYPE IS`
