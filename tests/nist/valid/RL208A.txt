@@ -1,0 +1,41 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF RL208A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ READ SEQUENTIAL      PASS  REL-TEST-012       .01
+ READ SEQUENTIAL      PASS  REL-TEST-012       .02
+ READ SEQUENTIAL      PASS  REL-TEST-012       .03
+ READ SEQUENTIAL      PASS  REL-TEST-012       .04
+ READ SEQUENTIAL      PASS  REL-TEST-012       .05
+ READ SEQUENTIAL            REL-TEST-012       .06        STATUS AFTER OPEN
+*** INFORMATION ***         000000000000000099      INFORMATION
+
+ DELETE               PASS  REL-TEST-013       .01        AT END PATH TAKEN
+ DELETE               PASS  REL-TEST-013       .02
+ READ UPDATED FILE    PASS  REL-TEST-014       .01
+ READ UPDATED FILE    PASS  REL-TEST-014       .02
+ READ UPDATED FILE    PASS  REL-TEST-014       .03
+ READ UPDATED FILE    PASS  REL-TEST-014       .04
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RL208A
+
+                                                    011 OF 011  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

@@ -1300,6 +1300,16 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(CobolDataPointer))));
             il.Append(il.Create(OpCodes.Call, _entryMethod!));
             il.Append(il.Create(OpCodes.Pop)); // discard int return value in Main
+            // ISO §14.6.11 / §14.4: at normal run-unit termination the runtime executes an implicit CLOSE
+            // (no phrases) for every file still in the open mode, persisting buffered I-O changes. STOP RUN
+            // just exits the dispatch loop (returns from Entry) without closing, so without this a file the
+            // program never explicitly CLOSEs loses its writes/rewrites (RL208A — RL207A's REWRITEs were
+            // discarded). CloseAll disposes each handler, which persists it; an already-closed handler is a
+            // guarded no-op. Scoped to Main (the run unit), so a CALLed subprogram's EXIT PROGRAM/GOBACK is
+            // unaffected (those return to the caller, not the run unit).
+            var closeAll = _module.ImportReference(
+                typeof(CobolSharp.Runtime.FileRuntime).GetMethod("CloseAll", Type.EmptyTypes)!);
+            il.Append(il.Create(OpCodes.Call, closeAll));
         }
         else if (rtc.MethodName == "FileRuntime.Init")
         {
