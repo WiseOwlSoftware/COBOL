@@ -1597,7 +1597,21 @@ public sealed class CilEmitter
         {
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("InitiateReport",
-                    new[] { typeof(string), typeof(string), typeof(int), typeof(int), typeof(int) })!);
+                    new[] { typeof(string), typeof(string), typeof(int), typeof(int), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterPageGroup")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterPageGroup",
+                    new[] { typeof(string), typeof(bool), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterPageField")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterPageField",
+                    new[] { typeof(string), typeof(bool), typeof(int), typeof(int), typeof(int), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "ReportWriterRuntime.BeginLine")

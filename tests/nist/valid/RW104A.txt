@@ -1,0 +1,44 @@
+
+                            FEDERAL COMPILER TESTING CENTER COBOL COMPILER VALIDATION   SYSTEM
+
+CCVS74 NCC  COPY, NOT FOR DISTRIBUTION.             TEST RESULTS SET-  RW104A
+
+
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1974
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                  REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ INITIATE REPORT      PASS  INIT-TEST-05.01
+ INITIATE REPORT      PASS  INIT-TEST-05.02
+ FIRST GENERATE       PASS  GENR-WRITE-1.01
+ FIRST GENERATE       PASS  GENR-WRITE-1.02
+ GENERATE 19 LINES    PASS  GENR-TEST-15.01
+ GENERATE 19 LINES    PASS  GENR-TEST-15.02
+ PAGE ADVANCE         PASS  GENR-TEST-16.01
+ PAGE ADVANCE         PASS  GENR-TEST-16.02
+ GENERATE 19 LINES    PASS  GENR-TEST-17.01
+ GENERATE 19 LINES    PASS  GENR-TEST-17.02
+ PAGE ADVANCE         PASS  GENR-TEST-18.01
+ PAGE ADVANCE         PASS  GENR-TEST-18.02
+ GENERATE 19 LINES    PASS  GENR-TEST-19.01
+ GENERATE 19 LINES    PASS  GENR-TEST-19.02
+ TERMINATE REPORT           TERM-TEST-04                  CHECK RWCS OUTPUT REPORT
+        *** INFORMATION  ***                      3 PAGE REPORT            20 DE LINES PER PAGE
+
+ ***********************************************************************************************************************
+
+
+
+
+                                                    END OF TEST-  RW104A    NTIS DISTRIBUTION COBOL 74
+
+                                                    014 OF 014  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    NO  TEST(S) FAILED
+                                                    NO  TEST(S) DELETED
+                                                    NO  TEST(S) REQUIRE INSPECTION
+ FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1974

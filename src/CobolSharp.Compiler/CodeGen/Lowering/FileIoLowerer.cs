@@ -204,15 +204,86 @@ internal sealed class FileIoLowerer
             var lw = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var pl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var ld = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var fd = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             block.Instructions.Add(new IrLoadConst(rn, report.Name));
             block.Instructions.Add(new IrLoadConst(fn, report.HostFileName ?? ""));
             block.Instructions.Add(new IrLoadConst(lw, report.LineWidth));
             block.Instructions.Add(new IrLoadConst(pl, report.PageLimitLines));
             block.Instructions.Add(new IrLoadConst(ld, report.LastDetailLine));
+            block.Instructions.Add(new IrLoadConst(fd, report.FirstDetailLine));
             block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.InitiateReport",
-                new[] { rn, fn, lw, pl, ld }));
+                new[] { rn, fn, lw, pl, ld, fd }));
+
+            // Register the PAGE HEADING / PAGE FOOTING runtime-composed field plans so the RWCS can present
+            // them automatically at page boundaries (ISO §14.9.16 / §13.18.57). Fields whose value is a
+            // VALUE literal or SOURCE LINE-COUNTER/PAGE-COUNTER are composed by the runtime.
+            foreach (var g in report.AllGroups())
+            {
+                if (g.GroupKind == ReportGroupKind.PageHeading)
+                    RegisterPageGroup(report.Name, g, isFooting: false,
+                        g.HasLine ? g.LineValue : report.HeadingLine, block);
+                else if (g.GroupKind == ReportGroupKind.PageFooting)
+                    RegisterPageGroup(report.Name, g, isFooting: true,
+                        g.HasLine ? g.LineValue : report.FootingLine, block);
+            }
         }
         return block;
+    }
+
+    private void RegisterPageGroup(string reportName, ReportGroupSymbol group, bool isFooting, int lineValue,
+        IrBasicBlock block)
+    {
+        var rn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+        var ft = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+        var lv = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+        block.Instructions.Add(new IrLoadConst(rn, reportName));
+        block.Instructions.Add(new IrLoadConst(ft, isFooting));
+        block.Instructions.Add(new IrLoadConst(lv, lineValue));
+        block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterPageGroup", new[] { rn, ft, lv }));
+
+        foreach (var f in group.SelfAndDescendants())
+        {
+            if (!f.HasColumn) continue;
+            var (kind, literal) = ClassifyPageField(f);
+            var frn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            var fft = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            var col = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var wid = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var knd = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+            var lit = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+            block.Instructions.Add(new IrLoadConst(frn, reportName));
+            block.Instructions.Add(new IrLoadConst(fft, isFooting));
+            block.Instructions.Add(new IrLoadConst(col, f.ColumnValue));
+            block.Instructions.Add(new IrLoadConst(wid, f.FieldWidth));
+            block.Instructions.Add(new IrLoadConst(knd, kind));
+            block.Instructions.Add(new IrLoadConst(lit, literal));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterPageField",
+                new[] { frn, fft, col, wid, knd, lit }));
+        }
+    }
+
+    /// <summary>Classify a page heading/footing field for runtime composition: VALUE literal (0),
+    /// SOURCE LINE-COUNTER (1), SOURCE PAGE-COUNTER (2), or unsupported program-data source (3 → blank).</summary>
+    private static (int Kind, string Literal) ClassifyPageField(ReportGroupSymbol f)
+    {
+        if (f.SourceName != null)
+        {
+            if (string.Equals(f.SourceName, "LINE-COUNTER", System.StringComparison.OrdinalIgnoreCase)) return (1, "");
+            if (string.Equals(f.SourceName, "PAGE-COUNTER", System.StringComparison.OrdinalIgnoreCase)) return (2, "");
+            return (3, "");
+        }
+        if (f.ValueLiteral != null) return (0, ExtractLiteral(f.ValueLiteral));
+        return (3, "");
+    }
+
+    /// <summary>Pull the unquoted text out of a captured VALUE clause (e.g. <c>VALUE"DETAIL LINE "</c> →
+    /// <c>DETAIL LINE </c>). Returns the raw text if no quotes are present.</summary>
+    private static string ExtractLiteral(string raw)
+    {
+        int first = raw.IndexOf('"');
+        int last = raw.LastIndexOf('"');
+        if (first >= 0 && last > first) return raw.Substring(first + 1, last - first - 1);
+        return raw;
     }
 
     public IrBasicBlock LowerTerminate(BoundTerminateStatement term, IrMethod method, IrBasicBlock block)
