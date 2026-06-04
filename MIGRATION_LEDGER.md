@@ -3,8 +3,8 @@
 ## Project metadata
 - Current target framework: net9.0
 - Current C# language version/features: C# 13, nullable reference types enabled, implicit usings
-- Last updated: 2026-03-18
-- Current phase: Phase 9 -- Final consolidation and cleanup
+- Last updated: 2026-06-03 (post-migration bridge note added; see below)
+- Current phase: Phase 9 -- Final consolidation and cleanup (COMPLETE)
 - Overall status: Green -- All 9 phases + documentation complete, all tests passing
 
 ## Phase overview
@@ -17,6 +17,21 @@
 - Phase 7 -- Numeric, PIC, and editing subsystems: Complete
 - Phase 8 -- Diagnostics, logging, and tooling: Complete
 - Phase 9 -- Final consolidation and cleanup: Complete
+
+## Post-migration status (2026-06-03)
+
+The 9-phase C# modernization recorded below is **COMPLETE** (Phase 9, 2026-03-18). Work since then — NIST
+CCVS85 conformance and the commercial-hardening roadmap — is tracked in the live docs, not this ledger:
+- **resume-prompt.md** — authoritative session-start orientation (current as of DEVLOG 310).
+- **PROJECT_PLAN.md** — status + per-session log.
+- **DEVLOG.md** — decision narrative (now at entry 310).
+- **docs/ARCHITECTURE_ASSESSMENT.md** — the evidence-based "NO REWRITE" verdict + the P0–P6 commercial-hardening roadmap.
+
+This ledger is retained as the modernization record. Latest hardening milestone: the **P1 "diagnostics on
+invalid input"** track (DEVLOG 304–310) — all six items done (real source path + retire "SEM"; undefined
+data-name CBL3128; PIC/level validity; CopyProcessor diagnostics; CLI ICE try/catch; runtime guards +
+CobolRuntimeException) and **CBL3128 flipped on by default** after a 4-round adversarial false-positive sweep.
+Guard ALL GREEN: 1040 unit / 347 integration / 349 NIST baselines, 0 FAIL*.
 
 ## Session log
 

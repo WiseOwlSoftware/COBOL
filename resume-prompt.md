@@ -1,7 +1,8 @@
 # CobolSharp — Session Resume Prompt (2026-06-03)
 
 Paste this to start a new session. **Mission: drive the FULL NIST CCVS85 suite to "operational."**
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 309.
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 310
+(P1 diagnostics-on-invalid-input COMPLETE + CBL3128 flipped default-on; guard 1040 unit / 347 int / 349 NIST).
 
 **Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
 self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
@@ -17,8 +18,8 @@ clean dir with **rc=0 + freshly-written report + footer "NO TEST(S) FAILED" + EX
 0-`FAIL*` grep. **Then started the diagnosed feature fixes (DEVLOG 303): RL119A (OPEN I-O missing-non-optional
 →35) + RL106A (varying relative records size by MAX not first-01) → 349.**
 
-**This session (DEVLOG 304–309): P1 commercial-hardening "diagnostics on invalid input" — ALL 6 ITEMS DONE.**
-Guard ALL GREEN throughout: **1034 unit / 347 integration / 349 NIST** (NIST count unchanged — these are
+**This session (DEVLOG 304–310): P1 commercial-hardening "diagnostics on invalid input" — ALL 6 ITEMS DONE,
+then CBL3128 flipped default-on (310).** Guard ALL GREEN throughout: **1040 unit / 347 integration / 349 NIST** (NIST count unchanged — these are
 diagnostics on *invalid* input, gated so valid programs are unaffected). Owner directives: **sequential +
 guard-gated** (one item, full guard, commit, repeat) and **new strictness dialect-gated to named-strict modes
 first** so the permissive Default/--nist path (= the 349 baselines) is unaffected *by construction*. (The CLI
