@@ -56,6 +56,13 @@ with OwnerProgramId (mirror the record-field loop); add to CollectInheritedGloba
 **Risk:** LOW-MED — watch IC233A/234A/227A/228A, RL/IX/SQ; grep tests for CBL0702 asserts.
 
 ## #7 — FUNCTION SUM(T(ALL)) over OCCURS DEPENDING ON ranges over MAX not current  (M1, medium)
+✅ **DONE (DEVLOG 346) — SUM-scoped.** ExpandAllSubscript now masks each occurrence beyond the level minimum
+by `MAX(0, MIN(1, N-(idx-1)))` (built from existing FUNCTION MAX/MIN bound nodes — no new IR). **FOLLOW-UP
+(M2/quality):** the count-sensitive aggregates (MEAN/MEDIAN/MIDRANGE/RANGE/VARIANCE/STANDARD-DEVIATION, and
+MAX/MIN over ODO-ALL) still expand to the maximum — a 0-mask corrupts them. The complete fix is a *runtime-range*
+intrinsic argument (pass the table base + runtime count; the runtime iterates exactly the active count),
+which requires restructuring the fixed `object[]` arg materialization in `CilExpressionEmitter.EmitIrIntrinsicCall`
++ a new `IrTableRangeArg` + the bind-time non-expansion marker. Deferred — niche, and a real chunk of work.
 **Root cause:** `ExpressionBinder.ExpandAllSubscript` (ExpressionBinder.cs:326-363) computes the ALL count from
 `Occurs.MaxOccurs` only (line 345), never reads `Occurs.DependingOnSymbol`; statically emits T(1)..T(MAX) →
 SUM adds inactive tail slots.

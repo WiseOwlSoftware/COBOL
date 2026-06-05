@@ -473,4 +473,34 @@ public sealed class SpecFixTests : EndToEndTestBase
         // Sorted ascending by S-KEY (A<B<C); each record restored at its own released length.
         Assert.Equal("[AZZZZ] LEN=05\r\n[B] LEN=01\r\n[CYY] LEN=03", stdout);
     }
+
+    // ISO §15.x — FUNCTION SUM(T(ALL)) over an OCCURS DEPENDING ON table ranges over the CURRENT depending
+    // value, not the OCCURS maximum. ExpandAllSubscript expanded to the max (summing inactive tail slots); it
+    // now masks each occurrence beyond the minimum by MAX(0, MIN(1, N-(idx-1))) so inactive slots add 0.
+    [Fact]
+    public void SumAllSubscript_OverOccursDependingOn_UsesCurrentLength()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. SUMODO.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 N        PIC 9 VALUE 5.\n" +
+            "       01 TBL.\n" +
+            "          05 T PIC 9 OCCURS 1 TO 5 DEPENDING ON N.\n" +
+            "       01 WS-R     PIC 9(3).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           MOVE 1 TO T(1).\n" +
+            "           MOVE 2 TO T(2).\n" +
+            "           MOVE 3 TO T(3).\n" +
+            "           MOVE 9 TO T(4).\n" +
+            "           MOVE 9 TO T(5).\n" +
+            "           MOVE 3 TO N.\n" +
+            "           COMPUTE WS-R = FUNCTION SUM(T(ALL)).\n" +
+            "           DISPLAY WS-R.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("006", stdout);   // 1+2+3 = 6, not 1+2+3+9+9 = 24
+    }
 }

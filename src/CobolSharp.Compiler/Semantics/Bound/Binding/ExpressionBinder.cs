@@ -153,7 +153,7 @@ internal sealed class ExpressionBinder
         {
             var expanded = new List<BoundExpression>(args.Count);
             foreach (var a in args)
-                expanded.AddRange(ExpandAllSubscript(a));
+                expanded.AddRange(ExpandAllSubscript(a, funcName));
             args = expanded;
         }
 
@@ -323,18 +323,25 @@ internal sealed class ExpressionBinder
     /// outermost OCCURS). Fixed subscripts are kept; the references are produced in row-major
     /// (leftmost-varies-slowest) order.
     /// </summary>
-    private static IEnumerable<BoundExpression> ExpandAllSubscript(BoundExpression e)
+    private static IEnumerable<BoundExpression> ExpandAllSubscript(BoundExpression e, string funcName)
     {
         if (e is not BoundIdentifierExpression id || id.Subscripts is null)
             return new[] { e };
 
-        // OCCURS bounds for this item's nesting, outermost-first to align with subscript order.
-        var bounds = new List<int>();
+        // OCCURS info per nesting level, outermost-first to align with subscript order.
+        var levels = new List<OccursInfo>();
         for (var sym = id.Symbol; sym != null; sym = sym.Parent)
-            if (sym.Occurs != null) bounds.Add(sym.Occurs.MaxOccurs);
-        bounds.Reverse();
+            if (sym.Occurs != null) levels.Add(sym.Occurs);
+        levels.Reverse();
 
-        // Start with the original subscripts; expand each ALL position by its OCCURS bound.
+        // FUNCTION SUM over a table(ALL) whose OCCURS is DEPENDING ON ranges over the CURRENT depending value,
+        // not the maximum (ISO §15.x / §8.4.2.3.4). We still expand statically to the maximum, but multiply
+        // each occurrence beyond the level minimum by a runtime 1/0 active-mask so inactive tail slots add 0.
+        // SUM-only: a 0-mask is correct for an additive reduction but would corrupt count-sensitive aggregates
+        // (MEAN/MEDIAN/…); those keep the max-expansion for now (general runtime-range fix is a follow-up).
+        bool maskOdo = funcName.Equals("SUM", StringComparison.OrdinalIgnoreCase);
+
+        // Start with the original subscripts; expand each ALL position by its OCCURS maximum.
         var combos = new List<List<BoundExpression>> { new(id.Subscripts) };
         for (int pos = 0; pos < id.Subscripts.Count; pos++)
         {
@@ -342,7 +349,7 @@ internal sealed class ExpressionBinder
                 || !string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            int count = pos < bounds.Count ? bounds[pos] : id.Symbol.Occurs?.MaxOccurs ?? 0;
+            int count = pos < levels.Count ? levels[pos].MaxOccurs : id.Symbol.Occurs?.MaxOccurs ?? 0;
             if (count <= 0) return new[] { e };
 
             var expanded = new List<List<BoundExpression>>(combos.Count * count);
@@ -359,7 +366,48 @@ internal sealed class ExpressionBinder
         }
 
         return combos.Select(subs =>
-            (BoundExpression)new BoundIdentifierExpression(id.Symbol, id.Category, subs));
+        {
+            BoundExpression elem = new BoundIdentifierExpression(id.Symbol, id.Category, subs);
+            return maskOdo ? ApplyOdoActiveMask(elem, subs, id.Subscripts, levels, id.Symbol) : elem;
+        });
+    }
+
+    /// <summary>
+    /// For a SUM over a table(ALL), multiply the element reference by a runtime 1/0 active-mask for each ALL
+    /// position whose OCCURS level is DEPENDING ON and whose chosen occurrence exceeds the level minimum:
+    /// mask = MAX(0, MIN(1, depending - (idx-1))) — 1 when depending >= idx, else 0. So a statically
+    /// max-expanded sum counts only the currently-active occurrences (ISO §15.x). Levels without a DEPENDING
+    /// ON object, and occurrences at-or-below the minimum, are left unmasked (always active).
+    /// </summary>
+    private static BoundExpression ApplyOdoActiveMask(
+        BoundExpression elem, List<BoundExpression> subs, IReadOnlyList<BoundExpression> originalSubs,
+        List<OccursInfo> levels, DataSymbol symbol)
+    {
+        for (int pos = 0; pos < originalSubs.Count; pos++)
+        {
+            // Only positions that were ALL in the original reference can be masked.
+            if (originalSubs[pos] is not BoundLiteralExpression { Value: string sv }
+                || !string.Equals(sv, "ALL", StringComparison.OrdinalIgnoreCase))
+                continue;
+            var lvl = pos < levels.Count ? levels[pos] : symbol.Occurs;
+            if (lvl?.DependingOnSymbol == null) continue;
+            if (subs[pos] is not BoundLiteralExpression { Value: decimal idxDec }) continue;
+            int idx = (int)idxDec;
+            if (idx <= lvl.MinOccurs) continue; // always active — no guard needed
+
+            // mask = MAX(0, MIN(1, depending - (idx-1)))
+            BoundExpression dep = new BoundIdentifierExpression(lvl.DependingOnSymbol, CobolCategory.Numeric);
+            BoundExpression diff = new BoundBinaryExpression(dep, BoundBinaryOperatorKind.Subtract,
+                new BoundLiteralExpression((decimal)(idx - 1), CobolCategory.Numeric), CobolCategory.Numeric);
+            BoundExpression minOne = new BoundFunctionCallExpression("MIN",
+                new BoundExpression[] { new BoundLiteralExpression(1m, CobolCategory.Numeric), diff },
+                CobolCategory.Numeric);
+            BoundExpression mask = new BoundFunctionCallExpression("MAX",
+                new BoundExpression[] { new BoundLiteralExpression(0m, CobolCategory.Numeric), minOne },
+                CobolCategory.Numeric);
+            elem = new BoundBinaryExpression(elem, BoundBinaryOperatorKind.Multiply, mask, elem.Category);
+        }
+        return elem;
     }
 
     // ── LITERALS ──
