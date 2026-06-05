@@ -251,6 +251,20 @@ internal sealed class FileIoLowerer
                 else if (_ctx.Semantic.ResolveData(cf) is { } cSym && _ctx.Location.ResolveLocation(cSym) is { } cLoc)
                     block.Instructions.Add(new IrReportRegisterControl(report.Name, isFinal: false, cLoc));
             }
+
+            // Register GROUP INDICATE field positions so the runtime blanks them on repeat details (ISO §13.18.28).
+            foreach (var g in report.AllGroups())
+            {
+                if (!g.GroupIndicate || !g.HasColumn) continue;
+                var grn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+                var gcol = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+                var gwid = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+                block.Instructions.Add(new IrLoadConst(grn, report.Name));
+                block.Instructions.Add(new IrLoadConst(gcol, g.ColumnValue));
+                block.Instructions.Add(new IrLoadConst(gwid, g.FieldWidth));
+                block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterGroupIndicateField",
+                    new[] { grn, gcol, gwid }));
+            }
         }
         return block;
     }

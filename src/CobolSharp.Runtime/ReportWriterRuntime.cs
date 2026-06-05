@@ -91,6 +91,11 @@ public static class ReportWriterRuntime
         public List<ControlInfo> Controls = new();
         // SUM accumulators keyed by counter id (ISO §13.18.54).
         public Dictionary<string, SumInfo> Sums = new();
+        // GROUP INDICATE (ISO §13.18.28): true on the first detail of the run / page / control group — the
+        // indicated fields print; on subsequent details they are blanked. GroupIndicateFields holds their
+        // (column, width) positions in the detail line.
+        public bool GroupIndicateFresh;
+        public List<(int Col, int Width)> GroupIndicateFields = new();
     }
 
     private static readonly Dictionary<string, ReportContext> _reports =
@@ -118,6 +123,7 @@ public static class ReportWriterRuntime
             LastDetail = lastDetail > 0 ? lastDetail : (pageLimit > 0 ? pageLimit : int.MaxValue),
             FirstDetail = firstDetail > 0 ? firstDetail : 1,
             Started = false,
+            GroupIndicateFresh = true,   // the first detail of the report indicates (ISO §13.18.28.4a)
         };
     }
 
@@ -172,6 +178,13 @@ public static class ReportWriterRuntime
         plan.Fields.Add(new FieldPlan { Column = column, Width = width, Kind = 4, CounterId = counterId });
     }
 
+    /// <summary>Register the (column, width) of a GROUP INDICATE detail field so the RWCS blanks it on repeat
+    /// details of the same group (ISO §13.18.28).</summary>
+    public static void RegisterGroupIndicateField(string reportName, int column, int width)
+    {
+        if (_reports.TryGetValue(reportName, out var ctx)) ctx.GroupIndicateFields.Add((column, width));
+    }
+
     /// <summary>Clear the report line buffer to spaces before a group's SOURCE fields are placed.</summary>
     public static void BeginLine(string reportName)
     {
@@ -197,6 +210,13 @@ public static class ReportWriterRuntime
         if (fieldWidth > 0 && n > fieldWidth) n = fieldWidth;
         if (n > dstBuf.Length - dst) n = dstBuf.Length - dst;
         if (n > 0) Array.Copy(src, srcOffset, dstBuf, dst, n);
+    }
+
+    /// <summary>Fill a column range of the line buffer with spaces (GROUP INDICATE suppression).</summary>
+    private static void BlankRange(byte[] buf, int column, int width)
+    {
+        int start = column >= 1 ? column - 1 : 0;
+        for (int i = 0; i < width && start + i < buf.Length; i++) buf[start + i] = (byte)' ';
     }
 
     /// <summary>Place a constant VALUE literal into the active line buffer at COLUMN (a body-group field whose
@@ -242,6 +262,7 @@ public static class ReportWriterRuntime
             FileRuntime.WriteAdvancing(ctx.FileName, Array.Empty<byte>(), 0, 0, -1, isBefore: false);
             ctx.PageCounter++;
             ctx.LineCounter = 0;
+            ctx.GroupIndicateFresh = true;   // a page advance starts a new page (ISO §13.18.28.4b)
             pageStart = true;
         }
 
@@ -261,9 +282,16 @@ public static class ReportWriterRuntime
         // (§13.18.54.4 GR7), so a control footing sums the details that preceded the break.
         AccumulateSums(ctx);
 
+        // GROUP INDICATE: blank the indicated fields unless this detail starts a new run / page / control group
+        // (ISO §13.18.28.4).
+        if (!ctx.GroupIndicateFresh)
+            foreach (var (col, width) in ctx.GroupIndicateFields)
+                BlankRange(ctx.Line, col, width);
+
         int newLine = ctx.LineCounter + advance;
         FileRuntime.WriteAdvancing(ctx.FileName, ctx.Line, 0, ctx.Line.Length, advance, isBefore: false);
         ctx.LineCounter = newLine;
+        ctx.GroupIndicateFresh = false;   // subsequent details of this group suppress the indicated fields
     }
 
     private static void PresentAutoGroup(ReportContext ctx, int slot)
@@ -338,6 +366,7 @@ public static class ReportWriterRuntime
             if (!BytesEqual(SnapshotControl(ctx.Controls[i]), ctx.Controls[i].Prior)) { breakLevel = i; break; }
         }
         if (breakLevel < 0) return;
+        ctx.GroupIndicateFresh = true;   // a control break starts a new group (ISO §13.18.28.4c)
 
         // Present CONTROL FOOTINGs for the ending groups (minor→break level) with the PRIOR control values
         // restored, then restore current; then CONTROL HEADINGs for the new groups (break level→minor).

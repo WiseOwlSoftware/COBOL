@@ -1627,6 +1627,13 @@ public sealed class CilEmitter
                     new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterGroupIndicateField")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterGroupIndicateField",
+                    new[] { typeof(string), typeof(int), typeof(int) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
         else if (rtc.MethodName == "ReportWriterRuntime.BeginLine")
         {
             var m = _module.ImportReference(

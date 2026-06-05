@@ -647,5 +647,66 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         Assert.True(iTb >= 0, $"CONTROL FOOTING SUM for dept B (=0005) at TERMINATE not presented: {joined}");
         Assert.True(iTa < iTb, $"dept-A subtotal should precede dept-B subtotal: {joined}");
     }
+
+    /// <summary>
+    /// §13.18.28 — a GROUP INDICATE field prints only on the first detail of the run, page, or control group,
+    /// and is blanked on subsequent details of the same group. Here the department is GROUP INDICATE: it shows
+    /// on the first line of each dept and is suppressed on repeats (so a column of repeated values is printed
+    /// once per group).
+    /// </summary>
+    [Fact]
+    public void GroupIndicate_PrintsOncePerGroup()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWGI.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWGIO".
+                SELECT IN-FILE ASSIGN TO "RWGIO"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-DEPT PIC X(1).
+            01  WS-AMT  PIC 9(3).
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT CONTROL IS WS-DEPT PAGE LIMIT IS 60 LINES.
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(1) GROUP INDICATE SOURCE WS-DEPT.
+                03 COLUMN 3 PICTURE 9(3) SOURCE WS-AMT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                MOVE "A" TO WS-DEPT. MOVE 010 TO WS-AMT. GENERATE DET.
+                MOVE "A" TO WS-DEPT. MOVE 020 TO WS-AMT. GENERATE DET.
+                MOVE "B" TO WS-DEPT. MOVE 005 TO WS-AMT. GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}\nlines: {string.Join("|", Lines(stdout))}");
+        var lines = Lines(stdout);
+        Assert.Contains("[A 010]", lines);          // first detail of dept A: indicated field shown
+        Assert.Contains("[  020]", lines);          // repeat detail of dept A: indicated field blanked
+        Assert.Contains("[B 005]", lines);          // first detail of dept B (after break): indicated again
+        Assert.DoesNotContain("[A 020]", lines);    // the repeat must NOT re-show the dept
+    }
 }
 

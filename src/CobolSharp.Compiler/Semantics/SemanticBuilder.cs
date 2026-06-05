@@ -978,6 +978,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
         foreach (var clause in ctx.reportGroupClause())
         {
+            if (clause.reportGroupIndicateClause() != null)
+                group.GroupIndicate = true;
             if (clause.reportTypeClause()?.reportGroupType() is { } gt)
             {
                 group.GroupKind = ReportGroupTypeOf(gt);

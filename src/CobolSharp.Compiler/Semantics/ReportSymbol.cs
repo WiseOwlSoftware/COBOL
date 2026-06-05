@@ -123,6 +123,10 @@ public sealed class ReportGroupSymbol : Symbol
     /// <summary>VALUE literal (§13.18.63) for a constant printable field, or null.</summary>
     public string? ValueLiteral { get; set; }
 
+    /// <summary>GROUP INDICATE (§13.18.28): print this field only on the first detail of the run, page, or
+    /// control group; suppress (blank) it on subsequent details of the same group.</summary>
+    public bool GroupIndicate { get; set; }
+
     /// <summary>The RD this entry belongs to.</summary>
     public ReportSymbol? OwningReport { get; set; }
 
