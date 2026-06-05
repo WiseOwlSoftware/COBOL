@@ -175,8 +175,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   IrDeleteFile → FileRuntime.DeleteFile = ResolveHostPath + File.Delete + I-O status 00/35/30). Verified status
   35 after delete + the physical file removed. Conformance `tests/conformance/2023/delete_file`. **Follow-up:**
   the `ON EXCEPTION`/`NOT ON EXCEPTION` phrases + multiple file-names are not yet honored.
-- ☐ **M4-2 — `XOR` logical operator + `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** **[A] medium,
-  small.** *Recipe:* a `logicalXor` grammar rule + two intrinsic dispatch cases.
+- ☑ **M4-2a — logical `XOR` / `EXCLUSIVE-OR` operator (DONE — DEVLOG 375).** New `logicalXorExpression` grammar
+  level (precedence NOT>AND>XOR>OR), `BoundBinaryOperatorKind.Xor` → `IrLogicalOp.Xor` → CIL `xor`. NOTE: XOR is a
+  §8.8.4.9 logical operator (2002-era), not a 2023 delta — the audit mis-tagged it. Conformance
+  `tests/conformance/2002/logical_xor`.
+- ☐ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** *Unverified — check the spec before
+  implementing (the audit may have mis-named these; HIGHEST/LOWEST-ALGEBRAIC + EXCEPTION-FILE already exist).*
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit
   `specs/ISO_COBOL.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
   verify completeness + **version gating**, i.e. a 2023 fn used under `--standard cobol85` should flag).

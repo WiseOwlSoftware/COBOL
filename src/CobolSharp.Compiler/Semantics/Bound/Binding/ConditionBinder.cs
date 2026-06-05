@@ -54,12 +54,12 @@ internal sealed class ConditionBinder
 
     internal BoundExpression BindLogicalOr(CobolParserCore.LogicalOrExpressionContext ctx)
     {
-        // First child is always a logicalAndExpression
-        var andExprs = ctx.logicalAndExpression();
-        var result = BindLogicalAnd(andExprs[0]);
+        // First child is always a logicalXorExpression (XOR binds tighter than OR — ISO §8.8.4.11.3).
+        var xorExprs = ctx.logicalXorExpression();
+        var result = BindLogicalXor(xorExprs[0]);
 
-        // Iterate through children after the first logicalAndExpression,
-        // matching OR tokens with their alternatives (logicalAndExpression or abbreviatedRelation)
+        // Iterate through children after the first operand, matching OR tokens with their alternatives
+        // (logicalXorExpression or an abbreviated AND chain).
         for (int i = 1; i < ctx.ChildCount; i++)
         {
             var child = ctx.GetChild(i);
@@ -67,9 +67,9 @@ internal sealed class ConditionBinder
                 continue; // skip OR tokens
 
             BoundExpression right;
-            if (child is CobolParserCore.LogicalAndExpressionContext andCtx)
+            if (child is CobolParserCore.LogicalXorExpressionContext xorCtx)
             {
-                right = BindLogicalAnd(andCtx);
+                right = BindLogicalXor(xorCtx);
             }
             else if (child is CobolParserCore.AbbreviatedAndChainContext chainCtx)
             {
@@ -82,6 +82,18 @@ internal sealed class ConditionBinder
                 BoundBinaryOperatorKind.Or,
                 right, CobolCategory.Unknown);
         }
+        return result;
+    }
+
+    // COBOL-2002 logical exclusive-or (ISO §8.8.4.9; precedence between OR and AND). XOR / EXCLUSIVE-OR are
+    // equivalent; the truth value is true iff exactly one operand condition is true.
+    internal BoundExpression BindLogicalXor(CobolParserCore.LogicalXorExpressionContext ctx)
+    {
+        var andExprs = ctx.logicalAndExpression();
+        var result = BindLogicalAnd(andExprs[0]);
+        for (int i = 1; i < andExprs.Length; i++)
+            result = new BoundBinaryExpression(result, BoundBinaryOperatorKind.Xor,
+                BindLogicalAnd(andExprs[i]), CobolCategory.Unknown);
         return result;
     }
 

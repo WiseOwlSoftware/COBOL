@@ -95,6 +95,7 @@ EOP          : 'EOP' ;
 
 PROGRAM_ID      : 'PROGRAM-ID' ;
 FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
+EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2002 logical exclusive-or operator, equivalent to XOR (ISO §8.8.4.9)
 METHOD_ID       : 'METHOD-ID' ;
 CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;
@@ -351,6 +352,7 @@ OF          : 'OF' ;
 OFF         : 'OFF' ;
 ON          : 'ON' ;
 OR          : 'OR' ;
+XOR         : 'XOR' ;   // COBOL-2002 logical exclusive-or operator (ISO §8.8.4.9)
 OMITTED     : 'OMITTED' ;
 OPTIONAL    : 'OPTIONAL' ;
 OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)

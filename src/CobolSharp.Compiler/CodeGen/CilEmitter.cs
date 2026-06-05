@@ -1198,7 +1198,12 @@ public sealed class CilEmitter
                     var rightLocal = getLocal(log.Right);
                     il.Append(il.Create(OpCodes.Ldloc, leftLocal));
                     il.Append(il.Create(OpCodes.Ldloc, rightLocal));
-                    il.Append(il.Create(log.Op == IrLogicalOp.And ? OpCodes.And : OpCodes.Or));
+                    il.Append(il.Create(log.Op switch
+                    {
+                        IrLogicalOp.And => OpCodes.And,
+                        IrLogicalOp.Xor => OpCodes.Xor, // boolean operands are 0/1, so xor == exactly-one-true
+                        _ => OpCodes.Or,
+                    }));
                 }
                 if (log.Result.HasValue)
                     il.Append(il.Create(OpCodes.Stloc, getLocal(log.Result.Value)));

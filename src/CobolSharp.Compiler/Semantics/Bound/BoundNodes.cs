@@ -243,7 +243,7 @@ public enum BoundBinaryOperatorKind
     // Comparison
     Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual,
     // Logical
-    Or, And, Not,
+    Or, And, Not, Xor,
     // Exponentiation
     Power,
 }

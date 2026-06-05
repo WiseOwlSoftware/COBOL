@@ -1359,4 +1359,29 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("LIT=0010\r\nARI=0010", stdout);
     }
+
+    // ISO §8.8.4.9 / §8.8.4.11.3 — logical exclusive-or (XOR): true iff exactly one operand condition is true,
+    // with precedence NOT > AND > XOR > OR (so "A OR B XOR C" = "A OR (B XOR C)").
+    [Fact]
+    public void LogicalXor_TruthValuesAndPrecedence()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. XORTEST.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-A PIC 9 VALUE 1.\n" +
+            "       01 WS-B PIC 9 VALUE 0.\n" +
+            "       01 WS-C PIC 9 VALUE 1.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           IF WS-A = 1 XOR WS-B = 1 DISPLAY \"1T\" ELSE DISPLAY \"1F\" END-IF.\n" +
+            "           IF WS-A = 1 XOR WS-C = 1 DISPLAY \"2T\" ELSE DISPLAY \"2F\" END-IF.\n" +
+            "           IF WS-B = 1 XOR WS-B = 1 DISPLAY \"3T\" ELSE DISPLAY \"3F\" END-IF.\n" +
+            "           IF WS-A = 1 OR WS-B = 1 XOR WS-C = 1 DISPLAY \"4T\" ELSE DISPLAY \"4F\" END-IF.\n" +
+            "           STOP RUN.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("1T\r\n2F\r\n3F\r\n4T", stdout);
+    }
 }

@@ -193,6 +193,16 @@ internal sealed class ConditionLowerer
                     block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.And));
                     return;
                 }
+                case BoundBinaryOperatorKind.Xor:
+                {
+                    // Logical exclusive-or (ISO §8.8.4.9): true iff exactly one operand condition is true.
+                    var leftVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+                    var rightVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+                    LowerCondition(binCond.Left, leftVal, block);
+                    LowerCondition(binCond.Right, rightVal, block);
+                    block.Instructions.Add(new IrBinaryLogical(result, leftVal, rightVal, IrLogicalOp.Xor));
+                    return;
+                }
                 case BoundBinaryOperatorKind.Not:
                 {
                     var innerVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);

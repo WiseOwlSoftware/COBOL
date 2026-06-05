@@ -193,7 +193,7 @@ public sealed class IrSetSwitch : IrInstruction
     }
 }
 
-public enum IrLogicalOp { And, Or, Not }
+public enum IrLogicalOp { And, Or, Not, Xor }
 
 /// <summary>
 /// Logical AND/OR/NOT on boolean values.

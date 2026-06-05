@@ -61,7 +61,13 @@ condition
     ;
 
 logicalOrExpression
-    : logicalAndExpression ( OR ( logicalAndExpression | abbreviatedAndChain ) )*
+    : logicalXorExpression ( OR ( logicalXorExpression | abbreviatedAndChain ) )*
+    ;
+
+// COBOL-2002 logical exclusive-or (ISO §8.8.4.9; precedence NOT > AND > XOR > OR). XOR and EXCLUSIVE-OR are
+// equivalent. Sits between OR and AND so `a OR b XOR c` parses as `a OR (b XOR c)`.
+logicalXorExpression
+    : logicalAndExpression ( ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*
     ;
 
 logicalAndExpression
