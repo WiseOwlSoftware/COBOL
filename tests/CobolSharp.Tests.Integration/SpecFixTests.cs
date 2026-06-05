@@ -1107,4 +1107,41 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("REP2", stdout);
     }
+
+    // ISO §11.5 (COBOL-2002) — a FUNCTION-ID … END FUNCTION compilation unit. It is an ordinary source unit
+    // (its own DATA/PROCEDURE DIVISION USING … RETURNING) compiled as a callable program named after the
+    // function. The FUNCTION user-name(args) expression invocation is a later UDF slice; here the unit is reached
+    // as a CALL target, exercising the same RETURNING path. Previously FUNCTION-ID failed to parse.
+    [Fact]
+    public void FunctionIdUnit_CompilesAsCallableProgram()
+    {
+        var (ok, stdout, stderr) = CompileMultipleAndRun(
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002,
+            ("dcaller.cob",
+                "       IDENTIFICATION DIVISION.\n" +
+                "       PROGRAM-ID. DCALLER.\n" +
+                "       DATA DIVISION.\n" +
+                "       WORKING-STORAGE SECTION.\n" +
+                "       01 WS-X PIC 9(4) VALUE 21.\n" +
+                "       01 WS-R PIC 9(4).\n" +
+                "       PROCEDURE DIVISION.\n" +
+                "       MAIN.\n" +
+                "           CALL \"DOUBLER\" USING WS-X RETURNING WS-R.\n" +
+                "           DISPLAY \"D=\" WS-R.\n" +
+                "           STOP RUN.\n"),
+            ("doubler.cob",
+                "       IDENTIFICATION DIVISION.\n" +
+                "       FUNCTION-ID. DOUBLER.\n" +
+                "       DATA DIVISION.\n" +
+                "       LINKAGE SECTION.\n" +
+                "       01 L-X PIC 9(4).\n" +
+                "       01 L-R PIC 9(4).\n" +
+                "       PROCEDURE DIVISION USING L-X RETURNING L-R.\n" +
+                "       COMPUTE-IT.\n" +
+                "           COMPUTE L-R = L-X * 2.\n" +
+                "           GOBACK.\n" +
+                "       END FUNCTION DOUBLER.\n"));
+        Assert.True(ok, stderr);
+        Assert.Equal("D=0042", stdout);
+    }
 }

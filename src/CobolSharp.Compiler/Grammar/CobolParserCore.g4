@@ -97,7 +97,7 @@ nestedProgram
     ;
 
 endProgramHeader
-    : END PROGRAM programName DOT
+    : END (PROGRAM | FUNCTION) programName DOT
     ;
 
 // ==========================================
@@ -110,6 +110,15 @@ identificationDivision
 
 identificationBody
     : programIdParagraph identificationParagraph*
+    | functionIdParagraph identificationParagraph*
+    ;
+
+// FUNCTION-ID paragraph (COBOL-2002 user-defined function, ISO §11.5). The function unit is otherwise an
+// ordinary source unit (its own ENVIRONMENT/DATA/PROCEDURE DIVISION USING…RETURNING) and is compiled as a
+// callable program named after the function — invocation via FUNCTION user-name(args) is a later slice; for now
+// it is reachable as a CALL target, exercising the same RETURNING path.
+functionIdParagraph
+    : FUNCTION_ID DOT programName DOT
     ;
 
 // ------------------------------------------

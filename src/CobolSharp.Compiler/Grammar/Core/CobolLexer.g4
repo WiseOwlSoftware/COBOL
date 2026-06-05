@@ -94,6 +94,7 @@ EOP          : 'EOP' ;
 // ── Hyphenated keywords (must precede IDENTIFIER) ──
 
 PROGRAM_ID      : 'PROGRAM-ID' ;
+FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
 METHOD_ID       : 'METHOD-ID' ;
 CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;

@@ -620,8 +620,13 @@ public sealed class Compilation
             _ => null
         };
 
-        return idDiv?.identificationBody()?.programIdParagraph()?.programName()?.cobolWord()?.GetText();
+        return UnitName(idDiv?.identificationBody());
     }
+
+    /// <summary>The unit's name from either a PROGRAM-ID or a COBOL-2002 FUNCTION-ID paragraph (ISO §11.5).</summary>
+    private static string? UnitName(CobolParserCore.IdentificationBodyContext? body)
+        => (body?.programIdParagraph()?.programName() ?? body?.functionIdParagraph()?.programName())
+            ?.cobolWord()?.GetText();
 
     /// <summary>Extract IS INITIAL attribute from a programUnit or nestedProgram context.</summary>
     private static bool ExtractIsInitialFromContext(ParserRuleContext ctx)
@@ -650,9 +655,7 @@ public sealed class Compilation
         if (programUnit.Length == 0) return null;
 
         var idDiv = programUnit[0].identificationDivision();
-        var body = idDiv?.identificationBody();
-        var progId = body?.programIdParagraph();
-        return progId?.programName()?.cobolWord()?.GetText();
+        return UnitName(idDiv?.identificationBody());
     }
 
     /// <summary>Compiled program tuple: PROGRAM-ID, IR module, and semantic model.</summary>
