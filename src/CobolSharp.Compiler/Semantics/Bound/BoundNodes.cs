@@ -900,13 +900,29 @@ public sealed class BoundInitializeStatement : BoundStatement
 {
     public IReadOnlyList<DataSymbol> Targets { get; }
     public IReadOnlyList<BoundInitializeCategoryReplacement> CategoryReplacements { get; }
+    /// <summary>WITH FILLER (§14.9.20): also initialize FILLER items (normally skipped).</summary>
+    public bool WithFiller { get; }
+    /// <summary>[ALL | category] TO VALUE: initialize items that have a VALUE clause to that VALUE.</summary>
+    public bool ToValue { get; }
+    /// <summary>Category filter for TO VALUE; null = ALL categories.</summary>
+    public InitializeCategory? ToValueCategory { get; }
+    /// <summary>THEN TO DEFAULT: apply category defaults to items not set by TO VALUE / REPLACING.</summary>
+    public bool ToDefault { get; }
 
     public BoundInitializeStatement(
         IReadOnlyList<DataSymbol> targets,
-        IReadOnlyList<BoundInitializeCategoryReplacement> categoryReplacements)
+        IReadOnlyList<BoundInitializeCategoryReplacement> categoryReplacements,
+        bool withFiller = false,
+        bool toValue = false,
+        InitializeCategory? toValueCategory = null,
+        bool toDefault = false)
     {
         Targets = targets;
         CategoryReplacements = categoryReplacements;
+        WithFiller = withFiller;
+        ToValue = toValue;
+        ToValueCategory = toValueCategory;
+        ToDefault = toDefault;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.InitializeStatement;

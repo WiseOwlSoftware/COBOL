@@ -321,12 +321,26 @@ internal sealed class DataStatementBinder
             }
         }
 
-        return new BoundInitializeStatement(targets, categoryReplacements);
+        // COBOL-2002 phrases (§14.9.20): WITH FILLER, [ALL|category] TO VALUE, THEN TO DEFAULT.
+        bool withFiller = ctx.FILLER() != null;
+        var toValueCtx = ctx.initializeCategoryToValue();
+        bool toValue = toValueCtx != null;
+        InitializeCategory? toValueCategory = toValueCtx?.initializeCategory() is { } catCtx
+            ? ClassifyCategory(catCtx)   // null for "ALL TO VALUE" / bare "TO VALUE"
+            : null;
+        bool toDefault = ctx.initializeDefaultPhrase() != null;
+
+        return new BoundInitializeStatement(
+            targets, categoryReplacements, withFiller, toValue, toValueCategory, toDefault);
     }
 
     internal InitializeCategory ClassifyReplacingItem(CobolParserCore.InitializeReplacingItemContext ctx)
+        => ClassifyCategory(ctx.initializeCategory());
+
+    /// <summary>Map an INITIALIZE category keyword node to the InitializeCategory enum (shared by
+    /// the REPLACING and TO VALUE phrases).</summary>
+    internal static InitializeCategory ClassifyCategory(CobolParserCore.InitializeCategoryContext cat)
     {
-        var cat = ctx.initializeCategory();
         if (cat.EDITED() != null || cat.ALPHANUMERIC_EDITED() != null || cat.NUMERIC_EDITED() != null)
         {
             if (cat.ALPHANUMERIC() != null || cat.ALPHANUMERIC_EDITED() != null) return InitializeCategory.AlphanumericEdited;

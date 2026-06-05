@@ -225,7 +225,8 @@ internal sealed class DataMovementLowerer
     private void InitializeDataItem(
         DataSymbol item, List<int> subscriptPath, BoundInitializeStatement stmt, IrBasicBlock block)
     {
-        if (item.IsFiller) return;
+        // FILLER items are skipped unless WITH FILLER was specified (ISO §14.9.20).
+        if (item.IsFiller && !stmt.WithFiller) return;
 
         // A table (OCCURS) item — whether group or elementary — is initialized one
         // occurrence at a time. Resolving the whole array as a single field is wrong:
@@ -271,6 +272,16 @@ internal sealed class DataMovementLowerer
         var pic = loc.GetPic();
         var category = ClassifyInitializeCategory(pic.Category);
 
+        // Precedence per item (ISO §14.9.20): TO VALUE → REPLACING → category default.
+        // (1) TO VALUE: an item with a VALUE clause (matching the optional category filter) is set to it.
+        if (stmt.ToValue && ItemHasValueClause(item)
+            && (stmt.ToValueCategory == null || stmt.ToValueCategory == category))
+        {
+            EmitValueClauseInit(item, loc, block);
+            return;
+        }
+
+        // (2) REPLACING category DATA BY value.
         foreach (var repl in stmt.CategoryReplacements)
         {
             if (repl.Category == category)
@@ -280,13 +291,49 @@ internal sealed class DataMovementLowerer
             }
         }
 
-        if (stmt.CategoryReplacements.Count > 0)
-            return;
+        // (3) Category default — the legacy COBOL-85 form (no phrases) or an explicit THEN TO DEFAULT.
+        // When TO VALUE is given without TO DEFAULT, items not covered above are left unchanged; likewise
+        // an unmatched REPLACING leaves the item unchanged (the prior behavior, preserved here).
+        bool applyDefault = stmt.ToDefault
+            || (!stmt.ToValue && stmt.CategoryReplacements.Count == 0);
+        if (!applyDefault) return;
 
         if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
             block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
         else
             block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Space));
+    }
+
+    /// <summary>True if the data item carries a VALUE clause (literal, figurative, or ALL-literal).</summary>
+    private static bool ItemHasValueClause(DataSymbol item)
+        => item.InitialValue != null || item.FigurativeInit != null || item.AllLiteralPattern != null;
+
+    /// <summary>
+    /// Emit the move that initializes <paramref name="item"/> to its declared VALUE (for INITIALIZE … TO
+    /// VALUE), mirroring program-start VALUE semantics: figurative → fill; ALL "x" → repeat-fill; numeric
+    /// literal → numeric move; alphanumeric literal → string move (clean, quote-stripped at bind time).
+    /// </summary>
+    private void EmitValueClauseInit(DataSymbol item, IrLocation loc, IrBasicBlock block)
+    {
+        if (item.AllLiteralPattern is { } pattern)
+        {
+            block.Instructions.Add(new IrMoveAllLiteral(loc, pattern));
+            return;
+        }
+        if (item.FigurativeInit is { } fig)
+        {
+            block.Instructions.Add(new IrMoveFigurative(loc, fig));
+            return;
+        }
+        if (item.InitialValue is { } val)
+        {
+            if (loc.GetPic().Category.IsNumericLike()
+                && decimal.TryParse(val, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var d))
+                block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, d));
+            else
+                block.Instructions.Add(new IrMoveStringToField(loc, val));
+        }
     }
 
     /// <summary>

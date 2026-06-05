@@ -134,9 +134,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.4 M2 — Procedure-division statements
 
-- ☐ 🐛 **M2-PROC-1 — `INITIALIZE … TO VALUE` / `THEN TO DEFAULT` / `WITH FILLER`.** **[A] medium (phrases dropped →
-  wrong result)**, **medium**. *Recipe:* honour VALUE-init, category-default, and FILLER inclusion in the
-  INITIALIZE lowering. §14.9.20.
+- ☑ 🐛 **M2-PROC-1 — `INITIALIZE … TO VALUE` / `THEN TO DEFAULT` / `WITH FILLER` (DONE — DEVLOG 381).** §14.9.20.
+  Binder now captures all three phrases (`BoundInitializeStatement.WithFiller/ToValue/ToValueCategory/ToDefault`);
+  the lowerer applies per-item precedence TO VALUE → REPLACING → default, includes FILLER under WITH FILLER, and
+  suppresses the default for non-VALUE items under TO VALUE unless TO DEFAULT. `EmitValueClauseInit` emits each
+  item's declared VALUE (figurative / ALL-literal / numeric / string). Conformance
+  `tests/conformance/2002/initialize_phrases`.
 - ☑ **M2-PROC-2 — `INSPECT … BACKWARD` (DONE — DEVLOG 378).** §14.9.21. New `BACKWARD` reserved word +
   grammar `INSPECT BACKWARD? …` + a `bool Backward` threaded Bound→IR→emit→runtime. Implemented as a
   reverse-wrapper: reverse the target + every multi-char operand/delimiter, run the existing forward
