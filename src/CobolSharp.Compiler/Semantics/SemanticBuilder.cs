@@ -237,6 +237,26 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             args);
     }
 
+    // COMP-n where n is not a supported width (1–5) is not a defined USAGE keyword. Matches COMP-<digits> /
+    // COMPUTATIONAL-<digits> exactly, so genuine vendor clauses and data-names (e.g. F-WHENCOMP-01) are untouched.
+    private static bool IsUnsupportedCompUsage(string text)
+    {
+        string t = text.Trim().ToUpperInvariant();
+        int dash = t.IndexOf('-');
+        if (dash < 0)
+            return false;
+        string head = t.Substring(0, dash);
+        if (head != "COMP" && head != "COMPUTATIONAL")
+            return false;
+        string suffix = t.Substring(dash + 1);
+        if (suffix.Length == 0)
+            return false;
+        foreach (char c in suffix)
+            if (c < '0' || c > '9')
+                return false;   // not an all-digit COMP-n form → leave it to the generic vendor clause
+        return suffix is not ("1" or "2" or "3" or "4" or "5");
+    }
+
     // ── SPECIAL-NAMES ──
 
     private char _currencySign = '$';
@@ -1195,6 +1215,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                         ?? usageClause.GetText();
                     usage = UsageMapper.FromUsageKeyword(kwText);
                     hasExplicitUsage = true;
+                }
+
+                // An unknown COMP-n (COMP-9, COMPUTATIONAL-7, …) has no usage token, so it lexes as an
+                // IDENTIFIER and is absorbed by the generic (vendor) data clause; reject it rather than
+                // silently treating the item as DISPLAY (ISO §13.18.60.2 — the USAGE format has no such form).
+                var genericClause = clause.genericDataClause()?.genericClause();
+                if (genericClause != null)
+                {
+                    var ids = genericClause.IDENTIFIER();
+                    if (ids.Length > 0 && IsUnsupportedCompUsage(ids[0].GetText()))
+                        Error(genericClause, DiagnosticDescriptors.CBL0816, ids[0].GetText(), displayName);
                 }
 
                 var redefinesClause = clause.redefinesClause();

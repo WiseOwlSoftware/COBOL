@@ -257,11 +257,13 @@ usageClause
     | COMPUTATIONAL_1
     | COMPUTATIONAL_2
     | COMPUTATIONAL_3
+    | COMPUTATIONAL_4
     | COMPUTATIONAL_5
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
+    | COMP_4
     | COMP_5
     | BINARY
     | PACKED_DECIMAL
@@ -274,11 +276,13 @@ usageKeyword
     | COMPUTATIONAL_1
     | COMPUTATIONAL_2
     | COMPUTATIONAL_3
+    | COMPUTATIONAL_4
     | COMPUTATIONAL_5
     | COMP
     | COMP_1
     | COMP_2
     | COMP_3
+    | COMP_4
     | COMP_5
     | BINARY
     | PACKED_DECIMAL

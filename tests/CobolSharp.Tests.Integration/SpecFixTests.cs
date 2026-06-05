@@ -216,4 +216,47 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("A=HELLO\r\nB=WORLD", stdout);
     }
+
+    // ISO §13.18.60 — COMP-4 / COMPUTATIONAL-4 is the conventional vendor synonym for BINARY/COMPUTATIONAL.
+    // There was no COMP_4 lexer token, so `… COMP-4` lexed as an IDENTIFIER, was swallowed by the generic
+    // (vendor) data clause, and the item silently became USAGE DISPLAY. Now it binds as UsageKind.Binary —
+    // exercised here in both the bare form (COMP-4) and the USAGE IS form (COMPUTATIONAL-4).
+    [Fact]
+    public void Comp4_IsBinarySynonym_StoresAndComputes()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. COMP4T.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-A PIC 9(7) COMP-4 VALUE 1234567.\n" +
+            "       01 WS-B PIC 9(7) USAGE IS COMPUTATIONAL-4.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           ADD 1 TO WS-A.\n" +
+            "           MOVE WS-A TO WS-B.\n" +
+            "           DISPLAY WS-B.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("1234568", stdout);
+    }
+
+    // ISO §13.18.60.2 — an unknown COMP-n (here COMP-9) is not a defined USAGE. It used to lex as an
+    // IDENTIFIER, be absorbed by the generic vendor-clause, and silently become USAGE DISPLAY; it is now a
+    // hard error (CBL0816) rather than a silently-wrong storage class.
+    [Fact]
+    public void CompNine_IsRejected_HardDiagnostic()
+    {
+        var (ok, _, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. COMP9T.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-X PIC 9(4) COMP-9.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           STOP RUN.\n");
+        Assert.False(ok);
+        Assert.Contains("CBL0816", stderr);
+    }
 }

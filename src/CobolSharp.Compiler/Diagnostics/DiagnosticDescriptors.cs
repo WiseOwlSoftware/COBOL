@@ -378,15 +378,19 @@ public static partial class DiagnosticDescriptors
         "JUSTIFIED only allowed on alphanumeric elementary item '{0}'");
 
     // ══════════════════════════════════════
-    // CBL0814–0815: PICTURE / level-number validity (ISO §13.18.40.3, §8.5.1.2)
+    // CBL0814–0816: PICTURE / level-number / USAGE validity (ISO §13.18.40.3, §8.5.1.2, §13.18.60.2)
     // CBL0814 is dialect-gated to named-strict modes (illegal-symbol detection — staged like CBL3128);
     // CBL0815 (level number) is unconditional: no valid program has an out-of-range level, so it never
     // fires on the corpus and it replaces a crash-prone int.Parse. (DEVLOG 306)
+    // CBL0816 (unsupported COMP-n usage) is unconditional like CBL0815: COMP-n for n not in 1–5 is not a
+    // defined USAGE in any dialect, so it never fires on a valid program. (DEVLOG 342)
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL0814 = new("CBL0814", DiagnosticSeverity.Error,
         "Illegal PICTURE '{0}' for item '{1}': '{2}' is not a valid PICTURE symbol");
     public static readonly DiagnosticDescriptor CBL0815 = new("CBL0815", DiagnosticSeverity.Error,
         "Invalid level number '{0}' for '{1}': level numbers must be 1-49, 66, 77, or 88");
+    public static readonly DiagnosticDescriptor CBL0816 = new("CBL0816", DiagnosticSeverity.Error,
+        "Unsupported USAGE '{0}' for item '{1}': valid COMPUTATIONAL forms are COMP, COMP-1, COMP-2, COMP-3, COMP-4, COMP-5 (and their COMPUTATIONAL spellings)");
 
     // ══════════════════════════════════════
     // CBL0808: REDEFINES clause ordering (§13.18.44 SR 1)
