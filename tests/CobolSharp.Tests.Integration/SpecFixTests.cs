@@ -96,4 +96,25 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("[abcdef]", stdout);
     }
+
+    // ISO §7.2.3 — COPY with a quoted-literal text-name (the literal-1 alternative). The reader used to stop at
+    // the opening quote and resolve an empty name → "copybook not found".
+    [Fact]
+    public void Copy_QuotedLiteralTextName_Resolves()
+    {
+        File.WriteAllText(Path.Combine(_tempDir, "MYBOOK.cpy"),
+            "       01 GREETING PIC X(8) VALUE \"HI THERE\".\n");
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CPYLIT.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       COPY \"MYBOOK\".\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           DISPLAY GREETING.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("HI THERE", stdout);
+    }
 }

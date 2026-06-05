@@ -280,7 +280,7 @@ public sealed class CopyProcessor(
             int afterCopy = copyIdx + "COPY".Length;
             SkipWhitespace(text, ref afterCopy);
 
-            string libraryName = ReadWord(text, ref afterCopy);
+            string libraryName = ReadTextNameOrLiteral(text, ref afterCopy);
             SkipWhitespace(text, ref afterCopy);
 
             // Optional library qualifier: COPY text-name (IN | OF) library-name. The library
@@ -290,7 +290,7 @@ public sealed class CopyProcessor(
             {
                 afterCopy += 2;
                 SkipWhitespace(text, ref afterCopy);
-                libraryQualifier = ReadWord(text, ref afterCopy);
+                libraryQualifier = ReadTextNameOrLiteral(text, ref afterCopy);
                 SkipWhitespace(text, ref afterCopy);
             }
 
@@ -476,6 +476,35 @@ public sealed class CopyProcessor(
         while (pos < text.Length && (char.IsLetterOrDigit(text[pos]) || text[pos] is '-' or '_'))
             pos++;
         return text[start..pos];
+    }
+
+    /// <summary>
+    /// Read a COPY text-name or library-name: either a quoted alphanumeric literal (ISO §7.2.3 — the
+    /// <c>literal-1</c>/<c>literal-2</c> alternative) whose surrounding quotes are stripped (a doubled embedded
+    /// quote collapses to one), or an ordinary unquoted COBOL word. <c>ReadWord</c> alone stopped at the opening
+    /// quote and returned an empty name, so <c>COPY "MYBOOK"</c> was reported "not found".
+    /// </summary>
+    private static string ReadTextNameOrLiteral(string text, ref int pos)
+    {
+        if (pos < text.Length && (text[pos] == '"' || text[pos] == '\''))
+        {
+            char quote = text[pos];
+            pos++; // opening quote
+            var sb = new System.Text.StringBuilder();
+            while (pos < text.Length)
+            {
+                if (text[pos] == quote)
+                {
+                    if (pos + 1 < text.Length && text[pos + 1] == quote) { sb.Append(quote); pos += 2; continue; }
+                    pos++; // closing quote
+                    break;
+                }
+                sb.Append(text[pos]);
+                pos++;
+            }
+            return sb.ToString();
+        }
+        return ReadWord(text, ref pos);
     }
 
     private static void ParseReplacements(string text, ref int pos,

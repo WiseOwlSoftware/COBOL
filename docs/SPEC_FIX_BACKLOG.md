@@ -50,8 +50,8 @@ strictness/edge.
 ## Source Text (COPY/REPLACE)
 - **P1 — `COPY … REPLACING LEADING/TRAILING ==…==`** partial-word substitution: no LEADING/TRAILING handling;
   `ApplyReplacements` only whole-word matches. §7.2.3 GR 9 b.
-- **P1 — `COPY "literal"`** quoted-literal text-name not accepted (`CopyProcessor.ReadWord` stops at the quote →
-  empty library name). §7.2.3 Format SR 4/5.
+- ✅ **DONE (DEVLOG 336) — `COPY "literal"`** quoted-literal text-name: added `ReadTextNameOrLiteral` (strips
+  quotes) for the text-name + IN/OF library-name. Test: `SpecFixTests.Copy_QuotedLiteralTextName_Resolves`.
 - **P1 — `REPLACE … ALSO` / `REPLACE OFF LAST`** LIFO queue not implemented (every REPLACE clears all; `ALSO`
   mis-parsed; `OFF LAST` cancels all instead of popping one). §7.2.4 GR 4.
 
