@@ -24,8 +24,8 @@ strictness/edge.
   0 — the ref-modded alphanumeric arg is mistyped/mis-evaluated.
 - **P0 — table-ref `ALL` over an ODO table** ranges over OCCURS MAXIMUM, not the DEPENDING-ON current value
   (`FUNCTION SUM(T(ALL))` summed all 5 slots, not the active 3). §15.3.
-- **P1 — `CONCAT` (2023 spelling)** absent from `BindingContext.AlphanumericFunctions` → typed numeric →
-  InvalidCastException. (`CONCATENATE` works.)
+- ✅ **DONE (DEVLOG 334) — `CONCAT`** added to `BindingContext.AlphanumericFunctions` (was typed numeric →
+  InvalidCastException). Test: `SpecFixTests.Concat_IsAlphanumeric_ReturnsConcatenation`.
 - **P1 — variadic string fns with SPACE-separated literal args** `CONCATENATE("AB" "CD")` returns only "AB";
   only the comma-separated form passes all args.
 - **P1 — `HIGHEST-ALGEBRAIC`/`LOWEST-ALGEBRAIC`** return 0 — runtime expects a digit count but the binder passes
@@ -36,16 +36,16 @@ strictness/edge.
   integer (`WS-F*2` with 3.14159 → 6.0000; `1.0/3.0` → 0). MOVE/storage of a fractional literal is correct, so the
   bug is in arithmetic lowering not promoting to floating point. Also raw `DISPLAY` of a COMP-2 renders as an
   18-digit integer (separate float-DISPLAY formatting issue).
-- **P1 — `BLANK WHEN ZERO` collapses to zero width** when the value is zero (renders "" instead of a field of
-  spaces of PICTURE length).
+- ✅ **DONE (DEVLOG 334) — `BLANK WHEN ZERO`** zero value now renders a PICTURE-width blank field (was `TrimEnd`-ed
+  to ""). Test: `SpecFixTests.BlankWhenZero_ZeroValue_RendersBlankField`.
 - **P2 — `USAGE COMP-4`** has no lexer token (accidentally accepted via lenient fall-through; invalid `COMP-9`
   also "compiles"). Add a real COMP-4≡BINARY token and reject unknown `COMP-n`.
 
 ## Environment Division
 - **P0 — multi-character `CURRENCY SIGN` truncated to one char** during editing (`CURRENCY SIGN IS 'EUR ' WITH
   PICTURE SYMBOL '@'`, `PIC @99.99` value 10.00 → "E10.00", expected "EUR 10.00"). §D.14.2.3.
-- **P2 — `CURRENCY … WITH PICTURE SYMBOL` rejects ALL letters** (CBL3124). Spec forbids only A,B,C,D,E,N,P,R,S,V,
-  X,Z; other letters (U,M,Q,…) are valid (spec EX uses 'u'/'q'). Over-strict.
+- ✅ **DONE (DEVLOG 334) — `CURRENCY … WITH PICTURE SYMBOL`** now rejects only the spec-forbidden letters
+  (A,B,C,D,E,N,P,R,S,V,X,Z); other letters (U,M,Q,…) accepted. Test: `SpecFixTests.CurrencySign_NonReservedLetterSymbol_IsAccepted`.
 
 ## Source Text (COPY/REPLACE)
 - **P1 — `COPY … REPLACING LEADING/TRAILING ==…==`** partial-word substitution: no LEADING/TRAILING handling;

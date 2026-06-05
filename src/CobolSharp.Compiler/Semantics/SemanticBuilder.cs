@@ -302,8 +302,12 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                 // Validate: literal-8 must not be digit, letter, or space
                                 if (char.IsDigit(lit8))
                                     Error(currClause, DiagnosticDescriptors.CBL3124, "a digit");
-                                else if (char.IsLetter(lit8))
-                                    Error(currClause, DiagnosticDescriptors.CBL3124, "an alphabetic letter");
+                                // ISO §13.18.3 rule 27: only these letters are forbidden as the currency
+                                // PICTURE SYMBOL (A B C D E N P R S V X Z, case-insensitive); other letters
+                                // (F G H I J K L M O Q T U W Y) are valid — the spec's own examples use 'U'/'q'.
+                                else if ("ABCDENPRSVXZ".Contains(char.ToUpperInvariant(lit8)))
+                                    Error(currClause, DiagnosticDescriptors.CBL3124,
+                                        "a reserved picture letter (A B C D E N P R S V X Z)");
                                 else if (lit8 == ' ')
                                     Error(currClause, DiagnosticDescriptors.CBL3124, "a space");
                                 else

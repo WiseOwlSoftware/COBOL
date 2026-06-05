@@ -30,7 +30,7 @@ internal sealed class BindingContext
 
     public static readonly HashSet<string> AlphanumericFunctions = new(StringComparer.OrdinalIgnoreCase)
     {
-        "LOWER-CASE", "UPPER-CASE", "REVERSE", "TRIM", "CONCATENATE",
+        "LOWER-CASE", "UPPER-CASE", "REVERSE", "TRIM", "CONCATENATE", "CONCAT",
         "SUBSTITUTE", "CHAR", "CURRENT-DATE", "WHEN-COMPILED"
     };
 

@@ -2168,8 +2168,12 @@ public static class PicRuntime
     {
         if (pic.Category == CobolCategory.NumericEdited)
         {
-            // Numeric-edited fields are already formatted — return raw bytes
-            return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+            // Numeric-edited fields are already formatted — return raw bytes. BLANK WHEN ZERO / fully
+            // zero-suppressed fields are all spaces; TrimEnd would collapse the field to "" — preserve the
+            // PICTURE-width blank field instead (ISO §13.18.3).
+            string rawEdited = Encoding.ASCII.GetString(area, offset, length);
+            string trimmedEdited = rawEdited.TrimEnd();
+            return trimmedEdited.Length == 0 && length > 0 ? rawEdited : trimmedEdited;
         }
         if (pic.Category == CobolCategory.Numeric && pic.Usage == UsageKind.Display)
         {
