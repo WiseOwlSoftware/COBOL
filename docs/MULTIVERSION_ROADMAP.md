@@ -1,7 +1,10 @@
 # CobolSharp — Multi-Version Roadmap (ISO COBOL 1985 → 2023)
 
-Status: 2026-06-04. **This is the overarching mission document.** The COBOL-85 work
+Status: 2026-06-04. **This is the overarching mission document** (high-level milestones). The COBOL-85 work
 (`docs/COBOL85_COMPLIANCE_PLAN.md`) is **Milestone 1** of this roadmap, not a separate goal.
+
+> **→ For the DETAILED, ranked, step-by-step work-breakdown of all remaining items to full ISO 2023 support
+> (the single source of truth — work from it, don't re-audit), see `docs/ISO2023_CONFORMANCE_PLAN.md`.**
 
 ---
 
