@@ -115,6 +115,22 @@ facts (BoundReportField signature change) + RW301M/302M flagging.
 - **#9 CALL RETURNING/BY VALUE** (2002): (a) delete spurious caller-side CBL3304 in BoundTreeValidator.ValidateCall
   (385-388 — caller RETURNING target unrestricted §14.9.4.3 r7); (b) Binder.LowerCall must materialize computed
   BY VALUE/BY CONTENT args into a scratch WS temp (IrComputeStore) instead of dropping null-loc args.
+  **⚠ FINDING (DEVLOG ~353, attempted+reverted): deeper than the recipe.** Deleting CBL3304 lets it compile but
+  CALL RETURNING then CRASHES at runtime (RT0001 buffer access out of range, bufferLength=0) — the callee's
+  PROCEDURE DIVISION RETURNING item is not wired to the passed pointer. Investigated: the caller DOES pass the
+  RETURNING target as a trailing BY-REF arg (CilEmitter.EmitCallProgram ~1280); SemanticBuilder DOES capture the
+  name (`_procedureReturningName`, VisitProcedureDivision) → Compilation `SetProcedureReturningItem`. Tried mapping
+  it like a USING param (append `_semantic.ProcedureReturningItem.Name` to `module.UsingParameterNames` in
+  Binder.PopulateModuleMetadata, so the entry-body maps args[count]→its _linkage field) — STILL crashes
+  bufferLength=0. So the RETURNING LINKAGE item's **location resolution** doesn't use its _linkage pointer (or the
+  caller pushes a 0-length area). Needs focused debugging of LINKAGE-item location resolution for the RETURNING
+  item (likely CilLocationEmitter / the linkage-vs-own-storage decision). Test form: needs `--standard cobol2002`
+  (returningClause is is2002()-gated); a dialect-aware `CompileMultipleAndRun(DialectMode, …)` overload was added
+  then reverted with the rest. CBL3304-restored / reverted to keep the tree clean.
+- **#10 READ PREVIOUS** (2002): IndexedFileHandler.ReadPrevious (312-359) ignores _readNextInclusive — post-OPEN
+  must AtEnd, post-START KEY=EQUAL must return key<=k inclusive. Relative analog too. Runtime-only boundary fix
+  (READ … PREVIOUS already parses + flows ReadDirection.Previous → handler.ReadPrevious); cobol85-rejection is a
+  separate flagging item.
 - **#10 READ PREVIOUS** (2002): IndexedFileHandler.ReadPrevious (312-359) ignores _readNextInclusive — post-OPEN
   must AtEnd, post-START KEY=EQUAL must return key<=k inclusive. Relative analog too. Dialect-gate to >=2002.
 
