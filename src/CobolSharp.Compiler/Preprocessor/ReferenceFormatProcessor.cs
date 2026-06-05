@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CobolSharp.Compiler.Preprocessor;
 
@@ -67,12 +68,61 @@ public static class ReferenceFormatProcessor
         return string.Join('\n', kept);
     }
 
+    /// <summary>The reference format a <c>&gt;&gt;SOURCE FORMAT</c> directive selects (Auto = no directive present).</summary>
+    private enum DeclaredFormat { Auto, Fixed, Free }
+
+    /// <summary>
+    /// Matches a COBOL-2002 <c>&gt;&gt;SOURCE FORMAT [IS] {FREE|FIXED}</c> compiler directive (ISO §7.2) on a line,
+    /// case-insensitively. The directive may be preceded by a sequence area / indicator in fixed-ish layouts, so
+    /// the match is anchored to the <c>&gt;&gt;</c> rather than column 1. A trailing <c>.</c> is tolerated.
+    /// </summary>
+    private static readonly Regex SourceFormatDirective = new(
+        @"^[\s\d]*>>\s*SOURCE\s+FORMAT\s+(?:IS\s+)?(FREE|FIXED)\s*\.?\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     /// <summary>
     /// Auto-detect whether source is fixed-form or free-form, and normalize to free-form.
+    /// A <c>&gt;&gt;SOURCE FORMAT</c> directive, if present, overrides the structural heuristic (the spec-mandated
+    /// explicit selector). The directive lines are consumed. NOTE: only a single whole-file declaration is honored
+    /// — mid-file format switching is a documented WS-2002-FORMAT follow-up; the first directive wins.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText)
     {
+        var declared = DetectDeclaredFormat(sourceText);
+        if (declared != DeclaredFormat.Auto)
+        {
+            string stripped = StripSourceFormatDirectives(sourceText);
+            return declared == DeclaredFormat.Fixed ? ConvertFixedToFree(stripped) : stripped;
+        }
         return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText) : sourceText;
+    }
+
+    /// <summary>Return the format the first <c>&gt;&gt;SOURCE FORMAT</c> directive selects, or Auto if none.</summary>
+    private static DeclaredFormat DetectDeclaredFormat(string sourceText)
+    {
+        foreach (var rawLine in sourceText.Split('\n'))
+        {
+            var m = SourceFormatDirective.Match(rawLine.TrimEnd('\r'));
+            if (m.Success)
+                return m.Groups[1].Value.Equals("FIXED", StringComparison.OrdinalIgnoreCase)
+                    ? DeclaredFormat.Fixed : DeclaredFormat.Free;
+        }
+        return DeclaredFormat.Auto;
+    }
+
+    /// <summary>
+    /// Blank out every <c>&gt;&gt;SOURCE FORMAT</c> directive line (the directive is consumed by the preprocessor).
+    /// The lines are emptied rather than removed so downstream source-line numbers stay aligned for diagnostics.
+    /// </summary>
+    private static string StripSourceFormatDirectives(string sourceText)
+    {
+        var lines = sourceText.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (SourceFormatDirective.IsMatch(lines[i].TrimEnd('\r')))
+                lines[i] = "";
+        }
+        return string.Join('\n', lines);
     }
 
     /// <summary>

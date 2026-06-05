@@ -775,4 +775,42 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("A*>B", stdout);   // the literal *> survives; only the out-of-literal *> is removed
     }
+
+    // ISO §7.2 (COBOL-2002) — >>SOURCE FORMAT IS FIXED overrides the auto-detection heuristic. This source has a
+    // blank sequence area (no numeric columns 1-6), so the structural heuristic would classify it as FREE and
+    // leave the column-7 '*' comment line un-stripped — in free form that line tokenizes as code and fails to
+    // compile. The directive forces fixed-format processing, so the '*' comment is recognized and it compiles.
+    [Fact]
+    public void SourceFormatDirective_Fixed_OverridesHeuristic()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            ">>SOURCE FORMAT IS FIXED\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. SFFIX.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "      * A COLUMN-7 FIXED-FORMAT COMMENT, ONLY HONORED IN FIXED FORM\n" +
+            "           DISPLAY \"OK\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("OK", stdout);
+    }
+
+    // ISO §7.2 — >>SOURCE FORMAT IS FREE is recognized and the directive line is consumed (blanked). Without the
+    // directive being stripped, the ">>SOURCE FORMAT IS FREE" line itself would fail to tokenize. The program
+    // body is column-1 free-form.
+    [Fact]
+    public void SourceFormatDirective_Free_IsRecognizedAndStripped()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            ">>SOURCE FORMAT IS FREE\n" +
+            "IDENTIFICATION DIVISION.\n" +
+            "PROGRAM-ID. SFFREE.\n" +
+            "PROCEDURE DIVISION.\n" +
+            "MAIN.\n" +
+            "DISPLAY \"FREE\".\n" +
+            "STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("FREE", stdout);
+    }
 }
