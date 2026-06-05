@@ -626,6 +626,27 @@ public static class FileRuntime
     }
 
     /// <summary>
+    /// DELETE FILE (COBOL-2023, ISO §14.9.10): delete the physical file associated with a file connector,
+    /// referenced by its ASSIGN target. Sets the connector's I-O status: "00" when the file was deleted, "35"
+    /// when it was not available (did not exist), "30" on any other host error. The file should not be open.
+    /// </summary>
+    public static void DeleteFile(string fileName, string assignTarget)
+    {
+        string status;
+        try
+        {
+            string path = ResolveHostPath(assignTarget);
+            if (System.IO.File.Exists(path)) { System.IO.File.Delete(path); status = "00"; }
+            else status = "35"; // file not available (ISO §14.9.10 — referenced file is not available)
+        }
+        catch
+        {
+            status = "30"; // permanent error (e.g. the file is open / locked by the host)
+        }
+        _lastStatus[fileName] = status;
+    }
+
+    /// <summary>
     /// START: position an indexed file for subsequent READ NEXT.
     /// </summary>
     public static void StartFile(string fileName, byte[] keyArea, int keyOffset, int keyLength,

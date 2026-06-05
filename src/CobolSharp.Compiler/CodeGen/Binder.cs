@@ -704,6 +704,8 @@ public sealed class Binder
                 return _ctx.FileIo.LowerRewrite(rw, method, block);
             case BoundDeleteStatement del:
                 return _ctx.FileIo.LowerDelete(del, method, block);
+            case BoundDeleteFileStatement delFile:
+                return _ctx.FileIo.LowerDeleteFile(delFile, method, block);
             case BoundStartStatement start:
                 return _ctx.FileIo.LowerStart(start, method, block);
             case BoundReturnStatement ret:

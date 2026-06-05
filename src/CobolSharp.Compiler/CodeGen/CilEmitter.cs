@@ -1130,6 +1130,7 @@ public sealed class CilEmitter
             case IrCheckEndOfPage eop: _ctx.FileIo.EmitCheckEndOfPage(il, eop, getLocal); break;
             case IrInitLinage initLin: _ctx.FileIo.EmitInitLinage(il, initLin); break;
             case IrDeleteRecord del: _ctx.FileIo.EmitDeleteRecord(il, del); break;
+            case IrDeleteFile delFile: _ctx.FileIo.EmitDeleteFile(il, delFile); break;
             case IrStartFile sf: _ctx.FileIo.EmitStartFile(il, sf); break;
             case IrCheckFileInvalidKey cik: _ctx.FileIo.EmitCheckFileInvalidKey(il, cik, getLocal); break;
             case IrCheckUseDeclarative cud: _ctx.FileIo.EmitCheckUseDeclarative(il, cud, getLocal); break;

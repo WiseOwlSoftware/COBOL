@@ -892,6 +892,14 @@ internal sealed class FileIoLowerer
         return block;
     }
 
+    // DELETE FILE (COBOL-2023, ISO §14.9.10): delete the physical file via its ASSIGN target. (ON EXCEPTION
+    // branching is a documented follow-up.)
+    public IrBasicBlock LowerDeleteFile(BoundDeleteFileStatement del, IrMethod method, IrBasicBlock block)
+    {
+        block.Instructions.Add(new IrDeleteFile(del.File.Name, del.File.AssignTarget ?? del.File.Name));
+        return block;
+    }
+
     // ── START ──
 
     public IrBasicBlock LowerStart(BoundStartStatement start, IrMethod method, IrBasicBlock block)

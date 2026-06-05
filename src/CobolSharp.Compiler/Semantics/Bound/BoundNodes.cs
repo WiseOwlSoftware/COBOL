@@ -40,6 +40,7 @@ public enum BoundNodeKind
     StringStatement,
     UnstringStatement,
     DeleteStatement,
+    DeleteFileStatement,
     StartStatement,
     CorrespondingStatement,
     CompoundStatement,
@@ -1541,6 +1542,17 @@ public sealed class BoundDeleteStatement : BoundStatement
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.DeleteStatement;
+}
+
+/// <summary>DELETE FILE (COBOL-2023, ISO §14.9.10): delete the physical file associated with a file connector.
+/// (The optional ON EXCEPTION / NOT ON EXCEPTION phrases are not yet honored — a documented follow-up.)</summary>
+public sealed class BoundDeleteFileStatement : BoundStatement
+{
+    public FileSymbol File { get; }
+
+    public BoundDeleteFileStatement(FileSymbol file) => File = file;
+
+    public override BoundNodeKind Kind => BoundNodeKind.DeleteFileStatement;
 }
 
 public sealed class BoundStartStatement : BoundStatement

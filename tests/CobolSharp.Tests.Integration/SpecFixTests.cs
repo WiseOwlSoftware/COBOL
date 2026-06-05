@@ -1282,4 +1282,40 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("EXPR=0043", stdout);
     }
+
+    // ISO §14.9.10 (COBOL-2023) — DELETE FILE deletes the physical file (was a parse-only no-op). After deleting,
+    // OPEN INPUT of the same file reports "file not available" (status 35); a no-op would have left it readable
+    // (status 00).
+    [Fact]
+    public void DeleteFile_DeletesThePhysicalFile()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. DELFILE.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"df-spec.dat\"\n" +
+            "               ORGANIZATION IS SEQUENTIAL\n" +
+            "               FILE STATUS IS WS-ST.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC PIC X(10).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-ST PIC XX.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN OUTPUT F.\n" +
+            "           MOVE \"HELLO\" TO F-REC.\n" +
+            "           WRITE F-REC.\n" +
+            "           CLOSE F.\n" +
+            "           DELETE FILE F.\n" +
+            "           OPEN INPUT F.\n" +
+            "           DISPLAY \"ST=\" WS-ST.\n" +
+            "           STOP RUN.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2023);
+        Assert.True(ok, stderr);
+        Assert.Equal("ST=35", stdout);
+    }
 }

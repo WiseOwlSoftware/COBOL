@@ -168,8 +168,10 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.9 M4 — COBOL-2023
 
-- ☐ **M4-1 — `DELETE FILE` execution.** **[A] medium, small.** *Current:* parse-only no-op stub. *Recipe:*
-  binder/lowering case that deletes the file + emits its exception blocks.
+- ☑ **M4-1 — `DELETE FILE` execution (DONE — DEVLOG 373).** Full statement pipeline (BoundDeleteFileStatement →
+  IrDeleteFile → FileRuntime.DeleteFile = ResolveHostPath + File.Delete + I-O status 00/35/30). Verified status
+  35 after delete + the physical file removed. Conformance `tests/conformance/2023/delete_file`. **Follow-up:**
+  the `ON EXCEPTION`/`NOT ON EXCEPTION` phrases + multiple file-names are not yet honored.
 - ☐ **M4-2 — `XOR` logical operator + `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** **[A] medium,
   small.** *Recipe:* a `logicalXor` grammar rule + two intrinsic dispatch cases.
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit

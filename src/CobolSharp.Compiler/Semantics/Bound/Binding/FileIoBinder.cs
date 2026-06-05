@@ -386,6 +386,17 @@ internal sealed class FileIoBinder
         return new BoundDeleteStatement(fileSym, invalidKey, notInvalidKey);
     }
 
+    // DELETE FILE (COBOL-2023, ISO §14.9.10): delete the physical file. The optional ON EXCEPTION phrases are
+    // accepted by the grammar but not yet honored (documented follow-up).
+    internal BoundStatement? BindDeleteFile(CobolParserCore.DeleteFileStatementContext ctx)
+    {
+        var fileNameCtx = ctx.fileName();
+        if (fileNameCtx == null) return null;
+        var fileSym = _ctx.Semantic.ResolveFile(fileNameCtx.GetText());
+        if (fileSym == null) return null;
+        return new BoundDeleteFileStatement(fileSym);
+    }
+
     // ── START ──
 
     internal BoundStatement? BindStart(CobolParserCore.StartStatementContext ctx)

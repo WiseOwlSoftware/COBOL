@@ -842,6 +842,19 @@ public sealed class IrDeleteRecord : IrInstruction
     public IrDeleteRecord(string fileName) { FileName = fileName; }
 }
 
+/// <summary>DELETE FILE (COBOL-2023, ISO §14.9.10): delete the physical file. Carries the COBOL file name (for
+/// FILE STATUS) and the ASSIGN target (to resolve the host path).</summary>
+public sealed class IrDeleteFile : IrInstruction
+{
+    public string FileName { get; }
+    public string AssignTarget { get; }
+    public IrDeleteFile(string fileName, string assignTarget)
+    {
+        FileName = fileName;
+        AssignTarget = assignTarget;
+    }
+}
+
 /// <summary>
 /// START: position an indexed file for subsequent READ NEXT.
 /// Condition maps to Runtime.IO.StartCondition enum.

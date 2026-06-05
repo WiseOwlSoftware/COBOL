@@ -437,6 +437,16 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    internal void EmitDeleteFile(ILProcessor il, IrDeleteFile del)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, del.FileName));
+        il.Append(il.Create(OpCodes.Ldstr, del.AssignTarget));
+        var method = _ctx.Module.ImportReference(
+            typeof(FileRuntime).GetMethod("DeleteFile",
+                new[] { typeof(string), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     internal void EmitStartFile(ILProcessor il, IrStartFile sf)
     {
         il.Append(il.Create(OpCodes.Ldstr, sf.FileName));
