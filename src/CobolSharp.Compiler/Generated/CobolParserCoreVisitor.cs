@@ -471,6 +471,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitReceivingArithmeticOperand([NotNull] CobolParserCore.ReceivingArithmeticOperandContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.roundedPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRoundedPhrase([NotNull] CobolParserCore.RoundedPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.roundingModeName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRoundingModeName([NotNull] CobolParserCore.RoundingModeNameContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticOnSizeError"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

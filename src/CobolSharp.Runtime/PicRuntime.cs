@@ -2006,6 +2006,24 @@ public static class PicRuntime
     // Scaling / rounding
     // ══════════════════════════════════════════════════════════
 
+    // ── ROUNDED MODE ordinals (ISO §14.9.4, COBOL-2002) — shared with the compiler's mode mapping ──
+    /// <summary>No ROUNDED (default) / MODE TRUNCATION — drop the excess digits (toward zero).</summary>
+    public const int RoundTruncation = 0;
+    /// <summary>Default ROUNDED — round to nearest; ties away from zero.</summary>
+    public const int RoundNearestAwayFromZero = 1;
+    /// <summary>Always round away from zero (magnitude up) regardless of the dropped digits.</summary>
+    public const int RoundAwayFromZero = 2;
+    /// <summary>Round to nearest; ties to the nearest even digit (banker's rounding).</summary>
+    public const int RoundNearestEven = 3;
+    /// <summary>Round to nearest; ties toward zero.</summary>
+    public const int RoundNearestTowardZero = 4;
+    /// <summary>No rounding permitted; an inexact result raises EC-SIZE-TRUNCATION (not yet signaled — see DEVLOG).</summary>
+    public const int RoundProhibited = 5;
+    /// <summary>Round toward positive infinity (ceiling).</summary>
+    public const int RoundTowardGreater = 6;
+    /// <summary>Round toward negative infinity (floor).</summary>
+    public const int RoundTowardLesser = 7;
+
     private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
     {
         // Fraction scale: FractionDigits + leading P (e.g., PIC P(4)9 has scale 5)
@@ -2018,22 +2036,38 @@ public static class PicRuntime
 
         if (trailingP > 0)
         {
-            // Round or truncate to the nearest 10^trailingP
+            // Reduce to integer multiples of 10^trailingP, then re-scale.
             decimal pFactor = Pow10(trailingP);
-            return roundingMode switch
-            {
-                1 => Math.Round(value / pFactor, 0, MidpointRounding.AwayFromZero) * pFactor,
-                _ => decimal.Truncate(value / pFactor) * pFactor
-            };
+            return RoundToIntegerByMode(value / pFactor, roundingMode) * pFactor;
         }
 
-        // Standard fraction rounding
+        // Standard fraction rounding: scale up to an integer, round per mode, scale back.
         decimal factor = Pow10(fractionScale);
-        return roundingMode switch
-        {
-            1 => Math.Round(value, fractionScale, MidpointRounding.AwayFromZero),
-            _ => decimal.Truncate(value * factor) / factor
-        };
+        return RoundToIntegerByMode(value * factor, roundingMode) / factor;
+    }
+
+    /// <summary>
+    /// Round a scaled value to an integer per the ISO ROUNDED MODE (§14.9.4). The eight modes
+    /// differ only in how the dropped fraction is resolved; PROHIBITED produces the truncated
+    /// (toward-zero) integer here — its "rounding not permitted → size error" behavior is the
+    /// caller's responsibility (the arithmetic store path), not this pure helper's.
+    /// </summary>
+    private static decimal RoundToIntegerByMode(decimal scaled, int roundingMode) => roundingMode switch
+    {
+        RoundNearestAwayFromZero => Math.Round(scaled, 0, MidpointRounding.AwayFromZero),
+        RoundAwayFromZero        => scaled >= 0m ? Math.Ceiling(scaled) : Math.Floor(scaled),
+        RoundNearestEven         => Math.Round(scaled, 0, MidpointRounding.ToEven),
+        RoundNearestTowardZero   => NearestTowardZero(scaled),
+        RoundTowardGreater       => Math.Ceiling(scaled),
+        RoundTowardLesser        => Math.Floor(scaled),
+        _                        => decimal.Truncate(scaled),   // RoundTruncation, RoundProhibited
+    };
+
+    /// <summary>Round to the nearest integer with ties broken toward zero: sign · ceil(|x| − 0.5).</summary>
+    private static decimal NearestTowardZero(decimal scaled)
+    {
+        decimal r = Math.Ceiling(Math.Abs(scaled) - 0.5m);
+        return scaled < 0m ? -r : r;
     }
 
     // ══════════════════════════════════════════════════════════

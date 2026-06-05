@@ -99,6 +99,15 @@ EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2002 logical exclusive-or operator,
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
+// COBOL-2002 ROUNDED MODE names (ISO §14.9.4). Reserved words; corpus-checked (only in comments).
+AWAY_FROM_ZERO          : 'AWAY-FROM-ZERO' ;
+NEAREST_AWAY_FROM_ZERO  : 'NEAREST-AWAY-FROM-ZERO' ;
+NEAREST_EVEN            : 'NEAREST-EVEN' ;
+NEAREST_TOWARD_ZERO     : 'NEAREST-TOWARD-ZERO' ;
+TOWARD_GREATER          : 'TOWARD-GREATER' ;
+TOWARD_LESSER           : 'TOWARD-LESSER' ;
+PROHIBITED              : 'PROHIBITED' ;
+TRUNCATION              : 'TRUNCATION' ;
 METHOD_ID       : 'METHOD-ID' ;
 CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;

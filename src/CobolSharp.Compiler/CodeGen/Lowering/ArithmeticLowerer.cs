@@ -34,7 +34,7 @@ internal sealed class ArithmeticLowerer
         {
             var destLoc = _ctx.Location.ResolveExpressionLocation(target.Target);
             if (destLoc == null) continue;
-            int roundingMode = target.IsRounded ? 1 : 0;
+            int roundingMode = target.RoundingMode;
 
             if (mult.IsGiving)
             {
@@ -93,7 +93,7 @@ internal sealed class ArithmeticLowerer
         {
             var destLoc = _ctx.Location.ResolveLocation(target.Target);
             if (destLoc == null) continue;
-            int roundingMode = target.IsRounded ? 1 : 0;
+            int roundingMode = target.RoundingMode;
             if (sub.IsGiving && sub.Receiver != null)
             {
                 IrExpression irSum = _ctx.Expression.LowerExpression(sub.Operands[0]) ?? new IrLiteral(0m);
@@ -132,7 +132,7 @@ internal sealed class ArithmeticLowerer
             {
                 var destLoc = _ctx.Location.ResolveLocation(target.Target);
                 if (destLoc == null) continue;
-                int roundingMode = target.IsRounded ? 1 : 0;
+                int roundingMode = target.RoundingMode;
                 block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
             }
         }
@@ -152,7 +152,7 @@ internal sealed class ArithmeticLowerer
                 var destLoc = _ctx.Location.ResolveLocation(target0.Target);
                 if (destLoc != null)
                 {
-                    int roundingMode = target0.IsRounded ? 1 : 0;
+                    int roundingMode = target0.RoundingMode;
                     block.Instructions.Add(new IrMoveAccumulatedToTarget(accum.Value, destLoc, roundingMode));
 
                     int givingFracDigits = destLoc.GetPic().FractionDigits;
@@ -172,7 +172,7 @@ internal sealed class ArithmeticLowerer
                 {
                     var destLoc = _ctx.Location.ResolveLocation(target.Target);
                     if (destLoc == null) continue;
-                    int roundingMode = target.IsRounded ? 1 : 0;
+                    int roundingMode = target.RoundingMode;
 
                     if (div.Operands[0] is BoundLiteralExpression litDiv && litDiv.Value is decimal d)
                     {
@@ -216,7 +216,7 @@ internal sealed class ArithmeticLowerer
             var destLoc = _ctx.Location.ResolveLocation(target.Target);
             if (destLoc == null) continue;
 
-            int roundingMode = target.IsRounded ? 1 : 0;
+            int roundingMode = target.RoundingMode;
 
             // COMPUTE dest = FUNCTION user-name(args) → CALL "user-name" USING args RETURNING dest (UDF slice 3).
             // The function result is produced directly into the receiving item (ROUNDED/intermediate rounding of a
@@ -261,7 +261,7 @@ internal sealed class ArithmeticLowerer
             var destLoc = _ctx.Location.ResolveLocation(target.Target);
             if (destLoc == null) continue;
 
-            int roundingMode = target.IsRounded ? 1 : 0;
+            int roundingMode = target.RoundingMode;
             if (add.IsGiving)
                 block.Instructions.Add(new IrMoveAccumulatedToTarget(accum, destLoc, roundingMode));
             else

@@ -33,6 +33,28 @@ internal sealed class ArithmeticStatementBinder
         return null;
     }
 
+    /// <summary>
+    /// Resolve a ROUNDED [MODE IS …] phrase (§14.9.4) into (isRounded, mode-ordinal). Bare ROUNDED
+    /// defaults to NEAREST-AWAY-FROM-ZERO; the eight MODE names map to the PicRuntime.Round* ordinals.
+    /// The grammar (roundingModeName) already restricts the name to a valid mode, so no extra validation.
+    /// </summary>
+    private static (bool isRounded, int mode) BindRounded(CobolParserCore.RoundedPhraseContext? rp)
+    {
+        if (rp == null) return (false, 0);
+        var m = rp.roundingModeName();
+        if (m == null) return (true, 1);   // bare ROUNDED → NEAREST-AWAY-FROM-ZERO
+        int mode =
+            m.TRUNCATION() != null             ? 0 :
+            m.NEAREST_AWAY_FROM_ZERO() != null ? 1 :
+            m.AWAY_FROM_ZERO() != null         ? 2 :
+            m.NEAREST_EVEN() != null           ? 3 :
+            m.NEAREST_TOWARD_ZERO() != null    ? 4 :
+            m.PROHIBITED() != null             ? 5 :
+            m.TOWARD_GREATER() != null         ? 6 :
+            m.TOWARD_LESSER() != null          ? 7 : 1;
+        return (true, mode);
+    }
+
     // ── MULTIPLY ──
 
     internal BoundStatement? BindMultiply(CobolParserCore.MultiplyStatementContext ctx)
@@ -69,7 +91,10 @@ internal sealed class ArithmeticStatementBinder
                 {
                     var sym = _ctx.Expression.BindDataReferenceWithSubscripts(receiver.dataReference());
                     if (sym is BoundIdentifierExpression boundBt)
-                        targets.Add(new BoundArithmeticTarget(boundBt, byCtx.ROUNDED() != null));
+                    {
+                        var (r, mode) = BindRounded(byCtx.roundedPhrase());
+                        targets.Add(new BoundArithmeticTarget(boundBt, r, mode));
+                    }
                 }
             }
         }
@@ -310,7 +335,10 @@ internal sealed class ArithmeticStatementBinder
         {
             var sym = _ctx.Expression.BindDataReferenceWithSubscripts(s.dataReference());
             if (sym is BoundIdentifierExpression boundS)
-                targets.Add(new BoundArithmeticTarget(boundS, s.ROUNDED() != null));
+            {
+                var (r, mode) = BindRounded(s.roundedPhrase());
+                targets.Add(new BoundArithmeticTarget(boundS, r, mode));
+            }
         }
 
         if (targets.Count == 0)
@@ -481,7 +509,10 @@ internal sealed class ArithmeticStatementBinder
         {
             var sym = _ctx.Expression.BindDataReferenceWithSubscripts(op.dataReference());
             if (sym is BoundIdentifierExpression bound)
-                targets.Add(new BoundArithmeticTarget(bound, op.ROUNDED() != null));
+            {
+                var (r, mode) = BindRounded(op.roundedPhrase());
+                targets.Add(new BoundArithmeticTarget(bound, r, mode));
+            }
         }
         return targets;
     }

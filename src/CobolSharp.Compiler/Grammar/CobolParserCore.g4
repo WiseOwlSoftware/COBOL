@@ -560,7 +560,24 @@ receivingOperand
     ;
 
 receivingArithmeticOperand
-    : dataReference ROUNDED?
+    : dataReference roundedPhrase?
+    ;
+
+// ROUNDED [MODE IS rounding-mode] (§14.9.4, COBOL-2002). The MODE phrase selects one of the
+// eight ISO rounding modes; bare ROUNDED defaults to NEAREST-AWAY-FROM-ZERO.
+roundedPhrase
+    : ROUNDED (MODE IS? roundingModeName)?
+    ;
+
+roundingModeName
+    : AWAY_FROM_ZERO
+    | NEAREST_AWAY_FROM_ZERO
+    | NEAREST_EVEN
+    | NEAREST_TOWARD_ZERO
+    | TOWARD_GREATER
+    | TOWARD_LESSER
+    | PROHIBITED
+    | TRUNCATION
     ;
 
 arithmeticOnSizeError
@@ -640,7 +657,7 @@ multiplyOperand
     ;
 
 multiplyByOperand
-    : receivingOperand ROUNDED?
+    : receivingOperand roundedPhrase?
     ;
 
 multiplyGivingPhrase
@@ -691,7 +708,7 @@ computeStatement
     ;
 
 computeStore
-    : dataReference ROUNDED?
+    : dataReference roundedPhrase?
     ;
 
 computeOnSizeError

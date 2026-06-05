@@ -115,11 +115,15 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.3 M2 — Arithmetic & configuration
 
-- ☐ 🐛 **M2-ARITH-1 — `ROUNDED MODE` (all 8) + `DEFAULT ROUNDED`.** **[A] medium (only 2 of 8 modes implemented)**.
-  Modes: AWAY-FROM-ZERO, NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER,
-  TOWARD-LESSER, TRUNCATION. *Recipe:* replace the `IsRounded` bool threaded into IR/`PicRuntime` with a
-  `RoundingMode` enum; honour the per-statement `ROUNDED MODE IS …` and the OPTIONS `DEFAULT ROUNDED MODE`
-  (parsed in DEVLOG 364 but inert). §14.9.4, §11.9.6.
+- ◑ 🐛 **M2-ARITH-1 — `ROUNDED MODE` (all 8 modes DONE — DEVLOG 379).** All eight modes (AWAY-FROM-ZERO,
+  NEAREST-AWAY-FROM-ZERO, NEAREST-EVEN, NEAREST-TOWARD-ZERO, PROHIBITED, TOWARD-GREATER, TOWARD-LESSER,
+  TRUNCATION) implemented in `PicRuntime.RoundToIntegerByMode` + per-statement `ROUNDED MODE IS …`
+  (new mode reserved words, `roundedPhrase` grammar, `BindRounded`, `BoundArithmeticTarget.RoundingMode`,
+  lowerer threads the mode int — IR/emit were already mode-agnostic). Conformance
+  `tests/conformance/2002/rounded_modes`. **Remaining (follow-ups):** (1) apply OPTIONS `DEFAULT ROUNDED MODE`
+  (still parsed-not-applied — bare ROUNDED uses fixed NEAREST-AWAY); (2) PROHIBITED → raise EC-SIZE-TRUNCATION
+  on an inexact result (currently truncates; needs the arithmetic store paths to detect precision loss);
+  (3) ADD/SUBTRACT CORRESPONDING `ROUNDED MODE`. §14.9.4, §11.9.6.
 - ☐ **M2-ARITH-2 — Apply remaining OPTIONS clauses.** `ARITHMETIC IS STANDARD/STANDARD-BINARY/STANDARD-DECIMAL`,
   `INTERMEDIATE ROUNDING`, `FLOAT-BINARY/DECIMAL DEFAULT`, `ENTRY-CONVENTION`. *Medium–large* (standard arithmetic
   is a real intermediate-precision change). Parsed-not-applied today. §11.9.

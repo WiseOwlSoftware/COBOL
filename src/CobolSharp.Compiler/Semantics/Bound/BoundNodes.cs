@@ -1171,11 +1171,17 @@ public sealed class BoundArithmeticTarget
 {
     public BoundIdentifierExpression Target { get; }
     public bool IsRounded { get; }
+    /// <summary>
+    /// The ISO §14.9.4 ROUNDED MODE ordinal (PicRuntime.Round*). 0 (truncation) when not rounded
+    /// or when MODE IS TRUNCATION; 1 (NEAREST-AWAY-FROM-ZERO) for bare ROUNDED.
+    /// </summary>
+    public int RoundingMode { get; }
 
-    public BoundArithmeticTarget(BoundIdentifierExpression target, bool isRounded)
+    public BoundArithmeticTarget(BoundIdentifierExpression target, bool isRounded, int roundingMode = 0)
     {
         Target = target;
         IsRounded = isRounded;
+        RoundingMode = roundingMode;
     }
 }
 
