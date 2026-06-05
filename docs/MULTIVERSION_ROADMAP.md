@@ -44,7 +44,7 @@ availability. Deepening it into a real per-version feature model is the foundati
 |---|---|---|---|
 | **M0** | **Version engine** — deepen `DialectMode` into a full per-version feature model | unit tests on the config matrix | foundation (thin today) |
 | **M1** | **COBOL-85 to 100%** | NIST CCVS85 (3 axes — see `COBOL85_COMPLIANCE_PLAN.md`) | in progress (~87% baseline, Wave 1 running) |
-| **M2** | **COBOL-2002** | custom corpus | not started |
+| **M2** | **COBOL-2002** | custom corpus | in progress — WS-2002-FORMAT done (DEVLOG 358–361) |
 | **M3** | **COBOL-2014** | custom corpus | not started (Report Writer already done) |
 | **M4** | **COBOL-2023** | custom corpus (vs in-repo spec) | not started |
 
@@ -86,6 +86,17 @@ sequentially guard-gated). Ordered by foundational value and contained-ness:
 1. **WS-2002-FORMAT** — free-form source format; inline comments `*>`; `>>` compiler directives
    (`>>SOURCE FORMAT`, `>>DEFINE`, `>>IF/>>ELSE/>>END-IF` conditional compilation, `>>CALL-CONVENTION`).
    Foundational and self-contained — do first.
+   **STATUS — substantially DONE (DEVLOG 358–361):**
+   - `*>` inline comments in fixed reference format (358) — `IsFixedForm` is now structure-first + a
+     literal-aware inline-comment stripper.
+   - `>>SOURCE FORMAT IS FREE|FIXED` (359) — explicit selector overriding the heuristic.
+   - Conditional compilation (`ConditionalCompilationProcessor`, a pre-COPY pass): `>>DEFINE … AS literal|OFF`,
+     `>>IF/>>ELSE/>>END-IF` (360), `>>EVALUATE/>>WHEN[OTHER]/>>END-EVALUATE` both formats (361), with a
+     recursive-descent constant-conditional-expression evaluator (defined-condition, relations, AND/OR/NOT,
+     parens, THROUGH ranges). Exact no-op on directive-free source (NIST untouched).
+   - **Deferred:** `>>CALL-CONVENTION` (recognize+store); full free-form *continuation* rules; arithmetic/boolean
+     expression operands in DEFINE/EVALUATE; `PARAMETER` (env) defines; conditional-compilation directives inside
+     copied library text (the pass runs before COPY expansion).
 2. **WS-2002-UDF** — user-defined functions (`FUNCTION-ID`, function prototypes, `FUNCTION` invocation of
    user functions). Extends the existing intrinsic-function pipeline.
 3. **WS-2002-DATA** — national character data (`USAGE NATIONAL`, `N"…"` literals, UTF-16); boolean & bit data;
