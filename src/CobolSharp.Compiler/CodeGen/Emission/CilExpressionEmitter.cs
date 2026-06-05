@@ -49,12 +49,27 @@ internal sealed class CilExpressionEmitter
                 il.Append(il.Create(OpCodes.Newarr, _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
                 for (int i = 0; i < ufc.Arguments.Count; i++)
                 {
+                    var arg = ufc.Arguments[i];
                     il.Append(il.Create(OpCodes.Dup));
                     il.Append(il.Create(OpCodes.Ldc_I4, i));
-                    _ctx.Location.EmitLocationArgs(il, ufc.Arguments[i]); // pushes (area, offset, length)
-                    il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                        typeof(Runtime.CobolDataPointer).GetMethod("CreateByContent",
-                            new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                    if (arg.Location != null)
+                    {
+                        _ctx.Location.EmitLocationArgs(il, arg.Location); // pushes (area, offset, length)
+                        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                            typeof(Runtime.CobolDataPointer).GetMethod("CreateByContent",
+                                new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                    }
+                    else
+                    {
+                        // Literal / arithmetic-expression argument: compute the value, then encode it into the
+                        // parameter's format and wrap it as a BY-CONTENT pointer (M2-UDF-2).
+                        EmitIrExpression(il, arg.Value!); // decimal on stack
+                        il.Append(il.Create(OpCodes.Ldc_I4, arg.ParamLength));
+                        EmitLoadPicDescriptor(il, arg.ParamPic!);
+                        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                            typeof(Runtime.CobolProgramRegistry).GetMethod("EncodeFunctionArg",
+                                new[] { typeof(decimal), typeof(int), typeof(Runtime.PicDescriptor) })!)));
+                    }
                     il.Append(il.Create(OpCodes.Stelem_Any,
                         _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
                 }

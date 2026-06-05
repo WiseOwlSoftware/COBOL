@@ -252,6 +252,12 @@ public sealed class SemanticModel
     public IReadOnlyDictionary<string, (int Length, Runtime.PicDescriptor Pic)> UserFunctionSignatures { get; set; } =
         new Dictionary<string, (int, Runtime.PicDescriptor)>(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Each user-defined function's USING parameter storage (length + PIC), in order — so a caller can
+    /// encode a literal / arithmetic-expression argument (a non-location value) into the parameter's format before
+    /// passing it (FUNCTION fn(5) / fn(A+1)). Built by the same Compilation pre-pass as UserFunctionSignatures.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<(int Length, Runtime.PicDescriptor Pic)>> UserFunctionParameterSignatures
+    { get; set; } = new Dictionary<string, IReadOnlyList<(int, Runtime.PicDescriptor)>>(StringComparer.OrdinalIgnoreCase);
+
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
     private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = [];

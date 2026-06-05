@@ -75,6 +75,18 @@ public static class CobolProgramRegistry
     }
 
     /// <summary>
+    /// Encode a numeric <paramref name="value"/> (a literal or arithmetic-expression argument to a user-defined
+    /// function) into a fresh buffer in the target parameter's format (<paramref name="length"/> +
+    /// <paramref name="pic"/>) and wrap it as a BY-CONTENT argument pointer.
+    /// </summary>
+    public static CobolDataPointer EncodeFunctionArg(decimal value, int length, PicDescriptor pic)
+    {
+        var buf = new byte[length];
+        PicRuntime.EncodeNumeric(buf, 0, length, pic, value);
+        return CobolDataPointer.CreateByReference(buf, 0, length);
+    }
+
+    /// <summary>
     /// CANCEL a program (ISO §14.9.5): it ceases its logical relationship to the run unit, and the
     /// next CALL must find it in its initial state. Canceling a program that was never called or is
     /// already canceled has no effect (GR7). The actual re-initialization happens in the program's

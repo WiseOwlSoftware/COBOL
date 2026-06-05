@@ -61,6 +61,8 @@ public sealed class Compilation
         var userFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var userFunctionSignatures =
             new Dictionary<string, (int, Runtime.PicDescriptor)>(StringComparer.OrdinalIgnoreCase);
+        var userFunctionParamSignatures =
+            new Dictionary<string, IReadOnlyList<(int, Runtime.PicDescriptor)>>(StringComparer.OrdinalIgnoreCase);
         foreach (var progCtx in programContexts)
         {
             var idBody = (progCtx switch
@@ -84,6 +86,10 @@ public sealed class Compilation
                 if (sigModel.ProcedureReturningItem is { } ret
                     && sigModel.GetStorageLocation(ret) is { } loc)
                     userFunctionSignatures[fn] = (loc.Length, loc.Pic);
+                var paramSigs = new List<(int, Runtime.PicDescriptor)>();
+                foreach (var p in sigModel.ProcedureUsingParameters)
+                    if (sigModel.GetStorageLocation(p) is { } pl) paramSigs.Add((pl.Length, pl.Pic));
+                userFunctionParamSignatures[fn] = paramSigs;
             }
             catch { /* signature unavailable → the inline form falls through; whole-source form still works */ }
         }
@@ -110,6 +116,7 @@ public sealed class Compilation
             semanticModel.Program.IsInitial = isInitial;
             semanticModel.UserFunctionNames = userFunctionNames;
             semanticModel.UserFunctionSignatures = userFunctionSignatures;
+            semanticModel.UserFunctionParameterSignatures = userFunctionParamSignatures;
 
             // Validate and compute layout
             Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);

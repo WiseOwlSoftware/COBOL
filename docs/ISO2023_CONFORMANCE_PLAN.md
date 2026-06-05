@@ -78,10 +78,13 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `ExpressionLowerer` routing. Verified `COMPUTE R = FUNCTION DOUBLER(X) + 1` → 43. Conformance:
   `tests/conformance/2002/udf_inline_expression`. **NOTE:** applies when every argument is a storage location;
   literal/arith args are M2-UDF-2 below.
-- ☐ 🐛 **M2-UDF-2 — Literal / arithmetic-expression arguments.** `FUNCTION FOO(5)` / `FOO(A + 1)`. **[A] HIGH
-  (correctness: returns 0 today)**, **small**. *Current:* `LoweringContext.LowerUserFunctionCall` returns false
-  when an arg is not a resolvable location → falls through to intrinsic → 0. *Recipe:* materialize a non-location
-  arg into a compiler temp (or BY CONTENT value) and pass it, instead of bailing. Pairs with M2-UDF-1.
+- ☑ 🐛 **M2-UDF-2 — Literal / arithmetic-expression arguments (DONE — DEVLOG 374).** `FUNCTION FOO(5)` /
+  `FOO(A + 1)` now evaluate correctly (were silently 0). The Compilation pre-pass also records each function's
+  USING-parameter signatures (`SemanticModel.UserFunctionParameterSignatures`); `IrUserFunctionArg` carries either
+  a location (BY CONTENT) or a value + the target parameter's length/PIC; the emit encodes a value argument via
+  `CobolProgramRegistry.EncodeFunctionArg` (`PicRuntime.EncodeNumeric`). Verified `DOUBLER(5)` = 10,
+  `DOUBLER(4+1)` = 10. Conformance `tests/conformance/2002/udf_value_args`. **The UDF correctness chapter
+  (M2-UDF-1 + M2-UDF-2) is closed for numeric functions.**
 - ☐ **M2-UDF-3 — Separate-compilation user functions (prototypes).** Caller + function in different translation
   units. *Medium.* §8.13 external repository + function-prototype. *Current:* caller and function must share one
   compilation group. *Recipe:* function-prototype definitions in the caller (or an external repository registry).

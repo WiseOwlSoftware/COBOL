@@ -91,16 +91,22 @@ internal sealed class ExpressionLowerer
                 if (_ctx.IsUserFunction(func.FunctionName)
                     && _ctx.Semantic.UserFunctionSignatures.TryGetValue(func.FunctionName, out var sig))
                 {
-                    var argLocs = new List<IrLocation>(func.Arguments.Count);
-                    bool allLocations = true;
-                    foreach (var a in func.Arguments)
+                    _ctx.Semantic.UserFunctionParameterSignatures.TryGetValue(func.FunctionName, out var paramSigs);
+                    var ufArgs = new List<IrUserFunctionArg>(func.Arguments.Count);
+                    bool ok = true;
+                    for (int i = 0; i < func.Arguments.Count; i++)
                     {
-                        var loc = _ctx.Location.ResolveExpressionLocation(a);
-                        if (loc == null) { allLocations = false; break; }
-                        argLocs.Add(loc);
+                        var loc = _ctx.Location.ResolveExpressionLocation(func.Arguments[i]);
+                        if (loc != null) { ufArgs.Add(new IrUserFunctionArg(loc)); continue; }
+                        // A non-location argument (literal / arithmetic expression): lower it to a value and encode
+                        // it into the target parameter's format. Requires the parameter's signature (M2-UDF-2).
+                        var val = LowerExpression(func.Arguments[i]);
+                        if (val != null && paramSigs != null && i < paramSigs.Count)
+                            ufArgs.Add(new IrUserFunctionArg(val, paramSigs[i].Length, paramSigs[i].Pic));
+                        else { ok = false; break; }
                     }
-                    if (allLocations)
-                        return new IrUserFunctionCall(func.FunctionName, argLocs, sig.Length, sig.Pic);
+                    if (ok)
+                        return new IrUserFunctionCall(func.FunctionName, ufArgs, sig.Length, sig.Pic);
                 }
 
                 var args = new List<IrFunctionArg>(func.Arguments.Count);

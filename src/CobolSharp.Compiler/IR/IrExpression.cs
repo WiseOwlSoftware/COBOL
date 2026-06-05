@@ -86,17 +86,37 @@ public sealed class IrLoadNumeric : IrExpression
 public sealed class IrUserFunctionCall : IrExpression
 {
     public string FunctionName { get; }
-    public IReadOnlyList<IrLocation> Arguments { get; }   // each passed BY CONTENT (function arguments are values)
+    public IReadOnlyList<IrUserFunctionArg> Arguments { get; }
     public int ReturnLength { get; }
     public Runtime.PicDescriptor ReturnPic { get; }
 
-    public IrUserFunctionCall(string functionName, IReadOnlyList<IrLocation> arguments,
+    public IrUserFunctionCall(string functionName, IReadOnlyList<IrUserFunctionArg> arguments,
         int returnLength, Runtime.PicDescriptor returnPic)
     {
         FunctionName = functionName;
         Arguments = arguments;
         ReturnLength = returnLength;
         ReturnPic = returnPic;
+    }
+}
+
+/// <summary>One argument of an <see cref="IrUserFunctionCall"/>. Either a storage <see cref="Location"/> (passed
+/// BY CONTENT), or a computed <see cref="Value"/> (a literal / arithmetic expression) which is encoded into the
+/// target parameter's format (<see cref="ParamLength"/> + <see cref="ParamPic"/>) before being passed.</summary>
+public sealed class IrUserFunctionArg
+{
+    public IrLocation? Location { get; }
+    public IrExpression? Value { get; }
+    public int ParamLength { get; }
+    public Runtime.PicDescriptor? ParamPic { get; }
+
+    public IrUserFunctionArg(IrLocation location) => Location = location;
+
+    public IrUserFunctionArg(IrExpression value, int paramLength, Runtime.PicDescriptor paramPic)
+    {
+        Value = value;
+        ParamLength = paramLength;
+        ParamPic = paramPic;
     }
 }
 

@@ -1318,4 +1318,45 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("ST=35", stdout);
     }
+
+    // ISO §8.4.3 / §15 — UDF with NON-location arguments (M2-UDF-2): a literal and an arithmetic-expression
+    // argument are encoded into the parameter's format before passing. Previously these yielded 0 (the lowerer
+    // bailed on a non-location arg). DOUBLER(5) = 10, DOUBLER(4+1) = 10.
+    [Fact]
+    public void UserFunctionCall_LiteralAndArithmeticArguments()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. UVALARG.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       CONFIGURATION SECTION.\n" +
+            "       REPOSITORY.\n" +
+            "           FUNCTION DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-A PIC 9(4) VALUE 4.\n" +
+            "       01 WS-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           COMPUTE WS-R = FUNCTION DOUBLER(5).\n" +
+            "           DISPLAY \"LIT=\" WS-R.\n" +
+            "           COMPUTE WS-R = FUNCTION DOUBLER(WS-A + 1).\n" +
+            "           DISPLAY \"ARI=\" WS-R.\n" +
+            "           STOP RUN.\n" +
+            "       END PROGRAM UVALARG.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       FUNCTION-ID. DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       LINKAGE SECTION.\n" +
+            "       01 L-X PIC 9(4).\n" +
+            "       01 L-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION USING L-X RETURNING L-R.\n" +
+            "       P.\n" +
+            "           COMPUTE L-R = L-X * 2.\n" +
+            "           GOBACK.\n" +
+            "       END FUNCTION DOUBLER.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("LIT=0010\r\nARI=0010", stdout);
+    }
 }
