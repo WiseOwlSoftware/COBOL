@@ -8,6 +8,25 @@ implementation round. Author the passing test alongside each fix (the agents hav
 Priority tags: **P0** = correctness bug likely affecting many programs; **P1** = real feature gap; **P2** =
 strictness/edge.
 
+## Scope — M1 ('85) vs M2 (2002+), and status (updated DEVLOG 341)
+
+**10 fixes DONE** this session (DEVLOG 333–340): DISPLAY NO ADVANCING · CONCAT · CURRENCY letter-symbol ·
+BLANK WHEN ZERO · variadic space-args · COPY "literal" · ref-modded function arg · COMP-1/2 arithmetic ·
+COMP-1/2 DISPLAY · COPY REPLACING LEADING/TRAILING — all CLI-verified + regression-tested in `SpecFixTests.cs`.
+
+**⚠ Several remaining items are COBOL-2002+ features → DEFER to M2** (owner decision: features-after-M1). The
+WS-SPEC agents audited against the ISO 2023 spec, so the backlog mixes '85 and post-'85 features. **Deferred (M2):**
+`REPOSITORY … INTRINSIC`; `FUNCTION HIGHEST-ALGEBRAIC`/`LOWEST-ALGEBRAIC`; multi-char `CURRENCY SIGN … WITH
+PICTURE SYMBOL`; `INITIALIZE … WITH FILLER` / `… ALL TO VALUE`; `REPLACE … ALSO` / `OFF LAST` (2014);
+`CALL … RETURNING` / `BY VALUE`; the `(ALL)` subscript form in intrinsic-function arguments. (Confirm version
+before doing: ref-mod of a function *result*; `READ … PREVIOUS`.)
+
+**Genuinely-'85 M1 work remaining** (the real WS-SPEC finish line): `COMP-4`/`COMPUTATIONAL-4` binary synonym +
+reject unknown `COMP-n`; table `(ALL)` over an ODO table (summed over MAX not the DEPENDING value, P0 — if '85);
+variable-length record SORT/MERGE per-record length; SORT Format-2 elementary self-key; cross-program GLOBAL FD
+inheritance for I/O. Plus **WS-SPEC-RW** (Report Writer SUM / control breaks / RH-RF / detail SOURCE·VALUE·
+LINE-COUNTER — its own task #7). Most are deep or grammar — best done with fresh context.
+
 ## Nucleus
 - ✅ **DONE (DEVLOG 333) — `DISPLAY … WITH NO ADVANCING`** was a silent no-op. §14.9.11. Fixed by threading a
   `NoAdvancing` flag through `BoundDisplayStatement` → `IrPicDisplay` → `CilDataEmitter` (Console.Write vs
