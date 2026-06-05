@@ -609,6 +609,10 @@ internal sealed class FileIoBinder
                         if (keySym != null) keys.Add(new BoundSortKey(keySym, false));
                     }
                 }
+                // ISO §14.9.40.4 GR23: if data-name-1 is omitted and the table has no inherent KEY, the table
+                // item (data-name-2) is itself the key.
+                if (keys.Count == 0)
+                    keys.Add(new BoundSortKey(tableSym, ascending));
             }
         }
 

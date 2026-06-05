@@ -503,4 +503,61 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("006", stdout);   // 1+2+3 = 6, not 1+2+3+9+9 = 24
     }
+
+    // ISO §14.9.40 (Format-2 table SORT, COBOL-2002) — an elementary OCCURS item sorted on ITSELF: the key is
+    // the table item, whose storage Length spans the whole table. BuildKeySpecField now clamps the key length to
+    // one entry, so the runtime keys each entry within bounds (was an out-of-range throw).
+    [Fact]
+    public void SortTable_ElementarySelfKey_SortsInPlace()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. TSELF.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-TBL.\n" +
+            "          05 WS-N PIC 9(3) OCCURS 5 TIMES.\n" +
+            "       01 WS-I PIC 9 VALUE 1.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           MOVE 300 TO WS-N(1).\n" +
+            "           MOVE 100 TO WS-N(2).\n" +
+            "           MOVE 500 TO WS-N(3).\n" +
+            "           MOVE 200 TO WS-N(4).\n" +
+            "           MOVE 400 TO WS-N(5).\n" +
+            "           SORT WS-N ON ASCENDING KEY WS-N.\n" +
+            "           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 5\n" +
+            "               DISPLAY WS-N(WS-I)\n" +
+            "           END-PERFORM.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("100\r\n200\r\n300\r\n400\r\n500", stdout);
+    }
+
+    // ISO §14.9.40.4 GR23 — Format-2 table SORT with the KEY data-name omitted: the table item is itself the key
+    // (DESCENDING here also exercises the direction wiring).
+    [Fact]
+    public void SortTable_OmittedKey_UsesTableItemDescending()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. TSELF2.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-TBL.\n" +
+            "          05 WS-N PIC 9(3) OCCURS 3 TIMES.\n" +
+            "       01 WS-I PIC 9 VALUE 1.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           MOVE 020 TO WS-N(1).\n" +
+            "           MOVE 050 TO WS-N(2).\n" +
+            "           MOVE 010 TO WS-N(3).\n" +
+            "           SORT WS-N ON DESCENDING KEY.\n" +
+            "           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 3\n" +
+            "               DISPLAY WS-N(WS-I)\n" +
+            "           END-PERFORM.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("050\r\n020\r\n010", stdout);
+    }
 }

@@ -1133,13 +1133,14 @@ internal sealed class FileIoLowerer
         var tableLoc = _ctx.Semantic.GetStorageLocation(tableItem);
         if (!tableLoc.HasValue) return "";
         int tableBaseOffset = tableLoc.Value.Offset;
+        int entrySize = tableItem.ElementSize;
 
         var specs = new List<string>();
         foreach (var key in keys)
         {
             // Offset is relative to the table entry start; skip keys with no storage location.
             if (!_ctx.Semantic.GetStorageLocation(key.Key).HasValue) continue;
-            specs.Add(BuildKeySpecField(key, tableBaseOffset));
+            specs.Add(BuildKeySpecField(key, tableBaseOffset, entrySize));
         }
         return string.Join(";", specs);
     }
@@ -1291,11 +1292,16 @@ internal sealed class FileIoLowerer
     /// pic registry, which is never populated — so numeric keys are flagged and the runtime compares
     /// them by value, never applying a collating sequence (ISO/IEC 1989:2023 14.9.40 / 14.9.22).
     /// </summary>
-    private string BuildKeySpecField(BoundSortKey key, int baseOffset)
+    private string BuildKeySpecField(BoundSortKey key, int baseOffset, int entrySize = 0)
     {
         var keyLoc = _ctx.Semantic.GetStorageLocation(key.Key);
         int keyOff = keyLoc.HasValue ? keyLoc.Value.Offset - baseOffset : 0;
         int keyLen = keyLoc.HasValue ? keyLoc.Value.Length : 0;
+        // Table SORT (Format 2): an OCCURS item that IS its own key (the elementary self-key, ISO §14.9.40
+        // SR14a / GR23) has a StorageLocation.Length spanning the WHOLE table — clamp it to one entry so the
+        // per-entry comparison stays in bounds. A subordinate key already has element-size length (Min is a
+        // no-op); the file SORT/MERGE path passes entrySize 0 (no clamp).
+        if (entrySize > 0 && keyLen > entrySize) keyLen = entrySize;
         var pic = _ctx.Location.ResolveLocation(key.Key)?.GetPic();
         int usage = pic != null ? (int)pic.Usage : 0;
         int isSigned = pic is { IsSigned: true } ? 1 : 0;
