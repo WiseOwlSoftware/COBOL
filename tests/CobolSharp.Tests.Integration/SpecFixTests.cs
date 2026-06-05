@@ -259,4 +259,71 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.False(ok);
         Assert.Contains("CBL0816", stderr);
     }
+
+    // ISO §14.9.24.4 GR7b/GR12b — a variable-length-record MERGE … GIVING writes each output record at the
+    // length it had when read, not the SD maximum. MergeRecordsInternal stored every input record at the full
+    // SD buffer size (discarding the actual read length); it now sizes each to FileRuntime.GetLastRecordLength.
+    [Fact]
+    public void MergeVaryingRecord_Giving_PreservesPerRecordLength()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. MRGVL.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT IN1 ASSIGN TO \"mrgv1\".\n" +
+            "           SELECT IN2 ASSIGN TO \"mrgv2\".\n" +
+            "           SELECT OUTF ASSIGN TO \"mrgvout\".\n" +
+            "           SELECT MRGF ASSIGN TO \"mrgvwk\".\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD IN1\n" +
+            "          RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON W1-LEN.\n" +
+            "       01 IN1-REC PIC X(10).\n" +
+            "       FD IN2\n" +
+            "          RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON W2-LEN.\n" +
+            "       01 IN2-REC PIC X(10).\n" +
+            "       FD OUTF\n" +
+            "          RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON O-LEN.\n" +
+            "       01 OUT-REC PIC X(10).\n" +
+            "       SD MRGF\n" +
+            "          RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON M-LEN.\n" +
+            "       01 MRG-REC.\n" +
+            "          05 M-KEY  PIC X(1).\n" +
+            "          05 M-REST PIC X(9).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 W1-LEN PIC 9(2).\n" +
+            "       01 W2-LEN PIC 9(2).\n" +
+            "       01 O-LEN  PIC 9(2).\n" +
+            "       01 M-LEN  PIC 9(2).\n" +
+            "       01 WS-EOF PIC X VALUE \"N\".\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           OPEN OUTPUT IN1.\n" +
+            "           MOVE \"Bxx\" TO IN1-REC. MOVE 3 TO W1-LEN. WRITE IN1-REC.\n" +
+            "           MOVE \"Dyyyyyyyyy\" TO IN1-REC. MOVE 10 TO W1-LEN. WRITE IN1-REC.\n" +
+            "           CLOSE IN1.\n" +
+            "           OPEN OUTPUT IN2.\n" +
+            "           MOVE \"Az\" TO IN2-REC. MOVE 2 TO W2-LEN. WRITE IN2-REC.\n" +
+            "           MOVE \"Cwwww\" TO IN2-REC. MOVE 5 TO W2-LEN. WRITE IN2-REC.\n" +
+            "           CLOSE IN2.\n" +
+            "           MERGE MRGF ON ASCENDING KEY M-KEY\n" +
+            "               USING IN1 IN2 GIVING OUTF.\n" +
+            "           OPEN INPUT OUTF.\n" +
+            "           PERFORM UNTIL WS-EOF = \"Y\"\n" +
+            "               READ OUTF\n" +
+            "                   AT END MOVE \"Y\" TO WS-EOF\n" +
+            "                   NOT AT END\n" +
+            "                       DISPLAY \"[\" OUT-REC(1:O-LEN) \"] LEN=\" O-LEN\n" +
+            "               END-READ\n" +
+            "           END-PERFORM.\n" +
+            "           CLOSE OUTF.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        // Merged ascending by M-KEY; each record retains its source length (not padded to the SD max of 10).
+        Assert.Equal(
+            "[Az] LEN=02\r\n[Bxx] LEN=03\r\n[Cwwww] LEN=05\r\n[Dyyyyyyyyy] LEN=10",
+            stdout);
+    }
 }

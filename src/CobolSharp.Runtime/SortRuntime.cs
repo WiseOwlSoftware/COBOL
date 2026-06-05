@@ -122,7 +122,22 @@ public static class SortRuntime
                 var buf = new byte[sf.RecordLength];
                 bool ok = FileRuntime.ReadRecord(inputName, buf, 0, sf.RecordLength);
                 if (!ok) break;
-                sf.Records.Add(buf);
+                // Preserve each input record's actual length so a variable-length GIVING writes the size the
+                // record had when read (ISO §14.9.24.4 GR7b/GR12b), not the SD maximum. A fixed-length file
+                // reports the full record length, so this clamp is a no-op there.
+                int actualLen = FileRuntime.GetLastRecordLength(inputName);
+                if (actualLen <= 0 || actualLen > sf.RecordLength)
+                    actualLen = sf.RecordLength;
+                if (actualLen == sf.RecordLength)
+                {
+                    sf.Records.Add(buf);
+                }
+                else
+                {
+                    var rec = new byte[actualLen];
+                    Array.Copy(buf, 0, rec, 0, actualLen);
+                    sf.Records.Add(rec);
+                }
             }
             FileRuntime.CloseFile(inputName);
         }
