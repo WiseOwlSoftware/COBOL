@@ -54,6 +54,23 @@ public sealed class Compilation
         if (programContexts.Count == 0)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
+        // Phase 3b: Collect the names of COBOL-2002 user-defined functions (FUNCTION-ID units) in this
+        // compilation group, so a `FUNCTION user-name(args)` reference in ANY unit is routed to a user-function
+        // CALL (WS-2002-UDF slice 3) rather than an intrinsic — order-independent, since a caller may precede the
+        // function unit in source order.
+        var userFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var progCtx in programContexts)
+        {
+            var idBody = (progCtx switch
+            {
+                CobolParserCore.ProgramUnitContext pu => pu.identificationDivision(),
+                CobolParserCore.NestedProgramContext np => np.identificationDivision(),
+                _ => null
+            })?.identificationBody();
+            if (idBody?.functionIdParagraph() != null && UnitName(idBody) is { } fn)
+                userFunctionNames.Add(fn);
+        }
+
         // Phase 4: Process each program through semantic analysis, binding, and IR generation.
         // Containing programs precede their contained programs (collection order), so each program's
         // ancestors are already built and laid out when we reach it — needed for GLOBAL inheritance.
@@ -74,6 +91,7 @@ public sealed class Compilation
             var inheritedGlobalNames = CollectInheritedGlobalNames(progCtx, programParents, modelByContext);
             var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, inheritedGlobalNames, diagnostics, Options);
             semanticModel.Program.IsInitial = isInitial;
+            semanticModel.UserFunctionNames = userFunctionNames;
 
             // Validate and compute layout
             Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);

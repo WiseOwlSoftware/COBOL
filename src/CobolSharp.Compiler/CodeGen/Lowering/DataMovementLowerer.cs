@@ -172,6 +172,12 @@ internal sealed class DataMovementLowerer
                 if (irExpr != null)
                     block.Instructions.Add(new IrComputeStore(irExpr, destLoc, mv.IsRounded ? 1 : 0));
             }
+            else if (mv.Source is BoundFunctionCallExpression userFn
+                     && _ctx.IsUserFunction(userFn.FunctionName)
+                     && _ctx.LowerUserFunctionCall(userFn, destLoc, block))
+            {
+                // MOVE FUNCTION user-name(args) TO dest → CALL "user-name" USING args RETURNING dest (UDF slice 3).
+            }
             else if (mv.Source is BoundFunctionCallExpression func)
             {
                 var irCall = _ctx.Expression.LowerExpression(func) as IrIntrinsicCall;

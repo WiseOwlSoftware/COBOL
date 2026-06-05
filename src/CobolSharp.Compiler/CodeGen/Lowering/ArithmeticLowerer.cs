@@ -217,6 +217,16 @@ internal sealed class ArithmeticLowerer
             if (destLoc == null) continue;
 
             int roundingMode = target.IsRounded ? 1 : 0;
+
+            // COMPUTE dest = FUNCTION user-name(args) → CALL "user-name" USING args RETURNING dest (UDF slice 3).
+            // The function result is produced directly into the receiving item (ROUNDED/intermediate rounding of a
+            // function result is not applicable here; a function call inside a larger arithmetic expression is a
+            // documented follow-up — the general inline-result form).
+            if (comp.Operands[0] is BoundFunctionCallExpression userFn
+                && _ctx.IsUserFunction(userFn.FunctionName)
+                && _ctx.LowerUserFunctionCall(userFn, destLoc, block))
+                continue;
+
             var irCompExpr = _ctx.Expression.LowerExpression(comp.Operands[0]);
             if (irCompExpr != null)
                 block.Instructions.Add(new IrComputeStore(irCompExpr, destLoc, roundingMode));

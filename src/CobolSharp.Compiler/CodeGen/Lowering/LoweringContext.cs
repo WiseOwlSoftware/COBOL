@@ -104,6 +104,34 @@ internal sealed class LoweringContext
     public IReadOnlyList<(int Scope, string? FileName)> InheritedGlobalUseDeclaratives { get; set; }
         = System.Array.Empty<(int, string?)>();
 
+    // ── COBOL-2002 user-defined function invocation (WS-2002-UDF) ──
+
+    /// <summary>True if <paramref name="name"/> names a user-defined function (a FUNCTION-ID unit in this
+    /// compilation group) rather than an intrinsic.</summary>
+    public bool IsUserFunction(string name) => Semantic.UserFunctionNames.Contains(name);
+
+    /// <summary>
+    /// Lower a <c>FUNCTION user-name(args)</c> invocation that is the entire source of an assignment
+    /// (MOVE / single-target COMPUTE) into <c>CALL "user-name" USING args RETURNING destLoc</c>. The function
+    /// unit was compiled as a callable program whose PROCEDURE DIVISION … RETURNING writes the result through the
+    /// passed pointer (DEVLOG 365). Arguments are passed BY CONTENT — function arguments are values and the
+    /// function must not mutate the caller's data (ISO §8.4.3). Returns false (emitting nothing) if any argument
+    /// is not a resolvable storage location (e.g. an arithmetic-expression argument), which remains a documented
+    /// follow-up so the caller can fall back to its normal lowering.
+    /// </summary>
+    public bool LowerUserFunctionCall(BoundFunctionCallExpression func, IrLocation destLoc, IrBasicBlock block)
+    {
+        var args = new List<IrCallArgument>(func.Arguments.Count);
+        foreach (var a in func.Arguments)
+        {
+            var loc = Location.ResolveExpressionLocation(a);
+            if (loc == null) return false;
+            args.Add(new IrCallArgument(1 /* ByContent */, loc));
+        }
+        block.Instructions.Add(new IrCallProgram(func.FunctionName, isDynamic: false, args, returningTarget: destLoc));
+        return true;
+    }
+
     // ── Constructor ──
 
     public LoweringContext(SemanticModel semantic, DiagnosticBag diagnostics,

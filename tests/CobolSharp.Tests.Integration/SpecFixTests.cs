@@ -1144,4 +1144,47 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("D=0042", stdout);
     }
+
+    // ISO §8.4.3 / §15 (COBOL-2002) — UDF slice 3: invoking a user-defined function with the FUNCTION
+    // user-name(args) expression syntax. The caller and the FUNCTION-ID unit are one compilation group; a
+    // whole-source-expression `FUNCTION DOUBLER(WS-X)` in a COMPUTE or MOVE is lowered to
+    // `CALL "DOUBLER" USING WS-X RETURNING <target>` (reusing the working CALL-RETURNING path). Both interception
+    // points (ArithmeticLowerer.LowerCompute and DataMovementLowerer MOVE) are exercised.
+    [Fact]
+    public void UserFunctionCall_InComputeAndMove_Invokes()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. UCALLER.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       CONFIGURATION SECTION.\n" +
+            "       REPOSITORY.\n" +
+            "           FUNCTION DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-X PIC 9(4) VALUE 21.\n" +
+            "       01 WS-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           COMPUTE WS-R = FUNCTION DOUBLER(WS-X).\n" +
+            "           DISPLAY \"C=\" WS-R.\n" +
+            "           MOVE FUNCTION DOUBLER(WS-X) TO WS-R.\n" +
+            "           DISPLAY \"M=\" WS-R.\n" +
+            "           STOP RUN.\n" +
+            "       END PROGRAM UCALLER.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       FUNCTION-ID. DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       LINKAGE SECTION.\n" +
+            "       01 L-X PIC 9(4).\n" +
+            "       01 L-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION USING L-X RETURNING L-R.\n" +
+            "       COMPUTE-IT.\n" +
+            "           COMPUTE L-R = L-X * 2.\n" +
+            "           GOBACK.\n" +
+            "       END FUNCTION DOUBLER.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("C=0042\r\nM=0042", stdout);
+    }
 }

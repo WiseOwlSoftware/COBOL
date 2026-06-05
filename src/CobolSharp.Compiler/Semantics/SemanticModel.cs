@@ -240,6 +240,12 @@ public sealed class SemanticModel
     public void SetProcedureReturningItem(DataSymbol? item)
         => _procedureReturningItem = item;
 
+    /// <summary>Names of the COBOL-2002 user-defined functions (FUNCTION-ID units) in this compilation group.
+    /// A `FUNCTION user-name(args)` reference to one of these is a user-function call (lowered to a CALL …
+    /// RETURNING), not an intrinsic. Shared across all units of the group (a caller may precede the function).</summary>
+    public IReadOnlyCollection<string> UserFunctionNames { get; set; } =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
     private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = [];
