@@ -899,4 +899,74 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("UNDEF", stdout);
     }
+
+    // ISO §7.3.13 — >>EVALUATE Format 1 (selection-subject), alphanumeric match selecting the second WHEN.
+    [Fact]
+    public void ConditionalCompilation_EvaluateFormat1_StringMatch()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CE1.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE SYS AS \"type B\"\n" +
+            ">>EVALUATE SYS\n" +
+            ">>WHEN \"type A\"\n" +
+            "           DISPLAY \"A\".\n" +
+            ">>WHEN \"type B\"\n" +
+            "           DISPLAY \"B\".\n" +
+            ">>WHEN OTHER\n" +
+            "           DISPLAY \"OTHER\".\n" +
+            ">>END-EVALUATE\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("B", stdout);
+    }
+
+    // ISO §7.3.13 GR4(b) — >>EVALUATE Format 1 with THROUGH ranges; no range matches 25, so >>WHEN OTHER is taken.
+    [Fact]
+    public void ConditionalCompilation_EvaluateThroughRanges_TakesOther()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CE2.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE N AS 25\n" +
+            ">>EVALUATE N\n" +
+            ">>WHEN 1 THROUGH 10\n" +
+            "           DISPLAY \"LOW\".\n" +
+            ">>WHEN 11 THROUGH 20\n" +
+            "           DISPLAY \"MID\".\n" +
+            ">>WHEN OTHER\n" +
+            "           DISPLAY \"HIGH\".\n" +
+            ">>END-EVALUATE\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("HIGH", stdout);
+    }
+
+    // ISO §7.3.13 Format 2 — >>EVALUATE TRUE, each WHEN carrying a constant-conditional-expression; the second
+    // (a compound relation) is the first to hold.
+    [Fact]
+    public void ConditionalCompilation_EvaluateTrue_CompoundWhen()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CE3.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE N AS 14\n" +
+            ">>EVALUATE TRUE\n" +
+            ">>WHEN N < 10\n" +
+            "           DISPLAY \"SMALL\".\n" +
+            ">>WHEN N >= 10 AND N < 20\n" +
+            "           DISPLAY \"TEEN\".\n" +
+            ">>WHEN OTHER\n" +
+            "           DISPLAY \"BIG\".\n" +
+            ">>END-EVALUATE\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("TEEN", stdout);
+    }
 }

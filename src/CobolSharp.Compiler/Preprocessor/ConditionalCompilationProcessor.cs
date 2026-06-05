@@ -28,7 +28,7 @@ public static class ConditionalCompilationProcessor
     public static string Process(string text)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
-        var stack = new Stack<IfFrame>();
+        var stack = new Stack<Frame>();
         var lines = text.Split('\n');
         var output = new string[lines.Length];
 
@@ -51,12 +51,12 @@ public static class ConditionalCompilationProcessor
                 {
                     bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
                     bool cond = parentActive && Evaluate(rest, defines);
-                    stack.Push(new IfFrame { ParentActive = parentActive, Emitting = cond, BranchTaken = cond });
+                    stack.Push(new Frame { Kind = FrameKind.If, ParentActive = parentActive, Emitting = cond, BranchTaken = cond });
                     output[i] = "";
                     break;
                 }
                 case "ELSE":
-                    if (stack.Count > 0)
+                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.If)
                     {
                         var f = stack.Peek();
                         f.Emitting = f.ParentActive && !f.BranchTaken;   // the ELSE body emits only if no prior branch did
@@ -64,7 +64,42 @@ public static class ConditionalCompilationProcessor
                     output[i] = "";
                     break;
                 case "END-IF":
-                    if (stack.Count > 0) stack.Pop();
+                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.If) stack.Pop();
+                    output[i] = "";
+                    break;
+                case "EVALUATE":
+                {
+                    // Format 1: >>EVALUATE selection-subject   Format 2: >>EVALUATE TRUE
+                    bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
+                    var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false };
+                    string subj = rest.Trim();
+                    if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
+                    else f.Subject = ResolveFirst(subj, defines);
+                    stack.Push(f);
+                    output[i] = "";
+                    break;
+                }
+                case "WHEN":
+                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate)
+                    {
+                        var f = stack.Peek();
+                        string obj = rest.Trim();
+                        if (obj.Equals("OTHER", StringComparison.OrdinalIgnoreCase))
+                            f.Emitting = f.ParentActive && !f.BranchTaken;     // OTHER fires only if nothing matched
+                        else if (!f.ParentActive || f.BranchTaken)
+                            f.Emitting = false;                                // enclosing omitted, or a prior WHEN already matched
+                        else
+                        {
+                            bool match = f.TruthForm ? Evaluate(obj, defines)  // Format 2: constant-conditional-expression
+                                                     : MatchWhen(f.Subject, obj, defines); // Format 1: subject = object [THRU object3]
+                            f.Emitting = match;
+                            if (match) f.BranchTaken = true;
+                        }
+                    }
+                    output[i] = "";
+                    break;
+                case "END-EVALUATE":
+                    if (stack.Count > 0 && stack.Peek().Kind == FrameKind.Evaluate) stack.Pop();
                     output[i] = "";
                     break;
                 case "DEFINE":
@@ -82,12 +117,72 @@ public static class ConditionalCompilationProcessor
         return string.Join('\n', output);
     }
 
-    /// <summary>One <c>&gt;&gt;IF…[&gt;&gt;ELSE]…&gt;&gt;END-IF</c> nesting level.</summary>
-    private sealed class IfFrame
+    private enum FrameKind { If, Evaluate }
+
+    /// <summary>One <c>&gt;&gt;IF…&gt;&gt;END-IF</c> or <c>&gt;&gt;EVALUATE…&gt;&gt;END-EVALUATE</c> nesting level.</summary>
+    private sealed class Frame
     {
-        public bool ParentActive;   // is the enclosing context emitting? (a nested IF inside an omitted branch stays omitted)
+        public FrameKind Kind;
+        public bool ParentActive;   // is the enclosing context emitting? (a nested directive inside an omitted branch stays omitted)
         public bool Emitting;       // is THIS branch's text currently being included?
-        public bool BranchTaken;    // has a branch (the IF arm) already been taken? (drives ELSE)
+        public bool BranchTaken;    // IF: the IF arm was taken (drives ELSE); EVALUATE: some WHEN already matched (drives later WHEN/OTHER)
+        public bool TruthForm;      // EVALUATE: true for Format 2 (>>EVALUATE TRUE), where each WHEN carries a constant-conditional-expression
+        public Value? Subject;      // EVALUATE Format 1: the selection-subject value
+    }
+
+    /// <summary>Resolve the first token of a directive operand string to a value (an EVALUATE selection-subject).</summary>
+    private static Value? ResolveFirst(string text, Dictionary<string, Value> defines)
+    {
+        var toks = Tokenize(text);
+        return toks.Count == 0 ? null : ResolveToken(toks[0], defines);
+    }
+
+    /// <summary>Format-1 WHEN match: subject = object, or subject within [object .. object3] when THROUGH/THRU is given.</summary>
+    private static bool MatchWhen(Value? subject, string whenText, Dictionary<string, Value> defines)
+    {
+        if (subject is null) return false;
+        var toks = Tokenize(whenText);
+        if (toks.Count == 0) return false;
+        int thru = toks.FindIndex(t => t.Kind == TokKind.Word &&
+            (t.Text.Equals("THROUGH", StringComparison.OrdinalIgnoreCase) || t.Text.Equals("THRU", StringComparison.OrdinalIgnoreCase)));
+        if (thru > 0 && thru + 1 < toks.Count)
+        {
+            var lo = ResolveToken(toks[0], defines);
+            var hi = ResolveToken(toks[thru + 1], defines);
+            return Relate(subject, ">=", lo) && Relate(subject, "<=", hi);
+        }
+        return Relate(subject, "=", ResolveToken(toks[0], defines));
+    }
+
+    /// <summary>Resolve a single token to a comparable value: a literal is itself; a name is its define (null if undefined).</summary>
+    private static Value? ResolveToken(Tok t, Dictionary<string, Value> defines) => t.Kind switch
+    {
+        TokKind.Number => new Value(true, decimal.Parse(t.Text, CultureInfo.InvariantCulture), t.Text),
+        TokKind.String => new Value(false, 0m, t.Value),
+        TokKind.Word => defines.TryGetValue(t.Text, out var v) ? v : null,
+        _ => null,
+    };
+
+    /// <summary>Apply a relational operator to two values (numeric compare when both numeric, else ordinal string compare).</summary>
+    private static bool Relate(Value? a, string op, Value? b)
+    {
+        if (a is null || b is null)
+            return op == "<>" ? !(a is null && b is null) : (op == "=" && a is null && b is null);
+
+        int cmp = a.IsNumeric && b.IsNumeric
+            ? decimal.Compare(a.Number, b.Number)
+            : string.CompareOrdinal(a.Str, b.Str);
+
+        return op switch
+        {
+            "=" => cmp == 0,
+            "<>" => cmp != 0,
+            "<" => cmp < 0,
+            ">" => cmp > 0,
+            "<=" => cmp <= 0,
+            ">=" => cmp >= 0,
+            _ => false,
+        };
     }
 
     /// <summary>Strip the leading <c>&gt;&gt;</c>, return the upper-cased directive keyword and the remainder.</summary>
@@ -190,7 +285,7 @@ public static class ConditionalCompilationProcessor
             if (op is null) return false;   // malformed — treat as false
             if (Peek is null) return false;
             Tok right = Next();
-            bool r = Compare(Resolve(left), op, Resolve(right));
+            bool r = Relate(ResolveToken(left, _defines), op, ResolveToken(right, _defines));
             return negate ^ r;
         }
 
@@ -199,36 +294,6 @@ public static class ConditionalCompilationProcessor
             if (Peek is not { Kind: TokKind.Op } t) return null;
             _p++;
             return t.Text;
-        }
-
-        /// <summary>Resolve a token to a comparable value: a literal is itself; a name is its define (null if undefined).</summary>
-        private Value? Resolve(Tok t) => t.Kind switch
-        {
-            TokKind.Number => new Value(true, decimal.Parse(t.Text, CultureInfo.InvariantCulture), t.Text),
-            TokKind.String => new Value(false, 0m, t.Value),
-            TokKind.Word => _defines.TryGetValue(t.Text, out var v) ? v : null,
-            _ => null,
-        };
-
-        private static bool Compare(Value? a, string op, Value? b)
-        {
-            if (a is null || b is null)
-                return op == "<>" ? !(a is null && b is null) : (op == "=" && a is null && b is null);
-
-            int cmp;
-            if (a.IsNumeric && b.IsNumeric) cmp = decimal.Compare(a.Number, b.Number);
-            else cmp = string.CompareOrdinal(a.Str, b.Str);
-
-            return op switch
-            {
-                "=" => cmp == 0,
-                "<>" => cmp != 0,
-                "<" => cmp < 0,
-                ">" => cmp > 0,
-                "<=" => cmp <= 0,
-                ">=" => cmp >= 0,
-                _ => false,
-            };
         }
     }
 
