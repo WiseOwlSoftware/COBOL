@@ -192,4 +192,28 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("A=6.28318\r\nB=300\r\nC=-0.625\r\nD=0", stdout);
     }
+
+    // ISO §7.2.3.4 GR 9 b — COPY … REPLACING LEADING/TRAILING ==partial== BY ==partial== (partial-word
+    // substitution). Was unimplemented: the LEADING/TRAILING keyword was mis-read as an operand → no substitution.
+    [Fact]
+    public void Copy_ReplacingLeadingAndTrailing_PartialWord()
+    {
+        File.WriteAllText(Path.Combine(_tempDir, "BK.cpy"),
+            "       01 PREFIX-FLD PIC X(5) VALUE \"HELLO\".\n" +
+            "       01 ITEM-OLD   PIC X(5) VALUE \"WORLD\".\n");
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. REPL.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       COPY \"BK\" REPLACING LEADING ==PREFIX== BY ==XQ==\n" +
+            "                           TRAILING ==-OLD== BY ==-NEW==.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           DISPLAY \"A=\" XQ-FLD.\n" +
+            "           DISPLAY \"B=\" ITEM-NEW.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("A=HELLO\r\nB=WORLD", stdout);
+    }
 }

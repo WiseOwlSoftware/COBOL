@@ -49,8 +49,9 @@ strictness/edge.
   (A,B,C,D,E,N,P,R,S,V,X,Z); other letters (U,M,Q,…) accepted. Test: `SpecFixTests.CurrencySign_NonReservedLetterSymbol_IsAccepted`.
 
 ## Source Text (COPY/REPLACE)
-- **P1 — `COPY … REPLACING LEADING/TRAILING ==…==`** partial-word substitution: no LEADING/TRAILING handling;
-  `ApplyReplacements` only whole-word matches. §7.2.3 GR 9 b.
+- ✅ **DONE (DEVLOG 340) — `COPY … REPLACING LEADING/TRAILING ==…==`** partial-word substitution: added a
+  `ReplaceKind` enum + partial-word prefix/suffix matching (Whole default → existing behavior unchanged). Test:
+  `SpecFixTests.Copy_ReplacingLeadingAndTrailing_PartialWord`.
 - ✅ **DONE (DEVLOG 336) — `COPY "literal"`** quoted-literal text-name: added `ReadTextNameOrLiteral` (strips
   quotes) for the text-name + IN/OF library-name. Test: `SpecFixTests.Copy_QuotedLiteralTextName_Resolves`.
 - **P1 — `REPLACE … ALSO` / `REPLACE OFF LAST`** LIFO queue not implemented (every REPLACE clears all; `ALSO`

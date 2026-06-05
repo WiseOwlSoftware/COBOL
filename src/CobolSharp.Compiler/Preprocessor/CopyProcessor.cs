@@ -66,7 +66,7 @@ public sealed class CopyProcessor(
     private static string ApplyReplaceStatements(string text)
     {
         var result = new StringBuilder();
-        var activeReplacements = new List<(string from, string to)>();
+        var activeReplacements = new List<(string from, string to, ReplaceKind kind)>();
         int pos = 0;
 
         while (pos < text.Length)
@@ -107,6 +107,10 @@ public sealed class CopyProcessor(
     /// <summary>A COBOL text-word (ISO §7.3.2) with its span in the source string.</summary>
     private readonly record struct TextWord(string Value, int Start, int End);
 
+    /// <summary>COPY/REPLACE replacement scope: a whole text-word sequence, or the LEADING/TRAILING characters of
+    /// a single text-word (ISO §7.2.3.4 GR 9 b / §7.2.4).</summary>
+    private enum ReplaceKind { Whole, Leading, Trailing }
+
     /// <summary>
     /// Apply COBOL REPLACE / COPY REPLACING substitutions on a TEXT-WORD basis. Pseudo-text
     /// matching ignores the amount of intervening white space and line breaks (ISO §7.4.6 /
@@ -116,10 +120,10 @@ public sealed class CopyProcessor(
     /// inserted text is not rescanned. This replaces a naive substring replace, which could not
     /// match multi-line pseudo-text nor respect word boundaries (".", "(", ")" are their own words).
     /// </summary>
-    private static string ApplyReplacements(string text, List<(string from, string to)> replacements)
+    private static string ApplyReplacements(string text, List<(string from, string to, ReplaceKind kind)> replacements)
     {
         var active = replacements
-            .Select(r => (tokens: TokenizeTextWords(r.from).Select(w => w.Value).ToList(), r.to))
+            .Select(r => (tokens: TokenizeTextWords(r.from).Select(w => w.Value).ToList(), r.to, r.kind))
             .Where(r => r.tokens.Count > 0)   // empty/malformed operand cannot match
             .ToList();
         if (active.Count == 0) return text;
@@ -131,21 +135,50 @@ public sealed class CopyProcessor(
         while (w < words.Count)
         {
             bool matched = false;
-            foreach (var (tokens, to) in active)
+            foreach (var (tokens, to, kind) in active)
             {
-                if (w + tokens.Count > words.Count) continue;
-                bool eq = true;
-                for (int k = 0; k < tokens.Count; k++)
-                    if (!string.Equals(words[w + k].Value, tokens[k], StringComparison.OrdinalIgnoreCase))
-                    { eq = false; break; }
-                if (!eq) continue;
+                if (kind == ReplaceKind.Whole)
+                {
+                    if (w + tokens.Count > words.Count) continue;
+                    bool eq = true;
+                    for (int k = 0; k < tokens.Count; k++)
+                        if (!string.Equals(words[w + k].Value, tokens[k], StringComparison.OrdinalIgnoreCase))
+                        { eq = false; break; }
+                    if (!eq) continue;
 
-                int matchStart = words[w].Start;
-                int matchEnd = words[w + tokens.Count - 1].End;
-                sb.Append(text, copiedUpTo, matchStart - copiedUpTo);
-                sb.Append(to);
-                copiedUpTo = matchEnd;
-                w += tokens.Count;
+                    int matchStart = words[w].Start;
+                    int matchEnd = words[w + tokens.Count - 1].End;
+                    sb.Append(text, copiedUpTo, matchStart - copiedUpTo);
+                    sb.Append(to);
+                    copiedUpTo = matchEnd;
+                    w += tokens.Count;
+                    matched = true;
+                    break;
+                }
+
+                // LEADING / TRAILING: the partial-word operand is a single text-word, matched against the
+                // start/end of one source text-word; only the matched run is replaced (ISO §7.2.3.4 GR 9 b).
+                string part = tokens[0];
+                string word = words[w].Value;
+                bool leading = kind == ReplaceKind.Leading
+                    && word.Length >= part.Length && word.StartsWith(part, StringComparison.OrdinalIgnoreCase);
+                bool trailing = kind == ReplaceKind.Trailing
+                    && word.Length >= part.Length && word.EndsWith(part, StringComparison.OrdinalIgnoreCase);
+                if (!leading && !trailing) continue;
+
+                sb.Append(text, copiedUpTo, words[w].Start - copiedUpTo);
+                if (leading)
+                {
+                    sb.Append(to);
+                    sb.Append(word, part.Length, word.Length - part.Length);
+                }
+                else // trailing
+                {
+                    sb.Append(word, 0, word.Length - part.Length);
+                    sb.Append(to);
+                }
+                copiedUpTo = words[w].End;
+                w++;
                 matched = true;
                 break;
             }
@@ -294,7 +327,7 @@ public sealed class CopyProcessor(
                 SkipWhitespace(text, ref afterCopy);
             }
 
-            var replacements = new List<(string from, string to)>();
+            var replacements = new List<(string from, string to, ReplaceKind kind)>();
             if (afterCopy < text.Length && MatchWord(text, afterCopy, "REPLACING"))
             {
                 afterCopy += "REPLACING".Length;
@@ -508,12 +541,19 @@ public sealed class CopyProcessor(
     }
 
     private static void ParseReplacements(string text, ref int pos,
-        List<(string from, string to)> replacements)
+        List<(string from, string to, ReplaceKind kind)> replacements)
     {
         while (pos < text.Length && text[pos] != '.')
         {
             SkipWhitespace(text, ref pos);
             if (pos >= text.Length || text[pos] == '.') break;
+
+            // Optional LEADING / TRAILING phrase → partial-word substitution (ISO §7.2.3.4 GR 9 b).
+            ReplaceKind kind = ReplaceKind.Whole;
+            if (MatchWord(text, pos, "LEADING"))
+            { pos += "LEADING".Length; SkipWhitespace(text, ref pos); kind = ReplaceKind.Leading; }
+            else if (MatchWord(text, pos, "TRAILING"))
+            { pos += "TRAILING".Length; SkipWhitespace(text, ref pos); kind = ReplaceKind.Trailing; }
 
             string from = ReadReplaceOperand(text, ref pos);
             SkipWhitespace(text, ref pos);
@@ -525,7 +565,7 @@ public sealed class CopyProcessor(
             }
 
             string to = ReadReplaceOperand(text, ref pos);
-            replacements.Add((from, to));
+            replacements.Add((from, to, kind));
         }
     }
 
