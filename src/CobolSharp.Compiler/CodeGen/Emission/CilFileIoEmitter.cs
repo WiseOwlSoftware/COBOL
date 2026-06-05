@@ -492,6 +492,35 @@ internal sealed class CilFileIoEmitter
                 new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!)));
     }
 
+    /// <summary>Explicit RELEASE of a variable-length record: SortRuntime.ReleaseRecord(sortName, area, offset,
+    /// ReadFieldAsInt(depending)) — releases exactly the bytes the program's DEPENDING ON item indicates.</summary>
+    internal void EmitSortReleaseFromDepending(ILProcessor il, IrSortReleaseFromDepending inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));      // sortName
+        _ctx.Location.EmitLocationArgs(il, inst.Record);         // area, offset, declaredSize
+        il.Append(il.Create(OpCodes.Pop));                       // drop declaredSize
+        _ctx.Location.EmitLocationArgs(il, inst.LengthLocation); // depending: area, offset, size
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod("ReadFieldAsInt",
+                new[] { typeof(byte[]), typeof(int), typeof(int) })!)));   // -> int length
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("ReleaseRecord",
+                new[] { typeof(string), typeof(byte[]), typeof(int), typeof(int) })!)));
+    }
+
+    /// <summary>After an explicit RETURN of a variable-length record, store SortRuntime.GetLastReturnedLength
+    /// into the SD's DEPENDING ON item: MoveIntToField(area, offset, size, GetLastReturnedLength(sortFile)).</summary>
+    internal void EmitSortReturnStoreLength(ILProcessor il, IrSortReturnStoreLength inst)
+    {
+        _ctx.Location.EmitLocationArgs(il, inst.LengthVariable); // area, offset, size
+        il.Append(il.Create(OpCodes.Ldstr, inst.FileName));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(SortRuntime).GetMethod("GetLastReturnedLength", new[] { typeof(string) })!))); // -> int
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(StorageHelpers).GetMethod("MoveIntToField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int) })!)));
+    }
+
     internal void EmitTableSort(ILProcessor il, IrTableSort inst)
     {
         // SortRuntime.SortTable(byte[] storageArea, int tableOffset, int entrySize, int entryCount, string keysSpec)

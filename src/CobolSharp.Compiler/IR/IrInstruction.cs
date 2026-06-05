@@ -978,6 +978,44 @@ public sealed class IrSortReleaseVariable : IrInstruction
 }
 
 /// <summary>
+/// Explicit RELEASE of a VARIABLE-length record to the sort file (Format-1 SORT with an INPUT PROCEDURE):
+/// SortRuntime.ReleaseRecord(fileName, area, offset, length) where the byte count is read at runtime from the
+/// SD's RECORD VARYING DEPENDING ON data item (StorageHelpers.ReadFieldAsInt of <see cref="LengthLocation"/>),
+/// not the record's declared max — so each released record keeps its own length through the sort. ISO §13.18.43.
+/// </summary>
+public sealed class IrSortReleaseFromDepending : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation Record { get; }
+    public IrLocation LengthLocation { get; }
+
+    public IrSortReleaseFromDepending(string fileName, IrLocation record, IrLocation lengthLocation)
+    {
+        FileName = fileName;
+        Record = record;
+        LengthLocation = lengthLocation;
+    }
+}
+
+/// <summary>
+/// After an explicit RETURN of a VARIABLE-length record (Format-1 SORT with an OUTPUT PROCEDURE), store the
+/// returned record's actual length (SortRuntime.GetLastReturnedLength) into the SD's RECORD VARYING DEPENDING
+/// ON data item via StorageHelpers.MoveIntToField — so the program sees each record at its own length
+/// (ISO §13.18.43 GR15). Mirrors <see cref="IrStoreRecordLength"/> for the READ path.
+/// </summary>
+public sealed class IrSortReturnStoreLength : IrInstruction
+{
+    public string FileName { get; }
+    public IrLocation LengthVariable { get; }
+
+    public IrSortReturnStoreLength(string fileName, IrLocation lengthVariable)
+    {
+        FileName = fileName;
+        LengthVariable = lengthVariable;
+    }
+}
+
+/// <summary>
 /// Write a VARIABLE-length record returned from the sort to a GIVING output file:
 /// StorageHelpers.WriteRecordVariableToFile(outputFileName, area, offset, length) where the byte count is the
 /// actual length of the record produced by the most recent RETURN (SortRuntime.GetLastReturnedLength of

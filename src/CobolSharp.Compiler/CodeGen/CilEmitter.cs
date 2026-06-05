@@ -1133,9 +1133,11 @@ public sealed class CilEmitter
             case IrSortInit sortInit: _ctx.FileIo.EmitSortInit(il, sortInit); break;
             case IrSortRelease sortRel: _ctx.FileIo.EmitSortRelease(il, sortRel); break;
             case IrSortReleaseVariable sortRelV: _ctx.FileIo.EmitSortReleaseVariable(il, sortRelV); break;
+            case IrSortReleaseFromDepending sortRelD: _ctx.FileIo.EmitSortReleaseFromDepending(il, sortRelD); break;
             case IrSortRewind sortRew: _ctx.FileIo.EmitSortRewind(il, sortRew); break;
             case IrSortSort sortSort: _ctx.FileIo.EmitSortSort(il, sortSort); break;
             case IrSortReturn sortRet: _ctx.FileIo.EmitSortReturn(il, sortRet, getLocal); break;
+            case IrSortReturnStoreLength sortRetLen: _ctx.FileIo.EmitSortReturnStoreLength(il, sortRetLen); break;
             case IrSortGivingWriteVariable sortGwV: _ctx.FileIo.EmitSortGivingWriteVariable(il, sortGwV); break;
             case IrSortClose sortClose: _ctx.FileIo.EmitSortClose(il, sortClose); break;
             case IrSortMerge sortMerge: _ctx.FileIo.EmitSortMerge(il, sortMerge); break;

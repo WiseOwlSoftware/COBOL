@@ -877,6 +877,12 @@ internal sealed class FileIoLowerer
         var resultVal = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
         block.Instructions.Add(new IrSortReturn(cobolName, recordLoc, resultVal));
 
+        // A variable-length SD restores each returned record's length into its RECORD VARYING DEPENDING ON
+        // item (ISO §13.18.43 GR15); a fixed SD leaves it unchanged. (ReturnRecord space-pads the buffer tail,
+        // so the INTO move below — receiving:true, max length — already presents short records correctly.)
+        if (IsVaryingRecord(ret.File) && ResolveRecordLengthLocation(ret.File) is { } retDepLoc)
+            block.Instructions.Add(new IrSortReturnStoreLength(cobolName, retDepLoc));
+
         if (ret.AtEnd.Count > 0 || ret.NotAtEnd.Count > 0)
         {
             // resultVal = true means NOT at end; build branching manually
@@ -1275,8 +1281,12 @@ internal sealed class FileIoLowerer
                     fromLoc.GetPic(), recordLoc.GetPic()));
         }
 
-        // Release the record to the sort file
-        block.Instructions.Add(new IrSortRelease(sortFileName, recordLoc));
+        // Release the record to the sort file. A variable-length SD keeps each record's own length, taken from
+        // its RECORD VARYING DEPENDING ON item (ISO §13.18.43 GR13a); a fixed SD releases at the declared size.
+        if (IsVaryingRecord(release.SortFile) && ResolveRecordLengthLocation(release.SortFile) is { } relDepLoc)
+            block.Instructions.Add(new IrSortReleaseFromDepending(sortFileName, recordLoc, relDepLoc));
+        else
+            block.Instructions.Add(new IrSortRelease(sortFileName, recordLoc));
 
         return block;
     }

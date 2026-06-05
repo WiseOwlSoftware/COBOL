@@ -425,4 +425,52 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("WORLD", stdout);
     }
+
+    // ISO §13.18.43 GR13a/GR15 — an explicit RELEASE/RETURN through a variable-length SD must preserve each
+    // record's own length: RELEASE stores the bytes the DEPENDING ON item indicates, and RETURN restores that
+    // length into the DEPENDING ON item. Previously LowerRelease/LowerReturn always used the SD max length, so
+    // every returned record came back padded to the maximum and the DEPENDING item was never updated. (The
+    // 1-char key stays within the minimum record length, per the SORT key rule.)
+    [Fact]
+    public void SortVaryingRecord_ReleaseReturn_PreservesPerRecordLength()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. SRTVL.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT SORT-FILE ASSIGN TO \"srtvlwk\".\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       SD SORT-FILE\n" +
+            "          RECORD IS VARYING IN SIZE FROM 1 TO 5 CHARACTERS DEPENDING ON WS-LEN.\n" +
+            "       01 SORT-REC.\n" +
+            "          05 S-KEY  PIC X(1).\n" +
+            "          05 S-REST PIC X(4).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-LEN PIC 9(2).\n" +
+            "       01 WS-EOF PIC X VALUE \"N\".\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           SORT SORT-FILE ON ASCENDING KEY S-KEY\n" +
+            "               INPUT PROCEDURE IS FILL-PARA\n" +
+            "               OUTPUT PROCEDURE IS DRAIN-PARA.\n" +
+            "           STOP RUN.\n" +
+            "       FILL-PARA.\n" +
+            "           MOVE \"AZZZZ\" TO SORT-REC. MOVE 5 TO WS-LEN. RELEASE SORT-REC.\n" +
+            "           MOVE \"B\"     TO SORT-REC. MOVE 1 TO WS-LEN. RELEASE SORT-REC.\n" +
+            "           MOVE \"CYY\"   TO SORT-REC. MOVE 3 TO WS-LEN. RELEASE SORT-REC.\n" +
+            "       DRAIN-PARA.\n" +
+            "           PERFORM UNTIL WS-EOF = \"Y\"\n" +
+            "               RETURN SORT-FILE\n" +
+            "                   AT END MOVE \"Y\" TO WS-EOF\n" +
+            "                   NOT AT END\n" +
+            "                       DISPLAY \"[\" SORT-REC(1:WS-LEN) \"] LEN=\" WS-LEN\n" +
+            "               END-RETURN\n" +
+            "           END-PERFORM.\n");
+        Assert.True(ok, stderr);
+        // Sorted ascending by S-KEY (A<B<C); each record restored at its own released length.
+        Assert.Equal("[AZZZZ] LEN=05\r\n[B] LEN=01\r\n[CYY] LEN=03", stdout);
+    }
 }
