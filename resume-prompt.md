@@ -3,10 +3,35 @@
 Paste this to start a new session. **Mission (REFRAMED 2026-06-04): a multi-version COBOL compiler (ISO 85→2023),
 dialect-gated — implement features LIVE across all versions, parse+flag features REMOVED after '85.** NIST CCVS85
 remains the validation backbone for the core modules + Report Writer.
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 325
-(guard 1040 unit / 347 int / **364 NIST**).
+This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 335
+(guard 1047 unit / 412 int / **364 NIST**).
 
-**═══ THIS SESSION (DEVLOG 322–325): scope reframe + Report Writer module COMPLETE (NIST 360→364) ═══**
+**═══ THIS SESSION (DEVLOG 326–335): drive to 100% COBOL-85 — M0 engine · flagging axis mapped · WS-SPEC corpus + fix round ═══**
+Owner asked to reach 100% COBOL-85 compliance+implementation as parallel workstreams, run autonomously (/loop). Delivered:
+- **Plan + multi-version roadmap.** `docs/COBOL85_COMPLIANCE_PLAN.md` (M1; three axes — baseline/flagging/spec) +
+  **`docs/MULTIVERSION_ROADMAP.md`** (the overarching mission: one compiler ISO 1985→2023 via `--standard`;
+  M0 engine → M1 '85 → M2 2002 → M3 2014 → M4 2023). **Owner decisions:** parse+flag-only for removed modules;
+  **engine-now/features-after-M1**; **non-OO before OO**; **high/full subset profile (option A)**.
+- **M0 version engine (DEVLOG 327):** `DialectConfig` — canonical per-version dispatch (strictness, version
+  thresholds, removed-after-'85 policy, forward feature flags); all 12 scattered `Dialect>=X` sites migrated.
+- **Baseline axis COMPLETE (DEVLOG 326):** 24-agent Wave-1 audit → **real-GAPs=0**; every unbaselined live program
+  is a documented exclusion (`docs/EXCLUSION_LEDGER.md`). The IC "candidates" are `PROCEDURE DIVISION USING` callee-halves.
+- **Flagging axis MAPPED + harness (DEVLOG 328–331):** the `…M` modules are 3 classes — **subset-flaggers
+  (~15) = N/A at high subset**; **Class-B obsolete (NC303M, SQ303M, RW302M) = IMPLEMENT**; **CM/DB/SG/OBNC removed
+  = WS-DIALECT**. Built `CBL3607` + flagged OPEN REVERSED / MULTIPLE FILE TAPE (**SQ303M ✅ 2/2**; NC303M 3/4 —
+  DATE-COMPILED deferred, in the Stage-0 preprocessor). Harness: `FlaggingConformanceTests` + `CompileNistDiagnostics`.
+- **Spec axis — WS-SPEC (DEVLOG 332–335):** a 9-agent workflow authored **57 verified conformance tests**; the
+  30 that didn't pass → **`docs/SPEC_FIX_BACKLOG.md`** (real bugs, spec-cited). **5 fixed** (DISPLAY NO ADVANCING,
+  CONCAT, CURRENCY letter-symbol, BLANK WHEN ZERO, variadic space-args) in `SpecFixTests.cs`. **~25 remain.**
+- **⚠ TOOLING LESSON (DEVLOG 334):** `isolation:'worktree'` workflows in THIS repo branch from a STALE commit
+  (e577e32, DEVLOG 310) — do compiler fixes **directly on main**, NOT via worktree-isolated fix workflows.
+
+**RESUME AT →** continue `docs/SPEC_FIX_BACKLOG.md` fixes directly on main (each is a re-implementation guided by
+the backlog diagnosis; ~1–2 per guard cycle; detailed agent recipes were ephemeral in e:/tmp/fix_recipes.md).
+Then WS-SPEC-RW (Report Writer SUM/control-breaks/GROUP INDICATE), WS-DIALECT (CM/DB/SG parse+flag), WS-DASH
+(3-axis dashboard). Forward track (M2+) waits for M1.
+
+**═══ PRIOR SESSION (DEVLOG 322–325): scope reframe + Report Writer module COMPLETE (NIST 360→364) ═══**
 The Report Writer — the flagship LIVE COBOL-85 module — is now functionally complete: **RW101A/102A/103A/104A all
 baselined** (RW301M/302M are …M flagging tests). Built the whole subsystem this session: Stage 0 (obsolete
 comment-entry unblock), Stage 1a (declarative REPORT SECTION grammar), Increment B (INITIATE/GENERATE/TERMINATE +
