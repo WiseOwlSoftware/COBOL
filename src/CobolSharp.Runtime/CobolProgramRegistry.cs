@@ -53,6 +53,28 @@ public static class CobolProgramRegistry
     }
 
     /// <summary>
+    /// Invoke a COBOL-2002 user-defined function (a FUNCTION-ID unit compiled as a program) in an expression
+    /// context and return its numeric result. The function's PROCEDURE DIVISION RETURNING item is the trailing
+    /// BY-REFERENCE argument, so a scratch buffer of <paramref name="returnLength"/> bytes is appended to
+    /// <paramref name="usingArgs"/>; the program is resolved and invoked (writing its result through that
+    /// pointer); the buffer is then decoded per <paramref name="returnPic"/>. An unresolvable function yields 0.
+    /// (Used by <c>FUNCTION user-name(args)</c> when it appears inside a larger expression — the whole-source
+    /// MOVE/COMPUTE form is lowered directly to CALL … RETURNING the receiving item instead.)
+    /// </summary>
+    public static decimal InvokeNumericFunction(string functionName, CobolDataPointer[] usingArgs,
+        int returnLength, PicDescriptor returnPic)
+    {
+        var scratch = new byte[returnLength];
+        var args = new CobolDataPointer[usingArgs.Length + 1];
+        System.Array.Copy(usingArgs, args, usingArgs.Length);
+        args[usingArgs.Length] = CobolDataPointer.CreateByReference(scratch, 0, returnLength);
+
+        Resolve(functionName)?.Invoke(args);
+
+        return PicRuntime.DecodeNumeric(scratch, 0, returnLength, returnPic);
+    }
+
+    /// <summary>
     /// CANCEL a program (ISO §14.9.5): it ceases its logical relationship to the run unit, and the
     /// next CALL must find it in its initial state. Canceling a program that was never called or is
     /// already canceled has no effect (GR7). The actual re-initialization happens in the program's

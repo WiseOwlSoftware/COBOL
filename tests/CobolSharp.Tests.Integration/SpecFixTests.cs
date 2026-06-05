@@ -1242,4 +1242,44 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("SUM=0035\r\nMSG=HI WORLD", stdout);
     }
+
+    // ISO §8.4.3 / §15 — UDF general inline form: a user-function call INSIDE a larger expression (not the whole
+    // source of a MOVE/COMPUTE). Previously this silently evaluated to 0 (it fell through to the intrinsic path);
+    // now it lowers to IrUserFunctionCall → CobolProgramRegistry.InvokeNumericFunction (scratch RETURNING buffer +
+    // invoke + decode), using the function's signature from the Compilation pre-pass. Verify DOUBLER(X)+1 = 43.
+    [Fact]
+    public void UserFunctionCall_InsideLargerExpression_Evaluates()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. UINLINE.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       CONFIGURATION SECTION.\n" +
+            "       REPOSITORY.\n" +
+            "           FUNCTION DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-X PIC 9(4) VALUE 21.\n" +
+            "       01 WS-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           COMPUTE WS-R = FUNCTION DOUBLER(WS-X) + 1.\n" +
+            "           DISPLAY \"EXPR=\" WS-R.\n" +
+            "           STOP RUN.\n" +
+            "       END PROGRAM UINLINE.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       FUNCTION-ID. DOUBLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       LINKAGE SECTION.\n" +
+            "       01 L-X PIC 9(4).\n" +
+            "       01 L-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION USING L-X RETURNING L-R.\n" +
+            "       P.\n" +
+            "           COMPUTE L-R = L-X * 2.\n" +
+            "           GOBACK.\n" +
+            "       END FUNCTION DOUBLER.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("EXPR=0043", stdout);
+    }
 }

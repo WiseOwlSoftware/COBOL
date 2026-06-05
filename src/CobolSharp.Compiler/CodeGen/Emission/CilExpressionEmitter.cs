@@ -38,6 +38,35 @@ internal sealed class CilExpressionEmitter
                                 typeof(Runtime.PicDescriptor) })!)));
                 break;
 
+            case IR.IrUserFunctionCall ufc:
+            {
+                // COBOL-2002 user-defined function in an expression: build a CobolDataPointer[] of the USING
+                // arguments (BY CONTENT), then CobolProgramRegistry.InvokeNumericFunction(name, args, len, pic)
+                // appends a scratch RETURNING buffer, invokes the function, and decodes its numeric result,
+                // leaving a decimal on the stack (like any other numeric expression).
+                il.Append(il.Create(OpCodes.Ldstr, ufc.FunctionName));
+                il.Append(il.Create(OpCodes.Ldc_I4, ufc.Arguments.Count));
+                il.Append(il.Create(OpCodes.Newarr, _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
+                for (int i = 0; i < ufc.Arguments.Count; i++)
+                {
+                    il.Append(il.Create(OpCodes.Dup));
+                    il.Append(il.Create(OpCodes.Ldc_I4, i));
+                    _ctx.Location.EmitLocationArgs(il, ufc.Arguments[i]); // pushes (area, offset, length)
+                    il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                        typeof(Runtime.CobolDataPointer).GetMethod("CreateByContent",
+                            new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                    il.Append(il.Create(OpCodes.Stelem_Any,
+                        _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
+                }
+                il.Append(il.Create(OpCodes.Ldc_I4, ufc.ReturnLength));
+                EmitLoadPicDescriptor(il, ufc.ReturnPic);
+                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                    typeof(Runtime.CobolProgramRegistry).GetMethod("InvokeNumericFunction",
+                        new[] { typeof(string), typeof(Runtime.CobolDataPointer[]),
+                                typeof(int), typeof(Runtime.PicDescriptor) })!)));
+                break;
+            }
+
             case IR.IrLinageCounter lc:
                 il.Append(il.Create(OpCodes.Ldstr, lc.FileName));
                 il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(

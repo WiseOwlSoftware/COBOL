@@ -82,6 +82,27 @@ internal sealed class ExpressionLowerer
 
             case BoundFunctionCallExpression func:
             {
+                // COBOL-2002 user-defined function in an expression context → invoke it and leave its decoded
+                // numeric result on the stack (the whole-source MOVE/COMPUTE form is handled earlier, in the
+                // statement lowerers, as CALL … RETURNING the receiving item). Requires the function's signature
+                // (RETURNING length + PIC, from the Compilation pre-pass) and that every argument resolves to a
+                // storage location; otherwise fall through to the intrinsic path (a literal / arithmetic-
+                // expression argument remains a documented follow-up — see plan M2-UDF-2).
+                if (_ctx.IsUserFunction(func.FunctionName)
+                    && _ctx.Semantic.UserFunctionSignatures.TryGetValue(func.FunctionName, out var sig))
+                {
+                    var argLocs = new List<IrLocation>(func.Arguments.Count);
+                    bool allLocations = true;
+                    foreach (var a in func.Arguments)
+                    {
+                        var loc = _ctx.Location.ResolveExpressionLocation(a);
+                        if (loc == null) { allLocations = false; break; }
+                        argLocs.Add(loc);
+                    }
+                    if (allLocations)
+                        return new IrUserFunctionCall(func.FunctionName, argLocs, sig.Length, sig.Pic);
+                }
+
                 var args = new List<IrFunctionArg>(func.Arguments.Count);
                 foreach (var arg in func.Arguments)
                 {

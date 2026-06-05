@@ -70,16 +70,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.1 M2 — User-defined functions (finish the workstream)
 
-- ☐ 🐛 **M2-UDF-1 — General inline UDF invocation.** `FUNCTION user-name(args)` inside a larger expression / `IF`
-  / `DISPLAY` / as a function argument. **[A] severity HIGH (correctness: today it silently yields `0`)**,
-  tractability **medium**. *Current:* only the whole-source MOVE/COMPUTE form is routed; elsewhere it falls
-  through to the intrinsic path → `IntrinsicFunctions.Call("DOUBLER",…)` → silent 0. *Recipe:* a `Compilation`
-  pre-pass building FUNCTION-ID `SemanticModel`s (throwaway diagnostics) → registry `name → {RETURNING
-  StorageLength, PicDescriptor}` on each `SemanticModel`; new `BoundUserFunctionCall` + `IrUserFunctionCall`;
-  inline emit mirroring `CilEmitter.EmitCallProgram` (~1240: build `CobolDataPointer[]` USING args + a scratch
-  `byte[]` as the trailing RETURNING arg + `CobolProgramRegistry.Resolve` + `entry.Invoke(args)`) then
-  `PicRuntime.DecodeNumeric(scratch,0,len,pic)` → push decimal. ~150 lines novel inline CIL. Verify
-  `COMPUTE R = FUNCTION DOUBLER(X) + 1`. *(Alternatively route through a hoisted temp + the existing CALL emit.)*
+- ☑ 🐛 **M2-UDF-1 — General inline UDF invocation (DONE — DEVLOG 372).** `FUNCTION user-name(args)` inside a
+  larger expression now evaluates correctly (was silently 0). Implemented via runtime helper
+  `CobolProgramRegistry.InvokeNumericFunction` (scratch RETURNING buffer + Resolve + Invoke + DecodeNumeric) so
+  the inline emit only builds the args array; a Compilation pre-pass builds the signature registry
+  (`SemanticModel.UserFunctionSignatures` = name → RETURNING length+PIC); `IrUserFunctionCall` +
+  `ExpressionLowerer` routing. Verified `COMPUTE R = FUNCTION DOUBLER(X) + 1` → 43. Conformance:
+  `tests/conformance/2002/udf_inline_expression`. **NOTE:** applies when every argument is a storage location;
+  literal/arith args are M2-UDF-2 below.
 - ☐ 🐛 **M2-UDF-2 — Literal / arithmetic-expression arguments.** `FUNCTION FOO(5)` / `FOO(A + 1)`. **[A] HIGH
   (correctness: returns 0 today)**, **small**. *Current:* `LoweringContext.LowerUserFunctionCall` returns false
   when an arg is not a resolvable location → falls through to intrinsic → 0. *Recipe:* materialize a non-location

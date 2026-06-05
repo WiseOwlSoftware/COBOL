@@ -59,6 +59,8 @@ public sealed class Compilation
         // CALL (WS-2002-UDF slice 3) rather than an intrinsic — order-independent, since a caller may precede the
         // function unit in source order.
         var userFunctionNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var userFunctionSignatures =
+            new Dictionary<string, (int, Runtime.PicDescriptor)>(StringComparer.OrdinalIgnoreCase);
         foreach (var progCtx in programContexts)
         {
             var idBody = (progCtx switch
@@ -67,8 +69,23 @@ public sealed class Compilation
                 CobolParserCore.NestedProgramContext np => np.identificationDivision(),
                 _ => null
             })?.identificationBody();
-            if (idBody?.functionIdParagraph() != null && UnitName(idBody) is { } fn)
-                userFunctionNames.Add(fn);
+            if (idBody?.functionIdParagraph() == null || UnitName(idBody) is not { } fn) continue;
+            userFunctionNames.Add(fn);
+
+            // Build this function unit's signature (its RETURNING item's storage length + PIC) so a caller can
+            // decode a `FUNCTION fn(args)` result appearing in an expression (the general inline form). This
+            // pre-pass runs before any caller is bound, so it is order-independent; a throwaway DiagnosticBag
+            // avoids double-reporting (the unit is built again in the main loop below).
+            try
+            {
+                var sigModel = BuildSemanticModel(progCtx, fn, sourcePath, System.Array.Empty<string>(),
+                    new DiagnosticBag(), Options);
+                Semantics.StorageLayoutComputer.ComputeLayout(sigModel);
+                if (sigModel.ProcedureReturningItem is { } ret
+                    && sigModel.GetStorageLocation(ret) is { } loc)
+                    userFunctionSignatures[fn] = (loc.Length, loc.Pic);
+            }
+            catch { /* signature unavailable → the inline form falls through; whole-source form still works */ }
         }
 
         // Phase 4: Process each program through semantic analysis, binding, and IR generation.
@@ -92,6 +109,7 @@ public sealed class Compilation
             var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, inheritedGlobalNames, diagnostics, Options);
             semanticModel.Program.IsInitial = isInitial;
             semanticModel.UserFunctionNames = userFunctionNames;
+            semanticModel.UserFunctionSignatures = userFunctionSignatures;
 
             // Validate and compute layout
             Semantics.ParagraphValidator.Validate(semanticModel, diagnostics);

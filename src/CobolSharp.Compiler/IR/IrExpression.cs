@@ -76,6 +76,31 @@ public sealed class IrLoadNumeric : IrExpression
 }
 
 /// <summary>
+/// A COBOL-2002 user-defined function invocation (<c>FUNCTION user-name(args)</c>) in an expression context —
+/// the function unit was compiled as a callable program with a PROCEDURE DIVISION RETURNING item. Emitted as a
+/// call to <c>CobolProgramRegistry.InvokeNumericFunction</c>: the USING arguments are passed BY CONTENT and the
+/// function's numeric result (decoded per <see cref="ReturnPic"/> from a scratch buffer of length
+/// <see cref="ReturnLength"/>) is left on the IL stack like any other numeric expression. The whole-source
+/// MOVE/COMPUTE form is handled separately (lowered directly to CALL … RETURNING the receiving item).
+/// </summary>
+public sealed class IrUserFunctionCall : IrExpression
+{
+    public string FunctionName { get; }
+    public IReadOnlyList<IrLocation> Arguments { get; }   // each passed BY CONTENT (function arguments are values)
+    public int ReturnLength { get; }
+    public Runtime.PicDescriptor ReturnPic { get; }
+
+    public IrUserFunctionCall(string functionName, IReadOnlyList<IrLocation> arguments,
+        int returnLength, Runtime.PicDescriptor returnPic)
+    {
+        FunctionName = functionName;
+        Arguments = arguments;
+        ReturnLength = returnLength;
+        ReturnPic = returnPic;
+    }
+}
+
+/// <summary>
 /// The LINAGE-COUNTER special register value for a file: a runtime read of the file's current line
 /// within the page body (ISO §8.4.3.14). Emitted as a call to FileRuntime.GetLinageCounter, leaving a
 /// decimal on the stack like any other numeric expression.

@@ -246,6 +246,12 @@ public sealed class SemanticModel
     public IReadOnlyCollection<string> UserFunctionNames { get; set; } =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Signature of each user-defined function in the compilation group, keyed by name: the RETURNING
+    /// item's storage length and PIC descriptor — needed to decode the result of a <c>FUNCTION user-name(args)</c>
+    /// call that appears in an expression context (the general inline form). Built by a Compilation pre-pass.</summary>
+    public IReadOnlyDictionary<string, (int Length, Runtime.PicDescriptor Pic)> UserFunctionSignatures { get; set; } =
+        new Dictionary<string, (int, Runtime.PicDescriptor)>(StringComparer.OrdinalIgnoreCase);
+
     // ── Storage locations per data symbol (set by ComputeStorageLayout) ──
 
     private readonly Dictionary<DataSymbol, CodeGen.StorageLocation> _storageLocations = [];
