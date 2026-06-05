@@ -96,6 +96,8 @@ EOP          : 'EOP' ;
 PROGRAM_ID      : 'PROGRAM-ID' ;
 FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
 EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2002 logical exclusive-or operator, equivalent to XOR (ISO §8.8.4.9)
+FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
+FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 METHOD_ID       : 'METHOD-ID' ;
 CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;

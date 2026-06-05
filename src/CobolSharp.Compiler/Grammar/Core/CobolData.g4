@@ -265,6 +265,8 @@ usageClause
     | COMP_3
     | COMP_4
     | COMP_5
+    | FLOAT_SHORT
+    | FLOAT_LONG
     | BINARY
     | PACKED_DECIMAL
     | INDEX
@@ -284,6 +286,8 @@ usageKeyword
     | COMP_3
     | COMP_4
     | COMP_5
+    | FLOAT_SHORT
+    | FLOAT_LONG
     | BINARY
     | PACKED_DECIMAL
     | INDEX

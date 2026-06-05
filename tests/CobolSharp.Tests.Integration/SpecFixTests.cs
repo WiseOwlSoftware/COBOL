@@ -1384,4 +1384,31 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("1T\r\n2F\r\n3F\r\n4T", stdout);
     }
+
+    // ISO §13.18 — standard floating-point usages FLOAT-SHORT (IEEE-754 single = COMP-1) and FLOAT-LONG
+    // (IEEE-754 double = COMP-2). Verify they store + compute as floats: 10.5*2 = 21, 100.25*4 = 401.
+    [Fact]
+    public void FloatShortAndLong_AliasComp1And2()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. FLTEST.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-S USAGE FLOAT-SHORT.\n" +
+            "       01 WS-L FLOAT-LONG.\n" +
+            "       01 WS-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           MOVE 10.5 TO WS-S.\n" +
+            "           COMPUTE WS-R = WS-S * 2.\n" +
+            "           DISPLAY \"S=\" WS-R.\n" +
+            "           MOVE 100.25 TO WS-L.\n" +
+            "           COMPUTE WS-R = WS-L * 4.\n" +
+            "           DISPLAY \"L=\" WS-R.\n" +
+            "           STOP RUN.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("S=0021\r\nL=0401", stdout);
+    }
 }

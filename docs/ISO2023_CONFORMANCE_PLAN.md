@@ -97,8 +97,9 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☐ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/BINARY-SHORT/BINARY-LONG/BINARY-DOUBLE [SIGNED|UNSIGNED]`.** **[A] HIGH
   (silent mis-typing today)**, **medium**. *Recipe:* lexer tokens + `usageClause` alts + a `UsageKind` mapping to
   1/2/4/8-byte two's-complement (reuse the COMP-5/native-binary emission path).
-- ☐ **M2-DATA-2 — `USAGE FLOAT-SHORT / FLOAT-LONG`.** [A] medium. *Recipe:* alias onto the existing COMP-1/COMP-2
-  (Single/Double) machinery. (FLOAT-EXTENDED → defer / map to Double with a note.)
+- ☑ **M2-DATA-2 — `USAGE FLOAT-SHORT / FLOAT-LONG` (DONE — DEVLOG 376).** Aliased onto COMP-1/COMP-2 (3 edits:
+  lexer tokens + usageKeyword/bare-form alts + `UsageMapper.FromUsageKeyword` FLOAT-SHORT→Comp1 / FLOAT-LONG→Comp2).
+  Verified 10.5*2=21, 100.25*4=401. Conformance `tests/conformance/2002/float_usage`. FLOAT-EXTENDED deferred.
 - ☐ **M2-DATA-3 — National data.** `USAGE NATIONAL`, `PIC N(n)`, national literals `N"…"` / `NX"…"`,
   NATIONAL-EDITED, UTF-16 storage, MOVE/DISPLAY/compare/INSPECT semantics. *Large (new category).* The
   `DISPLAY-OF`/`NATIONAL-OF` intrinsics already exist; the data **type** does not. §13.18, §8.3.
