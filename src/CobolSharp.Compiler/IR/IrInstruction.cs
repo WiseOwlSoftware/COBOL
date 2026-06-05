@@ -604,6 +604,25 @@ public sealed class IrReportRegisterDataField : IrInstruction
 }
 
 /// <summary>
+/// Register a CONTROL item (or FINAL) of a report's control hierarchy at INITIATE (ISO §13.18.16): the runtime
+/// reads the control item's live storage each GENERATE to detect a control break. Source is null for FINAL.
+/// Emitted as ReportWriterRuntime.RegisterControl.
+/// </summary>
+public sealed class IrReportRegisterControl : IrInstruction
+{
+    public string ReportName { get; }
+    public bool IsFinal { get; }
+    public IrLocation? Source { get; }
+
+    public IrReportRegisterControl(string reportName, bool isFinal, IrLocation? source)
+    {
+        ReportName = reportName;
+        IsFinal = isFinal;
+        Source = source;
+    }
+}
+
+/// <summary>
 /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
 /// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
 /// trailing-space trimming. ISO §13.18.43 / §14.9.51.

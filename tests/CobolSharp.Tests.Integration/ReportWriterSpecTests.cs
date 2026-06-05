@@ -518,5 +518,69 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         Assert.True(iHdr >= 0, $"PAGE HEADING data SOURCE not presented (was blank): {joined}");
         Assert.True(iHdr < iAbc, $"page heading should precede the detail: {joined}");
     }
+
+    /// <summary>
+    /// §13.18.16 / §14.9.16.4 / §13.18.57 — CONTROL break detection + CONTROL FOOTING presentation. A change in
+    /// the CONTROL data item between GENERATEs ends the current control group: its CONTROL FOOTING is presented
+    /// (showing the ENDING group's value — the runtime restores the prior control value before presenting it),
+    /// and a final break at TERMINATE presents the last group's footing. The break/footing machinery was in the
+    /// symbol model but never honored.
+    /// </summary>
+    [Fact]
+    public void ControlBreak_ControlFooting_IsPresentedWithEndingValue()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWCTL.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWCTLO".
+                SELECT IN-FILE ASSIGN TO "RWCTLO"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-DEPT PIC X(1).
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT CONTROL IS WS-DEPT PAGE LIMIT IS 60 LINES.
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(1) SOURCE WS-DEPT.
+            01  CF-DEPT TYPE IS CONTROL FOOTING WS-DEPT LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(3) VALUE "ZF-".
+                03 COLUMN 5 PICTURE X(1) SOURCE WS-DEPT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                MOVE "A" TO WS-DEPT. GENERATE DET.
+                MOVE "A" TO WS-DEPT. GENERATE DET.
+                MOVE "B" TO WS-DEPT. GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var joined = string.Join("|", Lines(stdout));
+        int iCfA = joined.IndexOf("ZF- A", StringComparison.Ordinal);   // footing for dept A (prior-restore)
+        int iCfB = joined.IndexOf("ZF- B", StringComparison.Ordinal);   // footing for dept B (at TERMINATE)
+        Assert.True(iCfA >= 0, $"CONTROL FOOTING for dept A not presented with the ending value: {joined}");
+        Assert.True(iCfB >= 0, $"CONTROL FOOTING at TERMINATE not presented: {joined}");
+        Assert.True(iCfA < iCfB, $"dept-A footing should precede the TERMINATE footing: {joined}");
+    }
 }
 

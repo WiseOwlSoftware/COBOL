@@ -88,6 +88,29 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    /// <summary>Register a CONTROL item (or FINAL): push reportName, isFinal, then the control item's storage
+    /// location (area/offset/size) — or (null,0,0) for FINAL — and call ReportWriterRuntime.RegisterControl.</summary>
+    internal void EmitReportRegisterControl(ILProcessor il, IrReportRegisterControl inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.ReportName));
+        il.Append(il.Create(inst.IsFinal ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        if (inst.Source != null)
+        {
+            _ctx.Location.EmitLocationArgs(il, inst.Source); // byte[] area, int offset, int size
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldnull));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+        }
+        var method = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod(
+                "RegisterControl",
+                new[] { typeof(string), typeof(bool), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     /// <summary>
     /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
     /// count read at runtime from the DEPENDING data item, without trailing-space trimming.

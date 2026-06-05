@@ -219,18 +219,37 @@ internal sealed class FileIoLowerer
             // VALUE literal or SOURCE LINE-COUNTER/PAGE-COUNTER are composed by the runtime.
             foreach (var g in report.AllGroups())
             {
-                int slot = g.GroupKind switch
+                int slot;
+                if (g.GroupKind is ReportGroupKind.ControlHeading or ReportGroupKind.ControlFooting)
                 {
-                    ReportGroupKind.PageHeading => 0,
-                    ReportGroupKind.PageFooting => 1,
-                    ReportGroupKind.ReportHeading => 2,
-                    ReportGroupKind.ReportFooting => 3,
-                    _ => -1,
-                };
-                if (slot < 0) continue;
+                    int level = ControlLevelOf(report, g.ControlField);
+                    if (level < 0) continue;
+                    slot = (g.GroupKind == ReportGroupKind.ControlHeading ? 4 : 5) + level * 2;
+                }
+                else
+                {
+                    slot = g.GroupKind switch
+                    {
+                        ReportGroupKind.PageHeading => 0,
+                        ReportGroupKind.PageFooting => 1,
+                        ReportGroupKind.ReportHeading => 2,
+                        ReportGroupKind.ReportFooting => 3,
+                        _ => -1,
+                    };
+                    if (slot < 0) continue;
+                }
                 int defaultLine = g.GroupKind is ReportGroupKind.PageHeading or ReportGroupKind.ReportHeading
-                    ? report.HeadingLine : report.FootingLine;
+                    or ReportGroupKind.ControlHeading ? report.HeadingLine : report.FootingLine;
                 RegisterAutoGroup(report.Name, g, slot, g.HasLine ? g.LineValue : defaultLine, block);
+            }
+
+            // Register the CONTROL hierarchy (major→minor) so the runtime detects control breaks (ISO §13.18.16).
+            foreach (var cf in report.ControlFields)
+            {
+                if (string.Equals(cf, "FINAL", System.StringComparison.OrdinalIgnoreCase))
+                    block.Instructions.Add(new IrReportRegisterControl(report.Name, isFinal: true, null));
+                else if (_ctx.Semantic.ResolveData(cf) is { } cSym && _ctx.Location.ResolveLocation(cSym) is { } cLoc)
+                    block.Instructions.Add(new IrReportRegisterControl(report.Name, isFinal: false, cLoc));
             }
         }
         return block;
@@ -275,6 +294,17 @@ internal sealed class FileIoLowerer
             block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterAutoField",
                 new[] { frn, fsl, col, wid, knd, lit }));
         }
+    }
+
+    /// <summary>The 0-based level (major = 0) of a control data-name within the report's CONTROL hierarchy,
+    /// or -1 if not a control (ISO §13.18.16). FINAL, if present, is level 0.</summary>
+    private static int ControlLevelOf(ReportSymbol report, string? controlField)
+    {
+        if (controlField == null) return -1;
+        for (int i = 0; i < report.ControlFields.Count; i++)
+            if (string.Equals(report.ControlFields[i], controlField, System.StringComparison.OrdinalIgnoreCase))
+                return i;
+        return -1;
     }
 
     /// <summary>Classify a page heading/footing field for runtime composition: VALUE literal (0),
