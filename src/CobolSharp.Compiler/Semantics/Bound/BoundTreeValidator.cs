@@ -382,10 +382,11 @@ public static class BoundTreeValidator
                 Report(diagnostics, line, DiagnosticDescriptors.CBL3302);
         }
 
-        // CBL3304: RETURNING item must be in LINKAGE SECTION
-        if (call.ReturningTarget is BoundIdentifierExpression returning
-            && returning.Symbol.Area != StorageAreaKind.LinkageSection)
-            Report(diagnostics, line, DiagnosticDescriptors.CBL3304);
+        // NOTE: the CALL … RETURNING target on the *caller* side is an ordinary receiving data item in the
+        // caller's own storage (typically WORKING-STORAGE) — ISO §14.9.4.3 places no LINKAGE restriction on it
+        // (that restriction applies to the *callee's* PROCEDURE DIVISION RETURNING item, enforced by CBL3109).
+        // A former CBL3304 here wrongly required the caller's target to be in LINKAGE and blocked valid
+        // CALL … RETURNING into WORKING-STORAGE; removed.
     }
 
     // ═══════════════════════════════════════════════════════════════

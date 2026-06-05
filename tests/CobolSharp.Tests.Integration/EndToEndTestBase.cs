@@ -154,6 +154,15 @@ public class EndToEndTestBase : IDisposable
     /// </summary>
     protected (bool success, string stdout, string stderr) CompileMultipleAndRun(
         params (string fileName, string source)[] programs)
+        => CompileMultipleAndRun(CobolSharp.Compiler.Semantics.DialectMode.Default, programs);
+
+    /// <summary>
+    /// Compile multiple programs under a given dialect and run the first. Used where a callee needs a
+    /// version-gated construct (e.g. a COBOL-2002 <c>PROCEDURE DIVISION … RETURNING</c>).
+    /// </summary>
+    protected (bool success, string stdout, string stderr) CompileMultipleAndRun(
+        CobolSharp.Compiler.Semantics.DialectMode dialect,
+        params (string fileName, string source)[] programs)
     {
         // Compile all programs
         foreach (var (fileName, source) in programs)
@@ -164,6 +173,8 @@ public class EndToEndTestBase : IDisposable
             File.WriteAllText(sourcePath, source);
 
             var compilation = new Compilation();
+            if (dialect != CobolSharp.Compiler.Semantics.DialectMode.Default)
+                compilation.Options.Dialect = dialect;
             var result = compilation.Compile(sourcePath, outputPath);
             if (!result.Success)
             {

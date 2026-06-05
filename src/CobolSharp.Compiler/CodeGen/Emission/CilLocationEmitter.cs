@@ -402,6 +402,22 @@ internal sealed class CilLocationEmitter
                 return f;
             }
         }
+        // The PROCEDURE DIVISION RETURNING item is the trailing linkage parameter (the caller passes it as the
+        // last BY-REFERENCE argument; Binder adds its _linkage_<name> field). Resolve a reference into it through
+        // that field too — otherwise it falls through to the null-buffer branch and the callee writes to a
+        // 0-length area (RT0001 bufferLength=0).
+        if (_ctx.SemanticModel.ProcedureReturningItem is { } ret
+            && _ctx.LinkageFields.TryGetValue(ret.Name, out var rf))
+        {
+            var retLoc = _ctx.SemanticModel.GetStorageLocation(ret);
+            if (retLoc.HasValue &&
+                relOffset >= retLoc.Value.Offset &&
+                relOffset < retLoc.Value.Offset + retLoc.Value.Length)
+            {
+                paramBaseOffset = retLoc.Value.Offset;
+                return rf;
+            }
+        }
         return null;
     }
 

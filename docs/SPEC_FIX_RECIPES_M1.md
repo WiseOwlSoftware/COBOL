@@ -122,11 +122,16 @@ facts (BoundReportField signature change) + RW301M/302M flagging.
   name (`_procedureReturningName`, VisitProcedureDivision) → Compilation `SetProcedureReturningItem`. Tried mapping
   it like a USING param (append `_semantic.ProcedureReturningItem.Name` to `module.UsingParameterNames` in
   Binder.PopulateModuleMetadata, so the entry-body maps args[count]→its _linkage field) — STILL crashes
-  bufferLength=0. So the RETURNING LINKAGE item's **location resolution** doesn't use its _linkage pointer (or the
-  caller pushes a 0-length area). Needs focused debugging of LINKAGE-item location resolution for the RETURNING
-  item (likely CilLocationEmitter / the linkage-vs-own-storage decision). Test form: needs `--standard cobol2002`
-  (returningClause is is2002()-gated); a dialect-aware `CompileMultipleAndRun(DialectMode, …)` overload was added
-  then reverted with the rest. CBL3304-restored / reverted to keep the tree clean.
+  bufferLength=0.
+  **✅ RESOLVED (DEVLOG 365).** Root cause: `CilLocationEmitter.FindLinkageField` iterates ONLY
+  `SemanticModel.ProcedureUsingParameters`, so the RETURNING item (not a USING param) never matched a LINKAGE
+  range → null buffer. Entry 354's `UsingParameterNames` append fixed field-creation + entry-mapping but NOT the
+  location path — that asymmetry was the bug. Fix (RETURNING-only, surgical): (a) Binder appends
+  `ProcedureReturningItem.Name` to `module.UsingParameterNames`; (b) `FindLinkageField` also tests the RETURNING
+  item's LINKAGE range → its `_linkage_<R>` field; (c) CBL3304 removed (caller target unrestricted); (d)
+  dialect-aware `CompileMultipleAndRun(DialectMode,…)` overload added. NOT added to `ProcedureUsingParameters`
+  (keeps CBL3108/arity correct). Verified end-to-end: `CALL "ADDER" USING WS-A WS-B RETURNING WS-R` → `0042`.
+  **This unblocks WS-2002-UDF** (a user function returns via the same mechanism).
 - **#10 READ PREVIOUS** (2002): IndexedFileHandler.ReadPrevious (312-359) ignores _readNextInclusive — post-OPEN
   must AtEnd, post-START KEY=EQUAL must return key<=k inclusive. Relative analog too. Runtime-only boundary fix
   (READ … PREVIOUS already parses + flows ReadDirection.Previous → handler.ReadPrevious); cobol85-rejection is a

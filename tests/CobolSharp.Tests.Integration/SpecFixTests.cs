@@ -1027,4 +1027,43 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("BARE", stdout);
     }
+
+    // ISO §14.9.4 (COBOL-2002) — CALL … RETURNING into a WORKING-STORAGE item. The callee's PROCEDURE DIVISION
+    // RETURNING item is a LINKAGE item passed by the caller as a trailing BY-REFERENCE argument; the callee writes
+    // its result through that pointer back into the caller's storage. This previously crashed at runtime
+    // (RT0001 bufferLength=0) because the RETURNING LINKAGE item's location was never wired to the passed pointer
+    // (DEVLOG 354). The caller's RETURNING target need not be in LINKAGE (former CBL3304 removed).
+    [Fact]
+    public void CallReturning_IntoWorkingStorage_WritesResultBack()
+    {
+        var (ok, stdout, stderr) = CompileMultipleAndRun(
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002,
+            ("caller.cob",
+                "       IDENTIFICATION DIVISION.\n" +
+                "       PROGRAM-ID. CALLER.\n" +
+                "       DATA DIVISION.\n" +
+                "       WORKING-STORAGE SECTION.\n" +
+                "       01 WS-A PIC 9(4) VALUE 12.\n" +
+                "       01 WS-B PIC 9(4) VALUE 30.\n" +
+                "       01 WS-R PIC 9(4).\n" +
+                "       PROCEDURE DIVISION.\n" +
+                "       MAIN.\n" +
+                "           CALL \"ADDER\" USING WS-A WS-B RETURNING WS-R.\n" +
+                "           DISPLAY \"RESULT=\" WS-R.\n" +
+                "           STOP RUN.\n"),
+            ("adder.cob",
+                "       IDENTIFICATION DIVISION.\n" +
+                "       PROGRAM-ID. ADDER.\n" +
+                "       DATA DIVISION.\n" +
+                "       LINKAGE SECTION.\n" +
+                "       01 L-A PIC 9(4).\n" +
+                "       01 L-B PIC 9(4).\n" +
+                "       01 L-R PIC 9(4).\n" +
+                "       PROCEDURE DIVISION USING L-A L-B RETURNING L-R.\n" +
+                "       COMPUTE-IT.\n" +
+                "           COMPUTE L-R = L-A + L-B.\n" +
+                "           GOBACK.\n"));
+        Assert.True(ok, stderr);
+        Assert.Equal("RESULT=0042", stdout);
+    }
 }

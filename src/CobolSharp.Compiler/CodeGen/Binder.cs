@@ -224,6 +224,16 @@ public sealed class Binder
         foreach (var param in _semantic.ProcedureUsingParameters)
             module.UsingParameterNames.Add(param.Name);
 
+        // The PROCEDURE DIVISION RETURNING item is passed by the caller as a trailing BY-REFERENCE argument
+        // (CilEmitter.EmitCallProgram appends it at args[usingCount]), so it is the LAST linkage parameter: it
+        // needs a _linkage_<name> field and an args[usingCount] → field mapping in the Entry method exactly like a
+        // USING parameter. (Its access inside the callee is resolved by CilLocationEmitter.FindLinkageField, which
+        // also consults the RETURNING item.) Appending it here — after the USING names — keeps the arg index
+        // aligned with the caller's push order. It is intentionally NOT added to ProcedureUsingParameters, so the
+        // USING-only validation (CBL3108) and any arity logic that reads that list are unaffected.
+        if (_semantic.ProcedureReturningItem is { } ret)
+            module.UsingParameterNames.Add(ret.Name);
+
         foreach (var para in boundProgram.Paragraphs)
             foreach (var sentence in para.Sentences)
                 foreach (var stmt in sentence.Statements)
