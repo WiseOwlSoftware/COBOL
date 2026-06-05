@@ -103,7 +103,8 @@ modules are **two distinct flag classes**, and CobolSharp's conformance profile 
   **CobolSharp implements the full language (HIGH subset), so these features are native and emitting ZERO flags
   is the *correct* conformance behaviour.** ⇒ **N/A at high subset — documented conformance-profile exclusion**
   (the same kind of declared-profile call as DB/SG/CM; satisfying them would require an archaic
-  `--subset minimum|intermediate` mode that flags above-subset features — see §1, owner decision pending).
+  `--subset minimum|intermediate` mode that flags above-subset features — **owner DECIDED 2026-06-04: option A
+  — high/full subset, NO `--subset` mode; the Class-A subset-flag `…M` modules are documented N/A**).
 - **Class B — obsolete-element flags** ("OBSOLETE — removed after COBOL-85"): **NC303M** (DATE-COMPILED, ALTER,
   bare/altered GO TO), **SQ303M** (MULTIPLE FILE TAPE, OPEN … REVERSED). A conforming compiler flags obsolete
   elements regardless of subset. ⇒ **IMPLEMENT** (an obsolete-element *warning* under `--standard cobol85`,
