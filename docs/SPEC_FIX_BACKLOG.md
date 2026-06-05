@@ -20,8 +20,9 @@ strictness/edge.
 - **P1 — `REPOSITORY … FUNCTION … INTRINSIC`** paragraph not parsed (parse error) → keyword-optional FUNCTION
   dispatch can't be exercised.
 - **P1 — ref-mod on a function result** `FUNCTION REVERSE(x)(1:3)` — grammar rejects the trailing `(1:3)`.
-- **P0 — ref-modded data item AS a function argument** `FUNCTION UPPER-CASE(X(1:4))` compiles but returns numeric
-  0 — the ref-modded alphanumeric arg is mistyped/mis-evaluated.
+- ✅ **DONE (DEVLOG 337) — ref-modded data item AS a function argument**: `ExpressionLowerer` now lowers a
+  `BoundReferenceModificationExpression` arg to `IrAlphanumericArg` (ISO §8.4.2.3 — always alphanumeric). Test:
+  `SpecFixTests.RefModdedAlphanumericFunctionArg_ReadsAsString`.
 - **P0 — table-ref `ALL` over an ODO table** ranges over OCCURS MAXIMUM, not the DEPENDING-ON current value
   (`FUNCTION SUM(T(ALL))` summed all 5 slots, not the active 3). §15.3.
 - ✅ **DONE (DEVLOG 334) — `CONCAT`** added to `BindingContext.AlphanumericFunctions` (was typed numeric →

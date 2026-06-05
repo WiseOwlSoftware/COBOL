@@ -117,4 +117,26 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("HI THERE", stdout);
     }
+
+    // ISO §8.4.2.3 — a reference-modification operand is category alphanumeric. FUNCTION UPPER-CASE(X(1:4)) used
+    // to return 0 (the substring was sent through the numeric arg path and decoded as a decimal); it now reads
+    // the substring as a string.
+    [Fact]
+    public void RefModdedAlphanumericFunctionArg_ReadsAsString()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. RMARG.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-IN  PIC X(8) VALUE \"abcdefgh\".\n" +
+            "       01 WS-OUT PIC X(4).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           MOVE FUNCTION UPPER-CASE(WS-IN(1:4)) TO WS-OUT.\n" +
+            "           DISPLAY WS-OUT.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("ABCD", stdout);
+    }
 }

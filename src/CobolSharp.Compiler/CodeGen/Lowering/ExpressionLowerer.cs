@@ -115,6 +115,17 @@ internal sealed class ExpressionLowerer
                             break;
                         }
 
+                        // A reference-modification operand is always category alphanumeric (ISO §8.4.2.3) — read
+                        // it as a string, not via the numeric default (which decodes the substring as a decimal
+                        // → 0 for alphabetic content, e.g. FUNCTION UPPER-CASE(X(1:4))).
+                        case BoundReferenceModificationExpression refModArg:
+                        {
+                            var loc = _ctx.Location.ResolveRefModLocation(refModArg);
+                            if (loc == null) return null;
+                            args.Add(new IrAlphanumericArg(loc));
+                            break;
+                        }
+
                         default:
                         {
                             var lowered = LowerExpression(arg);
