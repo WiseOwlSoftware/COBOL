@@ -1997,6 +1997,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.sameClause() is { } same && same.SORT() == null && same.SORT_MERGE() == null)
             RecordSameRecordAreaGroup(same);
 
+        // MULTIPLE FILE TAPE is an obsolete element (removed in COBOL-2002); flag it under cobol85/Default.
+        // No runtime effect (it is a tape-positioning hint). Satisfies the NIST SQ303M OBSOLETE flagging module.
+        if (ctx.multipleFileClause() is { } mft && !_options.Config.IsCobol2002OrLater)
+        {
+            var tok = mft.Start;
+            _diagnostics.Report(DiagnosticDescriptors.CBL3607,
+                new Common.SourceLocation(_sourceName, 0, tok.Line, tok.Column),
+                new Common.TextSpan(tok.StartIndex, mft.Stop?.StopIndex ?? tok.StopIndex),
+                "MULTIPLE FILE TAPE");
+        }
+
         CaptureGenericClause(ctx.genericClause(), GenericClauseContext.IOControl);
         return base.VisitIoControlClause(ctx);
     }

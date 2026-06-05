@@ -68,4 +68,17 @@ internal static class DialectStrictnessChecks
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3618,
                 MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase));
     }
+
+    /// <summary>
+    /// Obsolete-element flag (CBL3607) — the <c>OPEN … REVERSED</c> tape phrase. REVERSED is obsolete in
+    /// COBOL-85 and removed in COBOL-2002. Warned under cobol85/Default (the conforming '85 flagger); under
+    /// cobol2002+ the phrase is removed and handled by the removed-feature path (WS-DIALECT). Satisfies the
+    /// NIST SQ303M OBSOLETE flagging module.
+    /// </summary>
+    internal static void CheckObsoleteOpenReversed(BindingContext ctx, CobolParserCore.OpenFileSpecContext spec)
+    {
+        if (spec.REVERSED() == null || ctx.Options.Config.IsCobol2002OrLater) return;
+        ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3607,
+            MakeLocation(ctx.SourceName, spec), MakeSpan(spec), "OPEN ... REVERSED");
+    }
 }

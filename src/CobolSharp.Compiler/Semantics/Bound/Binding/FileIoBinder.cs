@@ -132,7 +132,9 @@ internal sealed class FileIoBinder
             var files = new List<FileSymbol>();
             foreach (var spec in clause.openFileSpec())
             {
-                // The REVERSED / WITH NO REWIND tape phrase (if any) is ignored; only the file matters.
+                // The REVERSED / WITH NO REWIND tape phrase (if any) is ignored at runtime; only the file
+                // matters. REVERSED is an obsolete element, flagged under cobol85 (CBL3607).
+                DialectStrictnessChecks.CheckObsoleteOpenReversed(_ctx, spec);
                 string name = spec.dataReference().cobolWord().GetText();
                 var fileSym = _ctx.Semantic.ResolveFile(name);
                 if (fileSym != null)

@@ -587,7 +587,7 @@ public static partial class DiagnosticDescriptors
         "Sign condition (POSITIVE/NEGATIVE/ZERO) requires a numeric operand");
 
     // ══════════════════════════════════════
-    // CBL3601–3606: ALTER and bare GO TO (obsolete features)
+    // CBL3601–3607: obsolete features (ALTER, bare GO TO, and the generic obsolete-element flag CBL3607)
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor CBL3601 = new("CBL3601", DiagnosticSeverity.Error,
         "ALTER statement deleted from COBOL standard in 2002; not allowed in {0} mode");
@@ -601,6 +601,10 @@ public static partial class DiagnosticDescriptors
         "Bare GO TO (without target) deleted from COBOL standard in 2002; not allowed in {0} mode");
     public static readonly DiagnosticDescriptor CBL3606 = new("CBL3606", DiagnosticSeverity.Warning,
         "Bare GO TO (without target) is obsolete; removed from COBOL-2002 and later standards");
+    // CBL3607: generic obsolete-element flag, parameterized by element name (MULTIPLE FILE TAPE,
+    // OPEN ... REVERSED, DATE-COMPILED, ...). Drives the NIST OBSOLETE flagging modules (NC303M, SQ303M).
+    public static readonly DiagnosticDescriptor CBL3607 = new("CBL3607", DiagnosticSeverity.Warning,
+        "{0} is an obsolete element; removed from COBOL-2002 and later standards");
 
     // ══════════════════════════════════════
     // CBL3611–3612: non-standard CCVS dialect leniencies (see docs/dialect-strictness.md).
