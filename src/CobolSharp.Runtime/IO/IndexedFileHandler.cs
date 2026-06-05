@@ -315,15 +315,25 @@ public class IndexedFileHandler : IFileHandler
         if (_openMode == FileOpenMode.Output || _openMode == FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
 
+        // After START (KEY = EQUAL / GREATER-OR-EQUAL etc.), the first READ PREVIOUS returns the record AT the
+        // file position indicator — the record whose key ≤ the FPI value, i.e. the matched key itself — not its
+        // strict predecessor (ISO §14.9.30 GR21 d.2).
+        if (_readNextInclusive && _currentKey != null && _records!.ContainsKey(_currentKey))
+        {
+            _readNextInclusive = false;
+            var atRecord = _records[_currentKey];
+            CopyOut(atRecord, recordBuffer);
+            _pastEnd = false;
+            _prevOpWasSuccessfulRead = true;
+            return HasDuplicateAlternateKey(atRecord) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
+        }
+
         if (_currentKey == null)
         {
-            // No current position — start from the last record
-            var lastEntry = _records!.LastOrDefault();
-            if (lastEntry.Key == null) return FileStatus.AtEnd;
-            CopyOut(lastEntry.Value, recordBuffer);
-            _currentKey = lastEntry.Key;
-            _pastEnd = false;
-            return HasDuplicateAlternateKey(lastEntry.Value) ? FileStatus.DuplicateAlternateKey : FileStatus.Success;
+            // The previous operation was OPEN (no file-position-indicator established) — READ PREVIOUS raises the
+            // AT END condition (ISO §14.9.30 GR21 d.3 / §9.1.13.4; Annex E.2 substantive-change item 22).
+            // (Previously this returned the highest-key record.)
+            return FileStatus.AtEnd;
         }
 
         // If we just hit AT END on a forward read, the current key still points to the

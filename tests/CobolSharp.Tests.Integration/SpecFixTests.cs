@@ -560,4 +560,92 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("050\r\n020\r\n010", stdout);
     }
+
+    // ISO §14.9.30 GR21 d.3 (COBOL-2002 READ … PREVIOUS) — a READ PREVIOUS immediately after OPEN INPUT, with no
+    // file position indicator yet established, raises the AT END condition (status 10). It used to return the
+    // highest-key record.
+    [Fact]
+    public void ReadPrevious_AfterOpen_RaisesAtEnd()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. RDPREV1.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"rp1.dat\"\n" +
+            "               ORGANIZATION IS INDEXED\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RECORD KEY IS F-KEY\n" +
+            "               FILE STATUS IS WS-ST.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC.\n" +
+            "          05 F-KEY PIC 9(2).\n" +
+            "          05 F-FILLER PIC X(8).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-ST PIC XX.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN OUTPUT F.\n" +
+            "           MOVE 10 TO F-KEY. WRITE F-REC.\n" +
+            "           MOVE 20 TO F-KEY. WRITE F-REC.\n" +
+            "           CLOSE F.\n" +
+            "           OPEN INPUT F.\n" +
+            "           READ F PREVIOUS RECORD\n" +
+            "               AT END DISPLAY \"ATEND \" WS-ST\n" +
+            "               NOT AT END DISPLAY \"GOT \" F-KEY\n" +
+            "           END-READ.\n" +
+            "           CLOSE F.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("ATEND 10", stdout);   // at-end status 10, not the highest key
+    }
+
+    // ISO §14.9.30 GR21 d.2 — after START KEY = EQUAL k, the first READ PREVIOUS returns the record at the file
+    // position indicator (key ≤ k, i.e. k itself), not its strict predecessor.
+    [Fact]
+    public void ReadPrevious_AfterStartEqual_ReturnsTheEqualKey()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. RDPREV2.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"rp2.dat\"\n" +
+            "               ORGANIZATION IS INDEXED\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RECORD KEY IS F-KEY\n" +
+            "               FILE STATUS IS WS-ST.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC.\n" +
+            "          05 F-KEY PIC 9(2).\n" +
+            "          05 F-FILLER PIC X(8).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-ST PIC XX.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN OUTPUT F.\n" +
+            "           MOVE 10 TO F-KEY. WRITE F-REC.\n" +
+            "           MOVE 20 TO F-KEY. WRITE F-REC.\n" +
+            "           MOVE 30 TO F-KEY. WRITE F-REC.\n" +
+            "           CLOSE F.\n" +
+            "           OPEN INPUT F.\n" +
+            "           MOVE 20 TO F-KEY.\n" +
+            "           START F KEY IS EQUAL TO F-KEY\n" +
+            "               INVALID KEY DISPLAY \"BADSTART\"\n" +
+            "           END-START.\n" +
+            "           READ F PREVIOUS RECORD\n" +
+            "               AT END DISPLAY \"ATEND\"\n" +
+            "               NOT AT END DISPLAY \"GOT \" F-KEY\n" +
+            "           END-READ.\n" +
+            "           CLOSE F.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("GOT 20", stdout);   // the equal key, not its predecessor (10)
+    }
 }
