@@ -233,10 +233,18 @@ internal sealed class FileIoBinder
                 advance = g.LineValue > 0 ? g.LineValue : 1;   // relative PLUS n (absolute handled later)
                 nextPage = g.LineNextPage;
             }
-            if (g.HasColumn && g.SourceName != null)
+            if (g.HasColumn)
             {
                 fields ??= [];
-                if (BindReportSource(g.SourceName) is { } src)
+                BoundExpression? src = null;
+                if (g.SourceName != null)
+                    src = BindReportSource(g.SourceName);
+                else if (g.ValueLiteral != null)
+                    // A VALUE literal in a body group is a constant printable field (ISO §13.18.63); the raw
+                    // captured text (quotes included) is unwrapped at lowering time (ExtractLiteral).
+                    src = new BoundLiteralExpression(g.ValueLiteral, CobolCategory.Alphanumeric);
+                // (SUM-counter / special-register body fields are presented by later Report Writer increments.)
+                if (src != null)
                     fields.Add(new BoundReportField(g.ColumnValue, g.FieldWidth, src));
             }
         }

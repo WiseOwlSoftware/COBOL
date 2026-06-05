@@ -560,6 +560,27 @@ public sealed class IrReportPlaceField : IrInstruction
 }
 
 /// <summary>
+/// Report Writer VALUE-literal placement (ISO §13.18.63): place a constant literal string into the active
+/// report line buffer at COLUMN, truncated to the field width — a body-group field whose value is a VALUE
+/// clause rather than a SOURCE. Emitted as ReportWriterRuntime.PlaceLiteralField.
+/// </summary>
+public sealed class IrReportPlaceLiteral : IrInstruction
+{
+    public string ReportName { get; }
+    public int Column { get; }
+    public int FieldWidth { get; }
+    public string Text { get; }
+
+    public IrReportPlaceLiteral(string reportName, int column, int fieldWidth, string text)
+    {
+        ReportName = reportName;
+        Column = column;
+        FieldWidth = fieldWidth;
+        Text = text;
+    }
+}
+
+/// <summary>
 /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
 /// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
 /// trailing-space trimming. ISO §13.18.43 / §14.9.51.

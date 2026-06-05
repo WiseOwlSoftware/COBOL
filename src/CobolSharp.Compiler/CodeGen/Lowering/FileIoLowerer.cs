@@ -309,6 +309,13 @@ internal sealed class FileIoLowerer
 
             foreach (var field in line.Fields)
             {
+                // A VALUE-literal body field has no storage location — place the constant text directly.
+                if (field.Source is BoundLiteralExpression lit)
+                {
+                    block.Instructions.Add(new IrReportPlaceLiteral(reportName, field.Column, field.FieldWidth,
+                        ExtractLiteral(lit.Value?.ToString() ?? "")));
+                    continue;
+                }
                 var srcLoc = _ctx.Location.ResolveExpressionLocation(field.Source);
                 if (srcLoc == null) continue;
                 block.Instructions.Add(new IrReportPlaceField(reportName, field.Column, field.FieldWidth, srcLoc));

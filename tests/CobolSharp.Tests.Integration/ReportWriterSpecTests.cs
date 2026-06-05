@@ -336,5 +336,61 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         Assert.Equal("[AAA]", lines[1]);
         Assert.Equal("[BBB]", lines[2]);
     }
+
+    /// <summary>
+    /// §13.18.63 — a VALUE literal in a body (DETAIL) group is a constant printable field. BuildReportLines
+    /// skipped every field whose SOURCE was null, so a VALUE-literal column was dropped; it is now placed.
+    /// Here a constant "ID: " precedes a working-storage SOURCE in the same detail line.
+    /// </summary>
+    [Fact]
+    public void Detail_ValueLiteralField_IsPlaced()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWVL.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWVLOUT".
+                SELECT IN-FILE ASSIGN TO "RWVLOUT"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-ID PIC X(3) VALUE "ABC".
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT PAGE LIMIT IS 20 LINES.
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(4) VALUE "ID: ".
+                03 COLUMN 5 PICTURE X(3) SOURCE WS-ID.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var lines = Lines(stdout);
+        Assert.Equal(2, lines.Length);
+        Assert.Equal("[]", lines[0]);
+        Assert.Equal("[ID: ABC]", lines[1]);
+    }
 }
 

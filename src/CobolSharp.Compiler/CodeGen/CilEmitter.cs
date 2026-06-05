@@ -1111,6 +1111,7 @@ public sealed class CilEmitter
             // ── File I/O ──
             case IrWriteRecordFromStorage wr: _ctx.FileIo.EmitWriteRecordFromStorage(il, wr); break;
             case IrReportPlaceField rpf: _ctx.FileIo.EmitReportPlaceField(il, rpf); break;
+            case IrReportPlaceLiteral rpl: _ctx.FileIo.EmitReportPlaceLiteral(il, rpl); break;
             case IrWriteRecordVariable wrv: _ctx.FileIo.EmitWriteRecordVariable(il, wrv); break;
             case IrStoreRecordLength srl: _ctx.FileIo.EmitStoreRecordLength(il, srl); break;
             case IrSetRelativeKey srk: _ctx.FileIo.EmitSetRelativeKey(il, srk); break;

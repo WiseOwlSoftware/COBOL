@@ -115,6 +115,16 @@ public static class ReportWriterRuntime
         if (n > 0) Array.Copy(src, srcOffset, dstBuf, dst, n);
     }
 
+    /// <summary>Place a constant VALUE literal into the active line buffer at COLUMN (a body-group field whose
+    /// value is a VALUE clause rather than a SOURCE — ISO §13.18.63), left-justified, truncated to the field
+    /// width. The buffer is pre-filled with spaces by <see cref="BeginLine"/>.</summary>
+    public static void PlaceLiteralField(string reportName, int column, int fieldWidth, string text)
+    {
+        if (!_reports.TryGetValue(reportName, out var ctx)) return;
+        var bytes = System.Text.Encoding.ASCII.GetBytes(text ?? "");
+        Place(ctx.Line, column, fieldWidth, bytes, 0, bytes.Length);
+    }
+
     /// <summary>
     /// GENERATE a DETAIL group's line (§14.9.19). The detail's SOURCE fields are already in the line buffer.
     /// Performs the RWCS page mechanics first: on the chronologically first GENERATE, or after a page

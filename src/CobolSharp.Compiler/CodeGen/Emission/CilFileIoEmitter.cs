@@ -56,6 +56,21 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    /// <summary>Report Writer VALUE-literal placement: push reportName, COLUMN, field width, and the literal
+    /// text; call ReportWriterRuntime.PlaceLiteralField to copy it into the active line buffer.</summary>
+    internal void EmitReportPlaceLiteral(ILProcessor il, IrReportPlaceLiteral rpl)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, rpl.ReportName));
+        il.Append(il.Create(OpCodes.Ldc_I4, rpl.Column));
+        il.Append(il.Create(OpCodes.Ldc_I4, rpl.FieldWidth));
+        il.Append(il.Create(OpCodes.Ldstr, rpl.Text));
+        var method = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod(
+                "PlaceLiteralField",
+                new[] { typeof(string), typeof(int), typeof(int), typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     /// <summary>
     /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
     /// count read at runtime from the DEPENDING data item, without trailing-space trimming.
