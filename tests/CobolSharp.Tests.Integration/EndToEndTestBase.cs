@@ -54,11 +54,19 @@ public class EndToEndTestBase : IDisposable
         };
 
         using var process = Process.Start(psi)!;
-        string stdout = process.StandardOutput.ReadToEnd();
-        string stderr = process.StandardError.ReadToEnd();
-        process.WaitForExit(10000);
-
-        return (process.ExitCode == 0, stdout.TrimEnd(), stderr.TrimEnd());
+        // Async reads + bounded wait + kill-on-timeout: a synchronous ReadToEnd() pair can deadlock on a full
+        // pipe, and accessing ExitCode after a timed-out WaitForExit throws. A generous timeout keeps a slow
+        // process under heavy parallel test load from being mistaken for a hang (the source of the transient
+        // file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual; DEVLOG 352/355).
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(30000))
+        {
+            process.Kill();
+            process.WaitForExit(2000);
+            return (false, (stdoutTask.IsCompleted ? stdoutTask.Result : "").TrimEnd(), "Process timed out after 30s");
+        }
+        return (process.ExitCode == 0, stdoutTask.Result.TrimEnd(), stderrTask.Result.TrimEnd());
     }
 
     /// <summary>
@@ -186,10 +194,18 @@ public class EndToEndTestBase : IDisposable
         };
 
         using var process = Process.Start(psi)!;
-        string stdout = process.StandardOutput.ReadToEnd();
-        string stderr = process.StandardError.ReadToEnd();
-        process.WaitForExit(10000);
-
-        return (process.ExitCode == 0, stdout.TrimEnd(), stderr.TrimEnd());
+        // Async reads + bounded wait + kill-on-timeout: a synchronous ReadToEnd() pair can deadlock on a full
+        // pipe, and accessing ExitCode after a timed-out WaitForExit throws. A generous timeout keeps a slow
+        // process under heavy parallel test load from being mistaken for a hang (the source of the transient
+        // file-I/O guard flakes — FileIO_Start, ReadPrevious_AfterStartEqual; DEVLOG 352/355).
+        var stdoutTask = process.StandardOutput.ReadToEndAsync();
+        var stderrTask = process.StandardError.ReadToEndAsync();
+        if (!process.WaitForExit(30000))
+        {
+            process.Kill();
+            process.WaitForExit(2000);
+            return (false, (stdoutTask.IsCompleted ? stdoutTask.Result : "").TrimEnd(), "Process timed out after 30s");
+        }
+        return (process.ExitCode == 0, stdoutTask.Result.TrimEnd(), stderrTask.Result.TrimEnd());
     }
 }
