@@ -71,6 +71,23 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    /// <summary>Register a data-SOURCE field of an auto-presented group: push reportName, slot, COLUMN, width,
+    /// then the source storage location (area/offset/size); call ReportWriterRuntime.RegisterAutoDataField so
+    /// the runtime reads the live bytes when it presents the group.</summary>
+    internal void EmitReportRegisterDataField(ILProcessor il, IrReportRegisterDataField inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.ReportName));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Slot));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Column));
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.FieldWidth));
+        _ctx.Location.EmitLocationArgs(il, inst.Source); // byte[] area, int offset, int size
+        var method = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod(
+                "RegisterAutoDataField",
+                new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(byte[]), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     /// <summary>
     /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
     /// count read at runtime from the DEPENDING data item, without trailing-space trimming.

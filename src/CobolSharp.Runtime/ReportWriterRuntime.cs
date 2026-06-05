@@ -25,8 +25,12 @@ public static class ReportWriterRuntime
     {
         public int Column;
         public int Width;
-        public int Kind;       // 0 = literal, 1 = LINE-COUNTER, 2 = PAGE-COUNTER
+        public int Kind;       // 0 = literal, 1 = LINE-COUNTER, 2 = PAGE-COUNTER, 3 = data SOURCE
         public string Literal = "";
+        // Kind 3 (data SOURCE): the live storage location, read at presentation time.
+        public byte[]? SrcArea;
+        public int SrcOffset;
+        public int SrcSize;
     }
 
     // Auto-presented group slots — the RWCS presents these itself (page boundaries / report start-end),
@@ -93,6 +97,19 @@ public static class ReportWriterRuntime
     {
         if (!_reports.TryGetValue(reportName, out var ctx) || slot < 0 || slot > 3) return;
         ctx.GroupFields[slot]?.Add(new FieldPlan { Column = column, Width = width, Kind = kind, Literal = literal ?? "" });
+    }
+
+    /// <summary>Register a data-SOURCE field of an auto-presented group: the runtime keeps the live storage
+    /// location and reads its bytes when it presents the group (ISO §13.18.53).</summary>
+    public static void RegisterAutoDataField(string reportName, int slot, int column, int width,
+        byte[] area, int offset, int size)
+    {
+        if (!_reports.TryGetValue(reportName, out var ctx) || slot < 0 || slot > 3) return;
+        ctx.GroupFields[slot]?.Add(new FieldPlan
+        {
+            Column = column, Width = width, Kind = 3,
+            SrcArea = area, SrcOffset = offset, SrcSize = size,
+        });
     }
 
     /// <summary>Clear the report line buffer to spaces before a group's SOURCE fields are placed.</summary>
@@ -197,6 +214,12 @@ public static class ReportWriterRuntime
         for (int i = 0; i < buf.Length; i++) buf[i] = (byte)' ';
         foreach (var f in fields)
         {
+            if (f.Kind == 3 && f.SrcArea != null)
+            {
+                // Data SOURCE: place the live bytes from the registered storage location.
+                Place(buf, f.Column, f.Width, f.SrcArea, f.SrcOffset, f.SrcSize);
+                continue;
+            }
             string text = f.Kind switch
             {
                 1 => FormatNumeric(ctx.LineCounter, f.Width),

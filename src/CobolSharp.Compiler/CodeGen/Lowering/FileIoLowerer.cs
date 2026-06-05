@@ -251,6 +251,15 @@ internal sealed class FileIoLowerer
         {
             if (!f.HasColumn) continue;
             var (kind, literal) = ClassifyPageField(f);
+            // Data SOURCE (kind 3): register the live storage location so the runtime reads the current value
+            // when it presents the group (ISO §13.18.53), rather than a runtime-composed literal/counter field.
+            if (kind == 3 && f.SourceName != null
+                && _ctx.Semantic.ResolveData(f.SourceName) is { } srcSym
+                && _ctx.Location.ResolveLocation(srcSym) is { } srcLoc)
+            {
+                block.Instructions.Add(new IrReportRegisterDataField(reportName, slot, f.ColumnValue, f.FieldWidth, srcLoc));
+                continue;
+            }
             var frn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
             var fsl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var col = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);

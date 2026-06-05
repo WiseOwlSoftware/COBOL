@@ -581,6 +581,29 @@ public sealed class IrReportPlaceLiteral : IrInstruction
 }
 
 /// <summary>
+/// Register a data-SOURCE field of an auto-presented report group (PAGE/REPORT HEADING/FOOTING, later
+/// CONTROL HEADING/FOOTING): the runtime keeps the field's storage location (area/offset/size) and reads the
+/// live bytes at presentation time (ISO §13.18.53). Emitted at INITIATE as ReportWriterRuntime.RegisterAutoDataField.
+/// </summary>
+public sealed class IrReportRegisterDataField : IrInstruction
+{
+    public string ReportName { get; }
+    public int Slot { get; }
+    public int Column { get; }
+    public int FieldWidth { get; }
+    public IrLocation Source { get; }
+
+    public IrReportRegisterDataField(string reportName, int slot, int column, int fieldWidth, IrLocation source)
+    {
+        ReportName = reportName;
+        Slot = slot;
+        Column = column;
+        FieldWidth = fieldWidth;
+        Source = source;
+    }
+}
+
+/// <summary>
 /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
 /// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
 /// trailing-space trimming. ISO §13.18.43 / §14.9.51.

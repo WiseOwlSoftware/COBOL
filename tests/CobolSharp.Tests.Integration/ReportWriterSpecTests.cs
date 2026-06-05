@@ -457,5 +457,66 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         // RH precedes the detail; RF follows it (ISO §14.9.16.4 GR4a / §13.18.57 GR6g).
         Assert.True(iTitle < iAbc && iAbc < iEnd, $"wrong presentation order: {joined}");
     }
+
+    /// <summary>
+    /// §13.18.53 — a SOURCE of arbitrary working-storage data in an auto-presented group (PAGE HEADING here)
+    /// is read live at presentation time. ClassifyPageField returned kind 3 (blank-fill) for any non-counter
+    /// SOURCE; the auto-group field plan now keeps the storage location and the runtime reads it when it
+    /// presents the group.
+    /// </summary>
+    [Fact]
+    public void PageHeading_DataSource_IsPresented()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWPHSRC.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWPHSRCO".
+                SELECT IN-FILE ASSIGN TO "RWPHSRCO"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-HDR PIC X(5) VALUE "PAGE!".
+            01  WS-ID PIC X(3) VALUE "ABC".
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT PAGE LIMIT IS 20 LINES.
+            01  PG-HEAD TYPE IS PAGE HEADING.
+                02 LINE NUMBER IS 1.
+                   03 COLUMN 1 PICTURE X(5) SOURCE WS-HDR.
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(3) SOURCE WS-ID.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var joined = string.Join("|", Lines(stdout));
+        int iHdr = joined.IndexOf("PAGE!", StringComparison.Ordinal);
+        int iAbc = joined.IndexOf("ABC", StringComparison.Ordinal);
+        Assert.True(iHdr >= 0, $"PAGE HEADING data SOURCE not presented (was blank): {joined}");
+        Assert.True(iHdr < iAbc, $"page heading should precede the detail: {joined}");
+    }
 }
 
