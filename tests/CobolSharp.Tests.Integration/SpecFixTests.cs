@@ -326,4 +326,103 @@ public sealed class SpecFixTests : EndToEndTestBase
             "[Az] LEN=02\r\n[Bxx] LEN=03\r\n[Cwwww] LEN=05\r\n[Dyyyyyyyyy] LEN=10",
             stdout);
     }
+
+    // ISO §9.1.5(2), §8.4.6.2 — a contained program shares a containing program's FD … IS GLOBAL file
+    // connector. GFDOUT opens an indexed GLOBAL file and CALLs the contained GFDIN, which reads it by its
+    // (inherited) prime RECORD KEY without its own OPEN. The prime key lives in the global record, so it is
+    // inherited — INDEXED works once CBL0702 (file-not-open) is not fatal for a global file.
+    [Fact]
+    public void NestedProgram_ReadsContainingGlobalIndexedFile_SharesConnector()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. GFDOUT.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT IXF ASSIGN TO \"gfd.dat\"\n" +
+            "               ORGANIZATION IS INDEXED\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RECORD KEY IS IX-KEY.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD  IXF IS GLOBAL.\n" +
+            "       01  IX-REC.\n" +
+            "           05 IX-KEY  PIC X(3).\n" +
+            "           05 IX-VAL  PIC X(5).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           OPEN OUTPUT IXF.\n" +
+            "           MOVE \"A01\" TO IX-KEY.\n" +
+            "           MOVE \"HELLO\" TO IX-VAL.\n" +
+            "           WRITE IX-REC INVALID KEY DISPLAY \"WERR\".\n" +
+            "           CLOSE IXF.\n" +
+            "           OPEN INPUT IXF.\n" +
+            "           CALL \"GFDIN\".\n" +
+            "           CLOSE IXF.\n" +
+            "           STOP RUN.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. GFDIN.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       SUB-PARA.\n" +
+            "           MOVE \"A01\" TO IX-KEY.\n" +
+            "           READ IXF KEY IS IX-KEY\n" +
+            "               INVALID KEY DISPLAY \"NOTFOUND\".\n" +
+            "           DISPLAY IX-VAL.\n" +
+            "           EXIT PROGRAM.\n" +
+            "       END PROGRAM GFDIN.\n" +
+            "       END PROGRAM GFDOUT.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("HELLO", stdout);
+    }
+
+    // ISO §9.1.5(2) — same as above but RELATIVE. The RELATIVE KEY is a separate WORKING-STORAGE item, not
+    // subordinate to the global record, so the FD's GLOBAL clause does not make it global; the contained
+    // program could not resolve it. The Layer-2 fix inherits the relative-key item (sharing the container's
+    // storage) so the contained program's keyed READ drives the shared connector.
+    [Fact]
+    public void NestedProgram_ReadsContainingGlobalRelativeFile_SharesConnectorAndKey()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. GFDROUT.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT RLF ASSIGN TO \"gfdr.dat\"\n" +
+            "               ORGANIZATION IS RELATIVE\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RELATIVE KEY IS RL-KEY.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD  RLF IS GLOBAL.\n" +
+            "       01  RL-REC.\n" +
+            "           05 RL-VAL  PIC X(5).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01  RL-KEY PIC 9(2).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           OPEN OUTPUT RLF.\n" +
+            "           MOVE 2 TO RL-KEY.\n" +
+            "           MOVE \"WORLD\" TO RL-VAL.\n" +
+            "           WRITE RL-REC INVALID KEY DISPLAY \"WERR\".\n" +
+            "           CLOSE RLF.\n" +
+            "           OPEN INPUT RLF.\n" +
+            "           CALL \"GFDRIN\".\n" +
+            "           CLOSE RLF.\n" +
+            "           STOP RUN.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. GFDRIN.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       SUB-PARA.\n" +
+            "           MOVE 2 TO RL-KEY.\n" +
+            "           READ RLF\n" +
+            "               INVALID KEY DISPLAY \"NOTFOUND\".\n" +
+            "           DISPLAY RL-VAL.\n" +
+            "           EXIT PROGRAM.\n" +
+            "       END PROGRAM GFDRIN.\n" +
+            "       END PROGRAM GFDROUT.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("WORLD", stdout);
+    }
 }

@@ -205,6 +205,15 @@ public sealed class Compilation
                             if (ancestorModel.GetStorageLocation(member) is not { } loc) continue;
                             model.TryInheritGlobal(member, loc with { OwnerProgramId = ownerId });
                         }
+
+                    // The RELATIVE KEY is a separate working-storage item (not subordinate to the global
+                    // record), so the FD's GLOBAL clause does not make it a global name — but the contained
+                    // program's keyed I/O lowering must resolve it, sharing the container's storage so the
+                    // shared file connector is driven by the right relative-record number (ISO §9.1.5(2)).
+                    if (file.RelativeKey is { } rk
+                        && ancestorModel.ResolveData(rk) is { } rkSym
+                        && ancestorModel.GetStorageLocation(rkSym) is { } rkLoc)
+                        model.TryInheritGlobal(rkSym, rkLoc with { OwnerProgramId = ownerId });
                 }
             }
             ancestor = parents.TryGetValue(ancestor, out var pp) ? pp : null;
@@ -315,7 +324,13 @@ public sealed class Compilation
                 foreach (var file in ancestorModel.Symbols.Program.GlobalScope
                              .GetAllSymbols<Semantics.FileSymbol>())
                     if (file.IsGlobal)
+                    {
                         yield return file.Name;
+                        // The RELATIVE KEY item is inherited by InheritGlobalItems so the contained program's
+                        // keyed I/O can resolve it; whitelist its name too so CBL3128 does not flag it.
+                        if (file.RelativeKey is { } rk)
+                            yield return rk;
+                    }
 
                 // Data items + their members, plus the INDEXED BY index-names of any OCCURS table under a
                 // global item (ISO §8.4.5: such an index-name possesses the global attribute). Index-names

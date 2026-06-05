@@ -57,14 +57,14 @@ public static class FileStateValidator
             case BoundCloseStatement close:
                 foreach (var file in close.Files)
                 {
-                    CheckFileOpen(file.Name, line, openedFiles, diagnostics);
+                    CheckFileOpen(file, line, openedFiles, diagnostics);
                     openedFiles.Remove(file.Name);
                     CheckAndRecordStatus(file, pendingStatusCheck, line, diagnostics);
                 }
                 break;
 
             case BoundReadStatement read:
-                CheckFileOpen(read.File.Name, line, openedFiles, diagnostics);
+                CheckFileOpen(read.File, line, openedFiles, diagnostics);
                 CheckAndRecordStatus(read.File, pendingStatusCheck, line, diagnostics);
                 WalkStatements(read.AtEnd, line, openedFiles, pendingStatusCheck, diagnostics);
                 WalkStatements(read.NotAtEnd, line, openedFiles, pendingStatusCheck, diagnostics);
@@ -73,25 +73,25 @@ public static class FileStateValidator
             case BoundWriteStatement write:
                 if (write.File != null)
                 {
-                    CheckFileOpen(write.File.Name, line, openedFiles, diagnostics);
+                    CheckFileOpen(write.File, line, openedFiles, diagnostics);
                     CheckAndRecordStatus(write.File, pendingStatusCheck, line, diagnostics);
                 }
                 break;
 
             case BoundRewriteStatement rewrite:
-                CheckFileOpen(rewrite.File.Name, line, openedFiles, diagnostics);
+                CheckFileOpen(rewrite.File, line, openedFiles, diagnostics);
                 CheckAndRecordStatus(rewrite.File, pendingStatusCheck, line, diagnostics);
                 break;
 
             case BoundDeleteStatement del:
-                CheckFileOpen(del.File.Name, line, openedFiles, diagnostics);
+                CheckFileOpen(del.File, line, openedFiles, diagnostics);
                 CheckAndRecordStatus(del.File, pendingStatusCheck, line, diagnostics);
                 WalkStatements(del.InvalidKey, line, openedFiles, pendingStatusCheck, diagnostics);
                 WalkStatements(del.NotInvalidKey, line, openedFiles, pendingStatusCheck, diagnostics);
                 break;
 
             case BoundStartStatement start:
-                CheckFileOpen(start.File.Name, line, openedFiles, diagnostics);
+                CheckFileOpen(start.File, line, openedFiles, diagnostics);
                 CheckAndRecordStatus(start.File, pendingStatusCheck, line, diagnostics);
                 WalkStatements(start.InvalidKey, line, openedFiles, pendingStatusCheck, diagnostics);
                 WalkStatements(start.NotInvalidKey, line, openedFiles, pendingStatusCheck, diagnostics);
@@ -141,14 +141,18 @@ public static class FileStateValidator
 
     /// <summary>CBL0702: I/O on file that hasn't been OPENed.</summary>
     private static void CheckFileOpen(
-        string fileName, int line,
+        FileSymbol file, int line,
         HashSet<string> openedFiles,
         DiagnosticBag diagnostics)
     {
-        if (!openedFiles.Contains(fileName))
+        // A GLOBAL file may legitimately be OPENed by a containing program (ISO §9.1.5(2)); a per-program
+        // forward walk cannot see that, so CBL0702 is unsound for it. The runtime status code still surfaces a
+        // genuinely-unopened file.
+        if (file.IsGlobal) return;
+        if (!openedFiles.Contains(file.Name))
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0702,
-                SourceLocation.None, TextSpan.Empty, fileName);
+                SourceLocation.None, TextSpan.Empty, file.Name);
         }
     }
 
