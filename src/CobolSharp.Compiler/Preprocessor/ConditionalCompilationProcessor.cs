@@ -25,6 +25,18 @@ namespace CobolSharp.Compiler.Preprocessor;
 /// </summary>
 public static class ConditionalCompilationProcessor
 {
+    /// <summary>
+    /// Standard ISO §7.3 compiler directives that CobolSharp recognizes but does not yet act on. They are
+    /// consumed (the program compiles with default behavior) rather than reaching the lexer as stray tokens.
+    /// Conditional-compilation directives (DEFINE/IF/ELSE/END-IF/EVALUATE/WHEN/END-EVALUATE) and SOURCE FORMAT
+    /// (handled earlier by ReferenceFormatProcessor) are NOT in this set — they have real behavior.
+    /// </summary>
+    private static readonly HashSet<string> KnownIgnoredDirectives = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "CALL-CONVENTION", "LISTING", "PAGE", "LEAP-SECOND", "PROPAGATE",
+        "FLAG-85", "FLAG-NATIVE-ARITHMETIC", "REF-MOD-ZERO-LENGTH", "TURN", "COBOL-WORDS",
+    };
+
     public static string Process(string text)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
@@ -107,9 +119,13 @@ public static class ConditionalCompilationProcessor
                     output[i] = "";
                     break;
                 default:
-                    // An unrecognized >> directive (e.g. EVALUATE / CALL-CONVENTION — not yet handled). Leave it
-                    // in place when emitting so later stages see it; drop it when the branch is omitted.
-                    output[i] = emitting ? line : "";
+                    // A >> directive other than the conditional-compilation set handled above. If it is a
+                    // recognized ISO §7.3 directive that we do not yet act on (CALL-CONVENTION, LISTING, TURN, …),
+                    // consume it so the program still compiles with default behavior. A directive in an omitted
+                    // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
+                    // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
+                    if (!emitting) output[i] = "";
+                    else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }
         }

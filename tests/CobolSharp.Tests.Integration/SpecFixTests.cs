@@ -969,4 +969,25 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("TEEN", stdout);
     }
+
+    // ISO §7.3 — recognized compiler directives that CobolSharp does not yet act on (CALL-CONVENTION, LISTING,
+    // TURN, …) are consumed by the preprocessor so the program compiles with default behavior, instead of the
+    // ">>" reaching the lexer as stray tokens and failing to compile.
+    [Fact]
+    public void Directives_RecognizedButUnimplemented_AreIgnored()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. DIRIG.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>CALL-CONVENTION IS COBOL\n" +
+            ">>LISTING ON\n" +
+            "           DISPLAY \"HELLO\".\n" +
+            ">>TURN EC-ALL CHECKING ON\n" +
+            ">>LISTING OFF\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("HELLO", stdout);
+    }
 }
