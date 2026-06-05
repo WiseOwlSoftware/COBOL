@@ -40,7 +40,7 @@ public sealed class Compilation
         string processedText = Preprocess(sourcePath, diagnostics);
 
         // Phase 1: Lex + Parse
-        int dialectLevel = Options.Dialect == Semantics.DialectMode.Default ? 85 : (int)Options.Dialect;
+        int dialectLevel = Options.Config.ParserLevel;
         var tree = LexAndParse(processedText, sourcePath, diagnostics, dialectLevel);
         if (tree == null)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
@@ -234,7 +234,7 @@ public sealed class Compilation
         // raw placeholders (XXXXX047) resolved against the copy library directory, so expanding
         // first does not disturb them.
         var copyProcessor = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath,
-            strict: Options.Dialect != Semantics.DialectMode.Default);
+            strict: Options.Config.IsStrict);
         string expandedText = copyProcessor.Process(normalizedText, sourceDir);
 
         if (NistTestName != null)

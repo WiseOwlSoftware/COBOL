@@ -34,16 +34,11 @@ public sealed class CompilationOptions
     /// <summary>When true, emit warnings for non-standard features even in Default mode.</summary>
     public bool WarnNonStandard { get; set; }
 
-    /// <summary>True when targeting COBOL-2002 or later, where obsolete features are deleted.</summary>
-    public bool IsCobol2002OrLater => Dialect >= DialectMode.Cobol2002;
-
-    /// <summary>Display name for the current dialect (used in diagnostic messages).</summary>
-    public string DialectName => Dialect switch
-    {
-        DialectMode.StrictCobol85 => "COBOL-85",
-        DialectMode.Cobol2002 => "COBOL-2002",
-        DialectMode.Cobol2014 => "COBOL-2014",
-        DialectMode.Cobol2023 => "COBOL-2023",
-        _ => "default"
-    };
+    /// <summary>
+    /// Canonical per-version feature model resolved from <see cref="Dialect"/> — the single source of truth
+    /// for every version-conditional decision. Ask the config (<c>Config.IsStrict</c>,
+    /// <c>Config.IsCobol2002OrLater</c>, <c>Config.DisplayName</c>, <c>Config.SupportsFreeFormSource</c>, …)
+    /// rather than re-deriving <c>Dialect &gt;= …</c> at call sites. See docs/MULTIVERSION_ROADMAP.md §3.
+    /// </summary>
+    public DialectConfig Config => DialectConfig.For(Dialect);
 }

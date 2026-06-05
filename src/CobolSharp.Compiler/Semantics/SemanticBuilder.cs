@@ -793,8 +793,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                     var tok = relKeyClause.Start;
                     var loc = new Common.SourceLocation(_sourceName, 0, tok.Line, tok.Column);
                     var span = new Common.TextSpan(tok.StartIndex, relKeyClause.Stop?.StopIndex ?? tok.StopIndex);
-                    if (_options.Dialect >= DialectMode.StrictCobol85)
-                        _diagnostics.Report(DiagnosticDescriptors.CBL3613, loc, span, _options.DialectName);
+                    if (_options.Config.IsStrict)
+                        _diagnostics.Report(DiagnosticDescriptors.CBL3613, loc, span, _options.Config.DisplayName);
                     else if (_options.WarnNonStandard)
                         _diagnostics.Report(DiagnosticDescriptors.CBL3614, loc, span);
                 }
@@ -817,8 +817,8 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var tok = clause.Start;
         var loc = new Common.SourceLocation(_sourceName, 0, tok.Line, tok.Column);
         var span = new Common.TextSpan(tok.StartIndex, clause.Stop?.StopIndex ?? tok.StopIndex);
-        if (_options.Dialect >= DialectMode.StrictCobol85)
-            _diagnostics.Report(DiagnosticDescriptors.CBL3615, loc, span, _options.DialectName);
+        if (_options.Config.IsStrict)
+            _diagnostics.Report(DiagnosticDescriptors.CBL3615, loc, span, _options.Config.DisplayName);
         else if (_options.WarnNonStandard)
             _diagnostics.Report(DiagnosticDescriptors.CBL3616, loc, span);
     }
@@ -1482,7 +1482,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // symbols (its default arm), so a mixed picture like 9Q9 compiles with the Q swallowed. Flag the
         // illegal symbol. Dialect-gated to named-strict modes (staged like CBL3128) so the permissive
         // Default / --nist corpus is unaffected by construction. (DEVLOG 306)
-        if (picString != null && _options.Dialect >= DialectMode.StrictCobol85
+        if (picString != null && _options.Config.IsStrict
             && PicUsageResolver.FindIllegalPicSymbol(picString, picEnv) is { } badSym)
         {
             _diagnostics.Report(DiagnosticDescriptors.CBL0814,

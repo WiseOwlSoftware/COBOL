@@ -494,10 +494,10 @@ internal sealed class ControlFlowBinder
         // Bare GO TO (no target) — target set by ALTER at runtime
         if (procNames == null || procNames.Length == 0)
         {
-            if (_ctx.Options.IsCobol2002OrLater)
+            if (_ctx.Options.Config.IsCobol2002OrLater)
             {
                 _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3605,
-                    MakeLocation(ctx), MakeSpan(ctx), _ctx.Options.DialectName);
+                    MakeLocation(ctx), MakeSpan(ctx), _ctx.Options.Config.DisplayName);
                 return null;
             }
             _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3606,
@@ -532,10 +532,10 @@ internal sealed class ControlFlowBinder
     internal BoundAlterStatement? BindAlter(CobolParserCore.AlterStatementContext ctx)
     {
         // Dialect check: ALTER deleted from COBOL-2002+
-        if (_ctx.Options.IsCobol2002OrLater)
+        if (_ctx.Options.Config.IsCobol2002OrLater)
         {
             _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3601,
-                MakeLocation(ctx), MakeSpan(ctx), _ctx.Options.DialectName);
+                MakeLocation(ctx), MakeSpan(ctx), _ctx.Options.Config.DisplayName);
             return null;
         }
 

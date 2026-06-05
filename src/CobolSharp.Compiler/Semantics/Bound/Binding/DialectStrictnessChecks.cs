@@ -43,9 +43,9 @@ internal static class DialectStrictnessChecks
         int keyCount = phrase.GetTokens(CobolParserCore.KEY).Length;
         if (keyCount >= invalidCount) return; // every INVALID had its KEY — conformant
 
-        if (ctx.Options.Dialect >= DialectMode.StrictCobol85)
+        if (ctx.Options.Config.IsStrict)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3611,
-                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.DialectName);
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.Config.DisplayName);
         else if (ctx.Options.WarnNonStandard)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3612,
                 MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase));
@@ -61,9 +61,9 @@ internal static class DialectStrictnessChecks
     {
         if (phrase == null || phrase.COLLATING() != null) return; // absent phrase or conformant — nothing to flag
 
-        if (ctx.Options.Dialect >= DialectMode.StrictCobol85)
+        if (ctx.Options.Config.IsStrict)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3617,
-                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.DialectName);
+                MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase), ctx.Options.Config.DisplayName);
         else if (ctx.Options.WarnNonStandard)
             ctx.Diagnostics.Report(DiagnosticDescriptors.CBL3618,
                 MakeLocation(ctx.SourceName, phrase), MakeSpan(phrase));
