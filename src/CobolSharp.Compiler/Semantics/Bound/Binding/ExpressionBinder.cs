@@ -844,6 +844,10 @@ internal sealed class ExpressionBinder
                          || nextType == CobolParserCore.SIGNED_DECIMALLIT
                          || nextType == CobolParserCore.SUB_IDENTIFIER
                          || nextType == CobolParserCore.SUB_INTEGERLIT
+                         // A string or unsigned-decimal literal is never an arithmetic operand, so a space
+                         // before it always begins a new argument (e.g. CONCATENATE("ab" "cd" "ef")).
+                         || nextType == CobolParserCore.SUB_STRINGLIT
+                         || nextType == CobolParserCore.SUB_DECIMALLIT
                          || nextType == CobolParserCore.SUB_ALL))
                     {
                         segments.Add(current);

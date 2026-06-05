@@ -26,8 +26,8 @@ strictness/edge.
   (`FUNCTION SUM(T(ALL))` summed all 5 slots, not the active 3). §15.3.
 - ✅ **DONE (DEVLOG 334) — `CONCAT`** added to `BindingContext.AlphanumericFunctions` (was typed numeric →
   InvalidCastException). Test: `SpecFixTests.Concat_IsAlphanumeric_ReturnsConcatenation`.
-- **P1 — variadic string fns with SPACE-separated literal args** `CONCATENATE("AB" "CD")` returns only "AB";
-  only the comma-separated form passes all args.
+- ✅ **DONE (DEVLOG 335) — variadic string fns with SPACE-separated literal args**: added SUB_STRINGLIT/
+  SUB_DECIMALLIT to `SplitSubscriptTokens` split triggers. Test: `SpecFixTests.Concatenate_SpaceSeparatedLiteralArgs_PassesAll`.
 - **P1 — `HIGHEST-ALGEBRAIC`/`LOWEST-ALGEBRAIC`** return 0 — runtime expects a digit count but the binder passes
   the item VALUE; must derive the range from the argument PICTURE. §15.43/§15.58.
 

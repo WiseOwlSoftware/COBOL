@@ -76,4 +76,24 @@ public sealed class SpecFixTests : EndToEndTestBase
         // zero → 6-char blank field (ZZ,ZZ9); non-zero → normal edit.
         Assert.Equal("[      ]\r\n[   123]", stdout);
     }
+
+    // ISO §15 — variadic string functions accept SPACE-separated literal arguments (each space before a literal
+    // begins a new argument); previously only the first argument was passed (the rest were swallowed).
+    [Fact]
+    public void Concatenate_SpaceSeparatedLiteralArgs_PassesAll()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. VARCAT.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-X PIC X(10) VALUE SPACES.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           MOVE FUNCTION CONCATENATE(\"ab\" \"cd\" \"ef\") TO WS-X.\n" +
+            "           DISPLAY \"[\" WS-X \"]\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("[abcdef]", stdout);
+    }
 }
