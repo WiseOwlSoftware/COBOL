@@ -588,7 +588,7 @@ unstringOnOverflow
 // ==========================================
 
 inspectStatement
-    : INSPECT dataReference
+    : INSPECT BACKWARD? dataReference
       ( inspectTallyingPhrase inspectReplacingPhrase?
       | inspectReplacingPhrase
       | inspectConvertingPhrase )

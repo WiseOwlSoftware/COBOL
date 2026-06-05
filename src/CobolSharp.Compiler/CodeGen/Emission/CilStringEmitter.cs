@@ -413,10 +413,11 @@ internal sealed class CilStringEmitter
         il.Append(il.Create(OpCodes.Ldloc, patterns));
         il.Append(il.Create(OpCodes.Ldloc, befores));
         il.Append(il.Create(OpCodes.Ldloc, afters));
+        il.Append(il.Create(inspect.Backward ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));   // BACKWARD
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.InspectRuntime).GetMethod("TallyingPass",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
+                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(bool) })!)));
         il.Append(il.Create(OpCodes.Stloc, counts));
 
         // Add each operand's count into its counter field.
@@ -450,10 +451,11 @@ internal sealed class CilStringEmitter
         il.Append(il.Create(OpCodes.Ldloc, replacements));
         il.Append(il.Create(OpCodes.Ldloc, befores));
         il.Append(il.Create(OpCodes.Ldloc, afters));
+        il.Append(il.Create(inspect.Backward ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));   // BACKWARD
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.InspectRuntime).GetMethod("ReplacingPass",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor),
-                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(string[]) })!)));
+                        typeof(int[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(string[]), typeof(bool) })!)));
     }
 
     /// <summary>Build an int[] local from a per-index selector (kinds for INSPECT operands).</summary>
@@ -506,12 +508,13 @@ internal sealed class CilStringEmitter
         il.Append(il.Create(ic.BeforeInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
         EmitIrInspectPatternValueAsOptionalString(il, ic.AfterPattern);
         il.Append(il.Create(ic.AfterInitial ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));
+        il.Append(il.Create(ic.Backward ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0));   // BACKWARD
 
         var method = _ctx.Module.ImportReference(
             typeof(Runtime.InspectRuntime).GetMethod("Convert",
                 new[] { typeof(byte[]), typeof(int), typeof(int),
                     typeof(string), typeof(string),
-                    typeof(string), typeof(bool), typeof(string), typeof(bool) })!);
+                    typeof(string), typeof(bool), typeof(string), typeof(bool), typeof(bool) })!);
         il.Append(il.Create(OpCodes.Call, method));
     }
 

@@ -1063,16 +1063,20 @@ public sealed class BoundInspectStatement : BoundStatement
     public IReadOnlyList<BoundInspectTallyingItem> Tallying { get; }
     public IReadOnlyList<BoundInspectReplacingItem> Replacing { get; }
     public BoundInspectConverting? Converting { get; }
+    /// <summary>COBOL-2002 BACKWARD phrase (ISO §14.9.21): inspect right-to-left.</summary>
+    public bool Backward { get; }
 
     public BoundInspectStatement(BoundIdentifierExpression target,
         IReadOnlyList<BoundInspectTallyingItem> tallying,
         IReadOnlyList<BoundInspectReplacingItem> replacing,
-        BoundInspectConverting? converting)
+        BoundInspectConverting? converting,
+        bool backward = false)
     {
         Target = target;
         Tallying = tallying;
         Replacing = replacing;
         Converting = converting;
+        Backward = backward;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.InspectStatement;

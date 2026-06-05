@@ -150,7 +150,8 @@ internal sealed class StringStatementBinder
             converting = new BoundInspectConverting(fromSet, toSet, region);
         }
 
-        var inspectStmt = new BoundInspectStatement(targetId, tallying, replacing, converting);
+        var inspectStmt = new BoundInspectStatement(
+            targetId, tallying, replacing, converting, backward: ctx.BACKWARD() != null);
         ValidateInspectStatement(inspectStmt, ctx.Start?.Line ?? 0);
         return inspectStmt;
     }

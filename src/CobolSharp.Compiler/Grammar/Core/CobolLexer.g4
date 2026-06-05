@@ -209,6 +209,7 @@ ARE         : 'ARE' ;
 AT          : 'AT' ;
 AUTO        : 'AUTO' ;
 AUTHOR      : 'AUTHOR' ;
+BACKWARD    : 'BACKWARD' ;   // COBOL-2002 INSPECT … BACKWARD (right-to-left inspection, ISO §14.9.21)
 BEFORE      : 'BEFORE' ;
 BELL        : 'BELL' ;
 BLINK       : 'BLINK' ;

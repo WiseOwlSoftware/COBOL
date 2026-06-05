@@ -38,7 +38,7 @@ internal sealed class StringLowerer
                     LowerInspectPattern(t.Region.AfterPattern)));
             }
             if (tallyOps.Count > 0)
-                block.Instructions.Add(new IrInspectTallying(targetLoc, tallyOps));
+                block.Instructions.Add(new IrInspectTallying(targetLoc, tallyOps, stmt.Backward));
         }
 
         if (stmt.Replacing.Count > 0)
@@ -54,7 +54,7 @@ internal sealed class StringLowerer
                     LowerInspectPattern(r.Region.AfterPattern)));
             }
             if (replaceOps.Count > 0)
-                block.Instructions.Add(new IrInspectReplacing(targetLoc, replaceOps));
+                block.Instructions.Add(new IrInspectReplacing(targetLoc, replaceOps, stmt.Backward));
         }
 
         if (stmt.Converting != null)
@@ -66,7 +66,8 @@ internal sealed class StringLowerer
                 LowerInspectPattern(stmt.Converting.Region.BeforePattern),
                 stmt.Converting.Region.BeforeInitial,
                 LowerInspectPattern(stmt.Converting.Region.AfterPattern),
-                stmt.Converting.Region.AfterInitial));
+                stmt.Converting.Region.AfterInitial,
+                stmt.Backward));
         }
     }
 

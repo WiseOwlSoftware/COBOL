@@ -1438,10 +1438,12 @@ public sealed class IrInspectTallying : IrInstruction
 {
     public IrLocation Target { get; }
     public IReadOnlyList<IrInspectTallyOp> Ops { get; }
+    /// <summary>BACKWARD phrase (ISO §14.9.21): tally right-to-left.</summary>
+    public bool Backward { get; }
 
-    public IrInspectTallying(IrLocation target, IReadOnlyList<IrInspectTallyOp> ops)
+    public IrInspectTallying(IrLocation target, IReadOnlyList<IrInspectTallyOp> ops, bool backward = false)
     {
-        Target = target; Ops = ops;
+        Target = target; Ops = ops; Backward = backward;
     }
 }
 
@@ -1471,10 +1473,12 @@ public sealed class IrInspectReplacing : IrInstruction
 {
     public IrLocation Target { get; }
     public IReadOnlyList<IrInspectReplaceOp> Ops { get; }
+    /// <summary>BACKWARD phrase (ISO §14.9.21): replace right-to-left.</summary>
+    public bool Backward { get; }
 
-    public IrInspectReplacing(IrLocation target, IReadOnlyList<IrInspectReplaceOp> ops)
+    public IrInspectReplacing(IrLocation target, IReadOnlyList<IrInspectReplaceOp> ops, bool backward = false)
     {
-        Target = target; Ops = ops;
+        Target = target; Ops = ops; Backward = backward;
     }
 }
 
@@ -1487,15 +1491,19 @@ public sealed class IrInspectConvert : IrInstruction
     public bool BeforeInitial { get; }
     public IrInspectPatternValue? AfterPattern { get; }
     public bool AfterInitial { get; }
+    /// <summary>BACKWARD phrase (ISO §14.9.21): convert scanning right-to-left.</summary>
+    public bool Backward { get; }
 
     public IrInspectConvert(IrLocation target,
         IrInspectPatternValue fromSet, IrInspectPatternValue toSet,
         IrInspectPatternValue? beforePattern, bool beforeInitial,
-        IrInspectPatternValue? afterPattern, bool afterInitial)
+        IrInspectPatternValue? afterPattern, bool afterInitial,
+        bool backward = false)
     {
         Target = target; FromSet = fromSet; ToSet = toSet;
         BeforePattern = beforePattern; BeforeInitial = beforeInitial;
         AfterPattern = afterPattern; AfterInitial = afterInitial;
+        Backward = backward;
     }
 }
 

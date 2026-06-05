@@ -129,8 +129,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☐ 🐛 **M2-PROC-1 — `INITIALIZE … TO VALUE` / `THEN TO DEFAULT` / `WITH FILLER`.** **[A] medium (phrases dropped →
   wrong result)**, **medium**. *Recipe:* honour VALUE-init, category-default, and FILLER inclusion in the
   INITIALIZE lowering. §14.9.20.
-- ☐ **M2-PROC-2 — `INSPECT … BACKWARD`.** [A] medium, **small**. *Recipe:* a `BACKWARD` token + a backward flag
-  → right-to-left scan in the INSPECT runtime. §14.9.
+- ☑ **M2-PROC-2 — `INSPECT … BACKWARD` (DONE — DEVLOG 378).** §14.9.21. New `BACKWARD` reserved word +
+  grammar `INSPECT BACKWARD? …` + a `bool Backward` threaded Bound→IR→emit→runtime. Implemented as a
+  reverse-wrapper: reverse the target + every multi-char operand/delimiter, run the existing forward
+  TALLYING/REPLACING/CONVERTING cycle, reverse the result buffer back (TALLYING needs none; FROM/TO sets
+  unreversed). Verified backward = exact forward mirror (FIRST→rightmost, LEADING→trailing-run, BEFORE-region
+  flips side). Conformance `tests/conformance/2002/inspect_backward`.
 - ☐ **M2-PROC-3 — `VALIDATE` statement + validation clauses.** CLASS/DEFAULT/DESTINATION/INVALID/PRESENT WHEN/
   VARYING + error handling. *Large (new facility).* §14.9 VALIDATE, §13.
 - ☐ **M2-PROC-4 — Exception handling: `RAISE`, EC framework, `>>TURN` runtime checking, `RESUME`,

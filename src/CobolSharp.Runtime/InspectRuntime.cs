@@ -24,6 +24,30 @@ public static class InspectRuntime
     private const int TallyAll = 0, TallyLeading = 1, TallyCharacters = 2;
     private const int ReplaceAll = 0, ReplaceFirst = 1, ReplaceLeading = 2, ReplaceCharacters = 3;
 
+    // ── BACKWARD support (ISO §14.9.21, COBOL-2002) ──
+    // BACKWARD inspection proceeds right-to-left. It is realized as a reverse-wrapper: scanning the
+    // ORIGINAL right-to-left is equivalent to scanning the REVERSED string left-to-right, provided
+    // each multi-character operand and delimiter is also reversed (so that "AB" read right-to-left
+    // matches "BA" forward). BEFORE/AFTER roles are preserved under reversal — the region "before the
+    // first match" found scanning backward is exactly "before the first match" in the reversed-forward
+    // frame. So the existing forward passes run unchanged on the reversed inputs; REPLACING/CONVERTING
+    // reverse the result buffer back, while TALLYING needs no un-reverse (per-operand counts are
+    // direction-independent). FROM/TO sets for CONVERTING are positional char maps and are NOT reversed.
+    private static string Reverse(string s)
+    {
+        var a = s.ToCharArray();
+        Array.Reverse(a);
+        return new string(a);
+    }
+
+    private static string?[] ReverseEach(string?[] arr)
+    {
+        var r = new string?[arr.Length];
+        for (int i = 0; i < arr.Length; i++)
+            r[i] = arr[i] is { Length: > 0 } s ? Reverse(s) : arr[i];
+        return r;
+    }
+
     /// <summary>
     /// Compute the scan region [start, end) within the field, applying BEFORE/AFTER delimiters.
     /// </summary>
@@ -62,9 +86,18 @@ public static class InspectRuntime
     public static int[] TallyingPass(
         byte[] area, int offset, int length, PicDescriptor targetPic,
         int[] kinds, string?[] patterns,
-        string?[] befores, string?[] afters)
+        string?[] befores, string?[] afters, bool backward = false)
     {
         string text = ReadInspectTarget(area, offset, length, targetPic);
+        if (backward)
+        {
+            // Scan right-to-left ≡ scan the reversed text left-to-right (counts are direction-independent,
+            // so no result un-reversal is needed — only the per-operand patterns/delimiters are reversed).
+            text = Reverse(text);
+            patterns = ReverseEach(patterns);
+            befores = ReverseEach(befores);
+            afters = ReverseEach(afters);
+        }
         int n = kinds.Length;
         var counts = new int[n];
         var regionStart = new int[n];
@@ -177,8 +210,18 @@ public static class InspectRuntime
     public static void ReplacingPass(
         byte[] area, int offset, int length, PicDescriptor targetPic,
         int[] kinds, string?[] patterns, string?[] replacements,
-        string?[] befores, string?[] afters)
+        string?[] befores, string?[] afters, bool backward = false)
     {
+        if (backward)
+        {
+            // BACKWARD: reverse the per-operand patterns/replacements/delimiters once here; each path
+            // below reverses its own working buffer before the cycle and reverses it back afterward.
+            patterns = ReverseEach(patterns);
+            replacements = ReverseEach(replacements);
+            befores = ReverseEach(befores);
+            afters = ReverseEach(afters);
+        }
+
         bool signedNumeric = targetPic.IsNumeric && targetPic.IsSigned
             && targetPic.Usage == UsageKind.Display && !targetPic.HasEditing;
 
@@ -191,7 +234,9 @@ public static class InspectRuntime
             var chars = PicRuntime.FormatNumericForDisplay(
                 Math.Abs(original), fractionScale, targetPic.TotalDigits).ToCharArray();
 
+            if (backward) Array.Reverse(chars);
             RunReplaceCycle(new string(chars), chars, kinds, patterns, replacements, befores, afters);
+            if (backward) Array.Reverse(chars);
 
             // Re-encode the (possibly modified) digits with the retained sign. If the
             // replacement left a non-digit, the result is not a valid number — leave the
@@ -209,8 +254,10 @@ public static class InspectRuntime
         }
 
         string text = Encoding.ASCII.GetString(area, offset, length);
+        if (backward) text = Reverse(text);
         var rawChars = text.ToCharArray();
         RunReplaceCycle(text, rawChars, kinds, patterns, replacements, befores, afters);
+        if (backward) Array.Reverse(rawChars);
         byte[] result = Encoding.ASCII.GetBytes(rawChars);
         Array.Copy(result, 0, area, offset, length);
     }
@@ -323,9 +370,18 @@ public static class InspectRuntime
         byte[] area, int offset, int length,
         string fromSet, string toSet,
         string? beforePattern, bool beforeInitial,
-        string? afterPattern, bool afterInitial)
+        string? afterPattern, bool afterInitial, bool backward = false)
     {
         string text = Encoding.ASCII.GetString(area, offset, length);
+        if (backward)
+        {
+            // BACKWARD: reverse text + the BEFORE/AFTER delimiters and convert in the reversed-forward
+            // frame, then reverse the result back. fromSet/toSet are positional char maps (each character
+            // maps independently of scan direction), so they are NOT reversed.
+            text = Reverse(text);
+            if (beforePattern is { Length: > 0 }) beforePattern = Reverse(beforePattern);
+            if (afterPattern is { Length: > 0 }) afterPattern = Reverse(afterPattern);
+        }
         var (start, end) = ComputeRegion(text, beforePattern, afterPattern);
 
         int mapLen = Math.Min(fromSet.Length, toSet.Length);
@@ -338,6 +394,7 @@ public static class InspectRuntime
                 chars[i] = toSet[mapIdx];
         }
 
+        if (backward) Array.Reverse(chars);
         byte[] result = Encoding.ASCII.GetBytes(chars);
         Array.Copy(result, 0, area, offset, length);
     }
