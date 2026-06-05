@@ -115,12 +115,24 @@ public sealed class DataSymbol : Symbol
     /// USAGE INDEX/COMP-1/COMP-2 items without children are elementary, not groups.</summary>
     public bool IsGroup => PicString == null
         && !(Usage == Runtime.UsageKind.Index && Children.Count == 0)
-        && !(Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0);
+        && !(Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0)
+        && !(IsFixedWidthBinary && Children.Count == 0);
 
-    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX/COMP-1/COMP-2 without children).</summary>
+    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX/COMP-1/COMP-2/BINARY-* without children).</summary>
     public bool IsElementary => PicString != null
         || (Usage == Runtime.UsageKind.Index && Children.Count == 0)
-        || (Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0);
+        || (Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0)
+        || (IsFixedWidthBinary && Children.Count == 0);
+
+    /// <summary>True for the COBOL-2002 no-PIC fixed-width binary usages (BINARY-CHAR/SHORT/LONG/DOUBLE).</summary>
+    public bool IsFixedWidthBinary => Usage is Runtime.UsageKind.BinaryChar
+        or Runtime.UsageKind.BinaryShort or Runtime.UsageKind.BinaryLong or Runtime.UsageKind.BinaryDouble;
+
+    /// <summary>
+    /// UNSIGNED phrase on a BINARY-* usage (ISO §13.18.60). Default is SIGNED; UNSIGNED widens the
+    /// positive range and removes the sign bit. Only meaningful when <see cref="IsFixedWidthBinary"/>.
+    /// </summary>
+    public bool IsUnsignedBinary { get; set; }
 
     /// <summary>Which DATA DIVISION storage area this item belongs to (WORKING-STORAGE, FILE SECTION, etc.).</summary>
     public StorageAreaKind Area { get; set; }

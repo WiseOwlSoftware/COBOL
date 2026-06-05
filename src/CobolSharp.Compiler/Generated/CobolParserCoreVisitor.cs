@@ -1311,6 +1311,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitUsageKeyword([NotNull] CobolParserCore.UsageKeywordContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.binarySign"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBinarySign([NotNull] CobolParserCore.BinarySignContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.occursClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

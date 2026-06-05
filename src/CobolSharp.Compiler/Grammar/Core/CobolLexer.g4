@@ -123,6 +123,12 @@ FILE_CONTROL    : 'FILE-CONTROL' ;
 I_O_CONTROL     : 'I-O-CONTROL' ;
 I_O             : 'I-O' ;
 PACKED_DECIMAL  : 'PACKED-DECIMAL' ;
+// COBOL-2002 fixed-width binary usages (ISO §13.18.60). Must precede BINARY/IDENTIFIER; maximal munch
+// matches the full 'BINARY-xxx' over the shorter 'BINARY' token.
+BINARY_CHAR     : 'BINARY-CHAR' ;
+BINARY_SHORT    : 'BINARY-SHORT' ;
+BINARY_LONG     : 'BINARY-LONG' ;
+BINARY_DOUBLE   : 'BINARY-DOUBLE' ;
 // BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
@@ -424,6 +430,8 @@ SEPARATE    : 'SEPARATE' ;
 SEQUENCE    : 'SEQUENCE' ;
 SEQUENTIAL  : 'SEQUENTIAL' ;
 SIGN        : 'SIGN' ;
+SIGNED      : 'SIGNED' ;     // COBOL-2002 BINARY-xxx SIGNED (ISO §13.18.60); longest-match beats SIGN
+UNSIGNED    : 'UNSIGNED' ;   // COBOL-2002 BINARY-xxx UNSIGNED
 SIZE        : 'SIZE' ;
 SOURCE      : 'SOURCE' ;
 STANDARD_1  : 'STANDARD-1' ;

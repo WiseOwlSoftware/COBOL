@@ -249,9 +249,10 @@ pictureClause
     : PIC PIC_STRING
     ;
 
-// USAGE Clause
+// USAGE Clause. The optional binarySign applies to the COBOL-2002 BINARY-CHAR/SHORT/LONG/DOUBLE usages
+// (ISO §13.18.60); it is grammatically tolerated after any usageKeyword and ignored for non-binary ones.
 usageClause
-    : USAGE IS? usageKeyword        // full form: USAGE IS DISPLAY
+    : USAGE IS? usageKeyword binarySign?   // full form: USAGE IS DISPLAY  /  USAGE IS BINARY-CHAR SIGNED
     | DISPLAY                        // bare keyword forms (no USAGE prefix)
     | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
     | COMPUTATIONAL_1
@@ -268,6 +269,7 @@ usageClause
     | FLOAT_SHORT
     | FLOAT_LONG
     | FLOAT_EXTENDED
+    | (BINARY_CHAR | BINARY_SHORT | BINARY_LONG | BINARY_DOUBLE) binarySign?   // bare BINARY-xxx [SIGNED|UNSIGNED]
     | BINARY
     | PACKED_DECIMAL
     | INDEX
@@ -290,9 +292,19 @@ usageKeyword
     | FLOAT_SHORT
     | FLOAT_LONG
     | FLOAT_EXTENDED
+    | BINARY_CHAR
+    | BINARY_SHORT
+    | BINARY_LONG
+    | BINARY_DOUBLE
     | BINARY
     | PACKED_DECIMAL
     | INDEX
+    ;
+
+// SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).
+binarySign
+    : SIGNED
+    | UNSIGNED
     ;
 
 // OCCURS Clause

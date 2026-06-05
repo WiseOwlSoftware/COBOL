@@ -1710,6 +1710,9 @@ public static class PicRuntime
     {
         long raw = length switch
         {
+            // 1-byte form (BINARY-CHAR): no PIC'd COMP-5 is ever 1 byte, but the COBOL-2002 fixed-width
+            // BINARY-CHAR usage is. Signed → sbyte two's-complement (-128..127); unsigned → 0..255.
+            1 => pic.IsSigned ? (sbyte)area[offset] : area[offset],
             2 => pic.IsSigned
                 ? BinaryPrimitives.ReadInt16LittleEndian(area.AsSpan(offset, 2))
                 : (long)BinaryPrimitives.ReadUInt16LittleEndian(area.AsSpan(offset, 2)),
@@ -1819,6 +1822,10 @@ public static class PicRuntime
 
         switch (length)
         {
+            case 1:
+                // BINARY-CHAR: low byte of the two's-complement value (signed sbyte or unsigned byte).
+                area[offset] = (byte)raw;
+                break;
             case 2:
                 BinaryPrimitives.WriteInt16LittleEndian(
                     area.AsSpan(offset, 2), (short)raw);
@@ -2128,6 +2135,9 @@ public static class PicRuntime
 
                 return destPic.StorageLength switch
                 {
+                    1 => destPic.IsSigned
+                        ? (raw < sbyte.MinValue || raw > sbyte.MaxValue)
+                        : (raw < 0 || raw > byte.MaxValue),
                     2 => destPic.IsSigned
                         ? (raw < short.MinValue || raw > short.MaxValue)
                         : (raw < 0 || raw > ushort.MaxValue),

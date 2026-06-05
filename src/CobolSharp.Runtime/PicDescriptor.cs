@@ -200,4 +200,16 @@ public enum UsageKind
     Unknown = 10,
     /// <summary>COMP-5 / COMPUTATIONAL-5 — native binary (little-endian, full binary capacity).</summary>
     Comp5 = 11,
+    // ── COBOL-2002 fixed-width binary usages (ISO §13.18.60) ──
+    // Compiler-side markers only: they select a fixed byte width (and SIGNED/UNSIGNED range), then
+    // are synthesized into a COMP-5 PicDescriptor (binary-capacity semantics) for the runtime, which
+    // never sees these values directly. Signed by default; UNSIGNED widens the positive range.
+    /// <summary>BINARY-CHAR — 1-byte two's-complement integer (signed -128..127 / unsigned 0..255).</summary>
+    BinaryChar = 12,
+    /// <summary>BINARY-SHORT — 2-byte two's-complement integer.</summary>
+    BinaryShort = 13,
+    /// <summary>BINARY-LONG — 4-byte two's-complement integer.</summary>
+    BinaryLong = 14,
+    /// <summary>BINARY-DOUBLE — 8-byte two's-complement integer.</summary>
+    BinaryDouble = 15,
 }

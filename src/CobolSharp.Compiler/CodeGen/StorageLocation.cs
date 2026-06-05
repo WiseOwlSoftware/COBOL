@@ -84,6 +84,39 @@ public static class CompilerPicDescriptorFactory
                 environment: env);
         }
 
+        // COBOL-2002 fixed-width binary usages (BINARY-CHAR/SHORT/LONG/DOUBLE) have no PIC clause.
+        // They are realized as native binary (= COMP-5 at runtime: full binary capacity, not digit-limited),
+        // with a fixed byte width and SIGNED (default) / UNSIGNED range. Synthesize a COMP-5 descriptor so the
+        // existing binary decode/encode/overflow path handles them; TotalDigits drives DISPLAY width only.
+        if (symbol.IsFixedWidthBinary)
+        {
+            bool signed = !symbol.IsUnsignedBinary;
+            int digits = symbol.Usage switch
+            {
+                UsageKind.BinaryChar  => 3,                 // 127 / 255
+                UsageKind.BinaryShort => 5,                 // 32767 / 65535
+                UsageKind.BinaryLong  => 10,                // 2147483647 / 4294967295
+                _                     => signed ? 19 : 20,  // BinaryDouble: 9.2e18 / 1.8e19
+            };
+            return new PicDescriptor(
+                totalDigits: digits,
+                fractionDigits: 0,
+                isSigned: signed,
+                isNumeric: true,
+                isAlphanumeric: false,
+                hasEditing: false,
+                storageLength: storageLength,
+                usage: UsageKind.Comp5,             // runtime treats as binary-capacity native integer
+                category: CobolCategory.Numeric,
+                signStorage: SignStorageKind.None,
+                editing: EditingKind.None,
+                blankWhenZero: false,
+                leadingScaleDigits: 0,
+                trailingScaleDigits: 0,
+                editPattern: null,
+                environment: env);
+        }
+
         // COMP-1 (4-byte float) and COMP-2 (8-byte double) have no PIC clause.
         // Synthesize a numeric descriptor so arithmetic and MOVE routing works correctly.
         if (symbol.Usage == UsageKind.Comp1)

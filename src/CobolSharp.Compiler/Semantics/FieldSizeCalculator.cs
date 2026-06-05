@@ -29,6 +29,12 @@ public static class FieldSizeCalculator
         if (data.Usage == UsageKind.Comp1) return 4;
         if (data.Usage == UsageKind.Comp2) return 8;
 
+        // COBOL-2002 fixed-width binary usages (no PIC) — ISO §13.18.60.
+        if (data.Usage == UsageKind.BinaryChar) return 1;
+        if (data.Usage == UsageKind.BinaryShort) return 2;
+        if (data.Usage == UsageKind.BinaryLong) return 4;
+        if (data.Usage == UsageKind.BinaryDouble) return 8;
+
         var pic = data.ResolvedType?.Pic;
         if (pic == null || pic.Length <= 0) return 1;
 

@@ -32,8 +32,11 @@ public static class PicUsageResolver
         bool isAlpha = category.IsAlphanumericLike();
         bool isBool = false;
 
-        // COMP-1 (single float) and COMP-2 (double float) have no PIC clause but are numeric
-        if (picString == null && usage is UsageKind.Comp1 or UsageKind.Comp2)
+        // COMP-1/COMP-2 (float) and the COBOL-2002 fixed-width binary usages (BINARY-CHAR/SHORT/LONG/
+        // DOUBLE) have no PIC clause but are numeric.
+        if (picString == null && usage is UsageKind.Comp1 or UsageKind.Comp2
+            or UsageKind.BinaryChar or UsageKind.BinaryShort
+            or UsageKind.BinaryLong or UsageKind.BinaryDouble)
         {
             isNumeric = true;
             category = CobolCategory.Numeric;
@@ -149,6 +152,11 @@ public static class UsageMapper
             "COMP-3" or "COMPUTATIONAL-3" => UsageKind.Comp3,
             "COMP-4" or "COMPUTATIONAL-4" => UsageKind.Binary,
             "COMP-5" or "COMPUTATIONAL-5" => UsageKind.Comp5,
+            // COBOL-2002 fixed-width binary usages (ISO §13.18.60); SIGNED/UNSIGNED handled separately.
+            "BINARY-CHAR" => UsageKind.BinaryChar,
+            "BINARY-SHORT" => UsageKind.BinaryShort,
+            "BINARY-LONG" => UsageKind.BinaryLong,
+            "BINARY-DOUBLE" => UsageKind.BinaryDouble,
             "BINARY" => UsageKind.Binary,
             "PACKED-DECIMAL" => UsageKind.PackedDecimal,
             "INDEX" => UsageKind.Index,

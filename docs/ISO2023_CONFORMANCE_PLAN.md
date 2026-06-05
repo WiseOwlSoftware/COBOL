@@ -94,9 +94,13 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.2 M2 — Data types
 
-- ☐ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/BINARY-SHORT/BINARY-LONG/BINARY-DOUBLE [SIGNED|UNSIGNED]`.** **[A] HIGH
-  (silent mis-typing today)**, **medium**. *Recipe:* lexer tokens + `usageClause` alts + a `UsageKind` mapping to
-  1/2/4/8-byte two's-complement (reuse the COMP-5/native-binary emission path).
+- ☑ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED|UNSIGNED]` (DONE — DEVLOG 380).** §13.18.60.
+  4 new `UsageKind` markers (BinaryChar/Short/Long/Double) + `SIGNED`/`UNSIGNED` reserved words + `binarySign`
+  grammar; FieldSizeCalculator 1/2/4/8 bytes; `StorageLocation` synthesizes a COMP-5 descriptor (explicit width
+  + TotalDigits 3/5/10/19-or-20 + sign); `DataSymbol.IsUnsignedBinary`/`IsFixedWidthBinary`; PicUsageResolver/
+  RecordLayoutBuilder/SemanticBuilder threaded. Runtime COMP-5 codec extended to 1-byte (sbyte/byte) — no PIC'd
+  COMP-5 is ever 1 byte. Verified BC=127/-128, BCU=255, full-width SHORT/LONG/DOUBLE, COMPUTE. Conformance
+  `tests/conformance/2002/binary_usage`.
 - ☑ **M2-DATA-2 — `USAGE FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED` (DONE — DEVLOG 376, 377).** Aliased onto
   COMP-1/COMP-2 (3 edits each: lexer tokens + usageKeyword/bare-form alts + `UsageMapper.FromUsageKeyword`
   FLOAT-SHORT→Comp1 / FLOAT-LONG→Comp2 / FLOAT-EXTENDED→Comp2). FLOAT-EXTENDED maps to double (.NET has no
