@@ -990,4 +990,41 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("HELLO", stdout);
     }
+
+    // ISO §11.9 (COBOL-2002) — the OPTIONS paragraph in the IDENTIFICATION DIVISION. Its clauses (ARITHMETIC,
+    // DEFAULT ROUNDED, …) are accepted/consumed so the source compiles; their semantics are a documented
+    // follow-up. Previously the clauses failed to parse ("unexpected 'IS'").
+    [Fact]
+    public void OptionsParagraph_IsAccepted()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. OPTTEST.\n" +
+            "       OPTIONS.\n" +
+            "           ARITHMETIC IS STANDARD\n" +
+            "           DEFAULT ROUNDED MODE IS NEAREST-EVEN.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           DISPLAY \"OPTOK\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("OPTOK", stdout);
+    }
+
+    // ISO §11.9.3 — the terminating period is required only if a clause is present; a bare "OPTIONS." header
+    // (no clauses) is also valid and must parse.
+    [Fact]
+    public void OptionsParagraph_BareHeader_IsAccepted()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. OPTBARE.\n" +
+            "       OPTIONS.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           DISPLAY \"BARE\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("BARE", stdout);
+    }
 }

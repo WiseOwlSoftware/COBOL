@@ -155,13 +155,27 @@ dataReferenceAttribute
 // ------------------------------------------
 
 identificationParagraph
-    : authorParagraph
+    : optionsParagraph
+    | authorParagraph
     | installationParagraph
     | dateWrittenParagraph
     | dateCompiledParagraph
     | securityParagraph
     | remarksParagraph
     | genericIdentificationParagraph
+    ;
+
+// OPTIONS paragraph (COBOL-2002, ISO §11.9). Its clauses — ARITHMETIC, DEFAULT ROUNDED, ENTRY-CONVENTION,
+// FLOAT-BINARY/DECIMAL, INITIALIZE, INTERMEDIATE ROUNDING — are accepted but not yet APPLIED (a documented
+// WS-2002 follow-up). For now the whole paragraph is consumed so a 2002 source that specifies it compiles with
+// default behavior. The clause tokens carry no embedded periods, so they are swallowed up to the terminating
+// separator period (which is required only if any clause is present; §11.9.3).
+optionsParagraph
+    : OPTIONS DOT (optionsContent DOT)?
+    ;
+
+optionsContent
+    : ~DOT+
     ;
 
 // AUTHOR.

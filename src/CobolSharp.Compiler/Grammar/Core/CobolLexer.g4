@@ -350,6 +350,7 @@ ON          : 'ON' ;
 OR          : 'OR' ;
 OMITTED     : 'OMITTED' ;
 OPTIONAL    : 'OPTIONAL' ;
+OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)
 ORGANIZATION: 'ORGANIZATION' ;
 OTHER       : 'OTHER' ;
 OUTPUT      : 'OUTPUT' ;
