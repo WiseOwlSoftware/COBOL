@@ -1066,4 +1066,45 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("RESULT=0042", stdout);
     }
+
+    // ISO §12.3.8 (COBOL-2002) — the REPOSITORY paragraph. `FUNCTION ALL INTRINSIC` is the ubiquitous form.
+    // Accepted/parsed (its specifiers aren't bound yet — a WS-2002-UDF follow-up); previously failed to compile.
+    [Fact]
+    public void Repository_FunctionAllIntrinsic_IsAccepted()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. REPTEST.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       CONFIGURATION SECTION.\n" +
+            "       REPOSITORY.\n" +
+            "           FUNCTION ALL INTRINSIC.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           DISPLAY \"REPOK\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("REPOK", stdout);
+    }
+
+    // ISO §12.3.8 — multiple REPOSITORY entries (a named intrinsic specifier and a user-function-prototype name),
+    // with one terminating period for the paragraph.
+    [Fact]
+    public void Repository_MultipleEntries_IsAccepted()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. REPTEST2.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       CONFIGURATION SECTION.\n" +
+            "       REPOSITORY.\n" +
+            "           FUNCTION SQRT INTRINSIC\n" +
+            "           FUNCTION MY-FUNC.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           DISPLAY \"REP2\".\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("REP2", stdout);
+    }
 }

@@ -259,7 +259,23 @@ configurationParagraph
     : sourceComputerParagraph
     | objectComputerParagraph
     | specialNamesParagraph
+    | repositoryParagraph
     | vendorConfigurationParagraph
+    ;
+
+// REPOSITORY paragraph (COBOL-2002, ISO §12.3.8) — declares the functions a source element references. Accepted
+// (parsed) but its specifiers are not yet bound: `FUNCTION ALL INTRINSIC` and user-function declarations are a
+// WS-2002-UDF follow-up (the function-prototype binding + `FUNCTION user-name(args)` invocation). Each entry
+// starts with the FUNCTION specifier keyword, so the rule cannot over-run into the next section; an optional
+// period after each entry tolerates both the one-period-per-paragraph and period-per-entry styles. The `AS
+// external-name` phrase is deferred (avoids reserving AS as a keyword).
+repositoryParagraph
+    : REPOSITORY DOT (repositoryEntry DOT?)*
+    ;
+
+repositoryEntry
+    : FUNCTION ALL INTRINSIC
+    | FUNCTION functionName INTRINSIC?
     ;
 
 // SOURCE-COMPUTER.
