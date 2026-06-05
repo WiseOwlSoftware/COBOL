@@ -19,6 +19,8 @@ public class RelativeFileHandler : IFileHandler
     private readonly int _relativeKeyDigits;   // digit capacity of the RELATIVE KEY (0 = unknown)
     private SortedDictionary<int, byte[]>? _records;  // occupied slots; null when closed
     private int _currentRecord;                // last slot read/positioned (0 = none)
+    private int _startFpiSlot;                 // the slot the most recent START matched (the file position indicator)
+    private bool _startPositioned;             // true right after START: the next directional READ returns the FPI record inclusively
     private int _pendingKey;                   // relative key value for the next keyed WRITE/REWRITE/DELETE
     private int _lastRecordLength;             // actual length of the most recently read record
     private FileOpenMode _openMode;
@@ -74,6 +76,7 @@ public class RelativeFileHandler : IFileHandler
         if (IsOpen) return FileStatus.FileAlreadyOpen;
         _openMode = mode;
         _currentRecord = 0;
+        _startPositioned = false;
         _dataFilePath = ExternalName;
         _records = new SortedDictionary<int, byte[]>();
 
@@ -238,6 +241,7 @@ public class RelativeFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode is FileOpenMode.Output or FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
+        _startPositioned = false; // a READ NEXT consumes the START position (the slot-1 hack already makes it inclusive)
 
         // The next occupied slot after the current position (READ NEXT skips gaps; ISO §14.9.30).
         foreach (var kv in _records!)
@@ -260,10 +264,28 @@ public class RelativeFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode is FileOpenMode.Output or FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
+
+        // First reverse read after START: the file position indicator is the record satisfying the START
+        // condition; READ PREVIOUS returns that record itself (inclusive), not its predecessor (ISO §14.9.30
+        // GR21 d.2). The slot-1 NEXT hack would otherwise skip both the FPI and its neighbour.
+        if (_startPositioned && _records!.TryGetValue(_startFpiSlot, out var fpiRec))
+        {
+            _startPositioned = false;
+            _currentRecord = _startFpiSlot;
+            _lastRecordLength = fpiRec.Length;
+            CopyToBuffer(fpiRec, recordBuffer);
+            return FileStatus.Success;
+        }
+        _startPositioned = false;
+
+        // No file position indicator established (the previous operation was OPEN) — READ PREVIOUS raises the
+        // at-end condition rather than returning the last record (ISO §14.9.30 GR21 d.1, §9.1.13).
+        if (_currentRecord == 0) return FileStatus.AtEnd;
+
         int best = 0;
         foreach (var k in _records!.Keys)
         {
-            if (_currentRecord != 0 && k >= _currentRecord) break;
+            if (k >= _currentRecord) break;
             best = k;
         }
         if (best == 0) return FileStatus.AtEnd;
@@ -279,6 +301,7 @@ public class RelativeFileHandler : IFileHandler
         if (!IsOpen) return FileStatus.ReadNotOpenForInput;
         if (_openMode is FileOpenMode.Output or FileOpenMode.Extend)
             return FileStatus.ReadNotOpenForInput;
+        _startPositioned = false; // a keyed READ establishes its own position
         // The relative record number is the pending key, decoded PIC-aware by the compiler before the
         // read (the byte form in keyValue would mis-decode a USAGE COMP relative key).
         int slot = _pendingKey;
@@ -390,7 +413,16 @@ public class RelativeFileHandler : IFileHandler
                 StartCondition.LessThanOrEqual => slot <= target,
                 _ => false
             };
-            if (matches) { _currentRecord = slot - 1; return FileStatus.Success; }
+            if (matches)
+            {
+                // _currentRecord = slot - 1 makes the next READ NEXT return `slot` (the FPI). For READ PREVIOUS
+                // we also remember the FPI slot itself: the first reverse read after START returns the FPI record
+                // inclusively, not its predecessor (ISO §14.9.30 GR21 d.2).
+                _currentRecord = slot - 1;
+                _startFpiSlot = slot;
+                _startPositioned = true;
+                return FileStatus.Success;
+            }
         }
         return FileStatus.RecordNotFound; // 23
     }

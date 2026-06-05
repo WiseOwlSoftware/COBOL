@@ -648,4 +648,96 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("GOT 20", stdout);   // the equal key, not its predecessor (10)
     }
+
+    // ISO §14.9.30 GR21 d.1 — the RELATIVE-file analog of ReadPrevious_AfterOpen_RaisesAtEnd: a READ PREVIOUS
+    // immediately after OPEN INPUT (no file position indicator established) raises AT END (status 10) instead of
+    // returning the highest-numbered relative record.
+    [Fact]
+    public void ReadPrevious_Relative_AfterOpen_RaisesAtEnd()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. RDPREVR1.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"rpr1.dat\"\n" +
+            "               ORGANIZATION IS RELATIVE\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RELATIVE KEY IS RL-KEY\n" +
+            "               FILE STATUS IS WS-ST.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC.\n" +
+            "          05 F-VAL PIC 9(2).\n" +
+            "          05 F-FILLER PIC X(8).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-ST PIC XX.\n" +
+            "       01 RL-KEY PIC 9(2).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN OUTPUT F.\n" +
+            "           MOVE 1 TO RL-KEY. MOVE 11 TO F-VAL. WRITE F-REC.\n" +
+            "           MOVE 2 TO RL-KEY. MOVE 22 TO F-VAL. WRITE F-REC.\n" +
+            "           CLOSE F.\n" +
+            "           OPEN INPUT F.\n" +
+            "           READ F PREVIOUS RECORD\n" +
+            "               AT END DISPLAY \"ATEND \" WS-ST\n" +
+            "               NOT AT END DISPLAY \"GOT \" F-VAL\n" +
+            "           END-READ.\n" +
+            "           CLOSE F.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("ATEND 10", stdout);   // at-end status 10, not the highest relative record
+    }
+
+    // ISO §14.9.30 GR21 d.2 — the RELATIVE-file analog of ReadPrevious_AfterStartEqual_ReturnsTheEqualKey: after
+    // START KEY = EQUAL n, the first READ PREVIOUS returns the record at the file position indicator (slot n
+    // itself), not the strict predecessor slot. The relative Start() sets _currentRecord = slot-1 for the NEXT
+    // hack, so without the _startPositioned flag READ PREVIOUS would skip both slot n and slot n-1.
+    [Fact]
+    public void ReadPrevious_Relative_AfterStartEqual_ReturnsTheEqualSlot()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. RDPREVR2.\n" +
+            "       ENVIRONMENT DIVISION.\n" +
+            "       INPUT-OUTPUT SECTION.\n" +
+            "       FILE-CONTROL.\n" +
+            "           SELECT F ASSIGN TO \"rpr2.dat\"\n" +
+            "               ORGANIZATION IS RELATIVE\n" +
+            "               ACCESS MODE IS DYNAMIC\n" +
+            "               RELATIVE KEY IS RL-KEY\n" +
+            "               FILE STATUS IS WS-ST.\n" +
+            "       DATA DIVISION.\n" +
+            "       FILE SECTION.\n" +
+            "       FD F.\n" +
+            "       01 F-REC.\n" +
+            "          05 F-VAL PIC 9(2).\n" +
+            "          05 F-FILLER PIC X(8).\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-ST PIC XX.\n" +
+            "       01 RL-KEY PIC 9(2).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           OPEN OUTPUT F.\n" +
+            "           MOVE 1 TO RL-KEY. MOVE 11 TO F-VAL. WRITE F-REC.\n" +
+            "           MOVE 2 TO RL-KEY. MOVE 22 TO F-VAL. WRITE F-REC.\n" +
+            "           MOVE 3 TO RL-KEY. MOVE 33 TO F-VAL. WRITE F-REC.\n" +
+            "           CLOSE F.\n" +
+            "           OPEN INPUT F.\n" +
+            "           MOVE 2 TO RL-KEY.\n" +
+            "           START F KEY IS EQUAL TO RL-KEY\n" +
+            "               INVALID KEY DISPLAY \"BADSTART\"\n" +
+            "           END-START.\n" +
+            "           READ F PREVIOUS RECORD\n" +
+            "               AT END DISPLAY \"ATEND\"\n" +
+            "               NOT AT END DISPLAY \"GOT \" F-VAL\n" +
+            "           END-READ.\n" +
+            "           CLOSE F.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("GOT 22", stdout);   // the equal slot, not its predecessor (11)
+    }
 }
