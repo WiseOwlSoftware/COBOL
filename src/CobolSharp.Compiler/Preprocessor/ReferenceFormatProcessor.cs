@@ -83,9 +83,11 @@ public static class ReferenceFormatProcessor
     /// </summary>
     public static bool IsFixedForm(string sourceText)
     {
-        if (sourceText.Contains("*>"))
-            return false;
-
+        // NOTE: do NOT treat the presence of a *> floating comment (COBOL-2002, ISO §6.2.3) as proof of
+        // free-form. *> is legal in BOTH fixed and free reference format; a file with a genuine fixed-format
+        // column structure (numeric sequence area + consistent column-7 indicators) is fixed-format that merely
+        // uses inline comments, and must still be column-normalized. Classification is therefore driven purely
+        // by the structural heuristic below; ConvertFixedToFree strips any inline *> from the source area.
         var lines = sourceText.Split('\n');
         int fixedIndicators = 0;
         int totalLines = 0;
@@ -254,12 +256,13 @@ public static class ReferenceFormatProcessor
                     break;
 
                 default:
-                    // Normal line: emit immediately.
-                    // Preserve trailing spaces when inside an unclosed literal.
+                    // Normal line: strip any inline *> comment (COBOL-2002) that lies outside a literal, then
+                    // emit. Preserve trailing spaces when inside an unclosed literal.
                     inLiteral = false;
                     pendingQuote = false;
-                    ScanLiteralState(sourceArea, ref inLiteral, ref pendingQuote);
-                    result.AppendLine(inLiteral ? sourceArea : sourceArea.TrimEnd());
+                    string code = StripInlineComment(sourceArea);
+                    ScanLiteralState(code, ref inLiteral, ref pendingQuote);
+                    result.AppendLine(inLiteral ? code : code.TrimEnd());
                     break;
             }
         }
@@ -282,6 +285,42 @@ public static class ReferenceFormatProcessor
         int end = start;
         while (end < sourceArea.Length && sourceArea[end] is not (' ' or '.')) end++;
         return sourceArea[start..end];
+    }
+
+    /// <summary>
+    /// Truncate a fixed-format source area at a floating <c>*&gt;</c> inline comment (COBOL-2002, ISO §6.2.3)
+    /// that lies outside any string literal. Everything from the <c>*&gt;</c> to end of line is commentary. The
+    /// lexer would skip it regardless, but stripping it here keeps the cross-line literal-state scan from being
+    /// confused by quotes/apostrophes inside the comment text (which would otherwise mis-join a following
+    /// continuation line). A <c>*&gt;</c> embedded in a literal (e.g. <c>"A*&gt;B"</c>) is preserved.
+    /// </summary>
+    private static string StripInlineComment(string sourceArea)
+    {
+        bool inLiteral = false;
+        char quote = '\0';
+        for (int i = 0; i + 1 < sourceArea.Length; i++)
+        {
+            char c = sourceArea[i];
+            if (inLiteral)
+            {
+                if (c == quote)
+                {
+                    // A doubled quote ("") is an embedded quote that stays in the literal; a lone quote closes it.
+                    if (i + 1 < sourceArea.Length && sourceArea[i + 1] == quote) i++;
+                    else inLiteral = false;
+                }
+            }
+            else if (c is '"' or '\'')
+            {
+                inLiteral = true;
+                quote = c;
+            }
+            else if (c == '*' && sourceArea[i + 1] == '>')
+            {
+                return sourceArea[..i];
+            }
+        }
+        return sourceArea;
     }
 
     /// <summary>

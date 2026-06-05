@@ -740,4 +740,39 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("GOT 22", stdout);   // the equal slot, not its predecessor (11)
     }
+
+    // ISO §6.2.3 (COBOL-2002) — a floating *> inline comment in FIXED reference format. The lexer already skips
+    // *> to end of line; the gap was reference-format detection: a fixed-format file (numeric sequence area in
+    // columns 1-6) that used *> was misclassified as free-form (the IsFixedForm "*>" short-circuit), so its
+    // sequence numbers were never stripped and leaked as stray tokens. This source has real sequence numbers,
+    // so it only compiles once the detector honours the column structure over the *> hint.
+    [Fact]
+    public void InlineComment_FixedFormat_NumericSequence_IsStripped()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "000100 IDENTIFICATION DIVISION.\n" +
+            "000200 PROGRAM-ID. INLCMT.\n" +
+            "000300 PROCEDURE DIVISION.\n" +
+            "000400 MAIN.\n" +
+            "000500     DISPLAY \"HELLO\".  *> a trailing inline comment, ignored\n" +
+            "000600     STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("HELLO", stdout);
+    }
+
+    // ISO §6.2.3 — the *> stripper is literal-aware: a *> that occurs INSIDE a string literal is data, not the
+    // start of a comment, and must be preserved; only an out-of-literal *> begins commentary.
+    [Fact]
+    public void InlineComment_FixedFormat_PreservesStarGtInsideLiteral()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "000100 IDENTIFICATION DIVISION.\n" +
+            "000200 PROGRAM-ID. INLCMT2.\n" +
+            "000300 PROCEDURE DIVISION.\n" +
+            "000400 MAIN.\n" +
+            "000500     DISPLAY \"A*>B\".  *> the real comment, stripped\n" +
+            "000600     STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("A*>B", stdout);   // the literal *> survives; only the out-of-literal *> is removed
+    }
 }
