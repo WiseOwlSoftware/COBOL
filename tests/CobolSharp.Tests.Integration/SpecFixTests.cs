@@ -813,4 +813,90 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("FREE", stdout);
     }
+
+    // ISO §7.3.16 / §7.3.11 (COBOL-2002 conditional compilation) — a defined-condition feature flag with >>ELSE.
+    [Fact]
+    public void ConditionalCompilation_DefinedCondition_SelectsIfBranch()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CC1.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE DBG AS 1\n" +
+            ">>IF DBG IS DEFINED\n" +
+            "           DISPLAY \"DEBUG-ON\".\n" +
+            ">>ELSE\n" +
+            "           DISPLAY \"DEBUG-OFF\".\n" +
+            ">>END-IF\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("DEBUG-ON", stdout);
+    }
+
+    // ISO §7.3.16 — a relational constant-conditional-expression with AND (the spec's "IS > 10 AND IS < 20" form).
+    [Fact]
+    public void ConditionalCompilation_RelationalAnd_SelectsBranch()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CC2.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE LVL AS 14\n" +
+            ">>IF LVL IS > 10 AND LVL IS < 20\n" +
+            "           DISPLAY \"MID\".\n" +
+            ">>ELSE\n" +
+            "           DISPLAY \"OUT\".\n" +
+            ">>END-IF\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("MID", stdout);
+    }
+
+    // ISO §7.3.16 — a compound expression with parentheses, OR, and an alphanumeric-literal comparison (the D.28
+    // example shape). With N=2 and SYS="type A", neither parenthesised clause holds, so the >>ELSE body is taken.
+    [Fact]
+    public void ConditionalCompilation_CompoundOrWithStringCompare_TakesElse()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CC3.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE SYS AS \"type A\"\n" +
+            ">>DEFINE N AS 2\n" +
+            ">>IF (N = 1 AND SYS = \"type A\") OR (N = 2 AND SYS = \"type Q\")\n" +
+            "           DISPLAY \"YES\".\n" +
+            ">>ELSE\n" +
+            "           DISPLAY \"NO\".\n" +
+            ">>END-IF\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("NO", stdout);
+    }
+
+    // ISO §7.3.11 GR2 + §7.3.16 — >>DEFINE … AS OFF undefines a variable, and nested IF directives compose. A is
+    // defined then turned OFF, so the outer "A DEFINED" is false and the nested "A NOT DEFINED" inside >>ELSE wins.
+    [Fact]
+    public void ConditionalCompilation_DefineOff_AndNesting()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. CC4.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            ">>DEFINE A AS 1\n" +
+            ">>DEFINE A AS OFF\n" +
+            ">>IF A IS DEFINED\n" +
+            "           DISPLAY \"DEF\".\n" +
+            ">>ELSE\n" +
+            ">>IF A IS NOT DEFINED\n" +
+            "           DISPLAY \"UNDEF\".\n" +
+            ">>END-IF\n" +
+            ">>END-IF\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("UNDEF", stdout);
+    }
 }

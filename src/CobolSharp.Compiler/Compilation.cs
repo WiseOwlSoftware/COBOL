@@ -236,6 +236,11 @@ public sealed class Compilation
         rawText = ReferenceFormatProcessor.StripNistArchiveMarkers(rawText);
         string normalizedText = ReferenceFormatProcessor.NormalizeToFreeForm(rawText);
 
+        // Conditional compilation (>>DEFINE / >>IF / >>ELSE / >>END-IF) runs on the free-form text BEFORE COPY
+        // expansion, so an >>IF may include or omit COPY statements in its branches (ISO §7.3.16 GR1). It is an
+        // exact no-op for source containing no >> directive lines.
+        normalizedText = ConditionalCompilationProcessor.Process(normalizedText);
+
         // COPY expansion runs BEFORE NIST placeholder substitution so that XXXXX###/XXXXP###/
         // XXXXD### placeholders inside copied library text are substituted too — e.g. a file's
         // ASSIGN target supplied by a COPY (K3FCB) must map to the same physical file as the
