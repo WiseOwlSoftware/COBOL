@@ -14,8 +14,13 @@
 
 - **Process (unchanged project discipline):** implement **one item at a time on `main`**; build all layers
   together (grammar → semantic/binder → lowering → CIL emit → runtime → **output-verifying test**); run
-  `bash scripts/guard.sh` after each (must stay **ALL GREEN**, currently **1047 unit / 455 integration / 364
-  NIST**, 0 NIST FAIL); commit with a **DEVLOG** entry; then tick the item here.
+  `bash scripts/guard.sh` after each (must stay **ALL GREEN**, 0 NIST FAIL); commit with a **DEVLOG** entry; then
+  tick the item here.
+- **Conformance testing is PART AND PARCEL of every post-1985 feature (owner directive).** Every 2002/2014/2023
+  feature ships, **in the same commit**, with at least one conformance test in `tests/conformance/<version>/` — a
+  `<name>.cob` + `<name>.out` (expected stdout), **auto-discovered** by `ConformanceTests` and run inside the
+  guard. This corpus is the NIST-equivalent for the post-1985 standards (NIST CCVS covers only '85). See
+  `tests/conformance/README.md`. It is both conformance evidence and the regression net as features accrue.
 - **Do NOT use worktree-isolated implementation workflows** for compiler fixes — in this repo `isolation:'worktree'`
   branches from a stale commit. Do compiler work directly on `main`. (Parallel *audit/design* agents are fine.)
 - **Grammar changes are pre-authorized** in this conformance effort (log + full guard); new lexer keywords must be
@@ -211,8 +216,12 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   exit codes; never crash on invalid input (P1 hardening already started — see memory `project_p1_diagnostics`).
 - **Dialect strictness** — the two-axis model (version `--standard` × strictness); every leniency dialect-gated
   (see memory `project_dialect_strictness`).
-- **Conformance corpus** — `tests/conformance/<version>/` authored from `specs/ISO_COBOL.md`; a per-version
-  "% to 100%" dashboard.
+- **Conformance corpus (BUILT — `tests/conformance/`)** — the NIST-equivalent suite for 2002/2014/2023. A
+  file-based corpus (`<name>.cob` + `<name>.out`) per version, auto-discovered + run under the matching
+  `--standard` by `ConformanceTests` (integration project), inside the guard. Seeded with M2 features (UDF
+  invocation, conditional compilation, OPTIONS, REPOSITORY); **grow it with every feature** and backfill
+  already-landed ones. Future: a per-version "% to spec" dashboard; optional negative tests (`.cob` + expected
+  diagnostic) for dialect-rejection cases.
 - **Performance** — parse/compile throughput on large programs; runtime efficiency of generated CIL.
 - **Tooling & packaging** — CLI UX, `--help`, listing output, single-exe packaging, NuGet/runtime deployment.
 
