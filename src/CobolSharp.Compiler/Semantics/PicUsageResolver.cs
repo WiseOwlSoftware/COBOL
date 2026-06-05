@@ -140,9 +140,12 @@ public static class UsageMapper
             "COMP-1" or "COMPUTATIONAL-1" => UsageKind.Comp1,
             "COMP-2" or "COMPUTATIONAL-2" => UsageKind.Comp2,
             // COBOL-2002 standard floating-point usages (ISO §13.18): FLOAT-SHORT is IEEE-754 single (= COMP-1),
-            // FLOAT-LONG is IEEE-754 double (= COMP-2). (FLOAT-EXTENDED — 128-bit — is a documented follow-up.)
+            // FLOAT-LONG is IEEE-754 double (= COMP-2).
             "FLOAT-SHORT" => UsageKind.Comp1,
             "FLOAT-LONG" => UsageKind.Comp2,
+            // FLOAT-EXTENDED is mapped to IEEE-754 double (COMP-2): .NET has no native 128-bit float, and the
+            // standard permits implementor-defined extended precision (the platform's widest native float).
+            "FLOAT-EXTENDED" => UsageKind.Comp2,
             "COMP-3" or "COMPUTATIONAL-3" => UsageKind.Comp3,
             "COMP-4" or "COMPUTATIONAL-4" => UsageKind.Binary,
             "COMP-5" or "COMPUTATIONAL-5" => UsageKind.Comp5,

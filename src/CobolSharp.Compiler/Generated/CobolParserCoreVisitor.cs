@@ -81,6 +81,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIdentificationBody([NotNull] CobolParserCore.IdentificationBodyContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.functionIdParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFunctionIdParagraph([NotNull] CobolParserCore.FunctionIdParagraphContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.programIdParagraph"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -128,6 +134,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitIdentificationParagraph([NotNull] CobolParserCore.IdentificationParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsParagraph([NotNull] CobolParserCore.OptionsParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsContent"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsContent([NotNull] CobolParserCore.OptionsContentContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.authorParagraph"/>.
 	/// </summary>
@@ -224,6 +242,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitConfigurationParagraph([NotNull] CobolParserCore.ConfigurationParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.repositoryParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRepositoryParagraph([NotNull] CobolParserCore.RepositoryParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.repositoryEntry"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitRepositoryEntry([NotNull] CobolParserCore.RepositoryEntryContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.sourceComputerParagraph"/>.
 	/// </summary>
@@ -842,6 +872,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitLogicalOrExpression([NotNull] CobolParserCore.LogicalOrExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalXorExpression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitLogicalXorExpression([NotNull] CobolParserCore.LogicalXorExpressionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.logicalAndExpression"/>.
 	/// </summary>

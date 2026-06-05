@@ -98,6 +98,7 @@ FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit hea
 EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2002 logical exclusive-or operator, equivalent to XOR (ISO §8.8.4.9)
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
+FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
 METHOD_ID       : 'METHOD-ID' ;
 CLASS_ID        : 'CLASS-ID' ;
 INTERFACE_ID    : 'INTERFACE-ID' ;

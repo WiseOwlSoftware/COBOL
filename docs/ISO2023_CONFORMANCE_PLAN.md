@@ -97,9 +97,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☐ 🐛 **M2-DATA-1 — `USAGE BINARY-CHAR/BINARY-SHORT/BINARY-LONG/BINARY-DOUBLE [SIGNED|UNSIGNED]`.** **[A] HIGH
   (silent mis-typing today)**, **medium**. *Recipe:* lexer tokens + `usageClause` alts + a `UsageKind` mapping to
   1/2/4/8-byte two's-complement (reuse the COMP-5/native-binary emission path).
-- ☑ **M2-DATA-2 — `USAGE FLOAT-SHORT / FLOAT-LONG` (DONE — DEVLOG 376).** Aliased onto COMP-1/COMP-2 (3 edits:
-  lexer tokens + usageKeyword/bare-form alts + `UsageMapper.FromUsageKeyword` FLOAT-SHORT→Comp1 / FLOAT-LONG→Comp2).
-  Verified 10.5*2=21, 100.25*4=401. Conformance `tests/conformance/2002/float_usage`. FLOAT-EXTENDED deferred.
+- ☑ **M2-DATA-2 — `USAGE FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED` (DONE — DEVLOG 376, 377).** Aliased onto
+  COMP-1/COMP-2 (3 edits each: lexer tokens + usageKeyword/bare-form alts + `UsageMapper.FromUsageKeyword`
+  FLOAT-SHORT→Comp1 / FLOAT-LONG→Comp2 / FLOAT-EXTENDED→Comp2). FLOAT-EXTENDED maps to double (.NET has no
+  native 128-bit float — documented approximation; a true soft-float quad path is out of scope). Verified
+  10.5*2=21, 100.25*4=401, 250.5*2=501. Conformance `tests/conformance/2002/float_usage` (all three usages).
 - ☐ **M2-DATA-3 — National data.** `USAGE NATIONAL`, `PIC N(n)`, national literals `N"…"` / `NX"…"`,
   NATIONAL-EDITED, UTF-16 storage, MOVE/DISPLAY/compare/INSPECT semantics. *Large (new category).* The
   `DISPLAY-OF`/`NATIONAL-OF` intrinsics already exist; the data **type** does not. §13.18, §8.3.
@@ -180,8 +182,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   level (precedence NOT>AND>XOR>OR), `BoundBinaryOperatorKind.Xor` → `IrLogicalOp.Xor` → CIL `xor`. NOTE: XOR is a
   §8.8.4.9 logical operator (2002-era), not a 2023 delta — the audit mis-tagged it. Conformance
   `tests/conformance/2002/logical_xor`.
-- ☐ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** *Unverified — check the spec before
-  implementing (the audit may have mis-named these; HIGHEST/LOWEST-ALGEBRAIC + EXCEPTION-FILE already exist).*
+- ☐ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** Both verified REAL but non-trivial:
+  EXCEPTION-FILE-N (§15.29) returns NATIONAL data (blocked on M2-DATA-3 national support); SMALLEST-ALGEBRAIC
+  (§15.83) = 10^(-fractionDigits) of the argument's PIC — needs the binder to pass the argument's fraction-digit
+  count (HIGHEST/LOWEST-ALGEBRAIC pass total digits). Deferred — neither is the trivial dispatch case the audit
+  implied.
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit
   `specs/ISO_COBOL.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
   verify completeness + **version gating**, i.e. a 2023 fn used under `--standard cobol85` should flag).

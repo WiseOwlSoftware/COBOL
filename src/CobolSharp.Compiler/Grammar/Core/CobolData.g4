@@ -267,6 +267,7 @@ usageClause
     | COMP_5
     | FLOAT_SHORT
     | FLOAT_LONG
+    | FLOAT_EXTENDED
     | BINARY
     | PACKED_DECIMAL
     | INDEX
@@ -288,6 +289,7 @@ usageKeyword
     | COMP_5
     | FLOAT_SHORT
     | FLOAT_LONG
+    | FLOAT_EXTENDED
     | BINARY
     | PACKED_DECIMAL
     | INDEX
