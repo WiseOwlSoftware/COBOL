@@ -623,6 +623,26 @@ public sealed class IrReportRegisterControl : IrInstruction
 }
 
 /// <summary>
+/// Register a SUM accumulator and its DISPLAY-numeric addend storage at INITIATE (ISO §13.18.54): the runtime
+/// adds the addend into the counter at each detail GENERATE. Emitted as ReportWriterRuntime.RegisterSum.
+/// </summary>
+public sealed class IrReportRegisterSum : IrInstruction
+{
+    public string ReportName { get; }
+    public string CounterId { get; }
+    public IrLocation Addend { get; }
+    public int Scale { get; }
+
+    public IrReportRegisterSum(string reportName, string counterId, IrLocation addend, int scale)
+    {
+        ReportName = reportName;
+        CounterId = counterId;
+        Addend = addend;
+        Scale = scale;
+    }
+}
+
+/// <summary>
 /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the number of
 /// bytes given by the DEPENDING data item (read at runtime from <see cref="LengthLocation"/>), without
 /// trailing-space trimming. ISO §13.18.43 / §14.9.51.

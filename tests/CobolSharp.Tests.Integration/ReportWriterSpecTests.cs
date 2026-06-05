@@ -582,5 +582,70 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         Assert.True(iCfB >= 0, $"CONTROL FOOTING at TERMINATE not presented: {joined}");
         Assert.True(iCfA < iCfB, $"dept-A footing should precede the TERMINATE footing: {joined}");
     }
+
+    /// <summary>
+    /// §13.18.54 — a SUM counter in a CONTROL FOOTING accumulates a data item over the details of its control
+    /// group and prints the subtotal at the break, then resets (GR2). The accumulation happens after the
+    /// control-break processing so a footing sums the details that preceded the break (GR7). This is the
+    /// canonical control-break subtotal report.
+    /// </summary>
+    [Fact]
+    public void ControlFooting_SumCounter_SubtotalsAndResets()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWSUM.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWSUMO".
+                SELECT IN-FILE ASSIGN TO "RWSUMO"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-DEPT PIC X(1).
+            01  WS-AMT  PIC 9(3).
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT CONTROL IS WS-DEPT PAGE LIMIT IS 60 LINES.
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(1) SOURCE WS-DEPT.
+                03 COLUMN 3 PICTURE 9(3) SOURCE WS-AMT.
+            01  CF-DEPT TYPE IS CONTROL FOOTING WS-DEPT LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(2) VALUE "T=".
+                03 COLUMN 3 PICTURE 9(4) SUM WS-AMT.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                MOVE "A" TO WS-DEPT. MOVE 010 TO WS-AMT. GENERATE DET.
+                MOVE "A" TO WS-DEPT. MOVE 020 TO WS-AMT. GENERATE DET.
+                MOVE "B" TO WS-DEPT. MOVE 005 TO WS-AMT. GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var joined = string.Join("|", Lines(stdout));
+        int iTa = joined.IndexOf("T=0030", StringComparison.Ordinal);   // dept A subtotal 10+20
+        int iTb = joined.IndexOf("T=0005", StringComparison.Ordinal);   // dept B subtotal 5 (at TERMINATE; proves reset)
+        Assert.True(iTa >= 0, $"CONTROL FOOTING SUM for dept A (=0030) not presented: {joined}");
+        Assert.True(iTb >= 0, $"CONTROL FOOTING SUM for dept B (=0005) at TERMINATE not presented: {joined}");
+        Assert.True(iTa < iTb, $"dept-A subtotal should precede dept-B subtotal: {joined}");
+    }
 }
 

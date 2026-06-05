@@ -1114,6 +1114,7 @@ public sealed class CilEmitter
             case IrReportPlaceLiteral rpl: _ctx.FileIo.EmitReportPlaceLiteral(il, rpl); break;
             case IrReportRegisterDataField rrd: _ctx.FileIo.EmitReportRegisterDataField(il, rrd); break;
             case IrReportRegisterControl rrc: _ctx.FileIo.EmitReportRegisterControl(il, rrc); break;
+            case IrReportRegisterSum rrs: _ctx.FileIo.EmitReportRegisterSum(il, rrs); break;
             case IrWriteRecordVariable wrv: _ctx.FileIo.EmitWriteRecordVariable(il, wrv); break;
             case IrStoreRecordLength srl: _ctx.FileIo.EmitStoreRecordLength(il, srl); break;
             case IrSetRelativeKey srk: _ctx.FileIo.EmitSetRelativeKey(il, srk); break;
@@ -1617,6 +1618,13 @@ public sealed class CilEmitter
             var m = _module.ImportReference(
                 typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterAutoField",
                     new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, m));
+        }
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterAutoSumField")
+        {
+            var m = _module.ImportReference(
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterAutoSumField",
+                    new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "ReportWriterRuntime.BeginLine")

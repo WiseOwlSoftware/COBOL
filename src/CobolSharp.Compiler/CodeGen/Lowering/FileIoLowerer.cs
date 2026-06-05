@@ -269,6 +269,29 @@ internal sealed class FileIoLowerer
         foreach (var f in group.SelfAndDescendants())
         {
             if (!f.HasColumn) continue;
+            // SUM field (ISO §13.18.54): a kind-4 print field over a SUM accumulator whose addend is the named
+            // DISPLAY-numeric data item, summed at each detail GENERATE and printed here.
+            if (f.SumFields.Count > 0
+                && _ctx.Semantic.ResolveData(f.SumFields[0]) is { } addSym
+                && _ctx.Location.ResolveLocation(addSym) is { } addLoc)
+            {
+                string counterId = $"{reportName}#{slot}#{f.ColumnValue}";
+                int scale = addSym.ResolvedType?.Pic?.FractionDigits ?? 0;
+                var srn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+                var ssl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+                var scol = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+                var swid = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
+                var scid = _ctx.ValueFactory.Next(IrPrimitiveType.String);
+                block.Instructions.Add(new IrLoadConst(srn, reportName));
+                block.Instructions.Add(new IrLoadConst(ssl, slot));
+                block.Instructions.Add(new IrLoadConst(scol, f.ColumnValue));
+                block.Instructions.Add(new IrLoadConst(swid, f.FieldWidth));
+                block.Instructions.Add(new IrLoadConst(scid, counterId));
+                block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterAutoSumField",
+                    new[] { srn, ssl, scol, swid, scid }));
+                block.Instructions.Add(new IrReportRegisterSum(reportName, counterId, addLoc, scale));
+                continue;
+            }
             var (kind, literal) = ClassifyPageField(f);
             // Data SOURCE (kind 3): register the live storage location so the runtime reads the current value
             // when it presents the group (ISO §13.18.53), rather than a runtime-composed literal/counter field.

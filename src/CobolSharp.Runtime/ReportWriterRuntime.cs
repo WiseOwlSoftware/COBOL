@@ -25,12 +25,14 @@ public static class ReportWriterRuntime
     {
         public int Column;
         public int Width;
-        public int Kind;       // 0 = literal, 1 = LINE-COUNTER, 2 = PAGE-COUNTER, 3 = data SOURCE
+        public int Kind;       // 0 = literal, 1 = LINE-COUNTER, 2 = PAGE-COUNTER, 3 = data SOURCE, 4 = SUM counter
         public string Literal = "";
         // Kind 3 (data SOURCE): the live storage location, read at presentation time.
         public byte[]? SrcArea;
         public int SrcOffset;
         public int SrcSize;
+        // Kind 4 (SUM counter): the id of the accumulator (ReportContext.Sums) whose value is printed here.
+        public string CounterId = "";
     }
 
     // Auto-presented group slots — the RWCS presents these itself (page boundaries / report start-end / control
@@ -62,6 +64,17 @@ public static class ReportWriterRuntime
         public byte[]? Prior;    // value at the previous GENERATE (null until the first GENERATE)
     }
 
+    /// <summary>A SUM accumulator (ISO §13.18.54): the running total plus the DISPLAY-numeric addend it sums
+    /// (read from its storage at each detail GENERATE).</summary>
+    private sealed class SumInfo
+    {
+        public decimal Value;
+        public byte[]? Area;
+        public int Offset;
+        public int Size;
+        public int Scale;
+    }
+
     private sealed class ReportContext
     {
         public string FileName = "";
@@ -76,6 +89,8 @@ public static class ReportWriterRuntime
         public Dictionary<int, AutoGroupPlan> Groups = new();
         // CONTROL hierarchy, major → minor (index 0 most major); FINAL, if present, is index 0.
         public List<ControlInfo> Controls = new();
+        // SUM accumulators keyed by counter id (ISO §13.18.54).
+        public Dictionary<string, SumInfo> Sums = new();
     }
 
     private static readonly Dictionary<string, ReportContext> _reports =
@@ -139,6 +154,22 @@ public static class ReportWriterRuntime
     {
         if (!_reports.TryGetValue(reportName, out var ctx)) return;
         ctx.Controls.Add(new ControlInfo { IsFinal = isFinal, Area = isFinal ? null : area, Offset = offset, Size = size });
+    }
+
+    /// <summary>Register a SUM accumulator and its DISPLAY-numeric addend storage (ISO §13.18.54): the counter is
+    /// incremented by the addend at each detail GENERATE and printed by a kind-4 SUM field.</summary>
+    public static void RegisterSum(string reportName, string counterId, byte[] area, int offset, int size, int scale)
+    {
+        if (!_reports.TryGetValue(reportName, out var ctx)) return;
+        ctx.Sums[counterId] = new SumInfo { Area = area, Offset = offset, Size = size, Scale = scale, Value = 0m };
+    }
+
+    /// <summary>Register a SUM-counter print field (kind 4) on an auto-presented group: it prints the running
+    /// total of the accumulator named <paramref name="counterId"/> when the group is presented.</summary>
+    public static void RegisterAutoSumField(string reportName, int slot, int column, int width, string counterId)
+    {
+        if (!_reports.TryGetValue(reportName, out var ctx) || !ctx.Groups.TryGetValue(slot, out var plan)) return;
+        plan.Fields.Add(new FieldPlan { Column = column, Width = width, Kind = 4, CounterId = counterId });
     }
 
     /// <summary>Clear the report line buffer to spaces before a group's SOURCE fields are placed.</summary>
@@ -226,6 +257,9 @@ public static class ReportWriterRuntime
         // After RH/PH, drive the control-break logic: CONTROL FOOTINGs for any groups that just ended and
         // CONTROL HEADINGs for the new ones, before this detail line (§14.9.16.4 GR4/GR5).
         ProcessDetailControls(ctx);
+        // Then add this detail's SUM addends — after the ended group's CONTROL FOOTING printed the prior total
+        // (§13.18.54.4 GR7), so a control footing sums the details that preceded the break.
+        AccumulateSums(ctx);
 
         int newLine = ctx.LineCounter + advance;
         FileRuntime.WriteAdvancing(ctx.FileName, ctx.Line, 0, ctx.Line.Length, advance, isBefore: false);
@@ -252,6 +286,16 @@ public static class ReportWriterRuntime
         for (int i = 0; i < buf.Length; i++) buf[i] = (byte)' ';
         foreach (var f in fields)
         {
+            if (f.Kind == 4)
+            {
+                // SUM counter: print the accumulated total, then reset it (end of group, ISO §13.18.54.4 GR2).
+                decimal val = ctx.Sums.TryGetValue(f.CounterId, out var s) ? s.Value : 0m;
+                var sumBytes = System.Text.Encoding.ASCII.GetBytes(
+                    FormatNumeric((int)Math.Round(val, MidpointRounding.AwayFromZero), f.Width));
+                Place(buf, f.Column, f.Width, sumBytes, 0, sumBytes.Length);
+                if (s != null) s.Value = 0m;
+                continue;
+            }
             if (f.Kind == 3 && f.SrcArea != null)
             {
                 // Data SOURCE: place the live bytes from the registered storage location.
@@ -332,6 +376,28 @@ public static class ReportWriterRuntime
         if (b == null || a.Length != b.Length) return false;
         for (int i = 0; i < a.Length; i++) if (a[i] != b[i]) return false;
         return true;
+    }
+
+    /// <summary>Add each SUM counter's addend (its DISPLAY-numeric storage, decoded) into its accumulator —
+    /// once per detail GENERATE, after the control-break processing (ISO §13.18.54.4 GR7).</summary>
+    private static void AccumulateSums(ReportContext ctx)
+    {
+        foreach (var s in ctx.Sums.Values)
+            if (s.Area != null)
+                s.Value += DecodeDisplayNumeric(s.Area, s.Offset, s.Size, s.Scale);
+    }
+
+    /// <summary>Decode an unsigned DISPLAY numeric (PIC 9 / 9V9) at a storage location into a decimal, using the
+    /// low nibble of each byte (ASCII digit / sign overpunch). COMP/COMP-3 SUM addends are a later increment.</summary>
+    private static decimal DecodeDisplayNumeric(byte[] area, int offset, int size, int scale)
+    {
+        long v = 0;
+        for (int i = 0; i < size && offset + i < area.Length; i++)
+            v = v * 10 + (area[offset + i] & 0x0F);
+        if (scale <= 0) return v;
+        decimal d = v;
+        for (int i = 0; i < scale; i++) d /= 10m;
+        return d;
     }
 
     /// <summary>Format a counter value into a PIC 9(width) image (zero-padded, rightmost digits).</summary>

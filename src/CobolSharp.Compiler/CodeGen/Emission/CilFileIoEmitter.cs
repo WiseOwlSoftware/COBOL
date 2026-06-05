@@ -111,6 +111,21 @@ internal sealed class CilFileIoEmitter
         il.Append(il.Create(OpCodes.Call, method));
     }
 
+    /// <summary>Register a SUM accumulator: push reportName, counterId, then the addend's storage location
+    /// (area/offset/size) and scale; call ReportWriterRuntime.RegisterSum.</summary>
+    internal void EmitReportRegisterSum(ILProcessor il, IrReportRegisterSum inst)
+    {
+        il.Append(il.Create(OpCodes.Ldstr, inst.ReportName));
+        il.Append(il.Create(OpCodes.Ldstr, inst.CounterId));
+        _ctx.Location.EmitLocationArgs(il, inst.Addend); // byte[] area, int offset, int size
+        il.Append(il.Create(OpCodes.Ldc_I4, inst.Scale));
+        var method = _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod(
+                "RegisterSum",
+                new[] { typeof(string), typeof(string), typeof(byte[]), typeof(int), typeof(int), typeof(int) })!);
+        il.Append(il.Create(OpCodes.Call, method));
+    }
+
     /// <summary>
     /// Variable-length WRITE (RECORD IS VARYING … DEPENDING ON): write the record area for the byte
     /// count read at runtime from the DEPENDING data item, without trailing-space trimming.
