@@ -119,6 +119,27 @@ public class EndToEndTestBase : IDisposable
     }
 
     /// <summary>
+    /// Compile a NIST program under a given dialect (no <c>--nist</c> preprocessing, so dialect flagging fires)
+    /// and return the compiler diagnostics rendered as strings (each contains its <c>CBL####</c> code). Used by
+    /// the flagging-conformance harness (WS-FLAG) to assert that obsolete / non-conforming constructs are
+    /// flagged under <c>--standard cobol85</c>. See docs/COBOL85_COMPLIANCE_PLAN.md §3.
+    /// </summary>
+    protected IReadOnlyList<string> CompileNistDiagnostics(
+        string testName, CobolSharp.Compiler.Semantics.DialectMode dialect)
+    {
+        string nistDir = Path.GetFullPath(Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..",
+            "tests", "nist", "programs"));
+        string sourcePath = Path.Combine(nistDir, testName + ".cob");
+        string outputPath = Path.Combine(_tempDir, testName + ".dll");
+
+        var compilation = new Compilation();
+        compilation.Options.Dialect = dialect;
+        var result = compilation.Compile(sourcePath, outputPath);
+        return result.Diagnostics.Select(d => d.ToString()!).ToList();
+    }
+
+    /// <summary>
     /// Compile multiple COBOL programs and run the first one.
     /// Each entry is (filename, source). The first program is the main program.
     /// All programs are compiled to the same temp directory so they can find each other.
