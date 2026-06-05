@@ -12,6 +12,25 @@ namespace CobolSharp.Tests.Integration;
 /// </summary>
 public sealed class NucleusSpecTests : EndToEndTestBase
 {
+    // §14.9.11 — DISPLAY … WITH NO ADVANCING suppresses the trailing line terminator, so a following DISPLAY
+    // continues on the same physical line. (WS-SPEC fix: the phrase parsed but was a no-op; threaded NoAdvancing
+    // through BoundDisplayStatement → IrPicDisplay → CilDataEmitter → Console.Write.)
+    [Fact]
+    public void Display_WithNoAdvancing_SuppressesNewline()
+    {
+        var (success, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. DISPNADV.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           DISPLAY \"AB\" WITH NO ADVANCING.\n" +
+            "           DISPLAY \"CD\".\n" +
+            "           STOP RUN.\n");
+
+        Assert.True(success, $"Failed: {stderr}");
+        Assert.Equal("ABCD", stdout);
+    }
+
     // §14.9.22 (Format 3) — a single INSPECT carrying BOTH a TALLYING and a REPLACING phrase.
     // GR ordering: the TALLYING is evaluated against the original operand before any
     // REPLACING is applied, so the count reflects the original character occurrences while

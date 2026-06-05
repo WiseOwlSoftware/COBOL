@@ -1989,9 +1989,13 @@ public sealed class IrPicDisplay : IrInstruction
 {
     public IReadOnlyList<DisplayOperand> Operands { get; }
 
-    public IrPicDisplay(IReadOnlyList<DisplayOperand> operands)
+    /// <summary>True for DISPLAY … WITH NO ADVANCING — emit Console.Write (no trailing newline).</summary>
+    public bool NoAdvancing { get; }
+
+    public IrPicDisplay(IReadOnlyList<DisplayOperand> operands, bool noAdvancing = false)
     {
         Operands = operands;
+        NoAdvancing = noAdvancing;
     }
 }
 

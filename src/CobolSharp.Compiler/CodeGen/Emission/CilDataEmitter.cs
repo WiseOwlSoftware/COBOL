@@ -323,9 +323,10 @@ internal sealed class CilDataEmitter
             il.Append(il.Create(OpCodes.Call, concat));
         }
 
-        var consoleWriteLine = _ctx.Module.ImportReference(
-            typeof(Console).GetMethod("WriteLine", new[] { typeof(string) })!);
-        il.Append(il.Create(OpCodes.Call, consoleWriteLine));
+        // DISPLAY … WITH NO ADVANCING (§14.9.11) suppresses the line terminator → Console.Write.
+        var consoleMethod = _ctx.Module.ImportReference(
+            typeof(Console).GetMethod(disp.NoAdvancing ? "Write" : "WriteLine", new[] { typeof(string) })!);
+        il.Append(il.Create(OpCodes.Call, consoleMethod));
     }
 
     internal void EmitDisplayOperand(ILProcessor il, DisplayOperand operand)

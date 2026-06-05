@@ -456,8 +456,14 @@ public sealed class BoundDisplayStatement : BoundStatement
 {
     public IReadOnlyList<BoundExpression> Operands { get; }
 
-    public BoundDisplayStatement(IEnumerable<BoundExpression> operands)
-        => Operands = operands.ToList().AsReadOnly();
+    /// <summary>True for DISPLAY … WITH NO ADVANCING — suppress the trailing line terminator (§14.9.11).</summary>
+    public bool NoAdvancing { get; }
+
+    public BoundDisplayStatement(IEnumerable<BoundExpression> operands, bool noAdvancing = false)
+    {
+        Operands = operands.ToList().AsReadOnly();
+        NoAdvancing = noAdvancing;
+    }
 
     public override BoundNodeKind Kind => BoundNodeKind.DisplayStatement;
 }

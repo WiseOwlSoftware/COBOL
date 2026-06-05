@@ -46,7 +46,7 @@ internal sealed class DataStatementBinder
             }
         }
 
-        return new BoundDisplayStatement(operands);
+        return new BoundDisplayStatement(operands, ctx.displayNoAdvancing() != null);
     }
 
     // ── MOVE ──

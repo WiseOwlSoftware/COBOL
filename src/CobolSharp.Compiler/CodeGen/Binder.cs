@@ -762,7 +762,7 @@ public sealed class Binder
             }
         }
 
-        block.Instructions.Add(new IR.IrPicDisplay(operands));
+        block.Instructions.Add(new IR.IrPicDisplay(operands, disp.NoAdvancing));
     }
 
     // ── ACCEPT (inline — 4 lines) ──

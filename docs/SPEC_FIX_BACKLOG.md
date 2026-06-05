@@ -9,8 +9,9 @@ Priority tags: **P0** = correctness bug likely affecting many programs; **P1** =
 strictness/edge.
 
 ## Nucleus
-- **P0 — `DISPLAY … WITH NO ADVANCING` is a silent no-op.** §14.9.11. The phrase compiles but a CRLF is still
-  written after the operand (`DISPLAY "AB" WITH NO ADVANCING` then `DISPLAY "CD"` → two lines, expected `ABCD`).
+- ✅ **DONE (DEVLOG 333) — `DISPLAY … WITH NO ADVANCING`** was a silent no-op. §14.9.11. Fixed by threading a
+  `NoAdvancing` flag through `BoundDisplayStatement` → `IrPicDisplay` → `CilDataEmitter` (Console.Write vs
+  WriteLine). Test: `NucleusSpecTests.Display_WithNoAdvancing_SuppressesNewline`.
 - **P1 — `INITIALIZE … WITH FILLER`** parsed but not honored: FILLER items are not reset. §14.9.20 GR 5.a.2.
 - **P1 — `INITIALIZE … ALL TO VALUE`** behaves like plain INITIALIZE (category default) instead of resetting to
   each item's VALUE clause. §14.9.20 GR 5.c.1.
