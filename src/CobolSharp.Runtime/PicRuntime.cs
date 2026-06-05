@@ -1078,6 +1078,15 @@ public static class PicRuntime
         byte[] destArea, int destOffset, int destLength, PicDescriptor destPic,
         decimal value, int roundingMode, ref ArithmeticStatus status)
     {
+        // COMP-1/COMP-2 floating-point receivers: no fixed-point scaling/overflow — encode the full IEEE value
+        // directly (mirrors the MOVE-to-float guard in MoveNumericToNumeric). Otherwise ApplyScalingAndRounding
+        // truncates the result to the receiver's FractionDigits (0 for a PIC-less float): 6.28318 → 6, 1/3 → 0.
+        if (destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2)
+        {
+            EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+            return;
+        }
+
         value = ApplyScalingAndRounding(value, destPic, roundingMode);
         if (WouldOverflow(value, destPic))
         {

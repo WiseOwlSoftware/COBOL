@@ -139,4 +139,31 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("ABCD", stdout);
     }
+
+    // ISO §8.5.1.2 — COMP-1/COMP-2 are floating-point; arithmetic into them must not truncate the fraction to a
+    // fixed-point scale. StoreArithmeticResult was scaling/rounding to the receiver's FractionDigits (0 for a
+    // PIC-less float), so COMPUTE WS-F = 1.0/3.0 → 0 and 3.14159*2 → 6.
+    [Fact]
+    public void Compute_IntoFloatReceiver_PreservesFraction()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. COMPF.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-D  USAGE COMP-2.\n" +
+            "       01 WS-O1 PIC 9V9(8).\n" +
+            "       01 WS-O2 PIC 99V9(5).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           COMPUTE WS-D = 1.0 / 3.0.\n" +
+            "           MOVE WS-D TO WS-O1.\n" +
+            "           DISPLAY \"DIV=\" WS-O1.\n" +
+            "           COMPUTE WS-D = 3.14159 * 2.\n" +
+            "           MOVE WS-D TO WS-O2.\n" +
+            "           DISPLAY \"MUL=\" WS-O2.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("DIV=033333333\r\nMUL=0628318", stdout);
+    }
 }

@@ -33,10 +33,10 @@ strictness/edge.
   the item VALUE; must derive the range from the argument PICTURE. §15.43/§15.58.
 
 ## Data Division
-- **P0 — `USAGE COMP-1`/`COMP-2` arithmetic truncates the fraction.** COMPUTE/ADD into a float receiver yields an
-  integer (`WS-F*2` with 3.14159 → 6.0000; `1.0/3.0` → 0). MOVE/storage of a fractional literal is correct, so the
-  bug is in arithmetic lowering not promoting to floating point. Also raw `DISPLAY` of a COMP-2 renders as an
-  18-digit integer (separate float-DISPLAY formatting issue).
+- ◐ **PARTIAL (DEVLOG 338) — `USAGE COMP-1`/`COMP-2` arithmetic** no longer truncates the fraction
+  (`StoreArithmeticResult` bypasses scaling for float receivers, mirroring the MOVE guard). Test:
+  `SpecFixTests.Compute_IntoFloatReceiver_PreservesFraction`. **Still TODO:** raw `DISPLAY` of a COMP-2 renders
+  as an 18-digit integer (a separate float-DISPLAY-formatting fix in `GetDisplayString`).
 - ✅ **DONE (DEVLOG 334) — `BLANK WHEN ZERO`** zero value now renders a PICTURE-width blank field (was `TrimEnd`-ed
   to ""). Test: `SpecFixTests.BlankWhenZero_ZeroValue_RendersBlankField`.
 - **P2 — `USAGE COMP-4`** has no lexer token (accidentally accepted via lenient fall-through; invalid `COMP-9`
