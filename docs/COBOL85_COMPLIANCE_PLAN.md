@@ -93,14 +93,31 @@ producer feeds a baselined consumer; each IC callee-half is CALLed by a baseline
 program is in exactly one accounted-for class. *Independent; run first; small.*
 
 ### WS-FLAG — Flagging-conformance harness + live-suite flag diagnostics
-1. **Harness** (`tests/nist/flagging/` + a guard hook): compile each `…M` module under the
-   flagging dialect (`--standard cobol2002` strict) and assert the **expected set of flag diagnostics** appears.
-   Each `…M` needs an `expected-flags` manifest (derived from the test's flagged source lines / CCVS markers).
-2. **Live-suite diagnostics:** implement the missing `DialectStrictnessChecks` so the no-report live `…M`
-   modules flag correctly: NC303M, IF401M/402M/403M, IX301M/401M, RL301M/401M, SQ303M/401M, SM301M/401M,
-   ST301M, RW301M/302M, IC116M/117M/118M/401M.
-**Done:** every live `…M` flags exactly its expected constructs; harness green in guard. *Harness blocks the
-diagnostics work and WS-DIALECT.*
+**REFINED 2026-06-04 (Wave-2 investigation, see DEVLOG 328).** The Wave-1 manifests revealed the live `…M`
+modules are **two distinct flag classes**, and CobolSharp's conformance profile decides which apply:
+
+- **Class A — subset-level flags** ("NON-CONFORMING STANDARD — feature X is above the minimum/Level-1 subset"):
+  IF401M/402M/403M (high-subset intrinsics), IX301M/401M, RL301M/401M, SQ401M, SM301M/401M, and the ST/IC
+  subset `…M`. These flag *standard* features (INDEXED org, ACCESS RANDOM, NOT INVALID KEY, SELECT OPTIONAL,
+  RESERVE, COPY, the intrinsic library, …) that are only "non-conforming" **relative to a claimed lower subset.**
+  **CobolSharp implements the full language (HIGH subset), so these features are native and emitting ZERO flags
+  is the *correct* conformance behaviour.** ⇒ **N/A at high subset — documented conformance-profile exclusion**
+  (the same kind of declared-profile call as DB/SG/CM; satisfying them would require an archaic
+  `--subset minimum|intermediate` mode that flags above-subset features — see §1, owner decision pending).
+- **Class B — obsolete-element flags** ("OBSOLETE — removed after COBOL-85"): **NC303M** (DATE-COMPILED, ALTER,
+  bare/altered GO TO), **SQ303M** (MULTIPLE FILE TAPE, OPEN … REVERSED). A conforming compiler flags obsolete
+  elements regardless of subset. ⇒ **IMPLEMENT** (an obsolete-element *warning* under `--standard cobol85`,
+  distinct from the `cobol2002+` *deletion error* already emitted for ALTER/bare-GO-TO via CBL3601/CBL3605).
+
+1. **Harness** (`tests/nist/flagging/` + a guard hook): compile each Class-B `…M` under `--standard cobol85`
+   and assert its expected OBSOLETE diagnostics appear (manifest in `docs/FLAG_MANIFESTS.md`); assert Class-A
+   `…M` emit **no** subset flag at high subset.
+2. **Class-B diagnostics:** add obsolete-element flagging — DATE-COMPILED paragraph, ALTER (warn under '85),
+   bare/altered GO TO (warn under '85), MULTIPLE FILE TAPE, OPEN … REVERSED. Plus the removed-feature flags
+   (CM/DB/SG/OBNC) handled by WS-DIALECT.
+
+**Done:** Class-B `…M` flag exactly their obsolete elements under cobol85; Class-A `…M` are documented N/A at
+high subset; harness green in guard. *Harness blocks the Class-B diagnostics and WS-DIALECT.*
 
 ### WS-DIALECT — Parse + dialect-flag the removed features (no runtime)
 Grammar ACCEPTS, under `--standard cobol85`: `USE FOR DEBUGGING` / `DEBUG-ITEM` / `WITH DEBUGGING MODE`;
