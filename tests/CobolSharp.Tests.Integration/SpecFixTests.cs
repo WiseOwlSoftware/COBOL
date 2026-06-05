@@ -1187,4 +1187,59 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("C=0042\r\nM=0042", stdout);
     }
+
+    // ISO §8.4.3 — UDF: the narrow whole-source form already supports MULTIPLE arguments and an ALPHANUMERIC
+    // return (the RETURNING mechanism writes the receiving item directly regardless of category). ADD3 sums three
+    // numeric args; GREET returns a PIC X string. Locks in the working behavior (the remaining UDF gap is only the
+    // general inline form — a call inside a larger expression / IF / DISPLAY / as an argument).
+    [Fact]
+    public void UserFunctionCall_MultiArg_And_Alphanumeric()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. MCALLER.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-A PIC 9(3) VALUE 10.\n" +
+            "       01 WS-B PIC 9(3) VALUE 20.\n" +
+            "       01 WS-C PIC 9(3) VALUE 5.\n" +
+            "       01 WS-R PIC 9(4).\n" +
+            "       01 WS-NAME PIC X(5) VALUE \"WORLD\".\n" +
+            "       01 WS-MSG PIC X(12).\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN.\n" +
+            "           COMPUTE WS-R = FUNCTION ADD3(WS-A, WS-B, WS-C).\n" +
+            "           DISPLAY \"SUM=\" WS-R.\n" +
+            "           MOVE FUNCTION GREET(WS-NAME) TO WS-MSG.\n" +
+            "           DISPLAY \"MSG=\" WS-MSG.\n" +
+            "           STOP RUN.\n" +
+            "       END PROGRAM MCALLER.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       FUNCTION-ID. ADD3.\n" +
+            "       DATA DIVISION.\n" +
+            "       LINKAGE SECTION.\n" +
+            "       01 L-A PIC 9(3).\n" +
+            "       01 L-B PIC 9(3).\n" +
+            "       01 L-C PIC 9(3).\n" +
+            "       01 L-R PIC 9(4).\n" +
+            "       PROCEDURE DIVISION USING L-A L-B L-C RETURNING L-R.\n" +
+            "       P.\n" +
+            "           COMPUTE L-R = L-A + L-B + L-C.\n" +
+            "           GOBACK.\n" +
+            "       END FUNCTION ADD3.\n" +
+            "       IDENTIFICATION DIVISION.\n" +
+            "       FUNCTION-ID. GREET.\n" +
+            "       DATA DIVISION.\n" +
+            "       LINKAGE SECTION.\n" +
+            "       01 L-N PIC X(5).\n" +
+            "       01 L-M PIC X(12).\n" +
+            "       PROCEDURE DIVISION USING L-N RETURNING L-M.\n" +
+            "       P.\n" +
+            "           STRING \"HI \" L-N DELIMITED BY SIZE INTO L-M.\n" +
+            "           GOBACK.\n" +
+            "       END FUNCTION GREET.\n",
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("SUM=0035\r\nMSG=HI WORLD", stdout);
+    }
 }
