@@ -392,5 +392,70 @@ public sealed class ReportWriterSpecTests : EndToEndTestBase
         Assert.Equal("[]", lines[0]);
         Assert.Equal("[ID: ABC]", lines[1]);
     }
+
+    /// <summary>
+    /// §14.9.16.4 GR4a / §13.18.57 GR6g — TYPE REPORT HEADING is auto-presented once at the first GENERATE
+    /// (before any PAGE HEADING) and TYPE REPORT FOOTING at TERMINATE (after all footings). The lowerer/runtime
+    /// registered only PAGE heading/footing; this generalizes the auto-presented-group mechanism to 4 slots.
+    /// </summary>
+    [Fact]
+    public void ReportHeadingAndFooting_ArePresented()
+    {
+        var (success, stdout, stderr) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWRHRF.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT RPT-FILE ASSIGN TO "RWRHRFO".
+                SELECT IN-FILE ASSIGN TO "RWRHRFO"
+                    ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  RPT-FILE
+                REPORT IS THE-REPORT.
+            FD  IN-FILE.
+            01  IN-REC PIC X(40).
+            WORKING-STORAGE SECTION.
+            01  WS-ID PIC X(3) VALUE "ABC".
+            01  WS-EOF PIC X VALUE "N".
+            REPORT SECTION.
+            RD  THE-REPORT PAGE LIMIT IS 20 LINES.
+            01  RPT-HEAD TYPE IS REPORT HEADING.
+                02 LINE NUMBER IS 1.
+                   03 COLUMN 1 PICTURE X(5) VALUE "TITLE".
+            01  DET TYPE IS DETAIL LINE NUMBER IS PLUS 1.
+                03 COLUMN 1 PICTURE X(3) SOURCE WS-ID.
+            01  RPT-FOOT TYPE IS REPORT FOOTING.
+                02 LINE NUMBER IS 3.
+                   03 COLUMN 1 PICTURE X(3) VALUE "END".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT RPT-FILE.
+                INITIATE THE-REPORT.
+                GENERATE DET.
+                TERMINATE THE-REPORT.
+                CLOSE RPT-FILE.
+                OPEN INPUT IN-FILE.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ IN-FILE
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "[" IN-REC "]"
+                    END-READ
+                END-PERFORM.
+                CLOSE IN-FILE.
+                STOP RUN.
+            """);
+
+        Assert.True(success, $"Failed: {stderr}");
+        var joined = string.Join("|", Lines(stdout));
+        int iTitle = joined.IndexOf("TITLE", StringComparison.Ordinal);
+        int iAbc = joined.IndexOf("ABC", StringComparison.Ordinal);
+        int iEnd = joined.IndexOf("END", StringComparison.Ordinal);
+        Assert.True(iTitle >= 0, $"REPORT HEADING not presented: {joined}");
+        Assert.True(iEnd >= 0, $"REPORT FOOTING not presented: {joined}");
+        // RH precedes the detail; RF follows it (ISO §14.9.16.4 GR4a / §13.18.57 GR6g).
+        Assert.True(iTitle < iAbc && iAbc < iEnd, $"wrong presentation order: {joined}");
+    }
 }
 

@@ -1603,18 +1603,18 @@ public sealed class CilEmitter
                     new[] { typeof(string), typeof(string), typeof(int), typeof(int), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
-        else if (rtc.MethodName == "ReportWriterRuntime.RegisterPageGroup")
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterAutoGroup")
         {
             var m = _module.ImportReference(
-                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterPageGroup",
-                    new[] { typeof(string), typeof(bool), typeof(int) })!);
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterAutoGroup",
+                    new[] { typeof(string), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
-        else if (rtc.MethodName == "ReportWriterRuntime.RegisterPageField")
+        else if (rtc.MethodName == "ReportWriterRuntime.RegisterAutoField")
         {
             var m = _module.ImportReference(
-                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterPageField",
-                    new[] { typeof(string), typeof(bool), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+                typeof(CobolSharp.Runtime.ReportWriterRuntime).GetMethod("RegisterAutoField",
+                    new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(int), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, m));
         }
         else if (rtc.MethodName == "ReportWriterRuntime.BeginLine")

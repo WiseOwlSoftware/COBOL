@@ -219,46 +219,52 @@ internal sealed class FileIoLowerer
             // VALUE literal or SOURCE LINE-COUNTER/PAGE-COUNTER are composed by the runtime.
             foreach (var g in report.AllGroups())
             {
-                if (g.GroupKind == ReportGroupKind.PageHeading)
-                    RegisterPageGroup(report.Name, g, isFooting: false,
-                        g.HasLine ? g.LineValue : report.HeadingLine, block);
-                else if (g.GroupKind == ReportGroupKind.PageFooting)
-                    RegisterPageGroup(report.Name, g, isFooting: true,
-                        g.HasLine ? g.LineValue : report.FootingLine, block);
+                int slot = g.GroupKind switch
+                {
+                    ReportGroupKind.PageHeading => 0,
+                    ReportGroupKind.PageFooting => 1,
+                    ReportGroupKind.ReportHeading => 2,
+                    ReportGroupKind.ReportFooting => 3,
+                    _ => -1,
+                };
+                if (slot < 0) continue;
+                int defaultLine = g.GroupKind is ReportGroupKind.PageHeading or ReportGroupKind.ReportHeading
+                    ? report.HeadingLine : report.FootingLine;
+                RegisterAutoGroup(report.Name, g, slot, g.HasLine ? g.LineValue : defaultLine, block);
             }
         }
         return block;
     }
 
-    private void RegisterPageGroup(string reportName, ReportGroupSymbol group, bool isFooting, int lineValue,
+    private void RegisterAutoGroup(string reportName, ReportGroupSymbol group, int slot, int lineValue,
         IrBasicBlock block)
     {
         var rn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
-        var ft = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+        var sl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
         var lv = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
         block.Instructions.Add(new IrLoadConst(rn, reportName));
-        block.Instructions.Add(new IrLoadConst(ft, isFooting));
+        block.Instructions.Add(new IrLoadConst(sl, slot));
         block.Instructions.Add(new IrLoadConst(lv, lineValue));
-        block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterPageGroup", new[] { rn, ft, lv }));
+        block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterAutoGroup", new[] { rn, sl, lv }));
 
         foreach (var f in group.SelfAndDescendants())
         {
             if (!f.HasColumn) continue;
             var (kind, literal) = ClassifyPageField(f);
             var frn = _ctx.ValueFactory.Next(IrPrimitiveType.String);
-            var fft = _ctx.ValueFactory.Next(IrPrimitiveType.Bool);
+            var fsl = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var col = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var wid = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var knd = _ctx.ValueFactory.Next(IrPrimitiveType.Int32);
             var lit = _ctx.ValueFactory.Next(IrPrimitiveType.String);
             block.Instructions.Add(new IrLoadConst(frn, reportName));
-            block.Instructions.Add(new IrLoadConst(fft, isFooting));
+            block.Instructions.Add(new IrLoadConst(fsl, slot));
             block.Instructions.Add(new IrLoadConst(col, f.ColumnValue));
             block.Instructions.Add(new IrLoadConst(wid, f.FieldWidth));
             block.Instructions.Add(new IrLoadConst(knd, kind));
             block.Instructions.Add(new IrLoadConst(lit, literal));
-            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterPageField",
-                new[] { frn, fft, col, wid, knd, lit }));
+            block.Instructions.Add(new IrRuntimeCall(null, "ReportWriterRuntime.RegisterAutoField",
+                new[] { frn, fsl, col, wid, knd, lit }));
         }
     }
 
