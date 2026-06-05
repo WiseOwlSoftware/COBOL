@@ -10880,6 +10880,16 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 339 — WS-SPEC fix: raw DISPLAY of a COMP-1/COMP-2 float (was an 18-digit integer)
+
+`GetDisplayString` routed a COMP-1/COMP-2 numeric field through `FormatNumericForDisplay` with the synthetic
+float descriptor's `TotalDigits=18`/`FractionDigits=0`, so `DISPLAY` of a COMP-2 holding 6.28318 printed
+`000000000000000006`. Added a COMP-1/COMP-2 branch + `FormatFloatForDisplay` that reads the raw IEEE
+float/double (`BitConverter.ToSingle`/`ToDouble` — the field bytes are little-endian IEEE, per DecodeComp1/2) and
+renders the **shortest round-trip** decimal (an integral value has no point). CLI-verified: `6.28318`, `300`,
+`-0.625`, `0`. Test: `SpecFixTests.Display_OfFloatItem_ShowsNaturalMagnitude`. 9th backlog fix — the COMP-1/2
+cluster (arithmetic + display) is now complete; only the COMP-4 token remains in CompFloat.
+
 ## Entry 338 — WS-SPEC fix (P0): COMP-1/COMP-2 arithmetic truncated the fraction
 
 `StoreArithmeticResult` (the converge point for **all** COMPUTE/ADD/SUBTRACT/MULTIPLY/DIVIDE result stores)

@@ -33,10 +33,10 @@ strictness/edge.
   the item VALUE; must derive the range from the argument PICTURE. §15.43/§15.58.
 
 ## Data Division
-- ◐ **PARTIAL (DEVLOG 338) — `USAGE COMP-1`/`COMP-2` arithmetic** no longer truncates the fraction
-  (`StoreArithmeticResult` bypasses scaling for float receivers, mirroring the MOVE guard). Test:
-  `SpecFixTests.Compute_IntoFloatReceiver_PreservesFraction`. **Still TODO:** raw `DISPLAY` of a COMP-2 renders
-  as an 18-digit integer (a separate float-DISPLAY-formatting fix in `GetDisplayString`).
+- ✅ **DONE (DEVLOG 338-339) — `USAGE COMP-1`/`COMP-2`**: arithmetic no longer truncates the fraction
+  (`StoreArithmeticResult` mirrors the MOVE-to-float guard), and raw `DISPLAY` shows the natural IEEE magnitude
+  (`FormatFloatForDisplay`, shortest round-trip). Tests: `Compute_IntoFloatReceiver_PreservesFraction`,
+  `Display_OfFloatItem_ShowsNaturalMagnitude`.
 - ✅ **DONE (DEVLOG 334) — `BLANK WHEN ZERO`** zero value now renders a PICTURE-width blank field (was `TrimEnd`-ed
   to ""). Test: `SpecFixTests.BlankWhenZero_ZeroValue_RendersBlankField`.
 - **P2 — `USAGE COMP-4`** has no lexer token (accidentally accepted via lenient fall-through; invalid `COMP-9`

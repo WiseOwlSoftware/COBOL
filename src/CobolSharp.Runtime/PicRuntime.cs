@@ -2189,6 +2189,12 @@ public static class PicRuntime
             // DISPLAY numeric: show the raw field content (preserves sign format)
             return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
         }
+        if (pic.Usage is UsageKind.Comp1 or UsageKind.Comp2)
+        {
+            // Floating-point DISPLAY: the natural IEEE magnitude (shortest round-trip), not the synthetic
+            // fixed-point 18-digit form FormatNumericForDisplay would produce for a PIC-less float.
+            return FormatFloatForDisplay(area, offset, pic.Usage);
+        }
         if (pic.Category.IsNumericLike())
         {
             decimal value = DecodeNumeric(area, offset, length, pic);
@@ -2196,6 +2202,18 @@ public static class PicRuntime
         }
         // Alphanumeric / edited: return raw bytes as string, trim trailing spaces
         return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
+    }
+
+    /// <summary>
+    /// DISPLAY of a COMP-1/COMP-2 (binary floating-point) item: render the natural IEEE magnitude as its shortest
+    /// round-tripping decimal string (an integral value has no decimal point), rather than the synthetic
+    /// fixed-point 18-digit form. The raw field bytes are the little-endian IEEE float/double (see DecodeComp1/2).
+    /// </summary>
+    private static string FormatFloatForDisplay(byte[] area, int offset, UsageKind usage)
+    {
+        return usage == UsageKind.Comp1
+            ? BitConverter.ToSingle(area, offset).ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : BitConverter.ToDouble(area, offset).ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static void MoveStringToBytes(byte[] area, int offset, int length, string value)

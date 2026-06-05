@@ -166,4 +166,30 @@ public sealed class SpecFixTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("DIV=033333333\r\nMUL=0628318", stdout);
     }
+
+    // ISO §13.18.35 — raw DISPLAY of a COMP-1/COMP-2 (binary floating-point) item shows its natural decimal
+    // magnitude (shortest round-trip; integral → no point), not the synthetic 18-digit fixed-point integer.
+    [Fact]
+    public void Display_OfFloatItem_ShowsNaturalMagnitude()
+    {
+        var (ok, stdout, stderr) = CompileAndRun(
+            "       IDENTIFICATION DIVISION.\n" +
+            "       PROGRAM-ID. COMPD.\n" +
+            "       DATA DIVISION.\n" +
+            "       WORKING-STORAGE SECTION.\n" +
+            "       01 WS-D USAGE COMP-2.\n" +
+            "       PROCEDURE DIVISION.\n" +
+            "       MAIN-PARA.\n" +
+            "           COMPUTE WS-D = 3.14159 * 2.\n" +
+            "           DISPLAY \"A=\" WS-D.\n" +
+            "           COMPUTE WS-D = 100 * 3.\n" +
+            "           DISPLAY \"B=\" WS-D.\n" +
+            "           COMPUTE WS-D = -2.5 / 4.\n" +
+            "           DISPLAY \"C=\" WS-D.\n" +
+            "           MOVE ZERO TO WS-D.\n" +
+            "           DISPLAY \"D=\" WS-D.\n" +
+            "           STOP RUN.\n");
+        Assert.True(ok, stderr);
+        Assert.Equal("A=6.28318\r\nB=300\r\nC=-0.625\r\nD=0", stdout);
+    }
 }
