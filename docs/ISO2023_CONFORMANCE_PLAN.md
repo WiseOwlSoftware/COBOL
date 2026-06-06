@@ -68,10 +68,14 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     to the receiver's *representation* (the encoder), NOT the value-level store — a numeric-edited receiver renders
     its sign via the edit pattern and needs the signed value; `TryStore` now returns the signed rounded value
     (ADR §5 updated).
-  - **NEXT (Stage 1 cont. + Stage 0):** route the numeric MOVE path (`MoveNumericToNumeric`) + DIVIDE-REMAINDER
-    through `CobolNum` (so `ApplyScalingAndRounding` can retire); then split `PicDescriptor` → `FieldShape`
-    (compile-time) + `NumProfile` (runtime), a lossless rename (ADR M6); add the `IrDataSlot` sum type with
-    `ByteWindowSlot` + `Span<byte>` adapter overloads, everything byte-backed = today's behavior.
+  - **PROGRESS — Stage 1 value-level scale/round COMPLETE (DEVLOG 396):** ☑ `ApplyScalingAndRounding` (the MOVE /
+    numeric-edited / ACCEPT-to-numeric / MOVE-literal / DIVIDE-REMAINDER paths, 8 call sites) now delegates to
+    `CobolNum.ScaleAndRound`; the legacy decimal `RoundToIntegerByMode`/`NearestTowardZero` retired. **Every**
+    value-level numeric scale/round in the runtime now flows through `CobolNum` (arithmetic via `TryStore`,
+    MOVE/edited/remainder via `ScaleAndRound`). Guard 1144/481/364, green first try (the 395 sign-layering fix held).
+  - **NEXT (Stage 0):** split `PicDescriptor` → `FieldShape` (compile-time) + `NumProfile` (runtime), a lossless
+    rename (ADR M6); add the `IrDataSlot` sum type with `ByteWindowSlot` + `Span<byte>` adapter overloads,
+    everything byte-backed = today's behavior. (Then Stage 2 classifier, Stage 3 typed flips — character first.)
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).

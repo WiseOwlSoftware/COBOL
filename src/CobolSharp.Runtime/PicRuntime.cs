@@ -2255,51 +2255,19 @@ public static class PicRuntime
     /// <summary>Round toward negative infinity (floor).</summary>
     public const int RoundTowardLesser = 7;
 
-    private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
-    {
-        // Fraction scale: FractionDigits + leading P (e.g., PIC P(4)9 has scale 5)
-        int fractionScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-        if (fractionScale < 0) fractionScale = 0;
-
-        // Trailing P: field stores multiples of 10^TrailingScaleDigits
-        // e.g., PIC S99P → TrailingScaleDigits=1 → values are multiples of 10
-        int trailingP = destPic.TrailingScaleDigits;
-
-        if (trailingP > 0)
-        {
-            // Reduce to integer multiples of 10^trailingP, then re-scale.
-            decimal pFactor = Pow10(trailingP);
-            return RoundToIntegerByMode(value / pFactor, roundingMode) * pFactor;
-        }
-
-        // Standard fraction rounding: scale up to an integer, round per mode, scale back.
-        decimal factor = Pow10(fractionScale);
-        return RoundToIntegerByMode(value * factor, roundingMode) / factor;
-    }
-
     /// <summary>
-    /// Round a scaled value to an integer per the ISO ROUNDED MODE (§14.9.4). The eight modes
-    /// differ only in how the dropped fraction is resolved; PROHIBITED produces the truncated
-    /// (toward-zero) integer here — its "rounding not permitted → size error" behavior is the
-    /// caller's responsibility (the arithmetic store path), not this pure helper's.
+    /// Value-level scale + round to the receiver's representable grid, delegated to
+    /// <see cref="CobolNum.ScaleAndRound"/> (the typed BigInteger numeric core) — proven equivalent to the
+    /// former inline decimal logic within the legacy faithful window by <c>CobolNumDifferentialTests</c>.
+    /// Serves the MOVE, numeric-edited, and DIVIDE-REMAINDER paths; it performs NO capacity/SIZE-ERROR check
+    /// (those paths truncate on encode — the arithmetic store path uses <see cref="CobolNum.TryStore"/>).
+    /// Returns the signed rounded value; the receiver's representation (unsigned-magnitude for a plain field,
+    /// sign-editing for a numeric-edited field) is applied by the encoder, not here.
     /// </summary>
-    private static decimal RoundToIntegerByMode(decimal scaled, int roundingMode) => roundingMode switch
-    {
-        RoundNearestAwayFromZero => Math.Round(scaled, 0, MidpointRounding.AwayFromZero),
-        RoundAwayFromZero        => scaled >= 0m ? Math.Ceiling(scaled) : Math.Floor(scaled),
-        RoundNearestEven         => Math.Round(scaled, 0, MidpointRounding.ToEven),
-        RoundNearestTowardZero   => NearestTowardZero(scaled),
-        RoundTowardGreater       => Math.Ceiling(scaled),
-        RoundTowardLesser        => Math.Floor(scaled),
-        _                        => decimal.Truncate(scaled),   // RoundTruncation, RoundProhibited
-    };
-
-    /// <summary>Round to the nearest integer with ties broken toward zero: sign · ceil(|x| − 0.5).</summary>
-    private static decimal NearestTowardZero(decimal scaled)
-    {
-        decimal r = Math.Ceiling(Math.Abs(scaled) - 0.5m);
-        return scaled < 0m ? -r : r;
-    }
+    private static decimal ApplyScalingAndRounding(decimal value, PicDescriptor destPic, int roundingMode)
+        => CobolNum.ScaleAndRound(CobolDecimal.FromDecimal(value),
+                                  NumProfile.FromDescriptor(destPic),
+                                  (CobolRounding)roundingMode).ToDecimal();
 
     // ══════════════════════════════════════════════════════════
     // Helpers
