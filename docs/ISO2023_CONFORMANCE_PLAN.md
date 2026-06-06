@@ -47,7 +47,24 @@
   - **SORT Format-2** elementary self-key; **READ … PREVIOUS** (indexed + relative).
   - Intrinsic-function set already broad (incl. 2002/2014/2023 fns in `IntrinsicFunctions.cs`); EXIT
     PARAGRAPH/SECTION/PERFORM[ CYCLE] grammar present.
-- **Guard baseline:** 1047 / 455 / 364.
+- **M2 — landed THIS session (DEVLOG 370–382), each with a `tests/conformance/2002/` test + this plan ticked:**
+  - **Conformance framework + this SSOT** (370–371): the version-conformance corpus (`tests/conformance/<ver>/`,
+    auto-discovered by `ConformanceTests`) and this plan document itself.
+  - **M4-1** DELETE FILE (373) · **M4-2a** logical XOR / EXCLUSIVE-OR (375).
+  - **M2-UDF-1/2** general inline UDF invocation + literal/arith args (372, 374).
+  - **M2-DATA-2** FLOAT-SHORT/LONG/EXTENDED (376, 377) · **M2-DATA-1** BINARY-CHAR/SHORT/LONG/DOUBLE (380).
+  - **M2-PROC-2** INSPECT … BACKWARD (378) · **M2-PROC-1** INITIALIZE TO VALUE/DEFAULT/FILLER (381).
+  - **M2-ARITH-1** ROUNDED MODE — all 8 modes + per-statement `MODE IS` + CORRESPONDING (379, 382); ◐ two
+    follow-ups remain (OPTIONS DEFAULT ROUNDED MODE, PROHIBITED→EC-SIZE-TRUNCATION).
+- **Guard baseline:** **1047 unit / 474 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+- **NEXT UP →** an M2 data-type new-category build — both have an **investigated first-slice recipe in §3.2**
+  (handoff audit 2026-06-05):
+  - **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE), smallest
+    Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity). Needs a safe-handle `PointerRegistry`
+    design decision; the hard parts (SET ADDRESS OF / BASED) are deferred.
+  - **M2-DATA-3 National** — the cleaner *standalone* deliverable (UTF-16 storage + `N"…"` + MOVE + DISPLAY is a
+    complete capability), but larger. PIC `N`→`CobolCategory.National` scaffolding already exists.
+  - (M2-DATA-4 Boolean/bit is the third option.) Pick one, work top-down per §4 waves; tick + log here as it lands.
 
 ---
 
@@ -109,6 +126,20 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☐ **M2-DATA-3 — National data.** `USAGE NATIONAL`, `PIC N(n)`, national literals `N"…"` / `NX"…"`,
   NATIONAL-EDITED, UTF-16 storage, MOVE/DISPLAY/compare/INSPECT semantics. *Large (new category).* The
   `DISPLAY-OF`/`NATIONAL-OF` intrinsics already exist; the data **type** does not. §13.18, §8.3.
+  - **Investigated first slice (handoff audit, 2026-06-05) — `USAGE NATIONAL` + `PIC N(n)` + `N"…"` literal +
+    MOVE national←national + DISPLAY.** What already exists: PIC `N` → `CobolCategory.National`/`NationalEdited`
+    in `PicDescriptorFactory` (lines ~131-136, 287-301); stub `MoveNationalToNational`/`CompareNational` in
+    `PicRuntime` (~1292, 1348) that just delegate to alphanumeric (no UTF-16); `DISPLAY-OF`/`NATIONAL-OF`/
+    `CHAR-NATIONAL` are TODO stubs in `IntrinsicFunctions.cs`. What's MISSING (touch in this order):
+    (1) `PicDescriptorFactory.ComputeStorageLength` (~422-464) — National = **2 bytes/char** (UTF-16; not the
+    default 1-byte DISPLAY path); (2) `FieldSizeCalculator.ComputeDisplaySize` — double for National;
+    (3) `CobolLexer.g4` — new `NATLIT` (`N"…"`) [+ `NXLIT` `NX"…"` deferred] token, **before IDENTIFIER**;
+    (4) bind the national literal (mirror STRINGLIT) → store UTF-16 bytes; (5) `DataMovementLowerer.LowerMove`
+    national-literal case; (6) real `PicRuntime.MoveNationalToNational` (UTF-16 decode→pad with U+0020→encode);
+    (7) `CilDataEmitter.EmitMoveFieldToField` National dispatch; (8) DISPLAY path decode UTF-16→string.
+    **Decisions:** store UTF-16 **LE** in byte[] (matches .NET); pad with U+0020. **Risks:** off-by-one in
+    char×2 sizing (test widths 1/10/100); NATLIT-vs-`N`-identifier lexer order. **Defer:** NATIONAL-EDITED,
+    national↔alphanumeric conversion, INSPECT/compare nuances, EBCDIC.
 - ☐ **M2-DATA-4 — Boolean & bit data.** `USAGE BIT`, `PIC 1(n)`, boolean literals `B"…"` / `BX"…"`, bit operators
   (B-AND/B-OR/B-XOR/B-NOT), BOOLEAN category in INITIALIZE/SET/compare. *Large (new category).* §8.3, §13.18.
 - ☐ **M2-DATA-5 — Pointers & based addressing (foundational).** **[A] HIGH, large.** `USAGE POINTER /
@@ -116,6 +147,15 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   token exists but there is no support. *Recipe:* `POINTER` usage + a runtime `PointerRegistry` handle model
   (mapping COBOL pointers onto .NET safely). **Unblocks ALLOCATE/FREE (M2-PROC-5) and SET ADDRESS OF.** §13.18,
   §14.9.
+  - **Investigated first slice (handoff audit, 2026-06-05) — the audit's RECOMMENDED next pick** (foundational +
+    smallest Phase-1, no grammar ambiguity). Current state: `UsageKind.Pointer` enum value exists but is **inert**
+    (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `CobolDataPointer` exists but is
+    used only for CALL BY REFERENCE/CONTENT, not USAGE POINTER. **Phase-1 slice:** `USAGE POINTER` (alias all
+    three pointer usages) → 8-byte opaque **handle** storage; `NULL` literal = handle 0; `SET p TO NULL`; pointer
+    `= NULL` comparison. (No managed-address taking — a `PointerRegistry` maps handles → targets; this is the
+    safe-handle design decision the next session must confirm.) **Defer (Phase-2/3, the hard parts):** `SET
+    ADDRESS OF` / `SET … UP/DOWN BY` (needs `GCHandle`-pinned addresses of BASED items — the .NET managed-memory
+    problem), `BASED` deref, then `ALLOCATE`/`FREE` (M2-PROC-5).
 
 ### 3.3 M2 — Arithmetic & configuration
 
@@ -280,3 +320,9 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 ## 7. Plan change-log
 - **2026-06-05** — Created from the 15-area parallel conformance audit (workflow `iso2023-conformance-audit`) +
   session surveys. Initial catalog + waves. Established as SSOT.
+- **2026-06-05 (session DEVLOG 372–382)** — Landed, each conformance-tested + ticked: M4-1 DELETE FILE; M4-2a
+  XOR; M2-UDF-1/2 inline UDF invocation; M2-DATA-2 FLOAT-SHORT/LONG/EXTENDED; M2-DATA-1 BINARY-CHAR/SHORT/LONG/
+  DOUBLE; M2-PROC-2 INSPECT BACKWARD; M2-PROC-1 INITIALIZE TO VALUE/DEFAULT/FILLER; M2-ARITH-1 ROUNDED MODE
+  (all 8 + per-statement MODE IS + CORRESPONDING, ◐ two follow-ups left). Guard 1047/474/364. Next: M2-DATA-3
+  National (§3.2). Process note: keep THIS document the singular live plan — tick items + log here as work lands;
+  no separate resume/handoff docs.

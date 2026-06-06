@@ -1,3 +1,8 @@
+> ⚠️ **SUPERSEDED (2026-06-05). The single live plan is [`docs/ISO2023_CONFORMANCE_PLAN.md`](docs/ISO2023_CONFORMANCE_PLAN.md)** —
+> its §1 (current status / NEXT UP), §3 (catalog), §4 (waves), §7 (change-log) are the authoritative, continuously-
+> updated resume orientation. Do **not** resume from this file; it is kept only as history of the M1/COBOL-85 drive
+> (DEVLOG 326–335). There is **one** plan — tick items + log progress there as work lands; no separate resume docs.
+
 # CobolSharp — Session Resume Prompt (2026-06-04)
 
 Paste this to start a new session. **Mission (REFRAMED 2026-06-04): a multi-version COBOL compiler (ISO 85→2023),
