@@ -601,6 +601,28 @@ public sealed class CilEmitter
             _ctx.TypedFields[tf.Name] = typedFd;
         }
 
+        // S3b: a flipped 01 group → a .NET record struct (sealed SequentialLayout value type) of string members +
+        // one static instance of it on the program type. Member access is ldsflda instance / ldfld|stfld member.
+        foreach (var rd in ir.TypedRecordDefs)
+        {
+            var structTd = new TypeDefinition("", rd.StructTypeName,
+                TypeAttributes.Public | TypeAttributes.SequentialLayout |
+                TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                _module.ImportReference(typeof(System.ValueType)));
+            var members = new Dictionary<string, FieldDefinition>(StringComparer.Ordinal);
+            foreach (var m in rd.Members)
+            {
+                var mfd = new FieldDefinition(m.Name, FieldAttributes.Public, _module.TypeSystem.String);
+                structTd.Fields.Add(mfd);
+                members[m.Name] = mfd;
+            }
+            _module.Types.Add(structTd);
+            var instFd = new FieldDefinition(rd.InstanceName,
+                FieldAttributes.Public | FieldAttributes.Static, structTd);
+            _programType.Fields.Add(instFd);
+            _ctx.TypedRecords[rd.InstanceName] = (instFd, members);
+        }
+
         // Static bool: have this program's file connectors been registered for the current activation?
         // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
         _filesRegisteredField = new FieldDefinition(
@@ -634,6 +656,17 @@ public sealed class CilEmitter
         {
             initIl.Append(initIl.Create(OpCodes.Ldstr, tf.InitValue));
             initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
+        }
+        // S3b: init each record-struct member (ldsflda instance; ldstr value; stfld member).
+        foreach (var rd in ir.TypedRecordDefs)
+        {
+            var rec = _ctx.TypedRecords[rd.InstanceName];
+            foreach (var m in rd.Members)
+            {
+                initIl.Append(initIl.Create(OpCodes.Ldsflda, rec.Instance));
+                initIl.Append(initIl.Create(OpCodes.Ldstr, m.InitValue));
+                initIl.Append(initIl.Create(OpCodes.Stfld, rec.Members[m.Name]));
+            }
         }
         EmitAlterTableInitialization(initIl, ir);
         // Snapshot LOCAL-STORAGE defaults after VALUE clause init (used by ReinitializeLocalStorage).

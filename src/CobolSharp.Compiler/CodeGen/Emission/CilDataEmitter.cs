@@ -20,6 +20,49 @@ internal sealed class CilDataEmitter
 
     internal CilDataEmitter(EmissionContext ctx) => _ctx = ctx;
 
+    // ── Data-model migration S3 typed-field access helpers (docs/RECORD_STRUCT_STORAGE_DESIGN.md) ──
+    // A typed field is either a flat static string field (S3a, InstanceName null) or a member of a static
+    // record-struct instance (S3b). Store needs the instance address pushed BEFORE the value, so store is split
+    // into a prefix (push the struct address, if any) and a suffix (stfld member / stsfld flat).
+
+    private void EmitTypedStorePrefix(ILProcessor il, IrTypedFieldLocation t)
+    {
+        if (t.InstanceName is { } inst)
+            il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+    }
+
+    private void EmitTypedStoreSuffix(ILProcessor il, IrTypedFieldLocation t)
+    {
+        il.Append(t.InstanceName is { } inst
+            ? il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst].Members[t.FieldName])
+            : il.Create(OpCodes.Stsfld, _ctx.TypedFields[t.FieldName]));
+    }
+
+    private void EmitTypedLoad(ILProcessor il, IrTypedFieldLocation t)
+    {
+        if (t.InstanceName is { } inst)
+        {
+            var rec = _ctx.TypedRecords[inst];
+            il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
+            il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
+        }
+    }
+
+    /// <summary>Emits <c>ldc width; ldc.i4.0; call CobolString.Store(string,int,bool)</c> (the receiving value
+    /// already-on-stack: width/justify/space-fill per ISO §14.9.25).</summary>
+    private void EmitCobolStringStore(ILProcessor il, int width)
+    {
+        il.Append(il.Create(OpCodes.Ldc_I4, width));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
+                "Store", new[] { typeof(string), typeof(int), typeof(bool) })!)));
+    }
+
     internal void EmitLoadConst(ILProcessor il, IrLoadConst lc,
         Func<IrValue, VariableDefinition> getLocal)
     {
@@ -90,14 +133,10 @@ internal sealed class CilDataEmitter
         // (CobolString.Store: width/justify/space-fill, ISO §14.9.25) directly to the .NET field. No byte window.
         if (ms.Target is IrTypedFieldLocation tfl)
         {
+            EmitTypedStorePrefix(il, tfl);
             il.Append(il.Create(OpCodes.Ldstr, ms.Value));
-            il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
-            il.Append(il.Create(OpCodes.Ldc_I4_0));   // justifiedRight: false (S3 widening adds JUSTIFIED)
-            var store = _ctx.Module.ImportReference(
-                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
-                    "Store", new[] { typeof(string), typeof(int), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, store));
-            il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[tfl.FieldName]));
+            EmitCobolStringStore(il, tfl.Width);   // justifiedRight: false (S3 widening adds JUSTIFIED)
+            EmitTypedStoreSuffix(il, tfl);
             return;
         }
 
@@ -254,14 +293,10 @@ internal sealed class CilDataEmitter
         // EmitLocationArgs guard until the materialize fallback (§2.5) lands.
         if (mf.Source is IrTypedFieldLocation msrc && mf.Destination is IrTypedFieldLocation mdst)
         {
-            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[msrc.FieldName]));
-            il.Append(il.Create(OpCodes.Ldc_I4, mdst.Width));
-            il.Append(il.Create(OpCodes.Ldc_I4_0));
-            var store = _ctx.Module.ImportReference(
-                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
-                    "Store", new[] { typeof(string), typeof(int), typeof(bool) })!);
-            il.Append(il.Create(OpCodes.Call, store));
-            il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[mdst.FieldName]));
+            EmitTypedStorePrefix(il, mdst);
+            EmitTypedLoad(il, msrc);
+            EmitCobolStringStore(il, mdst.Width);
+            EmitTypedStoreSuffix(il, mdst);
             return;
         }
 
@@ -432,7 +467,7 @@ internal sealed class CilDataEmitter
             {
                 // Match the byte path exactly (PicRuntime.GetDisplayString, alphanumeric arm): trailing spaces
                 // are trimmed (.TrimEnd()) so the typed flip is byte-identical to the legacy DISPLAY.
-                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[tfl.FieldName]));
+                EmitTypedLoad(il, tfl);
                 var trimEnd = _ctx.Module.ImportReference(
                     typeof(string).GetMethod("TrimEnd", System.Type.EmptyTypes)!);
                 il.Append(il.Create(OpCodes.Callvirt, trimEnd));

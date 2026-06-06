@@ -1273,12 +1273,17 @@ public sealed class IrTypedFieldLocation : IrLocation
     /// <summary>The item's original (alphanumeric) descriptor — so <c>GetPic()</c> works and the existing
     /// lowering routes a literal/field move through the right branch before the typed emit cell takes over.</summary>
     public Runtime.PicDescriptor Pic { get; }
+    /// <summary>S3a (a standalone elementary item): null → <see cref="FieldName"/> is a flat static field. S3b
+    /// (a flipped <c>01</c> group → a <c>record struct</c>): the name of the static struct-instance field, and
+    /// <see cref="FieldName"/> is the member within it (accessed <c>ldsflda instance; ldfld/stfld member</c>).</summary>
+    public string? InstanceName { get; }
 
-    public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic)
+    public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic, string? instanceName = null)
     {
         FieldName = fieldName;
         Width = width;
         Pic = pic;
+        InstanceName = instanceName;
     }
 }
 

@@ -22,9 +22,12 @@ public sealed class IrModule(string name)
     /// <summary>Global byte-array fields representing COBOL storage areas.</summary>
     public List<IrGlobal> Globals { get; } = [];
 
-    /// <summary>Typed-native fields the data-model migration flips out of the byte areas
-    /// (<c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c> S3). Empty unless <c>EnableTypedFields</c> is on.</summary>
+    /// <summary>Typed-native standalone fields the data-model migration flips out of the byte areas (S3a).
+    /// Empty unless <c>EnableTypedFields</c> is on.</summary>
     public List<IrTypedFieldDef> TypedFieldDefs { get; } = [];
+
+    /// <summary>Flipped <c>01</c> groups → .NET <c>record struct</c>s (S3b). Empty unless flipping is on.</summary>
+    public List<IrTypedRecordDef> TypedRecordDefs { get; } = [];
 
     /// <summary>
     /// Default target paragraph indices for each ALTER slot.
@@ -95,6 +98,11 @@ public sealed class IrModule(string name)
 public sealed record IrGlobal(string Name, IrType Type);
 
 /// <summary>A typed-native field flipped out of the COBOL byte areas (data-model migration S3): the emitted
-/// static-field <paramref name="Name"/>, its COBOL character <paramref name="Width"/>, and the COBOL-correct
+/// field <paramref name="Name"/>, its COBOL character <paramref name="Width"/>, and the COBOL-correct
 /// initial value (<paramref name="InitValue"/>, already padded/truncated to <paramref name="Width"/>).</summary>
 public sealed record IrTypedFieldDef(string Name, int Width, string InitValue);
+
+/// <summary>A flipped <c>01</c> group → a .NET <c>record struct</c> (data-model migration S3b): the emitted
+/// struct <paramref name="StructTypeName"/>, its static-instance field <paramref name="InstanceName"/>, and the
+/// typed string <paramref name="Members"/> (one per elementary child).</summary>
+public sealed record IrTypedRecordDef(string StructTypeName, string InstanceName, IReadOnlyList<IrTypedFieldDef> Members);

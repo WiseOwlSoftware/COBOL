@@ -129,10 +129,18 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     typed MOVE-literal (`CobolString.Store`) + DISPLAY (`.TrimEnd()` to match `GetDisplayString`) cells; any other
     op on a typed field throws loudly in `EmitLocationArgs` (no silent miscompile). The byte-identity test caught +
     fixed a real DISPLAY-trim divergence.
-  - **NEXT:** **S3b — widen to an all-character `01` group → a real `record struct` of `string` fields** (the
-    idiomatic record-struct form, reusing `CilEmitter.DefineType`), then field↔field MOVE / COMPARE typed cells +
-    the materialize fallback (§2.5), then numeric typed fields (**hard-gated** on the `CobolNum` differential
-    oracle). See `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **PROGRESS — S3a follow-on + S3b LANDED (DEVLOG 404–405), guard 1187/485/364:** ☑ typed↔typed field MOVE
+    (404); ☑ **S3b — an all-character `01` group → a real .NET `record struct`** of `string` members + a static
+    instance, member access `ldsflda instance; ldfld/stfld member` (405) — the owner's Option B realized,
+    byte-identical, gated `EnableTypedFields`. `Binder.CollectTypedFields` group pass → `IrModule.TypedRecordDefs`;
+    `IrTypedFieldLocation.InstanceName` (null=flat S3a / set=struct member); `CilEmitter` emits the struct type +
+    instance + member init; the `CilDataEmitter` typed cells (MOVE-literal / field-MOVE / DISPLAY) share
+    flat-vs-struct helpers. Reused `CilEmitter.DefineType`'s value-type shape. +4 `TypedFieldFlipTests`.
+  - **NEXT:** the **typed↔byte materialize fallback** (§2.5: `CobolString.ToWindow`/`FromWindow` at the boundary)
+    so a typed field works in ANY op — removes the `EmitLocationArgs` throw — then **typed COMPARE** (`IF`,
+    `CobolString.Compare`), then **numeric** typed fields (**HARD-GATED** on the `CobolNum` differential oracle),
+    then OCCURS / nested groups, then pointers/OO and the Roslyn backend. See `docs/RECORD_STRUCT_STORAGE_DESIGN.md`
+    §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).

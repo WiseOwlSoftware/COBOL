@@ -280,29 +280,54 @@ public sealed class Binder
         if (!_options.EnableTypedFields || _ctx.Classification is not { } classification)
             return;
 
+        // An elementary item whose typed form is a homogeneous .NET string: classifier-typed, WORKING-STORAGE,
+        // alphanumeric/national/alphabetic, no OCCURS, no figurative/ALL VALUE (those byte-back the init).
+        bool IsTypedChar(DataSymbol s)
+        {
+            if (!s.IsElementary || s.Occurs != null || s.FigurativeInit != null || s.AllLiteralPattern != null)
+                return false;
+            if (s.Area != Semantics.StorageAreaKind.WorkingStorage || !classification.IsTyped(s))
+                return false;
+            return _semantic.GetStorageLocation(s) is { } l && l.Pic.Category
+                is Runtime.CobolCategory.Alphanumeric or Runtime.CobolCategory.National
+                or Runtime.CobolCategory.Alphabetic;
+        }
+
+        int WidthOf(DataSymbol s) => _semantic.GetStorageLocation(s)!.Value.Length;
+        string InitOf(DataSymbol s, int width) => s.InitialValue is { } v
+            ? (v.Length >= width ? v[..width] : v.PadRight(width)) : new string(' ', width);
+
         foreach (var sym in _semantic.DataItemsInOrder)
         {
-            if (sym.Parent != null || !sym.IsElementary || sym.Occurs != null)
-                continue;
-            if (sym.Area != Semantics.StorageAreaKind.WorkingStorage)
-                continue;
-            if (sym.FigurativeInit != null || sym.AllLiteralPattern != null)
-                continue;
-            if (!classification.IsTyped(sym))
-                continue;
-            if (_semantic.GetStorageLocation(sym) is not { } loc)
-                continue;
-            if (loc.Pic.Category is not (Runtime.CobolCategory.Alphanumeric
-                or Runtime.CobolCategory.National or Runtime.CobolCategory.Alphabetic))
+            if (sym.Parent != null)
                 continue;
 
-            int width = loc.Length;
-            string name = "_T_" + sym.Name;
-            string init = sym.InitialValue is { } v
-                ? (v.Length >= width ? v[..width] : v.PadRight(width))
-                : new string(' ', width);
-            module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, width, init));
-            _ctx.TypedFieldRefs[sym] = (name, width);
+            // S3a: a standalone elementary alphanumeric item → a flat typed `string` field.
+            if (IsTypedChar(sym))
+            {
+                int width = WidthOf(sym);
+                string name = "_T_" + sym.Name;
+                module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, width, InitOf(sym, width)));
+                _ctx.TypedFieldRefs[sym] = (name, width, null);
+                continue;
+            }
+
+            // S3b: a flat all-character `01` group (classifier-typed, every direct child an elementary typed-char
+            // item — no nested groups/OCCURS yet) → a .NET `record struct` of `string` members.
+            if (sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
+                && classification.IsTyped(sym) && sym.Children.Count > 0 && sym.Children.All(IsTypedChar))
+            {
+                string structName = "_TS_" + sym.Name;
+                string instanceName = "_TI_" + sym.Name;
+                var members = new List<IR.IrTypedFieldDef>(sym.Children.Count);
+                foreach (var child in sym.Children)
+                {
+                    int width = WidthOf(child);
+                    members.Add(new IR.IrTypedFieldDef(child.Name, width, InitOf(child, width)));
+                    _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName);
+                }
+                module.TypedRecordDefs.Add(new IR.IrTypedRecordDef(structName, instanceName, members));
+            }
         }
     }
 

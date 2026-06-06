@@ -86,4 +86,38 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void AllCharacterGroup_FlipsToRecordStruct_MembersMoveAndDisplay()
+    {
+        // S3b: an all-character 01 group → a .NET record struct of string members. The members are accessed
+        // (MOVE-literal, field MOVE, DISPLAY) as instance.member; byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDREC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CUSTOMER.
+               05 CUST-NAME PIC X(6) VALUE "ACME".
+               05 CUST-CITY PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY CUST-NAME.
+                MOVE "OHIO" TO CUST-CITY.
+                DISPLAY CUST-CITY.
+                MOVE CUST-CITY TO CUST-NAME.
+                DISPLAY CUST-NAME.
+                STOP RUN.
+            """;
+
+        // record-struct path: CUST-NAME init "ACME  "→"ACME"; MOVE "OHIO"→CUST-CITY; MOVE CUST-CITY→CUST-NAME→"OHIO".
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("ACME\nOHIO\nOHIO", typed.stdout.Replace("\r\n", "\n"));
+
+        // byte path (flag off): identical observable result — the migration invariant.
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

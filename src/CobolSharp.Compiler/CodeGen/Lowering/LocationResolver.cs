@@ -149,7 +149,7 @@ internal sealed class LocationResolver
         // .NET field, not a byte window. The flip is gated by EnableTypedFields + the classifier (collected in
         // Binder.CollectTypedFields), so when the flag is off TypedFieldRefs is empty and this never fires.
         if (_ctx.TypedFieldRefs.TryGetValue(sym, out var typed))
-            return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic);
+            return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic, typed.Instance);
 
         // Runtime length is only computed for areas backed by a contiguous byte[] we can
         // re-slice (WORKING-STORAGE, LOCAL-STORAGE, FILE SECTION). LINKAGE keeps the
