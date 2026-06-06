@@ -68,7 +68,8 @@
     `SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE + VALUE rejected; conformance `pointer_data`. A 2-agent
     review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) remains the
     owner-gated `PointerRegistry` design decision.**
-- **Guard baseline:** **1047 unit / 478 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+- **Guard baseline:** **1047 unit / 479 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  (479 = +1 from backfilling the SORT Format-2 table-sort conformance test, DEVLOG 390.)
 - **NEXT UP →** the easy/foundational data items are now done (National, Boolean, Pointers Phase-1, GOBACK
   RETURNING). Remaining M2, in rough priority: **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) — OWNER-GATED**
   (the `PointerRegistry` handle→address/.NET-managed-memory design decision); **M2-PRE-1** (◐, re-scoped — two
