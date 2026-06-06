@@ -191,6 +191,35 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     safe-handle design decision the next session must confirm.) **Defer (Phase-2/3, the hard parts):** `SET
     ADDRESS OF` / `SET … UP/DOWN BY` (needs `GCHandle`-pinned addresses of BASED items — the .NET managed-memory
     problem), `BASED` deref, then `ALLOCATE`/`FREE` (M2-PROC-5).
+  - **Turnkey Phase-1 implementation map (workflow `m2-data5-pointers-p1-investigation`, 2026-06-05).** Phase-1
+    (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) does **NOT** need the
+    deferred handle→address `PointerRegistry` decision — that's only for Phase-2 dereference (ADDRESS OF/BASED).
+    NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
+    pointer items** (§13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
+    boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
+    **Lean approach — reuse existing machinery, minimal new code:** model pointer as `CobolCategory.Pointer`
+    (8 bytes); **SET p TO NULL / SET p TO q → lower as a MOVE** in `BindSetToValue` when the target is a pointer
+    (NULL figurative → `MoveFigurativeToField` default fills 0x00×8 since `FigurativeToByte(Null)=0x00`; pointer←
+    pointer → an 8-byte byte-copy), bypassing the numeric index-set path; **`IF p = NULL` reuses the
+    figurative-comparison path** (NULL→0x00 fill, like LOW-VALUE — verify `EmitLocationVsFigurative` handles
+    `FigurativeKind.Null`→0x00) and **`IF p = q` reuses `IrStringCompare`** (byte compare, correct for equality on
+    equal-length 8-byte handles) — so **no new IR/runtime compare nodes needed**. **Touch:** (1) `PicDescriptor.cs`
+    add `CobolCategory.Pointer` (+ optional `IsPointerLike()`); `UsageKind.Pointer` already exists. (2) 8-byte
+    sizing at the 4 sites (mirror BinaryDouble=8): `FieldSizeCalculator.ComputeElementSize` (`Pointer`→8),
+    `PicDescriptorFactory.ComputeStorageLength` (`case Pointer`→8), `StorageLocation`/`CompilerPicDescriptorFactory`
+    synth an 8-byte non-numeric descriptor (category Pointer), `RecordLayoutBuilder.MapToIrType` (`Pointer`→
+    ByteArray). (3) `PicUsageResolver.ResolveForDataItem` `picString==null && usage==Pointer`→category Pointer.
+    (4) `CobolExpressions.g4` add `NULL_` to `figurativeConstant`; `ExpressionBinder.BindFigurativeConstantExpression`
+    `NULL_`→`BoundFigurativeExpression(FigurativeKind.Null)` (both exist; `NULL_` token currently used only in
+    `objectReference` — disambiguate by target category, no grammar conflict). (5) `DataStatementBinder.BindSetToValue`
+    pointer-target → emit a `BoundMoveStatement` (+ reject SET p TO a non-pointer/non-NULL). (6) `CilDataEmitter
+    .EmitMoveFieldToField` `(Pointer,Pointer)`→8-byte byte copy; ensure `MoveFigurativeToField(Null)` over a pointer
+    fills 0x00×8. (7) `CategoryCompatibility` add `(Pointer,Pointer)` move + comparison + `IsPointerFamily`.
+    (8) `ConditionLowerer` route pointer Location/Location → `IrStringCompare`; handle pointer vs NULL figurative.
+    (9) `DataItemClassifier.ValidateValueClause` REJECT a VALUE on a pointer item. (10) restrict pointer comparison
+    to = / NOT = (reject ordering). Conformance `tests/conformance/2002/pointer_data` (declare, SET TO NULL, = NULL
+    YES, two NULLs equal). **Note:** Phase-1 is thin standalone (every pointer can only be NULL until ADDRESS OF/
+    ALLOCATE exist) — its value is the foundation; the useful Phase-2 (dereference) is the owner-gated design decision.
 
 ### 3.3 M2 — Arithmetic & configuration
 
