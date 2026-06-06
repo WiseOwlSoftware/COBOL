@@ -71,9 +71,13 @@ public static class CobolNum
             return false;
         }
 
-        // An unsigned receiver holds the absolute value — the operational sign is not retained
-        // (ISO §14.9.25 GR8: a negative result moved to an unsigned item stores its magnitude).
-        stored = profile.Signed ? rounded : rounded.Abs();
+        // Return the signed rounded value. The unsigned-magnitude rule (ISO §14.9.25 GR8 — a negative result
+        // moved to an unsigned item stores its magnitude) is a property of the receiver's *representation*,
+        // applied by the encoder: the byte codecs drop the sign for an unsigned field, while a numeric-edited
+        // receiver renders the sign through its edit pattern and therefore needs the signed value. The capacity
+        // check above already bounds the magnitude, so an unsigned receiver still correctly accepts a negative
+        // value whose magnitude fits.
+        stored = rounded;
         return true;
     }
 

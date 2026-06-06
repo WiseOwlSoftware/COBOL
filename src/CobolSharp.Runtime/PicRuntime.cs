@@ -3,6 +3,7 @@
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
+using CobolSharp.Runtime.Numeric;
 
 namespace CobolSharp.Runtime;
 
@@ -1066,29 +1067,26 @@ public static class PicRuntime
         decimal value, int roundingMode, ref ArithmeticStatus status)
     {
         // COMP-1/COMP-2 floating-point receivers: no fixed-point scaling/overflow — encode the full IEEE value
-        // directly (mirrors the MOVE-to-float guard in MoveNumericToNumeric). Otherwise ApplyScalingAndRounding
-        // truncates the result to the receiver's FractionDigits (0 for a PIC-less float): 6.28318 → 6, 1/3 → 0.
+        // directly (mirrors the MOVE-to-float guard in MoveNumericToNumeric).
         if (destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2)
         {
             EncodeNumeric(destArea, destOffset, destLength, destPic, value);
             return;
         }
 
-        // ROUNDED MODE PROHIBITED (ISO §14.9.4): rounding is not permitted, so a result that is not exactly
-        // representable at the receiver's scale raises the SIZE ERROR condition (EC-SIZE-TRUNCATION) and leaves
-        // the receiver unchanged — it must NOT silently truncate.
-        if (roundingMode == RoundProhibited && IsInexactAtScale(value, destPic))
+        // Data-model migration Stage 1 (docs/DATA_MODEL_ARCHITECTURE.md §10): the value-level
+        // scale → round → capacity → SIZE ERROR decision is delegated to CobolNum, the typed BigInteger
+        // numeric core, proven byte-identical to the legacy ApplyScalingAndRounding + WouldOverflow +
+        // ROUNDED MODE PROHIBITED path by CobolNumDifferentialTests. The byte encode/decode stays here.
+        // TryStore returns false — the ON SIZE ERROR condition (ISO §14.9.4: capacity exceeded, or PROHIBITED
+        // with an inexact result) — and leaves the receiver unchanged.
+        if (!CobolNum.TryStore(CobolDecimal.FromDecimal(value), NumProfile.FromDescriptor(destPic),
+                               (CobolRounding)roundingMode, out CobolDecimal stored))
         {
             status.SizeError = true;
             return;
         }
-
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
+        value = stored.ToDecimal();
 
         if (destPic.Category == CobolCategory.NumericEdited)
         {
@@ -2248,8 +2246,9 @@ public static class PicRuntime
     public const int RoundNearestEven = 3;
     /// <summary>Round to nearest; ties toward zero.</summary>
     public const int RoundNearestTowardZero = 4;
-    /// <summary>No rounding permitted; an inexact result raises the SIZE ERROR condition (EC-SIZE-TRUNCATION),
-    /// detected in <see cref="StoreArithmeticResult"/> via <see cref="IsInexactAtScale"/> (ISO §14.9.4).</summary>
+    /// <summary>No rounding permitted; an inexact result raises the SIZE ERROR condition (EC-SIZE-TRUNCATION)
+    /// and leaves the receiver unchanged — the arithmetic store path detects this via <c>CobolNum.TryStore</c>
+    /// (ISO §14.9.4).</summary>
     public const int RoundProhibited = 5;
     /// <summary>Round toward positive infinity (ceiling).</summary>
     public const int RoundTowardGreater = 6;
@@ -2302,23 +2301,6 @@ public static class PicRuntime
         return scaled < 0m ? -r : r;
     }
 
-    /// <summary>
-    /// True when <paramref name="value"/> cannot be represented in <paramref name="destPic"/>'s scale without
-    /// dropping nonzero digits (i.e., rounding would change it). Used to detect the EC-SIZE-TRUNCATION condition
-    /// under ROUNDED MODE PROHIBITED (ISO §14.9.4). Floating-point receivers have no fixed scale → never inexact.
-    /// </summary>
-    private static bool IsInexactAtScale(decimal value, PicDescriptor destPic)
-    {
-        if (destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2) return false;
-        int fractionScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-        if (fractionScale < 0) fractionScale = 0;
-        int trailingP = destPic.TrailingScaleDigits;
-        decimal scaledToInteger = trailingP > 0
-            ? value / Pow10(trailingP)
-            : value * Pow10(fractionScale);
-        return scaledToInteger != decimal.Truncate(scaledToInteger);
-    }
-
     // ══════════════════════════════════════════════════════════
     // Helpers
     // ══════════════════════════════════════════════════════════
@@ -2333,126 +2315,6 @@ public static class PicRuntime
         }
         int digits = totalDigits > 0 ? totalDigits : 1;
         return ((long)value).ToString(new string('0', digits), CultureInfo.InvariantCulture);
-    }
-
-    /// <summary>
-    /// Check if a value would overflow when encoded into the destination PIC.
-    /// Returns true if SIZE ERROR should be raised.
-    /// </summary>
-    private static bool WouldOverflow(decimal value, PicDescriptor destPic)
-    {
-        decimal absValue = Math.Abs(value);
-
-        switch (destPic.Usage)
-        {
-            case UsageKind.Comp:
-            case UsageKind.Binary:
-            {
-                // COBOL spec: COMP overflow is based on PIC digit count, not binary capacity.
-                // PIC 99 COMP holds 0-99 (2 digits), not 0-32767 (short.MaxValue).
-                decimal scaled = absValue;
-                int compScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-                if (compScale > 0)
-                    scaled *= Pow10(compScale);
-                // Trailing P: the stored digits are the value divided by 10^TrailingScaleDigits, so the
-                // overflow digit count is of that unit count, not the full magnitude (ISO §13.18.40). The
-                // DISPLAY arm already does this; COMP/COMP-3/COMP-5 omitted it and wrongly SIZE-errored a
-                // valid trailing-P value (e.g. PIC 9(3)P ← 9990). (Surfaced by the data-model oracle.)
-                if (destPic.TrailingScaleDigits > 0)
-                    scaled /= Pow10(destPic.TrailingScaleDigits);
-                long raw;
-                try { raw = checked((long)decimal.Truncate(scaled)); }
-                catch (OverflowException) { return true; }
-
-                int digits = CountDigits(Math.Abs(raw));
-                return digits > destPic.TotalDigits;
-            }
-
-            case UsageKind.Comp5:
-            {
-                // COMP-5: overflow based on binary capacity, not PIC digit count.
-                // PIC 9(4) COMP-5 = 2 bytes unsigned = 0..65535.
-                // PIC S9(4) COMP-5 = 2 bytes signed = -32768..32767.
-                decimal scaled = absValue;
-                int comp5Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-                if (comp5Scale > 0)
-                    scaled *= Pow10(comp5Scale);
-                if (destPic.TrailingScaleDigits > 0)   // see the COMP arm — trailing-P stores the unit count
-                    scaled /= Pow10(destPic.TrailingScaleDigits);
-                long raw;
-                try { raw = checked((long)decimal.Truncate(scaled)); }
-                catch (OverflowException) { return true; }
-
-                return destPic.StorageLength switch
-                {
-                    1 => destPic.IsSigned
-                        ? (raw < sbyte.MinValue || raw > sbyte.MaxValue)
-                        : (raw < 0 || raw > byte.MaxValue),
-                    2 => destPic.IsSigned
-                        ? (raw < short.MinValue || raw > short.MaxValue)
-                        : (raw < 0 || raw > ushort.MaxValue),
-                    4 => destPic.IsSigned
-                        ? (raw < int.MinValue || raw > int.MaxValue)
-                        : (raw < 0 || raw > uint.MaxValue),
-                    8 => false, // long range already enforced by the (long) cast
-                    _ => true
-                };
-            }
-
-            case UsageKind.Comp3:
-            case UsageKind.PackedDecimal:
-            {
-                // Include leading P scaling
-                decimal scaled = absValue;
-                int comp3Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-                if (comp3Scale > 0)
-                    scaled *= Pow10(comp3Scale);
-                if (destPic.TrailingScaleDigits > 0)   // see the COMP arm — trailing-P stores the unit count
-                    scaled /= Pow10(destPic.TrailingScaleDigits);
-                long intVal;
-                try { intVal = checked((long)decimal.Truncate(scaled)); }
-                catch (OverflowException) { return true; }
-
-                int digits = CountDigits(Math.Abs(intVal));
-                int capacity = (destPic.StorageLength * 2) - 1;
-                return digits > capacity;
-            }
-
-            default: // DISPLAY
-            {
-                decimal scaled = absValue;
-                int totalScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
-                if (totalScale > 0)
-                    scaled *= Pow10(totalScale);
-                if (destPic.TrailingScaleDigits > 0)
-                    scaled /= Pow10(destPic.TrailingScaleDigits);
-                long intVal;
-                try { intVal = checked((long)decimal.Truncate(scaled)); }
-                catch (OverflowException) { return true; }
-
-                // Count digits without floating-point conversion to avoid
-                // precision loss for large values (e.g., 999999999999998765
-                // rounds to 1.0E+18 as double, giving wrong digit count)
-                int digits = CountDigits(Math.Abs(intVal));
-                return digits > destPic.TotalDigits;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Count decimal digits in a non-negative long without floating-point conversion.
-    /// Avoids precision loss that occurs with Math.Log10((double)value) for large values.
-    /// </summary>
-    private static int CountDigits(long value)
-    {
-        if (value == 0) return 1;
-        int count = 0;
-        while (value > 0)
-        {
-            count++;
-            value /= 10;
-        }
-        return count;
     }
 
     private static decimal Pow10(int scale)

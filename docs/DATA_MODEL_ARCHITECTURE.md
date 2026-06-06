@@ -453,11 +453,19 @@ crosses this program's chokepoint.
 ```
 CobolSharp.Runtime/
   Numeric/
-    CobolNum.cs            // Store/TryStore: scale → round(8 ISO modes) → truncate(digit-count OR binary-capacity) → sign.
+    CobolNum.cs            // Store/TryStore: scale → round(8 ISO modes) → truncate(digit-count OR binary-capacity).
+                           //   Returns the SIGNED rounded value. CORRECTION (DEVLOG 395, found wiring Stage 1):
+                           //   the unsigned-magnitude rule (ISO §14.9.25 GR8) is NOT a step of the value-level
+                           //   store — it is a property of the receiver's REPRESENTATION, applied by the consumer:
+                           //   the byte codec drops the sign for an unsigned plain field, a numeric-edited receiver
+                           //   renders the sign through its edit pattern (so it needs the signed value — an Abs in
+                           //   the value store silently corrupts it), and a typed unsigned field will drop the sign
+                           //   at the typed-field store (Stage 3). Capacity always bounds the magnitude.
                            //   TryStore returns bool for ON SIZE ERROR — NEVER throws. ALSO SafeAdd/Sub/Mul/Pow:
                            //   EVERY expression-tree operator is a no-throw size-error-setting helper, not just the
                            //   final store (today intermediate decimal.op_* can throw before ON SIZE ERROR can fire).
                            //   19–31-digit intermediates use BigInteger, NOT decimal (decimal = 28–29 digits; see M1/R5).
+                           //   IMPLEMENTED Stage 0/1 as CobolDecimal (BigInteger carrier) + NumProfile (DEVLOG 394).
     INumericCodec.cs       // static-abstract strategy: Decode(span,in NumProfile)->value; Encode(span,in NumProfile,value)
     Codecs/                //   DisplayUnsigned, DisplaySignedOverpunch, DisplaySignedSeparate, Comp, Comp5, Comp3, Comp1, Comp2
     Rounding.cs            // 8 ISO rounding modes (logic exists in PicRuntime; EXTRACTED AND CORRECTED —

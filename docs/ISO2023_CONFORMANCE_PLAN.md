@@ -60,10 +60,18 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     `BigInteger`/two's-complement reference beyond the legacy faithful window (19–31 digits, 8-byte unsigned COMP-5,
     COMP-5 signed extreme, PROHIBITED). All additive — nothing in the pipeline calls it yet. The oracle surfaced &
     fixed **2 legacy spec bugs** (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow` divide). Guard 1144/481/364.
-  - **NEXT (Stage 0 cont.):** split `PicDescriptor` → `FieldShape` (compile-time) + `NumProfile` (runtime), a
-    lossless rename (ADR M6); add the `IrDataSlot` sum type with `ByteWindowSlot` + `Span<byte>` adapter overloads,
-    everything classified byte-backed = today's behavior. Then Stage 1 routes byte-island arithmetic through
-    `CobolNum` behind the oracle.
+  - **PROGRESS — Stage 1 first wiring LANDED (DEVLOG 395):** ☑ `PicRuntime.StoreArithmeticResult` (the single
+    choke point for ALL COBOL arithmetic — ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE) now delegates its value-level
+    scale→round→capacity→SIZE-ERROR decision to `CobolNum.TryStore`; the legacy `WouldOverflow`/`IsInexactAtScale`/
+    `CountDigits` removed. The full NIST arithmetic corpus flows through `CobolNum` byte-identically (guard
+    1144/481/364). The wiring + guard caught a real **layering correction**: the unsigned-magnitude rule belongs
+    to the receiver's *representation* (the encoder), NOT the value-level store — a numeric-edited receiver renders
+    its sign via the edit pattern and needs the signed value; `TryStore` now returns the signed rounded value
+    (ADR §5 updated).
+  - **NEXT (Stage 1 cont. + Stage 0):** route the numeric MOVE path (`MoveNumericToNumeric`) + DIVIDE-REMAINDER
+    through `CobolNum` (so `ApplyScalingAndRounding` can retire); then split `PicDescriptor` → `FieldShape`
+    (compile-time) + `NumProfile` (runtime), a lossless rename (ADR M6); add the `IrDataSlot` sum type with
+    `ByteWindowSlot` + `Span<byte>` adapter overloads, everything byte-backed = today's behavior.
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
@@ -126,9 +134,11 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   - **Bug fix (392):** `IS ALPHABETIC` restricted to ISO §8.8.4.4 {A–Z, a–z, space} (was `char.IsLetter`,
     Unicode-wide). Both 392 fixes were surfaced by the data-model ADR review.
   - **🏗 DATA-MODEL RE-ARCHITECTURE designed + adversarially reviewed (393)** — the ADR + review docs (see §0.5).
-  - **🏗 DATA-MODEL MIGRATION STARTED — Stage 0/1 slice 1 LANDED (394):** the `BigInteger` numeric substrate
-    (`CobolRounding`/`CobolDecimal`/`NumProfile`/`CobolNum`) + the Stage-1 differential oracle; 2 oracle-surfaced
-    legacy spec bugs fixed (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow`). See §0.5 PROGRESS.
+  - **🏗 DATA-MODEL MIGRATION STARTED — Stage 0/1 substrate (394) + Stage-1 first wiring (395):** the `BigInteger`
+    numeric substrate (`CobolRounding`/`CobolDecimal`/`NumProfile`/`CobolNum`) + differential oracle (2 legacy spec
+    bugs fixed: unsigned COMP-3 sign nibble, trailing-P `WouldOverflow`); then `StoreArithmeticResult` (all COBOL
+    arithmetic) delegated to `CobolNum` byte-identically, which surfaced + corrected the unsigned-sign layering (ADR
+    §5). See §0.5 PROGRESS.
 - **Guard baseline:** **1144 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
   (+92 unit this session: the Stage-0/1 numeric substrate — `CobolDecimalTests` + `CobolNumDifferentialTests`
   (the differential oracle) + the `PicRuntimeRegressionTests` for the 2 legacy fixes (394). The substrate is

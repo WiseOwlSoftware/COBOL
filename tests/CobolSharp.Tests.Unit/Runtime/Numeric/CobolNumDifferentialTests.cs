@@ -140,7 +140,10 @@ public sealed class CobolNumDifferentialTests
                     if (!ok)
                         continue; // both signalled SIZE ERROR — no stored value to compare
 
-                    decimal cobolStored = stored.ToDecimal();
+                    // The legacy decoded value reflects the receiver's representation, which drops the sign for
+                    // an unsigned field (the encoder's job). TryStore returns the signed rounded value, so mirror
+                    // that representation here before comparing.
+                    decimal cobolStored = (field.Signed ? stored : stored.Abs()).ToDecimal();
                     if (legacyStored != cobolStored)
                     {
                         mismatches.AppendLine(
@@ -270,10 +273,12 @@ public sealed class CobolNumDifferentialTests
         Assert.False(Stores(u16, "65536"));
         Assert.True(Stores(u16, "0"));
 
-        // Unsigned receiver stores the magnitude of a negative value (ISO §14.9.25 GR8).
+        // An unsigned receiver accepts a negative value whose magnitude fits (capacity bounds the magnitude);
+        // TryStore returns the signed value — the encoder drops the sign for the unsigned representation
+        // (ISO §14.9.25 GR8).
         bool ok = CobolNum.TryStore(CobolDecimal.FromInt64(-1), u16, CobolRounding.Truncation, out CobolDecimal stored);
         Assert.True(ok);
-        Assert.Equal(CobolDecimal.FromInt64(1), stored);
+        Assert.Equal(CobolDecimal.FromInt64(-1), stored);
     }
 
     private static bool Stores(NumProfile profile, string literal)
