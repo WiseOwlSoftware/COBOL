@@ -102,15 +102,22 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     the wiring step) a legacy nuance: `CompareFieldToField` uses `TrimEnd()` (all-whitespace) whereas COBOL
     space-extends with `0x20` only — `CobolString.Compare` is COBOL-correct; the two diverge only on non-space
     trailing bytes.
-  - **NEXT:** Stage 0 scaffolding (`IrDataSlot`/`ByteWindowSlot` sum type + `Span<byte>` adapter overloads,
-    `PicDescriptor`→`FieldShape`(compile) / `NumProfile`(runtime) split per ADR M6 — investigation recommends the
-    additive parallel-`NumProfile` path, deferring the full rename), then **wire `RecordClassificationPass` into
-    the Binder** (after `BoundProgram` is built, with the model's layout/category accessors; a no-op until the
-    first flip), then **Stage 3 first character-data typed flip** (PIC X → .NET `string`; the narrowest subset =
-    records of only elementary character items with no triggers; the byte fallback keeps overlay-heavy NIST
-    programs green). IrLocation map @ `IrInstruction.cs:1246+` (Static/ElementRef/RefMod/OdoGroup/Cached); MOVE
-    dispatch @ `CilDataEmitter.EmitMoveFieldToField`/`EmitMoveWithStandardSignature`; the typed↔byte materialize
-    codec lives at the §2.5 IDataSlot boundary.
+  - **OWNER DECISION (DEVLOG 400): build the REAL record-`struct` storage substrate (the ADR §9 literal intent).**
+    A first-flip design investigation found the ADR's nominal typed home — records → .NET `record struct` via
+    `RecordLayoutBuilder` — is **dead code** (`IrLoadField`/`IrStoreField` zero producers; `ARCHITECTURE_ASSESSMENT`
+    item 17); live storage is `ProgramState` byte[] via `StorageLayoutComputer`. The owner chose to build the real
+    record-`struct` substrate (Option B) over a parallel-static-field shortcut and explicitly over the dual-write/
+    shadow hack (rejected, `feedback_no_transitional_hacks`). **Key insight:** byte-backed items stay in the byte
+    areas (the §1.6 safety floor); only classifier-Typed items move into record-`struct` fields; they meet only at
+    the §2.5 `IDataSlot` chokepoint (typed slots materialize a transient byte window — no shadow/drift). The
+    concrete, staged, guard-green engineering roadmap is **`docs/RECORD_STRUCT_STORAGE_DESIGN.md`** (S0 IR+resolver
+    scaffolding → S1 wire classifier OFF → S2 rebuild `RecordLayoutBuilder` as the real producer → S3 first
+    all-character `01`→`record struct` flip → S4+ widen one rule at a time, each a conformance-tested guard-green
+    commit, kill-switch `EnableTypedFields` reverts to byte-identical). ADR §9 corrected to match.
+  - **NEXT:** the staged design is at the adversarial-review gate; on GO, implement **S0/S1** (the `IrDataSlot`
+    sum type + classifier-into-Binder wiring, forced-byte) per `docs/RECORD_STRUCT_STORAGE_DESIGN.md`, then S2/S3.
+    IrLocation map @ `IrInstruction.cs:1246+`; MOVE dispatch @ `CilDataEmitter.EmitMoveFieldToField`/
+    `EmitMoveWithStandardSignature`; substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
