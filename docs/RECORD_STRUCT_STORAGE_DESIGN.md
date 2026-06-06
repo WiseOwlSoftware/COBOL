@@ -129,6 +129,41 @@ the moment they exist.** No `[CompilerScaffold]`/warning-suppression escape hatc
   `TypedFieldSlot` is emitted**; then group MOVE/COMPARE materialization; `OCCURS` → `CobolTable<T>`; then pointers
   + OO (ADR Stage 4) and the Roslyn backend (ADR Stage 5).
 
+### 6.1 S3 implementation checklist (code-grounded, DEVLOG 402)
+
+Derived from reading the actual emit seams. S3 is **one atomic commit** (gated by `EnableTypedFields`, default
+OFF, so the whole guard stays byte-identical; a dedicated flag-ON conformance test drives + verifies the typed
+path and makes every new member reachable / zero-dead-code).
+
+1. **Type emission is reusable.** `CilEmitter.DefineType` (`CilEmitter.cs:870`) already emits an `IrRecordType`
+   as a sealed `SequentialLayout` `ValueType` with `public` fields and records each in `_fieldMap`. For a flipped
+   all-character record, have `RecordLayoutBuilder.MapToIrType` (`RecordLayoutBuilder.cs:120`) return
+   `IrPrimitiveType.String` (instead of `ByteArray`) for a classifier-Typed elementary `PIC X/A/N` item — then
+   `DefineType` emits a `record struct` of `string` fields with no further change.
+2. **Static instance.** Emit one `static <RecordStruct> _<record>` field on the program type (alongside `State`),
+   the home of the flipped record's typed fields (mirrors how `State`/LINKAGE/EXTERNAL static fields are emitted
+   in `EmitProgramState`).
+3. **Init (ADR §1.7).** In `InitializeState`, set each typed `string` field to `new string(' ', n)` or the padded
+   `VALUE` literal / materialized Latin-1 figurative — never `default(string)`.
+4. **Location fork (the IrDataSlot chokepoint, §3).** Add `IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot` +
+   `FieldShape`; `LocationResolver` returns a `TypedFieldSlot` (record instance + field) when
+   `_ctx.Classification.IsTyped(sym) && EnableTypedFields && sym` is an elementary char field of a flipped record,
+   else the existing `IrLocation` wrapped as `ByteWindowSlot`. **Do NOT** reuse the dead `IrLoadField`/
+   `IrStoreField` — they are a *register-model* relic (load a field into an `IrValue`) that does not fit COBOL's
+   *location-model* MOVE/COMPARE; that mismatch is why they are dead. They are excised as part of this commit.
+5. **Emit cells.** `CilDataEmitter`/`CilLocationEmitter` dispatch on the slot-kind pair: typed→typed MOVE = ref
+   copy / `CobolString.Store`; typed↔byte = `CobolString.ToWindow`/`FromWindow` materialize at the boundary;
+   DISPLAY of a typed string = native; alphanumeric COMPARE = `CobolString.Compare`; **every other op materializes
+   to a byte window** (the §1.6 floor) — `Span<byte>` scratch from the typed value, run the existing byte op, read
+   back if a receiver. The slot-pair switch has **no fall-through** (a missing cell is a compile-time emit assert).
+6. **`ElementSize` (§4) — verify before deleting.** `StorageLayoutComputer` already sets `ElementSize` (lines
+   256/272/318/366) *before* the Binder, so `RecordLayoutBuilder`'s writes (88/97) are redundant. They compute the
+   elementary size via the **same** `FieldSizeCalculator.ComputeElementSize`, but the two passes sum **group**
+   sizes independently — so before making `StorageLayoutComputer` the sole writer, assert (or guard-diff) that the
+   two agree on every group, not just elementary items.
+7. **Test/harness.** A `tests/conformance/2002/typed_char_*.cob` (+`.out`) compiled with `EnableTypedFields=ON`
+   (a harness hook) exercises store→typed + DISPLAY/COMPARE; the rest of the corpus (flag OFF) stays byte-identical.
+
 ## 7. Risks (beyond the classifier's own, covered in `DATA_MODEL_REVIEW.md` / RecordClassification)
 
 | # | Risk | Mitigation |
