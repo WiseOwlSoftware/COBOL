@@ -212,4 +212,8 @@ public enum UsageKind
     BinaryLong = 14,
     /// <summary>BINARY-DOUBLE — 8-byte two's-complement integer.</summary>
     BinaryDouble = 15,
+    /// <summary>NATIONAL — national (UTF-16) character data (ISO §13.18.60.4, COBOL-2002). The national-ness
+    /// is carried by <see cref="CobolCategory.National"/>; this usage marks the explicit USAGE NATIONAL form.
+    /// Storage is 2 bytes per character; size/MOVE/DISPLAY dispatch on the category, not this value.</summary>
+    National = 16,
 }

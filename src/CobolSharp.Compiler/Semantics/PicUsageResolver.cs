@@ -161,6 +161,9 @@ public static class UsageMapper
             "PACKED-DECIMAL" => UsageKind.PackedDecimal,
             "INDEX" => UsageKind.Index,
             "POINTER" => UsageKind.Pointer,
+            // USAGE NATIONAL (ISO §13.18.60.4): explicit national (UTF-16) data. Category is supplied by
+            // the accompanying PIC N; this marks the usage. Sizing/MOVE/DISPLAY dispatch on the category.
+            "NATIONAL" => UsageKind.National,
             _ => UsageKind.Object
         };
     }

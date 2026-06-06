@@ -56,15 +56,17 @@
   - **M2-PROC-2** INSPECT … BACKWARD (378) · **M2-PROC-1** INITIALIZE TO VALUE/DEFAULT/FILLER (381).
   - **M2-ARITH-1** ROUNDED MODE — all 8 modes + per-statement `MODE IS` + CORRESPONDING (379, 382); ◐ two
     follow-ups remain (OPTIONS DEFAULT ROUNDED MODE, PROHIBITED→EC-SIZE-TRUNCATION).
-- **Guard baseline:** **1047 unit / 474 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-- **NEXT UP →** an M2 data-type new-category build — both have an **investigated first-slice recipe in §3.2**
+  - **M2-DATA-3** National (UTF-16) data — CORE COMPLETE (383): `PIC N`/`USAGE NATIONAL`, `N"…"`, MOVE/VALUE/
+    INITIALIZE/SPACE/DISPLAY/compare + national↔alpha/numeric conversion. Conformance `national_data`.
+    An adversarial review caught + fixed silent corruption in the first slice before commit.
+- **Guard baseline:** **1047 unit / 475 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+- **NEXT UP →** another M2 data-type new-category build — both have an **investigated first-slice recipe in §3.2**
   (handoff audit 2026-06-05):
   - **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE), smallest
     Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity). Needs a safe-handle `PointerRegistry`
     design decision; the hard parts (SET ADDRESS OF / BASED) are deferred.
-  - **M2-DATA-3 National** — the cleaner *standalone* deliverable (UTF-16 storage + `N"…"` + MOVE + DISPLAY is a
-    complete capability), but larger. PIC `N`→`CobolCategory.National` scaffolding already exists.
-  - (M2-DATA-4 Boolean/bit is the third option.) Pick one, work top-down per §4 waves; tick + log here as it lands.
+  - **M2-DATA-4 Boolean/bit** — the third new-category option (USAGE BIT, PIC 1(n), B"…"/BX"…", bit operators).
+  - Pick one, work top-down per §4 waves; tick + log here as it lands. (M2-DATA-3 National is now DONE.)
 
 ---
 
@@ -123,23 +125,21 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   FLOAT-SHORT→Comp1 / FLOAT-LONG→Comp2 / FLOAT-EXTENDED→Comp2). FLOAT-EXTENDED maps to double (.NET has no
   native 128-bit float — documented approximation; a true soft-float quad path is out of scope). Verified
   10.5*2=21, 100.25*4=401, 250.5*2=501. Conformance `tests/conformance/2002/float_usage` (all three usages).
-- ☐ **M2-DATA-3 — National data.** `USAGE NATIONAL`, `PIC N(n)`, national literals `N"…"` / `NX"…"`,
-  NATIONAL-EDITED, UTF-16 storage, MOVE/DISPLAY/compare/INSPECT semantics. *Large (new category).* The
-  `DISPLAY-OF`/`NATIONAL-OF` intrinsics already exist; the data **type** does not. §13.18, §8.3.
-  - **Investigated first slice (handoff audit, 2026-06-05) — `USAGE NATIONAL` + `PIC N(n)` + `N"…"` literal +
-    MOVE national←national + DISPLAY.** What already exists: PIC `N` → `CobolCategory.National`/`NationalEdited`
-    in `PicDescriptorFactory` (lines ~131-136, 287-301); stub `MoveNationalToNational`/`CompareNational` in
-    `PicRuntime` (~1292, 1348) that just delegate to alphanumeric (no UTF-16); `DISPLAY-OF`/`NATIONAL-OF`/
-    `CHAR-NATIONAL` are TODO stubs in `IntrinsicFunctions.cs`. What's MISSING (touch in this order):
-    (1) `PicDescriptorFactory.ComputeStorageLength` (~422-464) — National = **2 bytes/char** (UTF-16; not the
-    default 1-byte DISPLAY path); (2) `FieldSizeCalculator.ComputeDisplaySize` — double for National;
-    (3) `CobolLexer.g4` — new `NATLIT` (`N"…"`) [+ `NXLIT` `NX"…"` deferred] token, **before IDENTIFIER**;
-    (4) bind the national literal (mirror STRINGLIT) → store UTF-16 bytes; (5) `DataMovementLowerer.LowerMove`
-    national-literal case; (6) real `PicRuntime.MoveNationalToNational` (UTF-16 decode→pad with U+0020→encode);
-    (7) `CilDataEmitter.EmitMoveFieldToField` National dispatch; (8) DISPLAY path decode UTF-16→string.
-    **Decisions:** store UTF-16 **LE** in byte[] (matches .NET); pad with U+0020. **Risks:** off-by-one in
-    char×2 sizing (test widths 1/10/100); NATLIT-vs-`N`-identifier lexer order. **Defer:** NATIONAL-EDITED,
-    national↔alphanumeric conversion, INSPECT/compare nuances, EBCDIC.
+- ☑ **M2-DATA-3 — National data (CORE DONE — DEVLOG 383).** `USAGE NATIONAL` + `PIC N(n)` (UTF-16, **2
+  bytes/char**), `N"…"`/`n'…'` literals, and the full data-movement surface: MOVE national←national
+  (left-justify, U+0020 pad, right truncate, JUSTIFIED RIGHT), national↔alphanumeric and numeric→national
+  conversion (Latin-1 subset), figurative/literal **VALUE**, **MOVE SPACE / INITIALIZE** (national-space
+  fill), **DISPLAY** (UTF-16 decode), and **national comparison** (field=field, field=literal). Single sizing
+  pipeline (`ComputeStorageLength` doubles for `IsNationalLike`); `NATLIT` lexer token + `nonNumericLiteral`
+  + binder; `USAGE NATIONAL`→`UsageKind.National` (category drives behavior); runtime `WriteNationalChars`/
+  `MoveNationalToNational`/`MoveStringLiteralToNational`/`MoveAlphanumericToNational`/`MoveNumericToNational`/
+  `MoveNationalToAlphanumeric[Edited]`/`CompareNational`/`CompareNationalToString`/national arm in
+  `MoveFigurativeToField`; emit-time category dispatch in `CilDataEmitter`/`CilComparisonEmitter`/`CilEmitter`
+  (VALUE). **An adversarial review (3 agents) caught that the first slice silently corrupted national↔alpha
+  MOVE, figurative/VALUE/INITIALIZE fill, and comparison — all fixed before commit.** Conformance
+  `tests/conformance/2002/national_data` (13 assertions). **Deferred:** NATIONAL-EDITED, `NX"…"`, full
+  implementor correspondence + `EC-DATA-CONVERSION` (Latin-1 only), collating-sequence national compare,
+  ref-mod ×2 byte adjustment, INSPECT-national.
 - ☐ **M2-DATA-4 — Boolean & bit data.** `USAGE BIT`, `PIC 1(n)`, boolean literals `B"…"` / `BX"…"`, bit operators
   (B-AND/B-OR/B-XOR/B-NOT), BOOLEAN category in INITIALIZE/SET/compare. *Large (new category).* §8.3, §13.18.
 - ☐ **M2-DATA-5 — Pointers & based addressing (foundational).** **[A] HIGH, large.** `USAGE POINTER /
@@ -326,3 +326,11 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   (all 8 + per-statement MODE IS + CORRESPONDING, ◐ two follow-ups left). Guard 1047/474/364. Next: M2-DATA-3
   National (§3.2). Process note: keep THIS document the singular live plan — tick items + log here as work lands;
   no separate resume/handoff docs.
+- **2026-06-05 (session DEVLOG 383)** — **M2-DATA-3 National (UTF-16) data CORE COMPLETE** (conformance
+  `tests/conformance/2002/national_data`, 13 assertions). `PIC N`/`USAGE NATIONAL` (2 bytes/char), `N"…"`
+  literals, MOVE national←national, national↔alphanumeric + numeric→national conversion, literal/figurative
+  VALUE, MOVE SPACE / INITIALIZE, DISPLAY, and national comparison — all char-aware. A 3-agent adversarial
+  review caught that the initial slice silently corrupted national↔alpha MOVE, figurative/VALUE/INITIALIZE
+  fill, and comparison; all fixed before commit (lesson: a narrowly-scoped passing conformance test is not
+  evidence of completeness — verify the whole dispatch surface). Guard 1047/475/364. Next: M2-DATA-5 Pointers
+  or M2-DATA-4 Boolean/bit (§3.2).

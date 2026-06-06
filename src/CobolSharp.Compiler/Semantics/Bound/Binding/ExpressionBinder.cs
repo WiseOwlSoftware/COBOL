@@ -454,6 +454,23 @@ internal sealed class ExpressionBinder
             return new BoundLiteralExpression(text, CobolCategory.Alphanumeric);
         }
 
+        // National literal N"…" / N'…' (ISO §8.3.3.5). Strip the N prefix and the surrounding quotes,
+        // un-escape doubled quotes, and carry category National so MOVE/DISPLAY use UTF-16 semantics.
+        var nat = nonNum.NATLIT();
+        if (nat != null)
+        {
+            var text = nat.GetText();
+            if (text.Length >= 3 && (text[0] is 'N' or 'n') &&
+                ((text[1] == '"' && text[^1] == '"') ||
+                 (text[1] == '\'' && text[^1] == '\'')))
+            {
+                char quoteChar = text[1];
+                text = text[2..^1];
+                text = text.Replace(new string(quoteChar, 2), new string(quoteChar, 1));
+            }
+            return new BoundLiteralExpression(text, CobolCategory.National);
+        }
+
         var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
             return BindFigurativeConstantExpression(figCtx);

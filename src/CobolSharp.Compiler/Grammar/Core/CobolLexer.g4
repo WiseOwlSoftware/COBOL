@@ -498,6 +498,12 @@ INTEGERLIT  : [0-9]+ ;
 STRINGLIT   : '"' (~["\r\n] | '""')* '"'
             | '\'' (~['\r\n] | '\'\'')* '\''
             ;
+// National literal N"…" / N'…' (ISO §8.3.3.5, COBOL-2002). The leading N is part of the token so
+// ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
+// identifier such as NAME is unaffected (it has no opening quote). NX"…" (hex national) is deferred.
+NATLIT      : 'N' '"' (~["\r\n] | '""')* '"'
+            | 'N' '\'' (~['\r\n] | '\'\'')* '\''
+            ;
 HEXLIT      : [x] '"' [0-9a-f]+ '"'
             | [x] '\'' [0-9a-f]+ '\''
             ;

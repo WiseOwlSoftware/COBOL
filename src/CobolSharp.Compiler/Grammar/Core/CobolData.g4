@@ -299,6 +299,7 @@ usageKeyword
     | BINARY
     | PACKED_DECIMAL
     | INDEX
+    | NATIONAL
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

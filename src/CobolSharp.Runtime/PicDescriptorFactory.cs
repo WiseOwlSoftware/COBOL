@@ -448,9 +448,15 @@ public static class PicDescriptorFactory
             case UsageKind.Comp2:
                 return 8;
 
-            default: // DISPLAY, INDEX, etc.
+            default: // DISPLAY, INDEX, NATIONAL, etc.
             {
                 int baseLength = integerDigits + fractionDigits + insertionChars;
+                // National data (PIC N / USAGE NATIONAL) is stored as UTF-16: two bytes per national
+                // character position (ISO §8.1.2, §13.18.60.4 — implementor-defined uniform width ≥ the
+                // alphanumeric character size). Every N symbol counts as one character position; double
+                // the byte length here so it propagates through the single sizing pipeline.
+                if (category.IsNationalLike())
+                    baseLength *= 2;
                 int length = baseLength;
                 if (isSigned &&
                     (signStorage == SignStorageKind.LeadingSeparate ||

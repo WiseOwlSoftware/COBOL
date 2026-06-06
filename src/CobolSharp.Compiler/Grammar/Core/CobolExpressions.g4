@@ -259,6 +259,7 @@ numericLiteral
 
 nonNumericLiteral
     : STRINGLIT
+    | NATLIT
     | HEXLIT
     | figurativeConstant
     ;

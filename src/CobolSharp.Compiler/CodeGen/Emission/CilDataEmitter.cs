@@ -88,8 +88,23 @@ internal sealed class CilDataEmitter
     {
         var pic = ms.Target.GetPic();
 
+        // National targets: encode the literal's characters as UTF-16 and store them left-justified,
+        // U+0020-padded / right-truncated (ISO §14.6.8.5). Covers N"…" and the ASCII-subset
+        // alphanumeric→national correspondence for a "…" literal moved to a national receiver.
+        if (pic.Category.IsNationalLike())
+        {
+            _ctx.Location.EmitLocationArgsWithPic(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _ctx.Module.ImportReference(
+                typeof(PicRuntime).GetMethod(
+                    "MoveStringLiteralToNational",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(PicDescriptor), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
         // Numeric targets: right-justified numeric MOVE (rightmost digits taken)
-        if (pic.Category == CobolCategory.Numeric)
+        else if (pic.Category == CobolCategory.Numeric)
         {
             _ctx.Location.EmitLocationArgsWithPic(il, ms.Target);
             il.Append(il.Create(OpCodes.Ldstr, ms.Value));
@@ -270,6 +285,24 @@ internal sealed class CilDataEmitter
         else if (srcCat.IsAlphanumericLike() && dstCat == CobolCategory.NumericEdited)
         {
             EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToNumericEdited");
+        }
+        // National receiver (ISO §14.6.8.5 / Table 16): copy a national source, widen a numeric source to
+        // UTF-16 digits, or widen an alphanumeric/edited source byte-by-byte to UTF-16 — all char-aware so
+        // padding/truncation operate on whole national character positions, never single bytes.
+        else if (dstCat.IsNationalLike())
+        {
+            string nat = srcCat.IsNationalLike() ? "MoveNationalToNational"
+                       : srcCat == CobolCategory.Numeric ? "MoveNumericToNational"
+                       : "MoveAlphanumericToNational";   // Alphanumeric / AlphanumericEdited / NumericEdited bytes
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, nat);
+        }
+        // National source into an alphanumeric receiver (ISO Table 16): narrow UTF-16 to one byte per
+        // character (Latin-1 subset; non-Latin-1 → '?'). National → numeric is not a legal MOVE.
+        else if (srcCat.IsNationalLike())
+        {
+            string nat = dstCat == CobolCategory.AlphanumericEdited
+                ? "MoveNationalToAlphanumericEdited" : "MoveNationalToAlphanumeric";
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, nat);
         }
         else
         {

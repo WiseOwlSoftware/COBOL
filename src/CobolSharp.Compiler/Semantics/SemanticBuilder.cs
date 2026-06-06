@@ -1307,6 +1307,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                     initialValue = text[1..^1].Replace(new string(q, 2), new string(q, 1));
                                 }
                             }
+                            else if (nonNum?.NATLIT() is { } nlit)
+                            {
+                                // National VALUE literal N"…": strip the N prefix and quotes, un-escape
+                                // doubled quotes. The init emitter encodes it UTF-16 for the national item.
+                                var text = nlit.GetText();
+                                if (text.Length >= 3 && (text[0] is 'N' or 'n'))
+                                {
+                                    char q = text[1];
+                                    initialValue = text[2..^1].Replace(new string(q, 2), new string(q, 1));
+                                }
+                            }
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
                                 string figText = fig.GetText().ToUpperInvariant();

@@ -225,9 +225,16 @@ internal sealed class CilComparisonEmitter
         _ctx.Location.EmitLocationArgs(il, cmp.Left);
         il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
 
-        var method = _ctx.Module.ImportReference(
-            typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToString",
-                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
+        // A national field compared with a literal (N"…" or the ASCII-subset "…") compares UTF-16
+        // character positions against the literal's characters; otherwise the byte-wise compare applies.
+        bool national = cmp.Left.GetPic().Category.IsNationalLike();
+        var method = national
+            ? _ctx.Module.ImportReference(
+                typeof(Runtime.PicRuntime).GetMethod("CompareNationalToString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!)
+            : _ctx.Module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToString",
+                    new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
         EmitCompareResultToBool(il, cmp.OperatorKind);
@@ -285,10 +292,19 @@ internal sealed class CilComparisonEmitter
         _ctx.Location.EmitLocationArgs(il, cmp.Left);
         _ctx.Location.EmitLocationArgs(il, cmp.Right);
 
-        var method = _ctx.Module.ImportReference(
-            typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToField",
-                new[] { typeof(byte[]), typeof(int), typeof(int),
-                        typeof(byte[]), typeof(int), typeof(int) })!);
+        // National-vs-national comparison (the only legal national comparison) is char-aware (UTF-16),
+        // so code points ≥ U+0100 order correctly; otherwise the byte-wise field compare applies.
+        bool national = cmp.Left.GetPic().Category.IsNationalLike()
+                     && cmp.Right.GetPic().Category.IsNationalLike();
+        var method = national
+            ? _ctx.Module.ImportReference(
+                typeof(Runtime.PicRuntime).GetMethod("CompareNational",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(byte[]), typeof(int), typeof(int) })!)
+            : _ctx.Module.ImportReference(
+                typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToField",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(byte[]), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Call, method));
 
         EmitCompareResultToBool(il, cmp.OperatorKind);

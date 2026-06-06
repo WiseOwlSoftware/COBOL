@@ -681,6 +681,12 @@ public sealed class CilEmitter
                 "MoveStringToOccursField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
 
+        // National items store VALUE literals UTF-16-encoded, not as 1-byte ASCII fill.
+        var moveNationalToOccursMethod = _module.ImportReference(
+            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                "MoveNationalLiteralToOccursField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+
         foreach (var kvp in _semanticModel.InitialValues)
         {
             if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
@@ -718,7 +724,9 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
                 il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                 il.Append(il.Create(OpCodes.Ldstr, strValue));
-                il.Append(il.Create(OpCodes.Call, moveStringToOccursMethod));
+                il.Append(il.Create(OpCodes.Call,
+                    loc.Value.Pic.Category.IsNationalLike()
+                        ? moveNationalToOccursMethod : moveStringToOccursMethod));
             }
         }
     }

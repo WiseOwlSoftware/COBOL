@@ -843,6 +843,29 @@ public static class PicRuntime
             return;
         }
 
+        // National destination: fill each character position with the UTF-16 form of the figurative
+        // character (national SPACE = U+0020, etc.; ISO §8.1.2 rule 7). Single-byte fill would corrupt.
+        if (dstPic.Category.IsNationalLike())
+        {
+            int code = kind switch
+            {
+                FigurativeKind.Zero => '0',
+                FigurativeKind.Space => ' ',
+                FigurativeKind.Quote => '"',
+                FigurativeKind.HighValue => 0xFFFF,
+                FigurativeKind.LowValue => 0x0000,
+                FigurativeKind.Null => 0x0000,
+                _ => ' '
+            };
+            byte lo = (byte)(code & 0xFF), hi = (byte)((code >> 8) & 0xFF);
+            for (int i = 0; i + 1 < dstLength; i += 2)
+            {
+                dstArea[dstOffset + i] = lo;
+                dstArea[dstOffset + i + 1] = hi;
+            }
+            return;
+        }
+
         // Default: fill entire field with figurative byte
         byte b = FigurativeToByte(kind);
         for (int i = 0; i < dstLength; i++)
@@ -1288,14 +1311,51 @@ public static class PicRuntime
         return 0;
     }
 
-    /// <summary>National comparison. Returns -1, 0, or 1.</summary>
+    /// <summary>
+    /// National comparison (ISO §8.8.4.1.2). Operands are UTF-16LE; the shorter is extended on the right
+    /// with national spaces (U+0020). Compares whole character positions (code units), not bytes — so the
+    /// ordering is correct for code points ≥ U+0100, unlike a little-endian byte-wise compare. Returns -1/0/1.
+    /// </summary>
     public static int CompareNational(
         byte[] leftArea, int leftOffset, int leftLength,
         byte[] rightArea, int rightOffset, int rightLength)
     {
-        // National uses 2-byte characters; for now treat same as alphanumeric
-        return CompareAlphanumeric(leftArea, leftOffset, leftLength,
-            rightArea, rightOffset, rightLength);
+        int leftChars = leftLength / 2;
+        int rightChars = rightLength / 2;
+        int maxChars = Math.Max(leftChars, rightChars);
+        for (int i = 0; i < maxChars; i++)
+        {
+            int lc = i < leftChars
+                ? leftArea[leftOffset + i * 2] | (leftArea[leftOffset + i * 2 + 1] << 8)
+                : ' ';
+            int rc = i < rightChars
+                ? rightArea[rightOffset + i * 2] | (rightArea[rightOffset + i * 2 + 1] << 8)
+                : ' ';
+            if (lc < rc) return -1;
+            if (lc > rc) return 1;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Compare a national field (UTF-16LE) against a (decoded) literal string, character by character;
+    /// the shorter side is extended on the right with national spaces (U+0020). Returns -1/0/1. Used for
+    /// `IF national-item = N"…"` (and the ASCII-subset `= "…"`). Collating-sequence national compare deferred.
+    /// </summary>
+    public static int CompareNationalToString(byte[] area, int offset, int length, string value)
+    {
+        int fieldChars = length / 2;
+        int maxChars = Math.Max(fieldChars, value.Length);
+        for (int i = 0; i < maxChars; i++)
+        {
+            int fc = i < fieldChars
+                ? area[offset + i * 2] | (area[offset + i * 2 + 1] << 8)
+                : ' ';
+            int vc = i < value.Length ? value[i] : ' ';
+            if (fc < vc) return -1;
+            if (fc > vc) return 1;
+        }
+        return 0;
     }
 
     // ══════════════════════════════════════════════════════════
@@ -1345,13 +1405,87 @@ public static class PicRuntime
     // MOVE: National stubs
     // ══════════════════════════════════════════════════════════
 
+    // National data is stored as UTF-16LE: two bytes per national character position. The national
+    // space (figurative SPACE / editing 'B') is U+0020 (ISO §8.1.2 rule 7); 0x20 0x00 little-endian.
+    private const byte NationalSpaceLo = 0x20;
+    private const byte NationalSpaceHi = 0x00;
+
+    /// <summary>
+    /// Copy <paramref name="srcChars"/> UTF-16LE character positions into a national receiver of
+    /// <paramref name="dstChars"/> positions: left-justified with national-space fill / right truncation,
+    /// or right-justified (pad/truncate on the left) when the receiver is JUSTIFIED RIGHT
+    /// (ISO §14.6.8.5, §13.16.35.4). Operates on whole 2-byte units; no decode needed.
+    /// </summary>
+    private static void WriteNationalChars(
+        byte[] src, int srcOff, int srcChars,
+        byte[] dst, int dstOff, int dstChars,
+        bool justifiedRight)
+    {
+        if (justifiedRight)
+        {
+            if (srcChars >= dstChars)
+            {
+                // Keep the rightmost dstChars character positions of the source.
+                Array.Copy(src, srcOff + (srcChars - dstChars) * 2, dst, dstOff, dstChars * 2);
+            }
+            else
+            {
+                int pad = dstChars - srcChars;
+                for (int i = 0; i < pad; i++)
+                {
+                    dst[dstOff + i * 2] = NationalSpaceLo;
+                    dst[dstOff + i * 2 + 1] = NationalSpaceHi;
+                }
+                Array.Copy(src, srcOff, dst, dstOff + pad * 2, srcChars * 2);
+            }
+        }
+        else
+        {
+            int copyChars = Math.Min(srcChars, dstChars);
+            Array.Copy(src, srcOff, dst, dstOff, copyChars * 2);
+            for (int i = copyChars; i < dstChars; i++)
+            {
+                dst[dstOff + i * 2] = NationalSpaceLo;
+                dst[dstOff + i * 2 + 1] = NationalSpaceHi;
+            }
+        }
+    }
+
     public static void MoveNationalToNational(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        WriteNationalChars(srcArea, srcOffset, srcLength / 2,
+            dstArea, dstOffset, dstLength / 2, dstPic.IsJustifiedRight);
+    }
+
+    /// <summary>
+    /// MOVE of a national literal (N"…") — or, for the ASCII subset, an alphanumeric literal — into a
+    /// national receiver. The literal's characters are encoded UTF-16LE and stored per
+    /// <see cref="WriteNationalChars"/> (ISO §14.6.8.5).
+    /// </summary>
+    public static void MoveStringLiteralToNational(
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic, string value)
+    {
+        byte[] srcBytes = Encoding.Unicode.GetBytes(value);  // UTF-16LE, 2 bytes per code unit
+        WriteNationalChars(srcBytes, 0, value.Length,
+            dstArea, dstOffset, dstLength / 2, dstPic.IsJustifiedRight);
+    }
+
+    /// <summary>
+    /// Initialize every occurrence of a national OCCURS field (or a single national item, occursCount=1)
+    /// with the same VALUE literal, encoded UTF-16LE, left-justified with national-space fill. Mirrors
+    /// <see cref="StorageHelpers.MoveStringToOccursField"/> for the national category.
+    /// </summary>
+    public static void MoveNationalLiteralToOccursField(
+        byte[] area, int baseOffset, int elementSize, int occursCount, string value)
+    {
+        byte[] srcBytes = Encoding.Unicode.GetBytes(value);
+        int dstChars = elementSize / 2;
+        for (int occ = 0; occ < occursCount; occ++)
+            WriteNationalChars(srcBytes, 0, value.Length,
+                area, baseOffset + occ * elementSize, dstChars, justifiedRight: false);
     }
 
     public static void MoveNationalToNationalEdited(
@@ -1372,12 +1506,30 @@ public static class PicRuntime
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
+    /// <summary>
+    /// Narrow the UTF-16LE national source to one byte per character (the Latin-1 subset; a code point
+    /// &gt; U+00FF substitutes '?'). Full implementor correspondence + EC-DATA-CONVERSION are deferred.
+    /// Returns a byte buffer of the source's character count.
+    /// </summary>
+    private static byte[] NarrowNationalToBytes(byte[] srcArea, int srcOffset, int srcLength)
+    {
+        int srcChars = srcLength / 2;
+        byte[] narrow = new byte[srcChars];
+        for (int i = 0; i < srcChars; i++)
+        {
+            int ch = srcArea[srcOffset + i * 2] | (srcArea[srcOffset + i * 2 + 1] << 8);
+            narrow[i] = ch <= 0xFF ? (byte)ch : (byte)'?';
+        }
+        return narrow;
+    }
+
     public static void MoveNationalToAlphanumeric(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+        byte[] narrow = NarrowNationalToBytes(srcArea, srcOffset, srcLength);
+        MoveAlphanumericToAlphanumeric(narrow, 0, narrow.Length, srcPic,
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
@@ -1386,7 +1538,8 @@ public static class PicRuntime
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
+        byte[] narrow = NarrowNationalToBytes(srcArea, srcOffset, srcLength);
+        MoveAlphanumericToAlphanumericEdited(narrow, 0, narrow.Length, srcPic,
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
@@ -1417,14 +1570,19 @@ public static class PicRuntime
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
-    // Also add missing cross-category MOVE stubs for Numeric → National
+    /// <summary>
+    /// Numeric → national: render the numeric value as its display digit string (sign stripped, per
+    /// ISO §14.6.8.5) and store it UTF-16-encoded into the national receiver.
+    /// </summary>
     public static void MoveNumericToNational(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveNumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        decimal value = Math.Abs(DecodeNumeric(srcArea, srcOffset, srcLength, srcPic));
+        int fractionScale = srcPic.FractionDigits + srcPic.LeadingScaleDigits;
+        string formatted = FormatNumericForDisplay(value, fractionScale, srcPic.TotalDigits);
+        MoveStringLiteralToNational(dstArea, dstOffset, dstLength, dstPic, formatted);
     }
 
     public static void MoveNumericToNationalEdited(
@@ -1454,13 +1612,23 @@ public static class PicRuntime
             dstArea, dstOffset, dstLength, dstPic, roundingMode);
     }
 
+    /// <summary>
+    /// Widen each one-byte source character to a UTF-16 code unit (the Latin-1 subset correspondence;
+    /// the high byte is 0) and store it national-aligned (left-justified, national-space pad / right
+    /// truncate, or JUSTIFIED RIGHT) into the national receiver. ISO §14.6.8.5; full implementor
+    /// correspondence + EC-DATA-CONVERSION deferred. Also serves NumericEdited/AlphanumericEdited
+    /// sources, whose stored bytes are already display characters.
+    /// </summary>
     public static void MoveAlphanumericToNational(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
         int roundingMode)
     {
-        MoveAlphanumericToAlphanumeric(srcArea, srcOffset, srcLength, srcPic,
-            dstArea, dstOffset, dstLength, dstPic, roundingMode);
+        byte[] wide = new byte[srcLength * 2];
+        for (int i = 0; i < srcLength; i++)
+            wide[i * 2] = srcArea[srcOffset + i];   // high byte stays 0
+        WriteNationalChars(wide, 0, srcLength, dstArea, dstOffset, dstLength / 2,
+            dstPic.IsJustifiedRight);
     }
 
     public static void MoveAlphanumericToNationalEdited(
@@ -2243,6 +2411,12 @@ public static class PicRuntime
         {
             decimal value = DecodeNumeric(area, offset, length, pic);
             return FormatNumericForDisplay(value, pic.FractionDigits, pic.TotalDigits);
+        }
+        // National / national-edited: stored UTF-16LE (2 bytes per character) — decode as Unicode so the
+        // device receives the national characters (ISO §14.9.11), not a byte-mangled ASCII view.
+        if (pic.Category.IsNationalLike())
+        {
+            return Encoding.Unicode.GetString(area, offset, length).TrimEnd();
         }
         // Alphanumeric / edited: return raw bytes as string, trim trailing spaces
         return Encoding.ASCII.GetString(area, offset, length).TrimEnd();
