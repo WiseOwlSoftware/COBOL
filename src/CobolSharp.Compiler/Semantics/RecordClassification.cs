@@ -33,6 +33,34 @@ internal sealed class RecordClassification(IReadOnlyDictionary<DataSymbol, Repre
 
     /// <summary>Count of items classified as a byte-island (for assertions / diagnostics).</summary>
     public int ByteIslandCount => _rep.Values.Count(r => r == RepresentationKind.ByteIsland);
+
+    /// <summary>
+    /// Fail-fast soundness check on the produced classification (run in <c>Binder.Bind</c> on every program —
+    /// a permanent internal-consistency net that also exercises the classifier across the whole corpus). Two
+    /// invariants the fixpoint guarantees, so a violation is an internal compiler error, never valid output:
+    /// (1) a typed item's REDEFINES target is typed (byte propagates up the REDEFINES class); (2) a typed item's
+    /// parent is typed (a byte island makes all subordinates byte — downward transitivity). Only classified
+    /// items participate (membership-checked) so an item outside this map — which <see cref="Get"/> reports as
+    /// byte by the conservative default — never produces a false positive. Throws
+    /// <see cref="InvalidOperationException"/> on violation.
+    /// </summary>
+    public void ValidateInvariants()
+    {
+        var classified = new HashSet<DataSymbol>(_rep.Keys, ReferenceEqualityComparer.Instance);
+        foreach ((DataSymbol item, RepresentationKind kind) in _rep)
+        {
+            if (kind != RepresentationKind.Typed)
+                continue;
+            if (item.Redefines is { } target && classified.Contains(target) && IsByteIsland(target))
+                throw new InvalidOperationException(
+                    $"RecordClassification invariant violated: typed item '{item.DisplayName}' REDEFINES " +
+                    $"byte-island '{target.DisplayName}' (byte must propagate across the REDEFINES class).");
+            if (item.Parent is { } parent && classified.Contains(parent) && IsByteIsland(parent))
+                throw new InvalidOperationException(
+                    $"RecordClassification invariant violated: typed item '{item.DisplayName}' is a subordinate " +
+                    $"of byte-island '{parent.DisplayName}' (byte must propagate to all subordinates).");
+        }
+    }
 }
 
 /// <summary>

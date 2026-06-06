@@ -114,10 +114,17 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     scaffolding → S1 wire classifier OFF → S2 rebuild `RecordLayoutBuilder` as the real producer → S3 first
     all-character `01`→`record struct` flip → S4+ widen one rule at a time, each a conformance-tested guard-green
     commit, kill-switch `EnableTypedFields` reverts to byte-identical). ADR §9 corrected to match.
-  - **NEXT:** the staged design is at the adversarial-review gate; on GO, implement **S0/S1** (the `IrDataSlot`
-    sum type + classifier-into-Binder wiring, forced-byte) per `docs/RECORD_STRUCT_STORAGE_DESIGN.md`, then S2/S3.
-    IrLocation map @ `IrInstruction.cs:1246+`; MOVE dispatch @ `CilDataEmitter.EmitMoveFieldToField`/
-    `EmitMoveWithStandardSignature`; substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **PROGRESS — substrate S1 LANDED (DEVLOG 401), guard 1187/481/364:** ☑ the staged design passed adversarial
+    review (verdict GO; 3 minor clarifications folded). ☑ `Binder.Bind` now runs the complete classifier (A+B+C)
+    on **every** program, stores it on `LoweringContext.Classification`, and validates it via a new permanent
+    `RecordClassification.ValidateInvariants()` fail-fast net (typed⇒typed-REDEFINES-target; typed⇒typed-parent).
+    Not yet consumed by codegen → byte-identical; but it exercised Phase B's walker across the whole corpus (first
+    contact with every real bound-tree shape) and passed first run. +3 unit tests.
+  - **NEXT:** **S3 — the first character flip in ONE commit** (the review folded S0/S2 scaffolding into S3 to avoid
+    dead code): introduce `IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot`/`FieldShape`, rebuild `RecordLayoutBuilder`
+    as the real typed-struct producer (`StorageLayoutComputer` becomes the sole `ElementSize` writer), and flip an
+    all-character `01` record → a `record struct` of `string` fields gated by `EnableTypedFields` (default OFF).
+    See `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).

@@ -416,6 +416,44 @@ public sealed class RecordClassificationPassTests
         Assert.True(c.IsTyped(g2));
     }
 
+    // ── ValidateInvariants — the S1 soundness net (docs/RECORD_STRUCT_STORAGE_DESIGN.md) ──
+
+    [Fact]
+    public void ValidateInvariants_OnSoundClassification_DoesNotThrow()
+    {
+        // a typed group with one edited (byte) child: byte does not propagate up, so the group stays typed — sound.
+        var grp = Item("WS-GRP", null, level: 1);
+        var plain = Item("WS-F", "X(4)");
+        var edited = Item("WS-E", "ZZ9.99");
+        grp.AddChild(plain);
+        grp.AddChild(edited);
+        var c = Classify([grp, plain, edited],
+            s => s == edited ? CobolCategory.NumericEdited : CobolCategory.Alphanumeric);
+        c.ValidateInvariants();   // does not throw
+    }
+
+    [Fact]
+    public void ValidateInvariants_TypedChildUnderByteParent_Throws()
+    {
+        var parent = Item("P", null, level: 1);
+        var child = Item("C", "X(4)");
+        parent.AddChild(child);
+        var bad = new RecordClassification(new Dictionary<DataSymbol, RepresentationKind>(ReferenceEqualityComparer.Instance)
+        { [parent] = RepresentationKind.ByteIsland, [child] = RepresentationKind.Typed });
+        Assert.Throws<InvalidOperationException>(bad.ValidateInvariants);
+    }
+
+    [Fact]
+    public void ValidateInvariants_TypedRedefinerOfByteTarget_Throws()
+    {
+        var target = Item("T", "9(8)");
+        var redef = Item("R", "X(8)");
+        redef.Redefines = target;
+        var bad = new RecordClassification(new Dictionary<DataSymbol, RepresentationKind>(ReferenceEqualityComparer.Instance)
+        { [target] = RepresentationKind.ByteIsland, [redef] = RepresentationKind.Typed });
+        Assert.Throws<InvalidOperationException>(bad.ValidateInvariants);
+    }
+
     private static Func<DataSymbol, (int, int)?> Layout(
         params (DataSymbol Sym, int Offset, int Length)[] entries)
     {

@@ -7,7 +7,7 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
-### ✅ DONE so far (DEVLOG 394–399; guard **1184 unit / 481 integration / 364 NIST**, all green)
+### ✅ DONE so far (DEVLOG 394–401; guard **1187 unit / 481 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
   `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
@@ -31,23 +31,35 @@ workflows branch from a stale commit in this repo).
   typed-string analogue of `CobolNum`: COBOL alphanumeric MOVE value semantics (`Store`), ordinal space-extended
   `Compare` (ISO §8.8.4.1.2), and the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR R10/§2.5).
   A **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the legacy
-  `StorageHelpers` path. Additive/unwired. (Noted legacy nuance: `CompareFieldToField` over-trims via `TrimEnd()`;
-  `CobolString.Compare` is COBOL-correct 0x20-extension — reconciled at wiring time.)
+  `StorageHelpers` path. (Noted legacy nuance: `CompareFieldToField` over-trims via `TrimEnd()`; `CobolString.
+  Compare` is COBOL-correct 0x20-extension — reconciled at wiring time.)
+- **OWNER DECISION + staged design (400):** the ADR's nominal typed-value home (records → .NET `record struct` via
+  `RecordLayoutBuilder`) is **dead code** (`IrLoadField`/`IrStoreField` zero producers); live storage is
+  `ProgramState` byte[] via `StorageLayoutComputer`. Owner chose **Option B: build the REAL record-`struct`
+  substrate** (over a parallel-static-field shortcut and over the dual-write/shadow hack, rejected). Byte-backed
+  items stay in the byte areas (the §1.6 floor); only Typed items move to struct fields; they meet at the §2.5
+  chokepoint (typed slots materialize a transient byte window — no shadow/drift). Staged roadmap:
+  **`docs/RECORD_STRUCT_STORAGE_DESIGN.md`** (reviewed GO; ADR §9 corrected).
+- **Substrate S1 (401):** `Binder.Bind` runs the complete classifier on **every** program, stores it on
+  `LoweringContext.Classification`, and validates it via a permanent `RecordClassification.ValidateInvariants()`
+  fail-fast net. Not consumed by codegen → byte-identical; but it exercised Phase B's walker across the whole
+  corpus (passed first run). +3 unit tests.
 
-### → RESUME AT — Stage 0 scaffolding → wire the classifier → Stage 3 first character flip
-The classifier is complete; the migration now moves to the codegen scaffolding + the first typed flip. NEXT, in order
-(a parallel investigation already mapped this territory — see DEVLOG 398 / plan §0.5 NEXT for the seam map):
-1. **Stage 0 scaffolding (zero behavior change):** the `IrDataSlot`/`ByteWindowSlot` sum type + `Span<byte>`
-   adapter overloads, and the `PicDescriptor`→`FieldShape`(compile-time) / `NumProfile`(runtime) split per ADR M6
-   (the investigation recommends the **additive parallel-`NumProfile`** path, deferring the full rename to Stage 6).
-   IrLocation hierarchy @ `IrInstruction.cs:1246+` (Static/ElementRef/RefMod/OdoGroup/Cached); MOVE dispatch @
-   `CilDataEmitter.EmitMoveFieldToField` / `EmitMoveWithStandardSignature`; location push @ `CilLocationEmitter`.
-2. **Wire `RecordClassificationPass` into the Binder** — after `BoundProgram` is built (`Binder.Bind`), with the
-   model's category accessor (`s => model.GetStorageLocation(s)?.Pic.Category`) and layout accessor
-   (`s => model.GetStorageLocation(s) is {} l ? (l.Offset, l.Length) : null`). A no-op until the first flip.
-3. **Stage 3 first character flip** — PIC X → .NET `string`, the narrowest subset (records of only elementary
-   character items with no triggers). The typed↔byte materialize codec lives at the §2.5 IDataSlot boundary; the
-   byte fallback (§1.6) keeps overlay-heavy NIST programs green throughout.
+### → RESUME AT — S3: the first character flip, in ONE commit (per `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6)
+The classifier is complete AND wired (S1). The review folded the IR/resolver scaffolding + the `RecordLayoutBuilder`
+rebuild INTO the first flip (S3) to avoid dead code. S3 (one guard-green commit, gated by `EnableTypedFields`,
+default OFF):
+1. Introduce `IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot` + `FieldShape` (ADR §2.5 / design §3); re-target the
+   existing `IrLocation` hierarchy to produce `ByteWindowSlot`.
+2. Rebuild `RecordLayoutBuilder` as the **real** typed-`record struct` producer (emit the struct type + a static
+   instance); make `StorageLayoutComputer` the **sole** `ElementSize` writer (delete `RecordLayoutBuilder`'s
+   writes; `Debug.Assert` equality) — design §4.
+3. Flip an **all-character `01` record → a `record struct` of `string` fields** (narrowest subset: only elementary
+   `PIC X/A/N`, no triggers 1–15). Implement only the cells the subset needs — typed↔typed MOVE (ref copy /
+   `CobolString.Store`), typed↔byte materialize (`CobolString.ToWindow`/`FromWindow`), DISPLAY (native `string`),
+   alphanumeric COMPARE (`CobolString.Compare`); everything else materializes to byte (the §1.6 floor). Ship a
+   `tests/conformance/2002/` test. Then S4+ widen one rule/commit (numeric — HARD-GATED on the `CobolNum` oracle;
+   group; OCCURS; pointers/OO; Roslyn backend).
 
 The live PROGRESS tick + full next-step detail are in `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** (the SSOT — work
 from it; keep ticking it).

@@ -70,6 +70,18 @@ public sealed class Binder
         Semantics.Bound.BoundTreeValidator.Validate(boundProgram, _diagnostics, _semantic);
         Semantics.FileStateValidator.Validate(boundProgram, _diagnostics);
 
+        // Phase 1.5: the .NET-native data-model classifier (docs/RECORD_STRUCT_STORAGE_DESIGN.md, S1).
+        // Run the complete RecordClassificationPass (Phases A+B+C) over this program and validate its soundness
+        // invariants. It is NOT yet consumed by codegen (the Stage-3 typed flip consults it in LocationResolver),
+        // so this is byte-identical today — but running it on every program now exercises the procedure-division
+        // walker across the whole corpus and makes the invariant check a permanent internal-consistency net.
+        _ctx.Classification = new Semantics.RecordClassificationPass().Classify(
+            _semantic.DataItemsInOrder,
+            s => _semantic.GetStorageLocation(s)?.Pic.Category ?? Runtime.CobolCategory.Unknown,
+            boundProgram.Paragraphs.SelectMany(p => p.Sentences).SelectMany(sn => sn.Statements),
+            s => _semantic.GetStorageLocation(s) is { } loc ? (loc.Offset, loc.Length) : null);
+        _ctx.Classification.ValidateInvariants();
+
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);

@@ -88,6 +88,12 @@ internal sealed class LoweringContext
     public FileIoLowerer FileIo { get; set; } = null!;
     public StringLowerer String { get; set; } = null!;
 
+    // ── Data-model migration: the typed-vs-byte representation map (docs/RECORD_STRUCT_STORAGE_DESIGN.md) ──
+    // Produced by RecordClassificationPass in Binder.Bind (after the bound tree is built). Consumed today only
+    // by the soundness-invariant check; the Stage-3 typed flip consults it in LocationResolver to choose a
+    // TypedFieldSlot vs ByteWindowSlot. Null when classification has not run (e.g. direct lowerer unit tests).
+    public RecordClassification? Classification { get; set; }
+
     // ── Recursive statement lowering delegate ──
     // Allows extracted lowerers to call back into Binder.LowerStatement
     // without depending on the Binder class directly.

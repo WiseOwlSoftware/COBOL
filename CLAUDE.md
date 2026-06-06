@@ -30,16 +30,18 @@ data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = 
 classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; guard ALL GREEN — **1184 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
+- **Branch**: main; guard ALL GREEN — **1187 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 399.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
-  UNDERWAY (the #1 priority):** Stage 1 numeric pipeline is fully on the new `CobolNum`/`CobolDecimal` BigInteger
-  core (DEVLOG 394–396); Stage 2 classifier `RecordClassificationPass` is COMPLETE — Phase A (397) + Phase B/C
-  (398); Stage 0 character substrate `CobolString` + its differential oracle landed (399). All additive, not yet
-  consumed by codegen. **RESUME AT → Stage 0 codegen scaffolding** (`IrDataSlot`/`ByteWindowSlot` +
-  `PicDescriptor`→`FieldShape`/`NumProfile` split), then wire the classifier into the Binder, then **Stage 3 first
-  character flip** (PIC X → .NET string, consuming `CobolString`). See `resume-prompt.md` + plan **§0.5**
-  PROGRESS/NEXT.
+- **DEVLOG at entry 401.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
+  UNDERWAY (the #1 priority):** Stage 1 numeric pipeline fully on `CobolNum`/`CobolDecimal` (DEVLOG 394–396);
+  Stage 2 classifier `RecordClassificationPass` COMPLETE — Phase A (397) + Phase B/C (398); character substrate
+  `CobolString` + oracle (399). **Owner approved Option B: build the REAL record-`struct` storage substrate
+  (`docs/RECORD_STRUCT_STORAGE_DESIGN.md`, ADR §9 intent; the ADR's nominal home `RecordLayoutBuilder` was dead
+  code) — staged design reviewed GO (400).** Substrate **S1 landed (401):** the classifier is wired into the Binder
+  (runs on the whole corpus, validated by a soundness-invariant net), still byte-identical / not consumed by
+  codegen. **RESUME AT → S3: the first character flip in one commit** (`IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot`
+  + rebuild `RecordLayoutBuilder` + flip an all-character `01` → `record struct` of `string`, gated by
+  `EnableTypedFields`). See `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28
