@@ -40,10 +40,12 @@ classifier-trigger completeness before any Stage-3 typed flip).
   flips LANDED (403–405):** a standalone elementary `PIC X` item → a native `.NET string` field (S3a, 403);
   typed↔typed field MOVE (404); **S3b (405) — an all-character `01` group → a real .NET `record struct`** of
   `string` members (the owner's Option B realized). All **byte-identical**, gated `EnableTypedFields` (default OFF;
-  flag-ON `TypedFieldFlipTests` pins them). **RESUME AT → the typed↔byte materialize fallback** (§2.5
-  `CobolString.ToWindow`/`FromWindow`) so a typed field works in ANY op (removes the `EmitLocationArgs` throw), then
-  typed COMPARE, then numeric (hard-gated on the `CobolNum` oracle), then OCCURS/nested groups. See
-  `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1.
+  flag-ON `TypedFieldFlipTests` pins them). **MOVE now works in all four representation pairs** (typed↔typed,
+  typed↔byte both ways via the §2.5 materialize boundary; S3c, 406). **RESUME AT → typed COMPARE** (`IF`/`EVALUATE`
+  via `CobolString.Compare`, in the comparison subsystem) + the **read-op sender-materialize** (INSPECT/STRING/
+  refmod — materialize a typed sender to a scratch window so the byte op runs; this removes the remaining
+  `EmitLocationArgs` throw), then **numeric** typed fields (HARD-GATED on the `CobolNum` oracle), then OCCURS/nested
+  groups, pointers/OO, Roslyn backend. See `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28
