@@ -88,6 +88,40 @@ internal sealed class CilLocationEmitter
     }
 
     /// <summary>
+    /// Like <see cref="EmitLocationArgs"/>, but a typed-native field (S3) used as a READ-ONLY operand — a
+    /// <b>sender</b>, e.g. a comparison operand — is materialized to a scratch byte window
+    /// (<c>CobolString.ToWindow</c>, Latin-1) so the byte engine can read it (the §2.5 materialize floor;
+    /// Latin-1 round-trips losslessly, so it is byte-identical). <b>SENDER-ONLY:</b> the called byte op must not
+    /// write the window — there is no write-back — so this is used only for read operands, never receivers.
+    /// </summary>
+    internal void EmitLocationArgsMaterializingTyped(ILProcessor il, IR.IrLocation loc)
+    {
+        if (loc is IR.IrTypedFieldLocation t)
+        {
+            // load the typed string value (flat static field, or a record-struct member)
+            if (t.InstanceName is { } inst)
+            {
+                var rec = _ctx.TypedRecords[inst];
+                il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
+                il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
+            }
+            else
+            {
+                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
+            }
+            // CobolString.ToWindow(string, width) -> byte[width]; then push (array, 0, width).
+            il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
+                    "ToWindow", new[] { typeof(string), typeof(int) })!)));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+            return;
+        }
+        EmitLocationArgs(il, loc);
+    }
+
+    /// <summary>
     /// Push (area, offset, length, pic) onto the IL stack for any IrLocation.
     /// </summary>
     internal void EmitLocationArgsWithPic(ILProcessor il, IR.IrLocation loc)

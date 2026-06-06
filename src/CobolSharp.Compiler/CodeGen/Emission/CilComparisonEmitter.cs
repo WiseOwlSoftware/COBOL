@@ -222,7 +222,7 @@ internal sealed class CilComparisonEmitter
     internal void EmitStringCompareLiteral(ILProcessor il, IrStringCompareLiteral cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgs(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Left);
         il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
 
         // A national field vs a literal compares UTF-16 positions; a boolean field vs a literal compares
@@ -271,7 +271,7 @@ internal sealed class CilComparisonEmitter
         }
         else if (cmp.RightLocation != null)
         {
-            _ctx.Location.EmitLocationArgs(il, cmp.RightLocation);
+            _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.RightLocation);
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                 typeof(Runtime.StorageHelpers).GetMethod("ReadFieldAsString",
                     new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
@@ -293,8 +293,8 @@ internal sealed class CilComparisonEmitter
     internal void EmitStringCompare(ILProcessor il, IrStringCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgs(il, cmp.Left);
-        _ctx.Location.EmitLocationArgs(il, cmp.Right);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Right);
 
         // National-vs-national comparison (the only legal national comparison) is char-aware (UTF-16),
         // so code points ≥ U+0100 order correctly; boolean-vs-boolean uses '0'-padded byte compare;
@@ -328,8 +328,8 @@ internal sealed class CilComparisonEmitter
     internal void EmitStringCompareWithSequence(ILProcessor il, IrStringCompareWithSequence cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgs(il, cmp.Left);
-        _ctx.Location.EmitLocationArgs(il, cmp.Right);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Right);
         _ctx.Expression.EmitByteArrayLiteral(il, cmp.CollatingSequence);
 
         var method = _ctx.Module.ImportReference(
@@ -351,7 +351,7 @@ internal sealed class CilComparisonEmitter
         Func<IrValue, VariableDefinition> getLocal)
     {
         // Convert the string literal to a byte array and compare using CompareAlphanumericWithSequence
-        _ctx.Location.EmitLocationArgs(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, cmp.Left);
 
         // Create a temp byte array from the string literal
         var bytes = System.Text.Encoding.ASCII.GetBytes(cmp.Value);

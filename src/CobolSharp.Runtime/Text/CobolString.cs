@@ -109,4 +109,14 @@ public static class CobolString
             window[i] = (byte)field[i];
         window[n..].Fill((byte)Space);
     }
+
+    /// <summary>Allocates a fresh <paramref name="width"/>-byte window and encodes <paramref name="field"/> into
+    /// it (Latin-1, left-justified, space-padded / right-truncated) — the IL-friendly materialization of a typed
+    /// field to a scratch byte window for the byte engine (the §2.5 sender-materialize, e.g. a comparison operand).</summary>
+    public static byte[] ToWindow(string field, int width)
+    {
+        var window = new byte[width < 0 ? 0 : width];
+        ToWindow(field, window);
+        return window;
+    }
 }

@@ -152,4 +152,35 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void TypedField_Comparisons_ByteIdentical()
+    {
+        // IF on typed string fields: vs literal, vs another typed field, and the inequality branch — each
+        // materialized to a byte window and run through the existing byte compare, so byte-identical.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDCMP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(4) VALUE "ACME".
+            01 WS-B PIC X(4) VALUE "ACME".
+            01 WS-C PIC X(4) VALUE "ZZZZ".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A = "ACME" THEN DISPLAY "EQLIT" END-IF.
+                IF WS-A = WS-B THEN DISPLAY "EQFLD" END-IF.
+                IF WS-A NOT = WS-C THEN DISPLAY "NEFLD" END-IF.
+                IF WS-A < WS-C THEN DISPLAY "LTFLD" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("EQLIT\nEQFLD\nNEFLD\nLTFLD", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
