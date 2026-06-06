@@ -199,10 +199,28 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.5 M2 — Preprocessor robustness & directives
 
-- ☐ 🐛 **M2-PRE-1 — Preprocessor robustness trio.** **[A] medium (valid source crashes the parser today)**. (a)
-  mid-file `>>SOURCE FORMAT` switching; (b) conditional-compilation directives **inside copied library text**
-  (the pass runs before COPY); (c) a directive-skip lexer rule so an unhandled `>>`/directive can't reach the
-  parser as stray tokens. §7.3.
+- ◐ **M2-PRE-1 — Preprocessor robustness trio.** *medium.* **RE-SCOPED 2026-06-05 by an empirical
+  repro (workflow `m2-pre1-investigation`): the "crashes the parser" claim is REFUTED** — nothing crashes
+  (all exits 0/1, never an ICE); these are clean-error / mis-parse defects on *rare* 2002 constructs, so the
+  severity is below a silent-wrong-result 🐛.
+  - **(a) mid-file `>>SOURCE FORMAT` switching — MIS-PARSE (real).** `ReferenceFormatProcessor` honors only the
+    FIRST directive, whole-file ("first wins", `ReferenceFormatProcessor.cs:86-111`). A genuinely fixed-form
+    region after a `>>SOURCE FORMAT IS FREE` keeps its column-1-6 sequence numbers → stray tokens; a later
+    FIXED switch is silently ignored. Spec **§7.3.24.3 R1/R5**: a SOURCE FORMAT directive governs the text
+    *following it until the next directive* (and reverts at end of COPY'd library text). Fix needs **per-line
+    format state** in the normalizer (or a new region-wise pass). Non-trivial.
+  - **(b) conditional-compilation directives inside copied library text — CLEAN-ERROR (real).** `Compilation.cs:
+    279-301` runs `ConditionalCompilationProcessor` (285) BEFORE `CopyProcessor` (295), so `>>IF`/`>>DEFINE` in a
+    copybook pass through as text → stray `>` parse error. Spec **§7.2** order is: COPY *inclusion* (Step 1) →
+    DEFINE/IF/EVALUATE (Step 2a) → COPY REPLACING (2d) → REPLACE (Step 3), i.e. **COPY-inclusion-then-CC**. Fix =
+    swap so COPY runs before CC (low NIST risk — CC is a no-op on directive-free source). **CAUTION: the current
+    order is a DELIBERATE decision** (its comment cites §7.3.16 GR1 to let `>>IF` gate a COPY); reconcile
+    §7.3.16 vs §7.2 first — gating still works COPY-first (the expanded text falls in the IF false path, §7.2
+    line 3314 "may be omitted"). Verify the `conditional_compilation` conformance test + add a copybook-CC test.
+  - **(c) unknown/`>>`-directive handling — ALREADY CORRECT (no fix needed).** Known-ignored directives are
+    consumed; an unknown `>>X` surfaces as a clean COBOL0001 by design (typo-catching). Spec §7.3.3/§7.3.4 leave
+    unknown-directive behavior implementor-defined (only `>>IMP` reserved). The proposed directive-skip lexer
+    rule is at most diagnostic polish — **dropped from the trio**.
 - ☐ **M2-PRE-2 — Directive semantics depth.** Does `>>TURN` actually toggle EC checks (pairs with M2-PROC-4); is
   recognize-and-ignore of LISTING/PAGE/LEAP-SECOND/PROPAGATE/FLAG-* conformant; `>>DEFINE … AS PARAMETER` (env
   source); `>>CALL-CONVENTION` effect. *Low–medium.*
