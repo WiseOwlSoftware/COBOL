@@ -153,10 +153,10 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     bugs fixed: unsigned COMP-3 sign nibble, trailing-P `WouldOverflow`); then `StoreArithmeticResult` (all COBOL
     arithmetic) delegated to `CobolNum` byte-identically, which surfaced + corrected the unsigned-sign layering (ADR
     §5). See §0.5 PROGRESS.
-- **Guard baseline:** **1144 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-  (+92 unit this session: the Stage-0/1 numeric substrate — `CobolDecimalTests` + `CobolNumDifferentialTests`
-  (the differential oracle) + the `PicRuntimeRegressionTests` for the 2 legacy fixes (394). The substrate is
-  additive — no NIST/integration change. Prior tail (392/393): the two ADR-review fixes + `rounded_mode_prohibited`.)
+- **Guard baseline:** **1159 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  (Data-model migration this drive (DEVLOG 394–397): Stage-0/1 numeric substrate + differential oracle (394),
+  Stage-1 arithmetic + MOVE/edited/remainder wiring (395–396), Stage-2 classifier Phase A + 15 tests (397). All
+  additive or byte-identical — no NIST/integration change. Prior tail (392/393): two ADR-review fixes.)
 - **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
   with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
   Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) —

@@ -1,11 +1,41 @@
 # CobolSharp — Session Resume Prompt (updated 2026-06-06)
 
-## ⛔ START HERE — THE #1 PRIORITY THIS SESSION: the .NET-native data-model migration
+## ⛔ START HERE — #1 PRIORITY: the .NET-native data-model migration (IN PROGRESS)
 
-The owner has approved a foundational re-architecture to **"the best native .NET implementation of COBOL."**
-**This migration is the first task — ahead of all remaining conformance features.** Once the new data model is in
-place, **keep every currently-passing test green at 100%, fixing bugs as they surface. Run autonomously, with all
-appropriate parallelism.**
+The owner approved a foundational re-architecture to **"the best native .NET implementation of COBOL,"** the #1
+work item ahead of remaining conformance features. **Keep every currently-passing test green at 100%, fixing bugs
+as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
+workflows branch from a stale commit in this repo).
+
+### ✅ DONE so far (DEVLOG 394–397; guard **1159 unit / 481 integration / 364 NIST**, all green)
+- **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
+  (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
+  `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
+  **differential oracle** (byte-identical to legacy within the long-faithful window; independent reference beyond).
+  Fixed 2 legacy spec bugs it surfaced (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow`).
+- **Stage 1 numeric pipeline FULLY on `CobolNum` (395–396):** `StoreArithmeticResult` (all arithmetic) +
+  `ApplyScalingAndRounding` (MOVE / numeric-edited / DIVIDE-REMAINDER) delegate to `CobolNum`; legacy decimal
+  rounding retired. Layering correction (ADR §5): the unsigned-magnitude rule belongs to the *encoder*, not the
+  value store — `CobolNum` returns the signed value.
+- **Stage 2 classifier — Phase A (397):** `RecordClassificationPass` (ADR §3) — data-division triggers
+  (REDEFINES/RENAMES/FD-record/LINKAGE/EXTERNAL-GLOBAL/edited) + REDEFINES-class & downward-transitivity fixpoint;
+  `Classify(items, categoryOf)`, default typed / "any doubt → byte". **Additive, NOT yet consumed by codegen**
+  (Stage 2 = all byte-backed). 17-agent review: 0 confirmed / 15 refuted.
+
+### → RESUME AT — classifier **Phase B** (then Phase C, then Stage 3)
+The classifier must be COMPLETE before any Stage-3 flip (ADR §3). NEXT, in order:
+1. **Phase B** — a bound-tree procedure-division scan for the remaining §3 triggers: reference-modification of a
+   numeric-DISPLAY item (§3.3b), group MOVE/COMPARE/class-condition (§3.4), `CALL…USING BY REFERENCE` arguments
+   (§3.11), the ODO-whole-group operand (§3.15), write-pattern items (§3.14). Begin with a short investigation of
+   the bound-statement model (`src/CobolSharp.Compiler/Semantics/Bound/`), like the pipeline investigation that
+   preceded Phase A (its seam map is in DEVLOG 397).
+2. **Phase C** — the cross-edge fixpoint propagating demotion across intra-program interop edges.
+3. Then a **full adversarial review of the complete classifier**, then **Stage 0 scaffolding**
+   (`IrDataSlot`/`ByteWindowSlot` + `Span<byte>` adapters; `PicDescriptor`→`FieldShape` split per ADR M6) and
+   **Stage 3** (the `IrDataSlot` MOVE/COMPARE dispatch + the first character-data typed flip, PIC X → .NET string).
+
+The live PROGRESS tick + full next-step detail are in `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** (the SSOT — work
+from it; keep ticking it).
 
 **Read first, in order:**
 1. `docs/DATA_MODEL_ARCHITECTURE.md` — the settled ADR. Typed-native is the default: COBOL records → .NET
@@ -15,28 +45,28 @@ appropriate parallelism.**
    record — never a heap `byte[]`); pointers → managed references; OO → .NET classes; in-memory representation is
    decoupled from external encoding (`CODE-SET` is a boundary concern). Cecil/CIL stays primary; a Roslyn C#
    backend (Cecil as oracle) is a later phase. **Do NOT re-litigate this design — the owner co-authored it
-   (DEVLOG 393). Implement it.**
+   (DEVLOG 393). Implement it.** §5 carries the `CobolNum` sign-contract correction (DEVLOG 395).
 2. `docs/DATA_MODEL_REVIEW.md` — the ~57-agent adversarial review (verdict **proceed-with-changes**; all 4 high +
    6 medium findings already folded into the ADR).
-3. `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** — the SINGLE LIVE PLAN; §0.5 is the migration banner. Tick progress
-   there as work lands (one plan — no separate resume docs).
-4. `PROMPT.md` (non-negotiable doctrine), then `DEVLOG.md` entries 391–393 for the latest decisions.
+3. `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** — the SINGLE LIVE PLAN + PROGRESS; tick it as work lands (one plan
+   — no separate resume docs).
+4. `PROMPT.md` (non-negotiable doctrine), then `DEVLOG.md` entries 391–397 for the latest decisions.
 
 **The migration, in the ADR's 7 stages (§10) — guard-green at EVERY step, one rule at a time:**
-Stage 0 scaffolding (classify *everything* byte-backed = today's behavior) → Stage 1 numeric pipeline +
-differential oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data
-first — the cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend (Cecil as a
-byte-exact oracle) → Stage 6 finalize runtime + rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`).
+Stage 0 scaffolding → **Stage 1 numeric pipeline + differential oracle [✅ DONE]** → **Stage 2 classifier
+[◐ Phase A done; Phase B/C NEXT]** → Stage 3 flip typed one rule at a time (**character data first — the cheapest,
+highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend (Cecil as a byte-exact oracle) →
+Stage 6 finalize runtime + rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`). (Stage-0 `IrDataSlot`/`FieldShape`
+scaffolding is interleaved with Stage 3 — it is only needed for the typed-codegen dispatch.)
 
-**Owner-gated decisions to resolve at the stage that needs them (ADR §12):** **#1 numeric substrate = `BigInteger`
-(not `decimal`) for 19–31-digit values + intermediates — REQUIRED before Stage 1**; classifier-trigger
-completeness (CALL…BY REFERENCE / LINKAGE / refmod-of-numeric-DISPLAY / group-with-COMP / PROGRAM COLLATING
-SEQUENCE) before any Stage-3 typed flip; and the four tracked completeness investigations (USE FOR DEBUGGING,
-EXTERNAL memory model, EXEC SQL/CICS host-var ABIs, Stage-5 oracle determinism).
+**Owner-gated decisions (ADR §12):** numeric substrate = **`BigInteger` — RESOLVED + implemented** (Stage 1); the
+remaining classifier-trigger completeness (refmod-of-numeric-DISPLAY / group-with-COMP / CALL…BY REFERENCE /
+LINKAGE / PROGRAM COLLATING SEQUENCE) lands in **classifier Phase B/C** before any Stage-3 flip; the four tracked
+completeness investigations (USE FOR DEBUGGING, EXTERNAL memory model, EXEC SQL/CICS host-var ABIs, Stage-5 oracle
+determinism) at the stage that needs them.
 
-**Guard (must stay ALL GREEN, baselines 0 FAIL\*):** `bash scripts/guard.sh` — currently **1052 unit / 481
-integration / 364 NIST** (2026-06-06). Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`. Do compiler
-edits directly on `main` — `isolation:'worktree'` workflows branch from a stale commit in this repo.
+**Guard (must stay ALL GREEN, baselines 0 FAIL\*):** `bash scripts/guard.sh` — currently **1159 unit / 481
+integration / 364 NIST** (2026-06-06). Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`.
 
 **Mission framing (unchanged):** one multi-version COBOL compiler (ISO 1985→2023), dialect-gated; NIST CCVS85 is
 the '85 validation backbone; every post-'85 feature ships with a `tests/conformance/<ver>/` test in the same commit.

@@ -30,10 +30,13 @@ data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = 
 classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; guard ALL GREEN — **1052 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
+- **Branch**: main; guard ALL GREEN — **1159 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 393.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress (plan §1). The data-model migration
-  is the immediate priority before more M2 features.
+- **DEVLOG at entry 397.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
+  UNDERWAY (the #1 priority):** Stage 1 numeric pipeline is fully on the new `CobolNum`/`CobolDecimal` BigInteger
+  core (DEVLOG 394–396); Stage 2 classifier `RecordClassificationPass` Phase A landed (397, additive, not yet
+  consumed). **RESUME AT → classifier Phase B** (bound-tree procedure-division scan) then Phase C, then Stage 3
+  (first character flip). See `resume-prompt.md` + plan **§0.5** PROGRESS for the precise next step.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28
