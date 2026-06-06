@@ -131,7 +131,8 @@ internal sealed class CilDataEmitter
     {
         // Data-model migration S3: MOVE "literal" TO a typed-native string field — store the receiving value
         // (CobolString.Store: width/justify/space-fill, ISO §14.9.25) directly to the .NET field. No byte window.
-        if (ms.Target is IrTypedFieldLocation tfl)
+        // (A string literal to a typed NUMERIC field is a different conversion — falls through to the loud guard.)
+        if (ms.Target is IrTypedFieldLocation tfl && tfl.Pic.Category != CobolCategory.Numeric)
         {
             EmitTypedStorePrefix(il, tfl);
             il.Append(il.Create(OpCodes.Ldstr, ms.Value));
@@ -309,18 +310,40 @@ internal sealed class CilDataEmitter
         // EmitLocationArgs guard until the materialize fallback (§2.5) lands.
         if (mf.Source is IrTypedFieldLocation msrc && mf.Destination is IrTypedFieldLocation mdst)
         {
-            EmitTypedStorePrefix(il, mdst);
-            EmitTypedLoad(il, msrc);
-            EmitCobolStringStore(il, mdst.Width);
-            EmitTypedStoreSuffix(il, mdst);
-            return;
+            bool srcNum = msrc.Pic.Category == CobolCategory.Numeric;
+            bool dstNum = mdst.Pic.Category == CobolCategory.Numeric;
+            if (!srcNum && !dstNum)
+            {
+                // both typed strings: re-store the source value at the destination width (CobolString.Store:
+                // ISO §14.9.25 space-pad/truncate; a ref copy when widths match).
+                EmitTypedStorePrefix(il, mdst);
+                EmitTypedLoad(il, msrc);
+                EmitCobolStringStore(il, mdst.Width);
+                EmitTypedStoreSuffix(il, mdst);
+                return;
+            }
+            if (srcNum && dstNum)
+            {
+                // S4: both typed unsigned-integer `long`s — dst = src truncated to the dst's digit count
+                // (src mod 10^n), byte-identical to a numeric→numeric byte MOVE (high-order truncation).
+                long mod = 1;
+                for (int i = 0; i < mdst.Width; i++) mod *= 10;
+                EmitTypedStorePrefix(il, mdst);
+                EmitTypedLoad(il, msrc);                       // long (≥ 0)
+                il.Append(il.Create(OpCodes.Ldc_I8, mod));
+                il.Append(il.Create(OpCodes.Rem));             // low `n` digits
+                EmitTypedStoreSuffix(il, mdst);
+                return;
+            }
+            // mixed string↔numeric typed move (rare): fall through to the byte dispatch / loud guard.
         }
 
-        // S3: the typed↔byte materialize boundary (§2.5) for field→field MOVE. The byte engine is the safety
-        // floor — Latin-1 round-trips byte↔char losslessly, so these are byte-identical.
-        if (mf.Destination is IrTypedFieldLocation tDst)
+        // S3: the typed↔byte materialize boundary (§2.5) for field→field MOVE of a typed STRING field. The byte
+        // engine is the safety floor — Latin-1 round-trips byte↔char losslessly, so these are byte-identical.
+        // (A typed NUMERIC field ↔ byte falls through to the loud guard until its materialize cell lands.)
+        if (mf.Destination is IrTypedFieldLocation tDst && tDst.Pic.Category != CobolCategory.Numeric)
         {
-            // byte source → typed dest: read the source window as a Latin-1 string, then Store at dest width.
+            // byte source → typed string dest: read the source window as a Latin-1 string, then Store at width.
             EmitTypedStorePrefix(il, tDst);
             _ctx.Location.EmitLocationArgs(il, mf.Source);   // pushes (area, offset, length)
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
@@ -330,9 +353,9 @@ internal sealed class CilDataEmitter
             EmitTypedStoreSuffix(il, tDst);
             return;
         }
-        if (mf.Source is IrTypedFieldLocation tSrc)
+        if (mf.Source is IrTypedFieldLocation tSrc && tSrc.Pic.Category != CobolCategory.Numeric)
         {
-            // typed source → byte dest: lay the source string into the destination window (StorageHelpers
+            // typed string source → byte dest: lay the source string into the destination window (StorageHelpers
             // .MoveStringToField — left-justified, space-padded / right-truncated, the same as the byte path).
             _ctx.Location.EmitLocationArgs(il, mf.Destination);   // pushes (area, offset, length)
             EmitTypedLoad(il, tSrc);
@@ -449,7 +472,7 @@ internal sealed class CilDataEmitter
         // S4: MOVE numeric-literal → a typed (unsigned-integer) `long` field. Truncate the literal to the field's
         // digit count at compile time (|value| mod 10^n — byte-identical to the byte path's EncodeNumeric) and
         // store the long. MOVE never carries ROUNDED, so mv.Rounding is 0 here.
-        if (mv.Destination is IrTypedFieldLocation tnum)
+        if (mv.Destination is IrTypedFieldLocation tnum && tnum.Pic.Category == CobolCategory.Numeric)
         {
             decimal mod = 1m;
             for (int i = 0; i < tnum.Width; i++) mod *= 10m;

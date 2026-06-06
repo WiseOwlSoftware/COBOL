@@ -275,4 +275,37 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericToNumeric_FieldMove_ByteIdentical()
+    {
+        // MOVE between two typed numeric (long) fields: dst = src truncated to dst's digit count. Both widening
+        // (3→5: "00042") and high-order truncation (5→3: low 3 digits) are byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDNMV.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-SMALL PIC 9(3) VALUE 42.
+            01 WS-WIDE  PIC 9(5) VALUE 0.
+            01 WS-BIG   PIC 9(5) VALUE 12345.
+            01 WS-NARROW PIC 9(3) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-SMALL TO WS-WIDE.
+                DISPLAY WS-WIDE.
+                MOVE WS-BIG TO WS-NARROW.
+                DISPLAY WS-NARROW.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // 42 → PIC 9(5) "00042"; 12345 → PIC 9(3) low 3 digits "345".
+        Assert.Equal("00042\n345", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
