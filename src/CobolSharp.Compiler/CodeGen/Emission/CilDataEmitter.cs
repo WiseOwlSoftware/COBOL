@@ -300,6 +300,32 @@ internal sealed class CilDataEmitter
             return;
         }
 
+        // S3: the typed↔byte materialize boundary (§2.5) for field→field MOVE. The byte engine is the safety
+        // floor — Latin-1 round-trips byte↔char losslessly, so these are byte-identical.
+        if (mf.Destination is IrTypedFieldLocation tDst)
+        {
+            // byte source → typed dest: read the source window as a Latin-1 string, then Store at dest width.
+            EmitTypedStorePrefix(il, tDst);
+            _ctx.Location.EmitLocationArgs(il, mf.Source);   // pushes (area, offset, length)
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
+                    "FromWindow", new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+            EmitCobolStringStore(il, tDst.Width);
+            EmitTypedStoreSuffix(il, tDst);
+            return;
+        }
+        if (mf.Source is IrTypedFieldLocation tSrc)
+        {
+            // typed source → byte dest: lay the source string into the destination window (StorageHelpers
+            // .MoveStringToField — left-justified, space-padded / right-truncated, the same as the byte path).
+            _ctx.Location.EmitLocationArgs(il, mf.Destination);   // pushes (area, offset, length)
+            EmitTypedLoad(il, tSrc);
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(StorageHelpers).GetMethod(
+                    "MoveStringToField", new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!)));
+            return;
+        }
+
         var srcPic = mf.SourcePic;
         var dstPic = mf.DestinationPic;
         var srcCat = srcPic.Category;

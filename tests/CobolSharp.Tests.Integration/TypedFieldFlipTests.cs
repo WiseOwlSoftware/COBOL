@@ -120,4 +120,36 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void TypedToByte_AndByteToTyped_FieldMove_ByteIdentical()
+    {
+        // WS-TYPED flips to a string field; WS-BYTE is byte-backed (REDEFINES class). MOVE across the boundary
+        // materializes via CobolString (Latin-1 round-trips losslessly), so it is byte-identical.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDBND.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TYPED PIC X(5) VALUE "HELLO".
+            01 WS-BYTE  PIC X(5).
+            01 WS-R REDEFINES WS-BYTE PIC X(5).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-TYPED TO WS-BYTE.
+                DISPLAY WS-BYTE.
+                MOVE "WORLD" TO WS-BYTE.
+                MOVE WS-BYTE TO WS-TYPED.
+                DISPLAY WS-TYPED.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("HELLO\nWORLD", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

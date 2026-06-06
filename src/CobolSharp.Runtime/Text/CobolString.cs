@@ -89,6 +89,11 @@ public static class CobolString
     /// </summary>
     public static string FromWindow(ReadOnlySpan<byte> window) => Encoding.Latin1.GetString(window);
 
+    /// <summary>Decodes a <c>(area, offset, length)</c> byte window to its character image under the Latin-1
+    /// convention — the typed↔byte boundary read from a backing array (the IL-friendly overload of
+    /// <see cref="FromWindow(ReadOnlySpan{byte})"/>). No trimming.</summary>
+    public static string FromWindow(byte[] area, int offset, int length) => Encoding.Latin1.GetString(area, offset, length);
+
     /// <summary>
     /// Encodes a character <paramref name="field"/> into a byte <paramref name="window"/> under the Latin-1
     /// convention (char low byte), the <c>IDataSlot</c> boundary write (ADR §2.5). Mirrors
