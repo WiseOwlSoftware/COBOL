@@ -244,6 +244,22 @@ internal sealed class CilDataEmitter
 
     internal void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
+        // S3: MOVE SPACES/ZEROS to a typed field — store a width-long fill string (byte-identical: the byte path
+        // fills the window with the same byte). Other figuratives (HIGH/LOW-VALUE/QUOTE/NULL) keep the byte path
+        // for now — on a typed field they hit the loud EmitLocationArgs guard until their typed cell lands.
+        if (mf.Destination is IrTypedFieldLocation tfl
+            && mf.FigurativeKind is Runtime.FigurativeKind.Space or Runtime.FigurativeKind.Zero)
+        {
+            char fill = mf.FigurativeKind == Runtime.FigurativeKind.Space ? ' ' : '0';
+            EmitTypedStorePrefix(il, tfl);
+            il.Append(il.Create(OpCodes.Ldc_I4, fill));
+            il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
+            il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+                typeof(string).GetConstructor(new[] { typeof(char), typeof(int) })!)));
+            EmitTypedStoreSuffix(il, tfl);
+            return;
+        }
+
         _ctx.Location.EmitLocationArgsWithPic(il, mf.Destination);
         il.Append(il.Create(OpCodes.Ldc_I4, (int)mf.FigurativeKind));
 

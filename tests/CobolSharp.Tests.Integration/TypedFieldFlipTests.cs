@@ -183,4 +183,34 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void MoveFigurative_SpaceAndZero_ToTypedField_ByteIdentical()
+    {
+        // MOVE SPACES / ZEROS to a typed field (field clearing). DISPLAY trims, so the cleared field shows via
+        // a trailing marker; byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDFIG.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-X PIC X(4) VALUE "ABCD".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE ZEROS TO WS-X.
+                DISPLAY WS-X.
+                MOVE SPACES TO WS-X.
+                DISPLAY WS-X "|".
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // ZEROS → "0000"; SPACES → "    " (DISPLAY trims → "" then "|").
+        Assert.Equal("0000\n|", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
