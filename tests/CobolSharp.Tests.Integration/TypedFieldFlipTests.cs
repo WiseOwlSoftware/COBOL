@@ -242,4 +242,37 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void UnsignedIntegerDisplay_FlipsToTypedLong_ValueInitMoveAndDisplay_ByteIdentical()
+    {
+        // S4: standalone unsigned-integer DISPLAY items with a VALUE flip to typed .NET long fields. VALUE init,
+        // MOVE-literal (incl. high-order truncation and fraction truncation), and DISPLAY (zero-padded digit
+        // image) are all byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDNUM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5) VALUE 42.
+            01 WS-B PIC 9(3) VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-A.
+                MOVE 1234567 TO WS-A.
+                DISPLAY WS-A.
+                MOVE 3.9 TO WS-B.
+                DISPLAY WS-B.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // VALUE 42 → "00042"; MOVE 1234567 → low 5 digits "34567"; MOVE 3.9 → truncate → "003".
+        Assert.Equal("00042\n34567\n003", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

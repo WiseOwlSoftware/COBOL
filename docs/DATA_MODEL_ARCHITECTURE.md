@@ -664,6 +664,11 @@ leaves" incentive.
 2. **Backend end-state.** Adopt the Roslyn C# backend as the eventual default (readable/debuggable, best OO fit,
    most marketable as `COBOL.NET`) with Cecil demoted to a test-only oracle (recommended, after Stage 5 proves it
    green) — or keep Cecil/CIL as the shipping backend with C# as an inspection aid only?
+   **OWNER DECISION (2026-06-06, DEVLOG 410):** keep the **full Stage 5** — build the Roslyn C# backend with Cecil
+   as a byte-exact oracle and **defer the default-backend choice** until it is proven green (i.e. retain maximum
+   optionality, incl. the marketable "real C# output"), explicitly weighed against and over dropping it / making it
+   inspection-only to avoid the `Microsoft.CodeAnalysis` dependency + double-compile. Cecil/direct-IL remains the
+   primary, shipping backend throughout the migration regardless; the C# backend is additive and later.
 3. **Island buffer threshold.** The inline-vs-pooled cap for island `[InlineArray]` buffers (e.g. ≤256 inline).
    Where exactly? (Affects only islands now, not the common `string` path.)
 4. **Conformance ambition during migration.** Acceptable for NIST-heavy overlay programs to remain byte-backed

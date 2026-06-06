@@ -446,6 +446,20 @@ internal sealed class CilDataEmitter
 
     internal void EmitPicMoveLiteralNumeric(ILProcessor il, IrPicMoveLiteralNumeric mv)
     {
+        // S4: MOVE numeric-literal → a typed (unsigned-integer) `long` field. Truncate the literal to the field's
+        // digit count at compile time (|value| mod 10^n — byte-identical to the byte path's EncodeNumeric) and
+        // store the long. MOVE never carries ROUNDED, so mv.Rounding is 0 here.
+        if (mv.Destination is IrTypedFieldLocation tnum)
+        {
+            decimal mod = 1m;
+            for (int i = 0; i < tnum.Width; i++) mod *= 10m;
+            long stored = (long)(System.Math.Truncate(System.Math.Abs(mv.Value)) % mod);
+            EmitTypedStorePrefix(il, tnum);
+            il.Append(il.Create(OpCodes.Ldc_I8, stored));
+            EmitTypedStoreSuffix(il, tnum);
+            return;
+        }
+
         _ctx.Location.EmitLocationArgsWithPic(il, mv.Destination);
         _ctx.Expression.EmitLoadDecimal(il, mv.Value);
         il.Append(il.Create(OpCodes.Ldc_I4, mv.Rounding));
@@ -507,8 +521,19 @@ internal sealed class CilDataEmitter
             // (it IS the field's character image, space-padded to width); no GetDisplayString byte decode.
             if (field.Location is IrTypedFieldLocation tfl)
             {
-                // Match the byte path exactly (PicRuntime.GetDisplayString, alphanumeric arm): trailing spaces
-                // are trimmed (.TrimEnd()) so the typed flip is byte-identical to the legacy DISPLAY.
+                // S4: a typed numeric (`long`) field → format its digit image (CobolNum.FormatUnsignedDisplay),
+                // byte-identical to the byte path's stored DISPLAY bytes for an unsigned PIC 9(n).
+                if (tfl.Pic.Category == CobolCategory.Numeric)
+                {
+                    EmitTypedLoad(il, tfl);                       // long value
+                    il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
+                    il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                        typeof(CobolSharp.Runtime.Numeric.CobolNum).GetMethod(
+                            "FormatUnsignedDisplay", new[] { typeof(long), typeof(int) })!)));
+                    return;
+                }
+                // S3: a typed string field. Match the byte path exactly (GetDisplayString, alphanumeric arm):
+                // trailing spaces are trimmed (.TrimEnd()) so the typed flip is byte-identical to the byte DISPLAY.
                 EmitTypedLoad(il, tfl);
                 var trimEnd = _ctx.Module.ImportReference(
                     typeof(string).GetMethod("TrimEnd", System.Type.EmptyTypes)!);

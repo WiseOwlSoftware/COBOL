@@ -156,6 +156,25 @@ public static class CobolNum
         return value.IsInexactAtScale(profile.FractionScale);
     }
 
+    /// <summary>
+    /// Renders an unsigned integer DISPLAY field's character image (data-model migration S4: typed numeric
+    /// fields). Returns the low <paramref name="digits"/> decimal digits of <paramref name="value"/>, zero-padded
+    /// to <paramref name="digits"/> — byte-identical to the byte path's stored DISPLAY bytes for an unsigned
+    /// <c>PIC 9(digits)</c> (what <c>PicRuntime.EncodeNumeric</c> writes, read back by <c>GetDisplayString</c>).
+    /// </summary>
+    public static string FormatUnsignedDisplay(long value, int digits)
+    {
+        if (digits <= 0)
+            return "";
+        long mod = 1;
+        for (int i = 0; i < digits; i++)
+            mod *= 10;   // 10^digits; digits ≤ 18 keeps this inside long
+        long v = value % mod;   // low `digits` digits…
+        if (v < 0) v = -v;      // …as an unsigned magnitude (the stored value is already non-negative; %mod
+                                //   keeps |v| < mod so the negate cannot overflow, unlike Math.Abs(long.MinValue))
+        return v.ToString(System.Globalization.CultureInfo.InvariantCulture).PadLeft(digits, '0');
+    }
+
     // ── two's-complement bounds (cached as BigInteger) ──
     private static readonly BigInteger SByteMin = sbyte.MinValue, SByteMax = sbyte.MaxValue, ByteMax = byte.MaxValue;
     private static readonly BigInteger Int16Min = short.MinValue, Int16Max = short.MaxValue, UInt16Max = ushort.MaxValue;

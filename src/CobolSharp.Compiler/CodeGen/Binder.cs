@@ -297,6 +297,38 @@ public sealed class Binder
         string InitOf(DataSymbol s, int width) => s.InitialValue is { } v
             ? (v.Length >= width ? v[..width] : v.PadRight(width)) : new string(' ', width);
 
+        // S4: a standalone elementary UNSIGNED INTEGER DISPLAY item with a VALUE → a typed `long`. Restricted to
+        // the narrowest numeric slice (no sign / V / P, DISPLAY usage, ≤18 digits, has VALUE so init is defined —
+        // an uninitialized numeric field shows spaces on the byte path, which a `long` cannot reproduce). The
+        // out values are the digit count and the COBOL-correct truncated initial value.
+        bool IsTypedUnsignedInteger(DataSymbol s, out int digits, out long init)
+        {
+            digits = 0; init = 0;
+            if (!s.IsElementary || s.Occurs != null || s.FigurativeInit != null || s.AllLiteralPattern != null)
+                return false;
+            if (s.Area != Semantics.StorageAreaKind.WorkingStorage || !classification.IsTyped(s))
+                return false;
+            if (s.InitialValue is not { } valStr)
+                return false;
+            if (_semantic.GetStorageLocation(s) is not { } loc)
+                return false;
+            var pic = loc.Pic;
+            if (pic.Category != Runtime.CobolCategory.Numeric || pic.Usage != Runtime.UsageKind.Display)
+                return false;
+            if (pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0)
+                return false;
+            if (pic.TotalDigits is < 1 or > 18)
+                return false;
+            if (!decimal.TryParse(valStr, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out decimal v))
+                return false;
+            digits = pic.TotalDigits;
+            decimal mod = 1m;
+            for (int i = 0; i < digits; i++) mod *= 10m;
+            init = (long)(Math.Truncate(Math.Abs(v)) % mod);
+            return true;
+        }
+
         foreach (var sym in _semantic.DataItemsInOrder)
         {
             if (sym.Parent != null)
@@ -309,6 +341,15 @@ public sealed class Binder
                 string name = "_T_" + sym.Name;
                 module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, width, InitOf(sym, width)));
                 _ctx.TypedFieldRefs[sym] = (name, width, null);
+                continue;
+            }
+
+            // S4: a standalone elementary unsigned-integer DISPLAY item with a VALUE → a typed `long` field.
+            if (IsTypedUnsignedInteger(sym, out int ndigits, out long ninit))
+            {
+                string name = "_T_" + sym.Name;
+                module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, ndigits, "", IsNumeric: true, NumericInit: ninit));
+                _ctx.TypedFieldRefs[sym] = (name, ndigits, null);
                 continue;
             }
 

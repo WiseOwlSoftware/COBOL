@@ -136,11 +136,18 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     `IrTypedFieldLocation.InstanceName` (null=flat S3a / set=struct member); `CilEmitter` emits the struct type +
     instance + member init; the `CilDataEmitter` typed cells (MOVE-literal / field-MOVE / DISPLAY) share
     flat-vs-struct helpers. Reused `CilEmitter.DefineType`'s value-type shape. +4 `TypedFieldFlipTests`.
-  - **NEXT:** the **typed↔byte materialize fallback** (§2.5: `CobolString.ToWindow`/`FromWindow` at the boundary)
-    so a typed field works in ANY op — removes the `EmitLocationArgs` throw — then **typed COMPARE** (`IF`,
-    `CobolString.Compare`), then **numeric** typed fields (**HARD-GATED** on the `CobolNum` differential oracle),
-    then OCCURS / nested groups, then pointers/OO and the Roslyn backend. See `docs/RECORD_STRUCT_STORAGE_DESIGN.md`
-    §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **PROGRESS — character flip COMPLETE; numeric flip STARTED (DEVLOG 404–410), guard 1196/490/364:** ☑ all
+    common character ops byte-identical — MOVE (all typed/byte pairs, incl. the §2.5 materialize boundary), DISPLAY,
+    COMPARE, class conditions, figurative SPACE/ZERO (S3a–c, 404–409). ☑ **S4 first numeric flip (410):** an
+    unsigned-integer DISPLAY item with a VALUE → a native `.NET long` (VALUE init / MOVE-literal w/ truncation /
+    DISPLAY via `CobolNum.FormatUnsignedDisplay`), byte-identical, gated. ☑ owner reaffirmed the full Stage 5
+    (Roslyn backend + Cecil oracle, default deferred; ADR §12 Q#2). The sender-materialize
+    (`EmitLocationArgsMaterializingTyped`) is the §2.5 read floor; the loud `EmitLocationArgs` guard catches any
+    unhandled typed op.
+  - **NEXT (the large numeric increment):** numeric **arithmetic** (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE on typed
+    `long`/`decimal` via `CobolNum`, byte-identical — HARD-GATED on the `CobolNum` differential oracle), then numeric
+    field-MOVE/COMPARE, signed/scaled (`decimal`) variants, then OCCURS/nested groups, pointers/OO, Stage 5. See
+    `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).

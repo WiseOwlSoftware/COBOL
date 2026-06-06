@@ -97,10 +97,13 @@ public sealed class IrModule(string name)
 /// <param name="Type">Always <see cref="IrPrimitiveType.ByteArray"/> in current usage.</param>
 public sealed record IrGlobal(string Name, IrType Type);
 
-/// <summary>A typed-native field flipped out of the COBOL byte areas (data-model migration S3): the emitted
-/// field <paramref name="Name"/>, its COBOL character <paramref name="Width"/>, and the COBOL-correct
-/// initial value (<paramref name="InitValue"/>, already padded/truncated to <paramref name="Width"/>).</summary>
-public sealed record IrTypedFieldDef(string Name, int Width, string InitValue);
+/// <summary>A typed-native field flipped out of the COBOL byte areas (data-model migration S3/S4): the emitted
+/// field <paramref name="Name"/>. For a character field (<paramref name="IsNumeric"/> false): a .NET
+/// <see cref="string"/> of <paramref name="Width"/> positions initialized to <paramref name="InitValue"/>
+/// (already padded/truncated). For an unsigned-integer numeric field (<paramref name="IsNumeric"/> true, S4): a
+/// .NET <see cref="long"/> of <paramref name="Width"/> COBOL digits initialized to <paramref name="NumericInit"/>.</summary>
+public sealed record IrTypedFieldDef(string Name, int Width, string InitValue,
+    bool IsNumeric = false, long NumericInit = 0);
 
 /// <summary>A flipped <c>01</c> group → a .NET <c>record struct</c> (data-model migration S3b): the emitted
 /// struct <paramref name="StructTypeName"/>, its static-instance field <paramref name="InstanceName"/>, and the
