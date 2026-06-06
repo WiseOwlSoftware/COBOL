@@ -30,7 +30,7 @@ data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = 
 classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; guard ALL GREEN — **1187 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
+- **Branch**: main; guard ALL GREEN — **1187 unit / 484 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
 - **DEVLOG at entry 404.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
   UNDERWAY (the #1 priority):** numeric pipeline on `CobolNum` (394–396); classifier `RecordClassificationPass`
