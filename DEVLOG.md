@@ -10880,6 +10880,73 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 393 — The .NET-native data-model re-architecture: ADR + adversarial review (design only; the migration is the next session's #1 priority)
+
+The owner directed a foundational redesign toward "the best native .NET implementation of COBOL." An extended
+design dialogue this session settled the data model, captured in **`docs/DATA_MODEL_ARCHITECTURE.md`** (the ADR)
+and stress-tested in **`docs/DATA_MODEL_REVIEW.md`** (a ~57-agent adversarial review workflow: 7 dimensions ×
+find→refute→synthesize; 48 findings, 45 verified; verdict **proceed-with-changes**).
+
+The converged design (supersedes the prior byte-array-is-the-substrate model):
+- **Typed-native is the default.** COBOL records → .NET `record struct`; elementary items → native value types
+  (`long`/`decimal`/`double`/`bool`); **character data (PIC X *and* PIC N) → `string` (UTF-16)** — whole-field
+  MOVE is a free reference copy, the verbs map to BCL + `ReadOnlySpan<char>` (ordinal), zero conversion at .NET
+  boundaries.
+- **In-memory representation is decoupled from external encoding** — single-byte/EBCDIC/UTF-8 is a `CODE-SET`
+  boundary concern, never an in-memory layout.
+- **A byte image is a bounded, classifier-scoped fallback** for REDEFINES/RENAMES type-puns, file records, and a
+  few measured hot loops — an inline value type embedded in the typed record (a value-type union or buffer+views),
+  never a heap `byte[]` and never the substrate. COMP-3 stays typed (`decimal`); a same-layout group MOVE is a
+  value-type struct assignment in *either* representation.
+- **Pointers → managed references; OO → .NET classes.** Cecil/CIL stays primary through the migration; a Roslyn C#
+  backend with Cecil as a byte-exact differential oracle is a later phase.
+
+Owner-caught corrections during the dialogue (each made the design better): PIC X need not be an inline buffer —
+`string` is the right default (immutability makes whole-MOVE a free reference copy); byte-exactness is an
+I/O/overlay *boundary* concern, not an in-memory one; COMP-3 byte-backing is NOT "less native" (it is emulated
+either way) — the real axis is per-op vs boundary pack/unpack, and a same-layout group MOVE is a struct assignment
+regardless.
+
+Review high findings (all folded into the ADR): CALL…BY REFERENCE / LINKAGE need *unconditional* byte triggers
+(separate compilation makes the callee's view unknowable); refmod of a numeric DISPLAY item must trigger
+byte-backing; group ops with COMP members and class conditions over a group need byte *materialization* (not
+permanent byte-backing — the over-conservative original was corrected); PROGRAM COLLATING SEQUENCE must not be
+dropped by an ordinal compare. Owner decisions recorded for the migration: numeric substrate = `BigInteger` (not
+`decimal`) for 19–31 digits (resolve before Stage 1), and the VALUE/INITIALIZE-of-typed-fields initialization
+model.
+
+No production code changed here (design only) beyond the two companion bug fixes (Entry 392). **The migration is
+the next session's first priority** — see the banner in `docs/ISO2023_CONFORMANCE_PLAN.md` §0.5 and
+`resume-prompt.md`.
+
+## Entry 392 — Two spec-fidelity bug fixes surfaced by the data-model review: IS ALPHABETIC range + ROUNDED MODE PROHIBITED size error
+
+The adversarial review (Entry 393) surfaced two pre-existing runtime bugs, independent of the migration and valid
+to fix today:
+
+1. **`PicRuntime.IsAlphabeticClass` used `char.IsLetter`** — the Unicode-wide letter predicate, so a byte like
+   `0xC9` ('É' in Latin-1) tested TRUE for `IS ALPHABETIC`. ISO §8.8.4.4 defines the alphabetic class as the
+   closed set {A–Z, a–z, space}. Replaced with literal range checks. (`IS NUMERIC` was already literal/correct.)
+
+2. **ROUNDED MODE PROHIBITED silently truncated** — mode 5 fell through to `decimal.Truncate` in
+   `RoundToIntegerByMode` and never signaled, so `COMPUTE x ROUNDED MODE IS PROHIBITED = 2.25` into a
+   one-fraction-digit field quietly produced 2.2 with no error. ISO §14.9.4: PROHIBITED forbids rounding, so an
+   inexact result raises the SIZE ERROR condition (EC-SIZE-TRUNCATION) and leaves the receiver unchanged. Added
+   `IsInexactAtScale` + a PROHIBITED guard in `StoreArithmeticResult` (sets `status.SizeError`, returns without
+   encoding). This also completes M2-ARITH-1 follow-up #2 at the observable level (`ON SIZE ERROR` now fires for
+   PROHIBITED; the named-EC exception-object/USE framework remains future work under M2-PROC-4).
+
+   **Refactor in passing (doctrine: centralize).** Several older inline arithmetic ops (Add/Subtract/Multiply and
+   their literal forms) duplicated the `ApplyScalingAndRounding → WouldOverflow → EncodeNumeric` sequence and so
+   *bypassed* `StoreArithmeticResult` — meaning they also skipped its COMP-1/2 float guard and numeric-edited
+   routing. Converged all of them onto `StoreArithmeticResult`, so the PROHIBITED check (and the float/edited
+   handling) now applies uniformly to every arithmetic store path.
+
+Regression tests added in the same commit (they fail against the old code): `PicRuntimeRegressionTests` (byte-level
+— `0xC9` not alphabetic; PROHIBITED inexact → SizeError + receiver unchanged; exact → no error) and the
+conformance test `tests/conformance/2002/rounded_mode_prohibited.{cob,out}`. Guard ALL GREEN
+(1052 unit / 481 integration / 364 NIST).
+
 ## Entry 391 — M2-ARITH-1 follow-up: apply OPTIONS `DEFAULT ROUNDED MODE` (ISO §11.9.6, COBOL-2002)
 
 Closed the first of the two M2-ARITH-1 follow-ups: the OPTIONS paragraph's `DEFAULT ROUNDED MODE IS <mode>`

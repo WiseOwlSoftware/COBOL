@@ -959,13 +959,7 @@ public static class PicRuntime
         decimal left = DecodeNumeric(leftArea, leftOffset, leftLength, leftPic);
         decimal right = DecodeNumeric(rightArea, rightOffset, rightLength, rightPic);
         decimal value = left * right;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     public static void MultiplyNumericLiteral(
@@ -976,13 +970,7 @@ public static class PicRuntime
     {
         decimal other = DecodeNumeric(otherArea, otherOffset, otherLength, otherPic);
         decimal value = literal * other;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -997,13 +985,7 @@ public static class PicRuntime
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal src = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
         decimal value = dest + src;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     public static void AddNumericLiteral(
@@ -1012,13 +994,7 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest + literal;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -1033,13 +1009,7 @@ public static class PicRuntime
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal src = DecodeNumeric(srcArea, srcOffset, srcLength, srcPic);
         decimal value = dest - src;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     public static void SubtractNumericLiteral(
@@ -1048,13 +1018,7 @@ public static class PicRuntime
     {
         decimal dest = DecodeNumeric(destArea, destOffset, destLength, destPic);
         decimal value = dest - literal;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -1107,6 +1071,15 @@ public static class PicRuntime
         if (destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2)
         {
             EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+            return;
+        }
+
+        // ROUNDED MODE PROHIBITED (ISO §14.9.4): rounding is not permitted, so a result that is not exactly
+        // representable at the receiver's scale raises the SIZE ERROR condition (EC-SIZE-TRUNCATION) and leaves
+        // the receiver unchanged — it must NOT silently truncate.
+        if (roundingMode == RoundProhibited && IsInexactAtScale(value, destPic))
+        {
+            status.SizeError = true;
             return;
         }
 
@@ -1213,13 +1186,7 @@ public static class PicRuntime
             return;
         }
         decimal value = left / right;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     public static void DivideNumericLiteral(
@@ -1235,13 +1202,7 @@ public static class PicRuntime
             return;
         }
         decimal value = other / literal;
-        value = ApplyScalingAndRounding(value, destPic, roundingMode);
-        if (WouldOverflow(value, destPic))
-        {
-            status.SizeError = true;
-            return;
-        }
-        EncodeNumeric(destArea, destOffset, destLength, destPic, value);
+        StoreArithmeticResult(destArea, destOffset, destLength, destPic, value, roundingMode, ref status);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -2283,7 +2244,8 @@ public static class PicRuntime
     public const int RoundNearestEven = 3;
     /// <summary>Round to nearest; ties toward zero.</summary>
     public const int RoundNearestTowardZero = 4;
-    /// <summary>No rounding permitted; an inexact result raises EC-SIZE-TRUNCATION (not yet signaled — see DEVLOG).</summary>
+    /// <summary>No rounding permitted; an inexact result raises the SIZE ERROR condition (EC-SIZE-TRUNCATION),
+    /// detected in <see cref="StoreArithmeticResult"/> via <see cref="IsInexactAtScale"/> (ISO §14.9.4).</summary>
     public const int RoundProhibited = 5;
     /// <summary>Round toward positive infinity (ceiling).</summary>
     public const int RoundTowardGreater = 6;
@@ -2334,6 +2296,23 @@ public static class PicRuntime
     {
         decimal r = Math.Ceiling(Math.Abs(scaled) - 0.5m);
         return scaled < 0m ? -r : r;
+    }
+
+    /// <summary>
+    /// True when <paramref name="value"/> cannot be represented in <paramref name="destPic"/>'s scale without
+    /// dropping nonzero digits (i.e., rounding would change it). Used to detect the EC-SIZE-TRUNCATION condition
+    /// under ROUNDED MODE PROHIBITED (ISO §14.9.4). Floating-point receivers have no fixed scale → never inexact.
+    /// </summary>
+    private static bool IsInexactAtScale(decimal value, PicDescriptor destPic)
+    {
+        if (destPic.Usage is UsageKind.Comp1 or UsageKind.Comp2) return false;
+        int fractionScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
+        if (fractionScale < 0) fractionScale = 0;
+        int trailingP = destPic.TrailingScaleDigits;
+        decimal scaledToInteger = trailingP > 0
+            ? value / Pow10(trailingP)
+            : value * Pow10(fractionScale);
+        return scaledToInteger != decimal.Truncate(scaledToInteger);
     }
 
     // ══════════════════════════════════════════════════════════
@@ -2593,8 +2572,10 @@ public static class PicRuntime
         for (int i = 0; i < length; i++)
         {
             char c = (char)area[offset + i];
+            // ISO 1989:2023 §8.8.4.4: the alphabetic class is the closed set {A–Z, a–z, space} — NOT the
+            // Unicode-wide letter set. char.IsLetter would wrongly accept accented/non-Latin letters.
             if (c == ' ') continue;
-            if (!char.IsLetter(c)) return false;
+            if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) return false;
         }
         return true;
     }

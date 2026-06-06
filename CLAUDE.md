@@ -13,19 +13,28 @@ CobolSharp-private submodule). Refer to it for all specification, behavior, synt
 questions. It is the authoritative source — do not guess or assume COBOL semantics without
 consulting it. Initialize the submodule with: `git submodule update --init --recursive`
 
-## Session Resume Context (updated 2026-05-29)
+## Session Resume Context (updated 2026-06-06)
 
-**→ Start a new session from `resume-prompt.md` (repo root)** — it is the authoritative,
-up-to-date resume orientation. `claude/state/session-state-2026-05-29.md` has full detail.
+**→ Start a new session from `resume-prompt.md` (repo root).** The single live plan is
+`docs/ISO2023_CONFORMANCE_PLAN.md` (its **§0.5** holds the current top priority).
+
+### #1 PRIORITY: the .NET-native data-model migration
+The owner approved a foundational re-architecture to **"the best native .NET implementation of COBOL."** **Do this
+FIRST, ahead of all remaining conformance features**, then keep every currently-passing test green at 100% (fixing
+bugs as they surface), running autonomously with all appropriate parallelism. The design is settled and reviewed:
+`docs/DATA_MODEL_ARCHITECTURE.md` (the ADR — typed-native `record struct`s; `long`/`decimal`/`bool`; character →
+`string` (UTF-16); byte image only as a classifier-scoped REDEFINES/file/hot-loop fallback; pointers → managed
+refs; OO → .NET classes) + `docs/DATA_MODEL_REVIEW.md` (the adversarial review). **Do not re-litigate it** (the
+owner co-authored it, DEVLOG 393); implement its 7-stage migration (ADR §10), guard-green at every step, character
+data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = `BigInteger` before Stage 1;
+classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; working tree clean; guard ALL GREEN.
-- **Guard** (`bash scripts/guard.sh`): 1000 unit / 336 integration / **149 NIST baselines
-  (95 NC + 42 IF + 12 SM)** — all must stay green, baselines 0 FAIL*.
-- **NIST suites**: NC 100%, **IF 100%**, **SM COPY-feature 100%**, **IC in progress 16/47**.
-  SQ/IX/RL/ST surveyed, paused (file-I/O FILE-CONTROL wall + collating subsystem remain).
-- DEVLOG is at entry 223. The block below is HISTORICAL (the 2026-03-28 session); see
-  resume-prompt.md / DEVLOG 196–223 for everything since.
+- **Branch**: main; guard ALL GREEN — **1052 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
+  baselines 0 FAIL*.
+- **DEVLOG at entry 393.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress (plan §1). The data-model migration
+  is the immediate priority before more M2 features.
+- The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28
 - **Unit tests**: 421 pass · **Integration**: 274 · **NIST**: 95 in guard

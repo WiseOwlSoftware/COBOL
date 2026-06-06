@@ -30,6 +30,42 @@
 
 ---
 
+## 0.5 ⛔ TOP PRIORITY (set 2026-06-06): the .NET-native data-model migration comes BEFORE further conformance features
+
+The owner has directed a foundational re-architecture to **"the best native .NET implementation of COBOL,"** and it
+is the **#1 work item for the next session — ahead of every remaining M2/M3/M4 feature in §3 below.** Do it FIRST.
+
+- **The design is settled and reviewed — do NOT re-litigate it** (the owner co-authored it across a long dialogue,
+  DEVLOG 393). Read both first:
+  - `docs/DATA_MODEL_ARCHITECTURE.md` — the ADR. Typed-native is the default: COBOL records → .NET `record struct`;
+    elementary items → native value types (`long`/`decimal`/`double`/`bool`); **character data (PIC X *and* PIC N)
+    → `string` (UTF-16)**; a byte image is only a **classifier-scoped fallback** for REDEFINES/RENAMES type-puns,
+    file records, and a few hot loops (an inline value type embedded in the typed record — never a heap `byte[]`);
+    pointers → managed references; OO → .NET classes; in-memory representation is decoupled from external encoding
+    (`CODE-SET` is a boundary concern). Cecil/CIL stays primary; a Roslyn C# backend (Cecil as oracle) is a later
+    phase.
+  - `docs/DATA_MODEL_REVIEW.md` — a ~57-agent adversarial review; verdict **proceed-with-changes**; all 4 high + 6
+    medium findings already folded into the ADR.
+- **Execute the migration in the ADR's 7 stages (§10), guard-green at EVERY step, one rule at a time:** Stage 0
+  scaffolding (classify *everything* byte-backed = today's behavior) → Stage 1 numeric pipeline + differential
+  oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data first — the
+  cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend w/ Cecil oracle → Stage 6
+  finalize runtime + post-conformance rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`).
+- **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
+  migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
+  do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
+- **Resolve these owner-gated decisions at the stage that needs them** (ADR §12): **#1 numeric substrate =
+  `BigInteger` (not `decimal`) for 19–31-digit values + intermediates — REQUIRED before Stage 1**; the
+  classifier-trigger completeness (CALL…BY REFERENCE / LINKAGE / refmod-of-numeric-DISPLAY / group-with-COMP /
+  PROGRAM COLLATING SEQUENCE) must be in place before Stage-3 typed flips; and the four tracked completeness
+  investigations (USE FOR DEBUGGING, EXTERNAL memory model, EXEC SQL/CICS host-var ABIs, Stage-5 oracle
+  determinism).
+- **Why first:** the ADR opens with "we should have started with this." Every conformance feature added on the
+  byte-array model has to be migrated again. Land the data model, keep the suite green, *then* resume the M2/M3/M4
+  catalog below on the new foundation.
+
+---
+
 ## 1. Current status — DONE (do not re-list as gaps)
 
 - **M1 (COBOL-85): COMPLETE.** NIST CCVS85 = 364 baselines green (NC/IF/SM/IC/SQ/RL/IX/ST/OBSQ). Report Writer,
@@ -69,11 +105,22 @@
     review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) remains the
     owner-gated `PointerRegistry` design decision.**
   - **M2-ARITH-1 follow-up #1** OPTIONS `DEFAULT ROUNDED MODE` applied to bare ROUNDED — DONE (391; conformance
-    `options_default_rounded`). (Follow-up #2 PROHIBITED→EC-SIZE-TRUNCATION blocked on the EC framework.)
-- **Guard baseline:** **1047 unit / 480 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-  (+2 this tail: SORT Format-2 backfill (390) and OPTIONS DEFAULT ROUNDED MODE (391).)
-- **NEXT UP →** the easy/foundational data items are now done (National, Boolean, Pointers Phase-1, GOBACK
-  RETURNING). Remaining M2, in rough priority: **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) — OWNER-GATED**
+    `options_default_rounded`).
+  - **M2-ARITH-1 follow-up #2** ROUNDED MODE PROHIBITED → SIZE ERROR — DONE at the observable level (392):
+    `ON SIZE ERROR` now fires on an inexact PROHIBITED result and the receiver is left unchanged (conformance
+    `rounded_mode_prohibited`). The named-EC exception object (EC-SIZE-TRUNCATION) + USE framework remains future
+    work under M2-PROC-4.
+  - **Bug fix (392):** `IS ALPHABETIC` restricted to ISO §8.8.4.4 {A–Z, a–z, space} (was `char.IsLetter`,
+    Unicode-wide). Both 392 fixes were surfaced by the data-model ADR review.
+  - **🏗 DATA-MODEL RE-ARCHITECTURE designed + adversarially reviewed (393)** — the ADR + review docs (see §0.5).
+    **This is now the #1 priority; design only, migration not yet started.**
+- **Guard baseline:** **1052 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  (+5 unit / +1 conformance this tail: the two ADR-review bug fixes (392) with `PicRuntimeRegressionTests` +
+  `rounded_mode_prohibited`; the design docs (393) added no code.)
+- **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
+  with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
+  Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) —
+  OWNER-GATED**
   (the `PointerRegistry` handle→address/.NET-managed-memory design decision); **M2-PRE-1** (◐, re-scoped — two
   real but rare preprocessor mis-parse/clean-error defects, one reverses a deliberate §7.3.16-vs-§7.2 decision);
   **M2-ARITH-1/-2** (OPTIONS DEFAULT ROUNDED / standard arithmetic — needs OPTIONS-clause parsing);

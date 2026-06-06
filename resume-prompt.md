@@ -1,7 +1,51 @@
-> ⚠️ **SUPERSEDED (2026-06-05). The single live plan is [`docs/ISO2023_CONFORMANCE_PLAN.md`](docs/ISO2023_CONFORMANCE_PLAN.md)** —
-> its §1 (current status / NEXT UP), §3 (catalog), §4 (waves), §7 (change-log) are the authoritative, continuously-
-> updated resume orientation. Do **not** resume from this file; it is kept only as history of the M1/COBOL-85 drive
-> (DEVLOG 326–335). There is **one** plan — tick items + log progress there as work lands; no separate resume docs.
+# CobolSharp — Session Resume Prompt (updated 2026-06-06)
+
+## ⛔ START HERE — THE #1 PRIORITY THIS SESSION: the .NET-native data-model migration
+
+The owner has approved a foundational re-architecture to **"the best native .NET implementation of COBOL."**
+**This migration is the first task — ahead of all remaining conformance features.** Once the new data model is in
+place, **keep every currently-passing test green at 100%, fixing bugs as they surface. Run autonomously, with all
+appropriate parallelism.**
+
+**Read first, in order:**
+1. `docs/DATA_MODEL_ARCHITECTURE.md` — the settled ADR. Typed-native is the default: COBOL records → .NET
+   `record struct`; elementary items → native value types (`long`/`decimal`/`double`/`bool`); **character data
+   (PIC X *and* PIC N) → `string` (UTF-16)**; a byte image is only a **classifier-scoped fallback** for
+   REDEFINES/RENAMES type-puns, file records, and a few hot loops (an inline value type embedded in the typed
+   record — never a heap `byte[]`); pointers → managed references; OO → .NET classes; in-memory representation is
+   decoupled from external encoding (`CODE-SET` is a boundary concern). Cecil/CIL stays primary; a Roslyn C#
+   backend (Cecil as oracle) is a later phase. **Do NOT re-litigate this design — the owner co-authored it
+   (DEVLOG 393). Implement it.**
+2. `docs/DATA_MODEL_REVIEW.md` — the ~57-agent adversarial review (verdict **proceed-with-changes**; all 4 high +
+   6 medium findings already folded into the ADR).
+3. `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** — the SINGLE LIVE PLAN; §0.5 is the migration banner. Tick progress
+   there as work lands (one plan — no separate resume docs).
+4. `PROMPT.md` (non-negotiable doctrine), then `DEVLOG.md` entries 391–393 for the latest decisions.
+
+**The migration, in the ADR's 7 stages (§10) — guard-green at EVERY step, one rule at a time:**
+Stage 0 scaffolding (classify *everything* byte-backed = today's behavior) → Stage 1 numeric pipeline +
+differential oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data
+first — the cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend (Cecil as a
+byte-exact oracle) → Stage 6 finalize runtime + rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`).
+
+**Owner-gated decisions to resolve at the stage that needs them (ADR §12):** **#1 numeric substrate = `BigInteger`
+(not `decimal`) for 19–31-digit values + intermediates — REQUIRED before Stage 1**; classifier-trigger
+completeness (CALL…BY REFERENCE / LINKAGE / refmod-of-numeric-DISPLAY / group-with-COMP / PROGRAM COLLATING
+SEQUENCE) before any Stage-3 typed flip; and the four tracked completeness investigations (USE FOR DEBUGGING,
+EXTERNAL memory model, EXEC SQL/CICS host-var ABIs, Stage-5 oracle determinism).
+
+**Guard (must stay ALL GREEN, baselines 0 FAIL\*):** `bash scripts/guard.sh` — currently **1052 unit / 481
+integration / 364 NIST** (2026-06-06). Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`. Do compiler
+edits directly on `main` — `isolation:'worktree'` workflows branch from a stale commit in this repo.
+
+**Mission framing (unchanged):** one multi-version COBOL compiler (ISO 1985→2023), dialect-gated; NIST CCVS85 is
+the '85 validation backbone; every post-'85 feature ships with a `tests/conformance/<ver>/` test in the same commit.
+
+---
+
+> Everything below is **historical** (the M1/COBOL-85 and M2 drives). The authoritative current orientation is the
+> four "Read first" docs above; the single live plan is `docs/ISO2023_CONFORMANCE_PLAN.md`. Kept for narrative
+> continuity.
 
 # CobolSharp — Session Resume Prompt (2026-06-04)
 
