@@ -37,7 +37,7 @@ internal sealed class DataMovementLowerer
         }
 
         block.Instructions.Add(new IrInitArithmeticStatus());
-        int rounding = corr.IsRounded ? 1 : 0;
+        int rounding = corr.RoundingMode;
 
         foreach (var (src, dst) in corr.Pairs)
         {

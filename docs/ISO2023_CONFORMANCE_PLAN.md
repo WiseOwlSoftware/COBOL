@@ -124,10 +124,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   TRUNCATION) implemented in `PicRuntime.RoundToIntegerByMode` + per-statement `ROUNDED MODE IS …`
   (new mode reserved words, `roundedPhrase` grammar, `BindRounded`, `BoundArithmeticTarget.RoundingMode`,
   lowerer threads the mode int — IR/emit were already mode-agnostic). Conformance
-  `tests/conformance/2002/rounded_modes`. **Remaining (follow-ups):** (1) apply OPTIONS `DEFAULT ROUNDED MODE`
-  (still parsed-not-applied — bare ROUNDED uses fixed NEAREST-AWAY); (2) PROHIBITED → raise EC-SIZE-TRUNCATION
-  on an inexact result (currently truncates; needs the arithmetic store paths to detect precision loss);
-  (3) ADD/SUBTRACT CORRESPONDING `ROUNDED MODE`. §14.9.4, §11.9.6.
+  `tests/conformance/2002/rounded_modes`; CORRESPONDING `ROUNDED MODE` also DONE (DEVLOG 382,
+  `tests/conformance/2002/corresponding_rounded_mode`). **Remaining (follow-ups):** (1) apply OPTIONS
+  `DEFAULT ROUNDED MODE` (still parsed-not-applied — bare ROUNDED uses fixed NEAREST-AWAY; entangled with
+  M2-ARITH-2 OPTIONS-clause parsing); (2) PROHIBITED → raise EC-SIZE-TRUNCATION on an inexact result
+  (currently truncates; needs the arithmetic store paths to detect precision loss). §14.9.4, §11.9.6.
 - ☐ **M2-ARITH-2 — Apply remaining OPTIONS clauses.** `ARITHMETIC IS STANDARD/STANDARD-BINARY/STANDARD-DECIMAL`,
   `INTERMEDIATE ROUNDING`, `FLOAT-BINARY/DECIMAL DEFAULT`, `ENTRY-CONVENTION`. *Medium–large* (standard arithmetic
   is a real intermediate-precision change). Parsed-not-applied today. §11.9.

@@ -501,6 +501,8 @@ public sealed class BoundCorrespondingStatement : BoundStatement
     public DataSymbol TargetGroup => TargetGroupExpr.Symbol;
     public IReadOnlyList<(DataSymbol Source, DataSymbol Target)> Pairs { get; }
     public bool IsRounded { get; }
+    /// <summary>ROUNDED MODE ordinal (PicRuntime.Round*) applied to every corresponding pair; 0 when not rounded.</summary>
+    public int RoundingMode { get; }
     public BoundSizeErrorClause? SizeError { get; }
 
     public BoundCorrespondingStatement(
@@ -508,6 +510,7 @@ public sealed class BoundCorrespondingStatement : BoundStatement
         BoundIdentifierExpression sourceGroupExpr, BoundIdentifierExpression targetGroupExpr,
         IReadOnlyList<(DataSymbol Source, DataSymbol Target)> pairs,
         bool isRounded = false,
+        int roundingMode = 0,
         BoundSizeErrorClause? sizeError = null)
     {
         CorrespondingKind = kind;
@@ -515,6 +518,7 @@ public sealed class BoundCorrespondingStatement : BoundStatement
         TargetGroupExpr = targetGroupExpr;
         Pairs = pairs;
         IsRounded = isRounded;
+        RoundingMode = roundingMode;
         SizeError = sizeError;
     }
 

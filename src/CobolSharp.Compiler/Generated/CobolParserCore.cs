@@ -6344,7 +6344,9 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode TO() { return GetToken(CobolParserCore.TO, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORR() { return GetToken(CobolParserCore.CORR, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public RoundedPhraseContext roundedPhrase() {
+			return GetRuleContext<RoundedPhraseContext>(0);
+		}
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticOnSizeErrorContext arithmeticOnSizeError() {
 			return GetRuleContext<ArithmeticOnSizeErrorContext>(0);
 		}
@@ -6406,7 +6408,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case 1:
 					{
 					State = 1516;
-					Match(ROUNDED);
+					roundedPhrase();
 					}
 					break;
 				}
@@ -6784,7 +6786,9 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FROM() { return GetToken(CobolParserCore.FROM, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORRESPONDING() { return GetToken(CobolParserCore.CORRESPONDING, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CORR() { return GetToken(CobolParserCore.CORR, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROUNDED() { return GetToken(CobolParserCore.ROUNDED, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public RoundedPhraseContext roundedPhrase() {
+			return GetRuleContext<RoundedPhraseContext>(0);
+		}
 		[System.Diagnostics.DebuggerNonUserCode] public ArithmeticOnSizeErrorContext arithmeticOnSizeError() {
 			return GetRuleContext<ArithmeticOnSizeErrorContext>(0);
 		}
@@ -6846,7 +6850,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 				case 1:
 					{
 					State = 1567;
-					Match(ROUNDED);
+					roundedPhrase();
 					}
 					break;
 				}
@@ -36666,26 +36670,26 @@ public partial class CobolParserCore : CobolParserCoreBase {
 		1506,5,294,0,0,1506,1507,5,355,0,0,1507,1508,5,214,0,0,1508,1510,3,140,
 		70,0,1509,1493,1,0,0,0,1509,1504,1,0,0,0,1510,151,1,0,0,0,1511,1512,5,
 		83,0,0,1512,1513,7,11,0,0,1513,1514,3,92,46,0,1514,1515,5,371,0,0,1515,
-		1517,3,92,46,0,1516,1518,5,337,0,0,1517,1516,1,0,0,0,1517,1518,1,0,0,0,
-		1518,1520,1,0,0,0,1519,1521,3,150,75,0,1520,1519,1,0,0,0,1520,1521,1,0,
-		0,0,1521,1523,1,0,0,0,1522,1524,5,20,0,0,1523,1522,1,0,0,0,1523,1524,1,
-		0,0,0,1524,1540,1,0,0,0,1525,1526,5,83,0,0,1526,1528,3,154,77,0,1527,1529,
-		3,158,79,0,1528,1527,1,0,0,0,1528,1529,1,0,0,0,1529,1531,1,0,0,0,1530,
-		1532,3,160,80,0,1531,1530,1,0,0,0,1531,1532,1,0,0,0,1532,1534,1,0,0,0,
-		1533,1535,3,150,75,0,1534,1533,1,0,0,0,1534,1535,1,0,0,0,1535,1537,1,0,
-		0,0,1536,1538,5,20,0,0,1537,1536,1,0,0,0,1537,1538,1,0,0,0,1538,1540,1,
-		0,0,0,1539,1511,1,0,0,0,1539,1525,1,0,0,0,1540,153,1,0,0,0,1541,1543,3,
-		156,78,0,1542,1541,1,0,0,0,1543,1544,1,0,0,0,1544,1542,1,0,0,0,1544,1545,
-		1,0,0,0,1545,155,1,0,0,0,1546,1549,3,92,46,0,1547,1549,3,330,165,0,1548,
-		1546,1,0,0,0,1548,1547,1,0,0,0,1549,157,1,0,0,0,1550,1552,5,371,0,0,1551,
-		1553,3,144,72,0,1552,1551,1,0,0,0,1553,1554,1,0,0,0,1554,1552,1,0,0,0,
-		1554,1555,1,0,0,0,1555,159,1,0,0,0,1556,1558,5,244,0,0,1557,1559,3,144,
-		72,0,1558,1557,1,0,0,0,1559,1560,1,0,0,0,1560,1558,1,0,0,0,1560,1561,1,
-		0,0,0,1561,161,1,0,0,0,1562,1563,5,120,0,0,1563,1564,7,11,0,0,1564,1565,
-		3,92,46,0,1565,1566,5,230,0,0,1566,1568,3,92,46,0,1567,1569,5,337,0,0,
-		1568,1567,1,0,0,0,1568,1569,1,0,0,0,1569,1571,1,0,0,0,1570,1572,3,150,
-		75,0,1571,1570,1,0,0,0,1571,1572,1,0,0,0,1572,1574,1,0,0,0,1573,1575,5,
-		21,0,0,1574,1573,1,0,0,0,1574,1575,1,0,0,0,1575,1591,1,0,0,0,1576,1577,
+		1517,3,92,46,0,1516,1518,3,146,73,0,1517,1516,1,0,0,0,1517,1518,1,0,0,
+		0,1518,1520,1,0,0,0,1519,1521,3,150,75,0,1520,1519,1,0,0,0,1520,1521,1,
+		0,0,0,1521,1523,1,0,0,0,1522,1524,5,20,0,0,1523,1522,1,0,0,0,1523,1524,
+		1,0,0,0,1524,1540,1,0,0,0,1525,1526,5,83,0,0,1526,1528,3,154,77,0,1527,
+		1529,3,158,79,0,1528,1527,1,0,0,0,1528,1529,1,0,0,0,1529,1531,1,0,0,0,
+		1530,1532,3,160,80,0,1531,1530,1,0,0,0,1531,1532,1,0,0,0,1532,1534,1,0,
+		0,0,1533,1535,3,150,75,0,1534,1533,1,0,0,0,1534,1535,1,0,0,0,1535,1537,
+		1,0,0,0,1536,1538,5,20,0,0,1537,1536,1,0,0,0,1537,1538,1,0,0,0,1538,1540,
+		1,0,0,0,1539,1511,1,0,0,0,1539,1525,1,0,0,0,1540,153,1,0,0,0,1541,1543,
+		3,156,78,0,1542,1541,1,0,0,0,1543,1544,1,0,0,0,1544,1542,1,0,0,0,1544,
+		1545,1,0,0,0,1545,155,1,0,0,0,1546,1549,3,92,46,0,1547,1549,3,330,165,
+		0,1548,1546,1,0,0,0,1548,1547,1,0,0,0,1549,157,1,0,0,0,1550,1552,5,371,
+		0,0,1551,1553,3,144,72,0,1552,1551,1,0,0,0,1553,1554,1,0,0,0,1554,1552,
+		1,0,0,0,1554,1555,1,0,0,0,1555,159,1,0,0,0,1556,1558,5,244,0,0,1557,1559,
+		3,144,72,0,1558,1557,1,0,0,0,1559,1560,1,0,0,0,1560,1558,1,0,0,0,1560,
+		1561,1,0,0,0,1561,161,1,0,0,0,1562,1563,5,120,0,0,1563,1564,7,11,0,0,1564,
+		1565,3,92,46,0,1565,1566,5,230,0,0,1566,1568,3,92,46,0,1567,1569,3,146,
+		73,0,1568,1567,1,0,0,0,1568,1569,1,0,0,0,1569,1571,1,0,0,0,1570,1572,3,
+		150,75,0,1571,1570,1,0,0,0,1571,1572,1,0,0,0,1572,1574,1,0,0,0,1573,1575,
+		5,21,0,0,1574,1573,1,0,0,0,1574,1575,1,0,0,0,1575,1591,1,0,0,0,1576,1577,
 		5,120,0,0,1577,1579,3,164,82,0,1578,1580,3,168,84,0,1579,1578,1,0,0,0,
 		1579,1580,1,0,0,0,1580,1582,1,0,0,0,1581,1583,3,172,86,0,1582,1581,1,0,
 		0,0,1582,1583,1,0,0,0,1583,1585,1,0,0,0,1584,1586,3,150,75,0,1585,1584,

@@ -591,7 +591,7 @@ arithmeticOnSizeError
 // ==========================================
 
 addStatement
-    : ADD (CORRESPONDING | CORR) dataReference TO dataReference ROUNDED? arithmeticOnSizeError? END_ADD?
+    : ADD (CORRESPONDING | CORR) dataReference TO dataReference roundedPhrase? arithmeticOnSizeError? END_ADD?
     | ADD addOperandList addToPhrase? addGivingPhrase? arithmeticOnSizeError? END_ADD?
     ;
 
@@ -617,7 +617,7 @@ addGivingPhrase
 // ==========================================
 
 subtractStatement
-    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM dataReference ROUNDED? arithmeticOnSizeError? END_SUBTRACT?
+    : SUBTRACT (CORRESPONDING | CORR) dataReference FROM dataReference roundedPhrase? arithmeticOnSizeError? END_SUBTRACT?
     | SUBTRACT subtractOperandList subtractFromPhrase? subtractGivingPhrase? arithmeticOnSizeError? END_SUBTRACT?
     ;
 

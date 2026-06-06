@@ -110,11 +110,12 @@ internal sealed class ArithmeticStatementBinder
 
     internal BoundStatement? BindAdd(CobolParserCore.AddStatementContext ctx)
     {
-        // ADD CORRESPONDING source TO target [ROUNDED] [ON SIZE ERROR ...]
+        // ADD CORRESPONDING source TO target [ROUNDED [MODE IS …]] [ON SIZE ERROR ...]
         if (ctx.CORRESPONDING() != null)
         {
+            var (r, mode) = BindRounded(ctx.roundedPhrase());
             return BindCorresponding(CorrespondingKind.Add, ctx.dataReference(), ctx,
-                ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
+                r, mode, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
                 ?? ReportInvalidArithmetic("ADD", ctx.Start?.Line ?? 0);
         }
 
@@ -166,11 +167,12 @@ internal sealed class ArithmeticStatementBinder
 
     internal BoundStatement? BindSubtract(CobolParserCore.SubtractStatementContext ctx)
     {
-        // SUBTRACT CORRESPONDING source FROM target [ROUNDED] [ON SIZE ERROR ...]
+        // SUBTRACT CORRESPONDING source FROM target [ROUNDED [MODE IS …]] [ON SIZE ERROR ...]
         if (ctx.CORRESPONDING() != null)
         {
+            var (r, mode) = BindRounded(ctx.roundedPhrase());
             return BindCorresponding(CorrespondingKind.Subtract, ctx.dataReference(), ctx,
-                ctx.ROUNDED() != null, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
+                r, mode, BindSizeErrorClause(ctx.arithmeticOnSizeError()))
                 ?? ReportInvalidArithmetic("SUBTRACT", ctx.Start?.Line ?? 0);
         }
 
@@ -358,6 +360,7 @@ internal sealed class ArithmeticStatementBinder
         CobolParserCore.DataReferenceContext[] ids,
         ParserRuleContext ctx,
         bool isRounded = false,
+        int roundingMode = 0,
         BoundSizeErrorClause? sizeError = null)
     {
         if (ids.Length < 2) return null;
@@ -411,7 +414,7 @@ internal sealed class ArithmeticStatementBinder
 
         var pairs = CorrespondingMatcher.ComputeCorrespondingPairs(
             srcSym, dstSym, kindName, _ctx.Diagnostics, loc);
-        return new BoundCorrespondingStatement(kind, srcId, dstId, pairs, isRounded, sizeError);
+        return new BoundCorrespondingStatement(kind, srcId, dstId, pairs, isRounded, roundingMode, sizeError);
     }
 
     // ── SIZE ERROR CLAUSE ──
