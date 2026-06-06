@@ -7,7 +7,7 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
-### ✅ DONE so far (DEVLOG 394–397; guard **1159 unit / 481 integration / 364 NIST**, all green)
+### ✅ DONE so far (DEVLOG 394–398; guard **1175 unit / 481 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
   `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
@@ -19,20 +19,29 @@ workflows branch from a stale commit in this repo).
   value store — `CobolNum` returns the signed value.
 - **Stage 2 classifier — Phase A (397):** `RecordClassificationPass` (ADR §3) — data-division triggers
   (REDEFINES/RENAMES/FD-record/LINKAGE/EXTERNAL-GLOBAL/edited) + REDEFINES-class & downward-transitivity fixpoint;
-  `Classify(items, categoryOf)`, default typed / "any doubt → byte". **Additive, NOT yet consumed by codegen**
-  (Stage 2 = all byte-backed). 17-agent review: 0 confirmed / 15 refuted.
+  `Classify(items, categoryOf)`, default typed / "any doubt → byte". 17-agent review: 0 confirmed / 15 refuted.
+- **Stage 2 classifier — Phase B + Phase C → the classifier is COMPLETE (398):** the `ProcedureScanner` bound-tree
+  walk marks the use-observable triggers — (3) refmod base (demote unless a single elementary `string`-typed item),
+  (11) `CALL … BY REFERENCE` arg (unconditional), (15) ODO whole-group, (4a) group-MOVE dest (demote unless an
+  unsubscripted identical-layout source → a Phase-C struct-copy edge); group COMPARE/class-cond/CORR do NOT demote
+  (materialize-on-demand). Phase C = one combined fixpoint (structural closure + struct-copy edges). Triggers
+  14/6/16 documented-deferred. 4-lens review: 1 confirmed (doc-only) / ~14 refuted. +16 tests. **Additive, NOT yet
+  consumed by codegen** (Stage 2 = all byte-backed).
 
-### → RESUME AT — classifier **Phase B** (then Phase C, then Stage 3)
-The classifier must be COMPLETE before any Stage-3 flip (ADR §3). NEXT, in order:
-1. **Phase B** — a bound-tree procedure-division scan for the remaining §3 triggers: reference-modification of a
-   numeric-DISPLAY item (§3.3b), group MOVE/COMPARE/class-condition (§3.4), `CALL…USING BY REFERENCE` arguments
-   (§3.11), the ODO-whole-group operand (§3.15), write-pattern items (§3.14). Begin with a short investigation of
-   the bound-statement model (`src/CobolSharp.Compiler/Semantics/Bound/`), like the pipeline investigation that
-   preceded Phase A (its seam map is in DEVLOG 397).
-2. **Phase C** — the cross-edge fixpoint propagating demotion across intra-program interop edges.
-3. Then a **full adversarial review of the complete classifier**, then **Stage 0 scaffolding**
-   (`IrDataSlot`/`ByteWindowSlot` + `Span<byte>` adapters; `PicDescriptor`→`FieldShape` split per ADR M6) and
-   **Stage 3** (the `IrDataSlot` MOVE/COMPARE dispatch + the first character-data typed flip, PIC X → .NET string).
+### → RESUME AT — Stage 0 scaffolding → wire the classifier → Stage 3 first character flip
+The classifier is complete; the migration now moves to the codegen scaffolding + the first typed flip. NEXT, in order
+(a parallel investigation already mapped this territory — see DEVLOG 398 / plan §0.5 NEXT for the seam map):
+1. **Stage 0 scaffolding (zero behavior change):** the `IrDataSlot`/`ByteWindowSlot` sum type + `Span<byte>`
+   adapter overloads, and the `PicDescriptor`→`FieldShape`(compile-time) / `NumProfile`(runtime) split per ADR M6
+   (the investigation recommends the **additive parallel-`NumProfile`** path, deferring the full rename to Stage 6).
+   IrLocation hierarchy @ `IrInstruction.cs:1246+` (Static/ElementRef/RefMod/OdoGroup/Cached); MOVE dispatch @
+   `CilDataEmitter.EmitMoveFieldToField` / `EmitMoveWithStandardSignature`; location push @ `CilLocationEmitter`.
+2. **Wire `RecordClassificationPass` into the Binder** — after `BoundProgram` is built (`Binder.Bind`), with the
+   model's category accessor (`s => model.GetStorageLocation(s)?.Pic.Category`) and layout accessor
+   (`s => model.GetStorageLocation(s) is {} l ? (l.Offset, l.Length) : null`). A no-op until the first flip.
+3. **Stage 3 first character flip** — PIC X → .NET `string`, the narrowest subset (records of only elementary
+   character items with no triggers). The typed↔byte materialize codec lives at the §2.5 IDataSlot boundary; the
+   byte fallback (§1.6) keeps overlay-heavy NIST programs green throughout.
 
 The live PROGRESS tick + full next-step detail are in `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** (the SSOT — work
 from it; keep ticking it).

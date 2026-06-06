@@ -80,12 +80,27 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     2-lens/17-agent review: 0 confirmed / 15 refuted (Phase-A verified correct). Pipeline investigation map
     captured in DEVLOG 397 (IrLocation hierarchy @ `IrInstruction.cs:1246+`, the dispatch points, insertion
     point after `StorageLayoutComputer`).
-  - **NEXT:** classifier **Phase B** (procedure-division scan: refmod-of-numeric-DISPLAY, group MOVE/COMPARE/
-    class-condition, CALL…USING BY REFERENCE, ODO-whole-group, write-pattern) + **Phase C** cross-edge fixpoint —
-    required before the classifier is consumed (ADR §3: complete before any flip); then a full adversarial review
-    of the complete classifier. THEN Stage 0 scaffolding (`IrDataSlot`/`ByteWindowSlot` + `Span<byte>` adapters,
-    `PicDescriptor`→`FieldShape` split per ADR M6) and Stage 3 (the `IrDataSlot` MOVE/COMPARE dispatch + the first
-    character-data typed flip — PIC X → .NET string).
+  - **PROGRESS — Stage 2 classifier Phase B + Phase C LANDED → the classifier is COMPLETE (DEVLOG 398):** ☑ the
+    `ProcedureScanner` bound-tree walk marks the use-observable triggers — (3) refmod base (demote unless a single
+    elementary `string`-typed item: Alphanumeric/National/Alphabetic), (11) `CALL … BY REFERENCE` arg base
+    (unconditional), (15) ODO whole-group operand, (4a) group-MOVE destination (demote unless an unsubscripted
+    identical-layout source → a Phase-C struct-copy edge); group COMPARE/class-condition/CORR deliberately do NOT
+    demote (materialize-on-demand / per-field, ADR §3.4). ☑ Phase C = one combined fixpoint over the structural
+    closure + the struct-copy edges (byte on either edge end demotes both; monotone, terminates). Three triggers
+    documented-deferred: (14) write-pattern perf peephole, (6) ADDRESS OF (unbound), (16) USE FOR DEBUGGING
+    (`BoundUseStatement` stub; ADR §12). `SameLayout` uses the real `StorageLocation` offsets (available — layout
+    runs before the bound tree, `Compilation.cs:123` vs `:142`). 4-lens adversarial review: **1 confirmed (low,
+    the doc-only #16 note) / ~14 refuted**. +16 unit tests. Additive — not yet consumed by codegen. Guard
+    1175/481/364.
+  - **NEXT:** Stage 0 scaffolding (`IrDataSlot`/`ByteWindowSlot` sum type + `Span<byte>` adapter overloads,
+    `PicDescriptor`→`FieldShape`(compile) / `NumProfile`(runtime) split per ADR M6 — investigation recommends the
+    additive parallel-`NumProfile` path, deferring the full rename), then **wire `RecordClassificationPass` into
+    the Binder** (after `BoundProgram` is built, with the model's layout/category accessors; a no-op until the
+    first flip), then **Stage 3 first character-data typed flip** (PIC X → .NET `string`; the narrowest subset =
+    records of only elementary character items with no triggers; the byte fallback keeps overlay-heavy NIST
+    programs green). IrLocation map @ `IrInstruction.cs:1246+` (Static/ElementRef/RefMod/OdoGroup/Cached); MOVE
+    dispatch @ `CilDataEmitter.EmitMoveFieldToField`/`EmitMoveWithStandardSignature`; the typed↔byte materialize
+    codec lives at the §2.5 IDataSlot boundary.
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
