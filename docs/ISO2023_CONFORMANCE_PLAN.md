@@ -142,6 +142,30 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   ref-mod ×2 byte adjustment, INSPECT-national.
 - ☐ **M2-DATA-4 — Boolean & bit data.** `USAGE BIT`, `PIC 1(n)`, boolean literals `B"…"` / `BX"…"`, bit operators
   (B-AND/B-OR/B-XOR/B-NOT), BOOLEAN category in INITIALIZE/SET/compare. *Large (new category).* §8.3, §13.18.
+  - **Investigated first-slice recipe (workflow `m2-data4-boolean-investigation`, 2026-06-05) — mirrors the
+    National build (DEVLOG 383) almost exactly.** Corpus-checked clean: NIST has no `PIC 1`, no `USAGE BIT`, no
+    real `B"…"` (only `"B"` strings → STRINGLIT). **Storage model:** 1 byte per boolean position holding ASCII
+    `'0'`/`'1'` — spec-permitted (§13.18.40.4 R14: a boolean char "may be represented … as an alphanumeric
+    character"); simplest correct; true bit-packing (§8.5.1.6.3) deferred. So boolean ≈ "alphanumeric with `'0'`
+    fill + a distinct category + no DISPLAY trim". **Touch (mirror National):** (1) `PicDescriptor.cs` add
+    `CobolCategory.Boolean` + `IsBooleanLike()` + `UsageKind.Bit`; (2) `PicDescriptorFactory.cs` add a
+    `hasBooleanChars` flag + `case '1'` (integerDigits += count) + category lattice (Boolean when only `'1'`);
+    sizing = 1 byte/position (default arm, no multiplier); (3) `PicUsageResolver.cs` set `isBool` from category,
+    add `'1'` to `IsValidPicSymbol`, map `"BIT"`→`UsageKind.Bit`, route `picString==null && usage==Bit`→Boolean;
+    (4) `CobolData.g4` `usageKeyword += BIT`; (5) `CobolLexer.g4` add `BIT` token + `BOOLLIT : 'B' '"' [01]+ '"' |
+    'B' '\'' [01]+ '\''` (before IDENTIFIER, maximal-munch safe); (6) `CobolExpressions.g4` `nonNumericLiteral +=
+    BOOLLIT`; (7) `ExpressionBinder.BindNonNumericLiteral` BOOLLIT→`BoundLiteralExpression(text, Boolean)` (strip
+    `B`+quotes; no doubled-quote); (8) `SemanticBuilder` VALUE-clause BOOLLIT extraction (mirror the NATLIT arm);
+    (9) `CategoryCompatibility` add `(Boolean,Boolean)` move pair + `IsBooleanFamily` + comparison case; (10) **the
+    full dispatch surface up front (National-review lesson):** runtime `MoveBooleanToBoolean` (`'0'` fill/right
+    truncate), `MoveStringLiteralToBoolean`, `CompareBoolean`/`CompareBooleanToString` (`'0'` pad), boolean arm in
+    `MoveFigurativeToField` (ZERO/`'0'`), `GetDisplayString` boolean branch (show raw `'0'`/`'1'`, **no TrimEnd**),
+    `MoveBooleanLiteralToOccursField` (VALUE); emit dispatch in `CilDataEmitter.EmitMoveFieldToField` +
+    `EmitMoveStringToField`, `CilComparisonEmitter`, `CilEmitter` VALUE-init, and INITIALIZE-default in
+    `DataMovementLowerer`. **Conformance** `tests/conformance/2002/boolean_data` covering literal/MOVE/VALUE/
+    INITIALIZE/DISPLAY/compare. **Defer:** `BX"…"` hex, **bit operators B-AND/B-OR/B-XOR/B-NOT** (corpus-collision
+    risk — `B-NOT` seen as an identifier in a unit test; needs careful reserved-word handling + the XOR-operator
+    wiring pattern, DEVLOG 375), true bit-packing, GROUP-USAGE BIT, SET cond-name interplay.
 - ☐ **M2-DATA-5 — Pointers & based addressing (foundational).** **[A] HIGH, large.** `USAGE POINTER /
   PROGRAM-POINTER / FUNCTION-POINTER`, `ADDRESS OF`, `SET … TO/UP/DOWN ADDRESS OF`, `BASED`, `NULL`. A `POINTER`
   token exists but there is no support. *Recipe:* `POINTER` usage + a runtime `PointerRegistry` handle model
