@@ -92,6 +92,16 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     runs before the bound tree, `Compilation.cs:123` vs `:142`). 4-lens adversarial review: **1 confirmed (low,
     the doc-only #16 note) / ~14 refuted**. +16 unit tests. Additive — not yet consumed by codegen. Guard
     1175/481/364.
+  - **PROGRESS — Stage 0 character substrate `CobolString` LANDED (DEVLOG 399), guard 1184/481/364:** ☑
+    `src/CobolSharp.Runtime/Text/CobolString.cs` — the typed-string analogue of `CobolNum`: COBOL alphanumeric
+    MOVE value semantics (`Store` — width/justify/space-fill, ISO §14.9.25/§13.18.36) + ordinal space-extended
+    comparison (`Compare`, ISO §8.8.4.1.2) + the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR
+    R10/§2.5). ☑ a **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the
+    legacy `StorageHelpers` path (MOVE over binary/LOW-/HIGH-VALUE × widths × left/justified; window round-trip;
+    compare sign-identical). Additive/unwired (guard green by construction). Surfaced (and deliberately left for
+    the wiring step) a legacy nuance: `CompareFieldToField` uses `TrimEnd()` (all-whitespace) whereas COBOL
+    space-extends with `0x20` only — `CobolString.Compare` is COBOL-correct; the two diverge only on non-space
+    trailing bytes.
   - **NEXT:** Stage 0 scaffolding (`IrDataSlot`/`ByteWindowSlot` sum type + `Span<byte>` adapter overloads,
     `PicDescriptor`→`FieldShape`(compile) / `NumProfile`(runtime) split per ADR M6 — investigation recommends the
     additive parallel-`NumProfile` path, deferring the full rename), then **wire `RecordClassificationPass` into

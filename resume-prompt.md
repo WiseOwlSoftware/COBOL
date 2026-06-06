@@ -7,7 +7,7 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
-### ✅ DONE so far (DEVLOG 394–398; guard **1175 unit / 481 integration / 364 NIST**, all green)
+### ✅ DONE so far (DEVLOG 394–399; guard **1184 unit / 481 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
   `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
@@ -27,6 +27,12 @@ workflows branch from a stale commit in this repo).
   (materialize-on-demand). Phase C = one combined fixpoint (structural closure + struct-copy edges). Triggers
   14/6/16 documented-deferred. 4-lens review: 1 confirmed (doc-only) / ~14 refuted. +16 tests. **Additive, NOT yet
   consumed by codegen** (Stage 2 = all byte-backed).
+- **Stage 0 character substrate `CobolString` (399):** `src/CobolSharp.Runtime/Text/CobolString.cs` — the
+  typed-string analogue of `CobolNum`: COBOL alphanumeric MOVE value semantics (`Store`), ordinal space-extended
+  `Compare` (ISO §8.8.4.1.2), and the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR R10/§2.5).
+  A **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the legacy
+  `StorageHelpers` path. Additive/unwired. (Noted legacy nuance: `CompareFieldToField` over-trims via `TrimEnd()`;
+  `CobolString.Compare` is COBOL-correct 0x20-extension — reconciled at wiring time.)
 
 ### → RESUME AT — Stage 0 scaffolding → wire the classifier → Stage 3 first character flip
 The classifier is complete; the migration now moves to the codegen scaffolding + the first typed flip. NEXT, in order

@@ -30,15 +30,16 @@ data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = 
 classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; guard ALL GREEN — **1175 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
+- **Branch**: main; guard ALL GREEN — **1184 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 398.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
+- **DEVLOG at entry 399.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
   UNDERWAY (the #1 priority):** Stage 1 numeric pipeline is fully on the new `CobolNum`/`CobolDecimal` BigInteger
-  core (DEVLOG 394–396); Stage 2 classifier `RecordClassificationPass` is now COMPLETE — Phase A (397) +
-  Phase B/C (398), additive, not yet consumed by codegen. **RESUME AT → Stage 0 scaffolding**
-  (`IrDataSlot`/`ByteWindowSlot` + `PicDescriptor`→`FieldShape`/`NumProfile` split), then wire the classifier into
-  the Binder, then **Stage 3 first character flip** (PIC X → .NET string). See `resume-prompt.md` + plan **§0.5**
-  PROGRESS/NEXT for the precise next step.
+  core (DEVLOG 394–396); Stage 2 classifier `RecordClassificationPass` is COMPLETE — Phase A (397) + Phase B/C
+  (398); Stage 0 character substrate `CobolString` + its differential oracle landed (399). All additive, not yet
+  consumed by codegen. **RESUME AT → Stage 0 codegen scaffolding** (`IrDataSlot`/`ByteWindowSlot` +
+  `PicDescriptor`→`FieldShape`/`NumProfile` split), then wire the classifier into the Binder, then **Stage 3 first
+  character flip** (PIC X → .NET string, consuming `CobolString`). See `resume-prompt.md` + plan **§0.5**
+  PROGRESS/NEXT.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28
