@@ -169,6 +169,15 @@ public static class DataItemClassifier
             diagnostics.Report(DiagnosticDescriptors.CBL0807, loc, span, data.DisplayName);
         }
 
+        // Pointer items: a VALUE clause is not permitted on a pointer (ISO §13.18.26 SR9). Checked before the
+        // group check because a no-PIC pointer is otherwise classified group-like. Reached only when a VALUE is
+        // present (the early return above skips no-VALUE items).
+        if (data.ResolvedType?.Category == CobolCategory.Pointer)
+        {
+            diagnostics.Report(DiagnosticDescriptors.CBL1002, loc, span, data.DisplayName);
+            return;
+        }
+
         // VALUE on group item → warning (ISO allows it but it's an extension)
         if (data.IsGroup)
         {

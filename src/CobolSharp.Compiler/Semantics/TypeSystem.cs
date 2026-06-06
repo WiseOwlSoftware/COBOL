@@ -69,6 +69,7 @@ public sealed record DataTypeSymbol(
     public CobolCategory Category { get; } = Pic?.Category
         ?? (IsNumeric ? CobolCategory.Numeric
             : IsAlphanumeric ? CobolCategory.Alphanumeric
+            : Usage == UsageKind.Pointer ? CobolCategory.Pointer   // USAGE POINTER has no PIC
             : CobolCategory.Unknown);
 }
 

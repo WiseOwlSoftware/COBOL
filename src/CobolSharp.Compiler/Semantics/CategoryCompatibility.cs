@@ -71,6 +71,8 @@ public static class CategoryCompatibility
             (CobolCategory.NationalEdited, CobolCategory.AlphanumericEdited),
             // Boolean -> Boolean (ISO §14.6.8.6; alphanumeric/national<->boolean conversion deferred)
             (CobolCategory.Boolean, CobolCategory.Boolean),
+            // Pointer -> Pointer (the only pointer assignment; SET p TO q, ISO §14.9.39)
+            (CobolCategory.Pointer, CobolCategory.Pointer),
         }.ToFrozenSet();
 
     public static bool IsMoveLegal(CobolCategory source, CobolCategory target)
@@ -89,6 +91,7 @@ public static class CategoryCompatibility
         if (IsAlphanumericFamily(left) && IsAlphanumericFamily(right)) return true;
         if (IsNationalFamily(left) && IsNationalFamily(right)) return true;
         if (IsBooleanFamily(left) && IsBooleanFamily(right)) return true;
+        if (IsPointerFamily(left) && IsPointerFamily(right)) return true;
         return false;
     }
 
@@ -103,4 +106,7 @@ public static class CategoryCompatibility
 
     public static bool IsBooleanFamily(CobolCategory c)
         => c is CobolCategory.Boolean;
+
+    public static bool IsPointerFamily(CobolCategory c)
+        => c is CobolCategory.Pointer;
 }

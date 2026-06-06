@@ -47,6 +47,12 @@ public static class PicUsageResolver
             isBool = true;
             category = CobolCategory.Boolean;
         }
+        // USAGE POINTER (no PIC) — an opaque 8-byte machine-address handle (ISO §13.18.60.4); not numeric,
+        // not alphanumeric. The 8-byte size is supplied by FieldSizeCalculator/ComputeStorageLength.
+        else if (picString == null && usage == UsageKind.Pointer)
+        {
+            category = CobolCategory.Pointer;
+        }
         // Group items (no PIC) are alphanumeric by default
         else if (picString == null && usage == UsageKind.Display)
         {

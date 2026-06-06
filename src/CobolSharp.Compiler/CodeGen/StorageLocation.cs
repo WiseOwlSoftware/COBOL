@@ -185,6 +185,30 @@ public static class CompilerPicDescriptorFactory
                 environment: env);
         }
 
+        // Elementary USAGE POINTER with no PIC: synthesize an 8-byte opaque-handle descriptor
+        // (category Pointer, non-numeric/non-alphanumeric) so MOVE/SET/compare route to the pointer
+        // (byte) paths. NULL is the all-zero handle. ISO §13.18.60.4.
+        if (symbol.Usage == UsageKind.Pointer && symbol.Children.Count == 0)
+        {
+            return new PicDescriptor(
+                totalDigits: 0,
+                fractionDigits: 0,
+                isSigned: false,
+                isNumeric: false,
+                isAlphanumeric: false,
+                hasEditing: false,
+                storageLength: storageLength,
+                usage: UsageKind.Pointer,
+                category: CobolCategory.Pointer,
+                signStorage: SignStorageKind.None,
+                editing: EditingKind.None,
+                blankWhenZero: false,
+                leadingScaleDigits: 0,
+                trailingScaleDigits: 0,
+                editPattern: null,
+                environment: env);
+        }
+
         // Group items (no PIC): alphanumeric DISPLAY
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;
         return new PicDescriptor(

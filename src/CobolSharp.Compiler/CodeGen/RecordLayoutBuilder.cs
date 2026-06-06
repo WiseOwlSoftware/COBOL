@@ -127,6 +127,7 @@ public sealed class RecordLayoutBuilder
 
         if (pic.Category == CobolCategory.Alphanumeric || pic.Category == CobolCategory.National)
             return IrPrimitiveType.ByteArray;
+        // (USAGE POINTER has no PIC, so it is already handled by the `pic == null` → ByteArray path above.)
 
         if (s.Usage == UsageKind.Display && pic.Category == CobolCategory.Numeric)
         {

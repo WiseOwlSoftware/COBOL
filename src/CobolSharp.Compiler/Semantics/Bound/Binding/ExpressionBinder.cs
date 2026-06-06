@@ -541,6 +541,8 @@ internal sealed class ExpressionBinder
             "HIGH-VALUE" or "HIGH-VALUES" => new BoundFigurativeExpression(FigurativeKind.HighValue),
             "LOW-VALUE" or "LOW-VALUES" => new BoundFigurativeExpression(FigurativeKind.LowValue),
             "QUOTE" or "QUOTES" => new BoundFigurativeExpression(FigurativeKind.Quote),
+            // NULL/NULLS — the predefined null address (ISO §8.4.3.10); the all-zero pointer handle.
+            "NULL" or "NULLS" => new BoundFigurativeExpression(FigurativeKind.Null),
             _ => new BoundLiteralExpression(figText, CobolCategory.Alphanumeric)
         };
     }

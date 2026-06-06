@@ -122,6 +122,7 @@ internal sealed class ConditionLowerer
             FigurativeKind.Zero => '0',
             FigurativeKind.HighValue => '\xFF',
             FigurativeKind.LowValue => '\x00',
+            FigurativeKind.Null => '\x00',   // NULL = the all-zero pointer handle (ISO §8.4.3.10)
             FigurativeKind.Quote => '"',
             _ => ' '
         };

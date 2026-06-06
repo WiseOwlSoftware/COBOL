@@ -301,6 +301,7 @@ usageKeyword
     | INDEX
     | NATIONAL
     | BIT
+    | POINTER
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

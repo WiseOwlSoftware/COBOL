@@ -28,6 +28,9 @@ public enum CobolCategory
     /// COBOL-2002). Stored one byte per position holding ASCII '0'/'1' (§13.18.40.4 R14 permits an
     /// alphanumeric-character representation of a boolean character).</summary>
     Boolean,
+    /// <summary>USAGE POINTER — an opaque machine-address handle (ISO §13.18.60.4, COBOL-2002). Stored as an
+    /// 8-byte value; NULL is the all-zero handle. Does not participate in arithmetic or character operations.</summary>
+    Pointer,
 }
 
 /// <summary>
@@ -51,6 +54,10 @@ public static class CobolCategoryExtensions
     /// <summary>Returns true for the boolean category (a future BooleanEdited would join here).</summary>
     public static bool IsBooleanLike(this CobolCategory c) =>
         c is CobolCategory.Boolean;
+
+    /// <summary>Returns true for the pointer category (a future PROGRAM-/FUNCTION-POINTER would join here).</summary>
+    public static bool IsPointerLike(this CobolCategory c) =>
+        c is CobolCategory.Pointer;
 }
 
 /// <summary>

@@ -298,6 +298,11 @@ internal sealed class DataMovementLowerer
             || (!stmt.ToValue && stmt.CategoryReplacements.Count == 0);
         if (!applyDefault) return;
 
+        // A default INITIALIZE does not affect pointer (nor index/object-reference) items — they are left
+        // unchanged (ISO §14.9.20.3). Skip the figurative fill so a pointer is not corrupted with spaces.
+        if (pic.Category.IsPointerLike())
+            return;
+
         if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
             block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
         else if (category == InitializeCategory.Boolean)

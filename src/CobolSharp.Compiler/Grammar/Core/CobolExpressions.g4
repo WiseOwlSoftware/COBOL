@@ -291,6 +291,7 @@ figurativeConstant
     | HIGH_VALUE
     | LOW_VALUE
     | QUOTE_
+    | NULL_
     | ALL STRINGLIT
     | ALL HEXLIT
     | ALL ZERO

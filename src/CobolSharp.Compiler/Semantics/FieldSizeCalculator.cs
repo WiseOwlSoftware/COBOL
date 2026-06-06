@@ -24,6 +24,10 @@ public static class FieldSizeCalculator
         if (data.Usage == UsageKind.Index)
             return 4;
 
+        // USAGE POINTER elementary items have no PIC — an 8-byte opaque machine-address handle (ISO §13.18.60.4).
+        if (data.Usage == UsageKind.Pointer)
+            return 8;
+
         // COMP-1 (IEEE 754 single) and COMP-2 (IEEE 754 double) have no PIC clause —
         // fixed sizes per the COBOL-85 standard.
         if (data.Usage == UsageKind.Comp1) return 4;

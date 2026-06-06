@@ -64,12 +64,18 @@
     boolean-in-COMPUTE silent-numeric, and a JUSTIFIED spec/dead-code defect before commit. Bit operators deferred.
   - **M2-PROC-6** `GOBACK RETURNING` — DONE (387, dialect-gated 2002+; conformance `goback_returning`); EXIT
     variants verified present/green; only `CONTINUE AFTER` (non-deterministic) deferred.
-- **Guard baseline:** **1047 unit / 477 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-- **NEXT UP →** **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE),
-  smallest Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity); investigated first-slice
-  recipe in §3.2. **Needs a safe-handle `PointerRegistry` design decision (owner to confirm)** before the hard
-  parts (SET ADDRESS OF / BASED, deferred). After it: M2-PRE-1 (◐, re-scoped), M2-ARITH-1 follow-ups, then the
-  larger subsystems (EC/exceptions, VALIDATE, OO) per §4. (M2-DATA-3 + M2-DATA-4 new-category builds are DONE.)
+  - **M2-DATA-5** Pointers **Phase-1 DONE** (389): `USAGE POINTER` (8-byte handle), `NULL`, `SET p TO NULL`/
+    `SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE + VALUE rejected; conformance `pointer_data`. A 2-agent
+    review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) remains the
+    owner-gated `PointerRegistry` design decision.**
+- **Guard baseline:** **1047 unit / 478 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+- **NEXT UP →** the easy/foundational data items are now done (National, Boolean, Pointers Phase-1, GOBACK
+  RETURNING). Remaining M2, in rough priority: **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) — OWNER-GATED**
+  (the `PointerRegistry` handle→address/.NET-managed-memory design decision); **M2-PRE-1** (◐, re-scoped — two
+  real but rare preprocessor mis-parse/clean-error defects, one reverses a deliberate §7.3.16-vs-§7.2 decision);
+  **M2-ARITH-1/-2** (OPTIONS DEFAULT ROUNDED / standard arithmetic — needs OPTIONS-clause parsing);
+  **M2-FILE-1/2** (SHARING/LOCK, line-sequential); then the large subsystems **M2-PROC-4 EC/exceptions →
+  RAISE/RESUME/USE**, **M2-PROC-3 VALIDATE**, **M2-OO-1 OO COBOL** (§4 waves). Pick per §4; tick + log here.
 
 ---
 
@@ -177,11 +183,17 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     INITIALIZE/DISPLAY/compare. **Defer:** `BX"…"` hex, **bit operators B-AND/B-OR/B-XOR/B-NOT** (corpus-collision
     risk — `B-NOT` seen as an identifier in a unit test; needs careful reserved-word handling + the XOR-operator
     wiring pattern, DEVLOG 375), true bit-packing, GROUP-USAGE BIT, SET cond-name interplay.
-- ☐ **M2-DATA-5 — Pointers & based addressing (foundational).** **[A] HIGH, large.** `USAGE POINTER /
-  PROGRAM-POINTER / FUNCTION-POINTER`, `ADDRESS OF`, `SET … TO/UP/DOWN ADDRESS OF`, `BASED`, `NULL`. A `POINTER`
-  token exists but there is no support. *Recipe:* `POINTER` usage + a runtime `PointerRegistry` handle model
-  (mapping COBOL pointers onto .NET safely). **Unblocks ALLOCATE/FREE (M2-PROC-5) and SET ADDRESS OF.** §13.18,
-  §14.9.
+- ◑ **M2-DATA-5 — Pointers & based addressing. PHASE-1 DONE (DEVLOG 389); Phase-2 owner-gated.** **[A] HIGH.**
+  **Phase-1 COMPLETE:** `USAGE POINTER` (8-byte opaque handle, no PIC), `NULL`, `SET p TO NULL` / `SET p TO q`,
+  `= NULL` / `NOT = NULL` / `= q` equality; pointer↔non-pointer MOVE rejected (CBL0901); `VALUE` on a pointer
+  rejected (CBL1002); default INITIALIZE leaves a pointer unchanged. Conformance `tests/conformance/2002/
+  pointer_data`. Lean reuse: SET→MOVE, NULL→0x00 figurative fill, `= NULL`→figurative compare, `= q`→
+  `IrStringCompare` (no new IR nodes). **Phase-2/3 — STILL OWNER-GATED (the `PointerRegistry` handle→address
+  design decision):** `ADDRESS OF` / `SET ADDRESS OF` / `SET … UP/DOWN BY` / `BASED` deref → then `ALLOCATE`/
+  `FREE` (M2-PROC-5) — these need a safe mapping of COBOL pointers onto .NET managed memory (`GCHandle` pinning).
+  Also deferred: ordering-operator rejection on pointers (`< >` compile to a byte-compare today; invalid input),
+  PROGRAM-/FUNCTION-POINTER distinctions, and updating/removing the orphaned `LoweringTable` (no Pointer cases).
+  **Phase-1 is thin standalone** — every pointer can only be NULL until ADDRESS OF/ALLOCATE exist. §13.18, §14.9.
   - **Investigated first slice (handoff audit, 2026-06-05) — the audit's RECOMMENDED next pick** (foundational +
     smallest Phase-1, no grammar ambiguity). Current state: `UsageKind.Pointer` enum value exists but is **inert**
     (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `CobolDataPointer` exists but is
@@ -431,3 +443,12 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   lowers to a synthetic MOVE into the PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses CALL…RETURNING);
   conformance `goback_returning`. EXIT variants verified present/green; `CONTINUE AFTER` deferred. Guard
   1047/477/364. Still next: **M2-DATA-5 Pointers** (needs the PointerRegistry design decision — owner to confirm).
+- **2026-06-05 (session DEVLOG 388–389)** — **M2-DATA-5 Pointers Phase-1 DONE** (388 recipe, 389 impl):
+  `USAGE POINTER` (8-byte handle), `NULL`, `SET p TO NULL`/`SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE
+  + VALUE rejected; default INITIALIZE leaves pointers unchanged; conformance `pointer_data`. Lean reuse (SET→MOVE,
+  NULL→0x00 figurative, compare via figurative/`IrStringCompare` — no new IR nodes). Self-review caught 3 bugs
+  (`DataTypeSymbol.Category` not deriving Pointer → silent `SET p TO NULL` no-op; no-PIC pointer mis-classified
+  `IsGroup`; VALUE-check ordering); the 2-agent adversarial review then confirmed clean (13 probes). Phase-1
+  did NOT need the deferred design decision (NULL = 8 zero bytes, no targets to map). Guard 1047/478/364.
+  **NEXT: the easy data items are done; remaining M2 is Phase-2 pointers (owner-gated), M2-PRE-1, OPTIONS
+  arithmetic, file 2002, then the big subsystems (EC/exceptions, VALIDATE, OO).**

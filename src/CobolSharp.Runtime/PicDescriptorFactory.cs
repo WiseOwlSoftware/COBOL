@@ -461,6 +461,9 @@ public static class PicDescriptorFactory
             case UsageKind.Comp2:
                 return 8;
 
+            case UsageKind.Pointer:
+                return 8;   // 8-byte opaque machine-address handle (ISO §13.18.60.4)
+
             default: // DISPLAY, INDEX, NATIONAL, etc.
             {
                 int baseLength = integerDigits + fractionDigits + insertionChars;
