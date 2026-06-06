@@ -521,6 +521,9 @@ public sealed class Compilation
                 model.SetProgramCollatingSequence(alphaDef.CollatingSequence);
         }
 
+        // OPTIONS DEFAULT ROUNDED MODE (ISO §11.9.6) — the program-wide default for a bare ROUNDED phrase.
+        model.SetDefaultRoundingMode(semanticBuilder.DefaultRoundingMode);
+
         foreach (var ext in semanticBuilder.ExtensionClauses)
             model.AddExtensionClause(ext);
 

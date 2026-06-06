@@ -125,6 +125,16 @@ public sealed class SemanticModel
     internal void SetProgramCollatingSequence(byte[] sequence)
         => ProgramCollatingSequence = sequence;
 
+    /// <summary>
+    /// The program-wide default rounding mode for a bare ROUNDED phrase, from the OPTIONS paragraph's
+    /// DEFAULT ROUNDED MODE clause (ISO §11.9.6, COBOL-2002). The ordinal matches the per-statement
+    /// ROUNDED MODE mapping (0=TRUNCATION … 1=NEAREST-AWAY-FROM-ZERO=the ISO default … 7=TOWARD-LESSER).
+    /// Defaults to NEAREST-AWAY-FROM-ZERO (1) when no OPTIONS DEFAULT ROUNDED MODE is specified.
+    /// </summary>
+    public int DefaultRoundingMode { get; private set; } = 1;
+
+    internal void SetDefaultRoundingMode(int mode) => DefaultRoundingMode = mode;
+
     // ── Extension clauses (vendor extensions, unrecognized clauses) ──
 
     private readonly List<ExtensionClauseNode> _extensionClauses = new();

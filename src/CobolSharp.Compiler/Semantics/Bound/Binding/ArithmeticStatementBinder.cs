@@ -34,15 +34,16 @@ internal sealed class ArithmeticStatementBinder
     }
 
     /// <summary>
-    /// Resolve a ROUNDED [MODE IS …] phrase (§14.9.4) into (isRounded, mode-ordinal). Bare ROUNDED
-    /// defaults to NEAREST-AWAY-FROM-ZERO; the eight MODE names map to the PicRuntime.Round* ordinals.
-    /// The grammar (roundingModeName) already restricts the name to a valid mode, so no extra validation.
+    /// Resolve a ROUNDED [MODE IS …] phrase (§14.9.4) into (isRounded, mode-ordinal). A bare ROUNDED uses the
+    /// program's default rounding mode — NEAREST-AWAY-FROM-ZERO unless an OPTIONS DEFAULT ROUNDED MODE clause
+    /// changed it (ISO §11.9.6); the eight explicit MODE names map to the PicRuntime.Round* ordinals. The
+    /// grammar (roundingModeName) already restricts the name to a valid mode, so no extra validation.
     /// </summary>
-    private static (bool isRounded, int mode) BindRounded(CobolParserCore.RoundedPhraseContext? rp)
+    private (bool isRounded, int mode) BindRounded(CobolParserCore.RoundedPhraseContext? rp)
     {
         if (rp == null) return (false, 0);
         var m = rp.roundingModeName();
-        if (m == null) return (true, 1);   // bare ROUNDED → NEAREST-AWAY-FROM-ZERO
+        if (m == null) return (true, _ctx.Semantic.DefaultRoundingMode);   // bare ROUNDED → program default
         int mode =
             m.TRUNCATION() != null             ? 0 :
             m.NEAREST_AWAY_FROM_ZERO() != null ? 1 :

@@ -68,8 +68,10 @@
     `SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE + VALUE rejected; conformance `pointer_data`. A 2-agent
     review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) remains the
     owner-gated `PointerRegistry` design decision.**
-- **Guard baseline:** **1047 unit / 479 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-  (479 = +1 from backfilling the SORT Format-2 table-sort conformance test, DEVLOG 390.)
+  - **M2-ARITH-1 follow-up #1** OPTIONS `DEFAULT ROUNDED MODE` applied to bare ROUNDED — DONE (391; conformance
+    `options_default_rounded`). (Follow-up #2 PROHIBITED→EC-SIZE-TRUNCATION blocked on the EC framework.)
+- **Guard baseline:** **1047 unit / 480 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  (+2 this tail: SORT Format-2 backfill (390) and OPTIONS DEFAULT ROUNDED MODE (391).)
 - **NEXT UP →** the easy/foundational data items are now done (National, Boolean, Pointers Phase-1, GOBACK
   RETURNING). Remaining M2, in rough priority: **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) — OWNER-GATED**
   (the `PointerRegistry` handle→address/.NET-managed-memory design decision); **M2-PRE-1** (◐, re-scoped — two
@@ -242,13 +244,18 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   (new mode reserved words, `roundedPhrase` grammar, `BindRounded`, `BoundArithmeticTarget.RoundingMode`,
   lowerer threads the mode int — IR/emit were already mode-agnostic). Conformance
   `tests/conformance/2002/rounded_modes`; CORRESPONDING `ROUNDED MODE` also DONE (DEVLOG 382,
-  `tests/conformance/2002/corresponding_rounded_mode`). **Remaining (follow-ups):** (1) apply OPTIONS
-  `DEFAULT ROUNDED MODE` (still parsed-not-applied — bare ROUNDED uses fixed NEAREST-AWAY; entangled with
-  M2-ARITH-2 OPTIONS-clause parsing); (2) PROHIBITED → raise EC-SIZE-TRUNCATION on an inexact result
-  (currently truncates; needs the arithmetic store paths to detect precision loss). §14.9.4, §11.9.6.
-- ☐ **M2-ARITH-2 — Apply remaining OPTIONS clauses.** `ARITHMETIC IS STANDARD/STANDARD-BINARY/STANDARD-DECIMAL`,
+  `tests/conformance/2002/corresponding_rounded_mode`). **Follow-ups:** (1) ☑ **DONE (DEVLOG 391)** — OPTIONS
+  `DEFAULT ROUNDED MODE` now sets the bare-ROUNDED default: `SemanticBuilder.VisitOptionsParagraph` token-scans
+  the OPTIONS blob for `DEFAULT ROUNDED [MODE] [IS] <mode>`, `Compilation` transfers it to
+  `SemanticModel.DefaultRoundingMode`, `BindRounded` (now instance) returns it for a bare ROUNDED; per-statement
+  `MODE IS` still overrides. Conformance `options_default_rounded`. (2) ☐ PROHIBITED → raise EC-SIZE-TRUNCATION
+  on an inexact result — **blocked on the EC framework (M2-PROC-4)**; needs the arithmetic store paths to detect
+  precision loss. §14.9.4, §11.9.6.
+- ◑ **M2-ARITH-2 — Apply remaining OPTIONS clauses.** `DEFAULT ROUNDED MODE` is now **applied** (DEVLOG 391, see
+  M2-ARITH-1 follow-up #1 — the OPTIONS token-scan + `SemanticModel.DefaultRoundingMode` infrastructure is in
+  place). Still recognize-and-ignore: `ARITHMETIC IS STANDARD/STANDARD-BINARY/STANDARD-DECIMAL`,
   `INTERMEDIATE ROUNDING`, `FLOAT-BINARY/DECIMAL DEFAULT`, `ENTRY-CONVENTION`. *Medium–large* (standard arithmetic
-  is a real intermediate-precision change). Parsed-not-applied today. §11.9.
+  is a real intermediate-precision change). §11.9.
 
 ### 3.4 M2 — Procedure-division statements
 
@@ -453,3 +460,9 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   did NOT need the deferred design decision (NULL = 8 zero bytes, no targets to map). Guard 1047/478/364.
   **NEXT: the easy data items are done; remaining M2 is Phase-2 pointers (owner-gated), M2-PRE-1, OPTIONS
   arithmetic, file 2002, then the big subsystems (EC/exceptions, VALIDATE, OO).**
+- **2026-06-05 (session DEVLOG 390–391)** — SORT Format-2 conformance backfill (390); **M2-ARITH-1 follow-up #1
+  applied: OPTIONS `DEFAULT ROUNDED MODE`** (391) now sets the bare-ROUNDED default (token-scan in
+  `VisitOptionsParagraph` → `SemanticModel.DefaultRoundingMode` → `BindRounded`); per-statement MODE still
+  overrides; conformance `options_default_rounded`. Guard 1047/480/364. Follow-up #2 (PROHIBITED→EC) blocked on
+  the EC framework. Remaining M2: Phase-2 pointers (owner-gated design decision), M2-PRE-1, file 2002, and the
+  big subsystems (EC/exceptions, VALIDATE, OO, standard arithmetic).

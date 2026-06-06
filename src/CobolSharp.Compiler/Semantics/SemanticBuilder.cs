@@ -281,6 +281,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     private readonly List<(string Name, byte Value)> _symbolicCharacters = [];
     private readonly List<AlphabetDefinition> _alphabetDefinitions = [];
     private string? _programCollatingSequenceAlphabetName = null;
+    private int _defaultRoundingMode = 1;   // NEAREST-AWAY-FROM-ZERO (ISO default for a bare ROUNDED)
 
     public char CurrencySign => _currencySign;
     public char CurrencyOutputChar => _currencyOutputChar;
@@ -290,6 +291,52 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public IReadOnlyList<(string Name, byte Value)> SymbolicCharacters => _symbolicCharacters;
     public IReadOnlyList<AlphabetDefinition> AlphabetDefinitions => _alphabetDefinitions;
     public string? ProgramCollatingSequenceAlphabetName => _programCollatingSequenceAlphabetName;
+    public int DefaultRoundingMode => _defaultRoundingMode;
+
+    /// <summary>
+    /// OPTIONS paragraph (ISO §11.9, COBOL-2002). The paragraph body is a token blob (optionsContent : ~DOT+);
+    /// here we extract the DEFAULT ROUNDED [MODE] [IS] mode-name clause and record its mode ordinal so a bare
+    /// ROUNDED phrase uses it as its default (ISO §11.9.6). Other OPTIONS clauses remain recognize-and-ignore.
+    /// </summary>
+    public override object? VisitOptionsParagraph(CobolParserCore.OptionsParagraphContext ctx)
+    {
+        if (ctx.optionsContent() is { } content)
+        {
+            var toks = new List<string>(content.ChildCount);
+            for (int i = 0; i < content.ChildCount; i++)
+                toks.Add(content.GetChild(i).GetText().ToUpperInvariant());
+
+            for (int i = 0; i + 1 < toks.Count; i++)
+            {
+                if (toks[i] != "DEFAULT" || toks[i + 1] != "ROUNDED") continue;
+                // Skip the optional MODE and IS noise words, then read the mode name.
+                for (int j = i + 2; j < toks.Count; j++)
+                {
+                    if (toks[j] is "MODE" or "IS") continue;
+                    int m = MapRoundingModeName(toks[j]);
+                    if (m >= 0) _defaultRoundingMode = m;
+                    break;
+                }
+                break;
+            }
+        }
+        return base.VisitOptionsParagraph(ctx);
+    }
+
+    /// <summary>Map a ROUNDED-mode name to its ordinal (must match ArithmeticStatementBinder.BindRounded /
+    /// PicRuntime.RoundToIntegerByMode); -1 if not a recognized mode name.</summary>
+    private static int MapRoundingModeName(string name) => name switch
+    {
+        "TRUNCATION" => 0,
+        "NEAREST-AWAY-FROM-ZERO" => 1,
+        "AWAY-FROM-ZERO" => 2,
+        "NEAREST-EVEN" => 3,
+        "NEAREST-TOWARD-ZERO" => 4,
+        "PROHIBITED" => 5,
+        "TOWARD-GREATER" => 6,
+        "TOWARD-LESSER" => 7,
+        _ => -1
+    };
 
     public override object? VisitSpecialNamesParagraph(CobolParserCore.SpecialNamesParagraphContext ctx)
     {
