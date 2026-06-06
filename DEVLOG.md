@@ -10880,6 +10880,17 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 404 — S3a follow-on: typed↔typed field MOVE (both operands flipped) — byte-identical
+
+Widens the S3a typed-field flip with the field→field move cell: `MOVE WS-A TO WS-B` where **both** are flipped
+standalone string fields now re-stores the source at the receiver's width (`CobolString.Store` — ISO §14.9.25
+space-pad/truncate; a ref copy when widths match) via a typed×typed branch at the top of
+`CilDataEmitter.EmitMoveFieldToField`, instead of routing to the byte path (which would hit the
+`EmitLocationArgs` typed guard). A **mixed** typed/byte pair still hits that loud guard until the materialize
+fallback (§2.5) lands — the next increment. Test: `MOVE WS-A PIC X(5) "HELLO" TO WS-B PIC X(3)` → `"HEL"`,
+asserted byte-identical to the flag-off byte path. Guard **ALL GREEN: 1187 unit / 484 integration / 364 NIST**.
+NEXT (unchanged): S3b (`01` group → `record struct`) + the typed↔byte materialize fallback.
+
 ## Entry 403 — S3a: the FIRST typed character flip — a standalone elementary PIC X item → a native .NET `string` field (byte-identical, gated)
 
 The data-model migration's inflection point: the first item is now stored as a **typed-native .NET field**, not a

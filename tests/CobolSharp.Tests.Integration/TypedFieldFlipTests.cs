@@ -58,4 +58,32 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(ok, stderr);
         Assert.Equal("AB\nCD", stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void TypedToTyped_FieldMove_TruncatesToReceiverWidth_ByteIdentical()
+    {
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDMV.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC X(5) VALUE "HELLO".
+            01 WS-B PIC X(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-A TO WS-B.
+                DISPLAY WS-B.
+                STOP RUN.
+            """;
+
+        // Typed path (both fields flipped): MOVE WS-A TO WS-B re-stores "HELLO" at width 3 → "HEL".
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("HEL", typed.stdout.Replace("\r\n", "\n"));
+
+        // Byte path (flag off): identical observable result — the migration invariant.
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

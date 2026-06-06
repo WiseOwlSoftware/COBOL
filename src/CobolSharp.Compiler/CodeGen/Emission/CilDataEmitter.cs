@@ -248,6 +248,23 @@ internal sealed class CilDataEmitter
     /// </summary>
     internal void EmitMoveFieldToField(ILProcessor il, IrMoveFieldToField mf)
     {
+        // Data-model migration S3: typed↔typed alphanumeric MOVE (both operands flipped to native string
+        // fields) — re-store the source value into the destination at its width (CobolString.Store: ISO §14.9.25
+        // space-pad/truncate; a ref copy when widths match). A mixed typed/byte pair instead hits the loud
+        // EmitLocationArgs guard until the materialize fallback (§2.5) lands.
+        if (mf.Source is IrTypedFieldLocation msrc && mf.Destination is IrTypedFieldLocation mdst)
+        {
+            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[msrc.FieldName]));
+            il.Append(il.Create(OpCodes.Ldc_I4, mdst.Width));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            var store = _ctx.Module.ImportReference(
+                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
+                    "Store", new[] { typeof(string), typeof(int), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, store));
+            il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[mdst.FieldName]));
+            return;
+        }
+
         var srcPic = mf.SourcePic;
         var dstPic = mf.DestinationPic;
         var srcCat = srcPic.Category;
