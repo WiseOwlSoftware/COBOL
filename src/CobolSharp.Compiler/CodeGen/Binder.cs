@@ -86,6 +86,10 @@ public sealed class Binder
         var module = new IrModule(boundProgram.Program.Name);
         BuildRecordTypes(module);
 
+        // Phase 2.5: data-model migration S3 — collect the items to flip to typed-native fields
+        // (docs/RECORD_STRUCT_STORAGE_DESIGN.md). No-op unless EnableTypedFields is on.
+        CollectTypedFields(module);
+
         // Phase 3: Create paragraph method stubs
         CreateParagraphStubs(module, boundProgram);
 
@@ -261,6 +265,44 @@ public sealed class Binder
         {
             var layout = _layout.Build(record);
             module.Types.Add(layout.RecordType);
+        }
+    }
+
+    /// <summary>
+    /// Data-model migration S3 (docs/RECORD_STRUCT_STORAGE_DESIGN.md): flip the narrowest typed subset — a
+    /// standalone elementary alphanumeric/national/alphabetic WORKING-STORAGE item the classifier marks typed,
+    /// with no OCCURS and no figurative/ALL VALUE — to a native .NET <see cref="string"/> field. Byte-backed
+    /// items, group members, file/linkage/external, and everything the classifier demotes stay on the byte path
+    /// (the §1.6 safety floor). No-op unless <c>EnableTypedFields</c> is on, so the corpus stays byte-identical.
+    /// </summary>
+    private void CollectTypedFields(IrModule module)
+    {
+        if (!_options.EnableTypedFields || _ctx.Classification is not { } classification)
+            return;
+
+        foreach (var sym in _semantic.DataItemsInOrder)
+        {
+            if (sym.Parent != null || !sym.IsElementary || sym.Occurs != null)
+                continue;
+            if (sym.Area != Semantics.StorageAreaKind.WorkingStorage)
+                continue;
+            if (sym.FigurativeInit != null || sym.AllLiteralPattern != null)
+                continue;
+            if (!classification.IsTyped(sym))
+                continue;
+            if (_semantic.GetStorageLocation(sym) is not { } loc)
+                continue;
+            if (loc.Pic.Category is not (Runtime.CobolCategory.Alphanumeric
+                or Runtime.CobolCategory.National or Runtime.CobolCategory.Alphabetic))
+                continue;
+
+            int width = loc.Length;
+            string name = "_T_" + sym.Name;
+            string init = sym.InitialValue is { } v
+                ? (v.Length >= width ? v[..width] : v.PadRight(width))
+                : new string(' ', width);
+            module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, width, init));
+            _ctx.TypedFieldRefs[sym] = (name, width);
         }
     }
 

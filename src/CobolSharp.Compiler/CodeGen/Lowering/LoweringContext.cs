@@ -94,6 +94,12 @@ internal sealed class LoweringContext
     // TypedFieldSlot vs ByteWindowSlot. Null when classification has not run (e.g. direct lowerer unit tests).
     public RecordClassification? Classification { get; set; }
 
+    /// <summary>Items flipped to typed-native fields (S3): DataSymbol → (emitted field name, char width).
+    /// Populated by Binder.CollectTypedFields; consulted by LocationResolver to produce an
+    /// <see cref="IR.IrTypedFieldLocation"/>. Empty unless <c>EnableTypedFields</c> is on.</summary>
+    public Dictionary<DataSymbol, (string Name, int Width)> TypedFieldRefs { get; } =
+        new(ReferenceEqualityComparer.Instance);
+
     // ── Recursive statement lowering delegate ──
     // Allows extracted lowerers to call back into Binder.LowerStatement
     // without depending on the Binder class directly.

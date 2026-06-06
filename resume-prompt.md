@@ -7,7 +7,7 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
-### ✅ DONE so far (DEVLOG 394–401; guard **1187 unit / 481 integration / 364 NIST**, all green)
+### ✅ DONE so far (DEVLOG 394–403; guard **1187 unit / 483 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
   `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
@@ -45,21 +45,27 @@ workflows branch from a stale commit in this repo).
   fail-fast net. Not consumed by codegen → byte-identical; but it exercised Phase B's walker across the whole
   corpus (passed first run). +3 unit tests.
 
-### → RESUME AT — S3: the first character flip, in ONE commit (per `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6)
-The classifier is complete AND wired (S1). The review folded the IR/resolver scaffolding + the `RecordLayoutBuilder`
-rebuild INTO the first flip (S3) to avoid dead code. S3 (one guard-green commit, gated by `EnableTypedFields`,
-default OFF):
-1. Introduce `IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot` + `FieldShape` (ADR §2.5 / design §3); re-target the
-   existing `IrLocation` hierarchy to produce `ByteWindowSlot`.
-2. Rebuild `RecordLayoutBuilder` as the **real** typed-`record struct` producer (emit the struct type + a static
-   instance); make `StorageLayoutComputer` the **sole** `ElementSize` writer (delete `RecordLayoutBuilder`'s
-   writes; `Debug.Assert` equality) — design §4.
-3. Flip an **all-character `01` record → a `record struct` of `string` fields** (narrowest subset: only elementary
-   `PIC X/A/N`, no triggers 1–15). Implement only the cells the subset needs — typed↔typed MOVE (ref copy /
-   `CobolString.Store`), typed↔byte materialize (`CobolString.ToWindow`/`FromWindow`), DISPLAY (native `string`),
-   alphanumeric COMPARE (`CobolString.Compare`); everything else materializes to byte (the §1.6 floor). Ship a
-   `tests/conformance/2002/` test. Then S4+ widen one rule/commit (numeric — HARD-GATED on the `CobolNum` oracle;
-   group; OCCURS; pointers/OO; Roslyn backend).
+- **S3a — the FIRST typed character flip LANDED (403):** a standalone elementary `PIC X/A/N` WS item (classifier-
+  typed, no OCCURS/figurative/triggers) → a native static `.NET string` field, **byte-identical** to the byte path,
+  gated `EnableTypedFields` (default OFF; flag-ON `TypedFieldFlipTests` pins it). New `IrTypedFieldLocation` (carries
+  the item's `PicDescriptor`); `Binder.CollectTypedFields` → `IrModule.TypedFieldDefs`/`LoweringContext.
+  TypedFieldRefs`; `CilEmitter` static field + init; `CilDataEmitter` typed MOVE-literal + DISPLAY (`.TrimEnd()` to
+  match `GetDisplayString`) cells; `EmitLocationArgs` throws on any other typed op. The byte-identity test caught +
+  fixed a DISPLAY-trim divergence.
+
+### → RESUME AT — S3b: widen the flip to an `01` group → a real `record struct` (per `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1)
+S3a flipped standalone elementary items (bare native field). Next, the idiomatic record-struct form + more cells
+(each its own guard-green commit, `EnableTypedFields` default OFF, flag-ON tests):
+1. **S3b:** an all-character `01` group → a `record struct` of `string` fields — reuse `CilEmitter.DefineType`
+   (already emits an `IrRecordType` as a sealed `SequentialLayout` value-type with public fields); emit a static
+   instance + init; `IrTypedFieldLocation` (or a struct-field variant) addresses `instance.field`.
+2. **field↔field MOVE / alphanumeric COMPARE** typed cells (`CobolString.Store`/`Compare`) + the **materialize
+   fallback** (`CobolString.ToWindow`/`FromWindow`) at the §2.5 boundary so ANY op on a typed field works (removes
+   the `EmitLocationArgs` throw).
+3. **ElementSize sole-writer** cleanup (design §4): make `StorageLayoutComputer` the sole writer, verifying group
+   sizes agree.
+4. Then S4+ widen one rule/commit: numeric (**HARD-GATED** on the `CobolNum` oracle), OCCURS → `CobolTable<T>`,
+   pointers/OO, Roslyn backend.
 
 The live PROGRESS tick + full next-step detail are in `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** (the SSOT — work
 from it; keep ticking it).

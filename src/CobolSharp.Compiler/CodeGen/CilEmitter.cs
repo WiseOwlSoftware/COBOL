@@ -590,6 +590,17 @@ public sealed class CilEmitter
             _module.ImportReference(typeof(CobolSharp.Runtime.ProgramState)));
         _programType!.Fields.Add(_programStateField);
 
+        // Data-model migration S3 (docs/RECORD_STRUCT_STORAGE_DESIGN.md): one static .NET string field per item
+        // flipped out of the byte areas. Defined here (before method bodies are emitted, EmitModule order) so
+        // IrTypedFieldLocation resolves; initialized in InitializeState below. Empty unless EnableTypedFields is on.
+        foreach (var tf in ir.TypedFieldDefs)
+        {
+            var typedFd = new FieldDefinition(tf.Name,
+                FieldAttributes.Public | FieldAttributes.Static, _module.TypeSystem.String);
+            _programType.Fields.Add(typedFd);
+            _ctx.TypedFields[tf.Name] = typedFd;
+        }
+
         // Static bool: have this program's file connectors been registered for the current activation?
         // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
         _filesRegisteredField = new FieldDefinition(
@@ -617,6 +628,13 @@ public sealed class CilEmitter
         // M003: Sync after EXTERNAL init so VALUE clause init can use location emitters
         SyncToContext();
         EmitValueClauseInitialization(initIl);
+        // S3: COBOL-correct init of each typed-native field (never default(null) — ADR §1.7). InitValue is
+        // already padded/truncated to the field width by Binder.CollectTypedFields.
+        foreach (var tf in ir.TypedFieldDefs)
+        {
+            initIl.Append(initIl.Create(OpCodes.Ldstr, tf.InitValue));
+            initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
+        }
         EmitAlterTableInitialization(initIl, ir);
         // Snapshot LOCAL-STORAGE defaults after VALUE clause init (used by ReinitializeLocalStorage).
         if (lsSize > 0)

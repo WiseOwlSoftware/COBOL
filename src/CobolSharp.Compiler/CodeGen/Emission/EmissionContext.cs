@@ -34,6 +34,10 @@ internal sealed class EmissionContext
     /// <summary>Static fields for LINKAGE SECTION parameters, keyed by USING parameter name (case-insensitive).</summary>
     public Dictionary<string, FieldDefinition> LinkageFields { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Typed-native static fields (data-model migration S3, <c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c>),
+    /// keyed by the emitted field name carried in <see cref="IrTypedFieldLocation"/>.</summary>
+    public Dictionary<string, FieldDefinition> TypedFields { get; } = new(StringComparer.Ordinal);
+
     // ── Per-method tracking ──
 
     public MethodDefinition? CurrentMethodDef { get; set; }

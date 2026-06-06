@@ -1260,6 +1260,29 @@ public sealed class IrStaticLocation : IrLocation
 }
 
 /// <summary>
+/// A typed-native field location (data-model migration, <c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c> S3): the
+/// operand is a native .NET <see cref="string"/> field, not a byte window. Carries the emitted field's name
+/// (resolved to a <c>FieldDefinition</c> via <c>EmissionContext.TypedFields</c>) and the COBOL character width.
+/// Produced by <c>LocationResolver</c> only when <c>CompilationOptions.EnableTypedFields</c> is on and the
+/// classifier marks the item typed; the byte path (<see cref="IrStaticLocation"/> etc.) is otherwise unchanged.
+/// </summary>
+public sealed class IrTypedFieldLocation : IrLocation
+{
+    public string FieldName { get; }
+    public int Width { get; }
+    /// <summary>The item's original (alphanumeric) descriptor — so <c>GetPic()</c> works and the existing
+    /// lowering routes a literal/field move through the right branch before the typed emit cell takes over.</summary>
+    public Runtime.PicDescriptor Pic { get; }
+
+    public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic)
+    {
+        FieldName = fieldName;
+        Width = width;
+        Pic = pic;
+    }
+}
+
+/// <summary>
 /// A reference to an element within an OCCURS array (1D, 2D, or 3D).
 /// The effective offset is computed at runtime using the general formula:
 ///   offset = base + sum_i((subscript_i - 1) * multiplier_i)

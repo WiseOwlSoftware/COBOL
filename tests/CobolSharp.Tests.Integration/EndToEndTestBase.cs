@@ -22,7 +22,8 @@ public class EndToEndTestBase : IDisposable
 
     protected (bool success, string stdout, string stderr) CompileAndRun(
         string cobolSource,
-        CobolSharp.Compiler.Semantics.DialectMode dialect = CobolSharp.Compiler.Semantics.DialectMode.Default)
+        CobolSharp.Compiler.Semantics.DialectMode dialect = CobolSharp.Compiler.Semantics.DialectMode.Default,
+        bool enableTypedFields = false)
     {
         // Write source to temp file
         string sourcePath = Path.Combine(_tempDir, "test.cob");
@@ -33,6 +34,7 @@ public class EndToEndTestBase : IDisposable
         var compilation = new Compilation();
         if (dialect != CobolSharp.Compiler.Semantics.DialectMode.Default)
             compilation.Options.Dialect = dialect;
+        compilation.Options.EnableTypedFields = enableTypedFields;
         var result = compilation.Compile(sourcePath, outputPath);
 
         if (!result.Success)

@@ -22,6 +22,10 @@ public sealed class IrModule(string name)
     /// <summary>Global byte-array fields representing COBOL storage areas.</summary>
     public List<IrGlobal> Globals { get; } = [];
 
+    /// <summary>Typed-native fields the data-model migration flips out of the byte areas
+    /// (<c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c> S3). Empty unless <c>EnableTypedFields</c> is on.</summary>
+    public List<IrTypedFieldDef> TypedFieldDefs { get; } = [];
+
     /// <summary>
     /// Default target paragraph indices for each ALTER slot.
     /// Empty when no ALTER statements are used (zero overhead).
@@ -89,3 +93,8 @@ public sealed class IrModule(string name)
 /// <param name="Name">Storage area identifier (e.g., "WorkingStorage").</param>
 /// <param name="Type">Always <see cref="IrPrimitiveType.ByteArray"/> in current usage.</param>
 public sealed record IrGlobal(string Name, IrType Type);
+
+/// <summary>A typed-native field flipped out of the COBOL byte areas (data-model migration S3): the emitted
+/// static-field <paramref name="Name"/>, its COBOL character <paramref name="Width"/>, and the COBOL-correct
+/// initial value (<paramref name="InitValue"/>, already padded/truncated to <paramref name="Width"/>).</summary>
+public sealed record IrTypedFieldDef(string Name, int Width, string InitValue);

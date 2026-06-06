@@ -86,6 +86,21 @@ internal sealed class CilDataEmitter
     internal void EmitMoveStringToField(ILProcessor il, IrMoveStringToField ms,
         Func<IrValue, VariableDefinition> getLocal)
     {
+        // Data-model migration S3: MOVE "literal" TO a typed-native string field — store the receiving value
+        // (CobolString.Store: width/justify/space-fill, ISO §14.9.25) directly to the .NET field. No byte window.
+        if (ms.Target is IrTypedFieldLocation tfl)
+        {
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+            il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
+            il.Append(il.Create(OpCodes.Ldc_I4_0));   // justifiedRight: false (S3 widening adds JUSTIFIED)
+            var store = _ctx.Module.ImportReference(
+                typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
+                    "Store", new[] { typeof(string), typeof(int), typeof(bool) })!);
+            il.Append(il.Create(OpCodes.Call, store));
+            il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[tfl.FieldName]));
+            return;
+        }
+
         var pic = ms.Target.GetPic();
 
         // National targets: encode the literal's characters as UTF-16 and store them left-justified,
@@ -394,6 +409,19 @@ internal sealed class CilDataEmitter
         }
         else if (operand is DisplayFieldOperand field)
         {
+            // Data-model migration S3: DISPLAY of a typed-native string field — push the .NET string directly
+            // (it IS the field's character image, space-padded to width); no GetDisplayString byte decode.
+            if (field.Location is IrTypedFieldLocation tfl)
+            {
+                // Match the byte path exactly (PicRuntime.GetDisplayString, alphanumeric arm): trailing spaces
+                // are trimmed (.TrimEnd()) so the typed flip is byte-identical to the legacy DISPLAY.
+                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[tfl.FieldName]));
+                var trimEnd = _ctx.Module.ImportReference(
+                    typeof(string).GetMethod("TrimEnd", System.Type.EmptyTypes)!);
+                il.Append(il.Create(OpCodes.Callvirt, trimEnd));
+                return;
+            }
+
             // Call PicRuntime.GetDisplayString(byte[] area, int offset, int length, PicDescriptor pic)
             _ctx.Location.EmitLocationArgsWithPic(il, field.Location);
 

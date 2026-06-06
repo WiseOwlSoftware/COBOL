@@ -145,6 +145,12 @@ internal sealed class LocationResolver
     /// </summary>
     private IrLocation ResolveWholeItem(DataSymbol sym, StorageLocation loc, bool receiving)
     {
+        // Data-model migration S3 (docs/RECORD_STRUCT_STORAGE_DESIGN.md): a flipped item is a typed-native
+        // .NET field, not a byte window. The flip is gated by EnableTypedFields + the classifier (collected in
+        // Binder.CollectTypedFields), so when the flag is off TypedFieldRefs is empty and this never fires.
+        if (_ctx.TypedFieldRefs.TryGetValue(sym, out var typed))
+            return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic);
+
         // Runtime length is only computed for areas backed by a contiguous byte[] we can
         // re-slice (WORKING-STORAGE, LOCAL-STORAGE, FILE SECTION). LINKAGE keeps the
         // compile-time layout length.

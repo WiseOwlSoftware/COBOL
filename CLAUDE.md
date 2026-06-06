@@ -32,16 +32,16 @@ classifier-trigger completeness before any Stage-3 typed flip).
 ### Current State
 - **Branch**: main; guard ALL GREEN — **1187 unit / 481 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 401.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
-  UNDERWAY (the #1 priority):** Stage 1 numeric pipeline fully on `CobolNum`/`CobolDecimal` (DEVLOG 394–396);
-  Stage 2 classifier `RecordClassificationPass` COMPLETE — Phase A (397) + Phase B/C (398); character substrate
-  `CobolString` + oracle (399). **Owner approved Option B: build the REAL record-`struct` storage substrate
-  (`docs/RECORD_STRUCT_STORAGE_DESIGN.md`, ADR §9 intent; the ADR's nominal home `RecordLayoutBuilder` was dead
-  code) — staged design reviewed GO (400).** Substrate **S1 landed (401):** the classifier is wired into the Binder
-  (runs on the whole corpus, validated by a soundness-invariant net), still byte-identical / not consumed by
-  codegen. **RESUME AT → S3: the first character flip in one commit** (`IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot`
-  + rebuild `RecordLayoutBuilder` + flip an all-character `01` → `record struct` of `string`, gated by
-  `EnableTypedFields`). See `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6.
+- **DEVLOG at entry 403.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
+  UNDERWAY (the #1 priority):** numeric pipeline on `CobolNum` (394–396); classifier `RecordClassificationPass`
+  COMPLETE — Phase A (397) + B/C (398); `CobolString` substrate + oracle (399). **Owner approved Option B: build
+  the REAL record-`struct` storage substrate (`docs/RECORD_STRUCT_STORAGE_DESIGN.md`); design reviewed GO (400).**
+  **S1 (401):** classifier wired into the Binder + soundness-invariant net (byte-identical). **S3a — the FIRST
+  typed character flip LANDED (403):** a standalone elementary `PIC X` item → a native `.NET string` field,
+  **byte-identical** to the byte path, gated `EnableTypedFields` (default OFF; flag-ON `TypedFieldFlipTests` pins
+  it). **RESUME AT → S3b: widen to an all-character `01` group → a real `record struct` of `string`** (reuse
+  `CilEmitter.DefineType`), then field↔field MOVE/COMPARE typed cells + materialize fallback, then numeric
+  (hard-gated on the `CobolNum` oracle). See `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28

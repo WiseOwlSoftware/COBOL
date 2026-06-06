@@ -41,4 +41,13 @@ public sealed class CompilationOptions
     /// rather than re-deriving <c>Dialect &gt;= …</c> at call sites. See docs/MULTIVERSION_ROADMAP.md §3.
     /// </summary>
     public DialectConfig Config => DialectConfig.For(Dialect);
+
+    /// <summary>
+    /// Data-model migration kill-switch (<c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c>): when true, items the
+    /// <see cref="RecordClassificationPass"/> marks typed are flipped to native .NET fields (S3: a standalone
+    /// elementary alphanumeric item → a <see cref="string"/> field). Default OFF, so the whole existing test
+    /// corpus stays byte-identical; a dedicated test sets it ON to exercise the typed path. Each flip-widening
+    /// stage keeps the guard green with this OFF and the typed cells reached only via the flag.
+    /// </summary>
+    public bool EnableTypedFields { get; set; }
 }

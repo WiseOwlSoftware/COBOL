@@ -28,6 +28,16 @@ internal sealed class CilLocationEmitter
     {
         switch (loc)
         {
+            // Data-model migration S3: a typed-native field has no byte window. The S3 typed cells
+            // (MOVE-literal, DISPLAY) handle IrTypedFieldLocation directly; any other op reaching the byte
+            // path for a typed field is unsupported until that op's typed cell (or the materialize fallback)
+            // lands — fail loudly (no silent miscompile) rather than push a bogus (area,offset,length).
+            case IR.IrTypedFieldLocation t:
+                throw new NotSupportedException(
+                    $"Typed-native field '{t.FieldName}' reached a byte-window operation; the data-model " +
+                    "migration (RECORD_STRUCT_STORAGE_DESIGN.md S3) supports only MOVE-literal and DISPLAY for " +
+                    "typed fields so far. Widen the typed cells or add the materialize fallback before using it here.");
+
             case IR.IrCachedLocation cached:
                 EmitCachedLocationArgs(il, cached);
                 break;

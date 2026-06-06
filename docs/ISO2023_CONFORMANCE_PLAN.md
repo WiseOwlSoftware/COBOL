@@ -120,11 +120,19 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     `RecordClassification.ValidateInvariants()` fail-fast net (typed⇒typed-REDEFINES-target; typed⇒typed-parent).
     Not yet consumed by codegen → byte-identical; but it exercised Phase B's walker across the whole corpus (first
     contact with every real bound-tree shape) and passed first run. +3 unit tests.
-  - **NEXT:** **S3 — the first character flip in ONE commit** (the review folded S0/S2 scaffolding into S3 to avoid
-    dead code): introduce `IrDataSlot`/`TypedFieldSlot`/`ByteWindowSlot`/`FieldShape`, rebuild `RecordLayoutBuilder`
-    as the real typed-struct producer (`StorageLayoutComputer` becomes the sole `ElementSize` writer), and flip an
-    all-character `01` record → a `record struct` of `string` fields gated by `EnableTypedFields` (default OFF).
-    See `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **PROGRESS — S3a: the FIRST typed character flip LANDED (DEVLOG 403), guard 1187/483/364:** ☑ a standalone
+    elementary alphanumeric/national/alphabetic WS item the classifier marks typed (no OCCURS/figurative/triggers)
+    is now stored as a native static `.NET string` field, **byte-identical** to the byte path, gated by
+    `EnableTypedFields` (default OFF → whole corpus byte-identical; a flag-ON `TypedFieldFlipTests` drives + pins the
+    typed path). Path: `Binder.CollectTypedFields` → `IrModule.TypedFieldDefs`/`LoweringContext.TypedFieldRefs` →
+    `LocationResolver`→`IrTypedFieldLocation` → `CilEmitter` static field + `InitializeState` init → `CilDataEmitter`
+    typed MOVE-literal (`CobolString.Store`) + DISPLAY (`.TrimEnd()` to match `GetDisplayString`) cells; any other
+    op on a typed field throws loudly in `EmitLocationArgs` (no silent miscompile). The byte-identity test caught +
+    fixed a real DISPLAY-trim divergence.
+  - **NEXT:** **S3b — widen to an all-character `01` group → a real `record struct` of `string` fields** (the
+    idiomatic record-struct form, reusing `CilEmitter.DefineType`), then field↔field MOVE / COMPARE typed cells +
+    the materialize fallback (§2.5), then numeric typed fields (**hard-gated** on the `CobolNum` differential
+    oracle). See `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
