@@ -51,6 +51,19 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   oracle → Stage 2 classifier (fallback on) → Stage 3 flip typed one rule at a time (**character data first — the
   cheapest, highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend w/ Cecil oracle → Stage 6
   finalize runtime + post-conformance rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`).
+  - **PROGRESS — Stage 0/1 slice 1 LANDED (DEVLOG 394):** ☑ the numeric substrate is in (`src/CobolSharp.Runtime/
+    Numeric/`): `CobolRounding` (8 ISO modes), **`CobolDecimal`** (the exact `BigInteger` base-10 carrier — the
+    owner-gated substrate), `NumProfile` (runtime numeric descriptor + `FromDescriptor` bridge), **`CobolNum`**
+    (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws). ☑ the **Stage-1 differential
+    oracle** proves `TryStore` bit-identical to the legacy byte pipeline across field×value×8-mode (DISPLAY/COMP/
+    COMP-3/COMP-5 · signed/unsigned · leading-/trailing-P · 10–18-digit mid-range), with an independent
+    `BigInteger`/two's-complement reference beyond the legacy faithful window (19–31 digits, 8-byte unsigned COMP-5,
+    COMP-5 signed extreme, PROHIBITED). All additive — nothing in the pipeline calls it yet. The oracle surfaced &
+    fixed **2 legacy spec bugs** (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow` divide). Guard 1144/481/364.
+  - **NEXT (Stage 0 cont.):** split `PicDescriptor` → `FieldShape` (compile-time) + `NumProfile` (runtime), a
+    lossless rename (ADR M6); add the `IrDataSlot` sum type with `ByteWindowSlot` + `Span<byte>` adapter overloads,
+    everything classified byte-backed = today's behavior. Then Stage 1 routes byte-island arithmetic through
+    `CobolNum` behind the oracle.
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
@@ -113,10 +126,13 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   - **Bug fix (392):** `IS ALPHABETIC` restricted to ISO §8.8.4.4 {A–Z, a–z, space} (was `char.IsLetter`,
     Unicode-wide). Both 392 fixes were surfaced by the data-model ADR review.
   - **🏗 DATA-MODEL RE-ARCHITECTURE designed + adversarially reviewed (393)** — the ADR + review docs (see §0.5).
-    **This is now the #1 priority; design only, migration not yet started.**
-- **Guard baseline:** **1052 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-  (+5 unit / +1 conformance this tail: the two ADR-review bug fixes (392) with `PicRuntimeRegressionTests` +
-  `rounded_mode_prohibited`; the design docs (393) added no code.)
+  - **🏗 DATA-MODEL MIGRATION STARTED — Stage 0/1 slice 1 LANDED (394):** the `BigInteger` numeric substrate
+    (`CobolRounding`/`CobolDecimal`/`NumProfile`/`CobolNum`) + the Stage-1 differential oracle; 2 oracle-surfaced
+    legacy spec bugs fixed (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow`). See §0.5 PROGRESS.
+- **Guard baseline:** **1144 unit / 481 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  (+92 unit this session: the Stage-0/1 numeric substrate — `CobolDecimalTests` + `CobolNumDifferentialTests`
+  (the differential oracle) + the `PicRuntimeRegressionTests` for the 2 legacy fixes (394). The substrate is
+  additive — no NIST/integration change. Prior tail (392/393): the two ADR-review fixes + `rounded_mode_prohibited`.)
 - **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
   with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
   Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) —

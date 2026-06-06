@@ -2212,7 +2212,11 @@ public static class PicRuntime
 
         scaled = decimal.Truncate(scaled);
         string s = Math.Abs(scaled).ToString("F0", CultureInfo.InvariantCulture);
-        bool negative = value < 0;
+        // An unsigned packed item stores the absolute value — the operational sign is not retained
+        // (ISO §13.18.40 / §14.9.25 GR8). EncodeDisplay/EncodeCompBinary already honor IsSigned; this
+        // path did not, so an unsigned PIC 9(n) COMP-3 wrongly kept a negative sign nibble (0x0D) and
+        // decoded back as negative. (Surfaced by the data-model numeric differential oracle.)
+        bool negative = pic.IsSigned && value < 0;
         for (int i = offset; i < offset + length; i++) area[i] = 0;
 
         int digitCount = s.Length;
@@ -2350,6 +2354,12 @@ public static class PicRuntime
                 int compScale = destPic.FractionDigits + destPic.LeadingScaleDigits;
                 if (compScale > 0)
                     scaled *= Pow10(compScale);
+                // Trailing P: the stored digits are the value divided by 10^TrailingScaleDigits, so the
+                // overflow digit count is of that unit count, not the full magnitude (ISO §13.18.40). The
+                // DISPLAY arm already does this; COMP/COMP-3/COMP-5 omitted it and wrongly SIZE-errored a
+                // valid trailing-P value (e.g. PIC 9(3)P ← 9990). (Surfaced by the data-model oracle.)
+                if (destPic.TrailingScaleDigits > 0)
+                    scaled /= Pow10(destPic.TrailingScaleDigits);
                 long raw;
                 try { raw = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
@@ -2367,6 +2377,8 @@ public static class PicRuntime
                 int comp5Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
                 if (comp5Scale > 0)
                     scaled *= Pow10(comp5Scale);
+                if (destPic.TrailingScaleDigits > 0)   // see the COMP arm — trailing-P stores the unit count
+                    scaled /= Pow10(destPic.TrailingScaleDigits);
                 long raw;
                 try { raw = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }
@@ -2395,6 +2407,8 @@ public static class PicRuntime
                 int comp3Scale = destPic.FractionDigits + destPic.LeadingScaleDigits;
                 if (comp3Scale > 0)
                     scaled *= Pow10(comp3Scale);
+                if (destPic.TrailingScaleDigits > 0)   // see the COMP arm — trailing-P stores the unit count
+                    scaled /= Pow10(destPic.TrailingScaleDigits);
                 long intVal;
                 try { intVal = checked((long)decimal.Truncate(scaled)); }
                 catch (OverflowException) { return true; }

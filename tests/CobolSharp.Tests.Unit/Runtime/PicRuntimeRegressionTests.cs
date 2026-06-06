@@ -73,4 +73,60 @@ public sealed class PicRuntimeRegressionTests
         Assert.False(status.SizeError);
         Assert.Equal(7.9m, PicRuntime.DecodeNumeric(dst, 0, dst.Length, pic));
     }
+
+    // ---------- Bug 3: an unsigned COMP-3 item stores the magnitude (ISO §13.18.40 / §14.9.25 GR8) ----------
+    // Surfaced by the data-model numeric differential oracle: EncodeComp3 set the packed sign nibble from
+    // value<0 without consulting IsSigned, so an unsigned PIC 9(n) COMP-3 wrongly kept a negative sign and
+    // decoded back as negative — unlike DISPLAY/COMP, which already stored the magnitude.
+
+    [Fact]
+    public void Comp3_Unsigned_StoresMagnitude_NotNegative()
+    {
+        var pic = MakePic("9(5)", UsageKind.Comp3, isSigned: false);
+        var dst = new byte[pic.StorageLength];
+        PicRuntime.EncodeNumeric(dst, 0, dst.Length, pic, -123m);
+        Assert.Equal(123m, PicRuntime.DecodeNumeric(dst, 0, dst.Length, pic));
+    }
+
+    [Fact]
+    public void Comp3_Signed_RetainsNegative()
+    {
+        var pic = MakePic("S9(5)", UsageKind.Comp3, isSigned: true);
+        var dst = new byte[pic.StorageLength];
+        PicRuntime.EncodeNumeric(dst, 0, dst.Length, pic, -123m);
+        Assert.Equal(-123m, PicRuntime.DecodeNumeric(dst, 0, dst.Length, pic));
+    }
+
+    // ---------- Bug 4: trailing-P overflow counts the unit count, not the full magnitude (ISO §13.18.40) ----------
+    // Surfaced by the data-model numeric differential oracle: WouldOverflow's COMP/COMP-3/COMP-5 arms scaled by
+    // FractionDigits+LeadingScaleDigits but (unlike the DISPLAY arm) omitted the /10^TrailingScaleDigits divide,
+    // so a valid trailing-P value (PIC 9(3)P stores 3 digits → max 9990) wrongly raised SIZE ERROR.
+
+    [Theory]
+    [InlineData(UsageKind.Comp)]
+    [InlineData(UsageKind.Comp3)]
+    [InlineData(UsageKind.Comp5)]
+    public void TrailingP_ValidValue_NoSizeError(UsageKind usage)
+    {
+        var pic = MakePic("9(3)P", usage);   // 3 stored digits, scale +1 → represents 0..9990 in steps of 10
+        var dst = new byte[pic.StorageLength];
+        PicRuntime.EncodeNumeric(dst, 0, dst.Length, pic, 0m);
+        var status = new ArithmeticStatus();
+        PicRuntime.AddNumericLiteral(dst, 0, dst.Length, pic, 9990m, PicRuntime.RoundTruncation, ref status);
+        Assert.False(status.SizeError);
+        Assert.Equal(9990m, PicRuntime.DecodeNumeric(dst, 0, dst.Length, pic));
+    }
+
+    [Theory]
+    [InlineData(UsageKind.Comp)]
+    [InlineData(UsageKind.Comp3)]
+    public void TrailingP_OverCapacity_SizeError(UsageKind usage)
+    {
+        var pic = MakePic("9(3)P", usage);
+        var dst = new byte[pic.StorageLength];
+        PicRuntime.EncodeNumeric(dst, 0, dst.Length, pic, 0m);
+        var status = new ArithmeticStatus();
+        PicRuntime.AddNumericLiteral(dst, 0, dst.Length, pic, 10000m, PicRuntime.RoundTruncation, ref status);
+        Assert.True(status.SizeError);   // 10000 → 4 unit digits > 3 stored digits
+    }
 }
