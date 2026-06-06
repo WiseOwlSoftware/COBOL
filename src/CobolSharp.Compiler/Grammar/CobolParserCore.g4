@@ -26,6 +26,7 @@ cobolWord
     : IDENTIFIER
     | LENGTH       // context: START WITH LENGTH, FUNCTION LENGTH
     | NATIONAL     // context: FOR NATIONAL
+    | BIT          // context: USAGE BIT
     | NORMAL       // context: STOP RUN WITH NORMAL
     // Screen-related tokens that may be used as data names in non-screen contexts
     | AUTO

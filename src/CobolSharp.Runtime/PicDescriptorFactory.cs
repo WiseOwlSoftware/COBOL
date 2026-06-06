@@ -53,6 +53,7 @@ public static class PicDescriptorFactory
         bool hasAlphaChars = false;     // A (alphabetic only)
         bool hasAlphanumericChars = false; // X (alphanumeric)
         bool hasNationalChars = false;  // N
+        bool hasBooleanChars = false;   // 1 (boolean position)
         bool hasRealDigits = false;     // any 9/edited-digit
 
         int leadingPScaling = 0;
@@ -131,6 +132,16 @@ public static class PicDescriptorFactory
                 case 'N':
                 {
                     hasNationalChars = true;
+                    int count = ParseRepeatCount(text, ref pos);
+                    integerDigits += count;
+                    break;
+                }
+
+                case '1':
+                {
+                    // PIC 1 — boolean position(s). Each '1' is one boolean character; counted in the size
+                    // (one byte/position in this representation). ISO §13.18.40.4 R8/R14.
+                    hasBooleanChars = true;
                     int count = ParseRepeatCount(text, ref pos);
                     integerDigits += count;
                     break;
@@ -287,7 +298,9 @@ public static class PicDescriptorFactory
         // Category lattice (mirrors PicUsageResolver)
         // hasAlphaChars = PIC A only; hasAlphanumericChars = PIC X
         CobolCategory category;
-        if (hasNumericChars && !hasAlphaChars && !hasAlphanumericChars && !hasNationalChars)
+        if (hasBooleanChars && !hasNumericChars && !hasAlphaChars && !hasAlphanumericChars && !hasNationalChars)
+            category = CobolCategory.Boolean;
+        else if (hasNumericChars && !hasAlphaChars && !hasAlphanumericChars && !hasNationalChars)
             category = edited ? CobolCategory.NumericEdited : CobolCategory.Numeric;
         else if (hasNationalChars && !hasNumericChars && !hasAlphaChars && !hasAlphanumericChars)
             category = edited ? CobolCategory.NationalEdited : CobolCategory.National;

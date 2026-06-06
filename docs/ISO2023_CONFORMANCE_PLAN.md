@@ -59,14 +59,15 @@
   - **M2-DATA-3** National (UTF-16) data — CORE COMPLETE (383): `PIC N`/`USAGE NATIONAL`, `N"…"`, MOVE/VALUE/
     INITIALIZE/SPACE/DISPLAY/compare + national↔alpha/numeric conversion. Conformance `national_data`.
     An adversarial review caught + fixed silent corruption in the first slice before commit.
-- **Guard baseline:** **1047 unit / 475 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
-- **NEXT UP →** another M2 data-type new-category build — both have an **investigated first-slice recipe in §3.2**
-  (handoff audit 2026-06-05):
-  - **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE), smallest
-    Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity). Needs a safe-handle `PointerRegistry`
-    design decision; the hard parts (SET ADDRESS OF / BASED) are deferred.
-  - **M2-DATA-4 Boolean/bit** — the third new-category option (USAGE BIT, PIC 1(n), B"…"/BX"…", bit operators).
-  - Pick one, work top-down per §4 waves; tick + log here as it lands. (M2-DATA-3 National is now DONE.)
+  - **M2-DATA-4** Boolean data — CORE COMPLETE (386): `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/
+    DISPLAY/compare/JUSTIFIED. Conformance `boolean_data`. A 2-agent review caught + fixed VALUE corruption,
+    boolean-in-COMPUTE silent-numeric, and a JUSTIFIED spec/dead-code defect before commit. Bit operators deferred.
+- **Guard baseline:** **1047 unit / 476 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+- **NEXT UP →** **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE),
+  smallest Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity); investigated first-slice
+  recipe in §3.2. **Needs a safe-handle `PointerRegistry` design decision (owner to confirm)** before the hard
+  parts (SET ADDRESS OF / BASED, deferred). After it: M2-PRE-1 (◐, re-scoped), M2-ARITH-1 follow-ups, then the
+  larger subsystems (EC/exceptions, VALIDATE, OO) per §4. (M2-DATA-3 + M2-DATA-4 new-category builds are DONE.)
 
 ---
 
@@ -140,8 +141,16 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `tests/conformance/2002/national_data` (13 assertions). **Deferred:** NATIONAL-EDITED, `NX"…"`, full
   implementor correspondence + `EC-DATA-CONVERSION` (Latin-1 only), collating-sequence national compare,
   ref-mod ×2 byte adjustment, INSPECT-national.
-- ☐ **M2-DATA-4 — Boolean & bit data.** `USAGE BIT`, `PIC 1(n)`, boolean literals `B"…"` / `BX"…"`, bit operators
-  (B-AND/B-OR/B-XOR/B-NOT), BOOLEAN category in INITIALIZE/SET/compare. *Large (new category).* §8.3, §13.18.
+- ☑ **M2-DATA-4 — Boolean & bit data (CORE DONE — DEVLOG 386).** `PIC 1(n)` / `USAGE BIT` (one byte/position,
+  ASCII `'0'`/`'1'`), `B"…"`/`b'…'` literals, and the full data surface: MOVE boolean←boolean (`'0'` fill / right
+  truncate / JUSTIFIED), literal/figurative-ZERO **VALUE**, **MOVE ZERO / INITIALIZE** (boolean zero), **DISPLAY**,
+  **comparison** (field=field, field=literal), and **JUSTIFIED RIGHT** (§13.18.32 — the fix also un-deadened
+  national JUSTIFIED). A 2-agent adversarial review caught + fixed three defects before commit: non-boolean VALUE
+  corruption (§13.18.63 GR10 → CBL1002), a boolean nested in a COMPUTE tree read as numeric (→ CBL2601, recursed),
+  and JUSTIFIED wrongly rejected on boolean/national (CBL0803). Conformance `tests/conformance/2002/boolean_data`.
+  **Deferred:** bit operators B-AND/B-OR/B-XOR/B-NOT (reserved-word collision; needs the XOR wiring pattern),
+  `BX"…"`, true bit-packing, GROUP-USAGE BIT, boolean↔non-boolean compare strictness, boolean ref-mod, the broader
+  alphanumeric/national-in-COMPUTE latent hole, uninitialized-boolean=0x20 (matches the National precedent).
   - **Investigated first-slice recipe (workflow `m2-data4-boolean-investigation`, 2026-06-05) — mirrors the
     National build (DEVLOG 383) almost exactly.** Corpus-checked clean: NIST has no `PIC 1`, no `USAGE BIT`, no
     real `B"…"` (only `"B"` strings → STRINGLIT). **Storage model:** 1 byte per boolean position holding ASCII
@@ -376,3 +385,10 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   fill, and comparison; all fixed before commit (lesson: a narrowly-scoped passing conformance test is not
   evidence of completeness — verify the whole dispatch surface). Guard 1047/475/364. Next: M2-DATA-5 Pointers
   or M2-DATA-4 Boolean/bit (§3.2).
+- **2026-06-05 (session DEVLOG 384–386)** — **M2-PRE-1 re-scoped** (384): an empirical repro refuted the
+  "preprocessor crashes on valid source" claim (nothing crashes); the two real-but-rare defects + a spec caution
+  are documented, item dropped to ◐. **M2-DATA-4 Boolean data CORE COMPLETE** (385 recipe, 386 implementation):
+  `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/DISPLAY/compare/JUSTIFIED; conformance `boolean_data`.
+  A 2-agent adversarial review caught + fixed VALUE corruption (§13.18.63 GR10), a boolean-in-COMPUTE
+  silent-numeric read, and JUSTIFIED wrongly rejected on boolean/national (the last also un-deadened national
+  JUSTIFIED). Guard 1047/476/364. Next: M2-DATA-5 Pointers (needs the PointerRegistry design decision).

@@ -471,6 +471,21 @@ internal sealed class ExpressionBinder
             return new BoundLiteralExpression(text, CobolCategory.National);
         }
 
+        // Boolean literal B"0101" / B'0101' (ISO §8.3.3.4). Strip the B prefix and quotes; the content is
+        // binary digits only (no doubled-quote escaping). Carry category Boolean so MOVE/compare use it.
+        var boolLit = nonNum.BOOLLIT();
+        if (boolLit != null)
+        {
+            var text = boolLit.GetText();
+            if (text.Length >= 3 && (text[0] is 'B' or 'b') &&
+                ((text[1] == '"' && text[^1] == '"') ||
+                 (text[1] == '\'' && text[^1] == '\'')))
+            {
+                text = text[2..^1];
+            }
+            return new BoundLiteralExpression(text, CobolCategory.Boolean);
+        }
+
         var figCtx = nonNum.figurativeConstant();
         if (figCtx != null)
             return BindFigurativeConstantExpression(figCtx);

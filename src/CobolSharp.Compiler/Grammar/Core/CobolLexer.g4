@@ -229,6 +229,7 @@ BEFORE      : 'BEFORE' ;
 BELL        : 'BELL' ;
 BLINK       : 'BLINK' ;
 BINARY      : 'BINARY' ;
+BIT         : 'BIT' ;
 BLANK       : 'BLANK' ;
 BLOCK       : 'BLOCK' ;
 BOTTOM      : 'BOTTOM' ;
@@ -506,6 +507,12 @@ NATLIT      : 'N' '"' (~["\r\n] | '""')* '"'
             ;
 HEXLIT      : [x] '"' [0-9a-f]+ '"'
             | [x] '\'' [0-9a-f]+ '\''
+            ;
+// Boolean literal B"0101" / B'0101' (binary digits only; ISO §8.3.3.4, COBOL-2002). The leading B is part
+// of the token so maximal-munch prefers it over IDENTIFIER (a bare B) and over a plain STRINGLIT ("B"…").
+// BX"…" (hex boolean) is deferred.
+BOOLLIT     : 'B' '"' [01]+ '"'
+            | 'B' '\'' [01]+ '\''
             ;
 
 // ── Operators (multi-char before single-char) ──

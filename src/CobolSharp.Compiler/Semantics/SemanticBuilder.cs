@@ -1318,6 +1318,14 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                                     initialValue = text[2..^1].Replace(new string(q, 2), new string(q, 1));
                                 }
                             }
+                            else if (nonNum?.BOOLLIT() is { } blit)
+                            {
+                                // Boolean VALUE literal B"0101": strip the B prefix and quotes (binary
+                                // digits, no doubled-quote). Stored as the '0'/'1' characters.
+                                var text = blit.GetText();
+                                if (text.Length >= 3 && (text[0] is 'B' or 'b'))
+                                    initialValue = text[2..^1];
+                            }
                             else if (nonNum?.figurativeConstant() is { } fig)
                             {
                                 string figText = fig.GetText().ToUpperInvariant();

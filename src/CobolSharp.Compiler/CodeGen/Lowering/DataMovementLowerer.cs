@@ -300,6 +300,9 @@ internal sealed class DataMovementLowerer
 
         if (category == InitializeCategory.Numeric || category == InitializeCategory.NumericEdited)
             block.Instructions.Add(new IrPicMoveLiteralNumeric(loc, 0m));
+        else if (category == InitializeCategory.Boolean)
+            // Boolean default is boolean zero — ZERO fills with '0' bytes (ISO §14.9.20).
+            block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Zero));
         else
             block.Instructions.Add(new IrMoveFigurative(loc, FigurativeKind.Space));
     }
@@ -364,6 +367,7 @@ internal sealed class DataMovementLowerer
             CobolCategory.NumericEdited => InitializeCategory.NumericEdited,
             CobolCategory.Alphabetic => InitializeCategory.Alphabetic,
             CobolCategory.AlphanumericEdited => InitializeCategory.AlphanumericEdited,
+            CobolCategory.Boolean => InitializeCategory.Boolean,
             _ => InitializeCategory.Alphanumeric
         };
     }

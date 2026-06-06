@@ -103,6 +103,12 @@ internal sealed class DataStatementBinder
                 if (effectiveSrcCat == CobolCategory.Unknown)
                     continue;
 
+                // Figurative ZERO is a legal source for a boolean receiver (the all-'0' boolean value,
+                // ISO §8.3.1.2); without this it would be classified Numeric and rejected.
+                if (tgtCat == CobolCategory.Boolean
+                    && source is BoundFigurativeExpression { FigurativeKind: FigurativeKind.Zero })
+                    effectiveSrcCat = CobolCategory.Boolean;
+
                 if (!CategoryCompatibility.IsMoveLegal(effectiveSrcCat, tgtCat))
                     _ctx.Diagnostics.Report(DiagnosticDescriptors.CBL0901, moveLoc, moveSpan, effectiveSrcCat, tgtCat);
 

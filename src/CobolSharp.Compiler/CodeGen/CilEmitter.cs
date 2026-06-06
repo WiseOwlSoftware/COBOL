@@ -687,6 +687,12 @@ public sealed class CilEmitter
                 "MoveNationalLiteralToOccursField",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
 
+        // Boolean items store VALUE literals as '0'/'1' bytes with '0' fill (not space).
+        var moveBooleanToOccursMethod = _module.ImportReference(
+            typeof(CobolSharp.Runtime.PicRuntime).GetMethod(
+                "MoveBooleanLiteralToOccursField",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int), typeof(string) })!);
+
         foreach (var kvp in _semanticModel.InitialValues)
         {
             if (_semanticModel.FigurativeInitValues.ContainsKey(kvp.Key))
@@ -725,8 +731,9 @@ public sealed class CilEmitter
                 il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                 il.Append(il.Create(OpCodes.Ldstr, strValue));
                 il.Append(il.Create(OpCodes.Call,
-                    loc.Value.Pic.Category.IsNationalLike()
-                        ? moveNationalToOccursMethod : moveStringToOccursMethod));
+                    loc.Value.Pic.Category.IsNationalLike() ? moveNationalToOccursMethod
+                    : loc.Value.Pic.Category.IsBooleanLike() ? moveBooleanToOccursMethod
+                    : moveStringToOccursMethod));
             }
         }
     }

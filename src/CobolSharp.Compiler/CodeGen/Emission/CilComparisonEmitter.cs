@@ -225,12 +225,16 @@ internal sealed class CilComparisonEmitter
         _ctx.Location.EmitLocationArgs(il, cmp.Left);
         il.Append(il.Create(OpCodes.Ldstr, cmp.Value));
 
-        // A national field compared with a literal (N"…" or the ASCII-subset "…") compares UTF-16
-        // character positions against the literal's characters; otherwise the byte-wise compare applies.
-        bool national = cmp.Left.GetPic().Category.IsNationalLike();
-        var method = national
+        // A national field vs a literal compares UTF-16 positions; a boolean field vs a literal compares
+        // '0'/'1' positions ('0'-padded); otherwise the byte-wise compare applies.
+        var litLeftCat = cmp.Left.GetPic().Category;
+        string litCmpMethod =
+            litLeftCat.IsNationalLike() ? "CompareNationalToString"
+            : litLeftCat.IsBooleanLike() ? "CompareBooleanToString"
+            : null!;
+        var method = litCmpMethod != null
             ? _ctx.Module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("CompareNationalToString",
+                typeof(Runtime.PicRuntime).GetMethod(litCmpMethod,
                     new[] { typeof(byte[]), typeof(int), typeof(int), typeof(string) })!)
             : _ctx.Module.ImportReference(
                 typeof(Runtime.StorageHelpers).GetMethod("CompareFieldToString",
@@ -293,12 +297,17 @@ internal sealed class CilComparisonEmitter
         _ctx.Location.EmitLocationArgs(il, cmp.Right);
 
         // National-vs-national comparison (the only legal national comparison) is char-aware (UTF-16),
-        // so code points ≥ U+0100 order correctly; otherwise the byte-wise field compare applies.
-        bool national = cmp.Left.GetPic().Category.IsNationalLike()
-                     && cmp.Right.GetPic().Category.IsNationalLike();
-        var method = national
+        // so code points ≥ U+0100 order correctly; boolean-vs-boolean uses '0'-padded byte compare;
+        // otherwise the byte-wise field compare applies.
+        var leftCat = cmp.Left.GetPic().Category;
+        var rightCat = cmp.Right.GetPic().Category;
+        string cmpMethod =
+            leftCat.IsNationalLike() && rightCat.IsNationalLike() ? "CompareNational"
+            : leftCat.IsBooleanLike() && rightCat.IsBooleanLike() ? "CompareBoolean"
+            : null!;
+        var method = cmpMethod != null
             ? _ctx.Module.ImportReference(
-                typeof(Runtime.PicRuntime).GetMethod("CompareNational",
+                typeof(Runtime.PicRuntime).GetMethod(cmpMethod,
                     new[] { typeof(byte[]), typeof(int), typeof(int),
                             typeof(byte[]), typeof(int), typeof(int) })!)
             : _ctx.Module.ImportReference(

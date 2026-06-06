@@ -24,6 +24,10 @@ public enum CobolCategory
     National,
     /// <summary>PIC N with B/0 insertion — display-formatted national data (ISO §6.1.2.6).</summary>
     NationalEdited,
+    /// <summary>PIC 1 fields — boolean data (each position is a boolean character '0'/'1'; ISO §8.5.1.3,
+    /// COBOL-2002). Stored one byte per position holding ASCII '0'/'1' (§13.18.40.4 R14 permits an
+    /// alphanumeric-character representation of a boolean character).</summary>
+    Boolean,
 }
 
 /// <summary>
@@ -43,6 +47,10 @@ public static class CobolCategoryExtensions
     /// <summary>Returns true for National and NationalEdited.</summary>
     public static bool IsNationalLike(this CobolCategory c) =>
         c is CobolCategory.National or CobolCategory.NationalEdited;
+
+    /// <summary>Returns true for the boolean category (a future BooleanEdited would join here).</summary>
+    public static bool IsBooleanLike(this CobolCategory c) =>
+        c is CobolCategory.Boolean;
 }
 
 /// <summary>
@@ -216,4 +224,8 @@ public enum UsageKind
     /// is carried by <see cref="CobolCategory.National"/>; this usage marks the explicit USAGE NATIONAL form.
     /// Storage is 2 bytes per character; size/MOVE/DISPLAY dispatch on the category, not this value.</summary>
     National = 16,
+    /// <summary>BIT — boolean data (ISO §13.18.60.4, COBOL-2002). The boolean-ness is carried by
+    /// <see cref="CobolCategory.Boolean"/>; this usage marks the explicit USAGE BIT form. Stored one byte
+    /// per boolean position ('0'/'1'); size/MOVE/DISPLAY dispatch on the category, not this value.</summary>
+    Bit = 17,
 }

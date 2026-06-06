@@ -228,6 +228,7 @@ functionName
     | LENGTH
     | MERGE
     | NATIONAL
+    | BIT
     | RANDOM
     | SIGN
     | SORT
@@ -260,6 +261,7 @@ numericLiteral
 nonNumericLiteral
     : STRINGLIT
     | NATLIT
+    | BOOLLIT
     | HEXLIT
     | figurativeConstant
     ;

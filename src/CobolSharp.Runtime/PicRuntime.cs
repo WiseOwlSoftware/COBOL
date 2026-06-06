@@ -1488,6 +1488,97 @@ public static class PicRuntime
                 area, baseOffset + occ * elementSize, dstChars, justifiedRight: false);
     }
 
+    // ══════════════════════════════════════════════════════════
+    // MOVE / COMPARE: Boolean (PIC 1 / USAGE BIT) — one byte per position ('0'/'1')
+    // ══════════════════════════════════════════════════════════
+
+    private const byte BooleanZero = (byte)'0';
+
+    /// <summary>
+    /// MOVE boolean ← boolean (ISO §14.6.8.6): left-justified, zero-fill ('0') on the right, truncate on the
+    /// right; JUSTIFIED RIGHT pads/truncates on the left. Boolean positions are stored one byte each ('0'/'1').
+    /// </summary>
+    public static void MoveBooleanToBoolean(
+        byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,
+        int roundingMode)
+    {
+        if (dstPic.IsJustifiedRight)
+        {
+            if (srcLength > dstLength)
+            {
+                Array.Copy(srcArea, srcOffset + (srcLength - dstLength), dstArea, dstOffset, dstLength);
+            }
+            else
+            {
+                int pad = dstLength - srcLength;
+                for (int i = 0; i < pad; i++) dstArea[dstOffset + i] = BooleanZero;
+                Array.Copy(srcArea, srcOffset, dstArea, dstOffset + pad, srcLength);
+            }
+        }
+        else
+        {
+            int copyLen = Math.Min(srcLength, dstLength);
+            Array.Copy(srcArea, srcOffset, dstArea, dstOffset, copyLen);
+            for (int i = copyLen; i < dstLength; i++) dstArea[dstOffset + i] = BooleanZero;
+        }
+    }
+
+    /// <summary>MOVE of a boolean literal (B"0101") into a boolean receiver — store the '0'/'1' bytes,
+    /// zero-fill / right-truncate per <see cref="MoveBooleanToBoolean"/>.</summary>
+    public static void MoveStringLiteralToBoolean(
+        byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic, string value)
+    {
+        byte[] src = Encoding.ASCII.GetBytes(value);
+        MoveBooleanToBoolean(src, 0, src.Length, dstPic, dstArea, dstOffset, dstLength, dstPic, 0);
+    }
+
+    /// <summary>Initialize every occurrence of a boolean OCCURS field (or a single boolean item) with the same
+    /// VALUE literal's '0'/'1' bytes, zero-filled. Mirrors MoveStringToOccursField for the boolean category.</summary>
+    public static void MoveBooleanLiteralToOccursField(
+        byte[] area, int baseOffset, int elementSize, int occursCount, string value)
+    {
+        byte[] src = Encoding.ASCII.GetBytes(value);
+        int copyLen = Math.Min(src.Length, elementSize);
+        for (int occ = 0; occ < occursCount; occ++)
+        {
+            int offset = baseOffset + occ * elementSize;
+            Array.Copy(src, 0, area, offset, copyLen);
+            for (int i = copyLen; i < elementSize; i++) area[offset + i] = BooleanZero;
+        }
+    }
+
+    /// <summary>Boolean comparison: byte-wise on the '0'/'1' positions; the shorter operand is extended on the
+    /// right with '0' (ISO §8.8.4.2). Returns -1/0/1.</summary>
+    public static int CompareBoolean(
+        byte[] leftArea, int leftOffset, int leftLength,
+        byte[] rightArea, int rightOffset, int rightLength)
+    {
+        int maxLen = Math.Max(leftLength, rightLength);
+        for (int i = 0; i < maxLen; i++)
+        {
+            byte lb = i < leftLength ? leftArea[leftOffset + i] : BooleanZero;
+            byte rb = i < rightLength ? rightArea[rightOffset + i] : BooleanZero;
+            if (lb < rb) return -1;
+            if (lb > rb) return 1;
+        }
+        return 0;
+    }
+
+    /// <summary>Compare a boolean field against a (decoded) literal string; shorter side extended with '0'.</summary>
+    public static int CompareBooleanToString(byte[] area, int offset, int length, string value)
+    {
+        int maxLen = Math.Max(length, value.Length);
+        for (int i = 0; i < maxLen; i++)
+        {
+            int fc = i < length ? area[offset + i] : '0';
+            int vc = i < value.Length ? value[i] : '0';
+            if (fc < vc) return -1;
+            if (fc > vc) return 1;
+        }
+        return 0;
+    }
+
     public static void MoveNationalToNationalEdited(
         byte[] srcArea, int srcOffset, int srcLength, PicDescriptor srcPic,
         byte[] dstArea, int dstOffset, int dstLength, PicDescriptor dstPic,

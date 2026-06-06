@@ -64,6 +64,14 @@ public static class ArithmeticTypeSystem
             {
                 diagnostics.Report(DiagnosticDescriptors.CBL2601, loc, span);
             }
+            // A boolean item nested inside a COMPUTE expression tree would be silently misread as a decimal
+            // (its '0'/'1' bytes parse as digits). Recurse to reject it (ISO §8.8.1 — a boolean is not a
+            // numeric/arithmetic operand). Scoped to boolean so the pre-existing alphanumeric leniency is
+            // untouched.
+            else if (operand is not Bound.BoundIdentifierExpression && ContainsBooleanOperand(operand))
+            {
+                diagnostics.Report(DiagnosticDescriptors.CBL2601, loc, span);
+            }
         }
 
         // Validate receiver is numeric (if identifier)
@@ -102,4 +110,13 @@ public static class ArithmeticTypeSystem
             }
         }
     }
+
+    /// <summary>True if a boolean-category identifier appears anywhere in the (arithmetic) expression tree.</summary>
+    private static bool ContainsBooleanOperand(Bound.BoundExpression? expr) => expr switch
+    {
+        Bound.BoundIdentifierExpression id => id.Category == Runtime.CobolCategory.Boolean,
+        Bound.BoundBinaryExpression bin =>
+            ContainsBooleanOperand(bin.Left) || ContainsBooleanOperand(bin.Right),
+        _ => false
+    };
 }

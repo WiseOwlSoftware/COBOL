@@ -69,6 +69,8 @@ public static class CategoryCompatibility
             (CobolCategory.NationalEdited, CobolCategory.NationalEdited),
             (CobolCategory.NationalEdited, CobolCategory.Alphanumeric),
             (CobolCategory.NationalEdited, CobolCategory.AlphanumericEdited),
+            // Boolean -> Boolean (ISO §14.6.8.6; alphanumeric/national<->boolean conversion deferred)
+            (CobolCategory.Boolean, CobolCategory.Boolean),
         }.ToFrozenSet();
 
     public static bool IsMoveLegal(CobolCategory source, CobolCategory target)
@@ -86,6 +88,7 @@ public static class CategoryCompatibility
         if (IsNumericFamily(left) && IsNumericFamily(right)) return true;
         if (IsAlphanumericFamily(left) && IsAlphanumericFamily(right)) return true;
         if (IsNationalFamily(left) && IsNationalFamily(right)) return true;
+        if (IsBooleanFamily(left) && IsBooleanFamily(right)) return true;
         return false;
     }
 
@@ -97,4 +100,7 @@ public static class CategoryCompatibility
 
     public static bool IsNationalFamily(CobolCategory c)
         => c is CobolCategory.National or CobolCategory.NationalEdited;
+
+    public static bool IsBooleanFamily(CobolCategory c)
+        => c is CobolCategory.Boolean;
 }

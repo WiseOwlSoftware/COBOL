@@ -885,7 +885,8 @@ public enum InitializeCategory
     Numeric,
     Alphanumeric,
     NumericEdited,
-    AlphanumericEdited
+    AlphanumericEdited,
+    Boolean
 }
 
 public sealed class BoundInitializeCategoryReplacement

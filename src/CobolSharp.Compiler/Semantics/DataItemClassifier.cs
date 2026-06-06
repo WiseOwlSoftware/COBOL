@@ -139,8 +139,13 @@ public static class DataItemClassifier
     {
         if (!data.IsJustifiedRight) return;
 
-        // JUSTIFIED only on alphanumeric elementary items
-        if (!data.IsElementary || data.ResolvedType?.IsAlphanumeric != true)
+        // JUSTIFIED may be specified on an elementary item of category alphabetic, alphanumeric, boolean,
+        // or national (ISO §13.18.32.3 SR3).
+        var cat = data.ResolvedType?.Category;
+        bool justifiable = data.IsElementary &&
+            (data.ResolvedType?.IsAlphanumeric == true
+             || cat is CobolCategory.Boolean or CobolCategory.National);
+        if (!justifiable)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL0803, loc, span, data.DisplayName);
         }
@@ -168,6 +173,20 @@ public static class DataItemClassifier
         if (data.IsGroup)
         {
             diagnostics.Report(DiagnosticDescriptors.CBL1001, loc, span, data.DisplayName);
+            return;
+        }
+
+        // Boolean items: the VALUE must be a boolean literal (positions '0'/'1') or figurative ZERO
+        // (ISO §13.18.63 GR10). Without this, a non-boolean VALUE silently corrupts the item's storage.
+        if (data.ResolvedType?.Category == CobolCategory.Boolean)
+        {
+            bool badFigurative = data.FigurativeInit is { } fk && fk != FigurativeKind.Zero;
+            bool badLiteral = false;
+            if (data.InitialValue is { } bv)
+                foreach (var ch in bv)
+                    if (ch != '0' && ch != '1') { badLiteral = true; break; }
+            if (badFigurative || badLiteral)
+                diagnostics.Report(DiagnosticDescriptors.CBL1002, loc, span, data.DisplayName);
             return;
         }
 

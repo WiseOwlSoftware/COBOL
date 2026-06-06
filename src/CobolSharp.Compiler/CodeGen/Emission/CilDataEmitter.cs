@@ -103,6 +103,19 @@ internal sealed class CilDataEmitter
                             typeof(PicDescriptor), typeof(string) })!);
             il.Append(il.Create(OpCodes.Call, method));
         }
+        // Boolean targets: store the literal's '0'/'1' bytes, zero-filled / right-truncated.
+        else if (pic.Category.IsBooleanLike())
+        {
+            _ctx.Location.EmitLocationArgsWithPic(il, ms.Target);
+            il.Append(il.Create(OpCodes.Ldstr, ms.Value));
+
+            var method = _ctx.Module.ImportReference(
+                typeof(PicRuntime).GetMethod(
+                    "MoveStringLiteralToBoolean",
+                    new[] { typeof(byte[]), typeof(int), typeof(int),
+                            typeof(PicDescriptor), typeof(string) })!);
+            il.Append(il.Create(OpCodes.Call, method));
+        }
         // Numeric targets: right-justified numeric MOVE (rightmost digits taken)
         else if (pic.Category == CobolCategory.Numeric)
         {
@@ -303,6 +316,11 @@ internal sealed class CilDataEmitter
             string nat = dstCat == CobolCategory.AlphanumericEdited
                 ? "MoveNationalToAlphanumericEdited" : "MoveNationalToAlphanumeric";
             EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, nat);
+        }
+        // Boolean receiver (only boolean←boolean is a legal MOVE, ISO §14.6.8.6): byte-wise with '0' fill.
+        else if (dstCat.IsBooleanLike())
+        {
+            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveBooleanToBoolean");
         }
         else
         {

@@ -30,7 +30,7 @@ public static class PicUsageResolver
         var category = layout?.Category ?? CobolCategory.Unknown;
         bool isNumeric = category.IsNumericLike();
         bool isAlpha = category.IsAlphanumericLike();
-        bool isBool = false;
+        bool isBool = category.IsBooleanLike();
 
         // COMP-1/COMP-2 (float) and the COBOL-2002 fixed-width binary usages (BINARY-CHAR/SHORT/LONG/
         // DOUBLE) have no PIC clause but are numeric.
@@ -40,6 +40,12 @@ public static class PicUsageResolver
         {
             isNumeric = true;
             category = CobolCategory.Numeric;
+        }
+        // USAGE BIT with no PICTURE — a boolean item (normally accompanied by PIC 1(n); be defensive).
+        else if (picString == null && usage == UsageKind.Bit)
+        {
+            isBool = true;
+            category = CobolCategory.Boolean;
         }
         // Group items (no PIC) are alphanumeric by default
         else if (picString == null && usage == UsageKind.Display)
@@ -81,7 +87,7 @@ public static class PicUsageResolver
     }
 
     private static bool IsValidPicSymbol(char c, char currency) =>
-        c is '9' or 'X' or 'A' or 'N' or 'S' or 'V' or 'P' or 'Z' or '*'
+        c is '9' or 'X' or 'A' or 'N' or '1' or 'S' or 'V' or 'P' or 'Z' or '*'
           or '+' or '-' or ',' or '.' or '/' or 'B' or '0'
         || c == currency;
 
@@ -164,6 +170,9 @@ public static class UsageMapper
             // USAGE NATIONAL (ISO §13.18.60.4): explicit national (UTF-16) data. Category is supplied by
             // the accompanying PIC N; this marks the usage. Sizing/MOVE/DISPLAY dispatch on the category.
             "NATIONAL" => UsageKind.National,
+            // USAGE BIT (ISO §13.18.60.4): explicit boolean data. Category is supplied by the accompanying
+            // PIC 1; this marks the usage. Sizing/MOVE/DISPLAY dispatch on the category.
+            "BIT" => UsageKind.Bit,
             _ => UsageKind.Object
         };
     }
