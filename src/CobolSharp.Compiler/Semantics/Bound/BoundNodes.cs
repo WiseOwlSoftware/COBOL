@@ -698,9 +698,14 @@ public sealed class BoundExitProgramStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.ExitProgramStatement;
 }
 
-/// <summary>GOBACK — return from called program, or terminate if main program.</summary>
+/// <summary>GOBACK — return from called program, or terminate if main program. The optional RETURNING/GIVING
+/// operand (COBOL-2002, ISO §14.9.16) supplies the value returned to the activating element.</summary>
 public sealed class BoundGoBackStatement : BoundStatement
 {
+    public BoundExpression? Returning { get; }
+
+    public BoundGoBackStatement(BoundExpression? returning = null) => Returning = returning;
+
     public override BoundNodeKind Kind => BoundNodeKind.GoBackStatement;
 }
 

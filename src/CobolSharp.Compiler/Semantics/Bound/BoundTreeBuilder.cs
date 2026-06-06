@@ -239,7 +239,12 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.entryStatement() is { } entry) return _ctx.Call.BindEntry(entry);
         if (ctx.cancelStatement() is { } cancel) return _ctx.Call.BindCancel(cancel);
         if (ctx.stopStatement() is { }) return new BoundStopStatement();
-        if (ctx.gobackStatement() is { }) return new BoundGoBackStatement();
+        if (ctx.gobackStatement() is { } gb)
+        {
+            var retRef = gb.dataReference();
+            var ret = retRef != null ? _ctx.Expression.BindDataReferenceWithSubscripts(retRef) : null;
+            return new BoundGoBackStatement(ret);
+        }
         if (ctx.exitStatement() is { } exitCtx)
         {
             if (exitCtx.PROGRAM() != null)

@@ -903,7 +903,7 @@ displayNoAdvancing
 // ==========================================
 
 gobackStatement
-    : GOBACK
+    : GOBACK ({is2002()}? (RETURNING | GIVING) dataReference)?
     ;
 
 // ==========================================

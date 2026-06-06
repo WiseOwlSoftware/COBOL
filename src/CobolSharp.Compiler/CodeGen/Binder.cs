@@ -627,7 +627,16 @@ public sealed class Binder
             case BoundExitProgramStatement:
                 block.Instructions.Add(new IrExitProgram());
                 break;
-            case BoundGoBackStatement:
+            case BoundGoBackStatement gb:
+                // GOBACK RETURNING x (ISO §14.9.16) ≡ MOVE x INTO the PROCEDURE DIVISION RETURNING item,
+                // then return. The CALL … RETURNING wiring (DEVLOG 365) carries it to the caller.
+                if (gb.Returning != null && _semantic.ProcedureReturningItem is { } retItem)
+                {
+                    var dest = new BoundIdentifierExpression(
+                        retItem, retItem.ResolvedType?.Category ?? CobolCategory.Unknown);
+                    _ctx.DataMovement.LowerMove(
+                        new BoundMoveStatement(gb.Returning, new[] { dest }, isRounded: false), block);
+                }
                 block.Instructions.Add(new IrGoBack());
                 break;
             case BoundEntryStatement:

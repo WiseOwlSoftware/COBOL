@@ -62,7 +62,9 @@
   - **M2-DATA-4** Boolean data — CORE COMPLETE (386): `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/
     DISPLAY/compare/JUSTIFIED. Conformance `boolean_data`. A 2-agent review caught + fixed VALUE corruption,
     boolean-in-COMPUTE silent-numeric, and a JUSTIFIED spec/dead-code defect before commit. Bit operators deferred.
-- **Guard baseline:** **1047 unit / 476 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
+  - **M2-PROC-6** `GOBACK RETURNING` — DONE (387, dialect-gated 2002+; conformance `goback_returning`); EXIT
+    variants verified present/green; only `CONTINUE AFTER` (non-deterministic) deferred.
+- **Guard baseline:** **1047 unit / 477 integration / 364 NIST** (all green; `bash scripts/guard.sh`).
 - **NEXT UP →** **M2-DATA-5 Pointers** — the audit's *recommended* pick: foundational (unblocks ALLOCATE/FREE),
   smallest Phase-1 (POINTER + NULL + SET p TO NULL + `=NULL`, no grammar ambiguity); investigated first-slice
   recipe in §3.2. **Needs a safe-handle `PointerRegistry` design decision (owner to confirm)** before the hard
@@ -227,8 +229,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   condition register, and runtime guards on checked operations. **Backbone for RAISE/RESUME/USE and
   exception-checking PERFORM.** §14.6, §14.9.
 - ☐ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §14.9.
-- ☐ **M2-PROC-6 — `GOBACK RETURNING`, `CONTINUE AFTER`, verify EXIT variants emit.** *Small–medium.* Grammar for
-  EXIT PARAGRAPH/SECTION/PERFORM[ CYCLE] exists — verify semantics/emit. §14.9.
+- ◑ **M2-PROC-6 — `GOBACK RETURNING` (DONE — DEVLOG 387); EXIT variants verified; `CONTINUE AFTER` deferred.**
+  §14.9.16. `GOBACK RETURNING|GIVING identifier` (dialect-gated 2002+) lowers to a synthetic MOVE into the
+  PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses the CALL…RETURNING wiring); conformance
+  `tests/conformance/2002/goback_returning`. EXIT PROGRAM/PERFORM[ CYCLE]/SECTION/PARAGRAPH/METHOD/FUNCTION
+  grammar present and EXIT PROGRAM/PERFORM green across NIST — no gap. **Remaining:** `CONTINUE AFTER expr SECONDS`
+  (2002 timed delay) — deferred (non-deterministic, poor conformance fit, low value).
 
 ### 3.5 M2 — Preprocessor robustness & directives
 
@@ -392,3 +398,7 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   A 2-agent adversarial review caught + fixed VALUE corruption (§13.18.63 GR10), a boolean-in-COMPUTE
   silent-numeric read, and JUSTIFIED wrongly rejected on boolean/national (the last also un-deadened national
   JUSTIFIED). Guard 1047/476/364. Next: M2-DATA-5 Pointers (needs the PointerRegistry design decision).
+- **2026-06-05 (session DEVLOG 387)** — **M2-PROC-6 `GOBACK RETURNING`** (ISO §14.9.16, dialect-gated 2002+):
+  lowers to a synthetic MOVE into the PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses CALL…RETURNING);
+  conformance `goback_returning`. EXIT variants verified present/green; `CONTINUE AFTER` deferred. Guard
+  1047/477/364. Still next: **M2-DATA-5 Pointers** (needs the PointerRegistry design decision — owner to confirm).
