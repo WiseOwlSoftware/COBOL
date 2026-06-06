@@ -130,6 +130,15 @@ internal sealed class CilLocationEmitter
         _ctx.Expression.EmitLoadPicDescriptor(il, loc.GetPic());
     }
 
+    /// <summary>Like <see cref="EmitLocationArgsWithPic"/> but materializes a typed-native field
+    /// (<see cref="EmitLocationArgsMaterializingTyped"/>) — SENDER-ONLY — then pushes its PicDescriptor. Used by
+    /// read-only PIC-taking ops on a typed field (e.g. the <c>IS NUMERIC</c> class condition).</summary>
+    internal void EmitLocationArgsWithPicMaterializingTyped(ILProcessor il, IR.IrLocation loc)
+    {
+        EmitLocationArgsMaterializingTyped(il, loc);
+        _ctx.Expression.EmitLoadPicDescriptor(il, loc.GetPic());
+    }
+
     /// <summary>
     /// Emit (area, offset, length) for a cached location. On first encounter with a
     /// given cache key, compute the inner location args, store into locals, and reload.

@@ -213,4 +213,33 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void TypedField_ClassConditions_ByteIdentical()
+    {
+        // IS NUMERIC / IS ALPHABETIC on typed string fields — the subject is a read-only sender, materialized to
+        // a byte window and run through the same byte class check, so byte-identical.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDCLS.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-DIGITS PIC X(3) VALUE "123".
+            01 WS-ALPHA  PIC X(3) VALUE "ABC".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-DIGITS IS NUMERIC THEN DISPLAY "DNUM" END-IF.
+                IF WS-ALPHA IS NUMERIC THEN DISPLAY "ANUM" ELSE DISPLAY "ANOTNUM" END-IF.
+                IF WS-ALPHA IS ALPHABETIC THEN DISPLAY "AALPHA" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("DNUM\nANOTNUM\nAALPHA", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

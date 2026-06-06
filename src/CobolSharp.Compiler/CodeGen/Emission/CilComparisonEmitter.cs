@@ -37,13 +37,15 @@ internal sealed class CilComparisonEmitter
         System.Reflection.MethodInfo method;
         if (kind == IR.ClassConditionKind.Numeric)
         {
-            _ctx.Location.EmitLocationArgsWithPic(il, inst.Subject);
+            // S3: a typed field as a class-condition subject is a read-only sender → materialize to a byte window
+            // and run the same byte class check (byte-identical).
+            _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, inst.Subject);
             method = typeof(Runtime.PicRuntime).GetMethod(methodName,
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!;
         }
         else
         {
-            _ctx.Location.EmitLocationArgs(il, inst.Subject);
+            _ctx.Location.EmitLocationArgsMaterializingTyped(il, inst.Subject);
             method = typeof(Runtime.PicRuntime).GetMethod(methodName,
                 new[] { typeof(byte[]), typeof(int), typeof(int) })!;
         }
@@ -60,7 +62,7 @@ internal sealed class CilComparisonEmitter
     internal void EmitUserClassCondition(ILProcessor il, IrUserClassCondition inst,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgs(il, inst.Subject);
+        _ctx.Location.EmitLocationArgsMaterializingTyped(il, inst.Subject);   // S3: typed subject is a sender
 
         // Emit the valid bytes array as a static field or inline byte array
         _ctx.Expression.EmitByteArrayLiteral(il, inst.ValidBytes);

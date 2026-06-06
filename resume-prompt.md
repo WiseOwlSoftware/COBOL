@@ -7,7 +7,7 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
-### ✅ DONE so far (DEVLOG 394–403; guard **1187 unit / 489 integration / 364 NIST**, all green)
+### ✅ DONE so far (DEVLOG 394–403; guard **1187 unit / 490 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
   `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
