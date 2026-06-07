@@ -1005,6 +1005,28 @@ public sealed class BoundSetPointerStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
 }
 
+/// <summary>
+/// Pointer arithmetic (Stage-4, ISO §14.9.39 Format 10): <c>SET p UP|DOWN BY n</c> increments
+/// (<see cref="IsUp"/>) or decrements the pointer's address by <see cref="Delta"/> bytes (GR20). The pointer's
+/// managed <c>ManagedPointer</c> field gets a new value with <c>Offset ± n</c>; Buffer/Length/Pic are preserved.
+/// (The EC-DATA-PTR-NULL / EC-SIZE-ADDRESS / EC-RANGE-PTR checks of GR18–20 belong to the deferred EC subsystem.)
+/// </summary>
+public sealed class BoundPointerArithStatement : BoundStatement
+{
+    public DataSymbol Pointer { get; }
+    public bool IsUp { get; }
+    public BoundExpression Delta { get; }
+
+    public BoundPointerArithStatement(DataSymbol pointer, bool isUp, BoundExpression delta)
+    {
+        Pointer = pointer;
+        IsUp = isUp;
+        Delta = delta;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
 // ── ACCEPT ──
 
 public sealed class BoundAcceptStatement : BoundStatement

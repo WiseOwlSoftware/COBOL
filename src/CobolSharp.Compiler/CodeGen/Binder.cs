@@ -567,6 +567,18 @@ public sealed class Binder
         }
     }
 
+    /// <summary>
+    /// Stage-4 pointer arithmetic: lower <c>SET p UP|DOWN BY n</c> to an <see cref="IrPointerAdjust"/> on p's
+    /// <c>_PTR_</c> field (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10.4, ISO §14.9.39 Format 10).
+    /// </summary>
+    private void LowerPointerArith(BoundPointerArithStatement stmt, IrBasicBlock block)
+    {
+        if (!_ctx.PointerFieldRefs.TryGetValue(stmt.Pointer, out var ptrField))
+            return;
+        var delta = _ctx.Expression.LowerExpression(stmt.Delta) ?? new IR.IrLiteral(0m);
+        block.Instructions.Add(new IrPointerAdjust(ptrField, delta, stmt.IsUp));
+    }
+
     // ── Entry point ──
 
     private void CreateEntryPoint(IrModule module, BoundProgram boundProgram)
@@ -980,6 +992,9 @@ public sealed class Binder
                 break;
             case BoundSetPointerStatement setPtr:
                 LowerSetPointer(setPtr, block);
+                break;
+            case BoundPointerArithStatement ptrArith:
+                LowerPointerArith(ptrArith, block);
                 break;
 
             // ── Arithmetic → _ctx.Arithmetic ──

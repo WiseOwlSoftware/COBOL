@@ -373,7 +373,12 @@ internal sealed class DataStatementBinder
         {
             var targetId = _ctx.Expression.BindDataReferenceWithSubscripts(idCtx);
             if (targetId is not BoundIdentifierExpression boundTarget) continue;
-            stmts.Add(new BoundSetIndexStatement(boundTarget, op, deltaExpr));
+            // SET p UP/DOWN BY n on a POINTER is pointer arithmetic (ISO §14.9.39 Format 10): adjust the managed
+            // pointer's address by n bytes, NOT the numeric index path.
+            if (boundTarget.Symbol.ResolvedType?.Category == CobolCategory.Pointer)
+                stmts.Add(new BoundPointerArithStatement(boundTarget.Symbol, op == SetOperation.UpBy, deltaExpr));
+            else
+                stmts.Add(new BoundSetIndexStatement(boundTarget, op, deltaExpr));
         }
 
         if (stmts.Count == 0) return null;

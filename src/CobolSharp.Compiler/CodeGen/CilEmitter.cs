@@ -1222,6 +1222,29 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Stloc, getLocal(pc.Result.Value)));
     }
 
+    /// <summary>Emit pointer arithmetic (ISO §14.9.39 Format 10 GR20): replace <c>_PTR_p</c> with
+    /// <c>new ManagedPointer(p.Buffer, p.Offset ± (int)delta, p.Length, p.Pic)</c> — address ± n bytes, preserving
+    /// the buffer/length/descriptor.</summary>
+    private void EmitPointerAdjust(ILProcessor il, IR.IrPointerAdjust pa)
+    {
+        var f = _ctx.PointerFields[pa.PtrField];
+        var bufG = _module.ImportReference(typeof(ManagedPointer).GetProperty("Buffer")!.GetGetMethod()!);
+        var offG = _module.ImportReference(typeof(ManagedPointer).GetProperty("Offset")!.GetGetMethod()!);
+        var lenG = _module.ImportReference(typeof(ManagedPointer).GetProperty("Length")!.GetGetMethod()!);
+        var picG = _module.ImportReference(typeof(ManagedPointer).GetProperty("Pic")!.GetGetMethod()!);
+        var toInt32 = _module.ImportReference(typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!);
+
+        il.Append(il.Create(OpCodes.Ldsflda, f)); il.Append(il.Create(OpCodes.Call, bufG));   // Buffer
+        il.Append(il.Create(OpCodes.Ldsflda, f)); il.Append(il.Create(OpCodes.Call, offG));   // Offset
+        _ctx.Expression.EmitIrExpression(il, pa.Delta);                                        // delta (decimal)
+        il.Append(il.Create(OpCodes.Call, toInt32));                                           // -> int bytes
+        il.Append(il.Create(pa.IsUp ? OpCodes.Add : OpCodes.Sub));                             // Offset ± delta
+        il.Append(il.Create(OpCodes.Ldsflda, f)); il.Append(il.Create(OpCodes.Call, lenG));   // Length
+        il.Append(il.Create(OpCodes.Ldsflda, f)); il.Append(il.Create(OpCodes.Call, picG));   // Pic
+        il.Append(il.Create(OpCodes.Newobj, _ctx.Data.GetManagedPointerCtor()));               // ManagedPointer
+        il.Append(il.Create(OpCodes.Stsfld, f));
+    }
+
     // ── Instruction emission ──
 
     private void EmitInstruction(
@@ -1244,6 +1267,7 @@ public sealed class CilEmitter
             case IrPicMoveLiteralNumeric movLit: _ctx.Data.EmitPicMoveLiteralNumeric(il, movLit); break;
             case IrPointerStore ptrStore: EmitPointerStore(il, ptrStore); break;
             case IrPointerCompare ptrCmp: EmitPointerCompare(il, ptrCmp, getLocal); break;
+            case IrPointerAdjust ptrAdj: EmitPointerAdjust(il, ptrAdj); break;
             case IrAccept acc: _ctx.Data.EmitAccept(il, acc); break;
             case IrPicDisplay disp: _ctx.Data.EmitPicDisplay(il, disp); break;
 

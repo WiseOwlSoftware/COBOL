@@ -583,6 +583,26 @@ public sealed class IrPointerCompare : IrInstruction
 }
 
 /// <summary>
+/// Pointer arithmetic (Stage-4, ISO §14.9.39 Format 10 GR20): adjust a pointer field's address by
+/// <see cref="Delta"/> bytes — <c>Offset + n</c> if <see cref="IsUp"/>, else <c>Offset - n</c>. Emitted as a new
+/// <c>ManagedPointer(Buffer, Offset ± n, Length, Pic)</c> stored back into the field. <see cref="Delta"/> is a
+/// numeric <see cref="IrExpression"/> (a decimal at runtime, converted to int bytes).
+/// </summary>
+public sealed class IrPointerAdjust : IrInstruction
+{
+    public string PtrField { get; }
+    public IrExpression Delta { get; }
+    public bool IsUp { get; }
+
+    public IrPointerAdjust(string ptrField, IrExpression delta, bool isUp)
+    {
+        PtrField = ptrField;
+        Delta = delta;
+        IsUp = isUp;
+    }
+}
+
+/// <summary>
 /// WRITE record — outputs record bytes from ProgramState to file.
 /// </summary>
 public sealed class IrWriteRecordFromStorage : IrInstruction
