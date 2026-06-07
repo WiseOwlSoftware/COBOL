@@ -1126,7 +1126,7 @@ public sealed class CilEmitter
             {
                 var accLocal = getLocal(accField.Accumulator);
                 il.Append(il.Create(OpCodes.Ldloc, accLocal));
-                _ctx.Location.EmitLocationArgsWithPic(il, accField.Source);
+                _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, accField.Source);   // S4: typed numeric sender
                 il.Append(il.Create(OpCodes.Call, _module.ImportReference(
                     typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
                         new[] { typeof(byte[]), typeof(int), typeof(int),

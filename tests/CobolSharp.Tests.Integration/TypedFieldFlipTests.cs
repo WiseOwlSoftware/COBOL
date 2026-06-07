@@ -343,4 +343,49 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericField_Arithmetic_ByteIdentical()
+    {
+        // S4 numeric arithmetic on typed (long) fields: ADD…TO (read-modify-write receiver), SUBTRACT…FROM,
+        // MULTIPLY…GIVING, DIVIDE…GIVING, COMPUTE (typed operands in the expression), and DIVIDE…REMAINDER. Each
+        // typed sender materializes to its digit window and each typed receiver decodes back after the byte op —
+        // so every result is byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDARI.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5) VALUE 100.
+            01 WS-B PIC 9(5) VALUE 30.
+            01 WS-C PIC 9(5) VALUE 0.
+            01 WS-R PIC 9(5) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ADD WS-B TO WS-A.
+                DISPLAY WS-A.
+                SUBTRACT 5 FROM WS-A.
+                DISPLAY WS-A.
+                MULTIPLY WS-B BY 2 GIVING WS-C.
+                DISPLAY WS-C.
+                DIVIDE WS-A BY WS-B GIVING WS-C.
+                DISPLAY WS-C.
+                COMPUTE WS-C = WS-A + WS-B.
+                DISPLAY WS-C.
+                DIVIDE WS-A BY WS-B GIVING WS-C REMAINDER WS-R.
+                DISPLAY WS-C.
+                DISPLAY WS-R.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // A:100+30=130; 130-5=125; C:30*2=60; 125/30=4 (trunc); C:125+30=155; 125/30=4 rem 5.
+        Assert.Equal("00130\n00125\n00060\n00004\n00155\n00004\n00005",
+            typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

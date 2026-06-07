@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
@@ -102,27 +103,9 @@ internal sealed class CilLocationEmitter
             {
                 // S4 numeric sender-materialize: a typed NUMERIC field's value is a `long`. Encode it into a scratch
                 // byte window via the SAME codec the byte field uses (PicRuntime.EncodeNumeric) so the byte op reads
-                // identical bytes — byte-identical, because encode∘decode is a round-trip for an in-range value.
-                var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
-                _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
-                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
-                il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Byte));
-                il.Append(il.Create(OpCodes.Stloc, scratch));
-                // EncodeNumeric(scratch, 0, width, pic, (decimal)value)
-                il.Append(il.Create(OpCodes.Ldloc, scratch));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
-                _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
-                EmitTypedFieldValueLoad(il, t);
-                il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
-                    typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
-                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                    typeof(Runtime.PicRuntime).GetMethod("EncodeNumeric",
-                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor), typeof(decimal) })!)));
-                // push (scratch, 0, width) for the byte op
-                il.Append(il.Create(OpCodes.Ldloc, scratch));
-                il.Append(il.Create(OpCodes.Ldc_I4_0));
-                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+                // identical bytes — byte-identical, because encode∘decode is a round-trip for an in-range value. The
+                // shared helper leaves (scratch, 0, width) on the stack; the WithPic wrapper appends the pic.
+                EmitMaterializeNumericToScratch(il, t);
                 return;
             }
 
@@ -175,6 +158,80 @@ internal sealed class CilLocationEmitter
     {
         EmitLocationArgsMaterializingTyped(il, loc);
         _ctx.Expression.EmitLoadPicDescriptor(il, loc.GetPic());
+    }
+
+    /// <summary>
+    /// Allocates a scratch <c>byte[width]</c>, encodes the typed numeric field's current <c>long</c> value into it
+    /// via <c>PicRuntime.EncodeNumeric</c> (the SAME codec the byte field uses), and leaves <c>(scratch, 0, width)</c>
+    /// on the stack. Returns the scratch local. Shared by the numeric sender-materialize (which then needs only the
+    /// pic appended) and the numeric-receiver prologue (which keeps the local for the write-back epilogue).
+    /// </summary>
+    private VariableDefinition EmitMaterializeNumericToScratch(ILProcessor il, IR.IrTypedFieldLocation t)
+    {
+        var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
+        _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
+        il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+        il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Byte));
+        il.Append(il.Create(OpCodes.Stloc, scratch));
+        // EncodeNumeric(scratch, 0, width, pic, (decimal)currentValue)
+        il.Append(il.Create(OpCodes.Ldloc, scratch));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+        _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
+        EmitTypedFieldValueLoad(il, t);
+        il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+            typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("EncodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor), typeof(decimal) })!)));
+        // leave (scratch, 0, width) on the stack for the byte op
+        il.Append(il.Create(OpCodes.Ldloc, scratch));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+        return scratch;
+    }
+
+    /// <summary>
+    /// S4 typed-NUMERIC receiver — PROLOGUE. Materializes the field's current <c>long</c> into a scratch window and
+    /// pushes <c>(scratch, 0, width, pic)</c> so the byte arithmetic op can read-modify-write it in place; returns the
+    /// scratch local for the matching <see cref="EmitTypedNumericReceiverEpilogue"/>. The current value is
+    /// materialized even for write-only (GIVING) receivers — harmless, the op overwrites it — so the prologue is
+    /// uniform across read-modify-write (<c>ADD…TO</c>) and write-only (<c>…GIVING</c>) receivers.
+    /// </summary>
+    internal VariableDefinition EmitTypedNumericReceiverPrologue(ILProcessor il, IR.IrTypedFieldLocation t)
+    {
+        var scratch = EmitMaterializeNumericToScratch(il, t);
+        _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);   // the receiver args take a pic too
+        return scratch;
+    }
+
+    /// <summary>
+    /// S4 typed-NUMERIC receiver — EPILOGUE. After the byte arithmetic op has written its result into the scratch
+    /// window, decode it (<c>PicRuntime.DecodeNumeric</c>) and store back into the field as a <c>long</c> — the
+    /// write-back. The decoded value is the field's truncated digit image (&lt; 10^digits), exactly what the byte
+    /// path holds, so DISPLAY and downstream arithmetic stay byte-identical.
+    /// </summary>
+    internal void EmitTypedNumericReceiverEpilogue(ILProcessor il, IR.IrTypedFieldLocation t, VariableDefinition scratch)
+    {
+        // store-target prefix: a record-struct member needs the instance address pushed before the value.
+        if (t.InstanceName is { } inst)
+            il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+        // (long)DecodeNumeric(scratch, 0, width, pic)
+        il.Append(il.Create(OpCodes.Ldloc, scratch));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+        _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(decimal).GetMethods().Single(m =>
+                m.Name == "op_Explicit" && m.ReturnType == typeof(long)
+                && m.GetParameters() is { Length: 1 } p && p[0].ParameterType == typeof(decimal)))));
+        // store: stfld member / stsfld flat
+        il.Append(t.InstanceName is { } inst2
+            ? il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst2].Members[t.FieldName])
+            : il.Create(OpCodes.Stsfld, _ctx.TypedFields[t.FieldName]));
     }
 
     /// <summary>

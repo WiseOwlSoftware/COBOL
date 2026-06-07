@@ -31,7 +31,7 @@ internal sealed class CilExpressionEmitter
                 break;
 
             case IR.IrLoadNumeric load:
-                _ctx.Location.EmitLocationArgsWithPic(il, load.Source);
+                _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, load.Source);   // S4: typed numeric sender
                 il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                     typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
                         new[] { typeof(byte[]), typeof(int), typeof(int),
