@@ -235,6 +235,14 @@ not each cell.
 
 ### 9.3 Binder + resolver + init
 
+- **Classifier — a new demotion (REQUIRED, discovered DEVLOG 421).** A flipped `T[]` has **no byte home** for a
+  *whole-table* operand (`MOVE TABLE TO …`, `DISPLAY TABLE`, `INITIALIZE TABLE`, a group MOVE that spans it, etc.).
+  Today the classifier has no OCCURS/whole-operand trigger and the Binder excludes all OCCURS items, so this never
+  arose. Slice 1 adds a `ProcedureScanner` demotion: **a non-subscripted (whole) reference to an `OCCURS` item — or
+  any reference to a group that transitively contains one — demotes that item to byte.** So only tables that are
+  *exclusively element-accessed* (`ARR(i)`) flip; any whole-table use keeps the entire table byte-backed (the byte
+  engine handles it unchanged, exactly as today). This mirrors the whole-group-operand rule (ADR trigger 15) and
+  keeps slice 1 free of a whole-array↔byte materialize cell (deferred until a real case needs it).
 - **Binder.** A new branch: an elementary item with `Occurs is { DependingOnSymbol: null }`, flippable element PIC,
   classifier-Typed → register an `IrTypedArrayDef(name, elementCount, elementKind, elementInit, byteWidth)` and a
   `TypedFieldRefs` entry tagged as an array (so the resolver knows to index). Element init = the element's

@@ -10907,6 +10907,15 @@ Per the doc's own "scaffolding lands with its first consumer (else it is dead co
 end-to-end commit — so this design is the separable deliverable; implementation starts next. No code change; guard
 unaffected (**1196 / 498 / 364**).
 
+**Design refinement (caught before coding).** Spiking the IR base + `IrTypedElementLocation` surfaced a gap §9 had
+missed: a flipped `T[]` table has **no byte home** for a *whole-table* operand (`MOVE TABLE`, `DISPLAY TABLE`, a
+spanning group MOVE). The classifier has no such trigger today (and the Binder excludes all OCCURS), so it never
+arose. Resolution added to §9.3: slice 1 gives the `ProcedureScanner` a new demotion — a **non-subscripted (whole)
+reference to an OCCURS item (or a group transitively containing one) → byte** — so only exclusively-element-accessed
+tables flip; any whole-table use stays byte-backed (no whole-array↔byte materialize cell needed yet). The spiked IR
+scaffolding was reverted (it must land atomically with its consumers in slice 1, not as dead code) — exactly the
+"design before a cross-cutting change" payoff: a real correctness gap fixed on paper, not in a half-built 18-site edit.
+
 ## Entry 420 — S4 fix: MOVE ZEROS to a typed numeric field (was emitting invalid IL)
 
 Found by probing with `--typed-fields`: `MOVE ZEROS TO` a typed numeric field threw `InvalidProgramException` at
