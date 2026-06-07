@@ -40,13 +40,13 @@ internal sealed class CilExpressionEmitter
 
             case IR.IrUserFunctionCall ufc:
             {
-                // COBOL-2002 user-defined function in an expression: build a CobolDataPointer[] of the USING
+                // COBOL-2002 user-defined function in an expression: build a ManagedPointer[] of the USING
                 // arguments (BY CONTENT), then CobolProgramRegistry.InvokeNumericFunction(name, args, len, pic)
                 // appends a scratch RETURNING buffer, invokes the function, and decodes its numeric result,
                 // leaving a decimal on the stack (like any other numeric expression).
                 il.Append(il.Create(OpCodes.Ldstr, ufc.FunctionName));
                 il.Append(il.Create(OpCodes.Ldc_I4, ufc.Arguments.Count));
-                il.Append(il.Create(OpCodes.Newarr, _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
+                il.Append(il.Create(OpCodes.Newarr, _ctx.Module.ImportReference(typeof(Runtime.ManagedPointer))));
                 for (int i = 0; i < ufc.Arguments.Count; i++)
                 {
                     var arg = ufc.Arguments[i];
@@ -56,7 +56,7 @@ internal sealed class CilExpressionEmitter
                     {
                         _ctx.Location.EmitLocationArgs(il, arg.Location); // pushes (area, offset, length)
                         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                            typeof(Runtime.CobolDataPointer).GetMethod("CreateByContent",
+                            typeof(Runtime.ManagedPointer).GetMethod("CreateByContent",
                                 new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
                     }
                     else
@@ -71,13 +71,13 @@ internal sealed class CilExpressionEmitter
                                 new[] { typeof(decimal), typeof(int), typeof(Runtime.PicDescriptor) })!)));
                     }
                     il.Append(il.Create(OpCodes.Stelem_Any,
-                        _ctx.Module.ImportReference(typeof(Runtime.CobolDataPointer))));
+                        _ctx.Module.ImportReference(typeof(Runtime.ManagedPointer))));
                 }
                 il.Append(il.Create(OpCodes.Ldc_I4, ufc.ReturnLength));
                 EmitLoadPicDescriptor(il, ufc.ReturnPic);
                 il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                     typeof(Runtime.CobolProgramRegistry).GetMethod("InvokeNumericFunction",
-                        new[] { typeof(string), typeof(Runtime.CobolDataPointer[]),
+                        new[] { typeof(string), typeof(Runtime.ManagedPointer[]),
                                 typeof(int), typeof(Runtime.PicDescriptor) })!)));
                 break;
             }

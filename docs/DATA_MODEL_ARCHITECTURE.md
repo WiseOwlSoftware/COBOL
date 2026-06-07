@@ -12,7 +12,7 @@ report: `docs/DATA_MODEL_REVIEW.md`.
 
 **Grounded in:** `StorageLocation.cs` (the `(Area,Offset,Length,PicDescriptor)` quad), `PicDescriptor.cs`,
 `PicRuntime.cs` (2,669-line byte interpreter), `StorageArea.cs` (`ProgramState` = three `byte[]` + `StorageHelpers`),
-`CobolDataPointer.cs` (already a managed interior reference), `IrExpression.cs` / `IrType.cs` /
+`ManagedPointer.cs` (already a managed interior reference), `IrExpression.cs` / `IrType.cs` /
 `IrLocationExtensions.cs` (the `IrLocation` hierarchy).
 
 ---
@@ -188,7 +188,7 @@ heap `byte[]`, never the substrate.
 
 ### 1.5 Pointers → managed references; OO → .NET classes
 
-`USAGE POINTER`/`BASED`/`ADDRESS OF` become a managed reference (`ManagedPtr`, §6); GC is transparent, no
+`USAGE POINTER`/`BASED`/`ADDRESS OF` become a managed reference (`ManagedPointer`, §6); GC is transparent, no
 opaque-handle registry. OO COBOL maps to real .NET classes (§7).
 
 ### 1.6 One interop chokepoint, byte path is the safety floor
@@ -438,7 +438,7 @@ crosses this program's chokepoint.
 | numeric-/alphanumeric-edited | edited-`string` projection (output) | `Edited` window (carries pattern) | reuse `FormatNumericEdited` |
 | `PIC 1` boolean | `bool` | `Bool1` window | one position '0'/'1' |
 | `USAGE INDEX` / `INDEXED BY` | `int` (occurrence number) | — | `SET UP/DOWN BY` = `+=`/`-=` |
-| `USAGE POINTER` / `BASED` / `ADDRESS OF` | `ManagedPtr` (§6) | 8-byte window only if overlaid as bytes | GC-tracked, no registry |
+| `USAGE POINTER` / `BASED` / `ADDRESS OF` | `ManagedPointer` (§6) | 8-byte window only if overlaid as bytes | GC-tracked, no registry |
 | `OBJECT REFERENCE` | typed .NET reference / `object?` | — (references have no byte image) | OO (§7) |
 | group item | nested `record struct` of children | group window over whole span | all-DISPLAY group MOVE = field-wise copy; non-DISPLAY group materializes its canonical byte image at the op (members stay typed) — §2.4 |
 | `OCCURS n` (fixed) | `T[]` / `CobolTable<T>` (`[InlineArray]`-backed) | indexer window `this[i] => slice(...)` | 1-based handled in lowering |
@@ -479,7 +479,7 @@ CobolSharp.Runtime/
     IslandCodec.cs         // Encode(value->window)/Decode(window->value) per FieldShape; the boundary codec
     LegacyPicRuntime.cs    // retained; byte-island op implementation + IDataSlot boundary
   Memory/
-    ManagedPtr.cs          // {object? owner, int offset, int length} — managed pointer (§6)
+    ManagedPointer.cs          // {object? owner, int offset, int length} — managed pointer (§6)
     ProgramStorage.cs      // successor to ProgramState; byte areas shrink to islands + file records
   Io/  …                   // FileRuntime / indexed / relative — reused UNCHANGED (records are byte-backed)
   Oo/  …                   // base support for OO COBOL (§7)
@@ -491,27 +491,29 @@ builder's per-record field map and emits the typed `record struct` plus island a
 
 ---
 
-## 6. Pointer model — managed reference, no opaque-handle registry
+## 6. Pointer model — ONE managed-reference type, no opaque-handle registry
 
-`CobolDataPointer(byte[] Buffer, int Offset, int Length, PicDescriptor Pic)` is already a managed interior
-reference. Generalize:
+**SINGULAR PATTERN (owner directive 2026-06-06):** there is exactly **one** managed-interior-reference carrier —
+the EXISTING `ManagedPointer(byte[] Buffer, int Offset, int Length, PicDescriptor Pic)` — used for **both**
+`CALL … BY REFERENCE` (its current role) **and** `USAGE POINTER` / `ADDRESS OF` / `BASED`. Do **NOT** introduce a
+second/parallel `ManagedPointer` type — that would be two patterns for one result (rejected; production code is
+maintained for decades). `ManagedPointer` is already a safe managed interior reference (a managed `byte[]` +
+offset + length, **no `unsafe`**); the deref is a normal bounds-checked `Buffer.AsSpan(Offset, Length)` fed to the
+existing byte-path runtime ops. It works because `ADDRESS OF` demotes its target to byte (trigger 6), so `Buffer`
+is always a managed `byte[]` — there is never an interior pointer into a typed `record struct`, hence no pinning /
+no `unsafe` / no native heap / no handle table.
 
-```csharp
-public readonly record struct ManagedPtr(object? Owner, int Offset, int Length) {
-    public static ManagedPtr Null => default;        // all-zero ≡ NULL
-    public bool IsNull => Owner is null;
-}
-```
-
-- `USAGE POINTER` field = `ManagedPtr` (GC tracks `Owner`; no native heap, no handle table).
-- `ADDRESS OF x` = `new ManagedPtr(ownerRegion, offsetOf(x), len(x))`.
-- `BASED` + `SET ADDRESS OF b TO p` = the based item's view is constructed over `p`'s region+offset.
-- `ALLOCATE` = `new byte[]` (or pooled) owned by the `ManagedPtr`; `FREE` = drop the reference (GC reclaims).
-- `SET p UP/DOWN BY n` = `p with { Offset = p.Offset + n }` (undefined across distinct owners — the same latitude
+- `USAGE POINTER` field, `ADDRESS OF`, `BASED` base, `ALLOCATE` result all carry a `ManagedPointer`.
+- `NULL` ≡ `Buffer == null` (i.e. `!IsValid`); `= NULL` / `SET p TO NULL` use that.
+- `ADDRESS OF x` = `ManagedPointer.CreateByReference(x.area, offsetOf(x), len(x))` (carrying x's `Pic`).
+- `BASED` + `SET ADDRESS OF b TO p` = the based item's view derefs through `p`'s `(Buffer, Offset)`.
+- `ALLOCATE n CHARACTERS` = a `ManagedPointer` over `new byte[n]` (GC-owned); `FREE` = drop the reference (GC
+  reclaims — no manual free).
+- `SET p UP/DOWN BY n` = `p with { Offset = p.Offset + n }` (undefined across distinct buffers — the same latitude
   COBOL gives across allocations).
-- A pointer overlaid as `X`/`9` bytes is byte-backed by trigger 6.
-- `ADDRESS OF` a typed item is a trigger-6 event demoting its class to byte, so a `ManagedPtr.Owner` is always a
-  `byte[]` / island buffer; `OBJECT REFERENCE` uses the typed-reference path (§7), not `ManagedPtr`.
+- A pointer overlaid as `X`/`9` bytes is byte-backed by trigger 6; `ADDRESS OF` a typed item is a trigger-6 event
+  demoting its class to byte, so `Buffer` is always a `byte[]` / island buffer. `OBJECT REFERENCE` uses the
+  typed-reference path (§7), not `ManagedPointer`.
 
 This is the owner's stated Phase-2 direction; GC is transparent because the IL holds managed references to managed
 regions — no registry indirection needed.
@@ -598,7 +600,7 @@ groups → OCCURS → …). NIST CCVS programs are overlay-heavy and mostly stay
 byte path; ordinary programs and `tests/conformance/` increasingly hit the typed fast path. The
 materialize-to-window fallback guarantees any unhandled typed case degrades to the byte path, never crashes.
 
-**Stage 4 — Pointers (managed ref) + OO classes.** Convert `CobolDataPointer`→`ManagedPtr`; map OO COBOL to .NET
+**Stage 4 — Pointers (managed ref) + OO classes.** Convert `ManagedPointer`→`ManagedPointer`; map OO COBOL to .NET
 classes. Largely additive; each feature ships a conformance test in the same commit.
 
 **Stage 5 — Roslyn C# backend, Cecil as oracle.** Add `--backend csharp` emitting readable `record struct` +
@@ -674,7 +676,7 @@ leaves" incentive.
 4. **Conformance ambition during migration.** Acceptable for NIST-heavy overlay programs to remain byte-backed
    indefinitely (green and correct, just not "native"), with typed targeted at new/ordinary code — or drive a
    specific % of the corpus to typed?
-5. **OO/pointer sequencing.** Pointers in Stage 4 on Cecil (recommended — `CobolDataPointer` already exists) and OO
+5. **OO/pointer sequencing.** Pointers in Stage 4 on Cecil (recommended — `ManagedPointer` already exists) and OO
    in Stage 5 alongside the C# backend (its natural home) — or defer both to Phase 2?
 
 ### Tracked completeness investigations (resolve before the relevant stage; detail in `docs/DATA_MODEL_REVIEW.md` §5)
@@ -735,7 +737,7 @@ control history of this file (prior revision).
 `E:\CobolSharp\src\CobolSharp.Runtime\PicRuntime.cs` (codec body → `Bytes/` engine + boundary codec),
 `E:\CobolSharp\src\CobolSharp.Runtime\PicDescriptor.cs` (split into `FieldShape` + `NumProfile`),
 `E:\CobolSharp\src\CobolSharp.Runtime\StorageArea.cs` (`ProgramState` → `ProgramStorage`),
-`E:\CobolSharp\src\CobolSharp.Runtime\CobolDataPointer.cs` (→ `ManagedPtr`),
+`E:\CobolSharp\src\CobolSharp.Runtime\ManagedPointer.cs` (→ `ManagedPointer`),
 `E:\CobolSharp\src\CobolSharp.Compiler\CodeGen\StorageLocation.cs` (the quad → `ByteWindowSlot`),
 `E:\CobolSharp\src\CobolSharp.Compiler\CodeGen\RecordLayoutBuilder.cs` (one walk, two products),
 `E:\CobolSharp\src\CobolSharp.Compiler\IR\IrType.cs` / `IrExpression.cs` / `IrLocationExtensions.cs`

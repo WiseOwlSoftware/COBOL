@@ -313,17 +313,17 @@ public sealed class CilEmitter
             _module.TypeSystem.Int32);
         _entryMethod.Parameters.Add(new ParameterDefinition(
             "args", ParameterAttributes.None,
-            _module.ImportReference(typeof(CobolDataPointer[]))));
+            _module.ImportReference(typeof(ManagedPointer[]))));
         _programType!.Methods.Add(_entryMethod);
 
-        // Create static CobolDataPointer fields for each LINKAGE parameter
+        // Create static ManagedPointer fields for each LINKAGE parameter
         // (so paragraph methods can access LINKAGE items via these fields)
         foreach (var paramName in ir.UsingParameterNames)
         {
             var field = new FieldDefinition(
                 $"_linkage_{paramName}",
                 FieldAttributes.Private | FieldAttributes.Static,
-                _module.ImportReference(typeof(CobolDataPointer)));
+                _module.ImportReference(typeof(ManagedPointer)));
             _programType.Fields.Add(field);
             _linkageFields[paramName] = field;
         }
@@ -372,7 +372,7 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Callvirt, reinitMethod));
         }
 
-        // Map args[i] → static CobolDataPointer fields (created in CreateEntryMethodSignature)
+        // Map args[i] → static ManagedPointer fields (created in CreateEntryMethodSignature)
         for (int i = 0; i < ir.UsingParameterNames.Count; i++)
         {
             string paramName = ir.UsingParameterNames[i];
@@ -392,16 +392,16 @@ public sealed class CilEmitter
             // args[i]
             il.Append(il.Create(OpCodes.Ldarg_0)); // args
             il.Append(il.Create(OpCodes.Ldc_I4, i));
-            il.Append(il.Create(OpCodes.Ldelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Ldelem_Any, _module.ImportReference(typeof(ManagedPointer))));
             il.Append(il.Create(OpCodes.Stsfld, field));
             il.Append(il.Create(OpCodes.Br, afterLabel));
 
             // default
             il.Append(defaultLabel);
-            var tempLocal = new VariableDefinition(_module.ImportReference(typeof(CobolDataPointer)));
+            var tempLocal = new VariableDefinition(_module.ImportReference(typeof(ManagedPointer)));
             _entryMethod.Body.Variables.Add(tempLocal);
             il.Append(il.Create(OpCodes.Ldloca, tempLocal));
-            il.Append(il.Create(OpCodes.Initobj, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Initobj, _module.ImportReference(typeof(ManagedPointer))));
             il.Append(il.Create(OpCodes.Ldloc, tempLocal));
             il.Append(il.Create(OpCodes.Stsfld, field));
 
@@ -456,7 +456,7 @@ public sealed class CilEmitter
             _module.TypeSystem.Int32);
         method.Parameters.Add(new ParameterDefinition(
             "args", ParameterAttributes.None,
-            _module.ImportReference(typeof(CobolDataPointer[]))));
+            _module.ImportReference(typeof(ManagedPointer[]))));
         _programType!.Methods.Add(method);
 
         var il = method.Body.GetILProcessor();
@@ -1401,13 +1401,13 @@ public sealed class CilEmitter
 
     private void EmitCallProgram(ILProcessor il, IrCallProgram callProg, MethodDefinition method)
     {
-        // Build CobolDataPointer[] args (+ 1 extra for RETURNING if present)
+        // Build ManagedPointer[] args (+ 1 extra for RETURNING if present)
         int argCount = callProg.CallArguments.Count;
         bool hasReturning = callProg.ReturningTarget != null;
         int totalArgs = hasReturning ? argCount + 1 : argCount;
         il.Append(il.Create(OpCodes.Ldc_I4, totalArgs));
         il.Append(il.Create(OpCodes.Newarr,
-            _module.ImportReference(typeof(CobolDataPointer))));
+            _module.ImportReference(typeof(ManagedPointer))));
 
         for (int i = 0; i < argCount; i++)
         {
@@ -1423,19 +1423,19 @@ public sealed class CilEmitter
                 // BY CONTENT: callee gets private copy, modifications don't propagate
                 // BY VALUE: same copy semantics (value is encoded in source location)
                 var createByContent = _module.ImportReference(
-                    typeof(CobolDataPointer).GetMethod("CreateByContent",
+                    typeof(ManagedPointer).GetMethod("CreateByContent",
                         new[] { typeof(byte[]), typeof(int), typeof(int) })!);
                 il.Append(il.Create(OpCodes.Call, createByContent));
             }
             else // BY REFERENCE — share caller's storage
             {
                 var createByRef = _module.ImportReference(
-                    typeof(CobolDataPointer).GetMethod("CreateByReference",
+                    typeof(ManagedPointer).GetMethod("CreateByReference",
                         new[] { typeof(byte[]), typeof(int), typeof(int) })!);
                 il.Append(il.Create(OpCodes.Call, createByRef));
             }
 
-            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(ManagedPointer))));
         }
 
         // If RETURNING specified, add it as an extra BY REFERENCE arg at the end
@@ -1445,14 +1445,14 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ldc_I4, argCount)); // last index
             _ctx.Location.EmitLocationArgs(il, callProg.ReturningTarget!);
             var createByRef = _module.ImportReference(
-                typeof(CobolDataPointer).GetMethod("CreateByReference",
+                typeof(ManagedPointer).GetMethod("CreateByReference",
                     new[] { typeof(byte[]), typeof(int), typeof(int) })!);
             il.Append(il.Create(OpCodes.Call, createByRef));
-            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(ManagedPointer))));
         }
 
         // Store args array in a local
-        var argsLocal = new VariableDefinition(_module.ImportReference(typeof(CobolDataPointer[])));
+        var argsLocal = new VariableDefinition(_module.ImportReference(typeof(ManagedPointer[])));
         method.Body.Variables.Add(argsLocal);
         il.Append(il.Create(OpCodes.Stloc, argsLocal));
 
@@ -1610,9 +1610,9 @@ public sealed class CilEmitter
         }
         else if (rtc.MethodName == "Self.Entry")
         {
-            // Main calls Entry(Array.Empty<CobolDataPointer>())
+            // Main calls Entry(Array.Empty<ManagedPointer>())
             il.Append(il.Create(OpCodes.Ldc_I4_0));
-            il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(CobolDataPointer))));
+            il.Append(il.Create(OpCodes.Newarr, _module.ImportReference(typeof(ManagedPointer))));
             il.Append(il.Create(OpCodes.Call, _entryMethod!));
             il.Append(il.Create(OpCodes.Pop)); // discard int return value in Main
             // ISO §14.6.11 / §14.4: at normal run-unit termination the runtime executes an implicit CLOSE

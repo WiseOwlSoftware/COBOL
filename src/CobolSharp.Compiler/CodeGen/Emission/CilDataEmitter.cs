@@ -13,7 +13,7 @@ namespace CobolSharp.Compiler.CodeGen.Emission;
 /// EmitMoveStringToField, EmitMoveWithStandardSignature, EmitMoveFigurative,
 /// EmitMoveAllLiteral, EmitMoveFieldToField, EmitPicMoveLiteralNumeric,
 /// EmitPicDisplay, EmitDisplayOperand, EmitAccept, EmitLocationLength,
-/// EmitDefaultPicDescriptor, GetCobolDataPointerCtor, EmitOptionalString.
+/// EmitDefaultPicDescriptor, GetManagedPointerCtor, EmitOptionalString.
 /// </summary>
 internal sealed class CilDataEmitter
 {
@@ -807,12 +807,12 @@ internal sealed class CilDataEmitter
         il.Append(il.Create(OpCodes.Newobj, defaultPicCtor));
     }
 
-    internal MethodReference GetCobolDataPointerCtor()
+    internal MethodReference GetManagedPointerCtor()
     {
-        _ctx.CobolDataPointerCtor ??= _ctx.Module.ImportReference(
-            typeof(CobolDataPointer).GetConstructor(
+        _ctx.ManagedPointerCtor ??= _ctx.Module.ImportReference(
+            typeof(ManagedPointer).GetConstructor(
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!);
-        return _ctx.CobolDataPointerCtor;
+        return _ctx.ManagedPointerCtor;
     }
 
     internal void EmitOptionalString(ILProcessor il, string? value)

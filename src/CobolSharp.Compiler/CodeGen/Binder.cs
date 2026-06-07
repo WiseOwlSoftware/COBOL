@@ -837,7 +837,7 @@ public sealed class Binder
             module.GlobalUseHandlers.Add((g.Scope, g.FileName, start, end));
         }
 
-        // Main calls Entry(Array.Empty<CobolDataPointer>()) — dispatch loop is in Entry
+        // Main calls Entry(Array.Empty<ManagedPointer>()) — dispatch loop is in Entry
         mainBlock.Instructions.Add(new IrRuntimeCall(null, "Self.Entry", Array.Empty<IrValue>()));
 
         main.Blocks.Add(mainBlock);

@@ -139,7 +139,7 @@ IrReturnAlterable, IrAlter, IrStopRun, IrExitProgram, IrGoBack, IrSetSwitch, IrT
 | 49 | `EmitAccept(...)` | 2081–2090 | ACCEPT | **CilDataEmitter** |
 | 50 | `EmitLocationLength(...)` | 1484–1490 | Location helper | **CilDataEmitter** |
 | 51 | `EmitDefaultPicDescriptor(...)` | 1492–1523 | PIC helper | **CilDataEmitter** |
-| 52 | `GetCobolDataPointerCtor()` | 1526–1532 | Ctor helper | **CilDataEmitter** |
+| 52 | `GetManagedPointerCtor()` | 1526–1532 | Ctor helper | **CilDataEmitter** |
 | 53 | `EmitOptionalString(...)` | 2237–2243 | String helper | **CilDataEmitter** |
 
 **17 methods, ~450 lines**
@@ -365,7 +365,7 @@ CilEmitter (orchestrator, ~1100 lines)
   │     EmitMoveFigurative, EmitMoveAllLiteral, EmitMoveFieldToField,
   │     EmitPicMoveLiteralNumeric, EmitPicDisplay, EmitDisplayOperand,
   │     EmitAccept, EmitLocationLength, EmitDefaultPicDescriptor,
-  │     GetCobolDataPointerCtor, EmitOptionalString
+  │     GetManagedPointerCtor, EmitOptionalString
   │     Dependencies: CilLocationEmitter, CilExpressionEmitter
   │
   ├── CilArithmeticEmitter (~380 lines)

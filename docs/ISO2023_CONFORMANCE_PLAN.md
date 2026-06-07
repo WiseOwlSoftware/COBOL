@@ -166,7 +166,7 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     all ops); flat + nested groups→`record struct`s; fixed OCCURS (char+numeric)→`T[]`; every byte-trigger correctly
     stays byte. 24 flag-on≡flag-off differential tests; all gated behind `EnableTypedFields` (default OFF).
   - **NEXT (the remaining large stages, all autonomous-eligible):** Stage-4 **pointers** → **managed .NET references**
-    (the ADR's `ManagedPtr` — GC-tracked, no native heap / no handle table; the **PointerRegistry approach is
+    (the ADR's `ManagedPointer` — GC-tracked, no native heap / no handle table; the **PointerRegistry approach is
     REJECTED — settled, NOT owner-gated**, owner directive DEVLOG 428) and **OO** → .NET classes (the largest piece);
     Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + the flip-on-by-default decision + rename. See
     `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
@@ -222,7 +222,7 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   - **M2-DATA-5** Pointers **Phase-1 DONE** (389): `USAGE POINTER` (8-byte handle), `NULL`, `SET p TO NULL`/
     `SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE + VALUE rejected; conformance `pointer_data`. A 2-agent
     review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) →
-    MANAGED .NET REFERENCES (the ADR's `ManagedPtr`); the `PointerRegistry` design is REJECTED — SETTLED, NOT
+    MANAGED .NET REFERENCES (the ADR's `ManagedPointer`); the `PointerRegistry` design is REJECTED — SETTLED, NOT
     owner-gated (owner directive, DEVLOG 428). To be done with the data-model migration's Stage 4.**
   - **M2-ARITH-1 follow-up #1** OPTIONS `DEFAULT ROUNDED MODE` applied to bare ROUNDED — DONE (391; conformance
     `options_default_rounded`).
@@ -245,7 +245,7 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
 - **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
   with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
   Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) →
-  managed .NET references (`ManagedPtr`); PointerRegistry REJECTED; settled, NOT gated (DEVLOG 428)**, done as
+  managed .NET references (`ManagedPointer`); PointerRegistry REJECTED; settled, NOT gated (DEVLOG 428)**, done as
   the migration's Stage 4; **M2-PRE-1** (◐, re-scoped — two
   real but rare preprocessor mis-parse/clean-error defects, one reverses a deliberate §7.3.16-vs-§7.2 decision);
   **M2-ARITH-1/-2** (OPTIONS DEFAULT ROUNDED / standard arithmetic — needs OPTIONS-clause parsing);
@@ -363,26 +363,26 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `= NULL` / `NOT = NULL` / `= q` equality; pointer↔non-pointer MOVE rejected (CBL0901); `VALUE` on a pointer
   rejected (CBL1002); default INITIALIZE leaves a pointer unchanged. Conformance `tests/conformance/2002/
   pointer_data`. Lean reuse: SET→MOVE, NULL→0x00 figurative fill, `= NULL`→figurative compare, `= q`→
-  `IrStringCompare` (no new IR nodes). **Phase-2/3 → MANAGED .NET REFERENCES (the ADR's `ManagedPtr` — GC-tracked
+  `IrStringCompare` (no new IR nodes). **Phase-2/3 → MANAGED .NET REFERENCES (the ADR's `ManagedPointer` — GC-tracked
   `Owner`, no native heap / no handle table; the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated,
   owner directive DEVLOG 428), to be built in the data-model migration's Stage 4:** `ADDRESS OF` / `SET ADDRESS OF`
-  / `SET … UP/DOWN BY` / `BASED` deref → then `ALLOCATE`/`FREE` (M2-PROC-5) — all on `ManagedPtr`, no `GCHandle`
+  / `SET … UP/DOWN BY` / `BASED` deref → then `ALLOCATE`/`FREE` (M2-PROC-5) — all on `ManagedPointer`, no `GCHandle`
   pinning / native memory.
   Also deferred: ordering-operator rejection on pointers (`< >` compile to a byte-compare today; invalid input),
   PROGRAM-/FUNCTION-POINTER distinctions, and updating/removing the orphaned `LoweringTable` (no Pointer cases).
   **Phase-1 is thin standalone** — every pointer can only be NULL until ADDRESS OF/ALLOCATE exist. §13.18, §14.9.
   - **Investigated first slice (handoff audit, 2026-06-05) — the audit's RECOMMENDED next pick** (foundational +
     smallest Phase-1, no grammar ambiguity). Current state: `UsageKind.Pointer` enum value exists but is **inert**
-    (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `CobolDataPointer` exists but is
+    (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `ManagedPointer` exists but is
     used only for CALL BY REFERENCE/CONTENT, not USAGE POINTER. **Phase-1 slice:** `USAGE POINTER` (alias all
     three pointer usages) → 8-byte opaque **handle** storage; `NULL` literal = handle 0; `SET p TO NULL`; pointer
     `= NULL` comparison. (Phase-1 used an opaque 8-byte handle for NULL/equality only.) **Phase-2/3 (the data-model
-    Stage 4) → managed .NET references (`ManagedPtr`):** `SET ADDRESS OF` / `SET … UP/DOWN BY`, `BASED` deref, then
+    Stage 4) → managed .NET references (`ManagedPointer`):** `SET ADDRESS OF` / `SET … UP/DOWN BY`, `BASED` deref, then
     `ALLOCATE`/`FREE` (M2-PROC-5) — all GC-tracked managed refs, NO `GCHandle` pinning / native memory / handle
     table. (PointerRegistry REJECTED; SETTLED, NOT gated — DEVLOG 428.)
   - **Turnkey Phase-1 implementation map (workflow `m2-data5-pointers-p1-investigation`, 2026-06-05).** Phase-1
     (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) is standalone; Phase-2
-    dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPtr`) in the data-model Stage 4 — the
+    dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPointer`) in the data-model Stage 4 — the
     `PointerRegistry` design is REJECTED (settled, NOT gated; DEVLOG 428). NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
     pointer items** (§13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
     boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
@@ -652,6 +652,6 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   data division byte-identically (428). Plus a **byte-engine ISO-2023 conformance fix**: a VALUE on an OCCURS item
   now initializes EVERY occurrence (§13.18.63.4 GR 9; 424; conformance `table_value_occurs`; zero baseline shifts).
   24 differential tests; guard **1196 unit / 507 integration / 364 NIST** (all green). **CORRECTION (428): pointers
-  use MANAGED .NET REFERENCES (`ManagedPtr`); the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated.**
+  use MANAGED .NET REFERENCES (`ManagedPointer`); the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated.**
   **NEXT (all autonomous-eligible): Stage-4 pointers (managed refs) + OO; Stage-5 Roslyn backend; Stage-6 finalize +
   flip-on-by-default + rename.**

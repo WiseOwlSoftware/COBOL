@@ -72,7 +72,7 @@ public class CilEmitterDecompositionTests
     [InlineData("SemanticModel", typeof(CobolSharp.Compiler.Semantics.SemanticModel))]
     [InlineData("EntryMethod", typeof(MethodDefinition))]
     [InlineData("LastCallResultField", typeof(FieldDefinition))]
-    [InlineData("CobolDataPointerCtor", typeof(MethodReference))]
+    [InlineData("ManagedPointerCtor", typeof(MethodReference))]
     public void EmissionContext_has_state_property(string propName, Type expectedType)
     {
         var prop = typeof(EmissionContext).GetProperty(propName,
@@ -305,7 +305,7 @@ public class CilEmitterDecompositionTests
     [InlineData("EmitAccept")]
     [InlineData("EmitLocationLength")]
     [InlineData("EmitDefaultPicDescriptor")]
-    [InlineData("GetCobolDataPointerCtor")]
+    [InlineData("GetManagedPointerCtor")]
     [InlineData("EmitOptionalString")]
     public void CilDataEmitter_contains_method(string methodName)
     {

@@ -287,7 +287,7 @@ public sealed class IrReturnAlterable : IrInstruction
 
 /// <summary>
 /// CALL another COBOL program via the program registry.
-/// Builds a CobolDataPointer[] from the arguments, resolves the target,
+/// Builds a ManagedPointer[] from the arguments, resolves the target,
 /// and invokes its Entry method.
 /// </summary>
 public sealed class IrCallProgram : IrInstruction

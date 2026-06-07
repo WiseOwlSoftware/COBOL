@@ -281,3 +281,62 @@ that table is classifier-excluded (byte) — never silently mis-indexed.
    the standalone long/decimal predicates) is already in place for when this unblocks.
 3. **PERFORM VARYING / SEARCH over a typed table** — index-driven loops; verify byte-identity with a varying subscript.
 4. **(later)** record-struct element (group table), multi-dim, ODO element access, `INDEXED BY`.
+
+## 10. Stage-4 pointers — implementation design (managed references, ONE carrier)
+
+**Settled (owner directives, DEVLOG 428–429):** pointers are **managed .NET references** (no native heap, no handle
+table, **no `unsafe`**); the **`PointerRegistry` is REJECTED**; and there is **exactly ONE carrier type** — the
+existing **`ManagedPointer(byte[] Buffer, int Offset, int Length, PicDescriptor Pic)`** — used for BOTH
+`CALL … BY REFERENCE` and `USAGE POINTER`/`ADDRESS OF`/`BASED`. **Do NOT add a parallel `ManagedPointer`**
+([[feedback_singular_pattern]]); the ADR's "CobolDataPointer → ManagedPointer (rename) (Stage 4)" is a *migrate-to-one-type*, and
+since `ADDRESS OF` demotes its target to byte (classifier **trigger 6**), a pointer's owner is **always** a managed
+`byte[]` — so `ManagedPointer`'s `byte[] Buffer` is exactly correct (the ADR's `object? Owner` is unnecessary).
+Deref = `Buffer.AsSpan(Offset, Length)` → the existing byte-path runtime ops. Safe, bounds-checked, GC-transparent.
+
+### 10.1 Current state (investigation, DEVLOG 429)
+- `USAGE POINTER` Phase-1 = an **8-byte byte-window handle** inline in WS (NOT a managed ref); `SET p TO NULL/q` =
+  byte MOVE; `= NULL`/`= q` = 8-byte ordinal compare. `ManagedPointer` is a *separate* CALL-arg carrier today.
+- `SET ADDRESS OF … TO …` **parses** (`setAddressStatement`, `CobolParserCore.g4:846`) but **BindSet has no branch**
+  → silently dropped. `ADDRESS OF` as a *sender* has **no grammar**. `SET … UP/DOWN BY` parses (index path).
+- `BASED` **lexes as a generic noise word** (swallowed by `genericDataClause`) — and the item **wrongly gets WS
+  storage** (`StorageLayoutComputer.LayoutElementary`). Must become a real clause + `IsBased` flag + **skip layout**.
+- Classifier **trigger 6** (ADDRESS OF → byte) is deliberately deferred (unreachable until SET ADDRESS OF binds).
+- `ALLOCATE`/`FREE` — no tokens, no grammar, unimplemented.
+
+### 10.2 Representation (typed pointer vs byte floor)
+A `USAGE POINTER` variable, when classifier-typed, flips to a **typed `ManagedPointer` field** (Stage-4 typed
+flip — it can't sit inline in an 8-byte byte slot, being a record struct). A **byte-backed** pointer (a pointer in a
+file record / REDEFINES / overlaid as bytes — trigger 6 / file / REDEFINES) keeps the **8-byte handle floor** and is
+NULL/copy/compare-only: **a managed reference cannot losslessly round-trip through a byte window** (the first typed
+representation for which the §2.5 byte-materialize floor does NOT fully apply — documented limitation; such pointers
+have no live target, which matches the non-portability of a serialized pointer value). A `BASED` item has **no
+storage**; its references deref through its associated `ManagedPointer` via a new **pointer-relative `IrLocation`**
+(load the pointer's `Buffer`+`Offset`, form the window) — `IrStaticLocation` hard-binds a fixed area+offset, so a new
+location kind is required.
+
+### 10.3 Grammar (approved DEVLOG 429) + bind/lower/emit
+- Lexer: add `BASED`, `ALLOCATE`, `FREE` (+ `INITIALIZED`, `CHARACTERS`, `RETURNING` as needed); `ADDRESS`/`NULL_`/
+  `POINTER` exist. Data clause: `basedClause : BASED` (level 01/77) → `DataSymbol.IsBased`; `StorageLayoutComputer`
+  skips allocation for `IsBased`. Statement list: `{is2002()}? allocateStatement | freeStatement`.
+- `SET ADDRESS OF based TO ptr`: add the missing `ctx.setAddressStatement()` branch in `BindSet` → new
+  `BoundSetAddressStatement` → store the pointer as the based item's base.
+- `SET ptr TO ADDRESS OF x`: add `ADDRESS OF id` as a SET *sender* (new grammar alt) → `BoundAddressOfExpression` →
+  build a `ManagedPointer` over x's region. (Reuse `ManagedPointer.CreateByReference`.)
+- `SET ptr UP/DOWN BY n`: in `BindSetIndex`, branch on `Category==Pointer` → pointer-offset add/sub (not the numeric
+  `IrPicAdd`).
+- `ALLOCATE {expr CHARACTERS | based-item} [INITIALIZED] [RETURNING ptr]` (ISO §14.9.3) = a `ManagedPointer` over
+  `new byte[n]`; `FREE ptr…` (ISO §14.9.15) = set the pointer to NULL (drop the ref; GC reclaims; `EC-STORAGE-NOT-ALLOC`
+  later). Wire end-to-end like the recent `deleteFileStatement` (grammar→regen→BoundTreeBuilder→bind→Binder switch→
+  lower→emit). **Generated parser is committed — regenerate from the .g4.**
+- Classifier **trigger 6**: add a `BoundSetAddressStatement` / `BoundAddressOfExpression` case in `ProcedureScanner`
+  → `Demote.Add(addressed-item)` so the target stays byte (keeping `Buffer` a `byte[]`).
+
+### 10.4 Staged slices (each guard-green + a `tests/conformance/2002/` test)
+1. **`BASED` + `ADDRESS OF` + `SET ADDRESS OF` + deref** — the core loop (`SET p TO ADDRESS OF x` / `SET ADDRESS OF b
+   TO p` / `DISPLAY b`). Lands the lexer/grammar/regen, `IsBased` + layout skip, `BoundAddressOfExpression` +
+   `BoundSetAddressStatement`, the pointer-relative `IrLocation`, trigger 6, and the typed `ManagedPointer` pointer
+   field. (Largest — the scaffolding.)
+2. **Pointer arithmetic** — `SET p UP/DOWN BY n`, pointer relations.
+3. **`ALLOCATE` / `FREE`** (+ `INITIALIZED`, `RETURNING`) — heap-less managed allocation.
+4. **(later)** `PROGRAM-POINTER`/`FUNCTION-POINTER`, `CALL … BY REFERENCE` migrated onto the same `ManagedPointer`
+   path (already is), pointer in a typed record/table.

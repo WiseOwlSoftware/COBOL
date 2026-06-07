@@ -8,7 +8,7 @@ namespace CobolSharp.Runtime;
 /// Delegate signature for COBOL program entry points.
 /// Returns 0 for normal completion, non-zero for exceptional conditions.
 /// </summary>
-public delegate int CobolProgramEntry(CobolDataPointer[] args);
+public delegate int CobolProgramEntry(ManagedPointer[] args);
 
 /// <summary>
 /// Runtime registry for inter-program CALL resolution.
@@ -61,13 +61,13 @@ public static class CobolProgramRegistry
     /// (Used by <c>FUNCTION user-name(args)</c> when it appears inside a larger expression — the whole-source
     /// MOVE/COMPUTE form is lowered directly to CALL … RETURNING the receiving item instead.)
     /// </summary>
-    public static decimal InvokeNumericFunction(string functionName, CobolDataPointer[] usingArgs,
+    public static decimal InvokeNumericFunction(string functionName, ManagedPointer[] usingArgs,
         int returnLength, PicDescriptor returnPic)
     {
         var scratch = new byte[returnLength];
-        var args = new CobolDataPointer[usingArgs.Length + 1];
+        var args = new ManagedPointer[usingArgs.Length + 1];
         System.Array.Copy(usingArgs, args, usingArgs.Length);
-        args[usingArgs.Length] = CobolDataPointer.CreateByReference(scratch, 0, returnLength);
+        args[usingArgs.Length] = ManagedPointer.CreateByReference(scratch, 0, returnLength);
 
         Resolve(functionName)?.Invoke(args);
 
@@ -79,11 +79,11 @@ public static class CobolProgramRegistry
     /// function) into a fresh buffer in the target parameter's format (<paramref name="length"/> +
     /// <paramref name="pic"/>) and wrap it as a BY-CONTENT argument pointer.
     /// </summary>
-    public static CobolDataPointer EncodeFunctionArg(decimal value, int length, PicDescriptor pic)
+    public static ManagedPointer EncodeFunctionArg(decimal value, int length, PicDescriptor pic)
     {
         var buf = new byte[length];
         PicRuntime.EncodeNumeric(buf, 0, length, pic, value);
-        return CobolDataPointer.CreateByReference(buf, 0, length);
+        return ManagedPointer.CreateByReference(buf, 0, length);
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public static class CobolProgramRegistry
 
     /// <summary>
     /// Search loaded assemblies and the application directory for a type
-    /// with a static Entry(CobolDataPointer[]) method matching the program name.
+    /// with a static Entry(ManagedPointer[]) method matching the program name.
     /// </summary>
     private static CobolProgramEntry? DiscoverProgram(string programId)
     {
@@ -151,7 +151,7 @@ public static class CobolProgramRegistry
                 var method = type.GetMethod("Entry",
                     BindingFlags.Public | BindingFlags.Static,
                     null,
-                    [typeof(CobolDataPointer[])],
+                    [typeof(ManagedPointer[])],
                     null);
                 if (method != null && method.ReturnType == typeof(int))
                 {

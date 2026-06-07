@@ -189,7 +189,7 @@ public static class StorageLayoutComputer
         // Linkage section: 01/77-level items are laid out CONTIGUOUSLY (each after the previous),
         // so every LINKAGE item has a unique offset. This is required to identify which USING
         // parameter a reference belongs to — items are still each backed by a separate
-        // CobolDataPointer (CALL USING), and the per-parameter displacement is recovered at emit
+        // ManagedPointer (CALL USING), and the per-parameter displacement is recovered at emit
         // time as (item offset − parameter base offset). Laying every parameter at offset 0 would
         // make the offset ranges overlap, so a reference to the 2nd/3rd parameter would resolve to
         // the 1st and corrupt it.

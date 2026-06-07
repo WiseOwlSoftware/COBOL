@@ -98,8 +98,8 @@ internal sealed class EmissionContext
     /// </summary>
     public FieldDefinition? LastCallResultField { get; set; }
 
-    /// <summary>Cached reference to CobolDataPointer(byte[], int, int, PicDescriptor) constructor.</summary>
-    public MethodReference? CobolDataPointerCtor { get; set; }
+    /// <summary>Cached reference to ManagedPointer(byte[], int, int, PicDescriptor) constructor.</summary>
+    public MethodReference? ManagedPointerCtor { get; set; }
 
     // ── Emitter references (set after construction) ──
 

@@ -51,7 +51,7 @@ internal sealed class CilLocationEmitter
                 break;
 
             case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
-                // LINKAGE item: load from CobolDataPointer static field
+                // LINKAGE item: load from ManagedPointer static field
                 EmitLinkageLocationArgs(il, s);
                 break;
 
@@ -266,7 +266,7 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitElementAddress(ILProcessor il, IR.IrElementRef e)
     {
-        // Push base (array, baseOffset). A LINKAGE base resolves through the CobolDataPointer
+        // Push base (array, baseOffset). A LINKAGE base resolves through the ManagedPointer
         // (runtime offset); WorkingStorage/EXTERNAL/etc. use a compile-time offset.
         if (e.BaseLocation.Area == StorageAreaKind.LinkageSection)
         {
@@ -384,7 +384,7 @@ internal sealed class CilLocationEmitter
         switch (r.Base)
         {
             case IR.IrStaticLocation s when s.Location.Area == StorageAreaKind.LinkageSection:
-                // Reference-modified USING parameter: base via the CobolDataPointer.
+                // Reference-modified USING parameter: base via the ManagedPointer.
                 EmitLinkageBufferAndOffset(il, s.Location.Offset);
                 break;
 
@@ -464,7 +464,7 @@ internal sealed class CilLocationEmitter
     internal void EmitLoadBackingArray(ILProcessor il, StorageAreaKind area)
     {
         // LINKAGE SECTION items are NOT backed by ProgramState — they're backed
-        // by CobolDataPointer fields populated from CALL USING args.
+        // by ManagedPointer fields populated from CALL USING args.
         // This method only handles WorkingStorage, LocalStorage, and FileSection.
         // LINKAGE access is handled separately in EmitLocationArgs.
         il.Append(il.Create(OpCodes.Ldsfld, _ctx.ProgramStateField!));
@@ -476,7 +476,7 @@ internal sealed class CilLocationEmitter
             StorageAreaKind.FileSection    => "FileSection",
             _ => throw new InvalidOperationException(
                 $"EmitLoadBackingArray: unexpected StorageAreaKind '{area}'. " +
-                "LinkageSection should be handled separately via CobolDataPointer.")
+                "LinkageSection should be handled separately via ManagedPointer.")
         };
 
         var getter = _ctx.Module.ImportReference(
@@ -503,18 +503,18 @@ internal sealed class CilLocationEmitter
 
     /// <summary>
     /// Emit (area, offset, length) for a LINKAGE SECTION item.
-    /// Loads from the CobolDataPointer field, adding the relative offset.
+    /// Loads from the ManagedPointer field, adding the relative offset.
     /// </summary>
     internal void EmitLinkageLocationArgs(ILProcessor il, IR.IrStaticLocation s)
     {
-        // Push (Buffer, pointer.Offset + relativeOffset) from the matching CobolDataPointer,
+        // Push (Buffer, pointer.Offset + relativeOffset) from the matching ManagedPointer,
         // then the item length.
         EmitLinkageBufferAndOffset(il, s.Location.Offset);
         il.Append(il.Create(OpCodes.Ldc_I4, s.Location.Length));
     }
 
     /// <summary>
-    /// Find the CobolDataPointer field for the USING parameter whose storage range contains
+    /// Find the ManagedPointer field for the USING parameter whose storage range contains
     /// <paramref name="relOffset"/> (a LINKAGE-section offset), or null if it is unmapped.
     /// <paramref name="paramBaseOffset"/> receives the parameter's own base LINKAGE offset, so the
     /// caller can compute the displacement WITHIN the parameter (relOffset - paramBaseOffset).
@@ -555,7 +555,7 @@ internal sealed class CilLocationEmitter
     }
 
     /// <summary>
-    /// Push [CobolDataPointer.Buffer, pointer.Offset + (relOffset - paramBase)] for a LINKAGE
+    /// Push [ManagedPointer.Buffer, pointer.Offset + (relOffset - paramBase)] for a LINKAGE
     /// location. The pointer addresses the caller's argument storage, so the displacement must be
     /// taken WITHIN the matched USING parameter (relOffset - parameter's base LINKAGE offset), NOT
     /// the absolute LINKAGE offset — otherwise the 2nd and later parameters (whose base offset is
@@ -572,10 +572,10 @@ internal sealed class CilLocationEmitter
         {
             il.Append(il.Create(OpCodes.Ldsflda, field));
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Buffer")!.GetGetMethod()!)));
+                typeof(ManagedPointer).GetProperty("Buffer")!.GetGetMethod()!)));
             il.Append(il.Create(OpCodes.Ldsflda, field));
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-                typeof(CobolDataPointer).GetProperty("Offset")!.GetGetMethod()!)));
+                typeof(ManagedPointer).GetProperty("Offset")!.GetGetMethod()!)));
             il.Append(il.Create(OpCodes.Ldc_I4, relOffset - paramBase));
             il.Append(il.Create(OpCodes.Add));
         }
