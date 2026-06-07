@@ -692,4 +692,75 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void PerformVaryingOverTypedTable_ByteIdentical()
+    {
+        // S4 (OCCURS slice 3): a PERFORM VARYING loop driving a subscript over a typed numeric table — COMPUTE into
+        // the element and ADD from it inside the loop. This falls out of the generalized primitives (the loop var is
+        // a typed long; element access is the typed element location), so it is byte-identical with no new codegen.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDPV.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G.
+               05 T PIC 9(3) OCCURS 4 VALUE 0.
+            01 I PIC 9(2) VALUE 0.
+            01 TOT PIC 9(4) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 4
+                   COMPUTE T(I) = I * 10
+                END-PERFORM.
+                PERFORM VARYING I FROM 1 BY 1 UNTIL I > 4
+                   DISPLAY "T" I "=" T(I)
+                   ADD T(I) TO TOT
+                END-PERFORM.
+                DISPLAY "TOT=" TOT.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("T01=010\nT02=020\nT03=030\nT04=040\nTOT=0100", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public void SearchOverIndexedTable_StaysByteBacked_ByteIdentical()
+    {
+        // S4 §9.3 safety: a SEARCH references its table as a WHOLE operand, so the classifier demotes the table to
+        // byte (a typed array has no whole-table SEARCH home yet). SEARCH + INDEXED BY therefore keeps working via
+        // the byte engine, byte-identical with the flag on or off — i.e. the typed migration never breaks SEARCH.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDSR.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G.
+               05 T PIC X(2) OCCURS 3 INDEXED BY IX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AA" TO T(1).
+                MOVE "BB" TO T(2).
+                MOVE "CC" TO T(3).
+                SET IX TO 1.
+                SEARCH T
+                   AT END DISPLAY "NOTFOUND"
+                   WHEN T(IX) = "BB" DISPLAY "FOUND-AT" IX
+                END-SEARCH.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
