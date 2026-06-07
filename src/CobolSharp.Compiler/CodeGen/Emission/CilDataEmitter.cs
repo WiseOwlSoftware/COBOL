@@ -325,9 +325,10 @@ internal sealed class CilDataEmitter
             if (srcNum && dstNum)
             {
                 // S4: both typed unsigned-integer `long`s — dst = src truncated to the dst's digit count
-                // (src mod 10^n), byte-identical to a numeric→numeric byte MOVE (high-order truncation).
+                // (src mod 10^n), byte-identical to a numeric→numeric byte MOVE (high-order truncation). Digit
+                // count comes from the PIC (TotalDigits), not the byte Width — they differ for COMP/BINARY.
                 long mod = 1;
-                for (int i = 0; i < mdst.Width; i++) mod *= 10;
+                for (int i = 0; i < mdst.Pic.TotalDigits; i++) mod *= 10;
                 EmitTypedStorePrefix(il, mdst);
                 EmitTypedLoad(il, msrc);                       // long (≥ 0)
                 il.Append(il.Create(OpCodes.Ldc_I8, mod));
@@ -475,7 +476,7 @@ internal sealed class CilDataEmitter
         if (mv.Destination is IrTypedFieldLocation tnum && tnum.Pic.Category == CobolCategory.Numeric)
         {
             decimal mod = 1m;
-            for (int i = 0; i < tnum.Width; i++) mod *= 10m;
+            for (int i = 0; i < tnum.Pic.TotalDigits; i++) mod *= 10m;   // digit count, not byte Width (COMP differs)
             long stored = (long)(System.Math.Truncate(System.Math.Abs(mv.Value)) % mod);
             EmitTypedStorePrefix(il, tnum);
             il.Append(il.Create(OpCodes.Ldc_I8, stored));
@@ -549,7 +550,7 @@ internal sealed class CilDataEmitter
                 if (tfl.Pic.Category == CobolCategory.Numeric)
                 {
                     EmitTypedLoad(il, tfl);                       // long value
-                    il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
+                    il.Append(il.Create(OpCodes.Ldc_I4, tfl.Pic.TotalDigits));   // digit count, not byte Width
                     il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                         typeof(CobolSharp.Runtime.Numeric.CobolNum).GetMethod(
                             "FormatUnsignedDisplay", new[] { typeof(long), typeof(int) })!)));
