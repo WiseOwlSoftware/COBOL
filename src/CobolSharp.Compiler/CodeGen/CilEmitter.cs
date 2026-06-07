@@ -791,15 +791,21 @@ public sealed class CilEmitter
 
             if (init.Value is decimal d && loc.Value.Pic.IsNumeric)
             {
+                // OCCURS-aware: a numeric VALUE on/subordinate-to an OCCURS item initializes EVERY occurrence
+                // (ISO 2023 §13.18.63.4 GR 9) — mirror the alphanumeric branch (elementSize + totalOccurs, looped).
+                // The previous single-call form passed the FULL span as the length, so the value landed only in the
+                // last occurrence (DEVLOG 424). For a non-OCCURS item totalOccurs==1 / elementSize==loc.Length, so
+                // this is byte-identical to the old scalar path.
                 il.Append(il.Create(OpCodes.Ldc_I4, valAdjOffset));
-                il.Append(il.Create(OpCodes.Ldc_I4, loc.Value.Length));
+                il.Append(il.Create(OpCodes.Ldc_I4, elementSize));
+                il.Append(il.Create(OpCodes.Ldc_I4, totalOccurs));
                 _ctx.Expression.EmitLoadPicDescriptor(il, loc.Value.Pic, suppressBlankWhenZero: true);
                 _ctx.Expression.EmitLoadDecimal(il, d);
                 il.Append(il.Create(OpCodes.Ldc_I4_0));
                 var numMethod = _module.ImportReference(
                     typeof(Runtime.PicRuntime).GetMethod(
-                        "MoveNumericLiteral",
-                        new[] { typeof(byte[]), typeof(int), typeof(int),
+                        "MoveNumericLiteralToOccursField",
+                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(int),
                                 typeof(Runtime.PicDescriptor),
                                 typeof(decimal), typeof(int) })!);
                 il.Append(il.Create(OpCodes.Call, numMethod));

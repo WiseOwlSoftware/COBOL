@@ -931,6 +931,23 @@ public static class PicRuntime
         EncodeNumeric(destArea, destOffset, destLength, destPic, value);
     }
 
+    /// <summary>
+    /// OCCURS-aware numeric VALUE initialization (ISO/IEC 1989:2023 §13.18.63.4 GR 9): a numeric VALUE clause on an
+    /// item that contains, or is subordinate to, an OCCURS clause initializes EVERY occurrence to the value. Loops
+    /// <see cref="MoveNumericLiteral"/> over each element window <c>[baseOffset + i*elementSize, elementSize)</c>.
+    /// For a non-OCCURS item (<paramref name="occursCount"/> == 1, <paramref name="elementSize"/> == the field
+    /// length) this is exactly one <see cref="MoveNumericLiteral"/> call — byte-identical to the scalar path.
+    /// Mirrors the alphanumeric path (<c>StorageHelpers.MoveStringToOccursField</c>); <paramref name="elementPic"/>'s
+    /// digits/scale/sign drive encoding while <paramref name="elementSize"/> drives per-element placement.
+    /// </summary>
+    public static void MoveNumericLiteralToOccursField(
+        byte[] destArea, int baseOffset, int elementSize, int occursCount, PicDescriptor elementPic,
+        decimal literal, int roundingMode = 0)
+    {
+        for (int i = 0; i < occursCount; i++)
+            MoveNumericLiteral(destArea, baseOffset + i * elementSize, elementSize, elementPic, literal, roundingMode);
+    }
+
     // ComputeAndStore removed — MoveAccumulatedToField provides the identical
     // "store decimal with overflow detection" behavior for all arithmetic paths.
 
