@@ -221,12 +221,19 @@ dataDescriptionClause
     | externalClause
     | globalClause
     | typeClause
+    | basedClause
     | genericDataClause
     ;
 
 // EXTERNAL clause (§13.18.22) — shared storage across run unit
 externalClause
     : IS? EXTERNAL
+    ;
+
+// BASED clause (COBOL-2002 §13.18.5) — level 01/77 only; the item is a template with an implicit
+// data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
+basedClause
+    : {is2002()}? BASED
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs

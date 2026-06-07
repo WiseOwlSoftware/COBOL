@@ -214,6 +214,11 @@ public static class StorageLayoutComputer
         ref int offset,
         SemanticModel model)
     {
+        // BASED (§13.18.5): the item has NO storage of its own — it is addressed through its data-address pointer
+        // at use time (Stage-4, ManagedPointer). Skip layout entirely: no offset advance, no StorageLocation.
+        if (item.IsBased)
+            return;
+
         if (item.Redefines != null)
         {
             LayoutRedefines(item, area, ref offset, model);

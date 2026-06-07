@@ -204,6 +204,7 @@ XML         : 'XML' ;
 ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
 AREA        : 'AREA' ;
+BASED       : 'BASED' ;
 AREAS       : 'AREAS' ;
 ALPHABETIC       : 'ALPHABETIC' ;
 ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;

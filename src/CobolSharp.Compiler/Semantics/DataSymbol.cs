@@ -176,6 +176,11 @@ public sealed class DataSymbol : Symbol
     /// <summary>IS GLOBAL clause (§13.18.27): visible to contained programs.</summary>
     public bool IsGlobal { get; set; }
 
+    /// <summary>BASED clause (COBOL-2002 §13.18.5): the item is a template with an implicit data-address pointer
+    /// (initially NULL) and has NO storage of its own until SET ADDRESS OF / ALLOCATE gives it an address; all
+    /// references deref through that pointer (Stage-4, ManagedPointer).</summary>
+    public bool IsBased { get; set; }
+
     /// <summary>True if USAGE was explicitly specified on this item (not inherited from parent).</summary>
     public bool HasExplicitUsage { get; set; }
 

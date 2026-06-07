@@ -1474,6 +1474,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         bool isSynchronized = false;
         bool isExternal = false;
         bool isGlobal = false;
+        bool isBased = false;
         if (body?.dataDescriptionClauses() != null)
         {
             foreach (var clause in body.dataDescriptionClauses().dataDescriptionClause())
@@ -1550,6 +1551,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
                 if (clause.globalClause() != null)
                     isGlobal = true;
+
+                if (clause.basedClause() != null)
+                    isBased = true;
             }
         }
 
@@ -1585,6 +1589,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         data.IsSynchronized = isSynchronized;
         data.IsExternal = isExternal;
         data.IsGlobal = isGlobal;
+        data.IsBased = isBased;
         data.RedefinesName = _deferredRedefinesName;
         _deferredRedefinesName = null;
         data.ExplicitSignStorage = _deferredSignStorage;

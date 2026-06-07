@@ -842,9 +842,12 @@ setBooleanStatement
     : SET dataReference+ TO (TRUE_ | FALSE_)
     ;
 
-// SET ADDRESS OF dataReference TO dataReference
+// Pointer address forms (COBOL-2002 §14.9.39):
+//   SET ADDRESS OF based-item TO pointer   — rebase a BASED/LINKAGE item
+//   SET pointer TO ADDRESS OF identifier   — take a pointer to an item (ADDRESS OF as sender)
 setAddressStatement
     : SET ADDRESS OF dataReference TO dataReference
+    | SET dataReference TO ADDRESS OF dataReference
     ;
 
 // SET object-reference TO class/object reference (OO)

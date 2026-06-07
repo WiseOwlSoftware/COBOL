@@ -1275,6 +1275,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitExternalClause([NotNull] CobolParserCore.ExternalClauseContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.basedClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitBasedClause([NotNull] CobolParserCore.BasedClauseContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.globalClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
