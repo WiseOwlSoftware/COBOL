@@ -506,4 +506,46 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void MixedGroup_FlipsToRecordStruct_WithCharLongAndDecimalMembers_ByteIdentical()
+    {
+        // S3b/S4: a `01` group whose children mix character, unsigned-integer, and signed/scaled numeric items
+        // flips to a .NET record struct with `string` / `long` / `decimal` members respectively. Each member's ops
+        // (DISPLAY, MOVE, arithmetic, COMPARE) route through the same InstanceName-aware typed cells as a standalone
+        // field, so the whole record is byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDGRPN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CUSTOMER.
+               05 CUST-NAME PIC X(6)     VALUE "ACME".
+               05 CUST-QTY  PIC 9(5)     VALUE 100.
+               05 CUST-BAL  PIC S9(3)V99 VALUE 12.50.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY CUST-NAME.
+                DISPLAY CUST-QTY.
+                DISPLAY CUST-BAL.
+                ADD 5 TO CUST-QTY.
+                DISPLAY CUST-QTY.
+                ADD 1.25 TO CUST-BAL.
+                DISPLAY CUST-BAL.
+                MOVE "WIDGET" TO CUST-NAME.
+                DISPLAY CUST-NAME.
+                IF CUST-QTY = 105 THEN DISPLAY "QTYOK" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // string ACME→WIDGET; long 100→105; decimal 12.50→"0125{", +1.25=13.75→"0137E"; compare 105.
+        Assert.Equal("ACME\n00100\n0125{\n00105\n0137E\nWIDGET\nQTYOK",
+            typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

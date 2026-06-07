@@ -407,10 +407,14 @@ public sealed class Binder
                 continue;
             }
 
-            // S3b: a flat all-character `01` group (classifier-typed, every direct child an elementary typed-char
-            // item — no nested groups/OCCURS yet) → a .NET `record struct` of `string` members.
+            // S3b: a flat `01` group (classifier-typed, every direct child an elementary typed-flippable item —
+            // character, unsigned-integer, OR signed/scaled — no nested groups/OCCURS yet) → a .NET `record struct`
+            // of typed members (string / long / decimal, per child). Member access is instance.member; each
+            // member's ops route through the same InstanceName-aware cells as a standalone typed field.
             if (sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
-                && classification.IsTyped(sym) && sym.Children.Count > 0 && sym.Children.All(IsTypedChar))
+                && classification.IsTyped(sym) && sym.Children.Count > 0
+                && sym.Children.All(c => IsTypedChar(c)
+                    || IsTypedUnsignedInteger(c, out _, out _) || IsTypedDecimal(c, out _)))
             {
                 string structName = "_TS_" + sym.Name;
                 string instanceName = "_TI_" + sym.Name;
@@ -418,7 +422,15 @@ public sealed class Binder
                 foreach (var child in sym.Children)
                 {
                     int width = WidthOf(child);
-                    members.Add(new IR.IrTypedFieldDef(child.Name, width, InitOf(child, width)));
+                    IR.IrTypedFieldDef def;
+                    if (IsTypedUnsignedInteger(child, out _, out long cnInit))
+                        def = new IR.IrTypedFieldDef(child.Name, width, "", IsNumeric: true, NumericInit: cnInit);
+                    else if (IsTypedDecimal(child, out decimal cdInit))
+                        def = new IR.IrTypedFieldDef(child.Name, width, "",
+                            IsNumeric: true, IsDecimal: true, DecimalInit: cdInit);
+                    else
+                        def = new IR.IrTypedFieldDef(child.Name, width, InitOf(child, width));
+                    members.Add(def);
                     _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName);
                 }
                 module.TypedRecordDefs.Add(new IR.IrTypedRecordDef(structName, instanceName, members));

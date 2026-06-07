@@ -595,14 +595,8 @@ public sealed class CilEmitter
         // IrTypedFieldLocation resolves; initialized in InitializeState below. Empty unless EnableTypedFields is on.
         foreach (var tf in ir.TypedFieldDefs)
         {
-            var typedFieldType = tf switch
-            {
-                { IsDecimal: true } => _module.ImportReference(typeof(decimal)),
-                { IsNumeric: true } => _module.TypeSystem.Int64,
-                _ => _module.TypeSystem.String,
-            };
             var typedFd = new FieldDefinition(tf.Name, FieldAttributes.Public | FieldAttributes.Static,
-                typedFieldType);
+                TypedFieldClrType(tf));
             _programType.Fields.Add(typedFd);
             _ctx.TypedFields[tf.Name] = typedFd;
         }
@@ -618,7 +612,7 @@ public sealed class CilEmitter
             var members = new Dictionary<string, FieldDefinition>(StringComparer.Ordinal);
             foreach (var m in rd.Members)
             {
-                var mfd = new FieldDefinition(m.Name, FieldAttributes.Public, _module.TypeSystem.String);
+                var mfd = new FieldDefinition(m.Name, FieldAttributes.Public, TypedFieldClrType(m));
                 structTd.Fields.Add(mfd);
                 members[m.Name] = mfd;
             }
@@ -660,12 +654,7 @@ public sealed class CilEmitter
         // already padded/truncated to the field width by Binder.CollectTypedFields.
         foreach (var tf in ir.TypedFieldDefs)
         {
-            if (tf.IsDecimal)
-                _ctx.Expression.EmitLoadDecimal(initIl, tf.DecimalInit);
-            else if (tf.IsNumeric)
-                initIl.Append(initIl.Create(OpCodes.Ldc_I8, tf.NumericInit));
-            else
-                initIl.Append(initIl.Create(OpCodes.Ldstr, tf.InitValue));
+            EmitTypedFieldInitValue(initIl, tf);
             initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
         }
         // S3b: init each record-struct member (ldsflda instance; ldstr value; stfld member).
@@ -675,7 +664,7 @@ public sealed class CilEmitter
             foreach (var m in rd.Members)
             {
                 initIl.Append(initIl.Create(OpCodes.Ldsflda, rec.Instance));
-                initIl.Append(initIl.Create(OpCodes.Ldstr, m.InitValue));
+                EmitTypedFieldInitValue(initIl, m);
                 initIl.Append(initIl.Create(OpCodes.Stfld, rec.Members[m.Name]));
             }
         }
@@ -928,6 +917,28 @@ public sealed class CilEmitter
     }
 
     // ── Type definitions ──
+
+    /// <summary>The CLR type of a typed-native field/member: <c>decimal</c> (signed/scaled numeric), <c>long</c>
+    /// (unsigned-integer numeric), or <c>string</c> (character). Shared by the flat-field and record-struct-member
+    /// emission so both stay in agreement (data-model migration S3/S4).</summary>
+    private TypeReference TypedFieldClrType(IR.IrTypedFieldDef tf) => tf switch
+    {
+        { IsDecimal: true } => _module.ImportReference(typeof(decimal)),
+        { IsNumeric: true } => _module.TypeSystem.Int64,
+        _ => _module.TypeSystem.String,
+    };
+
+    /// <summary>Pushes a typed-native field/member's COBOL-correct initial value onto the stack (decimal / long /
+    /// string), matching <see cref="TypedFieldClrType"/>. Shared by flat-field and record-struct-member init.</summary>
+    private void EmitTypedFieldInitValue(ILProcessor il, IR.IrTypedFieldDef tf)
+    {
+        if (tf.IsDecimal)
+            _ctx.Expression.EmitLoadDecimal(il, tf.DecimalInit);
+        else if (tf.IsNumeric)
+            il.Append(il.Create(OpCodes.Ldc_I8, tf.NumericInit));
+        else
+            il.Append(il.Create(OpCodes.Ldstr, tf.InitValue));
+    }
 
     private void DefineType(IrType irType)
     {
