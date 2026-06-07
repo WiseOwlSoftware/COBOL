@@ -173,14 +173,16 @@ internal sealed class CilLocationEmitter
         il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
         il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Byte));
         il.Append(il.Create(OpCodes.Stloc, scratch));
-        // EncodeNumeric(scratch, 0, width, pic, (decimal)currentValue)
+        // EncodeNumeric(scratch, 0, width, pic, currentValue-as-decimal)
         il.Append(il.Create(OpCodes.Ldloc, scratch));
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
         _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
         EmitTypedFieldValueLoad(il, t);
-        il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
-            typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
+        // A `long` field needs widening to `decimal`; a `decimal` field is already the right type.
+        if (!t.IsDecimalNumeric)
+            il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+                typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("EncodeNumeric",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor), typeof(decimal) })!)));
@@ -207,16 +209,17 @@ internal sealed class CilLocationEmitter
 
     /// <summary>
     /// S4 typed-NUMERIC receiver — EPILOGUE. After the byte arithmetic op has written its result into the scratch
-    /// window, decode it (<c>PicRuntime.DecodeNumeric</c>) and store back into the field as a <c>long</c> — the
-    /// write-back. The decoded value is the field's truncated digit image (&lt; 10^digits), exactly what the byte
-    /// path holds, so DISPLAY and downstream arithmetic stay byte-identical.
+    /// window, decode it (<c>PicRuntime.DecodeNumeric</c>) and store back into the field — the write-back. The
+    /// decoded value is the field's truncated/scaled image, exactly what the byte path holds, so DISPLAY and
+    /// downstream arithmetic stay byte-identical. A <c>long</c> field takes the explicit decimal→long narrowing; a
+    /// <c>decimal</c> field stores the decoded value directly.
     /// </summary>
     internal void EmitTypedNumericReceiverEpilogue(ILProcessor il, IR.IrTypedFieldLocation t, VariableDefinition scratch)
     {
         // store-target prefix: a record-struct member needs the instance address pushed before the value.
         if (t.InstanceName is { } inst)
             il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
-        // (long)DecodeNumeric(scratch, 0, width, pic)
+        // DecodeNumeric(scratch, 0, width, pic) -> decimal
         il.Append(il.Create(OpCodes.Ldloc, scratch));
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
@@ -224,10 +227,12 @@ internal sealed class CilLocationEmitter
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!)));
-        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
-            typeof(decimal).GetMethods().Single(m =>
-                m.Name == "op_Explicit" && m.ReturnType == typeof(long)
-                && m.GetParameters() is { Length: 1 } p && p[0].ParameterType == typeof(decimal)))));
+        // a `long` field narrows decimal→long; a `decimal` field stores the decoded value as-is.
+        if (!t.IsDecimalNumeric)
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(decimal).GetMethods().Single(m =>
+                    m.Name == "op_Explicit" && m.ReturnType == typeof(long)
+                    && m.GetParameters() is { Length: 1 } p && p[0].ParameterType == typeof(decimal)))));
         // store: stfld member / stsfld flat
         il.Append(t.InstanceName is { } inst2
             ? il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst2].Members[t.FieldName])

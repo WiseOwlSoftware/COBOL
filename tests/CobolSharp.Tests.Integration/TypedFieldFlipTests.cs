@@ -428,4 +428,46 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void SignedScaledNumeric_FlipsToTypedDecimal_AcrossOps_ByteIdentical()
+    {
+        // S4: signed and/or scaled numeric items (with VALUE) flip to a typed .NET `decimal`. The field init and
+        // every op (DISPLAY with sign overpunch + implied-decimal scale, ADD, COMPUTE, COMPARE, MOVE-literal) route
+        // through the EXACT byte codec (materialize→Encode/Decode / GetDisplayString), so the result is
+        // byte-identical to the byte path — sign overpunch, scaling, and truncation included. (Field→field MOVE of
+        // a decimal is not in this slice; it is loud-guarded.)
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDDEC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(3)V99 VALUE 1.50.
+            01 WS-B PIC S9(3)V99 VALUE 2.25.
+            01 WS-C PIC S9(3)V99 VALUE 0.
+            01 WS-N PIC S9(5)    VALUE -42.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-A.
+                DISPLAY WS-N.
+                ADD WS-A TO WS-B.
+                DISPLAY WS-B.
+                COMPUTE WS-C = WS-B - WS-A.
+                DISPLAY WS-C.
+                IF WS-A < WS-B THEN DISPLAY "ALTB" END-IF.
+                MOVE 3.7 TO WS-C.
+                DISPLAY WS-C.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // 1.50→"0015{"; -42→"0004K"; 1.50+2.25=3.75→"0037E"; 3.75-1.50=2.25→"0022E"; 3.7→3.70→"0037{".
+        Assert.Equal("0015{\n0004K\n0037E\n0022E\nALTB\n0037{",
+            typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

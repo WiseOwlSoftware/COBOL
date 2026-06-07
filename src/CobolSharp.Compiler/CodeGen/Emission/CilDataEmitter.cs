@@ -324,7 +324,14 @@ internal sealed class CilDataEmitter
             }
             if (srcNum && dstNum)
             {
-                // S4: both typed unsigned-integer `long`s — dst = src truncated to the dst's digit count
+                // S4: a decimal field on either end needs the dst-codec encode/decode round-trip (exact
+                // scale/truncation), not the long fast path — not yet implemented, so fail loudly rather than
+                // mis-emit a long where a decimal is expected.
+                if (msrc.IsDecimalNumeric || mdst.IsDecimalNumeric)
+                    throw new System.NotSupportedException(
+                        "S4: typed field→field MOVE involving a decimal numeric field is not yet implemented " +
+                        "(needs the dst-codec encode/decode round-trip) — RECORD_STRUCT_STORAGE_DESIGN.md.");
+                // both typed unsigned-integer `long`s — dst = src truncated to the dst's digit count
                 // (src mod 10^n), byte-identical to a numeric→numeric byte MOVE (high-order truncation). Digit
                 // count comes from the PIC (TotalDigits), not the byte Width — they differ for COMP/BINARY.
                 long mod = 1;
@@ -475,11 +482,24 @@ internal sealed class CilDataEmitter
         // store the long. MOVE never carries ROUNDED, so mv.Rounding is 0 here.
         if (mv.Destination is IrTypedFieldLocation tnum && tnum.Pic.Category == CobolCategory.Numeric)
         {
-            decimal mod = 1m;
-            for (int i = 0; i < tnum.Pic.TotalDigits; i++) mod *= 10m;   // digit count, not byte Width (COMP differs)
-            long stored = (long)(System.Math.Truncate(System.Math.Abs(mv.Value)) % mod);
             EmitTypedStorePrefix(il, tnum);
-            il.Append(il.Create(OpCodes.Ldc_I8, stored));
+            if (tnum.IsDecimalNumeric)
+            {
+                // S4 decimal: round-trip the literal through the destination byte codec at COMPILE time
+                // (Encode→Decode) to get the exact stored value — sign + implied-decimal scale + truncation all
+                // applied identically to the byte path, so it is byte-identical by construction.
+                var scratch = new byte[tnum.Width];
+                Runtime.PicRuntime.EncodeNumeric(scratch, 0, tnum.Width, tnum.Pic, mv.Value);
+                decimal storedDec = Runtime.PicRuntime.DecodeNumeric(scratch, 0, tnum.Width, tnum.Pic);
+                _ctx.Expression.EmitLoadDecimal(il, storedDec);
+            }
+            else
+            {
+                decimal mod = 1m;
+                for (int i = 0; i < tnum.Pic.TotalDigits; i++) mod *= 10m;   // digit count, not byte Width (COMP differs)
+                long stored = (long)(System.Math.Truncate(System.Math.Abs(mv.Value)) % mod);
+                il.Append(il.Create(OpCodes.Ldc_I8, stored));
+            }
             EmitTypedStoreSuffix(il, tnum);
             return;
         }
@@ -549,6 +569,17 @@ internal sealed class CilDataEmitter
                 // byte-identical to the byte path's stored DISPLAY bytes for an unsigned PIC 9(n).
                 if (tfl.Pic.Category == CobolCategory.Numeric)
                 {
+                    // S4 decimal (signed/scaled): materialize to the field's byte image and format via the EXACT
+                    // byte-path formatter (GetDisplayString) — byte-identical, and it handles sign overpunch /
+                    // implied decimal scaling that the unsigned-integer fast path (FormatUnsignedDisplay) does not.
+                    if (tfl.IsDecimalNumeric)
+                    {
+                        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, tfl);
+                        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                            typeof(PicRuntime).GetMethod("GetDisplayString",
+                                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+                        return;
+                    }
                     EmitTypedLoad(il, tfl);                       // long value
                     il.Append(il.Create(OpCodes.Ldc_I4, tfl.Pic.TotalDigits));   // digit count, not byte Width
                     il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(

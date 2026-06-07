@@ -595,8 +595,14 @@ public sealed class CilEmitter
         // IrTypedFieldLocation resolves; initialized in InitializeState below. Empty unless EnableTypedFields is on.
         foreach (var tf in ir.TypedFieldDefs)
         {
+            var typedFieldType = tf switch
+            {
+                { IsDecimal: true } => _module.ImportReference(typeof(decimal)),
+                { IsNumeric: true } => _module.TypeSystem.Int64,
+                _ => _module.TypeSystem.String,
+            };
             var typedFd = new FieldDefinition(tf.Name, FieldAttributes.Public | FieldAttributes.Static,
-                tf.IsNumeric ? _module.TypeSystem.Int64 : _module.TypeSystem.String);
+                typedFieldType);
             _programType.Fields.Add(typedFd);
             _ctx.TypedFields[tf.Name] = typedFd;
         }
@@ -654,9 +660,12 @@ public sealed class CilEmitter
         // already padded/truncated to the field width by Binder.CollectTypedFields.
         foreach (var tf in ir.TypedFieldDefs)
         {
-            initIl.Append(tf.IsNumeric
-                ? initIl.Create(OpCodes.Ldc_I8, tf.NumericInit)
-                : initIl.Create(OpCodes.Ldstr, tf.InitValue));
+            if (tf.IsDecimal)
+                _ctx.Expression.EmitLoadDecimal(initIl, tf.DecimalInit);
+            else if (tf.IsNumeric)
+                initIl.Append(initIl.Create(OpCodes.Ldc_I8, tf.NumericInit));
+            else
+                initIl.Append(initIl.Create(OpCodes.Ldstr, tf.InitValue));
             initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
         }
         // S3b: init each record-struct member (ldsflda instance; ldstr value; stfld member).

@@ -334,6 +334,40 @@ public sealed class Binder
             return true;
         }
 
+        // S4: a standalone elementary SIGNED or SCALED numeric item with a VALUE → a typed `decimal`. Same usage
+        // set as the long slice (DISPLAY/COMP/BINARY; COMP-5/float/packed excluded), ≤18 digits, has VALUE. This is
+        // exactly the signed-or-scaled complement of IsTypedUnsignedInteger. The init is the EXACT stored value,
+        // obtained by round-tripping the VALUE through the byte codec (Encode→Decode) so the in-memory decimal
+        // equals what the byte field would hold — byte-identical by construction.
+        bool IsTypedDecimal(DataSymbol s, out decimal init)
+        {
+            init = 0m;
+            if (!s.IsElementary || s.Occurs != null || s.FigurativeInit != null || s.AllLiteralPattern != null)
+                return false;
+            if (s.Area != Semantics.StorageAreaKind.WorkingStorage || !classification.IsTyped(s))
+                return false;
+            if (s.InitialValue is not { } valStr)
+                return false;
+            if (_semantic.GetStorageLocation(s) is not { } loc)
+                return false;
+            var pic = loc.Pic;
+            if (pic.Category != Runtime.CobolCategory.Numeric)
+                return false;
+            if (pic.Usage is not (Runtime.UsageKind.Display or Runtime.UsageKind.Comp or Runtime.UsageKind.Binary))
+                return false;
+            if (!IR.IrTypedFieldLocation.IsDecimalRepresented(pic))   // only the signed/scaled complement of the long slice
+                return false;
+            if (pic.TotalDigits is < 1 or > 18)
+                return false;
+            if (!decimal.TryParse(valStr, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out decimal v))
+                return false;
+            var scratch = new byte[loc.Length];
+            Runtime.PicRuntime.EncodeNumeric(scratch, 0, loc.Length, pic, v);
+            init = Runtime.PicRuntime.DecodeNumeric(scratch, 0, loc.Length, pic);
+            return true;
+        }
+
         foreach (var sym in _semantic.DataItemsInOrder)
         {
             if (sym.Parent != null)
@@ -357,6 +391,18 @@ public sealed class Binder
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
                 module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, byteWidth, "", IsNumeric: true, NumericInit: ninit));
+                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null);
+                continue;
+            }
+
+            // S4: a standalone elementary signed/scaled numeric item with a VALUE → a typed `decimal` field. Width
+            // is the BYTE storage width; the scale/sign live on the PicDescriptor.
+            if (IsTypedDecimal(sym, out decimal decInit))
+            {
+                int byteWidth = WidthOf(sym);
+                string name = "_T_" + sym.Name;
+                module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, byteWidth, "",
+                    IsNumeric: true, IsDecimal: true, DecimalInit: decInit));
                 _ctx.TypedFieldRefs[sym] = (name, byteWidth, null);
                 continue;
             }

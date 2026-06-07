@@ -1285,6 +1285,16 @@ public sealed class IrTypedFieldLocation : IrLocation
         Pic = pic;
         InstanceName = instanceName;
     }
+
+    /// <summary>S4: a typed NUMERIC field is represented as a .NET <c>decimal</c> (vs <c>long</c>) exactly when it
+    /// is signed or scaled (a fraction or P-scale) — the complement of the unsigned-integer slice that flips to
+    /// <c>long</c>. This single predicate keeps the Binder's field-type choice and every emit cell in agreement.</summary>
+    public static bool IsDecimalRepresented(Runtime.PicDescriptor pic) =>
+        pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0;
+
+    /// <summary>True when this is a numeric field stored as a .NET <c>decimal</c> (signed/scaled); false for the
+    /// unsigned-integer <c>long</c> slice and for character fields.</summary>
+    public bool IsDecimalNumeric => Pic.Category == Runtime.CobolCategory.Numeric && IsDecimalRepresented(Pic);
 }
 
 /// <summary>

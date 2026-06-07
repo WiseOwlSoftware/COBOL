@@ -101,9 +101,13 @@ public sealed record IrGlobal(string Name, IrType Type);
 /// field <paramref name="Name"/>. For a character field (<paramref name="IsNumeric"/> false): a .NET
 /// <see cref="string"/> of <paramref name="Width"/> positions initialized to <paramref name="InitValue"/>
 /// (already padded/truncated). For an unsigned-integer numeric field (<paramref name="IsNumeric"/> true, S4): a
-/// .NET <see cref="long"/> of <paramref name="Width"/> COBOL digits initialized to <paramref name="NumericInit"/>.</summary>
+/// .NET <see cref="long"/> of <paramref name="Width"/> COBOL digits initialized to <paramref name="NumericInit"/>.
+/// For a signed/scaled numeric field (<paramref name="IsNumeric"/> true, <paramref name="IsDecimal"/> true, S4): a
+/// .NET <see cref="decimal"/> whose <paramref name="Width"/> is the byte storage width, initialized to
+/// <paramref name="DecimalInit"/>.</summary>
 public sealed record IrTypedFieldDef(string Name, int Width, string InitValue,
-    bool IsNumeric = false, long NumericInit = 0);
+    bool IsNumeric = false, long NumericInit = 0,
+    bool IsDecimal = false, decimal DecimalInit = 0m);
 
 /// <summary>A flipped <c>01</c> group → a .NET <c>record struct</c> (data-model migration S3b): the emitted
 /// struct <paramref name="StructTypeName"/>, its static-instance field <paramref name="InstanceName"/>, and the
