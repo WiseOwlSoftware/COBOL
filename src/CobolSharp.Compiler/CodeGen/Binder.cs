@@ -373,6 +373,54 @@ public sealed class Binder
             return true;
         }
 
+        // S3b/S5: recursively build the typed record-struct for a (sub-)group, registering each leaf descendant in
+        // TypedFieldRefs with its instance + the member path from the instance to the leaf's parent. Returns null
+        // (the whole group stays byte) if ANY child is not flippable — an OCCURS item, an edited/byte-trigger item,
+        // or a non-typed/empty sub-group. pathFromInstance is the live path stack; structName is this struct's name.
+        IR.IrTypedRecordDef? BuildTypedRecord(DataSymbol group, string instanceName, string structName,
+            List<string> pathFromInstance)
+        {
+            var members = new List<IR.IrTypedFieldDef>(group.Children.Count);
+            foreach (var child in group.Children)
+            {
+                int width = WidthOf(child);
+                if (IsTypedChar(child))
+                {
+                    members.Add(new IR.IrTypedFieldDef(child.Name, width, InitOf(child, width)));
+                    _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName, pathFromInstance.ToArray());
+                }
+                else if (IsTypedUnsignedInteger(child, out _, out long cnInit))
+                {
+                    members.Add(new IR.IrTypedFieldDef(child.Name, width, "", IsNumeric: true, NumericInit: cnInit));
+                    _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName, pathFromInstance.ToArray());
+                }
+                else if (IsTypedDecimal(child, out decimal cdInit))
+                {
+                    members.Add(new IR.IrTypedFieldDef(child.Name, width, "",
+                        IsNumeric: true, IsDecimal: true, DecimalInit: cdInit));
+                    _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName, pathFromInstance.ToArray());
+                }
+                else if (child.IsGroup && child.Occurs == null && classification.IsTyped(child)
+                         && child.Children.Count > 0)
+                {
+                    // S5: a flippable sub-group → a nested record struct (recurse). Leaves inside register their own
+                    // (deeper) MemberPath; this member is the nested struct itself.
+                    pathFromInstance.Add(child.Name);
+                    var nested = BuildTypedRecord(child, instanceName, structName + "_" + child.Name, pathFromInstance);
+                    pathFromInstance.RemoveAt(pathFromInstance.Count - 1);
+                    if (nested is null)
+                        return null;   // a descendant was not flippable → the whole group stays byte
+                    members.Add(new IR.IrTypedFieldDef(child.Name, 0, "", Nested: nested));
+                }
+                else
+                {
+                    return null;   // OCCURS / edited / byte-trigger / empty sub-group → not flippable
+                }
+            }
+            // InstanceName is set by the top-level caller (rec with { InstanceName = … }); nested sub-structs null.
+            return new IR.IrTypedRecordDef(structName, null, members);
+        }
+
         foreach (var sym in _semantic.DataItemsInOrder)
         {
             // S4: a fixed-OCCURS table over a flippable CHARACTER or NUMERIC element → a typed .NET array field
@@ -416,7 +464,7 @@ public sealed class Binder
                 int width = WidthOf(sym);
                 string name = "_T_" + sym.Name;
                 module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, width, InitOf(sym, width)));
-                _ctx.TypedFieldRefs[sym] = (name, width, null);
+                _ctx.TypedFieldRefs[sym] = (name, width, null, null);
                 continue;
             }
 
@@ -428,7 +476,7 @@ public sealed class Binder
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
                 module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, byteWidth, "", IsNumeric: true, NumericInit: ninit));
-                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null);
+                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null, null);
                 continue;
             }
 
@@ -440,37 +488,23 @@ public sealed class Binder
                 string name = "_T_" + sym.Name;
                 module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, byteWidth, "",
                     IsNumeric: true, IsDecimal: true, DecimalInit: decInit));
-                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null);
+                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null, null);
                 continue;
             }
 
-            // S3b: a flat `01` group (classifier-typed, every direct child an elementary typed-flippable item —
-            // character, unsigned-integer, OR signed/scaled — no nested groups/OCCURS yet) → a .NET `record struct`
-            // of typed members (string / long / decimal, per child). Member access is instance.member; each
-            // member's ops route through the same InstanceName-aware cells as a standalone typed field.
+            // S3b/S5: a `01` group → a .NET `record struct`. Each direct child is an elementary typed-flippable item
+            // (char / unsigned-integer / signed-scaled) OR (S5) itself a flippable sub-group → a nested record
+            // struct, built recursively. Leaf access is instance.[nested.]*member via the MemberPath. The whole
+            // group flips only if EVERY descendant is flippable (no OCCURS, no edited/byte-trigger item); otherwise
+            // it stays byte. Member-level access only — a whole-group operand is handled by the existing classifier
+            // group-MOVE demotion. (A contained OCCURS table flips independently via the S4 array branch.)
             if (sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
-                && classification.IsTyped(sym) && sym.Children.Count > 0
-                && sym.Children.All(c => IsTypedChar(c)
-                    || IsTypedUnsignedInteger(c, out _, out _) || IsTypedDecimal(c, out _)))
+                && classification.IsTyped(sym) && sym.Children.Count > 0)
             {
-                string structName = "_TS_" + sym.Name;
                 string instanceName = "_TI_" + sym.Name;
-                var members = new List<IR.IrTypedFieldDef>(sym.Children.Count);
-                foreach (var child in sym.Children)
-                {
-                    int width = WidthOf(child);
-                    IR.IrTypedFieldDef def;
-                    if (IsTypedUnsignedInteger(child, out _, out long cnInit))
-                        def = new IR.IrTypedFieldDef(child.Name, width, "", IsNumeric: true, NumericInit: cnInit);
-                    else if (IsTypedDecimal(child, out decimal cdInit))
-                        def = new IR.IrTypedFieldDef(child.Name, width, "",
-                            IsNumeric: true, IsDecimal: true, DecimalInit: cdInit);
-                    else
-                        def = new IR.IrTypedFieldDef(child.Name, width, InitOf(child, width));
-                    members.Add(def);
-                    _ctx.TypedFieldRefs[child] = (child.Name, width, instanceName);
-                }
-                module.TypedRecordDefs.Add(new IR.IrTypedRecordDef(structName, instanceName, members));
+                var rec = BuildTypedRecord(sym, instanceName, "_TS_" + sym.Name, new List<string>());
+                if (rec is not null)
+                    module.TypedRecordDefs.Add(rec with { InstanceName = instanceName });
             }
         }
     }

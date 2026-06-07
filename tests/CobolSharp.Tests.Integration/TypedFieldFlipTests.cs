@@ -763,4 +763,43 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NestedGroup_FlipsToNestedRecordStruct_AcrossOps_ByteIdentical()
+    {
+        // S5: a group containing a sub-group flips to a NESTED .NET record struct (OUTER → struct{ INNER:
+        // struct{ A:string, B:long }, C:string }). Leaf access OUTER.INNER.A walks ldsflda instance; ldflda INNER;
+        // ldfld/stfld A (resolved by the member path). DISPLAY / MOVE / arithmetic on nested leaves are
+        // byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDNG.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OUTER.
+               05 INNER.
+                  10 A PIC X(3) VALUE "AB".
+                  10 B PIC 9(3) VALUE 5.
+               05 C PIC X(2) VALUE "XY".
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY A.
+                DISPLAY B.
+                DISPLAY C.
+                MOVE "CD" TO A.
+                ADD 1 TO B.
+                DISPLAY A.
+                DISPLAY B.
+                IF B = 6 THEN DISPLAY "B6" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("AB\n005\nXY\nCD\n006\nB6", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

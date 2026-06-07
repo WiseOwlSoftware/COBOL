@@ -1304,14 +1304,21 @@ public sealed class IrTypedFieldLocation : IrTypedLocation
     public string FieldName { get; }
     /// <summary>S3a (a standalone elementary item): null → <see cref="FieldName"/> is a flat static field. S3b
     /// (a flipped <c>01</c> group → a <c>record struct</c>): the name of the static struct-instance field, and
-    /// <see cref="FieldName"/> is the member within it (accessed <c>ldsflda instance; ldfld/stfld member</c>).</summary>
+    /// <see cref="FieldName"/> is the leaf member (accessed <c>ldsflda instance; [ldflda nested…]; ldfld/stfld leaf</c>).</summary>
     public string? InstanceName { get; }
+    /// <summary>S5 (nested groups): the chain of intermediate struct-member names from the static instance down to
+    /// the leaf's PARENT struct (empty for a flat S3b member directly in the instance). Resolved at emit time by
+    /// walking each member's <c>FieldType</c>. E.g. <c>OUTER.INNER.A</c> → InstanceName=<c>_TI_OUTER</c>,
+    /// MemberPath=[<c>INNER</c>], FieldName=<c>A</c>.</summary>
+    public IReadOnlyList<string> MemberPath { get; }
 
-    public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic, string? instanceName = null)
+    public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic,
+        string? instanceName = null, IReadOnlyList<string>? memberPath = null)
         : base(width, pic)
     {
         FieldName = fieldName;
         InstanceName = instanceName;
+        MemberPath = memberPath ?? System.Array.Empty<string>();
     }
 
     /// <summary>Back-compat alias for the base predicate (some call-sites qualify via this type).</summary>

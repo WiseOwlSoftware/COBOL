@@ -108,14 +108,20 @@ public sealed record IrGlobal(string Name, IrType Type);
 /// For a signed/scaled numeric field (<paramref name="IsNumeric"/> true, <paramref name="IsDecimal"/> true, S4): a
 /// .NET <see cref="decimal"/> whose <paramref name="Width"/> is the byte storage width, initialized to
 /// <paramref name="DecimalInit"/>.</summary>
+/// For a NESTED group member (S5, <paramref name="Nested"/> set): this member is itself a <c>record struct</c> of
+/// type <c>Nested.StructTypeName</c> (emitted recursively); <paramref name="IsNumeric"/>/<paramref name="Width"/>
+/// are unused for it.</summary>
 public sealed record IrTypedFieldDef(string Name, int Width, string InitValue,
     bool IsNumeric = false, long NumericInit = 0,
-    bool IsDecimal = false, decimal DecimalInit = 0m);
+    bool IsDecimal = false, decimal DecimalInit = 0m,
+    IrTypedRecordDef? Nested = null);
 
-/// <summary>A flipped <c>01</c> group → a .NET <c>record struct</c> (data-model migration S3b): the emitted
-/// struct <paramref name="StructTypeName"/>, its static-instance field <paramref name="InstanceName"/>, and the
-/// typed string <paramref name="Members"/> (one per elementary child).</summary>
-public sealed record IrTypedRecordDef(string StructTypeName, string InstanceName, IReadOnlyList<IrTypedFieldDef> Members);
+/// <summary>A flipped <c>01</c>/sub-group → a .NET <c>record struct</c> (data-model migration S3b/S5): the emitted
+/// struct <paramref name="StructTypeName"/>, the static-instance field <paramref name="InstanceName"/> (non-null
+/// only for the TOP-LEVEL record; null for a nested sub-struct, which lives inline inside its parent), and the
+/// <paramref name="Members"/> — each an elementary field or (S5) itself a nested <see cref="IrTypedFieldDef"/> with
+/// its <c>Nested</c> sub-record set.</summary>
+public sealed record IrTypedRecordDef(string StructTypeName, string? InstanceName, IReadOnlyList<IrTypedFieldDef> Members);
 
 /// <summary>A flipped fixed <c>OCCURS</c> table → a typed .NET array field (data-model migration S4): the emitted
 /// array field <paramref name="Name"/> of <paramref name="ElementCount"/> elements, each shaped by

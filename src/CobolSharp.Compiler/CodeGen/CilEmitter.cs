@@ -601,26 +601,17 @@ public sealed class CilEmitter
             _ctx.TypedFields[tf.Name] = typedFd;
         }
 
-        // S3b: a flipped 01 group → a .NET record struct (sealed SequentialLayout value type) of string members +
-        // one static instance of it on the program type. Member access is ldsflda instance / ldfld|stfld member.
+        // S3b/S5: a flipped 01/sub-group → a .NET record struct (sealed SequentialLayout value type). A member is
+        // either an elementary field or (S5) itself a nested struct, emitted RECURSIVELY. The TOP-LEVEL record gets
+        // one static instance on the program type; member access walks ldsflda instance / ldflda nested… / ldfld|
+        // stfld leaf (resolved at emit time via the struct FieldTypes — see CilDataEmitter primitives).
         foreach (var rd in ir.TypedRecordDefs)
         {
-            var structTd = new TypeDefinition("", rd.StructTypeName,
-                TypeAttributes.Public | TypeAttributes.SequentialLayout |
-                TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
-                _module.ImportReference(typeof(System.ValueType)));
-            var members = new Dictionary<string, FieldDefinition>(StringComparer.Ordinal);
-            foreach (var m in rd.Members)
-            {
-                var mfd = new FieldDefinition(m.Name, FieldAttributes.Public, TypedFieldClrType(m));
-                structTd.Fields.Add(mfd);
-                members[m.Name] = mfd;
-            }
-            _module.Types.Add(structTd);
-            var instFd = new FieldDefinition(rd.InstanceName,
+            var structTd = DefineRecordStruct(rd);
+            var instFd = new FieldDefinition(rd.InstanceName!,   // top-level records always carry an instance name
                 FieldAttributes.Public | FieldAttributes.Static, structTd);
             _programType.Fields.Add(instFd);
-            _ctx.TypedRecords[rd.InstanceName] = (instFd, members);
+            _ctx.TypedRecords[rd.InstanceName!] = instFd;
         }
 
         // S4: a flipped fixed OCCURS table → a static typed .NET array field (string[]/long[]/decimal[]).
@@ -666,16 +657,13 @@ public sealed class CilEmitter
             EmitTypedFieldInitValue(initIl, tf);
             initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
         }
-        // S3b: init each record-struct member (ldsflda instance; ldstr value; stfld member).
+        // S3b/S5: init each record-struct leaf member (recursing into nested sub-structs) — ldsflda instance;
+        // ldflda nested…; <value>; stfld leaf. Never default(T) (ADR §1.7).
         foreach (var rd in ir.TypedRecordDefs)
         {
-            var rec = _ctx.TypedRecords[rd.InstanceName];
-            foreach (var m in rd.Members)
-            {
-                initIl.Append(initIl.Create(OpCodes.Ldsflda, rec.Instance));
-                EmitTypedFieldInitValue(initIl, m);
-                initIl.Append(initIl.Create(OpCodes.Stfld, rec.Members[m.Name]));
-            }
+            var instField = _ctx.TypedRecords[rd.InstanceName!];
+            EmitRecordStructInit(initIl, instField.FieldType.Resolve(), rd.Members,
+                () => initIl.Append(initIl.Create(OpCodes.Ldsflda, instField)));
         }
         // S4: allocate each typed OCCURS array (new T[n]) and fill every slot with the element's COBOL-correct
         // initial value (never default(T) — ADR §1.7).
@@ -975,6 +963,49 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Ldc_I8, tf.NumericInit));
         else
             il.Append(il.Create(OpCodes.Ldstr, tf.InitValue));
+    }
+
+    /// <summary>S3b/S5: emit a typed record-struct TypeDefinition (sealed SequentialLayout value type) for
+    /// <paramref name="rd"/>, recursing into nested-group members (a member with <c>Nested</c> set becomes a field
+    /// of the nested struct type). Returns the emitted struct type. Member FieldDefinitions are resolved at access
+    /// time by walking <c>FieldType.Fields</c>, so no member dictionary is retained.</summary>
+    private TypeDefinition DefineRecordStruct(IR.IrTypedRecordDef rd)
+    {
+        var structTd = new TypeDefinition("", rd.StructTypeName,
+            TypeAttributes.Public | TypeAttributes.SequentialLayout |
+            TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+            _module.ImportReference(typeof(System.ValueType)));
+        foreach (var m in rd.Members)
+        {
+            TypeReference memberType = m.Nested is { } nested
+                ? DefineRecordStruct(nested)              // S5: nested sub-struct, emitted recursively
+                : TypedFieldClrType(m);                   // elementary string/long/decimal
+            structTd.Fields.Add(new FieldDefinition(m.Name, FieldAttributes.Public, memberType));
+        }
+        _module.Types.Add(structTd);
+        return structTd;
+    }
+
+    /// <summary>S3b/S5: emit COBOL-correct initialization for every leaf member of a record struct, recursing into
+    /// nested sub-structs. <paramref name="emitParentAddr"/> pushes the address of the struct instance holding
+    /// <paramref name="members"/>; for a leaf it is followed by the value + <c>stfld</c>; for a nested member the
+    /// recursion extends the address with <c>ldflda &lt;nested field&gt;</c>.</summary>
+    private void EmitRecordStructInit(ILProcessor il, TypeDefinition structType,
+        System.Collections.Generic.IReadOnlyList<IR.IrTypedFieldDef> members, System.Action emitParentAddr)
+    {
+        foreach (var m in members)
+        {
+            var memberField = structType.Fields.First(x => x.Name == m.Name);
+            if (m.Nested is { } nested)
+                EmitRecordStructInit(il, memberField.FieldType.Resolve(), nested.Members,
+                    () => { emitParentAddr(); il.Append(il.Create(OpCodes.Ldflda, memberField)); });
+            else
+            {
+                emitParentAddr();
+                EmitTypedFieldInitValue(il, m);
+                il.Append(il.Create(OpCodes.Stfld, memberField));
+            }
+        }
     }
 
     private void DefineType(IrType irType)

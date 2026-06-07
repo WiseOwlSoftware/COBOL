@@ -94,11 +94,13 @@ internal sealed class LoweringContext
     // TypedFieldSlot vs ByteWindowSlot. Null when classification has not run (e.g. direct lowerer unit tests).
     public RecordClassification? Classification { get; set; }
 
-    /// <summary>Items flipped to typed-native fields (S3): DataSymbol → (emitted field/member name, char width,
-    /// struct-instance name or null for a flat S3a field). Populated by Binder.CollectTypedFields; consulted by
-    /// LocationResolver to produce an <see cref="IR.IrTypedFieldLocation"/>. Empty unless flipping is on.</summary>
-    public Dictionary<DataSymbol, (string Name, int Width, string? Instance)> TypedFieldRefs { get; } =
-        new(ReferenceEqualityComparer.Instance);
+    /// <summary>Items flipped to typed-native fields (S3/S5): DataSymbol → (emitted leaf field/member name, byte
+    /// width, struct-instance name or null for a flat S3a field, and — S5 — the chain of intermediate nested-struct
+    /// member names from the instance to the leaf's parent, empty for a flat S3b member). Populated by
+    /// Binder.CollectTypedFields; consulted by LocationResolver to build an <see cref="IR.IrTypedFieldLocation"/>.
+    /// Empty unless flipping is on.</summary>
+    public Dictionary<DataSymbol, (string Name, int Width, string? Instance, IReadOnlyList<string>? MemberPath)>
+        TypedFieldRefs { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Fixed <c>OCCURS</c> tables flipped to typed .NET array fields (S4): the table element DataSymbol →
     /// (array field name, element byte width, element count). Populated by Binder.CollectTypedFields; consulted by

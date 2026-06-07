@@ -61,8 +61,8 @@ internal sealed class CilDataEmitter
     {
         switch (t)
         {
-            case IrTypedFieldLocation { InstanceName: { } inst }:
-                il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+            case IrTypedFieldLocation { InstanceName: { } } f:
+                EmitInstanceAddressChain(il, f);   // ldsflda instance; ldflda nested… (leaves leaf's parent addr)
                 break;
             case IrTypedFieldLocation:
                 break;   // flat static field: no prefix
@@ -76,8 +76,8 @@ internal sealed class CilDataEmitter
     {
         switch (t)
         {
-            case IrTypedFieldLocation { InstanceName: { } inst } f:
-                il.Append(il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst].Members[f.FieldName]));
+            case IrTypedFieldLocation { InstanceName: { } } f:
+                il.Append(il.Create(OpCodes.Stfld, ResolveLeafField(f)));
                 break;
             case IrTypedFieldLocation f:
                 il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[f.FieldName]));
@@ -92,9 +92,9 @@ internal sealed class CilDataEmitter
     {
         switch (t)
         {
-            case IrTypedFieldLocation { InstanceName: { } inst } f:
-                il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
-                il.Append(il.Create(OpCodes.Ldfld, _ctx.TypedRecords[inst].Members[f.FieldName]));
+            case IrTypedFieldLocation { InstanceName: { } } f:
+                EmitInstanceAddressChain(il, f);
+                il.Append(il.Create(OpCodes.Ldfld, ResolveLeafField(f)));
                 break;
             case IrTypedFieldLocation f:
                 il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[f.FieldName]));
@@ -104,6 +104,34 @@ internal sealed class CilDataEmitter
                 EmitArrayLoadElement(il, e);
                 break;
         }
+    }
+
+    // ── S3b/S5 record-struct member addressing — resolve flat OR nested members by walking the struct FieldTypes ──
+
+    /// <summary>Emits the address chain for a record-struct member: <c>ldsflda &lt;static instance&gt;</c> then
+    /// <c>ldflda</c> for each intermediate nested struct in <see cref="IrTypedFieldLocation.MemberPath"/>, leaving
+    /// the leaf's PARENT struct address on the stack (for the flat case, just the instance address).</summary>
+    private void EmitInstanceAddressChain(ILProcessor il, IrTypedFieldLocation f)
+    {
+        var instField = _ctx.TypedRecords[f.InstanceName!];
+        il.Append(il.Create(OpCodes.Ldsflda, instField));
+        var cur = instField.FieldType.Resolve();
+        foreach (var m in f.MemberPath)
+        {
+            var nestedField = cur.Fields.First(x => x.Name == m);
+            il.Append(il.Create(OpCodes.Ldflda, nestedField));
+            cur = nestedField.FieldType.Resolve();
+        }
+    }
+
+    /// <summary>Resolves the leaf member <see cref="FieldDefinition"/> by walking the struct's <c>FieldType.Fields</c>
+    /// along <see cref="IrTypedFieldLocation.MemberPath"/> (no IL emitted) — the field used by load/store.</summary>
+    private FieldDefinition ResolveLeafField(IrTypedFieldLocation f)
+    {
+        var cur = _ctx.TypedRecords[f.InstanceName!].FieldType.Resolve();
+        foreach (var m in f.MemberPath)
+            cur = cur.Fields.First(x => x.Name == m).FieldType.Resolve();
+        return cur.Fields.First(x => x.Name == f.FieldName);
     }
 
     /// <summary>

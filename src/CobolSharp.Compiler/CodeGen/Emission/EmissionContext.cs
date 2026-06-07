@@ -38,10 +38,11 @@ internal sealed class EmissionContext
     /// <see cref="IrTypedFieldLocation"/> (when its InstanceName is null).</summary>
     public Dictionary<string, FieldDefinition> TypedFields { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>Flipped <c>01</c> groups → <c>record struct</c>s (S3b), keyed by the static-instance field name
-    /// (<see cref="IrTypedFieldLocation.InstanceName"/>): the instance field + its member fields by name.</summary>
-    public Dictionary<string, (FieldDefinition Instance, Dictionary<string, FieldDefinition> Members)>
-        TypedRecords { get; } = new(StringComparer.Ordinal);
+    /// <summary>Flipped <c>01</c> groups → <c>record struct</c>s (S3b/S5), keyed by the static-instance field name
+    /// (<see cref="IrTypedFieldLocation.InstanceName"/>): the static instance <see cref="FieldDefinition"/>. Member
+    /// (and nested-member) <see cref="FieldDefinition"/>s are resolved at access time by walking the struct's
+    /// <c>FieldType.Fields</c> along the location's <see cref="IrTypedFieldLocation.MemberPath"/> + leaf name.</summary>
+    public Dictionary<string, FieldDefinition> TypedRecords { get; } = new(StringComparer.Ordinal);
 
     /// <summary>Flipped fixed <c>OCCURS</c> tables → typed .NET array fields (S4), keyed by the array field name
     /// carried in <see cref="IrTypedElementLocation.ArrayFieldName"/>.</summary>

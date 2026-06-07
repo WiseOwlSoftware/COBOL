@@ -159,7 +159,7 @@ internal sealed class LocationResolver
         // .NET field, not a byte window. The flip is gated by EnableTypedFields + the classifier (collected in
         // Binder.CollectTypedFields), so when the flag is off TypedFieldRefs is empty and this never fires.
         if (_ctx.TypedFieldRefs.TryGetValue(sym, out var typed))
-            return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic, typed.Instance);
+            return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic, typed.Instance, typed.MemberPath);
 
         // S4 belt-and-suspenders: a whole-operand reference to a flipped OCCURS table — or to a group containing one
         // — has no byte home. The classifier's whole-table/whole-group demotion (§9.3) should have kept such a table
