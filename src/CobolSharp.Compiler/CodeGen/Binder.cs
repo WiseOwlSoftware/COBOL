@@ -304,6 +304,42 @@ public sealed class Binder
         // empirically (DEVLOG 416) — so the long model is byte-identical. COMP-5 (native binary, NO picture
         // truncation), COMP-1/COMP-2 (float), and packed (COMP-3) are deliberately excluded — different semantics.
         // The out values are the digit count and the COBOL-correct truncated initial value.
+        // S4 core: classify a NUMERIC pic + VALUE into a typed representation — `long` (unsigned integer) or
+        // `decimal` (signed/scaled), with the COBOL-correct stored init. Usage DISPLAY/COMP/BINARY only (COMP-5
+        // native-binary / COMP-1/2 float / packed excluded, DEVLOG 416), ≤18 digits, VALUE required (an
+        // uninitialized numeric shows spaces on the byte path, which a long/decimal cannot reproduce). The decimal
+        // init is the EXACT stored value — round-tripped through the byte codec (Encode→Decode) so it equals what
+        // the byte field would hold (byte-identical by construction). Shared by the standalone-item predicates and
+        // the OCCURS-element branch (which gate elementary/Occurs/area/classifier themselves). <paramref
+        // name="byteLen"/> is the element/field byte storage length.
+        bool ClassifyTypedNumeric(Runtime.PicDescriptor pic, int byteLen, string? valStr,
+            out bool isDecimal, out long longInit, out decimal decInit)
+        {
+            isDecimal = false; longInit = 0; decInit = 0m;
+            if (pic.Category != Runtime.CobolCategory.Numeric)
+                return false;
+            if (pic.Usage is not (Runtime.UsageKind.Display or Runtime.UsageKind.Comp or Runtime.UsageKind.Binary))
+                return false;
+            if (pic.TotalDigits is < 1 or > 18)
+                return false;
+            if (valStr is null
+                || !decimal.TryParse(valStr, System.Globalization.NumberStyles.Any,
+                       System.Globalization.CultureInfo.InvariantCulture, out decimal v))
+                return false;
+            if (IR.IrTypedFieldLocation.IsDecimalRepresented(pic))   // signed/scaled → decimal
+            {
+                isDecimal = true;
+                var scratch = new byte[byteLen];
+                Runtime.PicRuntime.EncodeNumeric(scratch, 0, byteLen, pic, v);
+                decInit = Runtime.PicRuntime.DecodeNumeric(scratch, 0, byteLen, pic);
+                return true;
+            }
+            decimal mod = 1m;                                        // unsigned integer → long (low-n-digit truncation)
+            for (int i = 0; i < pic.TotalDigits; i++) mod *= 10m;
+            longInit = (long)(Math.Truncate(Math.Abs(v)) % mod);
+            return true;
+        }
+
         bool IsTypedUnsignedInteger(DataSymbol s, out int digits, out long init)
         {
             digits = 0; init = 0;
@@ -311,34 +347,17 @@ public sealed class Binder
                 return false;
             if (s.Area != Semantics.StorageAreaKind.WorkingStorage || !classification.IsTyped(s))
                 return false;
-            if (s.InitialValue is not { } valStr)
-                return false;
             if (_semantic.GetStorageLocation(s) is not { } loc)
                 return false;
-            var pic = loc.Pic;
-            if (pic.Category != Runtime.CobolCategory.Numeric)
-                return false;
-            if (pic.Usage is not (Runtime.UsageKind.Display or Runtime.UsageKind.Comp or Runtime.UsageKind.Binary))
-                return false;
-            if (pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0)
-                return false;
-            if (pic.TotalDigits is < 1 or > 18)
-                return false;
-            if (!decimal.TryParse(valStr, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out decimal v))
-                return false;
-            digits = pic.TotalDigits;
-            decimal mod = 1m;
-            for (int i = 0; i < digits; i++) mod *= 10m;
-            init = (long)(Math.Truncate(Math.Abs(v)) % mod);
+            if (!ClassifyTypedNumeric(loc.Pic, loc.Length, s.InitialValue, out bool isDec, out long li, out _) || isDec)
+                return false;   // long slice only (signed/scaled is IsTypedDecimal's job)
+            digits = loc.Pic.TotalDigits;
+            init = li;
             return true;
         }
 
-        // S4: a standalone elementary SIGNED or SCALED numeric item with a VALUE → a typed `decimal`. Same usage
-        // set as the long slice (DISPLAY/COMP/BINARY; COMP-5/float/packed excluded), ≤18 digits, has VALUE. This is
-        // exactly the signed-or-scaled complement of IsTypedUnsignedInteger. The init is the EXACT stored value,
-        // obtained by round-tripping the VALUE through the byte codec (Encode→Decode) so the in-memory decimal
-        // equals what the byte field would hold — byte-identical by construction.
+        // S4: a standalone elementary SIGNED or SCALED numeric item with a VALUE → a typed `decimal` (the
+        // signed-or-scaled complement of IsTypedUnsignedInteger).
         bool IsTypedDecimal(DataSymbol s, out decimal init)
         {
             init = 0m;
@@ -346,25 +365,11 @@ public sealed class Binder
                 return false;
             if (s.Area != Semantics.StorageAreaKind.WorkingStorage || !classification.IsTyped(s))
                 return false;
-            if (s.InitialValue is not { } valStr)
-                return false;
             if (_semantic.GetStorageLocation(s) is not { } loc)
                 return false;
-            var pic = loc.Pic;
-            if (pic.Category != Runtime.CobolCategory.Numeric)
-                return false;
-            if (pic.Usage is not (Runtime.UsageKind.Display or Runtime.UsageKind.Comp or Runtime.UsageKind.Binary))
-                return false;
-            if (!IR.IrTypedFieldLocation.IsDecimalRepresented(pic))   // only the signed/scaled complement of the long slice
-                return false;
-            if (pic.TotalDigits is < 1 or > 18)
-                return false;
-            if (!decimal.TryParse(valStr, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out decimal v))
-                return false;
-            var scratch = new byte[loc.Length];
-            Runtime.PicRuntime.EncodeNumeric(scratch, 0, loc.Length, pic, v);
-            init = Runtime.PicRuntime.DecodeNumeric(scratch, 0, loc.Length, pic);
+            if (!ClassifyTypedNumeric(loc.Pic, loc.Length, s.InitialValue, out bool isDec, out _, out decimal di) || !isDec)
+                return false;   // decimal slice only
+            init = di;
             return true;
         }
 
@@ -373,8 +378,10 @@ public sealed class Binder
             // S4: a fixed-OCCURS table over a flippable CHARACTER element → a typed .NET `string[]` field. Runs for
             // table items at ANY level (OCCURS is illegal on 01, so a table is always a child) — BEFORE the
             // top-level-only skip below. Only element-accessed tables reach here: a whole-table operand, or a whole
-            // reference to a containing group, demotes the item to byte (RecordClassification / §9.3). Numeric-element
-            // tables are a later slice; DEPENDING ON / group-element tables stay byte.
+            // reference to a containing group, demotes the item to byte (RecordClassification / §9.3). DEPENDING ON /
+            // group-element tables stay byte. NUMERIC-element tables are NOT flipped: the byte path's VALUE-on-OCCURS
+            // init is quirky/inconsistent (DEVLOG 423 — zero-fills ignoring the value, vs spaces without VALUE), so a
+            // typed long/decimal init cannot be made byte-identical without first reconciling that byte-path behavior.
             if (sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
                 && sym.Area == Semantics.StorageAreaKind.WorkingStorage && classification.IsTyped(sym)
                 && _semantic.GetStorageLocation(sym) is { } aloc

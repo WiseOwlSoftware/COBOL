@@ -268,8 +268,16 @@ that table is classifier-excluded (byte) — never silently mis-indexed.
 
 1. **Char element, any subscript** — `string[]`; DISPLAY + MOVE-literal + field↔field MOVE + COMPARE of `ARR(i)`.
    Lands the `IrTypedLocation` base, `IrTypedElementLocation`, the three generalized primitives, `IrTypedArrayDef`,
-   emitter + resolver. (Largest commit — the scaffolding.)
-2. **Numeric element** — `long[]` / `decimal[]`; arithmetic on `ARR(i)` (the prologue/epilogue already work once the
-   primitives index). Mostly falls out of slice 1.
+   emitter + resolver. (Largest commit — the scaffolding.) **DONE (DEVLOG 422).**
+2. **Numeric element** — `long[]` / `decimal[]`. The cells/emitter/resolver already handle it (the primitives index
+   generically, and the binder branch was trivial to extend). **BLOCKED, NOT a code problem (DEVLOG 423):** the
+   byte path's **VALUE-on-`OCCURS` initialization is quirky and self-inconsistent** — a numeric `OCCURS … VALUE n`
+   element shows the zero-filled image (`000`, the value *ignored*), while the same item *without* VALUE shows spaces
+   (empty), and a scaled element is inconsistent across occurrences. A typed `long`/`decimal` init cannot be made
+   byte-identical to that without first **reconciling (most likely fixing) the byte-path `OCCURS`+VALUE init
+   semantics** — which is a byte-engine correctness question (`feedback_diff_is_a_bug`), to be settled before the
+   numeric-table flip. (Char tables are unaffected: the byte path inits `OCCURS` char to spaces, which the typed
+   spaces-init matches exactly — verified DISPLAY + `= SPACES` compare.) The `ClassifyTypedNumeric` core (shared by
+   the standalone long/decimal predicates) is already in place for when this unblocks.
 3. **PERFORM VARYING / SEARCH over a typed table** — index-driven loops; verify byte-identity with a varying subscript.
 4. **(later)** record-struct element (group table), multi-dim, ODO element access, `INDEXED BY`.
