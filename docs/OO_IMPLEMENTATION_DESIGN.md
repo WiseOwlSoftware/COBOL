@@ -144,6 +144,35 @@ no handle table.
 | 5 | NIST/Default dialect must be unaffected | Every OO rule is `{is2002()}?`-gated; OO keywords are corpus-clean. NIST stays byte-identical (verify with guard-fast + verdict-diff). |
 | 6 | Scope creep (interfaces, parameterized classes, ACTIVE-CLASS) | Out of scope until slice 6+; slices 1–5 cover the 90% path. |
 
+## 6.5 Findings from the first grammar attempt (DEVLOG 438 follow-up — read before retrying slice 1)
+
+A first slice-1 grammar pass was prototyped and **validated to parse the full §1 OO program correctly** (CLASS-ID /
+OBJECT / `METHOD-ID … END METHOD` / `USAGE OBJECT REFERENCE class` / `INVOKE … "m" … RETURNING`) — then **reverted**
+because integrating those rules into the shared `CobolParserCore` caused **deterministic LL regressions** in ~9
+class-condition-heavy tests (NC174A/211A/225A/250A compile-failed at `IS [NOT] NUMERIC` constructs, + 5 integration).
+Concrete lessons for the retry:
+
+1. **Add the OO grammar rules INCREMENTALLY, running `scripts/guard-fast.sh` after EACH addition** (not all at once),
+   so the regressing rule is pinpointed immediately. The all-at-once approach hid which of {`(programUnit |
+   classDefinition)+`, the class/method rules, `OBJECT REFERENCE className?` in `usageKeyword`, moving
+   `invokeStatement` into the main grammar} caused the break. Prime suspects: the top-level
+   `(programUnit | classDefinition)+` alternation (both start `IDENTIFICATION DIVISION.` — needs left-factoring so
+   the program-vs-class decision is made on the id-paragraph, not via SLL bail→LL) and the **optional trailing**
+   `className?` after `REFERENCE` (a classic ANTLR optional-tail ambiguity — make it non-optional or
+   left-factor a distinct `objectReferenceUsage` rule).
+2. **`invokeStatement` was a red herring twice over:** (a) the `{is2002()}?` gate works fine on an imported-grammar
+   rule (ALLOCATE proves it); (b) "unexpected INVOKE" in my minimal tests was because the **test programs lacked a
+   paragraph header** — statements directly under `PROCEDURE DIVISION.` make the parser read the verb as a paragraph
+   *name*. **All OO conformance test programs MUST have a `MAIN.` (and per-method) paragraph header.** A clean ANTLR
+   regen requires touching `CobolParserCore.g4` (the build's timestamp check) — a stale partial generate shows as a
+   spurious `CS1513` in the generated `.cs`.
+3. The validated grammar SHAPE is correct (matches ISO §12739 composition): `classDefinition : (IDENTIFICATION
+   DIVISION DOT)? classIdParagraph environmentDivision? objectParagraph? endClassHeader`; `objectParagraph :
+   (IDENTIFICATION DIVISION DOT)? OBJECT DOT … dataDivision? (PROCEDURE DIVISION DOT methodDefinition*)? END OBJECT
+   DOT`; `methodDefinition : … METHOD_ID DOT methodName DOT … procedureDivision? END METHOD methodName? DOT`. Tokens
+   `CLASS`/`END`/`METHOD`/`REFERENCE`/`CLASS_ID`/`METHOD_ID`/`INVOKE` exist; only `OBJECT` (and later `FACTORY`/
+   `INHERITS`) must be added (corpus-clean; longest-match keeps `OBJECT-COMPUTER` intact).
+
 ## 7. Definition of done (this subsystem)
 
 A representative OO program — a class with instance + factory methods, inheritance with SELF/SUPER, a property,
