@@ -297,10 +297,13 @@ public sealed class Binder
         string InitOf(DataSymbol s, int width) => s.InitialValue is { } v
             ? (v.Length >= width ? v[..width] : v.PadRight(width)) : new string(' ', width);
 
-        // S4: a standalone elementary UNSIGNED INTEGER DISPLAY item with a VALUE → a typed `long`. Restricted to
-        // the narrowest numeric slice (no sign / V / P, DISPLAY usage, ≤18 digits, has VALUE so init is defined —
-        // an uninitialized numeric field shows spaces on the byte path, which a `long` cannot reproduce). The
-        // out values are the digit count and the COBOL-correct truncated initial value.
+        // S4: a standalone elementary UNSIGNED INTEGER item with a VALUE → a typed `long`. Restricted to the
+        // narrowest numeric slice (no sign / V / P, ≤18 digits, has VALUE so init is defined — an uninitialized
+        // numeric field shows spaces on the byte path, which a `long` cannot reproduce). USAGE may be DISPLAY,
+        // COMP, or BINARY: all three store the value truncated to the PICTURE digit count (% 10^digits) — verified
+        // empirically (DEVLOG 416) — so the long model is byte-identical. COMP-5 (native binary, NO picture
+        // truncation), COMP-1/COMP-2 (float), and packed (COMP-3) are deliberately excluded — different semantics.
+        // The out values are the digit count and the COBOL-correct truncated initial value.
         bool IsTypedUnsignedInteger(DataSymbol s, out int digits, out long init)
         {
             digits = 0; init = 0;
@@ -313,7 +316,9 @@ public sealed class Binder
             if (_semantic.GetStorageLocation(s) is not { } loc)
                 return false;
             var pic = loc.Pic;
-            if (pic.Category != Runtime.CobolCategory.Numeric || pic.Usage != Runtime.UsageKind.Display)
+            if (pic.Category != Runtime.CobolCategory.Numeric)
+                return false;
+            if (pic.Usage is not (Runtime.UsageKind.Display or Runtime.UsageKind.Comp or Runtime.UsageKind.Binary))
                 return false;
             if (pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0)
                 return false;
@@ -344,12 +349,15 @@ public sealed class Binder
                 continue;
             }
 
-            // S4: a standalone elementary unsigned-integer DISPLAY item with a VALUE → a typed `long` field.
-            if (IsTypedUnsignedInteger(sym, out int ndigits, out long ninit))
+            // S4: a standalone elementary unsigned-integer DISPLAY/COMP/BINARY item with a VALUE → a typed `long`
+            // field. The field's Width is the BYTE storage width (loc.Length) — for COMP/BINARY that differs from
+            // the digit count (PIC 9(5) COMP is 4 bytes); the digit count lives on the PicDescriptor.
+            if (IsTypedUnsignedInteger(sym, out _, out long ninit))
             {
+                int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
-                module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, ndigits, "", IsNumeric: true, NumericInit: ninit));
-                _ctx.TypedFieldRefs[sym] = (name, ndigits, null);
+                module.TypedFieldDefs.Add(new IR.IrTypedFieldDef(name, byteWidth, "", IsNumeric: true, NumericInit: ninit));
+                _ctx.TypedFieldRefs[sym] = (name, byteWidth, null);
                 continue;
             }
 

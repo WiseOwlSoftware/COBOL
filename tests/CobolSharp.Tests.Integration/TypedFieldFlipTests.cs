@@ -388,4 +388,44 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericComp_FlipsToTypedLong_AcrossAllOps_ByteIdentical()
+    {
+        // S4: unsigned-integer COMP and BINARY items (with VALUE) flip to typed `long` too — verified (DEVLOG 416)
+        // to store the value truncated to the PICTURE digit count (% 10^digits), exactly like DISPLAY, so the long
+        // model is byte-identical across VALUE/MOVE (incl. high-order truncation)/DISPLAY/COMPARE/arithmetic. The
+        // byte storage width (4) differs from the digit count (5), which the cells now keep distinct.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDCMP4.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-C  PIC 9(5) COMP   VALUE 100.
+            01 WS-B  PIC 9(5) BINARY VALUE 30.
+            01 WS-R  PIC 9(5) COMP   VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY WS-C.
+                ADD WS-B TO WS-C.
+                DISPLAY WS-C.
+                MOVE 1234567 TO WS-R.
+                DISPLAY WS-R.
+                IF WS-C = 130 THEN DISPLAY "EQ130" END-IF.
+                IF WS-C > WS-B THEN DISPLAY "CGTB" END-IF.
+                COMPUTE WS-R = WS-C * WS-B.
+                DISPLAY WS-R.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // C:100; +30=130; R: 1234567 → low5 "34567"; C=130 EQ; C>B; R: 130*30=3900 → "03900".
+        Assert.Equal("00100\n00130\n34567\nEQ130\nCGTB\n03900",
+            typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

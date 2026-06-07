@@ -92,6 +92,8 @@ public class Program
         Console.WriteLine("                           Replaces XXXXX### placeholders; derives test");
         Console.WriteLine("                           name from source filename if not specified.");
         Console.WriteLine("                           Implies --standard default unless one is given.");
+        Console.WriteLine("  --typed-fields           Experimental: enable .NET-native typed-field codegen");
+        Console.WriteLine("                           (data-model migration). Output stays byte-identical.");
         Console.WriteLine("  -h, --help               Show this help message");
     }
 
@@ -153,6 +155,7 @@ public class Program
         string standard = "cobol85";
         bool standardSpecified = false;
         string? nistTestName = null;
+        bool enableTypedFields = false;
         var copyPaths = new List<string>();
 
         for (int i = 0; i < args.Length; i++)
@@ -179,6 +182,12 @@ public class Program
             {
                 // Enable NIST preprocessing; test name derived from source filename
                 nistTestName = ""; // will be derived from source path later
+            }
+            else if (args[i] == "--typed-fields")
+            {
+                // Experimental: opt into the .NET-native data-model migration's typed-field codegen
+                // (docs/DATA_MODEL_ARCHITECTURE.md). Default OFF; observable output stays byte-identical.
+                enableTypedFields = true;
             }
             else if (!args[i].StartsWith('-'))
             {
@@ -223,6 +232,7 @@ public class Program
                 _ => CobolSharp.Compiler.Semantics.DialectMode.Default
             }
         };
+        compilation.Options.EnableTypedFields = enableTypedFields;
 
         // NIST mode: derive test name from source filename if not explicit
         if (nistTestName != null)
