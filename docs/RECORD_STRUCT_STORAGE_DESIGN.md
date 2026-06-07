@@ -182,3 +182,86 @@ records as `record struct`s of native fields, debuggable as `customer.CustName =
 overlay/file/interop unchanged; the full guard (≥1184 / 481 / 364) is green at every commit; each post-'85 flip
 ships a `tests/conformance/<ver>/` test. The Roslyn C# backend (ADR Stage 5) later emits these structs as
 steppable `.cs`.
+
+## 9. OCCURS → typed tables (S4 continuation) — implementation design
+
+**Vocabulary reconciliation (what actually shipped).** §3/§6.1 above were authored around an `IrDataSlot`/
+`TypedFieldSlot` sum type. The flips that landed (DEVLOG 403–420) instead **re-targeted the existing `IrLocation`
+hierarchy** per ADR §9: a flipped standalone/member item is an **`IrTypedFieldLocation`** (`FieldName`, `Width`,
+`Pic`, optional `InstanceName` for a record-struct member); the Binder records the flip in `TypedFieldRefs`;
+`CilEmitter` emits a static field (`string`/`long`/`decimal` via `TypedFieldClrType`); the cells dispatch on
+`is IrTypedFieldLocation`. Numeric byte-identity is achieved by **leaning on the byte codec at the §2.5 boundary**:
+sender-materialize (`EncodeNumeric`→scratch), receiver prologue/epilogue (decode the result back), DISPLAY of a
+`decimal` via `GetDisplayString`, MOVE-literal via a compile-time `Encode→Decode` round-trip. OCCURS extends this
+same model to an *indexed* location — no new substrate philosophy, only a new location shape.
+
+### 9.1 Representation
+
+A **fixed** `OCCURS n` (no `DEPENDING ON`) over a *flippable elementary* element (the same char / unsigned-integer /
+signed-scaled rules as a standalone item, every element sharing one PICTURE) → a typed **.NET array** static field on
+the program type: `string[n]` / `long[n]` / `decimal[n]` (ADR §4 sanctions `T[]` for fixed OCCURS). This mirrors the
+flat typed field exactly, one indirection deeper. `CobolTable<T>` (the `[InlineArray]`-backed richer wrapper) is
+deferred — a plain `T[]` is byte-identical for fixed tables and avoids a new runtime type; revisit only if/when ODO
+or whole-table value semantics need it.
+
+Out of scope for the first OCCURS slices (stay **byte**-backed, untouched): `OCCURS DEPENDING ON` (ADR trigger 15
+for whole-group operands; element-level typed access can come later), tables whose element is a **group** (needs the
+record-struct-array combo — after nested groups), multi-dimensional OCCURS, `REDEFINES` over a table, `INDEXED BY`
+with `SET`/`SEARCH` on a typed table (index arithmetic), and any element reached by a byte trigger.
+
+### 9.2 New IR — a shared typed-location base
+
+Introduce an abstract **`IrTypedLocation : IrLocation`** carrying the common `Width` + `Pic` (and the derived
+`IsDecimalNumeric`). Two concrete subclasses:
+- `IrTypedFieldLocation` (existing) — flat field or record-struct member.
+- **`IrTypedElementLocation`** (new) — `ArrayFieldName`, `Index` (an `IrExpression`, already lowered to a **0-based**
+  element index — COBOL's 1-based subscript minus one), plus `Width`/`Pic`. (Record-struct *member* arrays and
+  multi-dim come later; v1 is a flat program-level array.)
+
+The 18 current `is IrTypedFieldLocation` dispatch sites become `is IrTypedLocation` where the logic is
+shape-agnostic (everything that only reads `Width`/`Pic`/`IsDecimalNumeric` — i.e. the materialize encode/decode,
+COMPARE, arithmetic prologue/epilogue, DISPLAY formatting), and the **three** value-access primitives gain an
+element arm:
+- `EmitTypedFieldValueLoad` → load the element: `ldsfld array; <emit Index>; ldelem.ref` (string) / `ldelem.i8`
+  (long) / `ldelem` (decimal, or `ldelema; ldobj`).
+- `EmitTypedStorePrefix` → push container addressing *before* the value: `ldsfld array; <emit Index>` (for `stelem`)
+  / `ldelema` (for a `decimal` `stobj`, if needed).
+- `EmitTypedStoreSuffix` → the store op: `stelem.ref`/`stelem.i8`/`stelem`/`stobj`.
+
+With those three generalized, **every existing numeric/char cell works on an array element unchanged** (materialize,
+COMPARE, arithmetic, DISPLAY, MOVE-literal, field↔field MOVE) — because they are all expressed in terms of those
+three primitives plus `Width`/`Pic`. This is the crux that makes 18 sites tractable: generalize the *primitives*,
+not each cell.
+
+### 9.3 Binder + resolver + init
+
+- **Binder.** A new branch: an elementary item with `Occurs is { DependingOnSymbol: null }`, flippable element PIC,
+  classifier-Typed → register an `IrTypedArrayDef(name, elementCount, elementKind, elementInit, byteWidth)` and a
+  `TypedFieldRefs` entry tagged as an array (so the resolver knows to index). Element init = the element's
+  VALUE-derived value (same `Encode→Decode` round-trip for numerics; spaces for char), applied to **every** slot.
+- **CilEmitter.** Emit `static T[] _T_<name>`; in `InitializeState`, `newarr` of `n` and a small init loop / unrolled
+  stores setting each slot to its initial value (never `default(T)`, ADR §1.7).
+- **LocationResolver.** When a subscripted reference's symbol is a typed array: lower the (single, v1) subscript to
+  an `IrExpression`, subtract 1 (0-based), and return `IrTypedElementLocation`. Constant subscripts fold to a
+  constant index node. Variable subscripts carry the lowered expression. (The existing byte path — `IrStaticLocation`
+  fold / `IrElementRef` — is untouched for non-flipped tables.)
+
+### 9.4 Byte-identity argument
+
+An element op is the flat-field op with the array slot selected first. The per-element value is stored/loaded with
+the **same** CLR type and the **same** codec calls as a standalone field of that PICTURE, so VALUE/MOVE/DISPLAY/
+COMPARE/arithmetic are byte-identical element-by-element by the already-proven flat-field argument; array indexing
+only chooses *which* element, and the 1-based→0-based adjustment happens once in the resolver. Bounds: COBOL does not
+mandate runtime subscript checking by default; `T[]` raises `IndexOutOfRangeException` where the byte path would read
+out-of-slot — a *divergence only on already-undefined behavior*; if a conformance case needs the byte semantics,
+that table is classifier-excluded (byte) — never silently mis-indexed.
+
+### 9.5 Staged sub-slices (each its own guard-green commit + flip test)
+
+1. **Char element, any subscript** — `string[]`; DISPLAY + MOVE-literal + field↔field MOVE + COMPARE of `ARR(i)`.
+   Lands the `IrTypedLocation` base, `IrTypedElementLocation`, the three generalized primitives, `IrTypedArrayDef`,
+   emitter + resolver. (Largest commit — the scaffolding.)
+2. **Numeric element** — `long[]` / `decimal[]`; arithmetic on `ARR(i)` (the prologue/epilogue already work once the
+   primitives index). Mostly falls out of slice 1.
+3. **PERFORM VARYING / SEARCH over a typed table** — index-driven loops; verify byte-identity with a varying subscript.
+4. **(later)** record-struct element (group table), multi-dim, ODO element access, `INDEXED BY`.
