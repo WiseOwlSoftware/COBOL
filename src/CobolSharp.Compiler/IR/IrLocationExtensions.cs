@@ -22,6 +22,7 @@ public static class IrLocationExtensions
             IrOdoGroupLocation o => o.Base.Pic,
             IrElementRef e => e.ElementPic,
             IrRefModLocation r => r.Base.GetPic(),
+            IrBasedDerefLocation b => b.Pic,   // Stage-4: BASED item dereferenced through its ManagedPointer
             IrTypedLocation t => t.Pic,   // IrTypedFieldLocation + IrTypedElementLocation
             _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
         };

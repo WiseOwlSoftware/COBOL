@@ -350,6 +350,18 @@ internal sealed class RecordClassificationPass
                     ScanExpression(si.Value);
                     break;
 
+                case BoundSetPointerStatement sp:
+                    // (6) ADDRESS OF x demotes the ADDRESSED item x to byte: a ManagedPointer's Buffer must be a real
+                    // byte[], and x's bytes are observed through the pointer (ISO §8.4.3). The pointer item itself is
+                    // ALWAYS typed (a managed field), never demoted. (Reachable only now that SET … ADDRESS OF binds.)
+                    if (sp.SourceKind == PointerSetSourceKind.FromAddressOf && sp.AddressOfItem is { } ai)
+                    {
+                        ScanExpression(ai);
+                        if (BaseSymbolOf(ai) is { } addrSym)
+                            Demote.Add(addrSym);
+                    }
+                    break;
+
                 case BoundAcceptStatement a:
                     ScanExpression(a.Target);
                     break;

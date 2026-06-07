@@ -84,6 +84,12 @@ internal sealed class CilLocationEmitter
                 EmitRefModAddress(il, r);
                 break;
 
+            case IR.IrBasedDerefLocation b:
+                // Stage-4 BASED deref: push (Buffer, Offset, Length) from the item's data-address ManagedPointer
+                // field — the same (byte[], offset, length) triple the byte engine consumes for any op.
+                EmitBasedDerefArgs(il, b);
+                break;
+
             default:
                 throw new NotSupportedException($"Unknown IrLocation type: {loc.GetType().Name}");
         }
@@ -584,6 +590,25 @@ internal sealed class CilLocationEmitter
             il.Append(il.Create(OpCodes.Ldnull));
             il.Append(il.Create(OpCodes.Ldc_I4, relOffset - paramBase));
         }
+    }
+
+    /// <summary>
+    /// Stage-4 BASED deref: push (Buffer, Offset, Length) from the BASED item's data-address ManagedPointer field
+    /// (<c>_PTR_&lt;name&gt;</c>). Buffer/Offset are read through the record-struct property getters (mirrors
+    /// <see cref="EmitLinkageBufferAndOffset"/>). The byte engine then operates on the pointed-to storage directly.
+    /// If the pointer is NULL (item never rebased), Buffer is null and the byte op faults — the COBOL program is
+    /// responsible for SET ADDRESS OF / ALLOCATE before dereferencing a BASED item (ISO §13.18.5).
+    /// </summary>
+    internal void EmitBasedDerefArgs(ILProcessor il, IR.IrBasedDerefLocation b)
+    {
+        var ptrField = _ctx.PointerFields[b.PtrField];
+        il.Append(il.Create(OpCodes.Ldsflda, ptrField));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(ManagedPointer).GetProperty("Buffer")!.GetGetMethod()!)));
+        il.Append(il.Create(OpCodes.Ldsflda, ptrField));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(ManagedPointer).GetProperty("Offset")!.GetGetMethod()!)));
+        il.Append(il.Create(OpCodes.Ldc_I4, b.Length));
     }
 
     /// <summary>

@@ -172,15 +172,19 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     `ReferenceEquals(Buffer)&&Offset==`, NOT struct `Equals`); the 8-byte handle paths (`CilDataEmitter` pointer-MOVE,
     `StorageLocation` pointer-PIC synth) DELETED. `pointer_data` green on the new path; rest of corpus byte-identical
     (the new paths early-return for non-pointer programs). New IR `IrPointerStore`/`IrPointerCompare`/`IrPointerFieldDef`.
-  - **NEXT = Stage-4 pointers slice 1b BOUNDARY 2** (`ADDRESS OF` / `SET ADDRESS OF` / BASED-deref). Add the
-    `setAddressStatement` bind branch (both alts), the `FromAddressOf` SET (`ManagedPointer.CreateByReference` over the
-    byte-backed addressed item), a new `IrBasedDerefLocation` (mirror `CilLocationEmitter.EmitLinkageBufferAndOffset`)
-    in `LocationResolver`/`EmitLocationArgs`/`GetPic`, classifier **trigger 6** (FromAddressOf demotes the addressed
-    item to byte), + a new `tests/conformance/2002/based_pointer.cob`. **ONE representation: a pointer is ALWAYS a
-    `ManagedPointer`; NO 8-byte byte handle; pointers always-typed, NOT gated by `EnableTypedFields`** (DEVLOG 431;
-    PointerRegistry REJECTED — settled, NOT owner-gated). **The exact turnkey surface map (every file:line, the new
-    `IrPointerStore`/`IrPointerCompare`/`IrBasedDerefLocation` IR, the two commit boundaries, blast radius = only
-    `pointer_data` uses pointers) is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5 — START THERE.** Then slices 2
+  - **PROGRESS — Stage-4 pointers slice 1b BOUNDARY 2 LANDED → slice 1b COMPLETE (DEVLOG 434), guard 1196/508/364:**
+    ☑ `SET p TO ADDRESS OF x` (`ManagedPointer.CreateByReference` over x's byte storage; x demoted to byte via
+    classifier **trigger 6**), `SET ADDRESS OF b TO p` (copy p's ref into the BASED item's `_PTR_` field), and
+    BASED-deref via a new `IrBasedDerefLocation` (`CilLocationEmitter.EmitBasedDerefArgs` pushes (Buffer,Offset,Length)
+    from `_PTR_b` → byte engine reads+writes the pointed-to storage). `DataStatementBinder.BindSetAddress` (both
+    grammar alts, token-order discriminated); `LocationResolver` intercepts a whole BASED reference. Conformance
+    `tests/conformance/2002/based_pointer.cob`. **Pointer slice 1b COMPLETE — one `ManagedPointer` representation,
+    always-typed, no 8-byte handle.**
+  - **NEXT = Stage-4 pointers slice 2 (pointer arithmetic)** — `SET p UP/DOWN BY n` (in `BindSetIndex`, branch on
+    `Category==Pointer` → adjust `_PTR_p.Offset`, not `IrPicAdd`) + pointer ordering relations. **Then slice 3:**
+    `ALLOCATE`/`FREE` (ISO §14.9.3/§14.9.15 — `ManagedPointer` over `new byte[n]` / drop the ref; lexer+grammar→regen
+    →bound→bind→lower→emit), each guard-green + a `tests/conformance/2002/` test. **The turnkey surface map for the
+    whole pointer subsystem (`docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10) remains the live guide.** Then slices 2
     (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO** → .NET classes (largest piece); Stage-5 **Roslyn C#
     backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename. Substrate runtime
     ready (`CobolNum`/`CobolString` + oracles). See also `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.

@@ -20,19 +20,23 @@ workflows branch from a stale commit in this repo).
 5. The staged `EnableTypedFields`-gated migration is the byte-identity **verification** path (char/numeric), NOT
    backward-compat baggage — keep it; it converges on flag-on-by-default.
 
-### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 1b BOUNDARY 2** (ADDRESS OF / SET ADDRESS OF / BASED-deref)
-**✅ BOUNDARY 1 LANDED (DEVLOG 433):** a `USAGE POINTER` item is now ALWAYS a `static ManagedPointer _PTR_<name>`
-field (always-on pass `Binder.CollectPointerFields`, NOT `EnableTypedFields`-gated); `StorageLayoutComputer` skips its
-WS layout; `SET p TO NULL/q` → `BoundSetPointerStatement` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare`
-(address identity, NOT struct `Equals`); the 8-byte handle paths (`CilDataEmitter` pointer-MOVE, `StorageLocation`
-pointer-PIC synth) are DELETED. `pointer_data` stays green; guard ALL GREEN 1196/507/364.
-**→ BOUNDARY 2 (next):** add the `setAddressStatement` branch in `DataStatementBinder.BindSet` (both alts), the
-`FromAddressOf` SET (`ManagedPointer.CreateByReference` over the byte-backed addressed item), a new
-`IrBasedDerefLocation` (load `_PTR_b.Buffer`+`Offset`, push (byte[],offset,len) — mirror
-`CilLocationEmitter.EmitLinkageBufferAndOffset`) wired into `LocationResolver` for a BASED item + `EmitLocationArgs`
-+ `IrLocationExtensions.GetPic`, classifier **trigger 6** (a `BoundSetPointerStatement` FromAddressOf demotes the
-addressed item to byte), and a new `tests/conformance/2002/based_pointer.cob`+`.out`
-(`SET P TO ADDRESS OF X; SET ADDRESS OF B TO P; DISPLAY B`). `LowerSetPointer` already handles FromAddressOf.
+### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 2 (pointer arithmetic)** then slice 3 (ALLOCATE/FREE)
+**✅ SLICE 1b COMPLETE (DEVLOG 433–434).** Pointers are ONE managed `ManagedPointer` representation, always-typed
+(NOT `EnableTypedFields`-gated), no 8-byte handle:
+- **Boundary 1 (433):** a `USAGE POINTER` item is a `static ManagedPointer _PTR_<name>` field (always-on
+  `Binder.CollectPointerFields`); `StorageLayoutComputer` skips its WS layout; `SET p TO NULL/q` →
+  `BoundSetPointerStatement` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare` (address identity:
+  `ReferenceEquals(Buffer)&&Offset==`, NOT struct `Equals`); the 8-byte handle paths DELETED.
+- **Boundary 2 (434):** `SET p TO ADDRESS OF x` (`ManagedPointer.CreateByReference`), `SET ADDRESS OF b TO p`,
+  BASED-deref via a new `IrBasedDerefLocation` (read+write through `_PTR_b`), classifier **trigger 6** (ADDRESS OF
+  demotes the addressed item to byte). Conformance `pointer_data` + `based_pointer`. Guard ALL GREEN 1196/508/364.
+
+**→ NEXT (slice 2, §10.4):** pointer arithmetic — `SET p UP/DOWN BY n` (in `BindSetIndex`, branch on
+`Category==Pointer` → adjust `_PTR_p.Offset`, NOT `IrPicAdd`) + pointer ordering relations. **Then slice 3:**
+`ALLOCATE {expr CHARACTERS | based-item} [INITIALIZED] [RETURNING ptr]` / `FREE ptr` (ISO §14.9.3/§14.9.15) =
+`ManagedPointer` over `new byte[n]` / drop the ref — wire end-to-end (lexer `ALLOCATE`/`FREE` + grammar → regen →
+bound nodes → bind → Binder switch → lower → emit), each guard-green + a `tests/conformance/2002/` test. Then
+Stage-4 **OO → .NET classes** (largest piece), Stage-5 **Roslyn backend**, Stage-6 finalize + flip-on + rename.
 
 Design is FINAL; **slice 1a committed** (`a4c562b` correction, `6d5647d` map; grammar + `BASED` no-storage already in).
 **The complete turnkey rearchitecture surface map — every file:line, the new IR, the two commit boundaries, and the

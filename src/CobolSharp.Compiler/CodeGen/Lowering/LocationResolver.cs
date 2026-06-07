@@ -27,6 +27,13 @@ internal sealed class LocationResolver
     /// </summary>
     public IrLocation? ResolveLocation(BoundIdentifierExpression id, bool receiving = false)
     {
+        // Stage-4 BASED deref (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): a BASED item has no storage of its own; a
+        // whole-item reference is addressed through its data-address ManagedPointer at use time. (Subscripted /
+        // member access on a BASED group is a later slice.)
+        if (id.Symbol.IsBased && !id.IsSubscripted
+            && _ctx.PointerFieldRefs.TryGetValue(id.Symbol, out var basedPtr))
+            return BuildBasedDeref(id.Symbol, basedPtr);
+
         var baseLoc = _ctx.Semantic.GetStorageLocation(id.Symbol);
         if (!baseLoc.HasValue) return null;
 
@@ -138,9 +145,24 @@ internal sealed class LocationResolver
     /// </summary>
     public IrLocation? ResolveLocation(DataSymbol sym, bool receiving = false)
     {
+        // Stage-4 BASED deref: a BASED item is addressed through its data-address ManagedPointer (see the
+        // BoundIdentifierExpression overload).
+        if (sym.IsBased && _ctx.PointerFieldRefs.TryGetValue(sym, out var basedPtr))
+            return BuildBasedDeref(sym, basedPtr);
+
         var loc = _ctx.Semantic.GetStorageLocation(sym);
         if (!loc.HasValue) return null;
         return ResolveWholeItem(sym, loc.Value, receiving);
+    }
+
+    /// <summary>Stage-4: build the deref location for a whole BASED item — its declared byte length + an
+    /// alphanumeric/elementary descriptor, addressed through <paramref name="ptrField"/> (its <c>_PTR_</c> field).
+    /// The length is the item's own size (a BASED item has no laid-out ElementSize, so compute it directly).</summary>
+    private IrLocation BuildBasedDeref(DataSymbol sym, string ptrField)
+    {
+        int length = sym.ElementSize > 0 ? sym.ElementSize : FieldSizeCalculator.ComputeElementSize(sym);
+        var pic = CompilerPicDescriptorFactory.FromDataSymbol(sym, length, _ctx.Semantic.PicEnvironment);
+        return new IrBasedDerefLocation(ptrField, length, pic);
     }
 
     /// <summary>

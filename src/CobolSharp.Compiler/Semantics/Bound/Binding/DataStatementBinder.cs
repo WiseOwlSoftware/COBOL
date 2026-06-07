@@ -175,6 +175,10 @@ internal sealed class DataStatementBinder
         if (ctx.setIndexStatement() is { } idxCtx)
             return BindSetIndex(idxCtx);
 
+        // SET ADDRESS OF based TO ptr  /  SET ptr TO ADDRESS OF item (Stage-4 pointers, ISO §14.9.39)
+        if (ctx.setAddressStatement() is { } addrCtx)
+            return BindSetAddress(addrCtx);
+
         // SET pointer TO NULL / SET pointer TO another-pointer (parses as the object-reference form, since
         // NULL_ and a data-reference are objectReference alternatives). OO object-reference SET is not yet
         // implemented; here we handle only the pointer case (Phase-1).
@@ -204,6 +208,45 @@ internal sealed class DataStatementBinder
             && srcPtr.Symbol.ResolvedType?.Category == CobolCategory.Pointer)
             return new BoundSetPointerStatement(target.Symbol, PointerSetSourceKind.FromPointer, srcPtr.Symbol);
         return null;
+    }
+
+    /// <summary>
+    /// Stage-4 pointers: bind <c>SET ADDRESS OF based TO ptr</c> and <c>SET ptr TO ADDRESS OF item</c> (the two
+    /// alternatives of <c>setAddressStatement</c>, ISO §14.9.39) to a <see cref="BoundSetPointerStatement"/>.
+    /// <list type="bullet">
+    /// <item><c>SET ADDRESS OF b TO p</c> — store p's managed reference into b's data-address pointer (FromPointer,
+    /// target = the BASED/LINKAGE item b).</item>
+    /// <item><c>SET p TO ADDRESS OF x</c> — build a <c>ManagedPointer</c> over x's storage (FromAddressOf; x becomes
+    /// byte-backed via classifier trigger 6).</item>
+    /// </list>
+    /// The alternatives are distinguished by token order: in alt 1 the <c>ADDRESS</c> keyword precedes the first
+    /// data reference; in alt 2 the first data reference precedes <c>ADDRESS</c>.
+    /// </summary>
+    internal BoundStatement? BindSetAddress(CobolParserCore.SetAddressStatementContext ctx)
+    {
+        var drs = ctx.dataReference();
+        if (drs.Length < 2 || ctx.ADDRESS() == null) return null;
+        bool addressOfTarget = ctx.ADDRESS().Symbol.TokenIndex < drs[0].Start.TokenIndex;
+
+        if (addressOfTarget)
+        {
+            // SET ADDRESS OF based TO ptr : the target is the based/linkage item (no expression location — it is
+            // addressed through its own pointer); the source is another pointer whose value is copied in.
+            var basedSym = _ctx.Semantic.ResolveData(drs[0].cobolWord().GetText());
+            if (basedSym == null) return null;
+            if (_ctx.Expression.BindDataReferenceWithSubscripts(drs[1]) is not BoundIdentifierExpression srcPtr
+                || srcPtr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
+                return null;
+            return new BoundSetPointerStatement(basedSym, PointerSetSourceKind.FromPointer, srcPtr.Symbol);
+        }
+
+        // SET ptr TO ADDRESS OF item : build a ManagedPointer over the addressed item's storage.
+        if (_ctx.Expression.BindDataReferenceWithSubscripts(drs[0]) is not BoundIdentifierExpression ptr
+            || ptr.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
+            return null;
+        var addrItem = _ctx.Expression.BindDataReferenceWithSubscripts(drs[1]);
+        if (addrItem is not BoundIdentifierExpression) return null;
+        return new BoundSetPointerStatement(ptr.Symbol, PointerSetSourceKind.FromAddressOf, addressOfItem: addrItem);
     }
 
     internal BoundStatement? BindSetSwitch(CobolParserCore.SetSwitchStatementContext ctx)

@@ -1319,6 +1319,28 @@ public sealed class IrStaticLocation : IrLocation
 }
 
 /// <summary>
+/// A BASED item's deref (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): the item has no storage of its own —
+/// it is addressed at use time through its data-address pointer (the <c>static ManagedPointer</c> field
+/// <see cref="PtrField"/>). The emitter pushes (<c>Buffer</c>, <c>Offset</c>, <see cref="Length"/>) from that pointer
+/// — the same (byte[], offset, length) triple the byte engine consumes — so every existing byte op (DISPLAY / MOVE /
+/// COMPARE) works on the pointed-to storage unchanged. A separate kind from <see cref="IrStaticLocation"/> because
+/// that hard-binds a fixed (area, offset); a BASED deref's buffer+offset are read from the pointer at runtime.
+/// </summary>
+public sealed class IrBasedDerefLocation : IrLocation
+{
+    public string PtrField { get; }
+    public int Length { get; }
+    public Runtime.PicDescriptor Pic { get; }
+
+    public IrBasedDerefLocation(string ptrField, int length, Runtime.PicDescriptor pic)
+    {
+        PtrField = ptrField;
+        Length = length;
+        Pic = pic;
+    }
+}
+
+/// <summary>
 /// Base for a typed-native location (data-model migration): the operand is a native .NET value (<c>string</c> /
 /// <c>long</c> / <c>decimal</c>), not a byte window. Subclasses differ only in how the value is addressed — a flat
 /// field / record-struct member (<see cref="IrTypedFieldLocation"/>) or an OCCURS array element
