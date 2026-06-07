@@ -353,3 +353,32 @@ hard-binds a fixed area+offset, so a new location kind is required.
 3. **`ALLOCATE` / `FREE`** (+ `INITIALIZED`, `RETURNING`) — heap-less managed allocation.
 4. **(later)** `PROGRAM-POINTER`/`FUNCTION-POINTER`, `CALL … BY REFERENCE` migrated onto the same `ManagedPointer`
    path (already is), pointer in a typed record/table.
+
+### 10.5 Current-state surface map — the EXACT sites slice 1b rearchitects (confirmed DEVLOG 431)
+The Phase-1 pointer = an **8-byte byte handle inline in WS**. To make it the single `ManagedPointer` field, touch:
+- **Storage / sizing** — `Semantics/FieldSizeCalculator.cs:28` (`if (data.Usage == UsageKind.Pointer)` → 8). A pointer
+  no longer occupies WS bytes; it becomes a per-item `static ManagedPointer` field. Keep an 8 only as the *logical*
+  `LENGTH OF` value (not a storage slot). `PicUsageResolver.cs:52` sets `Category=Pointer` (keep). A standalone
+  `USAGE POINTER` is already `IsElementary` (`DataSymbol.cs:126`).
+- **Classifier** — `Semantics/DataItemClassifier.cs:175` (`Category==Pointer`). Make a pointer **always-typed**
+  (never byte-demoted) — pointers are NOT gated by `EnableTypedFields`. Add **trigger 6**: a `BoundAddressOfExpression`
+  on item X demotes X (not the pointer) to byte so X keeps a `byte[]` Buffer.
+- **Pointer-field pass** — a NEW always-on pass (sibling to the gated `Binder.CollectTypedFields`, `Binder.cs:278`):
+  for every `USAGE POINTER` item AND every `IsBased` item, register a `_PTR_<name>` `ManagedPointer` field
+  (`IrModule.PointerFieldDefs` + `LoweringContext.PointerFieldRefs`). `CilEmitter` emits `static ManagedPointer
+  _PTR_<name>` (defaults to NULL = correct initial value, so no explicit init — the one place `default(T)` is right).
+- **SET dispatch** — `Semantics/Bound/Binding/DataStatementBinder.cs`: `BindSetObjectReference` (`:187-204`, currently
+  `SET p TO NULL/q` → `BoundMoveStatement` byte) and `BindSetToValue` (`:301`, `SET p TO q`) must emit
+  pointer-field ops, NOT a byte MOVE. Add the `setAddressStatement` branch in `BindSet` (`:160-184`) for both
+  `SET ADDRESS OF b TO p` and `SET p TO ADDRESS OF x` (grammar already lands per slice 1a).
+- **Compare** — the comparison subsystem currently does an 8-byte ordinal compare for `IF p = NULL / p = q`. Reroute a
+  pointer-category relation to `!_PTR.IsValid` (vs NULL) / `_PTR_a.Equals(_PTR_b)` (struct equality). Find via
+  `CategoryCompatibility.cs:75` (`(Pointer,Pointer)`) and the relation lowering.
+- **New IR**: `IrPointerStore { PtrField; Kind = Null | FromPointer | FromAddressOf; Source }`,
+  `IrPointerCompare`, and an `IrBasedDerefLocation { PtrField; Length }` (a new `IrLocation` kind — `IrStaticLocation`
+  hard-binds area+offset). Deref emit: `ldsflda _PTR_b; ldfld Buffer` (→ `byte[]`), `ldsflda _PTR_b; ldfld Offset`
+  (→ int), `ldc Length` → the existing byte-path runtime ops consume the (`byte[]`,offset,len) triple.
+- **First commit boundary (guard-green)**: storage + classifier-always-typed + the pointer-field pass + `SET`/compare
+  reimplemented on `ManagedPointer` → the existing `pointer_data` conformance test stays green (observably identical:
+  NULL/SET/=); the 8-byte handle code is then deleted. THEN `ADDRESS OF`/`SET ADDRESS OF`/BASED-deref + a new
+  `based_pointer` conformance test (`SET p TO ADDRESS OF x` / `SET ADDRESS OF b TO p` / `DISPLAY b`).

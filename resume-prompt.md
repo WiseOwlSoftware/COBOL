@@ -14,10 +14,18 @@ workflows branch from a stale commit in this repo).
   COMPARE/`IS NUMERIC`/**arithmetic**/figurative-ZEROS; **flat + nested groups → (nested) `record struct`s**;
   **fixed OCCURS (char + numeric) → `T[]`** (subscript + PERFORM VARYING; SEARCH stays byte); every byte-trigger
   correctly stays byte. Byte-engine **ISO-2023 fix (424):** VALUE on OCCURS inits every occurrence (§13.18.63.4 GR 9).
-- **RESUME AT → the remaining large stages, ALL autonomous-eligible:** Stage-4 **pointers → managed .NET references**
-  (the ADR's `ManagedPtr`; **PointerRegistry REJECTED — SETTLED, NOT owner-gated**, DEVLOG 428) + **OO → .NET
-  classes**; Stage-5 **Roslyn C# backend**; Stage-6 finalize + flip-on-by-default + rename. Plan **§0.5** +
-  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9 are the live guides. The 394–403 detail below is historical reference.
+- **RESUME AT → Stage-4 pointers, slice 1b (the working core).** Design FINAL + slice 1a committed (`a4c562b`).
+  **ONE representation: a pointer is ALWAYS a `ManagedPointer`; NO 8-byte byte handle; pointers are always-typed, NOT
+  gated by `EnableTypedFields`** (DEVLOG 431; **PointerRegistry REJECTED — SETTLED, NOT owner-gated**). **The exact
+  turnkey rearchitecture surface map (every file:line — storage `FieldSizeCalculator.cs:28`, classifier
+  `DataItemClassifier.cs:175`, SET dispatch `DataStatementBinder.cs:187/301`, compare, the new always-on pointer-field
+  pass, the new `IrPointerStore`/`IrBasedDerefLocation` IR, and the two commit boundaries) is
+  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5 — START THERE, zero re-discovery needed.** First guard-green commit =
+  storage + classifier-always-typed + pointer-field pass + `SET`/compare reimplemented on `ManagedPointer`
+  (`pointer_data` stays green; delete the 8-byte handle); then `ADDRESS OF`/`SET ADDRESS OF`/BASED-deref + a new
+  `based_pointer` conformance test. THEN slices 2 (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO → .NET
+  classes**, Stage-5 **Roslyn C# backend**, Stage-6 finalize + flip-on-by-default + rename. Plan **§0.5** +
+  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 are the live guides. The 394–403 detail below is historical.
 
 ### ✅ DONE so far (DEVLOG 394–403; guard **1196 unit / 491 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
