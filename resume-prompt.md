@@ -35,10 +35,16 @@ per `USAGE POINTER`/`BASED` item (always-on `Binder.CollectPointerFields`):
 Conformance: `pointer_data`, `based_pointer`, `pointer_arith`, `pointer_alloc`. guard-fast ALL GREEN 1196/510/364.
 Pointer follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC checks) tracked in §10.4.
 
-**→ NEXT = Stage-4 OO → .NET classes** (ADR §10 Stage 4, the largest remaining data-model piece): COBOL OO
-(CLASS-ID/METHOD-ID/INVOKE/object references) → real .NET classes. Then Stage-5 **Roslyn C# backend** (Cecil
-oracle), Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename `CobolSharp`→`COBOL.NET` (exe
-`cobol.exe`); then the remaining M2/M3/M4 conformance catalog (EC/exceptions, VALIDATE, the rest).
+**→ NEXT = Stage-4 OO → .NET classes — IMPLEMENT SLICE 1.** The OO subsystem is investigated + designed (DEVLOG 438):
+**`docs/OO_IMPLEMENTATION_DESIGN.md` is the turnkey plan** — minimal vertical slice, foundational integration
+(grammar/tokens/pipeline/symbols with file:line), the **per-instance `ProgramState`** architecture decision (each
+object instance carries its own `ProgramState`, so the whole byte+typed engine works per-instance with one
+addressing tweak; `INVOKE` mirrors the `callvirt` CALL path), and the **6 staged slices**. START with **slice 1**:
+CLASS-ID + OBJECT instance method + `INVOKE "NEW"` + no-arg `INVOKE` → conformance `oo_hello.cob`. Most OO lexer
+tokens already exist; a stub `invokeStatement` is already `{is2002()}?`-gated; `CobolParserOO.g4` is a dead sketch to
+merge. Then slices 2 (USING/RETURNING), 3 (INHERITS+SELF/SUPER), 4 (FACTORY), 5 (PROPERTY), 6 (polymorphism+EC-OO).
+Then Stage-5 **Roslyn C# backend** (Cecil oracle), Stage-6 finalize + flip-`EnableTypedFields`-on + rename
+`CobolSharp`→`COBOL.NET` (exe `cobol.exe`); then the remaining M2/M3/M4 conformance catalog (EC/exceptions, VALIDATE).
 
 ### ⚡ FASTER GUARD (DEVLOG 435): use `bash scripts/guard-fast.sh` (~3.3 min vs ~11 min) for iteration; it is PROVEN
 byte-identical to `scripts/guard.sh` (run `scripts/guard-verify.sh` to re-prove after corpus/grouping changes).
