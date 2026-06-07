@@ -173,6 +173,50 @@ Concrete lessons for the retry:
    `CLASS`/`END`/`METHOD`/`REFERENCE`/`CLASS_ID`/`METHOD_ID`/`INVOKE` exist; only `OBJECT` (and later `FACTORY`/
    `INHERITS`) must be added (corpus-clean; longest-match keeps `OBJECT-COMPUTER` intact).
 
+## 6.6 Slice-1 semantic/emit — turnkey implementation map (DEVLOG 439 follow-up, investigation done)
+
+The grammar is landed (Core/CobolOO.g4, gated, green). The semantic/emit is a multi-hour vertical; this is the exact
+plan from the investigation so the next push is zero-rediscovery. **Key reuse finding:** route a `classDefinition`
+through the existing `BuildSemanticModel` (it just calls `semanticBuilder.Visit(tree)`, an ANTLR visitor that
+recurses into children) → the OBJECT data is collected as WORKING-STORAGE and the method's paragraphs via recursion,
+so the **whole semantic + binder layer is reused** and a single-method class compiles to a normal `IrModule`
+(`ProgramSymbol`-based) — **no new ClassSymbol needed for slice 1**. The class-specific work is only emission + INVOKE.
+
+**A. Routing (low-risk, additive) — `Compilation.cs`:**
+- `CollectProgramContexts` (`:168`): also `foreach (group.classDefinition()) { result.Add(c); parents[c]=null; }`.
+- `ExtractProgramIdFromContext` (`:660`): add `CobolParserCore.ClassDefinitionContext c => c.classIdParagraph()`
+  → `className()` for the unit name.
+- Phase-4 loop (`:103`): tag each `CompiledProgram` with a `UnitKind` (Program | Class) so emission branches. The
+  class's `objectParagraph.dataDivision()` + each `methodDefinition.procedureDivision()` are visited by recursion;
+  the bare `PROCEDURE DIVISION.` tokens in `objectParagraph` are harmless (no visit method). Verify the method's
+  paragraph(s) land in the procedure model.
+
+**B. Class emission — `CilEmitter` (the invasive part):** add `EmitClassModule` parallel to `EmitModule`:
+- The `State` field becomes an INSTANCE field; `InitializeState` becomes an instance method; the `NEW` ctor allocates
+  `this.State` + calls instance `InitializeState`. The paragraph `IrMethod`s + the `Dispatch` helper become INSTANCE
+  methods. Each COBOL method (`METHOD-ID`) → a `public` instance method that runs the dispatch from that method's
+  entry paragraph index.
+- **The State-load chokepoint:** add `EmissionContext.StateIsInstance`. In `CilLocationEmitter:476` (and
+  `CilEmitter:369/730/883`) emit `ldarg.0; ldfld State` when `StateIsInstance`, else `ldsfld State`. This is the one
+  byte-engine change that makes the entire data engine work per-instance. Object **identity** = the .NET reference.
+
+**C. INVOKE — bind + emit (cross-type resolution):**
+- Bind `invokeStatement` (BoundTreeBuilder dispatch → a new `BoundInvokeStatement{ Target, MethodName, Args,
+  Returning, IsNew }`). The reference resolver must NOT flag the class-name operand (GREETER) as CBL3128 — recognize
+  an INVOKE class-name target. `INVOKE class "NEW"` → IsNew.
+- Lower → `IrInvoke`. Emit: `IsNew` → `newobj <class>..ctor` → store RETURNING (an object-ref field); instance →
+  `ldsfld <objref>; castclass <class>; callvirt <class>::<method>`. **Cross-type resolution:** the target class is a
+  *separate* emitted type/`IrModule` in the same assembly → emit needs a two-pass (define all class types + method
+  signatures first, bind bodies/INVOKE second) OR a post-emit fixup, resolving `TypeDefinition`/`MethodDefinition`
+  by class-name+method-name across modules (a shared registry on the assembly emit).
+
+**D. OBJECT REFERENCE storage:** an `01 G USAGE OBJECT REFERENCE C` item → a `static <C-or-object>` reference field
+(mirror the pointer-field pass shape, but a real .NET reference, not `ManagedPointer`). `SET o TO NULL` → `ldnull;
+stsfld`; `o = NULL`/`o = q` → reference compare; `INVOKE … RETURNING o` stores into it.
+
+**Conformance:** `tests/conformance/2002/_pending_oo/oo_hello.cob` (already authored + parse-validated) → `HELLO,
+WORLD!`. Move it into the corpus in the same commit the vertical goes green. Then slices 2–6 (§5).
+
 ## 7. Definition of done (this subsystem)
 
 A representative OO program — a class with instance + factory methods, inheritance with SELF/SUPER, a property,
