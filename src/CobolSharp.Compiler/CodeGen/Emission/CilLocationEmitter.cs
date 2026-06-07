@@ -98,6 +98,14 @@ internal sealed class CilLocationEmitter
     {
         if (loc is IR.IrTypedFieldLocation t)
         {
+            // S4: a typed NUMERIC field's value is a `long`, not a string — its sender-materialize must encode via
+            // the numeric codec (EncodeNumeric), not CobolString.ToWindow. That cell is not implemented yet, so
+            // fail loudly here rather than emit a long where a string is expected (silent mis-emit).
+            if (t.Pic.Category == Runtime.CobolCategory.Numeric)
+                throw new System.NotSupportedException(
+                    $"Typed numeric field '{t.FieldName}' as a read operand needs the numeric sender-materialize " +
+                    "(EncodeNumeric → scratch window), not yet implemented — RECORD_STRUCT_STORAGE_DESIGN.md S4.");
+
             // load the typed string value (flat static field, or a record-struct member)
             if (t.InstanceName is { } inst)
             {
