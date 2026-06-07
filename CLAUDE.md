@@ -49,9 +49,11 @@ classifier-trigger completeness before any Stage-3 typed flip).
   - **Byte-engine ISO-2023 conformance fix (424):** a VALUE on an OCCURS item now initializes EVERY occurrence
     (§13.18.63.4 GR 9; conformance `table_value_occurs`; zero baseline shifts).
   - **Definition of done (428):** a representative business program flips its WHOLE data division byte-identically.
-- **RESUME AT → the remaining large migration stages (all autonomous-eligible):** Stage-4 **pointers → managed .NET
-  references** (the ADR's `ManagedPtr` — GC-tracked, no native heap / no handle table; the **PointerRegistry design
-  is REJECTED — SETTLED, NOT owner-gated**, DEVLOG 428) and **OO → .NET classes**; Stage-5 **Roslyn C# backend**;
+- **RESUME AT → Stage-4 pointer slice 1** (BASED + ADDRESS OF + SET ADDRESS OF + deref), then the rest (all
+  autonomous-eligible): **pointers → managed .NET references** via the single **`ManagedPointer`** carrier (renamed
+  from `CobolDataPointer`, DEVLOG 429; GC-tracked, no native heap / no handle table / no `unsafe`; **PointerRegistry
+  REJECTED — settled, NOT gated**; grammar approved; design in `RECORD_STRUCT_STORAGE_DESIGN.md §10`) and **OO → .NET
+  classes**; Stage-5 **Roslyn C# backend**;
   Stage-6 finalize + flip-on-by-default decision + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See plan
   **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
