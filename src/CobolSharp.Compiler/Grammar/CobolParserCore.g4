@@ -13,7 +13,7 @@ options {
 // completely disjoint grammar rules — zero ambiguity.
 tokens { ZERO_ARITH }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml, CobolScreen;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml, CobolOO, CobolScreen;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -76,7 +76,7 @@ compilationUnit
     ;
 
 compilationGroup
-    : programUnit+
+    : (programUnit | {is2002()}? classDefinition)+   // classDefinition (OO/2002) rule is in Core/CobolOO.g4
     ;
 
 programUnit

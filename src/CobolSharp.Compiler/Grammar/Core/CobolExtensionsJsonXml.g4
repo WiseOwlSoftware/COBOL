@@ -20,7 +20,7 @@ options {
 
 jsonStatement     : JSON (dataReference | literal)+ ;
 xmlStatement      : XML (dataReference | literal)+ ;
-invokeStatement   : INVOKE (dataReference | literal)+ ;
+// invokeStatement (OO/2002) is factored into Core/CobolOO.g4 (not here — this fragment is JSON/XML, 2014).
 
 // ==========================================
 // INLINE METHOD INVOCATION (COBOL 2023)

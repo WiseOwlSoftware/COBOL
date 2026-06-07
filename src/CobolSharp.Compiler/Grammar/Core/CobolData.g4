@@ -309,6 +309,7 @@ usageKeyword
     | NATIONAL
     | BIT
     | POINTER
+    | {is2002()}? objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — rule in Core/CobolOO.g4
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

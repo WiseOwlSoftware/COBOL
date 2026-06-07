@@ -2481,17 +2481,89 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitXmlStatement([NotNull] CobolParserCore.XmlStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.inlineMethodInvocationStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInlineMethodInvocationStatement([NotNull] CobolParserCore.InlineMethodInvocationStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classDefinition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassDefinition([NotNull] CobolParserCore.ClassDefinitionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.classIdParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitClassIdParagraph([NotNull] CobolParserCore.ClassIdParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.objectParagraph"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitObjectParagraph([NotNull] CobolParserCore.ObjectParagraphContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.methodDefinition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMethodDefinition([NotNull] CobolParserCore.MethodDefinitionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.methodName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitMethodName([NotNull] CobolParserCore.MethodNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.endClassHeader"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEndClassHeader([NotNull] CobolParserCore.EndClassHeaderContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitInvokeStatement([NotNull] CobolParserCore.InvokeStatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.inlineMethodInvocationStatement"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeTarget"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitInlineMethodInvocationStatement([NotNull] CobolParserCore.InlineMethodInvocationStatementContext context);
+	Result VisitInvokeTarget([NotNull] CobolParserCore.InvokeTargetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeMethodName"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInvokeMethodName([NotNull] CobolParserCore.InvokeMethodNameContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeUsing"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInvokeUsing([NotNull] CobolParserCore.InvokeUsingContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeArgument"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInvokeArgument([NotNull] CobolParserCore.InvokeArgumentContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.invokeReturning"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInvokeReturning([NotNull] CobolParserCore.InvokeReturningContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.objectReferenceUsage"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitObjectReferenceUsage([NotNull] CobolParserCore.ObjectReferenceUsageContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.screenSection"/>.
 	/// </summary>
