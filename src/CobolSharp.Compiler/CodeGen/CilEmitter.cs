@@ -623,6 +623,17 @@ public sealed class CilEmitter
             _ctx.TypedArrays[ad.Name] = arrFd;
         }
 
+        // Stage-4 pointers (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): one static ManagedPointer field per
+        // USAGE POINTER / BASED item. The field's default value (Buffer null) IS the COBOL NULL initial state, so
+        // NO explicit init is emitted in InitializeState — the one place default(T) is the correct initial value.
+        foreach (var pf in ir.PointerFieldDefs)
+        {
+            var ptrFd = new FieldDefinition(pf.Name, FieldAttributes.Public | FieldAttributes.Static,
+                _module.ImportReference(typeof(CobolSharp.Runtime.ManagedPointer)));
+            _programType.Fields.Add(ptrFd);
+            _ctx.PointerFields[pf.Name] = ptrFd;
+        }
+
         // Static bool: have this program's file connectors been registered for the current activation?
         // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
         _filesRegisteredField = new FieldDefinition(
@@ -1131,6 +1142,86 @@ public sealed class CilEmitter
         SyncFromContext();
     }
 
+    // ── Pointer emission (Stage-4, managed references — docs/RECORD_STRUCT_STORAGE_DESIGN.md §10) ──
+
+    /// <summary>Emit a pointer assignment into a static <c>ManagedPointer _PTR_…</c> field. NULL = <c>initobj</c>
+    /// (default, Buffer null); FROM another pointer = field-to-field struct copy; FROM ADDRESS OF = build a
+    /// <c>ManagedPointer.CreateByReference(buffer, offset, length)</c> over the addressed (byte-backed) item.</summary>
+    private void EmitPointerStore(ILProcessor il, IR.IrPointerStore ps)
+    {
+        var targetField = _ctx.PointerFields[ps.TargetField];
+        switch (ps.Kind)
+        {
+            case IR.PointerStoreKind.Null:
+                il.Append(il.Create(OpCodes.Ldsflda, targetField));
+                il.Append(il.Create(OpCodes.Initobj, _module.ImportReference(typeof(ManagedPointer))));
+                break;
+
+            case IR.PointerStoreKind.FromPointer:
+                il.Append(il.Create(OpCodes.Ldsfld, _ctx.PointerFields[ps.SourceField!]));
+                il.Append(il.Create(OpCodes.Stsfld, targetField));
+                break;
+
+            case IR.PointerStoreKind.FromAddressOf:
+                // The addressed item is byte-backed (classifier trigger 6) → EmitLocationArgs pushes (byte[], offset,
+                // length); ManagedPointer.CreateByReference forms the managed reference over that region.
+                _ctx.Location.EmitLocationArgs(il, ps.AddressOfSource!);
+                il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                    typeof(ManagedPointer).GetMethod("CreateByReference",
+                        new[] { typeof(byte[]), typeof(int), typeof(int) })!)));
+                il.Append(il.Create(OpCodes.Stsfld, targetField));
+                break;
+        }
+    }
+
+    /// <summary>Emit a pointer address-identity comparison (ISO §8.8.4.1.4): result =
+    /// <c>ReferenceEquals(l.Buffer, r.Buffer) &amp;&amp; l.Offset == r.Offset</c> (right NULL ⇒ Buffer null, Offset 0),
+    /// inverted for <c>NOT =</c>. NOT the record-struct <c>Equals</c> (which also weighs Length/Pic).</summary>
+    private void EmitPointerCompare(ILProcessor il, IR.IrPointerCompare pc,
+        Func<IrValue, VariableDefinition> getLocal)
+    {
+        var bufGetter = _module.ImportReference(
+            typeof(ManagedPointer).GetProperty("Buffer")!.GetGetMethod()!);
+        var offGetter = _module.ImportReference(
+            typeof(ManagedPointer).GetProperty("Offset")!.GetGetMethod()!);
+        var leftField = _ctx.PointerFields[pc.LeftField];
+
+        // bufEq = ReferenceEquals(left.Buffer, right.Buffer | null)
+        il.Append(il.Create(OpCodes.Ldsflda, leftField));
+        il.Append(il.Create(OpCodes.Call, bufGetter));
+        if (pc.RightField is { } rfBuf)
+        {
+            il.Append(il.Create(OpCodes.Ldsflda, _ctx.PointerFields[rfBuf]));
+            il.Append(il.Create(OpCodes.Call, bufGetter));
+        }
+        else
+            il.Append(il.Create(OpCodes.Ldnull));
+        il.Append(il.Create(OpCodes.Ceq));
+
+        // offEq = left.Offset == (right.Offset | 0)
+        il.Append(il.Create(OpCodes.Ldsflda, leftField));
+        il.Append(il.Create(OpCodes.Call, offGetter));
+        if (pc.RightField is { } rfOff)
+        {
+            il.Append(il.Create(OpCodes.Ldsflda, _ctx.PointerFields[rfOff]));
+            il.Append(il.Create(OpCodes.Call, offGetter));
+        }
+        else
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ceq));
+
+        il.Append(il.Create(OpCodes.And));   // bufEq & offEq → equal
+
+        if (pc.Negated)   // NOT = : invert (x == 0)
+        {
+            il.Append(il.Create(OpCodes.Ldc_I4_0));
+            il.Append(il.Create(OpCodes.Ceq));
+        }
+
+        if (pc.Result.HasValue)
+            il.Append(il.Create(OpCodes.Stloc, getLocal(pc.Result.Value)));
+    }
+
     // ── Instruction emission ──
 
     private void EmitInstruction(
@@ -1151,6 +1242,8 @@ public sealed class CilEmitter
             case IrMoveAllLiteral mal: _ctx.Data.EmitMoveAllLiteral(il, mal); break;
             case IrMoveFieldToField mf: _ctx.Data.EmitMoveFieldToField(il, mf); break;
             case IrPicMoveLiteralNumeric movLit: _ctx.Data.EmitPicMoveLiteralNumeric(il, movLit); break;
+            case IrPointerStore ptrStore: EmitPointerStore(il, ptrStore); break;
+            case IrPointerCompare ptrCmp: EmitPointerCompare(il, ptrCmp, getLocal); break;
             case IrAccept acc: _ctx.Data.EmitAccept(il, acc); break;
             case IrPicDisplay disp: _ctx.Data.EmitPicDisplay(il, disp); break;
 

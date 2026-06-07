@@ -48,6 +48,11 @@ internal sealed class EmissionContext
     /// carried in <see cref="IrTypedElementLocation.ArrayFieldName"/>.</summary>
     public Dictionary<string, FieldDefinition> TypedArrays { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Pointer fields (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): the emitted
+    /// <c>static ManagedPointer _PTR_&lt;name&gt;</c> <see cref="FieldDefinition"/>, keyed by field name (the value
+    /// carried in <see cref="IrPointerStore"/>/<see cref="IrPointerCompare"/>/<see cref="IrBasedDerefLocation"/>).</summary>
+    public Dictionary<string, FieldDefinition> PointerFields { get; } = new(StringComparer.Ordinal);
+
     // ── Per-method tracking ──
 
     public MethodDefinition? CurrentMethodDef { get; set; }

@@ -611,15 +611,11 @@ internal sealed class CilDataEmitter
         {
             EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveBooleanToBoolean");
         }
-        // Pointer receiver (SET p TO q lowered as MOVE): an 8-byte opaque-handle copy. Both operands are
-        // 8 bytes, so the alphanumeric byte-copy moves the whole handle (no padding/truncation).
-        else if (dstCat.IsPointerLike())
-        {
-            EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
-        }
         else
         {
-            // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT)
+            // Alphanumeric MOVE: left-justified, space-padded (handles JUSTIFIED RIGHT).
+            // (Stage-4, DEVLOG 431) Pointers never reach this field-to-field byte MOVE: a pointer assignment is a
+            // SET lowered to IrPointerStore against a managed ManagedPointer field, not an 8-byte handle byte copy.
             EmitMoveWithStandardSignature(il, mf.Source, mf.Destination, rounding, "MoveAlphanumericToAlphanumeric");
         }
     }

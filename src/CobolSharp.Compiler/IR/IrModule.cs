@@ -32,6 +32,12 @@ public sealed class IrModule(string name)
     /// <summary>Flipped fixed <c>OCCURS</c> tables → typed .NET array fields (S4). Empty unless flipping is on.</summary>
     public List<IrTypedArrayDef> TypedArrayDefs { get; } = [];
 
+    /// <summary>Pointer fields (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): one
+    /// <c>static ManagedPointer _PTR_&lt;name&gt;</c> per <c>USAGE POINTER</c> item and per <c>BASED</c> item.
+    /// Always-on (a managed reference is the only correct pointer representation — NOT gated by
+    /// <c>EnableTypedFields</c>); empty only when the program declares no pointers.</summary>
+    public List<IrPointerFieldDef> PointerFieldDefs { get; } = [];
+
     /// <summary>
     /// Default target paragraph indices for each ALTER slot.
     /// Empty when no ALTER statements are used (zero overhead).
@@ -129,3 +135,10 @@ public sealed record IrTypedRecordDef(string StructTypeName, string? InstanceNam
 /// <c>ldsfld array; index; ldelem|stelem</c>; <c>InitializeState</c> allocates <c>new T[ElementCount]</c> and fills
 /// every slot from <paramref name="Element"/>'s init (never <c>default(T)</c>, ADR §1.7).</summary>
 public sealed record IrTypedArrayDef(string Name, int ElementCount, IrTypedFieldDef Element);
+
+/// <summary>A pointer field (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): the emitted
+/// <c>static ManagedPointer</c> field <paramref name="Name"/> (<c>_PTR_&lt;name&gt;</c>), holding the managed
+/// reference for a <c>USAGE POINTER</c> item or the data-address pointer of a <c>BASED</c> item. The default value
+/// (<c>default(ManagedPointer)</c>, Buffer null) IS the COBOL initial NULL, so no explicit initializer is emitted —
+/// the one place <c>default(T)</c> is the correct COBOL initial state.</summary>
+public sealed record IrPointerFieldDef(string Name);

@@ -972,6 +972,39 @@ public sealed class BoundSetIndexStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
 }
 
+/// <summary>How a <see cref="BoundSetPointerStatement"/> obtains the value stored into the target pointer.</summary>
+public enum PointerSetSourceKind { Null, FromPointer, FromAddressOf }
+
+/// <summary>
+/// A pointer assignment (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10) — the single bound form for every
+/// COBOL statement that sets a pointer: <c>SET p TO NULL</c> (<see cref="PointerSetSourceKind.Null"/>),
+/// <c>SET p TO q</c> / <c>SET ADDRESS OF b TO q</c> (<see cref="PointerSetSourceKind.FromPointer"/>), and
+/// <c>SET p TO ADDRESS OF x</c> (<see cref="PointerSetSourceKind.FromAddressOf"/>). There is no 8-byte byte handle:
+/// the target's data-address pointer is a managed <c>ManagedPointer</c> field (DEVLOG 431).
+/// <para><see cref="TargetPointer"/> is the item whose data-address pointer is set — a <c>USAGE POINTER</c> item, or
+/// (for <c>SET ADDRESS OF</c>) a <c>BASED</c>/LINKAGE item. <see cref="SourcePointer"/> is the source pointer item for
+/// <see cref="PointerSetSourceKind.FromPointer"/>; <see cref="AddressOfItem"/> is the addressed item for
+/// <see cref="PointerSetSourceKind.FromAddressOf"/>.</para>
+/// </summary>
+public sealed class BoundSetPointerStatement : BoundStatement
+{
+    public DataSymbol TargetPointer { get; }
+    public PointerSetSourceKind SourceKind { get; }
+    public DataSymbol? SourcePointer { get; }
+    public BoundExpression? AddressOfItem { get; }
+
+    public BoundSetPointerStatement(DataSymbol targetPointer, PointerSetSourceKind sourceKind,
+        DataSymbol? sourcePointer = null, BoundExpression? addressOfItem = null)
+    {
+        TargetPointer = targetPointer;
+        SourceKind = sourceKind;
+        SourcePointer = sourcePointer;
+        AddressOfItem = addressOfItem;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
 // ── ACCEPT ──
 
 public sealed class BoundAcceptStatement : BoundStatement

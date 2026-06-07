@@ -20,7 +20,20 @@ workflows branch from a stale commit in this repo).
 5. The staged `EnableTypedFields`-gated migration is the byte-identity **verification** path (char/numeric), NOT
    backward-compat baggage — keep it; it converges on flag-on-by-default.
 
-### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 1b** (the working core)
+### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 1b BOUNDARY 2** (ADDRESS OF / SET ADDRESS OF / BASED-deref)
+**✅ BOUNDARY 1 LANDED (DEVLOG 433):** a `USAGE POINTER` item is now ALWAYS a `static ManagedPointer _PTR_<name>`
+field (always-on pass `Binder.CollectPointerFields`, NOT `EnableTypedFields`-gated); `StorageLayoutComputer` skips its
+WS layout; `SET p TO NULL/q` → `BoundSetPointerStatement` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare`
+(address identity, NOT struct `Equals`); the 8-byte handle paths (`CilDataEmitter` pointer-MOVE, `StorageLocation`
+pointer-PIC synth) are DELETED. `pointer_data` stays green; guard ALL GREEN 1196/507/364.
+**→ BOUNDARY 2 (next):** add the `setAddressStatement` branch in `DataStatementBinder.BindSet` (both alts), the
+`FromAddressOf` SET (`ManagedPointer.CreateByReference` over the byte-backed addressed item), a new
+`IrBasedDerefLocation` (load `_PTR_b.Buffer`+`Offset`, push (byte[],offset,len) — mirror
+`CilLocationEmitter.EmitLinkageBufferAndOffset`) wired into `LocationResolver` for a BASED item + `EmitLocationArgs`
++ `IrLocationExtensions.GetPic`, classifier **trigger 6** (a `BoundSetPointerStatement` FromAddressOf demotes the
+addressed item to byte), and a new `tests/conformance/2002/based_pointer.cob`+`.out`
+(`SET P TO ADDRESS OF X; SET ADDRESS OF B TO P; DISPLAY B`). `LowerSetPointer` already handles FromAddressOf.
+
 Design is FINAL; **slice 1a committed** (`a4c562b` correction, `6d5647d` map; grammar + `BASED` no-storage already in).
 **The complete turnkey rearchitecture surface map — every file:line, the new IR, the two commit boundaries, and the
 blast radius — is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5. START THERE; zero re-discovery is needed.** In short:

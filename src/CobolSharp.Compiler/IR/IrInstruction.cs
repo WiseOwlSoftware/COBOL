@@ -523,6 +523,65 @@ public sealed class IrMoveAllLiteral : IrInstruction
     }
 }
 
+// ── Pointers (Stage-4, managed references — docs/RECORD_STRUCT_STORAGE_DESIGN.md §10) ──
+
+/// <summary>How an <see cref="IrPointerStore"/> obtains the value to store into the target pointer field.</summary>
+public enum PointerStoreKind
+{
+    /// <summary><c>SET p TO NULL</c> — the predefined null address (a default/all-zero <c>ManagedPointer</c>).</summary>
+    Null,
+    /// <summary><c>SET p TO q</c> / <c>SET ADDRESS OF b TO q</c> — copy another pointer field's value.</summary>
+    FromPointer,
+    /// <summary><c>SET p TO ADDRESS OF x</c> — build a <c>ManagedPointer</c> over the addressed byte item
+    /// (<see cref="IrPointerStore.AddressOfSource"/>). The addressed item is byte-backed (classifier trigger 6).</summary>
+    FromAddressOf,
+}
+
+/// <summary>
+/// Stores a value into a pointer field (a <c>static ManagedPointer _PTR_&lt;name&gt;</c> emitted by the pointer-field
+/// pass). The single mechanism for every pointer assignment — there is no 8-byte byte handle (DEVLOG 431).
+/// </summary>
+public sealed class IrPointerStore : IrInstruction
+{
+    /// <summary>The destination pointer field name (<c>_PTR_&lt;name&gt;</c>).</summary>
+    public string TargetField { get; }
+    public PointerStoreKind Kind { get; }
+    /// <summary>The source pointer field name for <see cref="PointerStoreKind.FromPointer"/>; null otherwise.</summary>
+    public string? SourceField { get; }
+    /// <summary>The addressed byte item for <see cref="PointerStoreKind.FromAddressOf"/>; null otherwise.</summary>
+    public IrLocation? AddressOfSource { get; }
+
+    public IrPointerStore(string targetField, PointerStoreKind kind,
+        string? sourceField = null, IrLocation? addressOfSource = null)
+    {
+        TargetField = targetField;
+        Kind = kind;
+        SourceField = sourceField;
+        AddressOfSource = addressOfSource;
+    }
+}
+
+/// <summary>
+/// Compares two pointers by ADDRESS IDENTITY (ISO §8.8.4.1.4): <c>p = q</c> ⇔
+/// <c>ReferenceEquals(p.Buffer, q.Buffer) &amp;&amp; p.Offset == q.Offset</c>; <c>p = NULL</c> ⇔ <c>p.Buffer == null</c>.
+/// NOT the record-struct <c>Equals</c> (which would also compare Length/Pic). <see cref="RightField"/> null means the
+/// right operand is NULL. <see cref="Negated"/> is true for <c>NOT =</c> (the equality result is inverted).
+/// </summary>
+public sealed class IrPointerCompare : IrInstruction
+{
+    public string LeftField { get; }
+    public string? RightField { get; }
+    public bool Negated { get; }
+
+    public IrPointerCompare(string leftField, string? rightField, IrValue result, bool negated)
+    {
+        LeftField = leftField;
+        RightField = rightField;
+        Result = result;
+        Negated = negated;
+    }
+}
+
 /// <summary>
 /// WRITE record — outputs record bytes from ProgramState to file.
 /// </summary>

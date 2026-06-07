@@ -306,10 +306,59 @@ internal sealed class ConditionLowerer
         return true;
     }
 
+    /// <summary>
+    /// Stage-4 pointers: if this is a pointer relation (<c>p = / NOT = q</c> or <c>p = / NOT = NULL</c>), emit an
+    /// <see cref="IrPointerCompare"/> (address identity on the managed pointer fields) and return true. Returns false
+    /// for any non-pointer comparison so the caller uses the normal byte/numeric path.
+    /// </summary>
+    private bool TryLowerPointerComparison(BoundBinaryExpression bin, IrValue result, IrBasicBlock block)
+    {
+        static bool IsPtr(BoundExpression e) =>
+            e is BoundIdentifierExpression id && id.Symbol.ResolvedType?.Category == CobolCategory.Pointer;
+        static bool IsNull(BoundExpression e) =>
+            e is BoundFigurativeExpression f && f.FigurativeKind == FigurativeKind.Null;
+
+        var left = bin.Left;
+        var right = bin.Right;
+        if (!IsPtr(left) && !IsPtr(right))
+            return false;   // not a pointer comparison
+
+        // Only equality/inequality are defined for pointers (ISO §8.8.4.1.4).
+        if (bin.OperatorKind is not (BoundBinaryOperatorKind.Equal or BoundBinaryOperatorKind.NotEqual))
+            return false;
+
+        // Normalize the pointer operand to the left (= / NOT = are symmetric, so no operator flip is needed).
+        if (!IsPtr(left))
+            (left, right) = (right, left);
+
+        if (left is not BoundIdentifierExpression leftId
+            || !_ctx.PointerFieldRefs.TryGetValue(leftId.Symbol, out var leftField))
+            return false;
+
+        string? rightField;
+        if (IsNull(right))
+            rightField = null;
+        else if (right is BoundIdentifierExpression rightId
+                 && _ctx.PointerFieldRefs.TryGetValue(rightId.Symbol, out var rf))
+            rightField = rf;
+        else
+            return false;   // pointer vs non-pointer/non-NULL — fall through to the generic path/diagnostic
+
+        bool negated = bin.OperatorKind == BoundBinaryOperatorKind.NotEqual;
+        block.Instructions.Add(new IrPointerCompare(leftField, rightField, result, negated));
+        return true;
+    }
+
     // ── Comparison matrix dispatch ──
 
     public void LowerComparison(BoundBinaryExpression binCond, IrValue result, IrBasicBlock block)
     {
+        // Pointers (Stage-4): a pointer compared (= / NOT =) against another pointer or NULL is an address-identity
+        // test on the managed ManagedPointer fields, not a byte compare (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10).
+        // Intercept BEFORE NormalizeOperand — a pointer item has no byte storage location to normalize.
+        if (TryLowerPointerComparison(binCond, result, block))
+            return;
+
         // An alphanumeric intrinsic-function call as a comparison operand (e.g.
         // IF FUNCTION UPPER-CASE(X) = "ABC") is evaluated to a string and compared by value.
         // (Numeric function calls are handled by NormalizeOperand's arithmetic-expression path.)

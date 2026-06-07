@@ -165,9 +165,19 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     **The core data model (Stage 3) is COMPLETE:** character→`string`; numeric→`long`/`decimal` (DISPLAY/COMP/BINARY,
     all ops); flat + nested groups→`record struct`s; fixed OCCURS (char+numeric)→`T[]`; every byte-trigger correctly
     stays byte. 24 flag-on≡flag-off differential tests; all gated behind `EnableTypedFields` (default OFF).
-  - **NEXT = Stage-4 pointers → managed .NET references, slice 1b (the working core). RESUME HERE.** Design FINAL +
-    slice 1a committed (`a4c562b`/`6d5647d`). **ONE representation: a pointer is ALWAYS a `ManagedPointer`; NO 8-byte
-    byte handle (Phase-1 handle being deleted); pointers always-typed, NOT gated by `EnableTypedFields`** (DEVLOG 431;
+  - **PROGRESS — Stage-4 pointers slice 1b BOUNDARY 1 LANDED (DEVLOG 433), guard 1196/507/364:** ☑ a `USAGE POINTER`
+    item is now ALWAYS a `static ManagedPointer _PTR_<name>` field (always-on `Binder.CollectPointerFields`, NOT
+    `EnableTypedFields`-gated); `StorageLayoutComputer` skips its WS layout; `SET p TO NULL/q` →
+    `BoundSetPointerStatement` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare` (address identity:
+    `ReferenceEquals(Buffer)&&Offset==`, NOT struct `Equals`); the 8-byte handle paths (`CilDataEmitter` pointer-MOVE,
+    `StorageLocation` pointer-PIC synth) DELETED. `pointer_data` green on the new path; rest of corpus byte-identical
+    (the new paths early-return for non-pointer programs). New IR `IrPointerStore`/`IrPointerCompare`/`IrPointerFieldDef`.
+  - **NEXT = Stage-4 pointers slice 1b BOUNDARY 2** (`ADDRESS OF` / `SET ADDRESS OF` / BASED-deref). Add the
+    `setAddressStatement` bind branch (both alts), the `FromAddressOf` SET (`ManagedPointer.CreateByReference` over the
+    byte-backed addressed item), a new `IrBasedDerefLocation` (mirror `CilLocationEmitter.EmitLinkageBufferAndOffset`)
+    in `LocationResolver`/`EmitLocationArgs`/`GetPic`, classifier **trigger 6** (FromAddressOf demotes the addressed
+    item to byte), + a new `tests/conformance/2002/based_pointer.cob`. **ONE representation: a pointer is ALWAYS a
+    `ManagedPointer`; NO 8-byte byte handle; pointers always-typed, NOT gated by `EnableTypedFields`** (DEVLOG 431;
     PointerRegistry REJECTED — settled, NOT owner-gated). **The exact turnkey surface map (every file:line, the new
     `IrPointerStore`/`IrPointerCompare`/`IrBasedDerefLocation` IR, the two commit boundaries, blast radius = only
     `pointer_data` uses pointers) is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5 — START THERE.** Then slices 2

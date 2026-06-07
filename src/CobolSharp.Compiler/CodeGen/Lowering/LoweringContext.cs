@@ -109,6 +109,13 @@ internal sealed class LoweringContext
     public Dictionary<DataSymbol, (string Name, int Width, int Count)> TypedArrayRefs { get; } =
         new(ReferenceEqualityComparer.Instance);
 
+    /// <summary>Pointer items (Stage-4, docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): a <c>USAGE POINTER</c> item or a
+    /// <c>BASED</c> item → its emitted <c>static ManagedPointer _PTR_&lt;name&gt;</c> field name. Populated by
+    /// Binder.CollectPointerFields (always-on, NOT gated by EnableTypedFields); consulted by the SET / compare /
+    /// BASED-deref lowering to address the pointer field. Empty only when the program declares no pointers.</summary>
+    public Dictionary<DataSymbol, string> PointerFieldRefs { get; } =
+        new(ReferenceEqualityComparer.Instance);
+
     // ── Recursive statement lowering delegate ──
     // Allows extracted lowerers to call back into Binder.LowerStatement
     // without depending on the Binder class directly.

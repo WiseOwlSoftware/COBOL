@@ -90,6 +90,11 @@ public sealed class Binder
         // (docs/RECORD_STRUCT_STORAGE_DESIGN.md). No-op unless EnableTypedFields is on.
         CollectTypedFields(module);
 
+        // Phase 2.6: Stage-4 pointers — collect USAGE POINTER / BASED items into managed ManagedPointer fields
+        // (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10). Always-on (a managed reference is the only correct pointer
+        // representation — NOT gated by EnableTypedFields); no-op unless the program declares pointers.
+        CollectPointerFields(module);
+
         // Phase 3: Create paragraph method stubs
         CreateParagraphStubs(module, boundProgram);
 
@@ -509,6 +514,59 @@ public sealed class Binder
         }
     }
 
+    /// <summary>
+    /// Stage-4 pointers (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10): register one <c>static ManagedPointer
+    /// _PTR_&lt;name&gt;</c> field for every <c>USAGE POINTER</c> elementary item and every <c>BASED</c> item. A
+    /// pointer is ALWAYS a managed reference — there is no 8-byte byte handle (DEVLOG 431) — so this pass is
+    /// always-on, NOT gated by <c>EnableTypedFields</c>. The pointer's owner (a <c>USAGE POINTER</c> WS item) no
+    /// longer occupies WORKING-STORAGE bytes (StorageLayoutComputer skips it); a <c>BASED</c> item already has no
+    /// storage (slice 1a). Default <c>ManagedPointer</c> (Buffer null) IS the COBOL NULL initial state, so no
+    /// explicit init is emitted (ADR §1.7 exception). The only corpus consumer is
+    /// <c>tests/conformance/2002/pointer_data.cob</c>.
+    /// </summary>
+    private void CollectPointerFields(IrModule module)
+    {
+        foreach (var sym in _semantic.DataItemsInOrder)
+        {
+            bool isPointerItem = sym.Usage == UsageKind.Pointer && sym.IsElementary;
+            if (!isPointerItem && !sym.IsBased)
+                continue;
+            string name = "_PTR_" + sym.Name;
+            module.PointerFieldDefs.Add(new IR.IrPointerFieldDef(name));
+            _ctx.PointerFieldRefs[sym] = name;
+        }
+    }
+
+    /// <summary>
+    /// Stage-4 pointers: lower a <see cref="BoundSetPointerStatement"/> to an <see cref="IrPointerStore"/> against
+    /// the target item's <c>_PTR_</c> field (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10).
+    /// </summary>
+    private void LowerSetPointer(BoundSetPointerStatement stmt, IrBasicBlock block)
+    {
+        if (!_ctx.PointerFieldRefs.TryGetValue(stmt.TargetPointer, out var targetField))
+            return;   // target is not a registered pointer/based item — nothing to store
+
+        switch (stmt.SourceKind)
+        {
+            case PointerSetSourceKind.Null:
+                block.Instructions.Add(new IrPointerStore(targetField, PointerStoreKind.Null));
+                break;
+
+            case PointerSetSourceKind.FromPointer:
+                if (stmt.SourcePointer is { } srcSym
+                    && _ctx.PointerFieldRefs.TryGetValue(srcSym, out var srcField))
+                    block.Instructions.Add(new IrPointerStore(targetField, PointerStoreKind.FromPointer, srcField));
+                break;
+
+            case PointerSetSourceKind.FromAddressOf:
+                if (stmt.AddressOfItem is { } addrItem
+                    && _ctx.Location.ResolveExpressionLocation(addrItem) is { } addrLoc)
+                    block.Instructions.Add(new IrPointerStore(targetField, PointerStoreKind.FromAddressOf,
+                        addressOfSource: addrLoc));
+                break;
+        }
+    }
+
     // ── Entry point ──
 
     private void CreateEntryPoint(IrModule module, BoundProgram boundProgram)
@@ -919,6 +977,9 @@ public sealed class Binder
                 break;
             case BoundSetIndexStatement setIdx:
                 _ctx.DataMovement.LowerSetIndex(setIdx, block);
+                break;
+            case BoundSetPointerStatement setPtr:
+                LowerSetPointer(setPtr, block);
                 break;
 
             // ── Arithmetic → _ctx.Arithmetic ──

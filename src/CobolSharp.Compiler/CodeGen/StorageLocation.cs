@@ -185,29 +185,11 @@ public static class CompilerPicDescriptorFactory
                 environment: env);
         }
 
-        // Elementary USAGE POINTER with no PIC: synthesize an 8-byte opaque-handle descriptor
-        // (category Pointer, non-numeric/non-alphanumeric) so MOVE/SET/compare route to the pointer
-        // (byte) paths. NULL is the all-zero handle. ISO §13.18.60.4.
-        if (symbol.Usage == UsageKind.Pointer && symbol.Children.Count == 0)
-        {
-            return new PicDescriptor(
-                totalDigits: 0,
-                fractionDigits: 0,
-                isSigned: false,
-                isNumeric: false,
-                isAlphanumeric: false,
-                hasEditing: false,
-                storageLength: storageLength,
-                usage: UsageKind.Pointer,
-                category: CobolCategory.Pointer,
-                signStorage: SignStorageKind.None,
-                editing: EditingKind.None,
-                blankWhenZero: false,
-                leadingScaleDigits: 0,
-                trailingScaleDigits: 0,
-                editPattern: null,
-                environment: env);
-        }
+        // (Stage-4, DEVLOG 431) A USAGE POINTER item no longer reaches here: it is a managed ManagedPointer field,
+        // not a byte window, so StorageLayoutComputer skips its layout (no FromDataSymbol call). The former 8-byte
+        // opaque-handle PicDescriptor synth is therefore gone — there is no byte image for a managed pointer
+        // (the Buffer reference is GC-relocatable), and the implementor-defined byte-pun cases are rejected/undefined
+        // (REDEFINES-a-pointer, pointer-in-a-file) per docs/RECORD_STRUCT_STORAGE_DESIGN.md §10.2.
 
         // Group items (no PIC): alphanumeric DISPLAY
         var category = symbol.ResolvedType?.Category ?? CobolCategory.Alphanumeric;

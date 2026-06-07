@@ -219,6 +219,13 @@ public static class StorageLayoutComputer
         if (item.IsBased)
             return;
 
+        // Pointers (Stage-4, §13.18.60.4): a USAGE POINTER item IS a managed ManagedPointer field, not bytes in a
+        // storage area (DEVLOG 431). Skip layout like a BASED item — no offset advance, no StorageLocation; the
+        // pointer-field pass (Binder.CollectPointerFields) emits its static _PTR_ field. The logical LENGTH OF is
+        // still 8 (FieldSizeCalculator), but a pointer no longer occupies a storage slot.
+        if (item.Usage == UsageKind.Pointer && item.IsElementary)
+            return;
+
         if (item.Redefines != null)
         {
             LayoutRedefines(item, area, ref offset, model);

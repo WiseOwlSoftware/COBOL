@@ -189,18 +189,21 @@ internal sealed class DataStatementBinder
         if (_ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference())
                 is not BoundIdentifierExpression target)
             return null;
-        // Phase-1 pointers only — SET pointer TO NULL / SET pointer TO pointer is an 8-byte handle store,
-        // lowered as a MOVE (ISO §14.9.39). SELF/SUPER/object references are OO (not yet implemented).
+        // Pointers (Stage-4): SET pointer TO NULL / SET pointer TO pointer stores into the target's managed
+        // ManagedPointer field — NOT an 8-byte byte handle (DEVLOG 431). SELF/SUPER object references are OO
+        // (not yet implemented).
         if (target.Symbol.ResolvedType?.Category != CobolCategory.Pointer)
             return null;
 
         var objRef = ctx.objectReference();
-        BoundExpression? src =
-            objRef.NULL_() != null ? new BoundFigurativeExpression(FigurativeKind.Null)
-            : objRef.dataReference() != null ? _ctx.Expression.BindDataReferenceWithSubscripts(objRef.dataReference())
-            : null;
-        if (src == null) return null;
-        return new BoundMoveStatement(src, new[] { (BoundExpression)target }, isRounded: false);
+        if (objRef.NULL_() != null)
+            return new BoundSetPointerStatement(target.Symbol, PointerSetSourceKind.Null);
+        if (objRef.dataReference() != null
+            && _ctx.Expression.BindDataReferenceWithSubscripts(objRef.dataReference())
+                is BoundIdentifierExpression srcPtr
+            && srcPtr.Symbol.ResolvedType?.Category == CobolCategory.Pointer)
+            return new BoundSetPointerStatement(target.Symbol, PointerSetSourceKind.FromPointer, srcPtr.Symbol);
+        return null;
     }
 
     internal BoundStatement? BindSetSwitch(CobolParserCore.SetSwitchStatementContext ctx)
@@ -296,11 +299,16 @@ internal sealed class DataStatementBinder
             // Regular data item: SET identifier TO value
             var targetId = _ctx.Expression.BindDataReferenceWithSubscripts(idCtx);
             if (targetId is not BoundIdentifierExpression boundTarget) continue;
-            // Pointer target (SET p TO q): a pointer assignment is an 8-byte handle copy — lower as a MOVE
-            // (ISO §14.9.39), not the numeric index-set path.
+            // Pointer target (SET p TO q): a pointer assignment copies the source pointer's managed reference into
+            // the target's ManagedPointer field — NOT the numeric index-set path, NOT an 8-byte handle copy
+            // (Stage-4, DEVLOG 431). The grammar routes SET p TO q here (q parses as an arithmeticExpression);
+            // the only valid source for a pointer target is another pointer.
             if (boundTarget.Symbol.ResolvedType?.Category == CobolCategory.Pointer)
             {
-                stmts.Add(new BoundMoveStatement(valueExpr, new[] { (BoundExpression)boundTarget }, isRounded: false));
+                if (valueExpr is BoundIdentifierExpression srcPtr
+                    && srcPtr.Symbol.ResolvedType?.Category == CobolCategory.Pointer)
+                    stmts.Add(new BoundSetPointerStatement(
+                        boundTarget.Symbol, PointerSetSourceKind.FromPointer, srcPtr.Symbol));
                 continue;
             }
             stmts.Add(new BoundSetIndexStatement(boundTarget, SetOperation.Assign, valueExpr));

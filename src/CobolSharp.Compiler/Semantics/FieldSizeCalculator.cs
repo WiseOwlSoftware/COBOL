@@ -24,7 +24,9 @@ public static class FieldSizeCalculator
         if (data.Usage == UsageKind.Index)
             return 4;
 
-        // USAGE POINTER elementary items have no PIC — an 8-byte opaque machine-address handle (ISO §13.18.60.4).
+        // USAGE POINTER: the LOGICAL length is 8 (ISO §13.18.60.4 implementor-defined; used by LENGTH OF).
+        // (Stage-4, DEVLOG 431) A pointer no longer occupies a STORAGE slot — it is a managed ManagedPointer field,
+        // so StorageLayoutComputer skips its layout and this size is not consumed for WORKING-STORAGE allocation.
         if (data.Usage == UsageKind.Pointer)
             return 8;
 
