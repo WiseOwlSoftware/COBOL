@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CobolSharp.Compiler.IR;
@@ -50,6 +51,48 @@ internal sealed class CilDataEmitter
         {
             il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
         }
+    }
+
+    /// <summary>
+    /// S4: a typed numeric field→field MOVE where at least one side is a <c>decimal</c>. Routes through the
+    /// DESTINATION's byte codec — encode the source value into a dst-shaped scratch window (applies the dst's
+    /// sign/scale/truncation exactly as the byte <c>MoveNumeric</c> would), decode it back, and store — so it is
+    /// byte-identical for every long/decimal combination. (The both-<c>long</c> case keeps its faster mod path.)
+    /// </summary>
+    private void EmitNumericFieldToFieldViaCodec(ILProcessor il, IrTypedFieldLocation src, IrTypedFieldLocation dst)
+    {
+        var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
+        _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
+        il.Append(il.Create(OpCodes.Ldc_I4, dst.Width));
+        il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Byte));
+        il.Append(il.Create(OpCodes.Stloc, scratch));
+        // EncodeNumeric(scratch, 0, dstWidth, dstPic, srcValue-as-decimal)
+        il.Append(il.Create(OpCodes.Ldloc, scratch));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, dst.Width));
+        _ctx.Expression.EmitLoadPicDescriptor(il, dst.Pic);
+        EmitTypedLoad(il, src);
+        if (!src.IsDecimalNumeric)   // a long source widens to decimal; a decimal source is already right
+            il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+                typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("EncodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor), typeof(decimal) })!)));
+        // dst = DecodeNumeric(scratch, 0, dstWidth, dstPic) — stored as decimal, or narrowed to long.
+        EmitTypedStorePrefix(il, dst);
+        il.Append(il.Create(OpCodes.Ldloc, scratch));
+        il.Append(il.Create(OpCodes.Ldc_I4_0));
+        il.Append(il.Create(OpCodes.Ldc_I4, dst.Width));
+        _ctx.Expression.EmitLoadPicDescriptor(il, dst.Pic);
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(PicRuntime).GetMethod("DecodeNumeric",
+                new[] { typeof(byte[]), typeof(int), typeof(int), typeof(PicDescriptor) })!)));
+        if (!dst.IsDecimalNumeric)
+            il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                typeof(decimal).GetMethods().Single(m =>
+                    m.Name == "op_Explicit" && m.ReturnType == typeof(long)
+                    && m.GetParameters() is { Length: 1 } p && p[0].ParameterType == typeof(decimal)))));
+        EmitTypedStoreSuffix(il, dst);
     }
 
     /// <summary>Emits <c>ldc width; ldc.i4.0; call CobolString.Store(string,int,bool)</c> (the receiving value
@@ -324,13 +367,14 @@ internal sealed class CilDataEmitter
             }
             if (srcNum && dstNum)
             {
-                // S4: a decimal field on either end needs the dst-codec encode/decode round-trip (exact
-                // scale/truncation), not the long fast path — not yet implemented, so fail loudly rather than
-                // mis-emit a long where a decimal is expected.
+                // S4: a decimal field on either end routes through the destination byte codec (encode the source
+                // value into a dst-shaped scratch window, decode back, store) so the dst's sign/scale/truncation is
+                // applied exactly as the byte MoveNumeric would — byte-identical for every long/decimal combination.
                 if (msrc.IsDecimalNumeric || mdst.IsDecimalNumeric)
-                    throw new System.NotSupportedException(
-                        "S4: typed field→field MOVE involving a decimal numeric field is not yet implemented " +
-                        "(needs the dst-codec encode/decode round-trip) — RECORD_STRUCT_STORAGE_DESIGN.md.");
+                {
+                    EmitNumericFieldToFieldViaCodec(il, msrc, mdst);
+                    return;
+                }
                 // both typed unsigned-integer `long`s — dst = src truncated to the dst's digit count
                 // (src mod 10^n), byte-identical to a numeric→numeric byte MOVE (high-order truncation). Digit
                 // count comes from the PIC (TotalDigits), not the byte Width — they differ for COMP/BINARY.

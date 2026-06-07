@@ -470,4 +470,40 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericFieldMove_AllLongDecimalCombos_ByteIdentical()
+    {
+        // S4: typed numeric field→field MOVE for every long/decimal combination — decimal→decimal, long→decimal,
+        // decimal→long. A decimal on either end routes through the destination byte codec (encode the source value
+        // into a dst-shaped window, decode back, store) so the dst's sign/scale/truncation matches the byte
+        // MoveNumeric exactly. (long→long keeps its faster mod path, covered by NumericToNumeric_FieldMove.)
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDDMV.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC S9(3)V99 VALUE 1.50.
+            01 WS-C PIC S9(3)V99 VALUE 0.
+            01 WS-L PIC 9(5)     VALUE 42.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-A TO WS-C.
+                DISPLAY WS-C.
+                MOVE WS-L TO WS-C.
+                DISPLAY WS-C.
+                MOVE WS-A TO WS-L.
+                DISPLAY WS-L.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // decimal→decimal 1.50→"0015{"; long→decimal 42→42.00→"0420{"; decimal→long 1.50→trunc→1→"00001".
+        Assert.Equal("0015{\n0420{\n00001", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
