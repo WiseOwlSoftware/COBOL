@@ -548,4 +548,35 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void MoveZeros_ToTypedNumericLongAndDecimal_ByteIdentical()
+    {
+        // Regression: MOVE ZEROS to a typed numeric field must store 0 (long) / 0m (decimal), NOT a fill string —
+        // storing a string into a long/decimal field emitted invalid IL (InvalidProgramException). Byte-identical:
+        // the byte path zero-fills the digit image, which DISPLAYs the same as a 0-valued long/decimal.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDZ.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-N PIC 9(5)     VALUE 123.
+            01 WS-D PIC S9(3)V99 VALUE 9.99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE ZEROS TO WS-N.
+                DISPLAY WS-N.
+                MOVE ZEROS TO WS-D.
+                DISPLAY WS-D.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("00000\n0000{", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

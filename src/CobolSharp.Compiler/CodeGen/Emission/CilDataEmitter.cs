@@ -288,20 +288,44 @@ internal sealed class CilDataEmitter
 
     internal void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
-        // S3: MOVE SPACES/ZEROS to a typed field — store a width-long fill string (byte-identical: the byte path
-        // fills the window with the same byte). Other figuratives (HIGH/LOW-VALUE/QUOTE/NULL) keep the byte path
-        // for now — on a typed field they hit the loud EmitLocationArgs guard until their typed cell lands.
-        if (mf.Destination is IrTypedFieldLocation tfl
-            && mf.FigurativeKind is Runtime.FigurativeKind.Space or Runtime.FigurativeKind.Zero)
+        // S3/S4: MOVE a figurative constant to a typed field.
+        if (mf.Destination is IrTypedFieldLocation tfl)
         {
-            char fill = mf.FigurativeKind == Runtime.FigurativeKind.Space ? ' ' : '0';
-            EmitTypedStorePrefix(il, tfl);
-            il.Append(il.Create(OpCodes.Ldc_I4, fill));
-            il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
-            il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
-                typeof(string).GetConstructor(new[] { typeof(char), typeof(int) })!)));
-            EmitTypedStoreSuffix(il, tfl);
-            return;
+            // S4 numeric: MOVE ZEROS → 0 (byte-identical: the byte path zero-fills the digit image, which DISPLAYs
+            // identically to a 0-valued long/decimal). A figurative fill STRING must never be stored into a numeric
+            // long/decimal field (that mis-emits invalid IL).
+            if (tfl.Pic.Category == CobolCategory.Numeric)
+            {
+                if (mf.FigurativeKind == Runtime.FigurativeKind.Zero)
+                {
+                    EmitTypedStorePrefix(il, tfl);
+                    if (tfl.IsDecimalNumeric)
+                        _ctx.Expression.EmitLoadDecimal(il, 0m);
+                    else
+                        il.Append(il.Create(OpCodes.Ldc_I8, 0L));
+                    EmitTypedStoreSuffix(il, tfl);
+                    return;
+                }
+                // SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/NULL into a numeric field is a byte-pattern fill with no native
+                // long/decimal equivalent — fail loudly rather than mis-emit (deferred to a materialize cell).
+                throw new System.NotSupportedException(
+                    $"S4: MOVE {mf.FigurativeKind} to a typed numeric field ('{tfl.FieldName}') is not supported " +
+                    "(only ZEROS has a native equivalent).");
+            }
+            // S3 character: MOVE SPACES/ZEROS → a width-long fill string (byte-identical: the byte path fills the
+            // window with the same byte). Other figuratives (HIGH/LOW-VALUE/QUOTE/NULL) fall through to the byte
+            // loud guard until their typed cell lands.
+            if (mf.FigurativeKind is Runtime.FigurativeKind.Space or Runtime.FigurativeKind.Zero)
+            {
+                char fill = mf.FigurativeKind == Runtime.FigurativeKind.Space ? ' ' : '0';
+                EmitTypedStorePrefix(il, tfl);
+                il.Append(il.Create(OpCodes.Ldc_I4, fill));
+                il.Append(il.Create(OpCodes.Ldc_I4, tfl.Width));
+                il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+                    typeof(string).GetConstructor(new[] { typeof(char), typeof(int) })!)));
+                EmitTypedStoreSuffix(il, tfl);
+                return;
+            }
         }
 
         _ctx.Location.EmitLocationArgsWithPic(il, mf.Destination);
