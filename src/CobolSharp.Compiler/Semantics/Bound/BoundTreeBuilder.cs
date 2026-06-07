@@ -281,6 +281,8 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.unstringStatement() is { } unstringCtx) return _ctx.String.BindUnstring(unstringCtx);
         if (ctx.deleteStatement() is { } delCtx) return _ctx.FileIo.BindDelete(delCtx);
         if (ctx.deleteFileStatement() is { } delFileCtx) return _ctx.FileIo.BindDeleteFile(delFileCtx);
+        if (ctx.allocateStatement() is { } allocCtx) return _ctx.Data.BindAllocate(allocCtx);
+        if (ctx.freeStatement() is { } freeCtx) return _ctx.Data.BindFree(freeCtx);
         if (ctx.startStatement() is { } startCtx) return _ctx.FileIo.BindStart(startCtx);
         if (ctx.returnStatement() is { } retCtx) return _ctx.FileIo.BindReturn(retCtx);
         if (ctx.sortStatement() is { } sortCtx) return _ctx.FileIo.BindSort(sortCtx);

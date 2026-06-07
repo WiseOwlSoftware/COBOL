@@ -603,6 +603,30 @@ public sealed class IrPointerAdjust : IrInstruction
 }
 
 /// <summary>
+/// ALLOCATE statement (Stage-4, ISO §14.9.3): obtain a managed <c>ManagedPointer</c> over a fresh zero-filled
+/// <c>byte[]</c> (<c>ManagedPointer.Allocate</c>) and store it into the target pointer field(s). The byte count is
+/// <see cref="Size"/> (the CHARACTERS form, a numeric <see cref="IrExpression"/>) or <see cref="FixedSize"/> (the
+/// BASED-item form). <see cref="BasedPtrField"/> is the based item's <c>_PTR_</c> field (BASED form);
+/// <see cref="ReturningPtrField"/> is the RETURNING pointer's field. At least one is non-null; if both, the same
+/// allocation is stored in each.
+/// </summary>
+public sealed class IrAllocate : IrInstruction
+{
+    public IrExpression? Size { get; }
+    public int FixedSize { get; }
+    public string? BasedPtrField { get; }
+    public string? ReturningPtrField { get; }
+
+    public IrAllocate(IrExpression? size, int fixedSize, string? basedPtrField, string? returningPtrField)
+    {
+        Size = size;
+        FixedSize = fixedSize;
+        BasedPtrField = basedPtrField;
+        ReturningPtrField = returningPtrField;
+    }
+}
+
+/// <summary>
 /// WRITE record — outputs record bytes from ProgramState to file.
 /// </summary>
 public sealed class IrWriteRecordFromStorage : IrInstruction

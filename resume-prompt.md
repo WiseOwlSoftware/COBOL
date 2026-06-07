@@ -20,23 +20,30 @@ workflows branch from a stale commit in this repo).
 5. The staged `EnableTypedFields`-gated migration is the byte-identity **verification** path (char/numeric), NOT
    backward-compat baggage — keep it; it converges on flag-on-by-default.
 
-### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 2 (pointer arithmetic)** then slice 3 (ALLOCATE/FREE)
-**✅ SLICE 1b COMPLETE (DEVLOG 433–434).** Pointers are ONE managed `ManagedPointer` representation, always-typed
-(NOT `EnableTypedFields`-gated), no 8-byte handle:
-- **Boundary 1 (433):** a `USAGE POINTER` item is a `static ManagedPointer _PTR_<name>` field (always-on
-  `Binder.CollectPointerFields`); `StorageLayoutComputer` skips its WS layout; `SET p TO NULL/q` →
-  `BoundSetPointerStatement` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare` (address identity:
-  `ReferenceEquals(Buffer)&&Offset==`, NOT struct `Equals`); the 8-byte handle paths DELETED.
-- **Boundary 2 (434):** `SET p TO ADDRESS OF x` (`ManagedPointer.CreateByReference`), `SET ADDRESS OF b TO p`,
-  BASED-deref via a new `IrBasedDerefLocation` (read+write through `_PTR_b`), classifier **trigger 6** (ADDRESS OF
-  demotes the addressed item to byte). Conformance `pointer_data` + `based_pointer`. Guard ALL GREEN 1196/508/364.
+### 🎯 RESUME EXACTLY HERE → Stage-4 **OO → .NET classes** (the pointer subsystem is COMPLETE)
+**✅ STAGE-4 POINTER SUBSYSTEM COMPLETE (DEVLOG 430–437).** ONE managed `ManagedPointer` representation,
+always-typed (NOT `EnableTypedFields`-gated), no 8-byte handle. All on a `static ManagedPointer _PTR_<name>` field
+per `USAGE POINTER`/`BASED` item (always-on `Binder.CollectPointerFields`):
+- **Slice 1a (430):** `BASED` clause (no storage) + pointer grammar.
+- **Slice 1b boundary 1 (433):** `SET p TO NULL/q` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare` (address
+  identity, NOT struct `Equals`); WS layout skipped; 8-byte handle paths DELETED.
+- **Slice 1b boundary 2 (434):** `SET p TO ADDRESS OF x` / `SET ADDRESS OF b TO p` / BASED-deref
+  (`IrBasedDerefLocation`) / classifier **trigger 6**.
+- **Slice 2 (436):** pointer arithmetic `SET p UP/DOWN BY n` (`IrPointerAdjust`, Offset ± n bytes).
+- **Slice 3 (437):** `ALLOCATE {n CHARACTERS | based-item} [INITIALIZED] [RETURNING p]` (`IrAllocate` +
+  `ManagedPointer.Allocate`) / `FREE p` (reuses pointer-store-NULL). New lexer tokens ALLOCATE/FREE/INITIALIZED.
+Conformance: `pointer_data`, `based_pointer`, `pointer_arith`, `pointer_alloc`. guard-fast ALL GREEN 1196/510/364.
+Pointer follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC checks) tracked in §10.4.
 
-**→ NEXT (slice 2, §10.4):** pointer arithmetic — `SET p UP/DOWN BY n` (in `BindSetIndex`, branch on
-`Category==Pointer` → adjust `_PTR_p.Offset`, NOT `IrPicAdd`) + pointer ordering relations. **Then slice 3:**
-`ALLOCATE {expr CHARACTERS | based-item} [INITIALIZED] [RETURNING ptr]` / `FREE ptr` (ISO §14.9.3/§14.9.15) =
-`ManagedPointer` over `new byte[n]` / drop the ref — wire end-to-end (lexer `ALLOCATE`/`FREE` + grammar → regen →
-bound nodes → bind → Binder switch → lower → emit), each guard-green + a `tests/conformance/2002/` test. Then
-Stage-4 **OO → .NET classes** (largest piece), Stage-5 **Roslyn backend**, Stage-6 finalize + flip-on + rename.
+**→ NEXT = Stage-4 OO → .NET classes** (ADR §10 Stage 4, the largest remaining data-model piece): COBOL OO
+(CLASS-ID/METHOD-ID/INVOKE/object references) → real .NET classes. Then Stage-5 **Roslyn C# backend** (Cecil
+oracle), Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename `CobolSharp`→`COBOL.NET` (exe
+`cobol.exe`); then the remaining M2/M3/M4 conformance catalog (EC/exceptions, VALIDATE, the rest).
+
+### ⚡ FASTER GUARD (DEVLOG 435): use `bash scripts/guard-fast.sh` (~3.3 min vs ~11 min) for iteration; it is PROVEN
+byte-identical to `scripts/guard.sh` (run `scripts/guard-verify.sh` to re-prove after corpus/grouping changes).
+The serial `guard.sh` remains the authority. Validate a feature with `guard-fast` + a verdict-diff vs a known-green
+serial log.
 
 Design is FINAL; **slice 1a committed** (`a4c562b` correction, `6d5647d` map; grammar + `BASED` no-storage already in).
 **The complete turnkey rearchitecture surface map — every file:line, the new IR, the two commit boundaries, and the

@@ -180,11 +180,17 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     grammar alts, token-order discriminated); `LocationResolver` intercepts a whole BASED reference. Conformance
     `tests/conformance/2002/based_pointer.cob`. **Pointer slice 1b COMPLETE — one `ManagedPointer` representation,
     always-typed, no 8-byte handle.**
-  - **NEXT = Stage-4 pointers slice 2 (pointer arithmetic)** — `SET p UP/DOWN BY n` (in `BindSetIndex`, branch on
-    `Category==Pointer` → adjust `_PTR_p.Offset`, not `IrPicAdd`) + pointer ordering relations. **Then slice 3:**
-    `ALLOCATE`/`FREE` (ISO §14.9.3/§14.9.15 — `ManagedPointer` over `new byte[n]` / drop the ref; lexer+grammar→regen
-    →bound→bind→lower→emit), each guard-green + a `tests/conformance/2002/` test. **The turnkey surface map for the
-    whole pointer subsystem (`docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10) remains the live guide.** Then slices 2
+  - **PROGRESS — Stage-4 pointer slices 2 + 3 LANDED → POINTER SUBSYSTEM COMPLETE (DEVLOG 436–437), guard
+    1196/510/364:** ☑ **slice 2** pointer arithmetic `SET p UP/DOWN BY n` (`IrPointerAdjust`, Offset ± n bytes; conf
+    `pointer_arith`); ☑ **slice 3** `ALLOCATE {n CHARACTERS | based-item} [INITIALIZED] [RETURNING p]` (`IrAllocate`
+    + `ManagedPointer.Allocate`, new lexer tokens ALLOCATE/FREE/INITIALIZED) / `FREE p` (reuses pointer-store-NULL;
+    conf `pointer_alloc`). **All pointers are ONE managed `ManagedPointer`, always-typed, no 8-byte handle.** Pointer
+    follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC exception checks) tracked in §10.4.
+  - **TOOLING (DEVLOG 435): `scripts/guard-fast.sh` — the parallel guard (~3.3 min vs ~11 min), PROVEN byte-identical
+    to `scripts/guard.sh` via `scripts/guard-verify.sh`.** Use it for iteration; the serial guard remains the authority.
+  - **NEXT = Stage-4 OO → .NET classes** (ADR §10 Stage 4, the largest remaining data-model piece). Then Stage-5
+    Roslyn C# backend (Cecil oracle), Stage-6 finalize + flip-on + rename. **The turnkey surface map for the whole
+    pointer subsystem (`docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10) remains the live guide.** Then slices 2
     (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO** → .NET classes (largest piece); Stage-5 **Roslyn C#
     backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename. Substrate runtime
     ready (`CobolNum`/`CobolString` + oracles). See also `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.

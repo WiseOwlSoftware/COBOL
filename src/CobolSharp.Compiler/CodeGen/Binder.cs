@@ -579,6 +579,32 @@ public sealed class Binder
         block.Instructions.Add(new IrPointerAdjust(ptrField, delta, stmt.IsUp));
     }
 
+    /// <summary>
+    /// Stage-4 pointers: lower ALLOCATE (ISO §14.9.3) to an <see cref="IrAllocate"/>. Form 1 lowers the byte-count
+    /// expression; form 2 uses the BASED item's byte size and sets its <c>_PTR_</c> field. RETURNING, if present,
+    /// also receives the address. (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10.4)
+    /// </summary>
+    private void LowerAllocate(BoundAllocateStatement stmt, IrBasicBlock block)
+    {
+        string? returningField =
+            stmt.ReturningPointer is { } rp && _ctx.PointerFieldRefs.TryGetValue(rp, out var rf) ? rf : null;
+
+        if (stmt.BasedItem is { } based)
+        {
+            if (!_ctx.PointerFieldRefs.TryGetValue(based, out var basedField))
+                return;
+            int size = based.ElementSize > 0
+                ? based.ElementSize
+                : Semantics.FieldSizeCalculator.ComputeElementSize(based);
+            block.Instructions.Add(new IrAllocate(null, size, basedField, returningField));
+        }
+        else if (stmt.SizeExpr is { } sizeExpr)
+        {
+            var size = _ctx.Expression.LowerExpression(sizeExpr) ?? new IR.IrLiteral(0m);
+            block.Instructions.Add(new IrAllocate(size, 0, basedPtrField: null, returningField));
+        }
+    }
+
     // ── Entry point ──
 
     private void CreateEntryPoint(IrModule module, BoundProgram boundProgram)
@@ -995,6 +1021,9 @@ public sealed class Binder
                 break;
             case BoundPointerArithStatement ptrArith:
                 LowerPointerArith(ptrArith, block);
+                break;
+            case BoundAllocateStatement alloc:
+                LowerAllocate(alloc, block);
                 break;
 
             // ── Arithmetic → _ctx.Arithmetic ──

@@ -765,6 +765,18 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitSetAddressStatement([NotNull] CobolParserCore.SetAddressStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.allocateStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAllocateStatement([NotNull] CobolParserCore.AllocateStatementContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.freeStatement"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFreeStatement([NotNull] CobolParserCore.FreeStatementContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.setObjectReferenceStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

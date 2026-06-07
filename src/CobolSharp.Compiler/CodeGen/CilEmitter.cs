@@ -1245,6 +1245,37 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Stsfld, f));
     }
 
+    /// <summary>Emit ALLOCATE (ISO §14.9.3): <c>ManagedPointer.Allocate((int)size)</c> (NULL if size≤0; new byte[]
+    /// is zero-filled, satisfying INITIALIZED) → store into the based-item and/or RETURNING pointer field(s).</summary>
+    private void EmitAllocate(ILProcessor il, IR.IrAllocate a)
+    {
+        var allocM = _module.ImportReference(typeof(ManagedPointer).GetMethod("Allocate", new[] { typeof(int) })!);
+        if (a.Size is { } sz)
+        {
+            _ctx.Expression.EmitIrExpression(il, sz);   // byte count (decimal)
+            il.Append(il.Create(OpCodes.Call, _module.ImportReference(
+                typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+        }
+        else
+            il.Append(il.Create(OpCodes.Ldc_I4, a.FixedSize));
+        il.Append(il.Create(OpCodes.Call, allocM));     // ManagedPointer on stack
+
+        var basedF = a.BasedPtrField is { } bp ? _ctx.PointerFields[bp] : null;
+        var retF = a.ReturningPtrField is { } rp ? _ctx.PointerFields[rp] : null;
+        if (basedF != null && retF != null)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Stsfld, basedF));
+            il.Append(il.Create(OpCodes.Stsfld, retF));
+        }
+        else if (basedF != null)
+            il.Append(il.Create(OpCodes.Stsfld, basedF));
+        else if (retF != null)
+            il.Append(il.Create(OpCodes.Stsfld, retF));
+        else
+            il.Append(il.Create(OpCodes.Pop));          // no target (ill-formed ALLOCATE) — discard
+    }
+
     // ── Instruction emission ──
 
     private void EmitInstruction(
@@ -1268,6 +1299,7 @@ public sealed class CilEmitter
             case IrPointerStore ptrStore: EmitPointerStore(il, ptrStore); break;
             case IrPointerCompare ptrCmp: EmitPointerCompare(il, ptrCmp, getLocal); break;
             case IrPointerAdjust ptrAdj: EmitPointerAdjust(il, ptrAdj); break;
+            case IrAllocate alloc: EmitAllocate(il, alloc); break;
             case IrAccept acc: _ctx.Data.EmitAccept(il, acc); break;
             case IrPicDisplay disp: _ctx.Data.EmitPicDisplay(il, disp); break;
 

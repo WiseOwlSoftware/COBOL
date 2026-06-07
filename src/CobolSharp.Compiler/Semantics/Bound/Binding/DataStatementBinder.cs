@@ -249,6 +249,53 @@ internal sealed class DataStatementBinder
         return new BoundSetPointerStatement(ptr.Symbol, PointerSetSourceKind.FromAddressOf, addressOfItem: addrItem);
     }
 
+    /// <summary>
+    /// Stage-4 pointers: bind the ALLOCATE statement (ISO §14.9.3). Form 1 (<c>ALLOCATE n CHARACTERS</c>) carries a
+    /// size expression; form 2 (<c>ALLOCATE based-item</c>) carries the BASED item. RETURNING names the pointer that
+    /// receives the address (required for form 1 SR2; optional for form 2).
+    /// </summary>
+    internal BoundStatement? BindAllocate(CobolParserCore.AllocateStatementContext ctx)
+    {
+        bool initialized = ctx.INITIALIZED() != null;
+        var drs = ctx.dataReference();
+        DataSymbol? returning = null;
+
+        if (ctx.arithmeticExpression() is { } sizeCtx && ctx.CHARACTERS() != null)
+        {
+            // Form 1: ALLOCATE n CHARACTERS [INITIALIZED] [RETURNING p]. The lone dataReference is RETURNING p.
+            var size = _ctx.Expression.BindArithmeticExpr(sizeCtx);
+            if (ctx.RETURNING() != null && drs.Length >= 1)
+                returning = _ctx.Semantic.ResolveData(drs[0].cobolWord().GetText());
+            return new BoundAllocateStatement(size, null, initialized, returning);
+        }
+
+        // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING p]. drs[0] = based item; drs[1] = RETURNING p.
+        if (drs.Length == 0) return null;
+        var based = _ctx.Semantic.ResolveData(drs[0].cobolWord().GetText());
+        if (based == null) return null;
+        if (ctx.RETURNING() != null && drs.Length >= 2)
+            returning = _ctx.Semantic.ResolveData(drs[1].cobolWord().GetText());
+        return new BoundAllocateStatement(null, based, initialized, returning);
+    }
+
+    /// <summary>
+    /// Stage-4 pointers: bind the FREE statement (ISO §14.9.15) — set each data-pointer operand to NULL (reusing the
+    /// pointer-store-NULL path; the GC reclaims the released byte[]).
+    /// </summary>
+    internal BoundStatement? BindFree(CobolParserCore.FreeStatementContext ctx)
+    {
+        var stmts = new List<BoundStatement>();
+        foreach (var dr in ctx.dataReference())
+        {
+            var sym = _ctx.Semantic.ResolveData(dr.cobolWord().GetText());
+            if (sym?.ResolvedType?.Category == CobolCategory.Pointer)
+                stmts.Add(new BoundSetPointerStatement(sym, PointerSetSourceKind.Null));
+        }
+        if (stmts.Count == 0) return null;
+        if (stmts.Count == 1) return stmts[0];
+        return new BoundCompoundStatement(stmts);
+    }
+
     internal BoundStatement? BindSetSwitch(CobolParserCore.SetSwitchStatementContext ctx)
     {
         // Grammar: SET (dataReference+ TO (ON | OFF))+

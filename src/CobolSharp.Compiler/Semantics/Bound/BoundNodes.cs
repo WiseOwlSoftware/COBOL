@@ -1027,6 +1027,32 @@ public sealed class BoundPointerArithStatement : BoundStatement
     public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
 }
 
+/// <summary>
+/// ALLOCATE statement (Stage-4, ISO §14.9.3): obtain dynamic storage as a managed <c>ManagedPointer</c> over a
+/// fresh <c>byte[]</c>. Two forms: <see cref="SizeExpr"/> set = <c>ALLOCATE n CHARACTERS</c> (n bytes);
+/// <see cref="BasedItem"/> set = <c>ALLOCATE based-item</c> (the based item's byte size, and its data-address
+/// pointer is set to the storage). <see cref="ReturningPointer"/> (RETURNING p) receives the address — required for
+/// the CHARACTERS form, optional for the based-item form. The GC owns the storage, so FREE just drops the reference.
+/// </summary>
+public sealed class BoundAllocateStatement : BoundStatement
+{
+    public BoundExpression? SizeExpr { get; }
+    public DataSymbol? BasedItem { get; }
+    public bool Initialized { get; }
+    public DataSymbol? ReturningPointer { get; }
+
+    public BoundAllocateStatement(BoundExpression? sizeExpr, DataSymbol? basedItem,
+        bool initialized, DataSymbol? returningPointer)
+    {
+        SizeExpr = sizeExpr;
+        BasedItem = basedItem;
+        Initialized = initialized;
+        ReturningPointer = returningPointer;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.SetStatement;
+}
+
 // ── ACCEPT ──
 
 public sealed class BoundAcceptStatement : BoundStatement

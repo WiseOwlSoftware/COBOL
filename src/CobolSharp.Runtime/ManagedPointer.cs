@@ -44,4 +44,13 @@ public readonly record struct ManagedPointer(
         Array.Copy(buffer, offset, copy, 0, length);
         return new ManagedPointer(copy, 0, length, default!);
     }
+
+    /// <summary>
+    /// Obtain dynamic storage for the ALLOCATE statement (ISO §14.9.3): a managed <c>byte[length]</c> wrapped in a
+    /// ManagedPointer. Per GR2, a non-positive length yields the predefined null address (<c>default</c>). The
+    /// backing array is GC-managed, so FREE simply drops the reference (sets the pointer to NULL) — there is no
+    /// native heap and no manual deallocation. New <c>byte[]</c> is zero-initialized, satisfying ALLOCATE … INITIALIZED.
+    /// </summary>
+    public static ManagedPointer Allocate(int length) =>
+        length <= 0 ? default : new ManagedPointer(new byte[length], 0, length, default!);
 }

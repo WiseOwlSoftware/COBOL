@@ -499,6 +499,8 @@ statement
     | computeStatement
     | deleteStatement
     | {is2023()}? deleteFileStatement
+    | {is2002()}? allocateStatement
+    | {is2002()}? freeStatement
     | displayStatement
     | divideStatement
     | evaluateStatement
@@ -848,6 +850,19 @@ setBooleanStatement
 setAddressStatement
     : SET ADDRESS OF dataReference TO dataReference
     | SET dataReference TO ADDRESS OF dataReference
+    ;
+
+// ALLOCATE statement (COBOL-2002 §14.9.3): obtain dynamic storage, returned as a managed data-pointer.
+//   ALLOCATE n CHARACTERS [INITIALIZED] [RETURNING p]   — allocate n bytes, return the pointer
+//   ALLOCATE based-item   [INITIALIZED] [RETURNING p]   — allocate storage for a BASED item, set its address
+allocateStatement
+    : ALLOCATE arithmeticExpression CHARACTERS INITIALIZED? (RETURNING dataReference)?
+    | ALLOCATE dataReference INITIALIZED? (RETURNING dataReference)?
+    ;
+
+// FREE statement (COBOL-2002 §14.9.15): release storage previously ALLOCATEd; set each data-pointer to NULL.
+freeStatement
+    : FREE dataReference+
     ;
 
 // SET object-reference TO class/object reference (OO)
