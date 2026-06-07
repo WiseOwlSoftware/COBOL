@@ -1,4 +1,4 @@
-# CobolSharp — Session Resume Prompt (updated 2026-06-06)
+# CobolSharp — Session Resume Prompt (updated 2026-06-07)
 
 ## ⛔ START HERE — #1 PRIORITY: the .NET-native data-model migration (IN PROGRESS)
 
@@ -6,6 +6,38 @@ The owner approved a foundational re-architecture to **"the best native .NET imp
 work item ahead of remaining conformance features. **Keep every currently-passing test green at 100%, fixing bugs
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
+
+### 📌 OWNER DIRECTIVES REAFFIRMED THIS SESSION (2026-06-06/07) — read before resuming
+1. **Production quality, supportable for DECADES.** "If we need to rearchitect the **entire** code base to achieve
+   that goal, we must do so. There is **NO backward compatibility required**." Never choose minimal-blast-radius over
+   the cleanest long-term design. (memory `feedback_production_refactor`.)
+2. **SINGULAR pattern** — one mechanism per result, not multiple ways to do the same thing. (`feedback_singular_pattern`.)
+3. **Pointers = managed .NET references, ONE representation: always `ManagedPointer`. There is NO 8-byte byte handle**
+   (the Phase-1 handle is being deleted); **pointers are always-typed, NOT gated by `EnableTypedFields`.** The
+   PointerRegistry/handle-table is REJECTED — settled, NOT owner-gated. REDEFINES-a-pointer-as-bytes / pointer-in-a-file
+   are ISO implementor-defined → reject/undefined, never a synthesized handle. (DEVLOG 431; `feedback_managed_pointers`.)
+4. **Don't wait for a loop tick** — with pending work, continue immediately in the same turn. (`feedback_continue_dont_wait`.)
+5. The staged `EnableTypedFields`-gated migration is the byte-identity **verification** path (char/numeric), NOT
+   backward-compat baggage — keep it; it converges on flag-on-by-default.
+
+### 🎯 RESUME EXACTLY HERE → Stage-4 pointers, **slice 1b** (the working core)
+Design is FINAL; **slice 1a committed** (`a4c562b` correction, `6d5647d` map; grammar + `BASED` no-storage already in).
+**The complete turnkey rearchitecture surface map — every file:line, the new IR, the two commit boundaries, and the
+blast radius — is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5. START THERE; zero re-discovery is needed.** In short:
+- **Boundary 1 (guard-green, verifiable against `pointer_data` — the ONLY corpus test using pointers):** drop the
+  8-byte WS slot (`FieldSizeCalculator.cs:28`); make a pointer always-typed (`DataItemClassifier.cs:175`); add a NEW
+  always-on pointer-field pass (sibling to `Binder.CollectTypedFields:278`) emitting `static ManagedPointer _PTR_<name>`
+  for every `USAGE POINTER` + `IsBased` item; reroute SET (`DataStatementBinder.cs:187/301`, NULL/`q` → pointer store,
+  not byte MOVE) and compare (`ConditionLowerer.cs:125` + relation lowering → `!IsValid` / `ReferenceEquals(Buffer)&&
+  Offset==`); delete the dead handle paths (`CilDataEmitter.cs:616`, `StorageLocation.cs:190-210` synth). New IR:
+  `IrPointerStore` + `IrPointerCompare` + (boundary 2) `IrBasedDerefLocation`.
+- **Boundary 2:** `SET p TO ADDRESS OF x` (`CreateByReference`), `SET ADDRESS OF b TO p`, BASED-deref (a new
+  pointer-relative `IrLocation`: `ldsflda _PTR_b; ldfld Buffer/Offset; ldc Length` → existing byte-path ops), classifier
+  trigger 6 (ADDRESS OF demotes the *addressed* item to byte) + a NEW `tests/conformance/2002/based_pointer.cob`+`.out`.
+- Then slices 2 (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO → .NET classes**, Stage-5 **Roslyn backend**,
+  Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename → then the M2/M3/M4 conformance catalog.
+- **Process each feature:** implement on `main` → guard (`bash scripts/guard.sh`) → 2-3-agent adversarial review →
+  fix → commit (DEVLOG entry, conformance test in the SAME commit for any post-'85 feature) → tick the plan.
 
 ### 🟢 LATEST STATE (DEVLOG 428; guard **1196 unit / 507 integration / 364 NIST**, all green)
 **The CORE data-model migration (Stage 3) is COMPLETE.** All flips are guard-green + pinned by flag-on≡flag-off

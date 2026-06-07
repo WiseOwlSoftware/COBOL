@@ -32,7 +32,7 @@ classifier-trigger completeness before any Stage-3 typed flip).
 ### Current State
 - **Branch**: main; guard ALL GREEN — **1196 unit / 507 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 431.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The #1-priority data-model
+- **DEVLOG at entry 432.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The #1-priority data-model
   migration — CORE (Stage 3) COMPLETE:** the substrates (`CobolNum`/`CobolDecimal`/`CobolString` + oracles, 394–399)
   + the `RecordClassificationPass` classifier (397–398, wired into the Binder 401) underpin typed flips that landed
   ONE rule at a time, each guard-green + a flag-on≡flag-off `TypedFieldFlipTests` differential test, all gated behind

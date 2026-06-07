@@ -371,9 +371,22 @@ The Phase-1 pointer = an **8-byte byte handle inline in WS**. To make it the sin
   `SET p TO NULL/q` → `BoundMoveStatement` byte) and `BindSetToValue` (`:301`, `SET p TO q`) must emit
   pointer-field ops, NOT a byte MOVE. Add the `setAddressStatement` branch in `BindSet` (`:160-184`) for both
   `SET ADDRESS OF b TO p` and `SET p TO ADDRESS OF x` (grammar already lands per slice 1a).
-- **Compare** — the comparison subsystem currently does an 8-byte ordinal compare for `IF p = NULL / p = q`. Reroute a
-  pointer-category relation to `!_PTR.IsValid` (vs NULL) / `_PTR_a.Equals(_PTR_b)` (struct equality). Find via
-  `CategoryCompatibility.cs:75` (`(Pointer,Pointer)`) and the relation lowering.
+- **Compare** — the comparison subsystem currently does an 8-byte ordinal char compare: `ConditionLowerer.cs:125`
+  maps `FigurativeKind.Null → '\x00'` so `IF p = NULL` becomes "p's 8 bytes vs 8 NUL bytes." Reroute a
+  **pointer-category relation** to a pointer compare: `p = NULL` → `!p.IsValid` (Buffer==null); `p = q` →
+  `ReferenceEquals(p.Buffer, q.Buffer) && p.Offset == q.Offset` (**address identity — NOT** record-struct `Equals`,
+  which also compares `Length`/`Pic` and would wrongly distinguish two pointers to the same address typed differently).
+  Both NULL: `ReferenceEquals(null,null)=true`, `0==0` → equal. ✓ Find the relation lowering near `ConditionLowerer.cs`
+  + `CategoryCompatibility.cs:75` (`(Pointer,Pointer)`).
+- **Dead paths to DELETE once rerouted** (no other consumer — only `pointer_data` uses pointers, corpus-wide):
+  `DataMovementLowerer.cs:303` (`IsPointerLike()` INITIALIZE skip — keep; that's correct), the pointer-MOVE branch
+  `CilDataEmitter.cs:616` (`IsPointerLike` → `MoveAlphanumericToAlphanumeric` 8-byte handle copy) and the
+  `StorageLocation.cs:190-210` pointer `PicDescriptor` synth (an 8-byte char slot) — both exist only to serve the
+  handle and go away when SET/compare move to `ManagedPointer`.
+- **Blast radius (confirmed DEVLOG 431):** grep of the whole test corpus → **exactly one** program uses pointers
+  (`tests/conformance/2002/pointer_data.cob`). So the first boundary is fully verifiable against that test + the guard;
+  there is no other pointer consumer to regress. (CALL `BY REFERENCE` uses `ManagedPointer` already but never via a
+  `USAGE POINTER` data item.)
 - **New IR**: `IrPointerStore { PtrField; Kind = Null | FromPointer | FromAddressOf; Source }`,
   `IrPointerCompare`, and an `IrBasedDerefLocation { PtrField; Length }` (a new `IrLocation` kind — `IrStaticLocation`
   hard-binds area+offset). Deref emit: `ldsflda _PTR_b; ldfld Buffer` (→ `byte[]`), `ldsflda _PTR_b; ldfld Offset`

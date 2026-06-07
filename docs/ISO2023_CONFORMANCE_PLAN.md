@@ -165,11 +165,15 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     **The core data model (Stage 3) is COMPLETE:** character→`string`; numeric→`long`/`decimal` (DISPLAY/COMP/BINARY,
     all ops); flat + nested groups→`record struct`s; fixed OCCURS (char+numeric)→`T[]`; every byte-trigger correctly
     stays byte. 24 flag-on≡flag-off differential tests; all gated behind `EnableTypedFields` (default OFF).
-  - **NEXT (the remaining large stages, all autonomous-eligible):** Stage-4 **pointers** → **managed .NET references**
-    (the ADR's `ManagedPointer` — GC-tracked, no native heap / no handle table; the **PointerRegistry approach is
-    REJECTED — settled, NOT owner-gated**, owner directive DEVLOG 428) and **OO** → .NET classes (the largest piece);
-    Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + the flip-on-by-default decision + rename. See
-    `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **NEXT = Stage-4 pointers → managed .NET references, slice 1b (the working core). RESUME HERE.** Design FINAL +
+    slice 1a committed (`a4c562b`/`6d5647d`). **ONE representation: a pointer is ALWAYS a `ManagedPointer`; NO 8-byte
+    byte handle (Phase-1 handle being deleted); pointers always-typed, NOT gated by `EnableTypedFields`** (DEVLOG 431;
+    PointerRegistry REJECTED — settled, NOT owner-gated). **The exact turnkey surface map (every file:line, the new
+    `IrPointerStore`/`IrPointerCompare`/`IrBasedDerefLocation` IR, the two commit boundaries, blast radius = only
+    `pointer_data` uses pointers) is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5 — START THERE.** Then slices 2
+    (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO** → .NET classes (largest piece); Stage-5 **Roslyn C#
+    backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename. Substrate runtime
+    ready (`CobolNum`/`CobolString` + oracles). See also `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
