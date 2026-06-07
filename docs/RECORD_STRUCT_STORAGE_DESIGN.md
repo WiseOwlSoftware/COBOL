@@ -303,16 +303,29 @@ Deref = `Buffer.AsSpan(Offset, Length)` → the existing byte-path runtime ops. 
 - Classifier **trigger 6** (ADDRESS OF → byte) is deliberately deferred (unreachable until SET ADDRESS OF binds).
 - `ALLOCATE`/`FREE` — no tokens, no grammar, unimplemented.
 
-### 10.2 Representation (typed pointer vs byte floor)
-A `USAGE POINTER` variable, when classifier-typed, flips to a **typed `ManagedPointer` field** (Stage-4 typed
-flip — it can't sit inline in an 8-byte byte slot, being a record struct). A **byte-backed** pointer (a pointer in a
-file record / REDEFINES / overlaid as bytes — trigger 6 / file / REDEFINES) keeps the **8-byte handle floor** and is
-NULL/copy/compare-only: **a managed reference cannot losslessly round-trip through a byte window** (the first typed
-representation for which the §2.5 byte-materialize floor does NOT fully apply — documented limitation; such pointers
-have no live target, which matches the non-portability of a serialized pointer value). A `BASED` item has **no
-storage**; its references deref through its associated `ManagedPointer` via a new **pointer-relative `IrLocation`**
-(load the pointer's `Buffer`+`Offset`, form the window) — `IrStaticLocation` hard-binds a fixed area+offset, so a new
-location kind is required.
+### 10.2 Representation — ONE form: always `ManagedPointer`, never an 8-byte byte handle
+**Singular pattern (owner directive, DEVLOG 431):** a pointer value (`USAGE POINTER`, a `BASED` item's address, an
+`ALLOCATE` result) is **ALWAYS** a `ManagedPointer` — there is **no** 8-byte byte-handle representation. The Phase-1
+8-byte handle was a placeholder and is **eliminated**, replaced everywhere by `ManagedPointer` (NULL = `default`/
+`!IsValid`, `SET` = struct copy, `=` = equality — the `pointer_data` conformance test stays green). Pointers are
+**always-typed, NOT gated by `EnableTypedFields`** (a managed reference is the only correct representation; the flag
+gates the *other* typed flips where byte-identity matters).
+
+Crucially the usual typed/byte duality (the §2.5 byte-materialize floor) **does not apply to pointers**: a
+`ManagedPointer` **cannot be serialized to stable bytes** (the `Buffer` reference is GC-relocatable), so there is no
+byte image to fall back to — and fabricating an 8-byte handle would be a *second representation that can't even hold
+a real pointer* (the dual pattern we reject). The cases that would have needed a byte image are all
+**implementor-defined / non-portable** in ISO, so we do **not** synthesize a byte handle for them:
+- **REDEFINES** a pointer ↔ bytes — type-punning a managed ref is meaningless → **reject** (diagnostic) / undefined.
+- **Pointer written to a file** — a serialized address is non-portable → same.
+- **`CALL … BY REFERENCE` of a pointer item** — the callee aliases the caller's `ManagedPointer` *field* (a managed
+  alias), not a byte window.
+- **EXTERNAL pointer** — a shared `ManagedPointer` field.
+
+`LENGTH OF` a pointer / a group's size may still report the **logical** implementor-defined 8 without an 8-byte
+storage slot. A `BASED` item has **no storage**; its references deref through its associated `ManagedPointer` via a
+new **pointer-relative `IrLocation`** (load the pointer's `Buffer`+`Offset`, form the window) — `IrStaticLocation`
+hard-binds a fixed area+offset, so a new location kind is required.
 
 ### 10.3 Grammar (approved DEVLOG 429) + bind/lower/emit
 - Lexer: add `BASED`, `ALLOCATE`, `FREE` (+ `INITIALIZED`, `CHARACTERS`, `RETURNING` as needed); `ADDRESS`/`NULL_`/
