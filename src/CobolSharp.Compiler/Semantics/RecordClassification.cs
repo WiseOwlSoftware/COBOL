@@ -493,6 +493,15 @@ internal sealed class RecordClassificationPass
                     // operand, cannot be one typed shape (sender = current count, receiver = MAX; ISO §13.18.39.3).
                     if (id.Symbol.IsGroup && ContainsOdo(id.Symbol))
                         Demote.Add(id.Symbol);
+                    // (S4) a fixed OCCURS table referenced as a WHOLE operand (not subscripted) needs its contiguous
+                    // byte image — a typed `T[]` has no whole-table byte home — so keep it byte-backed; only
+                    // exclusively-element-accessed (`ARR(i)`) tables flip. (docs/RECORD_STRUCT_STORAGE_DESIGN.md §9.3)
+                    if (id.Symbol.Occurs is not null && !id.IsSubscripted)
+                        Demote.Add(id.Symbol);
+                    // (S4) likewise a whole reference to a GROUP containing fixed OCCURS tables demotes those tables —
+                    // the whole-group op reads/writes their bytes, which a typed array would not maintain.
+                    if (id.Symbol.IsGroup && !id.IsSubscripted)
+                        DemoteFixedOccursTables(id.Symbol);
                     if (id.Subscripts is not null)
                         ScanExpressions(id.Subscripts);
                     break;
@@ -696,6 +705,20 @@ internal sealed class RecordClassificationPass
                     return true;
             }
             return false;
+        }
+
+        /// <summary>S4: demote every fixed-OCCURS (non-DEPENDING-ON) elementary table at or beneath
+        /// <paramref name="group"/> to byte — used when the group is referenced as a whole operand, so the table's
+        /// contiguous byte image (which the whole-group op reads) is kept maintained rather than flipped to a
+        /// typed array. (docs/RECORD_STRUCT_STORAGE_DESIGN.md §9.3)</summary>
+        private void DemoteFixedOccursTables(DataSymbol group)
+        {
+            foreach (DataSymbol child in group.Children)
+            {
+                if (child.Occurs is { DependingOnSymbol: null, DependingOnName: null })
+                    Demote.Add(child);
+                DemoteFixedOccursTables(child);
+            }
         }
 
         /// <summary>

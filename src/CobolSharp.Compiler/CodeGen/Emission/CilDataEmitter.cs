@@ -21,35 +21,88 @@ internal sealed class CilDataEmitter
 
     internal CilDataEmitter(EmissionContext ctx) => _ctx = ctx;
 
-    // ── Data-model migration S3 typed-field access helpers (docs/RECORD_STRUCT_STORAGE_DESIGN.md) ──
-    // A typed field is either a flat static string field (S3a, InstanceName null) or a member of a static
-    // record-struct instance (S3b). Store needs the instance address pushed BEFORE the value, so store is split
-    // into a prefix (push the struct address, if any) and a suffix (stfld member / stsfld flat).
+    // ── Data-model migration typed-location access primitives (docs/RECORD_STRUCT_STORAGE_DESIGN.md §9.2) ──
+    // The THREE value-access primitives every typed cell is built on. They are the ONLY places that know a typed
+    // location's shape — a flat static field (S3a), a record-struct member (S3b, InstanceName set), or an OCCURS
+    // array element (S4, IrTypedElementLocation). Generalizing only these three lets every other numeric/char cell
+    // work on an element unchanged. Store is split: a prefix (push the container addressing — struct address, or
+    // array+index — BEFORE the value) and a suffix (the store op — stfld / stsfld / stelem).
 
-    private void EmitTypedStorePrefix(ILProcessor il, IrTypedFieldLocation t)
+    /// <summary>Pushes the element-address prefix for an OCCURS element: <c>ldsfld array; &lt;0-based index i4&gt;</c>
+    /// (the COBOL 1-based subscript expression, decimal→int via Convert.ToInt32, minus one). Shared by load + store.</summary>
+    private void EmitTypedElementAddress(ILProcessor il, IrTypedElementLocation e)
     {
-        if (t.InstanceName is { } inst)
-            il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+        il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedArrays[e.ArrayFieldName]));
+        _ctx.Expression.EmitIrExpression(il, e.Index);   // decimal (1-based subscript)
+        il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+            typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
+        il.Append(il.Create(OpCodes.Ldc_I4_1));
+        il.Append(il.Create(OpCodes.Sub));               // 1-based → 0-based
     }
 
-    private void EmitTypedStoreSuffix(ILProcessor il, IrTypedFieldLocation t)
-    {
-        il.Append(t.InstanceName is { } inst
-            ? il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst].Members[t.FieldName])
-            : il.Create(OpCodes.Stsfld, _ctx.TypedFields[t.FieldName]));
-    }
+    /// <summary>The element store opcode for an array element by representation: <c>stelem.ref</c> (string) /
+    /// <c>stelem.i8</c> (long) / <c>stelem &lt;decimal&gt;</c>.</summary>
+    private void EmitArrayStoreElement(ILProcessor il, IrTypedLocation t) =>
+        il.Append(t.IsDecimalNumeric
+            ? il.Create(OpCodes.Stelem_Any, _ctx.Module.ImportReference(typeof(decimal)))
+            : t.Pic.Category == CobolCategory.Numeric
+                ? il.Create(OpCodes.Stelem_I8)
+                : il.Create(OpCodes.Stelem_Ref));
 
-    private void EmitTypedLoad(ILProcessor il, IrTypedFieldLocation t)
+    /// <summary>The element load opcode for an array element by representation (mirror of <see cref="EmitArrayStoreElement"/>).</summary>
+    private void EmitArrayLoadElement(ILProcessor il, IrTypedLocation t) =>
+        il.Append(t.IsDecimalNumeric
+            ? il.Create(OpCodes.Ldelem_Any, _ctx.Module.ImportReference(typeof(decimal)))
+            : t.Pic.Category == CobolCategory.Numeric
+                ? il.Create(OpCodes.Ldelem_I8)
+                : il.Create(OpCodes.Ldelem_Ref));
+
+    internal void EmitTypedStorePrefix(ILProcessor il, IrTypedLocation t)
     {
-        if (t.InstanceName is { } inst)
+        switch (t)
         {
-            var rec = _ctx.TypedRecords[inst];
-            il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
-            il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
+            case IrTypedFieldLocation { InstanceName: { } inst }:
+                il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+                break;
+            case IrTypedFieldLocation:
+                break;   // flat static field: no prefix
+            case IrTypedElementLocation e:
+                EmitTypedElementAddress(il, e);
+                break;
         }
-        else
+    }
+
+    internal void EmitTypedStoreSuffix(ILProcessor il, IrTypedLocation t)
+    {
+        switch (t)
         {
-            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
+            case IrTypedFieldLocation { InstanceName: { } inst } f:
+                il.Append(il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst].Members[f.FieldName]));
+                break;
+            case IrTypedFieldLocation f:
+                il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[f.FieldName]));
+                break;
+            case IrTypedElementLocation e:
+                EmitArrayStoreElement(il, e);
+                break;
+        }
+    }
+
+    internal void EmitTypedLoad(ILProcessor il, IrTypedLocation t)
+    {
+        switch (t)
+        {
+            case IrTypedFieldLocation { InstanceName: { } inst } f:
+                il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+                il.Append(il.Create(OpCodes.Ldfld, _ctx.TypedRecords[inst].Members[f.FieldName]));
+                break;
+            case IrTypedFieldLocation f:
+                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[f.FieldName]));
+                break;
+            case IrTypedElementLocation e:
+                EmitTypedElementAddress(il, e);
+                EmitArrayLoadElement(il, e);
+                break;
         }
     }
 
@@ -59,7 +112,7 @@ internal sealed class CilDataEmitter
     /// sign/scale/truncation exactly as the byte <c>MoveNumeric</c> would), decode it back, and store — so it is
     /// byte-identical for every long/decimal combination. (The both-<c>long</c> case keeps its faster mod path.)
     /// </summary>
-    private void EmitNumericFieldToFieldViaCodec(ILProcessor il, IrTypedFieldLocation src, IrTypedFieldLocation dst)
+    private void EmitNumericFieldToFieldViaCodec(ILProcessor il, IrTypedLocation src, IrTypedLocation dst)
     {
         var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
         _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
@@ -175,7 +228,7 @@ internal sealed class CilDataEmitter
         // Data-model migration S3: MOVE "literal" TO a typed-native string field — store the receiving value
         // (CobolString.Store: width/justify/space-fill, ISO §14.9.25) directly to the .NET field. No byte window.
         // (A string literal to a typed NUMERIC field is a different conversion — falls through to the loud guard.)
-        if (ms.Target is IrTypedFieldLocation tfl && tfl.Pic.Category != CobolCategory.Numeric)
+        if (ms.Target is IrTypedLocation tfl && tfl.Pic.Category != CobolCategory.Numeric)
         {
             EmitTypedStorePrefix(il, tfl);
             il.Append(il.Create(OpCodes.Ldstr, ms.Value));
@@ -289,7 +342,7 @@ internal sealed class CilDataEmitter
     internal void EmitMoveFigurative(ILProcessor il, IrMoveFigurative mf)
     {
         // S3/S4: MOVE a figurative constant to a typed field.
-        if (mf.Destination is IrTypedFieldLocation tfl)
+        if (mf.Destination is IrTypedLocation tfl)
         {
             // S4 numeric: MOVE ZEROS → 0 (byte-identical: the byte path zero-fills the digit image, which DISPLAYs
             // identically to a 0-valued long/decimal). A figurative fill STRING must never be stored into a numeric
@@ -309,8 +362,8 @@ internal sealed class CilDataEmitter
                 // SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/NULL into a numeric field is a byte-pattern fill with no native
                 // long/decimal equivalent — fail loudly rather than mis-emit (deferred to a materialize cell).
                 throw new System.NotSupportedException(
-                    $"S4: MOVE {mf.FigurativeKind} to a typed numeric field ('{tfl.FieldName}') is not supported " +
-                    "(only ZEROS has a native equivalent).");
+                    $"S4: MOVE {mf.FigurativeKind} to a typed numeric location ({tfl.GetType().Name}) is not " +
+                    "supported (only ZEROS has a native equivalent).");
             }
             // S3 character: MOVE SPACES/ZEROS → a width-long fill string (byte-identical: the byte path fills the
             // window with the same byte). Other figuratives (HIGH/LOW-VALUE/QUOTE/NULL) fall through to the byte
@@ -375,7 +428,7 @@ internal sealed class CilDataEmitter
         // fields) — re-store the source value into the destination at its width (CobolString.Store: ISO §14.9.25
         // space-pad/truncate; a ref copy when widths match). A mixed typed/byte pair instead hits the loud
         // EmitLocationArgs guard until the materialize fallback (§2.5) lands.
-        if (mf.Source is IrTypedFieldLocation msrc && mf.Destination is IrTypedFieldLocation mdst)
+        if (mf.Source is IrTypedLocation msrc && mf.Destination is IrTypedLocation mdst)
         {
             bool srcNum = msrc.Pic.Category == CobolCategory.Numeric;
             bool dstNum = mdst.Pic.Category == CobolCategory.Numeric;
@@ -417,7 +470,7 @@ internal sealed class CilDataEmitter
         // S3: the typed↔byte materialize boundary (§2.5) for field→field MOVE of a typed STRING field. The byte
         // engine is the safety floor — Latin-1 round-trips byte↔char losslessly, so these are byte-identical.
         // (A typed NUMERIC field ↔ byte falls through to the loud guard until its materialize cell lands.)
-        if (mf.Destination is IrTypedFieldLocation tDst && tDst.Pic.Category != CobolCategory.Numeric)
+        if (mf.Destination is IrTypedLocation tDst && tDst.Pic.Category != CobolCategory.Numeric)
         {
             // byte source → typed string dest: read the source window as a Latin-1 string, then Store at width.
             EmitTypedStorePrefix(il, tDst);
@@ -429,7 +482,7 @@ internal sealed class CilDataEmitter
             EmitTypedStoreSuffix(il, tDst);
             return;
         }
-        if (mf.Source is IrTypedFieldLocation tSrc && tSrc.Pic.Category != CobolCategory.Numeric)
+        if (mf.Source is IrTypedLocation tSrc && tSrc.Pic.Category != CobolCategory.Numeric)
         {
             // typed string source → byte dest: lay the source string into the destination window (StorageHelpers
             // .MoveStringToField — left-justified, space-padded / right-truncated, the same as the byte path).
@@ -548,7 +601,7 @@ internal sealed class CilDataEmitter
         // S4: MOVE numeric-literal → a typed (unsigned-integer) `long` field. Truncate the literal to the field's
         // digit count at compile time (|value| mod 10^n — byte-identical to the byte path's EncodeNumeric) and
         // store the long. MOVE never carries ROUNDED, so mv.Rounding is 0 here.
-        if (mv.Destination is IrTypedFieldLocation tnum && tnum.Pic.Category == CobolCategory.Numeric)
+        if (mv.Destination is IrTypedLocation tnum && tnum.Pic.Category == CobolCategory.Numeric)
         {
             EmitTypedStorePrefix(il, tnum);
             if (tnum.IsDecimalNumeric)
@@ -631,7 +684,7 @@ internal sealed class CilDataEmitter
         {
             // Data-model migration S3: DISPLAY of a typed-native string field — push the .NET string directly
             // (it IS the field's character image, space-padded to width); no GetDisplayString byte decode.
-            if (field.Location is IrTypedFieldLocation tfl)
+            if (field.Location is IrTypedLocation tfl)
             {
                 // S4: a typed numeric (`long`) field → format its digit image (CobolNum.FormatUnsignedDisplay),
                 // byte-identical to the byte path's stored DISPLAY bytes for an unsigned PIC 9(n).

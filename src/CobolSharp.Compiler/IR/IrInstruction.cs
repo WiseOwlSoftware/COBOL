@@ -1260,41 +1260,82 @@ public sealed class IrStaticLocation : IrLocation
 }
 
 /// <summary>
-/// A typed-native field location (data-model migration, <c>docs/RECORD_STRUCT_STORAGE_DESIGN.md</c> S3): the
-/// operand is a native .NET <see cref="string"/> field, not a byte window. Carries the emitted field's name
-/// (resolved to a <c>FieldDefinition</c> via <c>EmissionContext.TypedFields</c>) and the COBOL character width.
-/// Produced by <c>LocationResolver</c> only when <c>CompilationOptions.EnableTypedFields</c> is on and the
-/// classifier marks the item typed; the byte path (<see cref="IrStaticLocation"/> etc.) is otherwise unchanged.
+/// Base for a typed-native location (data-model migration): the operand is a native .NET value (<c>string</c> /
+/// <c>long</c> / <c>decimal</c>), not a byte window. Subclasses differ only in how the value is addressed — a flat
+/// field / record-struct member (<see cref="IrTypedFieldLocation"/>) or an OCCURS array element
+/// (<see cref="IrTypedElementLocation"/>). Every typed emit cell that only reads <see cref="Width"/>/<see cref="Pic"/>
+/// (materialize, COMPARE, arithmetic, DISPLAY formatting) dispatches on this base; the three value-access
+/// primitives (load / store-prefix / store-suffix, in <c>CilDataEmitter</c>) switch on the concrete subclass.
+/// Produced by <c>LocationResolver</c> only when <c>CompilationOptions.EnableTypedFields</c> is on and the classifier
+/// marks the item typed; the byte path (<see cref="IrStaticLocation"/> etc.) is otherwise unchanged.
 /// </summary>
-public sealed class IrTypedFieldLocation : IrLocation
+public abstract class IrTypedLocation : IrLocation
+{
+    /// <summary>The element/field byte storage width (for COMP/BINARY this differs from the digit count, which
+    /// lives on <see cref="Pic"/>).</summary>
+    public int Width { get; }
+    /// <summary>The item's original descriptor — so <c>GetPic()</c> works and lowering routes a literal/field move
+    /// through the right branch before the typed emit cell takes over.</summary>
+    public Runtime.PicDescriptor Pic { get; }
+
+    protected IrTypedLocation(int width, Runtime.PicDescriptor pic)
+    {
+        Width = width;
+        Pic = pic;
+    }
+
+    /// <summary>S4: a typed NUMERIC value is a .NET <c>decimal</c> (vs <c>long</c>) exactly when it is signed or
+    /// scaled (a fraction or P-scale) — the complement of the unsigned-integer slice that flips to <c>long</c>. This
+    /// single predicate keeps the Binder's type choice and every emit cell in agreement.</summary>
+    public static bool IsDecimalRepresented(Runtime.PicDescriptor pic) =>
+        pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0;
+
+    /// <summary>True when this is a numeric value stored as a .NET <c>decimal</c> (signed/scaled); false for the
+    /// unsigned-integer <c>long</c> slice and for character values.</summary>
+    public bool IsDecimalNumeric => Pic.Category == Runtime.CobolCategory.Numeric && IsDecimalRepresented(Pic);
+}
+
+/// <summary>
+/// A typed-native field location (data-model migration S3): a native .NET <see cref="string"/>/<see cref="long"/>/
+/// <see cref="decimal"/> field — a flat static field, or a member of a record-struct instance.
+/// </summary>
+public sealed class IrTypedFieldLocation : IrTypedLocation
 {
     public string FieldName { get; }
-    public int Width { get; }
-    /// <summary>The item's original (alphanumeric) descriptor — so <c>GetPic()</c> works and the existing
-    /// lowering routes a literal/field move through the right branch before the typed emit cell takes over.</summary>
-    public Runtime.PicDescriptor Pic { get; }
     /// <summary>S3a (a standalone elementary item): null → <see cref="FieldName"/> is a flat static field. S3b
     /// (a flipped <c>01</c> group → a <c>record struct</c>): the name of the static struct-instance field, and
     /// <see cref="FieldName"/> is the member within it (accessed <c>ldsflda instance; ldfld/stfld member</c>).</summary>
     public string? InstanceName { get; }
 
     public IrTypedFieldLocation(string fieldName, int width, Runtime.PicDescriptor pic, string? instanceName = null)
+        : base(width, pic)
     {
         FieldName = fieldName;
-        Width = width;
-        Pic = pic;
         InstanceName = instanceName;
     }
 
-    /// <summary>S4: a typed NUMERIC field is represented as a .NET <c>decimal</c> (vs <c>long</c>) exactly when it
-    /// is signed or scaled (a fraction or P-scale) — the complement of the unsigned-integer slice that flips to
-    /// <c>long</c>. This single predicate keeps the Binder's field-type choice and every emit cell in agreement.</summary>
-    public static bool IsDecimalRepresented(Runtime.PicDescriptor pic) =>
-        pic.IsSigned || pic.FractionDigits != 0 || pic.LeadingScaleDigits != 0 || pic.TrailingScaleDigits != 0;
+    /// <summary>Back-compat alias for the base predicate (some call-sites qualify via this type).</summary>
+    public static new bool IsDecimalRepresented(Runtime.PicDescriptor pic) => IrTypedLocation.IsDecimalRepresented(pic);
+}
 
-    /// <summary>True when this is a numeric field stored as a .NET <c>decimal</c> (signed/scaled); false for the
-    /// unsigned-integer <c>long</c> slice and for character fields.</summary>
-    public bool IsDecimalNumeric => Pic.Category == Runtime.CobolCategory.Numeric && IsDecimalRepresented(Pic);
+/// <summary>
+/// A typed-native OCCURS element location (data-model migration S4): an element of a fixed typed array field
+/// (<c>string[]</c>/<c>long[]</c>/<c>decimal[]</c>) on the program type, addressed <c>ldsfld array; &lt;index&gt;;
+/// ldelem|stelem</c>. <see cref="Index"/> is the <b>0-based</b> element index (COBOL's 1-based subscript already
+/// reduced by one in the resolver).
+/// </summary>
+public sealed class IrTypedElementLocation : IrTypedLocation
+{
+    public string ArrayFieldName { get; }
+    /// <summary>The 0-based element index (COBOL subscript − 1), already lowered.</summary>
+    public IrExpression Index { get; }
+
+    public IrTypedElementLocation(string arrayFieldName, IrExpression index, int width, Runtime.PicDescriptor pic)
+        : base(width, pic)
+    {
+        ArrayFieldName = arrayFieldName;
+        Index = index;
+    }
 }
 
 /// <summary>

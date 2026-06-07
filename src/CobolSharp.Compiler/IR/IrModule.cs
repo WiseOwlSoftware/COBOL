@@ -29,6 +29,9 @@ public sealed class IrModule(string name)
     /// <summary>Flipped <c>01</c> groups → .NET <c>record struct</c>s (S3b). Empty unless flipping is on.</summary>
     public List<IrTypedRecordDef> TypedRecordDefs { get; } = [];
 
+    /// <summary>Flipped fixed <c>OCCURS</c> tables → typed .NET array fields (S4). Empty unless flipping is on.</summary>
+    public List<IrTypedArrayDef> TypedArrayDefs { get; } = [];
+
     /// <summary>
     /// Default target paragraph indices for each ALTER slot.
     /// Empty when no ALTER statements are used (zero overhead).
@@ -113,3 +116,10 @@ public sealed record IrTypedFieldDef(string Name, int Width, string InitValue,
 /// struct <paramref name="StructTypeName"/>, its static-instance field <paramref name="InstanceName"/>, and the
 /// typed string <paramref name="Members"/> (one per elementary child).</summary>
 public sealed record IrTypedRecordDef(string StructTypeName, string InstanceName, IReadOnlyList<IrTypedFieldDef> Members);
+
+/// <summary>A flipped fixed <c>OCCURS</c> table → a typed .NET array field (data-model migration S4): the emitted
+/// array field <paramref name="Name"/> of <paramref name="ElementCount"/> elements, each shaped by
+/// <paramref name="Element"/> (CLR type via <c>TypedFieldClrType</c> + per-slot initial value). Element access is
+/// <c>ldsfld array; index; ldelem|stelem</c>; <c>InitializeState</c> allocates <c>new T[ElementCount]</c> and fills
+/// every slot from <paramref name="Element"/>'s init (never <c>default(T)</c>, ADR §1.7).</summary>
+public sealed record IrTypedArrayDef(string Name, int ElementCount, IrTypedFieldDef Element);

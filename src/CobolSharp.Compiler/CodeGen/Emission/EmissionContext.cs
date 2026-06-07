@@ -43,6 +43,10 @@ internal sealed class EmissionContext
     public Dictionary<string, (FieldDefinition Instance, Dictionary<string, FieldDefinition> Members)>
         TypedRecords { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Flipped fixed <c>OCCURS</c> tables → typed .NET array fields (S4), keyed by the array field name
+    /// carried in <see cref="IrTypedElementLocation.ArrayFieldName"/>.</summary>
+    public Dictionary<string, FieldDefinition> TypedArrays { get; } = new(StringComparer.Ordinal);
+
     // ── Per-method tracking ──
 
     public MethodDefinition? CurrentMethodDef { get; set; }

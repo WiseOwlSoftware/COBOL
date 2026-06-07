@@ -31,7 +31,7 @@ internal sealed class CilArithmeticEmitter
     /// </summary>
     private void EmitWithReceiver(ILProcessor il, IrLocation dest, System.Action emitRest)
     {
-        if (dest is IrTypedFieldLocation t && t.Pic.Category == Runtime.CobolCategory.Numeric)
+        if (dest is IrTypedLocation t && t.Pic.Category == Runtime.CobolCategory.Numeric)
         {
             var scratch = _ctx.Location.EmitTypedNumericReceiverPrologue(il, t);
             emitRest();
@@ -322,7 +322,7 @@ internal sealed class CilArithmeticEmitter
         // first), so EmitWithReceiver doesn't fit; the prologue is stack-neutral apart from its final dest-args
         // push, so it composes safely on top of the decimals already on the stack.
         VariableDefinition? remScratch = null;
-        if (rem.Destination is IrTypedFieldLocation rt && rt.Pic.Category == Runtime.CobolCategory.Numeric)
+        if (rem.Destination is IrTypedLocation rt && rt.Pic.Category == Runtime.CobolCategory.Numeric)
             remScratch = _ctx.Location.EmitTypedNumericReceiverPrologue(il, rt);
         else
             _ctx.Location.EmitLocationArgsWithPic(il, rem.Destination);
@@ -339,7 +339,7 @@ internal sealed class CilArithmeticEmitter
         il.Append(il.Create(OpCodes.Call, method));
 
         if (remScratch is not null)
-            _ctx.Location.EmitTypedNumericReceiverEpilogue(il, (IrTypedFieldLocation)rem.Destination, remScratch);
+            _ctx.Location.EmitTypedNumericReceiverEpilogue(il, (IrTypedLocation)rem.Destination, remScratch);
     }
 
     /// <summary>

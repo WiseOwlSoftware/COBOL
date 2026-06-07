@@ -100,6 +100,13 @@ internal sealed class LoweringContext
     public Dictionary<DataSymbol, (string Name, int Width, string? Instance)> TypedFieldRefs { get; } =
         new(ReferenceEqualityComparer.Instance);
 
+    /// <summary>Fixed <c>OCCURS</c> tables flipped to typed .NET array fields (S4): the table element DataSymbol →
+    /// (array field name, element byte width, element count). Populated by Binder.CollectTypedFields; consulted by
+    /// LocationResolver to produce an <see cref="IR.IrTypedElementLocation"/> for a subscripted reference. Empty
+    /// unless flipping is on.</summary>
+    public Dictionary<DataSymbol, (string Name, int Width, int Count)> TypedArrayRefs { get; } =
+        new(ReferenceEqualityComparer.Instance);
+
     // ── Recursive statement lowering delegate ──
     // Allows extracted lowerers to call back into Binder.LowerStatement
     // without depending on the Binder class directly.

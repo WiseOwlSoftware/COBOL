@@ -75,6 +75,16 @@ internal sealed class LocationResolver
         // Compute multipliers using stepSize (OCCURS group element size for subscript arithmetic)
         var multipliers = ComputeMultipliers(occursLevels, stepSize);
 
+        // Data-model migration S4: a flipped fixed-OCCURS table — the element lives in a typed .NET array, not a
+        // byte window. Produce a typed element location (array[subscript-1]) instead of a byte offset. Only
+        // exclusively-element-accessed tables are flipped (a whole-table operand demotes to byte), and slice 1 is
+        // single-dimension, so the first subscript is the index. (docs/RECORD_STRUCT_STORAGE_DESIGN.md §9.)
+        if (_ctx.TypedArrayRefs.TryGetValue(id.Symbol, out var arr))
+        {
+            var indexExpr = _ctx.Expression.LowerExpression(id.Subscripts![0]) ?? new IrLiteral(1m);
+            return new IrTypedElementLocation(arr.Name, indexExpr, leafSize, elementPic);
+        }
+
         // Try all-constant fold: if every subscript is a literal, compute offset at compile time
         var subs = id.Subscripts!;
         bool allConstant = true;
@@ -151,6 +161,15 @@ internal sealed class LocationResolver
         if (_ctx.TypedFieldRefs.TryGetValue(sym, out var typed))
             return new IrTypedFieldLocation(typed.Name, typed.Width, loc.Pic, typed.Instance);
 
+        // S4 belt-and-suspenders: a whole-operand reference to a flipped OCCURS table — or to a group containing one
+        // — has no byte home. The classifier's whole-table/whole-group demotion (§9.3) should have kept such a table
+        // byte-backed (so it never reaches TypedArrayRefs); if one slips through, fail loudly rather than silently
+        // read stale bytes.
+        if (_ctx.TypedArrayRefs.ContainsKey(sym) || HasFlippedTableDescendant(sym))
+            throw new System.NotSupportedException(
+                $"Typed OCCURS table at/under '{sym.Name}' was referenced as a whole operand but flipped to a typed " +
+                "array; it should have been classifier-demoted to byte (RECORD_STRUCT_STORAGE_DESIGN.md §9.3).");
+
         // Runtime length is only computed for areas backed by a contiguous byte[] we can
         // re-slice (WORKING-STORAGE, LOCAL-STORAGE, FILE SECTION). LINKAGE keeps the
         // compile-time layout length.
@@ -178,6 +197,17 @@ internal sealed class LocationResolver
     {
         for (var p = node.Parent; p != null; p = p.Parent)
             if (ReferenceEquals(p, ancestor)) return true;
+        return false;
+    }
+
+    /// <summary>S4: true if any descendant of <paramref name="sym"/> is a flipped typed OCCURS table — used by the
+    /// whole-item loud guard to refuse a whole-group operand over a group that contains a typed array.</summary>
+    private bool HasFlippedTableDescendant(DataSymbol sym)
+    {
+        if (!sym.IsGroup) return false;
+        foreach (var child in sym.Children)
+            if (_ctx.TypedArrayRefs.ContainsKey(child) || HasFlippedTableDescendant(child))
+                return true;
         return false;
     }
 

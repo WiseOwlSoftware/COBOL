@@ -579,4 +579,75 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void CharOccursTable_FlipsToTypedStringArray_AcrossOps_ByteIdentical()
+    {
+        // S4 (OCCURS slice 1): a fixed OCCURS table over a character element flips to a typed .NET string[]. Element
+        // access ARR(i) — MOVE-literal, DISPLAY (constant + variable subscript), COMPARE, and element→element MOVE —
+        // routes through the same typed cells as a flat field (the three value-access primitives gained an array arm),
+        // so it is byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDOCC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TBL.
+               05 WS-T PIC X(4) OCCURS 3.
+            01 WS-I PIC 9(1) VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AB"   TO WS-T(1).
+                MOVE "CDEF" TO WS-T(2).
+                MOVE "GH"   TO WS-T(3).
+                DISPLAY WS-T(1).
+                DISPLAY WS-T(2).
+                DISPLAY WS-T(WS-I).
+                IF WS-T(1) = "AB" THEN DISPLAY "EQ1" END-IF.
+                IF WS-T(1) NOT = WS-T(2) THEN DISPLAY "NE12" END-IF.
+                MOVE WS-T(2) TO WS-T(3).
+                DISPLAY WS-T(3).
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("AB\nCDEF\nCDEF\nEQ1\nNE12\nCDEF", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
+
+    [Fact]
+    public void WholeTableOperand_DemotesTableToByte_StillByteIdentical()
+    {
+        // S4 §9.3 safety: a table referenced as a WHOLE operand (here the containing group is DISPLAYed/MOVEd whole)
+        // has no typed-array byte home, so the classifier demotes it to byte — it does NOT flip — and the program
+        // still works via the byte engine, byte-identical with the flag on or off.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDOCW.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-TBL.
+               05 WS-T PIC X(2) OCCURS 3.
+            01 WS-OTHER PIC X(6).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE "AABBCC" TO WS-TBL.
+                DISPLAY WS-T(2).
+                MOVE WS-TBL TO WS-OTHER.
+                DISPLAY WS-OTHER.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("BB\nAABBCC", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

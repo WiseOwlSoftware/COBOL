@@ -623,6 +623,15 @@ public sealed class CilEmitter
             _ctx.TypedRecords[rd.InstanceName] = (instFd, members);
         }
 
+        // S4: a flipped fixed OCCURS table → a static typed .NET array field (string[]/long[]/decimal[]).
+        foreach (var ad in ir.TypedArrayDefs)
+        {
+            var arrFd = new FieldDefinition(ad.Name, FieldAttributes.Public | FieldAttributes.Static,
+                new ArrayType(TypedFieldClrType(ad.Element)));
+            _programType.Fields.Add(arrFd);
+            _ctx.TypedArrays[ad.Name] = arrFd;
+        }
+
         // Static bool: have this program's file connectors been registered for the current activation?
         // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
         _filesRegisteredField = new FieldDefinition(
@@ -666,6 +675,28 @@ public sealed class CilEmitter
                 initIl.Append(initIl.Create(OpCodes.Ldsflda, rec.Instance));
                 EmitTypedFieldInitValue(initIl, m);
                 initIl.Append(initIl.Create(OpCodes.Stfld, rec.Members[m.Name]));
+            }
+        }
+        // S4: allocate each typed OCCURS array (new T[n]) and fill every slot with the element's COBOL-correct
+        // initial value (never default(T) — ADR §1.7).
+        foreach (var ad in ir.TypedArrayDefs)
+        {
+            var arrFd = _ctx.TypedArrays[ad.Name];
+            var elemType = TypedFieldClrType(ad.Element);
+            initIl.Append(initIl.Create(OpCodes.Ldc_I4, ad.ElementCount));
+            initIl.Append(initIl.Create(OpCodes.Newarr, elemType));
+            initIl.Append(initIl.Create(OpCodes.Stsfld, arrFd));
+            for (int i = 0; i < ad.ElementCount; i++)
+            {
+                initIl.Append(initIl.Create(OpCodes.Ldsfld, arrFd));
+                initIl.Append(initIl.Create(OpCodes.Ldc_I4, i));
+                EmitTypedFieldInitValue(initIl, ad.Element);
+                initIl.Append(ad.Element switch
+                {
+                    { IsDecimal: true } => initIl.Create(OpCodes.Stelem_Any, _module.ImportReference(typeof(decimal))),
+                    { IsNumeric: true } => initIl.Create(OpCodes.Stelem_I8),
+                    _ => initIl.Create(OpCodes.Stelem_Ref),
+                });
             }
         }
         EmitAlterTableInitialization(initIl, ir);

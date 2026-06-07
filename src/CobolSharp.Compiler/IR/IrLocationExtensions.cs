@@ -22,7 +22,7 @@ public static class IrLocationExtensions
             IrOdoGroupLocation o => o.Base.Pic,
             IrElementRef e => e.ElementPic,
             IrRefModLocation r => r.Base.GetPic(),
-            IrTypedFieldLocation t => t.Pic,
+            IrTypedLocation t => t.Pic,   // IrTypedFieldLocation + IrTypedElementLocation
             _ => throw new InvalidOperationException($"Unknown IrLocation type: {loc.GetType().Name}")
         };
     }

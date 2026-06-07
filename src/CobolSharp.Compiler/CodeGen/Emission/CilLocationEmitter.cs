@@ -33,11 +33,12 @@ internal sealed class CilLocationEmitter
             // (MOVE-literal, DISPLAY) handle IrTypedFieldLocation directly; any other op reaching the byte
             // path for a typed field is unsupported until that op's typed cell (or the materialize fallback)
             // lands — fail loudly (no silent miscompile) rather than push a bogus (area,offset,length).
-            case IR.IrTypedFieldLocation t:
+            case IR.IrTypedLocation t:
                 throw new NotSupportedException(
-                    $"Typed-native field '{t.FieldName}' reached a byte-window operation; the data-model " +
-                    "migration (RECORD_STRUCT_STORAGE_DESIGN.md S3) supports only MOVE-literal and DISPLAY for " +
-                    "typed fields so far. Widen the typed cells or add the materialize fallback before using it here.");
+                    $"Typed-native location ({t.GetType().Name}) reached a byte-window operation; the data-model " +
+                    "migration (RECORD_STRUCT_STORAGE_DESIGN.md) routes typed reads through the materialize fallback " +
+                    "(EmitLocationArgsMaterializingTyped) and typed writes through the typed cells. Add the missing " +
+                    "typed cell (or materialize fallback) for this op before using it here.");
 
             case IR.IrCachedLocation cached:
                 EmitCachedLocationArgs(il, cached);
@@ -97,11 +98,11 @@ internal sealed class CilLocationEmitter
     /// </summary>
     internal void EmitLocationArgsMaterializingTyped(ILProcessor il, IR.IrLocation loc)
     {
-        if (loc is IR.IrTypedFieldLocation t)
+        if (loc is IR.IrTypedLocation t)
         {
             if (t.Pic.Category == Runtime.CobolCategory.Numeric)
             {
-                // S4 numeric sender-materialize: a typed NUMERIC field's value is a `long`. Encode it into a scratch
+                // S4 numeric sender-materialize: a typed NUMERIC value (`long`/`decimal`). Encode it into a scratch
                 // byte window via the SAME codec the byte field uses (PicRuntime.EncodeNumeric) so the byte op reads
                 // identical bytes — byte-identical, because encode∘decode is a round-trip for an in-range value. The
                 // shared helper leaves (scratch, 0, width) on the stack; the WithPic wrapper appends the pic.
@@ -110,8 +111,9 @@ internal sealed class CilLocationEmitter
             }
 
             // character: load the typed string, then CobolString.ToWindow(string, width) -> byte[width];
-            // then push (array, 0, width).
-            EmitTypedFieldValueLoad(il, t);
+            // then push (array, 0, width). (Works for a flat field, a record-struct member, or an array element —
+            // _ctx.Data.EmitTypedLoad dispatches on the concrete typed-location shape.)
+            _ctx.Data.EmitTypedLoad(il, t);
             il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                 typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
@@ -121,25 +123,6 @@ internal sealed class CilLocationEmitter
             return;
         }
         EmitLocationArgs(il, loc);
-    }
-
-    /// <summary>
-    /// Loads a typed-native field's <i>value</i> onto the stack — a flat static field (<c>ldsfld</c>) or a
-    /// record-struct member (<c>ldsflda</c> the instance, then <c>ldfld</c> the member). The value's CLR type is the
-    /// field's type (<c>string</c> for character, <c>long</c> for numeric); the caller knows which by category.
-    /// </summary>
-    private void EmitTypedFieldValueLoad(ILProcessor il, IR.IrTypedFieldLocation t)
-    {
-        if (t.InstanceName is { } inst)
-        {
-            var rec = _ctx.TypedRecords[inst];
-            il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
-            il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
-        }
-        else
-        {
-            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
-        }
     }
 
     /// <summary>
@@ -166,7 +149,7 @@ internal sealed class CilLocationEmitter
     /// on the stack. Returns the scratch local. Shared by the numeric sender-materialize (which then needs only the
     /// pic appended) and the numeric-receiver prologue (which keeps the local for the write-back epilogue).
     /// </summary>
-    private VariableDefinition EmitMaterializeNumericToScratch(ILProcessor il, IR.IrTypedFieldLocation t)
+    private VariableDefinition EmitMaterializeNumericToScratch(ILProcessor il, IR.IrTypedLocation t)
     {
         var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
         _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
@@ -178,7 +161,7 @@ internal sealed class CilLocationEmitter
         il.Append(il.Create(OpCodes.Ldc_I4_0));
         il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
         _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
-        EmitTypedFieldValueLoad(il, t);
+        _ctx.Data.EmitTypedLoad(il, t);
         // A `long` field needs widening to `decimal`; a `decimal` field is already the right type.
         if (!t.IsDecimalNumeric)
             il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
@@ -200,7 +183,7 @@ internal sealed class CilLocationEmitter
     /// materialized even for write-only (GIVING) receivers — harmless, the op overwrites it — so the prologue is
     /// uniform across read-modify-write (<c>ADD…TO</c>) and write-only (<c>…GIVING</c>) receivers.
     /// </summary>
-    internal VariableDefinition EmitTypedNumericReceiverPrologue(ILProcessor il, IR.IrTypedFieldLocation t)
+    internal VariableDefinition EmitTypedNumericReceiverPrologue(ILProcessor il, IR.IrTypedLocation t)
     {
         var scratch = EmitMaterializeNumericToScratch(il, t);
         _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);   // the receiver args take a pic too
@@ -214,11 +197,10 @@ internal sealed class CilLocationEmitter
     /// downstream arithmetic stay byte-identical. A <c>long</c> field takes the explicit decimal→long narrowing; a
     /// <c>decimal</c> field stores the decoded value directly.
     /// </summary>
-    internal void EmitTypedNumericReceiverEpilogue(ILProcessor il, IR.IrTypedFieldLocation t, VariableDefinition scratch)
+    internal void EmitTypedNumericReceiverEpilogue(ILProcessor il, IR.IrTypedLocation t, VariableDefinition scratch)
     {
-        // store-target prefix: a record-struct member needs the instance address pushed before the value.
-        if (t.InstanceName is { } inst)
-            il.Append(il.Create(OpCodes.Ldsflda, _ctx.TypedRecords[inst].Instance));
+        // store-target prefix: container addressing pushed BEFORE the value (struct instance addr, or array+index).
+        _ctx.Data.EmitTypedStorePrefix(il, t);
         // DecodeNumeric(scratch, 0, width, pic) -> decimal
         il.Append(il.Create(OpCodes.Ldloc, scratch));
         il.Append(il.Create(OpCodes.Ldc_I4_0));
@@ -227,16 +209,14 @@ internal sealed class CilLocationEmitter
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("DecodeNumeric",
                 new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor) })!)));
-        // a `long` field narrows decimal→long; a `decimal` field stores the decoded value as-is.
+        // a `long` receiver narrows decimal→long; a `decimal` receiver stores the decoded value as-is.
         if (!t.IsDecimalNumeric)
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                 typeof(decimal).GetMethods().Single(m =>
                     m.Name == "op_Explicit" && m.ReturnType == typeof(long)
                     && m.GetParameters() is { Length: 1 } p && p[0].ParameterType == typeof(decimal)))));
-        // store: stfld member / stsfld flat
-        il.Append(t.InstanceName is { } inst2
-            ? il.Create(OpCodes.Stfld, _ctx.TypedRecords[inst2].Members[t.FieldName])
-            : il.Create(OpCodes.Stsfld, _ctx.TypedFields[t.FieldName]));
+        // store op: stfld member / stsfld flat / stelem element.
+        _ctx.Data.EmitTypedStoreSuffix(il, t);
     }
 
     /// <summary>
