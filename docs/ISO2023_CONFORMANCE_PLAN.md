@@ -144,10 +144,32 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     (Roslyn backend + Cecil oracle, default deferred; ADR §12 Q#2). The sender-materialize
     (`EmitLocationArgsMaterializingTyped`) is the §2.5 read floor; the loud `EmitLocationArgs` guard catches any
     unhandled typed op.
-  - **NEXT (the large numeric increment):** numeric **arithmetic** (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE on typed
-    `long`/`decimal` via `CobolNum`, byte-identical — HARD-GATED on the `CobolNum` differential oracle), then numeric
-    field-MOVE/COMPARE, signed/scaled (`decimal`) variants, then OCCURS/nested groups, pointers/OO, Stage 5. See
-    `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
+  - **PROGRESS — numeric flip COMPLETE (DEVLOG 411–418), guard 1196/496/364:** ☑ sender-materialize + native
+    numeric **COMPARE** / `IS NUMERIC` (413); ☑ numeric **arithmetic** ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE/REMAINDER
+    via a receiver prologue/epilogue (`EncodeNumeric`→scratch→op→`DecodeNumeric`-writeback), byte-identical (414); ☑
+    digit-count/byte-width decoupling (415) → **COMP/BINARY** usage (416, COMP-5/float/packed excluded) + a
+    `--typed-fields` CLI flag; ☑ **signed/scaled → `decimal`** across VALUE/MOVE/DISPLAY(sign-overpunch)/COMPARE/
+    arithmetic (417) + decimal field→field MOVE all long/decimal combos (418). Probe-driven `MOVE ZEROS`-to-numeric
+    invalid-IL fix (420).
+  - **PROGRESS — record-struct numeric members + OCCURS + nested groups (DEVLOG 419–427), guard 1196/506/364:** ☑
+    record structs gain `long`/`decimal` members (419); ☑ **OCCURS** char tables → `string[]` (422, the first
+    cross-cutting increment — abstract `IrTypedLocation` base + `IrTypedElementLocation` + 3 generalized value-access
+    primitives + classifier whole-table demotion §9.3) and numeric tables → `long[]`/`decimal[]` (425, unblocked by
+    424); ☑ PERFORM VARYING over a typed table works, SEARCH safely stays byte (426); ☑ **nested groups → nested
+    `record struct`s** via a member-path walk (427). **BYTE-ENGINE CONFORMANCE FIX (424):** a VALUE on an OCCURS item
+    now initializes EVERY occurrence (ISO §13.18.63.4 GR 9 — was only the last); zero baseline shifts; conformance
+    test `tests/conformance/2002/table_value_occurs`.
+  - **PROGRESS — Stage-3 "definition of done" (DEVLOG 428), guard 1196/507/364:** ☑ a representative ordinary
+    business program flips its **WHOLE data division** (nested group + numeric OCCURS table + standalone longs;
+    DISPLAY/decimal-ADD/MOVE/PERFORM-VARYING/COMPUTE/IF) and is byte-identical (`RepresentativeBusinessProgram_…`).
+    **The core data model (Stage 3) is COMPLETE:** character→`string`; numeric→`long`/`decimal` (DISPLAY/COMP/BINARY,
+    all ops); flat + nested groups→`record struct`s; fixed OCCURS (char+numeric)→`T[]`; every byte-trigger correctly
+    stays byte. 24 flag-on≡flag-off differential tests; all gated behind `EnableTypedFields` (default OFF).
+  - **NEXT (the remaining large stages, all autonomous-eligible):** Stage-4 **pointers** → **managed .NET references**
+    (the ADR's `ManagedPtr` — GC-tracked, no native heap / no handle table; the **PointerRegistry approach is
+    REJECTED — settled, NOT owner-gated**, owner directive DEVLOG 428) and **OO** → .NET classes (the largest piece);
+    Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + the flip-on-by-default decision + rename. See
+    `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9. Substrate runtime ready (`CobolNum`/`CobolString` + oracles).
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).
@@ -199,8 +221,9 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     variants verified present/green; only `CONTINUE AFTER` (non-deterministic) deferred.
   - **M2-DATA-5** Pointers **Phase-1 DONE** (389): `USAGE POINTER` (8-byte handle), `NULL`, `SET p TO NULL`/
     `SET p TO q`, `= NULL`/`= q`; pointer↔non-pointer MOVE + VALUE rejected; conformance `pointer_data`. A 2-agent
-    review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) remains the
-    owner-gated `PointerRegistry` design decision.**
+    review confirmed clean (self-review had caught 3 bugs first). **Phase-2 (ADDRESS OF/BASED/ALLOCATE) →
+    MANAGED .NET REFERENCES (the ADR's `ManagedPtr`); the `PointerRegistry` design is REJECTED — SETTLED, NOT
+    owner-gated (owner directive, DEVLOG 428). To be done with the data-model migration's Stage 4.**
   - **M2-ARITH-1 follow-up #1** OPTIONS `DEFAULT ROUNDED MODE` applied to bare ROUNDED — DONE (391; conformance
     `options_default_rounded`).
   - **M2-ARITH-1 follow-up #2** ROUNDED MODE PROHIBITED → SIZE ERROR — DONE at the observable level (392):
@@ -221,9 +244,9 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   additive or byte-identical — no NIST/integration change. Prior tail (392/393): two ADR-review fixes.)
 - **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
   with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
-  Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) —
-  OWNER-GATED**
-  (the `PointerRegistry` handle→address/.NET-managed-memory design decision); **M2-PRE-1** (◐, re-scoped — two
+  Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) →
+  managed .NET references (`ManagedPtr`); PointerRegistry REJECTED; settled, NOT gated (DEVLOG 428)**, done as
+  the migration's Stage 4; **M2-PRE-1** (◐, re-scoped — two
   real but rare preprocessor mis-parse/clean-error defects, one reverses a deliberate §7.3.16-vs-§7.2 decision);
   **M2-ARITH-1/-2** (OPTIONS DEFAULT ROUNDED / standard arithmetic — needs OPTIONS-clause parsing);
   **M2-FILE-1/2** (SHARING/LOCK, line-sequential); then the large subsystems **M2-PROC-4 EC/exceptions →
@@ -335,14 +358,16 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     INITIALIZE/DISPLAY/compare. **Defer:** `BX"…"` hex, **bit operators B-AND/B-OR/B-XOR/B-NOT** (corpus-collision
     risk — `B-NOT` seen as an identifier in a unit test; needs careful reserved-word handling + the XOR-operator
     wiring pattern, DEVLOG 375), true bit-packing, GROUP-USAGE BIT, SET cond-name interplay.
-- ◑ **M2-DATA-5 — Pointers & based addressing. PHASE-1 DONE (DEVLOG 389); Phase-2 owner-gated.** **[A] HIGH.**
+- ◑ **M2-DATA-5 — Pointers & based addressing. PHASE-1 DONE (DEVLOG 389); Phase-2 = managed .NET refs, done in the data-model Stage 4 (NOT gated).** **[A] HIGH.**
   **Phase-1 COMPLETE:** `USAGE POINTER` (8-byte opaque handle, no PIC), `NULL`, `SET p TO NULL` / `SET p TO q`,
   `= NULL` / `NOT = NULL` / `= q` equality; pointer↔non-pointer MOVE rejected (CBL0901); `VALUE` on a pointer
   rejected (CBL1002); default INITIALIZE leaves a pointer unchanged. Conformance `tests/conformance/2002/
   pointer_data`. Lean reuse: SET→MOVE, NULL→0x00 figurative fill, `= NULL`→figurative compare, `= q`→
-  `IrStringCompare` (no new IR nodes). **Phase-2/3 — STILL OWNER-GATED (the `PointerRegistry` handle→address
-  design decision):** `ADDRESS OF` / `SET ADDRESS OF` / `SET … UP/DOWN BY` / `BASED` deref → then `ALLOCATE`/
-  `FREE` (M2-PROC-5) — these need a safe mapping of COBOL pointers onto .NET managed memory (`GCHandle` pinning).
+  `IrStringCompare` (no new IR nodes). **Phase-2/3 → MANAGED .NET REFERENCES (the ADR's `ManagedPtr` — GC-tracked
+  `Owner`, no native heap / no handle table; the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated,
+  owner directive DEVLOG 428), to be built in the data-model migration's Stage 4:** `ADDRESS OF` / `SET ADDRESS OF`
+  / `SET … UP/DOWN BY` / `BASED` deref → then `ALLOCATE`/`FREE` (M2-PROC-5) — all on `ManagedPtr`, no `GCHandle`
+  pinning / native memory.
   Also deferred: ordering-operator rejection on pointers (`< >` compile to a byte-compare today; invalid input),
   PROGRAM-/FUNCTION-POINTER distinctions, and updating/removing the orphaned `LoweringTable` (no Pointer cases).
   **Phase-1 is thin standalone** — every pointer can only be NULL until ADDRESS OF/ALLOCATE exist. §13.18, §14.9.
@@ -351,14 +376,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     (no grammar for ADDRESS OF/SET ADDRESS OF/BASED/NULL, no bound pointer node); `CobolDataPointer` exists but is
     used only for CALL BY REFERENCE/CONTENT, not USAGE POINTER. **Phase-1 slice:** `USAGE POINTER` (alias all
     three pointer usages) → 8-byte opaque **handle** storage; `NULL` literal = handle 0; `SET p TO NULL`; pointer
-    `= NULL` comparison. (No managed-address taking — a `PointerRegistry` maps handles → targets; this is the
-    safe-handle design decision the next session must confirm.) **Defer (Phase-2/3, the hard parts):** `SET
-    ADDRESS OF` / `SET … UP/DOWN BY` (needs `GCHandle`-pinned addresses of BASED items — the .NET managed-memory
-    problem), `BASED` deref, then `ALLOCATE`/`FREE` (M2-PROC-5).
+    `= NULL` comparison. (Phase-1 used an opaque 8-byte handle for NULL/equality only.) **Phase-2/3 (the data-model
+    Stage 4) → managed .NET references (`ManagedPtr`):** `SET ADDRESS OF` / `SET … UP/DOWN BY`, `BASED` deref, then
+    `ALLOCATE`/`FREE` (M2-PROC-5) — all GC-tracked managed refs, NO `GCHandle` pinning / native memory / handle
+    table. (PointerRegistry REJECTED; SETTLED, NOT gated — DEVLOG 428.)
   - **Turnkey Phase-1 implementation map (workflow `m2-data5-pointers-p1-investigation`, 2026-06-05).** Phase-1
-    (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) does **NOT** need the
-    deferred handle→address `PointerRegistry` decision — that's only for Phase-2 dereference (ADDRESS OF/BASED).
-    NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
+    (POINTER 8-byte handle + NULL + SET p TO NULL + SET p TO q + `= NULL`/`= q` equality) is standalone; Phase-2
+    dereference (ADDRESS OF/BASED) uses **managed .NET references** (`ManagedPtr`) in the data-model Stage 4 — the
+    `PointerRegistry` design is REJECTED (settled, NOT gated; DEVLOG 428). NULL = handle 0 = 8 zero bytes. **Spec corrections to the slice above:** (a) **`VALUE NULL` is PROHIBITED on
     pointer items** (§13.18.26 SR9) — do NOT implement it; instead REJECT a VALUE clause on a pointer (mirror the
     boolean VALUE check). (b) Comparison is **equality only** (= / NOT =), operands same category or NULL.
     **Lean approach — reuse existing machinery, minimal new code:** model pointer as `CobolCategory.Pointer`
@@ -615,3 +640,18 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   overrides; conformance `options_default_rounded`. Guard 1047/480/364. Follow-up #2 (PROHIBITED→EC) blocked on
   the EC framework. Remaining M2: Phase-2 pointers (owner-gated design decision), M2-PRE-1, file 2002, and the
   big subsystems (EC/exceptions, VALIDATE, OO, standard arithmetic).
+- **2026-06-06 (session DEVLOG 394–428) — THE .NET-NATIVE DATA-MODEL MIGRATION: core (Stage 3) COMPLETE.** Built
+  the numeric (`CobolNum`/`CobolDecimal` BigInteger) + character (`CobolString`) substrates + differential oracles
+  (394–399); the `RecordClassificationPass` typed-vs-byte classifier (397–398) wired into the Binder (401); then
+  flipped, ONE rule at a time, each guard-green + a flag-on≡flag-off differential test, all gated behind
+  `EnableTypedFields` (default OFF → corpus byte-identical): character → `string` (403–409); numeric → `long`
+  (unsigned-int) / `decimal` (signed-scaled) over DISPLAY/COMP/BINARY across VALUE/MOVE/DISPLAY/COMPARE/class-cond/
+  **arithmetic**/figurative-ZEROS (410–420); record-struct numeric members (419); fixed **OCCURS** tables (char +
+  numeric) → `T[]` with subscripted + PERFORM-VARYING access, SEARCH safely byte (422–426); **nested groups** →
+  nested `record struct`s (427); end-to-end "definition of done" — a representative business program flips its whole
+  data division byte-identically (428). Plus a **byte-engine ISO-2023 conformance fix**: a VALUE on an OCCURS item
+  now initializes EVERY occurrence (§13.18.63.4 GR 9; 424; conformance `table_value_occurs`; zero baseline shifts).
+  24 differential tests; guard **1196 unit / 507 integration / 364 NIST** (all green). **CORRECTION (428): pointers
+  use MANAGED .NET REFERENCES (`ManagedPtr`); the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated.**
+  **NEXT (all autonomous-eligible): Stage-4 pointers (managed refs) + OO; Stage-5 Roslyn backend; Stage-6 finalize +
+  flip-on-by-default + rename.**

@@ -802,4 +802,55 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void RepresentativeBusinessProgram_WholeDataDivisionFlips_ByteIdentical()
+    {
+        // The data-model migration's "definition of done" (RECORD_STRUCT_STORAGE_DESIGN.md §8): a representative
+        // ordinary program flips its WHOLE data division to native .NET types and runs byte-identically — here a
+        // nested group (CUSTOMER with a CUST-ADDR sub-group: char + long + decimal members), a numeric OCCURS table,
+        // and standalone longs, exercised across DISPLAY / decimal ADD / MOVE / PERFORM VARYING / COMPUTE / IF.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDBIZ.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 CUSTOMER.
+               05 CUST-NAME PIC X(8) VALUE "ACME".
+               05 CUST-ADDR.
+                  10 CITY   PIC X(6) VALUE "OHIO".
+                  10 ZIP    PIC 9(5) VALUE 44101.
+               05 BALANCE   PIC S9(5)V99 VALUE 100.50.
+            01 MONTHS.
+               05 MTOT PIC 9(4) OCCURS 3 VALUE 0.
+            01 IDX   PIC 9 VALUE 0.
+            01 GRAND PIC 9(6) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "NAME=" CUST-NAME.
+                DISPLAY "CITY=" CITY " ZIP=" ZIP.
+                DISPLAY "BAL=" BALANCE.
+                ADD 25.50 TO BALANCE.
+                DISPLAY "BAL2=" BALANCE.
+                MOVE "TROY" TO CITY.
+                DISPLAY "CITY2=" CITY.
+                PERFORM VARYING IDX FROM 1 BY 1 UNTIL IDX > 3
+                   COMPUTE MTOT(IDX) = IDX * 100
+                   ADD MTOT(IDX) TO GRAND
+                END-PERFORM.
+                DISPLAY "GRAND=" GRAND.
+                IF BALANCE > 100 THEN DISPLAY "RICH" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal(
+            "NAME=ACME\nCITY=OHIO ZIP=44101\nBAL=001005{\nBAL2=001260{\nCITY2=TROY\nGRAND=000600\nRICH",
+            typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

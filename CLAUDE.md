@@ -30,22 +30,30 @@ data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = 
 classifier-trigger completeness before any Stage-3 typed flip).
 
 ### Current State
-- **Branch**: main; guard ALL GREEN — **1196 unit / 491 integration / 364 NIST** (`bash scripts/guard.sh`);
+- **Branch**: main; guard ALL GREEN — **1196 unit / 507 integration / 364 NIST** (`bash scripts/guard.sh`);
   baselines 0 FAIL*.
-- **DEVLOG at entry 420.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The data-model migration is
-  UNDERWAY (the #1 priority):** numeric pipeline on `CobolNum` (394–396); classifier `RecordClassificationPass`
-  COMPLETE — Phase A (397) + B/C (398); `CobolString` substrate + oracle (399). **Owner approved Option B: build
-  the REAL record-`struct` storage substrate (`docs/RECORD_STRUCT_STORAGE_DESIGN.md`); design reviewed GO (400).**
-  **S1 (401):** classifier wired into the Binder + soundness-invariant net (byte-identical). **Typed character
-  flips LANDED (403–405):** a standalone elementary `PIC X` item → a native `.NET string` field (S3a, 403);
-  typed↔typed field MOVE (404); **S3b (405) — an all-character `01` group → a real .NET `record struct`** of
-  `string` members (the owner's Option B realized). All **byte-identical**, gated `EnableTypedFields` (default OFF;
-  flag-ON `TypedFieldFlipTests` pins them). **MOVE now works in all four representation pairs** (typed↔typed,
-  typed↔byte both ways via the §2.5 materialize boundary; S3c, 406). **RESUME AT → typed COMPARE** (`IF`/`EVALUATE`
-  via `CobolString.Compare`, in the comparison subsystem) + the **read-op sender-materialize** (INSPECT/STRING/
-  refmod — materialize a typed sender to a scratch window so the byte op runs; this removes the remaining
-  `EmitLocationArgs` throw), then **numeric** typed fields (HARD-GATED on the `CobolNum` oracle), then OCCURS/nested
-  groups, pointers/OO, Roslyn backend. See `resume-prompt.md` + plan **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1.
+- **DEVLOG at entry 428.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The #1-priority data-model
+  migration — CORE (Stage 3) COMPLETE:** the substrates (`CobolNum`/`CobolDecimal`/`CobolString` + oracles, 394–399)
+  + the `RecordClassificationPass` classifier (397–398, wired into the Binder 401) underpin typed flips that landed
+  ONE rule at a time, each guard-green + a flag-on≡flag-off `TypedFieldFlipTests` differential test, all gated behind
+  `EnableTypedFields` (default OFF → corpus byte-identical):
+  - **character → `.NET string`** (S3a–c, 403–409): standalone, record-struct member, all MOVE pairs, DISPLAY,
+    COMPARE, class conditions, figurative SPACE/ZERO.
+  - **numeric → `long`** (unsigned-int) / **`decimal`** (signed-scaled) over DISPLAY/COMP/BINARY (410–420): VALUE,
+    MOVE (literal + field, all combos), DISPLAY (sign-overpunch), COMPARE, `IS NUMERIC`, **arithmetic** (ADD/SUB/MUL/
+    DIV/COMPUTE/REMAINDER via a materialize prologue/epilogue), `MOVE ZEROS`. COMP-5/float/packed excluded.
+  - **groups → (nested) `record struct`s** (S3b 405, **nested S5 427**): mixed `string`/`long`/`decimal` members,
+    member-path access; **fixed OCCURS tables (char + numeric) → `T[]`** (422–426) with subscripted + PERFORM-VARYING
+    access; SEARCH safely stays byte; every byte-trigger (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO/
+    whole-table/whole-group operand) correctly stays byte.
+  - **Byte-engine ISO-2023 conformance fix (424):** a VALUE on an OCCURS item now initializes EVERY occurrence
+    (§13.18.63.4 GR 9; conformance `table_value_occurs`; zero baseline shifts).
+  - **Definition of done (428):** a representative business program flips its WHOLE data division byte-identically.
+- **RESUME AT → the remaining large migration stages (all autonomous-eligible):** Stage-4 **pointers → managed .NET
+  references** (the ADR's `ManagedPtr` — GC-tracked, no native heap / no handle table; the **PointerRegistry design
+  is REJECTED — SETTLED, NOT owner-gated**, DEVLOG 428) and **OO → .NET classes**; Stage-5 **Roslyn C# backend**;
+  Stage-6 finalize + flip-on-by-default decision + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See plan
+  **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28

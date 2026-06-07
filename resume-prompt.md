@@ -7,6 +7,18 @@ work item ahead of remaining conformance features. **Keep every currently-passin
 as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
 workflows branch from a stale commit in this repo).
 
+### 🟢 LATEST STATE (DEVLOG 428; guard **1196 unit / 507 integration / 364 NIST**, all green)
+**The CORE data-model migration (Stage 3) is COMPLETE.** All flips are guard-green + pinned by flag-on≡flag-off
+`TypedFieldFlipTests` (24), gated behind `EnableTypedFields` (default OFF → corpus byte-identical):
+- **character → `.NET string`**; **numeric → `long`/`decimal`** (DISPLAY/COMP/BINARY) across VALUE/MOVE/DISPLAY/
+  COMPARE/`IS NUMERIC`/**arithmetic**/figurative-ZEROS; **flat + nested groups → (nested) `record struct`s**;
+  **fixed OCCURS (char + numeric) → `T[]`** (subscript + PERFORM VARYING; SEARCH stays byte); every byte-trigger
+  correctly stays byte. Byte-engine **ISO-2023 fix (424):** VALUE on OCCURS inits every occurrence (§13.18.63.4 GR 9).
+- **RESUME AT → the remaining large stages, ALL autonomous-eligible:** Stage-4 **pointers → managed .NET references**
+  (the ADR's `ManagedPtr`; **PointerRegistry REJECTED — SETTLED, NOT owner-gated**, DEVLOG 428) + **OO → .NET
+  classes**; Stage-5 **Roslyn C# backend**; Stage-6 finalize + flip-on-by-default + rename. Plan **§0.5** +
+  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9 are the live guides. The 394–403 detail below is historical reference.
+
 ### ✅ DONE so far (DEVLOG 394–403; guard **1196 unit / 491 integration / 364 NIST**, all green)
 - **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
   (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
