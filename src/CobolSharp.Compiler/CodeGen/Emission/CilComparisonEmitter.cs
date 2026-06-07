@@ -82,8 +82,8 @@ internal sealed class CilComparisonEmitter
     internal void EmitPicCompare(ILProcessor il, IrPicCompare cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgsWithPic(il, cmp.Left);
-        _ctx.Location.EmitLocationArgsWithPic(il, cmp.Right);
+        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, cmp.Left);   // S4: typed numeric is a sender
+        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, cmp.Right);
 
         var method = _ctx.Module.ImportReference(
             typeof(Runtime.PicRuntime).GetMethod("CompareNumeric",
@@ -103,7 +103,7 @@ internal sealed class CilComparisonEmitter
     internal void EmitPicCompareLiteral(ILProcessor il, IrPicCompareLiteral cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgsWithPic(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, cmp.Left);   // S4: typed numeric is a sender
         _ctx.Expression.EmitLoadDecimal(il, cmp.Value);
 
         var method = _ctx.Module.ImportReference(
@@ -124,7 +124,7 @@ internal sealed class CilComparisonEmitter
     internal void EmitPicCompareAccumulator(ILProcessor il, IrPicCompareAccumulator cmp,
         Func<IrValue, VariableDefinition> getLocal)
     {
-        _ctx.Location.EmitLocationArgsWithPic(il, cmp.Left);
+        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, cmp.Left);   // S4: typed numeric is a sender
         // Load the pre-evaluated accumulator (decimal)
         il.Append(il.Create(OpCodes.Ldloc, getLocal(cmp.Accumulator)));
 

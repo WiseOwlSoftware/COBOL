@@ -98,26 +98,37 @@ internal sealed class CilLocationEmitter
     {
         if (loc is IR.IrTypedFieldLocation t)
         {
-            // S4: a typed NUMERIC field's value is a `long`, not a string — its sender-materialize must encode via
-            // the numeric codec (EncodeNumeric), not CobolString.ToWindow. That cell is not implemented yet, so
-            // fail loudly here rather than emit a long where a string is expected (silent mis-emit).
             if (t.Pic.Category == Runtime.CobolCategory.Numeric)
-                throw new System.NotSupportedException(
-                    $"Typed numeric field '{t.FieldName}' as a read operand needs the numeric sender-materialize " +
-                    "(EncodeNumeric → scratch window), not yet implemented — RECORD_STRUCT_STORAGE_DESIGN.md S4.");
+            {
+                // S4 numeric sender-materialize: a typed NUMERIC field's value is a `long`. Encode it into a scratch
+                // byte window via the SAME codec the byte field uses (PicRuntime.EncodeNumeric) so the byte op reads
+                // identical bytes — byte-identical, because encode∘decode is a round-trip for an in-range value.
+                var scratch = new VariableDefinition(_ctx.Module.ImportReference(typeof(byte[])));
+                _ctx.CurrentMethodDef!.Body.Variables.Add(scratch);
+                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+                il.Append(il.Create(OpCodes.Newarr, _ctx.Module.TypeSystem.Byte));
+                il.Append(il.Create(OpCodes.Stloc, scratch));
+                // EncodeNumeric(scratch, 0, width, pic, (decimal)value)
+                il.Append(il.Create(OpCodes.Ldloc, scratch));
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+                _ctx.Expression.EmitLoadPicDescriptor(il, t.Pic);
+                EmitTypedFieldValueLoad(il, t);
+                il.Append(il.Create(OpCodes.Newobj, _ctx.Module.ImportReference(
+                    typeof(decimal).GetConstructor(new[] { typeof(long) })!)));
+                il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
+                    typeof(Runtime.PicRuntime).GetMethod("EncodeNumeric",
+                        new[] { typeof(byte[]), typeof(int), typeof(int), typeof(Runtime.PicDescriptor), typeof(decimal) })!)));
+                // push (scratch, 0, width) for the byte op
+                il.Append(il.Create(OpCodes.Ldloc, scratch));
+                il.Append(il.Create(OpCodes.Ldc_I4_0));
+                il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
+                return;
+            }
 
-            // load the typed string value (flat static field, or a record-struct member)
-            if (t.InstanceName is { } inst)
-            {
-                var rec = _ctx.TypedRecords[inst];
-                il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
-                il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
-            }
-            else
-            {
-                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
-            }
-            // CobolString.ToWindow(string, width) -> byte[width]; then push (array, 0, width).
+            // character: load the typed string, then CobolString.ToWindow(string, width) -> byte[width];
+            // then push (array, 0, width).
+            EmitTypedFieldValueLoad(il, t);
             il.Append(il.Create(OpCodes.Ldc_I4, t.Width));
             il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
                 typeof(CobolSharp.Runtime.Text.CobolString).GetMethod(
@@ -127,6 +138,25 @@ internal sealed class CilLocationEmitter
             return;
         }
         EmitLocationArgs(il, loc);
+    }
+
+    /// <summary>
+    /// Loads a typed-native field's <i>value</i> onto the stack — a flat static field (<c>ldsfld</c>) or a
+    /// record-struct member (<c>ldsflda</c> the instance, then <c>ldfld</c> the member). The value's CLR type is the
+    /// field's type (<c>string</c> for character, <c>long</c> for numeric); the caller knows which by category.
+    /// </summary>
+    private void EmitTypedFieldValueLoad(ILProcessor il, IR.IrTypedFieldLocation t)
+    {
+        if (t.InstanceName is { } inst)
+        {
+            var rec = _ctx.TypedRecords[inst];
+            il.Append(il.Create(OpCodes.Ldsflda, rec.Instance));
+            il.Append(il.Create(OpCodes.Ldfld, rec.Members[t.FieldName]));
+        }
+        else
+        {
+            il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[t.FieldName]));
+        }
     }
 
     /// <summary>

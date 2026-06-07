@@ -308,4 +308,39 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericField_Comparisons_ByteIdentical()
+    {
+        // S4 numeric sender-materialize: IF on typed numeric (long) fields — vs literal (=, >, <), vs another
+        // typed numeric field, and IS NUMERIC. Each typed operand is encoded back to its digit window
+        // (PicRuntime.EncodeNumeric) and run through the existing byte numeric compare/class check, so the value
+        // round-trips and the result is byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDNCM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5) VALUE 42.
+            01 WS-B PIC 9(5) VALUE 42.
+            01 WS-C PIC 9(5) VALUE 99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                IF WS-A = 42 THEN DISPLAY "EQLIT" END-IF.
+                IF WS-A > 40 THEN DISPLAY "GTLIT" END-IF.
+                IF WS-A < 99 THEN DISPLAY "LTLIT" END-IF.
+                IF WS-A = WS-B THEN DISPLAY "EQFLD" END-IF.
+                IF WS-A NOT = WS-C THEN DISPLAY "NEFLD" END-IF.
+                IF WS-A IS NUMERIC THEN DISPLAY "ISNUM" END-IF.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        Assert.Equal("EQLIT\nGTLIT\nLTLIT\nEQFLD\nNEFLD\nISNUM", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }
