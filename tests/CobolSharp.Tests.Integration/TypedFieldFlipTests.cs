@@ -650,4 +650,46 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void NumericOccursTable_FlipsToTypedLongAndDecimalArray_AcrossOps_ByteIdentical()
+    {
+        // S4 (OCCURS slice 2): a fixed OCCURS table over a numeric element flips to long[] / decimal[]. Unblocked by
+        // the byte-engine fix (DEVLOG 424) that makes a table VALUE initialize EVERY occurrence — so the typed
+        // per-slot init matches. Exercises VALUE init, MOVE-literal, arithmetic (ADD), COMPARE, variable subscript,
+        // and a scaled (decimal) element — all byte-identical to the byte path.
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPEDNOC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G.
+               05 N PIC 9(3)    OCCURS 3 VALUE 7.
+               05 D PIC S9(2)V9 OCCURS 2 VALUE 1.5.
+            01 I PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY N(1).
+                MOVE 42 TO N(2).
+                DISPLAY N(2).
+                ADD 1 TO N(1).
+                DISPLAY N(1).
+                IF N(1) = 8 THEN DISPLAY "N8" END-IF.
+                DISPLAY N(I).
+                DISPLAY D(1).
+                ADD 0.5 TO D(2).
+                DISPLAY D(2).
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        // N init 7 → "007"; MOVE 42 → N(2)="042"; ADD 1 → N(1)="008"; N(1)=8 → "N8"; N(I=2)="042";
+        // D init 1.5 → "01E"; D(2) 1.5+0.5=2.0 → "02{".
+        Assert.Equal("007\n042\n008\nN8\n042\n01E\n02{", typed.stdout.Replace("\r\n", "\n"));
+
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
+    }
 }

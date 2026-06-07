@@ -375,25 +375,36 @@ public sealed class Binder
 
         foreach (var sym in _semantic.DataItemsInOrder)
         {
-            // S4: a fixed-OCCURS table over a flippable CHARACTER element → a typed .NET `string[]` field. Runs for
-            // table items at ANY level (OCCURS is illegal on 01, so a table is always a child) — BEFORE the
-            // top-level-only skip below. Only element-accessed tables reach here: a whole-table operand, or a whole
-            // reference to a containing group, demotes the item to byte (RecordClassification / §9.3). DEPENDING ON /
-            // group-element tables stay byte. NUMERIC-element tables are NOT flipped: the byte path's VALUE-on-OCCURS
-            // init is quirky/inconsistent (DEVLOG 423 — zero-fills ignoring the value, vs spaces without VALUE), so a
-            // typed long/decimal init cannot be made byte-identical without first reconciling that byte-path behavior.
+            // S4: a fixed-OCCURS table over a flippable CHARACTER or NUMERIC element → a typed .NET array field
+            // (string[] / long[] / decimal[]). Runs for table items at ANY level (OCCURS is illegal on 01, so a
+            // table is always a child) — BEFORE the top-level-only skip below. Only element-accessed tables reach
+            // here: a whole-table operand, or a whole reference to a containing group, demotes the item to byte
+            // (RecordClassification / §9.3). Numeric elements require a VALUE (same defined-init rule as standalone
+            // numerics — an uninitialized numeric shows spaces, which long/decimal can't reproduce); now byte-
+            // identical because the byte engine initializes every occurrence to the VALUE (DEVLOG 424). DEPENDING ON
+            // / group-element tables stay byte.
             if (sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
                 && sym.Area == Semantics.StorageAreaKind.WorkingStorage && classification.IsTyped(sym)
-                && _semantic.GetStorageLocation(sym) is { } aloc
-                && aloc.Pic.Category is Runtime.CobolCategory.Alphanumeric or Runtime.CobolCategory.National
-                    or Runtime.CobolCategory.Alphabetic)
+                && _semantic.GetStorageLocation(sym) is { } aloc)
             {
                 int elemWidth = sym.ElementSize > 0 ? sym.ElementSize : aloc.Length;
-                string name = "_TA_" + sym.Name;
-                var elem = new IR.IrTypedFieldDef(sym.Name, elemWidth, InitOf(sym, elemWidth));
-                module.TypedArrayDefs.Add(new IR.IrTypedArrayDef(name, occ.MaxOccurs, elem));
-                _ctx.TypedArrayRefs[sym] = (name, elemWidth, occ.MaxOccurs);
-                continue;
+                IR.IrTypedFieldDef? elem = null;
+                if (aloc.Pic.Category is Runtime.CobolCategory.Alphanumeric or Runtime.CobolCategory.National
+                        or Runtime.CobolCategory.Alphabetic)
+                    elem = new IR.IrTypedFieldDef(sym.Name, elemWidth, InitOf(sym, elemWidth));
+                else if (ClassifyTypedNumeric(aloc.Pic, elemWidth, sym.InitialValue,
+                             out bool isDec, out long li, out decimal di))
+                    elem = isDec
+                        ? new IR.IrTypedFieldDef(sym.Name, elemWidth, "", IsNumeric: true, IsDecimal: true, DecimalInit: di)
+                        : new IR.IrTypedFieldDef(sym.Name, elemWidth, "", IsNumeric: true, NumericInit: li);
+
+                if (elem is not null)
+                {
+                    string name = "_TA_" + sym.Name;
+                    module.TypedArrayDefs.Add(new IR.IrTypedArrayDef(name, occ.MaxOccurs, elem));
+                    _ctx.TypedArrayRefs[sym] = (name, elemWidth, occ.MaxOccurs);
+                    continue;
+                }
             }
 
             if (sym.Parent != null)
