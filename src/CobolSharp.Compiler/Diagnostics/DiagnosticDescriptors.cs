@@ -435,6 +435,11 @@ public static partial class DiagnosticDescriptors
     // hints for features that now work; removed (DEVLOG 232).
     public static readonly DiagnosticDescriptor COBOL0110 = new("COBOL0110", DiagnosticSeverity.Warning,
         "Statement not recognized or not yet implemented: '{0}'.");
+    // An ERROR (not a warning): the unsupported INVOKE argument forms would otherwise be silently dropped,
+    // shifting the RETURNING slot and miscompiling. Fail loudly until OO slice 3+ adds them.
+    public static readonly DiagnosticDescriptor COBOL0111 = new("COBOL0111", DiagnosticSeverity.Error,
+        "INVOKE argument form not yet supported: only BY REFERENCE data-reference arguments are implemented "
+        + "(literal, BY VALUE, and BY CONTENT arguments are a later OO slice).");
 
     // ══════════════════════════════════════
     // COBOL0200–0201: Parser — reserved word conflicts

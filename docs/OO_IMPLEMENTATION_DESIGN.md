@@ -250,6 +250,15 @@ WORLD!`. Move it into the corpus in the same commit the vertical goes green. The
 the trailing RETURNING pointer. Conformance `oo_method_args` proves per-instance independence. The original gap
 analysis is kept below for provenance and as the model for the same pattern in later slices.
 
+**Scope (adversarial review, DEVLOG 449):** slice 2 supports **BY REFERENCE data-reference** USING args only. The
+other grammar-legal forms — a bare `literal`, `BY VALUE arithmetic-expression`, `BY CONTENT` — need a synthesized
+value location (a scratch buffer for the copy), which `ResolveExpressionLocation` does not yet provide (the same gap
+the CALL path has); they are a later slice. `CallBinder.BindInvoke` REJECTS them with **`COBOL0111` (Error)** rather
+than silently dropping the arg (a dropped arg would shift the trailing RETURNING slot and miscompile). When a later
+slice adds value-arg support, route INVOKE args through the CALL `IrCallArgument` (Mode + Source) machinery + a
+literal/expression scratch-location synthesizer, and lift the COBOL0111 guard. Regression net:
+`tests/CobolSharp.Tests.Integration/OoTests.cs`.
+
 Slice 1 landed (DEVLOG 447). A slice-2 probe (a class method with `PROCEDURE DIVISION USING LK-AMT RETURNING
 LK-RES`, invoked `INVOKE A "ADDTO" USING AMT RETURNING R`) **compiles** — the grammar + binder already carry a
 method's USING/RETURNING, and the method body's LINKAGE access already emits — but **crashes at runtime**

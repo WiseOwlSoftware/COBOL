@@ -51,14 +51,26 @@ internal sealed class CallBinder
                 returning: returning);
 
         // INVOKE obj "method" USING … RETURNING … — instance invocation; the receiver's declared class drives
-        // dispatch. Slice 2 USING args are data references (BY REFERENCE — the COBOL default; BY VALUE/CONTENT and
-        // literal args are a later refinement).
+        // dispatch. Slice 2 supports BY REFERENCE data-reference arguments (the COBOL default). The other
+        // grammar-legal forms (literal, BY VALUE arithmetic-expression, BY CONTENT) need a synthesized value
+        // location (a later OO slice); they are REJECTED LOUDLY here (COBOL0111) rather than silently dropped —
+        // a dropped arg would shift the trailing RETURNING slot and miscompile. (Adversarial review, DEVLOG 448.)
         var args = new List<BoundExpression>();
         if (ctx.invokeUsing() is { } using_)
             foreach (var argCtx in using_.invokeArgument())
-                if (argCtx.dataReference() is { } argRef
-                    && _ctx.Expression.BindDataReferenceWithSubscripts(argRef) is { } boundArg)
+            {
+                bool supported = argCtx.dataReference() != null
+                    && argCtx.CONTENT() == null && argCtx.VALUE() == null;
+                if (!supported)
+                {
+                    _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0111,
+                        new SourceLocation(_ctx.SourceName, 0, argCtx.Start.Line, argCtx.Start.Column),
+                        TextSpan.Empty);
+                    continue;
+                }
+                if (_ctx.Expression.BindDataReferenceWithSubscripts(argCtx.dataReference()) is { } boundArg)
                     args.Add(boundArg);
+            }
 
         var targetObject = _ctx.Semantic.ResolveData(targetText);
         return new BoundInvokeStatement(isNew: false, className: null, targetObject: targetObject,
