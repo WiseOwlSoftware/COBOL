@@ -23,7 +23,11 @@ no `ProgramState`, no `byte[]`-at-offset model, no `(byte[],offset,length)` oper
 a fresh scratch buffer, never persisted.
 
 The compiler translates COBOL to **idiomatic, readable C# source** and compiles it with **Roslyn**. Readable
-output is a feature: it is inspectable, debuggable, trustworthy, and optimized by the C# compiler + JIT.
+output is a feature: it is inspectable, debuggable, trustworthy, and optimized by the C# compiler + JIT. Codegen is
+behind a **selectable `ICodeGenBackend`** (`--backend roslyn|cil`, default roslyn): a backend-neutral bound tree
+feeds either the **Roslyn** backend (idiomatic C# source — the v1 deliverable) or a future **CIL** backend
+(typed-native IL via Mono.Cecil — no C#-compile step / no Roslyn dependency, for AOT/direct-IL). See
+`COBOLNET_DESIGN.md` §1.1/§18.
 
 ## 2. Pipeline
 

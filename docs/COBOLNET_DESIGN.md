@@ -56,7 +56,7 @@ internal detail. Where a deep-dive conflicts with §1/§14/§18, the SSOT wins.
 
 ## 1. Architecture overview + locked invariants
 
-### 1.1 Pipeline (5 phases, NO lowered IR)
+### 1.1 Pipeline (5 phases; a backend-neutral bound tree feeds a SELECTABLE backend)
 
 ```
 source.cob
@@ -66,17 +66,29 @@ source.cob
        → BoundProgram
   → Desugar   (bound→bound passes: MOVE CORRESPONDING, PERFORM VARYING…AFTER, condition-name lowering)
        → BoundProgram (same tree type)
-  → Emit C#   (a DECOMPOSED emitter over the bound tree — NO lowered/branch IR)
-       → .g.cs
-  → Roslyn compile → assembly + .g.cs + PDB
+  → Backend   (ICodeGenBackend, SELECTABLE via --backend):
+       ├─ Roslyn (default): decomposed emitter → idiomatic C# (.g.cs) → CSharpCompilation → assembly + PDB
+       └─ CIL (Cecil):      bound tree → typed-native CIL (its OWN internal structure→branch lowering) → assembly
 ```
 
-**No lowered IR.** Emit C# *directly* from the bound semantic tree. A basic-block/SSA IR exists in the legacy only
-because its target is CIL (which lacks `if`/`while`/`switch`/`try`/GC/exceptions); C# has all of them, so lowering to
-branches and reconstructing structure both wastes work and destroys the idiomatic output the owner requires. The
-bound tree is THE single model. *(Rejected: the current direct parse-tree walk — `CSharpEmitter.Resolve` handles only
-unqualified refs, `RenderCondition` falls back to `"false"`, scale/category re-derived per call-site; and the legacy
-basic-block IR — it presupposes a CIL target.)*
+**Backend-neutral bound tree + a selectable codegen backend (owner-confirmed 2026-06-08).** The bound semantic tree
+is the single model that both backends consume; codegen is behind an **`ICodeGenBackend`** abstraction with two
+implementations, chosen by `--backend roslyn|cil` (default **roslyn**):
+- **RoslynBackend (primary):** maps the bound tree's COBOL structure ~1:1 to idiomatic, readable **C# source**
+  (`IF`→`if/else`, `EVALUATE`→if-chain, inline `PERFORM`→loops, the PC-dispatcher→`while(true)switch`), then compiles
+  it with Roslyn. This is the "best native .NET implementation" output and the v1 deliverable.
+- **CilBackend (selectable, future-additive):** emits **typed-native CIL** directly via Mono.Cecil — for callers who
+  want no C#-compile step / no Roslyn dependency / direct IL (AOT, faster compile). Because CIL is unstructured, this
+  backend does its OWN internal lowering of structured constructs to branches; that lowering is **private to the CIL
+  backend, NOT a shared phase**.
+
+**There is NO *shared* lowered IR.** The legacy basic-block IR existed only because its sole target was CIL; here the
+backend-neutral bound tree replaces it, and each backend lowers only as far as its target needs (Roslyn: none —
+structure is preserved; CIL: branch-level, internally). *(Rejected: the current direct parse-tree walk —
+`CSharpEmitter.Resolve` handles only unqualified refs, `RenderCondition` falls back to `"false"`, scale/category
+re-derived per call-site; and a shared branch IR — it would re-impose the CIL-shaped lowering on the C# path and
+destroy its readable output.)* Bonus: the differential harness (§2) can cross-check the two backends against each
+other, not just against the legacy oracle.
 
 ### 1.2 The four OWNER-LOCKED invariants (design *within* these; never relitigate)
 
@@ -1284,8 +1296,11 @@ internal sealed class ArithmeticEmitter(EmissionContext ctx)   // GOOD: collabor
 
 ## 18. Settled decisions (the §15 open questions, resolved)
 
-Resolved autonomously per each design's recommendation (owner directive: prefer a sensible default + proceed). The
-one with real tension against the "no byte substrate" directive is **#1** — flagged **owner-vetoable**.
+**OWNER-CONFIRMED 2026-06-08.** All four consequential forks were reviewed with the owner and the **recommended**
+option chosen for each: **#1** mixed-USAGE REDEFINES → confined byte[] pun (in-memory program data stays 100% typed);
+**#9** control flow → PC-dispatcher for v1, idiomatic "pretty pass" later; **#2** arithmetic → native only
+(ARITHMETIC IS STANDARD-DECIMAL out of scope); **conformance** → the differential harness (legacy vs COBOL.NET
+identical stdout). The remaining items below stand as the mechanical defaults (owner reviewed the full list).
 
 1. **Byte-at-boundaries (REDEFINES Tier C + file records).** DECISION: in-memory **program data is 100% typed** (no
    `ProgramState`, ever). A `byte[]` exists ONLY at two genuine boundaries, exactly as the owner-co-authored ADR
@@ -1344,3 +1359,9 @@ one with real tension against the "no byte substrate" directive is **#1** — fl
     through the Tier-C/file codec (#1).
 22. **Doc reconciliation.** `COBOLNET_ARCHITECTURE.md` §3's `decimal` rows are corrected to native
     `long`/`Int128`-unscaled in the same change set that lands this document (no second SSOT).
+23. **Selectable codegen backend (owner-confirmed 2026-06-08).** Codegen is behind an `ICodeGenBackend` abstraction
+    over the backend-neutral bound tree, selectable via `--backend roslyn|cil` (default **roslyn**): RoslynBackend
+    (idiomatic C# source, the v1 deliverable) and CilBackend (typed-native CIL via Mono.Cecil, future-additive —
+    no C#-compile step / no Roslyn dependency, for AOT/direct-IL). The CIL backend's structure→branch lowering is
+    private to it; there is no shared lowered IR (§1.1). The two backends can cross-check each other in the
+    differential harness.
