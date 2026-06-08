@@ -908,16 +908,19 @@ public sealed class CilEmitter
         foreach (var rd in ir.TypedRecordDefs)
         {
             var structTd = DefineRecordStruct(rd);
+            // OO (ADR §7): per-instance on a CLASS (object group data), static on a program.
             var instFd = new FieldDefinition(rd.InstanceName!,   // top-level records always carry an instance name
-                FieldAttributes.Public | FieldAttributes.Static, structTd);
+                _ctx.StateIsInstance ? FieldAttributes.Public : FieldAttributes.Public | FieldAttributes.Static, structTd);
             _programType.Fields.Add(instFd);
             _ctx.TypedRecords[rd.InstanceName!] = instFd;
         }
 
-        // S4: a flipped fixed OCCURS table → a static typed .NET array field (string[]/long[]/decimal[]).
+        // S4: a flipped fixed OCCURS table → a typed .NET array field (string[]/long[]/decimal[]) — per-instance on
+        // a CLASS (object table data), static on a program.
         foreach (var ad in ir.TypedArrayDefs)
         {
-            var arrFd = new FieldDefinition(ad.Name, FieldAttributes.Public | FieldAttributes.Static,
+            var arrFd = new FieldDefinition(ad.Name,
+                _ctx.StateIsInstance ? FieldAttributes.Public : FieldAttributes.Public | FieldAttributes.Static,
                 new ArrayType(TypedFieldClrType(ad.Element)));
             _programType.Fields.Add(arrFd);
             _ctx.TypedArrays[ad.Name] = arrFd;
@@ -992,21 +995,29 @@ public sealed class CilEmitter
         foreach (var rd in ir.TypedRecordDefs)
         {
             var instField = _ctx.TypedRecords[rd.InstanceName!];
+            // OO: the struct-instance address is per-instance on a class (ldarg.0; ldflda) vs static (ldsflda).
             EmitRecordStructInit(initIl, instField.FieldType.Resolve(), rd.Members,
-                () => initIl.Append(initIl.Create(OpCodes.Ldsflda, instField)));
+                () =>
+                {
+                    if (_ctx.StateIsInstance) initIl.Append(initIl.Create(OpCodes.Ldarg_0));
+                    initIl.Append(initIl.Create(
+                        _ctx.StateIsInstance ? OpCodes.Ldflda : OpCodes.Ldsflda, instField));
+                });
         }
         // S4: allocate each typed OCCURS array (new T[n]) and fill every slot with the element's COBOL-correct
-        // initial value (never default(T) — ADR §1.7).
+        // initial value (never default(T) — ADR §1.7). Per-instance on a class (ldarg.0; … stfld/ldfld) vs static.
         foreach (var ad in ir.TypedArrayDefs)
         {
             var arrFd = _ctx.TypedArrays[ad.Name];
             var elemType = TypedFieldClrType(ad.Element);
+            if (_ctx.StateIsInstance) initIl.Append(initIl.Create(OpCodes.Ldarg_0));   // receiver for the array store
             initIl.Append(initIl.Create(OpCodes.Ldc_I4, ad.ElementCount));
             initIl.Append(initIl.Create(OpCodes.Newarr, elemType));
-            initIl.Append(initIl.Create(OpCodes.Stsfld, arrFd));
+            initIl.Append(initIl.Create(_ctx.StateIsInstance ? OpCodes.Stfld : OpCodes.Stsfld, arrFd));
             for (int i = 0; i < ad.ElementCount; i++)
             {
-                initIl.Append(initIl.Create(OpCodes.Ldsfld, arrFd));
+                if (_ctx.StateIsInstance) initIl.Append(initIl.Create(OpCodes.Ldarg_0));
+                initIl.Append(initIl.Create(_ctx.StateIsInstance ? OpCodes.Ldfld : OpCodes.Ldsfld, arrFd));
                 initIl.Append(initIl.Create(OpCodes.Ldc_I4, i));
                 EmitTypedFieldInitValue(initIl, ad.Element);
                 initIl.Append(ad.Element switch

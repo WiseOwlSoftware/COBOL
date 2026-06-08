@@ -296,12 +296,9 @@ public sealed class Binder
         if ((!_options.EnableTypedFields && !module.IsClass) || _ctx.Classification is not { } classification)
             return;
 
-        // OO-typed slices flip the FLAT object-data fields (character + numeric — both go through the three
-        // per-instance value-access primitives in CilDataEmitter). Record-struct / OCCURS object data are deferred:
-        // their address chains (EmitInstanceAddressChain ldsflda / EmitTypedElementAddress ldsfld) are still
-        // static-only and need a per-instance variant first. This restriction auto-relaxes once the global
-        // EnableTypedFields flip lands (then a class gets the full typed treatment like any program).
-        bool classFlatOnly = module.IsClass && !_options.EnableTypedFields;
+        // OO object data flips to per-instance typed-native fields for ALL shapes — flat char/numeric, record-struct
+        // groups, and fixed OCCURS tables (every typed value-access primitive in CilDataEmitter is per-instance-aware
+        // via EmitTypedFieldOwner, and EmitProgramState emits the record/array fields per-instance on a class).
 
         // An elementary item whose typed form is a homogeneous .NET string: classifier-typed, WORKING-STORAGE,
         // alphanumeric/national/alphabetic, no OCCURS, no figurative/ALL VALUE (those byte-back the init).
@@ -454,7 +451,7 @@ public sealed class Binder
             // numerics — an uninitialized numeric shows spaces, which long/decimal can't reproduce); now byte-
             // identical because the byte engine initializes every occurrence to the VALUE (DEVLOG 424). DEPENDING ON
             // / group-element tables stay byte.
-            if (!classFlatOnly && sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
+            if (sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
                 && sym.Area == Semantics.StorageAreaKind.WorkingStorage && classification.IsTyped(sym)
                 && _semantic.GetStorageLocation(sym) is { } aloc)
             {
@@ -521,7 +518,7 @@ public sealed class Binder
             // group flips only if EVERY descendant is flippable (no OCCURS, no edited/byte-trigger item); otherwise
             // it stays byte. Member-level access only — a whole-group operand is handled by the existing classifier
             // group-MOVE demotion. (A contained OCCURS table flips independently via the S4 array branch.)
-            if (!classFlatOnly && sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
+            if (sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
                 && classification.IsTyped(sym) && sym.Children.Count > 0)
             {
                 string instanceName = "_TI_" + sym.Name;

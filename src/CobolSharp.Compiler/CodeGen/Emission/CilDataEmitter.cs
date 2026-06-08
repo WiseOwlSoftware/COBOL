@@ -41,7 +41,9 @@ internal sealed class CilDataEmitter
     /// (the COBOL 1-based subscript expression, decimal→int via Convert.ToInt32, minus one). Shared by load + store.</summary>
     private void EmitTypedElementAddress(ILProcessor il, IrTypedElementLocation e)
     {
-        il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedArrays[e.ArrayFieldName]));
+        EmitTypedFieldOwner(il);   // OO: per-instance array field on a class (ldarg.0; ldfld) vs static (ldsfld)
+        il.Append(il.Create(
+            _ctx.StateIsInstance ? OpCodes.Ldfld : OpCodes.Ldsfld, _ctx.TypedArrays[e.ArrayFieldName]));
         _ctx.Expression.EmitIrExpression(il, e.Index);   // decimal (1-based subscript)
         il.Append(il.Create(OpCodes.Call, _ctx.Module.ImportReference(
             typeof(System.Convert).GetMethod("ToInt32", new[] { typeof(decimal) })!)));
@@ -127,7 +129,8 @@ internal sealed class CilDataEmitter
     private void EmitInstanceAddressChain(ILProcessor il, IrTypedFieldLocation f)
     {
         var instField = _ctx.TypedRecords[f.InstanceName!];
-        il.Append(il.Create(OpCodes.Ldsflda, instField));
+        EmitTypedFieldOwner(il);   // OO: per-instance struct field on a class (ldarg.0; ldflda) vs static (ldsflda)
+        il.Append(il.Create(_ctx.StateIsInstance ? OpCodes.Ldflda : OpCodes.Ldsflda, instField));
         var cur = instField.FieldType.Resolve();
         foreach (var m in f.MemberPath)
         {
