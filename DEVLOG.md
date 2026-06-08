@@ -10896,6 +10896,9 @@ current-state / NEXT-UP handoff surface up to date (guard **1204 / 527 / 364**, 
 - **`docs/MASTER_PLAN.md`** — §2 baseline (1196/509 → 1204/527, DEVLOG 451; OO "not yet implemented" → slices 1–3b
   done) + a §8 status-log entry for this session.
 - **`resume-prompt.md`** — fixed the §2 guard count (511 → 527).
+- **`PROJECT_PLAN.md`** — its session-log table had stalled at DEVLOG 428 (data-model CORE); added a catch-up row
+  for DEVLOG 429–452 (pointers complete, .NET 10 retarget, doc consolidation, Phase A, OO 1–3b) + the next step
+  (`feedback_plan_updates`).
 - **auto-memory `MEMORY.md`** — refreshed the conformance-plan index line's stale STATE/NEXT-UP (was DEVLOG 391,
   data-model/pointers) and corrected the reversed "`resume-prompt.md` is SUPERSEDED" note (it is the live kickoff,
   DEVLOG 444).
