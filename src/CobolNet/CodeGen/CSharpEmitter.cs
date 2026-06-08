@@ -123,6 +123,7 @@ public sealed class CSharpEmitter
             case var _ when s.moveStatement() is { } m: EmitMove(m, w); break;
             case var _ when s.addStatement() is { } a: EmitAdd(a, w); break;
             case var _ when s.subtractStatement() is { } sub: EmitSubtract(sub, w); break;
+            case var _ when s.computeStatement() is { } c: EmitCompute(c, w); break;
             case var _ when s.stopStatement() is not null || s.gobackStatement() is not null: w.Line("return;"); break;
             default: w.Line($"// TODO(COBOL.NET): unsupported statement '{FirstToken(s)}'"); break;
         }
@@ -193,6 +194,68 @@ public sealed class CSharpEmitter
             foreach (var dref in DataRefs(fromTargets))
                 if (Resolve(dref) is { } t)
                     EmitArithAssign(dref, $"{t.CsName} - ({minuends})", w);  // FROM t = t - (a+b+…)
+    }
+
+    /// <summary>
+    /// Emit <c>COMPUTE t [t2 …] = arithmetic-expression</c>. The expression is evaluated in <see cref="decimal"/>
+    /// (every operand cast to decimal so division is COBOL-real, not C# integer division), then stored into each
+    /// target with its storage type's truncation. ROUNDED / SIZE ERROR land with the full <c>CobolNum</c> store (G3).
+    /// </summary>
+    private void EmitCompute(Core.ComputeStatementContext compute, CodeWriter w)
+    {
+        if (compute.arithmeticExpression() is not { } expr) { w.Line("// TODO(COBOL.NET): COMPUTE without expression"); return; }
+        string value = RenderArith(expr);
+        foreach (var store in compute.computeStore())
+            if (store.dataReference() is { } target)
+                EmitArithAssign(target, value, w);
+    }
+
+    /// <summary>
+    /// Translate a COBOL arithmetic expression to an equivalent C# <see cref="decimal"/> expression, preserving
+    /// COBOL operator precedence (the grammar already encodes additive &gt; multiplicative &gt; power). Every leaf
+    /// operand is cast to <c>decimal</c> so the whole evaluation is decimal (COBOL division is real division).
+    /// </summary>
+    private string RenderArith(IParseTree node)
+    {
+        switch (node)
+        {
+            case Core.ArithmeticExpressionContext a:
+                return RenderArith(a.GetChild(0));
+
+            // additive / multiplicative: operands interleaved with addOp/mulOp rule nodes, in order.
+            case Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext:
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var child in Children(node))
+                    sb.Append(child is Core.AddOpContext or Core.MulOpContext ? $" {child.GetText()} " : RenderArith(child));
+                return sb.ToString();
+            }
+
+            // power: a ** b ** c → left-folded Math.Pow (in double, re-cast to decimal).
+            case Core.PowerExpressionContext p:
+            {
+                var bases = p.unaryExpression();
+                string acc = RenderArith(bases[0]);
+                for (int i = 1; i < bases.Length; i++)
+                    acc = $"(decimal)System.Math.Pow((double)({acc}), (double)({RenderArith(bases[i])}))";
+                return acc;
+            }
+
+            case Core.UnaryExpressionContext u:
+                return u.primaryExpression() is { } prim
+                    ? RenderArith(prim)
+                    : $"{u.addOp().GetText()}{RenderArith(u.unaryExpression())}";
+
+            case Core.PrimaryExpressionContext pe:
+                if (pe.numericLiteral() is { } num) return RenderNumericLiteral(num.GetText(), asDecimal: true);
+                if (pe.ZERO_ARITH() is not null) return "0m";
+                if (pe.dataReference() is { } dref) return $"(decimal){(Resolve(dref)?.CsName ?? "0")}";
+                if (pe.arithmeticExpression() is { } paren) return $"({RenderArith(paren)})";
+                return "0m /* TODO(COBOL.NET): function-call operand */";
+
+            default:
+                return RenderArith(node.GetChild(0)); // single pass-through wrapper levels
+        }
     }
 
     /// <summary>Assign an arithmetic result to a numeric target, with the right numeric C# type.</summary>

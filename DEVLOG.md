@@ -10880,6 +10880,16 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 459 — COBOL.NET G3b: COMPUTE + the arithmetic-expression translator
+
+`COMPUTE` lands with a recursive COBOL-arithmetic→C# translator (`RenderArith`) that preserves operator precedence
+(the grammar encodes additive > multiplicative > power), handles parentheses, unary sign, and `**` (→ `Math.Pow`),
+and evaluates the whole expression in `decimal` — every operand cast to `decimal` so division is COBOL-real, not
+C# integer division — then truncates into the target's storage type. The same translator feeds `valueOperand`, so
+IF/relational conditions reuse it next (G3). Verified: `R = A + B*2` → 16, `(A+B)*2` → 26, `A**2` → 100, with clean
+generated C#. ROUNDED / SIZE ERROR / intermediate-precision rules land when arithmetic stores route through the
+full ported `CobolNum`.
+
 ## Entry 458 — COBOL.NET G2/G3a: typed data fields + MOVE / ADD / SUBTRACT / DISPLAY (no byte substrate)
 
 The first real data + verb slice on the greenfield compiler. New `CobolNet.Runtime` library (clean, byte-free):
