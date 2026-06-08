@@ -348,10 +348,15 @@ public sealed class IrInvoke : IrInstruction
     public string? ReceiverField { get; }      // instance: the _OBJ_ field holding the receiver
     public string? ReceiverClassName { get; }  // instance: receiver's class (for callvirt resolution)
     public string MethodName { get; }
-    public string? ReturningField { get; }     // _OBJ_ field to store a NEW result (null = discard)
+    public string? ReturningField { get; }     // NEW: _OBJ_ field to store the new object (null = discard)
+    // Instance call (slice 2): the USING argument storage locations (BY REFERENCE) and the optional RETURNING
+    // receiver location, marshalled into a ManagedPointer[] (the trailing element is RETURNING) — the CALL ABI.
+    public IReadOnlyList<IrLocation> ArgLocations { get; }
+    public IrLocation? ReturningLocation { get; }
 
     public IrInvoke(bool isNew, string? className, string? receiverField, string? receiverClassName,
-        string methodName, string? returningField)
+        string methodName, string? returningField,
+        IReadOnlyList<IrLocation>? argLocations = null, IrLocation? returningLocation = null)
     {
         IsNew = isNew;
         ClassName = className;
@@ -359,6 +364,8 @@ public sealed class IrInvoke : IrInstruction
         ReceiverClassName = receiverClassName;
         MethodName = methodName;
         ReturningField = returningField;
+        ArgLocations = argLocations ?? System.Array.Empty<IrLocation>();
+        ReturningLocation = returningLocation;
     }
 }
 

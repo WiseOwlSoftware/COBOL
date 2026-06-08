@@ -268,6 +268,10 @@ public sealed class CilEmitter
         foreach (var m in ir.ParagraphDispatchOrder)
             DefineMethodSignature(m);
 
+        // 3b. LINKAGE ManagedPointer fields for the method's USING/RETURNING params (populated from the INVOKE
+        //     ManagedPointer[] args at method entry — the shared CALL/INVOKE ABI).
+        CreateLinkageFields(ir);
+
         // 4. The shared paragraph-dispatch helper (instance) — must precede bodies.
         EmitDispatchHelper(ir);
         SyncToContext();
@@ -284,10 +288,12 @@ public sealed class CilEmitter
     }
 
     /// <summary>
-    /// Emit the class's public OBJECT method (slice 1 = one method, name = <see cref="IrModule.ClassMethodName"/>):
-    /// a <c>public</c> instance method that runs the method's paragraphs via <c>this.Dispatch(entry, -1)</c>. Slice 1
-    /// has no USING/RETURNING, so the method is <c>void</c> with no parameters. Reuses the same instance dispatch
-    /// loop the paragraph methods are wired into.
+    /// Emit the class's public OBJECT method (slice 1–2 = one method, name = <see cref="IrModule.ClassMethodName"/>):
+    /// a <c>public void Method(ManagedPointer[] args)</c> instance method — the OO analogue of a program's
+    /// <c>Entry</c>, using the SAME ManagedPointer[] ABI as CALL. It maps <c>args[i]</c> → the LINKAGE fields for
+    /// the method's USING/RETURNING parameters, then runs the method's paragraphs via <c>this.Dispatch(entry, -1)</c>.
+    /// A no-arg method (no USING/RETURNING) takes an empty array and maps nothing. The method's RETURNING item is
+    /// the trailing LINKAGE param, written through the trailing by-reference pointer (read back by the caller).
     /// </summary>
     private void EmitClassMethodBody(IrModule ir)
     {
@@ -297,12 +303,20 @@ public sealed class CilEmitter
             methodName,
             MethodAttributes.Public | MethodAttributes.HideBySig,
             _module.TypeSystem.Void);
+        md.Parameters.Add(new ParameterDefinition(
+            "args", ParameterAttributes.None, _module.ImportReference(typeof(ManagedPointer[]))));
         _programType!.Methods.Add(md);
+        md.Body.InitLocals = true;
 
         var il = md.Body.GetILProcessor();
+
+        // Bind args[i] → the _linkage_ fields (USING/RETURNING params). md.Parameters[0] is "args"; Cecil's
+        // Ldarg with the ParameterDefinition accounts for the implicit `this` (→ ldarg.1).
+        EmitMapArgsToLinkage(il, md, ir, argsArgIndex: 0);
+
         if (ir.ParagraphDispatchOrder.Count > 0 && _dispatchMethod != null)
         {
-            il.Append(il.Create(OpCodes.Ldarg_0));                       // receiver
+            il.Append(il.Create(OpCodes.Ldarg_0));                        // receiver
             il.Append(il.Create(OpCodes.Ldc_I4, ir.EntryParagraphIndex)); // startPc
             il.Append(il.Create(OpCodes.Ldc_I4_M1));                      // exitPc = -1 (run to end)
             il.Append(il.Create(OpCodes.Call, _dispatchMethod));
@@ -425,16 +439,65 @@ public sealed class CilEmitter
             _module.ImportReference(typeof(ManagedPointer[]))));
         _programType!.Methods.Add(_entryMethod);
 
-        // Create static ManagedPointer fields for each LINKAGE parameter
-        // (so paragraph methods can access LINKAGE items via these fields)
+        CreateLinkageFields(ir);
+    }
+
+    /// <summary>Create the static <c>ManagedPointer _linkage_&lt;name&gt;</c> field for each PROCEDURE DIVISION
+    /// USING/RETURNING parameter, so paragraph/method bodies reach LINKAGE items through them. Shared by the program
+    /// Entry path and the OO instance-method path — both populate these fields from the <c>ManagedPointer[] args</c>
+    /// at method entry (the CALL/INVOKE ABI).</summary>
+    private void CreateLinkageFields(IrModule ir)
+    {
         foreach (var paramName in ir.UsingParameterNames)
         {
+            if (_linkageFields.ContainsKey(paramName)) continue;
             var field = new FieldDefinition(
                 $"_linkage_{paramName}",
                 FieldAttributes.Private | FieldAttributes.Static,
                 _module.ImportReference(typeof(ManagedPointer)));
-            _programType.Fields.Add(field);
+            _programType!.Fields.Add(field);
             _linkageFields[paramName] = field;
+        }
+    }
+
+    /// <summary>Emit the IL that maps <c>args[i]</c> → the <c>_linkage_&lt;name&gt;</c> field for each USING/RETURNING
+    /// parameter (the shared CALL/INVOKE arg-binding prologue). For each parameter: <c>_linkage_X = args.Length &gt; i
+    /// ? args[i] : default</c>. Used by both the program Entry body and the OO instance-method body. <paramref
+    /// name="argsArgIndex"/> is the IL arg index of the <c>ManagedPointer[] args</c> parameter (0 for the static
+    /// Entry, 1 for an instance method where arg0 is <c>this</c>).</summary>
+    private void EmitMapArgsToLinkage(ILProcessor il, MethodDefinition md, IrModule ir, int argsArgIndex)
+    {
+        var mpType = _module.ImportReference(typeof(ManagedPointer));
+        for (int i = 0; i < ir.UsingParameterNames.Count; i++)
+        {
+            string paramName = ir.UsingParameterNames[i];
+            if (!_linkageFields.TryGetValue(paramName, out var field))
+                continue;
+
+            var defaultLabel = il.Create(OpCodes.Nop);
+            var afterLabel = il.Create(OpCodes.Nop);
+
+            il.Append(il.Create(OpCodes.Ldarg, md.Parameters[argsArgIndex]));
+            il.Append(il.Create(OpCodes.Ldlen));
+            il.Append(il.Create(OpCodes.Conv_I4));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ble, defaultLabel));
+
+            il.Append(il.Create(OpCodes.Ldarg, md.Parameters[argsArgIndex]));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            il.Append(il.Create(OpCodes.Ldelem_Any, mpType));
+            il.Append(il.Create(OpCodes.Stsfld, field));
+            il.Append(il.Create(OpCodes.Br, afterLabel));
+
+            il.Append(defaultLabel);
+            var tempLocal = new VariableDefinition(mpType);
+            md.Body.Variables.Add(tempLocal);
+            il.Append(il.Create(OpCodes.Ldloca, tempLocal));
+            il.Append(il.Create(OpCodes.Initobj, mpType));
+            il.Append(il.Create(OpCodes.Ldloc, tempLocal));
+            il.Append(il.Create(OpCodes.Stsfld, field));
+
+            il.Append(afterLabel);
         }
     }
 
@@ -1479,7 +1542,8 @@ public sealed class CilEmitter
             return;
         }
 
-        // Instance call: load the receiver object reference, then callvirt the resolved method.
+        // Instance call: load the receiver object reference, marshal USING args (+ trailing RETURNING) into a
+        // ManagedPointer[] (the CALL ABI), then callvirt the resolved instance method (void Method(ManagedPointer[])).
         if (inv.ReceiverField is not { } recv || !_ctx.ObjectRefFields.TryGetValue(recv, out var recvFd))
             throw new InvalidOperationException(
                 $"INVOKE '{inv.MethodName}': receiver is not a known OBJECT REFERENCE item.");
@@ -1491,12 +1555,37 @@ public sealed class CilEmitter
                 string.Equals(m.Name, inv.MethodName, StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException(
                 $"INVOKE: class '{inv.ReceiverClassName}' has no method '{inv.MethodName}'.");
-        il.Append(il.Create(OpCodes.Ldsfld, recvFd));
-        il.Append(il.Create(OpCodes.Callvirt, method));
-        // Slice 1 OBJECT methods are void; a value RETURNING is a later slice. If the resolved method returns a
-        // value, discard it (no RETURNING binding yet) to keep the IL stack balanced.
+
+        il.Append(il.Create(OpCodes.Ldsfld, recvFd));   // receiver (stays at the bottom while the array is built)
+
+        // ManagedPointer[] args = [ USING args (BY REFERENCE)…, RETURNING (BY REFERENCE) ]
+        var mpType = _module.ImportReference(typeof(ManagedPointer));
+        var createByRef = _module.ImportReference(
+            typeof(ManagedPointer).GetMethod("CreateByReference", new[] { typeof(byte[]), typeof(int), typeof(int) })!);
+        int argCount = inv.ArgLocations.Count;
+        bool hasReturning = inv.ReturningLocation != null;
+        il.Append(il.Create(OpCodes.Ldc_I4, argCount + (hasReturning ? 1 : 0)));
+        il.Append(il.Create(OpCodes.Newarr, mpType));
+        for (int i = 0; i < argCount; i++)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, i));
+            _ctx.Location.EmitLocationArgs(il, inv.ArgLocations[i]);   // (byte[], offset, length)
+            il.Append(il.Create(OpCodes.Call, createByRef));
+            il.Append(il.Create(OpCodes.Stelem_Any, mpType));
+        }
+        if (hasReturning)
+        {
+            il.Append(il.Create(OpCodes.Dup));
+            il.Append(il.Create(OpCodes.Ldc_I4, argCount));
+            _ctx.Location.EmitLocationArgs(il, inv.ReturningLocation!);
+            il.Append(il.Create(OpCodes.Call, createByRef));
+            il.Append(il.Create(OpCodes.Stelem_Any, mpType));
+        }
+
+        il.Append(il.Create(OpCodes.Callvirt, method));   // void Method(ManagedPointer[]) — RETURNING flows back via its pointer
         if (method.ReturnType.MetadataType != Mono.Cecil.MetadataType.Void)
-            il.Append(il.Create(OpCodes.Pop));
+            il.Append(il.Create(OpCodes.Pop));            // defensive: a value-returning method's result is unused in slice 2
     }
 
     // ── Instruction emission ──

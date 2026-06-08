@@ -728,16 +728,18 @@ public sealed class BoundInvokeStatement : BoundStatement
     public DataSymbol? TargetObject { get; }     // instance: the receiver object-reference item
     public string? TargetClassName { get; }      // instance: the receiver's declared class (for dispatch)
     public string MethodName { get; }
-    public DataSymbol? Returning { get; }        // the object-reference item receiving a NEW result
+    public IReadOnlyList<BoundExpression> Args { get; } // instance: USING arguments (slice 2; BY REFERENCE data refs)
+    public DataSymbol? Returning { get; }        // NEW: the object-reference item; instance: the RETURNING receiver
 
     public BoundInvokeStatement(bool isNew, string? className, DataSymbol? targetObject,
-        string? targetClassName, string methodName, DataSymbol? returning)
+        string? targetClassName, string methodName, IReadOnlyList<BoundExpression> args, DataSymbol? returning)
     {
         IsNew = isNew;
         ClassName = className;
         TargetObject = targetObject;
         TargetClassName = targetClassName;
         MethodName = methodName;
+        Args = args;
         Returning = returning;
     }
 

@@ -1,17 +1,20 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
 > **Canonical reference for the COBOL Object-Orientation subsystem.** This is the **LIVE turnkey design** — defer to
-> it. **Implementation status (2026-06-07, DEVLOG 447):** the OO **grammar is DONE**
-> (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICE 1 is DONE end-to-end** —
+> it. **Implementation status (2026-06-07, DEVLOG 447–448):** the OO **grammar is DONE**
+> (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICES 1–2 are DONE end-to-end** —
 > `CLASS-ID` → an instance .NET reference type with a per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o`
-> (`newobj` + the public `.ctor`), `INVOKE o "method"` (`callvirt`, static cross-type resolution), `USAGE OBJECT
-> REFERENCE` storage, and PERFORM inside an OBJECT method (`EmitClassModule` / `BoundInvokeStatement` / `IrInvoke` /
-> `EmissionContext.StateIsInstance` are all live; conformance `tests/conformance/2002/oo_hello` + `oo_method_perform`).
-> So OO is **slice-1 complete (single-method class, no args/inheritance), ~30% end-to-end**; the §5 slices 2–6 below
-> are the remaining build queue. **Known scope limits carried by slice 1** (see §6.6 + DEVLOG 447): single method per
-> class; OBJECT REFERENCE fields and (future) typed-native OBJECT fields are emitted *static* (correct for the
-> driver-program INVOKE site, but a class that itself holds object refs / typed fields needs per-instance versions);
-> USING/RETURNING args, INHERITS, SELF/SUPER, FACTORY, PROPERTY, polymorphism are slices 2–6.
+> (`newobj` + the public `.ctor`), `INVOKE o "method" USING … RETURNING …` (`callvirt` on the CALL `ManagedPointer[]`
+> ABI — an OO method is an instance "Entry", static cross-type resolution), `USAGE OBJECT REFERENCE` storage, and
+> PERFORM inside an OBJECT method. Per-instance state proven (two objects accumulate independently). All live:
+> `EmitClassModule` / `EmitClassMethodBody` / `BoundInvokeStatement` / `IrInvoke` / `EmissionContext.StateIsInstance`;
+> conformance `tests/conformance/2002/oo_hello` + `oo_method_perform` + `oo_method_args`. So OO is **slices 1–2
+> complete (single-method class, USING/RETURNING args), ~40% end-to-end**; §5 slices 3–6 below are the remaining
+> queue. **Known scope limits** (DEVLOG 447–448): single method per class; OBJECT REFERENCE fields and (future)
+> typed-native OBJECT fields are emitted *static* (correct for the driver-program INVOKE site, but a class that
+> itself holds object refs / typed fields needs per-instance versions); slice-2 USING args are BY REFERENCE data
+> references (BY VALUE/CONTENT + literal args later); INHERITS, SELF/SUPER, FACTORY, PROPERTY, polymorphism are
+> slices 3–6.
 > **Stack:** .NET 10 / C# 14. **Backend:** CIL-only via Mono.Cecil (NO custom VM / NO bytecode interpreter; a Roslyn
 > C# backend is a FUTURE additive Stage-5 option, Cecil = oracle). **Object identity** = the .NET reference itself
 > (GC-managed; **no handle table, no `unsafe`**). OBJECT-REFERENCE NULL/compare reuses the *shape* of the pointer
@@ -240,7 +243,12 @@ stsfld`; `o = NULL`/`o = q` → reference compare; `INVOKE … RETURNING o` stor
 **Conformance:** `tests/conformance/2002/_pending_oo/oo_hello.cob` (already authored + parse-validated) → `HELLO,
 WORLD!`. Move it into the corpus in the same commit the vertical goes green. Then slices 2–6 (§5).
 
-## 6.7 Slice-2 turnkey — INVOKE USING/RETURNING (method params + return), gap analysis from the slice-1 probe
+## 6.7 Slice 2 — INVOKE USING/RETURNING (method params + return) — DONE (DEVLOG 448)
+
+**Implemented as described below** — every gap is closed: OO methods take `ManagedPointer[] args` (the CALL ABI),
+`CreateLinkageFields` is shared, `EmitMapArgsToLinkage` binds args→LINKAGE, and `EmitInvoke` marshals USING args +
+the trailing RETURNING pointer. Conformance `oo_method_args` proves per-instance independence. The original gap
+analysis is kept below for provenance and as the model for the same pattern in later slices.
 
 Slice 1 landed (DEVLOG 447). A slice-2 probe (a class method with `PROCEDURE DIVISION USING LK-AMT RETURNING
 LK-RES`, invoked `INVOKE A "ADDTO" USING AMT RETURNING R`) **compiles** — the grammar + binder already carry a

@@ -47,11 +47,13 @@ default + proceed).
   byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`, numeric→`long`/
   `decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every byte-trigger
   (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte.
-- **OO: grammar DONE + SLICE 1 DONE end-to-end** (DEVLOG 447): `CLASS-ID` → an instance .NET type with a
-  per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o` + `INVOKE o "method"` (static cross-type resolution),
-  `USAGE OBJECT REFERENCE` storage, PERFORM inside an OBJECT method; conformance `oo_hello` + `oo_method_perform`;
-  adversarially reviewed (non-OO corpus byte-identical). **NEXT OO = slice 2 (INVOKE USING/RETURNING) — turnkey gap
-  analysis in `docs/OO_IMPLEMENTATION_DESIGN.md` §6.7.** Then slices 3–6 (§5). Single-method-per-class today.
+- **OO: grammar DONE + SLICES 1–2 DONE end-to-end** (DEVLOG 447–448): `CLASS-ID` → an instance .NET type with a
+  per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o`, `INVOKE o "method" USING … RETURNING …` (the CALL
+  `ManagedPointer[]` ABI — an OO method is an instance "Entry"; static cross-type resolution), `USAGE OBJECT
+  REFERENCE` storage, PERFORM inside an OBJECT method; per-instance state proven (two objects accumulate
+  independently). Conformance `oo_hello` + `oo_method_perform` + `oo_method_args`; slice-1 adversarially reviewed
+  (non-OO corpus byte-identical). **NEXT OO = slice 3 (INHERITS FROM + SELF/SUPER), then 4 FACTORY / 5 PROPERTY /
+  6 polymorphism** (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Single-method-per-class today; slice-2 USING = BY REFERENCE.
 - **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
   **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),
   9 lowering classes.

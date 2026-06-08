@@ -38,7 +38,8 @@ internal sealed class CallBinder
         if (methodLit == null) return null;
         string methodName = methodLit.GetText().Trim('"', '\'');
 
-        // RETURNING obj — the object-reference item that receives a NEW instance (slice 1).
+        // RETURNING obj — for NEW the object-reference item that receives the instance; for an instance call the
+        // data item that receives the method's RETURNING value (slice 2).
         DataSymbol? returning = ctx.invokeReturning()?.dataReference() is { } retRef
             ? _ctx.Semantic.ResolveData(retRef.cobolWord().GetText())
             : null;
@@ -46,12 +47,23 @@ internal sealed class CallBinder
         if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
             // INVOKE class-name "NEW" RETURNING obj — construct an instance of the target class.
             return new BoundInvokeStatement(isNew: true, className: targetText, targetObject: null,
-                targetClassName: null, methodName: methodName, returning: returning);
+                targetClassName: null, methodName: methodName, args: System.Array.Empty<BoundExpression>(),
+                returning: returning);
 
-        // INVOKE obj "method" — instance invocation; the receiver's declared class drives dispatch.
+        // INVOKE obj "method" USING … RETURNING … — instance invocation; the receiver's declared class drives
+        // dispatch. Slice 2 USING args are data references (BY REFERENCE — the COBOL default; BY VALUE/CONTENT and
+        // literal args are a later refinement).
+        var args = new List<BoundExpression>();
+        if (ctx.invokeUsing() is { } using_)
+            foreach (var argCtx in using_.invokeArgument())
+                if (argCtx.dataReference() is { } argRef
+                    && _ctx.Expression.BindDataReferenceWithSubscripts(argRef) is { } boundArg)
+                    args.Add(boundArg);
+
         var targetObject = _ctx.Semantic.ResolveData(targetText);
         return new BoundInvokeStatement(isNew: false, className: null, targetObject: targetObject,
-            targetClassName: targetObject?.ObjectClassName, methodName: methodName, returning: returning);
+            targetClassName: targetObject?.ObjectClassName, methodName: methodName, args: args,
+            returning: returning);
     }
 
     // ── CALL ──

@@ -569,21 +569,30 @@ public sealed class Binder
     /// declared class for dispatch. (docs/OO_IMPLEMENTATION_DESIGN.md §C/§E.)</summary>
     private void LowerInvoke(BoundInvokeStatement inv, IrBasicBlock block)
     {
-        string? returningField = inv.Returning != null
-            && _ctx.ObjectRefFieldRefs.TryGetValue(inv.Returning, out var rf) ? rf : null;
-
         if (inv.IsNew)
         {
+            // NEW: the RETURNING item is the object-reference field that receives the new instance.
+            string? newReturningField = inv.Returning != null
+                && _ctx.ObjectRefFieldRefs.TryGetValue(inv.Returning, out var rf) ? rf : null;
             block.Instructions.Add(new IR.IrInvoke(isNew: true, className: inv.ClassName,
                 receiverField: null, receiverClassName: null, methodName: inv.MethodName,
-                returningField: returningField));
+                returningField: newReturningField));
             return;
         }
 
+        // Instance call: resolve the receiver field + USING arg locations + the RETURNING receiver location
+        // (marshalled into the ManagedPointer[] ABI by EmitInvoke; the trailing element is RETURNING).
         string? receiverField = inv.TargetObject != null
             && _ctx.ObjectRefFieldRefs.TryGetValue(inv.TargetObject, out var rcv) ? rcv : null;
+        var argLocations = new List<IR.IrLocation>();
+        foreach (var arg in inv.Args)
+            if (_ctx.Location.ResolveExpressionLocation(arg) is { } loc)
+                argLocations.Add(loc);
+        IR.IrLocation? returningLocation = inv.Returning != null
+            ? _ctx.Location.ResolveLocation(inv.Returning) : null;
         block.Instructions.Add(new IR.IrInvoke(isNew: false, className: null, receiverField: receiverField,
-            receiverClassName: inv.TargetClassName, methodName: inv.MethodName, returningField: returningField));
+            receiverClassName: inv.TargetClassName, methodName: inv.MethodName, returningField: null,
+            argLocations: argLocations, returningLocation: returningLocation));
     }
 
     private void LowerSetPointer(BoundSetPointerStatement stmt, IrBasicBlock block)
