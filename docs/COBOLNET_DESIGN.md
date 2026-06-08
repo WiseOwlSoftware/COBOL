@@ -27,6 +27,33 @@
 
 ---
 
+## 0.5 Subsystem deep-dive docs
+
+Each subsystem section in THIS document is a **condensed** view kept consistent across subsystems. The full,
+decision-complete **deep dive** for each lives in its own doc (decisions + rationale + rejected alternatives + the
+C# mapping with worked examples + hard problems + edge cases + ISO citations):
+
+| § | Subsystem | Deep-dive doc |
+|---|---|---|
+| §2  | Pipeline & emitter architecture | `docs/COBOLNET_PIPELINE_DESIGN.md` |
+| §3  | Data model (records/tables/refs) | `docs/COBOLNET_DATA_MODEL_DESIGN.md` |
+| §4  | REDEFINES / RENAMES | `docs/COBOLNET_REDEFINES_DESIGN.md` |
+| §5  | Control flow (PC dispatcher) | `docs/COBOLNET_CONTROL_FLOW_DESIGN.md` |
+| §6  | Numeric model (scaled-integer) | `docs/COBOLNET_NUMERIC_DESIGN.md` |
+| §7  | String operations | `docs/COBOLNET_STRING_OPS_DESIGN.md` |
+| §8  | Files | `docs/COBOLNET_FILES_DESIGN.md` |
+| §9  | Interprogram (CALL/cross-program) | `docs/COBOLNET_INTERPROGRAM_DESIGN.md` |
+| §10 | OO → .NET classes | `docs/COBOLNET_OO_DESIGN.md` |
+| §11 | Conditions & exceptions | `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` |
+| §12 | Intrinsics, registers & misc | `docs/COBOLNET_INTRINSICS_DESIGN.md` |
+| §17 | Project organization & rename | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` |
+
+This SSOT stays authoritative for the **locked invariants (§1)**, the **cross-cutting consistency (§14)**, the
+**settled decisions (§18)**, and the **build order (§16)**; the deep-dives are authoritative for their subsystem's
+internal detail. Where a deep-dive conflicts with §1/§14/§18, the SSOT wins.
+
+---
+
 ## 1. Architecture overview + locked invariants
 
 ### 1.1 Pipeline (5 phases, NO lowered IR)

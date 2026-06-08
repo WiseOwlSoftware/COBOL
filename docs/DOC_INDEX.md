@@ -11,6 +11,14 @@
 > backend" stack-of-record lines) are HISTORICAL — the new backend is **C# source via Roslyn**, numerics are native
 > `long`/`Int128` (NO `decimal`/`BigInteger`), and the legacy `CobolSharp.*` is kept only as a differential oracle
 > until cut-over (G8).
+>
+> **COBOL.NET design corpus** (the LIVE rewrite docs — one SSOT + a deep-dive per subsystem):
+> `COBOLNET_DESIGN.md` (SSOT: invariants, cross-cutting, settled decisions, G0–G8 order) · `COBOLNET_ARCHITECTURE.md`
+> (overview) · deep dives: `COBOLNET_PIPELINE_DESIGN.md` · `COBOLNET_DATA_MODEL_DESIGN.md` ·
+> `COBOLNET_NUMERIC_DESIGN.md` · `COBOLNET_CONTROL_FLOW_DESIGN.md` · `COBOLNET_REDEFINES_DESIGN.md` ·
+> `COBOLNET_STRING_OPS_DESIGN.md` · `COBOLNET_FILES_DESIGN.md` · `COBOLNET_INTERPROGRAM_DESIGN.md` ·
+> `COBOLNET_OO_DESIGN.md` · `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` · `COBOLNET_INTRINSICS_DESIGN.md` ·
+> `COBOLNET_PROJECT_ORG_DESIGN.md`. **Keep each subsystem deep-dive as the one canonical doc for its subsystem.**
 
 ## How to use & maintain the docs
 - **Start from `docs/MASTER_PLAN.md`** — the top-level SSOT + execution playbook. The **§1 LIVE plan/status SSOTs**
