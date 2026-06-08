@@ -1,5 +1,11 @@
 # COBOL.NET — Architecture (greenfield COBOL → C# compiler)
 
+> ⛔ **SUPERSEDED FOR DEPTH by `docs/COBOLNET_DESIGN.md`** (the decision-complete SSOT — pipeline/bound-tree, data
+> model, numeric, control-flow PC-dispatcher, REDEFINES, strings, files, interprogram, OO, conditions/exceptions,
+> intrinsics, project reorg/rename, no-god-class structure, C# 14 usage, the §18 settled decisions, and the G0–G8
+> build order). This file remains the brief overview; where it conflicts, `COBOLNET_DESIGN.md` wins — notably the
+> §3 numeric table below, corrected to native `long`/`Int128`-unscaled (NO `decimal`).
+
 > **Status: LIVE / under construction.** This is the single source of truth for the blank-slate rewrite
 > directed by the owner on 2026-06-08: *"Move entirely to .NET representations for COBOL objects … totally
 > rewrite it … the best possible COBOL to .NET implementation."* It supersedes the byte-substrate compiler in
@@ -10,7 +16,7 @@
 ## 1. North Star
 
 The best **native** .NET implementation of COBOL. A COBOL record **is** a .NET `record struct`; a COBOL
-elementary item **is** a native .NET field (`string` / `long` / `decimal` / `bool` / `double` / typed array). A
+elementary item **is** a native .NET field (`string` / `long` / `Int128` / `bool` / `float` / `double` / typed array). A
 COBOL program is a .NET class; COBOL OO classes are .NET classes. **There is no byte-array storage substrate** —
 no `ProgramState`, no `byte[]`-at-offset model, no `(byte[],offset,length)` operations. A byte image exists only
 *transiently* at an unavoidable boundary (file I/O / `CODE-SET`, a runtime-API call that needs bytes), built into
@@ -45,7 +51,7 @@ engine — `ProgramState`, `StorageHelpers`, `StorageLayoutComputer`, `PicRuntim
 |---|---|
 | `PIC X(n)` / `A` / `PIC N` (national) | `string` (UTF-16) |
 | `PIC 9(n)` / `S9(n)` unsigned/signed **integer** | `long` (PIC-truncated via `CobolNum`) |
-| signed/scaled `S9(n)V9(m)`, packed `COMP-3` | `decimal` (exact base-10 via `CobolNum`/`CobolDecimal`) |
+| signed/scaled `S9(n)V9(m)`, packed `COMP-3` | native `long` (≤18 digits) / `Int128` (19–38) holding the **unscaled** value; scale is compile-time metadata (NO `decimal`) |
 | `COMP-1` / `COMP-2` | `float` / `double` |
 | `PIC 1` / `USAGE BIT` | `bool` |
 | `01`/group | nested `record struct` |
@@ -56,7 +62,7 @@ engine — `ProgramState`, `StorageHelpers`, `StorageLayoutComputer`, `PicRuntim
 
 Numeric correctness backbone: PIC metadata (digits / scale / sign / usage) is threaded into every `CobolNum`
 operation, which applies COBOL truncation, the eight `ROUNDED` modes, and `ON SIZE ERROR` on native
-`long`/`decimal` values. (`CobolNum`/`CobolString` are differential-oracle-verified against the legacy codec.)
+native `long`/`Int128` unscaled values. (`CobolNum`/`CobolString` are oracle-verified against the legacy codec.)
 
 **Deferred unbounded cases** (task G6 — designed to need no persistent byte State): `REDEFINES`/`RENAMES`
 storage overlay, whole-group-as-alphanumeric (materialize struct → fresh scratch at the byte-API boundary), and

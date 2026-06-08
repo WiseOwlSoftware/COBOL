@@ -1,7 +1,16 @@
 # COBOL.NET — Documentation Index & Maintenance Guide
 
-> **The map of the `docs/` corpus** (126 files) — every doc, its subject, and what to keep current. Referenced by
-> `CLAUDE.md`. **Keep THIS file in sync:** when you add, retire, or materially change a doc, update its row here.
+> **The map of the `docs/` corpus** — every doc, its subject, and what to keep current. Referenced by `CLAUDE.md`.
+> **Keep THIS file in sync:** when you add, retire, or materially change a doc, update its row here.
+
+> ⛔🔥 **PIVOT (2026-06-08, DEVLOG 457–464): the project is now a blank-slate COBOL→C#/Roslyn rewrite (COBOL.NET).**
+> The authoritative design is **`docs/COBOLNET_DESIGN.md`** (the decision-complete SSOT for the rewrite — pipeline,
+> data model, native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO, EC, intrinsics,
+> project reorg/rename to Cobol.NET/`cobol.exe`, no-god-class structure, C# 14, G0–G8 build order);
+> `docs/COBOLNET_ARCHITECTURE.md` is the brief overview. The byte-engine docs below (incl. the "Mono.Cecil/CIL
+> backend" stack-of-record lines) are HISTORICAL — the new backend is **C# source via Roslyn**, numerics are native
+> `long`/`Int128` (NO `decimal`/`BigInteger`), and the legacy `CobolSharp.*` is kept only as a differential oracle
+> until cut-over (G8).
 
 ## How to use & maintain the docs
 - **Start from `docs/MASTER_PLAN.md`** — the top-level SSOT + execution playbook. The **§1 LIVE plan/status SSOTs**

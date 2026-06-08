@@ -29,13 +29,17 @@ consulting it. Initialize the submodule with: `git submodule update --init --rec
 ## ⛔🔥 PIVOT (2026-06-08, DEVLOG 457): blank-slate rewrite → COBOL.NET (COBOL → C# via Roslyn)
 The owner directed a **blank-slate rewrite**: a NEW compiler (`src/CobolNet`, exe `cobol`) translating COBOL →
 **idiomatic typed-native C# source compiled by Roslyn** — a COBOL record IS a .NET `record struct`, an elementary
-item IS a native field. **NO byte `ProgramState` substrate; never fall back to the legacy byte engine.** Read
-**`docs/COBOLNET_ARCHITECTURE.md`** (the rewrite SSOT + roadmap G1–G8) FIRST. Memory:
-[[feedback_complete_dotnet_migration_no_byte]]. The legacy `CobolSharp.Compiler` byte engine is kept ONLY as a
-differential oracle until cut-over (G8). Tests may break mid-transition; 100% green at completion. Latest .NET 10 /
-C# 14 idioms + full doc/code comments. **STATE (DEVLOG 458): G1 ✅ (HELLO end-to-end), G2/G3a ✅ (typed WS fields,
-DISPLAY/MOVE/ADD/SUBTRACT). RESUME AT → G2 cont (groups→record struct, OCCURS→arrays, full CobolNum) → G3 (COMPUTE/
-MULTIPLY/DIVIDE/IF/EVALUATE/PERFORM) → G4 control-flow engine → G5 NIST corpus to green.** Everything below is the
+item IS a native field. **NO byte `ProgramState` substrate; never fall back to the legacy byte engine.** **READ
+`docs/COBOLNET_DESIGN.md` FIRST** — the decision-complete SSOT (bound-tree pipeline [NO lowered IR], `Place` lvalue,
+native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO, EC, intrinsics, project
+reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
+`COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
+[[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 463 + DESIGN landed): G1 ✅; G2/G3
+partial (typed numerics + DISPLAY/MOVE/arith/IF) on a parse-tree-walk emitter the DESIGN SUPERSEDES — rebuild on a
+bound tree + `Place` + PC-dispatcher. RESUME AT → G0 reorg/rename + extract front-end + decompose emitter (DESIGN
+§17), then G2 per DESIGN §16; drive NIST via the differential harness (legacy vs CobolNet, identical stdout).**
+Everything below is the
 HISTORICAL byte-engine plan (architecture/backend SUPERSEDED; the COBOL feature surface + the NIST/conformance
 corpus remain the oracle).
 

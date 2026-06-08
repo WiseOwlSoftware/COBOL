@@ -4,17 +4,20 @@
 > **blank-slate rewrite**: a NEW compiler that translates COBOL → **idiomatic typed-native C# source, compiled by
 > Roslyn** (a COBOL record IS a .NET `record struct`; an elementary item IS a native field). **There is NO byte
 > `ProgramState` substrate** — do not reintroduce it, do not "fall back" to the legacy byte engine. The legacy
-> `CobolSharp.Compiler` is kept ONLY as a differential oracle until cut-over. Read **`docs/COBOLNET_ARCHITECTURE.md`**
-> (the rewrite SSOT: pipeline, data model, control-flow strategy, roadmap G1–G8) FIRST, then continue the G-tasks.
-> Memory: `feedback_complete_dotnet_migration_no_byte`. Tests may break mid-transition; the bar is 100% green at
-> completion. Use latest .NET 10 / C# 14 idioms + full doc/code comments.
+> `CobolSharp.Compiler` is kept ONLY as a differential oracle until cut-over. **READ `docs/COBOLNET_DESIGN.md` FIRST**
+> — the decision-complete SSOT (bound-tree pipeline [NO lowered IR], data model, native scaled-integer numerics,
+> PC-dispatcher control flow, REDEFINES, strings, files, interprogram, OO, conditions/EC, intrinsics, project
+> reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14 usage, the §18 settled decisions, and the G0–G8
+> build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
+> `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 458; new project `src/CobolNet`, exe `cobol`):** G1 ✅ (skeleton: preprocess→parse→emit C#→Roslyn
-> →run; HELLO works). G2/G3a ✅ (typed WS fields, VALUE init, `DISPLAY`/`MOVE`/`ADD`/`SUBTRACT` on `string`/`long`/
-> `decimal`; clean `CobolNet.Runtime`). **RESUME AT → G2 cont (groups→`record struct`, OCCURS→arrays, signed/decimal
-> + edited DISPLAY via the full ported `CobolNum`), then G3 (`COMPUTE`/`MULTIPLY`/`DIVIDE`/`IF`/`EVALUATE`/`PERFORM`),
-> then G4 control-flow engine (port the legacy PC/dispatch design, DEVLOG 259–260), then G5 drive the NIST corpus to
-> green.** Reuse ONLY the front-end (ANTLR grammar+lexer+parser+preprocessor) + the clean typed substrates.
+> **STATE (DEVLOG 463 + DESIGN landed):** G1 ✅ skeleton. G2/G3 partial (typed WS fields, native scaled-integer
+> numerics, DISPLAY/MOVE/ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE/IF) on a parse-tree-walk emitter that the DESIGN
+> SUPERSEDES — rebuild on a **bound semantic tree** + the **`Place` lvalue** + the **PC-dispatcher** (the
+> parse-tree-walk + paragraphs-as-methods were wrong; DESIGN §1/§5). **RESUME AT → G0 (reorg/rename + extract
+> front-end + decompose the emitter, DESIGN §17), then G2 per DESIGN §16** (bind→bound tree→`Place`; data model;
+> numerics) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the **differential harness** (run legacy + CobolNet,
+> assert identical stdout = 364 free regression tests). Reuse ONLY the front-end + the clean typed substrates.
 >
 > *Everything below is the HISTORICAL byte-engine kickoff, retained for reference on the COBOL feature surface +
 > conformance corpus (still the oracle) — but the architecture/backend/data-model in it is SUPERSEDED.*
