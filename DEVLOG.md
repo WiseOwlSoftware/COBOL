@@ -10880,6 +10880,17 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 460 — COBOL.NET G3c: IF / ELSE + the condition translator (relational + AND/OR/NOT, numeric & string)
+
+`IF … THEN … ELSE … END-IF` → C# `if/else` (THEN/ELSE blocks split at the ELSE token). New `RenderCondition`
+recursively translates the COBOL condition grammar: relational comparisons combined with `AND`/`OR`/`XOR`/`NOT` and
+parentheses. A comparison picks numeric vs alphanumeric form by operand type — numeric → `(decimal)a <op> (decimal)b`
+(reusing `RenderArith`), alphanumeric → `CobolString.Compare(a,b) <op> 0` (COBOL space-extended ordering). All COBOL
+operator spellings (symbolic + word forms + `NOT …`) map via `MapOperator` (a self-review caught + fixed a
+double-negation bug: word-form `NOT EQUAL` had collided with the `<>` branch → wrongly `==`). Class/sign/condition-
+name + abbreviated relational forms are conservative `false` fallbacks for now. Verified: `A<B`, `A>B`, `A=10 AND
+B=20`, `NM="BOB"` (space-extended), `A NOT EQUAL B` all correct.
+
 ## Entry 459 — COBOL.NET G3b: COMPUTE + the arithmetic-expression translator
 
 `COMPUTE` lands with a recursive COBOL-arithmetic→C# translator (`RenderArith`) that preserves operator precedence

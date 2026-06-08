@@ -124,6 +124,7 @@ public sealed class CSharpEmitter
             case var _ when s.addStatement() is { } a: EmitAdd(a, w); break;
             case var _ when s.subtractStatement() is { } sub: EmitSubtract(sub, w); break;
             case var _ when s.computeStatement() is { } c: EmitCompute(c, w); break;
+            case var _ when s.ifStatement() is { } iff: EmitIf(iff, w); break;
             case var _ when s.stopStatement() is not null || s.gobackStatement() is not null: w.Line("return;"); break;
             default: w.Line($"// TODO(COBOL.NET): unsupported statement '{FirstToken(s)}'"); break;
         }
@@ -194,6 +195,143 @@ public sealed class CSharpEmitter
             foreach (var dref in DataRefs(fromTargets))
                 if (Resolve(dref) is { } t)
                     EmitArithAssign(dref, $"{t.CsName} - ({minuends})", w);  // FROM t = t - (a+b+…)
+    }
+
+    /// <summary>
+    /// Emit an <c>IF condition THEN … [ELSE …] END-IF</c> as a C# <c>if/else</c>. THEN- and ELSE-branch statement
+    /// blocks are split at the <c>ELSE</c> token. Conditions translate via <see cref="RenderCondition"/>.
+    /// </summary>
+    private void EmitIf(Core.IfStatementContext iff, CodeWriter w)
+    {
+        // Split the combined statementBlock list into THEN / ELSE at the ELSE keyword.
+        var thenBlocks = new List<Core.StatementBlockContext>();
+        var elseBlocks = new List<Core.StatementBlockContext>();
+        bool seenElse = false;
+        foreach (var child in Children(iff))
+        {
+            if (child is ITerminalNode t && t.Symbol.Type == CobolLexer.ELSE) seenElse = true;
+            else if (child is Core.StatementBlockContext sb) (seenElse ? elseBlocks : thenBlocks).Add(sb);
+        }
+
+        using (w.Block($"if ({RenderCondition(iff.condition())})"))
+            EmitBlocks(thenBlocks, w);
+        if (elseBlocks.Count > 0)
+            using (w.Block("else"))
+                EmitBlocks(elseBlocks, w);
+    }
+
+    /// <summary>Emit the statements of a set of statement blocks.</summary>
+    private void EmitBlocks(IEnumerable<Core.StatementBlockContext> blocks, CodeWriter w)
+    {
+        foreach (var block in blocks)
+            foreach (var statement in block.statement())
+                EmitStatement(statement, w);
+    }
+
+    // ── Condition translation (IF / relational / logical) ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Translate a COBOL condition to a C# boolean expression. Handles relational comparisons (numeric and
+    /// alphanumeric) combined with <c>AND</c>/<c>OR</c>/<c>NOT</c>/<c>XOR</c> and parentheses. Class/sign/condition-
+    /// name and the abbreviated relational forms emit a conservative <c>false</c> fallback (refined in later slices).
+    /// </summary>
+    private string RenderCondition(IParseTree node)
+    {
+        switch (node)
+        {
+            case Core.ConditionContext c:
+                return RenderCondition(c.GetChild(0));
+
+            case Core.LogicalOrExpressionContext orExpr when orExpr.abbreviatedAndChain().Length == 0:
+                return string.Join(" || ", orExpr.logicalXorExpression().Select(RenderCondition));
+
+            case Core.LogicalXorExpressionContext xorExpr:
+                return string.Join(" ^ ", xorExpr.logicalAndExpression().Select(RenderCondition));
+
+            case Core.LogicalAndExpressionContext andExpr when andExpr.abbreviatedRelation().Length == 0:
+                return string.Join(" && ", andExpr.unaryLogicalExpression().Select(RenderCondition));
+
+            case Core.UnaryLogicalExpressionContext u:
+                return u.NOT() is not null
+                    ? $"!({RenderCondition(u.primaryCondition())})"
+                    : RenderCondition(u.primaryCondition());
+
+            case Core.PrimaryConditionContext p:
+                if (p.comparisonExpression() is { } cmp) return RenderComparison(cmp);
+                if (p.condition() is { } inner) return $"({RenderCondition(inner)})";
+                return "false /* TODO(COBOL.NET): boolean-literal condition */";
+
+            default:
+                return "false /* TODO(COBOL.NET): unsupported condition form */";
+        }
+    }
+
+    /// <summary>Translate a relational comparison expression to a C# boolean expression.</summary>
+    private string RenderComparison(Core.ComparisonExpressionContext cmp)
+    {
+        var operands = cmp.comparisonOperand();
+        if (cmp.comparisonOperator() is not { } opCtx || operands.Length < 2)
+            return "false /* TODO(COBOL.NET): class/sign/condition-name comparison */";
+
+        string csOp = MapOperator(opCtx.GetText());
+        bool isString = IsStringOperand(operands[0]) || IsStringOperand(operands[1]);
+        if (isString)
+            return $"CobolString.Compare({OperandAsString(operands[0])}, {OperandAsString(operands[1])}) {csOp} 0";
+        return $"{OperandAsDecimal(operands[0])} {csOp} {OperandAsDecimal(operands[1])}";
+    }
+
+    /// <summary>
+    /// Map a COBOL comparison operator (any symbolic or word form, possibly negated) to a C# operator. The symbolic
+    /// <c>&lt;&gt;</c> is "not equal" directly; otherwise a base relation is determined ignoring <c>NOT</c>, then a
+    /// leading <c>NOT</c> inverts it (so word form <c>NOT EQUAL</c> → <c>!=</c>, <c>NOT GREATER</c> → <c>&lt;=</c>).
+    /// </summary>
+    private static string MapOperator(string raw)
+    {
+        string t = raw.ToUpperInvariant().Replace("IS", "").Replace("THAN", "").Replace("TO", "");
+        if (t.Contains("<>")) return "!=";
+        bool not = t.Contains("NOT");
+        bool orEqual = t.Contains(">=") || t.Contains("<=") || t.Contains("OREQUAL");
+        string baseOp =
+            t.Contains('>') || t.Contains("GREATER") ? (orEqual ? ">=" : ">")
+            : t.Contains('<') || t.Contains("LESS") ? (orEqual ? "<=" : "<")
+            : "==";  // EQUAL / =
+        if (!not) return baseOp;
+        return baseOp switch { ">" => "<=", ">=" => "<", "<" => ">=", "<=" => ">", "==" => "!=", _ => "==" };
+    }
+
+    /// <summary>True if a comparison operand should be compared as text (a string literal or an alphanumeric item).</summary>
+    private bool IsStringOperand(Core.ComparisonOperandContext operand)
+    {
+        var vo = operand.valueOperand();
+        if (vo?.nonNumericLiteral() is not null) return true;
+        if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref)
+            return Resolve(dref)?.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+        return false;
+    }
+
+    /// <summary>Render a comparison operand as a C# string (display image).</summary>
+    private string OperandAsString(Core.ComparisonOperandContext operand)
+    {
+        var vo = operand.valueOperand();
+        if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return CsStringLiteral(DecodeCobolString(s.GetText()));
+        if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref) return ReadAsString(dref);
+        return "\"\"";
+    }
+
+    /// <summary>Render a comparison operand as a C# decimal value.</summary>
+    private string OperandAsDecimal(Core.ComparisonOperandContext operand) =>
+        operand.valueOperand()?.arithmeticExpression() is { } expr ? RenderArith(expr) : "0m";
+
+    /// <summary>If an arithmetic expression is exactly one data reference (no operators), return it; else null.</summary>
+    private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
+    {
+        IParseTree n = expr;
+        while (n is not Core.PrimaryExpressionContext)
+        {
+            if (n.ChildCount != 1) return null;
+            n = n.GetChild(0);
+        }
+        return ((Core.PrimaryExpressionContext)n).dataReference();
     }
 
     /// <summary>
