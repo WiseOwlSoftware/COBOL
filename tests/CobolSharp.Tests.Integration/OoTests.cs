@@ -78,6 +78,55 @@ public sealed class OoTests : EndToEndTestBase
         Assert.Equal("R=0007", stdout.Trim());
     }
 
+    [Fact]
+    // Typed-native OO (ADR §7): a class's OBJECT data is a PER-INSTANCE .NET field, so two objects hold
+    // INDEPENDENT state. BUMP displays V (PIC X(3) → an instance `string`) then mutates it; b1/b2/b1 must print
+    // ---/---/XYZ. A static (shared) field — the #1 silent-corruption risk — would instead print ---/XYZ/XYZ.
+    // A single-object test cannot catch the share bug; this two-object sequence is the adversarial gate.
+    public void TypedObjectData_IsPerInstance()
+    {
+        const string src = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OOINST.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BOX.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 B1 USAGE OBJECT REFERENCE BOX.
+       01 B2 USAGE OBJECT REFERENCE BOX.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE BOX ""NEW"" RETURNING B1.
+           INVOKE BOX ""NEW"" RETURNING B2.
+           INVOKE B1 ""BUMP"".
+           INVOKE B2 ""BUMP"".
+           INVOKE B1 ""BUMP"".
+           STOP RUN.
+       END PROGRAM OOINST.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. BOX.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 V PIC X(3) VALUE ""---"".
+       PROCEDURE DIVISION.
+       METHOD-ID. BUMP.
+       PROCEDURE DIVISION.
+       MAIN.
+           DISPLAY V.
+           MOVE ""XYZ"" TO V.
+       END METHOD BUMP.
+       END OBJECT.
+       END CLASS BOX.
+";
+        var (ok, stdout, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("---\n---\nXYZ", stdout.Replace("\r\n", "\n").Trim());
+    }
+
     // ── OO slice 3: INHERITS FROM + the not-yet-supported forms (loud, not silent) ──
 
     private const string AnimalDog = @"

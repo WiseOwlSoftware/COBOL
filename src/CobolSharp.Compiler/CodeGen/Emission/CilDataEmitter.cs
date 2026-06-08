@@ -28,6 +28,15 @@ internal sealed class CilDataEmitter
     // work on an element unchanged. Store is split: a prefix (push the container addressing — struct address, or
     // array+index — BEFORE the value) and a suffix (the store op — stfld / stsfld / stelem).
 
+    /// <summary>OO (ADR §7): when emitting a CLASS, object-data typed fields are PER-INSTANCE, so the receiver
+    /// (<c>ldarg.0</c>) must precede the following <c>ldfld</c>/<c>stfld</c>; a no-op for a normal program's static
+    /// typed fields (<see cref="EmissionContext.StateIsInstance"/> false). The typed analogue of the byte engine's
+    /// single State chokepoint (<c>CilLocationEmitter.EmitLoadBackingArray</c>).</summary>
+    private void EmitTypedFieldOwner(ILProcessor il)
+    {
+        if (_ctx.StateIsInstance) il.Append(il.Create(OpCodes.Ldarg_0));
+    }
+
     /// <summary>Pushes the element-address prefix for an OCCURS element: <c>ldsfld array; &lt;0-based index i4&gt;</c>
     /// (the COBOL 1-based subscript expression, decimal→int via Convert.ToInt32, minus one). Shared by load + store.</summary>
     private void EmitTypedElementAddress(ILProcessor il, IrTypedElementLocation e)
@@ -65,7 +74,8 @@ internal sealed class CilDataEmitter
                 EmitInstanceAddressChain(il, f);   // ldsflda instance; ldflda nested… (leaves leaf's parent addr)
                 break;
             case IrTypedFieldLocation:
-                break;   // flat static field: no prefix
+                EmitTypedFieldOwner(il);   // OO instance field: push `this` before the value; no-op for a static field
+                break;
             case IrTypedElementLocation e:
                 EmitTypedElementAddress(il, e);
                 break;
@@ -80,7 +90,8 @@ internal sealed class CilDataEmitter
                 il.Append(il.Create(OpCodes.Stfld, ResolveLeafField(f)));
                 break;
             case IrTypedFieldLocation f:
-                il.Append(il.Create(OpCodes.Stsfld, _ctx.TypedFields[f.FieldName]));
+                il.Append(il.Create(
+                    _ctx.StateIsInstance ? OpCodes.Stfld : OpCodes.Stsfld, _ctx.TypedFields[f.FieldName]));
                 break;
             case IrTypedElementLocation e:
                 EmitArrayStoreElement(il, e);
@@ -97,7 +108,9 @@ internal sealed class CilDataEmitter
                 il.Append(il.Create(OpCodes.Ldfld, ResolveLeafField(f)));
                 break;
             case IrTypedFieldLocation f:
-                il.Append(il.Create(OpCodes.Ldsfld, _ctx.TypedFields[f.FieldName]));
+                EmitTypedFieldOwner(il);
+                il.Append(il.Create(
+                    _ctx.StateIsInstance ? OpCodes.Ldfld : OpCodes.Ldsfld, _ctx.TypedFields[f.FieldName]));
                 break;
             case IrTypedElementLocation e:
                 EmitTypedElementAddress(il, e);

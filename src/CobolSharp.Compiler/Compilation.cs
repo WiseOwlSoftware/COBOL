@@ -150,7 +150,7 @@ public sealed class Compilation
 
             // Bind -> IR
             var binder = new CodeGen.Binder(semanticModel, diagnostics, Options, inheritedGlobalUse);
-            var irModule = binder.Bind(progCtx);
+            var irModule = binder.Bind(progCtx, progCtx is CobolParserCore.ClassDefinitionContext);
 
             // OO: tag a class unit so CIL emission produces an instance reference type (per-instance ProgramState
             // + a public instance method) instead of a static program type. (docs/OO_IMPLEMENTATION_DESIGN.md §4)
@@ -658,7 +658,9 @@ public sealed class Compilation
                 programs.Select(p => (p.IrModule, (Semantics.SemanticModel?)p.SemanticModel)).ToList(),
                 mainProgram.ProgramId);
 
-            string dir = Path.GetDirectoryName(outputPath) ?? ".";
+            // GetDirectoryName returns "" (not null) for a bare filename (e.g. -o prog.dll) → treat as the
+            // current directory; Directory.CreateDirectory("") throws ArgumentException (empty path).
+            string dir = Path.GetDirectoryName(outputPath) is { Length: > 0 } d ? d : ".";
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             assembly.Write(outputPath);
 

@@ -61,7 +61,7 @@ public sealed class Binder
     /// <summary>
     /// Build BoundProgram from parse tree, then lower to IrModule.
     /// </summary>
-    public IrModule Bind(Antlr4.Runtime.ParserRuleContext tree)
+    public IrModule Bind(Antlr4.Runtime.ParserRuleContext tree, bool isClass = false)
     {
         // Phase 1: Build bound tree + validate
         var builder = new BoundTreeBuilder(_semantic, _diagnostics, _options);
@@ -84,6 +84,9 @@ public sealed class Binder
 
         // Phase 2: Build record types
         var module = new IrModule(boundProgram.Program.Name);
+        // OO (ADR §7): a CLASS-ID unit is tagged here, BEFORE CollectTypedFields, so the typed-field collector
+        // can treat object data as an always-on typed consumer (OO has no legacy corpus — see the gate below).
+        module.IsClass = isClass;
         BuildRecordTypes(module);
 
         // Phase 2.5: data-model migration S3 — collect the items to flip to typed-native fields
@@ -286,8 +289,18 @@ public sealed class Binder
     /// </summary>
     private void CollectTypedFields(IrModule module)
     {
-        if (!_options.EnableTypedFields || _ctx.Classification is not { } classification)
+        // OO (ADR §7) is an ALWAYS-ON consumer of the typed pipeline — a CLASS has no legacy byte-identical corpus
+        // to preserve, so object data flips to typed-native .NET fields regardless of the global EnableTypedFields
+        // migration gate (which still governs ordinary program units). Mirrors CollectPointerFields /
+        // CollectObjectRefFields, which are likewise always-on.
+        if ((!_options.EnableTypedFields && !module.IsClass) || _ctx.Classification is not { } classification)
             return;
+
+        // First OO-typed slice: flip only CHARACTER object data for a class when the global flag is off (numeric /
+        // record-struct / OCCURS object data follow in later OO-typed slices — they additionally need the typed
+        // numeric materialize + arithmetic sites made per-instance). This restriction auto-relaxes once the global
+        // EnableTypedFields flip lands (then a class gets the full typed treatment like any program).
+        bool classCharOnly = module.IsClass && !_options.EnableTypedFields;
 
         // An elementary item whose typed form is a homogeneous .NET string: classifier-typed, WORKING-STORAGE,
         // alphanumeric/national/alphabetic, no OCCURS, no figurative/ALL VALUE (those byte-back the init).
@@ -440,7 +453,7 @@ public sealed class Binder
             // numerics — an uninitialized numeric shows spaces, which long/decimal can't reproduce); now byte-
             // identical because the byte engine initializes every occurrence to the VALUE (DEVLOG 424). DEPENDING ON
             // / group-element tables stay byte.
-            if (sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
+            if (!classCharOnly && sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
                 && sym.Area == Semantics.StorageAreaKind.WorkingStorage && classification.IsTyped(sym)
                 && _semantic.GetStorageLocation(sym) is { } aloc)
             {
@@ -480,7 +493,7 @@ public sealed class Binder
             // S4: a standalone elementary unsigned-integer DISPLAY/COMP/BINARY item with a VALUE → a typed `long`
             // field. The field's Width is the BYTE storage width (loc.Length) — for COMP/BINARY that differs from
             // the digit count (PIC 9(5) COMP is 4 bytes); the digit count lives on the PicDescriptor.
-            if (IsTypedUnsignedInteger(sym, out _, out long ninit))
+            if (!classCharOnly && IsTypedUnsignedInteger(sym, out _, out long ninit))
             {
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
@@ -491,7 +504,7 @@ public sealed class Binder
 
             // S4: a standalone elementary signed/scaled numeric item with a VALUE → a typed `decimal` field. Width
             // is the BYTE storage width; the scale/sign live on the PicDescriptor.
-            if (IsTypedDecimal(sym, out decimal decInit))
+            if (!classCharOnly && IsTypedDecimal(sym, out decimal decInit))
             {
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
@@ -507,7 +520,7 @@ public sealed class Binder
             // group flips only if EVERY descendant is flippable (no OCCURS, no edited/byte-trigger item); otherwise
             // it stays byte. Member-level access only — a whole-group operand is handled by the existing classifier
             // group-MOVE demotion. (A contained OCCURS table flips independently via the S4 array branch.)
-            if (sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
+            if (!classCharOnly && sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
                 && classification.IsTyped(sym) && sym.Children.Count > 0)
             {
                 string instanceName = "_TI_" + sym.Name;

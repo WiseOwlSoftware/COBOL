@@ -1,7 +1,16 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
 > **Canonical reference for the COBOL Object-Orientation subsystem.** This is the **LIVE turnkey design** — defer to
-> it. **Implementation status (2026-06-07, DEVLOG 447–450):** the OO **grammar is DONE**
+> it. **Owner directive (2026-06-08, DEVLOG 453): OO is built TYPED-NATIVE per ADR §7** — a class's object data is a
+> **per-instance typed record** (object `01`/elementary items → per-instance .NET fields), NOT the byte `ProgramState`
+> image; the `EnableTypedFields` default-OFF gate is migration-safety for the *legacy* corpus and does NOT apply to OO
+> (a new subsystem with no corpus to preserve), so `CollectTypedFields` is **always-on for a CLASS**. **SLICE 1 done
+> (DEVLOG 453, char-first):** object CHARACTER data flips to per-instance .NET `string` fields — the typed-field
+> machinery gained an instance dimension on the same `StateIsInstance` flag the byte `State` rides, via one chokepoint
+> `CilDataEmitter.EmitTypedFieldOwner` (the typed analogue of `EmitLoadBackingArray`). Proven per-instance by
+> `oo_instance_data` (two objects, independent state) + `OoTests.TypedObjectData_IsPerInstance`; `oo_hello`'s `MSG` is
+> now `instance String _T_MSG`. NEXT: numeric object data (instance-ize the `CilLocationEmitter` materialize +
+> arithmetic sites), then multi-method + `INVOKE SELF`. **Implementation status (DEVLOG 447–453):** the OO **grammar is DONE**
 > (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICES 1–3a are DONE end-to-end**
 > (slice 3a = `INHERITS FROM` + virtual methods + polymorphism: a subclass extends a base, inherits the root's
 > per-instance State via ctor-chaining, overrides base methods, dispatched virtually through a base-typed reference;

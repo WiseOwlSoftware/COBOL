@@ -865,7 +865,10 @@ public sealed class CilEmitter
         // IrTypedFieldLocation resolves; initialized in InitializeState below. Empty unless EnableTypedFields is on.
         foreach (var tf in ir.TypedFieldDefs)
         {
-            var typedFd = new FieldDefinition(tf.Name, FieldAttributes.Public | FieldAttributes.Static,
+            // OO (ADR §7): on a CLASS the typed field is a PER-INSTANCE field (each object owns its object data),
+            // mirroring the byte State above; on a normal program it stays static.
+            var typedFd = new FieldDefinition(tf.Name,
+                _ctx.StateIsInstance ? FieldAttributes.Public : FieldAttributes.Public | FieldAttributes.Static,
                 TypedFieldClrType(tf));
             _programType.Fields.Add(typedFd);
             _ctx.TypedFields[tf.Name] = typedFd;
@@ -950,8 +953,12 @@ public sealed class CilEmitter
         // already padded/truncated to the field width by Binder.CollectTypedFields.
         foreach (var tf in ir.TypedFieldDefs)
         {
+            // OO: a per-instance typed field is stored through the receiver (ldarg.0; <value>; stfld) inside the
+            // instance InitializeState (called from the NEW .ctor); a program's static field uses stsfld.
+            if (_ctx.StateIsInstance) initIl.Append(initIl.Create(OpCodes.Ldarg_0));
             EmitTypedFieldInitValue(initIl, tf);
-            initIl.Append(initIl.Create(OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
+            initIl.Append(initIl.Create(
+                _ctx.StateIsInstance ? OpCodes.Stfld : OpCodes.Stsfld, _ctx.TypedFields[tf.Name]));
         }
         // S3b/S5: init each record-struct leaf member (recursing into nested sub-structs) — ldsflda instance;
         // ldflda nested…; <value>; stfld leaf. Never default(T) (ADR §1.7).

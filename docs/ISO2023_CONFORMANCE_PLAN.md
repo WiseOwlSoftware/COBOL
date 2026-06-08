@@ -266,12 +266,17 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   (Data-model migration this drive (DEVLOG 394–397): Stage-0/1 numeric substrate + differential oracle (394),
   Stage-1 arithmetic + MOVE/edited/remainder wiring (395–396), Stage-2 classifier Phase A + 15 tests (397). All
   additive or byte-identical — no NIST/integration change. Prior tail (392/393): two ADR-review fixes.)
-- **NEXT UP (2026-06-07, DEVLOG 451; guard 1204/527/364):** the data-model migration CORE is done through Stage-4
+- **NEXT UP (2026-06-08, DEVLOG 453):** the data-model migration CORE is done through Stage-4
   (char/numeric/groups/OCCURS + **pointers** — DEVLOG 394–437); Phase A enablers done (CLI dialect verified + CI,
-  445–446); **OO slices 1–3a + 3b SUPER done** (M2-OO-1, DEVLOG 447–451 — CLASS/NEW/INVOKE+USING/RETURNING/OBJECT
-  REFERENCE/INHERITS+polymorphism/SUPER, each Agent-reviewed). **The immediate next pick = OO multi-method classes**
-  (the keystone — unblocks INVOKE SELF + FACTORY + real classes) + subclass own OBJECT data, then OO slices 4
-  FACTORY / 5 PROPERTY / 6 universal-ref+EC (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of the M2 catalog:
+  445–446); **OO slices 1–3a + 3b SUPER done** (M2-OO-1, DEVLOG 447–451). **Owner directive (DEVLOG 453): OO is now
+  built TYPED-NATIVE per ADR §7** — object data → per-instance .NET fields, NOT the byte image. **OO-TYPED SLICE 1
+  done (453, char-first):** object CHARACTER data → per-instance .NET `string` fields (`CollectTypedFields` always-on
+  for a CLASS; instance dimension via `CilDataEmitter.EmitTypedFieldOwner`); proven per-instance by `oo_instance_data`
+  + `OoTests.TypedObjectData_IsPerInstance`. **Immediate next picks (in order):** (a) **OO-TYPED numeric** object data
+  (per-instance typed `long`/`decimal` — instance-ize the `CilLocationEmitter` materialize + arithmetic sites; remove
+  the `classCharOnly` restriction); (b) **OO multi-method classes** (the keystone — unblocks INVOKE SELF + FACTORY;
+  fixes CBL3104 via per-method paragraph scope) + INVOKE SELF; (c) subclass own typed OBJECT data (lift COBOL0113),
+  then OO slices 4 FACTORY / 5 PROPERTY / 6 universal-ref+EC (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of the M2 catalog:
   **M2-FILE-1/2** (SHARING/LOCK, line-sequential), **M2-ARITH-2** (standard/intermediate arithmetic), **M2-PRE-1**
   (preprocessor trio), **M2-UDF-3/4**; then the large subsystems **M2-PROC-4 EC/exceptions → RAISE/RESUME/USE** and
   **M2-PROC-3 VALIDATE**. Then M3, M4. Pick per §4 waves; tick + log here.
