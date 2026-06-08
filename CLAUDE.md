@@ -42,33 +42,27 @@ owner co-authored it, DEVLOG 393); implement its 7-stage migration (ADR §10), g
 data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = `BigInteger` before Stage 1;
 classifier-trigger completeness before any Stage-3 typed flip).
 
-### Current State
-- **Branch**: main; guard ALL GREEN — **1196 unit / 507 integration / 364 NIST** (`bash scripts/guard.sh`);
-  baselines 0 FAIL*.
-- **DEVLOG at entry 432.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress. **The #1-priority data-model
-  migration — CORE (Stage 3) COMPLETE:** the substrates (`CobolNum`/`CobolDecimal`/`CobolString` + oracles, 394–399)
-  + the `RecordClassificationPass` classifier (397–398, wired into the Binder 401) underpin typed flips that landed
-  ONE rule at a time, each guard-green + a flag-on≡flag-off `TypedFieldFlipTests` differential test, all gated behind
-  `EnableTypedFields` (default OFF → corpus byte-identical):
-  - **character → `.NET string`** (S3a–c, 403–409): standalone, record-struct member, all MOVE pairs, DISPLAY,
-    COMPARE, class conditions, figurative SPACE/ZERO.
-  - **numeric → `long`** (unsigned-int) / **`decimal`** (signed-scaled) over DISPLAY/COMP/BINARY (410–420): VALUE,
-    MOVE (literal + field, all combos), DISPLAY (sign-overpunch), COMPARE, `IS NUMERIC`, **arithmetic** (ADD/SUB/MUL/
-    DIV/COMPUTE/REMAINDER via a materialize prologue/epilogue), `MOVE ZEROS`. COMP-5/float/packed excluded.
-  - **groups → (nested) `record struct`s** (S3b 405, **nested S5 427**): mixed `string`/`long`/`decimal` members,
-    member-path access; **fixed OCCURS tables (char + numeric) → `T[]`** (422–426) with subscripted + PERFORM-VARYING
-    access; SEARCH safely stays byte; every byte-trigger (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO/
-    whole-table/whole-group operand) correctly stays byte.
-  - **Byte-engine ISO-2023 conformance fix (424):** a VALUE on an OCCURS item now initializes EVERY occurrence
-    (§13.18.63.4 GR 9; conformance `table_value_occurs`; zero baseline shifts).
-  - **Definition of done (428):** a representative business program flips its WHOLE data division byte-identically.
-- **RESUME AT → Stage-4 pointer slice 1** (BASED + ADDRESS OF + SET ADDRESS OF + deref), then the rest (all
-  autonomous-eligible): **pointers → managed .NET references** via the single **`ManagedPointer`** carrier (renamed
-  from `CobolDataPointer`, DEVLOG 429; GC-tracked, no native heap / no handle table / no `unsafe`; **PointerRegistry
-  REJECTED — settled, NOT gated**; grammar approved; design in `RECORD_STRUCT_STORAGE_DESIGN.md §10`) and **OO → .NET
-  classes**; Stage-5 **Roslyn C# backend**;
-  Stage-6 finalize + flip-on-by-default decision + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See plan
-  **§0.5** + `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9.
+### Current State (updated 2026-06-07, DEVLOG 451)
+- **→ The live kickoff prompt is `resume-prompt.md` (repo root). Read it first.** This block is a snapshot.
+- **Branch**: main; guard ALL GREEN — **1204 unit / 527 integration / 364 NIST** (`bash scripts/guard.sh`, or the
+  ~3.3-min parallel `scripts/guard-fast.sh`); baselines 0 FAIL*. Stack: **.NET 10 / C# 14**.
+- **DEVLOG at entry 451.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress.
+- **Data-model migration: CORE done through Stage-4** (gated `EnableTypedFields`, default OFF → corpus
+  byte-identical): character→`string`, numeric→`long`/`decimal`, flat+nested groups→`record struct`, fixed
+  OCCURS→`T[]`, and **pointers→`ManagedPointer`** (USAGE POINTER / BASED / ADDRESS OF / arithmetic / ALLOCATE-FREE,
+  always-typed, no 8-byte handle). The byte engine remains the classifier-scoped fallback.
+- **Phase A done** (DEVLOG 445–446): CLI `--standard`→DialectLevel verified + regression net; **CI enabled**
+  (`.github/workflows/build-and-test.yml` gates the full guard on push/PR).
+- **OO COBOL: slices 1–3b done** (DEVLOG 447–451), each Agent-adversarially-reviewed (real bugs caught + fixed):
+  CLASS-ID → an instance .NET type (per-instance `ProgramState`); `INVOKE class "NEW"`; `INVOKE obj "m" USING …
+  RETURNING …` (CALL `ManagedPointer[]` ABI); OBJECT REFERENCE storage; PERFORM-in-method; `INHERITS FROM` + virtual
+  methods + polymorphism; `INVOKE SUPER`. Deferred forms fail LOUDLY (COBOL0111 arg-forms, 0112 SELF, 0113
+  subclass-data, 0114 unknown-base, 0115 root-class-SUPER). Conformance `tests/conformance/2002/oo_*` (5) + `OoTests`.
+- **RESUME AT → OO multi-method classes** (the keystone: each METHOD-ID binds as its own procedure; unblocks INVOKE
+  SELF + FACTORY + real multi-operation classes) + subclass own OBJECT data; then OO slices 4 FACTORY / 5 PROPERTY /
+  6 universal-ref+EC; then the remaining M2/M3/M4 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3). Then Stage-5
+  Roslyn backend, Stage-6 finalize + flip-on + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See
+  `resume-prompt.md` + `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28

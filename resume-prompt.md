@@ -37,9 +37,9 @@ default + proceed).
 - **Stack:** **.NET 10 / C# 14**. **Backend: CIL-only via Mono.Cecil** (a Roslyn C# backend is a FUTURE additive
   Stage-5 option — Cecil stays the shipping backend + the differential oracle; deferred beyond OO). **Pointers = ONE
   `ManagedPointer`** (GC-tracked; no native heap / no `unsafe` / no 8-byte handle / no `PointerRegistry` — settled).
-- **Guard ALL GREEN: 1204 unit / 511 integration / 364 NIST** (was 1196/509 pre-session: +8 CLI-dialect unit tests,
-  +2 OO conformance). Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min, parallel, **proven byte-identical**
-  to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
+- **Guard ALL GREEN: 1204 unit / 527 integration / 364 NIST** (was 1196/509 pre-session: +8 CLI-dialect unit tests,
+  +OO conformance corpus + `OoTests`). Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min, parallel, **proven
+  byte-identical** to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
 - **Phase A DONE** (DEVLOG 445–446): CLI `--standard` verified to reach the parser `DialectLevel` + a regression net;
   CI enabled (`.github/workflows/build-and-test.yml` gates the full guard on push/PR); parallel-dev = patch-integrate.
 - **M1 (COBOL-85) COMPLETE** — NIST CCVS85 (364 baselines) is the '85 validation backbone.

@@ -266,15 +266,15 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   (Data-model migration this drive (DEVLOG 394–397): Stage-0/1 numeric substrate + differential oracle (394),
   Stage-1 arithmetic + MOVE/edited/remainder wiring (395–396), Stage-2 classifier Phase A + 15 tests (397). All
   additive or byte-identical — no NIST/integration change. Prior tail (392/393): two ADR-review fixes.)
-- **NEXT UP → THE .NET-NATIVE DATA-MODEL MIGRATION (see §0.5) — ahead of everything below.** Only after it lands
-  with the suite green do the remaining M2 items resume (the easy/foundational data items — National, Boolean,
-  Pointers Phase-1, GOBACK RETURNING — are already done): **M2-DATA-5 Phase-2 (ADDRESS OF/BASED/ALLOCATE) →
-  managed .NET references (`ManagedPointer`); PointerRegistry REJECTED; settled, NOT gated (DEVLOG 428)**, done as
-  the migration's Stage 4; **M2-PRE-1** (◐, re-scoped — two
-  real but rare preprocessor mis-parse/clean-error defects, one reverses a deliberate §7.3.16-vs-§7.2 decision);
-  **M2-ARITH-1/-2** (OPTIONS DEFAULT ROUNDED / standard arithmetic — needs OPTIONS-clause parsing);
-  **M2-FILE-1/2** (SHARING/LOCK, line-sequential); then the large subsystems **M2-PROC-4 EC/exceptions →
-  RAISE/RESUME/USE**, **M2-PROC-3 VALIDATE**, **M2-OO-1 OO COBOL** (§4 waves). Pick per §4; tick + log here.
+- **NEXT UP (2026-06-07, DEVLOG 451; guard 1204/527/364):** the data-model migration CORE is done through Stage-4
+  (char/numeric/groups/OCCURS + **pointers** — DEVLOG 394–437); Phase A enablers done (CLI dialect verified + CI,
+  445–446); **OO slices 1–3a + 3b SUPER done** (M2-OO-1, DEVLOG 447–451 — CLASS/NEW/INVOKE+USING/RETURNING/OBJECT
+  REFERENCE/INHERITS+polymorphism/SUPER, each Agent-reviewed). **The immediate next pick = OO multi-method classes**
+  (the keystone — unblocks INVOKE SELF + FACTORY + real classes) + subclass own OBJECT data, then OO slices 4
+  FACTORY / 5 PROPERTY / 6 universal-ref+EC (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of the M2 catalog:
+  **M2-FILE-1/2** (SHARING/LOCK, line-sequential), **M2-ARITH-2** (standard/intermediate arithmetic), **M2-PRE-1**
+  (preprocessor trio), **M2-UDF-3/4**; then the large subsystems **M2-PROC-4 EC/exceptions → RAISE/RESUME/USE** and
+  **M2-PROC-3 VALIDATE**. Then M3, M4. Pick per §4 waves; tick + log here.
 
 ---
 

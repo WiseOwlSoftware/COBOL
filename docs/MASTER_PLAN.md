@@ -49,7 +49,8 @@ false GREEN.
 
 ## 2. Current state (honest baseline, 2026-06-07)
 
-- **Branch `main`, guard ALL GREEN: 1196 unit / 509 integration / 364 NIST.** DEVLOG at entry 441.
+- **Branch `main`, guard ALL GREEN: 1204 unit / 527 integration / 364 NIST.** DEVLOG at entry 451. (Baseline at
+  this plan's authoring was 1196/509/364 @ DEVLOG 441; since then: Phase A enablers + OO slices 1–3b — see §8.)
 - **Platform: targets .NET 10 / C# 14** (`Directory.Build.props` `net10.0`/LangVersion 14, `global.json` SDK 10.0.x;
   retargeted from .NET 9 this session, full guard re-proven green on .NET 10 — DEVLOG 441).
 - **M1 (COBOL-85) COMPLETE** — the 8 core NIST CCVS modules + Report Writer baselined; NIST CCVS85 is the '85
@@ -64,8 +65,11 @@ false GREEN.
   - **Stage 4 POINTERS COMPLETE** — `USAGE POINTER`/`BASED`/`ADDRESS OF`/`SET ADDRESS OF`/`NULL`/`=`/`SET UP|DOWN BY`/
     `ALLOCATE`/`FREE`, all on ONE managed `ManagedPointer` (no native heap, no `unsafe`, no 8-byte handle). 4
     conformance tests.
-  - **Stage 4 OO: grammar DONE** (version-factored `Core/CobolOO.g4`, `{is2002()}?`-gated, regression-free); the
-    semantic/emit vertical is mapped turnkey in `docs/OO_IMPLEMENTATION_DESIGN.md` §6.6 but **not yet implemented**.
+  - **Stage 4 OO: slices 1–3b DONE** (DEVLOG 447–451, each Agent-reviewed) — CLASS-ID → instance .NET type
+    (per-instance `ProgramState`); `INVOKE class "NEW"` / `INVOKE obj "m" USING…RETURNING…` (CALL `ManagedPointer[]`
+    ABI); OBJECT REFERENCE; PERFORM-in-method; `INHERITS FROM` + virtual methods + polymorphism; `INVOKE SUPER`.
+    Deferred forms fail loudly (COBOL0111–0115). **Next OO = multi-method classes** (keystone) + subclass data, then
+    FACTORY / PROPERTY / universal-ref+EC. See `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
 - **Tooling:** parallel guard (`guard-fast.sh`) ~3.3× faster, proven equivalent.
 - **Known debt (the "commercial/decades" gap — detailed in §10).** Note the core is healthier than "god classes
   everywhere": the big decompositions are **already DONE** — M001 (IR-expression hierarchy, zero `BoundExpression`
@@ -195,8 +199,15 @@ every commit.
   (an 11-agent synthesis of the ~159 docs vs `src/`, and a 4-dimension commercial-bar assessment). Key grounded
   findings: core compiler/runtime ~85–90% (god-class decompositions M001/M003/M004 already DONE); the long-titled
   essay corpus is complete-but-design-only and is the bulk of the commercial gap (Phase E); conformance executes
-  `ISO2023_CONFORMANCE_PLAN.md` (do not re-audit). **NEXT = Phase A (enable max parallelism) → Phase B1 (OO
-  semantic/emit, turnkey §6.6).**
+  `ISO2023_CONFORMANCE_PLAN.md` (do not re-audit).
+- 2026-06-07 (DEVLOG 445–451, guard 1196/509 → **1204/527**/364): **Phase A DONE** — CLI `--standard`→DialectLevel
+  verified + regression net (445); **CI enabled**, full guard gates push/PR (446); parallel-dev = patch-integrate.
+  **Phase B1 OO slices 1–3b DONE** (447–451), each landed on `main` with an **Agent adversarial review** that caught
+  + fixed real silent-miscompile/wrong-output bugs the conformance tests missed: slice 1 CLASS/NEW/INVOKE/OBJECT
+  REFERENCE + per-instance `ProgramState` (447); slice 2 INVOKE USING/RETURNING — per-instance state proven (448),
+  unsupported arg forms made loud COBOL0111 (449); slice 3a INHERITS + virtual/polymorphism (450); slice 3b INVOKE
+  SUPER (451). 5 OO conformance tests + `OoTests`. **NEXT = OO multi-method classes (keystone) + subclass data, then
+  FACTORY/PROPERTY/universal-ref, then the rest of the M2/M3/M4 catalog (ISO2023_CONFORMANCE_PLAN §3).**
 
 ## 9. Sub-document index (post-consolidation, 2026-06-07)
 
