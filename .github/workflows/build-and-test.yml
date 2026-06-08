@@ -1,0 +1,70 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Cancel a superseded run on the same ref (a rapid second push) to save CI minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The authoritative gate: the full guard (build + unit + integration + the 364 NIST CCVS85 baselines) —
+  # exactly what scripts/guard.sh runs locally, the project's "law". Linux only, because the NIST loop is a
+  # bash script. A non-zero guard exit (any regression, DIFF, FAIL*, or build warning) fails the job.
+  guard:
+    name: Guard (build + unit + integration + NIST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The specs/ submodule is a private repo and is NOT needed to build or test (it is only the
+          # spec text, referenced from doc comments). Skipping it keeps CI credential-free.
+          submodules: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore CobolSharp.sln
+
+      # The guard copies the runtime DLL into this directory and writes each test's output there; it is
+      # not tracked in git, so a clean checkout must create it before the guard runs.
+      - name: Prepare NIST output directory
+        run: mkdir -p tests/nist/output
+
+      - name: Run guard (scripts/guard.sh)
+        run: bash scripts/guard.sh
+
+  # Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
+  # build) plus the unit & integration suites on Windows. The NIST guard is Linux-only (bash), so this job
+  # gives the Windows build + managed-test coverage the guard job cannot.
+  windows-build-test:
+    name: Windows build + tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore CobolSharp.sln
+
+      - name: Build (Release, warnings-as-errors)
+        run: dotnet build CobolSharp.sln --no-restore --configuration Release
+
+      - name: Unit tests
+        run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release
+
+      - name: Integration tests
+        run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
