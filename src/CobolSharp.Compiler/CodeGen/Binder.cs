@@ -296,11 +296,12 @@ public sealed class Binder
         if ((!_options.EnableTypedFields && !module.IsClass) || _ctx.Classification is not { } classification)
             return;
 
-        // First OO-typed slice: flip only CHARACTER object data for a class when the global flag is off (numeric /
-        // record-struct / OCCURS object data follow in later OO-typed slices — they additionally need the typed
-        // numeric materialize + arithmetic sites made per-instance). This restriction auto-relaxes once the global
+        // OO-typed slices flip the FLAT object-data fields (character + numeric — both go through the three
+        // per-instance value-access primitives in CilDataEmitter). Record-struct / OCCURS object data are deferred:
+        // their address chains (EmitInstanceAddressChain ldsflda / EmitTypedElementAddress ldsfld) are still
+        // static-only and need a per-instance variant first. This restriction auto-relaxes once the global
         // EnableTypedFields flip lands (then a class gets the full typed treatment like any program).
-        bool classCharOnly = module.IsClass && !_options.EnableTypedFields;
+        bool classFlatOnly = module.IsClass && !_options.EnableTypedFields;
 
         // An elementary item whose typed form is a homogeneous .NET string: classifier-typed, WORKING-STORAGE,
         // alphanumeric/national/alphabetic, no OCCURS, no figurative/ALL VALUE (those byte-back the init).
@@ -453,7 +454,7 @@ public sealed class Binder
             // numerics — an uninitialized numeric shows spaces, which long/decimal can't reproduce); now byte-
             // identical because the byte engine initializes every occurrence to the VALUE (DEVLOG 424). DEPENDING ON
             // / group-element tables stay byte.
-            if (!classCharOnly && sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
+            if (!classFlatOnly && sym.IsElementary && sym.Occurs is { DependingOnSymbol: null } occ && occ.MaxOccurs > 0
                 && sym.Area == Semantics.StorageAreaKind.WorkingStorage && classification.IsTyped(sym)
                 && _semantic.GetStorageLocation(sym) is { } aloc)
             {
@@ -493,7 +494,7 @@ public sealed class Binder
             // S4: a standalone elementary unsigned-integer DISPLAY/COMP/BINARY item with a VALUE → a typed `long`
             // field. The field's Width is the BYTE storage width (loc.Length) — for COMP/BINARY that differs from
             // the digit count (PIC 9(5) COMP is 4 bytes); the digit count lives on the PicDescriptor.
-            if (!classCharOnly && IsTypedUnsignedInteger(sym, out _, out long ninit))
+            if (IsTypedUnsignedInteger(sym, out _, out long ninit))
             {
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
@@ -504,7 +505,7 @@ public sealed class Binder
 
             // S4: a standalone elementary signed/scaled numeric item with a VALUE → a typed `decimal` field. Width
             // is the BYTE storage width; the scale/sign live on the PicDescriptor.
-            if (!classCharOnly && IsTypedDecimal(sym, out decimal decInit))
+            if (IsTypedDecimal(sym, out decimal decInit))
             {
                 int byteWidth = WidthOf(sym);
                 string name = "_T_" + sym.Name;
@@ -520,7 +521,7 @@ public sealed class Binder
             // group flips only if EVERY descendant is flippable (no OCCURS, no edited/byte-trigger item); otherwise
             // it stays byte. Member-level access only — a whole-group operand is handled by the existing classifier
             // group-MOVE demotion. (A contained OCCURS table flips independently via the S4 array branch.)
-            if (!classCharOnly && sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
+            if (!classFlatOnly && sym.Area == Semantics.StorageAreaKind.WorkingStorage && sym.IsGroup && sym.Occurs == null
                 && classification.IsTyped(sym) && sym.Children.Count > 0)
             {
                 string instanceName = "_TI_" + sym.Name;

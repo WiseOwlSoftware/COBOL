@@ -367,7 +367,13 @@ internal sealed class CilDataEmitter
     internal void EmitMoveWithStandardSignature(
         ILProcessor il, IrLocation source, IrLocation destination, int rounding, string methodName)
     {
-        _ctx.Location.EmitLocationArgsWithPic(il, source);
+        // The SOURCE is read-only, so a typed-native source (numeric or string) is materialized into a scratch byte
+        // window (the §2.5 materialize floor) and the byte MOVE then runs identically — this is the typed-numeric→byte
+        // MOVE cell (e.g. MOVE a typed `long` object datum TO a byte LINKAGE item). For a byte source the materializing
+        // helper is byte-identical to EmitLocationArgsWithPic (it falls through to the same EmitLocationArgs path).
+        // The DESTINATION is a write target: a typed-native dest has no byte window, so it still loud-guards here
+        // (byte→typed-numeric MOVE routes through a typed cell upstream, not this byte path).
+        _ctx.Location.EmitLocationArgsWithPicMaterializingTyped(il, source);
         _ctx.Location.EmitLocationArgsWithPic(il, destination);
 
         il.Append(il.Create(OpCodes.Ldc_I4, rounding));

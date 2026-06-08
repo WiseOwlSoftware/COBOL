@@ -853,4 +853,31 @@ public sealed class TypedFieldFlipTests : EndToEndTestBase
         Assert.True(bytes.success, bytes.stderr);
         Assert.Equal(typed.stdout.Replace("\r\n", "\n"), bytes.stdout.Replace("\r\n", "\n"));
     }
+
+    [Fact]
+    public void TypedNumericToByteMove_MaterializesByteIdentically()
+    {
+        // The typed-numeric→byte MOVE cell (DEVLOG 454): a typed `long` source MOVE'd to a byte-classified receiver
+        // (here a NUMERIC-EDITED item — editing is a byte trigger) is materialized into a scratch byte window and the
+        // byte MOVE runs identically. The byte path is the oracle: flag-ON must equal flag-OFF (the migration invariant).
+        const string program = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TNUM2B.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-N PIC 9(4) VALUE 42.
+            01 WS-E PIC ZZ99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                MOVE WS-N TO WS-E.
+                DISPLAY "E=" WS-E.
+                STOP RUN.
+            """;
+
+        var typed = CompileAndRun(program, enableTypedFields: true);
+        Assert.True(typed.success, typed.stderr);
+        var bytes = CompileAndRun(program);
+        Assert.True(bytes.success, bytes.stderr);
+        Assert.Equal(bytes.stdout.Replace("\r\n", "\n"), typed.stdout.Replace("\r\n", "\n"));
+    }
 }
