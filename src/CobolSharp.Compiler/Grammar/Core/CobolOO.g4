@@ -23,7 +23,7 @@ classDefinition
     ;
 
 classIdParagraph
-    : CLASS_ID DOT className DOT
+    : CLASS_ID DOT className (INHERITS FROM className)? DOT
     ;
 
 className

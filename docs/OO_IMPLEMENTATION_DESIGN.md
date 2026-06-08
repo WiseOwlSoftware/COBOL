@@ -1,8 +1,12 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
 > **Canonical reference for the COBOL Object-Orientation subsystem.** This is the **LIVE turnkey design** — defer to
-> it. **Implementation status (2026-06-07, DEVLOG 447–448):** the OO **grammar is DONE**
-> (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICES 1–2 are DONE end-to-end** —
+> it. **Implementation status (2026-06-07, DEVLOG 447–450):** the OO **grammar is DONE**
+> (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICES 1–3a are DONE end-to-end**
+> (slice 3a = `INHERITS FROM` + virtual methods + polymorphism: a subclass extends a base, inherits the root's
+> per-instance State via ctor-chaining, overrides base methods, dispatched virtually through a base-typed reference;
+> conformance `oo_inherit`. Deferred forms fail loudly: subclass own data → COBOL0113, INVOKE SELF/SUPER →
+> COBOL0112, unknown base → COBOL0114). Earlier: **SLICES 1–2** —
 > `CLASS-ID` → an instance .NET reference type with a per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o`
 > (`newobj` + the public `.ctor`), `INVOKE o "method" USING … RETURNING …` (`callvirt` on the CALL `ManagedPointer[]`
 > ABI — an OO method is an instance "Entry", static cross-type resolution), `USAGE OBJECT REFERENCE` storage, and

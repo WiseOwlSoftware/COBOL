@@ -29,8 +29,16 @@ internal sealed class CallBinder
     /// </summary>
     internal BoundStatement? BindInvoke(CobolParserCore.InvokeStatementContext ctx)
     {
-        var targetRef = ctx.invokeTarget()?.objectReference()?.dataReference();
-        if (targetRef == null) return null; // SELF/SUPER/NULL targets are later slices
+        var objRef = ctx.invokeTarget()?.objectReference();
+        // SELF / SUPER targets are a later OO slice — reject loudly (COBOL0112) rather than silently dropping.
+        if (objRef?.SELF() != null || objRef?.SUPER() != null)
+        {
+            _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0112,
+                new SourceLocation(_ctx.SourceName, 0, ctx.Start.Line, ctx.Start.Column), TextSpan.Empty);
+            return null;
+        }
+        var targetRef = objRef?.dataReference();
+        if (targetRef == null) return null; // NULL target / other forms — later slices
         string targetText = targetRef.cobolWord().GetText();
 
         // Method name: a literal "NEW"/"method" (slice 1; a data-name method selector is a later slice).

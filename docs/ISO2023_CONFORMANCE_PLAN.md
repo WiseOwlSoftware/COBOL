@@ -518,7 +518,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.7 M2 — Object-Oriented COBOL (the single largest sub-project)
 
-- ◐ **M2-OO-1 — OO COBOL. SLICES 1–2 DONE (DEVLOG 447–448); slices 3–6 remain.** Grammar DONE (`Core/CobolOO.g4`,
+- ◐ **M2-OO-1 — OO COBOL. SLICES 1–3a DONE (DEVLOG 447–450); slice 3b + slices 4–6 remain.** Grammar DONE (`Core/CobolOO.g4`,
   `{is2002()}?`-gated, DEVLOG 439). **Slice 1 (CLASS-ID + single OBJECT method + NEW + no-arg INVOKE + OBJECT
   REFERENCE storage) is implemented end-to-end** — a class is an INSTANCE .NET reference type with a per-instance
   `ProgramState` (`EmissionContext.StateIsInstance` chokepoint), `INVOKE class "NEW" RETURNING o` (`newobj`+`.ctor`),
@@ -529,8 +529,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   per-slice scope in `docs/OO_IMPLEMENTATION_DESIGN.md` (§5 slices, §6.6). **Slice 2 (DEVLOG 448): `INVOKE …
   USING/RETURNING`** — OO methods take USING args + a RETURNING value via the CALL ManagedPointer[] ABI (an OO method
   is an instance "Entry"); per-instance state proven (`oo_method_args`: two objects accumulate independently).
-  **Remaining (each its own guard-green + conformance-tested slice):** slice 3 `INHERITS
-  FROM` + `SELF`/`SUPER`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
+  **Slice 3a (DEVLOG 450): `INHERITS FROM` + virtual methods + polymorphism** — a subclass extends a base (`class
+  Sub : Base`), inherits the root's per-instance State (ctor-chains), and overrides base methods; invoking through a
+  base-typed reference dispatches to the override (`oo_inherit`: GENERIC/WOOF/WOOF). Deferred forms fail loudly
+  (subclass own data → COBOL0113; INVOKE SELF/SUPER → COBOL0112; unknown base → COBOL0114).
+  **Remaining (each its own guard-green + conformance-tested slice):** slice 3b subclass own OBJECT data (extend
+  the shared State) + `INVOKE SELF/SUPER`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
   + universal object reference + `EC-OO-*`; plus multi-method classes (a richer per-class IrModule) and per-instance
   OBJECT REFERENCE / typed-native OBJECT fields. INTERFACE-ID is post-slice-6. §11 OO source units, §14.9.23 INVOKE.
 

@@ -47,13 +47,15 @@ default + proceed).
   byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`, numeric→`long`/
   `decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every byte-trigger
   (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte.
-- **OO: grammar DONE + SLICES 1–2 DONE end-to-end** (DEVLOG 447–448): `CLASS-ID` → an instance .NET type with a
-  per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o`, `INVOKE o "method" USING … RETURNING …` (the CALL
-  `ManagedPointer[]` ABI — an OO method is an instance "Entry"; static cross-type resolution), `USAGE OBJECT
-  REFERENCE` storage, PERFORM inside an OBJECT method; per-instance state proven (two objects accumulate
-  independently). Conformance `oo_hello` + `oo_method_perform` + `oo_method_args`; slice-1 adversarially reviewed
-  (non-OO corpus byte-identical). **NEXT OO = slice 3 (INHERITS FROM + SELF/SUPER), then 4 FACTORY / 5 PROPERTY /
-  6 polymorphism** (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Single-method-per-class today; slice-2 USING = BY REFERENCE.
+- **OO: grammar DONE + SLICES 1–3a DONE end-to-end** (DEVLOG 447–450): `CLASS-ID` → an instance .NET type with a
+  per-instance `ProgramState`; `INVOKE class "NEW" RETURNING o`; `INVOKE o "method" USING … RETURNING …` (CALL
+  `ManagedPointer[]` ABI); `USAGE OBJECT REFERENCE` storage; PERFORM in a method; per-instance state proven; and
+  **slice 3a `INHERITS FROM` + virtual methods + polymorphism** (subclass extends base, inherits the root's State
+  via ctor-chaining, overrides base methods, virtual dispatch through a base-typed ref — `oo_inherit`). Each slice
+  adversarially reviewed (Agent tool); deferred forms fail loudly (COBOL0111 arg-forms, 0112 SELF/SUPER, 0113
+  subclass-data, 0114 unknown-base). Conformance `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`.
+  **NEXT OO = slice 3b (subclass own OBJECT data — extend the shared State — + INVOKE SELF/SUPER), then 4 FACTORY /
+  5 PROPERTY / 6 universal-ref+EC** (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Single-method-per-class today.
 - **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
   **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),
   9 lowering classes.

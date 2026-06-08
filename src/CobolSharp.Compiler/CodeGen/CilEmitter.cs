@@ -21,6 +21,9 @@ public sealed class CilEmitter
     private readonly Dictionary<IrField, FieldDefinition> _fieldMap = new();
     private readonly Dictionary<IrMethod, MethodDefinition> _methodMap = new();
     private TypeDefinition? _programType;
+    /// <summary>OO slice 3: the INHERITS FROM base type of the class currently being emitted (null for a root
+    /// class or a normal program). Used for the subclass .ctor chain + override detection.</summary>
+    private TypeDefinition? _currentBaseType;
     private FieldDefinition? _programStateField;
     private MethodDefinition? _initializeStateMethod;
     private FieldDefinition? _alterTableField;
@@ -95,10 +98,28 @@ public sealed class CilEmitter
         var asm = AssemblyDefinition.CreateAssembly(asmName, assemblyName, ModuleKind.Console);
         MethodDefinition? entryPoint = null;
 
-        // Emit OO class units BEFORE program units, so a program's INVOKE / OBJECT REFERENCE field can resolve a
-        // class type + its methods (already present in the shared module) at emit time. The entry point is still
-        // the first PROGRAM's Main (classes have none), and the assembly name is independent of this order.
-        foreach (var (module, model) in programs.OrderBy(p => p.Module.IsClass ? 0 : 1))
+        // Emit OO class units BEFORE program units (so a program's INVOKE / OBJECT REFERENCE field can resolve a
+        // class type + its methods at emit time), and a base class BEFORE its subclass (INHERITS, slice 3 — the
+        // subclass's emit resolves the base TypeDefinition + its State field + ctor). Order key: programs last,
+        // then by inheritance depth ascending (roots before subclasses). Stable, so the first PROGRAM's Main is
+        // still the entry point and the assembly name is independent of this order.
+        var classNameSet = programs.Where(p => p.Module.IsClass)
+            .Select(p => p.Module.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        int InheritanceDepth(IrModule m)
+        {
+            int depth = 0;
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (var b = m.BaseClassName; b != null && classNameSet.Contains(b) && seen.Add(b); )
+            {
+                depth++;
+                b = programs.FirstOrDefault(p => string.Equals(p.Module.Name, b, StringComparison.OrdinalIgnoreCase))
+                    .Module?.BaseClassName;
+            }
+            return depth;
+        }
+        foreach (var (module, model) in programs
+                     .OrderBy(p => p.Module.IsClass ? 0 : 1)
+                     .ThenBy(p => p.Module.IsClass ? InheritanceDepth(p.Module) : 0))
         {
             var emitter = new CilEmitter(asm.MainModule);
             emitter._semanticModel = model;
@@ -237,20 +258,33 @@ public sealed class CilEmitter
     /// </summary>
     internal void EmitClassModule(IrModule ir)
     {
-        // A normal (non-sealed) reference type over the INHERITS base (slice 1: System.Object), so it can be
-        // newobj'd and (later) subclassed.
+        // A normal (non-sealed) reference type. INHERITS FROM (OO slice 3) sets the base to the named class
+        // (emitted earlier — classes precede programs and a base precedes its subclass); else System.Object.
+        var baseType = ir.BaseClassName != null ? FindClassType(ir.BaseClassName) : null;
+        _currentBaseType = baseType;
         _programType = new TypeDefinition(
             @namespace: "",
             name: ir.Name,
             attributes: TypeAttributes.Public | TypeAttributes.Class,
-            baseType: _module.TypeSystem.Object);
+            baseType: (TypeReference?)baseType ?? _module.TypeSystem.Object);
         _module.Types.Add(_programType);
 
         // From here every State access + emitted method is instance-shaped (one chokepoint flag).
         _ctx.StateIsInstance = true;
 
-        // 0. Per-instance ProgramState field + instance InitializeState + the public .ctor (NEW).
-        EmitProgramState(ir);
+        // 0. State + constructor. A ROOT class owns the per-instance ProgramState field + InitializeState + a
+        //    NEW .ctor. A SUBCLASS (slice 3) INHERITS the root's State field and its .ctor just chains to the base
+        //    (which allocates + initializes State); the subclass adds no OBJECT data of its own in slice 3a (the
+        //    binder rejects that with COBOL0112), so it needs no State field or InitializeState.
+        if (baseType == null)
+        {
+            EmitProgramState(ir);
+        }
+        else
+        {
+            _programStateField = ResolveInheritedField(baseType, "State");
+            EmitSubclassConstructor(baseType);
+        }
         SyncToContext();
 
         // 1. Record types (typically none for a slice-1 class).
@@ -299,10 +333,17 @@ public sealed class CilEmitter
     {
         if (ir.ClassMethodName is not { } methodName) return;
 
-        var md = new MethodDefinition(
-            methodName,
-            MethodAttributes.Public | MethodAttributes.HideBySig,
-            _module.TypeSystem.Void);
+        // OO methods are VIRTUAL so a subclass can override them (polymorphism, slice 3). A method that matches a
+        // base-class method name is an OVERRIDE (Virtual + ReuseSlot, same name/sig as the inherited virtual); a
+        // method with no base counterpart is a NEW virtual (NewSlot). COBOL names are case-INSENSITIVE but the .NET
+        // override slot match is case-SENSITIVE — so an override MUST be emitted under the base method's EXACT name
+        // (else `METHOD-ID. speak` overriding `SPEAK` would silently fail to override → wrong dispatch).
+        var baseMethod = _currentBaseType != null ? ResolveInheritedMethod(_currentBaseType, methodName) : null;
+        bool isOverride = baseMethod != null;
+        var attrs = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+        if (!isOverride) attrs |= MethodAttributes.NewSlot;
+
+        var md = new MethodDefinition(isOverride ? baseMethod!.Name : methodName, attrs, _module.TypeSystem.Void);
         md.Parameters.Add(new ParameterDefinition(
             "args", ParameterAttributes.None, _module.ImportReference(typeof(ManagedPointer[]))));
         _programType!.Methods.Add(md);
@@ -323,6 +364,53 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Pop));                            // discard the returned next-pc
         }
         il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>OO slice 3: emit a subclass's parameterless public <c>.ctor</c> (the COBOL NEW factory) that just
+    /// chains to the base constructor — the base allocates + initializes the shared per-instance State. The subclass
+    /// adds no State field or InitializeState of its own (slice 3a rejects subclass OBJECT data).</summary>
+    private void EmitSubclassConstructor(TypeDefinition baseType)
+    {
+        var ctor = new MethodDefinition(
+            ".ctor",
+            MethodAttributes.Public | MethodAttributes.HideBySig |
+            MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+            _module.TypeSystem.Void);
+        _programType!.Methods.Add(ctor);
+        var baseCtor = baseType.Methods.FirstOrDefault(m => m.IsConstructor && !m.IsStatic && m.Parameters.Count == 0)
+            ?? throw new InvalidOperationException(
+                $"INHERITS: base class '{baseType.Name}' has no parameterless constructor.");
+        var il = ctor.Body.GetILProcessor();
+        il.Append(il.Create(OpCodes.Ldarg_0));
+        il.Append(il.Create(OpCodes.Call, baseCtor));   // base..ctor() allocates + initializes the shared State
+        il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>Resolve an instance field (e.g. "State") declared on <paramref name="type"/> or any of its base
+    /// classes (the field lives on the root class; subclasses inherit it). Returns null if not found.</summary>
+    private static FieldDefinition? ResolveInheritedField(TypeDefinition? type, string name)
+    {
+        for (var cur = type; cur != null; cur = cur.BaseType as TypeDefinition ?? cur.BaseType?.Resolve())
+        {
+            var f = cur.Fields.FirstOrDefault(f => f.Name == name);
+            if (f != null) return f;
+            if (cur.BaseType == null || cur.BaseType.FullName == "System.Object") break;
+        }
+        return null;
+    }
+
+    /// <summary>Resolve an instance method by name declared on <paramref name="type"/> or any base class (walks the
+    /// INHERITS chain). Used for override detection and for INVOKE-ing an inherited method. Returns null if absent.</summary>
+    private static MethodDefinition? ResolveInheritedMethod(TypeDefinition? type, string name)
+    {
+        for (var cur = type; cur != null; cur = cur.BaseType as TypeDefinition ?? cur.BaseType?.Resolve())
+        {
+            var m = cur.Methods.FirstOrDefault(m =>
+                !m.IsConstructor && !m.IsStatic && string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (m != null) return m;
+            if (cur.BaseType == null || cur.BaseType.FullName == "System.Object") break;
+        }
+        return null;
     }
 
     /// <summary>Find an emitted OO class type by its COBOL class-name (case-insensitive) among the assembly's
@@ -1550,9 +1638,9 @@ public sealed class CilEmitter
         var recvClass = FindClassType(inv.ReceiverClassName)
             ?? throw new InvalidOperationException(
                 $"INVOKE '{inv.MethodName}': unknown receiver class '{inv.ReceiverClassName}'.");
-        var method = recvClass.Methods.FirstOrDefault(m =>
-                !m.IsConstructor && !m.IsStatic &&
-                string.Equals(m.Name, inv.MethodName, StringComparison.OrdinalIgnoreCase))
+        // Resolve the method on the receiver's class OR any base class (INHERITS chain, OO slice 3). callvirt on a
+        // virtual method then dispatches to the most-derived override at runtime (polymorphism).
+        var method = ResolveInheritedMethod(recvClass, inv.MethodName)
             ?? throw new InvalidOperationException(
                 $"INVOKE: class '{inv.ReceiverClassName}' has no method '{inv.MethodName}'.");
 

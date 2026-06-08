@@ -158,6 +158,26 @@ public sealed class Compilation
             {
                 irModule.IsClass = true;
                 irModule.ClassMethodName = ExtractClassMethodName(classCtx);
+                irModule.BaseClassName = ExtractBaseClassName(classCtx); // OO slice 3: INHERITS FROM
+                if (irModule.BaseClassName is { } baseName)
+                {
+                    // INHERITS FROM a base that isn't a class in this compilation group → fail loudly rather than
+                    // silently degrade to a root class (the inheritance the author wrote would just not exist).
+                    if (!classNames.Contains(baseName))
+                        diagnostics.Report(DiagnosticDescriptors.COBOL0114,
+                            new SourceLocation(sourcePath, 0, 0, 0), TextSpan.Empty, baseName);
+
+                    // Slice 3a: a subclass inherits the base's per-instance State but does not yet emit its own —
+                    // so its own OBJECT data has nowhere to live. Reject it loudly (a later slice extends State).
+                    // Check the OBJECT's OWN WORKING-STORAGE parse subtree directly (its data entries) — NOT the
+                    // flattened symbol list, which also carries each method's LINKAGE params and synthetic OCCURS
+                    // INDEXED BY index-names (the latter are force-placed in the WS area, ISO §8.5.1.2).
+                    bool hasOwnObjectData = classCtx.objectParagraph()?.dataDivision()
+                        ?.workingStorageSection()?.dataDescriptionEntry() is { Length: > 0 };
+                    if (hasOwnObjectData)
+                        diagnostics.Report(DiagnosticDescriptors.COBOL0113,
+                            new SourceLocation(sourcePath, 0, 0, 0), TextSpan.Empty, baseName);
+                }
             }
 
             compiledPrograms.Add(new CompiledProgram(programId, irModule, semanticModel));
@@ -692,9 +712,10 @@ public sealed class Compilation
     private static string? ExtractProgramIdFromContext(ParserRuleContext ctx)
     {
         // OO: a class unit's name lives in its CLASS-ID paragraph (className → cobolWord), not an
-        // identificationBody (which a classDefinition does not have).
+        // identificationBody (which a classDefinition does not have). className() is an array — the class name is
+        // first; a second entry (if INHERITS FROM is present) is the base class (see ExtractBaseClassName).
         if (ctx is CobolParserCore.ClassDefinitionContext cd)
-            return cd.classIdParagraph()?.className()?.cobolWord()?.GetText();
+            return cd.classIdParagraph()?.className() is { Length: > 0 } cn ? cn[0].cobolWord()?.GetText() : null;
 
         CobolParserCore.IdentificationDivisionContext? idDiv = ctx switch
         {
@@ -714,6 +735,12 @@ public sealed class Compilation
             && methods[0].methodName() is { Length: > 0 } names
             ? names[0].cobolWord()?.GetText()
             : null;
+
+    /// <summary>The <c>INHERITS FROM</c> base class name of a class unit (OO slice 3), or null for a root class.
+    /// <c>classIdParagraph.className()</c> is an array: [0] = this class's name, [1] = the base (present only when
+    /// the <c>INHERITS FROM className</c> tail matched).</summary>
+    private static string? ExtractBaseClassName(CobolParserCore.ClassDefinitionContext cd)
+        => cd.classIdParagraph()?.className() is { Length: > 1 } cn ? cn[1].cobolWord()?.GetText() : null;
 
     /// <summary>The unit's name from either a PROGRAM-ID or a COBOL-2002 FUNCTION-ID paragraph (ISO §11.5).</summary>
     private static string? UnitName(CobolParserCore.IdentificationBodyContext? body)
