@@ -123,6 +123,8 @@ public sealed class CSharpEmitter
             case var _ when s.moveStatement() is { } m: EmitMove(m, w); break;
             case var _ when s.addStatement() is { } a: EmitAdd(a, w); break;
             case var _ when s.subtractStatement() is { } sub: EmitSubtract(sub, w); break;
+            case var _ when s.multiplyStatement() is { } mul: EmitMultiply(mul, w); break;
+            case var _ when s.divideStatement() is { } div: EmitDivide(div, w); break;
             case var _ when s.computeStatement() is { } c: EmitCompute(c, w); break;
             case var _ when s.ifStatement() is { } iff: EmitIf(iff, w); break;
             case var _ when s.stopStatement() is not null || s.gobackStatement() is not null: w.Line("return;"); break;
@@ -393,6 +395,78 @@ public sealed class CSharpEmitter
 
             default:
                 return RenderArith(node.GetChild(0)); // single pass-through wrapper levels
+        }
+    }
+
+    /// <summary>
+    /// Emit <c>MULTIPLY a BY b</c> (→ <c>b = b * a</c> per receiver) and <c>MULTIPLY a BY b GIVING c…</c>
+    /// (→ <c>c = a * b</c>). ROUNDED / SIZE ERROR land with the full CobolNum store (G3).
+    /// </summary>
+    private void EmitMultiply(Core.MultiplyStatementContext mul, CodeWriter w)
+    {
+        if (mul.multiplyOperand() is not { } aCtx) { w.Line("// TODO(COBOL.NET): MULTIPLY form"); return; }
+        string a = NumDecimal(aCtx);
+        var byOps = mul.multiplyByOperand();
+
+        if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
+        {
+            string b = NumDecimal(byOps[0]);
+            foreach (var target in DataRefs(giving))
+                EmitArithAssign(target, $"{a} * {b}", w);
+        }
+        else
+            foreach (var byOp in byOps)
+                if (DataRefs(byOp).FirstOrDefault() is { } target && Resolve(target) is { } t)
+                    EmitArithAssign(target, $"(decimal){t.CsName} * {a}", w);
+    }
+
+    /// <summary>
+    /// Emit <c>DIVIDE a INTO b [GIVING c]</c> (→ <c>b = b / a</c> / <c>c = b / a</c>) and
+    /// <c>DIVIDE a BY b GIVING c</c> (→ <c>c = a / b</c>). REMAINDER is a later slice.
+    /// </summary>
+    private void EmitDivide(Core.DivideStatementContext div, CodeWriter w)
+    {
+        if (div.divideRemainderPhrase() is not null) { w.Line("// TODO(COBOL.NET): DIVIDE … REMAINDER"); return; }
+        if (div.divideOperand() is not { } aCtx) { w.Line("// TODO(COBOL.NET): DIVIDE form"); return; }
+        string a = NumDecimal(aCtx);
+
+        if (div.divideIntoPhrase() is { } into)
+        {
+            // DIVIDE a INTO b [GIVING c]: divisor = a; dividend = b.
+            string b = NumDecimal(into.divideIntoOperand());
+            if (div.divideGivingPhrase() is { } giving)
+                foreach (var target in DataRefs(giving)) EmitArithAssign(target, $"{b} / {a}", w);
+            else
+                foreach (var target in DataRefs(into))
+                    if (Resolve(target) is { } t) EmitArithAssign(target, $"(decimal){t.CsName} / {a}", w);
+        }
+        else if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } giving)
+        {
+            // DIVIDE a BY b GIVING c: c = a / b.
+            string b = NumDecimal(byPhrase.divideOperand());
+            foreach (var target in DataRefs(giving)) EmitArithAssign(target, $"{a} / {b}", w);
+        }
+    }
+
+    /// <summary>Render any arithmetic operand node (data reference or numeric literal) as a C# decimal expression.</summary>
+    private string NumDecimal(IParseTree operand)
+    {
+        foreach (var d in Descendants(operand))
+        {
+            if (d is Core.LiteralContext l) return RenderNumericLiteral(l.GetText(), asDecimal: true);
+            if (d is Core.DataReferenceContext dref) return $"(decimal){Resolve(dref)?.CsName ?? "0"}";
+        }
+        return "0m";
+    }
+
+    /// <summary>A node and all its descendants, in source (pre-order) sequence.</summary>
+    private static IEnumerable<IParseTree> Descendants(IParseTree node)
+    {
+        for (int i = 0; i < node.ChildCount; i++)
+        {
+            var child = node.GetChild(i);
+            yield return child;
+            foreach (var inner in Descendants(child)) yield return inner;
         }
     }
 
