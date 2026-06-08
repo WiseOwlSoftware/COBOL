@@ -1,6 +1,9 @@
 CobolSharp Cookbook — 100 Ready‑to‑Use Patterns, Idioms & Recipes (CIL‑Only)
 =============================================================================
 
+> **DESIGN REFERENCE — Production Patterns** (target cookbook; implementation status varies by subsystem).
+> Stack: .NET 10 / C# 14. See `docs/MASTER_PLAN.md` Phase C–E for actual language-feature coverage + test harness completion.
+
 Purpose
 -------
 Provide a complete, production‑grade cookbook of 100 CobolSharp patterns:

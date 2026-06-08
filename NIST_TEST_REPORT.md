@@ -1,12 +1,14 @@
 # NIST CCVS85 Nucleus Test Report
 
-**Date:** 2026-03-27
+**Date:** 2026-06-07
 **Total programs:** 95
-**Tests:** 421 unit + 263 integration + 64 NIST guard
+**Tests:** 1196 unit / 509 integration / 364 NIST guard
+
+> The detailed per-program breakdown below is the snapshot from 2026-03-27 and is archived for historical reference. Current guard counts are 1196 unit / 509 integration / 364 NIST (DEVLOG 441, 2026-06-07).
 
 ---
 
-## Summary
+## Summary (snapshot 2026-03-28 — current guard is 1196 / 509 / 364, see note above)
 
 | Status | Count | Programs |
 |--------|------:|----------|

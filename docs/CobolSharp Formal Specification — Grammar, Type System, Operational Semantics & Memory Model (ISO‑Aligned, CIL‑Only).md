@@ -1,6 +1,8 @@
 CobolSharp Formal Specification — Grammar, Type System, Operational Semantics & Memory Model (ISO‑Aligned, CIL‑Only)
 ===================================================================================================================
 
+> **DESIGN REFERENCE.** This document is a formal specification essay authored as a target design. Actual implementation status varies by subsystem — refer to `docs/MASTER_PLAN.md` §2 (M1 COBOL-85 complete; data-model migration Stages 0–4 done; OO grammar done, semantic/emit pending) and `docs/ISO2023_CONFORMANCE_PLAN.md` for the live conformance roadmap. Stack: .NET 10 / C# 14, CIL-only. Grammar is version-factored (CobolParserCore.g4 + Core/*.g4 fragments with `{isYYYY()}?` hooks); post-85 features dialect-gated. `docs/ISO2023_CONFORMANCE_PLAN.md` is the SINGLE SOURCE OF TRUTH for work.
+
 Purpose
 -------
 Define the authoritative, formal specification for CobolSharp:

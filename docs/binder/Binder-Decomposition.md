@@ -2,8 +2,10 @@
 
 **Status:** Design document — approved for implementation
 **Date:** 2026-03-30
-**Ledger item:** M002 — Break Binder.cs god class into focused lowerers
+**Ledger item:** M002 — Break `Binder.cs` (the lowering pass: BoundProgram → IrModule) into focused lowerers
 **Prerequisite:** M001 (IrExpression) — complete
+
+> **CLARIFICATION (2026-06-07):** This item (M002) targets the **lowering** pass — `Binder.cs`, which turns the bound tree into the IR module. It is **distinct from M004**, which decomposed the **front-end** `BoundTreeBuilder` into 9 focused binders behind a 234-line orchestrator and is already **COMPLETE** (see `docs/MASTER_PLAN.md` §10.1). The sibling refactors **M001** (IrExpression) and **M003** (`CilEmitter` → 11 focused emitters) are likewise **DONE** — so neither `CilEmitter` nor `BoundTreeBuilder` is a "god class" any longer; they stand as precedent for the decomposition pattern this document specifies for the lowering pass. Confirm M002's own current status against the latest DEVLOG before starting. Stack: .NET 10 / C# 14.
 
 ---
 

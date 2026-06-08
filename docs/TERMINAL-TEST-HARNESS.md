@@ -1,5 +1,8 @@
 # Test Harness Patterns for Scripted Screen I/O
 
+> **DESIGN REFERENCE — Terminal Test Harness** (target design for deterministic screen I/O testing; implementation status ~30% per MASTER_PLAN §2).
+> Stack: .NET 10 / C# 14. See `docs/MASTER_PLAN.md` Phase E (product surface — IDE, debugger, diagnostics) for actual timeline.
+
 ## 1. Purpose
 
 We need deterministic, headless tests for:

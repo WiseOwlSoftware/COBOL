@@ -1,6 +1,10 @@
 CobolSharp Determinism Model — Cross‑Platform Guarantees, Encoding Rules & Reproducibility Architecture (CIL‑Only)
 =================================================================================================================
 
+## ⚠️ DESIGN REFERENCE (Not Implemented)
+
+This is a target architecture design document from the prior doc-generation pass. **Status: Design-only (~0 lines implemented as of 2026-06-07).** See `docs/MASTER_PLAN.md` §10.2 ("Determinism Model" in Phase E essays). This is production/commercial-bar work (CI, reproducible builds, SBOM, signing). Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the authoritative architecture for:

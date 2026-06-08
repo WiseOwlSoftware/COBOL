@@ -1,6 +1,10 @@
 CobolSharp Complete ISO Compatibility Matrix — Feature Coverage, Deviations & Extensions (ISO/IEC 1989:2023, CIL‑Only)
 =====================================================================================================================
 
+> **STATUS:** ISO Compatibility reference document. COBOL-85 baseline (M1) is complete and verified. Remaining ISO-2023 features (Phase C), OO semantic/emit (Phase B), and product surface (Phase E) are in the phased roadmap — see docs/MASTER_PLAN.md §3. Stack: .NET 10 / C# 14; CIL-only backend.
+>
+> **Design reference / aspirational matrix.** This document describes a complete ISO/IEC 1989:2023 compatibility reference. Actual coverage and correctness should be verified against `docs/ISO2023_CONFORMANCE_PLAN.md` (the LIVE conformance SSOT) and the conformance test corpus before relying on this for authoritative feature status.
+
 Purpose
 -------
 Define the authoritative compatibility matrix between:
@@ -17,17 +21,31 @@ This document provides a complete, formal compatibility reference.
 SECTION 1 — COVERAGE SUMMARY
 ------------------------------------------------------------
 
-CobolSharp implements:
-- 100% of core ISO/IEC 1989:2023 syntax
-- 100% of required semantics
-- 100% of numeric rules
-- 100% of file I/O semantics (sequential, indexed, relative)
-- 100% of intrinsic functions
-- 100% of declaratives
-- 100% of CALL/ENTRY semantics
-- 100% of REPORT WRITER
-- 100% of SORT/MERGE
-- 100% of OO COBOL (class/object/method/property)
+**Honest, phased status (authoritative status lives in `docs/MASTER_PLAN.md` §2/§3):**
+
+COBOL-85 core implementation complete; Phase B–E expansion in progress. The figures below
+distinguish the verified COBOL-85 baseline (M1) from the work still ahead.
+
+**COBOL-85 baseline — COMPLETE (M1, verified; docs/MASTER_PLAN.md §2):**
+- Core COBOL-85 syntax (the 2002/2014/2023 syntax surface is Phase C — pending)
+- Core COBOL-85 required semantics (full ISO-2023 semantics is Phase C)
+- Numeric rules
+- COBOL-85 file I/O semantics (sequential, indexed, relative); 2002+ file extensions are Phase C
+- Intrinsic functions
+- Declaratives
+- CALL/ENTRY semantics
+- REPORT WRITER (M1 baseline; extended features are Phase C)
+- SORT/MERGE
+
+**Phase B — in progress (docs/MASTER_PLAN.md §3 Phase B):**
+- Data-model migration (typed-native record structs; Stage 5 = Roslyn backend, additive over the CIL/Mono.Cecil core)
+- OO COBOL (class/object/method/property): **grammar is done; semantic analysis + emit are pending**
+
+**Phase C — pending (docs/MASTER_PLAN.md §3 Phase C):**
+- ISO/IEC 1989:2023 feature expansion (2002/2014/2023 syntax, semantics, file extensions, extended REPORT WRITER)
+
+**Phase E — pending (~0 lines today; docs/MASTER_PLAN.md §3 Phase E):**
+- Product surface: debugger, LSP, CI, packaging, performance, documentation
 
 CobolSharp intentionally omits:
 - Non‑deterministic features

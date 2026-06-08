@@ -1,6 +1,8 @@
 CobolSharp Operational Runbook — Incident Response, Debugging in Production & Recovery Procedures (CIL‑Only)
 ===========================================================================================================
 
+> **STATUS: Forward-looking operational playbook (implementation status: Phase E, deferred).** This document describes the intended production operational procedures and incident-response workflow for CobolSharp systems. These capabilities are design-only and will be implemented as part of Phase E (Production Surface). Current status: compiler core + basic runtime, not yet production-hardened. See `docs/MASTER_PLAN.md` §10.2. Stack: .NET 10 / C# 14; CIL-only backend (Mono.Cecil).
+
 Purpose
 -------
 Define the authoritative operational runbook for CobolSharp production systems:

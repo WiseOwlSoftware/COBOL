@@ -1,6 +1,8 @@
 CobolSharp COBOL Compiler Directive & Conditional Compilation Architecture (CIL‑Only)
 ====================================================================================
 
+> **DESIGN DOCUMENT (Not yet implemented).** This describes the target architecture for compiler directives. Current implementation status and integration point: refer to `docs/MASTER_PLAN.md` §2 and `docs/REPLACE Preprocessor, Source Mapping & Compilation Pipeline Architecture.md`. Stack: .NET 10 / C# 14. For actual implementation details, see `src/CobolSharp.Compiler/Preprocessor/`.
+
 Purpose
 -------
 Define the authoritative architecture for:

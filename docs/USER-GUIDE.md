@@ -1,10 +1,12 @@
-# CobolSharp User Guide
+# COBOL.NET User Guide
+
+> Updated 2026-06-07. This is the user guide for the COBOL.NET compiler. The product name (`COBOL.NET`) and CLI executable (`cobol.exe`) are tentative, pending completion of the Phase F rename (see MASTER_PLAN.md §3). The repository is currently still named `CobolSharp`.
 
 ## Installation
 
 ### As a .NET Global Tool
 ```bash
-dotnet tool install -g CobolSharp
+dotnet tool install -g COBOL.NET
 ```
 
 ### From Source
@@ -18,10 +20,10 @@ dotnet build
 
 ```bash
 # Basic compilation
-cobolsharp compile myprogram.cob
+cobol compile myprogram.cob
 
 # Specify output path
-cobolsharp compile myprogram.cob -o output/myprogram.dll
+cobol compile myprogram.cob -o output/myprogram.dll
 
 # Run the compiled program
 dotnet output/myprogram.dll
@@ -37,7 +39,7 @@ For each compiled program, the compiler generates:
 
 ## Source Format
 
-CobolSharp supports both **free-form** and **fixed-form** COBOL source:
+COBOL.NET supports both **free-form** and **fixed-form** COBOL source:
 
 - **Free-form** (default): No column restrictions. Comments use `*>`.
 - **Fixed-form**: Auto-detected when source has numeric sequence numbers in columns 1-6. Column 7 indicator (`*` for comment, `-` for continuation).

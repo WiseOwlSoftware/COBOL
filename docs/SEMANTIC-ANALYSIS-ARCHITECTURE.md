@@ -1,6 +1,39 @@
 CobolSharp Semantic Analysis Architecture
 ========================================
 
+> **STATUS BANNER (2026-06-07).** This is the **LIVE canonical** design reference for the
+> CobolSharp semantic analyzer / symbol-table / type-system subsystem. **Implementation status:
+> ~80–90% implemented** — the analyzer is real and in active use (see `src/CobolSharp.Compiler/Semantics/`:
+> `SemanticBuilder`, `SymbolTable`, `Scope`, `ReferenceResolver`, `PicUsageResolver`, `TypeSystem`,
+> `ArithmeticTypeSystem`, `ProcedureGraph`, `RecordClassification`, plus the `Bound/Binding/` binder
+> decomposition and `FlowAnalysis/`). The OO, generics, and JSON/XML *passes* described below are
+> partially design-only — OO grammar is done but its semantic/emit is pending; JSON/XML PARSE/GENERATE
+> lowering is design-only (Phase C). Verify any specific pass against `src/` before stating it is complete.
+>
+> **Stack: .NET 10 / C# 14.** Backend is **CIL-only via Mono.Cecil** — there is **no custom VM / no
+> bytecode interpreter** (any "bytecode" phrasing below is legacy wording for CIL emission; a Roslyn C#
+> backend is a future additive Stage-5 option with Cecil as the oracle).
+>
+> **Already-decomposed (do NOT treat as god classes):** the bound-tree build is split across **9 binders**
+> under `Bound/Binding/` (the M004 `BoundTreeBuilder`→binders refactor); IR is `IrExpression` (M001);
+> CIL emission is 11 emitters (M003). Per project doctrine the **Binder produces bound nodes only, never
+> IR — lowering turns bound nodes into IR.**
+>
+> **Data-model note:** the typed-native data model (char→`string`, numeric→`long`/`decimal`,
+> groups→`record struct`, OCCURS→`T[]`, pointers→**`ManagedPointer`**) is gated behind `EnableTypedFields`
+> (default OFF). The `RecordClassificationPass` classifier (`RecordClassification.cs`, wired into the Binder)
+> decides per-record whether typed-native or the byte/StorageBlock fallback applies; the byte engine is being
+> islanded. There is **one** pointer carrier, `ManagedPointer` (no 8-byte handle, no PointerRegistry).
+>
+> **Plan SSOT:** `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`. Companion LIVE rule docs:
+> `docs/CATEGORY-RULES.md` (data-category compatibility) and `docs/SCOPE-RULES.md` (name resolution / scoping).
+> The per-feature *behavior* "constitution" lives in the separate doc
+> `docs/CobolSharp COBOL Semantic Rules & Edge‑Case Behavior Specification.md` (a distinct behavior spec —
+> NOT merged here).
+>
+> *Consolidated from 1 prior essay doc ("CobolSharp COBOL Semantic Analyzer & Symbol Table Architecture"),
+> 2026-06-07 — its unique still-current content is salvaged into the appended section below.*
+
 High-level goals
 ----------------
 - Build a precise, navigable semantic model over the parsed COBOL AST.
@@ -295,4 +328,69 @@ The semantic analysis architecture for CobolSharp is:
   - OO and generics semantics
   - JSON/XML semantics
 - Driven by a preprocessor-aware pipeline that preserves accurate source locations.
-- Designed so IL/bytecode generation and IDE/LSP features operate on a clean, well-typed, fully-resolved semantic graph rather than the raw parse tree.
+- Designed so CIL generation and IDE/LSP features operate on a clean, well-typed, fully-resolved semantic graph rather than the raw parse tree.
+
+============================================================
+APPENDIX A — SALVAGED FROM THE PRIOR "SEMANTIC ANALYZER & SYMBOL TABLE ARCHITECTURE" ESSAY
+============================================================
+
+> Consolidated 2026-06-07. The essay overlapped heavily with the passes above; only the items below
+> add unique, still-current detail. Stale framings were corrected: CIL-only (no custom VM); the
+> analyzer is already decomposed (binders/emitters); typed-native data model gated by `EnableTypedFields`.
+
+A.1 Symbol resolution order (name lookup)
+-----------------------------------------
+For an unqualified reference, resolution walks outward in this order (see `docs/SCOPE-RULES.md` for
+the authoritative rules and `ReferenceResolver.cs` for the implementation):
+1. Local paragraph scope
+2. Enclosing section scope
+3. Program scope (data, files, paragraphs/sections, typedefs)
+4. Containing program scope (nested-program nesting)
+5. COPY-introduced symbols (after preprocessor expansion)
+
+A.2 Constant folding (early-evaluation pass)
+--------------------------------------------
+A constant-folding step runs during/after type binding to evaluate compile-time-known expressions:
+- **Foldable:** numeric literals; arithmetic on literals; boolean expressions over literals;
+  `LENGTH OF` a fixed-size item; FUNCTION calls whose arguments are all literals (the deterministic,
+  side-effect-free subset only).
+- **Non-foldable:** anything touching a data item, an OCCURS subscript, or JSON/XML.
+- **Benefits:** smaller/faster emitted CIL, and early detection of compile-time numeric overflow
+  (a `SIZE ERROR`-class diagnostic at compile time rather than runtime).
+
+A.3 AST / bound-node annotations consumed by the backend
+--------------------------------------------------------
+Semantic analysis annotates the bound tree with: the resolved symbol, resolved type information,
+any constant-folded value, control-flow metadata, and REDEFINES/OCCURS storage metadata.
+Lowering + the CIL emitters then rely on: resolved types, resolved paragraph/section targets,
+resolved CALL/INVOKE signatures, folded constants, and storage-layout metadata. (Per doctrine the
+Binder emits bound nodes only; IR is produced by the lowering stage, not the Binder.)
+
+A.4 Diagnostic-mapping detail
+-----------------------------
+Every diagnostic carries a source span mapped through three layers: the **original** source span,
+the **expanded** (post-COPY/REPLACE) span, and the originating **copybook file path** — so that errors
+in copybook-introduced code point at the copybook, not the expansion site.
+
+A.5 Specific edge-case rulings (analyzer-enforced diagnostics)
+--------------------------------------------------------------
+These are the analyzer's hard rulings (the runtime/behavior side lives in the separate
+"Semantic Rules & Edge-Case Behavior Specification"):
+- **Duplicate paragraph names:** error, *unless* the duplicates are in different sections.
+- **Paragraph name identical to a section name:** illegal.
+- **REDEFINES of an OCCURS DEPENDING ON item:** allowed, but the logical length must be validated.
+- **GO TO into the middle of an EVALUATE / IF block:** illegal — structured lowering requires that
+  control transfers respect block boundaries. Likewise GO TO into/out of DECLARATIVES is illegal.
+- **CALL with too many USING parameters:** error.
+- **CALL with too few USING parameters:** warning (COBOL permits omitted trailing parameters).
+- **Mixed NATIONAL / alphanumeric in one group operation:** illegal unless an explicit conversion is present.
+
+A.6 Type-checking notes not already stated above
+------------------------------------------------
+- Mixed numeric USAGE in an arithmetic context promotes to decimal; pure-binary operand sets use
+  binary arithmetic (`ArithmeticTypeSystem.cs`).
+- Condition-name (88-level) references are boolean; in a numeric context a boolean materializes as 1/0
+  and in an alphanumeric context as the configured TRUE/FALSE rendering.
+- INVOKE binds against the resolved object/class/interface method signature including the RETURNING type;
+  generic type arguments are checked for arity and OF-constraint satisfaction (OO/generics semantic
+  binding is partially design-only — see the status banner).

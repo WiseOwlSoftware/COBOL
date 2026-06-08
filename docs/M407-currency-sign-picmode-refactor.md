@@ -1,6 +1,6 @@
 # M407 Design Document: CURRENCY SIGN WITH PICTURE SYMBOL (PICMODE Refactor)
 
-**Status**: Design complete, awaiting implementation authorization
+**Status**: Grammar + binder routing complete; multi-character currency-sign handling partially done (non-reserved letters accepted); full PICTURE SYMBOL phrase implementation deferred to M2 per owner decision (DEVLOG 334, MASTER_PLAN §2).
 **Date**: 2026-03-30
 **Ledger item**: M407
 **Severity**: P1

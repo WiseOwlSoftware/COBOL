@@ -1,5 +1,7 @@
 # Batch 3 Architectural Summary
 
+> **STATUS: DESIGN DOCUMENT (DATED 2026-03-30)** — This document summarizes the architectural design and risk assessment for M407 (CURRENCY SIGN WITH PICTURE SYMBOL) and M411 (SCREEN SECTION). Both items were design-complete as of 2026-03-30. **Both were subsequently IMPLEMENTED (DEVLOG Entry 175, 2026-03-31):** M407 via the PICMODE design and M411 as a parsing/grammar island (17 new lexer tokens). For current status, see `docs/MASTER_PLAN.md` and recent DEVLOG entries. The design herein remains the reference for those features. Target stack: .NET 10 / C# 14.
+
 **Date**: 2026-03-30
 **Items**: M407 (CURRENCY SIGN WITH PICTURE SYMBOL), M411 (SCREEN SECTION)
 **Status**: Design complete, awaiting implementation authorization

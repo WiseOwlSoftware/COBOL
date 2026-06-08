@@ -1,6 +1,8 @@
 CobolSharp COBOL COPY/REPLACE Preprocessor Architecture (CIL‑Only)
 =================================================================
 
+> STATUS: Authoritative architecture reference — CIL-only preprocessor (.NET 10 / C# 14), fully integrated into the compiler pipeline; no known stale implementation claims. Screen Section remains STUB (M429/M431). Implementation status/priority per docs/MASTER_PLAN.md §2 (current: M2 data-model migration).
+
 Purpose
 -------
 Define the authoritative architecture for:

@@ -1,6 +1,8 @@
 CobolSharp LSP / IDE Integration Architecture
 =============================================
 
+> 📋 Status: Architectural design document (reference). Implementation status: LSP/IDE integration is DESIGN-ONLY (~0 lines implemented) per MASTER_PLAN §10.2. This is Phase E work (product surface). See MASTER_PLAN §3 (Phase E: 'Build the product surface'), §10.2 ('LSP/IDE integration… the IDE experience is design-only'), and MASTER_PLAN §9.8 for the official SSOT.
+
 High-level goals
 ----------------
 - Provide a modern, language-server–driven development experience for COBOL.

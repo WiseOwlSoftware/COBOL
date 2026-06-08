@@ -1,6 +1,10 @@
 CobolSharp Future Extensions Roadmap — SQL, CICS, Distributed Files & Multi‑Tenant Runtime Architecture (CIL‑Only)
 =================================================================================================================
 
+> **FUTURE ROADMAP — Extensions (Phase F+)** (0% implemented; design-only for deterministic SQL/CICS/distributed I/O/multi-tenant runtime).
+> Stack: .NET 10 / C# 14. Guiding principle: all extensions preserve determinism + safety + backward compatibility.
+> See `docs/MASTER_PLAN.md` Phase E–F for actual product timeline.
+
 Purpose
 -------
 Define the forward‑looking, non‑breaking roadmap for:

@@ -1,6 +1,8 @@
 CobolSharp COBOL Condition Names, Boolean Evaluation & Predicate Architecture (CIL‑Only)
 =======================================================================================
 
+> **[DESIGN REFERENCE]** This document describes the authoritative architecture for condition-name evaluation and boolean operations. Implementation status: core features ~85–90% complete (§2 MASTER_PLAN.md). See docs/MASTER_PLAN.md §2 for current status. Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the authoritative architecture for:

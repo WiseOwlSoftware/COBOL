@@ -1,5 +1,7 @@
 # CobolSharp Conformance Documentation
 
+> **STATUS NOTE (doc-classifier):** This document is a legacy compliance snapshot. For current implementation status, consult `docs/MASTER_PLAN.md` §2 (current state as of 2026-06-07) and `docs/ISO2023_CONFORMANCE_PLAN.md` (the authoritative conformance SSOT). Implementations reflected here may be stale relative to recent Stage-4 migrations (data model, pointers, OO grammar).
+
 ## ISO/IEC 1989:2023 Conformance Status
 
 ### Implemented Features
@@ -24,9 +26,9 @@
 | COPY/REPLACE | Full | Preprocessor with REPLACING, nested COPY |
 | Intrinsic functions | ~70 | Math, string, date/time, financial, aggregates |
 | CALL/CANCEL | Parsing | CIL emission pending |
-| STRING/UNSTRING/INSPECT | Parsing | CIL emission pending |
+| STRING/UNSTRING/INSPECT | Parsing | Partial — INSPECT BACKWARD done (DEVLOG 378); core architecture designed |
 | Report Writer | Parsing | Runtime pending |
-| OO COBOL | Parsing | CIL emission pending |
+| OO COBOL | Grammar DONE; Semantic/CIL pending | Grammar version-factored (2026-06-04); semantic/emit per OO_IMPLEMENTATION_DESIGN.md §6.6 (DEVLOG 440) |
 | Exception handling | Parsing | Runtime pending |
 
 ### Implementor-Defined Behavior
@@ -39,7 +41,7 @@
 
 ### Processor-Dependent Behavior
 
-- **USAGE BINARY size**: 2 bytes (1-4 digits), 4 bytes (5-9), 8 bytes (10-18).
+- **USAGE BINARY size**: 2 bytes (1-4 digits), 4 bytes (5-9), 8 bytes (10-18). With the typed-native data model (Stage-4 slice 2, DEVLOG 416), the binder targets a .NET 10 `long` for these items.
 - **USAGE PACKED-DECIMAL**: Standard BCD encoding.
-- **POINTER size**: 8 bytes (64-bit .NET).
+- **POINTER**: A pointer is represented by the single managed carrier `ManagedPointer` (GC-tracked managed reference; no native `unsafe`, no 8-byte byte handle, no PointerRegistry). See `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.
 - **Collating sequence**: ASCII/Unicode ordinal.

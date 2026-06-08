@@ -1,6 +1,8 @@
 CobolSharp COBOL Paragraph, Section & Program Structure Architecture (CIL‑Only)
 =============================================================================
 
+> **DESIGN REFERENCE** — This document specifies the architecture for COBOL program/section/paragraph structure. It is a design document; the subsystem is ~80–90% implemented. For actual implementation status, consult DEVLOG.md, `tests/conformance/*/`, and `src/CobolSharp.Compiler/Semantic/Bound/Binding/ControlFlowBinder.cs`.
+
 Purpose
 -------
 Define the authoritative architecture for:

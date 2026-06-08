@@ -1,5 +1,7 @@
 # ACCEPT Input Loop Specification
 
+> **SPECIFICATION REFERENCE** — This document specifies the detailed state-machine semantics for the ACCEPT input loop (SCREEN SECTION). Implementation status and test coverage should be verified against `src/CobolSharp.Runtime/Terminal/TerminalSession.cs` and conformance tests.
+
 The ACCEPT loop is a deterministic state machine over a single field. This document
 defines key-by-key behavior, AUTO/FULL/REQUIRED enforcement, and field rendering.
 

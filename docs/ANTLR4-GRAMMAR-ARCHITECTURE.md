@@ -1,5 +1,16 @@
 # CobolSharp ANTLR4 Grammar Architecture
 
+> **Status (2026-06-07): LIVE canonical design + implementation reference for the front-end.**
+> This is the authoritative grammar/parsing doc. The ANTLR4 front-end is **implemented** —
+> the grammar IS the parser (no hand-written recursive-descent drift). M1 (COBOL-85) is complete;
+> guard 1196 unit / 509 integration / 364 NIST. OO grammar is factored and done (semantic/emit
+> pending); JSON/XML and generics grammar overlays exist but their lowering/runtime are design-only.
+> **Stack: .NET 10 / C# 14. Backend is CIL-only via Mono.Cecil (no custom VM, no bytecode interpreter;
+> a Roslyn C# backend is a future additive option).**
+> Plan SSOT: `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`. Companion reference: `docs/GRAMMAR-REFERENCE.md`.
+> Consolidated from 2 prior docs (this LIVE doc + the redundant "CobolSharp COBOL Grammar & Parsing
+> Architecture" essay), 2026-06-07.
+
 Production-ready reference for the ANTLR4-based front-end of the CobolSharp COBOL-to-.NET compiler.
 
 ---
@@ -605,3 +616,89 @@ is not valid in COBOL-85") happens in the semantic phase because:
 - It produces better error messages ("INVOKE requires COBOL-2002 or later")
 - It avoids grammar duplication for each dialect
 - It matches how IBM, Micro Focus, and GnuCOBOL handle dialect selection
+
+---
+
+## 15. Salvaged Design Notes (consolidated from prior "Grammar & Parsing Architecture" essay)
+
+> The following sections preserve unique, still-current framing from the earlier essay-style doc
+> that is not already covered above. Where the essay and the implementation disagree, the
+> implementation (sections 1–14) wins; stale claims (e.g., "REPORT SECTION ignored", custom-VM
+> phrasing) have been corrected to match CURRENT TRUTH.
+
+### 15.1 Grammar file layout — actual on-disk structure (correction)
+
+The grammar lives in `src/CobolSharp.Compiler/Grammar/`. Per owner directive
+([[feedback_grammar_version_factoring]]), post-1985 features and large feature families are
+factored into `Grammar/Core/*.g4` fragment files imported into the parser core, rather than
+inlined into the COBOL-85 base. Current on-disk fragment set (verify against src/ before quoting
+in detail):
+
+- **`Grammar/Core/CobolLexer.g4`** — the shared lexer (the live pipeline diagram's
+  `CobolLexer.g4`; physically under `Core/`).
+- **`Grammar/Core/`** procedural fragments: `CobolData.g4`, `CobolExpressions.g4`,
+  `CobolControlFlow.g4`, `CobolIO.g4`, `CobolSpecialNames.g4`, `CobolReportWriter.g4`,
+  `CobolScreen.g4`, `CobolOO.g4`, `CobolExtensionsJsonXml.g4`.
+- **`Grammar/` root** overlays: `CobolParserCore.g4`, `CobolParserOO.g4`, `CobolParserGenerics.g4`,
+  `CobolParserJsonXml.g4`, `CobolDialect.g4`, `CobolPreprocessor.g4`.
+
+Add rules INCREMENTALLY and run the fast guard after each — inlining a whole feature family at once
+has regressed NC tests in the past (DEVLOG 438). The factored `Core/CobolOO.g4` is the live OO
+grammar; the root `CobolParserOO.g4`/`CobolParserGenerics.g4`/`CobolParserJsonXml.g4`/`CobolDialect.g4`
+overlays may be partially or wholly unwired — treat section 2's import-hierarchy table as the
+*design intent* and confirm wiring in src/ before relying on it.
+
+### 15.2 Lexer-mode semantics (conceptual)
+
+Beyond the five physical modes in section 3, the front-end conceptually distinguishes:
+
+- **Comment handling** — `*>` inline comments (free-form, anywhere) and fixed-form column-7
+  comment indicators (`*`, `/`). Handled via `COMMENT_MODE` / reference-format normalization.
+- **String/literal handling** — quoted alphanumeric, national (`N"…"`), and boolean (`B"…"`)
+  literals, including doubled-quote escaping. `DECIMALLIT` is ordered before `INTEGERLIT` for
+  longest-match (section 3).
+- **Directive handling** — compiler directives (`>>IF`, `>>DEFINE`, `>>EVALUATE`, `>>SOURCE
+  FORMAT`, `*>` directive forms) processed by the conditional-compilation preprocessor pass
+  (no-op on clean source).
+
+### 15.3 Reference-format handling (fixed vs free form)
+
+- **Fixed-form:** columns 1–6 sequence area (ignored), column 7 indicator
+  (`*`/`/` comment, `-` continuation, `D` debug), columns 8–72 source area, columns 73–80 ignored.
+- **Free-form:** no column restrictions; `*>` comments anywhere; continuation via trailing hyphen.
+
+Reference-format normalization (`ReferenceFormatProcessor`) runs first in the pipeline (section 1),
+before COPY/REPLACE and the lexer.
+
+### 15.4 AST construction (custom builder, no CST leakage)
+
+CobolSharp does **not** leak the ANTLR4 parse tree (CST) into downstream phases. A custom AST
+builder walks the CST and produces typed AST nodes carrying: node kind, children, source span
+(original + expanded, for COPY/REPLACE mapping — section 11), dialect flags, and semantic hints.
+
+AST node-category families include: `ProgramNode`, `ClassNode`, `MethodNode`, `DataItemNode`,
+`FileDescriptorNode`, `SectionNode`, `ParagraphNode`, `StatementNode`, `ExpressionNode`,
+`ConditionNode`, plus `JsonNode`/`XmlNode` for the 2014+ overlays (design-only lowering).
+
+AST invariants: no null children; optional COBOL constructs represented explicitly (not by absence);
+no grammar-/CST-specific artifacts; `ErrorNode`s inserted in place for malformed input (section 12)
+so downstream analysis and the LSP can keep going.
+
+### 15.5 CIL-friendly lowering constraints on the AST
+
+The parser/AST is shaped so the CIL backend (CIL-only via Mono.Cecil — **no custom VM**) can lower
+it to **structured** .NET control flow:
+
+- **Structured control flow** — IF/EVALUATE/PERFORM lower to structured conditionals/loops/blocks.
+- **Unambiguous `PERFORM … THRU` ranges** — paragraph ranges and section boundaries are resolved
+  (paragraph-dispatch engine, see [[project_fileio_remaining]] DEVLOG 259–260), not left ambiguous.
+- **Expression normalization** — the precedence grammar (section 6) yields a fully-parenthesized,
+  precedence-unambiguous expression AST (`NOT > AND > OR`; `**` > `* /` > `+ -`).
+
+### 15.6 Testing strategy
+
+The front-end is exercised by: grammar-fragment and tokenization **unit tests**; **golden tests**
+(AST/parse-tree dumps + diagnostics); **fuzzing** (random token streams and random COBOL fragments
+for never-crash / never-infinite-loop guarantees, section 12); and **conformance** against
+ISO/IEC 1989:2023 grammar plus the NIST corpus (364 baselines in the guard). Every grammar change
+is followed by the fast guard (`scripts/guard-fast.sh`).

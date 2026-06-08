@@ -1,6 +1,10 @@
 CobolSharp COBOL File Status, Error Handling & Exception Mapping Architecture (CIL‑Only)
 =======================================================================================
 
+> **DESIGN REFERENCE — Error Handling Architecture** (authoritative target design, ~70% implemented).
+> Stack: .NET 10 / C# 14. See `docs/MASTER_PLAN.md` §2 + Phase C for actual implementation status.
+> Backend: CIL-only via Mono.Cecil.
+
 Purpose
 -------
 Define the authoritative architecture for:

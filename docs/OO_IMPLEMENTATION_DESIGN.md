@@ -1,5 +1,23 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
+> **Consolidated canonical doc for the COBOL Object-Orientation subsystem (consolidated from 4 prior docs, 2026-06-07).**
+> This is the **LIVE turnkey design** — defer to it. **Implementation status (2026-06-07, DEVLOG 441):** the OO
+> **grammar is DONE** (factored `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated, guard-green);
+> **semantic analysis + CIL emission are PENDING** (no `EmitClassModule` / `BoundInvokeStatement` / `IrInvoke` /
+> `UnitKind` in src yet). So OO is **design-complete + grammar-implemented, ~10% end-to-end**; the §5 slices below are
+> the build queue.
+> **Stack:** .NET 10 / C# 14. **Backend:** CIL-only via Mono.Cecil (NO custom VM / NO bytecode interpreter; a Roslyn
+> C# backend is a FUTURE additive Stage-5 option, Cecil = oracle). **Object identity** = the .NET reference itself
+> (GC-managed; **no handle table, no `unsafe`**). OBJECT-REFERENCE NULL/compare reuses the *shape* of the pointer
+> machinery but on a real `object`/class reference (the pointer carrier is `ManagedPointer`; OO uses real references).
+> **Plan SSOT:** `docs/MASTER_PLAN.md` (Phase B1). **Parent ADR:** `docs/DATA_MODEL_ARCHITECTURE.md` §7. **Live plan:**
+> `docs/ISO2023_CONFORMANCE_PLAN.md` §0.5 (Stage-4, after pointers).
+>
+> The §0–§7 below (the turnkey vertical-slice roadmap) are authoritative. Sections **§A–§F (Appendix)** at the end
+> capture the broader *target-design surface* (properties/indexers, .NET interop type mapping, access modifiers, the
+> edge-case behavior catalog, debugger integration) salvaged from the prior architecture essays; they describe the
+> *eventual* OO feature set (slices 5–6+ and beyond), not slice-1 scope.
+
 **Status:** Design (kickoff). Parent: `docs/DATA_MODEL_ARCHITECTURE.md` §7 (the settled OO→.NET mapping) and
 `docs/ISO2023_CONFORMANCE_PLAN.md` §0.5 (Stage-4, after pointers). Provenance: 3-agent investigation workflow
 `oo-investigation` (2026-06-07) + first-hand reading of ISO/IEC 1989:2023 §11.3/§11.4/§11.7/§11.8, §14.9.23 (INVOKE),
@@ -223,3 +241,121 @@ A representative OO program — a class with instance + factory methods, inherit
 invoked polymorphically from a driver program — compiles to real .NET classes (debuggable as `g.SayHello()`),
 runs correctly, ships conformance tests, and the full guard (`guard-fast`, verdict-identical to serial) is green at
 every commit. The Roslyn C# backend (Stage 5) later emits these classes as steppable `.cs`.
+
+---
+
+# Appendix — Target-design surface (salvaged from prior OO architecture essays, 2026-06-07)
+
+> Consolidated from the three prior essays: *"CobolSharp COBOL OO Class, Method & INVOKE Architecture"*,
+> *"…OO Class, Method, Factory & INVOKE Architecture"*, and *"…OO Extensions — CLASS-ID, METHOD-ID, INHERITANCE &
+> INVOKE Architecture"*. These sections describe the *eventual* full OO feature set (slices 5–6+ and beyond), not
+> slice-1 scope. Stale claims have been corrected to CURRENT TRUTH (CIL-only via Mono.Cecil; .NET 10 / C# 14; object
+> identity = GC reference, no handle table). The §0–§7 turnkey roadmap above is authoritative where it overlaps.
+
+## §A. The full ISO/IEC 1989:2023 OO surface (target catalog)
+
+CobolSharp targets the complete COBOL OO model, mapped directly onto .NET:
+
+| COBOL OO construct | .NET mapping | Slice |
+|---|---|---|
+| `CLASS-ID. Foo.` | `public class Foo` | 1 |
+| `FACTORY.` section | static members / static methods / class-level utilities | 4 |
+| `OBJECT.` section | instance members / instance methods / object state | 1 |
+| `END CLASS` / `END FACTORY` / `END OBJECT` | scope terminators | 1 |
+| `METHOD-ID. M.` | `public [virtual]` .NET method (FACTORY→static, OBJECT→instance) | 1 |
+| `INVOKE obj "M" USING … RETURNING …` | `callvirt` (instance) / `call` (static) | 1–2 |
+| `INVOKE Class "NEW" RETURNING o` | `newobj Class::.ctor` | 1 |
+| `INHERITS FROM Base` (a.k.a. `EXTENDS`) | `: Base` (single inheritance) | 3 |
+| `IMPLEMENTS I1 I2` | `: I1, I2` (multiple interfaces allowed) | 6+ |
+| `SELF` / `SUPER` | `this` / `base` | 3 |
+| `PROPERTY` (GET/SET) | C# property `T Foo { get; set; }` | 5 |
+| `PROPERTY … USING index` | C# indexer `this[int index]` | 6+ |
+| `USAGE OBJECT REFERENCE Class` / universal | a `Class` reference field / `object?` | 1 |
+| `OVERRIDE` / `FINAL` / `ABSTRACT` | `override` / `sealed override` / `abstract` | 3 / 3 / 6+ |
+| `PUBLIC` / `PRIVATE` / `PROTECTED` | `public` / `private` / `protected` (default = `public`) | 6+ |
+| `obj IS Class` / `obj IS NOT Class` | `obj is Class` | 6+ |
+| `.NET TYPE` reference (`01 dt TYPE DateTime`) | `System.DateTime dt` (interop) | 6+ |
+
+ISO references: §11.3/§11.4/§11.7/§11.8 (class/method/factory/object), §14.9.23 (INVOKE), §8.4.3.8 (SELF/SUPER),
+§16.2.1 (NEW). OO execution must remain deterministic, pure-managed, and AOT/WASM-safe.
+
+## §B. Properties and indexers (slice 5 / 6+)
+
+A COBOL `PROPERTY` lowers to a C# property. Two source forms:
+
+- **Inline declaration:** `PROPERTY-ID. Value GET SET.` → `public T Value { get; set; }` (auto-property when no
+  explicit GET/SET bodies). The getter lowers to `get_Value`, the setter to `set_Value`.
+- **Explicit GET/SET bodies:**
+  ```cobol
+  PROPERTY-ID. Value.
+      GET.  ... END GET.
+      SET.  ... END SET.
+  END PROPERTY.
+  ```
+  → `public T Value { get { … } set { … } }`.
+- **INVOKE-as-property access:** `INVOKE obj "Property"` (no args) → getter; `INVOKE obj "Property=" USING value` →
+  setter. (This is the property-via-INVOKE spelling; direct `obj::Property` access is the other.)
+- **Indexers:** `PROPERTY-ID. Item USING index GET SET.` → `public T this[int index] { get; set; }`.
+
+Edge cases: a `PROPERTY` over `OCCURS` is illegal unless explicitly indexed; SET on a read-only (GET-only) property
+and GET on a write-only (SET-only) property are compile-time errors.
+
+## §C. .NET interop from OO COBOL (slice 6+ / interop subsystem)
+
+Note: the dedicated interop architecture lives in the INTEROP cluster; the OO-relevant slice is summarized here.
+
+- **INVOKE on any .NET object:** `INVOKE obj "ToString"` works for any .NET object as well as any COBOL object —
+  the dispatch is uniform `callvirt`.
+- **Declaring a .NET-typed item:** `01 dt TYPE DateTime.` → `System.DateTime dt;`.
+- **Constructing a .NET object:** `INVOKE TYPE DateTime "NEW" USING args RETURNING dt` → `dt = new DateTime(args)`.
+- **AOT/WASM safety:** INVOKE must use static or virtual calls only — **no `Type.GetType`, no reflection, no dynamic
+  codegen**. All method dispatch is resolved statically at emit time so virtual dispatch is byte-identical across
+  CoreCLR, AOT, and WASM.
+
+## §D. Inheritance, overriding, polymorphism (slice 3)
+
+- **Single inheritance only:** `INHERITS FROM Base` / `EXTENDS Base` → `: Base`. Multiple base classes are illegal
+  (COBOL supports single inheritance); multiple `IMPLEMENTS` interfaces are allowed.
+- **`OVERRIDE`:** `METHOD-ID. Foo OVERRIDE.` → `public override Foo(…)`. Overriding a method with no matching base
+  method is a compile-time error.
+- **`FINAL`:** `METHOD-ID. Foo FINAL.` → `sealed override Foo(…)`. Overriding a FINAL method is a compile-time error.
+- **`ABSTRACT`:** an abstract class cannot be instantiated — `INVOKE AbstractClass "NEW"` is a compile-time error.
+- **SUPER:** `INVOKE SUPER "Foo"` → `base.Foo(…)`.
+- **Polymorphism:** `INVOKE obj "Foo"` over a base-typed reference is virtual dispatch (`callvirt`), identical across
+  platforms.
+
+## §E. Object references, NULL, lifetime (slices 1, 6)
+
+- **Reference type:** `01 obj USAGE OBJECT REFERENCE ClassName.` → a `ClassName obj;` field (slice 1 may store as
+  `object`/concrete class).
+- **NULL handling:** `SET o TO NULL` → `o = null`; `IF o = NULL` / `o = q` → reference comparison. This reuses the
+  *shape* of the pointer NULL/compare machinery, but operates on a real .NET reference (NOT a `ManagedPointer`).
+- **Type checking:** `obj IS ClassName` / `obj IS NOT ClassName` → `obj is ClassName`.
+- **Lifetime:** objects are GC-managed; no explicit disposal unless the class implements `IDisposable`. Object
+  identity is the .NET reference itself — **no handle table, no native heap, no `unsafe`**.
+
+## §F. Edge-case behavior catalog (consolidated from all three essays)
+
+| Case | Behavior |
+|---|---|
+| INVOKE on a null object | Runtime exception → routed to `ON EXCEPTION` if present (later: `EC-OO-*`, slice 6). The diagnostic surface is `OBJECT-REFERENCE-NOT-SET`. |
+| RETURNING on a void method | Compile-time error |
+| Missing / unknown method | Compile-time error |
+| INVOKE with wrong parameter count | Compile-time error |
+| Overloaded methods | Resolved by parameter count/type |
+| `NEW` on an abstract class | Compile-time error |
+| OVERRIDE without a matching base method | Compile-time error |
+| Overriding a FINAL method | Compile-time error |
+| SET on a read-only property / GET on a write-only property | Compile-time error |
+| `METHOD-ID` inside DECLARATIVES | Illegal |
+| `PROPERTY` over OCCURS | Illegal unless explicitly indexed |
+| `INHERITS` with multiple bases | Illegal (single inheritance) |
+| `IMPLEMENTS` with multiple interfaces | Allowed |
+
+## §G. Debugger integration (design-only, Phase E)
+
+The OO debugger surface (cross-references the DEBUGGER cluster, which is design-only). When OO emission lands,
+sequence points are emitted at: METHOD-ID entry, INVOKE, RETURNING, and PROPERTY GET/SET. The debugger should
+surface: class name, method name, the `SELF`/THIS object, parameters, RETURNING value, FACTORY-vs-OBJECT members,
+static vs instance fields, the inheritance hierarchy, the virtual-dispatch target, the OO call stack, and INVOKE
+targets. (No work until the OO vertical is emitting and the debugger subsystem is built.)

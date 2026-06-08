@@ -1,6 +1,8 @@
 CobolSharp COBOL SORT/MERGE, File‑Based Pipeline & Collation Architecture (CIL‑Only)
 ====================================================================================
 
+> **[DESIGN REFERENCE]** This document describes SORT/MERGE architecture. Implementation status: core SORT/MERGE ~85–90% complete; M1 spec-fix backlog includes variable-length record handling and control breaks (docs/SPEC_FIX_RECIPES_M1.md §#2, §#3, §#6). Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the authoritative architecture for:

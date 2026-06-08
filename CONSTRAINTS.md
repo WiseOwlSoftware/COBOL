@@ -77,8 +77,8 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 ## Migration Phases
 
 ### Phase 1: Project and Build Modernization
-- Update target frameworks to net9.0
-- Update C# language version to 13
+- Update target frameworks to net10.0
+- Update C# language version to 14
 - Ensure dependencies are compatible
 - Introduce nullable reference types if not already enabled
 - Introduce central package management

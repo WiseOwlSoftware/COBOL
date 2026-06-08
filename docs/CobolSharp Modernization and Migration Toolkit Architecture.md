@@ -1,6 +1,8 @@
 CobolSharp Modernization & Migration Toolkit Architecture (CIL‑Only)
 ===================================================================
 
+> **DESIGN REFERENCE** — This document specifies the target architecture for a legacy-COBOL modernization and migration toolkit. It is a design-only specification with ~0 lines implemented. See MASTER_PLAN.md §10 (Phase E production surface) for inclusion status and priority ranking. Confirm actual implementation scope before relying on this design.
+
 High‑level goals
 ----------------
 - Provide a structured, automated path for modernizing legacy COBOL systems into clean, maintainable, .NET‑based COBOL or hybrid COBOL/C# solutions.

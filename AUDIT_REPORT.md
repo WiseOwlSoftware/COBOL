@@ -1,5 +1,7 @@
 # CobolSharp Compiler Audit Report
 
+> ⚠️ Status: Dated 2026-03-24 (pre-dates MASTER_PLAN 2026-06-07). Contains stale tech markers (.NET 9→10, C# 13→14, CobolDataPointer→ManagedPointer). This audit pre-dates the .NET 10/C# 14 retargeting (DEVLOG 441) and the ManagedPointer rename (Stage-4). See MASTER_PLAN §2 (current state) and §10.5 for updated assessment.
+
 **Date:** 2026-03-24
 **Branch:** main
 **Auditor:** Claude (automated deep audit)
@@ -377,12 +379,12 @@ COBOL source file (.cob)
 | Feature | Status | Quality | Notes |
 |---|---|---|---|
 | CALL statement | Implemented | Spec-true | Static CALL via CobolProgramRegistry; Entry method per program; paragraph dispatch in Entry |
-| BY REFERENCE | Implemented | Spec-true | CobolDataPointer into caller's WorkingStorage; callee LINKAGE items alias caller's bytes |
-| BY CONTENT | Implemented | Spec-true | CobolDataPointer.CreateByContent copies argument bytes |
+| BY REFERENCE | Implemented | Spec-true | ManagedPointer into caller's WorkingStorage; callee LINKAGE items alias caller's bytes |
+| BY CONTENT | Implemented | Spec-true | ManagedPointer.CreateByContent copies argument bytes |
 | BY VALUE | Implemented | Dialect-gated | Grammar gated by `is2002()`; copy semantics (same as BY CONTENT); value encoded in source location |
-| RETURNING | Implemented | Spec-true | RETURNING target added as extra BY REFERENCE arg in CobolDataPointer array; callee writes via LINKAGE |
+| RETURNING | Implemented | Spec-true | RETURNING target added as extra BY REFERENCE arg in ManagedPointer array; callee writes via LINKAGE |
 | ON EXCEPTION / NOT ON EXCEPTION | Implemented | Spec-true | Branch on registry resolve result; unresolvable programs take ON EXCEPTION path |
-| Linkage Section | Implemented | Spec-true | Layout computed with relative offsets; accessed via CobolDataPointer fields |
+| Linkage Section | Implemented | Spec-true | Layout computed with relative offsets; accessed via ManagedPointer fields |
 | PROCEDURE DIVISION USING | Implemented | Spec-true | Parameters resolved to LINKAGE DataSymbols; mapped to Entry args in CIL |
 | ENTRY statement | Implemented | Spec-true | Alternate entry points; Entry_<name> methods generated; registered in CobolProgramRegistry |
 | EXIT PROGRAM | Implemented | Spec-true | Returns from called program's Entry method (was broken — no-op before) |
@@ -390,7 +392,7 @@ COBOL source file (.cob)
 | Dynamic CALL | Implemented | Spec-true | Target name read from data item at runtime via GetDisplayString; registry-based resolution; Assembly.LoadFrom discovery |
 | INITIAL program | Implemented | Spec-true | IsInitial captured from PROGRAM-ID; ResetState re-creates ProgramState at Entry start |
 | CANCEL statement | Implemented | Spec-true | Grammar accepts literals and identifiers; CobolProgramRegistry.Cancel removes program |
-| Inter-program communication | Implemented | Spec-true | Same-process shared-address-space via CobolDataPointer; CobolProgramRegistry for dispatch |
+| Inter-program communication | Implemented | Spec-true | Same-process shared-address-space via ManagedPointer; CobolProgramRegistry for dispatch |
 
 ### Diagnostics Infrastructure
 
@@ -443,7 +445,7 @@ All major File I/O and CALL features are now implemented:
 3. ~~**WRITE BEFORE ADVANCING / PAGE**~~: **DONE** — IrWriteAdvancing with IsBefore flag; PAGE emits form-feed.
 4. ~~**CALL inter-program linkage**~~: **DONE** — full implementation via CobolProgramRegistry + Entry methods.
 5. ~~**PROCEDURE DIVISION USING/RETURNING**~~: **DONE** — parameters resolved to LINKAGE DataSymbols.
-6. ~~**Inter-program communication**~~: **DONE** — same-process shared-address-space via CobolDataPointer.
+6. ~~**Inter-program communication**~~: **DONE** — same-process shared-address-space via ManagedPointer.
 
 ---
 
@@ -991,7 +993,7 @@ Replace stringly-typed `IrRuntimeCall` with typed IR instructions for all file I
 
 #### CIL-02: ~~Implement CALL Inter-Program Linkage~~ — **DONE**
 
-Fully implemented: `IrCallProgram`, `CobolProgramRegistry`, `CobolDataPointer`, Entry methods,
+Fully implemented: `IrCallProgram`, `CobolProgramRegistry`, `ManagedPointer`, Entry methods,
 LINKAGE access, BY REFERENCE/CONTENT/VALUE, RETURNING, ON EXCEPTION, ENTRY, CANCEL, INITIAL.
 
 ---
@@ -1134,7 +1136,7 @@ No session may end with fewer passing tests than it started with. Run `dotnet te
 | P3-1 | Eliminate all silent statement skips | S |
 | P3-2 | Remove legacy CobolProgram/CobolField types | M |
 | P3-3 | ~~Abbreviated relations~~ partially done; bare operand edge cases remain | S |
-| P3-4 | C# 13 adoption in remaining files | S |
+| P3-4 | C# 14 adoption in remaining files | S |
 | P3-5 | Package version updates | S |
 
 ### Priority 4 — Low: Future Considerations
@@ -1236,7 +1238,7 @@ The remediation roadmap is complete when:
 2. **Zero stubs in code generation.** CALL fully implemented. SORT, MERGE remain stubs.
 3. **Zero silent skips.** Every unhandled construct produces a compile-time diagnostic.
 4. **No runtime hangs.** NC220M/NC237A still hang — likely ODO runtime issue.
-5. **Clean codebase per PROMPT.md standards.** Code quality sweep 3.1-3.5 complete. No legacy types, consistent C# 13, no dead code, no duplicated logic.
+5. **Clean codebase per PROMPT.md standards.** Code quality sweep 3.1-3.5 complete. No legacy types, consistent C# 14, no dead code, no duplicated logic.
 6. **All tests green.** 217 unit + 184 integration + 33 NIST all pass.
 7. **Indexed file I/O operational.** READ, WRITE, REWRITE, DELETE, START all work for indexed files.
 8. **CALL interop works.** ~~Inter-program calls~~ **DONE**: full BY REFERENCE/CONTENT/VALUE, RETURNING, INITIAL, CANCEL, ENTRY, dynamic CALL.

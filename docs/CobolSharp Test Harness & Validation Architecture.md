@@ -1,6 +1,10 @@
 CobolSharp Test Harness & Validation Architecture (CIL‑Only)
 ===========================================================
 
+> **DESIGN REFERENCE — Test Harness Architecture** (authoritative target design, ~70% implemented).
+> Stack: .NET 10 / C# 14. CIL-only backend. Status: 1196 unit / 509 integration / 364 NIST tests green (MASTER_PLAN §2, DEVLOG 441).
+> See `docs/MASTER_PLAN.md` Phase C–E for conformance test expansion plan.
+
 High‑level goals
 ----------------
 - Validate every subsystem of the CobolSharp compiler and runtime using a deterministic, automated, and reproducible test framework.

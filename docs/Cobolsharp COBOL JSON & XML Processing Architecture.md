@@ -1,317 +1,553 @@
 CobolSharp COBOL JSON & XML Processing Architecture (CIL‑Only)
 =============================================================
 
+> **STATUS BANNER (2026-06-07).** **Design reference / target design — NOT yet implemented.**
+> Implementation status: **DESIGN-ONLY (Phase C).** A permissive *grammar overlay* exists
+> (`src/CobolSharp.Compiler/Grammar/CobolParserJsonXml.g4` + `Core/CobolExtensionsJsonXml.g4`),
+> but it is only a token‑accepting stub — e.g. `jsonStatement : JSON (dataReference | literal)+ ;`
+> and `xmlStatement : XML (dataReference | literal)+ ;` — with **no binding, no lowering, and no
+> runtime engine.** There is **no `JsonEngine`/`XmlEngine`** in `src/CobolSharp.Runtime` and no
+> JSON/XML PARSE/GENERATE CIL lowering anywhere in `src/`. Treat everything below as the intended
+> design to be built in Phase C (per the conformance plan), to be reconciled against the actual
+> data model when implemented.
+>
+> Stack: **.NET 10 / C# 14.** Backend: **CIL‑only via Mono.Cecil — NO custom VM / NO bytecode
+> interpreter** (a Roslyn C# backend is a *future additive* option, Stage‑5, with Cecil as the
+> oracle). When implemented, JSON/XML must lower to CIL like every other statement.
+>
+> Data‑model note: the runtime data model is migrating to **typed‑native** representations
+> (character → `string` (UTF‑16); numeric → `long`/`decimal`; groups → nested `record struct`;
+> `OCCURS` → `T[]`; pointers → the single **`ManagedPointer`** carrier), gated behind
+> `EnableTypedFields` (default OFF), CORE complete through Stage‑4, with the byte/`StorageBlock`
+> engine being *islanded* as a classifier‑scoped fallback. The "DETAIL group / OCCURS table /
+> record‑pointer" wording in this design predates that migration; when JSON/XML is built, bind to
+> the **typed‑native** model (and the byte image only via the classifier fallback), not the legacy
+> byte layout.
+>
+> Plan SSOT: **`docs/MASTER_PLAN.md`**. Conformance roadmap: `docs/ISO2023_CONFORMANCE_PLAN.md`.
+> Doctrine: `PROMPT.md`. Note: the long‑titled "CobolSharp COBOL … Architecture.md" essays are a
+> prior doc‑generation pass = target designs, not status reports.
+>
+> _Consolidated from 5 prior docs, 2026-06-07:_ "Cobolsharp COBOL JSON & XML Processing
+> Architecture" (base), "CobolSharp COBOL JSON PARSE-GENERATE, SAX‑Style Event Model & Data Binding
+> Architecture", "JSON GENERATE Architecture" (JSON PARSE/GENERATE), "CobolSharp COBOL XML PARSE -
+> XML GENERATE Architecture", and "CobolSharp COBOL XML PARSE-GENERATE, SAX‑Style Event Model &
+> Namespace Architecture".
+
 Purpose
 -------
-Define the authoritative architecture for:
+Define the authoritative target architecture for CobolSharp's COBOL‑2014+ structured‑data features:
 - JSON PARSE / JSON GENERATE
 - XML PARSE / XML GENERATE
+- SAX‑style streaming event models for both JSON and XML
+- Data binding to COBOL storage (object binding + event‑level binding)
 - Mapping COBOL records ↔ JSON/XML structures
-- COUNT IN, PROCESSING PROCEDURE, and ON EXCEPTION semantics
-- OCCURS and nested group handling
-- National vs alphanumeric encoding
+- COUNT IN, PROCESSING PROCEDURE, WITH DETAIL, NAME OF, SUPPRESS, OMITTED, WITH ATTRIBUTES
+- XML namespace handling (prefix, URI, default namespace)
+- OCCURS, OCCURS DEPENDING ON, nested group, and REDEFINES handling
+- National vs alphanumeric encoding; UTF‑8/UTF‑16 conversion
+- Exception routing (ON EXCEPTION, NOT ON EXCEPTION, declaratives)
 - CIL‑friendly lowering
-- Integration with CobolSharp.Runtime.JsonEngine and XmlEngine
+- AOT/WASM‑safe processing
+- Integration with the runtime JSON/XML engines
 
-This document governs how CobolSharp implements COBOL’s structured‑data features on .NET.
+This document governs how CobolSharp implements COBOL's structured‑data features on .NET.
 
 ------------------------------------------------------------
 SECTION 1 — OVERVIEW OF JSON/XML SUPPORT
 ------------------------------------------------------------
 
-CobolSharp implements:
-- Full JSON PARSE and JSON GENERATE (COBOL‑2014+)
-- Full XML PARSE and XML GENERATE (COBOL‑2014+)
+CobolSharp targets:
+- Full ISO/IEC 1989:2023 JSON PARSE and JSON GENERATE (COBOL‑2014+)
+- Full ISO/IEC 1989:2023 XML PARSE and XML GENERATE (COBOL‑2014+)
 - Deterministic mapping between COBOL data structures and JSON/XML
-- Runtime engines for parsing, serialization, and validation
+- Streaming SAX‑style parsers (no DOM construction)
+- Streaming generators
+- Strict COBOL type validation/binding
+- Declarative exception routing
 - CIL‑only lowering with no external dependencies
 
-JSON/XML engines are:
+The JSON/XML engines are:
 - Pure managed code
-- Deterministic
+- Deterministic (no locale‑dependent formatting; same output across platforms)
 - Unicode‑safe
-- AOT/WASM compatible
+- AOT/WASM compatible (no reflection, no dynamic codegen, no unsafe code)
+
+Runtime entry points (target):
+- `JsonEngine` — exposed via `ExecutionContext.JsonEngine` / `CobolSharp.Runtime.JsonEngine`
+- `XmlEngine` — exposed via `ExecutionContext.XmlEngine` / `CobolSharp.Runtime.XmlEngine`
+
+Each engine provides (target surface):
+- `Parse(input, handler|targetRecord)`
+- `Generate(source) → output` (and a streaming `Generate(output, handler)` form)
+- Namespace resolution (XML only)
+- UTF‑8/UTF‑16 conversion
+- Error detection and `ExceptionState` population
 
 ------------------------------------------------------------
-SECTION 2 — JSON PARSE SEMANTICS
+SECTION 2 — JSON PARSE STATEMENT
 ------------------------------------------------------------
 
-2.1 Basic form
---------------
-JSON PARSE json‑source  
-    INTO cobol‑record  
-    WITH DETAIL  
-    ON EXCEPTION handler  
-    NOT ON EXCEPTION handler  
-END‑JSON
+### 2.1 Basic forms
+```
+JSON PARSE json-text INTO data-item
+```
+```
+JSON PARSE json-text
+    INTO data-item
+    WITH DETAIL [name-value-pairs]
+    NAME OF ...
+    SUPPRESS ...
+    COUNT IN count-var
+    ON EXCEPTION
+        ...
+    NOT ON EXCEPTION
+        ...
+END-JSON
+```
 
-2.2 Mapping rules
------------------
-JSON object → COBOL group  
-JSON array → COBOL OCCURS  
-JSON string → PIC X or PIC N  
-JSON number → numeric item  
-JSON boolean → condition name or PIC X(…)  
-JSON null → spaces / zero depending on type  
+### 2.2 Modes / phrases
+- `INTO data-item` — object binding (default).
+- `WITH DETAIL` — event‑level binding. Preserves nested structure; maps arrays → OCCURS, nested
+  objects → nested groups. (Without `WITH DETAIL` the structure is flattened — not recommended.)
+- `NAME OF` — custom field‑name matching.
+- `SUPPRESS` — omit fields.
+- `OMITTED` — skip missing fields (parse does not require them).
+- `COUNT IN var` — stores the number of JSON elements processed (array → element count; object →
+  field count).
+- `PROCESSING PROCEDURE proc` — called for each JSON element, receiving element name, value, type,
+  and current OCCURS index.
 
-2.3 WITH DETAIL
----------------
-WITH DETAIL:
-- Preserves nested structure
-- Maps JSON arrays to OCCURS
-- Maps nested objects to nested groups
+### 2.3 Input encoding
+Input may be:
+- DISPLAY (ASCII / UTF‑8)
+- NATIONAL (UTF‑16)
+- FD record buffer (raw bytes)
 
-Without WITH DETAIL:
-- Flattens structure (not recommended)
-
-2.4 COUNT IN
-------------
-COUNT IN var:
-- Stores number of JSON elements processed
-- For arrays: number of array elements
-- For objects: number of fields
-
-2.5 PROCESSING PROCEDURE
-------------------------
-PROCESSING PROCEDURE proc:
-- Called for each JSON element
-- Receives:
-  - Element name
-  - Element value
-  - Element type
-  - Current OCCURS index
-
-2.6 ON EXCEPTION
-----------------
-Triggered by:
-- Malformed JSON
-- Type mismatch
-- Missing required fields
-- Overflow in target fields
+### 2.4 NOT ON EXCEPTION
+Executed only if the parse succeeds.
 
 ------------------------------------------------------------
-SECTION 3 — JSON GENERATE SEMANTICS
+SECTION 3 — JSON SAX‑STYLE EVENT MODEL
 ------------------------------------------------------------
 
-3.1 Basic form
---------------
-JSON GENERATE json‑target  
-    FROM cobol‑record  
-    WITH DETAIL  
-    ON EXCEPTION handler  
-END‑JSON
+### 3.1 Events
+`JsonEngine` emits:
+- `StartObject` / `EndObject`
+- `StartArray` / `EndArray`
+- `Key(name)`
+- `Value(string | number | boolean | null)`
 
-3.2 Mapping rules
------------------
-COBOL group → JSON object  
-OCCURS → JSON array  
-PIC X → JSON string  
-PIC N → JSON string (UTF‑16)  
-Numeric → JSON number  
-88‑levels → JSON boolean  
-Empty group → {}  
+### 3.2 Handler
+The compiler generates a handler class with:
+`OnStartObject`, `OnEndObject`, `OnStartArray`, `OnEndArray`, `OnKey`, `OnValue`.
 
-3.3 WITH DETAIL
----------------
-WITH DETAIL:
-- Includes all nested groups
-- Includes OCCURS arrays
-- Includes REDEFINES only for active view
+### 3.3 WITH DETAIL detail‑item
+`WITH DETAIL` causes each event to populate a DETAIL group containing (target shape — bind to the
+typed‑native model when implemented):
+- `EVENT-TYPE`
+- `NAME`
+- `VALUE`
+- `DEPTH`
+- `INDEX`
 
-3.4 OMITTED fields
-------------------
-If a field is OMITTED:
-- Not included in JSON output
+Detail entry value/type table (from the JSON‑GENERATE design): Name, Type (string, number, boolean,
+null, object, array), Value (string or numeric), Depth (optional). The engine emits a table of
+detail entries stored in the target detail group.
 
 ------------------------------------------------------------
-SECTION 4 — XML PARSE SEMANTICS
+SECTION 4 — JSON → COBOL MAPPING RULES (PARSE)
 ------------------------------------------------------------
 
-4.1 Basic form
---------------
-XML PARSE xml‑source  
-    PROCESSING PROCEDURE proc  
-    ON EXCEPTION handler  
-END‑XML
+| JSON | COBOL |
+|------|-------|
+| object | group item |
+| array | OCCURS table (OCCURS DEPENDING ON supported; bounds checked) |
+| string | PIC X (DISPLAY) or PIC N (NATIONAL) |
+| number | numeric item (Decimal; COMP‑3 / COMP‑5 supported) |
+| boolean | `"TRUE"`/`"FALSE"` (PIC X) or 1/0 (PIC 9); condition name |
+| null | spaces (alphanumeric) / zero (numeric) / false (condition name) |
 
-4.2 Event‑driven model
-----------------------
-XmlEngine uses a SAX‑like model:
-- START‑ELEMENT event
-- END‑ELEMENT event
-- TEXT event
+Detailed rules:
+- **Object → group:** keys matched to child field names; **case‑insensitive**; hyphens and
+  underscores normalized; missing fields → default; extra fields → ignored (unless `WITH DETAIL`).
+- **Array → OCCURS:** logical length = array length; must not exceed max OCCURS; OCCURS DEPENDING ON
+  set from array length.
+- **String → PIC X / PIC N:** UTF‑8 → UTF‑16 conversion; truncated if longer than target; padded
+  with spaces if shorter.
+- **Number → numeric PIC:** decimal conversion; overflow → ON EXCEPTION.
+- **Nested objects:** mapped recursively to nested groups.
+- **NAME OF override:** `05 CustName PIC X(20) NAME OF "name".`
+- **OMITTED:** field not required during parse.
 
-PROCESSING PROCEDURE receives:
+------------------------------------------------------------
+SECTION 5 — JSON GENERATE STATEMENT
+------------------------------------------------------------
+
+### 5.1 Basic form
+```
+JSON GENERATE json-target
+    FROM cobol-record
+    [WITH DETAIL]
+    COUNT IN count-var
+    NAME OF ...
+    SUPPRESS ...
+    ON EXCEPTION
+        ...
+    NOT ON EXCEPTION
+        ...
+END-JSON
+```
+
+### 5.2 COBOL → JSON mapping rules
+| COBOL | JSON |
+|-------|------|
+| group item | object (`"field-name": value`; empty group → `{}`) |
+| OCCURS | array (`[ element1, element2, ... ]`) |
+| PIC X | string (trim trailing spaces; UTF‑16 → UTF‑8) |
+| PIC N (NATIONAL) | string (UTF‑16 internally → UTF‑8 output) |
+| numeric (incl. COMP/COMP‑3/COMP‑5) | number (COMP‑3 unpacked; COMP‑5 → integer) |
+| 88‑level condition name | boolean (`true`/`false`) |
+| REDEFINES | only the active view is emitted |
+
+### 5.3 Output encoding
+- DISPLAY → UTF‑8
+- NATIONAL → UTF‑16
+
+### 5.4 Other phrases
+- **SUPPRESS:** field omitted from output.
+- **OMITTED:** field not included in output.
+- **NAME OF:** custom key name used.
+- **WITH DETAIL:** emits DETAIL events for each generated element.
+
+------------------------------------------------------------
+SECTION 6 — XML PARSE STATEMENT
+------------------------------------------------------------
+
+### 6.1 Basic forms
+```
+XML PARSE xml-text PROCESSING PROCEDURE proc-name
+```
+```
+XML PARSE xml-text
+    PROCESSING PROCEDURE proc-name
+    WITH DETAIL
+    NAME OF ...
+    SUPPRESS ...
+    COUNT IN count-var
+    ON EXCEPTION
+        ...
+    NOT ON EXCEPTION
+        ...
+END-XML
+```
+
+### 6.2 Event‑driven model
+XML PARSE is event‑driven; each event triggers `PERFORM proc-name`. Modes:
+- `PROCESSING PROCEDURE` (event‑driven, primary)
+- `WITH DETAIL` (event metadata)
+- `NAME OF` (custom element/attribute names)
+- `SUPPRESS` (ignore fields)
+- `OMITTED` (skip missing elements)
+- `COUNT IN var` (number of XML nodes processed)
+
+### 6.3 Input encoding
+DISPLAY (ASCII/UTF‑8), NATIONAL (UTF‑16), or FD record buffer (raw bytes).
+
+### 6.4 NOT ON EXCEPTION
+Executed only if the parse succeeds.
+
+------------------------------------------------------------
+SECTION 7 — XML SAX‑STYLE EVENT MODEL & EVENT DATA
+------------------------------------------------------------
+
+### 7.1 Events
+`XmlEngine` emits:
+- `StartDocument` / `EndDocument` (a.k.a. START‑OF‑DOCUMENT / END‑OF‑DOCUMENT)
+- `StartElement(name, prefix, namespaceUri)` (START‑OF‑ELEMENT)
+- `EndElement(name, prefix, namespaceUri)` (END‑OF‑ELEMENT)
+- `Attribute(name, prefix, namespaceUri, value)`
+- `Characters(text)` (CONTENT‑CHARACTERS)
+
+### 7.2 Handler
+Generated handler class: `OnStartDocument`, `OnEndDocument`, `OnStartElement`, `OnEndElement`,
+`OnAttribute`, `OnCharacters`.
+
+### 7.3 Special registers
+- **XML‑CODE** — event type, element name, attribute name, attribute value, character data, depth,
+  and error code (if exception).
+- **XML‑TEXT** — raw text of element or attribute (UTF‑16 encoded).
+- **XML‑NAMESPACE** (optional) — namespace URI, local name, prefix.
+
+### 7.4 WITH DETAIL detail‑item (XML)
+`WITH DETAIL` causes each event to populate a DETAIL item including:
+`EVENT-TYPE`, `NAME`, `PREFIX`, `NAMESPACE-URI`, `VALUE`, `DEPTH`.
+
+------------------------------------------------------------
+SECTION 8 — XML NAMESPACE ARCHITECTURE
+------------------------------------------------------------
+
+### 8.1 Namespace resolution
+`XmlEngine` maintains:
+- A prefix → URI mapping stack
+- The default namespace
+- In‑scope namespaces per element
+
+### 8.2 Matching rules
+A COBOL field name matches an XML element when:
+- A `NAME OF` override matches, OR
+- The local name matches the field name AND the namespace URI matches (if specified).
+- The prefix is irrelevant for matching.
+
+### 8.3 NAME OF (XML)
+Overrides element/attribute name: `05 CustName PIC X(20) NAME OF "CustomerName".`
+
+------------------------------------------------------------
+SECTION 9 — XML ↔ COBOL MAPPING RULES
+------------------------------------------------------------
+
+### 9.1 XML → COBOL (PARSE / binding)
+| XML | COBOL |
+|-----|-------|
+| element | group item (`<customer>` → `01 CUSTOMER`) |
+| attribute | elementary item (`<customer id="123">` → `05 ID PIC X(10)`) |
+| text content | PIC X / PIC N (`<name>John</name>` → `05 NAME PIC X(20)`) |
+| numeric content | numeric PIC (`<age>42</age>` → `05 AGE PIC 9(3)`) |
+| boolean content | `"TRUE"`/`"FALSE"` (PIC X) or 1/0 (PIC 9) |
+| empty element | spaces (PIC X/N) / zero (numeric) / zero‑length string |
+| repeated elements | OCCURS table (OCCURS DEPENDING ON supported) |
+
+- Attribute → subordinate field; text → PIC X/N; missing elements → default; extra elements →
+  ignored unless `WITH DETAIL`; nested elements → recursive nested groups.
+- Numbers → Decimal; booleans → `"TRUE"`/`"FALSE"`.
+
+### 9.2 COBOL → XML (GENERATE)
+| COBOL | XML |
+|-------|-----|
+| group item | element (`01 CUSTOMER` → `<customer>...</customer>`) |
+| elementary item | child element (or attribute via `WITH ATTRIBUTES` / `ATTRIBUTE` clause — future) |
+| OCCURS | repeated elements (`<item>...</item>`) |
+| PIC X / PIC N | text node (PIC N: UTF‑16 internal → UTF‑8 output) |
+| numeric | text content (Decimal → string) |
+| 88‑level condition name | `true`/`false`; with `WITH ATTRIBUTES`, mapped to attributes |
+
+- Default for elementary items: element for PIC X/N and numeric; attribute only when the
+  `ATTRIBUTE` clause is used (future).
+- `WITH ATTRIBUTES`: maps 88‑levels (and VALUE clauses) to attributes; REDEFINES ignored unless the
+  active view.
+
+------------------------------------------------------------
+SECTION 10 — XML GENERATE STATEMENT
+------------------------------------------------------------
+
+### 10.1 Basic form
+```
+XML GENERATE xml-text FROM data-item
+    [WITH ATTRIBUTES]
+    [WITH ENCODING ...]
+    [WITH DETAIL]
+    COUNT IN count-var
+    NAME OF ...
+    SUPPRESS ...
+    ON EXCEPTION
+        ...
+    NOT ON EXCEPTION
+        ...
+END-XML
+```
+
+### 10.2 Phrases
+- **WITH ATTRIBUTES** — map 88‑levels/VALUE clauses to attributes (initially not implemented; see
+  §9.2).
+- **WITH ENCODING** — defaults to UTF‑8.
+- **SUPPRESS** — field omitted from output.
+- **NAME OF** — custom element/attribute name used.
+- **WITH DETAIL** — emits DETAIL events for each generated element/attribute/text node.
+
+### 10.3 Output encoding
+DISPLAY → UTF‑8; NATIONAL → UTF‑16.
+
+------------------------------------------------------------
+SECTION 11 — UTF‑8 / UTF‑16 CONVERSION
+------------------------------------------------------------
+
+- **UTF‑8 input:** parsed directly; no intermediate string allocation.
+- **UTF‑16 input:** converted to a UTF‑8 stream; surrogate pairs validated.
+- **Output:** DISPLAY → UTF‑8; NATIONAL → UTF‑16.
+- All JSON strings are UTF‑8; XML text is UTF‑8 or UTF‑16 depending on the target; PIC N always uses
+  UTF‑16 internally (consistent with the typed‑native NATIONAL → `string` representation).
+
+------------------------------------------------------------
+SECTION 12 — ERROR HANDLING & EXCEPTIONSTATE
+------------------------------------------------------------
+
+### 12.1 JSON parse errors
+Invalid JSON syntax / unexpected token; type mismatch; missing required field; numeric overflow;
+array bounds overflow (array too large for OCCURS); invalid UTF‑8/UTF‑16; unexpected JSON type.
+
+### 12.2 JSON generate errors
+Invalid field type; non‑ASCII DISPLAY in UTF‑8 mode; OCCURS DEPENDING ON out of range.
+
+### 12.3 XML parse errors
+Invalid XML syntax; mismatched tags; invalid/undeclared namespace prefix; UTF‑8/UTF‑16 errors;
+unexpected end of document; numeric overflow during mapping.
+
+### 12.4 XML generate errors
+Invalid characters; numeric conversion failure; OCCURS overflow; unsupported type.
+
+### 12.5 ExceptionState
+Populated with (union over JSON and XML):
+- Error category (e.g. `JSON EXCEPTION` / `XML EXCEPTION`)
+- Error message
+- JSON path / element‑or‑attribute name (property name where applicable)
+- Namespace URI (XML)
 - Event type
-- Element name
-- Attributes
-- Text content
+- Expected type / actual type (JSON)
+- Raw token (optional)
 
-4.3 COUNT IN
-------------
-COUNT IN var:
-- Number of XML nodes processed
-
-4.4 ON EXCEPTION
-----------------
-Triggered by:
-- Malformed XML
-- Invalid nesting
-- Encoding errors
+### 12.6 Routing
+1. `ON EXCEPTION`
+2. `USE AFTER EXCEPTION ON JSON` / `USE AFTER EXCEPTION ON XML`
+3. `USE AFTER STANDARD EXCEPTION` (a.k.a. `USE AFTER ERROR` / `USE AFTER EXCEPTION`)
 
 ------------------------------------------------------------
-SECTION 5 — XML GENERATE SEMANTICS
+SECTION 13 — CIL LOWERING RULES
 ------------------------------------------------------------
 
-5.1 Basic form
---------------
-XML GENERATE xml‑target  
-    FROM cobol‑record  
-    WITH ATTRIBUTES  
-    ON EXCEPTION handler  
-END‑XML
-
-5.2 Mapping rules
------------------
-COBOL group → XML element  
-Elementary item → child element  
-OCCURS → repeated elements  
-88‑levels → attributes or elements (configurable)  
-PIC X → text node  
-PIC N → text node (UTF‑16)  
-
-5.3 WITH ATTRIBUTES
--------------------
-Maps:
-- 88‑levels to attributes
-- VALUE clauses to attributes
-- REDEFINES ignored unless active
-
-------------------------------------------------------------
-SECTION 6 — RUNTIME ENGINE ARCHITECTURE
-------------------------------------------------------------
-
-6.1 JsonEngine
---------------
-Responsibilities:
-- Parse JSON text
-- Validate structure
-- Map JSON → COBOL record
-- Map COBOL record → JSON
-- Handle OCCURS and nested groups
-- Handle COUNT IN and PROCESSING PROCEDURE
-- Detect ON EXCEPTION conditions
-
-6.2 XmlEngine
--------------
-Responsibilities:
-- Parse XML text
-- Emit XML text
-- Handle SAX‑style events
-- Map COBOL record → XML
-- Handle COUNT IN and PROCESSING PROCEDURE
-- Detect ON EXCEPTION conditions
-
-6.3 Encoding rules
-------------------
-- All JSON strings are UTF‑8
-- All XML text is UTF‑8 or UTF‑16 depending on target
-- PIC N always uses UTF‑16 internally
-
-------------------------------------------------------------
-SECTION 7 — CIL LOWERING RULES
-------------------------------------------------------------
-
-7.1 JSON PARSE lowering
------------------------
-Lowered to:
-JsonEngine.Parse(ctx, jsonSource, targetRecord, options)
-
-7.2 JSON GENERATE lowering
---------------------------
-Lowered to:
+When implemented, lowering is **CIL‑only** (Mono.Cecil). High‑level call shape:
+```
+JsonEngine.Parse   (ctx, jsonSource, targetRecord, options)
 JsonEngine.Generate(ctx, targetString, sourceRecord, options)
+XmlEngine.Parse    (ctx, xmlSource, processingProc, options)
+XmlEngine.Generate (ctx, xmlTarget,  sourceRecord, options)
+```
 
-7.3 XML PARSE lowering
-----------------------
-Lowered to:
-XmlEngine.Parse(ctx, xmlSource, processingProc, options)
+### 13.1 JSON PARSE lowering
+Load input buffer → `newobj JsonParseHandler` → `call JsonEngine.Parse` → check `ExceptionState` →
+branch to ON EXCEPTION / NOT ON EXCEPTION.
 
-7.4 XML GENERATE lowering
--------------------------
-Lowered to:
-XmlEngine.Generate(ctx, xmlTarget, sourceRecord, options)
+### 13.2 JSON GENERATE lowering
+`newobj JsonGenerateHandler` → `call JsonEngine.Generate` → store output into target.
 
-7.5 PROCESSING PROCEDURE lowering
----------------------------------
-Lowered to:
-- A generated CIL method
-- Called by JsonEngine/XmlEngine
-- Receives event metadata
+### 13.3 XML PARSE lowering
+Load xml‑text → load handler/processing‑procedure pointer → `call XmlEngine.Parse` → check
+`ExceptionState` → branch.
 
-------------------------------------------------------------
-SECTION 8 — DEBUGGER INTEGRATION
-------------------------------------------------------------
+### 13.4 XML GENERATE lowering
+`newobj XmlGenerateHandler` → `call XmlEngine.Generate` → store output into target.
 
-Debugger shows:
-- JSON/XML source
-- Parsed structure
-- COUNT IN values
-- PROCESSING PROCEDURE events
-- Mapped COBOL fields
-- OCCURS expansions
-- REDEFINES active view
-- ON EXCEPTION state
+### 13.5 PROCESSING PROCEDURE / event‑handler lowering
+Each event triggers `PERFORM proc-name`; for handler‑class binding, the compiler generates a CIL
+method invoked by the engine, receiving event metadata.
 
-Sequence points emitted for:
-- Each JSON element
-- Each XML event
-- Each assignment into COBOL record
+### 13.6 WITH DETAIL lowering
+Compiler generates the DETAIL group; the handler writes event info into the DETAIL group, emitted
+per event (JSON: populates the detail OCCURS table with name/value/type fields).
+
+### 13.7 NAME OF / SUPPRESS lowering
+`NAME OF`: the compiler embeds the custom key/element/attribute name in metadata. `SUPPRESS`: the
+compiler marks the field as suppressed in metadata.
 
 ------------------------------------------------------------
-SECTION 9 — EDGE‑CASE BEHAVIOR
+SECTION 14 — RUNTIME ENGINE ARCHITECTURE
 ------------------------------------------------------------
 
-9.1 JSON null → COBOL
-----------------------
-- PIC X → spaces
-- PIC 9 → zero
-- Group → all children defaulted
+### 14.1 JsonEngine responsibilities
+Parse JSON text; validate structure; map JSON → COBOL record and COBOL record → JSON; handle OCCURS
+and nested groups; handle COUNT IN and PROCESSING PROCEDURE; detect ON EXCEPTION conditions.
 
-9.2 XML empty element
----------------------
-<name/> → empty string
+Parser/generator (target):
+- Parser: streaming SAX‑style + recursive‑descent UTF‑8 decoder; no dynamic codegen; AOT/WASM‑safe.
+- Generator: UTF‑16 → UTF‑8 encoder; minimal escaping; deterministic field ordering (declaration
+  order).
+- Performance: zero/low allocation for numeric conversion; pooled buffers; streaming for large JSON.
 
-9.3 Missing JSON field
-----------------------
-- Default value
-- Not ON EXCEPTION
+### 14.2 XmlEngine responsibilities
+Parse XML text; emit XML text; handle SAX‑style events; map COBOL record ↔ XML; namespace
+resolution; handle COUNT IN and PROCESSING PROCEDURE; detect ON EXCEPTION conditions.
 
-9.4 Extra JSON fields
----------------------
-- Ignored unless WITH DETAIL STRICT (planned)
+Parser/generator (target):
+- Parser: streaming SAX parser; UTF‑8 decoder; namespace‑aware; **no DOM construction**;
+  AOT/WASM‑safe.
+- Generator: UTF‑16 → UTF‑8 encoder; minimal escaping (`&`, `<`, `>`, `"`, `'`); deterministic
+  element ordering (declaration order).
+- Performance: zero‑copy for character data; pooled buffers; streaming output.
 
-9.5 OCCURS DEPENDING ON mismatch
---------------------------------
-- Clamp to legal range
+### 14.3 Encoding rules (engines)
+All JSON strings are UTF‑8; all XML text is UTF‑8 or UTF‑16 depending on the target; PIC N always
+UTF‑16 internally.
 
-9.6 Invalid numeric in JSON
----------------------------
-- ON EXCEPTION
+------------------------------------------------------------
+SECTION 15 — DEBUGGER INTEGRATION
+------------------------------------------------------------
 
-9.7 Mixed national/alphanumeric
--------------------------------
-- Illegal unless explicitly converted
+The debugger surfaces:
+- Current JSON/XML event; key/element/attribute name; prefix; namespace URI (XML); value/text;
+  depth; index
+- DETAIL group contents; COUNT IN values; PROCESSING PROCEDURE events
+- Parsed JSON tree / parsed structure; OCCURS expansions / logical length; REDEFINES active view
+- `ExceptionState`; bound/mapped COBOL fields
+
+Sequence points are emitted for: each JSON element; each XML event; each assignment into the COBOL
+record.
+
+------------------------------------------------------------
+SECTION 16 — AOT/WASM‑SAFE PROCESSING
+------------------------------------------------------------
+
+- **No reflection** — handlers generated statically.
+- **No dynamic codegen** — parser and generator are pure managed code, no dynamic IL.
+- **No unsafe code** — no pointers, no `stackalloc`.
+- **Deterministic behavior** — same output across platforms; no locale‑dependent formatting.
+
+(Correctness must hold across CoreCLR, AOT, and WASM.)
+
+------------------------------------------------------------
+SECTION 17 — EDGE‑CASE BEHAVIOR
+------------------------------------------------------------
+
+### 17.1 JSON
+- **null** → spaces (alphanumeric) / zero (numeric) / all children defaulted (group) / false
+  (condition name).
+- **Empty arrays** → OCCURS DEPENDING ON = 0.
+- **Missing keys** → allowed if `OMITTED`; else default value; (missing object fields left
+  unchanged in the JSON‑GENERATE‑design variant).
+- **Extra keys** → ignored unless `WITH DETAIL` (a `WITH DETAIL STRICT` mode is planned).
+- **Numeric overflow** → SIZE ERROR → ON EXCEPTION.
+- **Array too large for OCCURS** → ON EXCEPTION.
+- **String too long** → truncated; no exception unless STRICT mode enabled.
+- **OCCURS DEPENDING ON mismatch** → clamp to legal range.
+- **Invalid UTF‑8** → ON EXCEPTION.
+- **boolean → PIC X** → `"TRUE"`/`"FALSE"`.
+- **Mixed national/alphanumeric** → illegal unless explicitly converted.
+
+### 17.2 XML
+- **Mixed content** (text + child elements): text delivered as CONTENT‑CHARACTERS events; no
+  automatic concatenation in the event model. (For object binding, characters between elements are
+  concatenated into a text node bound to the nearest PIC X/N field.)
+- **CDATA sections** → delivered as CONTENT‑CHARACTERS.
+- **Comments / processing instructions** → ignored.
+- **Namespaces** → preserved in event data; redeclaration allowed (new scope pushed).
+- **Empty elements** (`<name/>`) → empty/zero‑length string or default value.
+- **Missing end tag / invalid prefix** → ON EXCEPTION.
+- **Repeated elements without OCCURS** → last value wins.
+- **Empty OCCURS** → generates zero elements.
+- **Invalid UTF‑8** → ON EXCEPTION.
 
 ------------------------------------------------------------
 Summary
 ------------------------------------------------------------
-The CobolSharp JSON & XML Processing Architecture:
-- Implements full COBOL‑2014+ structured‑data semantics
-- Provides deterministic mapping between COBOL records and JSON/XML
-- Supports COUNT IN, PROCESSING PROCEDURE, and ON EXCEPTION
-- Handles OCCURS, nested groups, REDEFINES, and PIC N
-- Uses dedicated runtime engines for correctness and performance
-- Generates clean, verifiable CIL
-- Integrates deeply with debugging and runtime services
+The CobolSharp JSON & XML Processing Architecture (target design):
+- Implements full COBOL‑2014+ / ISO‑2023 JSON & XML PARSE/GENERATE semantics
+- Provides SAX‑style streaming event models with structured data binding and XML namespace‑aware
+  matching
+- Supports COUNT IN, PROCESSING PROCEDURE, WITH DETAIL, NAME OF, SUPPRESS, OMITTED, WITH ATTRIBUTES
+- Handles OCCURS / OCCURS DEPENDING ON, nested groups, REDEFINES, NATIONAL/PIC N, numeric, boolean,
+  and null
+- Uses dedicated runtime engines (`JsonEngine`/`XmlEngine`) for correctness and performance
+- Ensures deterministic UTF‑8/UTF‑16 processing
+- Generates clean, verifiable, debugger‑friendly **CIL** (no custom VM)
 - Ensures correctness across CoreCLR, AOT, and WASM
+
+**Reminder:** this remains DESIGN‑ONLY (Phase C). Build it against the typed‑native data model and
+CIL backend per `docs/MASTER_PLAN.md` and `docs/ISO2023_CONFORMANCE_PLAN.md`.

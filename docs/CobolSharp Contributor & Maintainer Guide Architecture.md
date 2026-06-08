@@ -54,7 +54,7 @@ Key directories:
 Coding standards
 ----------------
 Language:
-- C# 12
+- C# 14
 - Nullable reference types enabled
 - Async where appropriate (LSP, tools)
 - No unsafe code unless explicitly justified

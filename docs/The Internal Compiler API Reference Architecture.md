@@ -1,6 +1,8 @@
 CobolSharp Internal Compiler API Reference Architecture (CIL‑Only)
 ==================================================================
 
+> **[DESIGN REFERENCE]** This document defines the internal compiler API surface (stable internal contract). It is not a public API. Implementation status: aligned with current architecture per MASTER_PLAN.md; the big decompositions (M001 IR-expr, M003 CilEmitter→11 emitters, M004 BoundTreeBuilder→9 binders) are DONE. Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the internal API surface of the CobolSharp compiler — the classes, interfaces, data structures, and contracts that form the backbone of the compilation pipeline.  

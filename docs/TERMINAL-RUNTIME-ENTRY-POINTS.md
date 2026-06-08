@@ -1,5 +1,7 @@
 # Runtime Entry Points: Bound Statements to TerminalSession
 
+> **STATUS: Design reference** (terminal I/O, .NET 10 / C# 14). **STUB** — Screen Section not yet implemented. TerminalSession, ScreenAttributeMapper, and CursorCodec are explicit placeholders (M429/M431 per `docs/ISO2023_CONFORMANCE_PLAN.md`). Implementation deferred to **Phase E** per `docs/MASTER_PLAN.md` §3. Ref: `docs/MASTER_PLAN.md` §2 (status), §3 Phase E (product surface work).
+
 Defines how bound ACCEPT/DISPLAY statements call into TerminalSession, bridging the
 compiler's bound tree to the runtime's terminal system.
 

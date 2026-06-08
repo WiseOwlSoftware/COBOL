@@ -1,6 +1,8 @@
 CobolSharp Testing & Verification Architecture — Unit Tests, Golden Files, Deterministic Snapshots & Runtime Validation (CIL‑Only)
 =================================================================================================================================
 
+> **[DESIGN REFERENCE]** This document describes the testing and verification architecture. Current test status per MASTER_PLAN.md §2: 1196 unit / 509 integration / 364 NIST tests (ALL GREEN). The conformance test corpus (tests/conformance/<version>/) is in-use and is the NIST-equivalent for post-1985 standards. Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the authoritative architecture for:

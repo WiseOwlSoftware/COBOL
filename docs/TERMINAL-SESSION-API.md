@@ -1,5 +1,7 @@
 # TerminalSession API Specification
 
+> **DESIGN DOCUMENT (Implementation status: Design-only; part of complete 12-doc Terminal/SCREEN SECTION design per Phase C).** This specifies the TerminalSession API for screen I/O. Full subsystem design: `docs/M411-screen-section-grammar-island.md` + 11 related TERMINAL-*.md docs. Actual implementation: Phase C (back of conformance queue, MASTER_PLAN §10.2). Stack: .NET 10 / C# 14.
+
 ## Purpose
 
 TerminalSession is the high-level controller for COBOL screen I/O. It owns a

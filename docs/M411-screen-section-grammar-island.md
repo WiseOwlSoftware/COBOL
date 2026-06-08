@@ -1,5 +1,7 @@
 # M411 Design Document: SCREEN SECTION (Grammar Island)
 
+> **[DESIGN REFERENCE — NOT YET IMPLEMENTED]** Status: Design complete, awaiting implementation authorization (dated 2026-03-30). This document specifies SCREEN SECTION grammar, semantics, and test plan. Scope: grammar island + binder model; runtime/UI implementation is deferred. SCREEN SECTION is standardized in ISO 1989:2002+ but widely implemented in COBOL-85 compilers. See MASTER_PLAN.md Phase C for conformance backlog. Stack: .NET 10 / C# 14.
+
 **Status**: Design complete, awaiting implementation authorization
 **Date**: 2026-03-30
 **Ledger item**: M411

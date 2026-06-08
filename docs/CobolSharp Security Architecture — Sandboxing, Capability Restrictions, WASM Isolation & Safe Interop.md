@@ -1,6 +1,8 @@
 CobolSharp Security Architecture — Sandboxing, Capability Restrictions, WASM Isolation & Safe Interop (CIL‑Only)
 ===============================================================================================================
 
+> **DESIGN REFERENCE.** This document is a security-architecture essay authored as a target design (CIL-only). Implementation is PARTIAL: memory safety and file-path restrictions are in place; the WASM sandbox, sandboxing hardening, and capability framework are design-only, planned Phase E — not yet implemented. Refer to `docs/MASTER_PLAN.md` §2 (current core state) and §3 Phase E (product surface) for real implementation status. Stack: .NET 10 / C# 14.
+
 Purpose
 -------
 Define the authoritative architecture for:

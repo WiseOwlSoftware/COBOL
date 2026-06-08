@@ -1,9 +1,11 @@
 # BoundTreeBuilder Decomposition (M004)
 
-**Status:** Design document — awaiting approval
-**Date:** 2026-03-30
+**Status:** IMPLEMENTATION COMPLETE (DEVLOG 441). The decomposition described here has been fully implemented as of 2026-06-07.
+**Date:** 2026-03-30 (design) · **COMPLETED:** 2026-06-07
 **Ledger item:** M004 — Break BoundTreeBuilder.cs god class into focused binders
-**Prerequisites:** M001 (IrExpression) — complete, M002 (Binder) — complete, M003 (CilEmitter) — complete
+**Prerequisites:** M001 (IrExpression) — complete, M002 (Binder) — complete, M003 (CilEmitter → 11 emitters) — complete
+
+> The 9 focused binder classes (ArithmeticStatementBinder, CallBinder, ConditionBinder, ControlFlowBinder, DataStatementBinder, ExpressionBinder, FileIoBinder, StringStatementBinder, ProcedureNameResolver) + the slim ~234-line BoundTreeBuilder orchestrator are live in `src/CobolSharp.Compiler/Semantics/Bound/Binding/` and passing all guard tests.
 
 ---
 

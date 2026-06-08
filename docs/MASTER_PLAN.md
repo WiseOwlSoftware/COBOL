@@ -198,89 +198,80 @@ every commit.
   `ISO2023_CONFORMANCE_PLAN.md` (do not re-audit). **NEXT = Phase A (enable max parallelism) → Phase B1 (OO
   semantic/emit, turnkey §6.6).**
 
-## 9. Sub-document index — the ~170 prior planning/architecture docs this plan orchestrates
+## 9. Sub-document index (post-consolidation, 2026-06-07)
 
-This plan **encompasses and orchestrates all prior research** (159 files in `docs/` + the top-level process docs). It
-does **not** reinvent them — each cluster below is a design SSOT for its phase. **Caveat (resolved in §10):** the docs
-fall into two tiers — **(L) LIVE/grounded** plans that track the real code, and **(A) ASPIRATIONAL** architecture
-essays from a prior doc-generation pass (the long-titled `CobolSharp COBOL … Architecture.md` corpus, smart-quoted
-filenames) that describe an *idealized* target and must be **validated against the code before being treated as
-authoritative**. The §10 synthesis tags which is which; until then, treat the LIVE set as binding and the essays as
-design input.
+**Doc-corpus consolidation DONE (2026-06-07, DEVLOG 442):** the sprawling prior corpus (179 files) was consolidated to
+**126** — the ~100 long-titled `CobolSharp COBOL … Architecture.md` design essays were merged into **one canonical
+design-reference per subsystem** (each absorbs all unique content from its duplicates, carries a status banner with
+real implementation status + stack `.NET 10`/`C# 14`, and is stale-fact-corrected); **53 redundant/abandoned docs were
+removed** (49 merged-in duplicates + 4 abandoned/broken: 2 zero-byte stubs, the rejected "Custom VM Instruction Set
+Spec", and a misnamed Debugger=Runtime byte-dup). Every doc is now a valid reference. (The §10.4 consolidation
+recommendation is now executed.)
 
 **9.1 LIVE top-level SSOTs / doctrine (binding — work from these):**
-- `docs/MASTER_PLAN.md` (this) · `PROMPT.md` (doctrine + anti-pattern catalog) · `DEVLOG.md` (narrative, entry 439) ·
+- `docs/MASTER_PLAN.md` (this) · `PROMPT.md` (doctrine + anti-pattern catalog) · `DEVLOG.md` (narrative, entry 442) ·
   `PROJECT_PLAN.md` · `README.md` · `CONSTRAINTS.md`.
 - `docs/DATA_MODEL_ARCHITECTURE.md` (typed-native ADR — settled, do not re-litigate) + `docs/DATA_MODEL_REVIEW.md`
   (adversarial review).
 - `docs/RECORD_STRUCT_STORAGE_DESIGN.md` (7-stage migration roadmap; pointers §10 done; Stage 5/6 + island §1.6 ahead).
-- `docs/OO_IMPLEMENTATION_DESIGN.md` (OO design + §6.6 turnkey slice-1 map).
+- `docs/OO_IMPLEMENTATION_DESIGN.md` (LIVE OO turnkey design + §6.6 slice-1 map; also the consolidated OO canonical).
 - `docs/ISO2023_CONFORMANCE_PLAN.md` (ranked M2/M3/M4 conformance work-breakdown + execution waves — Phase C SSOT).
 - `docs/MULTIVERSION_ROADMAP.md` (high-level M0→M4 milestone view).
 - `docs/ARCHITECTURE_ASSESSMENT.md` (architecture audit + commercial-hardening roadmap — Phase D/E seed).
 
-**9.2 Architecture-cleanup turnkey (Phase D — LIVE decomposition guides for the god classes):**
+**9.2 Architecture-cleanup turnkey (Phase D — LIVE decomposition guides; the M001/M003/M004 splits are DONE):**
 - `docs/cilemitter/CilEmitter-Decomposition.md` · `docs/binder/Binder-Decomposition.md` ·
   `docs/boundtree/BoundTreeBuilder-Decomposition.md` · `docs/ir/IR-Expression-Contract.md` ·
-  `docs/batch3-architectural-summary.md` · `docs/PARSER-ARCHITECTURE-REVIEW.md`.
+  `docs/batch3-architectural-summary.md` · `docs/PARSER-ARCHITECTURE-REVIEW.md` (historical, pre-ANTLR).
 
-**9.3 Frontend — grammar / parser / semantic / data-layout (Phases B, C, D):**
-- LIVE: `docs/GRAMMAR-AUDIT.md` + `GRAMMAR_AUDIT.md` (top-level, source-of-truth compliance) · `docs/GRAMMAR-REFERENCE.md`
-  · `docs/ANTLR4-GRAMMAR-ARCHITECTURE.md` · `docs/ANTLR4-RATIONALE.md` · `ANTLR4_VSCODE_IMPORT_BUG.md` (+RESPONSE) ·
-  `docs/SEMANTIC-ANALYSIS-ARCHITECTURE.md` · `docs/BINDER-DESIGN.md` · `docs/CATEGORY-RULES.md` · `docs/SCOPE-RULES.md` ·
-  `docs/DATA-DIVISION-LAYOUT-DESIGN.md`.
-- (A) essays: `CobolSharp COBOL Grammar & Parsing Architecture` · `… Semantic Analyzer & Symbol Table` · `… Semantic
-  Rules & Edge-Case Behavior` · `… Data Division Layout & Memory Model` · `… Expression Evaluation & Type System`.
+**9.3 LIVE frontend / grounded design (binding):**
+- `docs/GRAMMAR-AUDIT.md` + `GRAMMAR_AUDIT.md` · `docs/GRAMMAR-REFERENCE.md` · `docs/ANTLR4-RATIONALE.md` ·
+  `ANTLR4_VSCODE_IMPORT_BUG.md` (+RESPONSE) · `docs/BINDER-DESIGN.md` · `docs/CATEGORY-RULES.md` · `docs/SCOPE-RULES.md`
+  · `docs/DATA-DIVISION-LAYOUT-DESIGN.md`.
 
-**9.4 Backend — IR / optimizer / CIL codegen / VM (Phase B2 Roslyn, Phase D):**
-- LIVE: `docs/IL-BYTECODE-GENERATION-DESIGN.md`.
-- (A) essays: `CobolSharp Backend Codegen Architecture` · `… CIL Backend & Code Generation` · `… IL Generation,
-  Verification & Optimization` · `… Optimizer & IR (IR) Architecture` · `CobolSharp Optimization Pipeline` · `…
-  Custom VM Instruction Set Specification` · `… Compiler Pipeline — Lexing…AOT-WASM Emission`.
+**9.4 Consolidated subsystem design-references (one canonical each — design targets w/ status banners):**
+- *Frontend:* `ANTLR4-GRAMMAR-ARCHITECTURE.md` (grammar/parsing, LIVE+essay) · `SEMANTIC-ANALYSIS-ARCHITECTURE.md`
+  (semantic, LIVE+essay) · `…Semantic Rules & Edge-Case Behavior Specification` (the distinct behavior "constitution").
+- *Backend:* `…CIL Backend & Code Generation Architecture` · `…Optimizer & Intermediate Representation (IR)
+  Architecture` · LIVE `docs/IL-BYTECODE-GENERATION-DESIGN.md`.
+- *Runtime / memory / numeric:* `…Runtime — ExecutionContext, StorageBlocks, ObjectTable, FileManager & Engine
+  Integration` (absorbed 5) · `…Memory Model — StorageBlocks, Offsets, REDEFINES, OCCURS & DEPENDING-ON` (absorbed 4) ·
+  `…Numeric Engine & Packed Decimal` (arithmetic + numeric).
+- *Language features:* `…EVALUATE, Branching & Control-Flow Semantics` · `…PERFORM, Control-Flow, Looping & Structured
+  Execution` · `…INSPECT, STRING, UNSTRING & Text-Processing Engine` · `…File IO, FD-SD, Sequential-Indexed-Relative &
+  Record-Buffer` · `…Error Model — Declaratives, ExceptionState, USE AFTER & Structured Recovery` · `…CALL Convention,
+  Parameter Passing, LINKAGE & BY VALUE/REFERENCE` (call/program-model) · `Cobolsharp COBOL JSON & XML Processing` ·
+  `…Standard Library — Intrinsics, FUNCTION Resolution, Runtime Helpers` · `…Interop Architecture — .NET Types,
+  Assemblies, INVOKE .NET & Type Mapping` · `OO_IMPLEMENTATION_DESIGN.md` · `REPORT_WRITER_ROADMAP.md`.
+- *Product / system:* `CobolSharp Master Architecture Document` (system overview → defers to this plan) · `…Packaging &
+  Distribution Architecture` · `…Debugger Architecture — Breakpoints, StorageBlock Inspection, Step Semantics`.
+- *LIVE per-feature plans (kept separate):* `docs/REPORT_WRITER_CONTROL_DESIGN.md` · `docs/collating-subsystem-plan.md`
+  · `collating-gap2-turnkey.md` · `collating-baseline-finding.md` · `docs/dialect-strictness.md` ·
+  `docs/M407-currency-sign-picmode-refactor.md` · `docs/CobolSharp COBOL-to-C# Interop Cookbook.md`.
 
-**9.5 Runtime / data / memory / numeric (Phase B):**
-- (A) essays: `CobolSharp COBOL Memory Model …REDEFINES, OCCURS & DEPENDING-ON` · `… Memory Layout, Alignment &
-  Storage Allocation` · `… Memory Model, Storage Blocks, PIC Semantics & Binary Layout` · `… Numeric Engine & Packed
-  Decimal` · `… Runtime Engine/ExecutionContext` (4 variants) · `CobolSharp Runtime Library Design` · `… Program
-  Lifecycle, STOP RUN, GOBACK` · `… Program Registry, ENTRY Points & Multi-Entry Dispatch` · `… Program Model — CALL,
-  ENTRY, Parameter Passing`.
+**9.5 Remaining product-surface design-references (Phase E — design-only, each banner-marked):**
+- LSP/IDE Integration · Security Architecture · Compliance & Governance · Operational Runbook · Determinism Model ·
+  Concurrency Model · Performance Architecture · Enterprise Deployment · Build & Release Pipeline / Build System ·
+  Test Harness & Validation + Testing & Verification · Contributor & Maintainer Guide · Internal Compiler API Reference
+  · Modernization & Migration Toolkit · Future Extensions Roadmap (SQL/CICS/distributed) · Complete Developer Guide ·
+  Cookbook (100+ patterns) · End-User Handbook · End-to-End DX Flow · Formal Specification · ISO Compatibility Matrix ·
+  Language Feature Support Matrix · `docs/USER-GUIDE.md`. (Plus the per-statement feature essays not in a dup cluster:
+  MOVE/CORRESPONDING · Condition-Names · SORT-MERGE · ACCEPT/DISPLAY/Console-IO · Expression-Evaluation · National/
+  Unicode · COPY-REPLACE + REPLACE-preprocessor · Compiler-Directive/Conditional-Compilation · Paragraph-Section ·
+  Program-Lifecycle · Program-Registry · File-Status · Declaratives/USE.)
 
-**9.6 Language-feature subsystems (Phase C — per-statement design input):**
-- (A) essays, by area: Arithmetic/COMPUTE/ROUNDED/SIZE-ERROR (×2) · MOVE/CORRESPONDING/INITIALIZE · PERFORM/control-
-  flow (×2) · EVALUATE/branching (×2) · Condition-names/boolean · INSPECT/STRING/UNSTRING (×3) · SORT-MERGE/collation
-  · FUNCTION/intrinsics + Standard Library (×2) · File-IO/FD-SD/indexed-relative + record-buffer (×4) · File-Status/
-  error-mapping · Declaratives/USE/exception-routing (×2) · National/Unicode · JSON PARSE/GENERATE (×2) · XML PARSE/
-  GENERATE (×2) · OO Class/Method/Factory/INVOKE/INHERITS (×3) · CALL-convention/LINKAGE/BY-VALUE · ACCEPT/DISPLAY/
-  Console-IO · Expression evaluation · Interop (.NET types/INVOKE .NET) (×3) + `CobolSharp-to-C# Interop Cookbook`.
-- LIVE per-feature plans: `docs/REPORT_WRITER_CONTROL_DESIGN.md` · `docs/REPORT_WRITER_ROADMAP.md` (+3 RW essays) ·
-  `docs/collating-subsystem-plan.md` · `collating-gap2-turnkey.md` · `collating-baseline-finding.md` ·
-  `docs/dialect-strictness.md` · `docs/M407-currency-sign-picmode-refactor.md`.
+**9.6 Terminal / SCREEN SECTION subsystem (Phase C — a self-contained LIVE design set, 12 docs):**
+- `docs/M411-screen-section-grammar-island.md` + `docs/TERMINAL-*.md` ×11 (ABSTRACTION-DESIGN, ACCEPT-INPUT-LOOP,
+  BUFFER-ATTRIBUTE-MODEL, CRT-STATUS-MAPPING, CURSOR-ENCODING, DEVICE-BACKEND, MULTI-FIELD-NAVIGATION,
+  RUNTIME-CLASS-LAYOUT, RUNTIME-ENTRY-POINTS, SESSION-API, TEST-HARNESS).
 
-**9.7 Terminal / SCREEN SECTION subsystem (Phase C — a self-contained LIVE design set, 12 docs):**
-- `docs/M411-screen-section-grammar-island.md` (the grammar-island plan) + `docs/TERMINAL-*.md` ×11 (ABSTRACTION-
-  DESIGN, ACCEPT-INPUT-LOOP, BUFFER-ATTRIBUTE-MODEL, CRT-STATUS-MAPPING, CURSOR-ENCODING, DEVICE-BACKEND, MULTI-FIELD-
-  NAVIGATION, RUNTIME-CLASS-LAYOUT, RUNTIME-ENTRY-POINTS, SESSION-API, TEST-HARNESS).
-
-**9.8 Production / tooling / ops / docs (Phases E, F — the "commercial product" essays):**
-- (A) essays: Build & Release Pipeline · Build System (multi-targeting/AOT-WASM/deterministic packaging) · Packaging &
-  Distribution (×2) · Distribution Architecture (back-compat/stability) · Enterprise Deployment (CI-CD/multi-tenant/
-  observability) + `CD, Version Pinning, Multi-Tenant Hosting & Observability` · Compliance & Governance Manual ·
-  Operational Runbook · Security Architecture (sandboxing/WASM) · Determinism Model · Concurrency Model · Performance
-  Architecture · Debugger (×4: Architecture, Breakpoints/StorageBlock, Sequence-Point/Symbol, PDB-symbol-gen) · LSP/IDE
-  Integration · Test Harness & Validation + Testing & Verification (golden files/snapshots) · Contributor & Maintainer
-  Guide · Internal Compiler API Reference · Modernization & Migration Toolkit · Future Extensions Roadmap (SQL/CICS/
-  distributed) · Complete Developer Guide · Cookbook (100+ patterns) · End-User Handbook · End-to-End DX Flow ·
-  Master Architecture Document · Full System Integration Blueprint · Final Integration Document · End-to-End
-  Architecture Diagram · Formal Specification (grammar/type-system/operational-semantics) · ISO Compatibility Matrix ·
-  Language Feature Support Matrix · `docs/USER-GUIDE.md`.
-
-**9.9 Spec text & process/status ledgers (reference):**
+**9.7 Spec text & process/status ledgers (reference):**
 - Spec: `specs/ISO_COBOL.md` (submodule, authoritative) + `docs/spec-text/{cobol-spec,full-spec,section-14-procedure}.md`.
 - Conformance/gap ledgers (LIVE): `docs/CONFORMANCE.md` · `docs/SPEC_FIX_BACKLOG.md` · `docs/SPEC_FIX_RECIPES_M1.md` ·
   `docs/SPEC_GAP_INVENTORY.md` · `docs/spec-gaps.md` · `docs/EXCLUSION_LEDGER.md` · `docs/FLAG_MANIFESTS.md` ·
   `docs/FUTURES.md` · `docs/COBOL85_COMPLIANCE_PLAN.md` · `AUDIT_REPORT.md` · `MIGRATION_LEDGER.md` ·
   `NIST_TEST_REPORT.md` · `docs/BATCH5-*.md` (grammar-leniency approval ledgers).
-- Meta: `docs/Resume-Prompt-For-Docs.md` (the prior doc-gen session's own resume note — explains the (A) essay corpus).
+- Meta: `docs/Resume-Prompt-For-Docs.md` (the prior doc-gen session's resume note — explains the now-consolidated essays).
 
 ## 10. Grounded assessment (commercial/decades bar)
 
@@ -329,13 +320,14 @@ M2 backlog, ordered by value/tractability (assessment's conformance agent): **OO
 high-subset only (**no `--subset` flag**); CM/DB/SG parse+flag only (no runtime). Every post-'85 feature ships a
 `tests/conformance/<ver>/` test in the same commit.
 
-**10.4 Doc-corpus hygiene (Phase D editorial):** the essay corpus has real duplication — consolidate to ONE canonical
-per subsystem: INSPECT 3→1, PERFORM 2→1, EVALUATE 2→1, Report-Writer 3→1, Debugger 3→2, Runtime/ExecutionContext 4→1,
-Memory-Model 3→1, OO 3→1, Interop 2+cookbook; **retire** `PARSER-ARCHITECTURE-REVIEW.md` (pre-ANTLR, historical); the
-"Grammar & Parsing" / "Semantic Analyzer" tutorials defer to `ANTLR4-GRAMMAR-ARCHITECTURE.md` /
-`SEMANTIC-ANALYSIS-ARCHITECTURE.md` (the SSOTs). Code-side Phase-D debt is now **targeted, not a teardown**: excise dead
-overlay grammars + `RecordLayoutBuilder` vestiges (Option-B per DEVLOG 400), finish the single-PIC pipeline, island the
-byte engine, exhaustive XML-doc.
+**10.4 Doc-corpus hygiene — DONE (2026-06-07, DEVLOG 442).** The essay corpus's heavy duplication was consolidated to
+ONE canonical per subsystem (INSPECT 3→1, PERFORM 2→1, EVALUATE 2→1, Report-Writer 3→1, Debugger 4→1,
+Runtime/ExecutionContext 5→1, Memory-Model 4→1, OO 3→1, Interop 2→1, File-IO 4→1, JSON/XML 5→1, intrinsics 3→1,
+arithmetic/numeric 3→1, CIL-backend 3→1, system-overview 6→1, packaging/build 4→1, CALL/program-model 3→1, +grammar/
+semantic essays folded into the LIVE SSOTs), each absorbing its duplicates' unique content + a status banner; **corpus
+179 → 126 docs** (53 removed). See §9 for the resulting index. Remaining code-side Phase-D debt is **targeted, not a
+teardown**: excise dead overlay grammars + `RecordLayoutBuilder` vestiges (Option-B per DEVLOG 400), finish the
+single-PIC pipeline, island the byte engine, exhaustive XML-doc.
 
 **10.5 Honest verdict + what it means for §3.** `AUDIT_REPORT.md`'s "**DO NOT REWRITE**" verdict still holds and is
 **consistent** with the North Star: the owner's "rewrite/re-architect anything, no back-compat" is a *license* to

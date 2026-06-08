@@ -1,14 +1,14 @@
 # CobolSharp Compliance Audit — Source of Truth
 
-**Date:** 2026-03-28
+**Date:** 2026-03-28 (historical audit record)
 **Spec:** ISO/IEC 1989:1985 (COBOL-85) primary, ISO/IEC 1989:2023 reference
-**Status:** P0/P1/P2/remaining gaps all fixed; grammar gaps tracked below
+**Status:** P0/P1/P2/remaining gaps all fixed; grammar gaps tracked below. _Superseded for forward-looking conformance work by `docs/ISO2023_CONFORMANCE_PLAN.md` (the conformance SSOT) and `docs/MASTER_PLAN.md`._
 
 ---
 
 ## 1. Executive Summary
 
-**Tests:** 421 unit + 274 integration + 65 NIST guard = ALL GREEN
+**Tests:** 1196 unit + 509 integration + 364 NIST guard = ALL GREEN (current baseline per `docs/MASTER_PLAN.md` §2; figures at the time of this 2026-03-28 audit were 421 / 274 / 65)
 
 **Audit results:**
 - P0 bugs (data corruption/crashes): 8 identified, **8 fixed** (Entry 154)

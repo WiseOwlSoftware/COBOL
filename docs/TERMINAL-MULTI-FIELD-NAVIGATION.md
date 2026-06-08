@@ -1,5 +1,7 @@
 # Multi-Field Navigation Semantics
 
+> **STATUS:** Design specification for multi-field ACCEPT form navigation (2026). Implementation is pending; gated by M429 (Terminal Abstraction) completion — see docs/BATCH5-LEDGER-TASKS-M429-M431.md. Stack: .NET 10 / C# 14. See docs/MASTER_PLAN.md for phased roadmap.
+
 ## 1. Purpose
 
 COBOL ACCEPT can operate on:

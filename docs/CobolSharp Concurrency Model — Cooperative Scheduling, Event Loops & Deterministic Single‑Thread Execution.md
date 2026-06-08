@@ -1,6 +1,8 @@
 CobolSharp Concurrency Model — Cooperative Scheduling, Event Loops & Deterministic Single‑Thread Execution (CIL‑Only)
 ====================================================================================================================
 
+> STATUS: Authoritative architecture — deterministic single-threaded cooperative execution model (.NET 10 / C# 14, CIL-only); no true parallelism. Partially implemented (file I/O, JSON/XML, SORT scheduling points; async interop framework in place but not fully utilized). Ref: docs/MASTER_PLAN.md §2, docs/ISO2023_CONFORMANCE_PLAN.md.
+
 Purpose
 -------
 Define the authoritative architecture for:

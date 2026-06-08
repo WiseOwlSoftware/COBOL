@@ -1,5 +1,7 @@
 # Dialect & Strictness Model
 
+> **STATUS:** Dialect infrastructure design / in progress (DEVLOG 254–269, 2026-05-31). See docs/MASTER_PLAN.md §3 Phase A for current implementation status of leniency gating. Stack: .NET 10 / C# 14.
+
 **Status:** design / in progress (2026-05-31, DEVLOG 254)
 **Audience:** anyone touching the grammar, the binder, or the NIST guard.
 

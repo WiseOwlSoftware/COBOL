@@ -1,5 +1,7 @@
 # Batch 5 OVERLENIENT Grammar Deltas (M412-M426)
 
+> STATUS: Design reference (pre-implementation) — grammar delta proposals (M412-M426). Implementation pending expert (ANTLR/COBOL) review; all marked ☐ pending per docs/MASTER_PLAN.md §2 and docs/ISO2023_CONFORMANCE_PLAN.md §3.5.
+
 Grammar delta proposals for all 15 OVERLENIENT gaps. Each is minimal, LL(*)-safe,
 and patch-ready. These must be reviewed by ANTLR and COBOL expert agents before
 implementation.

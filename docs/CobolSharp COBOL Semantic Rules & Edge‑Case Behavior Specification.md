@@ -1,6 +1,10 @@
 CobolSharp COBOL Semantic Rules & Edge‑Case Behavior Specification (CIL‑Only)
 ============================================================================
 
+> ## ⚠️ DESIGN REFERENCE (Specification Target)
+>
+> This is a target semantic specification design document from the prior doc-generation pass. **Status: Design-reference** (describes idealized target semantics; implementation varies per codebase audit). See `docs/MASTER_PLAN.md` §9.3 ("Semantic Rules & Edge-Case Behavior" listed under (A) essays). For current semantic rules, see `docs/BINDER-DESIGN.md` and `docs/SEMANTIC-ANALYSIS-ARCHITECTURE.md` (LIVE SSOTs). Stack: .NET 10 / C# 14. Backend: CIL-only via Mono.Cecil.
+
 Purpose
 -------
 Define the authoritative semantic rules and edge‑case behaviors that CobolSharp must implement to ensure:
