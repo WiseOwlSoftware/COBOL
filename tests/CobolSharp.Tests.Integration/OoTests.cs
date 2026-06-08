@@ -241,41 +241,103 @@ public sealed class OoTests : EndToEndTestBase
     }
 
     [Fact]
-    // INVOKE SELF needs a sibling method (multi-method classes) — a later slice; it must fail loudly (COBOL0112).
-    public void Invoke_SelfTarget_FailsLoudly()
+    // Multi-method classes + INVOKE SELF (the keystone): COUNTER has TWO methods sharing per-instance N; DRIVE
+    // calls its sibling BUMP via INVOKE SELF twice, then DISPLAYs N. Proves (a) two METHOD-ID bodies on one class
+    // (each its own .NET method + dispatch range — both have a MAIN paragraph), (b) shared per-instance typed N,
+    // (c) INVOKE SELF → callvirt this (COBOL0112 lifted). N=2.
+    public void Invoke_Self_MultiMethodClass_SharesStateAndDispatches()
     {
-        string driver = @"
+        const string src = @"
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. OODRV.
+       PROGRAM-ID. OOSELF.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
-           CLASS ANIMAL.
+           CLASS COUNTER.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01 A USAGE OBJECT REFERENCE ANIMAL.
+       01 C USAGE OBJECT REFERENCE COUNTER.
        PROCEDURE DIVISION.
        MAIN.
-           INVOKE ANIMAL ""NEW"" RETURNING A.
-           INVOKE A ""SPEAK"".
+           INVOKE COUNTER ""NEW"" RETURNING C.
+           INVOKE C ""DRIVE"".
            STOP RUN.
-       END PROGRAM OODRV.
+       END PROGRAM OOSELF.
        IDENTIFICATION DIVISION.
-       CLASS-ID. ANIMAL.
+       CLASS-ID. COUNTER.
        IDENTIFICATION DIVISION.
        OBJECT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 N PIC 9 VALUE 0.
        PROCEDURE DIVISION.
-       METHOD-ID. SPEAK.
+       METHOD-ID. BUMP.
        PROCEDURE DIVISION.
        MAIN.
-           INVOKE SELF ""SPEAK"".
-       END METHOD SPEAK.
+           ADD 1 TO N.
+       END METHOD BUMP.
+       METHOD-ID. DRIVE.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE SELF ""BUMP"".
+           INVOKE SELF ""BUMP"".
+           DISPLAY ""N="" N.
+       END METHOD DRIVE.
        END OBJECT.
-       END CLASS ANIMAL.
+       END CLASS COUNTER.
 ";
-        var (ok, _, stderr) = CompileAndRun(driver, DialectMode.Cobol2002);
-        Assert.False(ok);
-        Assert.Contains("COBOL0112", stderr);
+        var (ok, stdout, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("N=2", stdout.Replace("\r\n", "\n").Trim());
+    }
+
+    [Fact]
+    // Multi-method dispatch isolation: method A (INC, no STOP/GOBACK) defined BEFORE method B (DEC) must NOT fall
+    // through into B's paragraphs — invoking only INC prints just "INC=1", never "DEC=...". The exit bound is the
+    // method's own last paragraph (not run-to-end). (Adversarial gate for the method-A-falls-into-B risk.)
+    public void Invoke_MultiMethod_FirstMethodDoesNotFallIntoSecond()
+    {
+        const string src = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OOFALL.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS COUNTER.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 C USAGE OBJECT REFERENCE COUNTER.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE COUNTER ""NEW"" RETURNING C.
+           INVOKE C ""INC"".
+           STOP RUN.
+       END PROGRAM OOFALL.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. COUNTER.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 N PIC 9 VALUE 0.
+       PROCEDURE DIVISION.
+       METHOD-ID. INC.
+       PROCEDURE DIVISION.
+       MAIN.
+           ADD 1 TO N.
+           DISPLAY ""INC="" N.
+       END METHOD INC.
+       METHOD-ID. DEC.
+       PROCEDURE DIVISION.
+       MAIN.
+           DISPLAY ""DEC-RAN"".
+       END METHOD DEC.
+       END OBJECT.
+       END CLASS COUNTER.
+";
+        var (ok, stdout, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("INC=1", stdout.Replace("\r\n", "\n").Trim());   // NOT "INC=1\nDEC-RAN"
     }
 
     [Fact]
@@ -518,5 +580,102 @@ public sealed class OoTests : EndToEndTestBase
         var (ok, _, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
         Assert.False(ok);
         Assert.Contains("COBOL0114", stderr);
+    }
+
+    [Fact]
+    // A SECTION inside a METHOD-ID is not yet method-scoped — its paragraphs would be excluded from the method's
+    // dispatch range and SILENTLY SKIPPED. Reject loudly (COBOL0116) rather than emit wrong output. (DEVLOG 455.)
+    public void Method_WithSection_FailsLoudly()
+    {
+        const string src = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OOSEC.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS K.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 O USAGE OBJECT REFERENCE K.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE K ""NEW"" RETURNING O.
+           INVOKE O ""DRIVE"".
+           STOP RUN.
+       END PROGRAM OOSEC.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. K.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       PROCEDURE DIVISION.
+       METHOD-ID. DRIVE.
+       PROCEDURE DIVISION.
+       MAIN.
+           DISPLAY ""DRIVE-MAIN"".
+       DRIVE-SEC SECTION.
+       DRIVE-P1.
+           DISPLAY ""DRIVE-P1"".
+       END METHOD DRIVE.
+       END OBJECT.
+       END CLASS K.
+";
+        var (ok, _, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
+        Assert.False(ok);
+        Assert.Contains("COBOL0116", stderr);
+    }
+
+    [Fact]
+    // Multi-method classes work, and a single-method class may have parameters (Invoke_ByReferenceArg_Works), but a
+    // class with MULTIPLE methods where any has USING/RETURNING is not yet supported (per-method LINKAGE is a later
+    // slice). Reject loudly (COBOL0117) rather than crash at run time with cross-wired param buffers. (DEVLOG 455.)
+    public void MultiMethod_WithParams_FailsLoudly()
+    {
+        const string src = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OOMP.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS CALC.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 C USAGE OBJECT REFERENCE CALC.
+       01 X PIC 9(4) VALUE 5.
+       01 R PIC 9(4) VALUE 0.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE CALC ""NEW"" RETURNING C.
+           INVOKE C ""ADDONE"" USING X RETURNING R.
+           STOP RUN.
+       END PROGRAM OOMP.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. CALC.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       PROCEDURE DIVISION.
+       METHOD-ID. ADDONE.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-IN PIC 9(4).
+       01 LK-OUT PIC 9(4).
+       PROCEDURE DIVISION USING LK-IN RETURNING LK-OUT.
+       MAIN.
+           COMPUTE LK-OUT = LK-IN + 1.
+       END METHOD ADDONE.
+       METHOD-ID. TRIPLEV.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-T PIC 9(4).
+       01 LK-TR PIC 9(4).
+       PROCEDURE DIVISION USING LK-T RETURNING LK-TR.
+       MAIN.
+           COMPUTE LK-TR = LK-T * 3.
+       END METHOD TRIPLEV.
+       END OBJECT.
+       END CLASS CALC.
+";
+        var (ok, _, stderr) = CompileAndRun(src, DialectMode.Cobol2002);
+        Assert.False(ok);
+        Assert.Contains("COBOL0117", stderr);
     }
 }

@@ -18,13 +18,39 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
     private readonly HashSet<string> _knownNames;
     private bool _inProcedureDivision;
 
+    // OO (ISO §11.7): per-method paragraph scopes. A method's paragraphs live ONLY in their method scope (not the
+    // program-wide ProcedureDivisionScope), so PERFORM/GO TO targets must be resolved method-locally first.
+    private readonly IReadOnlyList<(string Name, Scope Scope, IReadOnlyList<string> Using)> _classMethodScopes;
+    private Scope? _currentMethodScope;
+
     public ReferenceResolver(SymbolTable symbols, List<Diagnostic> diagnostics, string sourceName,
-        IEnumerable<string> knownNames)
+        IEnumerable<string> knownNames,
+        IReadOnlyList<(string Name, Scope Scope, IReadOnlyList<string> Using)>? classMethodScopes = null)
     {
         _symbols = symbols;
         _diagnostics = diagnostics;
         _sourceName = sourceName;
         _knownNames = new HashSet<string>(knownNames, StringComparer.OrdinalIgnoreCase);
+        _classMethodScopes = classMethodScopes ?? [];
+    }
+
+    /// <summary>OO §11.7: resolve a PERFORM/GO TO target in the current METHOD scope first, then program-wide.</summary>
+    private Symbol? ResolveProcedureTarget(string name)
+        => _currentMethodScope?.Resolve(name) ?? _symbols.Program.ProcedureDivisionScope.Resolve(name);
+
+    public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
+    {
+        var nameCtxs = ctx.methodName();
+        string methodName = nameCtxs is { Length: > 0 } ? nameCtxs[0].GetText() : "";
+        Scope? scope = null;
+        foreach (var m in _classMethodScopes)
+            if (string.Equals(m.Name, methodName, StringComparison.OrdinalIgnoreCase)) { scope = m.Scope; break; }
+
+        var prev = _currentMethodScope;
+        _currentMethodScope = scope;
+        var result = base.VisitMethodDefinition(ctx);
+        _currentMethodScope = prev;
+        return result;
     }
 
     // Do not resolve references inside a CONTAINED (nested) program — it is its own source element, resolved
@@ -132,7 +158,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
             foreach (var procName in procNames)
             {
                 string name = ExtractProcedureName(procName);
-                var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
+                var sym = ResolveProcedureTarget(name);
 
                 if (sym is not (ParagraphSymbol or SectionSymbol))
                     Error(procName, DiagnosticDescriptors.CBL3120, "PERFORM", name);
@@ -151,7 +177,7 @@ public sealed class ReferenceResolver : CobolParserCoreBaseVisitor<object?>
         foreach (var pn in procNames)
         {
             string name = ExtractProcedureName(pn);
-            var sym = _symbols.Program.ProcedureDivisionScope.Resolve(name);
+            var sym = ResolveProcedureTarget(name);
 
             if (sym is not (ParagraphSymbol or SectionSymbol))
                 Error(pn, DiagnosticDescriptors.CBL3120, "GO TO", name);

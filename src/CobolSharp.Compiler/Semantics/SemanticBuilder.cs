@@ -24,6 +24,18 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     // Current section name (null if paragraphs are orphans)
     private string? _currentSectionName;
 
+    // OO (ISO §11.7): the per-method paragraph scope while inside a METHOD-ID's PROCEDURE DIVISION (null otherwise).
+    // Each method's paragraphs declare into their OWN scope so duplicate paragraph names across sibling methods
+    // (e.g. every method having a MAIN paragraph) do not collide in the program's ProcedureDivisionScope, and a
+    // method's PERFORM/GO TO resolves method-locally. The ordered (name, scope) list drives the IR method roster.
+    private Scope? _currentMethodScope;
+    private readonly List<(string Name, Scope Scope, IReadOnlyList<string> Using)> _classMethodScopes = [];
+
+    /// <summary>OO class methods, in source order: the method name, the scope its paragraphs were declared in, and
+    /// its PROCEDURE DIVISION USING names + the trailing RETURNING name (the ManagedPointer[] ABI order). Empty for a
+    /// non-class unit. Consumed by the Binder to bound each method's slice of the paragraph dispatch order.</summary>
+    public IReadOnlyList<(string Name, Scope Scope, IReadOnlyList<string> Using)> ClassMethodScopes => _classMethodScopes;
+
     // Section → paragraph membership (built during visit)
     private readonly Dictionary<string, List<string>> _sectionParagraphs =
         new(StringComparer.OrdinalIgnoreCase);
@@ -1759,6 +1771,35 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     /// <summary>RETURNING parameter name from PROCEDURE DIVISION RETURNING.</summary>
     public string? ProcedureReturningName => _procedureReturningName;
 
+    /// <summary>OO (ISO §11.7): a METHOD-ID definition. Each method gets its OWN paragraph scope so sibling methods
+    /// may reuse paragraph names (e.g. every method has a MAIN) without colliding, and a method's PERFORM/GO TO
+    /// resolves within its own paragraphs. The method's PROCEDURE DIVISION USING/RETURNING names (+ trailing
+    /// RETURNING) are captured for the IR method roster (the INVOKE ManagedPointer[] ABI order).</summary>
+    public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
+    {
+        var nameCtxs = ctx.methodName();
+        string methodName = nameCtxs is { Length: > 0 } ? nameCtxs[0].GetText() : "";
+        var scope = new Scope(ScopeKind.Section, _symbols.Program.ProcedureDivisionScope);
+
+        // USING data-names + the trailing RETURNING name, in ABI order (mirrors how the Binder orders
+        // ProcedureUsingParameters then the RETURNING item).
+        var usingNames = new List<string>();
+        var pd = ctx.procedureDivision();
+        if (pd?.usingClause()?.dataReferenceList()?.dataReference() is { } drs)
+            foreach (var dr in drs)
+                usingNames.Add(dr.cobolWord().GetText());
+        if (pd?.returningClause()?.dataReference() is { } ret)
+            usingNames.Add(ret.cobolWord().GetText());
+
+        _classMethodScopes.Add((methodName, scope, usingNames));
+
+        var prevMethodScope = _currentMethodScope;
+        _currentMethodScope = scope;
+        var result = base.VisitMethodDefinition(ctx);
+        _currentMethodScope = prevMethodScope;
+        return result;
+    }
+
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
     {
         // Parse PROCEDURE DIVISION USING data-name-1 data-name-2 ...
@@ -1778,7 +1819,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             _procedureReturningName = retCtx.dataReference().cobolWord().GetText();
         }
 
-        using var _ = _symbols.PushScope(_symbols.Program.ProcedureDivisionScope);
+        // Inside a METHOD-ID, the method's paragraphs declare into the per-method scope (so sibling methods may
+        // reuse paragraph names); otherwise the program-wide ProcedureDivisionScope.
+        using var _ = _symbols.PushScope(_currentMethodScope ?? _symbols.Program.ProcedureDivisionScope);
         return base.VisitProcedureDivision(ctx);
     }
 
@@ -1788,6 +1831,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         if (nameCtx == null) return base.VisitSectionDefinition(ctx);
 
         string name = nameCtx.GetText();
+
+        // OO (ISO §11.7): a SECTION inside a METHOD-ID is not yet method-scoped — its paragraphs would land in the
+        // section scope (parented to the program-wide ProcedureDivisionScope), so they'd be excluded from the
+        // method's dispatch range and SILENTLY SKIPPED at run time (adversarial review, DEVLOG 455). Reject loudly
+        // and skip the section rather than emit wrong output; method-scoped sections are a later OO slice.
+        if (_currentMethodScope != null)
+        {
+            Error(ctx, DiagnosticDescriptors.COBOL0116, name);
+            return DefaultResult;
+        }
+
         var section = new SectionSymbol(name,
             _symbols.Program.ProcedureDivisionScope, ctx.Start.Line);
 
@@ -1864,9 +1918,11 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var paragraph = new ParagraphSymbol(name, _symbols.CurrentScope, ctx.Start.Line);
 
         _symbols.CurrentScope.TryDeclare(paragraph, out _);
-        // Also declare in ProcedureDivisionScope for global resolution,
-        // but only if CurrentScope is a section scope (not already ProcedureDivisionScope)
-        if (_symbols.CurrentScope != _symbols.Program.ProcedureDivisionScope)
+        // Also declare in ProcedureDivisionScope for global resolution, but only for a SECTION paragraph (not when
+        // already in ProcedureDivisionScope, and NOT inside a METHOD-ID — a method's paragraphs are method-local, so
+        // declaring them program-wide would (a) collide across sibling methods that reuse a name like MAIN and
+        // (b) overwrite DeclaringScope, breaking the per-method roster grouping). OO §11.7.
+        if (_currentMethodScope == null && _symbols.CurrentScope != _symbols.Program.ProcedureDivisionScope)
             _symbols.Program.ProcedureDivisionScope.TryDeclare(paragraph, out _);
 
         // Track section membership

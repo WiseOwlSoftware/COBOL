@@ -200,6 +200,7 @@ public sealed class CilEmitter
             attributes: TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed,
             baseType: _module.TypeSystem.Object);
         _module.Types.Add(_programType);
+        _typeMethodNames.Clear();
 
         // 0. ProgramState static field + static constructor
         EmitProgramState(ir);
@@ -268,6 +269,7 @@ public sealed class CilEmitter
             attributes: TypeAttributes.Public | TypeAttributes.Class,
             baseType: (TypeReference?)baseType ?? _module.TypeSystem.Object);
         _module.Types.Add(_programType);
+        _typeMethodNames.Clear();   // per-type method-name uniquifier (multi-method classes reuse paragraph names)
 
         // From here every State access + emitted method is instance-shaped (one chokepoint flag).
         _ctx.StateIsInstance = true;
@@ -295,6 +297,11 @@ public sealed class CilEmitter
         foreach (var g in ir.Globals)
             DefineGlobal(g);
 
+        // 2b. Public OBJECT-method SIGNATURES — defined BEFORE the paragraph methods so (a) their exact COBOL names
+        //     are reserved (paragraph methods uniquify around them) and (b) an INVOKE SELF "m" inside a paragraph
+        //     body (emitted in step 5) can resolve a sibling method on this class.
+        DefineClassMethodSignatures(ir);
+
         // 3. Method (paragraph) signatures — instance methods. A class emits ONLY the real OBJECT-method
         //    paragraphs (ParagraphDispatchOrder); the synthetic program scaffolding the Binder also puts in
         //    ir.Methods (the run-unit "Main" with its Self.Entry/FileRuntime.Init wiring, and "RegisterFiles")
@@ -314,56 +321,73 @@ public sealed class CilEmitter
         foreach (var m in ir.ParagraphDispatchOrder)
             EmitMethodBody(m);
 
-        // 6. The public OBJECT method: a public instance method named after the COBOL METHOD-ID that runs the
-        //    method's paragraphs through the instance Dispatch loop (the analogue of a program's Entry).
-        EmitClassMethodBody(ir);
+        // 6. Fill the public OBJECT-method bodies (signatures from step 2b): map args→linkage, then dispatch each
+        //    method's own paragraph range.
+        EmitClassMethodBodies(ir);
 
         _ctx.StateIsInstance = false;
     }
 
+    // The public OBJECT-method MethodDefinitions (one per IrClassMethod), keyed by roster entry — defined in a
+    // signature pass BEFORE paragraph bodies so an INVOKE SELF inside a paragraph body can resolve a sibling method.
+    private readonly Dictionary<IR.IrClassMethod, MethodDefinition> _classMethodDefs = new();
+
     /// <summary>
-    /// Emit the class's public OBJECT method (slice 1–2 = one method, name = <see cref="IrModule.ClassMethodName"/>):
-    /// a <c>public void Method(ManagedPointer[] args)</c> instance method — the OO analogue of a program's
-    /// <c>Entry</c>, using the SAME ManagedPointer[] ABI as CALL. It maps <c>args[i]</c> → the LINKAGE fields for
-    /// the method's USING/RETURNING parameters, then runs the method's paragraphs via <c>this.Dispatch(entry, -1)</c>.
-    /// A no-arg method (no USING/RETURNING) takes an empty array and maps nothing. The method's RETURNING item is
-    /// the trailing LINKAGE param, written through the trailing by-reference pointer (read back by the caller).
+    /// PHASE 1 — define each COBOL <c>METHOD-ID</c>'s public method SIGNATURE (an empty
+    /// <c>public virtual void Method(ManagedPointer[] args)</c>). Run BEFORE the paragraph bodies so an
+    /// <c>INVOKE SELF "m"</c> emitted inside a paragraph body can resolve a sibling method on the class; the method's
+    /// EXACT COBOL name is reserved first so paragraph methods (which CAN repeat names) uniquify around it.
+    /// A method whose name matches a base-class method is an OVERRIDE (Virtual + ReuseSlot, the base's EXACT name —
+    /// COBOL names are case-INSENSITIVE but the .NET override slot match is case-SENSITIVE); else a NEW virtual.
     /// </summary>
-    private void EmitClassMethodBody(IrModule ir)
+    private void DefineClassMethodSignatures(IrModule ir)
     {
-        if (ir.ClassMethodName is not { } methodName) return;
-
-        // OO methods are VIRTUAL so a subclass can override them (polymorphism, slice 3). A method that matches a
-        // base-class method name is an OVERRIDE (Virtual + ReuseSlot, same name/sig as the inherited virtual); a
-        // method with no base counterpart is a NEW virtual (NewSlot). COBOL names are case-INSENSITIVE but the .NET
-        // override slot match is case-SENSITIVE — so an override MUST be emitted under the base method's EXACT name
-        // (else `METHOD-ID. speak` overriding `SPEAK` would silently fail to override → wrong dispatch).
-        var baseMethod = _currentBaseType != null ? ResolveInheritedMethod(_currentBaseType, methodName) : null;
-        bool isOverride = baseMethod != null;
-        var attrs = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
-        if (!isOverride) attrs |= MethodAttributes.NewSlot;
-
-        var md = new MethodDefinition(isOverride ? baseMethod!.Name : methodName, attrs, _module.TypeSystem.Void);
-        md.Parameters.Add(new ParameterDefinition(
-            "args", ParameterAttributes.None, _module.ImportReference(typeof(ManagedPointer[]))));
-        _programType!.Methods.Add(md);
-        md.Body.InitLocals = true;
-
-        var il = md.Body.GetILProcessor();
-
-        // Bind args[i] → the _linkage_ fields (USING/RETURNING params). md.Parameters[0] is "args"; Cecil's
-        // Ldarg with the ParameterDefinition accounts for the implicit `this` (→ ldarg.1).
-        EmitMapArgsToLinkage(il, md, ir, argsArgIndex: 0);
-
-        if (ir.ParagraphDispatchOrder.Count > 0 && _dispatchMethod != null)
+        _classMethodDefs.Clear();
+        foreach (var cm in ir.ClassMethods)
         {
-            il.Append(il.Create(OpCodes.Ldarg_0));                        // receiver
-            il.Append(il.Create(OpCodes.Ldc_I4, ir.EntryParagraphIndex)); // startPc
-            il.Append(il.Create(OpCodes.Ldc_I4_M1));                      // exitPc = -1 (run to end)
-            il.Append(il.Create(OpCodes.Call, _dispatchMethod));
-            il.Append(il.Create(OpCodes.Pop));                            // discard the returned next-pc
+            var baseMethod = _currentBaseType != null ? ResolveInheritedMethod(_currentBaseType, cm.Name) : null;
+            bool isOverride = baseMethod != null;
+            var attrs = MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+            if (!isOverride) attrs |= MethodAttributes.NewSlot;
+
+            string name = isOverride ? baseMethod!.Name : cm.Name;
+            _typeMethodNames.Add(name);   // reserve the public name so paragraph methods uniquify around it
+            var md = new MethodDefinition(name, attrs, _module.TypeSystem.Void);
+            md.Parameters.Add(new ParameterDefinition(
+                "args", ParameterAttributes.None, _module.ImportReference(typeof(ManagedPointer[]))));
+            md.Body.InitLocals = true;
+            _programType!.Methods.Add(md);
+            _classMethodDefs[cm] = md;
         }
-        il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>
+    /// PHASE 2 — fill each public OBJECT method body: map <c>args[i]</c> → the LINKAGE fields for ITS USING/RETURNING
+    /// params (the CALL ManagedPointer[] ABI), then run ITS OWN contiguous paragraph slice via
+    /// <c>this.Dispatch(entry, last)</c>. The exit bound is the method's LAST paragraph index, NOT −1, so a method
+    /// that falls off its end returns (implicit GOBACK) instead of running into the next method's paragraphs.
+    /// </summary>
+    private void EmitClassMethodBodies(IrModule ir)
+    {
+        foreach (var cm in ir.ClassMethods)
+        {
+            var md = _classMethodDefs[cm];
+            var il = md.Body.GetILProcessor();
+
+            // md.Parameters[0] is "args"; Cecil's Ldarg with the ParameterDefinition accounts for the implicit
+            // `this` (→ ldarg.1). A no-arg method takes an empty array and maps nothing.
+            EmitMapArgsToLinkage(il, md, cm.UsingParameterNames, argsArgIndex: 0);
+
+            if (ir.ParagraphDispatchOrder.Count > 0 && _dispatchMethod != null)
+            {
+                il.Append(il.Create(OpCodes.Ldarg_0));                          // receiver
+                il.Append(il.Create(OpCodes.Ldc_I4, cm.EntryParagraphIndex));   // startPc = this method's first paragraph
+                il.Append(il.Create(OpCodes.Ldc_I4, cm.LastParagraphIndex));    // exitPc  = this method's last paragraph
+                il.Append(il.Create(OpCodes.Call, _dispatchMethod));
+                il.Append(il.Create(OpCodes.Pop));                              // discard the returned next-pc
+            }
+            il.Append(il.Create(OpCodes.Ret));
+        }
     }
 
     /// <summary>OO slice 3: emit a subclass's parameterless public <c>.ctor</c> (the COBOL NEW factory) that just
@@ -546,6 +570,9 @@ public sealed class CilEmitter
             _programType!.Fields.Add(field);
             _linkageFields[paramName] = field;
         }
+        // NOTE: a multi-method class with PARAMETERED methods is rejected up front (COBOL0117, Compilation.cs) —
+        // per-method LINKAGE layout + offset resolution (FindLinkageField is module-level) is a later OO slice — so
+        // the module-level UsingParameterNames here only ever describes a SINGLE method's params.
     }
 
     /// <summary>Emit the IL that maps <c>args[i]</c> → the <c>_linkage_&lt;name&gt;</c> field for each USING/RETURNING
@@ -553,12 +580,12 @@ public sealed class CilEmitter
     /// ? args[i] : default</c>. Used by both the program Entry body and the OO instance-method body. <paramref
     /// name="argsArgIndex"/> is the IL arg index of the <c>ManagedPointer[] args</c> parameter (0 for the static
     /// Entry, 1 for an instance method where arg0 is <c>this</c>).</summary>
-    private void EmitMapArgsToLinkage(ILProcessor il, MethodDefinition md, IrModule ir, int argsArgIndex)
+    private void EmitMapArgsToLinkage(ILProcessor il, MethodDefinition md, IReadOnlyList<string> usingNames, int argsArgIndex)
     {
         var mpType = _module.ImportReference(typeof(ManagedPointer));
-        for (int i = 0; i < ir.UsingParameterNames.Count; i++)
+        for (int i = 0; i < usingNames.Count; i++)
         {
-            string paramName = ir.UsingParameterNames[i];
+            string paramName = usingNames[i];
             if (!_linkageFields.TryGetValue(paramName, out var field))
                 continue;
 
@@ -1398,6 +1425,19 @@ public sealed class CilEmitter
 
     // ── Method signatures ──
 
+    // Cecil method names already used on the current type — paragraph names in a multi-method OO class can repeat
+    // (each method's MAIN), so DefineMethodSignature uniquifies. Cleared per emitted type.
+    private readonly HashSet<string> _typeMethodNames = new(System.StringComparer.Ordinal);
+
+    /// <summary>A Cecil method name unique within the current type (suffixes on collision). _methodMap keys by
+    /// IrMethod identity, so the rename is invisible to the Dispatch switch / PERFORM / GO TO resolution.</summary>
+    private string UniqueMethodName(string name)
+    {
+        if (_typeMethodNames.Add(name)) return name;
+        for (int n = 2; ; n++)
+            if (_typeMethodNames.Add($"{name}__{n}")) return $"{name}__{n}";
+    }
+
     private void DefineMethodSignature(IrMethod irMethod)
     {
         var returnType = irMethod.ReturnType != null
@@ -1406,8 +1446,11 @@ public sealed class CilEmitter
 
         // Paragraph methods are instance methods on an OO class (so they reach the per-instance State via the
         // receiver) and static on a normal program. (docs/OO_IMPLEMENTATION_DESIGN.md §4)
+        // A multi-method class may have sibling methods that reuse a paragraph name (every method has a MAIN);
+        // each is its own IrMethod, but two MethodDefinitions can't share a name+signature on one type — so the
+        // Cecil name is uniquified. _methodMap keys by IrMethod identity, so dispatch is unaffected by the rename.
         var md = new MethodDefinition(
-            irMethod.Name,
+            UniqueMethodName(irMethod.Name),
             _ctx.StateIsInstance
                 ? MethodAttributes.Public | MethodAttributes.HideBySig
                 : MethodAttributes.Public | MethodAttributes.Static,
@@ -1637,12 +1680,20 @@ public sealed class CilEmitter
             return;
         }
 
-        // Instance call (incl. SUPER): resolve the method + push the receiver, marshal USING args (+ trailing
-        // RETURNING) into a ManagedPointer[] (the CALL ABI), then call the method. SUPER → the BASE class's method,
-        // receiver `this` (ldarg.0), called NON-virtually (so override-calls-base doesn't recurse). Otherwise →
-        // the receiver's class/base (INHERITS chain) via its _OBJ_ field, called virtually (polymorphism).
+        // Instance call (incl. SUPER/SELF): resolve the method + push the receiver, marshal USING args (+ trailing
+        // RETURNING) into a ManagedPointer[] (the CALL ABI), then call the method. SELF → a method on the CURRENT
+        // class (+ INHERITS chain), receiver `this` (ldarg.0), called VIRTUALLY (an override in a subclass wins).
+        // SUPER → the BASE class's method, receiver `this`, called NON-virtually (so override-calls-base doesn't
+        // recurse). Otherwise → the receiver's class/base via its _OBJ_ field, called virtually (polymorphism).
         MethodReference method;
-        if (inv.IsSuper)
+        if (inv.IsSelf)
+        {
+            method = ResolveInheritedMethod(_programType, inv.MethodName)
+                ?? throw new InvalidOperationException(
+                    $"INVOKE SELF '{inv.MethodName}': no such method on class '{_programType!.Name}' or its bases.");
+            il.Append(il.Create(OpCodes.Ldarg_0));      // `this` as the receiver
+        }
+        else if (inv.IsSuper)
         {
             // SUPER in a class with no base is invalid — already reported as COBOL0115 (the compile fails), so
             // emit nothing rather than throw a misleading COBOL0600 internal-error for the same mistake.

@@ -594,9 +594,9 @@ public sealed class Binder
             return;
         }
 
-        // Instance call (incl. SUPER): resolve the receiver field (null for SUPER — receiver is `this`) + USING arg
-        // locations + the RETURNING receiver location (marshalled into the ManagedPointer[] ABI by EmitInvoke; the
-        // trailing element is RETURNING).
+        // Instance call (incl. SUPER/SELF): resolve the receiver field (null for SUPER/SELF — receiver is `this`) +
+        // USING arg locations + the RETURNING receiver location (marshalled into the ManagedPointer[] ABI by
+        // EmitInvoke; the trailing element is RETURNING).
         string? receiverField = inv.TargetObject != null
             && _ctx.ObjectRefFieldRefs.TryGetValue(inv.TargetObject, out var rcv) ? rcv : null;
         var argLocations = new List<IR.IrLocation>();
@@ -607,7 +607,8 @@ public sealed class Binder
             ? _ctx.Location.ResolveLocation(inv.Returning) : null;
         block.Instructions.Add(new IR.IrInvoke(isNew: false, className: null, receiverField: receiverField,
             receiverClassName: inv.TargetClassName, methodName: inv.MethodName, returningField: null,
-            argLocations: argLocations, returningLocation: returningLocation, isSuper: inv.IsSuper));
+            argLocations: argLocations, returningLocation: returningLocation,
+            isSuper: inv.IsSuper, isSelf: inv.IsSelf));
     }
 
     private void LowerSetPointer(BoundSetPointerStatement stmt, IrBasicBlock block)
@@ -983,6 +984,28 @@ public sealed class Binder
             idx++;
         }
         module.EntryParagraphIndex = firstNonDeclarative < 0 ? 0 : firstNonDeclarative;
+
+        // OO (ISO §11.7): bound each class method's contiguous slice of ParagraphDispatchOrder. A method paragraph's
+        // DeclaringScope IS its per-method scope (SemanticBuilder.VisitMethodDefinition), so group the dispatch order
+        // by scope into the IR method roster — each public .NET method then dispatches only its OWN [entry..last]
+        // range (it never falls through into the next method's paragraphs). Empty for a non-class unit.
+        foreach (var (mName, mScope, mUsing) in _semantic.ClassMethodScopes)
+        {
+            int first = -1, last = -1, j = 0;
+            foreach (var para in boundProgram.Paragraphs)
+            {
+                if (ReferenceEquals(para.Symbol.DeclaringScope, mScope))
+                {
+                    if (first < 0) first = j;
+                    last = j;
+                }
+                j++;
+            }
+            if (first >= 0)
+                module.ClassMethods.Add(new IR.IrClassMethod(mName, first, last, mUsing));
+        }
+        if (module.ClassMethods.Count > 0)
+            module.ClassMethodName ??= module.ClassMethods[0].Name;
 
         // Finalize the RegisterFiles method (the per-file loop above filled `block` = register_files).
         // CilEmitter calls it from Entry, guarded by the per-program _filesRegistered flag.

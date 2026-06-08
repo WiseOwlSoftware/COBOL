@@ -451,6 +451,17 @@ public static partial class DiagnosticDescriptors
         "INHERITS FROM '{0}': base class not found in this compilation group.");
     public static readonly DiagnosticDescriptor COBOL0115 = new("COBOL0115", DiagnosticSeverity.Error,
         "INVOKE SUPER is not valid in class '{0}' — it has no INHERITS FROM base class.");
+    // A SECTION inside a METHOD-ID is not yet method-scoped (its paragraphs would not be attributed to the method's
+    // dispatch range), so reject it loudly rather than silently skip the section's paragraphs. A later OO slice.
+    public static readonly DiagnosticDescriptor COBOL0116 = new("COBOL0116", DiagnosticSeverity.Error,
+        "A SECTION inside a METHOD-ID ('{0}') is not yet supported — use paragraphs (a later OO slice adds method-scoped sections).");
+    // Multi-method classes work, and a SINGLE-method class may have USING/RETURNING params (oo_method_args) — but a
+    // class with MULTIPLE methods where any method has parameters is not yet supported: per-method LINKAGE layout +
+    // offset resolution (FindLinkageField is module-level, so it conflates sibling methods' LINKAGE) is a later OO
+    // slice. Reject loudly rather than crash at run time with cross-wired parameter buffers.
+    public static readonly DiagnosticDescriptor COBOL0117 = new("COBOL0117", DiagnosticSeverity.Error,
+        "Class '{0}' has multiple methods with parameters — multi-method classes with USING/RETURNING are not yet "
+        + "supported (a later OO slice adds per-method LINKAGE); single-method classes may use parameters.");
 
     // ══════════════════════════════════════
     // COBOL0200–0201: Parser — reserved word conflicts

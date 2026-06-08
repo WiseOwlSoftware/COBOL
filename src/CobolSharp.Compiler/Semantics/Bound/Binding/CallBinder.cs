@@ -30,17 +30,13 @@ internal sealed class CallBinder
     internal BoundStatement? BindInvoke(CobolParserCore.InvokeStatementContext ctx)
     {
         var objRef = ctx.invokeTarget()?.objectReference();
-        // SELF "m" needs a sibling method to call, which requires multi-method classes — a later slice; reject
-        // loudly (COBOL0112). SUPER "m" (call the base class's method — the override-calls-base pattern) is slice 3b.
-        if (objRef?.SELF() != null)
-        {
-            _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0112,
-                new SourceLocation(_ctx.SourceName, 0, ctx.Start.Line, ctx.Start.Column), TextSpan.Empty);
-            return null;
-        }
+        // INVOKE SELF "m" — a virtual call to a sibling method on `this` (ISO §8.4.3.8); INVOKE SUPER "m" — a
+        // non-virtual call to the base class's method (the override-calls-base pattern). Both have no data-reference
+        // target (the receiver is `this`); the binder marks them so the emitter pushes ldarg.0 as the receiver.
+        bool isSelf = objRef?.SELF() != null;
         bool isSuper = objRef?.SUPER() != null;
         string targetText = "";
-        if (!isSuper)
+        if (!isSuper && !isSelf)
         {
             var targetRef = objRef?.dataReference();
             if (targetRef == null) return null; // NULL target / other forms — later slices
@@ -58,7 +54,7 @@ internal sealed class CallBinder
             ? _ctx.Semantic.ResolveData(retRef.cobolWord().GetText())
             : null;
 
-        if (!isSuper && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
+        if (!isSuper && !isSelf && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
             // INVOKE class-name "NEW" RETURNING obj — construct an instance of the target class.
             return new BoundInvokeStatement(isNew: true, className: targetText, targetObject: null,
                 targetClassName: null, methodName: methodName, args: System.Array.Empty<BoundExpression>(),
@@ -85,6 +81,12 @@ internal sealed class CallBinder
                 if (_ctx.Expression.BindDataReferenceWithSubscripts(argCtx.dataReference()) is { } boundArg)
                     args.Add(boundArg);
             }
+
+        if (isSelf)
+            // INVOKE SELF "m" — virtual call to a sibling method on `this` (resolved against the enclosing class +
+            // its INHERITS chain at emit time; dispatched callvirt so an override in a subclass wins).
+            return new BoundInvokeStatement(isNew: false, className: null, targetObject: null,
+                targetClassName: null, methodName: methodName, args: args, returning: returning, isSelf: true);
 
         if (isSuper)
             // INVOKE SUPER "m" — non-virtual call to the base class's method (receiver is `this`; resolved + emitted

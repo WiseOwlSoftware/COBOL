@@ -356,10 +356,14 @@ public sealed class IrInvoke : IrInstruction
     // INVOKE SUPER "m" (slice 3b): the receiver is `this`, the target is the BASE class's method, called
     // NON-virtually (so the override-calls-base pattern doesn't recurse into itself).
     public bool IsSuper { get; }
+    // INVOKE SELF "m" (§8.4.3.8): the receiver is `this`, the target is a method on the CURRENT class (+ its
+    // INHERITS chain), called virtually (an override in a subclass wins).
+    public bool IsSelf { get; }
 
     public IrInvoke(bool isNew, string? className, string? receiverField, string? receiverClassName,
         string methodName, string? returningField,
-        IReadOnlyList<IrLocation>? argLocations = null, IrLocation? returningLocation = null, bool isSuper = false)
+        IReadOnlyList<IrLocation>? argLocations = null, IrLocation? returningLocation = null,
+        bool isSuper = false, bool isSelf = false)
     {
         IsNew = isNew;
         ClassName = className;
@@ -370,6 +374,7 @@ public sealed class IrInvoke : IrInstruction
         ArgLocations = argLocations ?? System.Array.Empty<IrLocation>();
         ReturningLocation = returningLocation;
         IsSuper = isSuper;
+        IsSelf = isSelf;
     }
 }
 

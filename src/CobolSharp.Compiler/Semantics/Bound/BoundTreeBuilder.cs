@@ -166,15 +166,34 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         return result;
     }
 
+    /// <summary>OO (ISO §11.7): bind a METHOD-ID body under its per-method paragraph scope (built by SemanticBuilder),
+    /// so the method's paragraph definitions + references resolve method-locally — two sibling methods may each have a
+    /// MAIN paragraph without cross-resolving.</summary>
+    public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
+    {
+        var nameCtxs = ctx.methodName();
+        string methodName = nameCtxs is { Length: > 0 } ? nameCtxs[0].GetText() : "";
+        Scope? scope = null;
+        foreach (var m in _semantic.ClassMethodScopes)
+            if (string.Equals(m.Name, methodName, System.StringComparison.OrdinalIgnoreCase)) { scope = m.Scope; break; }
+
+        var prev = _ctx.CurrentMethodScope;
+        _ctx.CurrentMethodScope = scope;
+        var result = base.VisitMethodDefinition(ctx);
+        _ctx.CurrentMethodScope = prev;
+        return result;
+    }
+
     public override object? VisitParagraphDefinition(CobolParserCore.ParagraphDefinitionContext ctx)
     {
         var nameCtx = ctx.paragraphName();
         if (nameCtx == null) return null;
 
         string name = nameCtx.GetText();
-        // Use section scope for resolution when inside a section, to correctly handle
-        // duplicate paragraph names across sections.
-        ParagraphSymbol? paraSym = _currentSectionSymbol?.Scope.Resolve<ParagraphSymbol>(name)
+        // Resolve the paragraph in the narrowest enclosing scope: a METHOD-ID's own scope (OO §11.7), else a SECTION
+        // scope (duplicate paragraph names across sections), else the program-wide ProcedureDivisionScope.
+        ParagraphSymbol? paraSym = _ctx.CurrentMethodScope?.Resolve<ParagraphSymbol>(name)
+            ?? _currentSectionSymbol?.Scope.Resolve<ParagraphSymbol>(name)
             ?? _semantic.ResolveParagraph(name);
         if (paraSym == null) return null;
 

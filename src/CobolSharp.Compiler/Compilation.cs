@@ -159,6 +159,14 @@ public sealed class Compilation
                 irModule.IsClass = true;
                 irModule.ClassMethodName = ExtractClassMethodName(classCtx);
                 irModule.BaseClassName = ExtractBaseClassName(classCtx); // OO slice 3: INHERITS FROM
+                // Multi-method classes work, and a single-method class may have parameters — but a class with
+                // MULTIPLE methods where any has USING/RETURNING is not yet supported (per-method LINKAGE layout +
+                // offset resolution is a later OO slice; the module-level FindLinkageField would cross-wire sibling
+                // methods' params → a runtime buffer crash). Reject loudly. (Adversarial review, DEVLOG 455.)
+                if (irModule.ClassMethods.Count > 1
+                    && irModule.ClassMethods.Any(m => m.UsingParameterNames.Count > 0))
+                    diagnostics.Report(DiagnosticDescriptors.COBOL0117,
+                        new SourceLocation(sourcePath, 0, 0, 0), TextSpan.Empty, programId);
                 // INVOKE SUPER in a class with no base is invalid — report it cleanly (else it surfaces at emit
                 // time as a misleading COBOL0600 "internal error"). (Adversarial review, DEVLOG 451.)
                 if (irModule.BaseClassName == null && ClassUsesSuper(irModule))
@@ -537,7 +545,8 @@ public sealed class Compilation
         var resolver = new Semantics.ReferenceResolver(
             semanticBuilder.Symbols, semDiagnostics, sourcePath,
             CollectSpecialNames(semanticBuilder).Concat(inheritedGlobalNames)
-                .Concat(classNames ?? Enumerable.Empty<string>()));
+                .Concat(classNames ?? Enumerable.Empty<string>()),
+            semanticBuilder.ClassMethodScopes);   // OO §11.7: method-local PERFORM/GO TO resolution
         resolver.Visit(programTree);
 
         foreach (var d in semDiagnostics)
@@ -601,6 +610,9 @@ public sealed class Compilation
             foreach (var paraName in paragraphNames)
                 model.RegisterSectionParagraph(sectionName, paraName);
         }
+
+        // OO (ISO §11.7): the per-method paragraph scopes (multi-method classes).
+        model.ClassMethodScopes = semanticBuilder.ClassMethodScopes;
 
         // Populate data items
         foreach (var data in semanticBuilder.DataItemsInOrder)

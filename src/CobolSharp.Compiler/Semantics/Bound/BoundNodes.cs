@@ -731,10 +731,11 @@ public sealed class BoundInvokeStatement : BoundStatement
     public IReadOnlyList<BoundExpression> Args { get; } // instance: USING arguments (slice 2; BY REFERENCE data refs)
     public DataSymbol? Returning { get; }        // NEW: the object-reference item; instance: the RETURNING receiver
     public bool IsSuper { get; }                 // INVOKE SUPER "m" — non-virtual call to the base class's method (slice 3b)
+    public bool IsSelf { get; }                  // INVOKE SELF "m" — virtual call to a sibling method on `this` (§8.4.3.8)
 
     public BoundInvokeStatement(bool isNew, string? className, DataSymbol? targetObject,
         string? targetClassName, string methodName, IReadOnlyList<BoundExpression> args, DataSymbol? returning,
-        bool isSuper = false)
+        bool isSuper = false, bool isSelf = false)
     {
         IsNew = isNew;
         ClassName = className;
@@ -744,6 +745,7 @@ public sealed class BoundInvokeStatement : BoundStatement
         Args = args;
         Returning = returning;
         IsSuper = isSuper;
+        IsSelf = isSelf;
     }
 
     public override BoundNodeKind Kind => BoundNodeKind.InvokeStatement;

@@ -26,6 +26,16 @@ internal sealed class BindingContext
 
     public List<BoundParagraph> Paragraphs { get; } = new();
 
+    /// <summary>OO (ISO §11.7): the per-method paragraph scope while binding a METHOD-ID body (null otherwise).
+    /// Set by BoundTreeBuilder; consulted by ProcedureNameResolver so a method's PERFORM/GO TO resolves its OWN
+    /// paragraphs first (sibling methods may reuse a name like MAIN, and method paragraphs are NOT in the
+    /// program-wide ProcedureDivisionScope). <see cref="ResolveParagraphScoped"/> applies it.</summary>
+    public Scope? CurrentMethodScope { get; set; }
+
+    /// <summary>Resolve a paragraph name in the current METHOD scope first (OO §11.7), then program-wide.</summary>
+    public ParagraphSymbol? ResolveParagraphScoped(string name)
+        => CurrentMethodScope?.Resolve<ParagraphSymbol>(name) ?? Semantic.ResolveParagraph(name);
+
     // ── Static classification ──
 
     public static readonly HashSet<string> AlphanumericFunctions = new(StringComparer.OrdinalIgnoreCase)

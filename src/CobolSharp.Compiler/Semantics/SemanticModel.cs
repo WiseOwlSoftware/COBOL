@@ -174,6 +174,13 @@ public sealed class SemanticModel
     private readonly List<SectionSymbol> _sectionsInOrder = [];
     public IReadOnlyList<SectionSymbol> SectionsInOrder => _sectionsInOrder;
 
+    /// <summary>OO (ISO §11.7): the class's methods in source order — name, the per-method paragraph scope, and the
+    /// USING+RETURNING parameter names (ManagedPointer[] ABI order). Empty for a non-class unit. The Binder bounds
+    /// each method's slice of the paragraph dispatch order from this; BoundTreeBuilder resolves method-local
+    /// paragraph references through the method scope.</summary>
+    public IReadOnlyList<(string Name, Scope Scope, IReadOnlyList<string> Using)> ClassMethodScopes { get; set; }
+        = [];
+
     // Section → ordered list of paragraph names within that section
     private readonly Dictionary<string, List<string>> _sectionParagraphs =
         new(StringComparer.OrdinalIgnoreCase);

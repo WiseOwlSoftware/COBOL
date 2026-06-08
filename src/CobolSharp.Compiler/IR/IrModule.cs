@@ -80,9 +80,17 @@ public sealed class IrModule(string name)
     /// </summary>
     public bool IsClass { get; set; }
 
-    /// <summary>OO: the COBOL <c>METHOD-ID</c> name emitted as this class's public instance method (slice 1 = one
-    /// method, whose paragraphs are this module's <see cref="ParagraphDispatchOrder"/>). Null for a non-class module.</summary>
+    /// <summary>OO: the COBOL <c>METHOD-ID</c> name of the FIRST class method — a back-compat accessor over
+    /// <see cref="ClassMethods"/>[0]. Null for a non-class module. Prefer <see cref="ClassMethods"/>.</summary>
     public string? ClassMethodName { get; set; }
+
+    /// <summary>
+    /// OO (ISO §11.7): the class's instance methods, in source order. Each is emitted as a public instance .NET
+    /// method that dispatches its OWN contiguous range of <see cref="ParagraphDispatchOrder"/> (so method A cannot
+    /// fall through into method B's paragraphs); all methods share the one per-instance object data. Empty for a
+    /// non-class module. Populated by the Binder from the per-method paragraph scopes.
+    /// </summary>
+    public List<IrClassMethod> ClassMethods { get; } = [];
 
     /// <summary>OO: the <c>INHERITS FROM</c> base class name, or null → <c>System.Object</c> (slice 1 has no INHERITS).</summary>
     public string? BaseClassName { get; set; }
@@ -171,3 +179,15 @@ public sealed record IrPointerFieldDef(string Name);
 /// <paramref name="ClassName"/> (null → <c>System.Object</c> for a universal object reference). Holds the managed
 /// .NET reference; <c>default</c> (null) IS the COBOL initial NULL, so no explicit initializer is emitted.</summary>
 public sealed record IrObjectRefFieldDef(string Name, string? ClassName);
+
+/// <summary>OO (ISO §11.7): one instance method of a class. <paramref name="Name"/> is the COBOL <c>METHOD-ID</c>
+/// (the public .NET method name). <paramref name="EntryParagraphIndex"/> and <paramref name="LastParagraphIndex"/>
+/// bound this method's contiguous slice of <see cref="IrModule.ParagraphDispatchOrder"/> — the public method runs
+/// <c>Dispatch(EntryParagraphIndex, LastParagraphIndex)</c>, so it returns when its OWN last paragraph falls through
+/// (it never runs into the next method's paragraphs). <paramref name="UsingParameterNames"/> are the method's
+/// PROCEDURE DIVISION USING/RETURNING LINKAGE parameter names (the ManagedPointer[] ABI), in order.</summary>
+public sealed record IrClassMethod(
+    string Name,
+    int EntryParagraphIndex,
+    int LastParagraphIndex,
+    IReadOnlyList<string> UsingParameterNames);

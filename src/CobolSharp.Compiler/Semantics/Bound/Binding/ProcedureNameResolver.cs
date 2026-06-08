@@ -108,7 +108,7 @@ internal sealed class ProcedureNameResolver
         if (sectionQualifier != null)
             return ResolveQualifiedParagraph(name, sectionQualifier);
 
-        var para = _ctx.Semantic.ResolveParagraph(name);
+        var para = _ctx.ResolveParagraphScoped(name);   // OO §11.7: method-local first, then program-wide
         var sec = _ctx.Semantic.ResolveSection(name);
 
         if (para != null && sec != null)
@@ -150,7 +150,7 @@ internal sealed class ProcedureNameResolver
         if (sectionQualifier != null)
             return ResolveQualifiedParagraph(name, sectionQualifier);
 
-        var para = _ctx.Semantic.ResolveParagraph(name);
+        var para = _ctx.ResolveParagraphScoped(name);   // OO §11.7: method-local first, then program-wide
         var sec = _ctx.Semantic.ResolveSection(name);
 
         if (para != null && sec != null)
@@ -190,7 +190,7 @@ internal sealed class ProcedureNameResolver
             return (para, null);
         }
 
-        var para2 = _ctx.Semantic.ResolveParagraph(name);
+        var para2 = _ctx.ResolveParagraphScoped(name);   // OO §11.7: method-local first, then program-wide
         var sec = _ctx.Semantic.ResolveSection(name);
 
         if (para2 != null && sec != null)

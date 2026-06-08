@@ -8,9 +8,12 @@
 > (DEVLOG 453, char-first):** object CHARACTER data flips to per-instance .NET `string` fields — the typed-field
 > machinery gained an instance dimension on the same `StateIsInstance` flag the byte `State` rides, via one chokepoint
 > `CilDataEmitter.EmitTypedFieldOwner` (the typed analogue of `EmitLoadBackingArray`). Proven per-instance by
-> `oo_instance_data` (two objects, independent state) + `OoTests.TypedObjectData_IsPerInstance`; `oo_hello`'s `MSG` is
-> now `instance String _T_MSG`. NEXT: numeric object data (instance-ize the `CilLocationEmitter` materialize +
-> arithmetic sites), then multi-method + `INVOKE SELF`. **Implementation status (DEVLOG 447–453):** the OO **grammar is DONE**
+> `oo_instance_data` + `OoTests.TypedObjectData_IsPerInstance`; `oo_hello`'s `MSG` is now `instance String _T_MSG`.
+> **OO-TYPED numeric done (DEVLOG 454):** object numerics → per-instance `long`/`decimal` (`TICKER._T_N`, `ACC._T_BAL`
+> are `instance Int64`) + the general typed-numeric→byte MOVE cell. **MULTI-METHOD classes + INVOKE SELF done (DEVLOG
+> 455):** a class hosts N `METHOD-ID` units (each its own .NET method + exit-bounded dispatch range; per-method
+> paragraph scope fixes CBL3104), `INVOKE SELF` → `callvirt` (COBOL0112 lifted); conformance `oo_self` (`N=2`). NEXT:
+> subclass own typed OBJECT data (lift COBOL0113), then FACTORY. **Implementation status (DEVLOG 447–455):** the OO **grammar is DONE**
 > (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICES 1–3a are DONE end-to-end**
 > (slice 3a = `INHERITS FROM` + virtual methods + polymorphism: a subclass extends a base, inherits the root's
 > per-instance State via ctor-chaining, overrides base methods, dispatched virtually through a base-typed reference;
