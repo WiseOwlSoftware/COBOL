@@ -1,523 +1,190 @@
-# CobolSharp — Session Resume Prompt (updated 2026-06-07)
+# COBOL.NET — Next-Session Kickoff Prompt
 
-## ⛔⛔ START HERE — `docs/MASTER_PLAN.md` is THE top-level SSOT + autonomous-execution playbook
-
-**North Star (owner, emphatic + repeated):** a **commercial-quality, production-level, decades-sustainable, full
-ISO/IEC 1989:2023** COBOL compiler. **No backward-compatibility constraint — rewrite/re-architect anything.** The
-next session must **implement ALL remaining work in one autonomous session, with maximum autonomy and maximum
-practical parallelism, driving to the goal.**
-
-**Read `docs/MASTER_PLAN.md` first** — it is the single entry point: it sequences every phase (A enable-max-parallelism
-→ B finish the data-model migration → C full ISO-2023 conformance → D architecture cleanup → E production hardening →
-F rename to COBOL.NET) and orchestrates the ~159 prior planning/architecture docs (it does NOT reinvent them). Iterate
-with `scripts/guard-fast.sh` (~3.3 min, proven byte-identical to serial via `scripts/guard-verify.sh`); guard-green
-at every commit. Grammar work is **version-factored** (`Core/CobolXXXX.g4` + `{isYYYY()}?` hooks), added incrementally
-guard-after-each. **Current state (DEVLOG 439, guard 1196/509/364):** Stage-4 POINTERS complete; OO GRAMMAR done +
-factored + green; **next = MASTER_PLAN Phase A then Phase B1 (OO semantic/emit — turnkey in
-`docs/OO_IMPLEMENTATION_DESIGN.md` §6.6).** Everything below is HISTORICAL sub-plan detail MASTER_PLAN orchestrates.
-
-## ⛔ (historical) #1 PRIORITY: the .NET-native data-model migration (IN PROGRESS)
-
-The owner approved a foundational re-architecture to **"the best native .NET implementation of COBOL,"** the #1
-work item ahead of remaining conformance features. **Keep every currently-passing test green at 100%, fixing bugs
-as they surface; run autonomously, with parallelism. Do compiler edits directly on `main`** (`isolation:'worktree'`
-workflows branch from a stale commit in this repo).
-
-### 📌 OWNER DIRECTIVES REAFFIRMED THIS SESSION (2026-06-06/07) — read before resuming
-1. **Production quality, supportable for DECADES.** "If we need to rearchitect the **entire** code base to achieve
-   that goal, we must do so. There is **NO backward compatibility required**." Never choose minimal-blast-radius over
-   the cleanest long-term design. (memory `feedback_production_refactor`.)
-2. **SINGULAR pattern** — one mechanism per result, not multiple ways to do the same thing. (`feedback_singular_pattern`.)
-3. **Pointers = managed .NET references, ONE representation: always `ManagedPointer`. There is NO 8-byte byte handle**
-   (the Phase-1 handle is being deleted); **pointers are always-typed, NOT gated by `EnableTypedFields`.** The
-   PointerRegistry/handle-table is REJECTED — settled, NOT owner-gated. REDEFINES-a-pointer-as-bytes / pointer-in-a-file
-   are ISO implementor-defined → reject/undefined, never a synthesized handle. (DEVLOG 431; `feedback_managed_pointers`.)
-4. **Don't wait for a loop tick** — with pending work, continue immediately in the same turn. (`feedback_continue_dont_wait`.)
-5. The staged `EnableTypedFields`-gated migration is the byte-identity **verification** path (char/numeric), NOT
-   backward-compat baggage — keep it; it converges on flag-on-by-default.
-
-### 🎯 RESUME EXACTLY HERE → Stage-4 **OO → .NET classes** (the pointer subsystem is COMPLETE)
-**✅ STAGE-4 POINTER SUBSYSTEM COMPLETE (DEVLOG 430–437).** ONE managed `ManagedPointer` representation,
-always-typed (NOT `EnableTypedFields`-gated), no 8-byte handle. All on a `static ManagedPointer _PTR_<name>` field
-per `USAGE POINTER`/`BASED` item (always-on `Binder.CollectPointerFields`):
-- **Slice 1a (430):** `BASED` clause (no storage) + pointer grammar.
-- **Slice 1b boundary 1 (433):** `SET p TO NULL/q` → `IrPointerStore`; `IF p = q/NULL` → `IrPointerCompare` (address
-  identity, NOT struct `Equals`); WS layout skipped; 8-byte handle paths DELETED.
-- **Slice 1b boundary 2 (434):** `SET p TO ADDRESS OF x` / `SET ADDRESS OF b TO p` / BASED-deref
-  (`IrBasedDerefLocation`) / classifier **trigger 6**.
-- **Slice 2 (436):** pointer arithmetic `SET p UP/DOWN BY n` (`IrPointerAdjust`, Offset ± n bytes).
-- **Slice 3 (437):** `ALLOCATE {n CHARACTERS | based-item} [INITIALIZED] [RETURNING p]` (`IrAllocate` +
-  `ManagedPointer.Allocate`) / `FREE p` (reuses pointer-store-NULL). New lexer tokens ALLOCATE/FREE/INITIALIZED.
-Conformance: `pointer_data`, `based_pointer`, `pointer_arith`, `pointer_alloc`. guard-fast ALL GREEN 1196/510/364.
-Pointer follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC checks) tracked in §10.4.
-
-**→ NEXT = Stage-4 OO → .NET classes — IMPLEMENT SLICE 1.** The OO subsystem is investigated + designed (DEVLOG 438):
-**`docs/OO_IMPLEMENTATION_DESIGN.md` is the turnkey plan** — minimal vertical slice, foundational integration
-(grammar/tokens/pipeline/symbols with file:line), the **per-instance `ProgramState`** architecture decision (each
-object instance carries its own `ProgramState`, so the whole byte+typed engine works per-instance with one
-addressing tweak; `INVOKE` mirrors the `callvirt` CALL path), and the **6 staged slices**. START with **slice 1**:
-CLASS-ID + OBJECT instance method + `INVOKE "NEW"` + no-arg `INVOKE` → conformance `oo_hello.cob`. Most OO lexer
-tokens already exist; a stub `invokeStatement` is already `{is2002()}?`-gated; `CobolParserOO.g4` is a dead sketch to
-merge. Then slices 2 (USING/RETURNING), 3 (INHERITS+SELF/SUPER), 4 (FACTORY), 5 (PROPERTY), 6 (polymorphism+EC-OO).
-Then Stage-5 **Roslyn C# backend** (Cecil oracle), Stage-6 finalize + flip-`EnableTypedFields`-on + rename
-`CobolSharp`→`COBOL.NET` (exe `cobol.exe`); then the remaining M2/M3/M4 conformance catalog (EC/exceptions, VALIDATE).
-
-### ⚡ FASTER GUARD (DEVLOG 435): use `bash scripts/guard-fast.sh` (~3.3 min vs ~11 min) for iteration; it is PROVEN
-byte-identical to `scripts/guard.sh` (run `scripts/guard-verify.sh` to re-prove after corpus/grouping changes).
-The serial `guard.sh` remains the authority. Validate a feature with `guard-fast` + a verdict-diff vs a known-green
-serial log.
-
-Design is FINAL; **slice 1a committed** (`a4c562b` correction, `6d5647d` map; grammar + `BASED` no-storage already in).
-**The complete turnkey rearchitecture surface map — every file:line, the new IR, the two commit boundaries, and the
-blast radius — is `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5. START THERE; zero re-discovery is needed.** In short:
-- **Boundary 1 (guard-green, verifiable against `pointer_data` — the ONLY corpus test using pointers):** drop the
-  8-byte WS slot (`FieldSizeCalculator.cs:28`); make a pointer always-typed (`DataItemClassifier.cs:175`); add a NEW
-  always-on pointer-field pass (sibling to `Binder.CollectTypedFields:278`) emitting `static ManagedPointer _PTR_<name>`
-  for every `USAGE POINTER` + `IsBased` item; reroute SET (`DataStatementBinder.cs:187/301`, NULL/`q` → pointer store,
-  not byte MOVE) and compare (`ConditionLowerer.cs:125` + relation lowering → `!IsValid` / `ReferenceEquals(Buffer)&&
-  Offset==`); delete the dead handle paths (`CilDataEmitter.cs:616`, `StorageLocation.cs:190-210` synth). New IR:
-  `IrPointerStore` + `IrPointerCompare` + (boundary 2) `IrBasedDerefLocation`.
-- **Boundary 2:** `SET p TO ADDRESS OF x` (`CreateByReference`), `SET ADDRESS OF b TO p`, BASED-deref (a new
-  pointer-relative `IrLocation`: `ldsflda _PTR_b; ldfld Buffer/Offset; ldc Length` → existing byte-path ops), classifier
-  trigger 6 (ADDRESS OF demotes the *addressed* item to byte) + a NEW `tests/conformance/2002/based_pointer.cob`+`.out`.
-- Then slices 2 (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO → .NET classes**, Stage-5 **Roslyn backend**,
-  Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename → then the M2/M3/M4 conformance catalog.
-- **Process each feature:** implement on `main` → guard (`bash scripts/guard.sh`) → 2-3-agent adversarial review →
-  fix → commit (DEVLOG entry, conformance test in the SAME commit for any post-'85 feature) → tick the plan.
-
-### 🟢 LATEST STATE (DEVLOG 428; guard **1196 unit / 507 integration / 364 NIST**, all green)
-**The CORE data-model migration (Stage 3) is COMPLETE.** All flips are guard-green + pinned by flag-on≡flag-off
-`TypedFieldFlipTests` (24), gated behind `EnableTypedFields` (default OFF → corpus byte-identical):
-- **character → `.NET string`**; **numeric → `long`/`decimal`** (DISPLAY/COMP/BINARY) across VALUE/MOVE/DISPLAY/
-  COMPARE/`IS NUMERIC`/**arithmetic**/figurative-ZEROS; **flat + nested groups → (nested) `record struct`s**;
-  **fixed OCCURS (char + numeric) → `T[]`** (subscript + PERFORM VARYING; SEARCH stays byte); every byte-trigger
-  correctly stays byte. Byte-engine **ISO-2023 fix (424):** VALUE on OCCURS inits every occurrence (§13.18.63.4 GR 9).
-- **RESUME AT → Stage-4 pointers, slice 1b (the working core).** Design FINAL + slice 1a committed (`a4c562b`).
-  **ONE representation: a pointer is ALWAYS a `ManagedPointer`; NO 8-byte byte handle; pointers are always-typed, NOT
-  gated by `EnableTypedFields`** (DEVLOG 431; **PointerRegistry REJECTED — SETTLED, NOT owner-gated**). **The exact
-  turnkey rearchitecture surface map (every file:line — storage `FieldSizeCalculator.cs:28`, classifier
-  `DataItemClassifier.cs:175`, SET dispatch `DataStatementBinder.cs:187/301`, compare, the new always-on pointer-field
-  pass, the new `IrPointerStore`/`IrBasedDerefLocation` IR, and the two commit boundaries) is
-  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10.5 — START THERE, zero re-discovery needed.** First guard-green commit =
-  storage + classifier-always-typed + pointer-field pass + `SET`/compare reimplemented on `ManagedPointer`
-  (`pointer_data` stays green; delete the 8-byte handle); then `ADDRESS OF`/`SET ADDRESS OF`/BASED-deref + a new
-  `based_pointer` conformance test. THEN slices 2 (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO → .NET
-  classes**, Stage-5 **Roslyn C# backend**, Stage-6 finalize + flip-on-by-default + rename. Plan **§0.5** +
-  `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 are the live guides. The 394–403 detail below is historical.
-
-### ✅ DONE so far (DEVLOG 394–403; guard **1196 unit / 491 integration / 364 NIST**, all green)
-- **Stage 0/1 numeric substrate (394):** `src/CobolSharp.Runtime/Numeric/` — `CobolRounding`, **`CobolDecimal`**
-  (exact base-10 `BigInteger` fixed-point carrier — the owner-gated substrate, RESOLVED = `BigInteger`),
-  `NumProfile`, **`CobolNum`** (`ScaleAndRound`/`TryStore`: scale→round→capacity→SIZE-ERROR, never throws) + a
-  **differential oracle** (byte-identical to legacy within the long-faithful window; independent reference beyond).
-  Fixed 2 legacy spec bugs it surfaced (unsigned COMP-3 sign nibble; trailing-P `WouldOverflow`).
-- **Stage 1 numeric pipeline FULLY on `CobolNum` (395–396):** `StoreArithmeticResult` (all arithmetic) +
-  `ApplyScalingAndRounding` (MOVE / numeric-edited / DIVIDE-REMAINDER) delegate to `CobolNum`; legacy decimal
-  rounding retired. Layering correction (ADR §5): the unsigned-magnitude rule belongs to the *encoder*, not the
-  value store — `CobolNum` returns the signed value.
-- **Stage 2 classifier — Phase A (397):** `RecordClassificationPass` (ADR §3) — data-division triggers
-  (REDEFINES/RENAMES/FD-record/LINKAGE/EXTERNAL-GLOBAL/edited) + REDEFINES-class & downward-transitivity fixpoint;
-  `Classify(items, categoryOf)`, default typed / "any doubt → byte". 17-agent review: 0 confirmed / 15 refuted.
-- **Stage 2 classifier — Phase B + Phase C → the classifier is COMPLETE (398):** the `ProcedureScanner` bound-tree
-  walk marks the use-observable triggers — (3) refmod base (demote unless a single elementary `string`-typed item),
-  (11) `CALL … BY REFERENCE` arg (unconditional), (15) ODO whole-group, (4a) group-MOVE dest (demote unless an
-  unsubscripted identical-layout source → a Phase-C struct-copy edge); group COMPARE/class-cond/CORR do NOT demote
-  (materialize-on-demand). Phase C = one combined fixpoint (structural closure + struct-copy edges). Triggers
-  14/6/16 documented-deferred. 4-lens review: 1 confirmed (doc-only) / ~14 refuted. +16 tests. **Additive, NOT yet
-  consumed by codegen** (Stage 2 = all byte-backed).
-- **Stage 0 character substrate `CobolString` (399):** `src/CobolSharp.Runtime/Text/CobolString.cs` — the
-  typed-string analogue of `CobolNum`: COBOL alphanumeric MOVE value semantics (`Store`), ordinal space-extended
-  `Compare` (ISO §8.8.4.1.2), and the Latin-1 `IDataSlot` boundary codec (`FromWindow`/`ToWindow`, ADR R10/§2.5).
-  A **differential oracle** (`CobolStringDifferentialTests`, +9) proves it byte-identical to the legacy
-  `StorageHelpers` path. (Noted legacy nuance: `CompareFieldToField` over-trims via `TrimEnd()`; `CobolString.
-  Compare` is COBOL-correct 0x20-extension — reconciled at wiring time.)
-- **OWNER DECISION + staged design (400):** the ADR's nominal typed-value home (records → .NET `record struct` via
-  `RecordLayoutBuilder`) is **dead code** (`IrLoadField`/`IrStoreField` zero producers); live storage is
-  `ProgramState` byte[] via `StorageLayoutComputer`. Owner chose **Option B: build the REAL record-`struct`
-  substrate** (over a parallel-static-field shortcut and over the dual-write/shadow hack, rejected). Byte-backed
-  items stay in the byte areas (the §1.6 floor); only Typed items move to struct fields; they meet at the §2.5
-  chokepoint (typed slots materialize a transient byte window — no shadow/drift). Staged roadmap:
-  **`docs/RECORD_STRUCT_STORAGE_DESIGN.md`** (reviewed GO; ADR §9 corrected).
-- **Substrate S1 (401):** `Binder.Bind` runs the complete classifier on **every** program, stores it on
-  `LoweringContext.Classification`, and validates it via a permanent `RecordClassification.ValidateInvariants()`
-  fail-fast net. Not consumed by codegen → byte-identical; but it exercised Phase B's walker across the whole
-  corpus (passed first run). +3 unit tests.
-
-- **S3a — the FIRST typed character flip LANDED (403):** a standalone elementary `PIC X/A/N` WS item (classifier-
-  typed, no OCCURS/figurative/triggers) → a native static `.NET string` field, **byte-identical** to the byte path,
-  gated `EnableTypedFields` (default OFF; flag-ON `TypedFieldFlipTests` pins it). New `IrTypedFieldLocation` (carries
-  the item's `PicDescriptor`); `Binder.CollectTypedFields` → `IrModule.TypedFieldDefs`/`LoweringContext.
-  TypedFieldRefs`; `CilEmitter` static field + init; `CilDataEmitter` typed MOVE-literal + DISPLAY (`.TrimEnd()` to
-  match `GetDisplayString`) cells; `EmitLocationArgs` throws on any other typed op. The byte-identity test caught +
-  fixed a DISPLAY-trim divergence.
-
-### → RESUME AT — S3b: widen the flip to an `01` group → a real `record struct` (per `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§6.1)
-S3a flipped standalone elementary items (bare native field). Next, the idiomatic record-struct form + more cells
-(each its own guard-green commit, `EnableTypedFields` default OFF, flag-ON tests):
-1. **S3b:** an all-character `01` group → a `record struct` of `string` fields — reuse `CilEmitter.DefineType`
-   (already emits an `IrRecordType` as a sealed `SequentialLayout` value-type with public fields); emit a static
-   instance + init; `IrTypedFieldLocation` (or a struct-field variant) addresses `instance.field`.
-2. **field↔field MOVE / alphanumeric COMPARE** typed cells (`CobolString.Store`/`Compare`) + the **materialize
-   fallback** (`CobolString.ToWindow`/`FromWindow`) at the §2.5 boundary so ANY op on a typed field works (removes
-   the `EmitLocationArgs` throw).
-3. **ElementSize sole-writer** cleanup (design §4): make `StorageLayoutComputer` the sole writer, verifying group
-   sizes agree.
-4. Then S4+ widen one rule/commit: numeric (**HARD-GATED** on the `CobolNum` oracle), OCCURS → `CobolTable<T>`,
-   pointers/OO, Roslyn backend.
-
-The live PROGRESS tick + full next-step detail are in `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** (the SSOT — work
-from it; keep ticking it).
-
-**Read first, in order:**
-1. `docs/DATA_MODEL_ARCHITECTURE.md` — the settled ADR. Typed-native is the default: COBOL records → .NET
-   `record struct`; elementary items → native value types (`long`/`decimal`/`double`/`bool`); **character data
-   (PIC X *and* PIC N) → `string` (UTF-16)**; a byte image is only a **classifier-scoped fallback** for
-   REDEFINES/RENAMES type-puns, file records, and a few hot loops (an inline value type embedded in the typed
-   record — never a heap `byte[]`); pointers → managed references; OO → .NET classes; in-memory representation is
-   decoupled from external encoding (`CODE-SET` is a boundary concern). Cecil/CIL stays primary; a Roslyn C#
-   backend (Cecil as oracle) is a later phase. **Do NOT re-litigate this design — the owner co-authored it
-   (DEVLOG 393). Implement it.** §5 carries the `CobolNum` sign-contract correction (DEVLOG 395).
-2. `docs/DATA_MODEL_REVIEW.md` — the ~57-agent adversarial review (verdict **proceed-with-changes**; all 4 high +
-   6 medium findings already folded into the ADR).
-3. `docs/ISO2023_CONFORMANCE_PLAN.md` **§0.5** — the SINGLE LIVE PLAN + PROGRESS; tick it as work lands (one plan
-   — no separate resume docs).
-4. `PROMPT.md` (non-negotiable doctrine), then `DEVLOG.md` entries 391–397 for the latest decisions.
-
-**The migration, in the ADR's 7 stages (§10) — guard-green at EVERY step, one rule at a time:**
-Stage 0 scaffolding → **Stage 1 numeric pipeline + differential oracle [✅ DONE]** → **Stage 2 classifier
-[◐ Phase A done; Phase B/C NEXT]** → Stage 3 flip typed one rule at a time (**character data first — the cheapest,
-highest-payoff flip**) → Stage 4 pointers + OO → Stage 5 Roslyn C# backend (Cecil as a byte-exact oracle) →
-Stage 6 finalize runtime + rename (`CobolSharp` → `COBOL.NET`, exe `cobol.exe`). (Stage-0 `IrDataSlot`/`FieldShape`
-scaffolding is interleaved with Stage 3 — it is only needed for the typed-codegen dispatch.)
-
-**Owner-gated decisions (ADR §12):** numeric substrate = **`BigInteger` — RESOLVED + implemented** (Stage 1); the
-remaining classifier-trigger completeness (refmod-of-numeric-DISPLAY / group-with-COMP / CALL…BY REFERENCE /
-LINKAGE / PROGRAM COLLATING SEQUENCE) lands in **classifier Phase B/C** before any Stage-3 flip; the four tracked
-completeness investigations (USE FOR DEBUGGING, EXTERNAL memory model, EXEC SQL/CICS host-var ABIs, Stage-5 oracle
-determinism) at the stage that needs them.
-
-**Guard (must stay ALL GREEN, baselines 0 FAIL\*):** `bash scripts/guard.sh` — currently **1159 unit / 481
-integration / 364 NIST** (2026-06-06). Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`.
-
-**Mission framing (unchanged):** one multi-version COBOL compiler (ISO 1985→2023), dialect-gated; NIST CCVS85 is
-the '85 validation backbone; every post-'85 feature ships with a `tests/conformance/<ver>/` test in the same commit.
+*Drive ISO/IEC 1989:2023 implementation **and** validation to completion — one large, autonomous, maximally-parallel
+session. (This file IS the prompt; updated 2026-06-07, DEVLOG 443.)*
 
 ---
 
-> Everything below is **historical** (the M1/COBOL-85 and M2 drives). The authoritative current orientation is the
-> four "Read first" docs above; the single live plan is `docs/ISO2023_CONFORMANCE_PLAN.md`. Kept for narrative
-> continuity.
+## 0. Your mission this session
 
-# CobolSharp — Session Resume Prompt (2026-06-04)
+You are continuing a multi-session build of a **commercial-quality, production-level, decades-sustainable, full
+ISO/IEC 1989:2023 COBOL compiler** — `CobolSharp` (to be renamed **COBOL.NET**, exe `cobol.exe`), written in **C# 14 on
+.NET 10**, compiling COBOL → **.NET CIL via Mono.Cecil**.
 
-Paste this to start a new session. **Mission (REFRAMED 2026-06-04): a multi-version COBOL compiler (ISO 85→2023),
-dialect-gated — implement features LIVE across all versions, parse+flag features REMOVED after '85.** NIST CCVS85
-remains the validation backbone for the core modules + Report Writer.
-This file is the authoritative, current orientation; linked docs hold the detail. Current as of DEVLOG 335
-(guard 1047 unit / 412 int / **364 NIST**).
+**Continue the COBOL-2002 → 2014 → 2023 implementation AND its conformance validation from the current state through to
+completion, in this one (likely large) autonomous session, with maximum practical parallelism.** There is **no
+backward-compatibility constraint** — break, rewrite, and re-architect anything when the cleanest long-term design
+demands it (quality + longevity beat minimal blast radius, always). Run **continuously**; with pending work, continue
+immediately — never end a turn to "wait." Only stop for a genuine **owner-only** decision (and prefer a sensible
+default + proceed).
 
-**═══ THIS SESSION (DEVLOG 326–335): drive to 100% COBOL-85 — M0 engine · flagging axis mapped · WS-SPEC corpus + fix round ═══**
-Owner asked to reach 100% COBOL-85 compliance+implementation as parallel workstreams, run autonomously (/loop). Delivered:
-- **Plan + multi-version roadmap.** `docs/COBOL85_COMPLIANCE_PLAN.md` (M1; three axes — baseline/flagging/spec) +
-  **`docs/MULTIVERSION_ROADMAP.md`** (the overarching mission: one compiler ISO 1985→2023 via `--standard`;
-  M0 engine → M1 '85 → M2 2002 → M3 2014 → M4 2023). **Owner decisions:** parse+flag-only for removed modules;
-  **engine-now/features-after-M1**; **non-OO before OO**; **high/full subset profile (option A)**.
-- **M0 version engine (DEVLOG 327):** `DialectConfig` — canonical per-version dispatch (strictness, version
-  thresholds, removed-after-'85 policy, forward feature flags); all 12 scattered `Dialect>=X` sites migrated.
-- **Baseline axis COMPLETE (DEVLOG 326):** 24-agent Wave-1 audit → **real-GAPs=0**; every unbaselined live program
-  is a documented exclusion (`docs/EXCLUSION_LEDGER.md`). The IC "candidates" are `PROCEDURE DIVISION USING` callee-halves.
-- **Flagging axis MAPPED + harness (DEVLOG 328–331):** the `…M` modules are 3 classes — **subset-flaggers
-  (~15) = N/A at high subset**; **Class-B obsolete (NC303M, SQ303M, RW302M) = IMPLEMENT**; **CM/DB/SG/OBNC removed
-  = WS-DIALECT**. Built `CBL3607` + flagged OPEN REVERSED / MULTIPLE FILE TAPE (**SQ303M ✅ 2/2**; NC303M 3/4 —
-  DATE-COMPILED deferred, in the Stage-0 preprocessor). Harness: `FlaggingConformanceTests` + `CompileNistDiagnostics`.
-- **Spec axis — WS-SPEC (DEVLOG 332–335):** a 9-agent workflow authored **57 verified conformance tests**; the
-  30 that didn't pass → **`docs/SPEC_FIX_BACKLOG.md`** (real bugs, spec-cited). **5 fixed** (DISPLAY NO ADVANCING,
-  CONCAT, CURRENCY letter-symbol, BLANK WHEN ZERO, variadic space-args) in `SpecFixTests.cs`. **~25 remain.**
-- **⚠ TOOLING LESSON (DEVLOG 334):** `isolation:'worktree'` workflows in THIS repo branch from a STALE commit
-  (e577e32, DEVLOG 310) — do compiler fixes **directly on main**, NOT via worktree-isolated fix workflows.
+## 1. Read first (in order)
 
-**RESUME AT →** continue `docs/SPEC_FIX_BACKLOG.md` fixes directly on main (each is a re-implementation guided by
-the backlog diagnosis; ~1–2 per guard cycle; detailed agent recipes were ephemeral in e:/tmp/fix_recipes.md).
-Then WS-SPEC-RW (Report Writer SUM/control-breaks/GROUP INDICATE), WS-DIALECT (CM/DB/SG parse+flag), WS-DASH
-(3-axis dashboard). Forward track (M2+) waits for M1.
+1. **`docs/MASTER_PLAN.md`** — THE top-level SSOT + execution playbook (North Star, phased roadmap A–F, parallelism
+   map §4, grounded assessment §10, early-resolve decisions §11).
+2. **`docs/DOC_INDEX.md`** — the map of all 126 docs (subject · type · maintenance guide). Use it to find the right
+   reference fast, and keep it in sync.
+3. **`docs/ISO2023_CONFORMANCE_PLAN.md`** — THE conformance work-breakdown (ranked M2/M3/M4 + execution waves). **This
+   is your worklist. Execute it; do NOT re-run the gap analysis. Tick items in §3 and update §1 status as work lands.**
+4. **`docs/DATA_MODEL_ARCHITECTURE.md`** (the typed-native ADR — settled) + **`docs/RECORD_STRUCT_STORAGE_DESIGN.md`**
+   (the 7-stage migration roadmap).
+5. **`docs/OO_IMPLEMENTATION_DESIGN.md` §6.6** — the turnkey OO semantic/emit plan (your first big feature, B1).
+6. **`PROMPT.md`** — non-negotiable architectural doctrine + the anti-pattern catalog.
+7. Recent **`DEVLOG.md`** (entries 439–443) — exactly what just landed and why.
 
-**═══ PRIOR SESSION (DEVLOG 322–325): scope reframe + Report Writer module COMPLETE (NIST 360→364) ═══**
-The Report Writer — the flagship LIVE COBOL-85 module — is now functionally complete: **RW101A/102A/103A/104A all
-baselined** (RW301M/302M are …M flagging tests). Built the whole subsystem this session: Stage 0 (obsolete
-comment-entry unblock), Stage 1a (declarative REPORT SECTION grammar), Increment B (INITIATE/GENERATE/TERMINATE +
-LINE-COUNTER/PAGE-COUNTER special registers + ReportWriterRuntime), and page mechanics (PAGE HEADING/FOOTING
-auto-presentation, FIRST DETAIL positioning — the runtime owns the page logic in EmitGroup). Two parallel recon
-workflows mapped the integration points + the ISO §14.9 page algorithm. See `project_reportwriter` memory.
-**Next RW (future, NOT needed for NIST): control breaks / SUM / GROUP INDICATE (WS-SPEC increments).** Remaining
-modules: WS-DIALECT (parse+flag removed DB/SG/CM + the …M flagging diagnostics incl. RW301M/302M), WS-IC tail,
-WS-FORWARD (multi-version 2002/2014/2023).
+## 2. Current state (honest baseline — 2026-06-07, DEVLOG 443)
 
-**═══ EARLIER THIS SESSION (DEVLOG 322–323): scope reframe + RW grammar ═══**
-The owner reframed the end goal to **multi-version (85→2023), live-features-first** (see
-`docs/COBOL85_COMPLIANCE_PLAN.md` §4 + `scripts/compliance.sh`): the 8 core NIST modules are COMPLETE; the only
-LIVE-in-2023 unimplemented module is **Report Writer** (ISO 2023 §A.4.11) — IMPLEMENT it. The removed modules
-(DB/SG/CM/obsolete) become **parse + dialect-flag only** (WS-DIALECT), NOT runtime — they're non-conformant in
-2002+, so building their runtime serves only '85. Report Writer build is staged in `docs/REPORT_WRITER_ROADMAP.md`
-(design in `docs/REPORT_WRITER_DESIGN.json`). **Done this session (both committed, guard ALL GREEN):**
-- **RW Stage 0 (322):** the obsolete IDENTIFICATION comment-entry paragraphs (AUTHOR/INSTALLATION/…) have
-  free-form bodies un-parseable by a token grammar (embedded periods, number lines, reserved words in address
-  text). Fixed **column-aware in `ReferenceFormatProcessor.ConvertFixedToFree`** — comment out the whole obsolete
-  paragraph until the next Area-A header. No grammar change. Also unblocks DB/SG/CM old-vintage headers.
-- **RW Stage 1a (323):** the **declarative** REPORT SECTION grammar — FD `reportClause` (REPORT IS) +
-  `CobolReportWriter.g4` rewritten (RD + PAGE LIMIT/CONTROL/CODE; report groups with TYPE/LINE/COLUMN/SOURCE/SUM/
-  GROUP INDICATE, reusing picture/usage/etc.). Added lexer tokens `GROUP` + `PLUSWORD` (the word PLUS; fixed a
-  screen-section IDENTIFIER hack the guard caught). **RW101A's entire data division now parses; fails only at the
-  executable verbs (`INITIATE`, line 346).**
-- **RESUME AT → RW Increment B** (one atomic unit, parse+bind+emit together): the verbs INITIATE/GENERATE/
-  TERMINATE — grammar (Stage 1b) + ReportSymbol/ReportGroupSymbol model + LINE-COUNTER/PAGE-COUNTER (Stage 2) +
-  `ReportWriterRuntime` (Stage 3: INITIATE resets counters, GENERATE places SOURCE by COLUMN/advances by LINE,
-  page-fit vs PAGE LIMIT, TERMINATE) + bound nodes/IR/**CilEmitter dispatch cases** (Stage 4) + baseline RW101A…RW6
-  (Stage 5). RW101A is the MINIMAL case (1 DETAIL group, no control breaks/SUM); it verifies LINE-COUNTER. See
-  `project_reportwriter` memory + `docs/REPORT_WRITER_ROADMAP.md` Stages 2–5.
+- **Stack:** **.NET 10 / C# 14**. **Backend: CIL-only via Mono.Cecil** (a Roslyn C# backend is a FUTURE additive
+  Stage-5 option — Cecil stays the shipping backend + the differential oracle; deferred beyond OO). **Pointers = ONE
+  `ManagedPointer`** (GC-tracked; no native heap / no `unsafe` / no 8-byte handle / no `PointerRegistry` — settled).
+- **Guard ALL GREEN: 1196 unit / 509 integration / 364 NIST.** Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min,
+  parallel, **proven byte-identical** to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
+- **M1 (COBOL-85) COMPLETE** — NIST CCVS85 (364 baselines) is the '85 validation backbone.
+- **Data-model migration CORE done through Stage-4** (gated behind `EnableTypedFields`, **default OFF** → corpus
+  byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`, numeric→`long`/
+  `decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every byte-trigger
+  (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte.
+- **OO: grammar DONE** (factored `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated, green);
+  **semantic analysis + CIL emission are PENDING** — this is **B1**, your first major task (turnkey §6.6).
+- **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
+  **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),
+  9 lowering classes.
+- **M2 already partly landed** (see ISO2023_CONFORMANCE_PLAN): free-form source + `>>` directives + conditional
+  compilation, UDF, NATIONAL (UTF-16), BOOLEAN/BIT, POINTERS, FLOAT-*/BINARY-*, INSPECT BACKWARD, ROUNDED MODE,
+  `GOBACK RETURNING`, etc. — each conformance-tested under `tests/conformance/2002/`.
+- **Docs** consolidated to 126 (one canonical per subsystem) + `DOC_INDEX.md`; design-references carry status banners.
 
-**Latest session (DEVLOG 311–321): NIST 349→360 (+11) — SQ212A + the ENTIRE remaining file-I/O/IC backlog, via
-two parallel multi-agent workflows.** A 9-agent **diagnosis** workflow root-caused the backlog, then a 4-agent
-**worktree-isolated implementation** workflow implemented + full-guard-verified the four fixes in parallel; I
-integrated each onto main sequentially (3-way merge, guard-gated). Integrated DEVLOG 317–320: **RL213A** (OPTIONAL
-cross-program consumer shares the producer's `TF021` — NistPreprocessor allow-list), **IC114A** (a CALLed
-subprogram registers its own file connectors at `Entry`, not in its dead `Main`), **IC227A** (`FD … IS EXTERNAL`
-record area shared across programs — EXTERNAL machinery extended to FileSection with an Area discriminator),
-**IC233A/IC234A** (the GLOBAL-FILE feature: inherit ancestor `FD … IS GLOBAL` files into contained programs +
-cross-program GLOBAL USE-declarative dispatch via a new run-unit `GlobalUseDeclarativeRegistry`). **The diagnosed
-file-I/O/IC backlog is COMPLETE** plus IX108A (321 — WRITE was the only I/O statement not emitting its INVALID/NOT-INVALID blocks; also un-skipped 2 latent RL111A tests). Earlier in the session (DEVLOG 311–316): First SQ212A (311–312): variable-length WRITE/REWRITE out-of-bounds → **I-O status 44**
-(ISO §9.1.13) instead of crashing, which exposed+fixed a USE-procedure **declaratives-return** bug (return at
-the declarative's designated exit, not its CLOSE-FILES/footer/STOP-RUN termination tail; the right rule is "last
-trivial exit-point paragraph only when a terminating paragraph follows it" — two wrong heuristics each passed
-SQ212A alone but the guard caught them breaking 17 SQ tests). Then a **9-agent parallel root-cause diagnosis**
-(isolated scratch dirs) of the whole remaining RL+IC backlog drove four sequential, guard-gated fixes:
-- **(313) RL208A** — no implicit CLOSE at run-unit termination → REWRITEs to a never-explicitly-CLOSEd file were
-  discarded. `CilEmitter` Self.Entry branch (Main only) now calls `FileRuntime.CloseAll()` after `Entry()` (ISO
-  §14.6.11). (Diagnosis also corrected the chain: RL208A's producer is RL206A, not RL212A.)
-- **(314) RL205A** — bare relative `START` ignored the implicit RELATIVE KEY (LowerStart fallback, §14.9.41.4 GR8);
-  AND a **systemic** bug — the standalone `NOT INVALID KEY` phrase was mis-bound as the INVALID-KEY block in all
-  five `FileIoBinder` key-phrase binders (one extracted `BindInvalidKeyBlocks` helper; discriminator
-  `blocks==1 && NOT()!=null`).
-- **(315) RL111A** — USE handler doing `CLOSE` on its own file → status 42 → re-fired itself → ∞ stack overflow.
-  Added a USE-declarative **re-entrancy guard** (`FileRuntime._activeUseDeclaratives` + Enter/ExitUseDeclarative
-  bracketing the declarative PERFORM, §14.9.49.4 GR2).
-- **(316) IC235A** — the three per-program tree-walk passes had no `VisitNestedProgram` override, so a CONTAINING
-  program absorbed its contained programs' declarations (CBL3107/3101/3108). Each visitor now stops the walk at
-  contained-program boundaries (ISO §8.4.6) — descend a nested program only when it is the walk root.
+## 3. The goal and the work sequence
 
-**Latest session (DEVLOG 296–302): 299 → 350 → 347 honest NIST baselines.** Phase-1 quick wins, IC
-self-contained CALL tests (+12, full IC suite mapped), an index-name-in-LINKAGE compiler fix (IC106A/IC207A),
-SQ tail (+24) and RL tail (+7). Then the owner reframed the goal to **production/commercial COBOL-85 +
-extensibility, rewrite-on-the-table**; two evidence-based workflows (10-dim architecture audit + 11-test
-root-cause diagnosis) answered it: **NO REWRITE — 8× targeted-refactor / 2× incremental / 0× rewrite.** Full
-synthesis + prioritized commercial-hardening roadmap in **`docs/ARCHITECTURE_ASSESSMENT.md`** (read it first).
-**P0 done (DEVLOG 302):** the guard was lying — it never parsed the CCVS footer total, so 3 false-greens hid in
-"350" (SQ212A 0-byte *crash*, IX108A footer 001 FAILED, NC303M 0-byte flag module). Hardened the guard (footer
-+ 0-byte checks) and removed them → **honest 347**. **Method lessons baked in:** `run-suite.sh` reports chain
-consumers "CLEAN" off STALE `TF###`, and a 0-byte/stale report hides a crash — verify every candidate from a
-clean dir with **rc=0 + freshly-written report + footer "NO TEST(S) FAILED" + EXECUTED>0**, never just a
-0-`FAIL*` grep. **Then started the diagnosed feature fixes (DEVLOG 303): RL119A (OPEN I-O missing-non-optional
-→35) + RL106A (varying relative records size by MAX not first-01) → 349.**
+**Goal:** every in-scope ISO-2023 feature **implemented + conformance-tested**; `cobol --standard cobol2023 prog.cob`
+compiles to a working .NET assembly; the guard is all-green including the full M2/M3/M4 conformance corpus;
+`ISO2023_CONFORMANCE_PLAN` §3 fully ticked.
 
-**This session (DEVLOG 304–310): P1 commercial-hardening "diagnostics on invalid input" — ALL 6 ITEMS DONE,
-then CBL3128 flipped default-on (310).** Guard ALL GREEN throughout: **1040 unit / 347 integration / 349 NIST** (NIST count unchanged — these are
-diagnostics on *invalid* input, gated so valid programs are unaffected). Owner directives: **sequential +
-guard-gated** (one item, full guard, commit, repeat) and **new strictness dialect-gated to named-strict modes
-first** so the permissive Default/--nist path (= the 349 baselines) is unaffected *by construction*. (The CLI
-defaults to `--standard cobol85` = strict, so ordinary `cobolsharp foo.cob` users DO get the new checks.)
-- **#7 (304)** real source path in *every* diagnostic + retired the bare `"SEM"` code → descriptors CBL3120–3127.
-- **#5 (305)** undefined data-name **CBL3128** — one centralized `ReferenceResolver` pass (not 66 sites),
-  strict-gated. Default-flip dry-run: **348/349 clean; only IC228A** false-positives (GLOBAL data inherited
-  from a *containing* program, since `InheritGlobalItems` runs after `ReferenceResolver`) = the lone flip blocker.
-- **#8 (306)** PICTURE-validity **CBL0814** (strict-gated; dry-run **0/349 clean**) + level-number **CBL0815**
-  (unconditional — replaces a crash-prone `int.Parse`).
-- **#9 (307)** CopyProcessor diagnostics — missing **CBL3620** (gated) / circular **CBL3621** / depth **CBL3622**.
-- **#6 (308)** CLI top-level try/catch → internal-compiler-error, **exit 70** (EX_SOFTWARE).
-- **#10 (309)** runtime arg guards + **CobolRuntimeException** (RT####) on FileRuntime/PicRuntime/SortRuntime.
+Work in dependency order (high-level in MASTER_PLAN §3; exact items in ISO2023_CONFORMANCE_PLAN §3):
 
-**Next (priority order):** (a) **Default-flip follow-ups** — **CBL3128 is now flipped to default-on (DEVLOG
-310)**: the IC228A ordering + 6 more false-positive sources an adversarial sweep found (the 0/349 dry-run was
-INSUFFICIENT — always run the adversarial false-positive sweep when flipping a gated check). **CBL0814 (PIC)
-is next** (dry-run already 0/349 clean). (b) **Deferred P1 sub-items** — the PIC
-structural rules (V/., P-run, S-first, Z/*); CopyProcessor REPLACE-malformed (CBL3623–5) + copybook
-source-mapping; StorageArea ref-mod-aware guards; the **emitted-Main top-level catch (Layer 2)**, which pairs
-with the P2 `Dispatch` recursion guard. (c) **P2 codegen hardening** (IL verify in guard, `IrRuntimeCall`
-fail-fast, `Dispatch` recursion = ~~RL111A done DEVLOG 315~~). (d) **Diagnosed feature fixes** (~~SQ212A 311–312,
-RL208A 313, RL205A 314, RL111A 315, IC235A 316 — all DONE~~; **remaining 4 below, all root-caused by the
-9-agent diagnosis**). **The dead `FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`
-(bare "FLOW" code) are a known verify-then-delete cleanup (PROMPT.md zero-dead-code).**
+**Phase A — ENABLE MAXIMUM PARALLELISM (do this FIRST; ~hours).** The throughput lever for everything after.
+- Stand up a reliable **parallel-dev harness**. In this repo `Workflow isolation:'worktree'` branches from a **STALE**
+  commit (memory `feedback_worktree_workflows_stale`) — do **not** rely on it. **Default:** a *"agents implement on
+  isolated copies and return patches; the main loop integrates them onto `main` one-at-a-time, guard-gated"* pattern.
+  Prove it by building 2 independent features concurrently and integrating both guard-green.
+- Fix the **CLI dialect bug**: `--standard cobol2002|2014|2023` may not reach the parser `DialectLevel` (only the
+  conformance-harness path is known-good). Verify and fix so CLI users get the right feature set; add a regression test.
+- **Enable CI**: flesh out `.github/workflows/build-and-test.yml.disabled` (already bumped to SDK `10.0.x`) to gate the
+  guard on every push.
 
-### File-I/O/IC backlog — ✅ COMPLETE (DEVLOG 317–321)
-The whole DEVLOG-311 diagnosed file-I/O/IC backlog is integrated and baselined (NIST 354→359): **RL213A**
-(OPTIONAL cross-program consumer share, 317), **IC114A** (subprogram file-reg at Entry, 318), **IC227A**
-(FD-EXTERNAL record sharing, 319), **IC233A/IC234A** (GLOBAL-FILE inheritance + cross-program GLOBAL USE
-dispatch, 320). Implemented in parallel worktree-isolated agents, integrated onto main one-at-a-time, guard-gated.
-- **IX108A** ✅ DONE (321) — `LowerWrite` never emitted the invalid-key branch (every other I/O statement did);
-  WRITE's INVALID/NOT-INVALID blocks were dropped compiler-wide. Adding the branch → 032 OF 032, and un-skipped 2
-  latent RL111A tests (022→024, baseline regenerated). The diagnosed backlog is now fully cleared. Other long-tail known-fails: SQ212A's IX108A-class, the deferred RL/IC GLOBAL follow-ups (subscripted/ref-modded
-  inherited globals, level-88 under a global group). Next-session candidates: Phase 5 stretch (DB/RW modules) or
-  the dead-code cleanup (`FlowAnalysis/PerformRangeChecker` + `ParagraphReachabilityAnalyzer`).
+**Phase B — FINISH THE DATA-MODEL MIGRATION (mostly sequential — shared core).**
+- **B1 — OO semantic/emit** (turnkey `OO_IMPLEMENTATION_DESIGN.md` §6.6; this is BOTH the largest M2 feature AND the
+  Stage-4 OO step): route `classDefinition` through the existing semantic/binder (reuses the whole layer — no new
+  `ClassSymbol` machinery); emit the class with **per-instance `ProgramState`** (one chokepoint:
+  `EmissionContext.StateIsInstance`, ~`CilLocationEmitter:476` — verify) + a constructor (NEW) + instance methods;
+  **bind + emit `INVOKE`** (`newobj`/`callvirt`, cross-type resolution via a two-pass / assembly-wide type+method
+  registry); `OBJECT REFERENCE` storage. Ship a `tests/conformance/2002/` OO test in the same commit. Then OO slices
+  2–6 (USING/RETURNING; INHERITS + SELF/SUPER; FACTORY; PROPERTY; polymorphism + EC-for-OO) — each guard-green +
+  conformance-tested, parallelizable where independent.
+- **B2 — Roslyn C# backend:** DEFERRED (owner: proceed later; Cecil stays shipping + oracle). Not required for
+  conformance — skip unless conformance is done and time remains.
+- **B3 — finalize:** once the typed flips are complete, decide/flip `EnableTypedFields` ON by default, island the byte
+  engine (`RECORD_STRUCT_STORAGE_DESIGN.md` §1.6), prove the whole corpus stays correct, remove dead gated-OFF paths.
+  (Can follow Phase C.)
 
-## Read first
-- **CLAUDE.md** (root) → **PROMPT.md** (non-negotiable doctrine), **PROJECT_PLAN.md** (status + session log),
-  **DEVLOG.md** (decision narrative — now at entry 303), **docs/ARCHITECTURE_ASSESSMENT.md** (the
-  no-rewrite verdict + commercial-hardening roadmap — READ THIS for the strategic direction).
-- **specs/ISO_COBOL.md** is the authoritative spec (submodule — `git submodule update --init --recursive` if
-  absent). **Implement from the spec, not from assumptions.** The markdown preserves required-keyword
-  underlining as `<u>…</u>` in figure-style formats but NOT inside ``` code blocks — check the figure form
-  when a keyword's optionality matters.
-- **docs/dialect-strictness.md** — the two-axis dialect model (version `--standard` vs strictness) and the
-  registry of CCVS non-conformant constructs (leniencies L1–L5; L4 deferred). **Discipline rule: every
-  grammar leniency is dialect-gated through `DialectStrictnessChecks` from the moment it is added — never an
-  unconditional grammar relaxation.** `--nist` implies `--standard default` (permissive); named-strict modes
-  (e.g. `--standard cobol2023`) reject the leniencies.
-- Memory index loads automatically. Key entries: `project_nist_progress` (suite-by-suite), `project_fileio_remaining`
-  (file-I/O history + RL208A), `project_dialect_strictness` (leniency registry), `reference_nist_xcards`
-  (X-card model), `project_collating_gap`.
+**Phase C — FULL ISO-2023 CONFORMANCE (the bulk; MAX PARALLELISM).** Execute `ISO2023_CONFORMANCE_PLAN` §3. Independent
+features (no shared-core conflict) fan out via the Phase-A harness, each integrated guard-green + a
+`tests/conformance/<ver>/` test. Recommended order (value/tractability):
+- **M2 (2002):** OO (B1) → **FILE-2002** (FILE STATUS as a variable, OPTIONAL, file sharing) → **arithmetic OPTIONS**
+  (intermediate rounding / scale-preservation) → remaining **preprocessor** (PRE-1) → **UDF** completion →
+  **VALIDATE** statement (+ validation clauses) → **EC / exception model** (the `EC-*` category codification, ON
+  EXCEPTION, routing to declaratives/USE) → **SCREEN SECTION** (the 12-doc terminal design set — one owner-gated Q on
+  form-level ACCEPT semantics: defer Screen to late Phase C and ask then) → **JSON/XML PARSE/GENERATE lowering +
+  runtime** (the grammar overlay exists; emit + runtime are design-only).
+- **M3 (2014):** dynamic-capacity tables (OCCURS DYNAMIC), TYPEDEF / user-defined types, file sharing & locking,
+  Report-Writer-as-standard, function-pointers, misc.
+- **M4 (2023):** new intrinsics, enhanced bit/boolean data, the remaining 2023 deltas; complete per-version gating.
+Every post-'85 feature: **spec-cited** (`specs/ISO_COBOL.md`), **version-factored** grammar, **conformance-tested in
+the same commit**, **adversarially reviewed**.
 
-## What "operational" means (the finish line)
-Every one of the **459 NIST programs** in `tests/nist/programs/` is in exactly one accounted-for class:
-1. **Baselined** — in `NIST_TESTS` (scripts/guard.sh) with a `tests/nist/valid/<T>.txt` at **0 FAIL\***,
-   and its CCVS report is **non-vacuous** (tests EXECUTED > 0, footer "TEST(S) FAILED" = 0).
-2. **NO_OUTPUT producer/builder** — runs in the guard ahead of a baselined consumer to build/sort a shared
-   file (e.g. ST115A/ST116A; the 10 ST producers). Not baselined, but feeds a chain.
-3. **Documented exclusion** — a flagging "M" module (compile-time FLAG test, no CCVS report: IF401M, IX301M/401M,
-   SQ303M/401M, RL301M/401M, ST301M, SM301M/401M, …), or a non-deterministic test (NC214M, ACCEPT FROM
-   DATE/TIME), or an out-of-scope obsolete/optional module (see Phase 5).
-A new test enters the guard ONLY at 0 FAIL\* AND non-vacuous. Baselines must stay 0 FAIL\* forever.
+**Phase D (interleave):** targeted architecture cleanup — excise the dead overlay grammars
+(`CobolParserOO/JsonXml/Generics/Dialect.g4`) + `RecordLayoutBuilder` vestiges; finish the single-PIC-semantics
+pipeline. (The big "product surface" — debugger/LSP/packaging/security/perf — is Phase E, out of scope for
+*conformance* completion; note gaps but don't block on them.)
 
-## Current coverage (branch `main`, all committed, guard GREEN: 1040 unit / 347 integration / 360 NIST honest)
-| Suite | Present | Baselined | Status |
-|-------|--:|--:|--|
-| **NC** nucleus            | 95 | 93 | ✅ COMPLETE (NC214M non-deterministic; NC303M 0-byte flag module removed DEVLOG 302) |
-| **IF** intrinsics         | 45 | 42 | ✅ COMPLETE (IF401M/402M/403M flagging) |
-| **IX** indexed I/O        | 42 | 40 | ✅ +IX108A (DEVLOG 321 — WRITE invalid-key branch); IX301M/401M flagging |
-| **ST** sort/merge         | 40 | 29 +10 prod | ✅ COMPLETE (ST301M flagging) — every program accounted for |
-| **SM** COPY/REPLACE       | 17 | 15 | ✅ COMPLETE (SM104A=SM103A chain; SM301M/401M flagging) |
-| **SQ** sequential I/O     | 85 | 83 | ✅ +SQ212A (var-length WRITE/REWRITE→status 44 + USE-return fix, DEVLOG 311–312); SQ303M/401M flagging |
-| **OBSQ** obsolete-seq     |  4 |  3 | ✅ COMPLETE (OBSQ1A/4A/5A; OBSQ3A = producer) |
-| **RL** relative I/O       | 35 | 32 | ✅ +RL208A/205A/111A/213A (DEVLOG 313–317). RL212A producer; RL301M/401M flagging |
-| **IC** inter-program CALL | 47 | 23 | ✅ +IC235A/114A/227A/233A/234A (DEVLOG 316–320 — nested scoping, subprogram file-reg, FD EXTERNAL, GLOBAL FILE). All in-scope callers baselined; ~23 callee halves + IC116M/401M excluded |
-| **DB** debug              | 15 |  0 | ✗ whole Debug module unimplemented (Phase 5) |
-| **SG** segmentation       | 13 |  0 | ✗ whole Segmentation module (OBSOLETE in COBOL-2002) (Phase 5) |
-| **CM** communication      |  9 |  0 | ✗ whole Communication module (OBSOLETE in COBOL-2002) (Phase 5) |
-| **RW** report writer      |  6 |  4 | ✅ COMPLETE (LIVE module — DEVLOG 322–325): RW101A-104A baselined (verbs + LINE/PAGE-COUNTER + page mechanics); RW301M/302M flagging. See `project_reportwriter` |
-| **OBNC/OBIC** obsolete    |  5 |  0 | ✗ obsolete-feature NC/IC variants (Phase 5) |
-| **EXEC** EXEC85           |  1 |  0 | ✗ EXEC85 driver (COMPILE_FAIL) (Phase 5) |
+**Phase F — rename** `CobolSharp` → **COBOL.NET** (exe `cobol.exe`) only after full conformance + a quality gate.
 
-Survey any suite: `bash scripts/run-suite.sh <PREFIX>` → per-test `CLEAN | N FAIL* | COMPILE_FAIL | NO_OUTPUT | RUNTIME(rc)` + a footer `=== PREFIX: total=… ===`. It does NOT create baselines.
+## 4. Operating rules (non-negotiable)
 
-## Roadmap to full coverage (priority order)
+- **The guard is law.** `guard-fast.sh` GREEN before every commit; nothing lands red. After any change to the test
+  corpus or the guard's grouping, re-prove equivalence with `guard-verify.sh`.
+- **A conformance test ships with every post-'85 feature, in the same commit** — `tests/conformance/<2002|2014|2023>/
+  <name>.cob` + `.out` (auto-discovered by `ConformanceTests`, run inside the guard). This is the post-'85
+  NIST-equivalent (memory `feedback_conformance_tests_per_feature`).
+- **A DEVLOG entry per commit** (memory `feedback_devlog_per_commit`); tick `ISO2023_CONFORMANCE_PLAN` §3 + update its
+  §1 status/NEXT-UP. **Do NOT create new resume/handoff/plan docs — update the existing ones** (THIS file, MASTER_PLAN,
+  the conformance plan, DEVLOG, DOC_INDEX).
+- **Grammar discipline:** version-factor each post-85 feature into a `Core/CobolXXXX.g4` fragment with a minimal
+  `{isYYYY()}?`-gated hook in the core rule; add rules **INCREMENTALLY, guard-fast after EACH**; never inline a
+  post-85 feature into the COBOL-85 base (memory `feedback_grammar_version_factoring`; inlining all of OO at once once
+  regressed ~9 NC tests). A clean ANTLR regen needs `rm -rf src/CobolSharp.Compiler/Generated` (the timestamp check can
+  ship a corrupt partial generate). `is2002()/is2014()/is2023()` = `DialectLevel >= N` in `Parsing/CobolParserCoreBase.cs`.
+- **Adversarially verify** every non-trivial feature — a 2–3-agent skeptic panel catches the silent-corruption a
+  conformance test misses (the dispatch-site / `IsGroup`/`Category` mis-classification class of bug).
+- **Doc hygiene:** one canonical per subsystem (see `DOC_INDEX.md`); when you change a subsystem, update its
+  design-reference + its `DOC_INDEX` row + keep its status banner accurate; a NEW subsystem ⇒ a new doc (with a status
+  banner) + a new index row. Reference docs **stand on their own** — no provenance / dead-end / deleted-doc mentions.
+- **No stale facts:** `.NET 10` / `C# 14`, CIL-only via Mono.Cecil, one `ManagedPointer`. Never reintroduce `.NET 9` /
+  `C# 13` / custom-VM / 8-byte pointer handle / `PointerRegistry` / `CobolDataPointer` / "CilEmitter god class".
 
-### Phase 1 — Quick baseline wins. ✅ DONE (DEVLOG 296–298).
-SM104A/105A/205A + OBSQ1A/4A/5A baselined; the 18 self-contained IC callers baselined (incl. IC106A/IC207A
-after the index-name-in-LINKAGE compiler fix, DEVLOG 298). **The vacuous-trap caution proved real and is now
-the standing method (see header):** verify from a clean dir, rc=0 + fresh report, callee-effect-in-COMPUTED.
+## 5. Parallelism playbook (maximize it)
 
-### Phase 2 — SQ/RL un-surveyed tail. ◐ SQ ✅ DONE, RL mostly done (DEVLOG 299–300).
-**SQ COMPLETE** (+24, all self-contained — the maturing FILE-CONTROL/status subsystem had silently made them
-pass). **RL +7** (RL104A/112A/113A/114A/115A/116A/204A). The proven method for the rest: **FAIL\*** → read
-COMPUTED vs CORRECT, trace to `FileRuntime`/`*FileHandler`, cite ISO §9.1.13, fix the pattern across all 3
-handlers, baseline. Remaining RL bugs to chase: **RL106A** (2 FAIL\*), **RL119A** (1 FAIL\*), **RL205A**
-(9 FAIL\*), **RL213A** (20 FAIL\*), **RL111A** (real FAIL\* "WRITE TO FILE OPENED INPUT" + a `D-CLOSE-FILES`
-infinite-recursion **stack overflow** in the dispatch — a control-flow bug worth fixing on its own).
+- **Always parallel (safe, read-only):** investigation/mapping, design panels, adversarial review — fan out via
+  `Workflow`. No isolation needed.
+- **Parallel feature implementation** (the big lever): once the Phase-A harness is up, build independent conformance
+  features concurrently and integrate them onto `main` **one-at-a-time, guard-gated**.
+- **Sequential spine on `main`:** anything touching the grammar, `CilEmitter`, `Binder`, `SemanticBuilder`, or the
+  pipeline — serial, kept tight by the fast guard, made confident by parallel review.
+- **Workflow dispatch lesson (memory `feedback_workflow_agent_dispatch`):** when fanning out N agents over a
+  partitioned worklist, give **each agent its OWN input file** (e.g. `mc0.json … mcN.json`) — **never** "read element
+  `[k]` of a shared array" (agents miscount → double-process / skip; this cost rework in DEVLOG 442). Write unicode
+  slices via Python; **reconcile returned results against the worklist** before acting; prefer whole-file Writes over
+  blind appends; agents editing **disjoint** files need no worktree.
 
-### Phase 3 — RL208A (the ONE long-known open file-I/O compiler bug).
-5 FAIL\*, gap in the RL207A→RL208A delete/update chain (it consumes XXXXD021 from producer RL212A). Latent:
-`RelativeFileHandler.Rewrite` pads a varying record to max length instead of the ACTUAL length — needs a
-variable-REWRITE path mirroring `WriteVariable`. RL207A is baselined, so change carefully + full-guard.
+## 6. Settled — do NOT re-litigate
 
-### Phase 4 — IC genuine remaining (the real inter-program work). The IC suite is fully MAPPED (DEVLOG 297):
-24 standalone callers (18 baselined) + ~23 callee-only halves (excluded) + IC116M/401M flagging. Remaining
-callers all need real features:
-- **IC233A/234A** — `USE GLOBAL AFTER ERROR PROCEDURE` declaratives on a file error. Blocker today is a
-  COMPILE_FAIL: "OPEN target 'TEST-FILE' is not a declared file" — the contained program IC233A-1 OPENs/READs
-  a **`FD … GLOBAL` file declared in the containing program**, which we don't inherit. Needs GLOBAL FILE
-  inheritance into contained programs (extend the GLOBAL-data mechanism from DEVLOG 236 to FILE SECTION) +
-  the USE GLOBAL declarative firing on the contained program's I/O error. (IC233A also omits the spec-required
-  `STANDARD` — accept only as a documented leniency, ISO §14.9.49.2.)
-- **IC227A/235A** — EXTERNAL clause. IC227A 16/23 (3 FAIL\*) needs EXTERNAL **file** semantics; IC235A
-  COMPILE_FAIL "Name 'PRINT-FILE' conflicts" (multi-program EXTERNAL naming).
-- **IC114A** — file-I/O chain consumer (1 FAIL\* + binary report output).
-- Deferred GLOBAL follow-ups: subscripted/ref-modded inherited globals, level-88 under a global group.
+- The typed-native data-model ADR (owner co-authored + adversarially reviewed).
+- Pointers = `ManagedPointer`; `PointerRegistry` REJECTED; no 8-byte handle.
+- Backend CIL-only via Mono.Cecil; Roslyn = future additive Stage-5 (Cecil = oracle), deferred beyond OO.
+- **High-subset only** (NO `--subset` flag); CM / DB / SG modules are **parse + flag only** (no runtime).
+- Target the **latest .NET / C#** (currently .NET 10 / C# 14; memory `feedback_target_latest_dotnet`).
 
-### Phase 5 — Whole unimplemented modules. ✅ SCOPE REVISED (DEVLOG 322, 2026-06-04): multi-version, live-first.
-Supersedes the 2026-06-03 "defer DB/RW" decision. The end goal is a compiler for **every ISO COBOL 85→2023**,
-so the question is "is the feature LIVE in 2023?" (full `docs/COBOL85_COMPLIANCE_PLAN.md` §4):
-- **IMPLEMENT — Report Writer (RW, 6)**: LIVE in ISO 2023 (§A.4.11, optional element), not a dead-end. The
-  flagship live-module work. ◐ IN PROGRESS (Stage 0+1a done; resume at Increment B — see top of file).
-- **PARSE + DIALECT-FLAG ONLY (WS-DIALECT), no runtime** — features REMOVED after '85: **DB** (Debug,
-  `USE FOR DEBUGGING`/`DEBUG-ITEM`, removed 2002), **SG** (Segmentation, gone), **CM** (Communication, removed
-  2002), **OBNC/OBIC** obsolete elements. Grammar ACCEPTS them under `--standard cobol85`; `DialectStrictnessChecks`
-  flags-as-removed under `cobol2002+` (satisfies the `…M` flagging tests). Building their RUNTIME is out of scope
-  (serves only '85, non-conformant later). Their full `…A` tests do NOT baseline (documented: parse+flag only).
-- **EXCLUDED**: **EXEC85** (1 — non-standard test driver).
-**⇒ Baseline target (live) = core 8 modules + Report Writer.** `scripts/compliance.sh` reports it (currently
-~86% = 360/416; → ~100% when RW baselines). Long horizon: **WS-FORWARD** — the dialect/version architecture +
-COBOL-2002/2014/2023 features with a custom conformance corpus (no NIST suite exists past '85).
+## 7. Early-resolve decisions (settle in the first hour; defaults given — MASTER_PLAN §11)
 
-### Remaining genuine in-scope work (the actual next-session targets)
-- **RL runtime bugs** (Phase 2/3): RL106A (2 FAIL\*), RL119A (1 FAIL\*), RL205A (9 FAIL\*), RL213A (20 FAIL\*),
-  RL111A (real FAIL\* "WRITE TO FILE OPENED INPUT" + a `D-CLOSE-FILES` infinite-recursion **stack overflow**),
-  RL208A (the known `RelativeFileHandler.Rewrite` pads-varying-to-max bug). Use the proven per-test method.
-- **IC inter-program features** (Phase 4): IC233A/234A (`USE GLOBAL AFTER ERROR` + **GLOBAL FILE inheritance**
-  into a contained program — extend the DEVLOG-236 GLOBAL-data mechanism to FILE SECTION; the blocker is the
-  COMPILE_FAIL "OPEN target 'TEST-FILE' is not a declared file"), IC227A/235A (EXTERNAL file/data), IC114A
-  (file-chain + binary report).
+1. **Parallel-dev harness** — *default:* the patch-integrate pattern (don't trust worktrees here).
+2. **CI** — *default:* enable the existing template in Phase A.
+3. **Screen form-level ACCEPT semantics** (one-field-at-a-time vs whole-form loop) — owner Q; *default:* defer Screen
+   to late Phase C and ask then; everything else proceeds without it.
+4. **Test-maturity targets** + fuzz oracle — *default:* use the existing internal differential oracles; GnuCOBOL
+   optional.
+5. **Parallel conformance-test authoring** — author in disjoint per-feature dirs, integrate one-at-a-time guard-gated.
 
-## Process rules (non-negotiable — from PROMPT.md + memory feedback_*)
-- **Run `bash scripts/guard.sh` after meaningful changes; it must stay ALL GREEN, baselines 0 FAIL\*.**
-- **NEVER edit a NIST `.cob` source to dodge a compiler bug — fix the compiler.** (Verified clean: no
-  `tests/nist/programs/*.cob` has ever been modified.) X-card placeholder substitution happens in
-  `NistPreprocessor` at compile time (source untouched) — that is required, not a workaround.
-- **Grammar/semantic changes are pre-authorized for the NIST effort** — log in DEVLOG, rely on the full guard,
-  commit. But every leniency must be **dialect-gated** (strict modes still error).
-- **Every commit needs ≥1 DEVLOG entry**; write it as you go, not batched. Commit messages end with the
-  `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>` trailer.
-- **Verify output is CORRECT, not just that it ran** — the vacuous-pass trap (a test self-certifying PASS with
-  degenerate data, e.g. ST147A's blank-vs-blank collating checks before XXXXX063 was substituted).
-- Keep PROJECT_PLAN.md, this file, and memory synced. Don't touch global NuGet config.
-- **Guard soundness note:** the guard asserts 0 `FAIL\*` *detail* lines but does NOT check the footer
-  `NNN TEST(S) FAILED` total — a suppressed-detail failure can slip through (NC208A did once). A footer-total
-  sweep of existing baselines is a worthwhile hardening task.
+## 8. Definition of done
 
-## Architecture quick-reference (the pipeline + the files you'll touch most)
-Grammar (`src/CobolSharp.Compiler/Grammar/Core/*.g4`) → `SemanticBuilder` (builds symbols; FD/RECORD clauses) →
-`StorageLayoutComputer` (per-FD byte layout) → `Binder`/`FileIoBinder` (`BindingContext`, `BoundTreeValidator`,
-`DialectStrictnessChecks`) → IR lowering (`FileIoLowerer`, `LocationResolver`, `ControlFlowLowerer`) → CIL
-emission (`CilEmitter`, `CilFileIoEmitter`, `CilLocationEmitter`) → `CobolSharp.Runtime` (`FileRuntime`,
-`IO/{Sequential,Indexed,Relative}FileHandler`, `SortRuntime`, `StorageHelpers`).
-- **Single source of truth for variable-length records:** `SemanticModel.IsVariableLengthSequential`
-  (= `IsRecordVarying || HasMultipleRecordSizes`); `FileSymbol.IsRecordVarying` is set in
-  `SemanticBuilder.VisitRecordClause` for BOTH `RECORD IS VARYING` (Format 3) AND `RECORD CONTAINS m TO n`
-  (Format 2, m≠n, ISO §13.18.43). Binder + FileIoLowerer both derive from it, so they can't disagree.
-- **Key resolution (qualified / position-based):** `SemanticModel.ResolveQualifiedData` (base + OF/IN quals —
-  NEVER `dataReference().GetText()`, which concatenates "A OF B"→"AOFB"), `ResolveKeyData`, position-based
-  `ResolveKeyOfReference` (ISO §14.9.41).
-- **Paragraph dispatch:** symbol-based control transfer (dup names OK) + return-address `Dispatch(startPc,exitPc)`
-  helper (`CilEmitter.EmitDispatchHelper`) for PERFORM…THRU; declaratives are in `ParagraphDispatchOrder`, main
-  loop starts at `EntryParagraphIndex`.
-- **X-cards** (`NistPreprocessor` + `ReferenceFormatProcessor`): `XXXXX###`/`XXXXP###`(produce)/`XXXXD###`(consume)
-  placeholders → substituted at compile time; column-7 indicator letters select TPF/X-card line variants. See
-  `reference_nist_xcards`. **Boundary-anchor** any new substitution (`(?<![A-Za-z0-9])XXXXX0NN(?![A-Za-z0-9])`)
-  so it can't corrupt an embedded test-data literal (cf. IX106A's `…XXXXXXXX065A…`); use a `MatchEvaluator` if
-  the replacement contains regex-special chars like `$`.
-- **GOTCHA (costs an afternoon):** a NEW emitted `IrRuntimeCall`/IR node needs an explicit `CilEmitter` dispatch
-  case, or it falls through to the `// NOP` tail with its args left on the stack → `InvalidProgramException` at
-  Main. A stale `tests/nist/output/<t>.txt` can mask it — check the exit code and `rm` the output first.
+- Every in-scope ISO-2023 (M2 + M3 + M4) feature **implemented + conformance-tested**; `ISO2023_CONFORMANCE_PLAN` §3
+  fully ticked.
+- `cobol --standard cobol2023 prog.cob` → a working .NET assembly; `--standard {cobol85|cobol2002|cobol2014|cobol2023}`
+  selects the correct feature set + per-version diagnostics.
+- **Guard ALL GREEN:** 1196+ unit / 509+ integration / 364 NIST **+ the complete M2/M3/M4 conformance corpus**.
+- Typed-native flips complete + the `EnableTypedFields`-on decision made; byte engine islanded.
+- **Honest scope note:** full ISO-2023 is large. **Drive to completion, but stay guard-green and resumable at EVERY
+  commit** so no progress is ever lost. If you cannot finish, leave `ISO2023_CONFORMANCE_PLAN` §1 status + the latest
+  DEVLOG entry pointing **exactly** at the next item to pick up.
 
-## Tooling
-- Build: `dotnet build src/CobolSharp.CLI/CobolSharp.CLI.csproj`  (CLI dll: `src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll`)
-- Compile one test: `dotnet <cli.dll> --nist tests/nist/programs/<T>.cob -o tests/nist/output/<T>.dll`
-- Run it: `(cd tests/nist/output && timeout 30 dotnet <T>.dll)` — always copy `CobolSharp.Runtime.dll` into
-  `tests/nist/output/` first; use a `timeout` + a file-size guard for SORT/build tests (an unsubstituted
-  record-count X-card once grew an 8.2 GB report).
-- Survey a suite: `bash scripts/run-suite.sh <PREFIX>`. NIST run convention: `export COBOL_SWITCH_1=ON`.
-  Capture guard output to a file + `echo "guard exit=$?"` (piping to grep masks the exit code).
-- Preprocess (debug COPY/REPLACE + X-cards): `cobolsharp preprocess <file> -o <out>`.
+## 9. Quick reference
 
-## How we got here (one line)
-NC/IF complete early; collating subsystem (DEVLOG 224–227); spec-audit follow-ups (228–232); IC to its
-non-file-I/O ceiling (233–236); the file-I/O FILE-CONTROL "wall" broken as over-strict-grammar-vs-spec
-(237–268); paragraph-dispatch engine reworked (259–260); IX suite complete (269–282); ST suite complete
-(283–294); Phase-1 quick wins + IC self-contained callers + index-name-in-LINKAGE fix + SQ/RL tails
-(296–300, 299→350). Full detail in DEVLOG.md + `project_nist_progress` / `project_fileio_remaining`.
+- **Iterate:** `bash scripts/guard-fast.sh` (~3.3 min). **Authority:** `bash scripts/guard.sh`. **Equivalence proof:**
+  `bash scripts/guard-verify.sh`.
+- **Build:** `dotnet build CobolSharp.sln` — .NET 10 SDK is installed; `TreatWarningsAsErrors=true` (a new C# 14
+  analyzer warning fails the build). **Clean ANTLR regen:** `rm -rf src/CobolSharp.Compiler/Generated`.
+- **Tests:** post-'85 → `tests/conformance/<ver>/`; COBOL-85 → `tests/nist/`. Spec authority → `specs/ISO_COBOL.md`
+  (submodule: `git submodule update --init --recursive`).
+- **Branch:** `main` — this project commits work **directly to `main`, guard-gated** (the established convention;
+  parallel features integrate one-at-a-time).
+- **Pipeline:** Preprocess → ANTLR Lex/Parse → `SemanticBuilder` → `StorageLayoutComputer` → `Binder` (bound tree) →
+  Lowering (IR) → `CilEmitter` (CIL via Mono.Cecil).
