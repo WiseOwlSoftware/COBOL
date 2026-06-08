@@ -32,31 +32,56 @@ default + proceed).
 6. **`PROMPT.md`** — non-negotiable architectural doctrine + the anti-pattern catalog.
 7. Recent **`DEVLOG.md`** (entries 439–443) — exactly what just landed and why.
 
-## 2. Current state (honest baseline — 2026-06-07, DEVLOG 443)
+## 2. Current state (honest baseline — 2026-06-08, DEVLOG 456; latest commit `a10bda9`, branch `main`, tree clean)
+
+> ⛔ **OWNER DIRECTIVE (2026-06-08, emphatic): OO is built TYPED-NATIVE per ADR §7 — object data → per-instance typed
+> .NET fields, methods → real .NET methods, `INVOKE` → `callvirt`. Do NOT bolt OO onto the byte `ProgramState` image.**
+> The `EnableTypedFields` default-OFF gate is **migration-safety for the legacy corpus**, NOT design intent — OO is a
+> new subsystem with no legacy corpus, so it is an **always-on consumer of the typed pipeline**. "We long ago said
+> give up the byte substrate and migrate completely to .NET data types everywhere possible." Tests may break
+> **temporarily** mid-migration; the bar is ALL green at completion. (Memory `feedback_oo_typed_native_not_byte`.)
 
 - **Stack:** **.NET 10 / C# 14**. **Backend: CIL-only via Mono.Cecil** (a Roslyn C# backend is a FUTURE additive
   Stage-5 option — Cecil stays the shipping backend + the differential oracle; deferred beyond OO). **Pointers = ONE
   `ManagedPointer`** (GC-tracked; no native heap / no `unsafe` / no 8-byte handle / no `PointerRegistry` — settled).
-- **Guard ALL GREEN: 1204 unit / 527 integration / 364 NIST** (was 1196/509 pre-session: +8 CLI-dialect unit tests,
-  +OO conformance corpus + `OoTests`). Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min, parallel, **proven
-  byte-identical** to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
+- **Guard ALL GREEN: 1204 unit / 535 integration / 364 NIST** (DEVLOG 456). Iterate with
+  **`bash scripts/guard-fast.sh`** (~3.3 min, parallel, **proven byte-identical** to the serial `scripts/guard.sh`
+  via `scripts/guard-verify.sh`).
 - **Phase A DONE** (DEVLOG 445–446): CLI `--standard` verified to reach the parser `DialectLevel` + a regression net;
   CI enabled (`.github/workflows/build-and-test.yml` gates the full guard on push/PR); parallel-dev = patch-integrate.
 - **M1 (COBOL-85) COMPLETE** — NIST CCVS85 (364 baselines) is the '85 validation backbone.
-- **Data-model migration CORE done through Stage-4** (gated behind `EnableTypedFields`, **default OFF** → corpus
-  byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`, numeric→`long`/
-  `decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every byte-trigger
-  (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte.
-- **OO: grammar DONE + SLICES 1–3a DONE end-to-end** (DEVLOG 447–450): `CLASS-ID` → an instance .NET type with a
-  per-instance `ProgramState`; `INVOKE class "NEW" RETURNING o`; `INVOKE o "method" USING … RETURNING …` (CALL
-  `ManagedPointer[]` ABI); `USAGE OBJECT REFERENCE` storage; PERFORM in a method; per-instance state proven; and
-  **slice 3a `INHERITS FROM` + virtual methods + polymorphism** (subclass extends base, inherits the root's State
-  via ctor-chaining, overrides base methods, virtual dispatch through a base-typed ref — `oo_inherit`). Each slice
-  and **slice 3b `INVOKE SUPER`** (override calls base — `oo_super`). Each slice adversarially reviewed (Agent
-  tool); deferred forms fail loudly (COBOL0111 arg-forms, 0112 SELF, 0113 subclass-data, 0114 unknown-base, 0115
-  root-class-SUPER). Conformance `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`/`oo_super`.
-  **NEXT OO = subclass own OBJECT data (extend the shared State) + multi-method classes + INVOKE SELF, then 4 FACTORY /
-  5 PROPERTY / 6 universal-ref+EC** (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Single-method-per-class today.
+- **Data-model migration CORE done through Stage-4** (for PROGRAMS, gated behind `EnableTypedFields`, **default OFF**
+  → corpus byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`,
+  numeric→`long`/`decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every
+  byte-trigger (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte. The global flip-on
+  (EnableTypedFields default-ON) + island-the-byte-engine is Stage-6/B3 (still future).
+- **OO TYPED-NATIVE — object data model COMPLETE + multi-method + INVOKE SELF (DEVLOG 453–456; THIS session):**
+  - **Object data → per-instance typed .NET fields (453 char, 454 numeric, 456 groups+OCCURS):** `PIC X`→instance
+    `string`, `PIC 9`→instance `long`/`decimal`, `01` group→instance `record struct`, `OCCURS`→instance typed array.
+    The byte `State` is **empty** on a fully-typed class. `CollectTypedFields` is **always-on for a CLASS**; the typed
+    field defs/init/access gained a per-instance dimension on the `StateIsInstance` flag via one chokepoint
+    `CilDataEmitter.EmitTypedFieldOwner` (typed analogue of the byte engine's `EmitLoadBackingArray`). Also filled the
+    general **typed-numeric→byte MOVE cell** (`EmitMoveWithStandardSignature` materializes a typed source).
+  - **Multi-method classes + INVOKE SELF (455):** a `CLASS-ID` hosts N `METHOD-ID` units, each its own public .NET
+    method with an **exit-bounded** dispatch range (method A can't fall into B); per-method paragraph scope (fixes
+    CBL3104) threaded through SemanticBuilder/ReferenceResolver/BoundTreeBuilder/ProcedureNameResolver/Binder;
+    `IrModule.ClassMethods` roster; `INVOKE SELF` → `callvirt` on `this` (COBOL0112 lifted), incl. **polymorphic SELF**
+    across INHERITS (verified `oo_self_polymorphic`).
+  - **Adversarially reviewed (3-agent panel, DEVLOG 455):** confirmed core correct; edge gaps now fail LOUD —
+    **COBOL0116** (SECTION inside a METHOD — was a silent skip) and **COBOL0117** (multi-method class WITH method
+    params — `FindLinkageField` is module-level → would cross-wire LINKAGE; per-method LINKAGE is a later slice).
+  - Earlier OO (DEVLOG 447–451, now on the typed path): NEW, INVOKE USING/RETURNING, OBJECT REFERENCE, INHERITS +
+    virtual dispatch, INVOKE SUPER. Deferred loud: COBOL0111 arg-forms, 0113 subclass-data, 0114 unknown-base,
+    0115 root-SUPER, 0116/0117 above.
+  - Conformance (9): `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`/`oo_super`/`oo_instance_data`/
+    `oo_self`/`oo_self_polymorphic`/`oo_object_group` + `OoTests`.
+  - **NEXT OO (in order):** (a) **subclass own typed OBJECT data** (lift COBOL0113 — emit the subclass's own typed
+    instance fields + init in the subclass ctor; needs factoring the typed field-defs + typed-init out of
+    `CilEmitter.EmitProgramState`, and detecting/rejecting byte-island subclass data which has no own State);
+    (b) **per-method LINKAGE** (multi-method-with-args — per-method LINKAGE layout + `FindLinkageField`, lifts
+    COBOL0117) + typed-field-by-reference INVOKE args (COBOL0600 today — no clean lowering/emit diagnostic path yet);
+    (c) **FACTORY** (static) methods + `INVOKE Class "M"`; then 5 PROPERTY / 6 universal-ref+EC
+    (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of M2 → M3 → M4 (`docs/ISO2023_CONFORMANCE_PLAN.md` §3).
 - **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
   **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),
   9 lowering classes.

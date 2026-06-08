@@ -42,27 +42,38 @@ owner co-authored it, DEVLOG 393); implement its 7-stage migration (ADR §10), g
 data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = `BigInteger` before Stage 1;
 classifier-trigger completeness before any Stage-3 typed flip).
 
-### Current State (updated 2026-06-07, DEVLOG 451)
+### Current State (updated 2026-06-08, DEVLOG 456; latest commit `a10bda9`, branch `main`, tree clean)
 - **→ The live kickoff prompt is `resume-prompt.md` (repo root). Read it first.** This block is a snapshot.
-- **Branch**: main; guard ALL GREEN — **1204 unit / 527 integration / 364 NIST** (`bash scripts/guard.sh`, or the
+- **Branch**: main; guard ALL GREEN — **1204 unit / 535 integration / 364 NIST** (`bash scripts/guard.sh`, or the
   ~3.3-min parallel `scripts/guard-fast.sh`); baselines 0 FAIL*. Stack: **.NET 10 / C# 14**.
-- **DEVLOG at entry 451.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress.
-- **Data-model migration: CORE done through Stage-4** (gated `EnableTypedFields`, default OFF → corpus
+- **DEVLOG at entry 456.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress.
+- ⛔ **OWNER DIRECTIVE (2026-06-08): OO is TYPED-NATIVE per ADR §7 — object data → per-instance typed .NET fields,
+  methods → real .NET methods, INVOKE → callvirt; NEVER the byte `State`. The `EnableTypedFields` default-OFF gate is
+  migration-safety for the LEGACY corpus, NOT design intent — OO is an always-on consumer of the typed pipeline.**
+  Tests may break temporarily mid-migration; bar = ALL green at completion. (Memory `feedback_oo_typed_native_not_byte`.)
+- **Data-model migration (for PROGRAMS): CORE done through Stage-4** (gated `EnableTypedFields`, default OFF → corpus
   byte-identical): character→`string`, numeric→`long`/`decimal`, flat+nested groups→`record struct`, fixed
-  OCCURS→`T[]`, and **pointers→`ManagedPointer`** (USAGE POINTER / BASED / ADDRESS OF / arithmetic / ALLOCATE-FREE,
-  always-typed, no 8-byte handle). The byte engine remains the classifier-scoped fallback.
-- **Phase A done** (DEVLOG 445–446): CLI `--standard`→DialectLevel verified + regression net; **CI enabled**
-  (`.github/workflows/build-and-test.yml` gates the full guard on push/PR).
-- **OO COBOL: slices 1–3b done** (DEVLOG 447–451), each Agent-adversarially-reviewed (real bugs caught + fixed):
-  CLASS-ID → an instance .NET type (per-instance `ProgramState`); `INVOKE class "NEW"`; `INVOKE obj "m" USING …
-  RETURNING …` (CALL `ManagedPointer[]` ABI); OBJECT REFERENCE storage; PERFORM-in-method; `INHERITS FROM` + virtual
-  methods + polymorphism; `INVOKE SUPER`. Deferred forms fail LOUDLY (COBOL0111 arg-forms, 0112 SELF, 0113
-  subclass-data, 0114 unknown-base, 0115 root-class-SUPER). Conformance `tests/conformance/2002/oo_*` (5) + `OoTests`.
-- **RESUME AT → OO multi-method classes** (the keystone: each METHOD-ID binds as its own procedure; unblocks INVOKE
-  SELF + FACTORY + real multi-operation classes) + subclass own OBJECT data; then OO slices 4 FACTORY / 5 PROPERTY /
-  6 universal-ref+EC; then the remaining M2/M3/M4 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3). Then Stage-5
-  Roslyn backend, Stage-6 finalize + flip-on + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See
-  `resume-prompt.md` + `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
+  OCCURS→`T[]`, and **pointers→`ManagedPointer`**. Global flip-on + island-the-byte-engine is Stage-6/B3 (future).
+- **Phase A done** (DEVLOG 445–446): CLI `--standard`→DialectLevel verified + regression net; **CI enabled**.
+- **OO TYPED-NATIVE — object data model COMPLETE + multi-method + INVOKE SELF (DEVLOG 453–456):**
+  - Object data → per-instance typed .NET fields: `PIC X`→instance `string` (453), `PIC 9`→instance `long`/`decimal`
+    (454), `01` group→instance `record struct` + `OCCURS`→instance typed array (456). Byte `State` empty on a
+    fully-typed class. Instance dimension via the `CilDataEmitter.EmitTypedFieldOwner` chokepoint; also filled the
+    general typed-numeric→byte MOVE cell (454).
+  - Multi-method classes + INVOKE SELF (455): N `METHOD-ID`/class (each its own .NET method, exit-bounded dispatch;
+    per-method paragraph scope fixes CBL3104), `INVOKE SELF`→`callvirt` incl. polymorphic across INHERITS
+    (COBOL0112 lifted). 3-agent adversarial panel → edge gaps fail LOUD: **COBOL0116** (SECTION-in-method),
+    **COBOL0117** (multi-method class WITH method params — per-method LINKAGE is a later slice).
+  - Earlier OO (447–451, now on the typed path): NEW, INVOKE USING/RETURNING, OBJECT REFERENCE, INHERITS+virtual,
+    INVOKE SUPER. Deferred loud: COBOL0111/0113/0114/0115/0116/0117.
+  - Conformance (9): `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`/`oo_super`/`oo_instance_data`/
+    `oo_self`/`oo_self_polymorphic`/`oo_object_group` + `OoTests`.
+- **RESUME AT → (a) subclass own typed OBJECT data** (lift COBOL0113 — emit the subclass's own typed instance fields
+  + init in the subclass ctor; factor the typed field-defs + typed-init out of `CilEmitter.EmitProgramState`; reject
+  byte-island subclass data which has no own State); **(b) per-method LINKAGE** (multi-method-with-args, lifts
+  COBOL0117) + typed-field-by-reference INVOKE args; **(c) FACTORY**; then 5 PROPERTY / 6 universal-ref+EC; then the
+  remaining M2/M3/M4 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3). Then Stage-5 Roslyn backend, Stage-6 finalize +
+  flip-on + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See `resume-prompt.md` + `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
 - The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
 
 ### (historical) Current State as of 2026-03-28

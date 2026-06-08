@@ -531,7 +531,13 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.7 M2 — Object-Oriented COBOL (the single largest sub-project)
 
-- ◐ **M2-OO-1 — OO COBOL. SLICES 1–3a DONE (DEVLOG 447–450); slice 3b + slices 4–6 remain.** Grammar DONE (`Core/CobolOO.g4`,
+- ◐ **M2-OO-1 — OO COBOL. TYPED-NATIVE object data COMPLETE + multi-method + INVOKE SELF DONE (DEVLOG 447–456);
+  subclass-own-data / per-method-LINKAGE / FACTORY / PROPERTY / universal-ref+EC remain.** Per ADR §7 a class's object
+  data is per-instance typed .NET fields (flat `string`/`long`/`decimal` 453–454, group→`record struct` + OCCURS→array
+  456; byte `State` empty on a fully-typed class), N `METHOD-ID`/class each its own .NET method with exit-bounded
+  dispatch + `INVOKE SELF`→callvirt incl. polymorphic (455, COBOL0112 lifted); deferred edges fail loud (COBOL0116
+  SECTION-in-method, COBOL0117 multi-method-with-params, COBOL0113 subclass-data). Conformance: 9 `oo_*` + `OoTests`.
+  *(Historical detail of the earlier slices 1–3b below.)* Grammar DONE (`Core/CobolOO.g4`,
   `{is2002()}?`-gated, DEVLOG 439). **Slice 1 (CLASS-ID + single OBJECT method + NEW + no-arg INVOKE + OBJECT
   REFERENCE storage) is implemented end-to-end** — a class is an INSTANCE .NET reference type with a per-instance
   `ProgramState` (`EmissionContext.StateIsInstance` chokepoint), `INVOKE class "NEW" RETURNING o` (`newobj`+`.ctor`),
@@ -708,3 +714,17 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
   use MANAGED .NET REFERENCES (`ManagedPointer`); the `PointerRegistry` design is REJECTED — SETTLED, NOT owner-gated.**
   **NEXT (all autonomous-eligible): Stage-4 pointers (managed refs) + OO; Stage-5 Roslyn backend; Stage-6 finalize +
   flip-on-by-default + rename.**
+- **2026-06-08 (session DEVLOG 453–456)** — **OO goes TYPED-NATIVE (ADR §7) + the multi-method keystone.** Owner
+  course-correction: OO object data must be per-instance typed .NET fields (NOT the byte `ProgramState`); the
+  `EnableTypedFields` gate is migration-safety for the legacy corpus, so OO is an **always-on consumer** of the typed
+  pipeline (memory `feedback_oo_typed_native_not_byte`). Landed, each guard-green + conformance-tested + (455)
+  adversarially reviewed: **453** object char data → per-instance `string`; **454** object numeric → per-instance
+  `long`/`decimal` + the general typed-numeric→byte MOVE cell; **455** multi-method classes (N `METHOD-ID`/class, each
+  its own .NET method + exit-bounded dispatch; per-method paragraph scope fixes CBL3104) + `INVOKE SELF`→`callvirt`
+  incl. polymorphic across INHERITS (COBOL0112 lifted) — 3-agent panel → edge gaps fail loud (COBOL0116
+  SECTION-in-method, COBOL0117 multi-method-with-params); **456** object group→per-instance `record struct` +
+  `OCCURS`→per-instance typed array (byte `State` now empty on a fully-typed class). Instance dimension via one
+  chokepoint `CilDataEmitter.EmitTypedFieldOwner`. Conformance: `oo_instance_data`/`oo_self`/`oo_self_polymorphic`/
+  `oo_object_group` (+ the prior 5). Guard **1204 / 535 / 364**. NEXT: subclass own typed object data (lift COBOL0113);
+  per-method LINKAGE (lifts COBOL0117) + typed-field INVOKE args; FACTORY; then PROPERTY / universal-ref+EC; then the
+  rest of M2 → M3 → M4.

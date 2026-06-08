@@ -47,10 +47,16 @@ it has repeatedly caught silent-corruption the conformance test missed (the disp
 of bug). The verdict-diff in `guard-verify.sh` is the model: a mis-grouping surfaces as a detectable RED, never a
 false GREEN.
 
-## 2. Current state (honest baseline, 2026-06-07)
+## 2. Current state (honest baseline, 2026-06-08, DEVLOG 456; latest commit `a10bda9`, tree clean)
 
-- **Branch `main`, guard ALL GREEN: 1204 unit / 527 integration / 364 NIST.** DEVLOG at entry 451. (Baseline at
-  this plan's authoring was 1196/509/364 @ DEVLOG 441; since then: Phase A enablers + OO slices 1–3b — see §8.)
+> ⛔ **OWNER DIRECTIVE (2026-06-08): OO is TYPED-NATIVE per ADR §7 — object data → per-instance typed .NET fields,
+> methods → real .NET methods, INVOKE → callvirt; NEVER the byte `State`. The `EnableTypedFields` default-OFF gate is
+> migration-safety for the LEGACY corpus, NOT design intent — OO is an always-on consumer of the typed pipeline.**
+> (Memory `feedback_oo_typed_native_not_byte`.)
+
+- **Branch `main`, guard ALL GREEN: 1204 unit / 535 integration / 364 NIST.** DEVLOG at entry 456. (Baseline at
+  this plan's authoring was 1196/509/364 @ DEVLOG 441; since then: Phase A enablers + OO slices 1–3b + the OO
+  typed-native object-data model + multi-method + INVOKE SELF — see §8.)
 - **Platform: targets .NET 10 / C# 14** (`Directory.Build.props` `net10.0`/LangVersion 14, `global.json` SDK 10.0.x;
   retargeted from .NET 9 this session, full guard re-proven green on .NET 10 — DEVLOG 441).
 - **M1 (COBOL-85) COMPLETE** — the 8 core NIST CCVS modules + Report Writer baselined; NIST CCVS85 is the '85
@@ -65,11 +71,16 @@ false GREEN.
   - **Stage 4 POINTERS COMPLETE** — `USAGE POINTER`/`BASED`/`ADDRESS OF`/`SET ADDRESS OF`/`NULL`/`=`/`SET UP|DOWN BY`/
     `ALLOCATE`/`FREE`, all on ONE managed `ManagedPointer` (no native heap, no `unsafe`, no 8-byte handle). 4
     conformance tests.
-  - **Stage 4 OO: slices 1–3b DONE** (DEVLOG 447–451, each Agent-reviewed) — CLASS-ID → instance .NET type
-    (per-instance `ProgramState`); `INVOKE class "NEW"` / `INVOKE obj "m" USING…RETURNING…` (CALL `ManagedPointer[]`
-    ABI); OBJECT REFERENCE; PERFORM-in-method; `INHERITS FROM` + virtual methods + polymorphism; `INVOKE SUPER`.
-    Deferred forms fail loudly (COBOL0111–0115). **Next OO = multi-method classes** (keystone) + subclass data, then
-    FACTORY / PROPERTY / universal-ref+EC. See `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
+  - **Stage 4 OO — TYPED-NATIVE object-data model COMPLETE + multi-method + INVOKE SELF (DEVLOG 447–456):** object
+    data → per-instance typed .NET fields (PIC X→`string` 453, PIC 9→`long`/`decimal` 454, `01` group→`record struct`
+    + `OCCURS`→typed array 456; byte `State` empty on a fully-typed class; instance dimension via the
+    `CilDataEmitter.EmitTypedFieldOwner` chokepoint); N `METHOD-ID`/class (each its own .NET method + exit-bounded
+    dispatch; per-method paragraph scope fixes CBL3104) + `INVOKE SELF`→callvirt incl. polymorphic across INHERITS
+    (455, COBOL0112 lifted); plus the earlier NEW/INVOKE-USING-RETURNING/OBJECT-REFERENCE/INHERITS+virtual/SUPER
+    (447–451, now on the typed path). 3-agent panel → edge gaps fail loud (COBOL0116 SECTION-in-method, COBOL0117
+    multi-method-with-params); deferred loud COBOL0111/0113/0114/0115. 9 `oo_*` conformance + `OoTests`. **Next OO =
+    (a) subclass own typed object data (lift COBOL0113); (b) per-method LINKAGE (lifts COBOL0117) + typed-field INVOKE
+    args; (c) FACTORY; then PROPERTY / universal-ref+EC.** See `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
 - **Tooling:** parallel guard (`guard-fast.sh`) ~3.3× faster, proven equivalent.
 - **Known debt (the "commercial/decades" gap — detailed in §10).** Note the core is healthier than "god classes
   everywhere": the big decompositions are **already DONE** — M001 (IR-expression hierarchy, zero `BoundExpression`
@@ -206,8 +217,19 @@ every commit.
   + fixed real silent-miscompile/wrong-output bugs the conformance tests missed: slice 1 CLASS/NEW/INVOKE/OBJECT
   REFERENCE + per-instance `ProgramState` (447); slice 2 INVOKE USING/RETURNING — per-instance state proven (448),
   unsupported arg forms made loud COBOL0111 (449); slice 3a INHERITS + virtual/polymorphism (450); slice 3b INVOKE
-  SUPER (451). 5 OO conformance tests + `OoTests`. **NEXT = OO multi-method classes (keystone) + subclass data, then
-  FACTORY/PROPERTY/universal-ref, then the rest of the M2/M3/M4 catalog (ISO2023_CONFORMANCE_PLAN §3).**
+  SUPER (451). 5 OO conformance tests + `OoTests`.
+- 2026-06-08 (DEVLOG 453–456, guard **1204/527 → 1204/535**/364): **Phase B1 — OO goes TYPED-NATIVE (ADR §7) + the
+  multi-method keystone.** Owner course-correction: OO object data must be per-instance typed .NET fields, NOT the
+  byte `State` (the `EnableTypedFields` gate is migration-safety; OO is an always-on consumer — memory
+  `feedback_oo_typed_native_not_byte`). Landed, each guard-green + conformance-tested: **453** object char →
+  per-instance `string`; **454** object numeric → per-instance `long`/`decimal` + typed-numeric→byte MOVE cell;
+  **455** multi-method classes (N `METHOD-ID`/class, exit-bounded per-method dispatch, per-method paragraph scope
+  fixes CBL3104) + `INVOKE SELF`→callvirt incl. polymorphic (COBOL0112 lifted) — 3-agent adversarial panel → edge
+  gaps fail loud (COBOL0116 SECTION-in-method, COBOL0117 multi-method-with-params); **456** object group→`record
+  struct` + `OCCURS`→typed array (byte `State` now empty on a fully-typed class). +4 `oo_*` conformance tests.
+  **NEXT = (a) subclass own typed object data (lift COBOL0113); (b) per-method LINKAGE (lifts COBOL0117) + typed-field
+  INVOKE args; (c) FACTORY; then PROPERTY/universal-ref+EC; then the rest of the M2/M3/M4 catalog
+  (ISO2023_CONFORMANCE_PLAN §3).**
 
 ## 9. Sub-document index (post-consolidation, 2026-06-07)
 
