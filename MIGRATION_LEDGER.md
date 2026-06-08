@@ -1,9 +1,9 @@
 # COBOL-80 Compiler Modernization -- Migration Ledger
 
 ## Project metadata
-- Current target framework: net9.0
-- Current C# language version/features: C# 13, nullable reference types enabled, implicit usings
-- Last updated: 2026-06-03 (post-migration bridge note added; see below)
+- Current target framework: net10.0
+- Current C# language version/features: C# 14, nullable reference types enabled, implicit usings
+- Last updated: 2026-06-07 (retargeted net9.0 -> net10.0 / C# 13 -> 14; see post-migration note below)
 - Current phase: Phase 9 -- Final consolidation and cleanup (COMPLETE)
 - Overall status: Green -- All 9 phases + documentation complete, all tests passing
 
@@ -32,6 +32,23 @@ invalid input"** track (DEVLOG 304–310) — all six items done (real source pa
 data-name CBL3128; PIC/level validity; CopyProcessor diagnostics; CLI ICE try/catch; runtime guards +
 CobolRuntimeException) and **CBL3128 flipped on by default** after a 4-round adversarial false-positive sweep.
 Guard ALL GREEN: 1040 unit / 347 integration / 349 NIST baselines, 0 FAIL*.
+
+### Framework retarget net9.0 -> net10.0 (2026-06-07, DEVLOG 441)
+
+Owner directive: the compiler is to be **implemented on .NET 10**. Retargeted the whole solution to **net10.0 /
+C# 14** in one guard-verified change — a clean continuation of the original Phase-1 modernization (net8 -> net9):
+- `Directory.Build.props` — `net9.0` -> `net10.0`, `LangVersion` `13` -> `14`.
+- `global.json` — pinned SDK `9.0.312` -> `10.0.204` (rollForward latestPatch).
+- Build-output paths (`net9.0` -> `net10.0`) in `scripts/{guard,guard-fast,guard-run-group,run-suite}.sh` and the
+  `CliExitCodeTests` CLI-locator.
+- **No runtime-config code change needed:** `Compilation.EmitRuntimeConfig` already derives the tfm/version from
+  `Environment.Version` (the very lesson logged in the 2026-03-18 Phase-1 entry), so emitted programs' `.runtimeconfig.json`
+  tracked .NET 10 automatically.
+- **Verification:** clean solution rebuild = **0 warnings / 0 errors** under `TreatWarningsAsErrors=true` + C# 14; full
+  guard re-proven **ALL GREEN on .NET 10** — 1196 unit / 509 integration / 364 NIST, 0 regressions (the numeric/string
+  differential oracles among them, so no behavioral drift from the runtime change).
+- Historical records (the 2026-03-18 Phase-1 session entry below, `CONSTRAINTS.md` migration phases, `AUDIT_REPORT.md`,
+  `audit/`) were left intact — they document the net8->net9 effort and must not be rewritten.
 
 ## Session log
 

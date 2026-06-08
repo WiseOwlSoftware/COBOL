@@ -13,8 +13,8 @@ echo "=== Integration tests ==="
 dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --verbosity quiet
 
 echo "=== NIST regression ==="
-cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/
-CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
+cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll tests/nist/output/
+CLI=src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll
 
 # Start each run from a clean DATA-file state so the guard is deterministic and reproducible from any prior
 # state. Producer/consumer chains (RL/SQ/IX) rebuild WITHIN this run because the producer runs before the

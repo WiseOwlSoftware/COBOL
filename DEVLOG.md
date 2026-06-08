@@ -10880,6 +10880,93 @@ IX216A/217A/218A (SELECT-OPTIONAL absent-file isolation — the optional file ma
 already created; the shared-TF-by-number model can't distinguish an intentional P→D chain from an accidental
 cross-program P/P collision without breaking SQ203A's optional *consumer*), IX301M/IX401M (flagging, excluded).
 
+## Entry 441 — Retarget to .NET 10 / C# 14 (owner directive), guard re-proven green
+
+Mid-handoff, the owner directed: **"This should be implemented on .NET 10."** Retargeted the whole solution from
+`net9.0` to **`net10.0` / C# 14** as one self-contained, guard-verified change.
+
+**What changed (build config only — the touch-points are centralized):**
+- `Directory.Build.props`: `<TargetFramework>net9.0</TargetFramework>` → `net10.0`; `<LangVersion>13</LangVersion>` → `14`.
+- `global.json`: SDK `9.0.312` → `10.0.204` (kept `rollForward: latestPatch`). The .NET 10 SDK (10.0.204) was already
+  installed.
+- Hardcoded `bin/Debug/net9.0/` build-output paths → `net10.0` in `scripts/guard.sh`, `scripts/guard-fast.sh`,
+  `scripts/guard-run-group.sh`, `scripts/run-suite.sh`, and the `CliExitCodeTests` CLI-locator.
+
+**No code change was needed** beyond config: `Compilation.EmitRuntimeConfig` already derives the target-framework
+moniker + framework version from `Environment.Version` (exactly the fix logged in the 2026-03-18 net8→net9 Phase-1
+entry — a hardcoded `net8.0` runtimeconfig had caused 153 failures then), so every emitted program's
+`.runtimeconfig.json` picked up .NET 10 automatically.
+
+**Verification (the real test — `TreatWarningsAsErrors=true` makes any new C# 14 / .NET 10 analyzer warning a hard
+build failure):** purged the stale `net9.0` bin/obj (NuGet assets are framework-specific), clean-rebuilt the solution
+= **0 warnings / 0 errors**; grammar regenerated cleanly. Then re-ran the full parallel guard: **ALL GREEN on .NET 10
+— 1196 unit / 509 integration / 364 NIST, 0 regressions.** Because the unit suite includes the numeric (`CobolNum`)
+and string (`CobolString`) differential oracles, the green run also proves .NET 10 introduced no
+arithmetic/text behavioral drift.
+
+**Docs:** updated the *forward-looking* stack references (PROMPT.md doctrine, README build requirement, PROJECT_PLAN
+language + KTD #5, the data-model ADR target header, MASTER_PLAN §2) to .NET 10 / C# 14, and added a MIGRATION_LEDGER
+retarget note. **Left historical records intact** (the 2026-03-18 Phase-1 ledger entry, `CONSTRAINTS.md` migration
+phases, `AUDIT_REPORT.md`, `audit/` logs) — they document the net8→net9 work and rewriting them would falsify the
+record (`feedback_transparency`). Also bumped the **disabled CI template** (`.github/workflows/build-and-test.yml.disabled`)
+SDK pin `8.0.x` → `10.0.x` so the Phase-A "enable CI" work starts on the right runtime. Deliberately left as-is:
+machine-managed permission allowlists (`.claude/settings*.json`, stale `net9.0`/`net8.0` paths — harmless,
+auto-regenerated) and the pre-existing stale `samples/*.runtimeconfig.json` build artifacts (generated `net8.0`,
+predate this change, out of scope).
+
+**Verification (`feedback_scan_all_similar`):** a 3-lens adversarial panel (exhaustive residual-token grep ·
+build-config/hidden-file consistency · history-integrity) confirmed **zero forward-looking refs remain, all historical
+records intact, and build config uniformly net10.0** — the only flags were the deliberately-left allowlists/artifacts
+above (now all documented) and the CI template (now fixed).
+
+## Entry 440 — MASTER_PLAN.md: the top-level SSOT + autonomous-execution playbook, grounded against all ~159 prior docs
+
+The owner restated the North Star, emphatically and as a standing directive: **"this must be a commercial-quality,
+production-level COBOL compiler sustainable for decades. I don't care if you break everything and rewrite/re-architect
+it to reach that goal. There is no back-compat requirement as this is a brand-new compiler."** And: *"Create and
+document persistently the plan to reach that goal... The new session must plan to implement all remaining work with
+maximum autonomy, maximum parallelism practical and reach the goal in the session. There are many prior planning docs
+already written. Encompass and consider all of their research."*
+
+Authored **`docs/MASTER_PLAN.md`** as THE single top-level entry point — a SSOT + autonomous-session execution
+playbook, not a reinvention. It has: §0 North Star · §1 autonomous operating manual (guard-as-law via
+`guard-fast.sh`; three-tier parallelism; version-factored grammar; adversarial-verify discipline) · §2 honest baseline
+· §3 the phased roadmap (**A** enable-max-parallelism → **B** finish the data-model migration → **C** full ISO-2023
+conformance → **D** targeted architecture cleanup → **E** build the product surface → **F** rename to COBOL.NET) · §4
+parallelism map · §5 done-bar · §6 risks · §7 start-here · §8 status log · §9 a categorized index of **all ~170 prior
+docs** · §10 a grounded commercial/decades assessment · §11 early-resolve decisions.
+
+**To genuinely "encompass all prior research" I ran two parallel workflows** (read-only; the safe tier): an **11-agent
+synthesis** of the 159 `docs/` files cross-checked against `src/`, and a **4-dimension commercial-bar assessment**
+(architecture · conformance · testing/CI · production-readiness). Key grounded findings folded into §9/§10:
+- **The compiler core + runtime are production-grade (~85–90% of a COBOL-85 compiler), NOT a god-class crisis.** The big
+  decompositions are already DONE and tested: **M001** (IR-expression hierarchy, zero `BoundExpression` leakage),
+  **M003** (`CilEmitter` 4083-line god class → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder`
+  → 9 focused binders, 234-line orchestrator). So Phase D is **targeted cleanup, not a teardown** — corrected the
+  §2/§3 framing that had implied otherwise.
+- **The ~100 long-titled `CobolSharp COBOL … Architecture.md` essays are complete *designs* but ~0 lines of code.** They
+  are a prior doc-generation pass (see `docs/Resume-Prompt-For-Docs.md`). The entire **product surface** they describe —
+  debugger, LSP, CI/CD, packaging, security, perf-gate, compliance, plus JSON/XML lowering and the 12-doc Screen
+  subsystem — is the **bulk of the North-Star gap** (Phase E + the back of C), and is mostly **net-new build**.
+- **Conformance executes `ISO2023_CONFORMANCE_PLAN.md` — do NOT re-audit.** M2 order (assessment): OO slice-1 first →
+  FILE-2002 → ARITH-2 → PRE-1 → UDF → VALIDATE → EC.
+- A **disabled CI template already exists** (`.github/workflows/build-and-test.yml.disabled`); CLI csproj is
+  `PackAsTool` (missing `SingleFile`) — concrete Phase-A/E starting points.
+
+**Transparency (`feedback_transparency`):** the two workflows disagreed in tone — the assessment read "~85% ready, one
+session to commercial delivery," the synthesis read "the product surface is design-only, weeks of net-new work." §10.5
+reconciles them honestly: the assessment's optimism is true only for the narrow "OO-complete CLI + packaging + docs"
+scope; the **full** commercial/decades/full-ISO-2023 bar is a multi-phase program. Also flagged that a couple of
+assessment sub-agents read stale state ("DEVLOG at 223"), so §10 trusts §2's current baseline for status. This squares
+`AUDIT_REPORT.md`'s "DO NOT REWRITE" verdict with the owner's "rewrite anything": the latter is a *license* to
+re-architect targeted subsystems for decades-quality, not a mandate to greenfield-restart a sound core.
+
+**Context saved for a fresh session** (`feedback_session_context`): prepended a MASTER_PLAN "START HERE" pointer to
+`CLAUDE.md` (auto-loaded), `resume-prompt.md`, and the auto-memory `MEMORY.md`; recorded the North Star + grammar-
+version-factoring + parallel-guard directives as memories. No code touched — this is a planning/handoff commit; guard
+unchanged from Entry 439 (1196 / 509 / 364, green). **NEXT = execute MASTER_PLAN Phase A → Phase B1 (OO semantic/emit,
+turnkey `docs/OO_IMPLEMENTATION_DESIGN.md` §6.6).**
+
 ## Entry 439 — OO grammar: version-factored (Core/CobolOO.g4) + regression-free; root cause of the 438 regression found
 
 Per the owner directive **"keep the grammar files factored appropriately for spec versions"** ([[feedback_grammar_version_factoring]]),

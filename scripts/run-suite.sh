@@ -11,8 +11,8 @@ PREFIX="${1:?usage: run-suite.sh PREFIX}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
-CLI=src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll
-cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll tests/nist/output/ 2>/dev/null
+CLI=src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll
+cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll tests/nist/output/ 2>/dev/null
 
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF
 export COBOL_SWITCH_1=ON

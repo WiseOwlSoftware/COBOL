@@ -103,7 +103,7 @@ CobolSharp.sln
 
 ## Building
 
-Requires .NET 9.0 SDK and Java (for ANTLR4 parser generation).
+Requires .NET 10.0 SDK and Java (for ANTLR4 parser generation).
 
 ```bash
 dotnet build                    # Build all projects

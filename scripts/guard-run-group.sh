@@ -15,7 +15,7 @@ set -u
 
 ROOT="$1"; GROUP="$2"; TESTS="$3"
 OUT="$ROOT/tests/nist/output"
-RUNTIME="$ROOT/src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll"
+RUNTIME="$ROOT/src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT

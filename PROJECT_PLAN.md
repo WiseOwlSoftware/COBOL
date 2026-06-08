@@ -3,11 +3,14 @@
 ## Project Overview
 
 **Goal**: Build a production-quality, multi-version COBOL compiler (ISO/IEC 1989:**2023**, dialect-gated back to
-COBOL-85), targeting .NET. **Current direction (2026-06-06): re-architecting onto an idiomatic .NET-native data
-model (records → `record struct`, character → `string`, byte image only as a classifier-scoped fallback) — see
-`docs/DATA_MODEL_ARCHITECTURE.md` and the SINGLE LIVE PLAN `docs/ISO2023_CONFORMANCE_PLAN.md` §0.5.**
+COBOL-85), targeting .NET. **⛔ TOP-LEVEL PLAN (2026-06-07): `docs/MASTER_PLAN.md`** is now the single SSOT +
+autonomous-execution playbook for reaching the commercial-quality / decades-sustainable / full-ISO-2023 North Star;
+it orchestrates all ~159 prior docs and sequences every phase (A parallelism → B data-model finish → C conformance →
+D arch cleanup → E product surface → F rename). **Current direction: re-architecting onto an idiomatic .NET-native
+data model (records → `record struct`, character → `string`, byte image only as a classifier-scoped fallback) — see
+`docs/DATA_MODEL_ARCHITECTURE.md`; conformance SSOT is `docs/ISO2023_CONFORMANCE_PLAN.md`.**
 
-**Implementation Language**: C# 13 on .NET 9.0
+**Implementation Language**: C# 14 on .NET 10.0
 
 **Primary Spec**: ISO/IEC 1989:2023 — the authoritative source for all semantics is `specs/ISO_COBOL.md`;
 NIST CCVS85 validates the COBOL-85 core
@@ -963,7 +966,7 @@ stale docs, dead code. Section 3.6 (ReportWriter) deferred until Report Writer i
 | 2 | Indexed files? | Custom IndexedFileHandler with in-memory Dictionary + secondary indices. |
 | 3 | OO COBOL? | Deferred. Parsing only, no binding or emission. |
 | 4 | Assembly emission? | Disk always (Mono.Cecil). In-memory for integration tests via temp dir. |
-| 5 | .NET version? | .NET 9.0 only. |
+| 5 | .NET version? | .NET 10.0 only (C# 14). |
 | 6 | Runtime linking? | Runtime DLL copied alongside compiled assembly. |
 | 7 | DECIMAL-POINT IS COMMA? | Implemented: grammar flag propagated through compilation pipeline. |
 

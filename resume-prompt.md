@@ -1,6 +1,22 @@
 # CobolSharp — Session Resume Prompt (updated 2026-06-07)
 
-## ⛔ START HERE — #1 PRIORITY: the .NET-native data-model migration (IN PROGRESS)
+## ⛔⛔ START HERE — `docs/MASTER_PLAN.md` is THE top-level SSOT + autonomous-execution playbook
+
+**North Star (owner, emphatic + repeated):** a **commercial-quality, production-level, decades-sustainable, full
+ISO/IEC 1989:2023** COBOL compiler. **No backward-compatibility constraint — rewrite/re-architect anything.** The
+next session must **implement ALL remaining work in one autonomous session, with maximum autonomy and maximum
+practical parallelism, driving to the goal.**
+
+**Read `docs/MASTER_PLAN.md` first** — it is the single entry point: it sequences every phase (A enable-max-parallelism
+→ B finish the data-model migration → C full ISO-2023 conformance → D architecture cleanup → E production hardening →
+F rename to COBOL.NET) and orchestrates the ~159 prior planning/architecture docs (it does NOT reinvent them). Iterate
+with `scripts/guard-fast.sh` (~3.3 min, proven byte-identical to serial via `scripts/guard-verify.sh`); guard-green
+at every commit. Grammar work is **version-factored** (`Core/CobolXXXX.g4` + `{isYYYY()}?` hooks), added incrementally
+guard-after-each. **Current state (DEVLOG 439, guard 1196/509/364):** Stage-4 POINTERS complete; OO GRAMMAR done +
+factored + green; **next = MASTER_PLAN Phase A then Phase B1 (OO semantic/emit — turnkey in
+`docs/OO_IMPLEMENTATION_DESIGN.md` §6.6).** Everything below is HISTORICAL sub-plan detail MASTER_PLAN orchestrates.
+
+## ⛔ (historical) #1 PRIORITY: the .NET-native data-model migration (IN PROGRESS)
 
 The owner approved a foundational re-architecture to **"the best native .NET implementation of COBOL,"** the #1
 work item ahead of remaining conformance features. **Keep every currently-passing test green at 100%, fixing bugs

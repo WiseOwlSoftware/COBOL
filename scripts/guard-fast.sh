@@ -18,7 +18,7 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export ROOT
-CLI="src/CobolSharp.CLI/bin/Debug/net9.0/cobolsharp.dll"
+CLI="src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll"
 JOBS="${JOBS:-$(nproc)}"
 TMP="${TMPDIR:-/tmp}"
 T0=$(date +%s); el() { echo "[+$(( $(date +%s) - T0 ))s] $*"; }
@@ -45,7 +45,7 @@ mkdir -p "$OUT"
 # Clear stale compiled output first so a compile FAILURE leaves NO .dll -> the run reports COMPILE FAILED instead
 # of silently running a previous run's binary (a stale-dll false green).
 rm -f "$OUT"/*.dll "$OUT"/*.runtimeconfig.json "$OUT"/*.txt
-cp src/CobolSharp.Runtime/bin/Debug/net9.0/CobolSharp.Runtime.dll "$OUT/"
+cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll "$OUT/"
 
 # (1) Parallel compile — fully independent (distinct .dll/.runtimeconfig.json per test, no shared run state).
 echo "$TESTS" | tr ' ' '\n' | grep . \

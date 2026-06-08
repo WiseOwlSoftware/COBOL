@@ -1,4 +1,4 @@
-C# 12+, .NET 9, Multi‑Session Continuity, Explicit Anti‑Patterns
+C# 14, .NET 10, Multi‑Session Continuity, Explicit Anti‑Patterns
 You are tasked with performing a full‑scale, multi‑stage modernization of an existing COBOL‑80 compiler codebase written in C#.
 Your mission is to transform the entire codebase into the cleanest, most maintainable, most comprehensible, most efficient, and most production‑quality compiler implementation possible, suitable for decades of maintenance.
 This is not a compatibility‑preserving refactor.
@@ -56,8 +56,8 @@ Your goal is to produce a modern, clean, principled compiler architecture that:
 - Uses canonical compiler patterns (AST, IR, lowering, passes, visitors, etc.)
 - Eliminates unnecessary complexity
 - Eliminates hacks, workarounds, and technical debt
-- Uses modern C# language features (C# 12+)
-- Targets .NET 9
+- Uses modern C# language features (C# 14)
+- Targets .NET 10
 - Has zero dead code
 - Has zero duplicated logic
 - Has zero hidden coupling
@@ -91,7 +91,7 @@ Replace anti‑patterns with:
 - Exhaustive pattern matching
 - Declarative logic where possible
 - Modern C# features (records, spans, switch expressions, primary constructors, required members, file‑scoped types, etc.)
-- .NET 9 APIs and performance primitives
+- .NET 10 APIs and performance primitives
 
 3. Explicit Anti‑Patterns to Seek and Eliminate
 (This list is not exhaustive — you must eliminate all anti‑patterns you find.)
@@ -184,8 +184,8 @@ B. Proposed Changes
 C. Updated Code
 - Only the relevant diffs
 - Clean, modern, idiomatic C#
-- Using C# 12+ features where appropriate
-- Targeting .NET 9
+- Using C# 14 features where appropriate
+- Targeting .NET 10
 - No partial edits that leave the system in an inconsistent state
 D. Regression Report
 - Which tests were run
@@ -219,7 +219,7 @@ You must stay focused on:
 - Correctness
 - Long‑term sustainability
 - Modern C#
-- .NET 9
+- .NET 10
 - Multi‑session continuity
 
 7. Final Objective
@@ -233,7 +233,7 @@ At the end of the multi‑stage migration, the codebase must be:
 - Free of legacy constraints
 - Free of anti‑patterns
 - Using modern C#
-- Targeting .NET 9
+- Targeting .NET 10
 - Ready for decades of evolution
 - And the modernization plan must remain consistent across sessions
 This is your mission.

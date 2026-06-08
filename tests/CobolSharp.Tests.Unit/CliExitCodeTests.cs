@@ -22,7 +22,7 @@ public class CliExitCodeTests
         if (dir == null) return null;
         foreach (var cfg in new[] { "Debug", "Release" })
         {
-            string p = Path.Combine(dir.FullName, "src", "CobolSharp.CLI", "bin", cfg, "net9.0", "cobolsharp.dll");
+            string p = Path.Combine(dir.FullName, "src", "CobolSharp.CLI", "bin", cfg, "net10.0", "cobolsharp.dll");
             if (File.Exists(p)) return p;
         }
         return null;

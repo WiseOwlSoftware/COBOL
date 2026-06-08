@@ -1,5 +1,12 @@
 # CobolSharp — Claude Code Instructions
 
+## ⛔ TOP-LEVEL PLAN: read `docs/MASTER_PLAN.md` FIRST
+It is the single SSOT + autonomous-execution playbook to reach the North Star — a **commercial-quality,
+decades-sustainable, full ISO/IEC 1989:2023** COBOL compiler, **no back-compat (rewrite/re-architect anything),
+implemented with maximum autonomy + maximum practical parallelism.** MASTER_PLAN sequences every phase and
+orchestrates the ~159 prior planning/architecture docs (it does not reinvent them). `resume-prompt.md` and
+`docs/ISO2023_CONFORMANCE_PLAN.md` are sub-plans it points to. (memory `feedback_commercial_quality_north_star`.)
+
 Read PROMPT.md before making any code change. It contains architectural doctrine and development
 rules derived from 13+ sessions of building this compiler. Every rule exists because it was
 violated and corrected. They are non-negotiable.

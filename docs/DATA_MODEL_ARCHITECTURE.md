@@ -1,6 +1,6 @@
 # CobolSharp Data-Model Re-Architecture — The Best Native .NET COBOL
 
-**Status:** Converged architecture decision · **Date:** 2026-06-05 · **Target:** .NET 9 / C# 13
+**Status:** Converged architecture decision · **Date:** 2026-06-05 · **Target:** .NET 10 / C# 14
 **Audience:** project owner (final sign-off to begin migration) · **Decision class:** foundational, multi-session
 **Provenance:** synthesized from a four-proposal judge panel (Appendix A), then **refined through an owner-led design
 dialogue on 2026-06-05** that inverted the panel's central premise. **This document supersedes the panel's "COBOL
