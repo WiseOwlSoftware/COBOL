@@ -19,7 +19,7 @@ namespace CobolSharp.Compiler.Parsing;
 /// All other ZERO tokens are left unchanged — they remain figurative constants
 /// for VALUE, MOVE, comparison, and other non-arithmetic contexts.
 /// </summary>
-internal static class ZeroTokenRewriter
+public static class ZeroTokenRewriter
 {
     /// <summary>
     /// The set of token types that, when adjacent to ZERO, indicate arithmetic context.
