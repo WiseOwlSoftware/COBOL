@@ -1,7 +1,7 @@
 CobolSharp COBOL CIL Backend & Code Generation Architecture (CIL-Only)
 =====================================================================
 
-> **STATUS BANNER — design reference, consolidated.**
+> **STATUS BANNER — design reference for the CIL backend.**
 > This is a **target-design** document for the CIL backend (the final stage of the
 > compilation pipeline). **Implementation status: substantially implemented (~80-90%)**
 > for the COBOL-85 core — the real backend is `src/CobolSharp.Compiler/CodeGen/CilEmitter.cs`
@@ -21,8 +21,6 @@ CobolSharp COBOL CIL Backend & Code Generation Architecture (CIL-Only)
 > `docs/IL-BYTECODE-GENERATION-DESIGN.md` (IL data structures) and
 > `docs/cilemitter/CilEmitter-Decomposition.md` (the actual M003 decomposition record).
 > Doctrine: `PROMPT.md`.
->
-> _Consolidated from 3 prior docs, 2026-06-07._
 
 Purpose
 -------
@@ -88,8 +86,6 @@ Backend goals:
 ------------------------------------------------------------
 SECTION 1 — CORE BACKEND COMPONENTS
 ------------------------------------------------------------
-
-*(merged from "Backend Codegen Architecture")*
 
 The conceptual backend components are:
 
@@ -190,7 +186,6 @@ Group items become nested classes with explicit offsets for their children.
 
 2.4 Data layout (Data Division → IL) — detail
 ---------------------------------------------
-*(from IL-BYTECODE-GENERATION-DESIGN)*
 - Each 01-level group → a Record ILType; each elementary item → an ILField.
 - PIC/USAGE determines storage size, encoding (binary / packed decimal / display),
   and sign representation.
@@ -272,7 +267,6 @@ SECTION 4 — CONTROL-FLOW LOWERING
 
 4.7 PERFORM-graph mapping (IR detail)
 -------------------------------------
-*(from IL-BYTECODE-GENERATION-DESIGN)*
 - Semantic analysis produces a control-flow graph; each basic block maps to an `ILBasicBlock`.
 - PERFORM paragraph → call-like branch to block; PERFORM THRU → branch to range start,
   return at range end.
@@ -383,8 +377,6 @@ temporary locals.
 
 8.4 Instruction lowering (opcode map)
 -------------------------------------
-*(merged from "Backend Codegen Architecture")*
-
 Loads/stores:
 - LOAD_LOCAL → ldloc · STORE_LOCAL → stloc · LOAD_FIELD → ldfld · STORE_FIELD → stfld
 
@@ -443,8 +435,6 @@ SECTION 11 — EDGE-CASE BEHAVIOR
 ------------------------------------------------------------
 SECTION 12 — IL GENERATION PIPELINE, VERIFICATION & OPTIMIZATION
 ------------------------------------------------------------
-
-*(merged from "IL Generation, Verification & Optimization Architecture")*
 
 12.1 IL generation pipeline overview
 ------------------------------------
@@ -528,8 +518,6 @@ verification oracle.
 SECTION 13 — GENERICS SUPPORT *(design-only)*
 ------------------------------------------------------------
 
-*(merged from "Backend Codegen Architecture")*
-
 COBOL generics map to .NET generics:
 - TYPEDEF GENERIC → generic type definition
 - Generic methods → generic method definitions
@@ -558,8 +546,6 @@ to the runtime for:
 SECTION 15 — DEPLOYMENT OPTIONS
 ------------------------------------------------------------
 
-*(merged from "Backend Codegen Architecture")*
-
 Since the output is pure .NET assemblies, developers can use:
 - `dotnet run`
 - `dotnet publish`
@@ -573,8 +559,6 @@ validated.)
 ------------------------------------------------------------
 SECTION 16 — TESTING STRATEGY
 ------------------------------------------------------------
-
-*(merged from "Backend Codegen Architecture")*
 
 - Golden IL tests
 - CIL verification tests (Mono.Cecil)

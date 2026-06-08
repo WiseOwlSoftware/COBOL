@@ -1,11 +1,10 @@
 CobolSharp Memory Model — StorageBlocks, Offsets, REDEFINES, OCCURS & DEPENDING‑ON Architecture
 ==============================================================================================
 
-> **STATUS — read first (2026-06-07).**
-> **What this is:** a *design reference* for CobolSharp's byte-accurate memory model — StorageBlocks,
+> **STATUS** — The authoritative reference for CobolSharp's byte-accurate memory model: StorageBlocks,
 > field offsets, REDEFINES overlays, OCCURS / OCCURS DEPENDING ON, PIC/USAGE encoding (DISPLAY, COMP,
 > COMP-3, COMP-5, COMP-1/2, NATIONAL), reference modification, group MOVE/COMPARE, LINKAGE binding and
-> FD record buffers. **Consolidated from 4 prior architecture essays, 2026-06-07.**
+> FD record buffers.
 > **Implementation status:** the byte/StorageBlock memory model described here is **substantially
 > implemented** (it is today's proven engine): `StorageArea.cs` (`ProgramState` = the WORKING/LOCAL/LINKAGE
 > byte areas + `StorageHelpers`), `PicRuntime.cs` (the byte interpreter / codec), the layout pass
@@ -70,8 +69,8 @@ CobolSharp's byte model is **byte‑addressable, explicit‑layout, deterministi
 
 > **Encoding note (corrected per the typed model, `DATA_MODEL_ARCHITECTURE.md` §R10):** the byte↔char
 > convention at the island / file boundary is the full **Latin-1** bijection (byte `k` ↔ U+00`kk`), **not
-> bare ASCII**, so binary content (`LOW-VALUE`/`HIGH-VALUE`/arbitrary bytes) round-trips losslessly. The
-> older "ASCII only; non-ASCII → runtime error" rule from the source essays is superseded.
+> bare ASCII**, so binary content (`LOW-VALUE`/`HIGH-VALUE`/arbitrary bytes) round-trips losslessly. (An
+> "ASCII only; non-ASCII → runtime error" rule would be incorrect here.)
 
 StorageBlocks exist for:
 - WORKING‑STORAGE
@@ -137,9 +136,9 @@ Physical size = `max_occurs * element_size`; logical size = runtime value. Memor
 -----------------------
 COBOL traditionally does **not** require alignment. CobolSharp's deterministic default is **no implicit
 alignment** — all items byte-packed, no padding between fields, ensuring identical offsets across
-platforms. (The first essay noted an *optional/configurable* natural-boundary alignment for COMP /
-recommended for COMP‑5, with the RECORD layout always deterministic regardless of the setting; the live
-model packs tightly.) NATIONAL is the one intrinsic exception — it advances in 2‑byte units.
+platforms. (An *optional/configurable* natural-boundary alignment for COMP / recommended for COMP‑5 is
+possible, with the RECORD layout always deterministic regardless of the setting; the live model packs
+tightly.) NATIONAL is the one intrinsic exception — it advances in 2‑byte units.
 Padding rules: DISPLAY items space‑padded and truncated on overflow; numeric items zero‑padded with the
 sign stored per USAGE rules.
 
@@ -184,9 +183,8 @@ overflow is checked.
 
 4.6 FLOATING-POINT (COMP‑1 / COMP‑2)
 ------------------------------------
-> The source essays declared float "not supported." **Corrected:** COMP‑1 (4-byte IEEE 754 float) and
-> COMP‑2 (8-byte IEEE 754 double) ARE supported (`DecodeComp1/2`); typed model maps them to `float` /
-> `double`.
+COMP‑1 (4-byte IEEE 754 float) and COMP‑2 (8-byte IEEE 754 double) ARE supported (`DecodeComp1/2`); the
+typed model maps them to `float` / `double`.
 
 4.7 SIGN rules
 --------------
@@ -274,8 +272,7 @@ Multidimensional, row-major: `offset = base + (i * innerSize) + j * elementSize`
 > **Live behavior (`DATA_MODEL_ARCHITECTURE.md` §4, RL210A/211A/ST146A):** a whole-group operand over an
 > ODO uses **sender = current count, receiver = MAX with space-fill** (ISO §13.18.39.3); READ-into uses
 > MAX. Such groups are byte-backed (trigger 15) because one typed shape cannot carry both lengths.
-> The source essays disagreed on out-of-range ODO (clamp vs runtime error); the live rule is **clamp to
-> [min, max]**.
+> Out-of-range ODO **clamps to [min, max]**.
 
 ------------------------------------------------------------
 SECTION 8 — SUBSTRINGING & REFERENCE MODIFICATION
@@ -292,9 +289,8 @@ SECTION 8 — SUBSTRINGING & REFERENCE MODIFICATION
 
 8.3 Bounds
 ----------
-> The source essays disagreed (one said "out-of-range → runtime error / ON EXCEPTION", another said
-> "exceeds field → truncated, no exception"). Per the spec, an out-of-range reference modifier is an
-> exception condition (EC-BOUND-REF-MOD); the engine raises the appropriate runtime/declarative path.
+Per the spec, an out-of-range reference modifier is an exception condition (EC-BOUND-REF-MOD); the engine
+raises the appropriate runtime/declarative path.
 
 > **Typed-model refinement (`DATA_MODEL_ARCHITECTURE.md` §2.4 / §3 trigger 3):** ref-mod on a *proven
 > homogeneous* single elementary alphanumeric/national item is plain char-position **span slicing on the
@@ -428,7 +424,7 @@ REDEFINES overlays (all interpretations), OCCURS elements, ODO active length, an
 > `customer.Balance == 42.50m` / `customer.CustName == "ACME"` rather than a raw byte array.
 
 ------------------------------------------------------------
-SECTION 15 — EDGE-CASE BEHAVIOR (consolidated)
+SECTION 15 — EDGE-CASE BEHAVIOR
 ------------------------------------------------------------
 
 - **Zero-length items:** allowed; always empty; cannot be numeric.
@@ -437,9 +433,9 @@ SECTION 15 — EDGE-CASE BEHAVIOR (consolidated)
 - **REDEFINES overlapping OCCURS:** allowed; accessor logic must respect the logical OCCURS length.
 - **COMP‑3 odd digit count:** high nibble padded with a leading zero.
 - **COMP‑3 SIGN TRAILING:** stored in the low nibble of the last byte.
-- **COMP‑3 invalid sign nibble:** an exception condition (the essays split between "ON EXCEPTION" and
-  "SIZE ERROR"; the live engine accepts 0x0A–0x0F as positive on decode and normalizes to 0x0C on encode,
-  per the typed-model R2 grid — a truly invalid nibble routes to the data-exception path).
+- **COMP‑3 invalid sign nibble:** an exception condition — the live engine accepts 0x0A–0x0F as positive
+  on decode and normalizes to 0x0C on encode, per the typed-model R2 grid; a truly invalid nibble routes
+  to the data-exception path.
 - **NATIONAL odd byte count:** runtime error.
 - **NATIONAL inside REDEFINES:** allowed; the debugger shows raw bytes.
 - **ODO < minimum → use minimum; ODO > maximum → use maximum.**

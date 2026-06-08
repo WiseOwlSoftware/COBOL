@@ -1,10 +1,10 @@
 CobolSharp COBOL EVALUATE, Branching, Control‑Flow & Condition Resolution Architecture (CIL‑Only)
 ================================================================================================
 
-> **STATUS BANNER — Design reference + provenance**
+> **STATUS BANNER**
 >
-> - **Type:** Design/architecture reference for COBOL branching, control flow, EVALUATE multi‑branch
->   selection, and condition/boolean‑expression resolution.
+> - **Type:** Authoritative design/architecture reference for COBOL branching, control flow, EVALUATE
+>   multi‑branch selection, and condition/boolean‑expression resolution.
 > - **Implementation status:** LANGUAGE‑FEATURE doc — **~85‑90% implemented** (verify against `src/`).
 >   EVALUATE, IF/ELSE, PERFORM UNTIL/VARYING, GO TO (incl. DEPENDING ON), paragraph/section fall‑through,
 >   class/sign tests, and boolean short‑circuiting are live across the binder → lowering → emitter pipeline:
@@ -16,11 +16,8 @@ CobolSharp COBOL EVALUATE, Branching, Control‑Flow & Condition Resolution Arch
 >   against the source, not a guarantee.
 > - **Stack:** .NET 10 / C# 14.
 > - **Backend:** CIL‑only via Mono.Cecil (NO custom VM / NO bytecode interpreter). A Roslyn C# backend is a
->   FUTURE additive Stage‑5; Cecil is the oracle. Any "VM"/"bytecode‑interpreter" framing in older drafts is
->   stale and has been removed below.
-> - **Plans / SSOT:** top‑level plan `docs/MASTER_PLAN.md`; doctrine `PROMPT.md`. liveContext: implemented.
-> - **Provenance:** Consolidated from 2 prior docs, 2026‑06‑07
->   ("…Branching & Control‑Flow Semantics…" + "…Condition Resolution & Boolean Expression…").
+>   FUTURE additive Stage‑5; Cecil is the oracle.
+> - **Plans / SSOT:** top‑level plan `docs/MASTER_PLAN.md`; doctrine `PROMPT.md`.
 
 Purpose
 -------

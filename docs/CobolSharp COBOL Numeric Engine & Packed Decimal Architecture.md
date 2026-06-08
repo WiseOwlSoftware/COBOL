@@ -1,28 +1,22 @@
 CobolSharp COBOL Numeric Engine, Arithmetic, ROUNDED, SIZE ERROR & Packed Decimal Architecture (CIL-Only)
 ========================================================================================================
 
-> **STATUS — design reference, consolidated 2026-06-07.** This is the consolidated design doc for the COBOL
-> **arithmetic / numeric** subsystem (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE, ROUNDED, SIZE ERROR, DISPLAY/COMP/
-> COMP-3/COMP-5 numeric formats, packed-decimal encode/decode, scaling, mixed-type promotion).
-> **Implementation status: ~85-90% IMPLEMENTED and GREEN.** The arithmetic verbs, COMPUTE expression evaluation,
-> all 8 ISO ROUNDED MODE methods, ON/NOT ON SIZE ERROR, and the DISPLAY/COMP/COMP-3/COMP-5 codecs are all working
-> in the shipping compiler — M1 (COBOL-85) is COMPLETE; guard is **1196 unit / 509 integration / 364 NIST** (2026-06).
-> **Stack: .NET 10 / C# 14.** Backend is **CIL-only via Mono.Cecil — there is NO custom VM and NO bytecode
-> interpreter** (a Roslyn C# backend is a FUTURE additive option, data-model Stage 5, with Cecil as the differential
-> oracle). The numeric **substrate is migrating** from the legacy `System.Decimal`/byte path to the exact typed-native
-> engine: `CobolNum` + `CobolDecimal` (a `BigInteger`-backed exact carrier, NOT `System.Decimal`) + `NumProfile`
-> + the 8-mode `CobolRounding` enum, gated behind `EnableTypedFields` (default OFF → byte-identical corpus). The
-> legacy byte `PicRuntime` packed-decimal/binary engine is being **islanded** (demoted to the `Bytes/` boundary
-> codec), not deleted.
+> **STATUS — authoritative design reference for the COBOL arithmetic / numeric subsystem** (ADD/SUBTRACT/MULTIPLY/
+> DIVIDE/COMPUTE, ROUNDED, SIZE ERROR, DISPLAY/COMP/COMP-3/COMP-5 numeric formats, packed-decimal encode/decode,
+> scaling, mixed-type promotion). **Implementation status: ~85-90% IMPLEMENTED and GREEN.** The arithmetic verbs,
+> COMPUTE expression evaluation, all 8 ISO ROUNDED MODE methods, ON/NOT ON SIZE ERROR, and the DISPLAY/COMP/COMP-3/
+> COMP-5 codecs are all working in the shipping compiler — M1 (COBOL-85) is COMPLETE; guard is **1196 unit / 509
+> integration / 364 NIST** (2026-06). **Stack: .NET 10 / C# 14.** Backend is **CIL-only via Mono.Cecil — there is NO
+> custom VM and NO bytecode interpreter** (a Roslyn C# backend is a FUTURE additive option, data-model Stage 5, with
+> Cecil as the differential oracle). The numeric **substrate is migrating** from the legacy `System.Decimal`/byte path
+> to the exact typed-native engine: `CobolNum` + `CobolDecimal` (a `BigInteger`-backed exact carrier, NOT
+> `System.Decimal`) + `NumProfile` + the 8-mode `CobolRounding` enum, gated behind `EnableTypedFields` (default OFF →
+> byte-identical corpus). The legacy byte `PicRuntime` packed-decimal/binary engine is being **islanded** (demoted to
+> the `Bytes/` boundary codec), not deleted.
 >
 > **SSOTs:** plan = `docs/MASTER_PLAN.md`; doctrine = `PROMPT.md`; the numeric-substrate migration =
 > `docs/DATA_MODEL_ARCHITECTURE.md` (§5 runtime shape, §13 `CobolNum` contract) + `docs/RECORD_STRUCT_STORAGE_DESIGN.md`.
 > Where this doc and `DATA_MODEL_ARCHITECTURE.md` disagree on the numeric **substrate**, the latter wins.
->
-> *Consolidated from 3 prior docs, 2026-06-07:* "Numeric Engine & Packed Decimal Architecture" (this canonical base),
-> "Arithmetic, COMPUTE, ROUNDED & SIZE ERROR Architecture", and "Arithmetic, ROUNDED, SIZE ERROR & Numeric Engine
-> Architecture". Stale facts corrected throughout (`System.Decimal`-only substrate → `CobolDecimal`/`BigInteger`
-> exact carrier; "exponentiation not supported" → exponentiation IS supported; .NET 9/C# 13 → .NET 10/C# 14).
 
 Purpose
 -------
@@ -137,9 +131,6 @@ count alone is wrong for COMP-5.
 `COMP-1` → `float` (single), `COMP-2` → `double`. Implemented (`PicRuntime.DecodeComp1/2`). These are floating types,
 NOT part of the exact decimal substrate; they have their own IEEE codec and stay on the float path.
 
-(Stale-claim correction: the prior "Numeric Engine" essay said COMP-1/COMP-2 are "not supported." They ARE
-implemented — see CLAUDE.md "COMP-1/2 IEEE 754" P2 feature.)
-
 ------------------------------------------------------------
 SECTION 4 — PACKED DECIMAL (COMP-3)
 ------------------------------------------------------------
@@ -238,8 +229,7 @@ COMPUTE x ROUNDED = expression.
 ```
 Expression features:
 - Parentheses; unary +/-; binary `+ - * /`.
-- **Exponentiation (`**`) IS supported** (COBOL arithmetic exponentiation; implemented — see CLAUDE.md grammar fix.
-  *Stale-claim correction: the prior "COMPUTE" essay incorrectly stated exponentiation is "not ISO; not supported."*)
+- **Exponentiation (`**`) IS supported** (COBOL arithmetic exponentiation; implemented — see CLAUDE.md grammar fix).
 - Nested expressions; intrinsic function calls inside the expression (`FUNCTION ABS`, etc.).
 - Mixed numeric types (DISPLAY / COMP / COMP-3 / COMP-5) per the §9 promotion rules.
 

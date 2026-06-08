@@ -7,13 +7,13 @@ CobolSharp COBOL INSPECT, STRING, UNSTRING & Text‑Processing Engine Architectu
 > INSPECT (TALLYING / REPLACING / CONVERTING) — including the ISO 6.17.3 single left-to-right comparison
 > cycle, BEFORE/AFTER region delimiters, LEADING/FIRST/TRAILING/ALL/CHARACTERS operands, and **BACKWARD**
 > (ISO §14.9.21, COBOL-2002) — STRING, and UNSTRING are all live through the binder → lowerer → CIL-emitter
-> → runtime pipeline. **Design-only / aspirational parts of the essays below:** NATIONAL/UTF-16 inside the
+> → runtime pipeline. **Design-only / aspirational parts below:** NATIONAL/UTF-16 inside the
 > text-processing statements (the INSPECT runtime currently operates on a `byte[]` storage area as ASCII);
 > the explicit AOT/WASM-safe guarantees; and the dedicated debugger visualization. The data model is migrating
 > to typed-native (`CobolString` / `string`), under which text processing on `PIC X` becomes `string`-based;
 > see CURRENT TRUTH below.
-> **Naming correction:** there is **no `StringEngine` / `ExecutionContext.StringEngine` class** in the codebase
-> — that name is an essay invention. The **actual** components are:
+> **Naming note:** there is **no `StringEngine` / `ExecutionContext.StringEngine` class** in the codebase —
+> that name is a conceptual label, not a real type. The **actual** components are:
 > `Semantics/Bound/Binding/StringStatementBinder.cs`, `CodeGen/Lowering/StringLowerer.cs`,
 > `CodeGen/Emission/CilStringEmitter.cs`, and `Runtime/InspectRuntime.cs` (plus STRING/UNSTRING runtime helpers
 > in `Runtime/StorageArea.cs` and `Runtime/CobolProgram.cs`). References to `StringEngine.*` below are read as
@@ -22,9 +22,6 @@ CobolSharp COBOL INSPECT, STRING, UNSTRING & Text‑Processing Engine Architectu
 > interpreter (a Roslyn C# backend is a FUTURE additive option, Stage-5; Cecil is the oracle).
 > **Plan SSOT:** `docs/MASTER_PLAN.md`. **Doctrine:** `PROMPT.md`. **Data-model migration:**
 > `docs/DATA_MODEL_ARCHITECTURE.md` + `docs/RECORD_STRUCT_STORAGE_DESIGN.md`.
-> **Provenance:** Consolidated from 3 prior architecture essays, 2026-06-07
-> ("INSPECT, STRING, UNSTRING & Text Processing", "… & Text‑Processing Engine", and
-> "STRING, UNSTRING, and INSPECT Engine").
 
 Purpose
 -------
@@ -80,7 +77,7 @@ against byte[] storage**. Concretely, for the three statements:
 SECTION 1 — TEXT-PROCESSING RUNTIME OVERVIEW
 ------------------------------------------------------------
 
-The runtime text-processing layer (the role the essays called "StringEngine") provides:
+The runtime text-processing layer (the conceptual "StringEngine" role) provides:
 - Concatenation
 - Delimited extraction / splitting
 - Character scanning / searching
@@ -143,11 +140,9 @@ Overflow occurs when:
 - The result exceeds the target length
 - POINTER moves beyond the target / POINTER is out of range
 
-> **Conflict between essays — resolved by ISO 1989:2023 §14.9.39:** one source essay stated STRING leaves a
-> *partial* write on overflow; another stated STRING performs *no partial write*. **The standard is that
-> transfer stops at the moment the target is exhausted, so the target holds whatever was transferred up to
-> that point (a partial concatenation), and the ON OVERFLOW imperative then runs.** STRING does NOT roll back
-> already-transferred characters. The "no partial write" wording is incorrect and is dropped.
+> **Overflow / partial-write semantics (ISO 1989:2023 §14.9.39):** transfer stops at the moment the target is
+> exhausted, so the target holds whatever was transferred up to that point (a partial concatenation), and the
+> ON OVERFLOW imperative then runs. STRING does NOT roll back already-transferred characters.
 
 ON OVERFLOW executes the overflow block; NOT ON OVERFLOW executes only when no overflow occurred.
 
@@ -210,10 +205,9 @@ Overflow occurs when:
 - A target is too small
 - POINTER is beyond the source length
 
-> **Conflict between essays — resolved:** UNSTRING **does** leave partial writes on overflow (per the COBOL
-> standard); fields written before overflow are retained. The essay wording "partial writes allowed for
-> UNSTRING" is correct and is kept; it differs from STRING (§2.5) only in that the COBOL standard scopes the
-> two statements’ partial-write semantics independently.
+> **Partial-write semantics:** UNSTRING **does** leave partial writes on overflow (per the COBOL standard);
+> fields written before overflow are retained. This differs from STRING (§2.5) only in that the COBOL standard
+> scopes the two statements’ partial-write semantics independently.
 
 3.7 NATIONAL support (design target)
 ------------------------------------
@@ -401,7 +395,7 @@ Goal constraints for the text-processing runtime: no reflection (operations stat
 Status: aspirational — current builds target CoreCLR; AOT/WASM hardening is future work.
 
 ------------------------------------------------------------
-SECTION 11 — EDGE‑CASE BEHAVIOR (consolidated)
+SECTION 11 — EDGE‑CASE BEHAVIOR
 ------------------------------------------------------------
 
 11.1 STRING with POINTER = 0 → treated as 1.

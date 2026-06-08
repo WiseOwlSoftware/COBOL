@@ -1,10 +1,9 @@
 CobolSharp Error Model — Declaratives, ExceptionState, USE AFTER & Structured Recovery Architecture (CIL‑Only)
 =============================================================================================================
 
-> **STATUS BANNER (2026-06-07)** — *Design reference for the declaratives / USE / structured-error subsystem.*
-> **Consolidated from 3 prior architecture docs (2026-06-07):** this "Error Model" essay plus
-> "CobolSharp COBOL Declaratives, USE Statements & Exception Routing Architecture" and
-> "CobolSharp COBOL Event, Exception, Declarative & USE AFTER Architecture" (now superseded — slated for deletion).
+> **STATUS** — The authoritative reference for CobolSharp's declaratives / USE / structured-error
+> subsystem: `DECLARATIVES`, `USE` statements, `ExceptionState` propagation, statement-level handlers
+> (`ON EXCEPTION` / `ON SIZE ERROR` / `ON OVERFLOW`), error routing, and structured recovery.
 >
 > **ACTUAL implementation status (verify against `src/` before relying on any claim below):**
 > - **IMPLEMENTED (~80–90%) — the file-I/O declarative subsystem.** `DECLARATIVES`…`END DECLARATIVES`,

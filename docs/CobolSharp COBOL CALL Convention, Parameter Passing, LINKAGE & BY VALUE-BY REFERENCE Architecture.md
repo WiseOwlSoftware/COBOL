@@ -7,8 +7,7 @@ CobolSharp COBOL CALL Convention, Program Model, Parameter Passing, LINKAGE & Mu
 > NOT ON EXCEPTION, CANCEL (with §14.9.5 re‑init), ENTRY, COMMON/INITIAL, nested programs and recursion
 > are all live and exercised by the NIST IC‑series + unit/integration suites (guard **1196 unit / 509
 > integration / 364 NIST**, M1 COBOL‑85 COMPLETE). Verify any specific detail against `src/` before
-> relying on it — this essay predates the current implementation and several of its mechanism details are
-> **superseded** (see "Corrections vs the implemented design" at the end).
+> relying on it.
 >
 > **Stack: .NET 10 / C# 14.** Backend is **CIL‑only via Mono.Cecil — there is NO custom VM and NO bytecode
 > interpreter.** (A Roslyn C# backend is a *future additive* option, Stage‑5, with Cecil as the oracle.)
@@ -20,10 +19,6 @@ CobolSharp COBOL CALL Convention, Program Model, Parameter Passing, LINKAGE & Mu
 > **Plan SSOT: `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`.** Data‑model context (the byte/StorageBlock
 > engine being islanded in favor of typed‑native fields): `docs/DATA_MODEL_ARCHITECTURE.md`,
 > `docs/RECORD_STRUCT_STORAGE_DESIGN.md`.
->
-> *Consolidated from 3 prior docs, 2026-06-07:* "CALL Convention, Parameter Passing, LINKAGE & BY VALUE/BY
-> REFERENCE Architecture" (canonical base), "Program Model — CALL, ENTRY, Parameter Passing & Multi‑Module
-> Architecture", and "Program Linking, CALL/RETURN & Multi‑Module Architecture".
 
 Purpose
 -------
@@ -89,8 +84,8 @@ Effects: mutations NOT visible to caller; copy created at CALL time and discarde
 2.3 BY VALUE
 ------------
 Caller passes a primitive value (numeric); the callee receives the value, not a reference to caller storage.
-Effects: no shared memory; used for numeric parameters. (Originally documented as "OO only"; the
-implementation binds BY VALUE arguments from an arithmetic expression — `CallBinder` BindAdditiveExpression.)
+Effects: no shared memory; used for numeric parameters. BY VALUE is not restricted to OO contexts — the
+implementation binds BY VALUE arguments from an arithmetic expression (`CallBinder` BindAdditiveExpression).
 
 2.4 Mixed modes
 ---------------
@@ -158,9 +153,8 @@ SECTION 5 — PROGRAM ACTIVATION & DEACTIVATION MODEL
 - **INITIAL**: WORKING‑STORAGE is reset to its VALUE state on every activation.
 - **After CANCEL**: the next CALL finds the program in its initial state (§14.9.5 GR3); see Section 6.
 
-> Note: the prior essays stated "default program is COMMON". That is **incorrect** and corrected here —
-> COBOL programs are non‑COMMON, non‑INITIAL by default. COMMON only affects *nested‑program visibility*,
-> not storage persistence.
+> Note: COBOL programs are non‑COMMON, non‑INITIAL by default. COMMON affects *nested‑program visibility*,
+> not storage persistence — it does NOT make WORKING‑STORAGE retained-by-default.
 
 ------------------------------------------------------------
 SECTION 6 — CANCEL
@@ -220,10 +214,10 @@ apply the same USING/RETURNING rules as CALL literal.
 - CALL identifier → runtime lookup; an unresolved name triggers **ON EXCEPTION** (or a runtime error if no
   ON EXCEPTION phrase). Programs may live in the same assembly, separate assemblies, or external libraries.
 
-> Note: the prior essays claimed CobolSharp "forbids reflection‑based loading / dynamic CALL with a
-> runtime‑computed name" and "all bindings static". The **implemented** registry deliberately supports
-> dynamic CALL via reflective auto‑discovery (`DiscoverProgram` / `FindEntryInAssembly`). The AOT/WASM
-> section below is the *constrained‑deployment* profile, not the general model.
+> Note: the registry deliberately supports dynamic CALL with a runtime‑computed name via reflective
+> auto‑discovery (`DiscoverProgram` / `FindEntryInAssembly`). Reflection‑based loading is NOT forbidden in
+> the general model; the AOT/WASM section below is the *constrained‑deployment* profile, where reflective
+> discovery is disabled in favor of the prebuilt static registry.
 
 ------------------------------------------------------------
 SECTION 10 — NESTED PROGRAMS
@@ -261,9 +255,9 @@ itself exposes `public static int Entry(ManagedPointer[] args)`.
 11.5 EXIT PROGRAM / GOBACK lowering — set the return value, restore the caller ExecutionContext, branch to
 the return label.
 
-> Mechanism note: the essays variously described `Prog.Main(ctx, args)`, `Entry_name(ctx, …)`, a
-> `ParameterDescriptor[]`, and "offset tables". The **implemented** ABI is a single uniform
-> `static int Entry(ManagedPointer[] args)` taking a `ManagedPointer[]` (return code: 0 = normal).
+> Mechanism note: the ABI is a single uniform `static int Entry(ManagedPointer[] args)` taking a
+> `ManagedPointer[]` (return code: 0 = normal). There is no `ctx`-threaded entry, no
+> `ParameterDescriptor[]`, and no separate offset table.
 
 ------------------------------------------------------------
 SECTION 12 — DEBUGGER INTEGRATION
@@ -301,26 +295,6 @@ SECTION 14 — EDGE‑CASE BEHAVIOR
 - Recursive COMMON program modifying shared state → allowed; deterministic.
 - CALL inside a declarative → allowed; a new ExecutionContext is created.
 - CANCEL of a never‑called / already‑canceled program → no effect (§14.9.5 GR7).
-
-------------------------------------------------------------
-SECTION 15 — CORRECTIONS vs THE IMPLEMENTED DESIGN (provenance)
-------------------------------------------------------------
-
-The three source essays predate the current implementation. The following of their claims were **corrected**
-during consolidation (verify against `src/` for the authoritative behavior):
-
-1. **Entry ABI** — not `Prog.Main(ctx,args)` / `Entry_X(ctx,…)`; the uniform ABI is
-   `static int Entry(ManagedPointer[] args)`.
-2. **Argument carrier** — not "StorageBlock pointer + offset table" or `ParameterDescriptor[]`; arguments
-   are a `ManagedPointer[]` (the single managed‑ref carrier; no 8‑byte handle, no PointerRegistry).
-3. **Default program persistence** — default is non‑COMMON / non‑INITIAL; WORKING‑STORAGE *persists* between
-   plain CALLs (§14.6.2.3.2), it is NOT reinitialized. The essays’ "default is COMMON" was wrong.
-4. **Dynamic linking** — the registry **does** support runtime‑computed names via reflective
-   auto‑discovery; the "no reflection / static only" statements describe only the AOT/WASM profile (§13).
-5. **BY VALUE** — not "OO only"; bound generally from an arithmetic expression.
-6. **CANCEL** — implemented (reinit‑flag model, §14.9.5); the essays under‑specified it.
-7. **Stack** — .NET 10 / C# 14, CIL‑only via Mono.Cecil (no custom VM); any "net9.0 / C# 13 / interpreter"
-   phrasing inherited from the essays is stale.
 
 ------------------------------------------------------------
 Summary

@@ -13,7 +13,6 @@ CobolSharp COBOL PERFORM, Control‑Flow, Looping & Structured Execution Archite
 > **Stack: .NET 10 / C# 14.** Backend is **CIL‑only via Mono.Cecil** (no custom VM / no bytecode interpreter;
 > a Roslyn C# backend is a FUTURE additive Stage‑5, with Cecil as the oracle).
 > Plan SSOT: `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`. Live lowering: `CodeGen/Lowering/`.
-> **Consolidated from 2 prior docs, 2026-06-07.**
 
 Purpose
 -------
@@ -309,10 +308,8 @@ SECTION 8 — EXIT STATEMENTS
 8.3 EXIT PERFORM
 ----------------
 **SUPPORTED.** (ISO 2002+; live: `BoundExitPerformStatement` → `LowerExitPerform`.)
-Lowered to a jump to the `loopEnd` of the innermost in‑line PERFORM.
-
-> NOTE — supersedes a stale claim in a prior doc that EXIT PERFORM is "not ISO / not supported."
-> It is implemented and exercised by the test corpus.
+Lowered to a jump to the `loopEnd` of the innermost in‑line PERFORM. It is implemented and exercised by the
+test corpus.
 
 8.4 EXIT PERFORM CYCLE
 ----------------------

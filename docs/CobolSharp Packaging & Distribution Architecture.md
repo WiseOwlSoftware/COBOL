@@ -31,11 +31,6 @@ CobolSharp Packaging & Distribution Architecture (CIL‑Only)
 >   libraries = **`CobolSharp.Compiler`** + **`CobolSharp.Runtime`**. The end-state rename is
 >   `CobolSharp` → **COBOL.NET** with the produced executable named **`cobol.exe`** (final phase).
 > - **Plan SSOT:** `docs/MASTER_PLAN.md` (this surface = Phase E + final rename). Doctrine: `PROMPT.md`.
->
-> _Consolidated from 4 prior docs, 2026-06-07:_ "CobolSharp Packaging & Distribution Architecture",
-> "CobolSharp Build & Release Pipeline Architecture", "CobolSharp Build System — Project Structure,
-> Multi‑Targeting, AOT-WASM Pipelines & Deterministic Packaging", and "CobolSharp Distribution
-> Architecture — Packaging, Versioning, Backward Compatibility & Long‑Term Stability".
 
 High‑level goals
 ----------------
@@ -46,9 +41,9 @@ High‑level goals
   - Provide LSP/IDE integration
   - Support debugging via .NET PDBs
 - Ensure deterministic builds, reproducible artifacts, and secure distribution.
-- .NET CIL is the single execution target. (All VM/LLVM/WASM-backend artifacts from earlier drafts
-  are removed; the optional WASM/AOT *publish* paths below rely on the standard .NET toolchain, not
-  on a CobolSharp-specific backend.)
+- .NET CIL is the single execution target. (There are no VM/LLVM/WASM-backend artifacts; the optional
+  WASM/AOT *publish* paths below rely on the standard .NET toolchain, not on a CobolSharp-specific
+  backend.)
 
 Distribution artifacts
 ----------------------
@@ -149,7 +144,6 @@ Additionally:
 - Dialect support (85/2002/2014/2023) is versioned independently.
 
 ### Compiler / runtime / standard-library lockstep
-*(from the Distribution Architecture draft, §2.2–2.3)*
 - Compiler version `X.Y.Z` requires runtime version `X.Y.*`.
 - Standard-library version matches the compiler & runtime major/minor.
 
@@ -225,7 +219,7 @@ Security considerations
 - File I/O backend can be restricted or virtualized.
 - Optional "safe mode" disables CALL to external programs, File I/O, and environment access.
 
-### Supply-chain security (from the Build & Release Pipeline draft)
+### Supply-chain security
 - Supply-chain security target: **SLSA level 3+** with provenance metadata.
 - SBOM (Software Bill of Materials) generated per release.
 - Dependency scanning + vulnerability scanning.
@@ -250,13 +244,12 @@ Release channels
 Each channel has its own versioning rules, stability guarantees, and update cadence.
 
 ------------------------------------------------------------
-APPENDIX A — RELEASE PIPELINE STAGES (from "Build & Release Pipeline Architecture")
+APPENDIX A — RELEASE PIPELINE STAGES
 ------------------------------------------------------------
 
-> Note: the original draft listed CIL / WASM / LLVM / VM as parallel backends and a "VM bytecode
-> interpreter bundle". **Those backends do not exist** — CobolSharp is CIL-only via Mono.Cecil.
-> The stage structure below is retained as the TARGET release-automation shape; backend-specific
-> bullets are scoped to CIL (+ optional `dotnet`-driven AOT/WASM publish).
+> Note: there are no CIL / WASM / LLVM / VM parallel backends and no "VM bytecode interpreter bundle" —
+> CobolSharp is CIL-only via Mono.Cecil. The stage structure below is the TARGET release-automation shape;
+> backend-specific bullets are scoped to CIL (+ optional `dotnet`-driven AOT/WASM publish).
 
 The end-to-end release pipeline is eight deterministic, isolated stages:
 
@@ -306,12 +299,12 @@ runs the unit + integration test projects. Enabling/expanding this is the first 
 this appendix.
 
 ------------------------------------------------------------
-APPENDIX B — BUILD SYSTEM INTERNALS (from "Build System — Project Structure, Multi-Targeting…")
+APPENDIX B — BUILD SYSTEM INTERNALS
 ------------------------------------------------------------
 
-> Stale notes corrected: target frameworks are **`net10.0`** (the draft said `net8.0`); there is **no
-> custom VM** and **no parallel WASM/AOT backend** — WASM/AOT are standard-`dotnet` publish targets,
-> not CobolSharp backends. Deterministic-emission, registry, and PDB design below is the real intent.
+> Note: target frameworks are **`net10.0`**; there is **no custom VM** and **no parallel WASM/AOT
+> backend** — WASM/AOT are standard-`dotnet` publish targets, not CobolSharp backends.
+> Deterministic-emission, registry, and PDB design below is the real intent.
 
 ### B.1 Project / source layout (a *compiled COBOL* project)
 - `src/` — `*.cbl` sources, `*.cpy` copybooks.
@@ -380,7 +373,7 @@ file-I/O semantics (WASM uses a virtual FS).
 - WASM-unsafe file path → runtime error.
 
 ------------------------------------------------------------
-APPENDIX C — VERSIONING, COMPATIBILITY & LONG-TERM STABILITY (from "Distribution Architecture")
+APPENDIX C — VERSIONING, COMPATIBILITY & LONG-TERM STABILITY
 ------------------------------------------------------------
 
 ### C.1 Backward-compatibility guarantees

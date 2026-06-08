@@ -5,8 +5,8 @@ CobolSharp Standard Library — Intrinsics, FUNCTION Resolution, Runtime Helpers
 > **Implementation status: LARGELY IMPLEMENTED (~90%+).** ~94 intrinsic FUNCTIONs are implemented and
 > dispatched. The real implementation lives in `src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs`
 > (~900 lines) as `public static class IntrinsicFunctions` — a flat set of `static` methods over
-> `decimal`/`string`/`int` (NOT a runtime object `ExecutionContext.FunctionLibrary` as the older essays
-> imagined; that name is design fiction). The compile path is: parser → `ExpressionBinder` (binds the
+> `decimal`/`string`/`int` (NOT a runtime object `ExecutionContext.FunctionLibrary`; that name does not
+> exist in the implementation). The compile path is: parser → `ExpressionBinder` (binds the
 > `FUNCTION name(args)` call, validates argument shape, resolves return type; `FUNCTION LENGTH` and the
 > few constant cases are folded at bind time) → `IrIntrinsicCall` IR node → `CilExpressionEmitter`
 > emits a `call` to the matching `IntrinsicFunctions.*` static method.
@@ -23,14 +23,10 @@ CobolSharp Standard Library — Intrinsics, FUNCTION Resolution, Runtime Helpers
 > separate intrinsic, MODE/RANGE statistical extras, and the `DecimalMath.*` arbitrary-precision helper
 > tier are aspirational — verify any specific function against `IntrinsicFunctions.cs` before claiming it.
 > Domain errors (SQRT(-1), LOG(≤0), ACOS(|x|>1)) currently map to the **EC-ARGUMENT-FUNCTION** defined
-> result (0) rather than raising SIZE ERROR — see "Edge-case behavior", which supersedes the older
-> "SIZE ERROR" wording.
+> result (0) rather than raising SIZE ERROR — see "Edge-case behavior".
 >
 > Plan SSOT: **`docs/MASTER_PLAN.md`**. Doctrine: `PROMPT.md`. Numeric data-model context:
 > `docs/DATA_MODEL_ARCHITECTURE.md`.
-> *Consolidated from 3 prior architecture docs (2026-06-07): "Standard Library — Intrinsics…" (base),
-> "FUNCTION, Intrinsics & Runtime Library Architecture", and "Intrinsic Functions, Type Conversion &
-> Runtime Library Architecture".*
 
 Purpose
 -------
@@ -282,9 +278,9 @@ SECTION 11 — RUNTIME HELPERS & IMPLEMENTATION
 -------------------
 `src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs` — `public static class IntrinsicFunctions`,
 one `static` method per FUNCTION keyword, signatures over `decimal` / `string` / `int`. There is **no**
-`ExecutionContext.FunctionLibrary` object; the older essays' "FunctionLibrary" / per-engine
-("NumericEngine", "StringEngine", "DateTimeEngine") split is design fiction — the real surface is the
-flat static class plus the collating subsystem (for ORD/CHAR) and the `DateTimeProvider`.
+`ExecutionContext.FunctionLibrary` object and no per-engine ("NumericEngine", "StringEngine",
+"DateTimeEngine") split — the real surface is the flat static class plus the collating subsystem (for
+ORD/CHAR) and the `DateTimeProvider`.
 
 11.2 Numeric operations
 -----------------------
@@ -343,7 +339,7 @@ DISPLAY/NATIONAL conversion, invalid date arguments.
 -------------------------------
 - Domain / argument errors map to the **EC‑ARGUMENT‑FUNCTION** condition with the ISO *defined result*
   (0 for the math cases) rather than aborting — see `FromDouble`/`Factorial`/date guards in the
-  implementation. This supersedes the older "SIZE ERROR" wording in the legacy essays.
+  implementation.
 - The intended full routing order, as the EC exception subsystem lands (Phase C): (1) ON EXCEPTION
   phrase → (2) applicable USE/declarative → (3) ExceptionState / EC condition.
 

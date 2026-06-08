@@ -1,8 +1,9 @@
 CobolSharp COBOL Interop Architecture — .NET Types, Assemblies, INVOKE .NET & Type Mapping (CIL‑Only)
 =====================================================================================================
 
-> **STATUS BANNER (Consolidated from 2 prior docs, 2026-06-07).**
-> This is a **TARGET design reference** for COBOL ↔ .NET interop. **Implementation status: DESIGN-ONLY.**
+> **STATUS BANNER.**
+> This is the authoritative **TARGET design reference** for COBOL ↔ .NET interop. **Implementation status:
+> DESIGN-ONLY.**
 > The `invokeStatement` / OO **grammar exists and is green** (factored into `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`,
 > `{is2002()}?`-gated; INVOKE/END-INVOKE lexer tokens present). **There is NO interop runtime yet** — no
 > `Interop*`/`*Marshaler` classes exist in `src/`, and OO/INVOKE **emit (semantic → binder → CIL) is pending** (the
@@ -15,8 +16,7 @@ CobolSharp COBOL Interop Architecture — .NET Types, Assemblies, INVOKE .NET & 
 > `ManagedPointer`** (no 8-byte handle, no PointerRegistry).
 >
 > Plan SSOT: **`docs/MASTER_PLAN.md`**; doctrine: **`PROMPT.md`**. The OO target design is `docs/OO_IMPLEMENTATION_DESIGN.md`.
-> The COBOL-to-C# Interop Cookbook (`docs/CobolSharp COBOL-to-C# Interop Cookbook.md`) is a separate singleton and is
-> NOT merged here.
+> Hands-on usage patterns live in the COBOL-to-C# Interop Cookbook (`docs/CobolSharp COBOL-to-C# Interop Cookbook.md`).
 
 Purpose
 -------

@@ -29,12 +29,11 @@ CobolSharp Master Architecture Document (CIL‑Only)
 >   `BoundTreeBuilder`→9 binders (M004), 9 lowering classes.
 >
 > **The authoritative top-level SSOT is `docs/MASTER_PLAN.md`** (plan/sequencing/status); doctrine is `PROMPT.md`. This
-> overview document does NOT supersede MASTER_PLAN and is NOT merged into it. *Consolidated from 6 prior architecture
-> essays, 2026-06-07.*
+> overview document does NOT supersede MASTER_PLAN and is NOT merged into it.
 
 Purpose
 -------
-This document provides a unified, end‑to‑end architectural overview of CobolSharp — a production‑quality COBOL compiler targeting .NET CIL and implementing ISO/IEC 1989:2023 semantics. It consolidates the system-overview / integration vision into a single, coherent reference suitable for maintainers, contributors, and system architects.
+This document provides a unified, end‑to‑end architectural overview of CobolSharp — a production‑quality COBOL compiler targeting .NET CIL and implementing ISO/IEC 1989:2023 semantics. It is the single, coherent system-overview / integration reference suitable for maintainers, contributors, and system architects.
 
 CobolSharp is designed to:
 - Compile COBOL directly to .NET CIL (a standard verifiable assembly)
@@ -150,7 +149,7 @@ Implements COBOL semantics in purely-managed, cross-platform code (CoreCLR / AOT
 - **Pointers** — single `ManagedPointer` carrier (GC-tracked managed reference; no native heap, no handle table, no `unsafe`).
 - ExternalStorage (EXTERNAL shared), `GlobalUseDeclarativeRegistry`, `CobolProgramRegistry`, runtime guards / `CobolRuntimeException`.
 
-*Design-target engines not yet implemented:* JsonEngine / XmlEngine (PARSE/GENERATE runtime), a full EC/exception ExceptionEngine, DateTimeEngine/CollationEngine as standalone services. The "event loop / cooperative scheduler / async interop" model in the integration essays is speculative — execution today is straight synchronous CIL.
+*Design-target engines not yet implemented:* JsonEngine / XmlEngine (PARSE/GENERATE runtime), a full EC/exception ExceptionEngine, DateTimeEngine/CollationEngine as standalone services. The "event loop / cooperative scheduler / async interop" model is speculative — execution today is straight synchronous CIL.
 
 9. Debugger ◇ (design-only, Phase E)
 ------------------------------------
@@ -170,13 +169,12 @@ Target: codebase analysis, dependency graphs, data-layout extraction, modernizat
 
 13. Interop Architecture (COBOL ↔ .NET) ★
 -----------------------------------------
-COBOL → .NET: `CALL "Namespace.Class::Method"`, `INVOKE object::Method`, .NET constructors, properties, generics, async via helpers. .NET → COBOL: COBOL classes become .NET classes; COBOL programs become callable entry points; marshaling metadata ensures type safety. Shared type system: PIC/USAGE → .NET types; group items → explicit-layout / record-struct types; OCCURS → arrays; REDEFINES → overlapping fields; 88-levels → enum-like constants. (The how-to lives in the separate live cookbook `docs/CobolSharp COBOL-to-C# Interop Cookbook.md`; the design-only essays in `docs/CobolSharp ... Interop Architecture ...md` are a distinct cluster.)
+COBOL → .NET: `CALL "Namespace.Class::Method"`, `INVOKE object::Method`, .NET constructors, properties, generics, async via helpers. .NET → COBOL: COBOL classes become .NET classes; COBOL programs become callable entry points; marshaling metadata ensures type safety. Shared type system: PIC/USAGE → .NET types; group items → explicit-layout / record-struct types; OCCURS → arrays; REDEFINES → overlapping fields; 88-levels → enum-like constants. (The how-to lives in the companion cookbook `docs/CobolSharp COBOL-to-C# Interop Cookbook.md`; the type-mapping/assembly design lives in `docs/CobolSharp COBOL Interop Architecture — .NET Types, Assemblies, INVOKE .NET & Type Mapping.md`.)
 
 ------------------------------------------------------------
 APPENDIX A — Full System Map (ASCII)
 ------------------------------------------------------------
-*(Consolidated from the End-to-End Architecture Diagram and Final Integration essays. The "Event Loop" box is a
-design target only — current execution is synchronous CIL with no scheduler.)*
+*(The "Event Loop" box is a design target only — current execution is synchronous CIL with no scheduler.)*
 
 ```
 +---------------------------+
@@ -231,8 +229,8 @@ design target only — current execution is synchronous CIL with no scheduler.)*
 ------------------------------------------------------------
 APPENDIX B — Subsystem Boundaries & I/O Contracts
 ------------------------------------------------------------
-*(From the End-to-End Architecture Diagram essay. Inputs/outputs describe the target contract; the byte-image
-"StorageBlock slice" inputs apply to the islanded fallback path — the typed path passes native values.)*
+*(Inputs/outputs describe the target contract; the byte-image "StorageBlock slice" inputs apply to the islanded
+fallback path — the typed path passes native values.)*
 
 - **NumericEngine** — in: value + PIC metadata; out: numeric value / encoded bytes (decimal arithmetic, COMP-3/COMP-5, ROUNDED).
 - **StringEngine** — in: string/field slices; out: modified fields / temporaries (STRING/UNSTRING, INSPECT, NATIONAL, case mapping).
@@ -251,9 +249,9 @@ APPENDIX C — Control-Flow & Program Model
 ------------------------------------------------------------
 APPENDIX D — End-to-End Developer Experience (DESIGN TARGET)
 ------------------------------------------------------------
-*(From the End-to-End Developer Experience Flow essay. The `cobolsharp …` CLI verbs are a design target; post-rename
-the CLI is `cobol.exe`. None of these workflow verbs are implemented yet — the current CLI compiles+runs programs for
-the guard/test harness. Treat this section as the intended UX, not present behavior.)*
+*(The `cobolsharp …` CLI verbs are a design target; post-rename the CLI is `cobol.exe`. None of these workflow verbs
+are implemented yet — the current CLI compiles+runs programs for the guard/test harness. Treat this section as the
+intended UX, not present behavior.)*
 
 Intended workflow: **new → edit (LSP) → build → run → debug → test → publish → maintain**, consistent across Windows/macOS/Linux and VS Code / JetBrains / Visual Studio / Vim, and across local / CI / production.
 
@@ -266,9 +264,9 @@ Intended workflow: **new → edit (LSP) → build → run → debug → test →
 ------------------------------------------------------------
 APPENDIX E — Determinism, Security, Governance, Multi-Tenancy (FORWARD/ASPIRATIONAL)
 ------------------------------------------------------------
-*(From the Final Integration essay. These describe an aspirational production-hosting/governance layer. NONE of it is
-implemented — there is no sandbox, no multi-tenant runtime, no observability/governance subsystem today. Retained as a
-long-horizon vision; do not treat as architecture-in-place.)*
+*(These describe an aspirational production-hosting/governance layer. NONE of it is implemented — there is no sandbox,
+no multi-tenant runtime, no observability/governance subsystem today. Retained as a long-horizon vision; do not treat
+as architecture-in-place.)*
 
 - **Determinism & reproducibility (goal):** same input → same output; same build → same IL; cross-platform equivalence `Eval_CoreCLR(P,I) = Eval_AOT(P,I) = Eval_WASM(P,I)`; deterministic SORT / file-index / REPORT / (future) JSON/XML.
 - **Security & sandboxing (goal):** forbid reflection, dynamic loading, `unsafe`, raw network/OS access; rely on the WASM sandbox (no syscalls/threads/raw memory) and AOT hardening (no JIT, no dynamic IL) where deployed; optional safe mode (no CALL, no file I/O); COPY/REPLACE path sanitization. *Note: the data model now uses managed references (`ManagedPointer`); the runtime is purely managed with no `unsafe`/`stackalloc`/unmanaged memory.*
@@ -280,7 +278,6 @@ long-horizon vision; do not treat as architecture-in-place.)*
 ------------------------------------------------------------
 APPENDIX F — Cross-Cutting Engineering Concerns
 ------------------------------------------------------------
-*(From the Full System Integration Blueprint.)*
 - **Source mapping (implemented for diagnostics; debugger/LSP consumers are design):** every stage preserves mapping — original source → preprocessed → tokens → AST → semantic nodes → IR → CIL → PDB — enabling accurate breakpoints/stepping/diagnostics/variable inspection.
 - **Error handling:** preprocessor errors map to original source; lexer errors → recoverable tokens; parser errors → error nodes; semantic errors → diagnostics (CBLxxxx descriptors); backend errors → build failures; runtime errors → COBOL exceptions.
 - **Performance strategy:** cached preprocessor expansions / semantic models, lazy expensive analyses, parallel CIL emission where safe, optimized runtime ops; (incremental LSP pipeline is a design target).

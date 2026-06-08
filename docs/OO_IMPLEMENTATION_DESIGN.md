@@ -1,7 +1,7 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
-> **Consolidated canonical doc for the COBOL Object-Orientation subsystem (consolidated from 4 prior docs, 2026-06-07).**
-> This is the **LIVE turnkey design** — defer to it. **Implementation status (2026-06-07, DEVLOG 441):** the OO
+> **Canonical reference for the COBOL Object-Orientation subsystem.** This is the **LIVE turnkey design** — defer to
+> it. **Implementation status (2026-06-07, DEVLOG 441):** the OO
 > **grammar is DONE** (factored `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated, guard-green);
 > **semantic analysis + CIL emission are PENDING** (no `EmitClassModule` / `BoundInvokeStatement` / `IrInvoke` /
 > `UnitKind` in src yet). So OO is **design-complete + grammar-implemented, ~10% end-to-end**; the §5 slices below are
@@ -15,13 +15,12 @@
 >
 > The §0–§7 below (the turnkey vertical-slice roadmap) are authoritative. Sections **§A–§F (Appendix)** at the end
 > capture the broader *target-design surface* (properties/indexers, .NET interop type mapping, access modifiers, the
-> edge-case behavior catalog, debugger integration) salvaged from the prior architecture essays; they describe the
-> *eventual* OO feature set (slices 5–6+ and beyond), not slice-1 scope.
+> edge-case behavior catalog, debugger integration); they describe the *eventual* OO feature set (slices 5–6+ and
+> beyond), not slice-1 scope.
 
-**Status:** Design (kickoff). Parent: `docs/DATA_MODEL_ARCHITECTURE.md` §7 (the settled OO→.NET mapping) and
-`docs/ISO2023_CONFORMANCE_PLAN.md` §0.5 (Stage-4, after pointers). Provenance: 3-agent investigation workflow
-`oo-investigation` (2026-06-07) + first-hand reading of ISO/IEC 1989:2023 §11.3/§11.4/§11.7/§11.8, §14.9.23 (INVOKE),
-§8.4.3.8 (SELF/SUPER), §16.2.1 (NEW).
+**Parent:** `docs/DATA_MODEL_ARCHITECTURE.md` §7 (the settled OO→.NET mapping) and
+`docs/ISO2023_CONFORMANCE_PLAN.md` §0.5 (Stage-4, after pointers). Grounded in ISO/IEC 1989:2023
+§11.3/§11.4/§11.7/§11.8, §14.9.23 (INVOKE), §8.4.3.8 (SELF/SUPER), §16.2.1 (NEW).
 
 > This document is the engineering roadmap for COBOL Object-Orientation. It does **not** re-open the ADR's settled
 > vision (OO → real .NET classes; object identity is a managed reference; object instance data is a per-instance
@@ -244,13 +243,11 @@ every commit. The Roslyn C# backend (Stage 5) later emits these classes as stepp
 
 ---
 
-# Appendix — Target-design surface (salvaged from prior OO architecture essays, 2026-06-07)
+# Appendix — Target-design surface
 
-> Consolidated from the three prior essays: *"CobolSharp COBOL OO Class, Method & INVOKE Architecture"*,
-> *"…OO Class, Method, Factory & INVOKE Architecture"*, and *"…OO Extensions — CLASS-ID, METHOD-ID, INHERITANCE &
-> INVOKE Architecture"*. These sections describe the *eventual* full OO feature set (slices 5–6+ and beyond), not
-> slice-1 scope. Stale claims have been corrected to CURRENT TRUTH (CIL-only via Mono.Cecil; .NET 10 / C# 14; object
-> identity = GC reference, no handle table). The §0–§7 turnkey roadmap above is authoritative where it overlaps.
+> These sections describe the *eventual* full OO feature set (slices 5–6+ and beyond), not slice-1 scope. They reflect
+> CURRENT TRUTH (CIL-only via Mono.Cecil; .NET 10 / C# 14; object identity = GC reference, no handle table). The
+> §0–§7 turnkey roadmap above is authoritative where it overlaps.
 
 ## §A. The full ISO/IEC 1989:2023 OO surface (target catalog)
 
@@ -334,7 +331,7 @@ Note: the dedicated interop architecture lives in the INTEROP cluster; the OO-re
 - **Lifetime:** objects are GC-managed; no explicit disposal unless the class implements `IDisposable`. Object
   identity is the .NET reference itself — **no handle table, no native heap, no `unsafe`**.
 
-## §F. Edge-case behavior catalog (consolidated from all three essays)
+## §F. Edge-case behavior catalog
 
 | Case | Behavior |
 |---|---|

@@ -1,8 +1,8 @@
 CobolSharp COBOL Optimizer & Intermediate Representation (IR) Architecture (CIL-Only)
 ====================================================================================
 
-> **STATUS / PROVENANCE (2026-06-07).** Design reference for the IR and the (future)
-> optimizer. **Implementation status:** the **IR layer is REAL and current** —
+> **STATUS — authoritative design reference for the IR and the (future)
+> optimizer.** **Implementation status:** the **IR layer is REAL and current** —
 > `src/CobolSharp.Compiler/IR/` (`IrExpression.cs`, `IrInstruction.cs`, `IrModule.cs`,
 > `IrMethod.cs`, `IrType.cs`, `IrLocationExtensions.cs`) plus the
 > `CodeGen/Lowering/*Lowerer.cs` family (Arithmetic / Condition / ControlFlow /
@@ -21,7 +21,7 @@ CobolSharp COBOL Optimizer & Intermediate Representation (IR) Architecture (CIL-
 >
 > **SSOT:** the plan is `docs/MASTER_PLAN.md`; doctrine is `PROMPT.md`. The **LIVE** IR
 > doc is `docs/ir/IR-Expression-Contract.md` (defer to it for the implemented IR
-> expression contract). Consolidated from 2 prior optimizer/IR essays, 2026-06-07.
+> expression contract).
 
 Purpose
 -------
@@ -219,7 +219,7 @@ SECTION 5 — CONSTANT FOLDING & PROPAGATION — design
 - Boolean expressions
 - LENGTH OF literal
 - FUNCTION calls with literal arguments (safe subset)
-- (from the pipeline essay) numeric literal conversions; boolean comparisons with constants
+- numeric literal conversions; boolean comparisons with constants
 
 5.2 Propagation rules
 ---------------------
@@ -236,8 +236,8 @@ Constant folding must:
 - Trigger SIZE ERROR if applicable
 - Emit diagnostic if compile-time overflow
 
-5.4 Special COBOL handling (from the pipeline essay)
-----------------------------------------------------
+5.4 Special COBOL handling
+--------------------------
 - Numeric literals folded using the numeric engine (`CobolNum`/`CobolDecimal`; the
   packed-decimal byte path is being islanded — fold against the typed substrate first)
 - STRING/UNSTRING literal operations folded only when provably side-effect-free
@@ -302,8 +302,8 @@ loop:
     goto loop
 ```
 
-7.4 Loop optimizations (from the pipeline essay)
-------------------------------------------------
+7.4 Loop optimizations
+----------------------
 On loops generated from PERFORM UNTIL / PERFORM VARYING:
 - Loop-invariant code motion
 - Induction-variable simplification
@@ -367,16 +367,16 @@ SECTION 9 — EXPRESSION SIMPLIFICATION & STRENGTH REDUCTION — design
 - "" & x → x
 - x & "" → x
 
-9.4 Strength reduction (from the pipeline essay)
-------------------------------------------------
+9.4 Strength reduction
+----------------------
 - Multiplication by 2 → shift left (binary items only)
 - Division by 2 → shift right (binary items only)
 - Repeated ADD → ADD with constant
 
 Packed-decimal operations are NOT strength-reduced unless provably safe.
 
-9.5 Redundant move elimination (from the pipeline essay)
---------------------------------------------------------
+9.5 Redundant move elimination
+------------------------------
 COBOL emits many semantically redundant MOVEs:
 - `MOVE A TO A`
 - `MOVE literal TO field` where literal equals the default value
@@ -384,14 +384,14 @@ COBOL emits many semantically redundant MOVEs:
 
 These are removed only when provably safe (no 88-level / REDEFINES observer).
 
-9.6 Copy propagation (from the pipeline essay)
-----------------------------------------------
+9.6 Copy propagation
+--------------------
 ```
 t1 = x ; y = t1      →      y = x
 ```
 
-9.7 Peephole optimization (from the pipeline essay)
----------------------------------------------------
+9.7 Peephole optimization
+-------------------------
 Local, pattern-based IL/IR sequence rewrites:
 - `LOAD x; STORE x` → NOP
 - `LOAD literal; ADD 0` → `LOAD literal`
@@ -471,9 +471,9 @@ Treated as side-effecting; cannot be reordered.
 SECTION 13 — PLANNED OPTIMIZATION PIPELINE (forward design)
 ------------------------------------------------------------
 
-> Merged from "CobolSharp Optimization Pipeline Architecture." This is the intended
-> staged pipeline a future optimizer would slot between the IR and the Cecil backend.
-> **None of these passes exist today** (the compiler lowers Bound → IR → CIL directly).
+> This is the intended staged pipeline a future optimizer would slot between the IR and
+> the Cecil backend. **None of these passes exist today** (the compiler lowers Bound → IR
+> → CIL directly).
 
 13.1 Pipeline placement
 -----------------------
@@ -483,8 +483,7 @@ SemanticModel → Binder/Lowering → IR (unoptimized)
               → IR (optimized)
               → CIL backend (Mono.Cecil) → .NET Assembly + PDB
 ```
-(The pipeline essay framed this around an "ILModule"; in the current codebase the
-optimized object is the **IR** — there is no separate `ILModule` type.)
+(The optimized object is the **IR** — there is no separate `ILModule` type.)
 
 13.2 Passes, in execution order
 -------------------------------

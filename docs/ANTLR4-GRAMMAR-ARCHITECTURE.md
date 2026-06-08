@@ -8,8 +8,6 @@
 > **Stack: .NET 10 / C# 14. Backend is CIL-only via Mono.Cecil (no custom VM, no bytecode interpreter;
 > a Roslyn C# backend is a future additive option).**
 > Plan SSOT: `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`. Companion reference: `docs/GRAMMAR-REFERENCE.md`.
-> Consolidated from 2 prior docs (this LIVE doc + the redundant "CobolSharp COBOL Grammar & Parsing
-> Architecture" essay), 2026-06-07.
 
 Production-ready reference for the ANTLR4-based front-end of the CobolSharp COBOL-to-.NET compiler.
 
@@ -619,14 +617,12 @@ is not valid in COBOL-85") happens in the semantic phase because:
 
 ---
 
-## 15. Salvaged Design Notes (consolidated from prior "Grammar & Parsing Architecture" essay)
+## 15. Additional Front-End Design Notes
 
-> The following sections preserve unique, still-current framing from the earlier essay-style doc
-> that is not already covered above. Where the essay and the implementation disagree, the
-> implementation (sections 1–14) wins; stale claims (e.g., "REPORT SECTION ignored", custom-VM
-> phrasing) have been corrected to match CURRENT TRUTH.
+The following sections cover front-end framing not already detailed above. Where any high-level
+description differs from the implemented behavior, sections 1–14 (and `src/`) are authoritative.
 
-### 15.1 Grammar file layout — actual on-disk structure (correction)
+### 15.1 Grammar file layout — actual on-disk structure
 
 The grammar lives in `src/CobolSharp.Compiler/Grammar/`. Per owner directive
 ([[feedback_grammar_version_factoring]]), post-1985 features and large feature families are

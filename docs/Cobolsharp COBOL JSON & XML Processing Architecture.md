@@ -25,14 +25,7 @@ CobolSharp COBOL JSON & XML Processing Architecture (CIL‑Only)
 > byte layout.
 >
 > Plan SSOT: **`docs/MASTER_PLAN.md`**. Conformance roadmap: `docs/ISO2023_CONFORMANCE_PLAN.md`.
-> Doctrine: `PROMPT.md`. Note: the long‑titled "CobolSharp COBOL … Architecture.md" essays are a
-> prior doc‑generation pass = target designs, not status reports.
->
-> _Consolidated from 5 prior docs, 2026-06-07:_ "Cobolsharp COBOL JSON & XML Processing
-> Architecture" (base), "CobolSharp COBOL JSON PARSE-GENERATE, SAX‑Style Event Model & Data Binding
-> Architecture", "JSON GENERATE Architecture" (JSON PARSE/GENERATE), "CobolSharp COBOL XML PARSE -
-> XML GENERATE Architecture", and "CobolSharp COBOL XML PARSE-GENERATE, SAX‑Style Event Model &
-> Namespace Architecture".
+> Doctrine: `PROMPT.md`.
 
 Purpose
 -------
@@ -151,9 +144,9 @@ typed‑native model when implemented):
 - `DEPTH`
 - `INDEX`
 
-Detail entry value/type table (from the JSON‑GENERATE design): Name, Type (string, number, boolean,
-null, object, array), Value (string or numeric), Depth (optional). The engine emits a table of
-detail entries stored in the target detail group.
+Detail entry value/type table: Name, Type (string, number, boolean, null, object, array), Value
+(string or numeric), Depth (optional). The engine emits a table of detail entries stored in the
+target detail group.
 
 ------------------------------------------------------------
 SECTION 4 — JSON → COBOL MAPPING RULES (PARSE)
@@ -510,8 +503,8 @@ SECTION 17 — EDGE‑CASE BEHAVIOR
 - **null** → spaces (alphanumeric) / zero (numeric) / all children defaulted (group) / false
   (condition name).
 - **Empty arrays** → OCCURS DEPENDING ON = 0.
-- **Missing keys** → allowed if `OMITTED`; else default value; (missing object fields left
-  unchanged in the JSON‑GENERATE‑design variant).
+- **Missing keys** → allowed if `OMITTED`; else default value (missing object fields may be left
+  unchanged).
 - **Extra keys** → ignored unless `WITH DETAIL` (a `WITH DETAIL STRICT` mode is planned).
 - **Numeric overflow** → SIZE ERROR → ON EXCEPTION.
 - **Array too large for OCCURS** → ON EXCEPTION.

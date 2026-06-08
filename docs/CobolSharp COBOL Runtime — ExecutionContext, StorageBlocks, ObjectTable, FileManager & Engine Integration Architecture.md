@@ -1,10 +1,10 @@
 CobolSharp COBOL Runtime — ExecutionContext, StorageBlocks, ObjectTable, FileManager & Engine Integration Architecture (CIL‑Only)
 ===============================================================================================================================
 
-> **STATUS BANNER (2026-06-07).** This is a **design-reference / target-architecture** document for the CobolSharp
-> runtime, **consolidated from 5 prior runtime essays** (see *Provenance* below). It is an aspirational unified model,
-> **not** a description of the code as built. **Actual implementation status (verified against `src/CobolSharp.Runtime/`):
-> the runtime is largely implemented but does NOT match this essay's `ExecutionContext` shape.** Reality:
+> **STATUS BANNER.** This is the **authoritative design-reference / target-architecture** document for the CobolSharp
+> runtime. It is an aspirational unified model, **not** a description of the code as built. **Actual implementation
+> status (verified against `src/CobolSharp.Runtime/`): the runtime is largely implemented but does NOT match this
+> document's `ExecutionContext` shape.** Reality:
 > - There is **no `ExecutionContext` class** and no `*Engine` instance objects. Generated programs subclass
 >   **`CobolProgram`** (`src/CobolSharp.Runtime/CobolProgram.cs`) with **static** runtime helpers; per-program state is a
 >   **`ProgramState`** holding three `byte[]` areas — `WorkingStorage` / `FileSection` / `LocalStorage`
@@ -33,13 +33,6 @@ CobolSharp COBOL Runtime — ExecutionContext, StorageBlocks, ObjectTable, FileM
 >   interpreter**; a Roslyn C# backend is a *future additive* option (Stage-5, Cecil = oracle).
 > - **Plan SSOT:** `docs/MASTER_PLAN.md`. **Doctrine:** `PROMPT.md`. Guard at last update: **1196 unit / 509
 >   integration / 364 NIST.**
->
-> **Provenance — consolidated 2026-06-07 from:**
-> - *CobolSharp COBOL Runtime Engine, ExecutionContext & Subsystem Integration Architecture.md*
-> - *CobolSharp COBOL Runtime Execution Model & ExecutionContext Architecture.md*
-> - *CobolSharp COBOL Runtime ExecutionContext, Storage & Engine Integration Architecture.md*
-> - *CobolSharp Runtime Library Design.md*
-> - (this file — the most complete member, kept as canonical)
 
 Purpose
 -------
@@ -132,8 +125,8 @@ FD buffers:
 - Allocated on OPEN
 - Each file descriptor has: record buffer, key buffer, file status variable, runtime handle
 
-2.4 Field access API (from *Runtime ExecutionContext, Storage & Engine* essay)
------------------------------------------------------------------------------
+2.4 Field access API
+--------------------
 StorageBlock provides:
 - GetBytes(offset, length) / SetBytes(offset, length)
 - GetString(offset, length) / SetString(offset, length)
@@ -156,7 +149,7 @@ Logical length checked / validated at runtime; raw storage always preserved.
 
 2.8 RENAMES
 -----------
-Synthetic field ranges (from *Runtime Library Design*).
+Synthetic field ranges.
 
 ------------------------------------------------------------
 SECTION 3 — OBJECTTABLE ARCHITECTURE  *(DESIGN-ONLY — SUPERSEDED)*
@@ -209,8 +202,8 @@ ExecutionContext contains: FileManager instance, FD metadata, record buffers.
 --------------
 On OPEN: FileManager binds FD to file handle, allocates record buffer, initializes cursor.
 
-4.4 FileHandle model (from *Runtime Library Design*)
----------------------------------------------------
+4.4 FileHandle model
+--------------------
 FileHandle:
 - FileId
 - Organization (Sequential, Indexed, Relative)
@@ -286,26 +279,26 @@ ExecutionContext (conceptually) contains the following engines:
 - ACCEPT / DISPLAY, date/time/environment, command‑line arguments.
 - *As-built:* `AcceptRuntime` + Screen/Terminal subsystem (`src/CobolSharp.Runtime/Terminal`, `.../Screen`).
 
-5.8 DateTimeEngine  *(from Runtime Library Design / Execution Model essays)*
----------------------------------------------------------------------------
+5.8 DateTimeEngine
+------------------
 - CurrentDate, CurrentTime, FormatDate, ParseDate, DateDiff (CURRENT-DATE, WHEN-COMPILED).
 - *As-built:* covered by `IntrinsicFunctions` (94 intrinsics implemented).
 
-5.9 CollationEngine  *(from Runtime Library Design / Execution Model essays)*
-----------------------------------------------------------------------------
+5.9 CollationEngine
+-------------------
 - CompareStrings(a, b, CollationDescriptor), SortKey(input, CollationDescriptor).
 - Supports Standard ASCII, EBCDIC‑compatible tables, custom collations, national character ordering.
 - *As-built:* the program collating sequence is honored across comparisons, SORT/MERGE keys, and FUNCTION CHAR/ORD.
 
-5.10 ExceptionEngine  *(from Runtime Library Design)*
------------------------------------------------------
+5.10 ExceptionEngine
+--------------------
 - Maps runtime exceptions to ON EXCEPTION / INVALID KEY / AT END.
 - APIs: RaiseFileException, RaiseJsonException, RaiseXmlException, RaiseGenericException.
 - *As-built:* `CobolRuntimeException` + declarative dispatch (`GlobalUseDeclarativeRegistry`); full ISO EC exception
   model is Phase C.
 
-5.11 IntrinsicFunctionLibrary  *(from Runtime Library Design)*
---------------------------------------------------------------
+5.11 IntrinsicFunctionLibrary
+-----------------------------
 - COBOL intrinsic functions: NUMVAL, NUMVAL‑C, INTEGER, INTEGER‑PART, FRACTION‑PART, LENGTH, TRIM, LOWER‑CASE,
   UPPER‑CASE, RANDOM, CURRENT‑DATE, WHEN‑COMPILED, …
 - API: EvaluateIntrinsic(name, List<Value> args, ExecutionContext).
@@ -318,9 +311,9 @@ SECTION 6 — CALL STACK ARCHITECTURE
 6.1 CALL frame / ActivationRecord
 ---------------------------------
 Contains: caller ExecutionContext, return address (IL offset, for stepping/debugging), RETURNING target,
-parameter descriptors. (Runtime Library Design names this `ActivationRecord` with: ProgramOrMethod, Locals
+parameter descriptors. Equivalently modeled as an `ActivationRecord` with: ProgramOrMethod, Locals
 (StorageBlock for WS/LS/LINKAGE/OBJECT‑DATA), Parameters (`object[]` BY VALUE/REFERENCE/CONTENT), ReturnAddress,
-ExceptionHandlers stack.)
+ExceptionHandlers stack.
 
 6.2 CALL activation
 -------------------
@@ -408,7 +401,7 @@ ExceptionState cleared:
 - After a successful operation / before the next statement
 
 ------------------------------------------------------------
-SECTION 8b — DECLARATIVE HANDLER INTEGRATION  *(from ExecutionContext, Storage & Engine essay)*
+SECTION 8b — DECLARATIVE HANDLER INTEGRATION
 ------------------------------------------------------------
 
 Registration: ExecutionContext stores USE AFTER EXCEPTION / USE AFTER ERROR / USE AFTER STANDARD EXCEPTION handlers.
@@ -438,8 +431,8 @@ ExecutionContext contains a deterministic PRNG, seeded by RANDOM‑SEED or a def
 SECTION 10 — REPORT STATE & RUNTIME INITIALIZATION
 ------------------------------------------------------------
 
-10.1 Report state  *(from ExecutionContext, Storage & Engine essay)*
---------------------------------------------------------------------
+10.1 Report state
+-----------------
 ExecutionContext stores report definitions, page counters, line counters, and control‑break state. ReportEngine
 writes to FileManager or a DISPLAY target.
 
@@ -475,7 +468,7 @@ Compiler generates `new StorageBlock(size)` + a FieldOffset table + a metadata t
 ----------------------------------------------------
 - Subsystem calls lower to `callvirt ctx.Engine.Method` *(as-built: static calls into runtime facades,
   e.g. `FileRuntime.ReadNext`, `InspectRuntime.…`, `IntrinsicFunctions.…`)*.
-- The *Execution Model* essay specified `void MethodName(ExecutionContext ctx)` signatures and storage accessors
+- The target model uses `void MethodName(ExecutionContext ctx)` signatures and storage accessors
   (`ctx.Storage.GetString/GetBinary/GetPackedDecimal`); as-built these are `ProgramState` + `PicRuntime` slices.
 - Branching: IF / EVALUATE / PERFORM lower to `brtrue`/`brfalse`, `switch`, and structured loops.
 - Exception lowering: ON EXCEPTION → wrap block in try/catch, set exception state, branch to handler.
@@ -549,7 +542,7 @@ SECTION 14 — EDGE‑CASE BEHAVIOR
 14.15 CALL recursion — allowed; each activation gets its own ExecutionContext.
 
 ------------------------------------------------------------
-SECTION 15 — RUNTIME-LIBRARY GOALS, PERFORMANCE & TESTING  *(from Runtime Library Design)*
+SECTION 15 — RUNTIME-LIBRARY GOALS, PERFORMANCE & TESTING
 ------------------------------------------------------------
 
 15.1 High‑level goals

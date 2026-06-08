@@ -10,7 +10,6 @@
 > **Stack: .NET 10 / C# 14.** Backend is CIL-only via Mono.Cecil (no custom VM / no bytecode interpreter; Roslyn C#
 > backend is a future additive option, Cecil = oracle). The companion LIVE engine design is
 > `docs/REPORT_WRITER_CONTROL_DESIGN.md`. Plan SSOT = `docs/MASTER_PLAN.md`; doctrine = `PROMPT.md`.
-> Consolidated from 4 prior docs (this roadmap + 3 long-titled "Report Writer … Architecture" essays), 2026-06-07.
 >
 > NOTE on data model: report fields render through the standard data-item path. As the typed-native data model
 > (`docs/DATA_MODEL_ARCHITECTURE.md`) lands (char→string, numeric→long/decimal), SOURCE/SUM field rendering tracks
@@ -85,14 +84,12 @@ parallel (its interface is fixed by the design), then wired in Stage 4. Stage 5 
 
 ---
 
-## Appendix A — Consolidated subsystem reference (salvaged from the 3 essays, 2026-06-07)
+## Appendix A — Subsystem reference
 
-These items are the unique, still-relevant conceptual content from the three long-titled "Report Writer … Architecture"
-generation-pass essays (now merged here and marked for deletion). They are TARGET DESIGN, not a claim of completeness —
+These items are the broader conceptual content of the subsystem. They are TARGET DESIGN, not a claim of completeness —
 verify any specific clause against `src/CobolSharp.Runtime/ReportWriterRuntime.cs`, `docs/REPORT_WRITER_CONTROL_DESIGN.md`,
-and the stages above before relying on it. (Stale forward statements in the essays — ".NET 9", "C# 13", "custom VM",
-"AOT/WASM target", any "fully implements" — are corrected per the status banner; AOT/WASM and printer-stream output are
-DESIGN-ONLY product-surface aspirations, Phase E.)
+and the stages above before relying on it. (AOT/WASM and printer-stream output are DESIGN-ONLY product-surface
+aspirations, Phase E.)
 
 ### A.1 Report group taxonomy (TYPE clauses)
 The full group set the subsystem must render: REPORT HEADING, PAGE HEADING, CONTROL HEADING, DETAIL, CONTROL FOOTING,
@@ -113,8 +110,8 @@ Accumulator lifetime: DETAIL-level resets each detail; CONTROL-level resets at i
 end of report.
 
 ### A.3 Page / line control
-- PAGE LIMIT n (RD) sets max lines per page; a configurable default (the essays cite 60 and 132-column line width as
-  examples — actual defaults follow `docs/REPORT_WRITER_CONTROL_DESIGN.md` / the RD HEADING/FIRST DETAIL/LAST DETAIL/
+- PAGE LIMIT n (RD) sets max lines per page; a configurable default (e.g. 60 lines, 132-column line width as typical
+  values — actual defaults follow `docs/REPORT_WRITER_CONTROL_DESIGN.md` / the RD HEADING/FIRST DETAIL/LAST DETAIL/
   FOOTING regions). ReportEngine maintains CurrentLine / CurrentPage plus the implicit LINE-COUNTER / PAGE-COUNTER
   special registers.
 - LINE NUMBER n = absolute line on page; LINE PLUS n / LINE +n = relative advance; NEXT GROUP ON NEXT PAGE forces a page.
@@ -165,6 +162,6 @@ page eject. Debugger is design-only (Phase E).
 - SUMMARY with no DETAIL → printed with zero accumulators.
 - LINE / COLUMN beyond page/line width → page advance (LINE) / truncation (COLUMN); VALUE literal too long → truncation.
 - Nested / multiple reports → independent state each.
-(The essays also asserted hard rules like "PAGE LIMIT minimum = 5 lines", "COLUMN < 1 illegal", "missing CONTROL field
-= runtime error" — treat these as design intent; the authoritative behavior is whatever the NIST RW baselines + ISO
+(Additional candidate hard rules — "PAGE LIMIT minimum = 5 lines", "COLUMN < 1 illegal", "missing CONTROL field
+= runtime error" — are design intent; the authoritative behavior is whatever the NIST RW baselines + ISO
 §13/§14 require, which the runtime follows.)

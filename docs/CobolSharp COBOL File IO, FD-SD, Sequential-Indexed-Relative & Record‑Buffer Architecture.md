@@ -1,7 +1,7 @@
 CobolSharp COBOL File I/O, FD/SD, Sequential/Indexed/Relative & Record‑Buffer Architecture (CIL‑Only)
 ====================================================================================================
 
-> **STATUS BANNER (2026-06-07).** Design reference for the COBOL file-I/O subsystem (FD/SD, SEQUENTIAL/
+> **STATUS BANNER.** Authoritative design reference for the COBOL file-I/O subsystem (FD/SD, SEQUENTIAL/
 > RELATIVE/INDEXED organizations, OPEN/CLOSE/READ/WRITE/REWRITE/DELETE/START, file-status, keys, locking).
 > **Implementation status: ~90% implemented** — the runtime lives under `src/CobolSharp.Runtime/IO/`
 > (`CobolFileManager`, `IFileHandler`, `SequentialFileHandler`, `IndexedFileHandler`, `RelativeFileHandler`,
@@ -9,14 +9,13 @@ CobolSharp COBOL File I/O, FD/SD, Sequential/Indexed/Relative & Record‑Buffer 
 > `…/CodeGen/Lowering/FileIoLowerer.cs`, `…/CodeGen/Emission/CilFileIoEmitter.cs`, plus
 > `FileStatusValidator`/`FileStateValidator`. The NIST SQ (sequential), RL (relative), IX (indexed) and ST
 > (sort) suites are baselined green. **Verify any specific claim below against `src/` before relying on it** —
-> this essay predates the implementation and several details (status-code values, locking, B+-tree, WASM
-> virtual FS) are *design intent*, not the shipped behaviour.
+> several details (status-code values, locking, B+-tree, WASM virtual FS) are *design intent*, not the shipped
+> behaviour.
 > **Stack: .NET 10 / C# 14.** **Backend: CIL-only via Mono.Cecil (no custom VM / no bytecode interpreter;**
 > a Roslyn C# backend is a future additive option). Record buffers are currently **`byte[]` over the
 > StorageBlock byte engine**, which is being *islanded* as the typed-native data model lands
 > (`docs/DATA_MODEL_ARCHITECTURE.md`); file I/O is one of the classifier-scoped byte-image fallbacks and stays
 > on the byte path. Plan SSOT: **`docs/MASTER_PLAN.md`**; doctrine: **`PROMPT.md`**.
-> *Consolidated from 4 prior architecture docs, 2026-06-07.*
 
 Purpose
 -------
@@ -38,7 +37,7 @@ Define the authoritative architecture for:
 
 This document governs how CobolSharp implements COBOL file I/O semantics on .NET.
 
-> **Implementation note on naming.** The essays below refer variously to a `FileDescriptor`, a
+> **Implementation note on naming.** This doc refers variously to a `FileDescriptor`, a
 > `FileControlBlock (FCB)`, and an `ExecutionContext.FileManager`. The shipped runtime uses a
 > **`CobolFileManager`** that maps each COBOL file name to an **`IFileHandler`** (one implementation per
 > organization). Treat "FCB"/"FileDescriptor"/"FileHandle" in this doc as the conceptual file-state object,
@@ -139,7 +138,7 @@ Mapped to:
 - Random access via key; READ NEXT/PREVIOUS supported.
 
 Mapped to:
-- An index + data-file pair. *(The essays describe a B+‑tree optimized for sequential and random access;
+- An index + data-file pair. *(A B+‑tree optimized for sequential and random access is the design target;
   treat the concrete index structure as an implementation detail — verify vs `IndexedFileHandler`.)*
 
 Operation matrix:
@@ -303,10 +302,10 @@ CobolSharp implements the full ISO/IEC 1989:2023 I-O status code set. The shippe
 | 48 | WRITE on a file not open for OUTPUT, I-O, or EXTEND |
 | 49 | DELETE/REWRITE on a file not open for I-O |
 
-> **NOTE / stale-content correction.** The original essays listed several non-standard or speculative codes
-> (e.g. "23 = record locked", "90 = runtime error", "91 = lock conflict", "92 = logic error",
-> "93 = file integrity error"). These do **not** match the shipped, ISO-2023-conformant table above and were
-> design placeholders. The table above is authoritative; treat the older lists as superseded.
+> **NOTE.** Some non-standard or speculative codes occasionally seen in early notes (e.g. "23 = record
+> locked", "90 = runtime error", "91 = lock conflict", "92 = logic error", "93 = file integrity error") do
+> **not** match the shipped, ISO-2023-conformant table above and were design placeholders. The table above is
+> authoritative.
 
 File status is updated after every file operation (OPEN/READ/WRITE/REWRITE/DELETE/START/CLOSE) and written
 into the user‑defined FILE STATUS variable when one is declared (`FILE STATUS IS fs`).
@@ -394,7 +393,7 @@ The debugger surfaces, per file:
 - ExceptionState
 
 Sequence points are emitted for OPEN, CLOSE, READ, WRITE, REWRITE, DELETE, START.
-*(Debugger is design-only — Phase E — across the project; see the DEBUGGER architecture doc.)*
+*(Debugger is design-only — Phase E — across the project.)*
 
 ------------------------------------------------------------
 SECTION 15 — EDGE‑CASE BEHAVIOR

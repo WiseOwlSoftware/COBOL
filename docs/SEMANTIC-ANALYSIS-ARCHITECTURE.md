@@ -28,11 +28,7 @@ CobolSharp Semantic Analysis Architecture
 > **Plan SSOT:** `docs/MASTER_PLAN.md`. Doctrine: `PROMPT.md`. Companion LIVE rule docs:
 > `docs/CATEGORY-RULES.md` (data-category compatibility) and `docs/SCOPE-RULES.md` (name resolution / scoping).
 > The per-feature *behavior* "constitution" lives in the separate doc
-> `docs/CobolSharp COBOL Semantic Rules & Edge‑Case Behavior Specification.md` (a distinct behavior spec —
-> NOT merged here).
->
-> *Consolidated from 1 prior essay doc ("CobolSharp COBOL Semantic Analyzer & Symbol Table Architecture"),
-> 2026-06-07 — its unique still-current content is salvaged into the appended section below.*
+> `docs/CobolSharp COBOL Semantic Rules & Edge‑Case Behavior Specification.md`.
 
 High-level goals
 ----------------
@@ -331,12 +327,8 @@ The semantic analysis architecture for CobolSharp is:
 - Designed so CIL generation and IDE/LSP features operate on a clean, well-typed, fully-resolved semantic graph rather than the raw parse tree.
 
 ============================================================
-APPENDIX A — SALVAGED FROM THE PRIOR "SEMANTIC ANALYZER & SYMBOL TABLE ARCHITECTURE" ESSAY
+APPENDIX A — SYMBOL TABLE & ANALYZER DETAIL
 ============================================================
-
-> Consolidated 2026-06-07. The essay overlapped heavily with the passes above; only the items below
-> add unique, still-current detail. Stale framings were corrected: CIL-only (no custom VM); the
-> analyzer is already decomposed (binders/emitters); typed-native data model gated by `EnableTypedFields`.
 
 A.1 Symbol resolution order (name lookup)
 -----------------------------------------

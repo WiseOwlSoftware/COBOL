@@ -4,8 +4,14 @@
 It is the single SSOT + autonomous-execution playbook to reach the North Star — a **commercial-quality,
 decades-sustainable, full ISO/IEC 1989:2023** COBOL compiler, **no back-compat (rewrite/re-architect anything),
 implemented with maximum autonomy + maximum practical parallelism.** MASTER_PLAN sequences every phase and
-orchestrates the ~159 prior planning/architecture docs (it does not reinvent them). `resume-prompt.md` and
+orchestrates the prior planning/architecture docs (it does not reinvent them). `resume-prompt.md` and
 `docs/ISO2023_CONFORMANCE_PLAN.md` are sub-plans it points to. (memory `feedback_commercial_quality_north_star`.)
+
+## 🗺 DOC MAP: read `docs/DOC_INDEX.md` to navigate the docs
+The index of all docs (~126) — each doc's subject, type (LIVE/DESIGN/LEDGER/SPEC), and a maintenance guide. **Consult
+it to find the right doc; keep it in sync** when you add, retire, or materially change a doc. There is exactly one
+canonical doc per subsystem — extend it, never fork a second. A new subsystem ⇒ a new doc (with a status banner) + a
+new index row.
 
 Read PROMPT.md before making any code change. It contains architectural doctrine and development
 rules derived from 13+ sessions of building this compiler. Every rule exists because it was

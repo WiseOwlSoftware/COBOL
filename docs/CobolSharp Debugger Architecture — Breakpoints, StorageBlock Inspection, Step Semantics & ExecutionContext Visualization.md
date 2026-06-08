@@ -24,10 +24,6 @@ CobolSharp Debugger Architecture — Breakpoints, StorageBlock Inspection, Step 
 > here remain valid only for that islanded fallback.
 >
 > **Plan SSOT:** `docs/MASTER_PLAN.md` (Phase E owns this subsystem). **Doctrine:** `PROMPT.md`.
-> **Provenance:** Consolidated from 4 prior debugger architecture essays on 2026-06-07
-> (Breakpoints/StorageBlock/ExecutionContext [canonical base] + PDB-Symbol-Generation + Sequence-Point/Symbol-Mapping
-> + Sequence-Point/Symbol/Storage-Visualization). All unique current content from the other three is merged below
-> under clearly-marked "MERGED" sections.
 
 Purpose
 -------
@@ -364,8 +360,7 @@ Debugger unwinds PERFORM frames correctly.
 Debugger enters PROCEDURE DIVISION directly.
 
 ============================================================
-MERGED SECTION A — PDB SYMBOL GENERATION & DEBUGGING MODEL
-(from "CobolSharp COBOL Debugging & PDB Symbol Generation Architecture")
+SECTION 14 — PDB SYMBOL GENERATION & DEBUGGING MODEL
 ============================================================
 
 A.1 Three pillars of the debugging model
@@ -447,9 +442,8 @@ A.11 Paragraph/section → CIL mapping option
 Paragraphs map either to CIL methods (optional) or to CIL basic blocks with labels.
 
 ============================================================
-MERGED SECTION B — SYMBOL GENERATION BY STORAGE SECTION,
+SECTION 15 — SYMBOL GENERATION BY STORAGE SECTION,
 RECORD-BUFFER, JSON/XML & REPORT-WRITER VISUALIZATION
-(from "CobolSharp COBOL Debugger, Sequence‑Point, Symbol & Storage Visualization Architecture")
 ============================================================
 
 B.1 Symbol generation per storage section
@@ -495,8 +489,7 @@ B.6 Additional edge cases
 - **STOP RUN during debugging** — debugger terminates the session.
 
 ============================================================
-MERGED SECTION C — SOURCE-MAPPING DETAIL & WATCH/LOCALS WINDOWS
-(from "CobolSharp COBOL Debugger, Sequence Point & Symbol Mapping Architecture")
+SECTION 16 — SOURCE-MAPPING DETAIL & WATCH/LOCALS WINDOWS
 ============================================================
 
 C.1 Sequence-point placement (full list)
@@ -545,7 +538,7 @@ C.7 Stepping edge cases
 ------------------------------------------------------------
 Summary
 ------------------------------------------------------------
-The CobolSharp Debugger Architecture (consolidated):
+The CobolSharp Debugger Architecture:
 - Provides full COBOL‑aware debugging with StorageBlock/typed-value, ObjectTable, FileManager, and ExecutionContext
   visualization
 - Supports line/paragraph/section/conditional/hit-count breakpoints, Step Into/Over/Out, declarative tracing, and
