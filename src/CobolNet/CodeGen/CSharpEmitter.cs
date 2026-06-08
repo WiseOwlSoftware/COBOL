@@ -71,10 +71,17 @@ public sealed class CSharpEmitter
             string init = InitializerFor(item);
             string comment = item.CobolName is { } n ? $"   // {n} {item.Pic!.Category}" : "";
             w.Line($"private static {item.Pic!.ClrType} {item.CsName} = {init};{comment}");
+            // A numeric item also gets a static NumProfile — threaded into every store so arithmetic obeys its
+            // PICTURE+USAGE (scale, ROUNDED, truncation, capacity).
+            if (item.Pic.Category is PicCategory.Numeric && !item.Pic.IsFloat)
+                w.Line($"private static readonly NumProfile {ProfileName(item)} = {item.Pic.ProfileInitializer};");
         }
         foreach (var child in item.Children)
             EmitFieldRecursive(child, w);
     }
+
+    /// <summary>The C# name of an item's runtime numeric profile field.</summary>
+    private static string ProfileName(DataItem item) => "_P_" + item.CsName;
 
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
     private static string InitializerFor(DataItem item)
@@ -87,9 +94,34 @@ public sealed class CSharpEmitter
         {
             PicCategory.Alphanumeric or PicCategory.NumericEdited =>
                 $"CobolString.Store({CsStringLiteral(DecodeCobolString(raw))}, {pic.Length})",
-            PicCategory.Numeric => RenderNumericLiteral(raw, pic.IsDecimal),
+            // A numeric VALUE is stored unscaled at the item's own scale (e.g. VALUE 3.5 in a PIC 9V99 → 350L).
+            PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
+            PicCategory.Numeric => UnscaledAtScale(raw, pic.Scale),
             _ => pic.DefaultInitializer,
         };
+    }
+
+    /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
+    private static string RawValueAsFloat(string raw, PicInfo pic) =>
+        pic.Usage == Usage.Float ? $"{raw.Trim().TrimStart('+')}f" : $"{raw.Trim().TrimStart('+')}d";
+
+    /// <summary>
+    /// Render a numeric literal as a C# <c>long</c> holding its UNSCALED value at <paramref name="scale"/> fractional
+    /// digits — e.g. <c>"3.5"</c> at scale 2 → <c>350L</c>, <c>"12"</c> at scale 0 → <c>12L</c>. The literal's own
+    /// fractional digits are scaled up or truncated to match.
+    /// </summary>
+    private static string UnscaledAtScale(string raw, int scale)
+    {
+        string t = raw.Trim().TrimStart('+');
+        bool neg = t.StartsWith('-');
+        if (neg) t = t[1..];
+        int dot = t.IndexOf('.');
+        string intPart = dot < 0 ? t : t[..dot];
+        string fracPart = dot < 0 ? "" : t[(dot + 1)..];
+        if (fracPart.Length < scale) fracPart = fracPart.PadRight(scale, '0');
+        else if (fracPart.Length > scale) fracPart = fracPart[..scale];     // truncate excess fraction
+        string digits = (intPart + fracPart).TrimStart('0');
+        return $"{(neg ? "-" : "")}{(digits.Length == 0 ? "0" : digits)}L";
     }
 
     // ── PROCEDURE DIVISION → statements ──────────────────────────────────────────────────────────────────
@@ -170,33 +202,34 @@ public sealed class CSharpEmitter
     private void EmitAdd(Core.AddStatementContext add, CodeWriter w)
     {
         if (add.addOperandList() is not { } operands) { w.Line("// TODO(COBOL.NET): ADD CORRESPONDING"); return; }
-        string sum = string.Join(" + ", operands.addOperand().Select(RenderArithOperand));
+        var addends = operands.addOperand().Select(Num).ToList();
+        NumX sum = Fold(addends, "+");
 
         if (add.addGivingPhrase() is { } giving)
             foreach (var dref in DataRefs(giving))
-                EmitArithAssign(dref, sum, w);                       // GIVING t = a + b + …
+                EmitArithAssign(dref, sum, w);                                       // GIVING t = a + b + …
         else if (add.addToPhrase() is { } to)
             foreach (var dref in DataRefs(to))
                 if (Resolve(dref) is { } t)
-                    EmitArithAssign(dref, $"{t.CsName} + {sum}", w); // TO t = t + (a + b + …)
+                    EmitArithAssign(dref, Combine(FieldNum(t), "+", sum), w);        // TO t = t + (a + b + …)
     }
 
     /// <summary>Emit <c>SUBTRACT … FROM …</c> and <c>SUBTRACT … FROM … GIVING …</c> (numeric).</summary>
     private void EmitSubtract(Core.SubtractStatementContext sub, CodeWriter w)
     {
         if (sub.subtractOperandList() is not { } operands) { w.Line("// TODO(COBOL.NET): SUBTRACT CORRESPONDING"); return; }
-        string minuends = string.Join(" + ", operands.subtractOperand().Select(RenderArithOperand));
+        NumX minuends = Fold(operands.subtractOperand().Select(Num).ToList(), "+");
 
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
         {
-            string fromExpr = string.Join(" + ", DataRefs(from).Select(d => Resolve(d)?.CsName ?? d.GetText()));
+            NumX fromVal = Fold(DataRefs(from).Select(d => Resolve(d) is { } r ? FieldNum(r) : new NumX("0L", 0)).ToList(), "+");
             foreach (var dref in DataRefs(giving))
-                EmitArithAssign(dref, $"{fromExpr} - ({minuends})", w);      // GIVING t = from - (a+b+…)
+                EmitArithAssign(dref, Combine(fromVal, "-", minuends), w);           // GIVING t = from − (a+b+…)
         }
         else if (sub.subtractFromPhrase()?.subtractFromOperand() is { } fromTargets)
             foreach (var dref in DataRefs(fromTargets))
                 if (Resolve(dref) is { } t)
-                    EmitArithAssign(dref, $"{t.CsName} - ({minuends})", w);  // FROM t = t - (a+b+…)
+                    EmitArithAssign(dref, Combine(FieldNum(t), "-", minuends), w);   // FROM t = t − (a+b+…)
     }
 
     /// <summary>
@@ -279,8 +312,15 @@ public sealed class CSharpEmitter
         bool isString = IsStringOperand(operands[0]) || IsStringOperand(operands[1]);
         if (isString)
             return $"CobolString.Compare({OperandAsString(operands[0])}, {OperandAsString(operands[1])}) {csOp} 0";
-        return $"{OperandAsDecimal(operands[0])} {csOp} {OperandAsDecimal(operands[1])}";
+        // Numeric comparison: render both as scaled longs, align to the common scale, then compare (ISO §8.8.4.1.1).
+        NumX l = OperandNum(operands[0]), r = OperandNum(operands[1]);
+        int s = Math.Max(l.Scale, r.Scale);
+        return $"{Align(l, s)} {csOp} {Align(r, s)}";
     }
+
+    /// <summary>A comparison operand rendered as a scaled native-integer value.</summary>
+    private NumX OperandNum(Core.ComparisonOperandContext operand) =>
+        operand.valueOperand()?.arithmeticExpression() is { } expr ? Num(expr) : new NumX("0L", 0);
 
     /// <summary>
     /// Map a COBOL comparison operator (any symbolic or word form, possibly negated) to a C# operator. The symbolic
@@ -320,10 +360,6 @@ public sealed class CSharpEmitter
         return "\"\"";
     }
 
-    /// <summary>Render a comparison operand as a C# decimal value.</summary>
-    private string OperandAsDecimal(Core.ComparisonOperandContext operand) =>
-        operand.valueOperand()?.arithmeticExpression() is { } expr ? RenderArith(expr) : "0m";
-
     /// <summary>If an arithmetic expression is exactly one data reference (no operators), return it; else null.</summary>
     private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
     {
@@ -337,176 +373,231 @@ public sealed class CSharpEmitter
     }
 
     /// <summary>
-    /// Emit <c>COMPUTE t [t2 …] = arithmetic-expression</c>. The expression is evaluated in <see cref="decimal"/>
-    /// (every operand cast to decimal so division is COBOL-real, not C# integer division), then stored into each
-    /// target with its storage type's truncation. ROUNDED / SIZE ERROR land with the full <c>CobolNum</c> store (G3).
+    /// Emit <c>COMPUTE t [t2 …] = arithmetic-expression</c>. The RHS is rendered as a scale-tracked native-integer
+    /// expression and stored into each target via <c>CobolNum.Store</c> (which applies the receiver's scale,
+    /// truncation, and — later — ROUNDED / SIZE ERROR). The receiver's scale is set as the division working scale.
     /// </summary>
     private void EmitCompute(Core.ComputeStatementContext compute, CodeWriter w)
     {
         if (compute.arithmeticExpression() is not { } expr) { w.Line("// TODO(COBOL.NET): COMPUTE without expression"); return; }
-        string value = RenderArith(expr);
         foreach (var store in compute.computeStore())
-            if (store.dataReference() is { } target)
-                EmitArithAssign(target, value, w);
+            if (store.dataReference() is { } target && Resolve(target) is { Pic.Scale: var s })
+            {
+                _targetScale = s;                       // division inside the RHS computes at the receiver's scale
+                EmitArithAssign(target, Num(expr), w);
+            }
     }
 
-    /// <summary>
-    /// Translate a COBOL arithmetic expression to an equivalent C# <see cref="decimal"/> expression, preserving
-    /// COBOL operator precedence (the grammar already encodes additive &gt; multiplicative &gt; power). Every leaf
-    /// operand is cast to <c>decimal</c> so the whole evaluation is decimal (COBOL division is real division).
-    /// </summary>
-    private string RenderArith(IParseTree node)
-    {
-        switch (node)
-        {
-            case Core.ArithmeticExpressionContext a:
-                return RenderArith(a.GetChild(0));
-
-            // additive / multiplicative: operands interleaved with addOp/mulOp rule nodes, in order.
-            case Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext:
-            {
-                var sb = new System.Text.StringBuilder();
-                foreach (var child in Children(node))
-                    sb.Append(child is Core.AddOpContext or Core.MulOpContext ? $" {child.GetText()} " : RenderArith(child));
-                return sb.ToString();
-            }
-
-            // power: a ** b ** c → left-folded Math.Pow (in double, re-cast to decimal).
-            case Core.PowerExpressionContext p:
-            {
-                var bases = p.unaryExpression();
-                string acc = RenderArith(bases[0]);
-                for (int i = 1; i < bases.Length; i++)
-                    acc = $"(decimal)System.Math.Pow((double)({acc}), (double)({RenderArith(bases[i])}))";
-                return acc;
-            }
-
-            case Core.UnaryExpressionContext u:
-                return u.primaryExpression() is { } prim
-                    ? RenderArith(prim)
-                    : $"{u.addOp().GetText()}{RenderArith(u.unaryExpression())}";
-
-            case Core.PrimaryExpressionContext pe:
-                if (pe.numericLiteral() is { } num) return RenderNumericLiteral(num.GetText(), asDecimal: true);
-                if (pe.ZERO_ARITH() is not null) return "0m";
-                if (pe.dataReference() is { } dref) return $"(decimal){(Resolve(dref)?.CsName ?? "0")}";
-                if (pe.arithmeticExpression() is { } paren) return $"({RenderArith(paren)})";
-                return "0m /* TODO(COBOL.NET): function-call operand */";
-
-            default:
-                return RenderArith(node.GetChild(0)); // single pass-through wrapper levels
-        }
-    }
-
-    /// <summary>
-    /// Emit <c>MULTIPLY a BY b</c> (→ <c>b = b * a</c> per receiver) and <c>MULTIPLY a BY b GIVING c…</c>
-    /// (→ <c>c = a * b</c>). ROUNDED / SIZE ERROR land with the full CobolNum store (G3).
-    /// </summary>
+    /// <summary>Emit <c>MULTIPLY a BY b</c> (→ <c>b = b × a</c>) and <c>MULTIPLY a BY b GIVING c…</c> (→ <c>c = a × b</c>).</summary>
     private void EmitMultiply(Core.MultiplyStatementContext mul, CodeWriter w)
     {
         if (mul.multiplyOperand() is not { } aCtx) { w.Line("// TODO(COBOL.NET): MULTIPLY form"); return; }
-        string a = NumDecimal(aCtx);
+        NumX a = Num(aCtx);
         var byOps = mul.multiplyByOperand();
 
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
         {
-            string b = NumDecimal(byOps[0]);
-            foreach (var target in DataRefs(giving))
-                EmitArithAssign(target, $"{a} * {b}", w);
+            NumX b = Num(byOps[0]);
+            foreach (var target in DataRefs(giving)) AssignScaled(target, Combine(a, "*", b), w);
         }
         else
             foreach (var byOp in byOps)
                 if (DataRefs(byOp).FirstOrDefault() is { } target && Resolve(target) is { } t)
-                    EmitArithAssign(target, $"(decimal){t.CsName} * {a}", w);
+                    AssignScaled(target, Combine(FieldNum(t), "*", a), w);
     }
 
-    /// <summary>
-    /// Emit <c>DIVIDE a INTO b [GIVING c]</c> (→ <c>b = b / a</c> / <c>c = b / a</c>) and
-    /// <c>DIVIDE a BY b GIVING c</c> (→ <c>c = a / b</c>). REMAINDER is a later slice.
-    /// </summary>
+    /// <summary>Emit <c>DIVIDE a INTO b [GIVING c]</c> (b ÷ a) and <c>DIVIDE a BY b GIVING c</c> (a ÷ b). REMAINDER: later.</summary>
     private void EmitDivide(Core.DivideStatementContext div, CodeWriter w)
     {
         if (div.divideRemainderPhrase() is not null) { w.Line("// TODO(COBOL.NET): DIVIDE … REMAINDER"); return; }
         if (div.divideOperand() is not { } aCtx) { w.Line("// TODO(COBOL.NET): DIVIDE form"); return; }
-        string a = NumDecimal(aCtx);
+        NumX a = Num(aCtx);
 
         if (div.divideIntoPhrase() is { } into)
         {
-            // DIVIDE a INTO b [GIVING c]: divisor = a; dividend = b.
-            string b = NumDecimal(into.divideIntoOperand());
+            NumX b = Num(into.divideIntoOperand());                  // dividend; divisor = a
             if (div.divideGivingPhrase() is { } giving)
-                foreach (var target in DataRefs(giving)) EmitArithAssign(target, $"{b} / {a}", w);
+                foreach (var target in DataRefs(giving)) AssignDivide(target, b, a, w);
             else
                 foreach (var target in DataRefs(into))
-                    if (Resolve(target) is { } t) EmitArithAssign(target, $"(decimal){t.CsName} / {a}", w);
+                    if (Resolve(target) is { } t) AssignDivide(target, FieldNum(t), a, w);
         }
         else if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } giving)
         {
-            // DIVIDE a BY b GIVING c: c = a / b.
-            string b = NumDecimal(byPhrase.divideOperand());
-            foreach (var target in DataRefs(giving)) EmitArithAssign(target, $"{a} / {b}", w);
+            NumX b = Num(byPhrase.divideOperand());                  // DIVIDE a BY b GIVING c → c = a ÷ b
+            foreach (var target in DataRefs(giving)) AssignDivide(target, a, b, w);
         }
     }
 
-    /// <summary>Render any arithmetic operand node (data reference or numeric literal) as a C# decimal expression.</summary>
-    private string NumDecimal(IParseTree operand)
+    /// <summary>Assign <c>dividend ÷ divisor</c> into a target, computing the quotient at the target's scale.</summary>
+    private void AssignDivide(Core.DataReferenceContext target, NumX dividend, NumX divisor, CodeWriter w)
     {
-        foreach (var d in Descendants(operand))
-        {
-            if (d is Core.LiteralContext l) return RenderNumericLiteral(l.GetText(), asDecimal: true);
-            if (d is Core.DataReferenceContext dref) return $"(decimal){Resolve(dref)?.CsName ?? "0"}";
-        }
-        return "0m";
+        _targetScale = Resolve(target)?.Pic?.Scale ?? 0;
+        AssignScaled(target, Combine(dividend, "/", divisor), w);
     }
 
-    /// <summary>A node and all its descendants, in source (pre-order) sequence.</summary>
-    private static IEnumerable<IParseTree> Descendants(IParseTree node)
+    /// <summary>Store a scaled native-integer value into a numeric target via the runtime engine.</summary>
+    private void AssignScaled(Core.DataReferenceContext target, NumX value, CodeWriter w) =>
+        EmitArithAssign(target, value, w);
+
+    // ── Scale-tracked native-integer numeric expressions ─────────────────────────────────────────────────
+
+    /// <summary>A rendered numeric expression: a C# <c>long</c>-valued expression holding the UNSCALED value, plus
+    /// its fractional <see cref="Scale"/> (the implied decimal position). The pair lets the emitter align scales.</summary>
+    private readonly record struct NumX(string Expr, int Scale);
+
+    /// <summary>The division working scale (the receiving item's scale), set before rendering an RHS.</summary>
+    private int _targetScale;
+
+    /// <summary>Store a numeric <see cref="NumX"/> result into a numeric target via <c>CobolNum.Store</c>.</summary>
+    private void EmitArithAssign(Core.DataReferenceContext target, NumX value, CodeWriter w)
+    {
+        if (Resolve(target) is not { Pic: { Category: PicCategory.Numeric, IsFloat: false } } t)
+        {
+            w.Line($"// TODO(COBOL.NET): arithmetic target '{target.GetText()}' is not a simple fixed-point item");
+            return;
+        }
+        w.Line($"{t.CsName} = CobolNum.Store({value.Expr}, {value.Scale}, {ProfileName(t)});");
+    }
+
+    /// <summary>Render any numeric node (expression, operand wrapper, literal, or data reference) as a scaled long.</summary>
+    private NumX Num(IParseTree node) => node switch
+    {
+        Core.ArithmeticExpressionContext a => Num(a.GetChild(0)),
+        Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext => NumChain(node),
+        Core.PowerExpressionContext p => NumPower(p),
+        Core.UnaryExpressionContext u => u.primaryExpression() is { } pr ? Num(pr)
+            : u.addOp().GetText() == "-" ? Negate(Num(u.unaryExpression())) : Num(u.unaryExpression()),
+        Core.PrimaryExpressionContext pe => NumPrimary(pe),
+        Core.LiteralContext l => UnscaledLit(l.GetText()),
+        Core.DataReferenceContext d => Resolve(d) is { } r ? FieldNum(r) : new NumX("0L", 0),
+        _ => FindOperandNum(node),   // operand wrappers (addOperand, multiplyByOperand, …): descend to the leaf
+    };
+
+    /// <summary>Fold an additive/multiplicative chain left-to-right, combining operands by their interleaved operators.</summary>
+    private NumX NumChain(IParseTree node)
+    {
+        NumX? acc = null;
+        string op = "+";
+        foreach (var child in Children(node))
+        {
+            if (child is Core.AddOpContext or Core.MulOpContext) op = child.GetText();
+            else { NumX x = Num(child); acc = acc is { } a ? Combine(a, op, x) : x; }
+        }
+        return acc ?? new NumX("0L", 0);
+    }
+
+    /// <summary>Render <c>a ** b ** …</c> left-folded via <c>Math.Pow</c> (scale 0 — exponentiation result is integral here).</summary>
+    private NumX NumPower(Core.PowerExpressionContext p)
+    {
+        var bases = p.unaryExpression();
+        NumX acc = Num(bases[0]);
+        for (int i = 1; i < bases.Length; i++)
+        {
+            NumX e = Num(bases[i]);
+            acc = new NumX($"(long)System.Math.Pow((double)({Real(acc)}), (double)({Real(e)}))", 0);
+        }
+        return acc;
+    }
+
+    /// <summary>Render a primary numeric expression.</summary>
+    private NumX NumPrimary(Core.PrimaryExpressionContext pe)
+    {
+        if (pe.numericLiteral() is { } num) return UnscaledLit(num.GetText());
+        if (pe.ZERO_ARITH() is not null) return new NumX("0L", 0);
+        if (pe.dataReference() is { } dref) return Resolve(dref) is { } r ? FieldNum(r) : new NumX("0L", 0);
+        if (pe.arithmeticExpression() is { } paren) return Num(paren);
+        return new NumX("0L /* TODO(COBOL.NET): function-call operand */", 0);
+    }
+
+    /// <summary>The scaled value of a data item (its unscaled <c>long</c> field + its scale). A float item is
+    /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice).</summary>
+    private static NumX FieldNum(DataItem item) =>
+        item.Pic!.IsFloat ? new NumX($"(long){item.CsName}", 0) : new NumX(item.CsName, item.Pic.Scale);
+
+    /// <summary>Left-fold a list of scaled values with a single operator (e.g. the addends of an ADD).</summary>
+    private NumX Fold(IReadOnlyList<NumX> xs, string op)
+    {
+        if (xs.Count == 0) return new NumX("0L", 0);
+        NumX acc = xs[0];
+        for (int i = 1; i < xs.Count; i++) acc = Combine(acc, op, xs[i]);
+        return acc;
+    }
+
+    /// <summary>Combine two scaled values with a COBOL operator, tracking the result scale (ISO §8.8.1).</summary>
+    private NumX Combine(NumX a, string op, NumX b) => op switch
+    {
+        "+" or "-" => CombineAdditive(a, op, b),
+        "*" => new NumX($"({a.Expr} * {b.Expr})", a.Scale + b.Scale),     // multiplication: scales add (exact)
+        "/" => new NumX(                                                  // division: quotient at the working scale
+            $"CobolNum.Divide({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {DivScale(a, b)}, CobolRounding.Truncation)",
+            DivScale(a, b)),
+        _ => a,
+    };
+
+    /// <summary>Add/subtract two scaled values, first aligning both to the larger scale (a widening, hence exact).</summary>
+    private static NumX CombineAdditive(NumX a, string op, NumX b)
+    {
+        int s = Math.Max(a.Scale, b.Scale);
+        return new NumX($"({Align(a, s)} {op} {Align(b, s)})", s);
+    }
+
+    /// <summary>The fractional scale a division produces: the receiver's scale, but at least the operands' scales.</summary>
+    private int DivScale(NumX a, NumX b) => Math.Max(_targetScale, Math.Max(a.Scale, b.Scale));
+
+    /// <summary>Rescale a value's unscaled long up to <paramref name="toScale"/> (widening only here → exact).</summary>
+    private static string Align(NumX x, int toScale) =>
+        toScale == x.Scale ? x.Expr : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
+
+    /// <summary>Negate a scaled value.</summary>
+    private static NumX Negate(NumX x) => new($"(-{x.Expr})", x.Scale);
+
+    /// <summary>The real (double) value of a scaled long — for the floating-point <c>**</c> path.</summary>
+    private static string Real(NumX x) => x.Scale == 0 ? $"(double){x.Expr}" : $"({x.Expr} / {Pow10D(x.Scale)})";
+
+    private static string Pow10D(int n) { double r = 1; for (int i = 0; i < n; i++) r *= 10; return $"{r}d"; }
+
+    /// <summary>Descend an operand-wrapper node to its numeric literal or data reference.</summary>
+    private NumX FindOperandNum(IParseTree node)
     {
         for (int i = 0; i < node.ChildCount; i++)
         {
-            var child = node.GetChild(i);
-            yield return child;
-            foreach (var inner in Descendants(child)) yield return inner;
+            var c = node.GetChild(i);
+            if (c is Core.LiteralContext l) return UnscaledLit(l.GetText());
+            if (c is Core.DataReferenceContext d) return Resolve(d) is { } r ? FieldNum(r) : new NumX("0L", 0);
+            NumX inner = FindOperandNum(c);
+            if (inner.Expr != "0L") return inner;
         }
+        return new NumX("0L", 0);
     }
 
-    /// <summary>Assign an arithmetic result to a numeric target, with the right numeric C# type.</summary>
-    private void EmitArithAssign(Core.DataReferenceContext target, string expr, CodeWriter w)
+    /// <summary>Render a numeric literal as a scaled <c>long</c>: its digits as the unscaled value, its fractional
+    /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>).</summary>
+    private static NumX UnscaledLit(string text)
     {
-        if (Resolve(target) is not { Pic: { Category: PicCategory.Numeric } pic } t)
-        {
-            w.Line($"// TODO(COBOL.NET): arithmetic target '{target.GetText()}' is not a simple numeric item");
-            return;
-        }
-        // Cast the result to the target's storage type (truncation/ROUNDED/SIZE-ERROR via CobolNum lands with G3).
-        string cast = pic.IsDecimal ? "(decimal)" : "(long)";
-        w.Line($"{t.CsName} = {cast}({expr});");
+        string t = text.Trim().TrimStart('+');
+        int dot = t.IndexOf('.');
+        if (dot < 0) return new NumX($"{t}L", 0);
+        int scale = t.Length - dot - 1;
+        return new NumX($"{t.Remove(dot, 1)}L", scale);
     }
-
-    // ── Operand rendering ────────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>Render an operand (data reference or literal) as a C# numeric expression.</summary>
-    private string RenderArithOperand(IParseTree operand) => operand switch
-    {
-        Core.AddOperandContext a when a.literal() is { } l => RenderNumericLiteral(l.GetText(), IsDecimalLiteral(l.GetText())),
-        Core.AddOperandContext a when a.dataReference() is { } d => Resolve(d)?.CsName ?? d.GetText(),
-        Core.SubtractOperandContext sub when sub.literal() is { } l => RenderNumericLiteral(l.GetText(), IsDecimalLiteral(l.GetText())),
-        Core.SubtractOperandContext sub when sub.dataReference() is { } d => Resolve(d)?.CsName ?? d.GetText(),
-        _ => "0",
-    };
 
     /// <summary>Convert a MOVE sending operand to the C# expression assigned into <paramref name="target"/>.</summary>
     private string ConvertToTarget(Core.MoveSendingOperandContext send, DataItem target)
     {
         var pic = target.Pic!;
-        return pic.Category switch
+        switch (pic.Category)
         {
-            PicCategory.Alphanumeric or PicCategory.NumericEdited =>
-                $"CobolString.Store({SendAsString(send)}, {pic.Length})",
-            PicCategory.Numeric =>
-                pic.IsDecimal ? $"(decimal)({SendAsNumber(send)})" : $"(long)({SendAsNumber(send)})",
-            _ => "default",
-        };
+            case PicCategory.Alphanumeric or PicCategory.NumericEdited:
+                // Alphanumeric MOVE: a numeric source moves its DISPLAY image (digits); a string source its value.
+                return $"CobolString.Store({SendAsString(send)}, {pic.Length})";
+            case PicCategory.Numeric:
+                // Numeric MOVE: rescale the source (at its own scale) into the receiver's PICTURE+USAGE.
+                NumX src = SendAsNumber(send);
+                return $"CobolNum.Store({src.Expr}, {src.Scale}, {ProfileName(target)})";
+            default:
+                return "default";
+        }
     }
 
     /// <summary>A MOVE sending operand rendered as a C# <see cref="string"/> (its display image).</summary>
@@ -517,12 +608,12 @@ public sealed class CSharpEmitter
         return "\"\"";
     }
 
-    /// <summary>A MOVE sending operand rendered as a C# numeric expression.</summary>
-    private string SendAsNumber(Core.MoveSendingOperandContext send)
+    /// <summary>A MOVE sending operand rendered as a scaled native-integer value.</summary>
+    private NumX SendAsNumber(Core.MoveSendingOperandContext send)
     {
-        if (send.literal() is { } lit) return RenderNumericLiteral(lit.GetText(), IsDecimalLiteral(lit.GetText()));
-        if (send.dataReference() is { } dref) return Resolve(dref)?.CsName ?? "0";
-        return "0";
+        if (send.literal() is { } lit) return UnscaledLit(lit.GetText());
+        if (send.dataReference() is { } dref) return Resolve(dref) is { } r ? FieldNum(r) : new NumX("0L", 0);
+        return new NumX("0L", 0);
     }
 
     /// <summary>Read a data reference as a C# <see cref="string"/> (its DISPLAY image).</summary>
@@ -531,8 +622,9 @@ public sealed class CSharpEmitter
         if (Resolve(dref) is not { } item) return CsStringLiteral($"<{dref.GetText()}>");
         return item.Pic switch
         {
-            { Category: PicCategory.Numeric, IsDecimal: false } p => $"CobolNum.FormatUnsignedDisplay({item.CsName}, {p.Digits})",
-            { Category: PicCategory.Numeric } => $"{item.CsName}.ToString()",      // scaled — refine with G3 edited path
+            // Fixed-point numeric → its DISPLAY image (unscaled digits, zero-padded, no point) via the profile.
+            { Category: PicCategory.Numeric, IsFloat: false } => $"CobolNum.FormatDisplay({item.CsName}, {ProfileName(item)})",
+            { Category: PicCategory.Numeric } => $"{item.CsName}.ToString()",       // COMP-1/2 float — refine later
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited } => item.CsName,
             _ => $"{item.CsName}.ToString()",
         };
@@ -543,15 +635,6 @@ public sealed class CSharpEmitter
         lit.nonNumericLiteral()?.STRINGLIT() is { } s
             ? CsStringLiteral(DecodeCobolString(s.GetText()))
             : CsStringLiteral(lit.GetText());
-
-    /// <summary>Render a COBOL numeric literal as a C# numeric literal (<c>long</c> or <c>decimal</c>).</summary>
-    private static string RenderNumericLiteral(string text, bool asDecimal)
-    {
-        string t = text.Trim().TrimStart('+');
-        return asDecimal ? $"{t}m" : $"{t}L";
-    }
-
-    private static bool IsDecimalLiteral(string text) => text.Contains('.');
 
     // ── Reference resolution + helpers ───────────────────────────────────────────────────────────────────
 

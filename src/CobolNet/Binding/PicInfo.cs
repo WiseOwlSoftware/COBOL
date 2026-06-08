@@ -56,26 +56,51 @@ public sealed record PicInfo(
     public string ClrType => Category switch
     {
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
-        PicCategory.Numeric => Usage switch
-        {
-            Usage.Float => "float",
-            Usage.Double => "double",
-            _ => Scale > 0 ? "decimal" : "long",
-        },
+        // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native long holding the UNSCALED value
+        // (all digits; the decimal point is implied by Scale, compile-time metadata) — hardware-native, exact, and
+        // its digits are the DISPLAY image directly. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
+        PicCategory.Numeric => Usage switch { Usage.Float => "float", Usage.Double => "double", _ => "long" },
         _ => "object", // Group: never stored as a scalar (emitted as a record struct).
     };
 
-    /// <summary>True when the .NET storage type is <see cref="decimal"/> (signed or scaled numeric).</summary>
-    public bool IsDecimal => Category == PicCategory.Numeric && Usage is not (Usage.Float or Usage.Double) && Scale > 0;
+    /// <summary>True for a floating-point usage (COMP-1/COMP-2); its value is IEEE, not a scaled integer.</summary>
+    public bool IsFloat => Usage is Usage.Float or Usage.Double;
 
     /// <summary>The default C# initializer for an item with no VALUE clause (COBOL initial state, ISO §13.18.63).</summary>
     public string DefaultInitializer => Category switch
     {
-        // Alphanumeric defaults to spaces; numeric to zero. (Numeric-edited defaults to its zero image — later slice.)
+        // Alphanumeric defaults to spaces; numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
-        PicCategory.Numeric => Usage switch { Usage.Float => "0f", Usage.Double => "0d", _ => Scale > 0 ? "0m" : "0L" },
+        PicCategory.Numeric => Usage switch { Usage.Float => "0f", Usage.Double => "0d", _ => "0L" },
         _ => "default",
     };
+
+    /// <summary>Storage width in bytes, for the PACKED-DECIMAL / COMP-5 capacity disciplines (else 0 — unused).</summary>
+    public int StorageWidth => Usage switch
+    {
+        Usage.Packed => Digits / 2 + 1,
+        Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
+        _ => 0,
+    };
+
+    /// <summary>
+    /// The C# initializer text for this item's runtime <c>NumProfile</c> (threaded into every numeric store so
+    /// arithmetic obeys the receiver's PICTURE+USAGE). Emitted once per numeric item as a static readonly field.
+    /// </summary>
+    public string ProfileInitializer
+    {
+        get
+        {
+            string trunc = Usage switch
+            {
+                Usage.Packed => "NumericTruncation.PackedDecimal",
+                Usage.Comp5 => "NumericTruncation.BinaryCapacity",
+                _ => "NumericTruncation.DigitCount",
+            };
+            return $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
+                   $"Signed = {(Signed ? "true" : "false")}, Truncation = {trunc}, StorageLength = {StorageWidth} }}";
+        }
+    }
 
     /// <summary>
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword.
