@@ -44,10 +44,29 @@ public sealed class CSharpEmitter
         using (w.Block("internal static class Program"))
         {
             EmitWorkingStorage(w);
-            w.Line();
-            using (w.Block("private static void Main()"))
-                if (program?.procedureDivision() is { } pd)
-                    EmitProcedureDivision(pd, w);
+
+            if (program?.procedureDivision() is { } pd)
+            {
+                CollectParagraphs(pd);
+                w.Line();
+                // Main runs the paragraphs in source order — COBOL "fall-through" is a sequential call chain;
+                // STOP RUN / GOBACK throw StopRun to unwind the whole chain (ISO §14.9.43).
+                using (w.Block("private static void Main()"))
+                {
+                    using (w.Block("try"))
+                        foreach (var p in _paras) w.Line($"{p.Method}();");
+                    w.Line("catch (StopRun) { }");
+                }
+                // One method per paragraph.
+                foreach (var p in _paras)
+                {
+                    w.Line();
+                    using (w.Block($"private static void {p.Method}()"))
+                        EmitParagraphBody(p.Ctx, w);
+                }
+            }
+            else
+                using (w.Block("private static void Main()")) { }
         }
 
         return w.ToString();
@@ -124,22 +143,44 @@ public sealed class CSharpEmitter
         return $"{(neg ? "-" : "")}{(digits.Length == 0 ? "0" : digits)}L";
     }
 
-    // ── PROCEDURE DIVISION → statements ──────────────────────────────────────────────────────────────────
+    // ── PROCEDURE DIVISION → paragraph methods + control flow ────────────────────────────────────────────
 
-    /// <summary>Emit the statements of every paragraph/section, in source order (flat — control flow is task G4).</summary>
-    private void EmitProcedureDivision(Core.ProcedureDivisionContext pd, CodeWriter w)
+    /// <summary>A bound paragraph: its COBOL name, the C# method name it emits as, and its parse subtree.</summary>
+    private sealed record Para(string CobolName, string Method, Core.ParagraphDefinitionContext Ctx);
+
+    private List<Para> _paras = [];
+    private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Collect every paragraph (flattening sections) in source order, assigning each a unique C# method name.</summary>
+    private void CollectParagraphs(Core.ProcedureDivisionContext pd)
     {
+        _paras = [];
+        _paraIndex.Clear();
+        var used = new HashSet<string>(StringComparer.Ordinal);
+
+        void Add(Core.ParagraphDefinitionContext p)
+        {
+            string name = p.paragraphName().GetText();
+            string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
+            string method = baseName;
+            for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
+            _paraIndex.TryAdd(name, _paras.Count);   // first definition wins for PERFORM resolution
+            _paras.Add(new Para(name, method, p));
+        }
+
         foreach (var unit in pd.procedureUnit())
         {
-            if (unit.paragraphDefinition() is { } para)
-                EmitParagraph(para, w);
+            if (unit.paragraphDefinition() is { } para) Add(para);
             else if (unit.sectionDefinition() is { } section)
-                foreach (var p in section.paragraphDefinition())
-                    EmitParagraph(p, w);
+                foreach (var p in section.paragraphDefinition()) Add(p);
         }
     }
 
-    private void EmitParagraph(Core.ParagraphDefinitionContext para, CodeWriter w)
+    /// <summary>The C# method name a PERFORM target (COBOL paragraph name) resolves to.</summary>
+    private string MethodOf(string cobolName) =>
+        _paraIndex.TryGetValue(cobolName, out int i) ? _paras[i].Method : "P_" + cobolName.Replace('-', '_');
+
+    private void EmitParagraphBody(Core.ParagraphDefinitionContext para, CodeWriter w)
     {
         foreach (var sentence in para.sentence())
             foreach (var statement in sentence.statement())
@@ -159,7 +200,9 @@ public sealed class CSharpEmitter
             case var _ when s.divideStatement() is { } div: EmitDivide(div, w); break;
             case var _ when s.computeStatement() is { } c: EmitCompute(c, w); break;
             case var _ when s.ifStatement() is { } iff: EmitIf(iff, w); break;
-            case var _ when s.stopStatement() is not null || s.gobackStatement() is not null: w.Line("return;"); break;
+            case var _ when s.performStatement() is { } p: EmitPerform(p, w); break;
+            case var _ when s.stopStatement() is not null || s.gobackStatement() is not null:
+                w.Line("throw new StopRun();"); break;   // unwind the paragraph call-chain (ISO §14.9.43)
             default: w.Line($"// TODO(COBOL.NET): unsupported statement '{FirstToken(s)}'"); break;
         }
     }
@@ -262,6 +305,81 @@ public sealed class CSharpEmitter
             foreach (var statement in block.statement())
                 EmitStatement(statement, w);
     }
+
+    // ── PERFORM ──────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Emit a <c>PERFORM</c>: out-of-line (a paragraph or <c>THRU</c> range, optionally looped <c>n TIMES</c> /
+    /// <c>UNTIL</c>) or inline (a statement block looped). The body is "execute these paragraphs in order then
+    /// return" — a sequential call chain, matching COBOL's perform-range semantics for well-structured ranges.
+    /// (PERFORM VARYING and ranges that contain GO TO are later slices — the latter needs the PC dispatcher.)
+    /// </summary>
+    private void EmitPerform(Core.PerformStatementContext p, CodeWriter w)
+    {
+        var names = p.procedureName();
+        if (names.Length == 0)
+        {
+            EmitInlinePerform(p, w);   // PERFORM [options] <statements> END-PERFORM
+            return;
+        }
+
+        // The body: call the target paragraph, or every paragraph in the THRU range, in order.
+        var body = new List<string>();
+        if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2
+            && _paraIndex.TryGetValue(names[0].GetText(), out int i)
+            && _paraIndex.TryGetValue(names[1].GetText(), out int j) && i <= j)
+            for (int k = i; k <= j; k++) body.Add($"{_paras[k].Method}();");
+        else
+            body.Add($"{MethodOf(names[0].GetText())}();");
+
+        if (p.performTimes() is { } times) EmitLoop($"for (long _i = 0; _i < {TimesCount(times)}; _i++)", body, w);
+        else if (p.performUntil() is { } until) EmitUntil(until, body, w);
+        else if (p.performVarying() is not null) w.Line("// TODO(COBOL.NET): PERFORM VARYING (out-of-line)");
+        else foreach (var line in body) w.Line(line);   // simple PERFORM / PERFORM THRU
+    }
+
+    /// <summary>Emit an inline <c>PERFORM … END-PERFORM</c> (optionally with TIMES/UNTIL options).</summary>
+    private void EmitInlinePerform(Core.PerformStatementContext p, CodeWriter w)
+    {
+        void EmitBody(CodeWriter cw) => EmitBlocks(p.statementBlock(), cw);
+        var opts = p.performOptions();
+        if (opts.Length == 0) { using (w.Block("do")) EmitBody(w); w.Line("while (false);"); return; }   // once
+
+        var opt = opts[0];
+        if (opt.performTimes() is { } t)
+            using (w.Block($"for (long _i = 0; _i < {TimesCount(t)}; _i++)")) EmitBody(w);
+        else if (opt.performUntil() is { } u)
+        {
+            string cond = RenderCondition(u.condition());
+            if (u.AFTER() is not null) { using (w.Block("do")) EmitBody(w); w.Line($"while (!({cond}));"); }
+            else using (w.Block($"while (!({cond}))")) EmitBody(w);
+        }
+        else w.Line("// TODO(COBOL.NET): inline PERFORM VARYING");
+    }
+
+    /// <summary>Emit a loop header wrapping a body of pre-rendered statement lines.</summary>
+    private static void EmitLoop(string header, IReadOnlyList<string> body, CodeWriter w)
+    {
+        using (w.Block(header))
+            foreach (var line in body) w.Line(line);
+    }
+
+    /// <summary>Emit a <c>PERFORM … UNTIL</c> loop (TEST BEFORE → while; TEST AFTER → do/while).</summary>
+    private void EmitUntil(Core.PerformUntilContext until, IReadOnlyList<string> body, CodeWriter w)
+    {
+        string cond = RenderCondition(until.condition());
+        if (until.AFTER() is not null)
+        {
+            using (w.Block("do")) foreach (var line in body) w.Line(line);
+            w.Line($"while (!({cond}));");
+        }
+        else EmitLoop($"while (!({cond}))", body, w);
+    }
+
+    /// <summary>The C# count expression for a <c>PERFORM … n TIMES</c> phrase (literal or data item).</summary>
+    private string TimesCount(Core.PerformTimesContext t) =>
+        t.integerLiteral() is { } lit ? lit.GetText()
+        : t.dataReference() is { } d && Resolve(d) is { } r ? r.CsName : "1";
 
     // ── Condition translation (IF / relational / logical) ────────────────────────────────────────────────
 
