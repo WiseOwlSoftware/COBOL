@@ -38,9 +38,24 @@ public static class RoslynBackend
 
         EmitResult emit = compilation.Emit(outputDllPath);
         if (emit.Success)
+        {
             WriteRuntimeConfig(outputDllPath);
+            DeployRuntime(outputDllPath);
+        }
 
         return new Result(emit.Success, emit.Diagnostics);
+    }
+
+    /// <summary>The COBOL.NET runtime assembly the generated program calls (alongside the compiler).</summary>
+    private static string RuntimePath =>
+        Path.Combine(AppContext.BaseDirectory, "CobolNet.Runtime.dll");
+
+    /// <summary>Copy <c>CobolNet.Runtime.dll</c> next to the compiled program so it resolves at run time.</summary>
+    private static void DeployRuntime(string outputDllPath)
+    {
+        string dest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputDllPath))!, "CobolNet.Runtime.dll");
+        if (!string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase) && File.Exists(RuntimePath))
+            File.Copy(RuntimePath, dest, overwrite: true);
     }
 
     /// <summary>
@@ -51,9 +66,13 @@ public static class RoslynBackend
     private static IReadOnlyList<MetadataReference> ReferenceAssemblies()
     {
         string tpa = (string)(AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "");
-        return [.. tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+        var refs = tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Where(static p => p.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-            .Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))];
+            .Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))
+            .ToList();
+        // The COBOL.NET runtime the generated program calls (CobolNum / CobolString).
+        if (File.Exists(RuntimePath)) refs.Add(MetadataReference.CreateFromFile(RuntimePath));
+        return refs;
     }
 
     /// <summary>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    COBOL.NET runtime library — the clean, typed-native runtime that COBOL.NET-generated C# programs call. It has
+    NO byte-array storage substrate: numeric values are long/decimal, character values are string. (As fuller
+    numeric semantics are needed, the oracle-verified CobolNum/CobolDecimal/NumProfile/CobolRounding logic from
+    the legacy CobolSharp.Runtime — itself byte-free — is ported in here clean.)
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

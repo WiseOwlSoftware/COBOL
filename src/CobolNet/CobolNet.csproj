@@ -20,6 +20,9 @@
   <ItemGroup>
     <!-- Front-end only: preprocessor + ANTLR lexer/parser + parse-tree (CobolParserCore) context types. -->
     <ProjectReference Include="..\CobolSharp.Compiler\CobolSharp.Compiler.csproj" />
+    <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
+         RoslynBackend deploys a copy beside each compiled program. -->
+    <ProjectReference Include="..\CobolNet.Runtime\CobolNet.Runtime.csproj" />
     <!-- Roslyn: generate + compile C# at runtime. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
