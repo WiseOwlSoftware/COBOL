@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Cobol.Net.Frontend — the reusable COBOL front-end (preprocessor + ANTLR lexer/parser + parse tree +
+    diagnostics), extracted from the legacy CobolSharp.Compiler at G0 (docs/COBOLNET_DESIGN.md §17).
+    This is the single front-end for BOTH the greenfield COBOL.NET compiler and (until cut-over at G8) the
+    legacy byte-engine oracle. The namespaces stay CobolSharp.Compiler.* through G0–G7 (§1.4) — only the
+    project/assembly is renamed here; the cosmetic namespace rename is the G8 big-bang.
+  -->
+  <PropertyGroup>
+    <RootNamespace>CobolNet.Frontend</RootNamespace>
+    <AssemblyName>Cobol.Net.Frontend</AssemblyName>
+    <!-- Suppress CS3021 warnings from ANTLR-generated files -->
+    <NoWarn>$(NoWarn);CS3021</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CobolSharp.Tests.Unit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4.Runtime.Standard" />
+  </ItemGroup>
+
+  <!-- Grammar files included for reference -->
+  <ItemGroup>
+    <None Include="Grammar\Core\CobolLexer.g4" />
+    <None Include="Grammar\CobolParserCore.g4" />
+    <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
+  </ItemGroup>
+
+  <!-- Ensure Generated folder exists and regenerate parser if needed.
+       Uses BeforeTargets="CoreCompile" so generation completes before csc runs.
+       After generation, explicitly add generated .cs files to the Compile item group
+       in case they were missing during initial SDK globbing (e.g., after dotnet clean). -->
+  <Target Name="EnsureGeneratedFiles"
+          BeforeTargets="CoreCompile"
+          Inputs="Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
+          Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
+
+    <Message Text="Parser files not found. Generating..." Importance="high"
+             Condition="!Exists('Generated\CobolParserCore.cs')" />
+    <Message Text="Grammar file is newer than parser. Regenerating..." Importance="high"
+             Condition="Exists('Generated\CobolParserCore.cs')" />
+
+    <!-- Create Generated folder if it doesn't exist -->
+    <MakeDir Directories="$(MSBuildProjectDirectory)\Generated" Condition="!Exists('$(MSBuildProjectDirectory)\Generated')" />
+
+    <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs) -->
+    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\GenerateIfNewer.ps1&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+
+    <!-- Add generated files to compilation in case they were missing during initial globbing -->
+    <ItemGroup>
+      <Compile Include="Generated\*.cs" Exclude="@(Compile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Clean target: remove generated files AND temp folder -->
+  <Target Name="CleanGenerated" AfterTargets="Clean">
+    <ItemGroup>
+      <GeneratedFiles Include="$(MSBuildProjectDirectory)\Generated\*.*" />
+    </ItemGroup>
+    <Delete Files="@(GeneratedFiles)" TreatErrorsAsWarnings="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated" ContinueOnError="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated_temp" ContinueOnError="true" />
+  </Target>
+
+</Project>
