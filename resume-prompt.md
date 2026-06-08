@@ -1,5 +1,26 @@
 # COBOL.NET — Next-Session Kickoff Prompt
 
+> ⛔🔥 **PIVOT (2026-06-08, DEVLOG 457 — THIS supersedes the byte-engine plan below).** The owner directed a
+> **blank-slate rewrite**: a NEW compiler that translates COBOL → **idiomatic typed-native C# source, compiled by
+> Roslyn** (a COBOL record IS a .NET `record struct`; an elementary item IS a native field). **There is NO byte
+> `ProgramState` substrate** — do not reintroduce it, do not "fall back" to the legacy byte engine. The legacy
+> `CobolSharp.Compiler` is kept ONLY as a differential oracle until cut-over. Read **`docs/COBOLNET_ARCHITECTURE.md`**
+> (the rewrite SSOT: pipeline, data model, control-flow strategy, roadmap G1–G8) FIRST, then continue the G-tasks.
+> Memory: `feedback_complete_dotnet_migration_no_byte`. Tests may break mid-transition; the bar is 100% green at
+> completion. Use latest .NET 10 / C# 14 idioms + full doc/code comments.
+>
+> **STATE (DEVLOG 458; new project `src/CobolNet`, exe `cobol`):** G1 ✅ (skeleton: preprocess→parse→emit C#→Roslyn
+> →run; HELLO works). G2/G3a ✅ (typed WS fields, VALUE init, `DISPLAY`/`MOVE`/`ADD`/`SUBTRACT` on `string`/`long`/
+> `decimal`; clean `CobolNet.Runtime`). **RESUME AT → G2 cont (groups→`record struct`, OCCURS→arrays, signed/decimal
+> + edited DISPLAY via the full ported `CobolNum`), then G3 (`COMPUTE`/`MULTIPLY`/`DIVIDE`/`IF`/`EVALUATE`/`PERFORM`),
+> then G4 control-flow engine (port the legacy PC/dispatch design, DEVLOG 259–260), then G5 drive the NIST corpus to
+> green.** Reuse ONLY the front-end (ANTLR grammar+lexer+parser+preprocessor) + the clean typed substrates.
+>
+> *Everything below is the HISTORICAL byte-engine kickoff, retained for reference on the COBOL feature surface +
+> conformance corpus (still the oracle) — but the architecture/backend/data-model in it is SUPERSEDED.*
+
+---
+
 *Drive ISO/IEC 1989:2023 implementation **and** validation to completion — one large, autonomous, maximally-parallel
 session. (This file IS the prompt; updated 2026-06-07, DEVLOG 443.)*
 

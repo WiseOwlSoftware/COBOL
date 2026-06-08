@@ -26,6 +26,19 @@ CobolSharp-private submodule). Refer to it for all specification, behavior, synt
 questions. It is the authoritative source — do not guess or assume COBOL semantics without
 consulting it. Initialize the submodule with: `git submodule update --init --recursive`
 
+## ⛔🔥 PIVOT (2026-06-08, DEVLOG 457): blank-slate rewrite → COBOL.NET (COBOL → C# via Roslyn)
+The owner directed a **blank-slate rewrite**: a NEW compiler (`src/CobolNet`, exe `cobol`) translating COBOL →
+**idiomatic typed-native C# source compiled by Roslyn** — a COBOL record IS a .NET `record struct`, an elementary
+item IS a native field. **NO byte `ProgramState` substrate; never fall back to the legacy byte engine.** Read
+**`docs/COBOLNET_ARCHITECTURE.md`** (the rewrite SSOT + roadmap G1–G8) FIRST. Memory:
+[[feedback_complete_dotnet_migration_no_byte]]. The legacy `CobolSharp.Compiler` byte engine is kept ONLY as a
+differential oracle until cut-over (G8). Tests may break mid-transition; 100% green at completion. Latest .NET 10 /
+C# 14 idioms + full doc/code comments. **STATE (DEVLOG 458): G1 ✅ (HELLO end-to-end), G2/G3a ✅ (typed WS fields,
+DISPLAY/MOVE/ADD/SUBTRACT). RESUME AT → G2 cont (groups→record struct, OCCURS→arrays, full CobolNum) → G3 (COMPUTE/
+MULTIPLY/DIVIDE/IF/EVALUATE/PERFORM) → G4 control-flow engine → G5 NIST corpus to green.** Everything below is the
+HISTORICAL byte-engine plan (architecture/backend SUPERSEDED; the COBOL feature surface + the NIST/conformance
+corpus remain the oracle).
+
 ## Session Resume Context (updated 2026-06-06)
 
 **→ Start a new session from `resume-prompt.md` (repo root).** The single live plan is
