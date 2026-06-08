@@ -274,15 +274,17 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   `long`/`decimal` (`CollectTypedFields` always-on for a CLASS via `classFlatOnly`; instance dimension via
   `CilDataEmitter.EmitTypedFieldOwner`; filled the typed-numeric→byte MOVE cell). Verified instance fields via
   Mono.Cecil; proven per-instance by `oo_instance_data` + `OoTests.TypedObjectData_IsPerInstance` + `oo_method_args`
-  (two objects accumulate independently). **OO multi-method classes + INVOKE SELF DONE (DEVLOG 455):** a class hosts N METHOD-ID
-  units (each its own .NET method + exit-bounded dispatch range; per-method paragraph scope fixes CBL3104 across
-  SemanticBuilder/ReferenceResolver/BoundTreeBuilder/Binder/CilEmitter), `INVOKE SELF` → callvirt (COBOL0112 lifted);
-  conformance `oo_self`. **Immediate next picks (in order):** (a) subclass own typed OBJECT data (lift COBOL0113 —
-  the subclass gets its own typed instance fields layered on the base via .NET inheritance); (b) **FACTORY** (static)
-  methods + `INVOKE Class "M"` (slice 4); (c) record-struct / OCCURS object data (instance-ize
-  `EmitInstanceAddressChain` / `EmitTypedElementAddress`); (d) multi-method WITH per-method args (per-method LINKAGE,
-  not module-level) + optional method USING/RETURNING → typed .NET params (ADR §7 `obj.M(args)`); then OO slices 5
-  PROPERTY / 6 universal-ref+EC (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of the M2 catalog:
+  (two objects accumulate independently). **OO TYPED-NATIVE OBJECT DATA COMPLETE + multi-method + SELF DONE (DEVLOG 453–456):** object data (flat
+  char/numeric, GROUP→record struct, fixed OCCURS→array) → per-instance typed .NET fields (byte `State` empty on a
+  fully-typed class); a class hosts N `METHOD-ID` units (each its own .NET method + exit-bounded dispatch range;
+  per-method paragraph scope fixes CBL3104), `INVOKE SELF` → callvirt incl. polymorphic across INHERITS (COBOL0112
+  lifted). Conformance: `oo_instance_data`/`oo_self`/`oo_self_polymorphic`/`oo_object_group`. Adversarially reviewed;
+  edge gaps fail LOUD: SECTION-in-method COBOL0116, multi-method-with-params COBOL0117. **Immediate next picks (in
+  order):** (a) **subclass own typed OBJECT data** (lift COBOL0113 — emit the subclass's own typed instance fields +
+  init in the subclass ctor; needs factoring the typed-field emit/init out of `EmitProgramState`); (b) **per-method
+  LINKAGE** (multi-method-with-args — per-method LINKAGE layout + `FindLinkageField`, lifts COBOL0117) + typed-field
+  INVOKE args (the typed by-reference round-trip, COBOL0600 today); (c) **FACTORY** (static) methods + `INVOKE Class
+  "M"` (slice 4); then OO slices 5 PROPERTY / 6 universal-ref+EC (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Then the rest of the M2 catalog:
   **M2-FILE-1/2** (SHARING/LOCK, line-sequential), **M2-ARITH-2** (standard/intermediate arithmetic), **M2-PRE-1**
   (preprocessor trio), **M2-UDF-3/4**; then the large subsystems **M2-PROC-4 EC/exceptions → RAISE/RESUME/USE** and
   **M2-PROC-3 VALIDATE**. Then M3, M4. Pick per §4 waves; tick + log here.
