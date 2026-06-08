@@ -37,15 +37,21 @@ default + proceed).
 - **Stack:** **.NET 10 / C# 14**. **Backend: CIL-only via Mono.Cecil** (a Roslyn C# backend is a FUTURE additive
   Stage-5 option — Cecil stays the shipping backend + the differential oracle; deferred beyond OO). **Pointers = ONE
   `ManagedPointer`** (GC-tracked; no native heap / no `unsafe` / no 8-byte handle / no `PointerRegistry` — settled).
-- **Guard ALL GREEN: 1196 unit / 509 integration / 364 NIST.** Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min,
-  parallel, **proven byte-identical** to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
+- **Guard ALL GREEN: 1204 unit / 511 integration / 364 NIST** (was 1196/509 pre-session: +8 CLI-dialect unit tests,
+  +2 OO conformance). Iterate with **`bash scripts/guard-fast.sh`** (~3.3 min, parallel, **proven byte-identical**
+  to the serial `scripts/guard.sh` via `scripts/guard-verify.sh`).
+- **Phase A DONE** (DEVLOG 445–446): CLI `--standard` verified to reach the parser `DialectLevel` + a regression net;
+  CI enabled (`.github/workflows/build-and-test.yml` gates the full guard on push/PR); parallel-dev = patch-integrate.
 - **M1 (COBOL-85) COMPLETE** — NIST CCVS85 (364 baselines) is the '85 validation backbone.
 - **Data-model migration CORE done through Stage-4** (gated behind `EnableTypedFields`, **default OFF** → corpus
   byte-identical; each flip pinned by a flag-on≡flag-off differential test): character→`string`, numeric→`long`/
   `decimal`, flat+nested groups→`record struct`, fixed OCCURS→`T[]`, pointers→`ManagedPointer`. Every byte-trigger
   (REDEFINES/RENAMES/edited/file/EXTERNAL/LINKAGE/ref-mod/ODO) correctly stays byte.
-- **OO: grammar DONE** (factored `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated, green);
-  **semantic analysis + CIL emission are PENDING** — this is **B1**, your first major task (turnkey §6.6).
+- **OO: grammar DONE + SLICE 1 DONE end-to-end** (DEVLOG 447): `CLASS-ID` → an instance .NET type with a
+  per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o` + `INVOKE o "method"` (static cross-type resolution),
+  `USAGE OBJECT REFERENCE` storage, PERFORM inside an OBJECT method; conformance `oo_hello` + `oo_method_perform`;
+  adversarially reviewed (non-OO corpus byte-identical). **NEXT OO = slice 2 (INVOKE USING/RETURNING) — turnkey gap
+  analysis in `docs/OO_IMPLEMENTATION_DESIGN.md` §6.7.** Then slices 3–6 (§5). Single-method-per-class today.
 - **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
   **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),
   9 lowering classes.

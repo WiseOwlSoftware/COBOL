@@ -188,12 +188,12 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     follow-ups (PROGRAM-/FUNCTION-POINTER, pointer in a typed record/table, EC exception checks) tracked in §10.4.
   - **TOOLING (DEVLOG 435): `scripts/guard-fast.sh` — the parallel guard (~3.3 min vs ~11 min), PROVEN byte-identical
     to `scripts/guard.sh` via `scripts/guard-verify.sh`.** Use it for iteration; the serial guard remains the authority.
-  - **NEXT = Stage-4 OO → .NET classes** (ADR §10 Stage 4, the largest remaining data-model piece). Then Stage-5
-    Roslyn C# backend (Cecil oracle), Stage-6 finalize + flip-on + rename. **The turnkey surface map for the whole
-    pointer subsystem (`docs/RECORD_STRUCT_STORAGE_DESIGN.md` §10) remains the live guide.** Then slices 2
-    (pointer arithmetic) + 3 (ALLOCATE/FREE), Stage-4 **OO** → .NET classes (largest piece); Stage-5 **Roslyn C#
-    backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-on-by-default + rename. Substrate runtime
-    ready (`CobolNum`/`CobolString` + oracles). See also `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.
+  - **Stage-4 OO → .NET classes: SLICE 1 DONE (DEVLOG 447)** — CLASS/NEW/INVOKE/OBJECT REFERENCE end-to-end (a
+    class is an instance .NET type with per-instance `ProgramState`); see M2-OO-1 (§3.7) + `docs/OO_IMPLEMENTATION_DESIGN.md`.
+    **NEXT = OO slice 2 (INVOKE USING/RETURNING; turnkey gap analysis in `OO_IMPLEMENTATION_DESIGN.md` §6.7)**, then
+    OO slices 3–6. Then Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-
+    on-by-default + rename. Substrate runtime ready (`CobolNum`/`CobolString` + oracles). See also
+    `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.
 - **Owner success criterion: every currently-passing test stays green at 100% throughout — fix bugs as the
   migration surfaces them. Run autonomously, with maximal parallelism** (parallel design/audit agents are fine;
   do the compiler edits themselves directly on `main`, NOT in worktree-isolated workflows — they branch stale).

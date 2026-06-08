@@ -240,6 +240,37 @@ stsfld`; `o = NULL`/`o = q` → reference compare; `INVOKE … RETURNING o` stor
 **Conformance:** `tests/conformance/2002/_pending_oo/oo_hello.cob` (already authored + parse-validated) → `HELLO,
 WORLD!`. Move it into the corpus in the same commit the vertical goes green. Then slices 2–6 (§5).
 
+## 6.7 Slice-2 turnkey — INVOKE USING/RETURNING (method params + return), gap analysis from the slice-1 probe
+
+Slice 1 landed (DEVLOG 447). A slice-2 probe (a class method with `PROCEDURE DIVISION USING LK-AMT RETURNING
+LK-RES`, invoked `INVOKE A "ADDTO" USING AMT RETURNING R`) **compiles** — the grammar + binder already carry a
+method's USING/RETURNING, and the method body's LINKAGE access already emits — but **crashes at runtime**
+(`DecodeNumeric bufferLength=0`): the emitted public method is `void ADDTO()` (no params), so the LINKAGE
+`ManagedPointer` fields are never populated. The gaps are precise and reuse-heavy:
+
+1. **Unify the OO method ABI to the CALL/Entry ABI: `void <Method>(ManagedPointer[] args)`** (instance). A no-arg
+   method (slice 1's SAYHELLO) takes an empty array. This changes slice-1's emit — update `EmitClassMethodBody` →
+   `EmitClassMethod` so EVERY OO method takes `ManagedPointer[] args`, and slice-1 INVOKE passes `Array.Empty`.
+2. **Create the LINKAGE fields for a class** — `EmitClassModule` currently SKIPS `CreateEntryMethodSignature`
+   (CilEmitter), so `_linkageFields` is empty and `FindLinkageField` returns null (→ the empty-buffer crash). Factor
+   the LINKAGE-field-creation loop out of `CreateEntryMethodSignature` into a `CreateLinkageFields(ir)` helper and
+   call it from `EmitClassModule`. (`module.UsingParameterNames` is ALREADY populated for a class — Binder
+   PopulateModuleMetadata runs for all units — and it INCLUDES the RETURNING name as the last entry, so RETURNING is
+   just the trailing LINKAGE param, exactly as in CALL.)
+3. **Public method body = an instance "Entry"**: map `args[i] → _linkage[UsingParameterNames[i]]` (reuse the mapping
+   loop from `EmitEntryMethodBody`, minus the FileRuntime.Init / reinit / INITIAL / RegisterFiles program-activation
+   logic), then run `this.Dispatch(entry, -1)`. The RETURNING param is mapped like any other (the method writes
+   LK-RES; the caller reads it back through the trailing BY-REFERENCE pointer).
+4. **INVOKE marshalling** — extend `BoundInvokeStatement`/`IrInvoke` to carry the USING arg IrLocations + the
+   RETURNING IrLocation (mirror `BoundCallStatement`/`IrCallProgram`'s `IrCallArgument` + ReturningTarget); resolve
+   them in `BindInvoke`/`LowerInvoke`; in `EmitInvoke` marshal them into a `ManagedPointer[]` exactly like
+   `EmitCallProgram` (BY REFERENCE → `ManagedPointer.CreateByReference`, RETURNING as a trailing BY-REFERENCE
+   pointer), then `ldsfld receiver; ldloc args; callvirt <class>::<Method>(ManagedPointer[])`. NEW stays `newobj
+   ..ctor` (the ctor takes no args in slice 2; constructor parameters are a later slice).
+
+This makes per-instance state observable (a setter/getter method mutating OBJECT data) — author that as the slice-2
+conformance test. Slice-1's `oo_hello`/`oo_method_perform` must stay green under the new (empty-args) ABI.
+
 ## 7. Definition of done (this subsystem)
 
 A representative OO program — a class with instance + factory methods, inheritance with SELF/SUPER, a property,
