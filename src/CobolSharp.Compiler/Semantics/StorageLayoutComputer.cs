@@ -226,6 +226,11 @@ public static class StorageLayoutComputer
         if (item.Usage == UsageKind.Pointer && item.IsElementary)
             return;
 
+        // OBJECT REFERENCE (OO, §13.18.60.4): a USAGE OBJECT REFERENCE item IS a managed .NET reference (the
+        // _OBJ_ static field emitted by Binder.CollectObjectRefFields), not bytes. Skip layout like a pointer.
+        if (item.Usage == UsageKind.Object && item.IsElementary)
+            return;
+
         if (item.Redefines != null)
         {
             LayoutRedefines(item, area, ref offset, model);

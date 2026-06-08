@@ -334,6 +334,34 @@ public sealed class IrExitProgram : IrInstruction { }
 /// <summary>GOBACK — return from called program, or terminate if in main.</summary>
 public sealed class IrGoBack : IrInstruction { }
 
+/// <summary>
+/// INVOKE (OO COBOL, ISO §14.9.23 — docs/OO_IMPLEMENTATION_DESIGN.md). Slice 1: either construct
+/// (<see cref="IsNew"/>: <c>newobj &lt;ClassName&gt;::.ctor</c>, store the reference into
+/// <see cref="ReturningField"/>) or invoke an instance method (<c>ldsfld &lt;ReceiverField&gt;;
+/// callvirt &lt;ReceiverClassName&gt;::&lt;MethodName&gt;</c>). The class/method are resolved against the
+/// assembly's emitted class types at emit time (no runtime reflection). USING args / value returns are later slices.
+/// </summary>
+public sealed class IrInvoke : IrInstruction
+{
+    public bool IsNew { get; }
+    public string? ClassName { get; }          // NEW: class to construct
+    public string? ReceiverField { get; }      // instance: the _OBJ_ field holding the receiver
+    public string? ReceiverClassName { get; }  // instance: receiver's class (for callvirt resolution)
+    public string MethodName { get; }
+    public string? ReturningField { get; }     // _OBJ_ field to store a NEW result (null = discard)
+
+    public IrInvoke(bool isNew, string? className, string? receiverField, string? receiverClassName,
+        string methodName, string? returningField)
+    {
+        IsNew = isNew;
+        ClassName = className;
+        ReceiverField = receiverField;
+        ReceiverClassName = receiverClassName;
+        MethodName = methodName;
+        ReturningField = returningField;
+    }
+}
+
 /// <summary>STOP RUN — terminate the entire run unit by throwing StopRunException.</summary>
 public sealed class IrStopRun : IrInstruction { }
 

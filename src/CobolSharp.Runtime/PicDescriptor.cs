@@ -31,6 +31,10 @@ public enum CobolCategory
     /// <summary>USAGE POINTER — an opaque machine-address handle (ISO §13.18.60.4, COBOL-2002). Stored as an
     /// 8-byte value; NULL is the all-zero handle. Does not participate in arithmetic or character operations.</summary>
     Pointer,
+    /// <summary>USAGE OBJECT REFERENCE — an OO COBOL object reference (ISO §13.18.60.4, COBOL-2002). A managed
+    /// .NET reference (the object identity itself), never bytes; NULL is the null reference. Used as the target of
+    /// INVOKE and SET … TO NULL. Does not participate in arithmetic or character operations.</summary>
+    ObjectReference,
 }
 
 /// <summary>

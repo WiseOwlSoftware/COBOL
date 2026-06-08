@@ -286,6 +286,7 @@ repositoryParagraph
 repositoryEntry
     : FUNCTION ALL INTRINSIC
     | FUNCTION functionName INTRINSIC?
+    | {is2002()}? CLASS className   // OO (2002): CLASS class-name [AS literal] — declares a referenced class (className rule in Core/CobolOO.g4)
     ;
 
 // SOURCE-COMPUTER.

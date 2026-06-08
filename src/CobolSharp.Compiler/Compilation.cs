@@ -54,6 +54,16 @@ public sealed class Compilation
         if (programContexts.Count == 0)
             return new CompilationResult(false, "", diagnostics.Diagnostics);
 
+        // OO: the class-names declared in this compilation group (CLASS-ID units) — valid references that live in
+        // no data/procedure scope, so they must be whitelisted for the undefined-data-name check (see
+        // BuildSemanticModel). Order-independent: a program may reference a class that appears later in source.
+        var classNames = programContexts
+            .OfType<CobolParserCore.ClassDefinitionContext>()
+            .Select(ExtractProgramIdFromContext)
+            .Where(n => n != null)
+            .Select(n => n!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         // Phase 3b: Collect the names of COBOL-2002 user-defined functions (FUNCTION-ID units) in this
         // compilation group, so a `FUNCTION user-name(args)` reference in ANY unit is routed to a user-function
         // CALL (WS-2002-UDF slice 3) rather than an intrinsic — order-independent, since a caller may precede the
@@ -112,7 +122,7 @@ public sealed class Compilation
             // already-built ancestor models — otherwise a contained program's reference to an inherited
             // global (e.g. IC228A's GLO-DATA-1..4) would be falsely flagged CBL3128. (DEVLOG 310)
             var inheritedGlobalNames = CollectInheritedGlobalNames(progCtx, programParents, modelByContext);
-            var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, inheritedGlobalNames, diagnostics, Options);
+            var semanticModel = BuildSemanticModel(progCtx, programId, sourcePath, inheritedGlobalNames, diagnostics, Options, classNames);
             semanticModel.Program.IsInitial = isInitial;
             semanticModel.UserFunctionNames = userFunctionNames;
             semanticModel.UserFunctionSignatures = userFunctionSignatures;
@@ -141,6 +151,14 @@ public sealed class Compilation
             // Bind -> IR
             var binder = new CodeGen.Binder(semanticModel, diagnostics, Options, inheritedGlobalUse);
             var irModule = binder.Bind(progCtx);
+
+            // OO: tag a class unit so CIL emission produces an instance reference type (per-instance ProgramState
+            // + a public instance method) instead of a static program type. (docs/OO_IMPLEMENTATION_DESIGN.md §4)
+            if (progCtx is CobolParserCore.ClassDefinitionContext classCtx)
+            {
+                irModule.IsClass = true;
+                irModule.ClassMethodName = ExtractClassMethodName(classCtx);
+            }
 
             compiledPrograms.Add(new CompiledProgram(programId, irModule, semanticModel));
         }
@@ -172,6 +190,15 @@ public sealed class Compilation
                 result.Add(programUnit);
                 parents[programUnit] = null;
                 CollectNestedPrograms(programUnit.nestedProgram(), programUnit, result, parents);
+            }
+
+            // OO (COBOL-2002, ISO §11.2): CLASS-ID units are siblings of program units in a compilation group
+            // (grammar: compilationGroup : (programUnit | {is2002()}? classDefinition)+). Each becomes its own
+            // compiled unit (a .NET reference type). Slice 1 classes hold methods, not nested programs.
+            foreach (var classDef in group.classDefinition())
+            {
+                result.Add(classDef);
+                parents[classDef] = null;
             }
         }
 
@@ -467,7 +494,8 @@ public sealed class Compilation
         string sourcePath,
         IEnumerable<string> inheritedGlobalNames,
         DiagnosticBag diagnostics,
-        Semantics.CompilationOptions options)
+        Semantics.CompilationOptions options,
+        IEnumerable<string>? classNames = null)
     {
         // Pass 1: Declaration collection
         var semanticBuilder = new Semantics.SemanticBuilder(programId, 1, options, sourcePath);
@@ -478,9 +506,13 @@ public sealed class Compilation
 
         // Pass 2: Reference resolution
         var semDiagnostics = new List<Diagnostic>(semanticBuilder.Diagnostics);
+        // OO: a referenced class-name (e.g. the target of INVOKE class "NEW", or a REPOSITORY CLASS entry) is a
+        // valid name that lives in no data/procedure scope; whitelist every class in the compilation group so the
+        // undefined-data-name check (CBL3128) does not flag it.
         var resolver = new Semantics.ReferenceResolver(
             semanticBuilder.Symbols, semDiagnostics, sourcePath,
-            CollectSpecialNames(semanticBuilder).Concat(inheritedGlobalNames));
+            CollectSpecialNames(semanticBuilder).Concat(inheritedGlobalNames)
+                .Concat(classNames ?? Enumerable.Empty<string>()));
         resolver.Visit(programTree);
 
         foreach (var d in semDiagnostics)
@@ -656,9 +688,14 @@ public sealed class Compilation
         }
     }
 
-    /// <summary>Extract PROGRAM-ID from a programUnit or nestedProgram context.</summary>
+    /// <summary>Extract the unit name from a programUnit, nestedProgram, or (OO) classDefinition context.</summary>
     private static string? ExtractProgramIdFromContext(ParserRuleContext ctx)
     {
+        // OO: a class unit's name lives in its CLASS-ID paragraph (className → cobolWord), not an
+        // identificationBody (which a classDefinition does not have).
+        if (ctx is CobolParserCore.ClassDefinitionContext cd)
+            return cd.classIdParagraph()?.className()?.cobolWord()?.GetText();
+
         CobolParserCore.IdentificationDivisionContext? idDiv = ctx switch
         {
             CobolParserCore.ProgramUnitContext pu => pu.identificationDivision(),
@@ -668,6 +705,15 @@ public sealed class Compilation
 
         return UnitName(idDiv?.identificationBody());
     }
+
+    /// <summary>The first OBJECT method's <c>METHOD-ID</c> name in a class unit (slice 1 = one method), or null.
+    /// <c>methodDefinition.methodName()</c> is an array (the rule names methodName at METHOD-ID and after END METHOD);
+    /// the METHOD-ID name is the first.</summary>
+    private static string? ExtractClassMethodName(CobolParserCore.ClassDefinitionContext cd)
+        => cd.objectParagraph()?.methodDefinition() is { Length: > 0 } methods
+            && methods[0].methodName() is { Length: > 0 } names
+            ? names[0].cobolWord()?.GetText()
+            : null;
 
     /// <summary>The unit's name from either a PROGRAM-ID or a COBOL-2002 FUNCTION-ID paragraph (ISO §11.5).</summary>
     private static string? UnitName(CobolParserCore.IdentificationBodyContext? body)

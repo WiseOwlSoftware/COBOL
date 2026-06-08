@@ -38,6 +38,13 @@ public sealed class IrModule(string name)
     /// <c>EnableTypedFields</c>); empty only when the program declares no pointers.</summary>
     public List<IrPointerFieldDef> PointerFieldDefs { get; } = [];
 
+    /// <summary>OO object-reference fields (COBOL-2002, docs/OO_IMPLEMENTATION_DESIGN.md §E): one
+    /// <c>static &lt;class&gt; _OBJ_&lt;name&gt;</c> per <c>USAGE OBJECT REFERENCE</c> item, holding the managed .NET
+    /// reference (the object identity). The default value (null) IS the COBOL initial NULL, so no initializer is
+    /// emitted. Always-on (a managed reference is the only correct representation); empty unless the program
+    /// declares object references.</summary>
+    public List<IrObjectRefFieldDef> ObjectRefFieldDefs { get; } = [];
+
     /// <summary>
     /// Default target paragraph indices for each ALTER slot.
     /// Empty when no ALTER statements are used (zero overhead).
@@ -63,6 +70,22 @@ public sealed class IrModule(string name)
 
     /// <summary>True if this program is declared IS INITIAL (re-initialize WORKING-STORAGE per CALL).</summary>
     public bool IsInitial { get; set; }
+
+    /// <summary>
+    /// OO (COBOL-2002, ISO §11.2): when true this module is a <c>CLASS-ID</c> unit emitted as an INSTANCE .NET
+    /// reference type — each object owns its own <see cref="Runtime.ProgramState"/> (an instance <c>State</c> field),
+    /// the OBJECT data lives there, and the class's method is a public instance method invoked via <c>NEW</c>/INVOKE.
+    /// A non-class program (the default) is a static type with a static <c>State</c> and an <c>Entry</c> point.
+    /// See docs/OO_IMPLEMENTATION_DESIGN.md §4. Slice 1 supports a single OBJECT method.
+    /// </summary>
+    public bool IsClass { get; set; }
+
+    /// <summary>OO: the COBOL <c>METHOD-ID</c> name emitted as this class's public instance method (slice 1 = one
+    /// method, whose paragraphs are this module's <see cref="ParagraphDispatchOrder"/>). Null for a non-class module.</summary>
+    public string? ClassMethodName { get; set; }
+
+    /// <summary>OO: the <c>INHERITS FROM</c> base class name, or null → <c>System.Object</c> (slice 1 has no INHERITS).</summary>
+    public string? BaseClassName { get; set; }
 
     /// <summary>
     /// Parameterless method that registers this program's file connectors (RegisterFileHandlerWithOrg
@@ -142,3 +165,9 @@ public sealed record IrTypedArrayDef(string Name, int ElementCount, IrTypedField
 /// (<c>default(ManagedPointer)</c>, Buffer null) IS the COBOL initial NULL, so no explicit initializer is emitted —
 /// the one place <c>default(T)</c> is the correct COBOL initial state.</summary>
 public sealed record IrPointerFieldDef(string Name);
+
+/// <summary>An OO object-reference field (COBOL-2002, docs/OO_IMPLEMENTATION_DESIGN.md §E): the emitted
+/// <c>static</c> field <paramref name="Name"/> (<c>_OBJ_&lt;name&gt;</c>) typed by the declared class
+/// <paramref name="ClassName"/> (null → <c>System.Object</c> for a universal object reference). Holds the managed
+/// .NET reference; <c>default</c> (null) IS the COBOL initial NULL, so no explicit initializer is emitted.</summary>
+public sealed record IrObjectRefFieldDef(string Name, string? ClassName);

@@ -46,6 +46,7 @@ public enum BoundNodeKind
     CompoundStatement,
     ReturnStatement,
     CallStatement,
+    InvokeStatement,
     ExitProgramStatement,
     GoBackStatement,
     EntryStatement,
@@ -707,6 +708,40 @@ public sealed class BoundGoBackStatement : BoundStatement
     public BoundGoBackStatement(BoundExpression? returning = null) => Returning = returning;
 
     public override BoundNodeKind Kind => BoundNodeKind.GoBackStatement;
+}
+
+/// <summary>
+/// INVOKE (OO COBOL, ISO §14.9.23) — slice 1: create-or-call. Two forms:
+/// <list type="bullet">
+/// <item><c>INVOKE class-name "NEW" [RETURNING obj]</c> (<see cref="IsNew"/>): construct an instance of
+///   <see cref="ClassName"/> (the built-in NEW factory, §16.2.1) and store it into the <see cref="Returning"/>
+///   object-reference item.</item>
+/// <item><c>INVOKE obj "method"</c>: invoke <see cref="MethodName"/> on the <see cref="TargetObject"/> object
+///   reference, whose declared class is <see cref="TargetClassName"/>.</item>
+/// </list>
+/// USING arguments and a value RETURNING are later slices (slice 1 has neither).
+/// </summary>
+public sealed class BoundInvokeStatement : BoundStatement
+{
+    public bool IsNew { get; }
+    public string? ClassName { get; }            // NEW: the class to construct
+    public DataSymbol? TargetObject { get; }     // instance: the receiver object-reference item
+    public string? TargetClassName { get; }      // instance: the receiver's declared class (for dispatch)
+    public string MethodName { get; }
+    public DataSymbol? Returning { get; }        // the object-reference item receiving a NEW result
+
+    public BoundInvokeStatement(bool isNew, string? className, DataSymbol? targetObject,
+        string? targetClassName, string methodName, DataSymbol? returning)
+    {
+        IsNew = isNew;
+        ClassName = className;
+        TargetObject = targetObject;
+        TargetClassName = targetClassName;
+        MethodName = methodName;
+        Returning = returning;
+    }
+
+    public override BoundNodeKind Kind => BoundNodeKind.InvokeStatement;
 }
 
 /// <summary>ENTRY "name" USING ... — alternate entry point for CALL.</summary>

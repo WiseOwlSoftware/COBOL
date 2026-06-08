@@ -95,11 +95,17 @@ public sealed class CilEmitter
         var asm = AssemblyDefinition.CreateAssembly(asmName, assemblyName, ModuleKind.Console);
         MethodDefinition? entryPoint = null;
 
-        foreach (var (module, model) in programs)
+        // Emit OO class units BEFORE program units, so a program's INVOKE / OBJECT REFERENCE field can resolve a
+        // class type + its methods (already present in the shared module) at emit time. The entry point is still
+        // the first PROGRAM's Main (classes have none), and the assembly name is independent of this order.
+        foreach (var (module, model) in programs.OrderBy(p => p.Module.IsClass ? 0 : 1))
         {
             var emitter = new CilEmitter(asm.MainModule);
             emitter._semanticModel = model;
-            emitter.EmitModule(module);
+            if (module.IsClass)
+                emitter.EmitClassModule(module);
+            else
+                emitter.EmitModule(module);
 
             // Only the first program gets the entry point
             if (entryPoint == null && emitter._methodMap.Count > 0)
@@ -218,6 +224,109 @@ public sealed class CilEmitter
         // Dispatch helper and all paragraph bodies exist.
         EmitGlobalUseHandlers(ir);
     }
+
+    /// <summary>
+    /// Emit an OO <c>CLASS-ID</c> unit (COBOL-2002, ISO §11.2) as an INSTANCE .NET reference type
+    /// (docs/OO_IMPLEMENTATION_DESIGN.md §4). It mirrors <see cref="EmitModule"/> but, with
+    /// <see cref="EmissionContext.StateIsInstance"/> set, the shared emitters produce a per-instance
+    /// <c>State</c> field, an instance <c>InitializeState</c>, a public <c>.ctor</c> (the COBOL <c>NEW</c>
+    /// factory), and instance paragraph methods + <c>Dispatch</c>. The class's single OBJECT method
+    /// (<c>METHOD-ID</c>) becomes a public instance method that runs the method's paragraphs through the
+    /// instance dispatch loop. There is no static <c>Entry</c>/<c>Main</c> — objects are created and invoked
+    /// via <c>newobj</c>/<c>callvirt</c> from a driver (slice 1: one method, no INHERITS, no LINKAGE/files).
+    /// </summary>
+    internal void EmitClassModule(IrModule ir)
+    {
+        // A normal (non-sealed) reference type over the INHERITS base (slice 1: System.Object), so it can be
+        // newobj'd and (later) subclassed.
+        _programType = new TypeDefinition(
+            @namespace: "",
+            name: ir.Name,
+            attributes: TypeAttributes.Public | TypeAttributes.Class,
+            baseType: _module.TypeSystem.Object);
+        _module.Types.Add(_programType);
+
+        // From here every State access + emitted method is instance-shaped (one chokepoint flag).
+        _ctx.StateIsInstance = true;
+
+        // 0. Per-instance ProgramState field + instance InitializeState + the public .ctor (NEW).
+        EmitProgramState(ir);
+        SyncToContext();
+
+        // 1. Record types (typically none for a slice-1 class).
+        foreach (var t in ir.Types)
+            DefineType(t);
+
+        // 2. Globals (static auxiliary fields — none for a slice-1 class).
+        foreach (var g in ir.Globals)
+            DefineGlobal(g);
+
+        // 3. Method (paragraph) signatures — instance methods. A class emits ONLY the real OBJECT-method
+        //    paragraphs (ParagraphDispatchOrder); the synthetic program scaffolding the Binder also puts in
+        //    ir.Methods (the run-unit "Main" with its Self.Entry/FileRuntime.Init wiring, and "RegisterFiles")
+        //    has no meaning for a class — there is no static Entry/Main, only NEW + INVOKE.
+        foreach (var m in ir.ParagraphDispatchOrder)
+            DefineMethodSignature(m);
+
+        // 4. The shared paragraph-dispatch helper (instance) — must precede bodies.
+        EmitDispatchHelper(ir);
+        SyncToContext();
+
+        // 5. Paragraph bodies (reach the per-instance State via the location-emitter chokepoint).
+        foreach (var m in ir.ParagraphDispatchOrder)
+            EmitMethodBody(m);
+
+        // 6. The public OBJECT method: a public instance method named after the COBOL METHOD-ID that runs the
+        //    method's paragraphs through the instance Dispatch loop (the analogue of a program's Entry).
+        EmitClassMethodBody(ir);
+
+        _ctx.StateIsInstance = false;
+    }
+
+    /// <summary>
+    /// Emit the class's public OBJECT method (slice 1 = one method, name = <see cref="IrModule.ClassMethodName"/>):
+    /// a <c>public</c> instance method that runs the method's paragraphs via <c>this.Dispatch(entry, -1)</c>. Slice 1
+    /// has no USING/RETURNING, so the method is <c>void</c> with no parameters. Reuses the same instance dispatch
+    /// loop the paragraph methods are wired into.
+    /// </summary>
+    private void EmitClassMethodBody(IrModule ir)
+    {
+        if (ir.ClassMethodName is not { } methodName) return;
+
+        var md = new MethodDefinition(
+            methodName,
+            MethodAttributes.Public | MethodAttributes.HideBySig,
+            _module.TypeSystem.Void);
+        _programType!.Methods.Add(md);
+
+        var il = md.Body.GetILProcessor();
+        if (ir.ParagraphDispatchOrder.Count > 0 && _dispatchMethod != null)
+        {
+            il.Append(il.Create(OpCodes.Ldarg_0));                       // receiver
+            il.Append(il.Create(OpCodes.Ldc_I4, ir.EntryParagraphIndex)); // startPc
+            il.Append(il.Create(OpCodes.Ldc_I4_M1));                      // exitPc = -1 (run to end)
+            il.Append(il.Create(OpCodes.Call, _dispatchMethod));
+            il.Append(il.Create(OpCodes.Pop));                            // discard the returned next-pc
+        }
+        il.Append(il.Create(OpCodes.Ret));
+    }
+
+    /// <summary>Find an emitted OO class type by its COBOL class-name (case-insensitive) among the assembly's
+    /// types. Classes are emitted before programs, so a program's INVOKE / OBJECT REFERENCE field can resolve the
+    /// class type by the time it is referenced. Returns null if no such class exists.</summary>
+    private TypeDefinition? FindClassType(string? className)
+    {
+        if (className == null) return null;
+        foreach (var t in _module.Types)
+            if (string.Equals(t.Name, className, StringComparison.OrdinalIgnoreCase))
+                return t;
+        return null;
+    }
+
+    /// <summary>The .NET type for a <c>USAGE OBJECT REFERENCE class-name</c> field: the emitted class type, or
+    /// <c>System.Object</c> for a universal reference / an unknown class.</summary>
+    private TypeReference ResolveObjectClassTypeRef(string? className)
+        => (TypeReference?)FindClassType(className) ?? _module.TypeSystem.Object;
 
     /// <summary>
     /// Emit and register this program's GLOBAL USE AFTER ERROR declarative handlers (ISO §14.9.49.4 GR4).
@@ -366,7 +475,7 @@ public sealed class CilEmitter
         // LOCAL-STORAGE: re-initialize to defaults on every invocation (§13.8)
         if ((_semanticModel?.LocalStorageSize ?? 0) > 0)
         {
-            il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+            EmitLoadState(il);
             var reinitMethod = _module.ImportReference(
                 typeof(ProgramState).GetMethod("ReinitializeLocalStorage")!);
             il.Append(il.Create(OpCodes.Callvirt, reinitMethod));
@@ -495,14 +604,21 @@ public sealed class CilEmitter
         int count = paragraphs.Count;
         if (count == 0) return;
 
+        // Instance method on an OO class (it calls instance paragraph methods through the receiver) and static on a
+        // normal program. When instance, the implicit `this` is arg0, so startPc/exitPc shift to arg1/arg2.
+        bool instance = _ctx.StateIsInstance;
         var md = new MethodDefinition(
             "Dispatch",
-            MethodAttributes.Private | MethodAttributes.Static,
+            instance
+                ? MethodAttributes.Private | MethodAttributes.HideBySig
+                : MethodAttributes.Private | MethodAttributes.Static,
             _module.TypeSystem.Int32);
         md.Parameters.Add(new ParameterDefinition("startPc", ParameterAttributes.None, _module.TypeSystem.Int32));
         md.Parameters.Add(new ParameterDefinition("exitPc", ParameterAttributes.None, _module.TypeSystem.Int32));
         _programType!.Methods.Add(md);
         _dispatchMethod = md;
+        OpCode startPcArg = instance ? OpCodes.Ldarg_1 : OpCodes.Ldarg_0;
+        OpCode exitPcArg = instance ? OpCodes.Ldarg_2 : OpCodes.Ldarg_1;
 
         md.Body.InitLocals = true;
         var il = md.Body.GetILProcessor();
@@ -513,7 +629,7 @@ public sealed class CilEmitter
         md.Body.Variables.Add(atExitLocal);
 
         // pc = startPc
-        il.Append(il.Create(OpCodes.Ldarg_0));
+        il.Append(il.Create(startPcArg));
         il.Append(il.Create(OpCodes.Stloc, pcLocal));
 
         var loopLabel = il.Create(OpCodes.Nop);
@@ -533,7 +649,7 @@ public sealed class CilEmitter
 
         // atExit = (pc == exitPc) ? 1 : 0   — capture BEFORE the call (the call overwrites pc)
         il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        il.Append(il.Create(OpCodes.Ldarg_1));
+        il.Append(il.Create(exitPcArg));
         il.Append(il.Create(OpCodes.Ceq));
         il.Append(il.Create(OpCodes.Stloc, atExitLocal));
 
@@ -548,6 +664,8 @@ public sealed class CilEmitter
         for (int i = 0; i < count; i++)
         {
             il.Append(caseLabels[i]);
+            if (instance)
+                il.Append(il.Create(OpCodes.Ldarg_0)); // receiver for the instance paragraph call
             il.Append(il.Create(OpCodes.Call, _methodMap[paragraphs[i]])); // pc = paragraph(): next pc
             il.Append(il.Create(OpCodes.Stloc, pcLocal));
             il.Append(il.Create(OpCodes.Br, checkLabel));
@@ -558,7 +676,7 @@ public sealed class CilEmitter
         il.Append(il.Create(OpCodes.Ldloc, atExitLocal));
         il.Append(il.Create(OpCodes.Brfalse, loopLabel));        // not the exit paragraph → keep going
         il.Append(il.Create(OpCodes.Ldloc, pcLocal));
-        il.Append(il.Create(OpCodes.Ldarg_1));
+        il.Append(il.Create(exitPcArg));
         il.Append(il.Create(OpCodes.Ldc_I4_1));
         il.Append(il.Create(OpCodes.Add));
         il.Append(il.Create(OpCodes.Bne_Un, loopLabel));         // exit paragraph GO TO'd elsewhere → keep going
@@ -583,10 +701,11 @@ public sealed class CilEmitter
         if (wsSize == 0) wsSize = 4096;
         if (fileSize == 0) fileSize = 1024;
 
-        // Static field: ProgramState State
+        // ProgramState State — static for a normal program, a per-instance field for an OO class so each
+        // object owns its own storage (docs/OO_IMPLEMENTATION_DESIGN.md §4).
         _programStateField = new FieldDefinition(
             "State",
-            FieldAttributes.Public | FieldAttributes.Static,
+            _ctx.StateIsInstance ? FieldAttributes.Public : FieldAttributes.Public | FieldAttributes.Static,
             _module.ImportReference(typeof(CobolSharp.Runtime.ProgramState)));
         _programType!.Fields.Add(_programStateField);
 
@@ -634,6 +753,17 @@ public sealed class CilEmitter
             _ctx.PointerFields[pf.Name] = ptrFd;
         }
 
+        // OO (docs/OO_IMPLEMENTATION_DESIGN.md §E): one static reference field per USAGE OBJECT REFERENCE item,
+        // typed by the declared class (resolved from the assembly's already-emitted class types; classes are
+        // emitted before programs). The default (null) IS the COBOL initial NULL, so no initializer is emitted.
+        foreach (var od in ir.ObjectRefFieldDefs)
+        {
+            var objFd = new FieldDefinition(od.Name, FieldAttributes.Public | FieldAttributes.Static,
+                ResolveObjectClassTypeRef(od.ClassName));
+            _programType.Fields.Add(objFd);
+            _ctx.ObjectRefFields[od.Name] = objFd;
+        }
+
         // Static bool: have this program's file connectors been registered for the current activation?
         // Entry tests-and-sets it; the re-init path (INITIAL / post-CANCEL) clears it. (See field doc.)
         _filesRegisteredField = new FieldDefinition(
@@ -649,9 +779,13 @@ public sealed class CilEmitter
         // CANCEL (ISO §14.6.2.3.2 Initial state; §14.9.5 GR3). Re-running it does not disturb
         // EXTERNAL data (its storage is the shared array; EXTERNAL items cannot carry VALUE), so
         // §14.9.5 GR8 is preserved.
+        // Instance method for an OO class (it writes the per-instance State via ldarg.0/stfld and is called
+        // from the .ctor); a private static method for a normal program (called from the .cctor).
         _initializeStateMethod = new MethodDefinition(
             "InitializeState",
-            MethodAttributes.Private | MethodAttributes.Static,
+            _ctx.StateIsInstance
+                ? MethodAttributes.Private | MethodAttributes.HideBySig
+                : MethodAttributes.Private | MethodAttributes.Static,
             _module.TypeSystem.Void);
         _programType.Methods.Add(_initializeStateMethod);
 
@@ -704,22 +838,63 @@ public sealed class CilEmitter
             EmitLocalStorageDefaultsSnapshot(initIl, lsSize);
         initIl.Append(initIl.Create(OpCodes.Ret));
 
-        // Static constructor: .cctor — first initialization.
-        var cctor = new MethodDefinition(
-            ".cctor",
-            MethodAttributes.Private | MethodAttributes.Static |
-            MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-            _module.TypeSystem.Void);
-        _programType.Methods.Add(cctor);
-        _cctorMethod = cctor;
-        var cctorIl = cctor.Body.GetILProcessor();
-        cctorIl.Append(cctorIl.Create(OpCodes.Call, _initializeStateMethod));
-        cctorIl.Append(cctorIl.Create(OpCodes.Ret));
+        if (_ctx.StateIsInstance)
+        {
+            // OO class: a public instance constructor (the COBOL NEW factory method, ISO §16.2.1) — chain to the
+            // base ctor, then run InitializeState on this instance (allocate its ProgramState + apply VALUEs).
+            var ctor = new MethodDefinition(
+                ".ctor",
+                MethodAttributes.Public | MethodAttributes.HideBySig |
+                MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                _module.TypeSystem.Void);
+            _programType.Methods.Add(ctor);
+            var ctorIl = ctor.Body.GetILProcessor();
+            ctorIl.Append(ctorIl.Create(OpCodes.Ldarg_0));
+            ctorIl.Append(ctorIl.Create(OpCodes.Call,
+                _module.ImportReference(typeof(object).GetConstructor(Type.EmptyTypes)!)));
+            ctorIl.Append(ctorIl.Create(OpCodes.Ldarg_0));
+            ctorIl.Append(ctorIl.Create(OpCodes.Call, _initializeStateMethod));
+            ctorIl.Append(ctorIl.Create(OpCodes.Ret));
+        }
+        else
+        {
+            // Static constructor: .cctor — first initialization.
+            var cctor = new MethodDefinition(
+                ".cctor",
+                MethodAttributes.Private | MethodAttributes.Static |
+                MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                _module.TypeSystem.Void);
+            _programType.Methods.Add(cctor);
+            _cctorMethod = cctor;
+            var cctorIl = cctor.Body.GetILProcessor();
+            cctorIl.Append(cctorIl.Create(OpCodes.Call, _initializeStateMethod));
+            cctorIl.Append(cctorIl.Create(OpCodes.Ret));
+        }
     }
 
-    /// <summary>Emit ProgramState allocation: new ProgramState(wsSize, fileSize, lsSize) → static field.</summary>
+    /// <summary>Push the ProgramState reference: the per-instance field (<c>ldarg.0; ldfld State</c>) for an OO
+    /// class, else the static field (<c>ldsfld State</c>). The single place CilEmitter's own State loads go through
+    /// (the byte-engine's hot path has its own copy in CilLocationEmitter.EmitLoadBackingArray) — so no emit site can
+    /// accidentally load a static State inside an instance method (docs/OO_IMPLEMENTATION_DESIGN.md §4).</summary>
+    private void EmitLoadState(ILProcessor il)
+    {
+        if (_ctx.StateIsInstance)
+        {
+            il.Append(il.Create(OpCodes.Ldarg_0));
+            il.Append(il.Create(OpCodes.Ldfld, _programStateField!));
+        }
+        else
+            il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+    }
+
+    /// <summary>Emit ProgramState allocation: <c>new ProgramState(wsSize, fileSize, lsSize)</c> → the State field.
+    /// For a normal program this stores into the static field; for an OO class (<see cref="EmissionContext.StateIsInstance"/>)
+    /// it stores into the per-instance field, so the receiver (<c>ldarg.0</c>) is pushed first and the store is
+    /// <c>stfld</c> (InitializeState is an instance method).</summary>
     private MethodReference EmitProgramStateAllocation(ILProcessor il, int wsSize, int fileSize, int lsSize)
     {
+        if (_ctx.StateIsInstance)
+            il.Append(il.Create(OpCodes.Ldarg_0)); // receiver for the trailing stfld
         il.Append(il.Create(OpCodes.Ldc_I4, wsSize));
         il.Append(il.Create(OpCodes.Ldc_I4, fileSize));
         il.Append(il.Create(OpCodes.Ldc_I4, lsSize));
@@ -727,7 +902,7 @@ public sealed class CilEmitter
             typeof(CobolSharp.Runtime.ProgramState)
                 .GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!);
         il.Append(il.Create(OpCodes.Newobj, ctor));
-        il.Append(il.Create(OpCodes.Stsfld, _programStateField!));
+        il.Append(il.Create(_ctx.StateIsInstance ? OpCodes.Stfld : OpCodes.Stsfld, _programStateField!));
         return ctor;
     }
 
@@ -880,7 +1055,7 @@ public sealed class CilEmitter
     /// </summary>
     private void EmitLocalStorageDefaultsSnapshot(ILProcessor il, int lsSize)
     {
-        il.Append(il.Create(OpCodes.Ldsfld, _programStateField!));
+        EmitLoadState(il);
         var snapshotMethod = _module.ImportReference(
             typeof(ProgramState).GetMethod("SnapshotLocalStorageDefaults")!);
         il.Append(il.Create(OpCodes.Callvirt, snapshotMethod));
@@ -1071,9 +1246,13 @@ public sealed class CilEmitter
             ? GetTypeRef(irMethod.ReturnType)
             : _module.TypeSystem.Void;
 
+        // Paragraph methods are instance methods on an OO class (so they reach the per-instance State via the
+        // receiver) and static on a normal program. (docs/OO_IMPLEMENTATION_DESIGN.md §4)
         var md = new MethodDefinition(
             irMethod.Name,
-            MethodAttributes.Public | MethodAttributes.Static,
+            _ctx.StateIsInstance
+                ? MethodAttributes.Public | MethodAttributes.HideBySig
+                : MethodAttributes.Public | MethodAttributes.Static,
             returnType);
 
         foreach (var p in irMethod.Parameters)
@@ -1276,6 +1455,50 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Pop));          // no target (ill-formed ALLOCATE) — discard
     }
 
+    /// <summary>
+    /// Emit INVOKE (OO, slice 1 — docs/OO_IMPLEMENTATION_DESIGN.md §C). NEW → <c>newobj &lt;class&gt;::.ctor</c>
+    /// then store the reference into the RETURNING object-reference field (or pop). An instance call → load the
+    /// receiver's <c>_OBJ_</c> field and <c>callvirt &lt;class&gt;::&lt;method&gt;</c>. The class type + method are
+    /// resolved statically against the assembly's emitted class types (no runtime reflection); classes are emitted
+    /// before programs so they exist here.
+    /// </summary>
+    private void EmitInvoke(ILProcessor il, IR.IrInvoke inv)
+    {
+        if (inv.IsNew)
+        {
+            var classType = FindClassType(inv.ClassName)
+                ?? throw new InvalidOperationException(
+                    $"INVOKE NEW: unknown class '{inv.ClassName}' (no CLASS-ID unit in this compilation group).");
+            var ctor = classType.Methods.FirstOrDefault(m => m.IsConstructor && !m.IsStatic && m.Parameters.Count == 0)
+                ?? throw new InvalidOperationException($"INVOKE NEW: class '{inv.ClassName}' has no parameterless constructor.");
+            il.Append(il.Create(OpCodes.Newobj, ctor));
+            if (inv.ReturningField is { } rf && _ctx.ObjectRefFields.TryGetValue(rf, out var retFd))
+                il.Append(il.Create(OpCodes.Stsfld, retFd));   // store the new object into the OBJECT REFERENCE item
+            else
+                il.Append(il.Create(OpCodes.Pop));             // RETURNING omitted — discard the new object
+            return;
+        }
+
+        // Instance call: load the receiver object reference, then callvirt the resolved method.
+        if (inv.ReceiverField is not { } recv || !_ctx.ObjectRefFields.TryGetValue(recv, out var recvFd))
+            throw new InvalidOperationException(
+                $"INVOKE '{inv.MethodName}': receiver is not a known OBJECT REFERENCE item.");
+        var recvClass = FindClassType(inv.ReceiverClassName)
+            ?? throw new InvalidOperationException(
+                $"INVOKE '{inv.MethodName}': unknown receiver class '{inv.ReceiverClassName}'.");
+        var method = recvClass.Methods.FirstOrDefault(m =>
+                !m.IsConstructor && !m.IsStatic &&
+                string.Equals(m.Name, inv.MethodName, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException(
+                $"INVOKE: class '{inv.ReceiverClassName}' has no method '{inv.MethodName}'.");
+        il.Append(il.Create(OpCodes.Ldsfld, recvFd));
+        il.Append(il.Create(OpCodes.Callvirt, method));
+        // Slice 1 OBJECT methods are void; a value RETURNING is a later slice. If the resolved method returns a
+        // value, discard it (no RETURNING binding yet) to keep the IL stack balanced.
+        if (method.ReturnType.MetadataType != Mono.Cecil.MetadataType.Void)
+            il.Append(il.Create(OpCodes.Pop));
+    }
+
     // ── Instruction emission ──
 
     private void EmitInstruction(
@@ -1299,6 +1522,7 @@ public sealed class CilEmitter
             case IrPointerStore ptrStore: EmitPointerStore(il, ptrStore); break;
             case IrPointerCompare ptrCmp: EmitPointerCompare(il, ptrCmp, getLocal); break;
             case IrPointerAdjust ptrAdj: EmitPointerAdjust(il, ptrAdj); break;
+            case IrInvoke invoke: EmitInvoke(il, invoke); break;
             case IrAllocate alloc: EmitAllocate(il, alloc); break;
             case IrAccept acc: _ctx.Data.EmitAccept(il, acc); break;
             case IrPicDisplay disp: _ctx.Data.EmitPicDisplay(il, disp); break;
@@ -1730,6 +1954,8 @@ public sealed class CilEmitter
         {
             il.Append(caseLabels[i]);
             var target = _methodMap[paragraphs[i]];
+            if (_ctx.StateIsInstance)
+                il.Append(il.Create(OpCodes.Ldarg_0)); // instance paragraph call receiver (OO method)
             il.Append(il.Create(OpCodes.Call, target));   // pc = paragraph(): next pc
             il.Append(il.Create(OpCodes.Stloc, pcLocal));
             il.Append(il.Create(OpCodes.Br, loopLabel));

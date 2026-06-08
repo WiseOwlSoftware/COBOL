@@ -29,6 +29,16 @@ internal sealed class EmissionContext
     public MethodDefinition? InitializeStateMethod { get; set; }
     public FieldDefinition? AlterTableField { get; set; }
 
+    /// <summary>
+    /// OO (docs/OO_IMPLEMENTATION_DESIGN.md §4): when true, the current type's <see cref="ProgramStateField"/> is a
+    /// per-instance field, so a State load is <c>ldarg.0; ldfld State</c> (the receiver) rather than the static
+    /// <c>ldsfld State</c>, and the emitted methods (InitializeState, Dispatch, paragraph methods, the public OBJECT
+    /// method) are instance methods. Set for the duration of a CLASS module's emission; false (the default) for a
+    /// normal program — so the program path is byte-identical. The single byte-engine chokepoint that reads it is
+    /// <c>CilLocationEmitter.EmitLoadBackingArray</c>.
+    /// </summary>
+    public bool StateIsInstance { get; set; }
+
     // ── LINKAGE SECTION ──
 
     /// <summary>Static fields for LINKAGE SECTION parameters, keyed by USING parameter name (case-insensitive).</summary>
@@ -52,6 +62,11 @@ internal sealed class EmissionContext
     /// <c>static ManagedPointer _PTR_&lt;name&gt;</c> <see cref="FieldDefinition"/>, keyed by field name (the value
     /// carried in <see cref="IrPointerStore"/>/<see cref="IrPointerCompare"/>/<see cref="IrBasedDerefLocation"/>).</summary>
     public Dictionary<string, FieldDefinition> PointerFields { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>OO object-reference fields (docs/OO_IMPLEMENTATION_DESIGN.md §E): the emitted
+    /// <c>static &lt;class&gt; _OBJ_&lt;name&gt;</c> <see cref="FieldDefinition"/>, keyed by field name. The target of
+    /// SET … TO NULL, INVOKE … RETURNING, and the receiver load for an instance INVOKE.</summary>
+    public Dictionary<string, FieldDefinition> ObjectRefFields { get; } = new(StringComparer.Ordinal);
 
     // ── Per-method tracking ──
 

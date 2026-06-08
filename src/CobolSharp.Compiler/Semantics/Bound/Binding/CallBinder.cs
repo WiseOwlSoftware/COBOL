@@ -18,6 +18,42 @@ internal sealed class CallBinder
 
     internal CallBinder(BindingContext ctx) => _ctx = ctx;
 
+    // ── INVOKE (OO COBOL, ISO §14.9.23) ──
+
+    /// <summary>
+    /// Bind <c>INVOKE {class-name|object} "method" [RETURNING obj]</c> (slice 1). <c>"NEW"</c> on a class-name
+    /// target is the built-in factory (construct an instance); any other method on an object reference is an
+    /// instance call. The target is syntactically a <c>dataReference</c>; NEW vs instance is decided by the
+    /// method name + whether the target resolves to an object-reference data item. USING args / value RETURNING
+    /// are later slices.
+    /// </summary>
+    internal BoundStatement? BindInvoke(CobolParserCore.InvokeStatementContext ctx)
+    {
+        var targetRef = ctx.invokeTarget()?.objectReference()?.dataReference();
+        if (targetRef == null) return null; // SELF/SUPER/NULL targets are later slices
+        string targetText = targetRef.cobolWord().GetText();
+
+        // Method name: a literal "NEW"/"method" (slice 1; a data-name method selector is a later slice).
+        var methodLit = ctx.invokeMethodName()?.literal();
+        if (methodLit == null) return null;
+        string methodName = methodLit.GetText().Trim('"', '\'');
+
+        // RETURNING obj — the object-reference item that receives a NEW instance (slice 1).
+        DataSymbol? returning = ctx.invokeReturning()?.dataReference() is { } retRef
+            ? _ctx.Semantic.ResolveData(retRef.cobolWord().GetText())
+            : null;
+
+        if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
+            // INVOKE class-name "NEW" RETURNING obj — construct an instance of the target class.
+            return new BoundInvokeStatement(isNew: true, className: targetText, targetObject: null,
+                targetClassName: null, methodName: methodName, returning: returning);
+
+        // INVOKE obj "method" — instance invocation; the receiver's declared class drives dispatch.
+        var targetObject = _ctx.Semantic.ResolveData(targetText);
+        return new BoundInvokeStatement(isNew: false, className: null, targetObject: targetObject,
+            targetClassName: targetObject?.ObjectClassName, methodName: methodName, returning: returning);
+    }
+
     // ── CALL ──
 
     internal BoundStatement? BindCall(CobolParserCore.CallStatementContext ctx)

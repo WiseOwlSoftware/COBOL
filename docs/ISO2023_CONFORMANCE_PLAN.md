@@ -518,10 +518,19 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.7 M2 — Object-Oriented COBOL (the single largest sub-project)
 
-- ☐ **M2-OO-1 — OO COBOL.** CLASS-ID/END CLASS, METHOD-ID/END METHOD, INTERFACE-ID, FACTORY/OBJECT, INHERITS,
-  `USAGE OBJECT REFERENCE`, `INVOKE` + inline method invocation, PROPERTY, SELF/SUPER, conformance. *Very large.*
-  `CobolParserOO.g4` has CLASS-ID/METHOD-ID grammar scaffolding but it is **not bound/emitted**. Map the object
-  model onto .NET types. §11 OO source units, §14.9 INVOKE. **Sequencing is an owner decision (non-OO M2 first).**
+- ◐ **M2-OO-1 — OO COBOL. SLICE 1 DONE (DEVLOG 447); slices 2–6 remain.** Grammar DONE (`Core/CobolOO.g4`,
+  `{is2002()}?`-gated, DEVLOG 439). **Slice 1 (CLASS-ID + single OBJECT method + NEW + no-arg INVOKE + OBJECT
+  REFERENCE storage) is implemented end-to-end** — a class is an INSTANCE .NET reference type with a per-instance
+  `ProgramState` (`EmissionContext.StateIsInstance` chokepoint), `INVOKE class "NEW" RETURNING o` (`newobj`+`.ctor`),
+  `INVOKE o "method"` (`callvirt`, static cross-type resolution, classes emitted before programs), `USAGE OBJECT
+  REFERENCE class` → a `_OBJ_` managed reference, and PERFORM inside an OBJECT method. Conformance
+  `tests/conformance/2002/oo_hello` + `oo_method_perform`. Adversarial-reviewed (non-OO corpus byte-identical; 2
+  latent landmines fixed: instance-State LOCAL-STORAGE load + receiver-less PERFORM). Turnkey map +
+  per-slice scope in `docs/OO_IMPLEMENTATION_DESIGN.md` (§5 slices, §6.6). **Remaining (each its own guard-green +
+  conformance-tested slice):** slice 2 `INVOKE … USING/RETURNING` (method params + value return); slice 3 `INHERITS
+  FROM` + `SELF`/`SUPER`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
+  + universal object reference + `EC-OO-*`; plus multi-method classes (a richer per-class IrModule) and per-instance
+  OBJECT REFERENCE / typed-native OBJECT fields. INTERFACE-ID is post-slice-6. §11 OO source units, §14.9.23 INVOKE.
 
 ### 3.8 M3 — COBOL-2014
 

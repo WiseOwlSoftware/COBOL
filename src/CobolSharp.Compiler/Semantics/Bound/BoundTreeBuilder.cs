@@ -289,6 +289,7 @@ public sealed class BoundTreeBuilder : CobolParserCoreBaseVisitor<object?>
         if (ctx.mergeStatement() is { } mergeCtx) return _ctx.FileIo.BindMerge(mergeCtx);
         if (ctx.releaseStatement() is { } relCtx) return _ctx.FileIo.BindRelease(relCtx);
         if (ctx.callStatement() is { } callCtx) return _ctx.Call.BindCall(callCtx);
+        if (ctx.invokeStatement() is { } invokeCtx) return _ctx.Call.BindInvoke(invokeCtx); // OO (2002)
         if (ctx.continueStatement() != null) return new BoundExitStatement(); // CONTINUE is a no-op
         if (ctx.useStatement() is { }) return new BoundExitStatement(); // USE is a no-op stub
 

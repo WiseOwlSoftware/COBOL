@@ -96,6 +96,11 @@ public sealed class DataSymbol : Symbol
     /// <summary>USAGE clause: DISPLAY, COMP, COMP-3, INDEX, etc.</summary>
     public UsageKind Usage { get; set; }
 
+    /// <summary>OO (COBOL-2002): for a <c>USAGE OBJECT REFERENCE class-name</c> item, the declared class name
+    /// (e.g. <c>GREETER</c>); null for a universal object reference or a non-object item. Used to type the
+    /// emitted <c>_OBJ_</c> field and to resolve <c>INVOKE</c> method targets.</summary>
+    public string? ObjectClassName { get; set; }
+
     /// <summary>Type resolved from PIC/USAGE analysis; set during type resolution, null before.</summary>
     public ITypeSymbol? ResolvedType { get; set; }
 
@@ -117,13 +122,15 @@ public sealed class DataSymbol : Symbol
         && !(Usage == Runtime.UsageKind.Index && Children.Count == 0)
         && !(Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0)
         && !(Usage == Runtime.UsageKind.Pointer && Children.Count == 0)
+        && !(Usage == Runtime.UsageKind.Object && Children.Count == 0)
         && !(IsFixedWidthBinary && Children.Count == 0);
 
-    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX/COMP-1/COMP-2/POINTER/BINARY-* without children).</summary>
+    /// <summary>True if this is an elementary item (has a PIC clause, or USAGE INDEX/COMP-1/COMP-2/POINTER/OBJECT/BINARY-* without children).</summary>
     public bool IsElementary => PicString != null
         || (Usage == Runtime.UsageKind.Index && Children.Count == 0)
         || (Usage is Runtime.UsageKind.Comp1 or Runtime.UsageKind.Comp2 && Children.Count == 0)
         || (Usage == Runtime.UsageKind.Pointer && Children.Count == 0)
+        || (Usage == Runtime.UsageKind.Object && Children.Count == 0)
         || (IsFixedWidthBinary && Children.Count == 0);
 
     /// <summary>True for the COBOL-2002 no-PIC fixed-width binary usages (BINARY-CHAR/SHORT/LONG/DOUBLE).</summary>

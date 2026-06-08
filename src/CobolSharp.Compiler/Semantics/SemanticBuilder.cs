@@ -1259,6 +1259,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var usage = UsageKind.Display;
         bool hasExplicitUsage = false;
         bool isUnsignedBinary = false;
+        string? objectClassName = null; // OO: USAGE OBJECT REFERENCE class-name
         string? typeName = null;
         string? initialValue = null;
         var body = ctx.dataDescriptionBody();
@@ -1273,17 +1274,29 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var usageClause = clause.usageClause();
                 if (usageClause != null)
                 {
-                    // Full form: USAGE IS? usageKeyword → use usageKeyword text.
-                    // Bare BINARY-xxx form has no usageKeyword node — read the binary token directly so a
-                    // trailing SIGNED/UNSIGNED is not concatenated into the keyword (GetText would yield
-                    // "BINARY-CHARSIGNED"). Other bare forms (COMP, BINARY, …) use the clause text.
-                    var kwText = usageClause.usageKeyword()?.GetText()
-                        ?? BareBinaryUsageText(usageClause)
-                        ?? usageClause.GetText();
-                    usage = UsageMapper.FromUsageKeyword(kwText);
-                    // SIGNED (default) / UNSIGNED on a BINARY-xxx usage (ISO §13.18.60).
-                    isUnsignedBinary = usageClause.binarySign()?.UNSIGNED() != null;
-                    hasExplicitUsage = true;
+                    // OO (COBOL-2002, ISO §13.18.60.4): USAGE OBJECT REFERENCE [class-name] — a managed .NET
+                    // reference, not a byte-keyword usage. Detect the dedicated grammar alt and capture the
+                    // declared class so the _OBJ_ field can be typed and INVOKE method targets resolved.
+                    if (usageClause.usageKeyword()?.objectReferenceUsage() is { } objRef)
+                    {
+                        usage = UsageKind.Object;
+                        objectClassName = objRef.className()?.cobolWord()?.GetText();
+                        hasExplicitUsage = true;
+                    }
+                    else
+                    {
+                        // Full form: USAGE IS? usageKeyword → use usageKeyword text.
+                        // Bare BINARY-xxx form has no usageKeyword node — read the binary token directly so a
+                        // trailing SIGNED/UNSIGNED is not concatenated into the keyword (GetText would yield
+                        // "BINARY-CHARSIGNED"). Other bare forms (COMP, BINARY, …) use the clause text.
+                        var kwText = usageClause.usageKeyword()?.GetText()
+                            ?? BareBinaryUsageText(usageClause)
+                            ?? usageClause.GetText();
+                        usage = UsageMapper.FromUsageKeyword(kwText);
+                        // SIGNED (default) / UNSIGNED on a BINARY-xxx usage (ISO §13.18.60).
+                        isUnsignedBinary = usageClause.binarySign()?.UNSIGNED() != null;
+                        hasExplicitUsage = true;
+                    }
                 }
 
                 // An unknown COMP-n (COMP-9, COMPUTATIONAL-7, …) has no usage token, so it lexes as an
@@ -1584,6 +1597,7 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         var data = new DataSymbol(internalName, displayName, level, picString, usage, typeName, redefines: null, line);
         data.HasExplicitUsage = hasExplicitUsage;
         data.IsUnsignedBinary = isUnsignedBinary;
+        data.ObjectClassName = objectClassName;
         data.Occurs = occursInfo;
         data.IsJustifiedRight = justifiedRight;
         data.IsSynchronized = isSynchronized;

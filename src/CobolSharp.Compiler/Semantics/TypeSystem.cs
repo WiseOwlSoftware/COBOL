@@ -70,6 +70,7 @@ public sealed record DataTypeSymbol(
         ?? (IsNumeric ? CobolCategory.Numeric
             : IsAlphanumeric ? CobolCategory.Alphanumeric
             : Usage == UsageKind.Pointer ? CobolCategory.Pointer   // USAGE POINTER has no PIC
+            : Usage == UsageKind.Object ? CobolCategory.ObjectReference // USAGE OBJECT REFERENCE has no PIC
             : CobolCategory.Unknown);
 }
 

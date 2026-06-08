@@ -473,7 +473,16 @@ internal sealed class CilLocationEmitter
         // by ManagedPointer fields populated from CALL USING args.
         // This method only handles WorkingStorage, LocalStorage, and FileSection.
         // LINKAGE access is handled separately in EmitLocationArgs.
-        il.Append(il.Create(OpCodes.Ldsfld, _ctx.ProgramStateField!));
+        // OO (docs/OO_IMPLEMENTATION_DESIGN.md §4): inside a CLASS's instance method the State is a per-instance
+        // field reached through the receiver (ldarg.0; ldfld State); a normal program uses the static ldsfld.
+        // This is THE single byte-engine chokepoint that makes the whole data engine work per-instance.
+        if (_ctx.StateIsInstance)
+        {
+            il.Append(il.Create(OpCodes.Ldarg_0));
+            il.Append(il.Create(OpCodes.Ldfld, _ctx.ProgramStateField!));
+        }
+        else
+            il.Append(il.Create(OpCodes.Ldsfld, _ctx.ProgramStateField!));
 
         var propertyName = area switch
         {

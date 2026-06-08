@@ -1,11 +1,17 @@
 # OO COBOL → .NET classes — Implementation Design (Stage-4 OO)
 
 > **Canonical reference for the COBOL Object-Orientation subsystem.** This is the **LIVE turnkey design** — defer to
-> it. **Implementation status (2026-06-07, DEVLOG 441):** the OO
-> **grammar is DONE** (factored `src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated, guard-green);
-> **semantic analysis + CIL emission are PENDING** (no `EmitClassModule` / `BoundInvokeStatement` / `IrInvoke` /
-> `UnitKind` in src yet). So OO is **design-complete + grammar-implemented, ~10% end-to-end**; the §5 slices below are
-> the build queue.
+> it. **Implementation status (2026-06-07, DEVLOG 447):** the OO **grammar is DONE**
+> (`src/CobolSharp.Compiler/Grammar/Core/CobolOO.g4`, `{is2002()}?`-gated) AND **SLICE 1 is DONE end-to-end** —
+> `CLASS-ID` → an instance .NET reference type with a per-instance `ProgramState`, `INVOKE class "NEW" RETURNING o`
+> (`newobj` + the public `.ctor`), `INVOKE o "method"` (`callvirt`, static cross-type resolution), `USAGE OBJECT
+> REFERENCE` storage, and PERFORM inside an OBJECT method (`EmitClassModule` / `BoundInvokeStatement` / `IrInvoke` /
+> `EmissionContext.StateIsInstance` are all live; conformance `tests/conformance/2002/oo_hello` + `oo_method_perform`).
+> So OO is **slice-1 complete (single-method class, no args/inheritance), ~30% end-to-end**; the §5 slices 2–6 below
+> are the remaining build queue. **Known scope limits carried by slice 1** (see §6.6 + DEVLOG 447): single method per
+> class; OBJECT REFERENCE fields and (future) typed-native OBJECT fields are emitted *static* (correct for the
+> driver-program INVOKE site, but a class that itself holds object refs / typed fields needs per-instance versions);
+> USING/RETURNING args, INHERITS, SELF/SUPER, FACTORY, PROPERTY, polymorphism are slices 2–6.
 > **Stack:** .NET 10 / C# 14. **Backend:** CIL-only via Mono.Cecil (NO custom VM / NO bytecode interpreter; a Roslyn
 > C# backend is a FUTURE additive Stage-5 option, Cecil = oracle). **Object identity** = the .NET reference itself
 > (GC-managed; **no handle table, no `unsafe`**). OBJECT-REFERENCE NULL/compare reuses the *shape* of the pointer

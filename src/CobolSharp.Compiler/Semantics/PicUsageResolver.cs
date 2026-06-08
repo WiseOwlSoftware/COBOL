@@ -53,6 +53,12 @@ public static class PicUsageResolver
         {
             category = CobolCategory.Pointer;
         }
+        // USAGE OBJECT REFERENCE (no PIC) — an OO object reference (ISO §13.18.60.4); a managed .NET reference,
+        // never bytes (it occupies no WORKING-STORAGE; its home is the _OBJ_ static field). Not numeric/alphanumeric.
+        else if (picString == null && usage == UsageKind.Object)
+        {
+            category = CobolCategory.ObjectReference;
+        }
         // Group items (no PIC) are alphanumeric by default
         else if (picString == null && usage == UsageKind.Display)
         {
@@ -179,7 +185,10 @@ public static class UsageMapper
             // USAGE BIT (ISO §13.18.60.4): explicit boolean data. Category is supplied by the accompanying
             // PIC 1; this marks the usage. Sizing/MOVE/DISPLAY dispatch on the category.
             "BIT" => UsageKind.Bit,
-            _ => UsageKind.Object
+            // An unmapped usage keyword is unknown, NOT an object reference: USAGE OBJECT REFERENCE has its own
+            // dedicated grammar alt handled in SemanticBuilder before this mapper, and UsageKind.Object is now a
+            // live value (zero-storage managed reference) — a stray keyword must not silently masquerade as one.
+            _ => UsageKind.Unknown
         };
     }
 }

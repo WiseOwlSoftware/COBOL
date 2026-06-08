@@ -116,6 +116,13 @@ internal sealed class LoweringContext
     public Dictionary<DataSymbol, string> PointerFieldRefs { get; } =
         new(ReferenceEqualityComparer.Instance);
 
+    /// <summary>OO object references (docs/OO_IMPLEMENTATION_DESIGN.md §E): a <c>USAGE OBJECT REFERENCE</c> item →
+    /// its emitted <c>static _OBJ_&lt;name&gt;</c> field name. Populated by Binder.CollectObjectRefFields (always-on);
+    /// consulted by the SET-NULL / INVOKE-RETURNING / INVOKE-target lowering. Empty unless the program declares
+    /// object references.</summary>
+    public Dictionary<DataSymbol, string> ObjectRefFieldRefs { get; } =
+        new(ReferenceEqualityComparer.Instance);
+
     // ── Recursive statement lowering delegate ──
     // Allows extracted lowerers to call back into Binder.LowerStatement
     // without depending on the Binder class directly.

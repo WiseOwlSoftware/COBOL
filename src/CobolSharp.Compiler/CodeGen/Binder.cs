@@ -95,6 +95,10 @@ public sealed class Binder
         // representation — NOT gated by EnableTypedFields); no-op unless the program declares pointers.
         CollectPointerFields(module);
 
+        // Phase 2.7: OO object-reference fields — collect USAGE OBJECT REFERENCE items into managed reference
+        // fields (docs/OO_IMPLEMENTATION_DESIGN.md §E). Always-on; no-op unless the program declares object refs.
+        CollectObjectRefFields(module);
+
         // Phase 3: Create paragraph method stubs
         CreateParagraphStubs(module, boundProgram);
 
@@ -538,9 +542,50 @@ public sealed class Binder
     }
 
     /// <summary>
+    /// OO (docs/OO_IMPLEMENTATION_DESIGN.md §E): register one <c>static &lt;class&gt; _OBJ_&lt;name&gt;</c> field for
+    /// every elementary <c>USAGE OBJECT REFERENCE</c> item. An object reference is ALWAYS a managed .NET reference
+    /// (the object identity), never bytes — so, like the pointer pass, this is always-on (NOT gated by
+    /// <c>EnableTypedFields</c>); the item occupies no WORKING-STORAGE (StorageLayoutComputer skips it). Default
+    /// (null) IS the COBOL initial NULL, so no explicit init is emitted.
+    /// </summary>
+    private void CollectObjectRefFields(IrModule module)
+    {
+        foreach (var sym in _semantic.DataItemsInOrder)
+        {
+            if (sym.Usage != UsageKind.Object || !sym.IsElementary)
+                continue;
+            string name = "_OBJ_" + sym.Name;
+            module.ObjectRefFieldDefs.Add(new IR.IrObjectRefFieldDef(name, sym.ObjectClassName));
+            _ctx.ObjectRefFieldRefs[sym] = name;
+        }
+    }
+
+    /// <summary>
     /// Stage-4 pointers: lower a <see cref="BoundSetPointerStatement"/> to an <see cref="IrPointerStore"/> against
     /// the target item's <c>_PTR_</c> field (docs/RECORD_STRUCT_STORAGE_DESIGN.md §10).
     /// </summary>
+    /// <summary>Lower INVOKE (OO, slice 1) → <see cref="IR.IrInvoke"/>. NEW resolves the constructed class by name
+    /// and its RETURNING object-reference field; an instance call resolves the receiver's <c>_OBJ_</c> field and its
+    /// declared class for dispatch. (docs/OO_IMPLEMENTATION_DESIGN.md §C/§E.)</summary>
+    private void LowerInvoke(BoundInvokeStatement inv, IrBasicBlock block)
+    {
+        string? returningField = inv.Returning != null
+            && _ctx.ObjectRefFieldRefs.TryGetValue(inv.Returning, out var rf) ? rf : null;
+
+        if (inv.IsNew)
+        {
+            block.Instructions.Add(new IR.IrInvoke(isNew: true, className: inv.ClassName,
+                receiverField: null, receiverClassName: null, methodName: inv.MethodName,
+                returningField: returningField));
+            return;
+        }
+
+        string? receiverField = inv.TargetObject != null
+            && _ctx.ObjectRefFieldRefs.TryGetValue(inv.TargetObject, out var rcv) ? rcv : null;
+        block.Instructions.Add(new IR.IrInvoke(isNew: false, className: null, receiverField: receiverField,
+            receiverClassName: inv.TargetClassName, methodName: inv.MethodName, returningField: returningField));
+    }
+
     private void LowerSetPointer(BoundSetPointerStatement stmt, IrBasicBlock block)
     {
         if (!_ctx.PointerFieldRefs.TryGetValue(stmt.TargetPointer, out var targetField))
@@ -960,6 +1005,9 @@ public sealed class Binder
                 break;
             case BoundCallStatement call:
                 return LowerCall(call, method, block);
+            case BoundInvokeStatement inv:
+                LowerInvoke(inv, block);
+                break;
             case BoundCancelStatement cancel:
                 foreach (var target in cancel.Targets)
                 {

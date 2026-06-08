@@ -19,6 +19,16 @@ internal sealed class CilControlFlowEmitter
 
     internal CilControlFlowEmitter(EmissionContext ctx) => _ctx = ctx;
 
+    /// <summary>OO (docs/OO_IMPLEMENTATION_DESIGN.md §4): push the instance receiver (<c>this</c>) before a self-call
+    /// to a paragraph method or the <c>Dispatch</c> helper when emitting an OO instance (CLASS) method — those
+    /// members are instance methods there. A no-op for a normal static program (StateIsInstance false), so the
+    /// program path is byte-identical.</summary>
+    private void EmitSelfReceiver(ILProcessor il)
+    {
+        if (_ctx.StateIsInstance)
+            il.Append(il.Create(OpCodes.Ldarg_0));
+    }
+
     // ── Branch / Return ──
 
     internal void EmitBranch(ILProcessor il, IrBranch br,
@@ -47,6 +57,7 @@ internal sealed class CilControlFlowEmitter
     internal void EmitPerform(ILProcessor il, IrPerform perf)
     {
         var target = _ctx.MethodMap[perf.Target];
+        EmitSelfReceiver(il);
         il.Append(il.Create(OpCodes.Call, target));
         // Paragraph methods return int (next PC); discard in PERFORM context
         if (target.ReturnType != _ctx.Module.TypeSystem.Void)
@@ -84,6 +95,7 @@ internal sealed class CilControlFlowEmitter
         if (pt.StartIdx == pt.EndIdx)
         {
             var target = _ctx.MethodMap[pt.Target];
+            EmitSelfReceiver(il);
             il.Append(il.Create(OpCodes.Call, target));
             if (target.ReturnType != _ctx.Module.TypeSystem.Void)
                 il.Append(il.Create(OpCodes.Pop));
@@ -165,6 +177,7 @@ internal sealed class CilControlFlowEmitter
     /// </summary>
     internal void EmitPerformThru(ILProcessor il, IrPerformThru thru, MethodDefinition md)
     {
+        EmitSelfReceiver(il); // instance Dispatch(this, startPc, exitPc) for an OO method; no-op for a program
         il.Append(il.Create(OpCodes.Ldc_I4, thru.StartIndex));
         il.Append(il.Create(OpCodes.Ldc_I4, thru.EndIndex));
         il.Append(il.Create(OpCodes.Call, _ctx.DispatchMethod));
