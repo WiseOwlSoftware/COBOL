@@ -1630,21 +1630,34 @@ public sealed class CilEmitter
             return;
         }
 
-        // Instance call: load the receiver object reference, marshal USING args (+ trailing RETURNING) into a
-        // ManagedPointer[] (the CALL ABI), then callvirt the resolved instance method (void Method(ManagedPointer[])).
-        if (inv.ReceiverField is not { } recv || !_ctx.ObjectRefFields.TryGetValue(recv, out var recvFd))
-            throw new InvalidOperationException(
-                $"INVOKE '{inv.MethodName}': receiver is not a known OBJECT REFERENCE item.");
-        var recvClass = FindClassType(inv.ReceiverClassName)
-            ?? throw new InvalidOperationException(
-                $"INVOKE '{inv.MethodName}': unknown receiver class '{inv.ReceiverClassName}'.");
-        // Resolve the method on the receiver's class OR any base class (INHERITS chain, OO slice 3). callvirt on a
-        // virtual method then dispatches to the most-derived override at runtime (polymorphism).
-        var method = ResolveInheritedMethod(recvClass, inv.MethodName)
-            ?? throw new InvalidOperationException(
-                $"INVOKE: class '{inv.ReceiverClassName}' has no method '{inv.MethodName}'.");
-
-        il.Append(il.Create(OpCodes.Ldsfld, recvFd));   // receiver (stays at the bottom while the array is built)
+        // Instance call (incl. SUPER): resolve the method + push the receiver, marshal USING args (+ trailing
+        // RETURNING) into a ManagedPointer[] (the CALL ABI), then call the method. SUPER → the BASE class's method,
+        // receiver `this` (ldarg.0), called NON-virtually (so override-calls-base doesn't recurse). Otherwise →
+        // the receiver's class/base (INHERITS chain) via its _OBJ_ field, called virtually (polymorphism).
+        MethodReference method;
+        if (inv.IsSuper)
+        {
+            // SUPER in a class with no base is invalid — already reported as COBOL0115 (the compile fails), so
+            // emit nothing rather than throw a misleading COBOL0600 internal-error for the same mistake.
+            if (_currentBaseType == null) return;
+            method = ResolveInheritedMethod(_currentBaseType, inv.MethodName)
+                ?? throw new InvalidOperationException(
+                    $"INVOKE SUPER '{inv.MethodName}': no such method in the base class.");
+            il.Append(il.Create(OpCodes.Ldarg_0));      // `this` as the receiver
+        }
+        else
+        {
+            if (inv.ReceiverField is not { } recv || !_ctx.ObjectRefFields.TryGetValue(recv, out var recvFd))
+                throw new InvalidOperationException(
+                    $"INVOKE '{inv.MethodName}': receiver is not a known OBJECT REFERENCE item.");
+            var recvClass = FindClassType(inv.ReceiverClassName)
+                ?? throw new InvalidOperationException(
+                    $"INVOKE '{inv.MethodName}': unknown receiver class '{inv.ReceiverClassName}'.");
+            method = ResolveInheritedMethod(recvClass, inv.MethodName)
+                ?? throw new InvalidOperationException(
+                    $"INVOKE: class '{inv.ReceiverClassName}' has no method '{inv.MethodName}'.");
+            il.Append(il.Create(OpCodes.Ldsfld, recvFd));   // receiver (stays at the bottom while the array is built)
+        }
 
         // ManagedPointer[] args = [ USING args (BY REFERENCE)…, RETURNING (BY REFERENCE) ]
         var mpType = _module.ImportReference(typeof(ManagedPointer));
@@ -1671,7 +1684,8 @@ public sealed class CilEmitter
             il.Append(il.Create(OpCodes.Stelem_Any, mpType));
         }
 
-        il.Append(il.Create(OpCodes.Callvirt, method));   // void Method(ManagedPointer[]) — RETURNING flows back via its pointer
+        // SUPER → non-virtual `call` (run the base's exact method); otherwise `callvirt` (virtual dispatch).
+        il.Append(il.Create(inv.IsSuper ? OpCodes.Call : OpCodes.Callvirt, method));
         if (method.ReturnType.MetadataType != Mono.Cecil.MetadataType.Void)
             il.Append(il.Create(OpCodes.Pop));            // defensive: a value-returning method's result is unused in slice 2
     }

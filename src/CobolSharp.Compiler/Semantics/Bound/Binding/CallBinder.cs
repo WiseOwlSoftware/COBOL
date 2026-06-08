@@ -30,16 +30,22 @@ internal sealed class CallBinder
     internal BoundStatement? BindInvoke(CobolParserCore.InvokeStatementContext ctx)
     {
         var objRef = ctx.invokeTarget()?.objectReference();
-        // SELF / SUPER targets are a later OO slice — reject loudly (COBOL0112) rather than silently dropping.
-        if (objRef?.SELF() != null || objRef?.SUPER() != null)
+        // SELF "m" needs a sibling method to call, which requires multi-method classes — a later slice; reject
+        // loudly (COBOL0112). SUPER "m" (call the base class's method — the override-calls-base pattern) is slice 3b.
+        if (objRef?.SELF() != null)
         {
             _ctx.Diagnostics.Report(DiagnosticDescriptors.COBOL0112,
                 new SourceLocation(_ctx.SourceName, 0, ctx.Start.Line, ctx.Start.Column), TextSpan.Empty);
             return null;
         }
-        var targetRef = objRef?.dataReference();
-        if (targetRef == null) return null; // NULL target / other forms — later slices
-        string targetText = targetRef.cobolWord().GetText();
+        bool isSuper = objRef?.SUPER() != null;
+        string targetText = "";
+        if (!isSuper)
+        {
+            var targetRef = objRef?.dataReference();
+            if (targetRef == null) return null; // NULL target / other forms — later slices
+            targetText = targetRef.cobolWord().GetText();
+        }
 
         // Method name: a literal "NEW"/"method" (slice 1; a data-name method selector is a later slice).
         var methodLit = ctx.invokeMethodName()?.literal();
@@ -52,7 +58,7 @@ internal sealed class CallBinder
             ? _ctx.Semantic.ResolveData(retRef.cobolWord().GetText())
             : null;
 
-        if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
+        if (!isSuper && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
             // INVOKE class-name "NEW" RETURNING obj — construct an instance of the target class.
             return new BoundInvokeStatement(isNew: true, className: targetText, targetObject: null,
                 targetClassName: null, methodName: methodName, args: System.Array.Empty<BoundExpression>(),
@@ -79,6 +85,12 @@ internal sealed class CallBinder
                 if (_ctx.Expression.BindDataReferenceWithSubscripts(argCtx.dataReference()) is { } boundArg)
                     args.Add(boundArg);
             }
+
+        if (isSuper)
+            // INVOKE SUPER "m" — non-virtual call to the base class's method (receiver is `this`; resolved + emitted
+            // against the enclosing class's base at emit time).
+            return new BoundInvokeStatement(isNew: false, className: null, targetObject: null,
+                targetClassName: null, methodName: methodName, args: args, returning: returning, isSuper: true);
 
         var targetObject = _ctx.Semantic.ResolveData(targetText);
         return new BoundInvokeStatement(isNew: false, className: null, targetObject: targetObject,

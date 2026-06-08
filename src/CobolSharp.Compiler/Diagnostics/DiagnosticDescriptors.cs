@@ -443,12 +443,14 @@ public static partial class DiagnosticDescriptors
     // OO slice 3 deferrals — reported as ERRORs so the unsupported form fails loudly instead of silently
     // dropping (binder would otherwise return null and the statement would vanish with no diagnostic).
     public static readonly DiagnosticDescriptor COBOL0112 = new("COBOL0112", DiagnosticSeverity.Error,
-        "INVOKE SELF / SUPER target not yet supported (a later OO slice).");
+        "INVOKE SELF target not yet supported — it needs a sibling method (multi-method classes), a later OO slice.");
     public static readonly DiagnosticDescriptor COBOL0113 = new("COBOL0113", DiagnosticSeverity.Error,
         "A subclass (INHERITS FROM '{0}') may not declare its own OBJECT data yet — only inherited data is "
         + "supported in this OO slice.");
     public static readonly DiagnosticDescriptor COBOL0114 = new("COBOL0114", DiagnosticSeverity.Error,
         "INHERITS FROM '{0}': base class not found in this compilation group.");
+    public static readonly DiagnosticDescriptor COBOL0115 = new("COBOL0115", DiagnosticSeverity.Error,
+        "INVOKE SUPER is not valid in class '{0}' — it has no INHERITS FROM base class.");
 
     // ══════════════════════════════════════
     // COBOL0200–0201: Parser — reserved word conflicts

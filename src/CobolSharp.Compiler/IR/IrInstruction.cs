@@ -353,10 +353,13 @@ public sealed class IrInvoke : IrInstruction
     // receiver location, marshalled into a ManagedPointer[] (the trailing element is RETURNING) — the CALL ABI.
     public IReadOnlyList<IrLocation> ArgLocations { get; }
     public IrLocation? ReturningLocation { get; }
+    // INVOKE SUPER "m" (slice 3b): the receiver is `this`, the target is the BASE class's method, called
+    // NON-virtually (so the override-calls-base pattern doesn't recurse into itself).
+    public bool IsSuper { get; }
 
     public IrInvoke(bool isNew, string? className, string? receiverField, string? receiverClassName,
         string methodName, string? returningField,
-        IReadOnlyList<IrLocation>? argLocations = null, IrLocation? returningLocation = null)
+        IReadOnlyList<IrLocation>? argLocations = null, IrLocation? returningLocation = null, bool isSuper = false)
     {
         IsNew = isNew;
         ClassName = className;
@@ -366,6 +369,7 @@ public sealed class IrInvoke : IrInstruction
         ReturningField = returningField;
         ArgLocations = argLocations ?? System.Array.Empty<IrLocation>();
         ReturningLocation = returningLocation;
+        IsSuper = isSuper;
     }
 }
 

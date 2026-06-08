@@ -52,9 +52,10 @@ default + proceed).
   `ManagedPointer[]` ABI); `USAGE OBJECT REFERENCE` storage; PERFORM in a method; per-instance state proven; and
   **slice 3a `INHERITS FROM` + virtual methods + polymorphism** (subclass extends base, inherits the root's State
   via ctor-chaining, overrides base methods, virtual dispatch through a base-typed ref — `oo_inherit`). Each slice
-  adversarially reviewed (Agent tool); deferred forms fail loudly (COBOL0111 arg-forms, 0112 SELF/SUPER, 0113
-  subclass-data, 0114 unknown-base). Conformance `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`.
-  **NEXT OO = slice 3b (subclass own OBJECT data — extend the shared State — + INVOKE SELF/SUPER), then 4 FACTORY /
+  and **slice 3b `INVOKE SUPER`** (override calls base — `oo_super`). Each slice adversarially reviewed (Agent
+  tool); deferred forms fail loudly (COBOL0111 arg-forms, 0112 SELF, 0113 subclass-data, 0114 unknown-base, 0115
+  root-class-SUPER). Conformance `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`/`oo_super`.
+  **NEXT OO = subclass own OBJECT data (extend the shared State) + multi-method classes + INVOKE SELF, then 4 FACTORY /
   5 PROPERTY / 6 universal-ref+EC** (`docs/OO_IMPLEMENTATION_DESIGN.md` §5). Single-method-per-class today.
 - **Architecture refactors already DONE** (do not treat as god classes): **M001** (IR-expression hierarchy),
   **M003** (`CilEmitter` → 11 focused emitters + `EmissionContext`), **M004** (`BoundTreeBuilder` → 9 focused binders),

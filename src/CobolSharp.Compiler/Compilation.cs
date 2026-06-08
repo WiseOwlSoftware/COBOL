@@ -159,6 +159,11 @@ public sealed class Compilation
                 irModule.IsClass = true;
                 irModule.ClassMethodName = ExtractClassMethodName(classCtx);
                 irModule.BaseClassName = ExtractBaseClassName(classCtx); // OO slice 3: INHERITS FROM
+                // INVOKE SUPER in a class with no base is invalid — report it cleanly (else it surfaces at emit
+                // time as a misleading COBOL0600 "internal error"). (Adversarial review, DEVLOG 451.)
+                if (irModule.BaseClassName == null && ClassUsesSuper(irModule))
+                    diagnostics.Report(DiagnosticDescriptors.COBOL0115,
+                        new SourceLocation(sourcePath, 0, 0, 0), TextSpan.Empty, programId);
                 if (irModule.BaseClassName is { } baseName)
                 {
                     // INHERITS FROM a base that isn't a class in this compilation group → fail loudly rather than
@@ -735,6 +740,11 @@ public sealed class Compilation
             && methods[0].methodName() is { Length: > 0 } names
             ? names[0].cobolWord()?.GetText()
             : null;
+
+    /// <summary>True if any method in the module's IR contains an <c>INVOKE SUPER</c> (used to reject SUPER in a
+    /// root class — a class with no INHERITS FROM base — cleanly at compile time rather than at emit time.)</summary>
+    private static bool ClassUsesSuper(IR.IrModule module)
+        => module.Methods.Any(m => m.Blocks.Any(b => b.Instructions.Any(i => i is IR.IrInvoke { IsSuper: true })));
 
     /// <summary>The <c>INHERITS FROM</c> base class name of a class unit (OO slice 3), or null for a root class.
     /// <c>classIdParagraph.className()</c> is an array: [0] = this class's name, [1] = the base (present only when

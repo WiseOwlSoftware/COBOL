@@ -532,9 +532,10 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   **Slice 3a (DEVLOG 450): `INHERITS FROM` + virtual methods + polymorphism** — a subclass extends a base (`class
   Sub : Base`), inherits the root's per-instance State (ctor-chains), and overrides base methods; invoking through a
   base-typed reference dispatches to the override (`oo_inherit`: GENERIC/WOOF/WOOF). Deferred forms fail loudly
-  (subclass own data → COBOL0113; INVOKE SELF/SUPER → COBOL0112; unknown base → COBOL0114).
+  (subclass own data → COBOL0113; INVOKE SELF → COBOL0112; root-class SUPER → COBOL0115; unknown base → COBOL0114).
+  **Slice 3b (DEVLOG 451): INVOKE SUPER** — an override calls the base class's method non-virtually (`oo_super`).
   **Remaining (each its own guard-green + conformance-tested slice):** slice 3b subclass own OBJECT data (extend
-  the shared State) + `INVOKE SELF/SUPER`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
+  the shared State) + multi-method classes + `INVOKE SELF`; slice 4 `FACTORY` (static) methods/data; slice 5 `PROPERTY` (GET/SET); slice 6 polymorphism
   + universal object reference + `EC-OO-*`; plus multi-method classes (a richer per-class IrModule) and per-instance
   OBJECT REFERENCE / typed-native OBJECT fields. INTERFACE-ID is post-slice-6. §11 OO source units, §14.9.23 INVOKE.
 

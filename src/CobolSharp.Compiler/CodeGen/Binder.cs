@@ -580,8 +580,9 @@ public sealed class Binder
             return;
         }
 
-        // Instance call: resolve the receiver field + USING arg locations + the RETURNING receiver location
-        // (marshalled into the ManagedPointer[] ABI by EmitInvoke; the trailing element is RETURNING).
+        // Instance call (incl. SUPER): resolve the receiver field (null for SUPER — receiver is `this`) + USING arg
+        // locations + the RETURNING receiver location (marshalled into the ManagedPointer[] ABI by EmitInvoke; the
+        // trailing element is RETURNING).
         string? receiverField = inv.TargetObject != null
             && _ctx.ObjectRefFieldRefs.TryGetValue(inv.TargetObject, out var rcv) ? rcv : null;
         var argLocations = new List<IR.IrLocation>();
@@ -592,7 +593,7 @@ public sealed class Binder
             ? _ctx.Location.ResolveLocation(inv.Returning) : null;
         block.Instructions.Add(new IR.IrInvoke(isNew: false, className: null, receiverField: receiverField,
             receiverClassName: inv.TargetClassName, methodName: inv.MethodName, returningField: null,
-            argLocations: argLocations, returningLocation: returningLocation));
+            argLocations: argLocations, returningLocation: returningLocation, isSuper: inv.IsSuper));
     }
 
     private void LowerSetPointer(BoundSetPointerStatement stmt, IrBasicBlock block)

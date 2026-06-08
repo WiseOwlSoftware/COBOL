@@ -140,8 +140,8 @@ public sealed class OoTests : EndToEndTestBase
     }
 
     [Fact]
-    // INVOKE SUPER is a later OO slice — it must fail loudly (COBOL0112), not silently drop the statement.
-    public void Invoke_SuperTarget_FailsLoudly()
+    // INVOKE SUPER (slice 3b): an override calls the base class's method (non-virtual, no recursion).
+    public void Invoke_Super_CallsBaseMethod()
     {
         string driver = @"
        IDENTIFICATION DIVISION.
@@ -168,7 +168,7 @@ public sealed class OoTests : EndToEndTestBase
        METHOD-ID. SPEAK.
        PROCEDURE DIVISION.
        MAIN.
-           DISPLAY ""GENERIC"".
+           DISPLAY ""ANIMAL"".
        END METHOD SPEAK.
        END OBJECT.
        END CLASS ANIMAL.
@@ -181,13 +181,92 @@ public sealed class OoTests : EndToEndTestBase
        PROCEDURE DIVISION.
        MAIN.
            INVOKE SUPER ""SPEAK"".
+           DISPLAY ""DOG"".
        END METHOD SPEAK.
        END OBJECT.
        END CLASS DOG.
 ";
+        var (ok, stdout, stderr) = CompileAndRun(driver, DialectMode.Cobol2002);
+        Assert.True(ok, stderr);
+        Assert.Equal("ANIMAL\nDOG", stdout.Replace("\r\n", "\n").Trim());
+    }
+
+    [Fact]
+    // INVOKE SELF needs a sibling method (multi-method classes) — a later slice; it must fail loudly (COBOL0112).
+    public void Invoke_SelfTarget_FailsLoudly()
+    {
+        string driver = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OODRV.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS ANIMAL.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 A USAGE OBJECT REFERENCE ANIMAL.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE ANIMAL ""NEW"" RETURNING A.
+           INVOKE A ""SPEAK"".
+           STOP RUN.
+       END PROGRAM OODRV.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. ANIMAL.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       PROCEDURE DIVISION.
+       METHOD-ID. SPEAK.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE SELF ""SPEAK"".
+       END METHOD SPEAK.
+       END OBJECT.
+       END CLASS ANIMAL.
+";
         var (ok, _, stderr) = CompileAndRun(driver, DialectMode.Cobol2002);
         Assert.False(ok);
         Assert.Contains("COBOL0112", stderr);
+    }
+
+    [Fact]
+    // INVOKE SUPER in a class with no INHERITS FROM base is invalid — a clean COBOL0115 (not a COBOL0600
+    // internal-compiler-error at emit time). Adversarial-review finding.
+    public void Invoke_SuperInRootClass_FailsLoudly()
+    {
+        string driver = @"
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. OODRV.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS ANIMAL.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 A USAGE OBJECT REFERENCE ANIMAL.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE ANIMAL ""NEW"" RETURNING A.
+           INVOKE A ""SPEAK"".
+           STOP RUN.
+       END PROGRAM OODRV.
+       IDENTIFICATION DIVISION.
+       CLASS-ID. ANIMAL.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       PROCEDURE DIVISION.
+       METHOD-ID. SPEAK.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE SUPER ""SPEAK"".
+       END METHOD SPEAK.
+       END OBJECT.
+       END CLASS ANIMAL.
+";
+        var (ok, _, stderr) = CompileAndRun(driver, DialectMode.Cobol2002);
+        Assert.False(ok);
+        Assert.Contains("COBOL0115", stderr);
+        Assert.DoesNotContain("COBOL0600", stderr); // not a misleading internal-compiler-error
     }
 
     [Fact]
