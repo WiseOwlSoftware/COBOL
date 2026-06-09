@@ -1,0 +1,151 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Diagnostics;
+using CobolNet;                                          // CompilerDriver (the greenfield compiler)
+using LegacyCompilation = CobolSharp.Compiler.Compilation;
+using LegacyState = CobolSharp.Runtime.ProgramState;
+
+namespace CobolNet.Tests.Conformance;
+
+/// <summary>
+/// A compiler the differential harness can drive uniformly: compile a COBOL source string to a runnable assembly
+/// and run it, returning its stdout. Two implementations — <see cref="LegacyCompiler"/> (the byte-engine oracle,
+/// 364-NIST-green) and <see cref="CobolNetCompiler"/> (the greenfield typed-native compiler) — let a test assert
+/// that COBOL.NET produces <b>byte-identical stdout to the legacy</b> for a program (COBOLNET_DESIGN §2 / §18 #7).
+/// This is the verification backbone the G2 checkpoint demands ("binds and DISPLAYs its data byte-identically to
+/// the legacy"); hand-typed expected strings would re-derive the very semantics under test (padding, scale,
+/// edited/overpunch images).
+/// </summary>
+public interface ICompilerUnderTest
+{
+    /// <summary>A short label for assertion messages (e.g. <c>"legacy"</c> / <c>"cobolnet"</c>).</summary>
+    string Name { get; }
+
+    /// <summary>
+    /// Compile <paramref name="source"/> to a console assembly and run it in an isolated temp directory.
+    /// Returns whether it compiled-and-ran cleanly, its stdout (newline-canonicalized to <c>\r\n</c> then
+    /// trailing-trimmed — matching both engines' test bases so the two are compared apples-to-apples), and a
+    /// human-readable detail string for a failure.
+    /// </summary>
+    (bool ok, string stdout, string detail) CompileAndRun(string source);
+}
+
+/// <summary>Shared process-run plumbing for the two compiler-under-test implementations.</summary>
+internal static class CutRunner
+{
+    /// <summary>
+    /// Canonicalize a compiled program's stdout to the <b>NIST acceptance basis</b> — exactly the guard's
+    /// <c>normalize()</c> (<c>scripts/guard.sh</c>): drop CR, then strip trailing spaces <i>per line</i>. This is
+    /// the criterion the legacy oracle's 364-NIST-green status was validated against, so comparing on this basis
+    /// makes the legacy a sound differential oracle. It also neutralizes the legacy's one known DISPLAY
+    /// non-conformance — it trims trailing spaces off alphanumeric operands (so <c>DISPLAY WS-X</c> of a
+    /// <c>PIC X(10)</c> holding <c>"HI"</c> emits <c>"HI"</c>, not <c>"HI        "</c>), contradicting ISO
+    /// §14.9.11.4 GR1/GR6 ("the content of each operand … the size … is the sum of the sizes of the operands").
+    /// COBOL.NET emits the spec-correct full field; a single-/trailing-operand DISPLAY then matches the legacy once
+    /// per-line trailing spaces are stripped. (A case that exposes <i>internal</i> trailing spaces — e.g.
+    /// <c>DISPLAY WS-X "]"</c> — is pinned to the spec value instead, since the legacy is non-conforming there.)
+    /// </summary>
+    public static string Normalize(string s)
+    {
+        var lines = s.ReplaceLineEndings("\n").Split('\n').Select(line => line.TrimEnd(' '));
+        return string.Join("\n", lines).TrimEnd('\n');
+    }
+
+    /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.</summary>
+    public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir)
+    {
+        var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"")
+        {
+            WorkingDirectory = workDir,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        using var proc = Process.Start(psi)!;
+        var outTask = proc.StandardOutput.ReadToEndAsync();
+        var errTask = proc.StandardError.ReadToEndAsync();
+        if (!proc.WaitForExit(30000))
+        {
+            proc.Kill();
+            proc.WaitForExit(2000);
+            return (false, Normalize(outTask.IsCompleted ? outTask.Result : ""), "process timed out after 30s");
+        }
+        return (proc.ExitCode == 0, Normalize(outTask.Result), Normalize(errTask.Result));
+    }
+
+    /// <summary>Create a fresh isolated temp directory for one compile-and-run.</summary>
+    public static string NewTempDir(string tag)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"CobolNet_Diff_{tag}_{Guid.NewGuid():N}"[..40]);
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
+    /// <summary>Best-effort recursive delete of a temp directory.</summary>
+    public static void TryDelete(string dir)
+    {
+        try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { /* best-effort */ }
+    }
+}
+
+/// <summary>
+/// The greenfield COBOL.NET compiler under test: drives <see cref="CompilerDriver"/> (COBOL → typed-native C# →
+/// Roslyn) into an isolated temp dir, then runs the produced assembly.
+/// </summary>
+public sealed class CobolNetCompiler : ICompilerUnderTest
+{
+    public string Name => "cobolnet";
+
+    public (bool ok, string stdout, string detail) CompileAndRun(string source)
+    {
+        string dir = CutRunner.NewTempDir("cn");
+        try
+        {
+            string src = Path.Combine(dir, "prog.cob");
+            string dll = Path.Combine(dir, "prog.dll");
+            File.WriteAllText(src, source);
+
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85));
+            if (!result.Success)
+                return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
+
+            return CutRunner.Run(dll, dir);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+}
+
+/// <summary>
+/// The legacy byte-engine compiler as the differential oracle: drives the in-process <c>CobolSharp.Compiler</c>
+/// <see cref="LegacyCompilation"/> API (the same path <c>EndToEndTestBase</c> uses, 364-NIST-green) into an
+/// isolated temp dir, then runs the produced assembly. Default (permissive) dialect, matching the legacy base.
+/// </summary>
+public sealed class LegacyCompiler : ICompilerUnderTest
+{
+    public string Name => "legacy";
+
+    public (bool ok, string stdout, string detail) CompileAndRun(string source)
+    {
+        string dir = CutRunner.NewTempDir("lg");
+        try
+        {
+            string src = Path.Combine(dir, "prog.cob");
+            string dll = Path.Combine(dir, "prog.dll");
+            File.WriteAllText(src, source);
+
+            var compilation = new LegacyCompilation();
+            var result = compilation.Compile(src, dll);
+            if (!result.Success)
+                return (false, "", $"[legacy compile] {string.Join("\n", result.Diagnostics.Select(d => d.ToString()))}");
+
+            // Deploy the legacy runtime next to the output (defensive — mirrors EndToEndTestBase's multi-program path).
+            string runtime = typeof(LegacyState).Assembly.Location;
+            string dest = Path.Combine(dir, Path.GetFileName(runtime));
+            if (!File.Exists(dest)) File.Copy(runtime, dest);
+
+            return CutRunner.Run(dll, dir);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+}

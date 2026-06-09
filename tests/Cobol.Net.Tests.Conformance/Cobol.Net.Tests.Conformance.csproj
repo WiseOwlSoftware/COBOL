@@ -24,6 +24,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cobol.Net.Compiler\Cobol.Net.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj" />
+    <!--
+      The legacy byte-engine compiler + runtime are referenced ONLY as the differential oracle (settled:
+      COBOLNET_DESIGN §18 #7 / Q13) — the harness compiles the same COBOL with both and asserts identical stdout,
+      turning the legacy's 364-NIST-green behavior into a free regression net for the greenfield compiler. Both
+      reference graphs deploy side-by-side (distinct namespaces + distinct runtime DLLs) and never interact at run
+      time (each compiled program loads only its own runtime). Deleted at the G8 cut-over.
+    -->
+    <ProjectReference Include="..\..\src\CobolSharp.Compiler\CobolSharp.Compiler.csproj" />
+    <ProjectReference Include="..\..\src\CobolSharp.Runtime\CobolSharp.Runtime.csproj" />
   </ItemGroup>
 
 </Project>
