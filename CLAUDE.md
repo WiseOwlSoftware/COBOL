@@ -35,7 +35,14 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 483): G1 ✅, G0 ✅, G2 FOUNDATION ✅.
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 485): G1 ✅, G0 ✅, G2 FOUNDATION ✅,
+G3-core (partial) ✅, G4 ✅ (116 tests green).** Since 483: figurative-constant operands + compiler crash-proofing
+(§1.4); **G4 = the PC dispatcher is DONE** (`__Dispatch` w/ paragraphs as pc cases; GO TO / DEPENDING / fall-through /
+out-of-line PERFORM-THRU-TIMES-UNTIL as recursive bounded dispatch / EXIT PARAGRAPH; `__`-prefixed internals avoid
+COBOL-field collisions). Out-of-line-PERFORM double-execution FIXED. **NC101A now compiles with only 3 unsupported
+statements** (OPEN/CLOSE/WRITE = G5) + 106 whole-group MOVE (G6). **RESUME AT → G5 (file I/O, §8) + G6 (whole-group
+MOVE via generated `AsImage`/`FromImage`, §14.4)** to unblock the first full NC program. (The DEVLOG-483 snapshot
+below has the architecture detail.) **STATE (DEVLOG 483): G1 ✅, G0 ✅, G2 FOUNDATION ✅.**
 The parse-tree-walk emitter is RETIRED → real bound semantic tree (`Binding/Bound/`: `BoundProgram` +
 `StatementBinder` + bound nodes + `Bound*Error` loud-failure) rendered by a §17 §2.2-decomposed backend
 (`CodeGen/Emit/`: `EmissionContext` + `NumericRenderer`/`ConditionRenderer`/`OperandText`/`FieldEmitter` + a 239-line

@@ -11,6 +11,22 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
+> **STATE (DEVLOG 485):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅.** Differential harness LIVE,
+> **116 G2/G3/G4-scope tests green.** G3-core landed: **figurative-constant operands** (MOVE/DISPLAY/comparison ZERO/
+> SPACE…) + **compiler crash-proofing** (a group-in-numeric-context NPE → loud-failure; §1.4). **G4 = the PC
+> dispatcher is DONE** (`__Dispatch(start,exit)` with paragraphs as pc cases; GO TO / GO TO DEPENDING / fall-through /
+> out-of-line PERFORM [THRU/TIMES/UNTIL] as recursive bounded dispatch / EXIT PARAGRAPH; dead-code suppression;
+> dispatcher internals `__`-prefixed so they never collide with COBOL fields). **The out-of-line-PERFORM
+> double-execution known-latent is FIXED.** Empirical scope (the advisor's "pull real NC programs in"): **NC101A now
+> compiles with only 3 unsupported statements** (OPEN/CLOSE/WRITE = file I/O, G5) + 106 whole-group MOVE (G6) + 2 group
+> DISPLAY (G6) — G4 cleared all ~88 GO TO/EXIT. **RESUME AT → G5 (file I/O: `FileConnector`/`IRecordCodec`/FILE STATUS/
+> OPEN-CLOSE-READ-WRITE-REWRITE/the file state machines, COBOLNET_DESIGN §8) + G6 (whole-group MOVE/compare/DISPLAY via
+> the generated `AsImage()`/`FromImage()` per record struct, §14.4)** — together these unblock the FIRST full NC
+> program through the differential harness. Known-latent now: MOVE-signed→alphanumeric de-signing (ISO §14.9.24 GR4d);
+> >18-digit numerics (Int128 deferred); EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud).
+> Small G2 tails still open: ref-mod `(s:l)`, class conditions (IS NUMERIC/ALPHABETIC). The lines below are the
+> earlier (DEVLOG 483) snapshot, kept for the architecture detail.
+>
 > **STATE (DEVLOG 483):** G1 ✅, G0 ✅. **G2 FOUNDATION COMPLETE (DEVLOG 475–483):** the parse-tree-walk emitter the
 > DESIGN superseded is RETIRED and replaced by the real **bound semantic tree** (`Binding/Bound/` — `BoundProgram` +
 > `StatementBinder` + bound nodes + `Bound*Error` loud-failure) rendered by a §17 §2.2-decomposed backend
