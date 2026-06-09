@@ -38,6 +38,36 @@
 > EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud). The (now-outdated) STATE blocks below are
 > earlier snapshots, kept for architecture detail.
 >
+> ## ⛔ NON-NEGOTIABLE PROCESS RULES (owner-emphasized — repeatedly corrected this session; obey these BEFORE writing any code)
+> These govern HOW you work and are the #1 way to go wrong if ignored. Durable copies:
+> `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`, `feedback_spec_scopes_not_tests`.
+> 1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines the correct behavior for EVERY case.** Whenever any
+>    question of semantics / syntax / output / edge-case arises, READ the spec and CITE the § in code+DEVLOG — never
+>    guess, never infer behavior from the legacy oracle (it is a regression net, NOT authority; it has known
+>    non-conformances, e.g. the DISPLAY trailing-trim).
+> 2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists all of
+>    them — pipeline/data-model/redefines/control-flow/numeric/strings/files/interprogram/OO/conditions/intrinsics/
+>    project-org). Read the doc, FOLLOW it; do NOT improvise an approach. The deep-dives are decision-complete SSOTs;
+>    the SSOT `COBOLNET_DESIGN.md` wins for locked invariants (§1), cross-cutting (§14), settled decisions (§18),
+>    build order (§16).
+> 3. **Implement the COMPLETE feature to the spec + design — NEVER scope to what a test references.** The NIST /
+>    differential corpus VERIFIES correctness; it does NOT bound what to build. Do not grep a test (e.g. "which
+>    REDEFINES views does NC101A use") to decide scope — read the spec section + the deep-dive and implement the whole
+>    feature (e.g. REDEFINES = all 4 tiers + RENAMES + every SR/GR rule). Legitimate STAGING is by spec/design
+>    structure (e.g. the design's own G/commit order), never by test coverage.
+> 4. **Keep the deep-dive docs CURRENT.** Whenever the SSOT (or a new decision/finding) supersedes a deep-dive's
+>    design, UPDATE that deep-dive in the SAME change set — state the current design AND why the original was not
+>    followed (cite the SSOT §/DEVLOG). A reader following a stale deep-dive would implement the rejected approach.
+>
+> **Standing operating rules (already in memory — still in force):** guard-green (`scripts/guard-fast.sh`, or the
+> CobolNet differential+unit suites for greenfield work) before EVERY commit; a `tests/...` conformance/differential
+> test + a DEVLOG entry ship in the SAME commit as each feature; commit AND push every checkpoint (never ask "should
+> I continue/push"); run autonomously and continue immediately when work is pending (don't stop to ask, don't
+> ScheduleWakeup to wait); no byte `ProgramState` substrate (typed-native; a `byte[]` only at a genuine REDEFINES
+> Tier-C / file boundary); adversarially-review non-trivial features. (Memories: `feedback_fully_autonomous_push`,
+> `feedback_continue_dont_wait`, `feedback_conformance_tests_per_feature`, `feedback_devlog_per_commit`,
+> `feedback_complete_dotnet_migration_no_byte`, `feedback_commercial_quality_north_star`.)
+>
 > **(superseded) STATE (DEVLOG 485):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅.** Differential harness LIVE,
 > **116 G2/G3/G4-scope tests green.** G3-core landed: **figurative-constant operands** (MOVE/DISPLAY/comparison ZERO/
 > SPACE…) + **compiler crash-proofing** (a group-in-numeric-context NPE → loud-failure; §1.4). **G4 = the PC

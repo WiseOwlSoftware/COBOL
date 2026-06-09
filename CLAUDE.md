@@ -1,5 +1,21 @@
 # CobolSharp — Claude Code Instructions
 
+## ⛔ NON-NEGOTIABLE PROCESS RULES (owner-emphasized — obey BEFORE writing any code)
+These are the rules the owner most insists on (repeatedly corrected). Full text at the top of `PROMPT.md` and
+`resume-prompt.md`; durable in memories `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`,
+`feedback_spec_scopes_not_tests`.
+1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case** — read it and cite
+   the § for any semantics/syntax/output question; the legacy oracle is a regression net, NOT authority.
+2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 lists them) +
+   the spec — FOLLOW the doc, do not improvise.
+3. **Implement the COMPLETE feature to the spec + design — NEVER scope to what a test references** (tests VERIFY, not
+   SCOPE).
+4. **Keep the deep-dive docs CURRENT** — when superseded, update the deep-dive in the same change set with the current
+   design AND why the original wasn't followed.
+**Live kickoff = `resume-prompt.md`** (read it FIRST; its top STATE banner + the §"NON-NEGOTIABLE PROCESS RULES" block
+are current). The COBOL.NET rewrite SSOT is `docs/COBOLNET_DESIGN.md` (the PIVOT below); `docs/MASTER_PLAN.md` is the
+HISTORICAL byte-engine plan.
+
 ## ⛔ TOP-LEVEL PLAN: read `docs/MASTER_PLAN.md` FIRST
 It is the single SSOT + autonomous-execution playbook to reach the North Star — a **commercial-quality,
 decades-sustainable, full ISO/IEC 1989:2023** COBOL compiler, **no back-compat (rewrite/re-architect anything),

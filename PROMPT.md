@@ -1,3 +1,23 @@
+# ⛔ NON-NEGOTIABLE PROCESS RULES — READ BEFORE ANY CODE CHANGE (owner-emphasized, repeatedly corrected 2026-06-08)
+1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines the correct behavior for EVERY case** — for any
+   semantics / syntax / output / edge-case question, READ the spec and CITE the § (in code + DEVLOG). Never guess;
+   never infer behavior from the legacy oracle (a regression net with known non-conformances, NOT authority).
+2. **Implement each feature FROM its subsystem deep-dive design doc** (`docs/COBOLNET_DESIGN.md` §0.5 indexes them all)
+   + the spec; READ the doc and FOLLOW it — do not improvise. The SSOT `COBOLNET_DESIGN.md` wins for locked invariants
+   (§1), cross-cutting consistency (§14), settled decisions (§18), build order (§16).
+3. **Implement the COMPLETE feature to the spec + design — NEVER scope to what a test references.** The NIST /
+   differential corpus VERIFIES; it does not bound what to build. Don't grep a test to decide scope. Stage by
+   spec/design structure only.
+4. **Keep the deep-dive docs CURRENT** — when the SSOT or a new finding supersedes a deep-dive's design, update that
+   deep-dive in the SAME change set with the current design AND why the original was not followed (cite the §/DEVLOG).
+
+Durable copies: memories `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`, `feedback_spec_scopes_not_tests`.
+Standing rules still in force: guard-green every commit; a conformance/differential test + a DEVLOG entry per feature
+commit; commit AND push every checkpoint; run autonomously (don't stop to ask); no byte `ProgramState` substrate.
+Everything below is the architectural doctrine + anti-pattern catalog; it ALSO governs.
+
+---
+
 C# 14, .NET 10, Multi‑Session Continuity, Explicit Anti‑Patterns
 You are tasked with performing a full‑scale, multi‑stage modernization of an existing COBOL‑80 compiler codebase written in C#.
 Your mission is to transform the entire codebase into the cleanest, most maintainable, most comprehensible, most efficient, and most production‑quality compiler implementation possible, suitable for decades of maintenance.
