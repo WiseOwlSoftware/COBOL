@@ -233,9 +233,26 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
-    private BoundOperand LiteralOperand(Core.LiteralContext lit) =>
-        lit.nonNumericLiteral()?.STRINGLIT() is { } s ? new BoundStringLiteral(DecodeCobolString(s.GetText()))
-            : new BoundNumericLiteral(lit.GetText());
+    private BoundOperand LiteralOperand(Core.LiteralContext lit)
+    {
+        var nn = lit.nonNumericLiteral();
+        if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
+        if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        return new BoundNumericLiteral(lit.GetText());
+    }
+
+    /// <summary>Bind a figurative constant to a <see cref="BoundFigurative"/> (the ALL "x" forms are a later slice).</summary>
+    private static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
+    {
+        if (fig.ALL() is not null) return new BoundOperandError($"figurative constant '{fig.GetText()}'");
+        if (fig.ZERO() is not null) return new BoundFigurative('Z');
+        if (fig.SPACE() is not null) return new BoundFigurative('S');
+        if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');
+        if (fig.LOW_VALUE() is not null) return new BoundFigurative('L');
+        if (fig.QUOTE_() is not null) return new BoundFigurative('Q');
+        if (fig.NULL_() is not null) return new BoundFigurative('N');
+        return new BoundOperandError($"figurative constant '{fig.GetText()}'");
+    }
 
     private BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
         refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
@@ -368,6 +385,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand)
     {
         var vo = operand.valueOperand();
+        if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
         if (vo?.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? FieldOperand(dref) : new BoundComputedOperand(BindExpr(expr));

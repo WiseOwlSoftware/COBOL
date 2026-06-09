@@ -16,16 +16,18 @@ internal static class OperandText
         BoundStringLiteral s => EmitText.CsLiteral(s.Value),
         BoundNumericLiteral n => EmitText.CsLiteral(n.Text),
         BoundFieldOperand f => FieldAsString(f.Place),
+        BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, 1)",   // DISPLAY shows one occurrence (GR3)
         BoundComputedOperand => EmitText.LoudValue("string", "computed expression in a string context"),
         BoundOperandError e => EmitText.LoudValue("string", e.Feature),
         _ => EmitText.LoudValue("string", $"bound operand '{op.GetType().Name}'"),
     };
 
-    /// <summary>True if an operand is compared as text (an alphanumeric literal or an alphanumeric/edited field).</summary>
+    /// <summary>True if an operand is compared as text (an alphanumeric literal, or an alphanumeric/edited/group
+    /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
     public static bool IsString(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,
-        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited,
+        BoundFieldOperand f => f.Place.Item.IsGroup || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited,
         _ => false,
     };
 

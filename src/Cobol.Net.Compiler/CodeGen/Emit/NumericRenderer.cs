@@ -32,15 +32,22 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundNumericLiteral n => EmitText.UnscaledLit(n.Text),
         BoundFieldOperand f => FieldNum(f.Place),
         BoundComputedOperand c => Render(c.Expr),
+        BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),   // ZERO in a numeric context
+        BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric context"), 0),
         BoundStringLiteral => new NumX(EmitText.LoudValue("long", "alphanumeric literal in a numeric context"), 0),
         BoundOperandError e => new NumX(EmitText.LoudValue("long", e.Feature), 0),
         _ => new NumX(EmitText.LoudValue("long", $"bound operand '{op.GetType().Name}'"), 0),
     };
 
     /// <summary>The scaled value of a data item place (its unscaled <c>long</c> value + its scale). A float item is
-    /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice).</summary>
-    public static NumX FieldNum(Place p) =>
-        p.Item.Pic!.IsFloat ? new NumX($"(long){p.Read()}", 0) : new NumX(p.Read(), p.Item.Pic.Scale);
+    /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice). A non-numeric place (a group
+    /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).</summary>
+    public static NumX FieldNum(Place p) => p.Item.Pic switch
+    {
+        null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),
+        { IsFloat: true } => new NumX($"(long){p.Read()}", 0),
+        { } pic => new NumX(p.Read(), pic.Scale),
+    };
 
     /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).</summary>
     public NumX Fold(IReadOnlyList<BoundExpr> xs)

@@ -43,6 +43,18 @@ internal static class EmitText
     /// <summary>Render a .NET string as a safely-escaped C# string literal.</summary>
     public static string CsLiteral(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 
+    /// <summary>The C# <c>char</c>-literal a figurative constant fills with (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000
+    /// per COBOLNET_DESIGN §14.9): Z→<c>'0'</c>, S→space, H→U+00FF, L/N→U+0000, Q→quote.</summary>
+    public static string FigurativeFill(char kind) => kind switch
+    {
+        'Z' => "'0'",
+        'S' => "' '",
+        'H' => "'\\u00ff'",
+        'L' or 'N' => "'\\u0000'",
+        'Q' => "'\\\"'",
+        _ => "' '",
+    };
+
     /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) to its character value.</summary>
     public static string DecodeCobolString(string raw) =>
         raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;

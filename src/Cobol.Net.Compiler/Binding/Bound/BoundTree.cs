@@ -56,6 +56,11 @@ public sealed record BoundFieldOperand(Place Place) : BoundOperand;
 /// <summary>A computed numeric expression used as an operand (e.g. a comparison operand <c>A + B</c>).</summary>
 public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand;
 
+/// <summary>A figurative constant operand (ISO §8.3.1.2). <paramref name="Kind"/> ∈ {Z=ZERO, S=SPACE, H=HIGH-VALUE,
+/// L=LOW-VALUE, Q=QUOTE, N=NULL}; its value is materialized against the receiving / other operand's category and
+/// width (a single occurrence in DISPLAY, the receiver width in MOVE, the other operand's width in a comparison).</summary>
+public sealed record BoundFigurative(char Kind) : BoundOperand;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundOperandError(string Feature) : BoundOperand;
 
