@@ -44,7 +44,7 @@
 
 | Doc | Type | Subject |
 |---|---|---|
-| `DEVLOG.md` | LIVE | Chronological narrative of decisions, failures, and breakthroughs (the dev log) — newest entries near the top. |
+| `DEVLOG.md` | LIVE | Narrative of decisions, failures, and breakthroughs (the dev log). **DESCENDING order — newest entry FIRST** (latest `## Entry` is just below the preamble's `Ordering: DESCENDING` note; oldest at the end). Add new entries at the top. |
 | `PROJECT_PLAN.md` | LIVE | Project status, KTDs (key technical decisions 1–5), and the per-session log. |
 | `docs/ARCHITECTURE_ASSESSMENT.md` | LIVE | Evidence-based architecture audit + P0–P6 commercial-hardening roadmap (2026-06-03). |
 | `docs/COBOL85_COMPLIANCE_PLAN.md` | LIVE | M1 (COBOL-85) 100% execution plan — the 3-axis model (baseline / flagging / spec-completeness). |

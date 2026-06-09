@@ -98,7 +98,9 @@
 >
 > **Standing operating rules (already in memory — still in force):** guard-green (`scripts/guard-fast.sh`, or the
 > CobolNet differential+unit suites for greenfield work) before EVERY commit; a `tests/...` conformance/differential
-> test + a DEVLOG entry ship in the SAME commit as each feature; commit AND push every checkpoint (never ask "should
+> test + a DEVLOG entry ship in the SAME commit as each feature (**`DEVLOG.md` is DESCENDING — add the new entry at the
+> TOP, just under the preamble's `Ordering: DESCENDING` note; the latest entry is always there, never hunt for it**);
+> commit AND push every checkpoint (never ask "should
 > I continue/push"); run autonomously and continue immediately when work is pending (don't stop to ask, don't
 > ScheduleWakeup to wait); no byte `ProgramState` substrate (typed-native; a `byte[]` only at a genuine REDEFINES
 > Tier-C / file boundary); adversarially-review non-trivial features. (Memories: `feedback_fully_autonomous_push`,

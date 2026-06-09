@@ -35,7 +35,9 @@ violated and corrected. They are non-negotiable.
 
 Read PROJECT_PLAN.md to understand current status and next steps.
 
-Read DEVLOG.md for context on recent decisions, failures, and design rationale.
+Read DEVLOG.md for context on recent decisions, failures, and design rationale. **DEVLOG.md is in DESCENDING order —
+newest entry FIRST** (the latest `## Entry` is immediately below the preamble's `> **Ordering: DESCENDING**` note;
+the oldest is at the end). Add a new entry at the TOP, directly under that note. (Memory `feedback_devlog`.)
 
 specs/ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification (in the
 CobolSharp-private submodule). Refer to it for all specification, behavior, syntax, and semantic
@@ -51,8 +53,11 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 485): G1 ✅, G0 ✅, G2 FOUNDATION ✅,
-G3-core (partial) ✅, G4 ✅ (116 tests green).** Since 483: figurative-constant operands + compiler crash-proofing
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 511): G1 ✅, G0 ✅, G2 ✅, G3-core ✅,
+G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅. The differential harness drives the real NIST
+corpus — 8 NC programs byte-match the golden (NC101A + NC110M/111A/112A/113M/127A/136A + NC211A, the first nucleus
+CONDITIONAL program); 283 conformance + 14 unit green. See `resume-prompt.md` (live SSOT) for the current STATE +
+RESUME AT.** The (now-historical) DEVLOG-485 snapshot: figurative-constant operands + compiler crash-proofing
 (§1.4); **G4 = the PC dispatcher is DONE** (`__Dispatch` w/ paragraphs as pc cases; GO TO / DEPENDING / fall-through /
 out-of-line PERFORM-THRU-TIMES-UNTIL as recursive bounded dispatch / EXIT PARAGRAPH; `__`-prefixed internals avoid
 COBOL-field collisions). Out-of-line-PERFORM double-execution FIXED. **NC101A now compiles with only 3 unsupported
