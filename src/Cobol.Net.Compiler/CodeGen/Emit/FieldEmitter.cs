@@ -10,9 +10,19 @@ namespace CobolNet.CodeGen.Emit;
 /// top-level (01/77) item — a group/table initialized with a composed initializer, an elementary item with its
 /// VALUE-or-default. A COBOL record IS a .NET record; there is no byte substrate and no flattening.
 /// </summary>
+/// <remarks>The per-item physical-field list is <b>memoized</b> (<see cref="PhysicalChildrenOf"/>): every consumer
+/// (field declarations, the AsImage/FromImage methods, a parent's width and composed initializer) reuses one computed
+/// list per node, so a deeply-nested group (a CCVS test nests ~49 levels) is O(total items), not the O(2^depth) the
+/// width-and-init-recompute-each-other recursion would otherwise cost.</remarks>
 internal sealed class FieldEmitter(EmissionContext ctx)
 {
-    /// <summary>Emit every WORKING-STORAGE type, profile, index field, and root field.</summary>
+    /// <summary>Memoized physical-field list per group item — the cache that turns the otherwise-exponential
+    /// nested-group emission (width and init recursively recomputing each other) into linear time. The root forest
+    /// is cached separately in <see cref="_rootPhysCache"/>.</summary>
+    private readonly Dictionary<DataItem, IReadOnlyList<Physical>> _physCache = [];
+    private IReadOnlyList<Physical>? _rootPhysCache;
+
+    /// <summary>Emit every WORKING-STORAGE / FILE-SECTION type, profile, index field, and root field.</summary>
     public void Emit()
     {
         var w = ctx.Writer;
@@ -20,7 +30,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         foreach (var root in ctx.Data.Roots) EmitProfiles(root, w);
         foreach (var (name, field) in ctx.Data.IndexFields)
             w.Line($"private static long {field} = 1;   // INDEX-NAME {name}");
-        foreach (var f in PhysicalFields(ctx.Data.Roots))
+        foreach (var f in RootPhysicals())
             w.Line($"private static {f.Type} {f.Name} = {f.Init};   // {f.Comment}");
     }
 
@@ -29,10 +39,22 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area).</summary>
     private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment);
 
+    /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
+    private IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
+    {
+        if (_physCache.TryGetValue(owner, out var cached)) return cached;
+        var list = BuildPhysicals(owner.Children).ToList();
+        _physCache[owner] = list;
+        return list;
+    }
+
+    /// <summary>The memoized physical fields of the top-level (01/77) forest.</summary>
+    private IReadOnlyList<Physical> RootPhysicals() => _rootPhysCache ??= BuildPhysicals(ctx.Data.Roots).ToList();
+
     /// <summary>The physical fields a run of sibling items emits: skip REDEFINES views; substitute a Tier-B class's ONE
     /// string backing (emitted once, at the canonical) for the whole class; a Tier-A view forwards to its canonical's
     /// field. The class's numeric <c>NumProfile</c>s are still emitted elsewhere (EmitProfiles — D9).</summary>
-    private static IEnumerable<Physical> PhysicalFields(IEnumerable<DataItem> items)
+    private IEnumerable<Physical> BuildPhysicals(IEnumerable<DataItem> items)
     {
         foreach (var c in items)
         {
@@ -58,13 +80,13 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
     /// fields (a contained REDEFINES class contributes its single backing width once, its views nothing).</summary>
-    private static int PhysicalImageWidth(DataItem item) =>
-        item.IsGroup ? PhysicalFields(item.Children).Sum(f => f.Width) : item.ImageWidth;
+    private int PhysicalImageWidth(DataItem item) =>
+        item.IsGroup ? PhysicalChildrenOf(item).Sum(f => f.Width) : item.ImageWidth;
 
     /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
     /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width).</summary>
-    private static string ImageInitOf(DataItem item)
+    private string ImageInitOf(DataItem item)
     {
         if (item.IsGroup)
         {
@@ -85,13 +107,13 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             : $"new string(' ', {pic.Length})";
     }
 
-    private static void EmitStructTypeDecls(DataItem item, CodeWriter w)
+    private void EmitStructTypeDecls(DataItem item, CodeWriter w)
     {
         if (!item.IsGroup) return;
         foreach (var child in item.Children) EmitStructTypeDecls(child, w);   // nested types first (any order is fine)
         using (w.Block($"private record struct {item.StructName}"))
         {
-            foreach (var f in PhysicalFields(item.Children))
+            foreach (var f in PhysicalChildrenOf(item))
                 w.Line($"public {f.Type} {f.Name};   // {f.Comment}");
 
             // A pure-character (DISPLAY-homogeneous) group gets the whole-group image facility (COBOLNET_DESIGN
@@ -102,9 +124,9 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         }
     }
 
-    private static void EmitImageMethods(DataItem group, CodeWriter w)
+    private void EmitImageMethods(DataItem group, CodeWriter w)
     {
-        var members = PhysicalFields(group.Children).ToList();
+        var members = PhysicalChildrenOf(group);
         var parts = members.Select(f => f.IsGroupStruct ? $"{f.Name}.AsImage()" : f.Name);
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
         using (w.Block("public void FromImage(string __s)"))
@@ -130,7 +152,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>The C# initializer for a field: an array literal for an OCCURS table (every element initialized so
     /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
-    private static string FieldInit(DataItem item)
+    private string FieldInit(DataItem item)
     {
         if (item.Occurs is { } n)
         {
@@ -140,9 +162,9 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         return item.IsGroup ? ComposedInit(item) : InitializerFor(item);
     }
 
-    private static string ComposedInit(DataItem group)
+    private string ComposedInit(DataItem group)
     {
-        var parts = PhysicalFields(group.Children).Select(f => $"{f.Name} = {f.Init}");
+        var parts = PhysicalChildrenOf(group).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
 
