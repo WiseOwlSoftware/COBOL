@@ -110,6 +110,66 @@ public static class CobolNum
     }
 
     /// <summary>
+    /// Decode a USAGE DISPLAY numeric item's character image back to its unscaled <see cref="long"/> value — the
+    /// inverse of <see cref="FormatDisplay"/> (COBOLNET_DESIGN §6.4). The image is the zoned digit run at the item's
+    /// scale (no decimal point — the point is implied); the operational sign is decoded per the receiver's
+    /// <see cref="NumProfile.SignKind"/> (over-punch, separate <c>+</c>/<c>-</c>, or a leading minus). Non-digit
+    /// characters (e.g. the spaces a whole-group MOVE legitimately deposits — ISO/IEC 1989:2023 §14.9 MOVE GR4 fills
+    /// without consideration for subordinate items) contribute no digit; an all-non-digit image decodes to 0, since
+    /// using incompatible data in a numeric context is undefined (§14.6.13.2 / the EC-DATA-INCOMPATIBLE condition),
+    /// so a deterministic 0 is conformant.
+    /// </summary>
+    public static long ParseDisplay(string image, in NumProfile receiver)
+    {
+        if (string.IsNullOrEmpty(image)) return 0;
+        var chars = image.ToCharArray();   // a mutable copy so a sign carrier can be reduced to its digit
+        bool negative = false;
+
+        if (receiver.Signed)
+        {
+            switch (receiver.SignKind)
+            {
+                case NumericSign.LeadingSeparate:
+                    negative = chars[0] == '-';
+                    if (chars[0] is '-' or '+') chars[0] = ' ';
+                    break;
+                case NumericSign.TrailingSeparate:
+                    negative = chars[^1] == '-';
+                    if (chars[^1] is '-' or '+') chars[^1] = ' ';
+                    break;
+                case NumericSign.BinaryMinus:
+                    negative = chars[0] == '-';
+                    if (chars[0] == '-') chars[0] = ' ';
+                    break;
+                case NumericSign.LeadingOverpunch:
+                    DecodeOverpunch(chars, 0, ref negative);
+                    break;
+                default:   // TrailingOverpunch (the no-SIGN-clause default)
+                    DecodeOverpunch(chars, chars.Length - 1, ref negative);
+                    break;
+            }
+        }
+
+        long mag = 0;
+        foreach (char c in chars)
+            if (c is >= '0' and <= '9')
+                mag = mag * 10 + (c - '0');
+        return negative ? -mag : mag;
+    }
+
+    /// <summary>Reduce the over-punch character at <paramref name="pos"/> (in place) to its underlying digit, setting
+    /// <paramref name="negative"/> when the punch is in the negative table (IBM-ASCII <c>{A-I</c> positive,
+    /// <c>}J-R</c> negative). A plain digit or non-digit at the position is left as-is (sign stays positive).</summary>
+    private static void DecodeOverpunch(char[] chars, int pos, ref bool negative)
+    {
+        if (pos < 0 || pos >= chars.Length) return;
+        int p = PositiveOverpunch.IndexOf(chars[pos]);
+        if (p >= 0) { chars[pos] = (char)('0' + p); return; }
+        int n = NegativeOverpunch.IndexOf(chars[pos]);
+        if (n >= 0) { chars[pos] = (char)('0' + n); negative = true; }
+    }
+
+    /// <summary>
     /// Divide two fixed-point operands and return the quotient as an unscaled integer at <paramref name="resultScale"/>
     /// fractional digits, rounding with <paramref name="mode"/>. Operands are given as unscaled integers with their
     /// own scales; the computation is exact native integer math (<c>a/10^aScale ÷ b/10^bScale</c> rendered at

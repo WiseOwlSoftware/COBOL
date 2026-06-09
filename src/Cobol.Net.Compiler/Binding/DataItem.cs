@@ -40,6 +40,17 @@ public sealed class DataItem
     /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
     public List<string> IndexNames { get; } = [];
 
+    /// <summary>
+    /// When true, this numeric USAGE-DISPLAY elementary item is stored as its CHARACTER IMAGE (a C# <see cref="string"/>
+    /// of zoned digits) rather than a native <see cref="long"/>. Set by the bind-time whole-group analysis for a
+    /// numeric-DISPLAY leaf that lives under a group used as a whole (non-elementary) operand: ISO/IEC 1989:2023 §14.9
+    /// MOVE GR4 fills such a group "without consideration for the individual elementary items", so the leaf may receive
+    /// non-numeric characters (e.g. spaces) that a native <c>long</c> cannot represent. Numeric <i>use</i> of the leaf
+    /// then goes through <c>CobolNum.ParseDisplay</c> (read) / <c>CobolNum.FormatDisplay</c> (write); the common case
+    /// (a numeric leaf never referenced as part of a whole group) stays a native <c>long</c> (locked invariant #2).
+    /// </summary>
+    public bool StoreAsImage { get; set; }
+
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 
@@ -59,22 +70,40 @@ public sealed class DataItem
     public string ProfileName => "_P_" + Uid;
 
     /// <summary>
-    /// True if this item's storage is a pure character image — itself or every descendant is an alphanumeric /
-    /// numeric-edited (<see cref="string"/>) elementary item, with no OCCURS. Such a group has a clean
-    /// <c>AsImage()</c>/<c>FromImage()</c> (COBOLNET_DESIGN §14.4 / Tier-B §4.2); a group with numeric/COMP leaves is
-    /// the mixed-usage byte-island (Tier-C), deferred.
+    /// True if this item's storage is a pure character image (a C# <see cref="string"/> at every leaf, no OCCURS) — so
+    /// the group has a clean <c>AsImage()</c>/<c>FromImage()</c> (COBOLNET_DESIGN §14.4 / Tier-B §4.2). A leaf qualifies
+    /// when it is alphanumeric / numeric-edited (string-stored), OR a numeric-DISPLAY leaf flagged
+    /// <see cref="StoreAsImage"/> (also string-stored, its zoned image). A group with a COMP/COMP-3/COMP-5/float leaf
+    /// (native non-character storage) is the genuine mixed-usage byte-island (Tier-C), deferred.
     /// </summary>
-    public bool IsAllAlphanumeric =>
+    public bool IsCharacterImage =>
         Occurs is null && (
-            IsElementary ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            : IsGroup && Children.All(c => c.IsAllAlphanumeric));
+            IsElementary
+                ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited || StoreAsImage
+                : IsGroup && Children.All(c => c.IsCharacterImage));
 
     /// <summary>The character width of this item's image (the sum of leaf widths) — meaningful for an
-    /// <see cref="IsAllAlphanumeric"/> item.</summary>
-    public int ImageWidth => IsElementary ? Pic?.Length ?? 0 : Children.Sum(c => c.ImageWidth);
+    /// <see cref="IsCharacterImage"/> item. A numeric-DISPLAY leaf's image is its digit count plus a separate-sign
+    /// character when SIGN IS SEPARATE (ISO §13.18.52); an over-punched sign occupies no extra position.</summary>
+    public int ImageWidth =>
+        IsElementary ? ElementaryImageWidth : Children.Sum(c => c.ImageWidth);
 
-    /// <summary>The C# type of a single occurrence (a record-struct type name for a group, else the PIC's CLR type).</summary>
-    public string ElementType => IsGroup ? StructName : Pic?.ClrType ?? "object";
+    /// <summary>The character-image width of an elementary item (digit count + a separate-sign position when present
+    /// for a signed numeric; otherwise the PICTURE's character length).</summary>
+    private int ElementaryImageWidth
+    {
+        get
+        {
+            if (Pic is not { } pic) return 0;
+            if (pic.Category is PicCategory.Numeric)
+                return pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0);
+            return pic.Length;
+        }
+    }
+
+    /// <summary>The C# type of a single occurrence (a record-struct type name for a group, a <see cref="string"/> for
+    /// a <see cref="StoreAsImage"/> numeric leaf, else the PIC's CLR type).</summary>
+    public string ElementType => IsGroup ? StructName : StoreAsImage ? "string" : Pic?.ClrType ?? "object";
 
     /// <summary>The C# type name for this item's field — an array of <see cref="ElementType"/> for an OCCURS table.</summary>
     public string FieldType => Occurs is not null ? ElementType + "[]" : ElementType;

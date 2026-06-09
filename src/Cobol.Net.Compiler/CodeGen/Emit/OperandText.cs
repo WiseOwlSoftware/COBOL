@@ -34,9 +34,11 @@ internal static class OperandText
     private static string FieldAsString(Place p)
     {
         if (p.Item.IsGroup)
-            return p.Item.IsAllAlphanumeric
+            return p.Item.IsCharacterImage
                 ? $"{p.Read()}.AsImage()"
-                : EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' (Tier-C byte path, deferred)");
+                : EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)");
+        // A numeric-DISPLAY leaf stored as its character image is already a string holding that image.
+        if (p.Item.StoreAsImage) return p.Read();
         return p.Item.Pic switch
         {
             { Category: PicCategory.Numeric, IsFloat: false } => $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",

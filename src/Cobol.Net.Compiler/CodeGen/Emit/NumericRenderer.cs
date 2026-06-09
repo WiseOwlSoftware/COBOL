@@ -46,6 +46,10 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     {
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),
         { IsFloat: true } => new NumX($"(long){p.Read()}", 0),
+        // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
+        // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
+        { } pic when p.Item.StoreAsImage =>
+            new NumX($"CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName})", pic.Scale),
         { } pic => new NumX(p.Read(), pic.Scale),
     };
 

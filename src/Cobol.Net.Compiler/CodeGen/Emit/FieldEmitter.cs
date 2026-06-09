@@ -42,7 +42,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             // §14.4): AsImage concatenates the leaves' character images; FromImage distributes a character image
             // back into them. Used by whole-group MOVE / DISPLAY / compare. (Mixed-usage groups are the Tier-C
             // byte island — not emitted here.)
-            if (item.IsAllAlphanumeric) EmitImageMethods(item, w);
+            if (item.IsCharacterImage) EmitImageMethods(item, w);
         }
     }
 
@@ -97,6 +97,18 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     private static string InitializerFor(DataItem item)
     {
         var pic = item.Pic!;
+
+        // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): initialize to the formatted
+        // image of its unscaled VALUE (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
+        // declared textually earlier (EmitProfiles runs first), so it is initialized before this use.
+        if (item.StoreAsImage)
+        {
+            string unscaled = item.RawValue is { } rv && FigurativeInitializer(rv, pic) is null
+                ? EmitText.UnscaledAtScale(rv, pic.Scale)
+                : "0L";
+            return $"CobolNum.FormatDisplay({unscaled}, {item.ProfileName})";
+        }
+
         if (item.RawValue is not { } raw) return pic.DefaultInitializer;
 
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.

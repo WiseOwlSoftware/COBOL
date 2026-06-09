@@ -1355,8 +1355,14 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 20. **RETURN-CODE.** ONE synthesized `static long`, written by CALL RETURNING / GOBACK GIVING, read as the process
     exit code (a single cross-subsystem owner, not duplicated).
 21. **Whole-group-as-alphanumeric.** A generated `string AsImage()` / `FromImage()` per record struct is the
-    PERMANENT typed-native mechanism for whole-group MOVE/compare of pure-DISPLAY groups; mixed-USAGE groups route
-    through the Tier-C/file codec (#1).
+    PERMANENT typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups; a group with a
+    COMP/COMP-3/COMP-5/float (non-character) leaf is the genuine mixed-USAGE byte-island routed to the Tier-C/file
+    codec (#1). **Numeric-DISPLAY leaves are INCLUDED in the AsImage path (DEVLOG 490, spec-grounded):** ISO §14.9
+    MOVE GR4 fills a group with no conversion (a numeric-DISPLAY subordinate may legitimately hold spaces — using it
+    numerically is then incompatible data, §14.6.13.2), so a numeric-DISPLAY leaf *under a whole-referenced group* is
+    stored as its character image (`DataItem.StoreAsImage`; numeric use via `CobolNum.ParseDisplay`/`FormatDisplay`) —
+    byte-faithful with NO byte[]. A numeric-DISPLAY leaf never referenced as part of a whole group stays a native
+    `long` (invariant #2).
 22. **Doc reconciliation.** `COBOLNET_ARCHITECTURE.md` §3's `decimal` rows are corrected to native
     `long`/`Int128`-unscaled in the same change set that lands this document (no second SSOT).
 23. **Selectable codegen backend (owner-confirmed 2026-06-08).** Codegen is behind an `ICodeGenBackend` abstraction

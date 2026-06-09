@@ -65,6 +65,9 @@ public sealed class ReferenceResolver(DataBinder data)
 
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath returns null → loud.
         if (AccessPath(item, indexExprs) is not { } path) return null;
+        // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
+        // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
+        if (item.IsGroup) data.WholeGroupReferenced.Add(item);
         Place inner = new MemberPlace(path, item);
 
         if (refCtx is null) return inner;

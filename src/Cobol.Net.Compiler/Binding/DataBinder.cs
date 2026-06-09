@@ -35,6 +35,15 @@ public sealed class DataBinder
     /// may be duplicated under different parents and disambiguated by qualification).</summary>
     public Dictionary<string, List<Condition88>> Conditions { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Group items referenced as a whole (non-elementary) operand anywhere in the PROCEDURE DIVISION — recorded by
+    /// <see cref="ReferenceResolver"/> as it resolves each reference. A group name can only be used as a whole (MOVE
+    /// to/from it, DISPLAY it, compare it), so any resolved group reference is a whole-group operand. The bind-time
+    /// <c>MarkStoreAsImage</c> pass consults this to decide which numeric-DISPLAY leaves must store their character
+    /// image (ISO §14.9 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
+    /// </summary>
+    public HashSet<DataItem> WholeGroupReferenced { get; } = [];
+
     /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
     public void Bind(Core.ProgramUnitContext program)
     {

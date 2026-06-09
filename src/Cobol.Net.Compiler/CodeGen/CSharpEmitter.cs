@@ -36,6 +36,12 @@ public sealed class CSharpEmitter
         var refs = new ReferenceResolver(data);
         BoundProgram bound = program is not null ? new StatementBinder(data, refs).Bind(program) : new BoundProgram([]);
 
+        // Whole-group analysis (ISO §14.9 MOVE GR4): a numeric-DISPLAY leaf under a group used as a whole operand
+        // must store its character image, because a whole-group move fills it without conversion (it may receive
+        // spaces). Run AFTER binding (ReferenceResolver has recorded every whole-group reference) and BEFORE emit
+        // (FieldEmitter / OperandText / NumericRenderer read the StoreAsImage flag).
+        MarkStoreAsImage(data);
+
         var w = new CodeWriter();
         _ctx = new EmissionContext(w, data);
         _num = new NumericRenderer(_ctx);
@@ -59,6 +65,31 @@ public sealed class CSharpEmitter
         }
 
         return w.ToString();
+    }
+
+    /// <summary>
+    /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
+    /// whole operand, flag each numeric USAGE-DISPLAY descendant leaf to store its character image
+    /// (<see cref="DataItem.StoreAsImage"/>). A whole-group move fills the group "without consideration for the
+    /// individual elementary items", so such a leaf may receive non-numeric characters (e.g. spaces) that a native
+    /// <c>long</c> cannot represent. A COMP/COMP-3/COMP-5/float leaf is left native (its group is then a genuine
+    /// mixed-usage byte-island — Tier-C, deferred); numeric-edited / alphanumeric leaves are already string-stored.
+    /// </summary>
+    private static void MarkStoreAsImage(DataBinder data)
+    {
+        foreach (var group in data.WholeGroupReferenced)
+            MarkNumericDisplayLeaves(group);
+
+        static void MarkNumericDisplayLeaves(DataItem item)
+        {
+            foreach (var child in item.Children)
+            {
+                if (child.Occurs is not null) continue;   // OCCURS items aren't part of the no-OCCURS char-image model
+                if (child.IsGroup) MarkNumericDisplayLeaves(child);
+                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                    child.StoreAsImage = true;
+            }
+        }
     }
 
     // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────
@@ -189,14 +220,16 @@ public sealed class CSharpEmitter
                 _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
     }
 
-    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9.24): the source's character image fills
-    /// the group's leaves via <c>FromImage</c>. Only a DISPLAY-homogeneous group is handled; a mixed-usage group is
-    /// the Tier-C byte island (deferred, loud).</summary>
+    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
+    /// consideration for subordinate items): the source's character image fills the group's leaves via
+    /// <c>FromImage</c>. Handles any DISPLAY-homogeneous group — alphanumeric, numeric-edited, and numeric-DISPLAY
+    /// leaves (the last stored as their character image, <see cref="DataItem.StoreAsImage"/>). A group with a
+    /// COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C, deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source)
     {
-        if (!target.Item.IsAllAlphanumeric)
+        if (!target.Item.IsCharacterImage)
         {
-            _ctx.Writer.Line(LoudStmt($"MOVE to mixed-usage group '{target.Item.CobolName}' (Tier-C byte path, deferred)"));
+            _ctx.Writer.Line(LoudStmt($"MOVE to mixed-usage group '{target.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
             return;
         }
         int width = target.Item.ImageWidth;
@@ -220,7 +253,9 @@ public sealed class CSharpEmitter
                 return $"CobolString.Store({OperandText.AsString(source)}, {pic.Length})";
             case PicCategory.Numeric:
                 NumX n = _num.AsNum(source);
-                return $"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})";
+                string stored = $"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})";
+                // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
+                return target.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.ProfileName})" : stored;
             default:
                 return "default";
         }
@@ -256,7 +291,9 @@ public sealed class CSharpEmitter
             _ctx.Writer.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
             return;
         }
-        _ctx.Writer.Line(target.Write($"CobolNum.Store({value.Expr}, {value.Scale}, {target.Item.ProfileName})"));
+        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {target.Item.ProfileName})";
+        // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
+        _ctx.Writer.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.Item.ProfileName})" : stored));
     }
 
     private static int ScaleOf(Place p) => p.Item.Pic?.Scale ?? 0;
