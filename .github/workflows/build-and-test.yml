@@ -41,6 +41,15 @@ jobs:
       - name: Run guard (scripts/guard.sh)
         run: bash scripts/guard.sh
 
+      # The greenfield COBOL.NET compiler (src/Cobol.Net.*) and its suites — the ACTIVE work. guard.sh covers only
+      # the LEGACY CobolSharp engine, so these are gated separately (DEVLOG 515). They build on demand; CI Linux has
+      # pwsh for the Frontend's ANTLR generation step (the committed Generated/*.cs are up to date, so regen is
+      # skipped). Separate steps per project so a failure in one is never masked by the other's exit code.
+      - name: Greenfield conformance tests (differential + NIST)
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+      - name: Greenfield unit tests
+        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
+
   # Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
   # build) plus the unit & integration suites on Windows. The NIST guard is Linux-only (bash), so this job
   # gives the Windows build + managed-test coverage the guard job cannot.
@@ -68,3 +77,9 @@ jobs:
 
       - name: Integration tests
         run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
+
+      # The greenfield COBOL.NET suites (built by the Release sln build above) — cross-platform coverage on Windows.
+      - name: Greenfield conformance tests (differential + NIST)
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release
+      - name: Greenfield unit tests
+        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release
