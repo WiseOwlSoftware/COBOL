@@ -53,24 +53,7 @@ public sealed class CSharpEmitter
             new FieldEmitter(_ctx).Emit();
 
             if (bound.Paragraphs.Count > 0)
-            {
-                w.Line();
-                // Main runs the paragraphs in source order — COBOL "fall-through" is a sequential call chain;
-                // STOP RUN / GOBACK throw StopRun to unwind the whole chain (ISO §14.9.43). The PC dispatcher (G4)
-                // replaces this with pc-indexed control flow.
-                using (w.Block("private static void Main()"))
-                {
-                    using (w.Block("try"))
-                        foreach (var p in bound.Paragraphs) w.Line($"{p.Method}();");
-                    w.Line("catch (StopRun) { }");
-                }
-                foreach (var p in bound.Paragraphs)
-                {
-                    w.Line();
-                    using (w.Block($"private static void {p.Method}()"))
-                        foreach (var st in p.Statements) EmitStatement(st);
-                }
-            }
+                EmitDispatcher(bound, w);
             else
                 using (w.Block("private static void Main()")) { }
         }
@@ -78,32 +61,112 @@ public sealed class CSharpEmitter
         return w.ToString();
     }
 
-    // ── Statement dispatch ─────────────────────────────────────────────────────────────────────────────────
+    // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────
 
-    private void EmitStatement(BoundStatement s)
+    private int _currentPc;     // the paragraph index being emitted (for EXIT PARAGRAPH / fall-through)
+    private int _depCounter;    // unique-name counter for GO TO … DEPENDING selectors
+
+    /// <summary>
+    /// Emit the single program-counter dispatcher: each paragraph is a <c>case</c> in one <c>Dispatch</c> method;
+    /// control is by pc value (GO TO sets pc; fall-through is pc+1; an out-of-line PERFORM is a recursive bounded
+    /// <c>Dispatch(start, end)</c>). STOP RUN unwinds all frames via <c>StopRun</c>, caught at <c>Main</c>. This
+    /// realizes the legacy's proven return-address / exit-bounded dispatch (DEVLOG 259–260) in idiomatic C#.
+    /// </summary>
+    private void EmitDispatcher(BoundProgram bound, CodeWriter w)
+    {
+        int n = bound.Paragraphs.Count;
+        w.Line();
+        // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
+        // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
+        w.Line($"private const int __N = {n};   // paragraph count");
+        w.Line();
+        using (w.Block("private static void Main()"))
+            w.Line("try { __Dispatch(0, -1); } catch (StopRun) { }");
+        w.Line();
+        using (w.Block("private static int __Dispatch(int __startPc, int __exitPc)"))
+        {
+            w.Line("int __pc = __startPc;");
+            using (w.Block("while ((uint)__pc < (uint)__N)"))
+            {
+                w.Line("bool __atExit = __pc == __exitPc;   // captured before the body overwrites __pc");
+                using (w.Block("switch (__pc)"))
+                {
+                    for (int i = 0; i < n; i++)
+                    {
+                        _currentPc = i;
+                        using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
+                        {
+                            if (!EmitStatementList(bound.Paragraphs[i].Statements))
+                            {
+                                w.Line($"__pc = {i + 1};");
+                                w.Line("break;");
+                            }
+                        }
+                    }
+                    using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }
+                }
+                w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph fell off its end");
+            }
+            w.Line("return __pc;");
+        }
+    }
+
+    /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
+    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.</summary>
+    private bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
+    {
+        bool terminated = false;
+        foreach (var st in stmts)
+        {
+            if (terminated) break;   // unreachable after an unconditional GO TO / STOP / EXIT PARAGRAPH
+            terminated = EmitStatement(st);
+        }
+        return terminated;
+    }
+
+    /// <summary>Emit one statement; returns true if it unconditionally transfers control out of the paragraph case.</summary>
+    private bool EmitStatement(BoundStatement s)
     {
         var w = _ctx.Writer;
         switch (s)
         {
-            case BoundStop: w.Line("throw new StopRun();"); break;
-            case BoundUnsupported u: w.Line(LoudStmt(u.Feature)); break;
-            case BoundDisplay d: EmitDisplay(d); break;
-            case BoundMove m: EmitMove(m); break;
-            case BoundAddTo a: EmitInPlace(a.Targets, "+", _num.Fold(a.Addends)); break;
-            case BoundAddGiving a: EmitGiving(a.Targets, _num.Fold(a.Addends)); break;
-            case BoundSubtractFrom a: EmitInPlace(a.Targets, "-", _num.Fold(a.Minuends)); break;
-            case BoundSubtractGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.From), "-", _num.Fold(a.Minuends))); break;
-            case BoundMultiplyBy a: EmitInPlace(a.Targets, "*", _num.Render(a.A)); break;
-            case BoundMultiplyGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.A), "*", _num.Render(a.B))); break;
-            case BoundDivideInto a: EmitDivide(a.Targets, null, _num.Render(a.Divisor)); break;
-            case BoundDivideGiving a: EmitDivide(a.Targets, _num.Render(a.Dividend), _num.Render(a.Divisor)); break;
-            case BoundCompute c: foreach (var t in c.Targets) { _ctx.TargetScale = ScaleOf(t); StoreArith(t, _num.Render(c.Rhs)); } break;
-            case BoundIf iff: EmitIf(iff); break;
-            case BoundInlinePerform p: EmitInlinePerform(p); break;
-            case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); break;
-            case BoundSetConditions set: EmitSet(set); break;
-            default: w.Line(LoudStmt($"bound statement '{s.GetType().Name}'")); break;
+            case BoundStop: w.Line("throw new StopRun();"); return true;
+            case BoundGoTo g: w.Line($"__pc = {g.TargetPc};"); w.Line("break;"); return true;
+            case BoundExitParagraph: w.Line($"__pc = {_currentPc + 1};"); w.Line("break;"); return true;
+            case BoundExitPerform e: w.Line(e.Cycle ? "continue;" : "break;"); return false;   // inline-PERFORM loop
+            case BoundGoToDepending d: EmitGoToDepending(d); return false;
+            case BoundNop: return false;
+            case BoundUnsupported u: w.Line(LoudStmt(u.Feature)); return false;
+            case BoundDisplay d: EmitDisplay(d); return false;
+            case BoundMove m: EmitMove(m); return false;
+            case BoundAddTo a: EmitInPlace(a.Targets, "+", _num.Fold(a.Addends)); return false;
+            case BoundAddGiving a: EmitGiving(a.Targets, _num.Fold(a.Addends)); return false;
+            case BoundSubtractFrom a: EmitInPlace(a.Targets, "-", _num.Fold(a.Minuends)); return false;
+            case BoundSubtractGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.From), "-", _num.Fold(a.Minuends))); return false;
+            case BoundMultiplyBy a: EmitInPlace(a.Targets, "*", _num.Render(a.A)); return false;
+            case BoundMultiplyGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.A), "*", _num.Render(a.B))); return false;
+            case BoundDivideInto a: EmitDivide(a.Targets, null, _num.Render(a.Divisor)); return false;
+            case BoundDivideGiving a: EmitDivide(a.Targets, _num.Render(a.Dividend), _num.Render(a.Divisor)); return false;
+            case BoundCompute c: foreach (var t in c.Targets) { _ctx.TargetScale = ScaleOf(t); StoreArith(t, _num.Render(c.Rhs)); } return false;
+            case BoundIf iff: EmitIf(iff); return false;
+            case BoundInlinePerform p: EmitInlinePerform(p); return false;
+            case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
+            case BoundSetConditions set: EmitSet(set); return false;
+            default: w.Line(LoudStmt($"bound statement '{s.GetType().Name}'")); return false;
         }
+    }
+
+    /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.20 Format 2): a 1-based selector picks a pc; an
+    /// out-of-range value transfers nowhere and falls through to the next statement.</summary>
+    private void EmitGoToDepending(BoundGoToDepending d)
+    {
+        var w = _ctx.Writer;
+        int id = _depCounter++;
+        w.Line($"int __dep{id} = (int)({_num.AsNum(d.Selector).Expr});");
+        using (w.Block($"switch (__dep{id})"))
+            for (int k = 0; k < d.Targets.Count; k++)
+                w.Line($"case {k + 1}: __pc = {d.Targets[k]}; break;");
+        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) break;   // in range → transfer (exit the dispatcher switch)");
     }
 
     private void EmitDisplay(BoundDisplay d)
@@ -183,16 +246,18 @@ public sealed class CSharpEmitter
     {
         var w = _ctx.Writer;
         using (w.Block($"if ({_cond.Render(iff.Condition)})"))
-            foreach (var st in iff.Then) EmitStatement(st);
+            EmitStatementList(iff.Then);
         if (iff.Else.Count > 0)
             using (w.Block("else"))
-                foreach (var st in iff.Else) EmitStatement(st);
+                EmitStatementList(iff.Else);
     }
 
-    private void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => { foreach (var st in p.Body) EmitStatement(st); }, inline: true);
+    private void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => EmitStatementList(p.Body), inline: true);
 
+    /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
+    /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4).</summary>
     private void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
-        EmitPerform(p.Control, () => { foreach (var m in p.TargetMethods) _ctx.Writer.Line($"{m}();"); }, inline: false);
+        EmitPerform(p.Control, () => _ctx.Writer.Line($"__Dispatch({p.StartPc}, {p.EndPc});"), inline: false);
 
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
     {

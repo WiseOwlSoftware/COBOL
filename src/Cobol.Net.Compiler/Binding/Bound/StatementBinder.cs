@@ -25,13 +25,13 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         CollectParagraphs(pd);
 
         var bound = new List<BoundParagraph>(_paras.Count);
-        foreach (var (cobol, method, ctx) in _paras)
+        foreach (var (cobol, _, ctx) in _paras)
         {
             var stmts = new List<BoundStatement>();
             foreach (var sentence in ctx.sentence())
                 foreach (var statement in sentence.statement())
                     stmts.Add(BindStatement(statement));
-            bound.Add(new BoundParagraph(cobol, method, stmts));
+            bound.Add(new BoundParagraph(cobol, stmts));
         }
         return new BoundProgram(bound);
     }
@@ -79,9 +79,44 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.ifStatement() is { } iff => BindIf(iff),
         _ when s.performStatement() is { } p => BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
+        _ when s.goToStatement() is { } g => BindGoTo(g),
+        _ when s.exitStatement() is { } e => BindExit(e),
+        _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
+
+    private BoundStatement BindGoTo(Core.GoToStatementContext g)
+    {
+        var names = g.procedureName();
+        if (g.dataReference() is { } sel && names.Length >= 1)   // GO TO p1 p2 … DEPENDING ON sel
+        {
+            var targets = new List<int>();
+            foreach (var n in names)
+            {
+                if (PcOf(n.GetText()) is not { } pc) return new BoundUnsupported($"GO TO unknown paragraph '{n.GetText()}'");
+                targets.Add(pc);
+            }
+            return new BoundGoToDepending(FieldOperand(sel), targets);
+        }
+        if (names.Length == 0) return new BoundUnsupported("GO TO (altered / no target)");   // ALTER form — later
+        return PcOf(names[0].GetText()) is { } target
+            ? new BoundGoTo(target)
+            : new BoundUnsupported($"GO TO unknown paragraph '{names[0].GetText()}'");
+    }
+
+    private static BoundStatement BindExit(Core.ExitStatementContext e)
+    {
+        if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
+        if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
+        if (e.PROGRAM() is not null) return new BoundNop();        // EXIT PROGRAM in the main program is a no-op
+        if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
+        if (e.METHOD() is not null || e.FUNCTION() is not null) return new BoundUnsupported("EXIT METHOD/FUNCTION");
+        return new BoundNop();   // bare EXIT
+    }
+
+    /// <summary>The pc index a paragraph name resolves to, or null if unknown.</summary>
+    private int? PcOf(string name) => _paraIndex.TryGetValue(name, out int i) ? i : null;
 
     private BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {
@@ -186,20 +221,22 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (names.Length == 0)
             return new BoundInlinePerform(BindControl(p.performOptions().FirstOrDefault(), p), BindBlocks(p.statementBlock()));
 
-        // Out-of-line: the target method(s) — a single paragraph or the THRU range.
-        var methods = new List<string>();
-        if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2
-            && _paraIndex.TryGetValue(names[0].GetText(), out int i) && _paraIndex.TryGetValue(names[1].GetText(), out int j) && i <= j)
-            for (int k = i; k <= j; k++) methods.Add(_paras[k].Method);
-        else
-            methods.Add(MethodOf(names[0].GetText()));
+        // Out-of-line: the resolved pc range [start, end] — a single paragraph (start==end) or the THRU range.
+        if (PcOf(names[0].GetText()) is not { } start)
+            return new BoundUnsupported($"PERFORM unknown paragraph '{names[0].GetText()}'");
+        int end = start;
+        if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
+        {
+            if (PcOf(names[1].GetText()) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown paragraph '{names[1].GetText()}'");
+            end = thru;
+        }
 
         BoundPerformControl control =
             p.performTimes() is { } times ? new PerformTimes(CountOperand(times))
             : p.performUntil() is { } until ? new PerformUntil(BindCondition(until.condition()), until.AFTER() is not null)
             : p.performVarying() is not null ? Unsupported("PERFORM VARYING (out-of-line)")
             : new PerformOnce();
-        return new BoundOutOfLinePerform(methods, control);
+        return new BoundOutOfLinePerform(start, end, control);
     }
 
     private BoundPerformControl BindControl(Core.PerformOptionsContext? opt, Core.PerformStatementContext p)

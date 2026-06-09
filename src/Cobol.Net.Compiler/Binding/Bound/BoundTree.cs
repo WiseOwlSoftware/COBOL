@@ -13,8 +13,9 @@ namespace CobolNet.Binding.Bound;
 /// <summary>A bound program unit: its paragraphs in source order (the entry runs them in sequence until G4).</summary>
 public sealed record BoundProgram(IReadOnlyList<BoundParagraph> Paragraphs);
 
-/// <summary>A bound paragraph: its COBOL name, the C# method name it emits as, and its statements.</summary>
-public sealed record BoundParagraph(string CobolName, string Method, IReadOnlyList<BoundStatement> Statements);
+/// <summary>A bound paragraph: its COBOL name and its statements. Its pc index is its position in
+/// <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control by that index.</summary>
+public sealed record BoundParagraph(string CobolName, IReadOnlyList<BoundStatement> Statements);
 
 // ── Numeric expressions (scale-tracked at render time by the backend) ──────────────────────────────────────────
 
@@ -147,9 +148,26 @@ public sealed record PerformUntil(BoundCondition Until, bool TestAfter) : BoundP
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;
 
-/// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved target methods, run per the control.
-/// (Emission is a sequential call chain until the G4 dispatcher; the structure is captured here.)</summary>
-public sealed record BoundOutOfLinePerform(IReadOnlyList<string> TargetMethods, BoundPerformControl Control) : BoundStatement;
+/// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved pc range [<paramref name="StartPc"/>,
+/// <paramref name="EndPc"/>] (inclusive; a single paragraph has StartPc == EndPc), run per the control via the G4
+/// dispatcher (a recursive bounded <c>Dispatch(StartPc, EndPc)</c>).</summary>
+public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control) : BoundStatement;
+
+/// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.20 Format 1).</summary>
+public sealed record BoundGoTo(int TargetPc) : BoundStatement;
+
+/// <summary><c>GO TO p1 p2 … DEPENDING ON sel</c> — transfer to <c>Targets[sel-1]</c>; out-of-range falls through
+/// to the next statement (ISO §14.9.20 Format 2).</summary>
+public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets) : BoundStatement;
+
+/// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
+public sealed record BoundExitParagraph : BoundStatement;
+
+/// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
+public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
+
+/// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
+public sealed record BoundNop : BoundStatement;
 
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>

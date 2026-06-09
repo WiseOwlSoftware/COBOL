@@ -1,0 +1,172 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Xunit;
+
+namespace CobolNet.Tests.Conformance;
+
+/// <summary>
+/// G4 checkpoint: the PC dispatcher (COBOLNET_DESIGN §5) — multi-paragraph control flow that the prior
+/// sequential-paragraph stopgap got wrong. GO TO (forward / backward), GO TO … DEPENDING, fall-through between
+/// paragraphs, out-of-line PERFORM (single / THRU / n TIMES / UNTIL), and EXIT PARAGRAPH — each pinned to the legacy
+/// oracle. (Inline PERFORM was already correct; this is the out-of-line + branch machinery.)
+/// </summary>
+public sealed class ControlFlowDifferentialTests
+{
+    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+
+    private static void AssertSameAsLegacy(string source)
+    {
+        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
+        Assert.True(lok, $"legacy oracle failed: {ldetail}");
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal(lout, cout);
+    }
+
+    /// <summary>Wrap a WORKING-STORAGE body + a full (multi-paragraph) PROCEDURE body into a program.</summary>
+    private static string Program(string ws, string procedure) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. CFTEST.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        {ws}
+        PROCEDURE DIVISION.
+        {procedure}
+        """;
+
+    [Fact]
+    public void FallThroughBetweenParagraphs()
+        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+            MAIN-PARA.
+                DISPLAY "A".
+            P2.
+                DISPLAY "B".
+            P3.
+                DISPLAY "C".
+                STOP RUN.
+            """));
+
+    [Fact]
+    public void GoToForward()
+        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+            MAIN-PARA.
+                DISPLAY "A".
+                GO TO P3.
+            P2.
+                DISPLAY "B".
+            P3.
+                DISPLAY "C".
+                STOP RUN.
+            """));
+
+    [Fact]
+    public void GoToBackward_Loop()
+        => AssertSameAsLegacy(Program("01 I PIC 9 VALUE 0.", """
+            MAIN-PARA.
+                ADD 1 TO I.
+                DISPLAY I.
+                IF I < 3 GO TO MAIN-PARA END-IF.
+            DONE-PARA.
+                DISPLAY "DONE".
+                STOP RUN.
+            """));
+
+    [Fact]
+    public void Perform_SingleParagraph()
+        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+            MAIN-PARA.
+                DISPLAY "BEFORE".
+                PERFORM SUB-PARA.
+                DISPLAY "AFTER".
+                STOP RUN.
+            SUB-PARA.
+                DISPLAY "SUB".
+            """));
+
+    [Fact]
+    public void Perform_Thru()
+        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+            MAIN-PARA.
+                PERFORM P1 THRU P3.
+                DISPLAY "DONE".
+                STOP RUN.
+            P1.
+                DISPLAY "1".
+            P2.
+                DISPLAY "2".
+            P3.
+                DISPLAY "3".
+            """));
+
+    [Fact]
+    public void Perform_Times_OutOfLine()
+        => AssertSameAsLegacy(Program("01 X PIC 9(2) VALUE 0.", """
+            MAIN-PARA.
+                PERFORM SUB-PARA 4 TIMES.
+                DISPLAY X.
+                STOP RUN.
+            SUB-PARA.
+                ADD 1 TO X.
+            """));
+
+    [Fact]
+    public void Perform_Until_OutOfLine()
+        => AssertSameAsLegacy(Program("01 X PIC 9 VALUE 0.", """
+            MAIN-PARA.
+                PERFORM SUB-PARA UNTIL X = 3.
+                DISPLAY X.
+                STOP RUN.
+            SUB-PARA.
+                ADD 1 TO X.
+            """));
+
+    [Theory]
+    [InlineData(1, "ONE")]
+    [InlineData(2, "TWO")]
+    [InlineData(3, "THREE")]
+    public void GoTo_Depending(int sel, string _)
+        => AssertSameAsLegacy(Program($"01 SEL PIC 9 VALUE {sel}.", """
+            MAIN-PARA.
+                GO TO L1 L2 L3 DEPENDING ON SEL.
+                DISPLAY "NONE".
+                STOP RUN.
+            L1.
+                DISPLAY "ONE".
+                STOP RUN.
+            L2.
+                DISPLAY "TWO".
+                STOP RUN.
+            L3.
+                DISPLAY "THREE".
+                STOP RUN.
+            """));
+
+    [Fact]
+    public void GoTo_Depending_OutOfRange_FallsThrough()
+        => AssertSameAsLegacy(Program("01 SEL PIC 9 VALUE 5.", """
+            MAIN-PARA.
+                GO TO L1 L2 DEPENDING ON SEL.
+                DISPLAY "FELLTHROUGH".
+                STOP RUN.
+            L1.
+                DISPLAY "ONE".
+                STOP RUN.
+            L2.
+                DISPLAY "TWO".
+                STOP RUN.
+            """));
+
+    [Fact]
+    public void ExitParagraph()
+        => AssertSameAsLegacy(Program("01 FILLER PIC X.", """
+            MAIN-PARA.
+                PERFORM SUB-PARA.
+                DISPLAY "AFTER".
+                STOP RUN.
+            SUB-PARA.
+                DISPLAY "S1".
+                EXIT PARAGRAPH.
+                DISPLAY "S2".
+            """));
+}
