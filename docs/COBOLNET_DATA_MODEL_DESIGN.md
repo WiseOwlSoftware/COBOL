@@ -54,8 +54,33 @@ Fixed-point = native `long` holding the UNSCALED value; scale is compile-time me
   • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.34). The binder must capture 88 entries (currently SKIPPED in DataBinder.BindEntry) and their VALUE list incl. THRU ranges + multiple literals.
   • 66 RENAMES: a re-grouping alias over a contiguous run FROM..THRU of sibling elementary items. DECISION: model as a Place that is an ALIAS — for the common case (RENAMES of a single elementary, or a whole-group read/write) emit a computed property that concatenates/splits the underlying members' char images. The general overlapping-bytes RENAMES is a storage-overlay case → defer to G6 (the byte-image fallback) and flag loud. Capture RenamesInfo (FROM/THRU + qualifiers) now; resolution is deferred-pass like legacy.
 
-== 8. REDEFINES — the storage-overlay boundary (G6) ==
-REDEFINES makes two differently-typed views share storage; that is fundamentally a byte-overlay and has NO clean typed-native form. DECISION (matches architecture §3 "deferred unbounded cases"): in the typed model, the redefining item and the redefined item are SEPARATE typed fields; a write to one is NOT auto-visible in the other. This is correct ONLY when the program reads each view consistently (the overwhelming corpus majority — REDEFINES used for a VALUE-init alias or an alternate-name). When a program writes one view and reads the OTHER's type (a genuine byte pun), the typed model is wrong → that is the classifier-scoped byte-image fallback (G6): both views share a `byte[]` scratch materialized at the overlay boundary, exactly the legacy mechanism but ISLANDED to redefined groups only. The data-model design's job now: (a) capture RedefinesName/Redefines (currently dropped in DataBinder), (b) for the safe case emit independent fields with the redefining field's VALUE init suppressed unless it has its own VALUE, (c) emit a LOUD diagnostic when a cross-type read of a redefined region is detected, so nothing silently corrupts (the lesson from DEVLOG 457). FILLER under a REDEFINES needs no field.
+== 8. REDEFINES — the storage-overlay boundary ==
+> ⚠ **SUPERSEDED (2026-06-08).** This section's original DECISION ("the redefining item and the redefined item are
+> SEPARATE typed fields; a write to one is NOT auto-visible in the other") is **rejected**. SSOT
+> `COBOLNET_DESIGN.md` §14.3 names it the loser: **separate fields reproduce the exact silent-stale-read that
+> triggered the whole no-byte-substrate pivot** (a write through one view must be visible through every other view of
+> the same storage; two independent fields cannot guarantee that). The **canonical REDEFINES design is the 4-tier
+> one-canonical-backing model** in `COBOLNET_DESIGN.md` §4 and the deep-dive `COBOLNET_REDEFINES_DESIGN.md` — follow
+> those, not the paragraph below.
+
+REDEFINES makes two differently-typed views share storage. **Current model (4 tiers; priority cascade D>C>B>A — see
+`COBOLNET_REDEFINES_DESIGN.md`):** a "redefines class" (all entries over one storage area) has exactly ONE *stored*
+backing — the **canonical** — and EVERY other view is a **computed accessor (a C# property/`Place`)** over it; never
+two stored fields per area, so a write through any view is coherent across all.
+  • **A — Alias** (identical PIC+USAGE / RENAMES-without-THRU): one typed field; other names are pass-through accessors.
+  • **B — StringCanonical** (whole class is USAGE DISPLAY — the dominant case, and the ENTIRE near-term NIST path):
+    canonical = ONE `string` of class-max width (a DISPLAY item's byte image IS its characters); each view is a typed
+    accessor (substring / `ParseDisplay`→long / `FormatDisplay`/`CobolEdit`) over it. NO bytes.
+  • **C — ByteCanonical** (genuine mixed-USAGE pun observing COMP/COMP-3/5/INDEX cross-view): canonical = ONE
+    *class-scoped* `byte[]` (SYNC-aware offsets), each leaf a typed get/set codec over `(offset,length,usage)`. The
+    byte image is confined to the REDEFINES class, never the record, never persisted (owner decision §18 #1).
+  • **D — Reject loud** (object/pointer/strongly-typed/variable-length puns — already spec-illegal): a diagnostic.
+The redefining view emits NO stored VALUE field (init only from the original, REDEFINES SR9); a numeric view still
+emits its `_P_` NumProfile (an arithmetic target must compile). FILLER under a REDEFINES needs no field. Tier selection
+reuses the legacy `RecordClassificationPass` transitive-closure shape, re-verdicted to the A⊑B⊑C⊑D lattice (join = max
+tier). **Why the original "separate fields" plan was dropped:** it silently corrupts on any cross-type pun and re-opens
+the DEVLOG-457 failure mode; the one-canonical-backing model keeps Tiers A/B 100% typed (no `byte[]`) while staying
+coherent, and confines bytes to genuine mixed-USAGE puns only.
 
 == 9. CLAUSES: SYNCHRONIZED / JUSTIFIED / BLANK WHEN ZERO ==
   • SYNCHRONIZED: alignment is a BYTE-LAYOUT concept. In a typed-native model there are no byte boundaries to align to (a `long` field is naturally aligned by the CLR). DECISION: SYNC is a NO-OP for in-memory typed data; it only matters at the file/byte serialization boundary (G6), where the record-image builder honors it. Capture IsSynchronized for that future use. (Rationale: the only observable effect of SYNC absent byte access is on REDEFINES-overlay size, which is already the G6 byte path.)
@@ -106,11 +131,11 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 **Rejected alternatives.** Materializing 88s as stored booleans kept in sync on every parent write — rejected: redundant state, sync bugs, non-idiomatic.
 
-### D5. REDEFINES emits independent typed fields (safe tier) with a LOUD diagnostic on detected cross-type reads; genuine byte-puns route to a classifier-scoped byte[] scratch islanded to the overlay (G6).
+### D5. REDEFINES uses the 4-tier ONE-canonical-backing model (A Alias / B StringCanonical / C class-scoped ByteCanonical / D reject-loud); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [REVISED 2026-06-08; canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
 
-**Rationale.** The corpus majority uses REDEFINES as an alias/VALUE-init, which the typed-separate-fields model handles correctly and readably; the byte fallback is confined to true overlays, honoring 'byte image only as a scoped fallback' (architecture §3). The loud-on-cross-type-read guard prevents exactly the silent stale-byte corruption that caused the DEVLOG 457 pivot.
+**Rationale.** A write through any view must be visible through every other view of the same area (ISO §13.18.42 "same storage area"). One stored canonical + computed accessors guarantees that coherence with NO byte substrate for the dominant DISPLAY-homogeneous case (Tiers A/B — the entire near-term NIST path), and confines `byte[]` to genuine mixed-USAGE puns only (Tier C, owner decision §18 #1).
 
-**Rejected alternatives.** (a) Global byte[] for all REDEFINES — rejected: that is the abolished substrate. (b) Silently independent fields with no guard — rejected: silent corruption on a real pun, the precise failure that triggered the rewrite.
+**Rejected alternatives.** (a) **The original D5 "separate independent typed fields"** — rejected (SSOT §14.3 names it the loser): two independent fields cannot stay coherent under a cross-type pun, reproducing the silent-stale-read that triggered the DEVLOG 457 pivot — even a loud cross-type-read guard only *detects* it, it does not make the program correct. (b) Global `byte[]` for all REDEFINES — rejected: the abolished substrate. (c) `[StructLayout(Explicit)]`/`[FieldOffset]` overlay — rejected: cannot overlay a `string` on a `long`, which is the dominant pun.
 
 ### D6. SYNCHRONIZED is a no-op for in-memory typed data; honored only at the file/byte-serialization boundary (G6). BLANK WHEN ZERO and JUSTIFIED are display/store-time rules on PicInfo.
 
@@ -198,7 +223,7 @@ Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is prove
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 
-Two-tier. SAFE tier (corpus majority): emit independent typed fields; suppress the redefining item's auto-init unless it has its own VALUE; this is correct whenever each view is read consistently. UNSAFE tier (genuine byte-pun: write one type, read another): route the overlaid region to a classifier-scoped byte[] scratch materialized only at the overlay boundary (G6) — the legacy mechanism ISLANDED to redefined groups, not the global substrate. CRITICAL: emit a LOUD diagnostic when a cross-type read of a redefined region is detected so nothing silently corrupts — this is the exact failure mode (silent stale-byte read on a typed record) that triggered the DEVLOG 457 pivot.
+**Resolution (REVISED — 4-tier one-canonical-backing; see `COBOLNET_REDEFINES_DESIGN.md`).** One STORED canonical per redefines class + every other view a computed `Place` accessor. **Tier A** (identical PIC/USAGE) = pass-through accessor; **Tier B** (whole class USAGE DISPLAY — the corpus majority) = a single `string` canonical with substring/`ParseDisplay`/`FormatDisplay` accessors (NO bytes); **Tier C** (genuine mixed-USAGE pun) = one class-scoped `byte[]` canonical with per-leaf typed codecs, confined to the class and never persisted; **Tier D** (unmodelable) = reject loud. The earlier "independent typed fields + a loud cross-type-read guard" plan is SUPERSEDED (SSOT §14.3): independent fields cannot stay coherent under a pun, so detection alone never makes the program correct — only the single shared canonical does.
 
 ### Reference modification as a RECEIVER: C# strings are immutable, so `NAME(3:2) = x` cannot splice in place.
 

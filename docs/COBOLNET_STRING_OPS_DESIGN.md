@@ -51,11 +51,17 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 **Rationale.** Matches the Latin-1 boundary codec the runtime already established (Text/CobolString uses Encoding.Latin1, byte k ↔ U+00kk, ADR R10) and the legacy lowerers' \xFF/\x00. Keeps figurative constants consistent across the file-I/O byte boundary.
 
-**Rejected alternatives.** National HIGH-VALUE as U+FFFF — flagged as the national-class refinement (open question); for alphanumeric U+00FF is correct and matches the established codec.
+**Rejected alternatives.** (none for alphanumeric — U+00FF/U+0000 matches the Latin-1 codec.) **National refinement now SETTLED (SSOT §14.9 / §18 #14, 2026-06-08):** national `HIGH-VALUE` = **U+FFFF** (the 2-octet extreme), national `LOW-VALUE` = **U+0000**; alphanumeric stays U+00FF/U+0000 (the single-octet extreme, preserving ASCII/Latin-1 ordering through the ordinal `CobolString.Compare`). No longer an open question.
 
-### D7. Introduce a typed StringLvalue abstraction (read-expression + write-back template) as the analogue of the legacy IrLocation.
+### D7. String-op targets use the universal `Place` lvalue (`Read()`/`Write(rhs)`) — NOT a separate StringLvalue abstraction. [REVISED 2026-06-08; canonical: SSOT §14.1]
 
-**Rationale.** CSharpEmitter.Resolve today handles only simple unqualified/unsubscripted names, but string-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)). Each needs a read C# expression and a write-back form `<read> = <expr>`. Centralizing this is required before any string-op write emits correctly.
+> ⚠ **SUPERSEDED.** The original "introduce a typed StringLvalue abstraction (the analogue of the legacy
+> IrLocation)" is replaced: SSOT §14.1 names StringLvalue the loser — **`StringLvalue` IS a `Place`**. There is ONE
+> lvalue model (`Place`, built by `ReferenceResolver`) consumed identically by MOVE / arithmetic / INSPECT / STRING /
+> UNSTRING / file READ-INTO / CALL-by-reference. INSPECT/STRING/UNSTRING emit `field.Write(CobolStrings.…(field.Read(),
+> …))` over a `Place`. Introducing a second per-verb lvalue would violate `feedback_singular_pattern`.
+
+**Rationale.** CSharpEmitter.Resolve today handles only simple unqualified/unsubscripted names, but string-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)). The single `Place` (a `MemberPlace`/`RefModPlace`) gives each a read C# expression and a write-back form. Centralizing this in the one resolver is required before any string-op write emits correctly.
 
 **Rejected alternatives.** Per-statement ad-hoc string building (would duplicate the splice/subscript logic across INSPECT/STRING/UNSTRING/MOVE — rejected per refactor-first/scan-all-similar).
 
@@ -75,8 +81,12 @@ READ:  `FIELD.Substring(p-1, len)` where p,len are 1-based leftmost-position + l
   `public static string RefModToEnd(string s, int leftmost)` — length-omitted form.
 WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slice:
   COBOL `MOVE X TO FIELD(3:5)` →
-  `FIELD = CobolStrings.RefModStore(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`
-  where `RefModStore(string dst, int leftmost, int length, string newSlice)` returns `dst[..(leftmost-1)] + newSlice + dst[(leftmost-1+length)..]` (newSlice already exactly `length` chars via CobolString.Store — left-justified space-pad/truncate, the receiving-into-a-slice MOVE). Editing is NOT re-applied (spec NOTE at line 21209: ref-mod of an edited item as whole-of-itself prevents editing).
+  `FIELD = CobolString.SpliceInto(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`
+  where `CobolString.SpliceInto(string dst, int leftmost, int length, string newSlice)` returns `dst[..(leftmost-1)] + newSlice + dst[(leftmost-1+length)..]` (newSlice already exactly `length` chars via CobolString.Store — left-justified space-pad/truncate, the receiving-into-a-slice MOVE). Editing is NOT re-applied (spec NOTE at line 21209: ref-mod of an edited item as whole-of-itself prevents editing).
+  > **Runtime-roster note (REVISED 2026-06-08, SSOT §14.8):** ref-mod read/write live on **`CobolString`** (the
+  > single-string class) as **`RefMod`** and **`SpliceInto`** — NOT on `CobolStrings` and NOT named `RefModStore`.
+  > `CobolStrings` is reserved for the MULTI-operand verbs (`InspectTally`/`InspectReplace`/`StringInto`/
+  > `UnstringExtract`). (`CobolString.RefMod`/`SpliceInto` are implemented today, DEVLOG 487.)
 Length-omitted write target: length = `dst.Length - (leftmost-1)`.
 
 === ALPHANUMERIC MOVE + COMPARISON (already present, keep) ===
@@ -179,7 +189,7 @@ Port legacy UnstringExtract exactly: earliest-matching delimiter across OR-set w
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
 
-- National (class national) HIGH-VALUE/LOW-VALUE code points: alphanumeric is settled at U+00FF/U+0000 (Latin-1 codec, ADR R10), but should national HIGH-VALUE be U+FFFF (highest national code element) per the national collating sequence? Owner-level: depends on the implementor-defined national coded character set (§8.5.1.4 / the national-collating definitions). Recommend U+FFFF for national, U+00FF for alphanumeric; needs confirmation.
+- National HIGH-VALUE/LOW-VALUE code points — **RESOLVED (SSOT §18 #14, 2026-06-08):** national `HIGH-VALUE` = **U+FFFF**, national `LOW-VALUE` = **U+0000**; alphanumeric stays U+00FF/U+0000 (Latin-1 codec). Full custom-`ALPHABET` collating is deferred behind the fixed `CobolString.Compare(a, b, weights?)` seam.
 - Out-of-range / zero / non-integer reference modification: throw (raise EC-BOUND-REF-MOD → CobolRuntimeException) vs clamp. Recommend THROW as default (conformant; results otherwise undefined). Should a lenient dialect that clamps be offered (the legacy compiler had dialect-gated leniencies)? Owner-gated.
 - Exception-condition surfacing in v1: the spec ties STRING/UNSTRING/INSPECT/ref-mod to EC-OVERFLOW-*, EC-RANGE-INSPECT-SIZE, EC-BOUND-REF-MOD as checkable conditions. v1 wires ON OVERFLOW directly and throws for fatal ref-mod; full EC handling (>>TURN, USE AFTER EXCEPTION CONDITION, EC- status registers) is the broader exception subsystem (M2 EC/exceptions). Confirm string-ops only needs ON OVERFLOW + ref-mod-throw now, deferring EC-register integration.
 - REF-MOD-ZERO-LENGTH directive plumbing: it is a compile-time directive affecting whether zero-length ref-mod is legal. Is it threaded into the binder now (so RefMod emits the zero-allowed branch) or deferred? Recommend recognizing the directive in G7; default OFF (throw on zero) until then.
