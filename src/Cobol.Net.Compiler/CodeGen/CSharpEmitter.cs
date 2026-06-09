@@ -90,16 +90,14 @@ public sealed class CSharpEmitter
     {
         foreach (var root in _data.Roots) EmitStructTypeDecls(root, w);   // 1. record struct types (every group)
         foreach (var root in _data.Roots) EmitProfiles(root, w);          // 2. numeric profiles (every leaf, flat)
-        foreach (var root in _data.Roots)                                 // 3. one static field per 01/77
-        {
-            if (root.IsGroup)
-                w.Line($"private static {root.StructName} {root.CsName} = {ComposedInit(root)};   // {root.CobolName}");
-            else if (root.IsElementary)
+        foreach (var (name, field) in _data.IndexFields)                  // 3. INDEXED BY index-names (1-based)
+            w.Line($"private static long {field} = 1;   // INDEX-NAME {name}");
+        foreach (var root in _data.Roots)                                 // 4. one static field per 01/77
+            if (root.IsGroup || root.IsElementary)
             {
-                string comment = root.CobolName is { } n ? $"   // {n} {root.Pic!.Category}" : "";
-                w.Line($"private static {root.Pic!.ClrType} {root.CsName} = {InitializerFor(root)};{comment}");
+                string comment = root.CobolName is { } n ? $"   // {n}{(root.Occurs is { } o ? $" OCCURS {o}" : "")}" : "";
+                w.Line($"private static {root.FieldType} {root.CsName} = {FieldInit(root)};{comment}");
             }
-        }
     }
 
     /// <summary>Emit a <c>record struct</c> type for a group item and (recursively) its nested group members.</summary>
@@ -110,7 +108,7 @@ public sealed class CSharpEmitter
         using (w.Block($"private record struct {item.StructName}"))
             foreach (var child in item.Children)
                 if (child.IsGroup || child.IsElementary)
-                    w.Line($"public {child.ClrType} {child.CsName};   // {child.CobolName ?? "FILLER"}");
+                    w.Line($"public {child.FieldType} {child.CsName};   // {child.CobolName ?? "FILLER"}");
     }
 
     /// <summary>Emit a static <c>NumProfile</c> field for every numeric (fixed-point) elementary item, recursively.</summary>
@@ -121,13 +119,25 @@ public sealed class CSharpEmitter
         foreach (var child in item.Children) EmitProfiles(child, w);
     }
 
+    /// <summary>The C# initializer for a field: an array literal for an OCCURS table (every element initialized so
+    /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
+    private static string FieldInit(DataItem item)
+    {
+        if (item.Occurs is { } n)
+        {
+            string element = item.IsGroup ? ComposedInit(item) : InitializerFor(item);
+            return $"new {item.ElementType}[] {{ {string.Join(", ", Enumerable.Repeat(element, n))} }}";
+        }
+        return item.IsGroup ? ComposedInit(item) : InitializerFor(item);
+    }
+
     /// <summary>A composed C# object-initializer for a group: every member set to its VALUE-or-default (so no
     /// member is left at <c>default</c> — a <c>string</c> member would otherwise be null).</summary>
     private static string ComposedInit(DataItem group)
     {
         var parts = group.Children
             .Where(c => c.IsGroup || c.IsElementary)
-            .Select(c => $"{c.CsName} = {(c.IsGroup ? ComposedInit(c) : InitializerFor(c))}");
+            .Select(c => $"{c.CsName} = {FieldInit(c)}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
 

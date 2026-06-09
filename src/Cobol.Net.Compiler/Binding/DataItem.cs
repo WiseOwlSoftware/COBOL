@@ -37,6 +37,9 @@ public sealed class DataItem
     /// <summary>The fixed OCCURS count, or <see langword="null"/> if the item is not a table. (ODO is a later slice.)</summary>
     public int? Occurs { get; init; }
 
+    /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
+    public List<string> IndexNames { get; } = [];
+
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 
@@ -55,8 +58,14 @@ public sealed class DataItem
     /// <summary>The generated runtime <c>NumProfile</c> field name for a numeric item (unique via <see cref="Uid"/>).</summary>
     public string ProfileName => "_P_" + Uid;
 
-    /// <summary>The C# type name for this item's field (a record-struct type name for a group, else the PIC's CLR type).</summary>
-    public string ClrType => IsGroup ? StructName : Pic?.ClrType ?? "object";
+    /// <summary>The C# type of a single occurrence (a record-struct type name for a group, else the PIC's CLR type).</summary>
+    public string ElementType => IsGroup ? StructName : Pic?.ClrType ?? "object";
+
+    /// <summary>The C# type name for this item's field — an array of <see cref="ElementType"/> for an OCCURS table.</summary>
+    public string FieldType => Occurs is not null ? ElementType + "[]" : ElementType;
+
+    /// <summary>Back-compat alias of <see cref="ElementType"/> (the per-occurrence type).</summary>
+    public string ClrType => ElementType;
 
     /// <summary>
     /// Convert a COBOL data-name to a valid, collision-safe C# identifier: hyphens → underscores, a leading digit

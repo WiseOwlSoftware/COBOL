@@ -27,6 +27,10 @@ public sealed class DataBinder
     /// </summary>
     public Dictionary<string, List<DataItem>> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>INDEXED BY index-names (case-insensitive) → the C# <c>long</c> field that holds the 1-based
+    /// occurrence number (COBOLNET_DESIGN §3.5). A subscript may name an index, so the resolver consults this.</summary>
+    public Dictionary<string, string> IndexFields { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
@@ -91,6 +95,7 @@ public sealed class DataBinder
 
         string? pictureText = null, usageText = null, rawValue = null;
         int? occurs = null;
+        var indexNames = new List<string>();
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -101,12 +106,18 @@ public sealed class DataBinder
                     usageText = UsageKeyword(usage);
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
-                else if (clause.occursClause()?.integerLiteral() is { Length: > 0 } occ)
-                    occurs = int.TryParse(occ[0].GetText(), out int n) ? n : null;
+                else if (clause.occursClause() is { } occ)
+                {
+                    if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[0].GetText(), out int n))
+                        occurs = n;
+                    if (occ.INDEXED() is not null && occ.dataReferenceList() is { } idxList)
+                        foreach (var idx in idxList.dataReference())
+                            indexNames.Add(idx.GetText());
+                }
             }
 
         var pic = pictureText is null ? null : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText));
-        return new DataItem
+        var item = new DataItem
         {
             Level = level,
             CobolName = isFiller ? null : cobolName,
@@ -115,6 +126,15 @@ public sealed class DataBinder
             RawValue = rawValue,
             Occurs = occurs,
         };
+
+        // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
+        foreach (var idxName in indexNames)
+        {
+            item.IndexNames.Add(idxName);
+            if (!IndexFields.ContainsKey(idxName))
+                IndexFields[idxName] = "_IX_" + IndexFields.Count;
+        }
+        return item;
     }
 
     /// <summary>Extract a usage keyword's text (the form after USAGE IS, or the bare keyword).</summary>

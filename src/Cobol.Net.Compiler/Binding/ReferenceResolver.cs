@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using CobolSharp.Compiler.Generated;
 
 namespace CobolNet.Binding;
@@ -11,13 +13,15 @@ using Core = CobolParserCore;
 /// turn a COBOL operand into a typed C# lvalue (COBOLNET_DESIGN §3.4). Two phases:
 /// <list type="number">
 ///   <item><b>Syntactic flatten</b> — walk <c>cobolWord dataReferenceSuffix*</c> into the base name, its OF/IN
-///         qualifiers, and whether a subscript or reference-modification is present.</item>
-///   <item><b>Semantic resolve</b> — resolve the (optionally qualified) name to a <see cref="DataItem"/> by
-///         right-to-left narrowing, then build the member-access path.</item>
+///         qualifiers, and the subscript / reference-modification token group (a flat SUBSCRIPT-mode stream the
+///         binding layer interprets — the same grammar shape the legacy compiler proved over 364 NIST tests).</item>
+///   <item><b>Semantic resolve</b> — resolve the (optionally qualified) name to a <see cref="DataItem"/>, interpret
+///         the subscripts to C# index expressions, and build the member-access path with each subscript attached to
+///         its OCCURS level (outer→inner).</item>
 /// </list>
 /// Returns <see langword="null"/> when the reference cannot be resolved in this slice — an unknown name, a special
-/// register, or (until G2-1b) a subscripted / reference-modified reference — so the caller emits a loud
-/// not-implemented guard rather than silently mis-binding.
+/// register, a reference-modified reference (<c>(s:l)</c> — G2-1c), or a subscript form not yet handled — so the
+/// caller emits a loud not-implemented guard rather than silently mis-binding.
 /// </summary>
 public sealed class ReferenceResolver(DataBinder data)
 {
@@ -29,25 +33,36 @@ public sealed class ReferenceResolver(DataBinder data)
         string name = baseWord.GetText();
 
         var qualifiers = new List<string>();
-        bool hasSubscriptOrRefMod = false;
+        Core.SubscriptOrRefModContext? subCtx = null;
         foreach (var suffix in dref.dataReferenceSuffix())
         {
             if (suffix.qualification() is { } q)
             {
                 qualifiers.Add(q.cobolWord().GetText());
-                if (q.subscriptPart().Length > 0 || q.refModPart().Length > 0) hasSubscriptOrRefMod = true;
+                if (q.refModPart().Length > 0) return null;                      // ref-mod → G2-1c (loud)
+                if (q.subscriptPart().FirstOrDefault()?.subscriptOrRefMod() is { } qs) subCtx ??= qs;
             }
-            else if (suffix.subscriptPart() is not null || suffix.refModPart() is not null)
-            {
-                hasSubscriptOrRefMod = true;
-            }
+            else if (suffix.refModPart() is not null) return null;               // ref-mod → G2-1c (loud)
+            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) subCtx ??= s;
         }
-        // OCCURS subscripts + reference modification are G2-1b (the ported SUB_* interpreter).
-        if (hasSubscriptOrRefMod) return null;
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
-        return item is null ? null : new MemberPlace(AccessPath(item), item);
+        if (item is null) return null;
+
+        List<string> indexExprs = [];
+        if (subCtx is not null)
+        {
+            var (e, isRefMod) = InterpretSubscripts(subCtx);
+            if (isRefMod || e is null) return null;   // ref-mod (G2-1c) or unsupported subscript form → loud
+            indexExprs = e;
+        }
+
+        // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath returns null → loud.
+        string? path = AccessPath(item, indexExprs);
+        return path is null ? null : new MemberPlace(path, item);
     }
+
+    // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to disambiguate).</summary>
     private DataItem? ResolveUnqualified(string name) =>
@@ -77,7 +92,151 @@ public sealed class ReferenceResolver(DataBinder data)
         return null;
     }
 
-    /// <summary>The C# member-access path for an item: a static field at the root, else <c>Parent.Child</c> chained.</summary>
-    private static string AccessPath(DataItem item) =>
-        item.Parent is null ? item.CsName : AccessPath(item.Parent) + "." + item.CsName;
+    // ── Access-path construction (subscripts attach to OCCURS levels, outer→inner) ───────────────────────
+
+    /// <summary>
+    /// The C# member-access path for an item: a static field at the root, else <c>Parent.Child</c> chained, with
+    /// each <paramref name="indexExprs"/> entry inserted as <c>[expr - 1]</c> at its OCCURS level (outermost first).
+    /// Returns <see langword="null"/> if the subscript count does not match the table's OCCURS dimension.
+    /// </summary>
+    private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs)
+    {
+        var chain = new List<DataItem>();
+        for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
+        chain.Reverse();   // root-first
+
+        int occursLevels = chain.Count(n => n.Occurs is not null);
+        if (occursLevels != indexExprs.Count) return null;   // wrong number of subscripts
+
+        var sb = new System.Text.StringBuilder();
+        int si = 0;
+        foreach (var seg in chain)
+        {
+            sb.Append(sb.Length == 0 ? seg.CsName : "." + seg.CsName);
+            if (seg.Occurs is not null) sb.Append($"[{indexExprs[si++]} - 1]");
+        }
+        return sb.ToString();
+    }
+
+    // ── Subscript interpretation (the flat SUBSCRIPT-mode token stream) ──────────────────────────────────
+
+    /// <summary>
+    /// Interpret the flat subscript/ref-mod token sequence. Returns (index expressions, isRefMod): a depth-0
+    /// <c>SUB_COLON</c> marks reference modification (handled in a later slice, so the C# list is null). Otherwise
+    /// each comma- or multi-space-separated segment is rendered to a C# <c>long</c> index expression; a segment that
+    /// cannot be rendered yields a null list (→ the caller fails loud).
+    /// </summary>
+    private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(Core.SubscriptOrRefModContext ctx)
+    {
+        var tokens = new List<IToken>();
+        CollectLeafTokens(ctx, tokens);
+
+        for (int i = 0, d = 0; i < tokens.Count; i++)
+        {
+            int tt = tokens[i].Type;
+            if (tt == Core.SUB_LPAREN) d++;
+            else if (tt == Core.SUB_RPAREN) { if (d > 0) d--; }
+            else if (tt == Core.SUB_COLON && d == 0) return (null, true);   // ref-mod
+        }
+
+        var exprs = new List<string>();
+        foreach (var seg in SplitSubscriptTokens(tokens))
+        {
+            if (RenderSegment(seg) is not { } e) return (null, false);
+            exprs.Add(e);
+        }
+        return (exprs, false);
+    }
+
+    private static void CollectLeafTokens(IParseTree node, List<IToken> tokens)
+    {
+        if (node is ITerminalNode term) { tokens.Add(term.Symbol); return; }
+        for (int i = 0; i < node.ChildCount; i++) CollectLeafTokens(node.GetChild(i), tokens);
+    }
+
+    /// <summary>Split a flat token list into subscript segments on depth-0 comma / multi-space boundaries (a faithful
+    /// reduction of the legacy <c>ExpressionBinder.SplitSubscriptTokens</c>: a single space inside a relative
+    /// subscript such as <c>I + 1</c> does not split; a separator space before a new operand does).</summary>
+    private static List<List<IToken>> SplitSubscriptTokens(List<IToken> tokens)
+    {
+        var segments = new List<List<IToken>>();
+        var current = new List<IToken>();
+        int depth = 0;
+
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            var t = tokens[i];
+            if (t.Type == Core.SUB_LPAREN) { depth++; current.Add(t); continue; }
+            if (t.Type == Core.SUB_RPAREN) { if (depth > 0) depth--; current.Add(t); continue; }
+
+            if (depth == 0 && (t.Type == Core.SUB_COMMA || t.Type == Core.SUB_SEMICOLON))
+            {
+                if (current.Count > 0) { segments.Add(current); current = []; }
+                continue;
+            }
+            if (depth == 0 && t.Type == Core.SUB_WS)
+            {
+                int next = i + 1;
+                while (next < tokens.Count && tokens[next].Type == Core.SUB_WS) next++;
+                if (next < tokens.Count && current.Count > 0)
+                {
+                    var lastNonWs = current.FindLast(x => x.Type != Core.SUB_WS);
+                    bool endsWithOperator = lastNonWs is not null &&
+                        lastNonWs.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR or Core.SUB_SLASH or Core.SUB_POWER;
+                    int nextType = tokens[next].Type;
+                    if (!endsWithOperator &&
+                        nextType is Core.SIGNED_INTEGERLIT or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT)
+                    {
+                        segments.Add(current);
+                        current = [];
+                        i = next - 1;   // skip consumed WS
+                        continue;
+                    }
+                }
+                current.Add(t);
+                continue;
+            }
+            current.Add(t);
+        }
+        if (current.Count > 0) segments.Add(current);
+        return segments;
+    }
+
+    /// <summary>Render one subscript segment to a C# <c>long</c> index expression, or <see langword="null"/> if it
+    /// uses a form not yet handled (so the caller fails loud). Handles integer literals, data-name / index-name
+    /// references, the arithmetic operators, and parentheses — the relative-subscript and simple-index forms.</summary>
+    private string? RenderSegment(List<IToken> tokens)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var t in tokens)
+        {
+            switch (t.Type)
+            {
+                case Core.SUB_WS: sb.Append(' '); break;
+                case Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT: sb.Append(t.Text); break;
+                case Core.SUB_PLUS: sb.Append(" + "); break;
+                case Core.SUB_MINUS: sb.Append(" - "); break;
+                case Core.SUB_STAR: sb.Append(" * "); break;
+                case Core.SUB_SLASH: sb.Append(" / "); break;
+                case Core.SUB_LPAREN: sb.Append('('); break;
+                case Core.SUB_RPAREN: sb.Append(')'); break;
+                case Core.SUB_IDENTIFIER:
+                    if (ResolveSubscriptName(t.Text) is not { } readExpr) return null;
+                    sb.Append(readExpr);
+                    break;
+                default: return null;   // SUB_STRINGLIT / SUB_DECIMALLIT / SUB_ALL / OF / IN / FUNCTION etc.
+            }
+        }
+        string expr = sb.ToString().Trim();
+        return expr.Length == 0 ? null : expr;
+    }
+
+    /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field) or a
+    /// numeric data item (its place read), or <see langword="null"/> if it is neither.</summary>
+    private string? ResolveSubscriptName(string name)
+    {
+        if (data.IndexFields.TryGetValue(name, out var field)) return field;
+        if (ResolveUnqualified(name) is { } item) return AccessPath(item, []);
+        return null;
+    }
 }
