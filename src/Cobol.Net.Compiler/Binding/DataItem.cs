@@ -58,6 +58,21 @@ public sealed class DataItem
     /// <summary>The generated runtime <c>NumProfile</c> field name for a numeric item (unique via <see cref="Uid"/>).</summary>
     public string ProfileName => "_P_" + Uid;
 
+    /// <summary>
+    /// True if this item's storage is a pure character image — itself or every descendant is an alphanumeric /
+    /// numeric-edited (<see cref="string"/>) elementary item, with no OCCURS. Such a group has a clean
+    /// <c>AsImage()</c>/<c>FromImage()</c> (COBOLNET_DESIGN §14.4 / Tier-B §4.2); a group with numeric/COMP leaves is
+    /// the mixed-usage byte-island (Tier-C), deferred.
+    /// </summary>
+    public bool IsAllAlphanumeric =>
+        Occurs is null && (
+            IsElementary ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            : IsGroup && Children.All(c => c.IsAllAlphanumeric));
+
+    /// <summary>The character width of this item's image (the sum of leaf widths) — meaningful for an
+    /// <see cref="IsAllAlphanumeric"/> item.</summary>
+    public int ImageWidth => IsElementary ? Pic?.Length ?? 0 : Children.Sum(c => c.ImageWidth);
+
     /// <summary>The C# type of a single occurrence (a record-struct type name for a group, else the PIC's CLR type).</summary>
     public string ElementType => IsGroup ? StructName : Pic?.ClrType ?? "object";
 

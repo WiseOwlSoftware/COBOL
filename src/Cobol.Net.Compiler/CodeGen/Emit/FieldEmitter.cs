@@ -33,9 +33,37 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         if (!item.IsGroup) return;
         foreach (var child in item.Children) EmitStructTypeDecls(child, w);   // nested types first (any order is fine)
         using (w.Block($"private record struct {item.StructName}"))
+        {
             foreach (var child in item.Children)
                 if (child.IsGroup || child.IsElementary)
                     w.Line($"public {child.FieldType} {child.CsName};   // {child.CobolName ?? "FILLER"}");
+
+            // A pure-character (DISPLAY-homogeneous) group gets the whole-group image facility (COBOLNET_DESIGN
+            // §14.4): AsImage concatenates the leaves' character images; FromImage distributes a character image
+            // back into them. Used by whole-group MOVE / DISPLAY / compare. (Mixed-usage groups are the Tier-C
+            // byte island — not emitted here.)
+            if (item.IsAllAlphanumeric) EmitImageMethods(item, w);
+        }
+    }
+
+    private static void EmitImageMethods(DataItem group, CodeWriter w)
+    {
+        var members = group.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
+        var parts = members.Select(c => c.IsGroup ? $"{c.CsName}.AsImage()" : c.CsName);
+        w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
+        using (w.Block("public void FromImage(string __s)"))
+        {
+            w.Line($"__s = CobolString.Store(__s, {group.ImageWidth});");   // pad/truncate to the group width
+            int off = 0;
+            foreach (var c in members)
+            {
+                int width = c.ImageWidth;
+                w.Line(c.IsGroup
+                    ? $"{c.CsName}.FromImage(__s.Substring({off}, {width}));"
+                    : $"{c.CsName} = __s.Substring({off}, {width});");
+                off += width;
+            }
+        }
     }
 
     private static void EmitProfiles(DataItem item, CodeWriter w)

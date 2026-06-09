@@ -183,10 +183,27 @@ public sealed class CSharpEmitter
                 // A reference-modified receiver: the slice takes the source's characters (SpliceInto left-justifies,
                 // space-fills, and truncates to the slice length), so pass the raw image, not a full-width store.
                 _ctx.Writer.Line(target.Write(OperandText.AsString(m.Source)));
-            else if (target.Item.Pic is null)
-                _ctx.Writer.Line(LoudStmt($"MOVE to group item '{target.Item.CobolName}' (whole-group MOVE is G6)"));
+            else if (target.Item.IsGroup)
+                EmitGroupMove(target, m.Source);
             else
                 _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+    }
+
+    /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9.24): the source's character image fills
+    /// the group's leaves via <c>FromImage</c>. Only a DISPLAY-homogeneous group is handled; a mixed-usage group is
+    /// the Tier-C byte island (deferred, loud).</summary>
+    private void EmitGroupMove(Place target, BoundOperand source)
+    {
+        if (!target.Item.IsAllAlphanumeric)
+        {
+            _ctx.Writer.Line(LoudStmt($"MOVE to mixed-usage group '{target.Item.CobolName}' (Tier-C byte path, deferred)"));
+            return;
+        }
+        int width = target.Item.ImageWidth;
+        string image = source is BoundFigurative f
+            ? $"new string({FigurativeFill(f.Kind)}, {width})"
+            : $"CobolString.Store({OperandText.AsString(source)}, {width})";
+        _ctx.Writer.Line($"{target.Read()}.FromImage({image});");
     }
 
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.</summary>

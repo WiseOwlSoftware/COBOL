@@ -33,7 +33,10 @@ internal static class OperandText
 
     private static string FieldAsString(Place p)
     {
-        if (p.Item.IsGroup) return EmitText.LoudValue("string", $"DISPLAY of group item '{p.Item.CobolName}' (whole-group image is G6)");
+        if (p.Item.IsGroup)
+            return p.Item.IsAllAlphanumeric
+                ? $"{p.Read()}.AsImage()"
+                : EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' (Tier-C byte path, deferred)");
         return p.Item.Pic switch
         {
             { Category: PicCategory.Numeric, IsFloat: false } => $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
