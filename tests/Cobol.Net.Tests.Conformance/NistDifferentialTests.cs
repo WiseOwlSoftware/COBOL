@@ -17,6 +17,12 @@ public sealed class NistDifferentialTests
 {
     [Theory]
     [InlineData("NC101A")]   // the first full NC program: MULTIPLY/DIVIDE + the CCVS print-file report
+    [InlineData("NC110M")]
+    [InlineData("NC111A")]
+    [InlineData("NC112A")]
+    [InlineData("NC113M")]
+    [InlineData("NC127A")]
+    [InlineData("NC136A")]
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

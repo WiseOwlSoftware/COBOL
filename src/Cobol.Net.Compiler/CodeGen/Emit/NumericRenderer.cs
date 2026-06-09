@@ -108,5 +108,12 @@ internal sealed class NumericRenderer(EmissionContext ctx)
 
     private static string Real(NumX x) => x.Scale == 0 ? $"(double){x.Expr}" : $"({x.Expr} / {Pow10D(x.Scale)})";
 
-    private static string Pow10D(int n) { double r = 1; for (int i = 0; i < n; i++) r *= 10; return $"{r}d"; }
+    /// <summary>10^<paramref name="n"/> as a C# <c>double</c> literal. Handles a NEGATIVE scale (a PICTURE-P
+    /// trailing-scaled operand): 10^−1 → <c>0.1d</c>, so <see cref="Real"/>'s <c>value / 10^scale</c> scales correctly.</summary>
+    private static string Pow10D(int n)
+    {
+        double r = 1;
+        for (int i = 0; i < System.Math.Abs(n); i++) r *= 10;
+        return $"{(n < 0 ? 1 / r : r).ToString(System.Globalization.CultureInfo.InvariantCulture)}d";
+    }
 }
