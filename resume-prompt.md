@@ -31,6 +31,18 @@
 > double-executing today) → **G5** drive the 364-NIST corpus via the differential harness. Both G3 and G4 now land
 > against the bound tree, written once. Reuse ONLY the front-end + the clean typed substrates.
 >
+> ⚠ **VERIFICATION-CONFIDENCE (advisor, DEVLOG 483):** the 93 green tests are **hand-picked G2-scope fragments** —
+> "the slice I chose works," NOT "G2 is correct." By construction the net dodges the known-wrong spots. The REAL
+> verification is the 364-program NIST corpus via the differential harness. **Highest-leverage next move = G3-core +
+> G4 so the FIRST real NC program runs through the harness** (the frontend already does NIST X-card preprocessing via
+> `CompilerDriver.NistTestName`); the moment G4 lands, pull a handful of real NC programs in rather than waiting for
+> all of G5 — that's what converts the net from "what I thought to test" into "what the corpus exercises." Do the
+> small G2 tails (ref-mod, class conditions) opportunistically, not as the focus. **KNOWN LATENT (a real NC program
+> will trip these):** (1) out-of-line PERFORM + fall-through **double-executes** (the sequential-paragraph stopgap —
+> G4 fixes it); (2) **MOVE of a signed numeric → alphanumeric** moves the sign-aware image, but ISO §14.9.24 GR4d
+> wants the **de-signed** digits (`OperandText.FieldAsString` is shared by DISPLAY [correct] and the MOVE source
+> path [wrong for signed]); (3) numerics >18 digits (Int128 deferred, §18 #4).
+>
 > *Everything below is the HISTORICAL byte-engine kickoff, retained for reference on the COBOL feature surface +
 > conformance corpus (still the oracle) — but the architecture/backend/data-model in it is SUPERSEDED.*
 
