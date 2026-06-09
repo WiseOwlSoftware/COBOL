@@ -14,7 +14,7 @@
 > **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
 > Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
-> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **248 conformance + 14
+> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **263 conformance + 14
 > unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
 > proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
 > before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
@@ -34,12 +34,16 @@
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
 > **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
-> `[InlineData]`):** Snapshot after 506: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
-> **(1) FIRST, abbreviated combined relation conditions** (ISO §8.8.4.12 — `IF A = B OR C OR D` / `… AND NOT > D`, the
-> implied subject+operator forms) — **this is the blocker that greens NC211A**: after DEVLOG 506 (below) NC211A now
-> compiles + runs but stops at its first ABBREVIATED test (`CC--TEST-GF-11`) on a runtime loud guard `unsupported
-> condition form`. Implement in the binder (expand each abbreviation to a full `BoundRelational` against the carried
-> subject/operator, §8.8.4.12 GR) → green NC211A, then NC250A's remaining gaps. **(DONE in 506 — the Entry-505 Tier-B
+> `[InlineData]`):** Snapshot after 507: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
+> **(1) FIRST, the whole-group MOVE to a mixed-USAGE group (Tier-C byte path)** — this is NC211A's CURRENT blocker
+> (DEVLOG 507): after abbreviated conditions landed, NC211A runs through GF-11…GF-22 and stops at GF-23 on the runtime
+> loud guard `MOVE to mixed-usage group 'IF-TABLE' with a COMP/binary leaf (Tier-C byte path, deferred)` — a group with
+> a COMP/binary leaf moved as a whole. This is the Tier-C `byte[]`+`RedefCodec` path (COBOLNET_DESIGN §4.2 / §14.4),
+> currently loud-rejected; implement it (or the narrower whole-group MOVE over a mixed-USAGE group) → green NC211A.
+> **(DONE in 507 — abbreviated combined relation conditions, ISO §8.8.4.12: `AbbrevCarry` threads the last stated
+> subject+operator through OR/XOR/AND in source order; bare-operand carries both [condition-name takes precedence];
+> NOT-as-operator vs leading-logical-NOT distinguished; paren = fresh scope. Tests SPEC-ANCHORED to §8.8.4.12.4 GR1.)**
+> **(DONE in 506 — the Entry-505 Tier-B
 > `.BB` blocker: the diagnosis was WRONG (it is NOT `Resolve`'s StringCanonical branch — the MOVE path proves `Resolve`
 > resolves a view fine); the real bug was `ReferenceResolver.ResolveItem(DataItem)` — used by level-88 / SET conditions —
 > always building a plain `MemberPlace`, bypassing the view machinery. Fixed by factoring ONE view-aware

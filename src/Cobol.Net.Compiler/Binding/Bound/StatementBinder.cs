@@ -566,35 +566,84 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────
 
-    private BoundCondition BindCondition(IParseTree node) => node switch
+    /// <summary>The carried subject + relational operator for ABBREVIATED COMBINED RELATION CONDITIONS (ISO §8.8.4.12).
+    /// In a paren-free sequence of relations joined by AND/OR/XOR, a succeeding relation may omit the subject (operator
+    /// stated, e.g. the <c>&lt; C</c> in <c>A &gt; B OR &lt; C</c>) or the subject AND operator (a bare operand, e.g.
+    /// <c>A = B AND C</c> ≡ <c>A = C</c>). GR1 inserts the last STATED subject and the last STATED operator.
+    /// <see cref="Subject"/> is set only by a fully-stated relation; <see cref="Op"/> by a full OR an abbreviated
+    /// relation. A complete non-relational simple condition (class / sign / condition-name / parenthesized) terminates
+    /// the insertion. Threaded left-to-right (source order) as a mutable holder.</summary>
+    private sealed class AbbrevCarry
     {
-        Core.ConditionContext c => BindCondition(c.GetChild(0)),
-        Core.LogicalOrExpressionContext orExpr when orExpr.abbreviatedAndChain().Length == 0 =>
-            Combine("||", orExpr.logicalXorExpression()),
-        Core.LogicalXorExpressionContext xorExpr => Combine("^", xorExpr.logicalAndExpression()),
-        Core.LogicalAndExpressionContext andExpr when andExpr.abbreviatedRelation().Length == 0 =>
-            Combine("&&", andExpr.unaryLogicalExpression()),
+        public BoundOperand? Subject;
+        public string? Op;
+        public void Reset() { Subject = null; Op = null; }
+    }
+
+    private BoundCondition BindCondition(IParseTree node) => BindCondition(node, new AbbrevCarry());
+
+    private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
+    {
+        Core.ConditionContext c => BindCondition(c.GetChild(0), carry),
+        Core.LogicalOrExpressionContext orExpr => BindFlatSequence(orExpr, "||", carry),
+        Core.LogicalXorExpressionContext xorExpr => BindFlatSequence(xorExpr, "^", carry),
+        Core.LogicalAndExpressionContext andExpr => BindFlatSequence(andExpr, "&&", carry),
+        Core.AbbreviatedAndChainContext chain => BindFlatSequence(chain, "&&", carry),
         Core.UnaryLogicalExpressionContext u => u.NOT() is not null
-            ? new BoundNot(BindCondition(u.primaryCondition())) : BindCondition(u.primaryCondition()),
-        Core.PrimaryConditionContext p => p.comparisonExpression() is { } cmp ? BindComparison(cmp)
-            : p.condition() is { } inner ? BindCondition(inner)
-            : new BoundConditionError("boolean-literal condition"),
+            ? new BoundNot(BindCondition(u.primaryCondition(), carry)) : BindCondition(u.primaryCondition(), carry),
+        Core.AbbreviatedRelationContext ar => BindAbbreviatedRelation(ar, carry),
+        Core.PrimaryConditionContext p => BindPrimary(p, carry),
         _ => new BoundConditionError("unsupported condition form"),
     };
 
-    private BoundCondition Combine(string op, IEnumerable<IParseTree> parts)
+    /// <summary>Bind a left-to-right logical sequence (an OR / XOR / AND chain, or an abbreviated-AND chain), threading
+    /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
+    /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).</summary>
+    private BoundCondition BindFlatSequence(IParseTree ctx, string op, AbbrevCarry carry)
     {
-        var list = parts.Select(BindCondition).ToList();
-        return list.Count == 1 ? list[0] : new BoundLogical(op, list);
+        var parts = new List<BoundCondition>();
+        for (int i = 0; i < ctx.ChildCount; i++)
+        {
+            var ch = ctx.GetChild(i);
+            if (ch is ITerminalNode) continue;   // the AND / OR / XOR / EXCLUSIVE-OR connective tokens
+            parts.Add(BindCondition(ch, carry));
+        }
+        return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
     }
 
-    private BoundCondition BindComparison(Core.ComparisonExpressionContext cmp)
+    private BoundCondition BindPrimary(Core.PrimaryConditionContext p, AbbrevCarry carry)
+    {
+        if (p.comparisonExpression() is { } cmp) return BindComparison(cmp, carry);
+        if (p.condition() is { } inner)
+        {
+            // A parenthesized condition is a complete simple condition: a FRESH abbreviation scope inside, and the
+            // insertion terminates for the enclosing sequence (ISO §8.8.4.12.4 GR1).
+            var bound = BindCondition(inner, new AbbrevCarry());
+            carry.Reset();
+            return bound;
+        }
+        return new BoundConditionError("boolean-literal condition");
+    }
+
+    /// <summary>An abbreviated relation with the subject omitted (<c>comparisonOperator comparisonOperand</c>): the
+    /// carried subject is inserted and the newly-stated operator becomes the carried operator (ISO §8.8.4.12.4 GR1).</summary>
+    private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry)
+    {
+        if (carry.Subject is not { } subject)
+            return new BoundConditionError("abbreviated relation with no preceding relation subject");
+        string op = MapOperator(ar.comparisonOperator().GetText());
+        carry.Op = op;
+        return new BoundRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
+    }
+
+    private BoundCondition BindComparison(Core.ComparisonExpressionContext cmp, AbbrevCarry carry)
     {
         var operands = cmp.comparisonOperand();
         bool not = cmp.NOT() is not null;
 
         if (cmp.className() is { } cls)
         {
+            carry.Reset();   // a class condition is a complete simple condition — terminates the abbreviation
             char? kind = cls.NUMERIC() is not null ? 'N'
                 : cls.ALPHABETIC() is not null ? 'A'
                 : cls.ALPHABETIC_UPPER() is not null ? 'U'
@@ -607,20 +656,38 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
         {
+            carry.Reset();
             char kind = cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z';
             return new BoundSignCondition(BindOperandExpr(operands[0]), kind, not);
         }
 
         if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
-            return new BoundRelational(ComparisonOperand(operands[0]), MapOperator(opCtx.GetText()), ComparisonOperand(operands[1]));
+        {
+            // A fully-stated relation establishes the subject + operator for any following abbreviated relation in the
+            // sequence (ISO §8.8.4.12.4 GR1 — "the last preceding stated subject … and the last stated operator").
+            BoundOperand subject = ComparisonOperand(operands[0]);
+            string op = MapOperator(opCtx.GetText());
+            carry.Subject = subject;
+            carry.Op = op;
+            return new BoundRelational(subject, op, ComparisonOperand(operands[1]));
+        }
 
-        // Bare single operand → a level-88 condition-name.
-        if (operands.Length == 1
-            && operands[0].valueOperand()?.arithmeticExpression() is { } expr
-            && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
-            return refs.ResolveItem(cond.Parent) is { } parent
-                ? new BoundCondition88(parent, cond)
-                : new BoundConditionError($"subscripted condition-name '{cond.Name}'");
+        // A bare single operand is either a level-88 condition-name (a complete simple condition — terminates the
+        // abbreviation), or, within an abbreviated sequence, a relation with BOTH subject and operator omitted
+        // (ISO §8.8.4.12 — e.g. the trailing C in `A = B AND C` ≡ `A = C`). A condition-name takes precedence.
+        if (operands.Length == 1)
+        {
+            if (operands[0].valueOperand()?.arithmeticExpression() is { } expr
+                && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
+            {
+                carry.Reset();
+                return refs.ResolveItem(cond.Parent) is { } parent
+                    ? new BoundCondition88(parent, cond)
+                    : new BoundConditionError($"subscripted condition-name '{cond.Name}'");
+            }
+            if (carry is { Subject: { } subject, Op: { } op })
+                return new BoundRelational(subject, op, ComparisonOperand(operands[0]));
+        }
 
         return new BoundConditionError($"condition '{cmp.GetText()}'");
     }
