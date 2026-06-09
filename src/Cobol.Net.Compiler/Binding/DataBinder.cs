@@ -96,6 +96,7 @@ public sealed class DataBinder
         string? pictureText = null, usageText = null, rawValue = null;
         int? occurs = null;
         var indexNames = new List<string>();
+        bool hasSign = false, signLeading = false, signSeparate = false;
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -106,6 +107,12 @@ public sealed class DataBinder
                     usageText = UsageKeyword(usage);
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
+                else if (clause.signClause() is { } sign)
+                {
+                    hasSign = true;
+                    signLeading = sign.LEADING() is not null;
+                    signSeparate = sign.SEPARATE() is not null;
+                }
                 else if (clause.occursClause() is { } occ)
                 {
                     if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[0].GetText(), out int n))
@@ -116,7 +123,9 @@ public sealed class DataBinder
                 }
             }
 
-        var pic = pictureText is null ? null : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText));
+        var pic = pictureText is null
+            ? null
+            : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), hasSign, signLeading, signSeparate);
         var item = new DataItem
         {
             Level = level,

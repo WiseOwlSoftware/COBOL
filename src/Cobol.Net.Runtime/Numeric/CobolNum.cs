@@ -50,11 +50,54 @@ public static class CobolNum
 
     /// <summary>
     /// The COBOL DISPLAY image of a fixed-point value: its unscaled digits, zero-padded on the left to the
-    /// picture's digit count, with no decimal point (the point is implied). For a signed DISPLAY item the sign is
-    /// carried as an overpunch on a digit — deferred; the magnitude image is returned for now.
+    /// picture's digit count, with no decimal point (the point is implied). A signed item carries its sign per the
+    /// receiver's <see cref="NumProfile.SignKind"/> (over-punch, separate sign, or a binary leading minus); an
+    /// unsigned item is the bare magnitude.
     /// </summary>
     public static string FormatDisplay(long unscaled, in NumProfile receiver) =>
-        FormatUnsignedDisplay(unscaled, receiver.Digits);
+        receiver.Signed
+            ? FormatDisplaySigned(unscaled, receiver)
+            : FormatUnsignedDisplay(unscaled, receiver.Digits);
+
+    // IBM-ASCII over-punch tables (ISO §8.5.1.2 / NIST-verified against the legacy): the units digit fused with the
+    // operational sign. Positive 0–9 → "{ABCDEFGHI"; negative 0–9 → "}JKLMNOPQR".
+    private const string PositiveOverpunch = "{ABCDEFGHI";
+    private const string NegativeOverpunch = "}JKLMNOPQR";
+
+    /// <summary>
+    /// The DISPLAY image of a <b>signed</b> fixed-point value, applying the receiver's sign convention to the
+    /// zero-padded magnitude digits (COBOLNET_DESIGN §6.4):
+    /// <list type="bullet">
+    ///   <item><see cref="NumericSign.TrailingOverpunch"/>/<see cref="NumericSign.LeadingOverpunch"/> — fuse the
+    ///         sign onto the last / first digit via the over-punch tables;</item>
+    ///   <item><see cref="NumericSign.LeadingSeparate"/>/<see cref="NumericSign.TrailingSeparate"/> — a leading /
+    ///         trailing <c>+</c>/<c>-</c> character (always present);</item>
+    ///   <item><see cref="NumericSign.BinaryMinus"/> — a leading <c>-</c> only when negative (positive/zero bare).</item>
+    /// </list>
+    /// </summary>
+    public static string FormatDisplaySigned(long unscaled, in NumProfile receiver)
+    {
+        string mag = FormatUnsignedDisplay(unscaled, receiver.Digits);
+        bool neg = unscaled < 0;
+        return receiver.SignKind switch
+        {
+            NumericSign.BinaryMinus => neg ? "-" + mag : mag,
+            NumericSign.LeadingSeparate => (neg ? "-" : "+") + mag,
+            NumericSign.TrailingSeparate => mag + (neg ? "-" : "+"),
+            NumericSign.LeadingOverpunch => Overpunch(mag, 0, neg),
+            _ => Overpunch(mag, mag.Length - 1, neg),   // TrailingOverpunch (the default)
+        };
+    }
+
+    /// <summary>Replace the digit at <paramref name="pos"/> of <paramref name="mag"/> with its signed over-punch.</summary>
+    private static string Overpunch(string mag, int pos, bool negative)
+    {
+        if (pos < 0 || pos >= mag.Length) return mag;   // no digit positions (Digits == 0)
+        int v = mag[pos] - '0';
+        if ((uint)v > 9) return mag;
+        char op = (negative ? NegativeOverpunch : PositiveOverpunch)[v];
+        return mag[..pos] + op + mag[(pos + 1)..];
+    }
 
     /// <summary>The DISPLAY image of an unsigned integer with <paramref name="digits"/> digit positions: the
     /// magnitude's low <paramref name="digits"/> digits, zero-padded.</summary>

@@ -52,6 +52,14 @@ public sealed record PicInfo(
     int Scale,
     bool Signed)
 {
+    /// <summary>
+    /// The runtime <c>NumericSign</c> member name describing how a signed item presents its sign in its DISPLAY
+    /// image (only meaningful when <see cref="Signed"/>): over-punch for USAGE DISPLAY (trailing by default, leading
+    /// under SIGN LEADING), a separate <c>+</c>/<c>-</c> under SIGN SEPARATE, or a binary leading minus for
+    /// COMP/COMP-3/COMP-5. Emitted verbatim into the item's <c>NumProfile</c> (COBOLNET_DESIGN §6.4).
+    /// </summary>
+    public string SignKind { get; init; } = "TrailingOverpunch";
+
     /// <summary>The C# type used to store this item's value.</summary>
     public string ClrType => Category switch
     {
@@ -98,14 +106,18 @@ public sealed record PicInfo(
                 _ => "NumericTruncation.DigitCount",
             };
             return $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
-                   $"Signed = {(Signed ? "true" : "false")}, Truncation = {trunc}, StorageLength = {StorageWidth} }}";
+                   $"Signed = {(Signed ? "true" : "false")}, SignKind = NumericSign.{SignKind}, " +
+                   $"Truncation = {trunc}, StorageLength = {StorageWidth} }}";
         }
     }
 
     /// <summary>
-    /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword.
+    /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and an
+    /// optional SIGN clause (LEADING/TRAILING, SEPARATE).
     /// </summary>
-    public static PicInfo Analyze(string picture, Usage usage)
+    public static PicInfo Analyze(
+        string picture, Usage usage,
+        bool hasSignClause = false, bool signLeading = false, bool signSeparate = false)
     {
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
@@ -122,13 +134,28 @@ public sealed record PicInfo(
             return new PicInfo(PicCategory.Alphanumeric, usage,
                 Length: expanded.Count(c => c is 'X' or 'A' or '9'), Digits: 0, Scale: 0, Signed: false);
 
+        string signKind = SignKindFor(usage, signed, hasSignClause, signLeading, signSeparate);
+
         if (anyEdit && digits > 0)
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol count.
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: expanded.Count(c => c is not ('V' or 'S')), Digits: digits, Scale: afterV, Signed: signed);
+                Length: expanded.Count(c => c is not ('V' or 'S')), Digits: digits, Scale: afterV, Signed: signed)
+            { SignKind = signKind };
 
         // Pure numeric.
-        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: afterV, Signed: signed);
+        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: afterV, Signed: signed)
+        { SignKind = signKind };
+    }
+
+    /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
+    /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)
+    /// or a separate sign under SIGN SEPARATE.</summary>
+    private static string SignKindFor(Usage usage, bool signed, bool hasSignClause, bool signLeading, bool signSeparate)
+    {
+        if (!signed) return "TrailingOverpunch";                        // unused for an unsigned item
+        if (usage is not Usage.Display) return "BinaryMinus";           // COMP / COMP-3 / COMP-5
+        if (signSeparate) return signLeading ? "LeadingSeparate" : "TrailingSeparate";
+        return hasSignClause && signLeading ? "LeadingOverpunch" : "TrailingOverpunch";
     }
 
     /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>
