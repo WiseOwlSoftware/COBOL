@@ -11,7 +11,22 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 485):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅.** Differential harness LIVE,
+> **STATE (DEVLOG 488):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅ (+ ALL small tails), G3-core (partial) ✅, G4 ✅, G6-core
+> ✅.** Differential harness LIVE, **148 tests green.** Since 485: **class conditions** (IS NUMERIC/ALPHABETIC/-UPPER/
+> -LOWER, `CobolClass`), **ref-mod** `(s:l)` read+write (`CobolString.RefMod`/`SpliceInto` + `RefModPlace`), and
+> **G6-core whole-group MOVE/DISPLAY/compare** for DISPLAY-homogeneous groups (generated `AsImage()`/`FromImage()` per
+> all-character `record struct`, §14.4). **NC101A loud guards now 70** (was 95 statements pre-G4 → 70): just **66
+> mixed-usage group MOVEs (Tier-C byte island)** + **3 file I/O** + a couple misc. **RESUME AT → G5 (file I/O,
+> COBOLNET_DESIGN §8: `FileConnector`/`IRecordCodec`/`CobolKey`/FILE STATUS/OPEN-CLOSE-READ-WRITE-REWRITE-DELETE-START/
+> the open-mode + position state machines / SORT-MERGE) + the Tier-C mixed-usage-group byte path (§4.2/§14.4: a
+> class-scoped `byte[]` for a group with numeric/COMP leaves)** — together these unblock the FIRST full NC program
+> through the differential harness; then drive the 364-NIST corpus. Also pending: the G3 numeric hardening
+> (`CobolInt`/Int128 value engine + `TryStore` + ROUNDED + ON SIZE ERROR), INSPECT/STRING/UNSTRING (`CobolStrings`),
+> `CobolEdit` numeric-edited. Known-latent: MOVE-signed→alphanumeric de-signing (ISO §14.9.24 GR4d); >18-digit
+> numerics; EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud). The (now-outdated) STATE
+> blocks below are earlier snapshots, kept for architecture detail.
+>
+> **(superseded) STATE (DEVLOG 485):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅.** Differential harness LIVE,
 > **116 G2/G3/G4-scope tests green.** G3-core landed: **figurative-constant operands** (MOVE/DISPLAY/comparison ZERO/
 > SPACE…) + **compiler crash-proofing** (a group-in-numeric-context NPE → loud-failure; §1.4). **G4 = the PC
 > dispatcher is DONE** (`__Dispatch(start,exit)` with paragraphs as pc cases; GO TO / GO TO DEPENDING / fall-through /
