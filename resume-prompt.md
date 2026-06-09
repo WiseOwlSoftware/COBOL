@@ -24,8 +24,9 @@
 > the generated `AsImage()`/`FromImage()` per record struct, §14.4)** — together these unblock the FIRST full NC
 > program through the differential harness. Known-latent now: MOVE-signed→alphanumeric de-signing (ISO §14.9.24 GR4d);
 > >18-digit numerics (Int128 deferred); EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud).
-> Small G2 tails still open: ref-mod `(s:l)`, class conditions (IS NUMERIC/ALPHABETIC). The lines below are the
-> earlier (DEVLOG 483) snapshot, kept for the architecture detail.
+> Class conditions (IS NUMERIC/ALPHABETIC/-UPPER/-LOWER) DONE (DEVLOG 486, `CobolClass`); the one remaining small G2
+> tail is ref-mod `(s:l)` (needs `CobolString.RefMod`/`SpliceInto`; the binder already detects the depth-0 SUB_COLON).
+> The lines below are the earlier (DEVLOG 483) snapshot, kept for the architecture detail.
 >
 > **STATE (DEVLOG 483):** G1 ✅, G0 ✅. **G2 FOUNDATION COMPLETE (DEVLOG 475–483):** the parse-tree-walk emitter the
 > DESIGN superseded is RETIRED and replaced by the real **bound semantic tree** (`Binding/Bound/` — `BoundProgram` +
