@@ -169,4 +169,51 @@ public sealed class ControlFlowDifferentialTests
                 EXIT PARAGRAPH.
                 DISPLAY "S2".
             """));
+
+    // ISO §14.9.28: the control phrase (TIMES / UNTIL) is INDEPENDENT of the THRU range (general format
+    // PERFORM proc-1 [THRU proc-2] [times|until|varying]). The combination THRU + TIMES / THRU + UNTIL was
+    // untested before DEVLOG 514, and the binder silently dropped the control phrase when THRU was present —
+    // running the proc-1..proc-2 range ONCE instead of N times / until the condition. Spec-derived value asserted
+    // on COBOL.NET, then cross-checked against the legacy oracle.
+
+    [Fact]
+    public void Perform_Thru_Times_RunsRangeNTimes()
+    {
+        // §14.9.28 GR9: the range A..B (adds 1 + 10 = 11 per pass) is executed 3 times ⇒ 33, not once (11).
+        string src = Program("01 X PIC 9(3) VALUE 0.", """
+            MAIN-PARA.
+                PERFORM A THRU B 3 TIMES.
+                DISPLAY X.
+                STOP RUN.
+            A.
+                ADD 1 TO X.
+            B.
+                ADD 10 TO X.
+            """);
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(src);
+        Assert.True(cok, cdetail);
+        Assert.Equal("033", cout);   // 3 × (1 + 10) — the whole THRU range iterated 3 times
+        AssertSameAsLegacy(src);
+    }
+
+    [Fact]
+    public void Perform_Thru_Until_RunsRangeUntilCondition()
+    {
+        // §14.9.28 GR10 (TEST BEFORE, default): the range A..B (adds 1 + 2 = 3 per pass) runs while X < 9 ⇒
+        // X reaches 3, 6, 9; the pre-pass test then sees X = 9 and stops ⇒ 9, not 3 (a single pass).
+        string src = Program("01 X PIC 9(3) VALUE 0.", """
+            MAIN-PARA.
+                PERFORM A THRU B UNTIL X >= 9.
+                DISPLAY X.
+                STOP RUN.
+            A.
+                ADD 1 TO X.
+            B.
+                ADD 2 TO X.
+            """);
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(src);
+        Assert.True(cok, cdetail);
+        Assert.Equal("009", cout);
+        AssertSameAsLegacy(src);
+    }
 }

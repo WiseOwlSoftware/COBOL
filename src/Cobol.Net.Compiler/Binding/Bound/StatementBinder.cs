@@ -378,7 +378,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         var names = p.procedureName();
         if (names.Length == 0)
-            return new BoundInlinePerform(BindControl(p.performOptions().FirstOrDefault(), p), BindBlocks(p.statementBlock()));
+            return new BoundInlinePerform(BindPerformControl(p), BindBlocks(p.statementBlock()));
 
         // Out-of-line: the resolved pc range [start, end] — a single paragraph (start==end) or the THRU range.
         if (PcOf(names[0].GetText()) is not { } start)
@@ -390,20 +390,23 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             end = thru;
         }
 
-        BoundPerformControl control =
-            p.performTimes() is { } times ? new PerformTimes(CountOperand(times))
-            : p.performUntil() is { } until ? new PerformUntil(BindCondition(until.condition()), until.AFTER() is not null)
-            : p.performVarying() is not null ? Unsupported("PERFORM VARYING (out-of-line)")
-            : new PerformOnce();
-        return new BoundOutOfLinePerform(start, end, control);
+        return new BoundOutOfLinePerform(start, end, BindPerformControl(p));
     }
 
-    private BoundPerformControl BindControl(Core.PerformOptionsContext? opt, Core.PerformStatementContext p)
+    /// <summary>Bind the OPTIONAL control phrase (TIMES / UNTIL / VARYING) of a PERFORM. Per ISO §14.9.28 the phrase
+    /// is independent of the THRU range (general format: <c>PERFORM proc-1 [THRU proc-2] [times|until|varying]</c>),
+    /// but the grammar exposes it in two shapes: a direct child (<c>PERFORM proc TIMES</c>, alternatives without
+    /// THRU) or wrapped in <c>performOptions</c> (the <c>PERFORM proc THRU proc [performOptions]</c> alternative and
+    /// the inline <c>performOptions+</c> form). Resolving only the direct child dropped the count/condition on a THRU
+    /// range, silently running the range once instead of N times (§14.9.28 GR9) — the NC106A/NC176A defect
+    /// (DEVLOG 514). This one resolver handles every shape for both inline and out-of-line PERFORM.</summary>
+    private BoundPerformControl BindPerformControl(Core.PerformStatementContext p)
     {
-        if (opt is null) return new PerformOnce();
-        if (opt.performTimes() is { } t) return new PerformTimes(CountOperand(t));
-        if (opt.performUntil() is { } u) return new PerformUntil(BindCondition(u.condition()), u.AFTER() is not null);
-        return Unsupported("inline PERFORM VARYING");
+        var opt = p.performOptions().FirstOrDefault();
+        if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
+        if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(BindCondition(u.condition()), u.AFTER() is not null);
+        if ((p.performVarying() ?? opt?.performVarying()) is not null) return Unsupported("PERFORM VARYING (out-of-line)");
+        return new PerformOnce();
     }
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));

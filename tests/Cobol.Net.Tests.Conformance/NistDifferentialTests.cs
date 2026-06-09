@@ -32,6 +32,11 @@ public sealed class NistDifferentialTests
     [InlineData("NC119A")]   // nucleus arithmetic (MOVE / SUBTRACT / ADD)
     [InlineData("NC177A")]   // nucleus arithmetic, ADD/MOVE heavy
     [InlineData("NC205A")]   // nucleus conditional + data movement
+    // Greened by the PERFORM-range control fix (DEVLOG 514): PERFORM proc-1 THRU proc-2 N TIMES now iterates the
+    // range N times (§14.9.28 GR9) instead of once, so the COMP ON SIZE ERROR drain-loops reach overflow.
+    [InlineData("NC106A")]   // SUBTRACT + COMP ON SIZE ERROR, driven by a PERFORM THRU … TIMES loop
+    [InlineData("NC176A")]   // ADD + COMP ON SIZE ERROR, driven by a PERFORM THRU … TIMES loop
+    [InlineData("NC134A")]   // nucleus arithmetic exercising PERFORM THRU … TIMES ranges
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
