@@ -25,6 +25,13 @@ public sealed class NistDifferentialTests
     [InlineData("NC136A")]
     [InlineData("NC211A")]   // the first NC conditional program: abbreviated/compound conditions, OCCURS-group image,
                              // signed→alphanumeric de-sign, ALL "literal", IS NUMERIC over alphanumeric (DEVLOG 506–511)
+    // Additional nucleus programs that already byte-match the golden — located by the compile/run/diff corpus sweep
+    // and locked in as permanent regressions (DEVLOG 513). They exercise the MOVE / PERFORM / GO TO / ADD /
+    // SUBTRACT / IF surface already built for the eight above; no new feature was needed to green them.
+    [InlineData("NC118A")]   // nucleus arithmetic + data movement (MOVE / PERFORM / ADD)
+    [InlineData("NC119A")]   // nucleus arithmetic (MOVE / SUBTRACT / ADD)
+    [InlineData("NC177A")]   // nucleus arithmetic, ADD/MOVE heavy
+    [InlineData("NC205A")]   // nucleus conditional + data movement
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
