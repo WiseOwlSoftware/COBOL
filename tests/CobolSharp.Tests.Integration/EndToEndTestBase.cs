@@ -20,6 +20,17 @@ public class EndToEndTestBase : IDisposable
             Directory.Delete(_tempDir, recursive: true);
     }
 
+    /// <summary>
+    /// Canonicalize a compiled program's captured output to CRLF, then trim the trailing newline. The expected
+    /// strings in these tests are written with <c>\r\n</c>, but a compiled program's <c>DISPLAY</c> uses
+    /// <c>Console.WriteLine</c> = the platform newline (<c>\r\n</c> on Windows, <c>\n</c> on Linux/CI). Without
+    /// this, every multi-line-output assertion would pass on Windows and fail on Linux. Normalizing on the
+    /// comparison side (here) keeps the legacy engine — the differential oracle being retired at G8 — untouched;
+    /// the COBOL.NET deliverable instead sets <c>Console.Out.NewLine</c> in its generated program for
+    /// deterministic output.
+    /// </summary>
+    private static string NormalizeOutput(string s) => s.ReplaceLineEndings("\r\n").TrimEnd();
+
     protected (bool success, string stdout, string stderr) CompileAndRun(
         string cobolSource,
         CobolSharp.Compiler.Semantics.DialectMode dialect = CobolSharp.Compiler.Semantics.DialectMode.Default,
@@ -66,9 +77,9 @@ public class EndToEndTestBase : IDisposable
         {
             process.Kill();
             process.WaitForExit(2000);
-            return (false, (stdoutTask.IsCompleted ? stdoutTask.Result : "").TrimEnd(), "Process timed out after 30s");
+            return (false, NormalizeOutput(stdoutTask.IsCompleted ? stdoutTask.Result : ""), "Process timed out after 30s");
         }
-        return (process.ExitCode == 0, stdoutTask.Result.TrimEnd(), stderrTask.Result.TrimEnd());
+        return (process.ExitCode == 0, NormalizeOutput(stdoutTask.Result), NormalizeOutput(stderrTask.Result));
     }
 
     /// <summary>
@@ -120,12 +131,12 @@ public class EndToEndTestBase : IDisposable
             process.Kill();
             process.WaitForExit(2000); // wait for kill to complete
             string partialOut = stdoutTask.IsCompleted ? stdoutTask.Result : "";
-            return (false, partialOut.TrimEnd(), "Process timed out after 15s");
+            return (false, NormalizeOutput(partialOut), "Process timed out after 15s");
         }
         string stdout = stdoutTask.Result;
         string stderr = stderrTask.Result;
 
-        return (process.ExitCode == 0, stdout.TrimEnd(), stderr.TrimEnd());
+        return (process.ExitCode == 0, NormalizeOutput(stdout), NormalizeOutput(stderr));
     }
 
     /// <summary>
@@ -217,8 +228,8 @@ public class EndToEndTestBase : IDisposable
         {
             process.Kill();
             process.WaitForExit(2000);
-            return (false, (stdoutTask.IsCompleted ? stdoutTask.Result : "").TrimEnd(), "Process timed out after 30s");
+            return (false, NormalizeOutput(stdoutTask.IsCompleted ? stdoutTask.Result : ""), "Process timed out after 30s");
         }
-        return (process.ExitCode == 0, stdoutTask.Result.TrimEnd(), stderrTask.Result.TrimEnd());
+        return (process.ExitCode == 0, NormalizeOutput(stdoutTask.Result), NormalizeOutput(stderrTask.Result));
     }
 }

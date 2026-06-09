@@ -22,7 +22,9 @@ trap 'rm -rf "$WORK"' EXIT
 cp "$RUNTIME" "$WORK/"
 export COBOL_SWITCH_1=ON
 
-normalize() { sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' "$1" 2>/dev/null; }
+# tr -d '\r' FIRST (CRLF golden vs LF program output on Linux); must precede 's/ *$//' which is a no-op while a
+# trailing \r remains. Idempotent on Windows. See the matching note in scripts/guard.sh.
+normalize() { tr -d '\r' < "$1" 2>/dev/null | sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/'; }
 
 for test in $TESTS; do
     dll="$OUT/$test.dll"

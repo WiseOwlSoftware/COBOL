@@ -149,8 +149,12 @@ for test in $NIST_TESTS; do
         continue
     fi
 
-    # Normalize: strip trailing spaces, and normalize time-dependent COMPUTED values
-    normalize() { sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/' "$1" 2>/dev/null; }
+    # Normalize: strip CR (CRLF->LF), then trailing spaces, then time-dependent COMPUTED values.
+    # tr -d '\r' must come FIRST: the golden tests/nist/valid/*.txt are CRLF; a compiled program's DISPLAY uses
+    # Console.WriteLine = platform newline (\r\n on Windows, \n on Linux/CI), so on Linux the actual output is
+    # LF. Order matters — 's/ *$//' is a no-op while a trailing \r still sits at end-of-line, so squeezing spaces
+    # before stripping CR would leave the two sides unequal (a false REGRESSION). Idempotent on Windows.
+    normalize() { tr -d '\r' < "$1" 2>/dev/null | sed 's/ *$//; s/COMPUTED=  [0-9]*/COMPUTED=  XXXXXXXXX/'; }
 
     # Find the actual output file (outfile, print-file, or stdout)
     actual=""
