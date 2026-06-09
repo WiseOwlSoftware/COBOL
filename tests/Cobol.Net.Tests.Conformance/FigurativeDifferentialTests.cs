@@ -83,4 +83,12 @@ public sealed class FigurativeDifferentialTests
     [InlineData("01 X PIC X(4) VALUE ALL ZEROS.", "    DISPLAY X.")]                                   // 0000
     [InlineData("01 X PIC X(4) VALUE ALL SPACES.", "    DISPLAY \"[\" X.")]                            // [
     public void FigurativeAll_ValueInit(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
+
+    [Theory]
+    // A figurative ZERO in a level-88 VALUE on a NUMERIC conditional variable: the membership test must compare the
+    // value against 0, not render the word "ZERO" as an identifier (CS0103 ZERO00L at scale — NC250A).
+    [InlineData("01 N PIC 9(3) VALUE 0.\n   88 IS-Z VALUE ZERO.", "    IF IS-Z DISPLAY \"Z\" ELSE DISPLAY \"NZ\".")]     // Z
+    [InlineData("01 N PIC 9(3) VALUE 5.\n   88 IS-Z VALUE ZERO.", "    IF IS-Z DISPLAY \"Z\" ELSE DISPLAY \"NZ\".")]     // NZ
+    [InlineData("01 N PIC 9V99 VALUE 0.\n   88 IS-Z VALUE ZERO.", "    IF IS-Z DISPLAY \"Z\" ELSE DISPLAY \"NZ\".")]     // Z (scaled)
+    public void FigurativeZero_InLevel88Value(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
 }

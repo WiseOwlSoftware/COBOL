@@ -111,8 +111,14 @@ internal sealed class ConditionRenderer(NumericRenderer num)
             return $"(CobolString.Compare({read}, {lo}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(EmitText.DecodeCobolString(high))}) <= 0)";
         }
         int scale = parent.Pic?.Scale ?? 0;
-        string loN = EmitText.UnscaledAtScale(low, scale);
+        string loN = NumericMembershipValue(low, scale);
         if (high is null) return $"{read} == {loN}";
-        return $"({read} >= {loN} && {read} <= {EmitText.UnscaledAtScale(high, scale)})";
+        return $"({read} >= {loN} && {read} <= {NumericMembershipValue(high, scale)})";
     }
+
+    /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
+    /// (ISO §8.3.1.2 — a valid numeric operand); otherwise the literal is scaled. Without this a figurative VALUE word
+    /// (e.g. <c>88 IS-ZERO VALUE ZERO</c>) would reach <c>UnscaledAtScale("ZERO", …)</c> and emit a bare identifier.</summary>
+    private static string NumericMembershipValue(string raw, int scale) =>
+        raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0L" : EmitText.UnscaledAtScale(raw, scale);
 }
