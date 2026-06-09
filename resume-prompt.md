@@ -11,27 +11,41 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 497):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅ (+ ALL small tails), G3-core (partial) ✅, G4 ✅, G6-core
-> ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS paragraph fully parsed ✅, ON SIZE ERROR ✅.** Differential harness
-> LIVE, **210 conformance + 13 unit tests green**; full legacy guard ALL GREEN (364 NIST / 1204 unit / 535
-> integration) as of the OPTIONS commit. Since 494: (495) **ROUNDED on every arithmetic statement** (§14.7.4, per
-> receiver) — `Receiver(Place, CobolRounding)`; division rounds at the receiver scale via `RoundDiv` (exact) when
-> `ds==TargetScale`, else truncates + `Store` rounds. (496) **OPTIONS paragraph fully parsed** (§11.9, all 7 clauses,
-> structured ANTLR4 — 13 context-sensitive tokens in `cobolWord`+`_dataNameTokens`) → reusable `OptionsModel`/
-> `OptionsBinder` (`DataBinder.Options`); **DEFAULT ROUNDED applied** → ROUNDED complete; legacy `SemanticBuilder`
-> rewired. (497) **ON SIZE ERROR** (two-phase §14.7.5): `CobolNum.TryStore` (bool; receiver unchanged on capacity
-> overflow / PROHIBITED-inexact) + `DivideOrThrow` (zero divisor + PROHIBITED-inexact quotient) + `MulChecked`
-> (intermediate long-overflow, case 5) + `CobolSizeError`; `EmitArith` wraps the per-receiver stores in try/catch +
-> `__sizeErrN` and runs the imperative; checked helpers emitted ONLY in `InSizeErrorContext` so a no-phrase statement
-> is byte-identical. **ROUNDED MODE IS PROHIBITED now complete.** Adversarial panel: receiver-unchanged + imperative
-> routing CLEAN. **RESUME AT (NC101A pass-path):** **G5 file I/O** (COBOLNET_DESIGN §8 — port the legacy
-> `SequentialFileHandler` control logic re-substrated to a typed `FileConnector<TRec>` + `IRecordCodec`; OPEN/CLOSE/
-> WRITE-AFTER-ADVANCING/CLOSE; FD record binding in DataBinder, which today binds ONLY workingStorageSection) → with
-> G6 whole-group MOVE already done, G5 unblocks NC101A end-to-end → then drive the 364-NIST corpus via the
-> differential harness. **Known-latent (Int128/G3):** intermediate overflow beyond the long range / additive-scaling
-> overflow / COMP-5 width bounds not yet size-error-checked; no-phrase EC-SIZE-fatal awaits the EC model. **OPTIONS
-> clauses parsed but not yet applied** (captured in `OptionsModel` for their owning features): ARITHMETIC mode,
-> ENTRY-CONVENTION, FLOAT-BINARY/DECIMAL, INTERMEDIATE ROUNDING, INITIALIZE. Earlier history since 488:
+> **STATE (DEVLOG 504):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
+> G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
+> Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
+> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **242 conformance + 14
+> unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
+> proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
+> before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
+>
+> **THIS SESSION (498→504), the G5 milestone + the corpus-drive start:** (498) nested Tier-B REDEFINES backing path
+> qualified (the NC101A blocker — `ReferenceResolver.BackingPath`); (499) **the sequential file I/O subsystem** —
+> `Cobol.Net.Runtime/IO/` `SequentialFile` connector (OPEN INPUT/OUTPUT/EXTEND/I-O + OPTIONAL, CLOSE, WRITE plain +
+> AFTER ADVANCING, READ, REWRITE; ISO §9.1.13 status + §14.9.30/35 read-state machine ported, string-image substrate,
+> no byte State) + `CobolFile` facade; `DataBinder` binds FILE-CONTROL SELECT + FILE SECTION FD records (`FileModel`;
+> multi-01 shared area = synthesized REDEFINES → existing tier machinery); `BoundOpen/Close/Write/Read/Rewrite` +
+> binder + emitter (register at Main, CloseAll in finally). (500) **PICTURE P scaling** as ONE signed scale (removed
+> the vestigial `NumProfile` P fields + the FractionScale clamp; `UnscaledAtScale` negative-scale) → **NC101A GREEN**.
+> (501) mapped the NC series + locked the 7 green + `Pow10D` negative-scale. (502) **fixed 3 compiler HANGS** — the
+> deeply-nested-group O(2^depth) emission blowup, now memoized (`FieldEmitter.PhysicalChildrenOf`). (503) **level-77 is
+> a root** (independent item) — cleared 12 NC compile-errors. (504) **figurative constants in numeric / VALUE contexts**
+> (ZERO in arithmetic → 0; `ALL ZEROS` VALUE init) — cleared 5 more.
+>
+> **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
+> `[InlineData]`):** Snapshot after 504: ~80/95 NC compile; 7 byte-match the golden. The 61 compile-but-mismatch
+> programs mostly hit an **unimplemented verb's loud guard** — implement the high-frequency string/table verbs next
+> (the G3/G7 surface): **INSPECT** (TALLYING/REPLACING/CONVERTING), **EVALUATE**, **SEARCH**/SET-for-index,
+> **STRING**/**UNSTRING**, **INITIALIZE**, **ACCEPT** (FROM DATE/TIME/mnemonic) — each via `CobolStrings`/the bound
+> tree + a differential test, NC-program-verified. A few CERR remain (a group-qualification `_T_*.BB`, a `ZERO00L`
+> figurative path, a `REDEF10` REDEFINES name — NC211A/250A/252A). Then **G5 relative+indexed files** (`FileConnector`
+> for SQ/RL/IX) + SORT/MERGE, and **CobolEdit** numeric-edited (needed once a FAIL path prints COMPUTED=). **Pattern
+> that works:** map via the compile/run sweeps (compile-only first — a few NIST programs hang at *runtime*: use
+> `timeout`), pick the highest-frequency gap, implement to the spec + design, differential-test, guard-green, commit,
+> tick. **Known-latent (Int128/G3):** intermediate overflow beyond the long range / additive-scaling overflow / COMP-5
+> width bounds not size-error-checked; no-phrase EC-SIZE-fatal awaits the EC model. **OPTIONS clauses parsed but not
+> yet applied:** ARITHMETIC mode, ENTRY-CONVENTION, FLOAT-BINARY/DECIMAL, INTERMEDIATE ROUNDING, INITIALIZE. Earlier
+> history since 488:
 > (489) deep-dive doc-sync to SSOT §14; (490) **whole-group MOVE/DISPLAY/compare over numeric-DISPLAY leaves** — a
 > numeric-DISPLAY leaf in a whole-group-referenced group stores its CHARACTER IMAGE (`DataItem.StoreAsImage`, no
 > byte[]; ISO §14.9 MOVE GR4 — line 28901: group move = char copy, no conversion); (491–493) **REDEFINES/RENAMES the
