@@ -95,4 +95,38 @@ public sealed class RedefinesTierBDifferentialTests
         => AssertSameAsLegacy(Program(
             "01 WS-A PIC X(6) VALUE \"SEEDED\".\n01 WS-B REDEFINES WS-A PIC X(3).",
             "    DISPLAY WS-A \"|\" WS-B."));   // SEEDED|SEE — only the original's VALUE inits (SR9)
+
+    [Fact]
+    public void InGroup_ReadNestedCanonicalDirectly()
+        // The CCVS BAIL-OUT shape: a nested Tier-B canonical referenced DIRECTLY from the PROCEDURE DIVISION (not via
+        // the outer group's AsImage). The backing is a struct member, so its access must be qualified
+        // (OUTER.GROUP._redef_X), not the bare field name — the bug NC101A's COMPUTED-A/CORRECT-A exposed.
+        => AssertSameAsLegacy(Program("""
+            01 WS-REC.
+               05 WS-X.
+                  10 WS-A PIC X(4) VALUE "0042".
+                  10 WS-B REDEFINES WS-A PIC 9(4).
+            """, "    DISPLAY WS-A \"|\" WS-B."));   // 0042|0042 — both nested views read the shared backing
+
+    [Fact]
+    public void InGroup_WriteNestedNumericView_ReadNestedAlphaCanonical()
+        // Write through a nested numeric view, read through the nested alphanumeric canonical — both directly from the
+        // PROCEDURE DIVISION (the CCVS COMPUTED-N ← value, then COMPUTED-A read pattern).
+        => AssertSameAsLegacy(Program("""
+            01 WS-REC.
+               05 WS-X.
+                  10 WS-A PIC X(6).
+                  10 WS-B REDEFINES WS-A PIC 9(6).
+            """, "    MOVE 1234 TO WS-B.\n    DISPLAY WS-A."));   // 001234 — view write visible through the canonical
+
+    [Fact]
+    public void InGroup_CompareNestedViewToSpace()
+        // The CCVS BAIL-OUT comparison: IF nested-canonical NOT EQUAL TO SPACE — a direct relational over a nested
+        // Tier-B view, the exact form that drove NC101A's 304 unqualified-backing errors.
+        => AssertSameAsLegacy(Program("""
+            01 WS-REC.
+               05 WS-X.
+                  10 WS-A PIC X(4) VALUE SPACE.
+                  10 WS-B REDEFINES WS-A PIC 9(4).
+            """, "    IF WS-A EQUAL TO SPACE\n        DISPLAY \"BLANK\"\n    ELSE\n        DISPLAY \"FILLED\"."));   // BLANK
 }

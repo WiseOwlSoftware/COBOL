@@ -73,8 +73,13 @@ public sealed class ReferenceResolver(DataBinder data)
             // backing — the canonical too (so exactly one stored member). A subscripted Tier-B view (REDEFINES inside
             // an OCCURS element) is a later slice → only the unsubscripted form here.
             if (indexExprs.Count > 0) return null;
+            // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
+            // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
+            // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
+            // OCCURS), rather than emit an unqualified reference that does not exist in scope.
+            if (BackingPath(sc) is not { } backing) return null;
             if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-            inner = new RedefViewPlace(sc.BackingCsName, item.ClassOffset, item.ImageWidth, item);
+            inner = new RedefViewPlace(backing, item.ClassOffset, item.ImageWidth, item);
         }
         else
         {
@@ -104,6 +109,15 @@ public sealed class ReferenceResolver(DataBinder data)
     /// or <see langword="null"/> if the item is within an OCCURS table (a subscripted reference is then required).</summary>
     public Place? ResolveItem(DataItem item) =>
         AccessPath(item, []) is { } path ? new MemberPlace(path, item) : null;
+
+    /// <summary>The qualified C# access path to a Tier-B/Tier-C class's single stored backing field. The backing is
+    /// emitted in the canonical's containing struct, so a NESTED class reaches it through that struct's path
+    /// (<c>OUTER.GROUP._redef_X</c>); a top-level class's backing is the bare static field (<c>_redef_X</c>). Returns
+    /// <see langword="null"/> when the containing path is unavailable (the canonical is within an OCCURS table).</summary>
+    private static string? BackingPath(RedefinesClass cls) =>
+        cls.Canonical.Parent is not { } parent ? cls.BackingCsName
+        : AccessPath(parent, []) is { } parentPath ? parentPath + "." + cls.BackingCsName
+        : null;
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
