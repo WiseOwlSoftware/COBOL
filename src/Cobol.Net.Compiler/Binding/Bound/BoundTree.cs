@@ -85,6 +85,10 @@ public sealed record BoundCondition88(Place Parent, Condition88 Condition) : Bou
 /// <summary>A sign condition: <paramref name="Expr"/> IS [NOT] {POSITIVE | NEGATIVE | ZERO}.</summary>
 public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated) : BoundCondition;   // Kind: P/N/Z
 
+/// <summary>A class condition: <paramref name="Operand"/> IS [NOT] {NUMERIC | ALPHABETIC | ALPHABETIC-UPPER |
+/// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
+public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;
+
 /// <summary>A condition the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundConditionError(string Feature) : BoundCondition;
 

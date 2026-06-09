@@ -396,7 +396,17 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var operands = cmp.comparisonOperand();
         bool not = cmp.NOT() is not null;
 
-        if (cmp.className() is { } cls) return new BoundConditionError($"class condition '{cls.GetText()}'");
+        if (cmp.className() is { } cls)
+        {
+            char? kind = cls.NUMERIC() is not null ? 'N'
+                : cls.ALPHABETIC() is not null ? 'A'
+                : cls.ALPHABETIC_UPPER() is not null ? 'U'
+                : cls.ALPHABETIC_LOWER() is not null ? 'L'
+                : null;
+            return kind is { } k && operands.Length >= 1
+                ? new BoundClassCondition(ComparisonOperand(operands[0]), k, not)
+                : new BoundConditionError($"class condition '{cls.GetText()}'");   // user-defined CLASS — later
+        }
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
         {

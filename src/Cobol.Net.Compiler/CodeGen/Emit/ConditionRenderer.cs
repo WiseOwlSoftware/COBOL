@@ -20,6 +20,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         BoundNot n => $"!({Render(n.Operand)})",
         BoundCondition88 c88 => RenderCondition88(c88),
         BoundSignCondition s => RenderSign(s),
+        BoundClassCondition cc => RenderClass(cc),
         BoundConditionError e => EmitText.LoudValue("bool", e.Feature),
         _ => EmitText.LoudValue("bool", $"bound condition '{c.GetType().Name}'"),
     };
@@ -73,6 +74,23 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         NumX v = num.Render(s.Expr);
         string test = s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
+    }
+
+    /// <summary>A class condition (ISO §8.8.4.1.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> (it can
+    /// only hold digits — COBOLNET_DESIGN §6.6); every other case checks the operand's character image at run time.</summary>
+    private string RenderClass(BoundClassCondition c)
+    {
+        bool numericField = c.Operand is BoundFieldOperand f && f.Place.Item.Pic?.Category is PicCategory.Numeric;
+        string arg = OperandText.AsString(c.Operand);
+        string test = c.ClassKind switch
+        {
+            'N' => numericField ? "true" : $"CobolClass.IsNumeric({arg})",
+            'A' => $"CobolClass.IsAlphabetic({arg})",
+            'U' => $"CobolClass.IsAlphabeticUpper({arg})",
+            'L' => $"CobolClass.IsAlphabeticLower({arg})",
+            _ => EmitText.LoudValue("bool", "class condition"),
+        };
+        return c.Negated ? $"!({test})" : $"({test})";
     }
 
     private static string RenderCondition88(BoundCondition88 c)
