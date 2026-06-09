@@ -261,9 +261,11 @@ public sealed class CSharpEmitter
             return;
         }
         int width = target.Item.ImageWidth;
+        // §8.8.4.1: an alphanumeric group receiver is treated as an elementary alphanumeric item, so a signed-numeric
+        // source drops its operational sign here too (§14.9.25.4 GR6a) — deSign:true (a no-op for a non-numeric source).
         string image = source is BoundFigurative f
             ? $"new string({FigurativeFill(f.Kind)}, {width})"
-            : $"CobolString.Store({OperandText.AsString(source)}, {width})";
+            : $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {width})";
         // A Tier-B REDEFINES group view's image IS its character window — splice the image into the backing; a normal
         // record-struct group distributes the image into its typed leaves via the generated FromImage.
         _ctx.Writer.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");

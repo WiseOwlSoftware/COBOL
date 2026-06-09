@@ -78,6 +78,25 @@ public sealed class SignedAlphanumericMoveDifferentialTests
         => AssertSpecOnly(Program("01 SN PIC S9(2) VALUE -5.",
             "    IF SN = \"05\" DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF."), "EQ");
 
+    [Fact]
+    // ISO §8.8.4.1: an alphanumeric GROUP receiver is treated as an elementary alphanumeric item, so a signed numeric
+    // source also drops its sign moving into a group (§14.9.25.4 GR6a) — the EmitGroupMove de-sign gap (DEVLOG 516).
+    // S9(3) -45 → "045". SPEC-ONLY: the legacy oracle is non-conformant for a group receiver — it copies the raw
+    // overpunch image ("04N") rather than de-signing (cf. the DISPLAY trailing-trim precedent in feedback_use_the_spec).
+    public void SignedToAlphanumericGroup_DeSigned()
+        => AssertSpecOnly(Program("01 SN PIC S9(3) VALUE -45.\n01 GRP.\n   05 G1 PIC X(3).",
+            "    MOVE SN TO GRP.\n    DISPLAY \"R=\" GRP."), "R=045");
+
+    [Fact]
+    // A signed numeric that is the CANONICAL of a REDEFINES is stored as its sign-aware character image and read
+    // through a RedefViewPlace window; it still de-signs on a move to alphanumeric — the RedefViewPlace source de-sign
+    // gap (DEVLOG 516). SIGN LEADING SEPARATE +91275 has image "+91275"; the magnitude "91275" is moved (exact-fit
+    // X(5) receiver, so no trailing space exposes the legacy DISPLAY-trim quirk).
+    public void SignedRedefinesCanonicalToAlphanumeric_DeSigned()
+        => AssertSpecAndLegacy(Program(
+            "01 SN PIC S9(5) SIGN LEADING SEPARATE VALUE 91275.\n01 GRP REDEFINES SN PIC X(6).\n01 XR PIC X(5).",
+            "    MOVE SN TO XR.\n    DISPLAY \"R=\" XR."), "R=91275");
+
     [Theory]
     // Boundary guard: the de-signing is scoped to the ALPHANUMERIC (string) comparison branch ONLY. A signed numeric
     // compared against a NUMERIC literal is an algebraic comparison (ISO §8.8.4.2.1) — the sign is significant and is

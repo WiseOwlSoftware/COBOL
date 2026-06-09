@@ -39,8 +39,14 @@ internal static class OperandText
     private static string FieldAsString(Place p, bool deSign = false)
     {
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
-        // elementary view alike — use it directly (no .AsImage(), no FormatDisplay).
-        if (p is RedefViewPlace) return p.Read();
+        // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT when this signed-numeric
+        // view is the de-signed source of an alphanumeric move/compare: its window holds the sign-aware image
+        // (over-punch or separate sign), so decode and re-emit the magnitude digits (ISO §14.9.25.4 GR6a), exactly
+        // as the StoreAsImage branch below does — the same de-sign rule, just a different storage shape.
+        if (p is RedefViewPlace)
+            return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
+                ? $"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {rvp.Digits})"
+                : p.Read();
         if (p.Item.IsGroup)
             return p.Item.IsCharacterImage
                 ? $"{p.Read()}.AsImage()"
