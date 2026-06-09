@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CobolSharp.Tests.Integratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CobolNet", "src\CobolNet\CobolNet.csproj", "{99C9B1FE-6159-4915-8472-6847AC55B060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CobolNet.Runtime", "src\CobolNet.Runtime\CobolNet.Runtime.csproj", "{A1752F9C-E951-413F-AF21-2253073A279D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobol.Net.Runtime", "src\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj", "{A1752F9C-E951-413F-AF21-2253073A279D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobol.Net.Frontend", "src\Cobol.Net.Frontend\Cobol.Net.Frontend.csproj", "{D8489403-E502-4A87-997F-63ECCF79D214}"
 EndProject

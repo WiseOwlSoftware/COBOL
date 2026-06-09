@@ -48,12 +48,12 @@ public static class RoslynBackend
 
     /// <summary>The COBOL.NET runtime assembly the generated program calls (alongside the compiler).</summary>
     private static string RuntimePath =>
-        Path.Combine(AppContext.BaseDirectory, "CobolNet.Runtime.dll");
+        Path.Combine(AppContext.BaseDirectory, "Cobol.Net.Runtime.dll");
 
-    /// <summary>Copy <c>CobolNet.Runtime.dll</c> next to the compiled program so it resolves at run time.</summary>
+    /// <summary>Copy <c>Cobol.Net.Runtime.dll</c> next to the compiled program so it resolves at run time.</summary>
     private static void DeployRuntime(string outputDllPath)
     {
-        string dest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputDllPath))!, "CobolNet.Runtime.dll");
+        string dest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputDllPath))!, "Cobol.Net.Runtime.dll");
         if (!string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase) && File.Exists(RuntimePath))
             File.Copy(RuntimePath, dest, overwrite: true);
     }

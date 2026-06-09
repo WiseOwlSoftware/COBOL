@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Cobol.Net.Runtime — the clean, typed-native runtime that COBOL.NET-generated C# programs call. It has
+    NO byte-array storage substrate: numeric values are native long/Int128 (unscaled fixed-point) / float / double,
+    character values are string. The oracle-verified CobolNum/NumProfile/CobolRounding/CobolString logic is ported
+    here clean (TFM/lang come from Directory.Build.props — not re-declared).
+
+    Renamed from CobolNet.Runtime at G0 (docs/COBOLNET_DESIGN.md §17). The assembly is Cobol.Net.Runtime; the
+    root namespace stays CobolNet.Runtime through G0-G7 so generated programs' `using CobolNet.Runtime;` is
+    unaffected. Folders mirror the data-model subsystems (Numeric/, Text/, Control/; later Pointers/, Files/).
+  -->
+  <PropertyGroup>
+    <AssemblyName>Cobol.Net.Runtime</AssemblyName>
+    <RootNamespace>CobolNet.Runtime</RootNamespace>
+  </PropertyGroup>
+
+</Project>

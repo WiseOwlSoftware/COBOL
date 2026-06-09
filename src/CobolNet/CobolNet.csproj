@@ -24,7 +24,7 @@
     <ProjectReference Include="..\Cobol.Net.Frontend\Cobol.Net.Frontend.csproj" />
     <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
          RoslynBackend deploys a copy beside each compiled program. -->
-    <ProjectReference Include="..\CobolNet.Runtime\CobolNet.Runtime.csproj" />
+    <ProjectReference Include="..\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj" />
     <!-- Roslyn: generate + compile C# at runtime. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
