@@ -10902,6 +10902,59 @@ double-negation bug: word-form `NOT EQUAL` had collided with the `<>` branch →
 name + abbreviated relational forms are conservative `false` fallbacks for now. Verified: `A<B`, `A>B`, `A=10 AND
 B=20`, `NM="BOB"` (space-extended), `A NOT EQUAL B` all correct.
 
+## Entry 477 — COBOL.NET G2-1a: the typed data model — groups→record structs, Place/ReferenceResolver, qualified names, figurative VALUE, loud-failure
+
+The first slice of the G2 core rebuild. Replaces the DEVLOG-458 flatten-to-leaves stopgap with the real
+typed-native data model and the universal lvalue, and fixes the §1.4 loud-failure invariant.
+
+- **Data model — groups ARE .NET records (COBOLNET_DESIGN §3.2).** `FieldEmitter` now emits a nested
+  `record struct` (`_T_<uid>`) per group with public typed members, a composed object-initializer VALUE
+  (every member set, so no `string` member is left null), and one static field per 01/77. A numeric leaf still
+  gets its `NumProfile`. Member access falls straight out: `WS-REC.WS-NUM` → `WS_REC.WS_NUM`.
+- **`Place` + `ReferenceResolver` (§3.3/§3.4/§14.1) — the ONE lvalue.** New `ReferenceResolver` does the
+  two-phase resolve: syntactic flatten of `cobolWord dataReferenceSuffix*` (qualifiers / subscript / ref-mod
+  presence), then semantic resolve — unqualified via the new `ByName` MULTIMAP (`Dictionary<string,List<DataItem>>`
+  — COBOL allows duplicate names disambiguated only by qualification; the old single-valued dict silently dropped
+  all but the last), or OF/IN-qualified by right-to-left narrowing (`A OF B OF C` → resolve C, find B in C, find A
+  in B). Returns a `MemberPlace` (`Read()`=path, `Write(rhs)`=assignment). EVERY verb operand now routes through
+  `Place` — DISPLAY/MOVE/arithmetic/COMPUTE/IF/PERFORM-count — so qualified and (next slice) subscripted/ref-mod
+  references work uniformly. Subscript/ref-mod refs return null here → loud-failure until G2-1b.
+- **Figurative-constant VALUE.** `VALUE ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/NULL` fill the item to its width
+  (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per §14.9). Fixes the `ZEROL` compile bug the G2-0 harness surfaced.
+- **Loud-failure (§1.4).** Every silent `// TODO` no-op is replaced by a guarded `NotImplemented.Run(...)`
+  (statement) / `NotImplemented.Value<T>(...)` (expression) that throws `NotImplementedCobolFeatureException` at run
+  time (new `Cobol.Net.Runtime/Control/NotImplemented.cs`). A bound-but-unimplemented construct now fails LOUD,
+  never silently wrong. (The `Value<T>` form is a void-returning helper, so no unreachable-code warning.)
+- **`DataItem`** gains a global `Uid` (collision-free struct/profile names — two `REC`s, or two `NUM`s in different
+  groups, no longer clash); per-scope CsName dedup; the `decimal` mention in the emitter docstring corrected to
+  native `long`.
+
+**Sequencing note (per the reviewing advisor — logging a conscious deferral).** The formal bound tree
+(`BoundProgram` + `StatementBinder` + `BoundUnsupported`) and the §17 §2.2 emitter decomposition are deferred to
+**G2-2**. Rationale: the data model + `Place` are the co-dependent core (the advisor's "merge G2a+G2b"); building
+them in the working emitter first is the lowest-risk path to the G2 checkpoint capability, and `Place` is built
+ONCE here and reused by the bound binder in G2-2 (only its construction site moves earlier — not a transitional
+wrap of the type). The most urgent part the advisor tied to the bound tree — loud-failure — is already done here.
+
+Verified: full-solution build clean Debug (0/0, warnings-as-errors); Conformance 47 green (incl. 11 new
+group/qualified/nested/figurative differential tests) + Unit 3 green; legacy oracle untouched. The generated C# for
+a group is clean idiomatic record-struct code (inspected). RESUME AT → G2-1b: OCCURS → arrays + subscripts + ref-mod
+(port the legacy SUB_* interpreter, COBOLNET_DESIGN §3.4).
+
+DEVLOG 477.
+
+## Entry 476 — COBOL.NET G2-0b: differential regression net for the core verbs
+
+Before the G2 data-model rebuild re-routes every operand through `ReferenceResolver`→`Place`, lock current behavior
+in against the legacy oracle. `VerbDifferentialTests` (tests/Cobol.Net.Tests.Conformance): 18 fragments —
+ADD/SUBTRACT/MULTIPLY/DIVIDE, COMPUTE (precedence/scale/truncation), IF/ELSE (numeric + alphanumeric + AND/OR),
+inline PERFORM (TIMES/UNTIL) — all green vs the legacy on the NIST acceptance basis. Scoped to single-paragraph,
+straight-line, truncation-only code (out-of-line PERFORM/GO-TO are G4; ROUNDED/ON SIZE ERROR are G3; signed DISPLAY
+is G2d), so every result is numeric and the legacy is a sound oracle. Conformance suite 18→36 green. (Commit
+d251c02; this entry restores the DEVLOG-per-commit record that commit omitted.)
+
+DEVLOG 476.
+
 ## Entry 475 — COBOL.NET G2-0: the legacy differential-diff harness (+ an ISO-vs-legacy DISPLAY finding)
 
 Starting G2 (the bound-tree + Place + data-model + native-numerics foundation rebuild, COBOLNET_DESIGN §16). Per

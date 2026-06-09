@@ -9,17 +9,23 @@ using Core = CobolParserCore;
 /// <summary>
 /// Builds the bound DATA DIVISION model (a forest of <see cref="DataItem"/> trees, one per 01/77 item) from the
 /// parse tree, and indexes every named item for reference resolution. Pure syntactic/semantic analysis — no byte
-/// layout. (Slice scope: WORKING-STORAGE; FILE/LINKAGE/LOCAL-STORAGE follow in later tasks.)
+/// layout; the .NET type IS the storage. (Slice scope: WORKING-STORAGE groups + elementary items with fixed
+/// OCCURS recorded; FILE/LINKAGE/LOCAL-STORAGE, level-66/88, and REDEFINES follow in later slices.)
 /// </summary>
 public sealed class DataBinder
 {
     private int _fillerCounter;
+    private int _uidCounter;
 
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order.</summary>
     public List<DataItem> Roots { get; } = [];
 
-    /// <summary>Every named elementary/group item, keyed by COBOL name (case-insensitive) for reference resolution.</summary>
-    public Dictionary<string, DataItem> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>
+    /// Every named item, keyed by COBOL name (case-insensitive) → the list of items with that name. COBOL permits
+    /// duplicate data-names disambiguated only by qualification (OF/IN), so this is a MULTIMAP — a single-valued
+    /// dictionary would silently drop all but the last (a latent wrong-item bug; COBOLNET_DESIGN §3.5).
+    /// </summary>
+    public Dictionary<string, List<DataItem>> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
     public void Bind(Core.ProgramUnitContext program)
@@ -29,24 +35,47 @@ public sealed class DataBinder
 
         // A level-number stack builds the tree: an entry attaches under the nearest open item whose level is lower.
         var stack = new Stack<DataItem>();
+        var rootNames = new HashSet<string>(StringComparer.Ordinal);   // C#-field-name scope at the Program level
         foreach (var entry in ws.dataDescriptionEntry())
         {
             if (BindEntry(entry) is not { } item) continue;
+            item.Uid = _uidCounter++;
 
             while (stack.Count > 0 && stack.Peek().Level >= item.Level)
                 stack.Pop();
 
             if (stack.Count == 0)
+            {
+                item.CsName = Unique(item.CsName, rootNames);
                 Roots.Add(item);
+            }
             else
             {
-                item.Parent = stack.Peek();
-                stack.Peek().Children.Add(item);
+                var parent = stack.Peek();
+                // A member name need only be unique within its containing struct (the parent's children).
+                item.CsName = Unique(item.CsName, parent.Children.Select(c => c.CsName));
+                item.Parent = parent;
+                parent.Children.Add(item);
             }
             stack.Push(item);
 
             if (item.CobolName is { } name)
-                ByName[name] = item;
+            {
+                if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
+                list.Add(item);
+            }
+        }
+    }
+
+    /// <summary>Make <paramref name="name"/> unique within a C# name scope, appending <c>_2</c>, <c>_3</c>, … on collision.</summary>
+    private static string Unique(string name, IEnumerable<string> used)
+    {
+        var set = used as ICollection<string> ?? used.ToList();
+        if (!set.Contains(name)) return name;
+        for (int n = 2; ; n++)
+        {
+            string candidate = $"{name}_{n}";
+            if (!set.Contains(candidate)) return candidate;
         }
     }
 
@@ -96,11 +125,12 @@ public sealed class DataBinder
         return kw is not null ? kw.GetText() : usage.GetText().Replace("USAGE", "").Replace("IS", "");
     }
 
-    /// <summary>Extract the first VALUE operand's raw source text (literal). THRU ranges / 88-levels are later.</summary>
+    /// <summary>Extract the first VALUE operand's raw source text (literal or figurative constant). THRU ranges /
+    /// 88-levels are later. The emitter (<c>FieldEmitter</c>) interprets the text — including figurative constants
+    /// such as ZERO/SPACE — against the item's category and width.</summary>
     private static string? ExtractValue(Core.ValueClauseContext value)
     {
         var item = value.valueItem().FirstOrDefault();
-        // Descend to the literal text; for the common single-literal VALUE this is the operand's source text.
         return item?.GetText();
     }
 }
