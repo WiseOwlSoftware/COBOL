@@ -110,7 +110,11 @@ public sealed class DataBinder
             if (BindEntry(entry) is not { } item) continue;
             item.Uid = _uidCounter++;
 
-            while (stack.Count > 0 && stack.Peek().Level >= item.Level)
+            // Level 77 is an INDEPENDENT elementary item (ISO §13.18.38): always top-level, like 01, regardless of its
+            // numeric value. Treat it as level 1 for the nesting pop so it attaches as a ROOT — never nested under an
+            // open subordinate item just because 77 > that item's level (which would mis-qualify every later reference).
+            int nestLevel = item.Level == 77 ? 1 : item.Level;
+            while (stack.Count > 0 && stack.Peek().Level >= nestLevel)
                 stack.Pop();
 
             if (stack.Count == 0)
