@@ -203,18 +203,27 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// and width; otherwise null (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
     private static string? FigurativeInitializer(string raw, PicInfo pic)
     {
-        string? fillChar = raw.ToUpperInvariant() switch
-        {
-            "ZERO" or "ZEROS" or "ZEROES" => "'0'",
-            "SPACE" or "SPACES" => "' '",
-            "HIGH-VALUE" or "HIGH-VALUES" => "'\\u00ff'",
-            "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => "'\\u0000'",
-            "QUOTE" or "QUOTES" => "'\\\"'",
-            _ => null,
-        };
-        if (fillChar is null) return null;
+        string key = raw.ToUpperInvariant();
+        // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
+        // figurative repeated to the width); strip the ALL prefix when the remainder is a figurative WORD. (ALL "literal"
+        // — repeating a multi-character literal — is a separate form left to the literal path.)
+        if (FillCharFor(key) is null && key.StartsWith("ALL") && key.Length > 3 && FillCharFor(key[3..]) is not null)
+            key = key[3..];
+        if (FillCharFor(key) is not { } fillChar) return null;
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
+
+    /// <summary>The C# <c>char</c>-literal a figurative-constant word fills with, or null if the text is not a
+    /// figurative word (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
+    private static string? FillCharFor(string word) => word switch
+    {
+        "ZERO" or "ZEROS" or "ZEROES" => "'0'",
+        "SPACE" or "SPACES" => "' '",
+        "HIGH-VALUE" or "HIGH-VALUES" => "'\\u00ff'",
+        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => "'\\u0000'",
+        "QUOTE" or "QUOTES" => "'\\\"'",
+        _ => null,
+    };
 
     /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
     private static string RawValueAsFloat(string raw, PicInfo pic) =>

@@ -494,10 +494,19 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         Core.UnaryExpressionContext u => u.primaryExpression() is { } pr ? BindExpr(pr)
             : u.addOp().GetText() == "-" ? new BoundNegate(BindExpr(u.unaryExpression())) : BindExpr(u.unaryExpression()),
         Core.PrimaryExpressionContext pe => BindPrimary(pe),
-        Core.LiteralContext l => new BoundNumLiteral(l.GetText()),
+        Core.LiteralContext l => NumLiteral(l),
         Core.DataReferenceContext d => refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'"),
         _ => BindOperandExpr(node),   // operand wrappers (addOperand, multiplyByOperand, …)
     };
+
+    /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
+    /// to <c>0</c> (ISO §8.3.1.2 — ZERO is a valid numeric operand); a non-numeric figurative (SPACE / HIGH-VALUE / …)
+    /// in a numeric context is a loud error rather than the raw word rendered as an identifier.</summary>
+    private static BoundExpr NumLiteral(Core.LiteralContext lit) =>
+        lit.nonNumericLiteral()?.figurativeConstant() is { } fig
+            ? fig.ZERO() is not null ? new BoundNumLiteral("0")
+                : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context")
+            : new BoundNumLiteral(lit.GetText());
 
     private BoundExpr BindChain(IParseTree node)
     {
@@ -536,7 +545,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         for (int i = 0; i < node.ChildCount; i++)
         {
             var c = node.GetChild(i);
-            if (c is Core.LiteralContext l) return new BoundNumLiteral(l.GetText());
+            if (c is Core.LiteralContext l) return NumLiteral(l);
             if (c is Core.DataReferenceContext d) return refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'");
             if (FindLeaf(c) is { } inner) return inner;
         }
@@ -548,7 +557,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         for (int i = 0; i < node.ChildCount; i++)
         {
             var c = node.GetChild(i);
-            if (c is Core.LiteralContext l) return new BoundNumLiteral(l.GetText());
+            if (c is Core.LiteralContext l) return NumLiteral(l);
             if (c is Core.DataReferenceContext d) return refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'");
             if (FindLeaf(c) is { } inner) return inner;
         }

@@ -66,4 +66,21 @@ public sealed class FigurativeDifferentialTests
     [InlineData("01 X PIC X(3) VALUE \"AB\".", "    IF X = SPACES DISPLAY \"ALLSPACE\" ELSE DISPLAY \"NOT\" END-IF.")]
     [InlineData("01 N PIC 9(3) VALUE 0.", "    IF N IS ZERO DISPLAY \"SIGNZERO\" END-IF.")]
     public void FigurativeComparison(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
+
+    [Theory]
+    // Figurative ZERO as a numeric-expression operand (ISO §8.3.1.2 — ZERO is a valid numeric operand). Previously the
+    // arithmetic path rendered the word "ZERO" as a C# identifier (CS0103 ZEROL), breaking NC118A/119A/175A/177A.
+    [InlineData("01 N PIC 9(3) VALUE 5.", "    ADD ZERO TO N.\n    DISPLAY N.")]                      // 005
+    [InlineData("01 N PIC 9(3) VALUE 5.", "    COMPUTE N = N + ZERO.\n    DISPLAY N.")]                // 005
+    [InlineData("01 N PIC 9(3) VALUE 8.", "    SUBTRACT ZERO FROM N.\n    DISPLAY N.")]                // 008
+    [InlineData("01 N PIC 9(3) VALUE 4.", "    COMPUTE N = ZERO + N * 2.\n    DISPLAY N.")]            // 008 — ZERO as a leaf
+    public void FigurativeZero_InArithmetic(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
+
+    [Theory]
+    // ALL <figurative-word> VALUE init (equivalent to the bare figurative): ALL ZEROS on a numeric → 0; ALL ZEROS /
+    // ALL SPACES on alphanumeric → fill. Previously the raw word reached the initializer (CS0103 ALLZEROSL), NC201A.
+    [InlineData("01 N PIC 9(5) VALUE ALL ZEROS.", "    ADD 7 TO N.\n    DISPLAY N.")]                  // 00007
+    [InlineData("01 X PIC X(4) VALUE ALL ZEROS.", "    DISPLAY X.")]                                   // 0000
+    [InlineData("01 X PIC X(4) VALUE ALL SPACES.", "    DISPLAY \"[\" X.")]                            // [
+    public void FigurativeAll_ValueInit(string ws, string proc) => AssertSameAsLegacy(Program(ws, proc));
 }
