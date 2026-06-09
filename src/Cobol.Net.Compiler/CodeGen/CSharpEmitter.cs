@@ -228,7 +228,9 @@ public sealed class CSharpEmitter
 
     private void EmitDisplay(BoundDisplay d)
     {
-        var parts = d.Operands.Select(OperandText.AsString).ToList();
+        // DISPLAY shows the sign-aware image (deSign defaults false — the operational sign is part of the displayed
+        // zoned representation, unlike a move to an alphanumeric receiver).
+        var parts = d.Operands.Select(o => OperandText.AsString(o)).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         _ctx.Writer.Line(d.NoAdvancing ? $"System.Console.Write({image});" : $"System.Console.WriteLine({image});");
     }
@@ -278,7 +280,8 @@ public sealed class CSharpEmitter
         switch (pic.Category)
         {
             case PicCategory.Alphanumeric or PicCategory.NumericEdited:
-                return $"CobolString.Store({OperandText.AsString(source)}, {pic.Length})";
+                // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a).
+                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length})";
             case PicCategory.Numeric:
                 NumX n = _num.AsNum(source);
                 string stored = $"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})";

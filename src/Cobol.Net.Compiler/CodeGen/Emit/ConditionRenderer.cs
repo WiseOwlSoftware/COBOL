@@ -30,7 +30,8 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         if (r.Left is BoundFigurative || r.Right is BoundFigurative)
             return RenderFigurativeRelational(r);
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
-            return $"CobolString.Compare({OperandText.AsString(r.Left)}, {OperandText.AsString(r.Right)}) {r.Op} 0";
+            // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
+            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}) {r.Op} 0";
         NumX l = num.AsNum(r.Left), rr = num.AsNum(r.Right);
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";

@@ -10,12 +10,15 @@ namespace CobolNet.CodeGen.Emit;
 /// alphanumeric field is its <see cref="Place"/> value.</summary>
 internal static class OperandText
 {
-    /// <summary>A bound operand rendered as a C# <see cref="string"/> (its DISPLAY image).</summary>
-    public static string AsString(BoundOperand op) => op switch
+    /// <summary>A bound operand rendered as a C# <see cref="string"/> (its character image). When
+    /// <paramref name="deSign"/> is set, a SIGNED numeric operand drops its operational sign (ISO §14.9.25.4 GR6a /
+    /// §8.8.4.2.5 — a signed numeric used as / compared against an alphanumeric operand moves the de-signed magnitude
+    /// digits, not the zoned/overpunch image). DISPLAY leaves it unset (it shows the sign-aware image).</summary>
+    public static string AsString(BoundOperand op, bool deSign = false) => op switch
     {
         BoundStringLiteral s => EmitText.CsLiteral(s.Value),
         BoundNumericLiteral n => EmitText.CsLiteral(n.Text),
-        BoundFieldOperand f => FieldAsString(f.Place),
+        BoundFieldOperand f => FieldAsString(f.Place, deSign),
         BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, 1)",   // DISPLAY shows one occurrence (GR3)
         BoundComputedOperand => EmitText.LoudValue("string", "computed expression in a string context"),
         BoundOperandError e => EmitText.LoudValue("string", e.Feature),
@@ -31,7 +34,7 @@ internal static class OperandText
         _ => false,
     };
 
-    private static string FieldAsString(Place p)
+    private static string FieldAsString(Place p, bool deSign = false)
     {
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
         // elementary view alike — use it directly (no .AsImage(), no FormatDisplay).
@@ -40,11 +43,20 @@ internal static class OperandText
             return p.Item.IsCharacterImage
                 ? $"{p.Read()}.AsImage()"
                 : EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)");
-        // A numeric-DISPLAY leaf stored as its character image is already a string holding that image.
-        if (p.Item.StoreAsImage) return p.Read();
+        // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
+        // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
+        if (p.Item.StoreAsImage)
+            return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
+                ? $"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {sip.Digits})"
+                : p.Read();
         return p.Item.Pic switch
         {
-            { Category: PicCategory.Numeric, IsFloat: false } => $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
+            // ISO §14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
+            // sign — the de-signed magnitude digits (FormatUnsignedDisplay), not the zoned/overpunch image. FormatDisplay
+            // already yields these for an unsigned item, so deSign on an unsigned numeric is a no-op.
+            { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
+                ? $"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})"
+                : $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
             { Category: PicCategory.Numeric } => $"{p.Read()}.ToString()",            // COMP-1/2 float — refine later
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited } => p.Read(),
             _ => $"{p.Read()}.ToString()",
