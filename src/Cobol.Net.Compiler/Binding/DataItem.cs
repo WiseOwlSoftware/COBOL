@@ -54,6 +54,33 @@ public sealed class DataItem
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 
+    /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.</summary>
+    public string? RedefinesTargetName { get; init; }
+
+    /// <summary>The resolved REDEFINES target item (the immediately-redefined entry, which may itself be a
+    /// redefiner — SR11). Set by the post-build pass; null for a non-redefining entry.</summary>
+    public DataItem? RedefinesTarget { get; set; }
+
+    /// <summary>The level-66 RENAMES descriptor (ISO §13.18.45), or null unless this is a level-66 entry.</summary>
+    public RenamesInfo? Renames { get; set; }
+
+    /// <summary>The redefines class (shared-storage equivalence class) this item belongs to, or null if it stands
+    /// alone. Every member of a class — the original + every redefiner — points to the SAME instance.</summary>
+    public RedefinesClass? Class { get; set; }
+
+    /// <summary>True for the ONE stored member of a redefines class (the non-redefining anchor — SR7); every other
+    /// member is a computed view. Defaults true so a standalone item (the whole existing corpus) emits normally.</summary>
+    public bool IsCanonical { get; set; } = true;
+
+    /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
+    /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.</summary>
+    public int ClassOffset { get; set; }
+
+    /// <summary>The level-66 RENAMES entries attached to this record (a 01/FD/SD owner). They are NOT storage
+    /// children (they add no storage, ISO §13.18.45) — kept here so layout / struct emission ignores them while
+    /// reference resolution can still find them.</summary>
+    public List<DataItem> Renames66 { get; } = [];
+
     /// <summary>The containing group, or <see langword="null"/> for a top-level (01/77) item.</summary>
     public DataItem? Parent { get; set; }
 

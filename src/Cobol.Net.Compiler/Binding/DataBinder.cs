@@ -55,10 +55,17 @@ public sealed class DataBinder
         var rootNames = new HashSet<string>(StringComparer.Ordinal);   // C#-field-name scope at the Program level
         foreach (var entry in ws.dataDescriptionEntry())
         {
+            int.TryParse(entry.levelNumber().GetText(), out int lvl);
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
-            if (int.TryParse(entry.levelNumber().GetText(), out int lvl) && lvl == 88)
+            if (lvl == 88)
             {
                 if (stack.Count > 0) BindCondition(entry, stack.Peek());
+                continue;
+            }
+            // A level-66 RENAMES entry is a re-grouping alias on the owning record — not a node in the storage tree.
+            if (lvl == 66)
+            {
+                BindRenames(entry);
                 continue;
             }
 
@@ -72,6 +79,7 @@ public sealed class DataBinder
             {
                 item.CsName = Unique(item.CsName, rootNames);
                 Roots.Add(item);
+                _lastRoot = item;
             }
             else
             {
@@ -82,13 +90,51 @@ public sealed class DataBinder
                 parent.Children.Add(item);
             }
             stack.Push(item);
-
-            if (item.CobolName is { } name)
-            {
-                if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
-                list.Add(item);
-            }
+            RegisterName(item);
         }
+
+        // Post-build (the forest is complete): resolve REDEFINES/RENAMES targets, then group overlaid items into
+        // shared-storage classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4).
+        ResolveRedefines();
+        ClassifyRedefinesClasses();
+    }
+
+    /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
+    private DataItem? _lastRoot;
+
+    /// <summary>Index a named item in the <see cref="ByName"/> multimap (COBOL allows duplicate names disambiguated
+    /// only by qualification).</summary>
+    private void RegisterName(DataItem item)
+    {
+        if (item.CobolName is not { } name) return;
+        if (!ByName.TryGetValue(name, out var list)) ByName[name] = list = [];
+        list.Add(item);
+    }
+
+    /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>
+    /// over a contiguous sibling run of the owning record. It adds no storage (SR2/SR3) — it is attached to the
+    /// owning record's <see cref="DataItem.Renames66"/> list (not <see cref="DataItem.Children"/>) and registered for
+    /// reference resolution; the FROM/THRU operands are resolved by the post-build pass.</summary>
+    private void BindRenames(Core.DataDescriptionEntryContext entry)
+    {
+        var rc = entry.dataDescriptionBody().renamesClause();
+        if (rc is null || entry.dataName()?.GetText() is not { } name || _lastRoot is null) return;
+        bool thru = rc.THRU() is not null || rc.THROUGH() is not null;
+        var item = new DataItem
+        {
+            Level = 66,
+            CobolName = name,
+            CsName = DataItem.Sanitize(name),
+            Renames = new RenamesInfo
+            {
+                FromName = rc.dataReference(0).GetText(),
+                ThruName = thru && rc.dataReference().Length > 1 ? rc.dataReference(1).GetText() : null,
+            },
+        };
+        item.Uid = _uidCounter++;
+        item.Parent = _lastRoot;        // owning record — an alias sibling, NOT a storage child
+        _lastRoot.Renames66.Add(item);
+        RegisterName(item);
     }
 
     /// <summary>Bind a level-88 condition-name on its conditional variable <paramref name="parent"/>, capturing the
@@ -136,7 +182,7 @@ public sealed class DataBinder
         bool isFiller = cobolName is null || cobolName.Equals("FILLER", StringComparison.OrdinalIgnoreCase);
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
-        string? pictureText = null, usageText = null, rawValue = null;
+        string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
         int? occurs = null;
         var indexNames = new List<string>();
         bool hasSign = false, signLeading = false, signSeparate = false;
@@ -148,6 +194,10 @@ public sealed class DataBinder
                     pictureText = picTok.GetText();
                 else if (clause.usageClause() is { } usage)
                     usageText = UsageKeyword(usage);
+                else if (clause.redefinesClause() is { } redef)
+                    // Capture the target name only; resolution waits until the forest is built (the target is a
+                    // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
+                    redefinesTargetName = redef.dataReference().GetText();
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
                 else if (clause.signClause() is { } sign)
@@ -177,6 +227,7 @@ public sealed class DataBinder
             Pic = pic,
             RawValue = rawValue,
             Occurs = occurs,
+            RedefinesTargetName = redefinesTargetName,
         };
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
@@ -204,5 +255,131 @@ public sealed class DataBinder
     {
         var item = value.valueItem().FirstOrDefault();
         return item?.GetText();
+    }
+
+    // ── REDEFINES / RENAMES resolution + classification (post-build, ISO §13.18.44/45) ───────────────────────
+
+    /// <summary>Resolve each item's REDEFINES target name to its <see cref="DataItem"/>, and each level-66 RENAMES
+    /// FROM/THRU operand to its item. A REDEFINES target is an unqualified prior entry in the same scope (SR1/SR6); a
+    /// RENAMES range names items within the owning record (SR3). Target resolution does not chase chains — the
+    /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).</summary>
+    private void ResolveRedefines()
+    {
+        foreach (var item in AllItems())
+            if (item.RedefinesTargetName is { } tname)
+            {
+                IReadOnlyList<DataItem> scope = item.Parent?.Children ?? Roots;
+                item.RedefinesTarget = scope.FirstOrDefault(s =>
+                    !ReferenceEquals(s, item) && string.Equals(s.CobolName, tname, StringComparison.OrdinalIgnoreCase));
+            }
+
+        foreach (var root in Roots)
+            foreach (var ren in root.Renames66)
+            {
+                var info = ren.Renames!;
+                info.From = FindDescendantOrSelf(root, info.FromName);
+                info.Thru = info.ThruName is { } t ? FindDescendantOrSelf(root, t) : null;
+            }
+    }
+
+    /// <summary>Group every redefining entry with the non-redefining anchor it ultimately overlays (SR7/SR11) into a
+    /// <see cref="RedefinesClass"/>, mark the anchor canonical and every other member a view, then assign the class a
+    /// tier (D &gt; C &gt; B &gt; A) and its class-max width, and propagate view-suppression to each view's
+    /// subordinates (SR9 — no VALUE on a subordinate of a redefiner). (COBOLNET_DESIGN §4.2.)</summary>
+    private void ClassifyRedefinesClasses()
+    {
+        var byAnchor = new Dictionary<DataItem, RedefinesClass>();
+        foreach (var item in AllItems())
+        {
+            if (item.RedefinesTarget is null) continue;
+            DataItem anchor = item;
+            while (anchor.RedefinesTarget is { } t) anchor = t;     // chase the chain to the original (SR11)
+            if (!byAnchor.TryGetValue(anchor, out var cls))
+            {
+                cls = new RedefinesClass { Canonical = anchor };
+                cls.Members.Add(anchor);
+                anchor.Class = cls;
+                byAnchor[anchor] = cls;
+            }
+            cls.Members.Add(item);
+            item.Class = cls;
+            item.IsCanonical = false;
+        }
+
+        foreach (var cls in byAnchor.Values)
+        {
+            cls.Tier = ComputeTier(cls, out string? reject);
+            cls.RejectReason = reject;
+            cls.Width = cls.Members.Max(m => m.ImageWidth);
+            foreach (var view in cls.Members)
+                if (!view.IsCanonical)
+                    foreach (var d in DescendantsOf(view)) { d.IsCanonical = false; d.Class = cls; }
+        }
+    }
+
+    /// <summary>Assign a redefines class its tier (COBOLNET_DESIGN §4.2 cascade D &gt; C &gt; B &gt; A). Tier C (the
+    /// confined byte[] codec for a genuine mixed-USAGE pun) is not yet implemented, so a class that would be Tier C is
+    /// loudly rejected in the interim — a conformant diagnostic on a legal-but-unimplemented construct.</summary>
+    private static RedefinesTier ComputeTier(RedefinesClass cls, out string? reject)
+    {
+        reject = null;
+        var leaves = cls.Members.SelectMany(LeavesOf).ToList();
+
+        // Tier C → Rejected (interim): any leaf is COMP/COMP-1/2/3/5 or float — a binary representation no character
+        // image can carry. (No pointer/object/strongly-typed items exist in the bound model yet → no Tier-D check.)
+        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat || p.Usage is not Usage.Display)))
+        {
+            reject = $"mixed-USAGE REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
+            return RedefinesTier.Rejected;
+        }
+
+        // Tier A — every member is an elementary item sharing the canonical's CLR storage type AND its image width:
+        // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).
+        DataItem canon = cls.Canonical;
+        bool allAlias = canon.IsElementary && cls.Members.All(m =>
+            m.IsElementary && m.ElementType == canon.ElementType && m.ImageWidth == canon.ImageWidth);
+        if (allAlias) return RedefinesTier.Alias;
+
+        // Tier B — DISPLAY-homogeneous: one string canonical of class-max width, each view an (offset,width) accessor.
+        return RedefinesTier.StringCanonical;
+    }
+
+    /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>
+    private IEnumerable<DataItem> AllItems()
+    {
+        static IEnumerable<DataItem> Walk(DataItem d)
+        {
+            yield return d;
+            foreach (var c in d.Children)
+                foreach (var x in Walk(c)) yield return x;
+        }
+        return Roots.SelectMany(Walk);
+    }
+
+    /// <summary>The elementary leaves of an item (itself if elementary), in source order.</summary>
+    private static IEnumerable<DataItem> LeavesOf(DataItem d)
+    {
+        if (d.IsElementary) { yield return d; yield break; }
+        foreach (var c in d.Children)
+            foreach (var l in LeavesOf(c)) yield return l;
+    }
+
+    /// <summary>Every descendant of an item (children, recursively).</summary>
+    private static IEnumerable<DataItem> DescendantsOf(DataItem d)
+    {
+        foreach (var c in d.Children)
+        {
+            yield return c;
+            foreach (var x in DescendantsOf(c)) yield return x;
+        }
+    }
+
+    /// <summary>Find an item by COBOL name within a record subtree (the item itself or any descendant).</summary>
+    private static DataItem? FindDescendantOrSelf(DataItem root, string name)
+    {
+        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase)) return root;
+        foreach (var c in root.Children)
+            if (FindDescendantOrSelf(c, name) is { } f) return f;
+        return null;
     }
 }
