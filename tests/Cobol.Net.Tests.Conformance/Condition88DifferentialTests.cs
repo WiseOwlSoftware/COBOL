@@ -86,6 +86,52 @@ public sealed class Condition88DifferentialTests
                 IF NOT A-IS-FIVE DISPLAY "NOTFIVE" ELSE DISPLAY "ISFIVE" END-IF.
             """));
 
+    [Fact]
+    // A level-88 over a Tier-B REDEFINES view: an elementary item (BB) redefined by a group (BB-2) whose subordinates
+    // (AAA/BBB) carry their own condition-names. The conditional variable must resolve to the shared backing window
+    // (the same item→Place builder a verb operand uses), so a condition test — and SET cond TO TRUE — sees the storage
+    // through every view (ISO §13.18.44, §8.8.4.5). The NC211A/NC250A IF-D35 shape.
+    public void ConditionName_OverRedefinesView()
+        => AssertSameAsLegacy(Program("""
+            01 IF-D35.
+               02 AA PIC X(2).
+               02 BB PIC X(2).
+                  88 B2 VALUE "CD".
+               02 BB-2 REDEFINES BB.
+                  03 AAA PIC X.
+                     88 AA1 VALUE "A".
+                     88 AA2 VALUE "C".
+                  03 BBB PIC X.
+                     88 BB2 VALUE "D".
+            """, """
+                MOVE "CD" TO BB.
+                IF B2  DISPLAY "B2"  ELSE DISPLAY "NB2"  END-IF.
+                IF AA2 DISPLAY "AA2" ELSE DISPLAY "NAA2" END-IF.
+                IF BB2 DISPLAY "BB2" ELSE DISPLAY "NBB2" END-IF.
+                SET AA1 TO TRUE.
+                IF AA1 DISPLAY "AA1" ELSE DISPLAY "NAA1" END-IF.
+                DISPLAY BB.
+            """));
+
+    [Fact]
+    // A level-88 condition-name on a GROUP conditional variable. Per ISO §8.8.4.5 GR2 the test follows the relation-
+    // condition rules, and §8.8.4.1 treats an alphanumeric group as an elementary alphanumeric item — so the group's
+    // character IMAGE is compared, not the raw struct (the NC211A/NC250A TABLE-86 shape).
+    public void ConditionName_OnGroupItem()
+        => AssertSameAsLegacy(Program("""
+            01 TABLE-86.
+               88 A86 VALUE "ABC".
+               88 B86 VALUE "ABCABC".
+               02 DATANAME-86 PIC XXX VALUE "ABC".
+               02 DNAME-86.
+                  03 FILLER PIC X VALUE "A".
+                  03 FILLER PIC X VALUE "B".
+                  03 FILLER PIC X VALUE "C".
+            """, """
+                IF A86 DISPLAY "A86" ELSE DISPLAY "NA86" END-IF.
+                IF B86 DISPLAY "B86" ELSE DISPLAY "NB86" END-IF.
+            """));
+
     [Theory]
     // Sign conditions (POSITIVE / NEGATIVE / ZERO), with and without NOT.
     [InlineData("01 N PIC S9(3) VALUE -5.", "    IF N IS NEGATIVE DISPLAY \"NEG\" END-IF.\n    IF N IS NOT POSITIVE DISPLAY \"NOTPOS\" END-IF.")]

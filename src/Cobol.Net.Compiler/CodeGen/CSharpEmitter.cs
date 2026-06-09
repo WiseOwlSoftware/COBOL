@@ -581,7 +581,11 @@ public sealed class CSharpEmitter
     private void EmitImageInto(Place record, string imageExpr)
     {
         var w = _ctx.Writer;
-        if (record.Item.IsGroup && record.Item.IsCharacterImage)
+        // A character-image group record distributes the read image into its typed leaves via the generated FromImage.
+        // A Tier-B view record (a multi-01 FD whose shared area is a synthesized REDEFINES) has no struct to call
+        // FromImage on — its Read() is a string window — so splice the padded image into its backing via Write, as for
+        // an elementary record. (Mirrors EmitGroupImage's RedefViewPlace handling.)
+        if (record is not RedefViewPlace && record.Item.IsGroup && record.Item.IsCharacterImage)
             w.Line($"{record.Read()}.FromImage(CobolString.Store({imageExpr}, {record.Item.ImageWidth}));");
         else
             w.Line(record.Write($"CobolString.Store({imageExpr}, {record.Item.Pic?.Length ?? record.Item.ImageWidth})"));

@@ -95,8 +95,13 @@ internal sealed class ConditionRenderer(NumericRenderer num)
 
     private static string RenderCondition88(BoundCondition88 c)
     {
-        string read = c.Parent.Read();
         bool isString = c.Parent.Item.IsGroup || c.Parent.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+        // ISO §8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
+        // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
+        // GROUP is treated as an elementary alphanumeric data item (§8.8.4.1), i.e. its character IMAGE, not the raw
+        // struct. (The numeric branch reads the scaled value directly; a numeric view stored as its image is a later
+        // slice.)
+        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : c.Parent.Read();
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
         return "(" + string.Join(" || ", tests) + ")";
     }

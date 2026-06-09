@@ -66,37 +66,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // RENAMES (level 66) resolution lands in a later slice → loud for now (never emit an invalid member access).
         if (item.Renames is not null) return null;
 
-        Place inner;
-        if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
-        {
-            // Tier B (ISO §13.18.44; COBOLNET_DESIGN §4.2): a typed (offset,width) window over the class's ONE string
-            // backing — the canonical too (so exactly one stored member). A subscripted Tier-B view (REDEFINES inside
-            // an OCCURS element) is a later slice → only the unsubscripted form here.
-            if (indexExprs.Count > 0) return null;
-            // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
-            // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
-            // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
-            // OCCURS), rather than emit an unqualified reference that does not exist in scope.
-            if (BackingPath(sc) is not { } backing) return null;
-            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-            inner = new RedefViewPlace(backing, item.ClassOffset, item.ImageWidth, item);
-        }
-        else
-        {
-            // A Tier-A view forwards to the canonical's ONE stored field — the place carries the VIEW's DataItem (so
-            // its own Pic/scale/profile drive interpretation) over the canonical's access path, so a numeric view
-            // reinterprets the shared unscaled value via its own scale. A not-yet-wired (Tier-C) / Rejected view is loud.
-            if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
-                return null;
-            DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
-                ? ac.Canonical : item;
-            // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
-            if (AccessPath(accessItem, indexExprs) is not { } path) return null;
-            // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
-            // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
-            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-            inner = new MemberPlace(path, item);
-        }
+        if (PlaceForItem(item, indexExprs) is not { } inner) return null;
 
         if (refCtx is null) return inner;
         // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B view).
@@ -105,10 +75,56 @@ public sealed class ReferenceResolver(DataBinder data)
         return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;
     }
 
-    /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's parent),
-    /// or <see langword="null"/> if the item is within an OCCURS table (a subscripted reference is then required).</summary>
-    public Place? ResolveItem(DataItem item) =>
-        AccessPath(item, []) is { } path ? new MemberPlace(path, item) : null;
+    /// <summary>
+    /// Build the typed <see cref="Place"/> for an already-resolved <paramref name="item"/> with its subscript index
+    /// expressions, honoring the REDEFINES machinery (COBOLNET_DESIGN §3.4 / §4.2):
+    /// <list type="bullet">
+    ///   <item>a Tier-B (string-canonical) view → a <see cref="RedefViewPlace"/> (offset,width) window over the
+    ///         class's ONE string backing (the canonical too, so exactly one stored member);</item>
+    ///   <item>a Tier-A (alias) view → the canonical's ONE stored field, reinterpreted through the view's own
+    ///         Pic/scale/profile (the place carries the VIEW's <see cref="DataItem"/>);</item>
+    ///   <item>any other item → a plain <see cref="MemberPlace"/>.</item>
+    /// </list>
+    /// Returns <see langword="null"/> for a form not handled in this slice — a subscripted Tier-B view, a whole-OCCURS
+    /// reference, a not-yet-wired Tier-C / Rejected view, or a subscript-count mismatch — so the caller fails loud.
+    /// This is the ONE item→<see cref="Place"/> builder: both the syntactic <see cref="Resolve"/> path and the by-item
+    /// <see cref="ResolveItem"/> path go through it, so EVERY consumer (verb operands, level-88 / SET conditional
+    /// variables, FD record areas) sees identical view resolution.
+    /// </summary>
+    private Place? PlaceForItem(DataItem item, IReadOnlyList<string> indexExprs)
+    {
+        if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
+        {
+            // A subscripted Tier-B view (REDEFINES inside an OCCURS element) is a later slice → only the unsubscripted
+            // form here.
+            if (indexExprs.Count > 0) return null;
+            // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
+            // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
+            // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
+            // OCCURS), rather than emit an unqualified reference that does not exist in scope.
+            if (BackingPath(sc) is not { } backing) return null;
+            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+            return new RedefViewPlace(backing, item.ClassOffset, item.ImageWidth, item);
+        }
+        // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
+        // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.
+        if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
+            return null;
+        DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
+            ? ac.Canonical : item;
+        // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
+        if (AccessPath(accessItem, indexExprs) is not { } path) return null;
+        // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
+        // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
+        if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+        return new MemberPlace(path, item);
+    }
+
+    /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's conditional
+    /// variable, a SET condition's variable, or an FD record area) — view-aware via <see cref="PlaceForItem"/>, so a
+    /// REDEFINES view resolves to its window / canonical exactly as a verb operand does. <see langword="null"/> if the
+    /// item is within an OCCURS table (a subscripted reference is then required) or is an unhandled view form.</summary>
+    public Place? ResolveItem(DataItem item) => PlaceForItem(item, []);
 
     /// <summary>The qualified C# access path to a Tier-B/Tier-C class's single stored backing field. The backing is
     /// emitted in the canonical's containing struct, so a NESTED class reaches it through that struct's path

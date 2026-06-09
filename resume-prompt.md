@@ -14,7 +14,7 @@
 > **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
 > Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
-> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **245 conformance + 14
+> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **248 conformance + 14
 > unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
 > proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
 > before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
@@ -34,15 +34,19 @@
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
 > **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
-> `[InlineData]`):** Snapshot after 505: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
-> **(1) FIRST, the systematic Tier-B REDEFINES `.BB` blocker** (DEVLOG 505) — an ELEMENTARY item redefined by a GROUP
-> (`02 BB PIC X(2). 02 BB-2 REDEFINES BB. 03 SUB-SUB-BB …`; NC252A `REDEF10.RDF3.…` is the nested variant). The
-> FieldEmitter suppresses the member + emits the single `_redef_BB` backing, but the REFERENCE site still emits a plain
-> member path (`IF_D35.BB`) instead of a `RedefViewPlace` window → CS1061. Diagnose why `ReferenceResolver.Resolve`'s
-> `item.Class is { Tier: StringCanonical }` branch is missed for BB / a nested subordinate (qualified-resolution
-> dropping the class? a group-redefines-elementary classification gap? a subordinate-of-a-view whose `Class`/`ClassOffset`
-> isn't a window?) — DUMP the classification state for NC211A first. High-leverage: Tier-B correctness + clears
-> NC211A/250A/252A. **(2) Then the high-frequency string/table VERBS** (the 61 compile-but-mismatch programs each hit an
+> `[InlineData]`):** Snapshot after 506: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
+> **(1) FIRST, abbreviated combined relation conditions** (ISO §8.8.4.12 — `IF A = B OR C OR D` / `… AND NOT > D`, the
+> implied subject+operator forms) — **this is the blocker that greens NC211A**: after DEVLOG 506 (below) NC211A now
+> compiles + runs but stops at its first ABBREVIATED test (`CC--TEST-GF-11`) on a runtime loud guard `unsupported
+> condition form`. Implement in the binder (expand each abbreviation to a full `BoundRelational` against the carried
+> subject/operator, §8.8.4.12 GR) → green NC211A, then NC250A's remaining gaps. **(DONE in 506 — the Entry-505 Tier-B
+> `.BB` blocker: the diagnosis was WRONG (it is NOT `Resolve`'s StringCanonical branch — the MOVE path proves `Resolve`
+> resolves a view fine); the real bug was `ReferenceResolver.ResolveItem(DataItem)` — used by level-88 / SET conditions —
+> always building a plain `MemberPlace`, bypassing the view machinery. Fixed by factoring ONE view-aware
+> `PlaceForItem(item, indexExprs)` that both `Resolve` and `ResolveItem` use; also fixed group-level-88 to compare the
+> character image per §8.8.4.5 GR2 / §8.8.4.1. NC252A is NOT cleared — it needs a numeric Tier-B-view 88 (`string == long`
+> today), a nested-Tier-B-through-suppressed-parent backing [`REDEF11`/`RDF3`], AND level-66 RENAMES.)** **(2) Then the
+> high-frequency string/table VERBS** (the 61 compile-but-mismatch programs each hit an
 > unimplemented verb's loud guard): **INSPECT** (TALLYING/REPLACING/CONVERTING), **EVALUATE**, **SEARCH**/SET-for-index,
 > **STRING**/**UNSTRING**, **INITIALIZE**, **ACCEPT** — each via `CobolStrings`/the bound tree + a differential test.
 > ⚠ **A single verb greens NO program (each MISS needs several) — so TARGET A PROGRAM: pick one (or two) NC programs,

@@ -153,6 +153,25 @@ public sealed class FileIoDifferentialTests
             """));
 
     [Fact]
+    public void MultipleRecordsUnderOneFd_TierBSharedArea()
+        // Two 01s under one FD with DIFFERENT layouts (a group + an elementary X) share the area as a synthesized
+        // Tier-B redefines (ISO §9.1.2; COBOLNET_DESIGN §4.2): the first record (a group) is a view over the ONE
+        // backing, so WRITE writes the backing window and a READ distributes the image INTO the backing (not a struct
+        // FromImage) — the EmitImageInto view path. The leaves then read it back.
+        => AssertSameAsLegacy(Program("ASSIGN TO \"FIO-RT7\"",
+            "01 REC-A.\n   03 RA-1 PIC X(3).\n   03 RA-2 PIC X(3).\n01 REC-B PIC X(6).", "",
+            """
+                OPEN OUTPUT F.
+                MOVE "FOOBAR" TO REC-B.
+                WRITE REC-A.
+                CLOSE F.
+                OPEN INPUT F.
+                READ F AT END MOVE "Y" TO WS-EOF
+                    NOT AT END DISPLAY "A=" RA-1 "/" RA-2 END-READ.
+                CLOSE F.
+            """));
+
+    [Fact]
     public void WriteAfterAdvancing_LineSequentialReadBack()
         // A printer-style WRITE … AFTER ADVANCING stream read back line-by-line (LINE SEQUENTIAL): the advancing
         // newline structure (a leading blank line per AFTER) is observable as the read records.
