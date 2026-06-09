@@ -26,6 +26,7 @@ public sealed class CSharpEmitter
     private EmissionContext _ctx = null!;
     private NumericRenderer _num = null!;
     private ConditionRenderer _cond = null!;
+    private ReferenceResolver _refs = null!;
 
     /// <summary>Emit C# source for the first program unit in <paramref name="tree"/>.</summary>
     public string Emit(Core.CompilationUnitContext tree)
@@ -34,8 +35,8 @@ public sealed class CSharpEmitter
 
         var data = new DataBinder();
         if (program is not null) data.Bind(program);
-        var refs = new ReferenceResolver(data);
-        BoundProgram bound = program is not null ? new StatementBinder(data, refs).Bind(program) : new BoundProgram([]);
+        _refs = new ReferenceResolver(data);
+        BoundProgram bound = program is not null ? new StatementBinder(data, _refs).Bind(program) : new BoundProgram([]);
 
         // Whole-group analysis (ISO §14.9 MOVE GR4): a numeric-DISPLAY leaf under a group used as a whole operand
         // must store its character image, because a whole-group move fills it without conversion (it may receive
@@ -53,6 +54,8 @@ public sealed class CSharpEmitter
         w.Line("// </auto-generated>");
         w.Line("#nullable enable");
         w.Line("using CobolNet.Runtime;          // CobolNum / CobolString typed-native runtime substrates");
+        if (data.Files.Count > 0)
+            w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
         w.Line();
 
         using (w.Block("internal static class Program"))
@@ -99,6 +102,7 @@ public sealed class CSharpEmitter
     private int _depCounter;    // unique-name counter for GO TO … DEPENDING selectors
     private int _sizeErrCounter; // unique-name counter for ON SIZE ERROR flags
     private int _storeTmpCounter; // unique-name counter for checked-store out-vars
+    private int _readCounter;    // unique-name counter for READ out-image temporaries
     private string? _sizeErrVar; // the current __sizeErr flag while emitting a checked arithmetic body (else null)
 
     /// <summary>
@@ -116,7 +120,17 @@ public sealed class CSharpEmitter
         w.Line($"private const int __N = {n};   // paragraph count");
         w.Line();
         using (w.Block("private static void Main()"))
-            w.Line("try { __Dispatch(0, -1); } catch (StopRun) { }");
+        {
+            // Register every SELECTed file before the program runs; close all files at run-unit termination
+            // (ISO §14.6 — flushes print streams, writes the trailing newline of a WRITE … ADVANCING file).
+            if (_ctx.Data.Files.Count > 0)
+            {
+                EmitFileRegistration(w);
+                w.Line("try { __Dispatch(0, -1); } catch (StopRun) { } finally { CobolFile.CloseAll(); }");
+            }
+            else
+                w.Line("try { __Dispatch(0, -1); } catch (StopRun) { }");
+        }
         w.Line();
         using (w.Block("private static int __Dispatch(int __startPc, int __exitPc)"))
         {
@@ -187,6 +201,11 @@ public sealed class CSharpEmitter
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
             case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
             case BoundSetConditions set: EmitSet(set); return false;
+            case BoundOpen o: EmitOpen(o); return false;
+            case BoundClose c: EmitClose(c); return false;
+            case BoundWrite wr: EmitWrite(wr); return false;
+            case BoundRead rd: EmitRead(rd); return false;
+            case BoundRewrite rw: EmitRewrite(rw); return false;
             default: w.Line(LoudStmt($"bound statement '{s.GetType().Name}'")); return false;
         }
     }
@@ -451,4 +470,137 @@ public sealed class CSharpEmitter
             _ctx.Writer.Line(parent.Write(rhs));
         }
     }
+
+    // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ─────────────────────────────────────────────────────────────
+
+    /// <summary>Emit the file registry init + one <c>Register</c> per SELECTed sequential file (at <c>Main</c> start).
+    /// The ASSIGN target becomes a host path at run time (<c>CobolFile.ResolveHostPath</c>); the record width is the
+    /// FD record-area image width. A non-sequential file is skipped here (its verbs emit loud guards).</summary>
+    private void EmitFileRegistration(CodeWriter w)
+    {
+        w.Line("CobolFile.Init();");
+        foreach (var file in _ctx.Data.Files)
+        {
+            if (!file.IsSequential || file.Records.Count == 0) continue;
+            bool lineSeq = file.Organization == FileOrganization.LineSequential;
+            w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
+                   $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")});");
+        }
+    }
+
+    private void EmitOpen(BoundOpen o)
+    {
+        var w = _ctx.Writer;
+        foreach (var (file, mode, unsupported) in o.Files)
+        {
+            if (unsupported is { } u) { w.Line(LoudStmt(u)); continue; }
+            string method = mode switch
+            {
+                BoundOpenMode.Output => "OpenOutput",
+                BoundOpenMode.Extend => "OpenExtend",
+                BoundOpenMode.IO => "OpenIO",
+                _ => "OpenInput",
+            };
+            w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+            EmitStoreFileStatus(file);
+        }
+    }
+
+    private void EmitClose(BoundClose c)
+    {
+        var w = _ctx.Writer;
+        foreach (var (file, kind) in c.Files)
+        {
+            string method = kind switch
+            {
+                BoundCloseKind.WithLock => "CloseWithLock",
+                BoundCloseKind.ReelUnit => "CloseReelUnit",
+                _ => "Close",
+            };
+            w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+            EmitStoreFileStatus(file);
+        }
+    }
+
+    /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.46): a FROM operand first MOVEs into the record area,
+    /// then the record's character image is written (plain, or with print-control advancing).</summary>
+    private void EmitWrite(BoundWrite wr)
+    {
+        var w = _ctx.Writer;
+        if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        if (wr.From is { } from) EmitMove(new BoundMove(from, [wr.Record]));
+        string name = CsLiteral(wr.File.CobolName);
+        string image = OperandText.AsString(new BoundFieldOperand(wr.Record));
+        if (wr.Advancing is { } adv)
+        {
+            string lines = adv.Page ? "-1" : LinesExpr(adv.Lines!);
+            w.Line($"CobolFile.WriteAdvancing({name}, {image}, {lines}, {(adv.Before ? "true" : "false")});");
+        }
+        else
+            w.Line($"CobolFile.Write({name}, {image});");
+        EmitStoreFileStatus(wr.File);
+    }
+
+    /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
+    /// distributed into the FD record area (and, with INTO, MOVEd to the target); the AT END / NOT AT END imperative
+    /// branches on the at-end condition.</summary>
+    private void EmitRead(BoundRead rd)
+    {
+        var w = _ctx.Writer;
+        if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        string name = CsLiteral(rd.File.CobolName);
+        string tmp = $"__rd{_readCounter++}";
+        Place? area = rd.File.Records.Count > 0 ? _refs.ResolveItem(rd.File.Records[0]) : null;
+        using (w.Block($"if (CobolFile.Read({name}, out var {tmp}))"))
+        {
+            if (area is not null) EmitImageInto(area, tmp);
+            EmitStoreFileStatus(rd.File);
+            // READ … INTO is READ then MOVE the record area to the target (ISO §14.9.30 GR — group move).
+            if (rd.Into is { } into && area is not null)
+                EmitMove(new BoundMove(new BoundFieldOperand(area), [into]));
+            if (rd.NotAtEnd is { } not) EmitStatementList(not);
+        }
+        using (w.Block("else"))
+        {
+            EmitStoreFileStatus(rd.File);
+            if (rd.AtEnd is { } at) EmitStatementList(at);
+        }
+    }
+
+    private void EmitRewrite(BoundRewrite rw)
+    {
+        var w = _ctx.Writer;
+        if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
+        if (rw.From is { } from) EmitMove(new BoundMove(from, [rw.Record]));
+        w.Line($"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {OperandText.AsString(new BoundFieldOperand(rw.Record))});");
+        EmitStoreFileStatus(rw.File);
+    }
+
+    /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
+    /// an elementary / view record takes the image padded to its width.</summary>
+    private void EmitImageInto(Place record, string imageExpr)
+    {
+        var w = _ctx.Writer;
+        if (record.Item.IsGroup && record.Item.IsCharacterImage)
+            w.Line($"{record.Read()}.FromImage(CobolString.Store({imageExpr}, {record.Item.ImageWidth}));");
+        else
+            w.Line(record.Write($"CobolString.Store({imageExpr}, {record.Item.Pic?.Length ?? record.Item.ImageWidth})"));
+    }
+
+    /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),
+    /// when the SELECT declared one.</summary>
+    private void EmitStoreFileStatus(FileModel file)
+    {
+        if (file.FileStatusItem is not { } item || _refs.ResolveItem(item) is not { } place) return;
+        int width = item.Pic?.Length ?? 2;
+        _ctx.Writer.Line(place.Write($"CobolString.Store(CobolFile.Status({CsLiteral(file.CobolName)}), {width})"));
+    }
+
+    /// <summary>The C# <c>int</c> expression for an ADVANCING line count (a literal or a numeric data-name).</summary>
+    private string LinesExpr(BoundOperand lines) => lines switch
+    {
+        BoundNumericLiteral n => $"(int)({n.Text})",
+        BoundFieldOperand f => $"(int)({_num.AsNum(f).Expr})",
+        _ => "1",
+    };
 }

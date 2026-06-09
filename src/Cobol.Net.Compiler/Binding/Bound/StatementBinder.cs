@@ -82,6 +82,11 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.exitStatement() is { } e => BindExit(e),
+        _ when s.openStatement() is { } o => BindOpen(o),
+        _ when s.closeStatement() is { } c => BindClose(c),
+        _ when s.writeStatement() is { } w => BindWrite(w),
+        _ when s.readStatement() is { } r => BindRead(r),
+        _ when s.rewriteStatement() is { } rw => BindRewrite(rw),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
@@ -118,6 +123,130 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     /// <summary>The pc index a paragraph name resolves to, or null if unknown.</summary>
     private int? PcOf(string name) => _paraIndex.TryGetValue(name, out int i) ? i : null;
+
+    // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────
+
+    private BoundStatement BindOpen(Core.OpenStatementContext o)
+    {
+        var opens = new List<(FileModel, BoundOpenMode, string?)>();
+        foreach (var clause in o.openClause())
+        {
+            BoundOpenMode mode = MapOpenMode(clause.openMode());
+            foreach (var spec in clause.openFileSpec())
+            {
+                string name = spec.dataReference().GetText();
+                if (!data.FilesByName.TryGetValue(name, out var file))
+                    return new BoundUnsupported($"OPEN of undeclared file '{name}'");
+                opens.Add((file, mode, UnsupportedOrg(file, "OPEN")));
+            }
+        }
+        return new BoundOpen(opens);
+    }
+
+    private BoundStatement BindClose(Core.CloseStatementContext c)
+    {
+        var closes = new List<(FileModel, BoundCloseKind)>();
+        foreach (var phrase in c.closeFilePhrase())
+        {
+            string name = phrase.fileName().GetText();
+            if (!data.FilesByName.TryGetValue(name, out var file))
+                return new BoundUnsupported($"CLOSE of undeclared file '{name}'");
+            BoundCloseKind kind = phrase.closeOption() is { } opt
+                ? opt.LOCK() is not null ? BoundCloseKind.WithLock
+                : opt.REEL() is not null || opt.UNIT() is not null ? BoundCloseKind.ReelUnit
+                : BoundCloseKind.Normal
+                : BoundCloseKind.Normal;
+            closes.Add((file, kind));
+        }
+        return new BoundClose(closes);
+    }
+
+    private BoundStatement BindWrite(Core.WriteStatementContext w)
+    {
+        Place? record = null;
+        FileModel? file = null;
+        if (w.recordName()?.dataReference() is { } rn && refs.Resolve(rn) is { } place)
+        {
+            record = place;
+            file = FileOfRecord(place);
+        }
+        else if (w.fileName() is { } fn && data.FilesByName.TryGetValue(fn.GetText(), out var f) && f.Records.Count > 0)
+        {
+            file = f;
+            record = refs.ResolveItem(f.Records[0]);
+        }
+        if (file is null || record is null)
+            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
+
+        return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
+            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"));
+    }
+
+    private BoundStatement BindRead(Core.ReadStatementContext r)
+    {
+        string name = r.fileName().GetText();
+        if (!data.FilesByName.TryGetValue(name, out var file))
+            return new BoundUnsupported($"READ of undeclared file '{name}'");
+        Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
+        List<BoundStatement>? atEnd = null, notAtEnd = null;
+        if (r.readAtEnd() is { } ae)
+        {
+            var blocks = ae.statementBlock();
+            if (blocks.Length >= 1) atEnd = BindBlocks([blocks[0]]);
+            if (blocks.Length >= 2) notAtEnd = BindBlocks([blocks[1]]);
+        }
+        return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"));
+    }
+
+    private BoundStatement BindRewrite(Core.RewriteStatementContext rw)
+    {
+        Place? record = rw.recordName()?.dataReference() is { } rn ? refs.Resolve(rn) : null;
+        FileModel? file = record is not null ? FileOfRecord(record) : null;
+        if (file is null || record is null)
+            return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+        return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
+            UnsupportedOrg(file, "REWRITE"));
+    }
+
+    /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>
+    private BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit) =>
+        lit is not null ? LiteralOperand(lit) : dref is not null ? FieldOperand(dref) : null;
+
+    /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.</summary>
+    private BoundAdvancing? BindAdvancing(Core.WriteBeforeAfterContext? ctx)
+    {
+        if (ctx is null) return null;
+        bool before = ctx.BEFORE() is not null;
+        if (ctx.PAGE() is not null) return new BoundAdvancing(before, true, null);
+        BoundOperand lines =
+            ctx.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
+            : ctx.dataReference() is { } d ? FieldOperand(d)
+            : ctx.literal() is { } lit ? LiteralOperand(lit)
+            : new BoundNumericLiteral("1");
+        return new BoundAdvancing(before, false, lines);
+    }
+
+    private static BoundOpenMode MapOpenMode(Core.OpenModeContext m) =>
+        m.OUTPUT() is not null ? BoundOpenMode.Output
+        : m.EXTEND() is not null ? BoundOpenMode.Extend
+        : m.I_O() is not null ? BoundOpenMode.IO
+        : BoundOpenMode.Input;
+
+    /// <summary>The owning <see cref="FileModel"/> of a record reference: the file whose records include the
+    /// reference's top-level (01) record. Null if the reference is not an FD record.</summary>
+    private FileModel? FileOfRecord(Place record)
+    {
+        DataItem root = record.Item;
+        while (root.Parent is { } p) root = p;
+        foreach (var f in data.Files)
+            if (f.Records.Contains(root)) return f;
+        return null;
+    }
+
+    /// <summary>A loud-reason string when <paramref name="file"/>'s organization is not yet implemented (relative /
+    /// indexed in the sequential slice), so the verb emits a runtime not-implemented guard; null when supported.</summary>
+    private static string? UnsupportedOrg(FileModel file, string verb) =>
+        file.IsSequential ? null : $"{verb} on {file.Organization} file '{file.CobolName}' (sequential slice; relative/indexed are later)";
 
     private BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {

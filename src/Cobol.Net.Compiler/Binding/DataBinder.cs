@@ -49,18 +49,49 @@ public sealed class DataBinder
     /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
     public OptionsModel Options { get; private set; } = OptionsModel.Default;
 
-    /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
+    /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.</summary>
+    public List<FileModel> Files { get; } = [];
+
+    /// <summary>The files keyed by COBOL file-name (case-insensitive), for the binder to resolve OPEN/READ/CLOSE
+    /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
+    public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
+    /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
+    /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
+    /// resolve each file's FILE STATUS item.</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
         Options = OptionsBinder.Bind(program);   // captured even when there is no WORKING-STORAGE
 
-        var ws = program.dataDivision()?.workingStorageSection();
-        if (ws is null) return;
+        // The C#-field-name scope at the Program level is shared by FILE SECTION records AND WORKING-STORAGE roots —
+        // both emit as static fields, so a name used by an FD record must not collide with a WS root.
+        var rootNames = new HashSet<string>(StringComparer.Ordinal);
 
-        // A level-number stack builds the tree: an entry attaches under the nearest open item whose level is lower.
+        BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
+        BindFileSection(program, rootNames);       // FD records → Roots + FileModel.Records + the shared-area REDEFINES
+
+        if (program.dataDivision()?.workingStorageSection() is { } ws)
+            BindEntries(ws.dataDescriptionEntry(), rootNames);
+
+        // Post-build (the forest is complete): resolve REDEFINES/RENAMES targets, then group overlaid items into
+        // shared-storage classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now
+        // covers the FILE SECTION records too (their multi-01 area sharing is a synthesized REDEFINES). Finally
+        // resolve each file's FILE STATUS data item.
+        ResolveRedefines();
+        ClassifyRedefinesClasses();
+        ResolveFiles();
+    }
+
+    /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
+    /// storage forest: a level-number stack attaches each entry under the nearest open item of a lower level; level-88
+    /// becomes a condition-name and level-66 a RENAMES alias. Returns the new top-level (01/77) items, in order — the
+    /// caller (an FD) needs them to model the shared record area.</summary>
+    private List<DataItem> BindEntries(IEnumerable<Core.DataDescriptionEntryContext> entries, HashSet<string> rootNames)
+    {
+        var newRoots = new List<DataItem>();
         var stack = new Stack<DataItem>();
-        var rootNames = new HashSet<string>(StringComparer.Ordinal);   // C#-field-name scope at the Program level
-        foreach (var entry in ws.dataDescriptionEntry())
+        foreach (var entry in entries)
         {
             int.TryParse(entry.levelNumber().GetText(), out int lvl);
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
@@ -84,8 +115,12 @@ public sealed class DataBinder
 
             if (stack.Count == 0)
             {
+                // A 01/77 emits as a Program-level static field — its C# name must be unique across every root
+                // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
                 item.CsName = Unique(item.CsName, rootNames);
+                rootNames.Add(item.CsName);
                 Roots.Add(item);
+                newRoots.Add(item);
                 _lastRoot = item;
             }
             else
@@ -99,12 +134,89 @@ public sealed class DataBinder
             stack.Push(item);
             RegisterName(item);
         }
-
-        // Post-build (the forest is complete): resolve REDEFINES/RENAMES targets, then group overlaid items into
-        // shared-storage classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4).
-        ResolveRedefines();
-        ClassifyRedefinesClasses();
+        return newRoots;
     }
+
+    // ── FILE-CONTROL + FILE SECTION (ISO §12.4.5 / §13.18; COBOLNET_DESIGN §8) ─────────────────────────────────
+
+    /// <summary>Bind the FILE-CONTROL paragraph's SELECT clauses into <see cref="FileModel"/>s (assign target,
+    /// organization, access mode, OPTIONAL, FILE STATUS). The FD records attach in <see cref="BindFileSection"/>.</summary>
+    private void BindFileControl(Core.ProgramUnitContext program)
+    {
+        var fc = program.environmentDivision()?.inputOutputSection()?.fileControlParagraph();
+        if (fc is null) return;
+        foreach (var grp in fc.fileControlClauseGroup())
+        {
+            if (grp.fileName()?.GetText() is not { } name) continue;
+            var file = new FileModel { CobolName = name, AssignTarget = name, Optional = grp.OPTIONAL() is not null };
+            foreach (var clauses in grp.fileControlClauses())
+            {
+                if (clauses.assignClause()?.assignTarget() is { } tgt)
+                    file.AssignTarget = tgt.STRINGLIT() is { } s ? DecodeString(s.GetText()) : tgt.GetText();
+                else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
+                else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
+                else if (clauses.fileStatusClause()?.dataReference() is { } fs) file.FileStatusName = fs.GetText();
+            }
+            Files.Add(file);
+            FilesByName[name] = file;
+        }
+    }
+
+    /// <summary>Bind the FILE SECTION's FD records into the storage forest (they emit as Program fields, like
+    /// WORKING-STORAGE), attach them to their <see cref="FileModel"/>, and model the shared record area: multiple
+    /// <c>01</c>s under one FD occupy ONE area (ISO §9.1.2), so each secondary record is synthesized as a REDEFINES of
+    /// the first — the existing tier machinery then makes them alias one backing (the singular-pattern rule).</summary>
+    private void BindFileSection(Core.ProgramUnitContext program, HashSet<string> rootNames)
+    {
+        var fs = program.dataDivision()?.fileSection();
+        if (fs is null) return;
+        foreach (var fd in fs.fileDescriptionEntry())
+        {
+            if (fd.fileName()?.GetText() is not { } name) continue;
+            var records = BindEntries(fd.dataDescriptionEntry(), rootNames);
+            if (!FilesByName.TryGetValue(name, out var file))
+            {
+                // An FD with no matching SELECT — keep a model so its records still resolve (it is never opened).
+                file = new FileModel { CobolName = name };
+                Files.Add(file);
+                FilesByName[name] = file;
+            }
+            file.HasFd = true;
+            file.Records.AddRange(records);
+            for (int i = 1; i < records.Count; i++)
+                records[i].RedefinesTarget ??= records[0];   // secondary record shares the first's storage area
+        }
+    }
+
+    /// <summary>Resolve each file's FILE STATUS data-name to its item (post-build, once the forest is indexed).</summary>
+    private void ResolveFiles()
+    {
+        foreach (var file in Files)
+            if (file.FileStatusName is { } sn && ByName.TryGetValue(sn, out var list) && list.Count > 0)
+                file.FileStatusItem = list[0];
+    }
+
+    private static FileOrganization MapOrganization(Core.OrganizationClauseContext org)
+    {
+        var t = org.organizationType();
+        if (t is null) return FileOrganization.Sequential;
+        if (t.LINE() is not null) return FileOrganization.LineSequential;
+        if (t.RELATIVE() is not null) return FileOrganization.Relative;
+        if (t.INDEXED() is not null) return FileOrganization.Indexed;
+        return FileOrganization.Sequential;
+    }
+
+    private static FileAccessMode MapAccessMode(Core.AccessModeClauseContext acc)
+    {
+        var m = acc.accessMode();
+        if (m?.RANDOM() is not null) return FileAccessMode.Random;
+        if (m?.DYNAMIC() is not null) return FileAccessMode.Dynamic;
+        return FileAccessMode.Sequential;
+    }
+
+    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) to its character value.</summary>
+    private static string DecodeString(string raw) =>
+        raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;
 
     /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
     private DataItem? _lastRoot;

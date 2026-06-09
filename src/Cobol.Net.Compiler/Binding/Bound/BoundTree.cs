@@ -190,3 +190,39 @@ public sealed record BoundNop : BoundStatement;
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>
 public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets) : BoundStatement;
+
+// ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
+
+/// <summary>How a file is opened (ISO §14.9.25). Maps 1:1 to the runtime <c>FileOpenMode</c>.</summary>
+public enum BoundOpenMode { Input, Output, Extend, IO }
+
+/// <summary>How a closed file is finalized (ISO §14.9.7): a plain close, <c>WITH LOCK</c> (no reopen), or a
+/// <c>REEL/UNIT</c> phrase (a no-op on a disk medium, leaves the file open).</summary>
+public enum BoundCloseKind { Normal, WithLock, ReelUnit }
+
+/// <summary><c>OPEN {INPUT|OUTPUT|I-O|EXTEND} file …</c> — each opened file with its mode (ISO §14.9.25). An
+/// unsupported organization (relative/indexed in the sequential slice) carries a loud <paramref name="Unsupported"/>
+/// reason so the file opens to a runtime not-implemented guard.</summary>
+public sealed record BoundOpen(IReadOnlyList<(FileModel File, BoundOpenMode Mode, string? Unsupported)> Files) : BoundStatement;
+
+/// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.7).</summary>
+public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement;
+
+/// <summary>A <c>WRITE … {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> phrase (ISO §14.9.46): print-control output.
+/// <paramref name="Page"/> = ADVANCING PAGE (a form feed); otherwise <paramref name="Lines"/> is the line count
+/// (a literal or data-name, default 1). <paramref name="Before"/> distinguishes BEFORE from AFTER.</summary>
+public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines);
+
+/// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §14.9.46): <paramref name="Record"/> is the record area
+/// place (its image is written); a FROM operand first MOVEs into the record. <paramref name="Advancing"/> null = a
+/// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.</summary>
+public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From, BoundAdvancing? Advancing, string? Unsupported) : BoundStatement;
+
+/// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that
+/// distributes the record image into the FD record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END
+/// / NOT AT END imperatives branch on the at-end condition.</summary>
+public sealed record BoundRead(
+    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement;
+
+/// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's image.</summary>
+public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? From, string? Unsupported) : BoundStatement;
