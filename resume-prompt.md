@@ -11,10 +11,10 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 504):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
+> **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
 > Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
-> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **242 conformance + 14
+> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **245 conformance + 14
 > unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
 > proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
 > before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
@@ -30,22 +30,30 @@
 > (501) mapped the NC series + locked the 7 green + `Pow10D` negative-scale. (502) **fixed 3 compiler HANGS** — the
 > deeply-nested-group O(2^depth) emission blowup, now memoized (`FieldEmitter.PhysicalChildrenOf`). (503) **level-77 is
 > a root** (independent item) — cleared 12 NC compile-errors. (504) **figurative constants in numeric / VALUE contexts**
-> (ZERO in arithmetic → 0; `ALL ZEROS` VALUE init) — cleared 5 more.
+> (ZERO in arithmetic → 0; `ALL ZEROS` VALUE init) — cleared 5 more. (505) **figurative ZERO in a level-88 VALUE**
+> (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
 > **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
-> `[InlineData]`):** Snapshot after 504: ~80/95 NC compile; 7 byte-match the golden. The 61 compile-but-mismatch
-> programs mostly hit an **unimplemented verb's loud guard** — implement the high-frequency string/table verbs next
-> (the G3/G7 surface): **INSPECT** (TALLYING/REPLACING/CONVERTING), **EVALUATE**, **SEARCH**/SET-for-index,
-> **STRING**/**UNSTRING**, **INITIALIZE**, **ACCEPT** (FROM DATE/TIME/mnemonic) — each via `CobolStrings`/the bound
-> tree + a differential test, NC-program-verified. A few CERR remain (a group-qualification `_T_*.BB`, a `ZERO00L`
-> figurative path, a `REDEF10` REDEFINES name — NC211A/250A/252A). Then **G5 relative+indexed files** (`FileConnector`
-> for SQ/RL/IX) + SORT/MERGE, and **CobolEdit** numeric-edited (needed once a FAIL path prints COMPUTED=). **Pattern
-> that works:** map via the compile/run sweeps (compile-only first — a few NIST programs hang at *runtime*: use
-> `timeout`), pick the highest-frequency gap, implement to the spec + design, differential-test, guard-green, commit,
-> tick. **Known-latent (Int128/G3):** intermediate overflow beyond the long range / additive-scaling overflow / COMP-5
-> width bounds not size-error-checked; no-phrase EC-SIZE-fatal awaits the EC model. **OPTIONS clauses parsed but not
-> yet applied:** ARITHMETIC mode, ENTRY-CONVENTION, FLOAT-BINARY/DECIMAL, INTERMEDIATE ROUNDING, INITIALIZE. Earlier
-> history since 488:
+> `[InlineData]`):** Snapshot after 505: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
+> **(1) FIRST, the systematic Tier-B REDEFINES `.BB` blocker** (DEVLOG 505) — an ELEMENTARY item redefined by a GROUP
+> (`02 BB PIC X(2). 02 BB-2 REDEFINES BB. 03 SUB-SUB-BB …`; NC252A `REDEF10.RDF3.…` is the nested variant). The
+> FieldEmitter suppresses the member + emits the single `_redef_BB` backing, but the REFERENCE site still emits a plain
+> member path (`IF_D35.BB`) instead of a `RedefViewPlace` window → CS1061. Diagnose why `ReferenceResolver.Resolve`'s
+> `item.Class is { Tier: StringCanonical }` branch is missed for BB / a nested subordinate (qualified-resolution
+> dropping the class? a group-redefines-elementary classification gap? a subordinate-of-a-view whose `Class`/`ClassOffset`
+> isn't a window?) — DUMP the classification state for NC211A first. High-leverage: Tier-B correctness + clears
+> NC211A/250A/252A. **(2) Then the high-frequency string/table VERBS** (the 61 compile-but-mismatch programs each hit an
+> unimplemented verb's loud guard): **INSPECT** (TALLYING/REPLACING/CONVERTING), **EVALUATE**, **SEARCH**/SET-for-index,
+> **STRING**/**UNSTRING**, **INITIALIZE**, **ACCEPT** — each via `CobolStrings`/the bound tree + a differential test.
+> ⚠ **A single verb greens NO program (each MISS needs several) — so TARGET A PROGRAM: pick one (or two) NC programs,
+> implement the UNION of verbs they need, and finish at a NEW GREEN program** (a real integration milestone), not a
+> stack of individually-tested verbs. **(3) Then G5 relative+indexed files** (`FileConnector` for SQ/RL/IX) + SORT/MERGE,
+> and **CobolEdit** numeric-edited (needed once a FAIL path prints COMPUTED=). **Pattern that works:** map via the
+> compile/run sweeps (compile-only first — a few NIST programs hang at *runtime*: use `timeout -k`), implement to the
+> spec + design, differential-test, guard-green, commit, tick. **Known-latent (Int128/G3):** intermediate overflow
+> beyond the long range / additive-scaling overflow / COMP-5 width bounds not size-error-checked; no-phrase EC-SIZE-fatal
+> awaits the EC model. **OPTIONS clauses parsed but not yet applied:** ARITHMETIC mode, ENTRY-CONVENTION,
+> FLOAT-BINARY/DECIMAL, INTERMEDIATE ROUNDING, INITIALIZE. Earlier history since 488:
 > (489) deep-dive doc-sync to SSOT §14; (490) **whole-group MOVE/DISPLAY/compare over numeric-DISPLAY leaves** — a
 > numeric-DISPLAY leaf in a whole-group-referenced group stores its CHARACTER IMAGE (`DataItem.StoreAsImage`, no
 > byte[]; ISO §14.9 MOVE GR4 — line 28901: group move = char copy, no conversion); (491–493) **REDEFINES/RENAMES the
