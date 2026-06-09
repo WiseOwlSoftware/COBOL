@@ -29,6 +29,18 @@
     <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
   </ItemGroup>
 
+  <!-- NEVER compile the ANTLR staging folder. GenerateIfNewer/Invoke-Antlr4CSharp generate into Generated_temp/
+       (the lexer lands in Generated_temp/Core/), copy the final files to Generated/, then delete the staging
+       folder on the success path. A fresh-checkout regen (mtime-triggered) that fails partway can leave the
+       staging folder behind, and the SDK default **/*.cs glob would then compile a SECOND copy of
+       CobolLexer/CobolParserCore -> CS0102/CS0579 duplicate-definition build errors. Excluding it makes regen
+       harmless regardless of outcome (the committed Generated/ is authoritative). This is why CI failed on every
+       push while local builds were green (local regen is skipped when Generated/ is already up to date). -->
+  <ItemGroup>
+    <Compile Remove="Generated_temp\**\*.cs" />
+    <None Remove="Generated_temp\**\*" />
+  </ItemGroup>
+
   <!-- Ensure Generated folder exists and regenerate parser if needed.
        Uses BeforeTargets="CoreCompile" so generation completes before csc runs.
        After generation, explicitly add generated .cs files to the Compile item group
