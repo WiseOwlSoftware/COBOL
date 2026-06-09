@@ -145,7 +145,13 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (add.addOperandList() is not { } operands) return new BoundUnsupported("ADD CORRESPONDING");
         var addends = operands.addOperand().Select(BindExpr).ToList();
         if (add.addGivingPhrase() is { } giving)
+        {
+            // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.1 Format 3: the TO operand is an addend, NOT a
+            // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
+            if (add.addToPhrase() is { } toAddend)
+                addends.AddRange(DataRefs(toAddend).Select(BindExpr));
             return new BoundAddGiving(addends, ResolveTargets(DataRefs(giving)));
+        }
         if (add.addToPhrase() is { } to)
             return new BoundAddTo(addends, ResolveTargets(DataRefs(to)));
         return new BoundUnsupported("ADD form");
