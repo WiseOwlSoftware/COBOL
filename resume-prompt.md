@@ -11,14 +11,20 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
+> **STATE (DEVLOG 514):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
-> Differential harness LIVE + driving the **real NIST corpus**: **8 NC programs byte-match the golden** — NC101A +
-> NC110M/111A/112A/113M/127A/136A + **NC211A (the first nucleus CONDITIONAL program, GREEN as of DEVLOG 511)** — locked
-> into `NistDifferentialTests` (`[InlineData]`). **283 conformance + 14
-> unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
-> proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
-> before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
+> Differential harness LIVE + driving the **real NIST corpus**: **15 NC programs byte-match the golden** — NC101A +
+> NC106A/110M/111A/112A/113M/118A/119A/127A/134A/136A/176A/177A/205A + NC211A — all locked into `NistDifferentialTests`
+> (`[InlineData]`). **292 conformance + 14 unit green.** Greenfield-only; the shared front-end + legacy oracle are
+> untouched (legacy guard last proven ALL GREEN — 364 NIST / 1204 unit / 536 integration; re-run
+> `scripts/guard-fast.sh` before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
+> **CI fix (DEVLOG 512):** the recurring Linux-CI flake was a compiler data race — `BoundTreeValidator` held its
+> `SemanticModel` in a STATIC field, clobbered under the suite's parallel in-process compilation → a spurious CBL1603
+> on START-with-KEY programs → compile fail. Fixed by instance-izing the validator; `ConcurrentCompilationTests`
+> reproduces+pins it (reproduce Linux-only flakes via WSL — see memory `reference_wsl_linux_repro`).
+> ⚠ **CI GAP (worth fixing): CI runs ONLY the legacy guard + CobolSharp unit/integration suites — the greenfield
+> `Cobol.Net.Tests.Conformance`/`Unit` (the ACTIVE work) are NOT in CI**, so greenfield regressions are caught locally
+> only. Adding them to `.github/workflows/build-and-test.yml` (CI Linux has pwsh for the ANTLR gen) would close it.
 >
 > **THIS SESSION (498→504), the G5 milestone + the corpus-drive start:** (498) nested Tier-B REDEFINES backing path
 > qualified (the NC101A blocker — `ReferenceResolver.BackingPath`); (499) **the sequential file I/O subsystem** —
@@ -35,8 +41,14 @@
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
 > **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
-> `[InlineData]`):** Snapshot after 511: ~80/95 NC compile; **8 byte-match the golden (NC211A is the newest — the first
-> nucleus CONDITIONAL program, green via the 506–511 stack).** Recommended order: **(1) TARGET THE NEXT NC PROGRAM** —
+> `[InlineData]`):** Snapshot after 514: **89/95 NC compile; 15 byte-match the golden** (the 12→15 jump in 513–514 came
+> from a corpus sweep that found free wins + the PERFORM-THRU-range control fix). **Closest remaining compile-but-mismatch
+> (from `bash /e/tmp/nc_run_sweep.sh`):** NC219A (diff 16 — collating `U < N` + figurative `F = LOW-VALUE` comparison,
+> ISO §8.8.4.x / collating §; the next obvious target), then **NC114M / NC116A / NC171A (diff 34 each — likely ONE shared
+> feature → three greens)**, then NC124A (diff 850). Plus **67 RUNERR** (compile but hit a runtime loud guard for an
+> unimplemented verb — the INSPECT / EVALUATE / SEARCH / STRING / UNSTRING / INITIALIZE / ACCEPT backlog) and **6
+> CMPL_FAIL** (backend C# type-mismatch: NC104A/107A/108M/222A/247A/252A, e.g. NC252A's numeric Tier-B-view `string ==
+> long`). Recommended order: **(1) TARGET THE NEXT NC PROGRAM** —
 > pick one (or two) compile-but-mismatch NC programs (run the compile/run-vs-golden sweep to pick the closest), implement
 > the UNION of verbs/features they need, finish at a NEW GREEN program. NC211A's stack is DONE (506 level-88 over a
 > REDEFINES view / group; 507 abbreviated combined relation conditions §8.8.4.12; 508 whole-group image over OCCURS
