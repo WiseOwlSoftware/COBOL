@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
+using CobolNet.Runtime;
 
 namespace CobolNet.CodeGen.Emit;
 
@@ -67,11 +68,23 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     {
         "+" or "-" => CombineAdditive(a, op, b),
         "*" => new NumX($"({a.Expr} * {b.Expr})", a.Scale + b.Scale),     // multiplication: scales add (exact)
-        "/" => new NumX(                                                  // division: quotient at the working scale
-            $"CobolNum.Divide({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {DivScale(a, b)}, CobolRounding.Truncation)",
-            DivScale(a, b)),
+        "/" => Divide(a, b),
         _ => a,
     };
+
+    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). When the working scale equals the receiver scale
+    /// (<see cref="EmissionContext.TargetScale"/> — the common outermost-division case), the quotient is computed
+    /// directly at the receiver scale and rounded with the receiver's mode in ONE exact step (<c>CobolNum.Divide</c>
+    /// → <c>RoundDiv</c> uses the true integer remainder, so no guard digits are needed). When an operand carries
+    /// more fraction digits than the receiver, the quotient is computed at that higher scale with TRUNCATION
+    /// (preserving the extra digits) and the receiver store performs the single rounding. (The deeper guard-scale
+    /// model for divisions nested inside a larger expression awaits the Int128 carrier — see the numeric design.)</summary>
+    private NumX Divide(NumX a, NumX b)
+    {
+        int ds = DivScale(a, b);
+        CobolRounding mode = ds == ctx.TargetScale ? ctx.TargetRounding : CobolRounding.Truncation;
+        return new NumX($"CobolNum.Divide({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
+    }
 
     private static NumX CombineAdditive(NumX a, string op, NumX b)
     {

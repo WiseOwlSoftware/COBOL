@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime;
+
 namespace CobolNet.Binding.Bound;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -110,29 +112,35 @@ public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoA
 public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement;
 
 // The arithmetic verbs, each a small explicit node: the source operands are bound numeric expressions, the
-// receivers are resolved Places. The in-place forms (TO/FROM/BY/INTO) read+write each target; the GIVING forms
-// only write. The backend renders the value at the target's scale and stores via CobolNum.
+// receivers are resolved Places paired with a rounding mode (the ROUNDED phrase, ISO §14.7.4). The in-place forms
+// (TO/FROM/BY/INTO) read+write each target; the GIVING forms only write. The backend renders the value at the
+// target's scale and stores via CobolNum, rounding per the receiver's mode.
+
+/// <summary>An arithmetic resultant identifier: the receiving <see cref="Place"/> and the rounding mode its ROUNDED
+/// phrase selects (ISO §14.7.4 — no phrase → <see cref="CobolRounding.Truncation"/>; bare <c>ROUNDED</c> →
+/// <see cref="CobolRounding.NearestAwayFromZero"/>; <c>ROUNDED MODE IS x</c> → the named mode).</summary>
+public sealed record Receiver(Place Place, CobolRounding Rounding);
 
 /// <summary><c>ADD addends TO targets</c> — each target ← target + Σ addends.</summary>
-public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>ADD addends GIVING targets</c> — each target ← Σ addends.</summary>
-public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>SUBTRACT minuends FROM targets</c> — each target ← target − Σ minuends.</summary>
-public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>SUBTRACT minuends FROM from GIVING targets</c> — each target ← from − Σ minuends.</summary>
-public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>MULTIPLY a BY targets</c> — each target ← target × a.</summary>
-public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>MULTIPLY a BY b GIVING targets</c> — each target ← a × b.</summary>
-public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>DIVIDE divisor INTO targets</c> — each target ← target ÷ divisor.</summary>
-public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> Targets) : BoundStatement;
 /// <summary><c>DIVIDE divisor INTO dividend GIVING targets</c> / <c>DIVIDE dividend BY divisor GIVING targets</c>
 /// — each target ← dividend ÷ divisor.</summary>
-public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets) : BoundStatement;
 
 /// <summary><c>COMPUTE targets = rhs</c>.</summary>
-public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets) : BoundStatement;
 
 /// <summary><c>IF cond THEN then-stmts [ELSE else-stmts]</c>.</summary>
 public sealed record BoundIf(

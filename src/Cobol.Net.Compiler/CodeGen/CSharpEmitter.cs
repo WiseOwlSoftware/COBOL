@@ -3,6 +3,7 @@
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
+using CobolNet.Runtime;
 using CobolSharp.Compiler.Generated;
 
 namespace CobolNet.CodeGen;
@@ -178,7 +179,7 @@ public sealed class CSharpEmitter
             case BoundMultiplyGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.A), "*", _num.Render(a.B))); return false;
             case BoundDivideInto a: EmitDivide(a.Targets, null, _num.Render(a.Divisor)); return false;
             case BoundDivideGiving a: EmitDivide(a.Targets, _num.Render(a.Dividend), _num.Render(a.Divisor)); return false;
-            case BoundCompute c: foreach (var t in c.Targets) { _ctx.TargetScale = ScaleOf(t); StoreArith(t, _num.Render(c.Rhs)); } return false;
+            case BoundCompute c: EmitCompute(c); return false;
             case BoundIf iff: EmitIf(iff); return false;
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
             case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
@@ -265,35 +266,58 @@ public sealed class CSharpEmitter
 
     // ── Arithmetic ──────────────────────────────────────────────────────────────────────────────────────
 
-    private void EmitInPlace(IReadOnlyList<Place> targets, string op, NumX value)
+    /// <summary>In-place arithmetic (ADD TO / SUBTRACT FROM / MULTIPLY BY): each receiver ← receiver op value,
+    /// rounded by the receiver's ROUNDED mode (ISO §14.7.4).</summary>
+    private void EmitInPlace(IReadOnlyList<Receiver> targets, string op, NumX value)
     {
-        foreach (var t in targets) StoreArith(t, _num.Combine(NumericRenderer.FieldNum(t), op, value));
-    }
-
-    private void EmitGiving(IReadOnlyList<Place> targets, NumX value)
-    {
-        foreach (var t in targets) StoreArith(t, value);
-    }
-
-    private void EmitDivide(IReadOnlyList<Place> targets, NumX? dividend, NumX divisor)
-    {
-        foreach (var t in targets)
+        foreach (var r in targets)
         {
-            _ctx.TargetScale = ScaleOf(t);                   // the quotient is computed at the receiver's scale
-            NumX num = dividend ?? NumericRenderer.FieldNum(t);   // DIVIDE … INTO with no GIVING divides the target itself
-            StoreArith(t, _num.Combine(num, "/", divisor));
+            SetTarget(r);
+            StoreArith(r.Place, _num.Combine(NumericRenderer.FieldNum(r.Place), op, value), r.Rounding);
         }
     }
 
-    /// <summary>Store an arithmetic result into a numeric target place via <c>CobolNum.Store</c>.</summary>
-    private void StoreArith(Place target, NumX value)
+    /// <summary>GIVING arithmetic: the (already-computed) value is stored into each receiver, rounded by that
+    /// receiver's own ROUNDED mode (ISO §14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
+    private void EmitGiving(IReadOnlyList<Receiver> targets, NumX value)
+    {
+        foreach (var r in targets) StoreArith(r.Place, value, r.Rounding);
+    }
+
+    private void EmitDivide(IReadOnlyList<Receiver> targets, NumX? dividend, NumX divisor)
+    {
+        foreach (var r in targets)
+        {
+            SetTarget(r);                                            // the quotient is computed at the receiver's scale + mode
+            NumX num = dividend ?? NumericRenderer.FieldNum(r.Place);   // DIVIDE … INTO with no GIVING divides the target itself
+            StoreArith(r.Place, _num.Combine(num, "/", divisor), r.Rounding);
+        }
+    }
+
+    /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
+    /// then stored, rounded by the receiver's ROUNDED mode.</summary>
+    private void EmitCompute(BoundCompute c)
+    {
+        foreach (var r in c.Targets)
+        {
+            SetTarget(r);
+            StoreArith(r.Place, _num.Render(c.Rhs), r.Rounding);
+        }
+    }
+
+    /// <summary>Set the working scale + rounding mode for the receiver about to be rendered/stored.</summary>
+    private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; }
+
+    /// <summary>Store an arithmetic result into a numeric target place via <c>CobolNum.Store</c>, rounding to the
+    /// receiver scale with <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4).</summary>
+    private void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
         {
             _ctx.Writer.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
             return;
         }
-        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {target.Item.ProfileName})";
+        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {target.Item.ProfileName}, CobolRounding.{mode})";
         // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
         _ctx.Writer.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.Item.ProfileName})" : stored));
     }

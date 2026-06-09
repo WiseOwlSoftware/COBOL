@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
+using CobolNet.Runtime;
 using CobolSharp.Compiler.Generated;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -150,10 +151,10 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(DataRefs(toAddend).Select(BindExpr));
-            return new BoundAddGiving(addends, ResolveTargets(DataRefs(giving)));
+            return new BoundAddGiving(addends, Receivers(giving.receivingArithmeticOperand()));
         }
         if (add.addToPhrase() is { } to)
-            return new BoundAddTo(addends, ResolveTargets(DataRefs(to)));
+            return new BoundAddTo(addends, Receivers(to.receivingArithmeticOperand()));
         return new BoundUnsupported("ADD form");
     }
 
@@ -162,9 +163,9 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (sub.subtractOperandList() is not { } operands) return new BoundUnsupported("SUBTRACT CORRESPONDING");
         var minuends = operands.subtractOperand().Select(BindExpr).ToList();
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
-            return new BoundSubtractGiving(minuends, BindExpr(from), ResolveTargets(DataRefs(giving)));
+            return new BoundSubtractGiving(minuends, BindExpr(from), Receivers(giving.receivingArithmeticOperand()));
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
-            return new BoundSubtractFrom(minuends, ResolveTargets(DataRefs(targets)));
+            return new BoundSubtractFrom(minuends, Receivers(targets.receivingArithmeticOperand()));
         return new BoundUnsupported("SUBTRACT form");
     }
 
@@ -174,9 +175,9 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var a = BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
-            return new BoundMultiplyGiving(a, BindExpr(byOps[0]), ResolveTargets(DataRefs(giving)));
+            return new BoundMultiplyGiving(a, BindExpr(byOps[0]), Receivers(giving.receivingArithmeticOperand()));
         // In-place: each BY operand is itself the receiver (target ← target × a).
-        return new BoundMultiplyBy(a, byOps.SelectMany(DataRefs).Select(refs.Resolve).OfType<Place>().ToList());
+        return new BoundMultiplyBy(a, Receivers(byOps));
     }
 
     private BoundStatement BindDivide(Core.DivideStatementContext div)
@@ -186,13 +187,12 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var a = BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         if (div.divideIntoPhrase() is { } into)
         {
-            var dividend = BindExpr(into.divideIntoOperand());
             return div.divideGivingPhrase() is { } giving
-                ? new BoundDivideGiving(dividend, a, ResolveTargets(DataRefs(giving)))
-                : new BoundDivideInto(a, ResolveTargets(DataRefs(into)));   // target ← target ÷ a
+                ? new BoundDivideGiving(BindExpr(into.divideIntoOperand()), a, Receivers(giving.receivingArithmeticOperand()))
+                : new BoundDivideInto(a, Receivers(into.divideIntoOperand().receivingArithmeticOperand()));   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } g)
-            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), ResolveTargets(DataRefs(g)));
+            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(g.receivingArithmeticOperand()));
         return new BoundUnsupported("DIVIDE form");
     }
 
@@ -200,9 +200,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
         var rhs = BindExpr(expr);
-        var targets = compute.computeStore().Select(st => st.dataReference()).OfType<Core.DataReferenceContext>()
-            .Select(refs.Resolve).OfType<Place>().ToList();
-        return new BoundCompute(rhs, targets);
+        return new BoundCompute(rhs, Receivers(compute.computeStore()));
     }
 
     private BoundStatement BindIf(Core.IfStatementContext iff)
@@ -302,6 +300,46 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     private List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
         targets.Select(refs.Resolve).OfType<Place>().ToList();
+
+    // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §14.7.4) ───────────────────────────────────
+
+    /// <summary>The rounding mode a (possibly absent) ROUNDED phrase selects (ISO §14.7.4.3). No phrase → TRUNCATION
+    /// (rule 2); a bare <c>ROUNDED</c> → the DEFAULT ROUNDED mode, which is NEAREST-AWAY-FROM-ZERO when none is set
+    /// (rule 1 / §11.9.6 rule 2 — the OPTIONS <c>DEFAULT ROUNDED</c> clause is accepted but not yet applied, a
+    /// documented WS-2002 follow-up); an explicit <c>MODE IS x</c> → the named mode.</summary>
+    private static CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase) =>
+        phrase is null ? CobolRounding.Truncation
+        : phrase.roundingModeName() is { } mode ? MapRoundingMode(mode)
+        : CobolRounding.NearestAwayFromZero;
+
+    /// <summary>Map a <c>roundingModeName</c> to its <see cref="CobolRounding"/> (the eight ISO modes, §14.7.4.3).</summary>
+    private static CobolRounding MapRoundingMode(Core.RoundingModeNameContext m) =>
+        m.AWAY_FROM_ZERO() is not null ? CobolRounding.AwayFromZero
+        : m.NEAREST_AWAY_FROM_ZERO() is not null ? CobolRounding.NearestAwayFromZero
+        : m.NEAREST_EVEN() is not null ? CobolRounding.NearestEven
+        : m.NEAREST_TOWARD_ZERO() is not null ? CobolRounding.NearestTowardZero
+        : m.TOWARD_GREATER() is not null ? CobolRounding.TowardGreater
+        : m.TOWARD_LESSER() is not null ? CobolRounding.TowardLesser
+        : m.PROHIBITED() is not null ? CobolRounding.Prohibited
+        : CobolRounding.Truncation;   // TRUNCATION
+
+    /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
+    /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>
+    private List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) =>
+        ops.Select(o => refs.Resolve(o.dataReference()) is { } p ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
+           .OfType<Receiver>().ToList();
+
+    /// <summary>Resolve the in-place <c>MULTIPLY … BY</c> receivers (<c>multiplyByOperand</c> = receiving operand +
+    /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
+    private List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
+        ops.Select(o => o.receivingOperand()?.dataReference() is { } d && refs.Resolve(d) is { } p
+                ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
+           .OfType<Receiver>().ToList();
+
+    /// <summary>Resolve the <c>COMPUTE</c> resultants (<c>computeStore</c> = data reference + optional ROUNDED).</summary>
+    private List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
+        stores.Select(s => refs.Resolve(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
+              .OfType<Receiver>().ToList();
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) to a bound expression.</summary>
     private BoundExpr BindExpr(IParseTree node) => node switch

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Runtime;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace CobolNet.CodeGen.Emit;
@@ -21,6 +22,12 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
 
     /// <summary>The current division working scale (the receiving item's scale).</summary>
     public int TargetScale { get; set; }
+
+    /// <summary>The current receiver's ROUNDED mode (ISO §14.7.4). A division computed at the receiver scale
+    /// (<see cref="TargetScale"/>) rounds with this mode in one exact step (<c>RoundDiv</c> uses the true integer
+    /// remainder); a division forced to a higher intermediate scale truncates and the receiver store rounds. Set
+    /// before an arithmetic RHS is rendered; defaults to TRUNCATION (the no-ROUNDED behavior).</summary>
+    public CobolRounding TargetRounding { get; set; } = CobolRounding.Truncation;
 }
 
 /// <summary>
