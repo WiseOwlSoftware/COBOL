@@ -255,7 +255,7 @@ public sealed class CSharpEmitter
                 EmitStatement(statement, w);
     }
 
-    /// <summary>Emit one statement. Unsupported verbs emit a TODO marker (compile, don't crash).</summary>
+    /// <summary>Emit one statement. An unsupported verb emits a LOUD not-implemented guard (COBOLNET_DESIGN §1.4).</summary>
     private void EmitStatement(Core.StatementContext s, CodeWriter w)
     {
         switch (s)
@@ -269,9 +269,35 @@ public sealed class CSharpEmitter
             case var _ when s.computeStatement() is { } c: EmitCompute(c, w); break;
             case var _ when s.ifStatement() is { } iff: EmitIf(iff, w); break;
             case var _ when s.performStatement() is { } p: EmitPerform(p, w); break;
+            case var _ when s.setStatement() is { } set: EmitSet(set, w); break;
             case var _ when s.stopStatement() is not null || s.gobackStatement() is not null:
                 w.Line("throw new StopRun();"); break;   // unwind the paragraph call-chain (ISO §14.9.43)
             default: w.Line(LoudStmt($"statement '{FirstToken(s)}'")); break;   // loud failure (COBOLNET_DESIGN §1.4)
+        }
+    }
+
+    /// <summary>Emit a <c>SET</c>. This slice handles <c>SET condition-name+ TO TRUE</c> (move each 88's first VALUE
+    /// into its parent, ISO §14.9.39 Format 5); other SET forms (index/pointer/switch, TO FALSE) fail loud.</summary>
+    private void EmitSet(Core.SetStatementContext set, CodeWriter w)
+    {
+        if (set.setBooleanStatement() is not { } b) { w.Line(LoudStmt($"SET form '{set.GetText()}'")); return; }
+        bool toTrue = b.TRUE_() is not null;
+        foreach (var dref in b.dataReference())
+        {
+            if (!toTrue) { w.Line(LoudStmt("SET condition-name TO FALSE")); continue; }
+            if (ConditionOf(dref) is not { } cond) { w.Line(LoudStmt($"SET '{dref.GetText()}' TO TRUE (not a condition-name)")); continue; }
+            if (_refs.ResolveItem(cond.Parent) is not { } p) { w.Line(LoudStmt($"SET subscripted condition '{cond.Name}'")); continue; }
+
+            var (low, _) = cond.Values[0];   // SET TO TRUE stores the first VALUE (ISO §14.9.39 GR Format 5)
+            string rhs = p.Item.Pic?.Category switch
+            {
+                PicCategory.Alphanumeric or PicCategory.NumericEdited =>
+                    $"CobolString.Store({CsStringLiteral(DecodeCobolString(low))}, {p.Item.Pic.Length})",
+                PicCategory.Numeric =>
+                    $"CobolNum.Store({UnscaledAtScale(low, p.Item.Pic.Scale)}, {p.Item.Pic.Scale}, {p.Item.ProfileName})",
+                _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),
+            };
+            w.Line(p.Write(rhs));
         }
     }
 
@@ -493,28 +519,95 @@ public sealed class CSharpEmitter
             case Core.PrimaryConditionContext p:
                 if (p.comparisonExpression() is { } cmp) return RenderComparison(cmp);
                 if (p.condition() is { } inner) return $"({RenderCondition(inner)})";
-                return "false /* TODO(COBOL.NET): boolean-literal condition */";
+                return LoudValue("bool", "boolean-literal condition");
 
             default:
-                return "false /* TODO(COBOL.NET): unsupported condition form */";
+                return LoudValue("bool", "unsupported condition form");
         }
     }
 
-    /// <summary>Translate a relational comparison expression to a C# boolean expression.</summary>
+    /// <summary>
+    /// Translate a comparison expression to a C# boolean: a relational comparison (numeric / alphanumeric), a sign
+    /// condition (IS [NOT] POSITIVE/NEGATIVE/ZERO), or a bare level-88 condition-name (membership over its parent).
+    /// A class condition or an unhandled form fails loud (COBOLNET_DESIGN §1.4).
+    /// </summary>
     private string RenderComparison(Core.ComparisonExpressionContext cmp)
     {
         var operands = cmp.comparisonOperand();
-        if (cmp.comparisonOperator() is not { } opCtx || operands.Length < 2)
-            return "false /* TODO(COBOL.NET): class/sign/condition-name comparison */";
+        bool not = cmp.NOT() is not null;
 
-        string csOp = MapOperator(opCtx.GetText());
-        bool isString = IsStringOperand(operands[0]) || IsStringOperand(operands[1]);
+        // Class condition (operand IS [NOT] className): a later slice → loud.
+        if (cmp.className() is { } cls)
+            return LoudValue("bool", $"class condition '{cls.GetText()}'");
+
+        // Sign condition (ISO §8.8.4.1.3): operand IS [NOT] {POSITIVE | NEGATIVE | ZERO}.
+        if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
+        {
+            NumX v = OperandNum(operands[0]);
+            string test = cmp.POSITIVE() is not null ? $"{v.Expr} > 0"
+                : cmp.NEGATIVE() is not null ? $"{v.Expr} < 0"
+                : $"{v.Expr} == 0";
+            return not ? $"!({test})" : $"({test})";
+        }
+
+        // Relational comparison.
+        if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
+        {
+            string csOp = MapOperator(opCtx.GetText());
+            bool isString = IsStringOperand(operands[0]) || IsStringOperand(operands[1]);
+            if (isString)
+                return $"CobolString.Compare({OperandAsString(operands[0])}, {OperandAsString(operands[1])}) {csOp} 0";
+            // Render both as scaled longs, align to the common scale, then compare (ISO §8.8.4.1.1).
+            NumX l = OperandNum(operands[0]), r = OperandNum(operands[1]);
+            int s = Math.Max(l.Scale, r.Scale);
+            return $"{Align(l, s)} {csOp} {Align(r, s)}";
+        }
+
+        // Bare single operand → a level-88 condition-name (membership over its conditional variable).
+        if (operands.Length == 1
+            && operands[0].valueOperand()?.arithmeticExpression() is { } expr
+            && SoleDataRef(expr) is { } dref
+            && ConditionOf(dref) is { } cond)
+            return RenderCondition88(cond);
+
+        return LoudValue("bool", $"condition '{cmp.GetText()}'");
+    }
+
+    /// <summary>The level-88 condition <paramref name="dref"/> names, or <see langword="null"/> if it is not one.</summary>
+    private Condition88? ConditionOf(Core.DataReferenceContext dref)
+    {
+        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        return _data.Conditions.TryGetValue(name, out var list) && list.Count > 0 ? list[0] : null;
+    }
+
+    /// <summary>Render a level-88 condition as an OR of its VALUE-set membership tests over the parent's value
+    /// (singletons and inclusive THRU ranges; ISO §8.8.4.1.2).</summary>
+    private string RenderCondition88(Condition88 cond)
+    {
+        if (_refs.ResolveItem(cond.Parent) is not { } p)
+            return LoudValue("bool", $"subscripted condition-name '{cond.Name}'");
+
+        string read = p.Read();
+        bool isString = p.Item.IsGroup || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+        var tests = cond.Values.Select(v => RenderMembershipTest(read, p.Item, isString, v.Low, v.High));
+        return "(" + string.Join(" || ", tests) + ")";
+    }
+
+    /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range,
+    /// rendered as a string comparison (alphanumeric parent) or scaled-long comparison (numeric parent).</summary>
+    private static string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high)
+    {
         if (isString)
-            return $"CobolString.Compare({OperandAsString(operands[0])}, {OperandAsString(operands[1])}) {csOp} 0";
-        // Numeric comparison: render both as scaled longs, align to the common scale, then compare (ISO §8.8.4.1.1).
-        NumX l = OperandNum(operands[0]), r = OperandNum(operands[1]);
-        int s = Math.Max(l.Scale, r.Scale);
-        return $"{Align(l, s)} {csOp} {Align(r, s)}";
+        {
+            string lo = CsStringLiteral(DecodeCobolString(low));
+            if (high is null) return $"CobolString.Compare({read}, {lo}) == 0";
+            string hi = CsStringLiteral(DecodeCobolString(high));
+            return $"(CobolString.Compare({read}, {lo}) >= 0 && CobolString.Compare({read}, {hi}) <= 0)";
+        }
+        int scale = parent.Pic?.Scale ?? 0;
+        string loN = UnscaledAtScale(low, scale);
+        if (high is null) return $"{read} == {loN}";
+        return $"({read} >= {loN} && {read} <= {UnscaledAtScale(high, scale)})";
     }
 
     /// <summary>A comparison operand rendered as a scaled native-integer value.</summary>

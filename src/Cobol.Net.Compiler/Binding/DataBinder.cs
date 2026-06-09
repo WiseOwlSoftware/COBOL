@@ -31,6 +31,10 @@ public sealed class DataBinder
     /// occurrence number (COBOLNET_DESIGN §3.5). A subscript may name an index, so the resolver consults this.</summary>
     public Dictionary<string, string> IndexFields { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names
+    /// may be duplicated under different parents and disambiguated by qualification).</summary>
+    public Dictionary<string, List<Condition88>> Conditions { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
@@ -42,6 +46,13 @@ public sealed class DataBinder
         var rootNames = new HashSet<string>(StringComparer.Ordinal);   // C#-field-name scope at the Program level
         foreach (var entry in ws.dataDescriptionEntry())
         {
+            // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
+            if (int.TryParse(entry.levelNumber().GetText(), out int lvl) && lvl == 88)
+            {
+                if (stack.Count > 0) BindCondition(entry, stack.Peek());
+                continue;
+            }
+
             if (BindEntry(entry) is not { } item) continue;
             item.Uid = _uidCounter++;
 
@@ -69,6 +80,29 @@ public sealed class DataBinder
                 list.Add(item);
             }
         }
+    }
+
+    /// <summary>Bind a level-88 condition-name on its conditional variable <paramref name="parent"/>, capturing the
+    /// VALUE set (singletons + THRU ranges) as raw operand text (decoded at emit time).</summary>
+    private void BindCondition(Core.DataDescriptionEntryContext entry, DataItem parent)
+    {
+        if (entry.dataName()?.GetText() is not { } name) return;
+        var cond = new Condition88 { Name = name, Parent = parent };
+
+        if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
+            foreach (var clause in clauses.dataDescriptionClause())
+                if (clause.valueClause() is { } value)
+                    foreach (var vi in value.valueItem())
+                    {
+                        if (vi.valueClauseRange() is { } range)
+                            cond.Values.Add((range.valueClauseOperand(0).GetText(), range.valueClauseOperand(1).GetText()));
+                        else
+                            foreach (var op in vi.valueClauseOperand())
+                                cond.Values.Add((op.GetText(), null));
+                    }
+
+        if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
+        list.Add(cond);
     }
 
     /// <summary>Make <paramref name="name"/> unique within a C# name scope, appending <c>_2</c>, <c>_3</c>, … on collision.</summary>

@@ -62,6 +62,11 @@ public sealed class ReferenceResolver(DataBinder data)
         return path is null ? null : new MemberPlace(path, item);
     }
 
+    /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's parent),
+    /// or <see langword="null"/> if the item is within an OCCURS table (a subscripted reference is then required).</summary>
+    public Place? ResolveItem(DataItem item) =>
+        AccessPath(item, []) is { } path ? new MemberPlace(path, item) : null;
+
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to disambiguate).</summary>
