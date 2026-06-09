@@ -202,6 +202,7 @@
 | `docs/SPEC_FIX_RECIPES_M1.md` | LEDGER | spec, version-classified M1='85 vs M2=2002+, with file list + fix sketch + test shape). This is the |
 | `docs/SPEC_GAP_INVENTORY.md` | LEDGER | test exercises each. untested/partial features are the WS-SPEC authoring scope. passing rows are |
 | `docs/spec-gaps.md` | LEDGER | output), not inferred from diagnostic strings or comments. Several long-standing "not supported" |
+| `docs/VERSION_CHANGE_REFERENCE.md` | LEDGER | LIVE version-gating checklist: every edition-to-edition change of standard COBOL documented in the ISO/IEC 1989:2023 spec (130 rows: Annex E.2/E.3 2014→2023 deltas, Annex F archaic/obsolete, FLAG-02/FLAG-14 GR4, inline §-NOTES). Gate behavior-changes by DialectLevel; new features ≥ their edition; flag obsolete/archaic. 85→2002 & 2002→2014 deltas under-documented here — confirm vs older standards. |
 
 ## 8. ISO spec text — reference excerpts
 

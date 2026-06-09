@@ -73,7 +73,11 @@ public sealed class SignedAlphanumericMoveDifferentialTests
     // numeric is "treated as though it were moved, according to the rules of the MOVE statement" → §14.9.25.4 GR6a, the
     // sign is not moved): -5 in two digits is "05", which equals the literal "05". SPEC-ONLY: the legacy oracle is
     // non-conformant here — it compares the overpunch image ("0N") and reports NE (cf. the DISPLAY trailing-trim
-    // precedent in feedback_use_the_spec).
+    // precedent in feedback_use_the_spec). INVESTIGATED as a VERSION-INVARIANT legacy bug, not a cross-edition change
+    // (DEVLOG 517): COBOL-85 already de-signs the MOVE building-block (NC114M MOVE-TEST-16 "STRIP MINUS SIGN" golden),
+    // and CCVS85 authors REDEFINE a signed item as X(n) precisely to image-compare its sign (NC116A GRP-09/10) —
+    // implying a DIRECT numeric-vs-alphanumeric compare de-signs. No '85 golden requires the legacy image-compare, so
+    // pin-to-spec for ALL dialects (see feedback_version_targeted_semantics / docs/VERSION_CHANGE_REFERENCE.md).
     public void SignedVsAlphanumericComparison_UsesDeSignedMagnitude()
         => AssertSpecOnly(Program("01 SN PIC S9(2) VALUE -5.",
             "    IF SN = \"05\" DISPLAY \"EQ\" ELSE DISPLAY \"NE\" END-IF."), "EQ");
@@ -83,6 +87,9 @@ public sealed class SignedAlphanumericMoveDifferentialTests
     // source also drops its sign moving into a group (§14.9.25.4 GR6a) — the EmitGroupMove de-sign gap (DEVLOG 516).
     // S9(3) -45 → "045". SPEC-ONLY: the legacy oracle is non-conformant for a group receiver — it copies the raw
     // overpunch image ("04N") rather than de-signing (cf. the DISPLAY trailing-trim precedent in feedback_use_the_spec).
+    // INVESTIGATED version-invariant (DEVLOG 517): same MOVE de-sign rule the COBOL-85 corpus already exercises
+    // (NC114M MOVE-TEST-16/17), with §8.8.4.1 (group = elementary alphanumeric) unchanged across editions → pin-to-spec
+    // for ALL dialects (feedback_version_targeted_semantics / docs/VERSION_CHANGE_REFERENCE.md).
     public void SignedToAlphanumericGroup_DeSigned()
         => AssertSpecOnly(Program("01 SN PIC S9(3) VALUE -45.\n01 GRP.\n   05 G1 PIC X(3).",
             "    MOVE SN TO GRP.\n    DISPLAY \"R=\" GRP."), "R=045");
