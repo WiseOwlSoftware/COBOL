@@ -11,20 +11,32 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 488):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅ (+ ALL small tails), G3-core (partial) ✅, G4 ✅, G6-core
-> ✅.** Differential harness LIVE, **148 tests green.** Since 485: **class conditions** (IS NUMERIC/ALPHABETIC/-UPPER/
-> -LOWER, `CobolClass`), **ref-mod** `(s:l)` read+write (`CobolString.RefMod`/`SpliceInto` + `RefModPlace`), and
-> **G6-core whole-group MOVE/DISPLAY/compare** for DISPLAY-homogeneous groups (generated `AsImage()`/`FromImage()` per
-> all-character `record struct`, §14.4). **NC101A loud guards now 70** (was 95 statements pre-G4 → 70): just **66
-> mixed-usage group MOVEs (Tier-C byte island)** + **3 file I/O** + a couple misc. **RESUME AT → G5 (file I/O,
-> COBOLNET_DESIGN §8: `FileConnector`/`IRecordCodec`/`CobolKey`/FILE STATUS/OPEN-CLOSE-READ-WRITE-REWRITE-DELETE-START/
-> the open-mode + position state machines / SORT-MERGE) + the Tier-C mixed-usage-group byte path (§4.2/§14.4: a
-> class-scoped `byte[]` for a group with numeric/COMP leaves)** — together these unblock the FIRST full NC program
-> through the differential harness; then drive the 364-NIST corpus. Also pending: the G3 numeric hardening
-> (`CobolInt`/Int128 value engine + `TryStore` + ROUNDED + ON SIZE ERROR), INSPECT/STRING/UNSTRING (`CobolStrings`),
-> `CobolEdit` numeric-edited. Known-latent: MOVE-signed→alphanumeric de-signing (ISO §14.9.24 GR4d); >18-digit
-> numerics; EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud). The (now-outdated) STATE
-> blocks below are earlier snapshots, kept for architecture detail.
+> **STATE (DEVLOG 494):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅ (+ ALL small tails), G3-core (partial) ✅, G4 ✅, G6-core
+> ✅, REDEFINES Tier A+B ✅.** Differential harness LIVE, **174 conformance + 13 unit tests green.** Since 488:
+> (489) deep-dive doc-sync to SSOT §14; (490) **whole-group MOVE/DISPLAY/compare over numeric-DISPLAY leaves** — a
+> numeric-DISPLAY leaf in a whole-group-referenced group stores its CHARACTER IMAGE (`DataItem.StoreAsImage`, no
+> byte[]; ISO §14.9 MOVE GR4 — line 28901: group move = char copy, no conversion); (491–493) **REDEFINES/RENAMES the
+> 4-tier one-canonical-backing model** — classification pass (anchor closure SR7/11, tier cascade D>C>B>A, class-max
+> width SR8, view suppression SR9) + **Tier A** (same-storage alias: numeric-over-numeric shares one `long`, views
+> forward) + **Tier B** (string-canonical: `RedefViewPlace` `(offset,width)` window over ONE backing, numeric views
+> ride `StoreAsImage`; root-level AND in-group via `FieldEmitter.PhysicalFields`); (494) ADD…TO…GIVING includes the
+> TO operand. **`CobolNum.ParseDisplay`/`FormatDisplaySigned` confirmed implemented** (the design's "overpunch
+> deferred" note is discharged). **RESUME AT (NC101A pass-path, in order):** (1) **ROUNDED** — per-target phrase
+> `roundedPhrase: ROUNDED (MODE IS? roundingModeName)?` on `receivingArithmeticOperand`/`multiplyByOperand`/
+> `computeStore`; thread a per-receiver `CobolRounding` through the arithmetic bound nodes (add a `Receiver(Place,
+> CobolRounding)` and change their `Targets` lists) + the emitter's `StoreArith`/`ConvertSource` (CobolNum.Store
+> already takes a mode); (2) **ON SIZE ERROR** (two-phase §14.7.5 — `TryStore` returns bool, receiver unchanged on
+> overflow, the phrase fires if any failed); (3) **G5 file I/O** (COBOLNET_DESIGN §8 — port the legacy
+> `SequentialFileHandler` control logic re-substrated to a typed `FileConnector<TRec>` + `IRecordCodec`; OPEN/CLOSE/
+> WRITE-AFTER-ADVANCING/CLOSE; FD record binding in DataBinder which today binds ONLY workingStorageSection). These
+> three unblock NC101A end-to-end → then drive the 364-NIST corpus. **REDEFINES follow-ups (off NC101A's path, the
+> design's later commits):** RENAMES no-THRU forward + THRU composition (`RenamesSpanPlace`, binder already binds
+> level-66 + resolves FROM/THRU); Tier C (a class-scoped `byte[]` + `RedefCodec` for genuine mixed-USAGE COMP puns —
+> currently loud-rejected, conformant interim); explicit Tier-D reject reasons. The decision-complete REDEFINES plan
+> is in the DEVLOG-493 workflow output. Also pending: `CobolInt`/Int128 (>18 digits), INSPECT/STRING/UNSTRING
+> (`CobolStrings`), `CobolEdit` numeric-edited. Known-latent: MOVE-signed→alphanumeric de-signing (§14.9.24 GR4d);
+> EXIT SECTION / NEXT SENTENCE / ALTER / GO-TO-out-of-inline-PERFORM (loud). The (now-outdated) STATE blocks below are
+> earlier snapshots, kept for architecture detail.
 >
 > **(superseded) STATE (DEVLOG 485):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅.** Differential harness LIVE,
 > **116 G2/G3/G4-scope tests green.** G3-core landed: **figurative-constant operands** (MOVE/DISPLAY/comparison ZERO/
