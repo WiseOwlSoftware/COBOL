@@ -403,9 +403,11 @@ initializeReplacingPhrase
     : THEN? REPLACING initializeReplacingItem+
     ;
 
-// THEN TO DEFAULT (§14.9.20) — DEFAULT is not a reserved word; matches as IDENTIFIER
+// THEN TO DEFAULT (§14.9.20). DEFAULT is now a token (added for the OPTIONS paragraph, ISO §11.9.6), so the
+// phrase matches it directly — tightening the grammar to reject `TO <other-word>` (which the old IDENTIFIER form
+// accepted). DEFAULT remains a legal data-name elsewhere (it is in cobolWord).
 initializeDefaultPhrase
-    : THEN? TO IDENTIFIER   /* semantic check: IDENTIFIER must be "DEFAULT" */
+    : THEN? TO DEFAULT
     ;
 
 initializeReplacingItem

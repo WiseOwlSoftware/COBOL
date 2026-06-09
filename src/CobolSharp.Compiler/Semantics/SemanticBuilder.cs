@@ -306,32 +306,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     public int DefaultRoundingMode => _defaultRoundingMode;
 
     /// <summary>
-    /// OPTIONS paragraph (ISO §11.9, COBOL-2002). The paragraph body is a token blob (optionsContent : ~DOT+);
-    /// here we extract the DEFAULT ROUNDED [MODE] [IS] mode-name clause and record its mode ordinal so a bare
-    /// ROUNDED phrase uses it as its default (ISO §11.9.6). Other OPTIONS clauses remain recognize-and-ignore.
+    /// OPTIONS paragraph (ISO §11.9, COBOL-2002), now structurally parsed (optionsClause+). Read the DEFAULT
+    /// ROUNDED clause's mode and record its ordinal so a bare ROUNDED phrase uses it as its default (ISO §11.9.6).
+    /// The other clauses are parsed but not yet applied by this (legacy oracle) compiler.
     /// </summary>
     public override object? VisitOptionsParagraph(CobolParserCore.OptionsParagraphContext ctx)
     {
-        if (ctx.optionsContent() is { } content)
-        {
-            var toks = new List<string>(content.ChildCount);
-            for (int i = 0; i < content.ChildCount; i++)
-                toks.Add(content.GetChild(i).GetText().ToUpperInvariant());
-
-            for (int i = 0; i + 1 < toks.Count; i++)
-            {
-                if (toks[i] != "DEFAULT" || toks[i + 1] != "ROUNDED") continue;
-                // Skip the optional MODE and IS noise words, then read the mode name.
-                for (int j = i + 2; j < toks.Count; j++)
-                {
-                    if (toks[j] is "MODE" or "IS") continue;
-                    int m = MapRoundingModeName(toks[j]);
-                    if (m >= 0) _defaultRoundingMode = m;
-                    break;
-                }
-                break;
-            }
-        }
+        foreach (var clause in ctx.optionsClause())
+            if (clause.defaultRoundedClause()?.roundingModeName() is { } rm
+                && MapRoundingModeName(rm.GetText().ToUpperInvariant()) is >= 0 and var m)
+                _defaultRoundingMode = m;
         return base.VisitOptionsParagraph(ctx);
     }
 

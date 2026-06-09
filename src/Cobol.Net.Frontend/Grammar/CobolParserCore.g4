@@ -44,6 +44,22 @@ cobolWord
     | SCREEN
     | SECURE
     | UNDERLINE_
+    // OPTIONS-paragraph context-sensitive words (ISO §11.9): reserved only inside OPTIONS, legal data-names
+    // elsewhere. Each MUST also be mirrored in the lexer _dataNameTokens set (CobolLexer.g4) so a subscripted
+    // use triggers SUBSCRIPT mode.
+    | ARITHMETIC
+    | DEFAULT
+    | INTERMEDIATE
+    | ROUNDING
+    | STANDARD_BINARY
+    | STANDARD_DECIMAL
+    | ENTRY_CONVENTION
+    | FLOAT_BINARY
+    | FLOAT_DECIMAL
+    | HIGH_ORDER_LEFT
+    | HIGH_ORDER_RIGHT
+    | BINARY_ENCODING
+    | DECIMAL_ENCODING
     ;
 
 // ==========================================
@@ -175,17 +191,111 @@ identificationParagraph
     | genericIdentificationParagraph
     ;
 
-// OPTIONS paragraph (COBOL-2002, ISO §11.9). Its clauses — ARITHMETIC, DEFAULT ROUNDED, ENTRY-CONVENTION,
-// FLOAT-BINARY/DECIMAL, INITIALIZE, INTERMEDIATE ROUNDING — are accepted but not yet APPLIED (a documented
-// WS-2002 follow-up). For now the whole paragraph is consumed so a 2002 source that specifies it compiles with
-// default behavior. The clause tokens carry no embedded periods, so they are swallowed up to the terminating
-// separator period (which is required only if any clause is present; §11.9.3).
+// OPTIONS paragraph (COBOL-2002, ISO §11.9) — fully parsed into a structured clause tree (the model is consumed
+// program-wide; see CobolNet.Binding.OptionsModel / OptionsBinder). Each of the seven clauses begins with a
+// distinct keyword token, so `optionsClause+` is LL(1)-clean and order-independent (a superset of the spec's
+// fixed clause order). Per §11.9.3 the terminating separator period is present iff at least one clause is given;
+// no clause body contains a period, so the loop ends cleanly at the period.
 optionsParagraph
-    : OPTIONS DOT (optionsContent DOT)?
+    : OPTIONS DOT (optionsClause+ DOT)?
     ;
 
-optionsContent
-    : ~DOT+
+optionsClause
+    : arithmeticClause
+    | defaultRoundedClause
+    | entryConventionClause
+    | floatBinaryClause
+    | floatDecimalClause
+    | optionsInitializeClause
+    | intermediateRoundingClause
+    ;
+
+// §11.9.5 — ARITHMETIC IS {NATIVE | STANDARD-BINARY | STANDARD-DECIMAL}. Bare STANDARD is also accepted (a common
+// vendor spelling; the CCVS uses `ARITHMETIC IS STANDARD`).
+arithmeticClause
+    : ARITHMETIC IS? arithmeticMethod
+    ;
+
+arithmeticMethod
+    : NATIVE
+    | STANDARD_BINARY
+    | STANDARD_DECIMAL
+    | STANDARD
+    ;
+
+// §11.9.6 — DEFAULT ROUNDED MODE IS rounding-mode. Reuses the shared 8-mode roundingModeName.
+defaultRoundedClause
+    : DEFAULT ROUNDED MODE? IS? roundingModeName
+    ;
+
+// §11.9.7 — ENTRY-CONVENTION IS {COBOL | entry-convention-name}. The value is matched as cobolWord (COBOL or an
+// implementor name), text-distinguished in the binder, so COBOL need not be reserved globally.
+entryConventionClause
+    : ENTRY_CONVENTION IS? cobolWord
+    ;
+
+// §11.9.8 — FLOAT-BINARY [DEFAULT] IS {HIGH-ORDER-LEFT | HIGH-ORDER-RIGHT}.
+floatBinaryClause
+    : FLOAT_BINARY DEFAULT? IS? endiannessPhrase
+    ;
+
+// §11.9.9 — FLOAT-DECIMAL [DEFAULT] IS [encoding-phrase] [endianness-phrase] (at least one phrase).
+floatDecimalClause
+    : FLOAT_DECIMAL DEFAULT? IS? floatDecimalEncoding
+    ;
+
+floatDecimalEncoding
+    : encodingPhrase endiannessPhrase?
+    | endiannessPhrase
+    ;
+
+encodingPhrase
+    : BINARY_ENCODING
+    | DECIMAL_ENCODING
+    ;
+
+endiannessPhrase
+    : HIGH_ORDER_LEFT
+    | HIGH_ORDER_RIGHT
+    ;
+
+// §11.9.10 — INITIALIZE {ALL | {LOCAL-STORAGE | SCREEN | WORKING-STORAGE}...} [SECTION]
+//            TO {BINARY ZEROES | HIGH-VALUES | literal-1 | LOW-VALUES | SPACES}.
+// Named distinctly from the PROCEDURE-DIVISION initializeStatement (disjoint parse contexts — no ambiguity).
+optionsInitializeClause
+    : INITIALIZE optionsInitializeTarget SECTION? TO optionsInitializeFill
+    ;
+
+optionsInitializeTarget
+    : ALL
+    | optionsInitializeSection+
+    ;
+
+optionsInitializeSection
+    : LOCAL_STORAGE
+    | SCREEN
+    | WORKING_STORAGE
+    ;
+
+optionsInitializeFill
+    : BINARY ZERO          // ZERO already covers ZEROES / ZEROS
+    | HIGH_VALUE           // already covers HIGH-VALUES
+    | LOW_VALUE            // already covers LOW-VALUES
+    | SPACE                // already covers SPACES
+    | literal              // literal-1 (one-byte hex-alphanumeric, §11.9.10.3 — checked in the binder)
+    ;
+
+// §11.9.11 — INTERMEDIATE ROUNDING IS {NEAREST-AWAY-FROM-ZERO | NEAREST-EVEN | PROHIBITED | TRUNCATION}. A
+// SEPARATE 4-mode rule (NOT roundingModeName) so the grammar enforces §11.9.11's restricted set.
+intermediateRoundingClause
+    : INTERMEDIATE ROUNDING IS? intermediateRoundingMode
+    ;
+
+intermediateRoundingMode
+    : NEAREST_AWAY_FROM_ZERO
+    | NEAREST_EVEN
+    | PROHIBITED
+    | TRUNCATION
     ;
 
 // AUTHOR.

@@ -304,24 +304,13 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §14.7.4) ───────────────────────────────────
 
     /// <summary>The rounding mode a (possibly absent) ROUNDED phrase selects (ISO §14.7.4.3). No phrase → TRUNCATION
-    /// (rule 2); a bare <c>ROUNDED</c> → the DEFAULT ROUNDED mode, which is NEAREST-AWAY-FROM-ZERO when none is set
-    /// (rule 1 / §11.9.6 rule 2 — the OPTIONS <c>DEFAULT ROUNDED</c> clause is accepted but not yet applied, a
-    /// documented WS-2002 follow-up); an explicit <c>MODE IS x</c> → the named mode.</summary>
-    private static CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase) =>
+    /// (rule 2); a bare <c>ROUNDED</c> → the program's DEFAULT ROUNDED mode (rule 1 / §11.9.6 — the OPTIONS
+    /// <c>DEFAULT ROUNDED MODE IS x</c> clause, defaulting to NEAREST-AWAY-FROM-ZERO when absent); an explicit
+    /// <c>MODE IS x</c> → the named mode (via the shared <see cref="RoundingModes"/> mapping).</summary>
+    private CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase) =>
         phrase is null ? CobolRounding.Truncation
-        : phrase.roundingModeName() is { } mode ? MapRoundingMode(mode)
-        : CobolRounding.NearestAwayFromZero;
-
-    /// <summary>Map a <c>roundingModeName</c> to its <see cref="CobolRounding"/> (the eight ISO modes, §14.7.4.3).</summary>
-    private static CobolRounding MapRoundingMode(Core.RoundingModeNameContext m) =>
-        m.AWAY_FROM_ZERO() is not null ? CobolRounding.AwayFromZero
-        : m.NEAREST_AWAY_FROM_ZERO() is not null ? CobolRounding.NearestAwayFromZero
-        : m.NEAREST_EVEN() is not null ? CobolRounding.NearestEven
-        : m.NEAREST_TOWARD_ZERO() is not null ? CobolRounding.NearestTowardZero
-        : m.TOWARD_GREATER() is not null ? CobolRounding.TowardGreater
-        : m.TOWARD_LESSER() is not null ? CobolRounding.TowardLesser
-        : m.PROHIBITED() is not null ? CobolRounding.Prohibited
-        : CobolRounding.Truncation;   // TRUNCATION
+        : phrase.roundingModeName() is { } mode ? RoundingModes.Map(mode)
+        : data.Options.DefaultRounding;
 
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
     /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>

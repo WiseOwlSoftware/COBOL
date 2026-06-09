@@ -44,9 +44,16 @@ public sealed class DataBinder
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
 
+    /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
+    /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
+    /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
+    public OptionsModel Options { get; private set; } = OptionsModel.Default;
+
     /// <summary>Bind the WORKING-STORAGE section of a program unit (if present).</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
+        Options = OptionsBinder.Bind(program);   // captured even when there is no WORKING-STORAGE
+
         var ws = program.dataDivision()?.workingStorageSection();
         if (ws is null) return;
 

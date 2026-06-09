@@ -141,11 +141,101 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitOptionsParagraph([NotNull] CobolParserCore.OptionsParagraphContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsContent"/>.
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsClause"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitOptionsContent([NotNull] CobolParserCore.OptionsContentContext context);
+	Result VisitOptionsClause([NotNull] CobolParserCore.OptionsClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArithmeticClause([NotNull] CobolParserCore.ArithmeticClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.arithmeticMethod"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitArithmeticMethod([NotNull] CobolParserCore.ArithmeticMethodContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.defaultRoundedClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitDefaultRoundedClause([NotNull] CobolParserCore.DefaultRoundedClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.entryConventionClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEntryConventionClause([NotNull] CobolParserCore.EntryConventionClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.floatBinaryClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFloatBinaryClause([NotNull] CobolParserCore.FloatBinaryClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.floatDecimalClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFloatDecimalClause([NotNull] CobolParserCore.FloatDecimalClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.floatDecimalEncoding"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFloatDecimalEncoding([NotNull] CobolParserCore.FloatDecimalEncodingContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.encodingPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEncodingPhrase([NotNull] CobolParserCore.EncodingPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.endiannessPhrase"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEndiannessPhrase([NotNull] CobolParserCore.EndiannessPhraseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsInitializeClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsInitializeClause([NotNull] CobolParserCore.OptionsInitializeClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsInitializeTarget"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsInitializeTarget([NotNull] CobolParserCore.OptionsInitializeTargetContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsInitializeSection"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsInitializeSection([NotNull] CobolParserCore.OptionsInitializeSectionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.optionsInitializeFill"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitOptionsInitializeFill([NotNull] CobolParserCore.OptionsInitializeFillContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.intermediateRoundingClause"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIntermediateRoundingClause([NotNull] CobolParserCore.IntermediateRoundingClauseContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.intermediateRoundingMode"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIntermediateRoundingMode([NotNull] CobolParserCore.IntermediateRoundingModeContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.authorParagraph"/>.
 	/// </summary>

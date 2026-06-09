@@ -37,6 +37,10 @@ options {
         // Screen-related tokens usable as data names:
         AUTO, BELL, BLINK, COL, COLUMN, EOL, EOS, ERASE,
         FULL_, HIGHLIGHT, LOWLIGHT, REQUIRED, SCREEN, SECURE, UNDERLINE_,
+        // OPTIONS-paragraph context-sensitive words (ISO §11.9) — reserved only inside OPTIONS:
+        ARITHMETIC, DEFAULT, INTERMEDIATE, ROUNDING,
+        STANDARD_BINARY, STANDARD_DECIMAL, ENTRY_CONVENTION, FLOAT_BINARY, FLOAT_DECIMAL,
+        HIGH_ORDER_LEFT, HIGH_ORDER_RIGHT, BINARY_ENCODING, DECIMAL_ENCODING,
     };
 
     private bool PreviousTokenCouldBeDataName()
@@ -131,6 +135,25 @@ BINARY_CHAR     : 'BINARY-CHAR' ;
 BINARY_SHORT    : 'BINARY-SHORT' ;
 BINARY_LONG     : 'BINARY-LONG' ;
 BINARY_DOUBLE   : 'BINARY-DOUBLE' ;
+// COBOL-2002 OPTIONS-paragraph clause words (ISO §11.9). All are CONTEXT-SENSITIVE — reserved only inside the
+// OPTIONS paragraph — so each is ALSO listed in cobolWord (CobolParserCore.g4) and mirrored in _dataNameTokens
+// above, keeping it legal as a user-defined name everywhere else. Hyphenated forms must precede IDENTIFIER so
+// maximal-munch + first-rule-wins picks the whole keyword (e.g. 'STANDARD-BINARY' over IDENTIFIER); a bare
+// 'STANDARD' still lexes as STANDARD, and 'WC-COBOL' still lexes as one IDENTIFIER. Corpus-checked: zero of these
+// appear as user-defined words in the test corpus.
+STANDARD_BINARY   : 'STANDARD-BINARY' ;
+STANDARD_DECIMAL  : 'STANDARD-DECIMAL' ;
+ENTRY_CONVENTION  : 'ENTRY-CONVENTION' ;
+FLOAT_BINARY      : 'FLOAT-BINARY' ;
+FLOAT_DECIMAL     : 'FLOAT-DECIMAL' ;
+HIGH_ORDER_LEFT   : 'HIGH-ORDER-LEFT' ;
+HIGH_ORDER_RIGHT  : 'HIGH-ORDER-RIGHT' ;
+BINARY_ENCODING   : 'BINARY-ENCODING' ;
+DECIMAL_ENCODING  : 'DECIMAL-ENCODING' ;
+ARITHMETIC        : 'ARITHMETIC' ;
+DEFAULT           : 'DEFAULT' ;
+INTERMEDIATE      : 'INTERMEDIATE' ;
+ROUNDING          : 'ROUNDING' ;
 // BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
