@@ -37,7 +37,8 @@ Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale. **DEVLOG.md is in DESCENDING order —
 newest entry FIRST** (the latest `## Entry` is immediately below the preamble's `> **Ordering: DESCENDING**` note;
-the oldest is at the end). Add a new entry at the TOP, directly under that note. (Memory `feedback_devlog`.)
+the oldest is at the end). Add a new entry at the TOP, directly under that note, with a real date+time stamp in the
+header — `## Entry NNN — YYYY-MM-DD HH:MM TZ — Title` (from `date "+%Y-%m-%d %H:%M %Z"`). (Memory `feedback_devlog`.)
 
 specs/ISO_COBOL.md contains the definitive ISO/IEC 1989:2023 COBOL specification (in the
 CobolSharp-private submodule). Refer to it for all specification, behavior, syntax, and semantic
