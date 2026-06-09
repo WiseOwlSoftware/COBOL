@@ -63,8 +63,20 @@ public sealed class ReferenceResolver(DataBinder data)
             indexExprs = e;
         }
 
+        // RENAMES (level 66) resolution lands in a later slice → loud for now (never emit an invalid member access).
+        if (item.Renames is not null) return null;
+
+        // REDEFINES views (ISO §13.18.44): a Tier-A view forwards to the canonical's ONE stored field — the place
+        // carries the VIEW's DataItem (so its own Pic/scale/profile drive interpretation), but the access path is the
+        // canonical's, so a numeric view reinterprets the shared unscaled value via its own scale. Tier-B/C view
+        // accessors land in later slices; a Rejected class (mixed-USAGE Tier-C interim / unmodelable Tier-D) is loud.
+        if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
+            return null;   // loud — not yet wired (Tier B/C) or rejected
+        DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
+            ? ac.Canonical : item;
+
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath returns null → loud.
-        if (AccessPath(item, indexExprs) is not { } path) return null;
+        if (AccessPath(accessItem, indexExprs) is not { } path) return null;
         // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
         // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
         if (item.IsGroup) data.WholeGroupReferenced.Add(item);

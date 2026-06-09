@@ -21,12 +21,19 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         foreach (var (name, field) in ctx.Data.IndexFields)
             w.Line($"private static long {field} = 1;   // INDEX-NAME {name}");
         foreach (var root in ctx.Data.Roots)
-            if (root.IsGroup || root.IsElementary)
+            if ((root.IsGroup || root.IsElementary) && !SuppressField(root))
             {
                 string comment = root.CobolName is { } n ? $"   // {n}{(root.Occurs is { } o ? $" OCCURS {o}" : "")}" : "";
                 w.Line($"private static {root.FieldType} {root.CsName} = {FieldInit(root)};{comment}");
             }
     }
+
+    /// <summary>True if this item emits NO stored field: a Tier-A redefines view forwards to the canonical's single
+    /// field (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area). Its <c>NumProfile</c>
+    /// is still emitted (it carries its own PICTURE), only the stored value field is suppressed. (Tier-B/C backings
+    /// are emitted by a later slice; standalone items always emit.)</summary>
+    private static bool SuppressField(DataItem item) =>
+        item.Class is { Tier: RedefinesTier.Alias } && !item.IsCanonical;
 
     private static void EmitStructTypeDecls(DataItem item, CodeWriter w)
     {
@@ -35,7 +42,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         using (w.Block($"private record struct {item.StructName}"))
         {
             foreach (var child in item.Children)
-                if (child.IsGroup || child.IsElementary)
+                if ((child.IsGroup || child.IsElementary) && !SuppressField(child))
                     w.Line($"public {child.FieldType} {child.CsName};   // {child.CobolName ?? "FILLER"}");
 
             // A pure-character (DISPLAY-homogeneous) group gets the whole-group image facility (COBOLNET_DESIGN
@@ -48,7 +55,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     private static void EmitImageMethods(DataItem group, CodeWriter w)
     {
-        var members = group.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
+        var members = group.Children.Where(c => (c.IsGroup || c.IsElementary) && !SuppressField(c)).ToList();
         var parts = members.Select(c => c.IsGroup ? $"{c.CsName}.AsImage()" : c.CsName);
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
         using (w.Block("public void FromImage(string __s)"))
@@ -88,7 +95,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     private static string ComposedInit(DataItem group)
     {
         var parts = group.Children
-            .Where(c => c.IsGroup || c.IsElementary)
+            .Where(c => (c.IsGroup || c.IsElementary) && !SuppressField(c))
             .Select(c => $"{c.CsName} = {FieldInit(c)}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
