@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Cobol.Net.Cli — the thin command-line shell for the COBOL.NET compiler. Produces the cobol(.exe) executable.
+    All compilation logic lives in the Cobol.Net.Compiler library (this exe only parses args, prints diagnostics,
+    maps the outcome to an exit code, and optionally runs the compiled program). Split from the old combined exe
+    at G0 (docs/COBOLNET_DESIGN.md §17) so the compiler is testable as a library.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>cobol</AssemblyName>
+    <RootNamespace>CobolNet.Cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cobol.Net.Compiler\Cobol.Net.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>
