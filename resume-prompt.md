@@ -11,21 +11,25 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 472):** G1 ✅. **G0 project-reorg DONE (steps 1–4, DEVLOG 466/467/471/472):** front-end extracted
-> → `Cobol.Net.Frontend` (the greenfield compiler no longer references the legacy byte-engine assembly); runtime →
-> `Cobol.Net.Runtime`; compiler split into `Cobol.Net.Compiler` (library) + `Cobol.Net.Cli` (exe → `cobol.exe`)
-> with an extracted `CompilerDriver`; new test projects `Cobol.Net.Tests.Unit` (+ `CobolNetTestBase`/`CompilerDriver`
-> smoke tests) + `Cobol.Net.Tests.Conformance` (differential-harness scaffold). **G0 step 5 = no-op** (scripts/CI
-> reference only the unchanged legacy `CobolSharp.*`; the cosmetic `CobolSharp.sln → Cobol.Net.sln` rename is
-> DEFERRED to G8, when the legacy projects are deleted). Namespaces stay `CobolSharp.Compiler.*`/`CobolNet*` until
-> the G8 big-bang. **CI is now cross-platform green** (DEVLOG 468/469/470 fixed 3 pre-existing Linux/build failures:
-> Generated_temp double-compile, CRLF-vs-LF newline normalization, case-insensitive CALL resolution — the full
-> guard incl. 364 NIST verified on Linux via WSL). G2/G3 capability is still the parse-tree-walk emitter the DESIGN
-> SUPERSEDES. **RESUME AT → G2 per DESIGN §16**: build the **bound semantic tree** + **`ReferenceResolver`→`Place`
-> lvalue** + the data model + native numerics, building the emitter INTO the §17 §2.2 decomposed structure (do NOT
-> decompose the doomed parse-tree-walk emitter first) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the
-> **differential harness** (legacy vs CobolNet identical stdout = 364 free regression tests). Reuse ONLY the
-> front-end + the clean typed substrates.
+> **STATE (DEVLOG 483):** G1 ✅, G0 ✅. **G2 FOUNDATION COMPLETE (DEVLOG 475–483):** the parse-tree-walk emitter the
+> DESIGN superseded is RETIRED and replaced by the real **bound semantic tree** (`Binding/Bound/` — `BoundProgram` +
+> `StatementBinder` + bound nodes + `Bound*Error` loud-failure) rendered by a §17 §2.2-decomposed backend
+> (`CodeGen/Emit/` — `EmissionContext` + `NumericRenderer` / `ConditionRenderer` / `OperandText` / `FieldEmitter` +
+> a 239-line orchestrator; no god class). The **data model** is typed-native: groups→`record struct`,
+> OCCURS→`T[]` + subscripts (ported SUB_* split), the **`Place`**/`ReferenceResolver` lvalue (unqualified +
+> OF/IN-qualified), figurative VALUE, signed-DISPLAY over-punch/separate/binary-minus (`NumProfile.SignKind`),
+> level-88 + sign conditions, INDEXED BY fields, loud-failure (§1.4 `NotImplemented`). **Verification backbone:** the
+> **differential harness is LIVE** (`tests/Cobol.Net.Tests.Conformance/` — `LegacyCompiler` oracle vs
+> `CobolNetCompiler`, compared on the NIST acceptance basis; **93 hand-picked G2-scope tests green**). ⚠ ISO finding
+> (memory `feedback_use_the_spec`): legacy DISPLAY trims trailing spaces of an alphanumeric operand — **non-conforming
+> per ISO §14.9.11.4 GR6**; COBOL.NET emits the full field (spec-pinned where the quirk shows). Numerics are still
+> `long`-only (Int128/`CobolInt` deferred to the wave that first needs >18 digits per §18 #4). **RESUME AT →** (a)
+> small G2 tails: **ref-mod** `(s:l)` (G2-1c — needs `CobolString.RefMod`/`SpliceInto` runtime; binder already detects
+> the depth-0 `SUB_COLON`) + **class conditions** (IS NUMERIC/ALPHABETIC); then **G3** (the `CobolInt`/`Int128`
+> value engine + `TryStore` + ROUNDED + ON SIZE ERROR + INSPECT/STRING/UNSTRING + `CobolEdit` numeric-edited) and
+> **G4** (the PC dispatcher — replaces the sequential-paragraph stopgap; out-of-line PERFORM + fall-through is
+> double-executing today) → **G5** drive the 364-NIST corpus via the differential harness. Both G3 and G4 now land
+> against the bound tree, written once. Reuse ONLY the front-end + the clean typed substrates.
 >
 > *Everything below is the HISTORICAL byte-engine kickoff, retained for reference on the COBOL feature surface +
 > conformance corpus (still the oracle) — but the architecture/backend/data-model in it is SUPERSEDED.*

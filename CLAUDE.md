@@ -35,15 +35,20 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 472): G1 ✅; G0 project-reorg DONE
-(steps 1–4): front-end → `Cobol.Net.Frontend`, runtime → `Cobol.Net.Runtime`, compiler split → `Cobol.Net.Compiler`
-lib + `Cobol.Net.Cli` (`cobol.exe`) w/ `CompilerDriver`, new `Cobol.Net.Tests.{Unit,Conformance}`; step 5 = no-op
-(scripts/CI touch only unchanged legacy `CobolSharp.*`; `.sln` rename deferred to G8). CI now cross-platform green
-(468/469/470 fixed 3 pre-existing Linux/build failures; full guard incl. 364 NIST verified on Linux via WSL). G2/G3
-capability is still the parse-tree-walk emitter the DESIGN SUPERSEDES. RESUME AT → G2 per DESIGN §16: bound tree +
-`ReferenceResolver`→`Place` + data model + native numerics, building the emitter INTO the §17 §2.2 structure (NOT
-decompose-the-doomed-emitter-first) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the differential harness.**
-Everything below is the
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 483): G1 ✅, G0 ✅, G2 FOUNDATION ✅.
+The parse-tree-walk emitter is RETIRED → real bound semantic tree (`Binding/Bound/`: `BoundProgram` +
+`StatementBinder` + bound nodes + `Bound*Error` loud-failure) rendered by a §17 §2.2-decomposed backend
+(`CodeGen/Emit/`: `EmissionContext` + `NumericRenderer`/`ConditionRenderer`/`OperandText`/`FieldEmitter` + a 239-line
+orchestrator; no god class). Typed-native data model: groups→`record struct`, OCCURS→`T[]`+subscripts (ported SUB_*),
+`Place`/`ReferenceResolver` (unqualified + OF/IN), figurative VALUE, signed-DISPLAY (`NumProfile.SignKind`:
+over-punch/separate/binary-minus), level-88 + sign conditions, INDEXED BY, loud-failure (§1.4 `NotImplemented`).
+The differential harness is LIVE (`tests/Cobol.Net.Tests.Conformance/`: `LegacyCompiler` oracle vs `CobolNetCompiler`,
+NIST-acceptance-basis compare; 93 G2-scope tests green). Numerics still `long`-only (Int128/`CobolInt` deferred per
+§18 #4). RESUME AT → (a) small G2 tails: ref-mod `(s:l)` (G2-1c, needs `CobolString.RefMod`/`SpliceInto`; binder
+already detects the depth-0 SUB_COLON) + class conditions (IS NUMERIC/ALPHABETIC); then G3 (`CobolInt`/Int128 engine
++ `TryStore` + ROUNDED + ON SIZE ERROR + INSPECT/STRING/UNSTRING + `CobolEdit`) and G4 (PC dispatcher — replaces the
+sequential-paragraph stopgap; out-of-line PERFORM+fall-through double-executes today) → G5 drive 364-NIST via the
+differential harness.** Everything below is the
 HISTORICAL byte-engine plan (architecture/backend SUPERSEDED; the COBOL feature surface + the NIST/conformance
 corpus remain the oracle).
 
