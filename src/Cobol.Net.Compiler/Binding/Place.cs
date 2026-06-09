@@ -44,3 +44,28 @@ public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
     /// <inheritdoc/>
     public override string Write(string rhs) => $"{Path} = {rhs};";
 }
+
+/// <summary>
+/// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
+/// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
+/// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.
+/// </summary>
+public sealed record RefModPlace(Place Inner, string Start, string? Length) : Place
+{
+    // The start/length operands may be `long` fields, but the runtime takes `int` positions — cast at the call site.
+    private string Start32 => $"(int)({Start})";
+    private string Len32 => Length is null ? "-1" : $"(int)({Length})";
+
+    /// <inheritdoc/>
+    public override PicInfo? Pic => Inner.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => Inner.Item;
+
+    /// <inheritdoc/>
+    public override string Read() => $"CobolString.RefMod({Inner.Read()}, {Start32}, {Len32})";
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) =>
+        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, {rhs})");
+}

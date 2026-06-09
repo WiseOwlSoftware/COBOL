@@ -179,7 +179,11 @@ public sealed class CSharpEmitter
     private void EmitMove(BoundMove m)
     {
         foreach (var target in m.Targets)
-            if (target.Item.Pic is null)
+            if (target is RefModPlace)
+                // A reference-modified receiver: the slice takes the source's characters (SpliceInto left-justifies,
+                // space-fills, and truncates to the slice length), so pass the raw image, not a full-width store.
+                _ctx.Writer.Line(target.Write(OperandText.AsString(m.Source)));
+            else if (target.Item.Pic is null)
                 _ctx.Writer.Line(LoudStmt($"MOVE to group item '{target.Item.CobolName}' (whole-group MOVE is G6)"));
             else
                 _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));

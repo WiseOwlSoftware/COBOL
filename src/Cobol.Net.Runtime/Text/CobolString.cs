@@ -26,6 +26,42 @@ public static class CobolString
     }
 
     /// <summary>
+    /// Reference modification read (ISO §8.4.2.4): the substring of <paramref name="s"/> beginning at 1-based
+    /// <paramref name="leftmost"/> for <paramref name="length"/> characters (a negative length means "to the end").
+    /// Out-of-range positions are clamped and the result space-padded to the requested length (the lenient default;
+    /// the strict dialect raises EC-BOUND-REF-MOD — a later option).
+    /// </summary>
+    public static string RefMod(string? s, int leftmost, int length)
+    {
+        s ??= "";
+        int start = leftmost - 1;
+        if (start < 0) start = 0;
+        int avail = Math.Max(0, s.Length - start);
+        int len = length < 0 ? avail : length;
+        if (len <= 0) return "";
+        string slice = start < s.Length ? s.Substring(start, Math.Min(len, avail)) : "";
+        return slice.Length < len ? slice.PadRight(len) : slice;
+    }
+
+    /// <summary>
+    /// Reference modification write (ISO §8.4.2.4 / §14.9.24): return <paramref name="dst"/> with the
+    /// <paramref name="length"/> characters at 1-based <paramref name="leftmost"/> replaced by
+    /// <paramref name="slice"/> (left-justified, space-filled, truncated to the slice length). <paramref name="dst"/>'s
+    /// overall length is preserved; only the targeted positions change (editing is not re-applied).
+    /// </summary>
+    public static string SpliceInto(string? dst, int leftmost, int length, string? slice)
+    {
+        dst ??= ""; slice ??= "";
+        int start = leftmost - 1;
+        if (start < 0 || start >= dst.Length) return dst;
+        int len = length < 0 ? dst.Length - start : Math.Min(length, dst.Length - start);
+        if (len <= 0) return dst;
+        var arr = dst.ToCharArray();
+        for (int i = 0; i < len; i++) arr[start + i] = i < slice.Length ? slice[i] : ' ';
+        return new string(arr);
+    }
+
+    /// <summary>
     /// Compare two alphanumeric values under COBOL rules (ISO §8.8.4.1.2): the shorter operand is treated as if
     /// extended on the right with spaces. Returns &lt;0, 0, or &gt;0 (ordinal).
     /// </summary>

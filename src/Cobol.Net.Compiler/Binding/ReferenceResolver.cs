@@ -33,18 +33,24 @@ public sealed class ReferenceResolver(DataBinder data)
         string name = baseWord.GetText();
 
         var qualifiers = new List<string>();
-        Core.SubscriptOrRefModContext? subCtx = null;
+        Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
+        Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
+        bool cleanRefMod = false;                        // the refModPart form (arithmeticExpression : …) — deferred
+
+        void Classify(Core.SubscriptOrRefModContext s) { if (HasDepth0Colon(s)) refCtx ??= s; else subCtx ??= s; }
+
         foreach (var suffix in dref.dataReferenceSuffix())
         {
             if (suffix.qualification() is { } q)
             {
                 qualifiers.Add(q.cobolWord().GetText());
-                if (q.refModPart().Length > 0) return null;                      // ref-mod → G2-1c (loud)
-                if (q.subscriptPart().FirstOrDefault()?.subscriptOrRefMod() is { } qs) subCtx ??= qs;
+                foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
+                if (q.refModPart().Length > 0) cleanRefMod = true;
             }
-            else if (suffix.refModPart() is not null) return null;               // ref-mod → G2-1c (loud)
-            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) subCtx ??= s;
+            else if (suffix.refModPart() is not null) cleanRefMod = true;
+            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) Classify(s);
         }
+        if (cleanRefMod) return null;   // the parsed-arithmetic refModSpec form is a later slice → loud
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
         if (item is null) return null;
@@ -53,13 +59,19 @@ public sealed class ReferenceResolver(DataBinder data)
         if (subCtx is not null)
         {
             var (e, isRefMod) = InterpretSubscripts(subCtx);
-            if (isRefMod || e is null) return null;   // ref-mod (G2-1c) or unsupported subscript form → loud
+            if (isRefMod || e is null) return null;   // unsupported subscript form → loud
             indexExprs = e;
         }
 
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath returns null → loud.
-        string? path = AccessPath(item, indexExprs);
-        return path is null ? null : new MemberPlace(path, item);
+        if (AccessPath(item, indexExprs) is not { } path) return null;
+        Place inner = new MemberPlace(path, item);
+
+        if (refCtx is null) return inner;
+        // Reference modification is over a character string — restrict to alphanumeric/edited items for now.
+        if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited)) return null;
+        var (rm, _) = InterpretSubscripts(refCtx);
+        return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;
     }
 
     /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's parent),
@@ -131,17 +143,46 @@ public sealed class ReferenceResolver(DataBinder data)
     /// each comma- or multi-space-separated segment is rendered to a C# <c>long</c> index expression; a segment that
     /// cannot be rendered yields a null list (→ the caller fails loud).
     /// </summary>
-    private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(Core.SubscriptOrRefModContext ctx)
+    /// <summary>True if the flat token stream has a depth-0 <c>SUB_COLON</c> — i.e. it is a reference modification
+    /// (<c>start:length</c>) rather than a subscript list.</summary>
+    private static bool HasDepth0Colon(Core.SubscriptOrRefModContext ctx)
     {
         var tokens = new List<IToken>();
         CollectLeafTokens(ctx, tokens);
-
         for (int i = 0, d = 0; i < tokens.Count; i++)
         {
             int tt = tokens[i].Type;
             if (tt == Core.SUB_LPAREN) d++;
             else if (tt == Core.SUB_RPAREN) { if (d > 0) d--; }
-            else if (tt == Core.SUB_COLON && d == 0) return (null, true);   // ref-mod
+            else if (tt == Core.SUB_COLON && d == 0) return true;
+        }
+        return false;
+    }
+
+    private (List<string>? Exprs, bool IsRefMod) InterpretSubscripts(Core.SubscriptOrRefModContext ctx)
+    {
+        var tokens = new List<IToken>();
+        CollectLeafTokens(ctx, tokens);
+
+        int colonIdx = -1;
+        for (int i = 0, d = 0; i < tokens.Count; i++)
+        {
+            int tt = tokens[i].Type;
+            if (tt == Core.SUB_LPAREN) d++;
+            else if (tt == Core.SUB_RPAREN) { if (d > 0) d--; }
+            else if (tt == Core.SUB_COLON && d == 0) { colonIdx = i; break; }
+        }
+        if (colonIdx >= 0)   // reference modification: start [: length]
+        {
+            if (RenderSegment(tokens.GetRange(0, colonIdx)) is not { } start) return (null, true);
+            var result = new List<string> { start };
+            var lengthTokens = tokens.GetRange(colonIdx + 1, tokens.Count - colonIdx - 1);
+            if (lengthTokens.Any(t => t.Type != Core.SUB_WS))
+            {
+                if (RenderSegment(lengthTokens) is not { } len) return (null, true);
+                result.Add(len);
+            }
+            return (result, true);
         }
 
         var exprs = new List<string>();
