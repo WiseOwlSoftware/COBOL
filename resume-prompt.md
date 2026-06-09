@@ -11,13 +11,21 @@
 > build order). `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: `feedback_complete_dotnet_migration_no_byte`,
 > `feedback_fully_autonomous_push`. Tests may break mid-transition; the bar is 100% green at completion.
 >
-> **STATE (DEVLOG 463 + DESIGN landed):** G1 ✅ skeleton. G2/G3 partial (typed WS fields, native scaled-integer
-> numerics, DISPLAY/MOVE/ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE/IF) on a parse-tree-walk emitter that the DESIGN
-> SUPERSEDES — rebuild on a **bound semantic tree** + the **`Place` lvalue** + the **PC-dispatcher** (the
-> parse-tree-walk + paragraphs-as-methods were wrong; DESIGN §1/§5). **RESUME AT → G0 (reorg/rename + extract
-> front-end + decompose the emitter, DESIGN §17), then G2 per DESIGN §16** (bind→bound tree→`Place`; data model;
-> numerics) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the **differential harness** (run legacy + CobolNet,
-> assert identical stdout = 364 free regression tests). Reuse ONLY the front-end + the clean typed substrates.
+> **STATE (DEVLOG 472):** G1 ✅. **G0 project-reorg DONE (steps 1–4, DEVLOG 466/467/471/472):** front-end extracted
+> → `Cobol.Net.Frontend` (the greenfield compiler no longer references the legacy byte-engine assembly); runtime →
+> `Cobol.Net.Runtime`; compiler split into `Cobol.Net.Compiler` (library) + `Cobol.Net.Cli` (exe → `cobol.exe`)
+> with an extracted `CompilerDriver`; new test projects `Cobol.Net.Tests.Unit` (+ `CobolNetTestBase`/`CompilerDriver`
+> smoke tests) + `Cobol.Net.Tests.Conformance` (differential-harness scaffold). **G0 step 5 = no-op** (scripts/CI
+> reference only the unchanged legacy `CobolSharp.*`; the cosmetic `CobolSharp.sln → Cobol.Net.sln` rename is
+> DEFERRED to G8, when the legacy projects are deleted). Namespaces stay `CobolSharp.Compiler.*`/`CobolNet*` until
+> the G8 big-bang. **CI is now cross-platform green** (DEVLOG 468/469/470 fixed 3 pre-existing Linux/build failures:
+> Generated_temp double-compile, CRLF-vs-LF newline normalization, case-insensitive CALL resolution — the full
+> guard incl. 364 NIST verified on Linux via WSL). G2/G3 capability is still the parse-tree-walk emitter the DESIGN
+> SUPERSEDES. **RESUME AT → G2 per DESIGN §16**: build the **bound semantic tree** + **`ReferenceResolver`→`Place`
+> lvalue** + the data model + native numerics, building the emitter INTO the §17 §2.2 decomposed structure (do NOT
+> decompose the doomed parse-tree-walk emitter first) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the
+> **differential harness** (legacy vs CobolNet identical stdout = 364 free regression tests). Reuse ONLY the
+> front-end + the clean typed substrates.
 >
 > *Everything below is the HISTORICAL byte-engine kickoff, retained for reference on the COBOL feature surface +
 > conformance corpus (still the oracle) — but the architecture/backend/data-model in it is SUPERSEDED.*

@@ -35,10 +35,14 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 463 + DESIGN landed): G1 ✅; G2/G3
-partial (typed numerics + DISPLAY/MOVE/arith/IF) on a parse-tree-walk emitter the DESIGN SUPERSEDES — rebuild on a
-bound tree + `Place` + PC-dispatcher. RESUME AT → G0 reorg/rename + extract front-end + decompose emitter (DESIGN
-§17), then G2 per DESIGN §16; drive NIST via the differential harness (legacy vs CobolNet, identical stdout).**
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 472): G1 ✅; G0 project-reorg DONE
+(steps 1–4): front-end → `Cobol.Net.Frontend`, runtime → `Cobol.Net.Runtime`, compiler split → `Cobol.Net.Compiler`
+lib + `Cobol.Net.Cli` (`cobol.exe`) w/ `CompilerDriver`, new `Cobol.Net.Tests.{Unit,Conformance}`; step 5 = no-op
+(scripts/CI touch only unchanged legacy `CobolSharp.*`; `.sln` rename deferred to G8). CI now cross-platform green
+(468/469/470 fixed 3 pre-existing Linux/build failures; full guard incl. 364 NIST verified on Linux via WSL). G2/G3
+capability is still the parse-tree-walk emitter the DESIGN SUPERSEDES. RESUME AT → G2 per DESIGN §16: bound tree +
+`ReferenceResolver`→`Place` + data model + native numerics, building the emitter INTO the §17 §2.2 structure (NOT
+decompose-the-doomed-emitter-first) → G3 verbs → G4 PC-dispatcher → G5 drive NIST via the differential harness.**
 Everything below is the
 HISTORICAL byte-engine plan (architecture/backend SUPERSEDED; the COBOL feature surface + the NIST/conformance
 corpus remain the oracle).
