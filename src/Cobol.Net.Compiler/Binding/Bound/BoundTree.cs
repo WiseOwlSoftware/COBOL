@@ -121,26 +121,32 @@ public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets
 /// <see cref="CobolRounding.NearestAwayFromZero"/>; <c>ROUNDED MODE IS x</c> → the named mode).</summary>
 public sealed record Receiver(Place Place, CobolRounding Rounding);
 
+/// <summary>An ON SIZE ERROR phrase on an arithmetic statement (ISO §14.7.5): the imperative run when a size error
+/// occurs (<paramref name="OnError"/>) and/or the imperative run when none does (<paramref name="NotOnError"/>);
+/// either may be absent. A null <c>SizeError</c> on an arithmetic node means the statement has no phrase (the checked
+/// path is not emitted — its behavior is unchanged).</summary>
+public sealed record SizeErrorPhrase(IReadOnlyList<BoundStatement>? OnError, IReadOnlyList<BoundStatement>? NotOnError);
+
 /// <summary><c>ADD addends TO targets</c> — each target ← target + Σ addends.</summary>
-public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundAddTo(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>ADD addends GIVING targets</c> — each target ← Σ addends.</summary>
-public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundAddGiving(IReadOnlyList<BoundExpr> Addends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>SUBTRACT minuends FROM targets</c> — each target ← target − Σ minuends.</summary>
-public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundSubtractFrom(IReadOnlyList<BoundExpr> Minuends, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>SUBTRACT minuends FROM from GIVING targets</c> — each target ← from − Σ minuends.</summary>
-public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundSubtractGiving(IReadOnlyList<BoundExpr> Minuends, BoundExpr From, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>MULTIPLY a BY targets</c> — each target ← target × a.</summary>
-public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundMultiplyBy(BoundExpr A, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>MULTIPLY a BY b GIVING targets</c> — each target ← a × b.</summary>
-public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundMultiplyGiving(BoundExpr A, BoundExpr B, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>DIVIDE divisor INTO targets</c> — each target ← target ÷ divisor.</summary>
-public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 /// <summary><c>DIVIDE divisor INTO dividend GIVING targets</c> / <c>DIVIDE dividend BY divisor GIVING targets</c>
 /// — each target ← dividend ÷ divisor.</summary>
-public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 
 /// <summary><c>COMPUTE targets = rhs</c>.</summary>
-public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets) : BoundStatement;
+public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 
 /// <summary><c>IF cond THEN then-stmts [ELSE else-stmts]</c>.</summary>
 public sealed record BoundIf(

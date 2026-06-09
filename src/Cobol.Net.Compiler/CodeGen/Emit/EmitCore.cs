@@ -28,6 +28,12 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
     /// remainder); a division forced to a higher intermediate scale truncates and the receiver store rounds. Set
     /// before an arithmetic RHS is rendered; defaults to TRUNCATION (the no-ROUNDED behavior).</summary>
     public CobolRounding TargetRounding { get; set; } = CobolRounding.Truncation;
+
+    /// <summary>True while emitting the evaluation of an arithmetic statement that carries an ON SIZE ERROR phrase
+    /// (ISO §14.7.5). When set, a division renders the checked <c>CobolNum.DivideOrThrow</c> (which raises a
+    /// <c>CobolSizeError</c> on a zero divisor, caught by the statement's <c>try</c>) instead of <c>CobolNum.Divide</c>
+    /// — so a statement WITHOUT the phrase is byte-for-byte unchanged.</summary>
+    public bool InSizeErrorContext { get; set; }
 }
 
 /// <summary>

@@ -97,6 +97,9 @@ public sealed class CSharpEmitter
 
     private int _currentPc;     // the paragraph index being emitted (for EXIT PARAGRAPH / fall-through)
     private int _depCounter;    // unique-name counter for GO TO … DEPENDING selectors
+    private int _sizeErrCounter; // unique-name counter for ON SIZE ERROR flags
+    private int _storeTmpCounter; // unique-name counter for checked-store out-vars
+    private string? _sizeErrVar; // the current __sizeErr flag while emitting a checked arithmetic body (else null)
 
     /// <summary>
     /// Emit the single program-counter dispatcher: each paragraph is a <c>case</c> in one <c>Dispatch</c> method;
@@ -171,14 +174,14 @@ public sealed class CSharpEmitter
             case BoundUnsupported u: w.Line(LoudStmt(u.Feature)); return false;
             case BoundDisplay d: EmitDisplay(d); return false;
             case BoundMove m: EmitMove(m); return false;
-            case BoundAddTo a: EmitInPlace(a.Targets, "+", _num.Fold(a.Addends)); return false;
-            case BoundAddGiving a: EmitGiving(a.Targets, _num.Fold(a.Addends)); return false;
-            case BoundSubtractFrom a: EmitInPlace(a.Targets, "-", _num.Fold(a.Minuends)); return false;
-            case BoundSubtractGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.From), "-", _num.Fold(a.Minuends))); return false;
-            case BoundMultiplyBy a: EmitInPlace(a.Targets, "*", _num.Render(a.A)); return false;
-            case BoundMultiplyGiving a: EmitGiving(a.Targets, _num.Combine(_num.Render(a.A), "*", _num.Render(a.B))); return false;
-            case BoundDivideInto a: EmitDivide(a.Targets, null, _num.Render(a.Divisor)); return false;
-            case BoundDivideGiving a: EmitDivide(a.Targets, _num.Render(a.Dividend), _num.Render(a.Divisor)); return false;
+            case BoundAddTo a: EmitInPlace(a.Targets, "+", a.Addends, a.SizeError); return false;
+            case BoundAddGiving a: EmitGiving(a.Targets, () => _num.Fold(a.Addends), a.SizeError); return false;
+            case BoundSubtractFrom a: EmitInPlace(a.Targets, "-", a.Minuends, a.SizeError); return false;
+            case BoundSubtractGiving a: EmitGiving(a.Targets, () => _num.Combine(_num.Render(a.From), "-", _num.Fold(a.Minuends)), a.SizeError); return false;
+            case BoundMultiplyBy a: EmitInPlace(a.Targets, "*", [a.A], a.SizeError); return false;
+            case BoundMultiplyGiving a: EmitGiving(a.Targets, () => _num.Combine(_num.Render(a.A), "*", _num.Render(a.B)), a.SizeError); return false;
+            case BoundDivideInto a: EmitDivide(a.Targets, null, a.Divisor, a.SizeError); return false;
+            case BoundDivideGiving a: EmitDivide(a.Targets, a.Dividend, a.Divisor, a.SizeError); return false;
             case BoundCompute c: EmitCompute(c); return false;
             case BoundIf iff: EmitIf(iff); return false;
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
@@ -266,60 +269,119 @@ public sealed class CSharpEmitter
 
     // ── Arithmetic ──────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>In-place arithmetic (ADD TO / SUBTRACT FROM / MULTIPLY BY): each receiver ← receiver op value,
-    /// rounded by the receiver's ROUNDED mode (ISO §14.7.4).</summary>
-    private void EmitInPlace(IReadOnlyList<Receiver> targets, string op, NumX value)
-    {
-        foreach (var r in targets)
+    /// <summary>In-place arithmetic (ADD TO / SUBTRACT FROM / MULTIPLY BY): each receiver ← receiver op Σoperands,
+    /// rounded by the receiver's ROUNDED mode (ISO §14.7.4), under the statement's ON SIZE ERROR phrase if any.</summary>
+    private void EmitInPlace(IReadOnlyList<Receiver> targets, string op, IReadOnlyList<BoundExpr> operands, SizeErrorPhrase? sizeErr)
+        => EmitArith(sizeErr, () =>
         {
-            SetTarget(r);
-            StoreArith(r.Place, _num.Combine(NumericRenderer.FieldNum(r.Place), op, value), r.Rounding);
-        }
-    }
+            NumX value = _num.Fold(operands);
+            foreach (var r in targets)
+            {
+                SetTarget(r);
+                StoreArith(r.Place, _num.Combine(NumericRenderer.FieldNum(r.Place), op, value), r.Rounding);
+            }
+        });
 
-    /// <summary>GIVING arithmetic: the (already-computed) value is stored into each receiver, rounded by that
+    /// <summary>GIVING arithmetic: the value is computed once and stored into each receiver, rounded by that
     /// receiver's own ROUNDED mode (ISO §14.7.5 rule 4 — one value, stored left-to-right into each resultant).</summary>
-    private void EmitGiving(IReadOnlyList<Receiver> targets, NumX value)
-    {
-        foreach (var r in targets) StoreArith(r.Place, value, r.Rounding);
-    }
-
-    private void EmitDivide(IReadOnlyList<Receiver> targets, NumX? dividend, NumX divisor)
-    {
-        foreach (var r in targets)
+    private void EmitGiving(IReadOnlyList<Receiver> targets, Func<NumX> value, SizeErrorPhrase? sizeErr)
+        => EmitArith(sizeErr, () =>
         {
-            SetTarget(r);                                            // the quotient is computed at the receiver's scale + mode
-            NumX num = dividend ?? NumericRenderer.FieldNum(r.Place);   // DIVIDE … INTO with no GIVING divides the target itself
-            StoreArith(r.Place, _num.Combine(num, "/", divisor), r.Rounding);
-        }
-    }
+            NumX v = value();
+            foreach (var r in targets) StoreArith(r.Place, v, r.Rounding);
+        });
+
+    private void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
+        => EmitArith(sizeErr, () =>
+        {
+            NumX divisorX = _num.Render(divisor);
+            foreach (var r in targets)
+            {
+                SetTarget(r);                                                       // quotient at the receiver's scale + mode
+                NumX num = dividend is not null ? _num.Render(dividend) : NumericRenderer.FieldNum(r.Place);   // INTO-no-GIVING divides the target
+                StoreArith(r.Place, _num.Combine(num, "/", divisorX), r.Rounding);
+            }
+        });
 
     /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
-    /// then stored, rounded by the receiver's ROUNDED mode.</summary>
+    /// then stored, rounded by the receiver's ROUNDED mode, under the ON SIZE ERROR phrase if any.</summary>
     private void EmitCompute(BoundCompute c)
-    {
-        foreach (var r in c.Targets)
+        => EmitArith(c.SizeError, () =>
         {
-            SetTarget(r);
-            StoreArith(r.Place, _num.Render(c.Rhs), r.Rounding);
-        }
-    }
+            foreach (var r in c.Targets)
+            {
+                SetTarget(r);
+                StoreArith(r.Place, _num.Render(c.Rhs), r.Rounding);
+            }
+        });
 
     /// <summary>Set the working scale + rounding mode for the receiver about to be rendered/stored.</summary>
     private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; }
 
-    /// <summary>Store an arithmetic result into a numeric target place via <c>CobolNum.Store</c>, rounding to the
-    /// receiver scale with <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4).</summary>
+    /// <summary>
+    /// Run an arithmetic statement's per-receiver stores (<paramref name="emitStores"/>), wrapping them in the
+    /// two-phase ON SIZE ERROR machinery (ISO §14.7.5) when <paramref name="sizeErr"/> is present: a <c>__sizeErr</c>
+    /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
+    /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
+    /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
+    /// unchecked (the plain <c>CobolNum.Store</c> path) — behavior unchanged.
+    /// </summary>
+    private void EmitArith(SizeErrorPhrase? sizeErr, Action emitStores)
+    {
+        var w = _ctx.Writer;
+        if (sizeErr is null) { emitStores(); return; }
+
+        string flag = $"__sizeErr{_sizeErrCounter++}";
+        w.Line($"bool {flag} = false;");
+        _sizeErrVar = flag;
+        _ctx.InSizeErrorContext = true;
+        using (w.Block("try")) emitStores();
+        // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
+        // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
+        // statement's size error condition (ISO §14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
+        // overflow). >long-range overflow still needs the Int128 carrier (G3).
+        w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
+        w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
+        _ctx.InSizeErrorContext = false;
+        _sizeErrVar = null;
+
+        if (sizeErr.OnError is { } on)
+        {
+            using (w.Block($"if ({flag})")) EmitStatementList(on);
+            if (sizeErr.NotOnError is { } notAlso)
+                using (w.Block("else")) EmitStatementList(notAlso);
+        }
+        else if (sizeErr.NotOnError is { } not)
+            using (w.Block($"if (!{flag})")) EmitStatementList(not);
+    }
+
+    /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with
+    /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4). Inside an ON SIZE ERROR statement
+    /// (<see cref="_sizeErrVar"/> set) it uses the checked <c>CobolNum.TryStore</c> — on overflow / PROHIBITED-inexact
+    /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>CobolNum.Store</c>.</summary>
     private void StoreArith(Place target, NumX value, CobolRounding mode)
     {
+        var w = _ctx.Writer;
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
         {
-            _ctx.Writer.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
+            w.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
             return;
         }
-        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {target.Item.ProfileName}, CobolRounding.{mode})";
-        // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
-        _ctx.Writer.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.Item.ProfileName})" : stored));
+        string profile = target.Item.ProfileName;
+        if (_sizeErrVar is { } flag)
+        {
+            string tmp = $"__sv{_storeTmpCounter++}";
+            // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
+            // size-error context (CobolNum.MulChecked → OverflowException, caught by the statement's try, §14.7.5
+            // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
+            // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
+            w.Line($"if (!CobolNum.TryStore({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode}, out var {tmp})) {flag} = true;");
+            // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
+            w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : tmp)}");
+            return;
+        }
+        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode})";
+        w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : stored));
     }
 
     private static int ScaleOf(Place p) => p.Item.Pic?.Scale ?? 0;

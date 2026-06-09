@@ -49,6 +49,80 @@ public static class CobolNum
     }
 
     /// <summary>
+    /// Store an arithmetic result with SIZE ERROR checking (ISO §14.7.5 phase-b): rescale to the receiver scale
+    /// (rounding with <paramref name="mode"/>) and bounds-check against the picture before committing. Returns
+    /// <c>false</c> — leaving <paramref name="stored"/> meaningless and the receiver to be left unchanged by the
+    /// caller — when (a) the rescaled value's magnitude exceeds the receiver's digit capacity (high-order overflow,
+    /// §14.7.5 case 3), or (b) <paramref name="mode"/> is <see cref="CobolRounding.Prohibited"/> and the rescale is
+    /// inexact (a nonzero fraction would be dropped, §14.7.4.3 r7). Otherwise stores the value (unsigned-magnitude
+    /// rule applied, §14.9.25 GR8) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
+    /// only when an ON SIZE ERROR phrase is present.
+    /// </summary>
+    public static bool TryStore(long value, int valueScale, in NumProfile receiver, CobolRounding mode, out long stored)
+    {
+        stored = 0;
+        // PROHIBITED: an inexact rescale is a size error regardless of capacity (§14.7.4.3 r7) — receiver unchanged.
+        if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
+            return false;
+
+        long v = Rescale(value, valueScale, receiver.FractionScale, mode);
+
+        // High-order capacity check by digit count (DISPLAY/COMP/BINARY). COMP-5 (BinaryCapacity) bounds by
+        // two's-complement width — not yet checked here (a later slice), matching Store's no-truncation path.
+        // The compare avoids Math.Abs(long.MinValue) by bounding both signs against the positive limit.
+        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
+        {
+            long limit = Pow10(receiver.Digits);     // Digits ≤ 18 ⇒ ≤ 10^18 < long.MaxValue
+            if (v >= limit || v <= -limit) return false;
+        }
+
+        // Unsigned receiver stores the magnitude (§14.9.25 GR8). On the digit-count path v is bounded (it passed the
+        // capacity check), so Math.Abs is safe; the BinaryCapacity (COMP-5) magnitude rule is a later slice (as in Store).
+        stored = receiver.Signed ? v : Math.Abs(v);
+        return true;
+    }
+
+    /// <summary>True when rescaling <paramref name="value"/> from <paramref name="fromScale"/> to a smaller
+    /// <paramref name="toScale"/> would drop a nonzero fraction (an inexact transfer).</summary>
+    private static bool IsInexactAtScale(long value, int fromScale, int toScale) =>
+        toScale < fromScale && value % Pow10(fromScale - toScale) != 0;
+
+    /// <summary>Multiply two unscaled operands with overflow checking against the long engine's range: raises
+    /// <see cref="OverflowException"/> (mapped to the size error condition, ISO §14.7.5 case 5) when the product
+    /// exceeds <see cref="long"/>. Emitted only inside a statement that carries an ON SIZE ERROR phrase — so a
+    /// no-phrase multiply stays a bare unchecked <c>*</c>. Being a method call (not a constant expression), a
+    /// constant product is checked at run time, never folded to a compile-time error. (Products beyond the long
+    /// range need the Int128 carrier; deferred — see the numeric design.)</summary>
+    public static long MulChecked(long a, long b) => checked(a * b);
+
+    /// <summary>
+    /// Divide (see <see cref="Divide"/>) but raise <see cref="CobolSizeError"/> on a zero divisor (ISO §14.7.5 case
+    /// 2) instead of returning 0. Emitted only inside a statement that carries an ON SIZE ERROR phrase, so a
+    /// division in a statement WITHOUT the phrase keeps <see cref="Divide"/>'s behavior unchanged.
+    /// </summary>
+    public static long DivideOrThrow(long a, int aScale, long b, int bScale, int resultScale, CobolRounding mode)
+    {
+        if (b == 0) throw new CobolSizeError("divide by zero");
+        // ROUNDED MODE IS PROHIBITED: an inexact quotient AT resultScale is a size error (§14.7.4.3 r7). When the
+        // division rounds directly at the receiver scale (the outermost-division case), the inexactness is consumed
+        // inside Divide, so it must be detected here from the exact remainder rather than by the receiver's TryStore.
+        if (mode == CobolRounding.Prohibited && DivisionLosesPrecision(a, aScale, b, bScale, resultScale))
+            throw new CobolSizeError("PROHIBITED rounding on an inexact quotient");
+        return Divide(a, aScale, b, bScale, resultScale, mode);
+    }
+
+    /// <summary>True when <c>a/10^aScale ÷ b/10^bScale</c> cannot be represented exactly at <paramref name="resultScale"/>
+    /// fractional digits (a nonzero remainder after radix alignment) — used to detect a PROHIBITED violation in a
+    /// division. Mirrors <see cref="Divide"/>'s scaling. Assumes <paramref name="b"/> != 0.</summary>
+    private static bool DivisionLosesPrecision(long a, int aScale, long b, int bScale, int resultScale)
+    {
+        int exp = bScale + resultScale - aScale;
+        long num = a, den = b;
+        if (exp >= 0) num *= Pow10(exp); else den *= Pow10(-exp);
+        return num % den != 0;
+    }
+
+    /// <summary>
     /// The COBOL DISPLAY image of a fixed-point value: its unscaled digits, zero-padded on the left to the
     /// picture's digit count, with no decimal point (the point is implied). A signed item carries its sign per the
     /// receiver's <see cref="NumProfile.SignKind"/> (over-punch, separate sign, or a binary leading minus); an

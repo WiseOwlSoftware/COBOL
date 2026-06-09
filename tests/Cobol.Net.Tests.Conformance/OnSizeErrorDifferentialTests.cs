@@ -1,0 +1,131 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Xunit;
+
+namespace CobolNet.Tests.Conformance;
+
+/// <summary>
+/// The ON SIZE ERROR phrase and the size error condition (ISO/IEC 1989:2023 §14.7.5), two-phase: a per-receiver
+/// capacity overflow leaves only that receiver unchanged and the others stored (rule 2), a zero divisor (case 2) or
+/// a ROUNDED MODE IS PROHIBITED inexact result (§14.7.4.3 r7) raises the condition with no receiver changed, and the
+/// ON / NOT ON SIZE ERROR imperative runs once afterward. Pinned to hand-computed spec values; the legacy oracle
+/// (NIST-exercised for ON SIZE ERROR) is cross-checked. The "receiver unchanged" cases are the silent-corruption
+/// class — each asserts the receiver's post-value, not just the imperative output.
+/// </summary>
+public sealed class OnSizeErrorDifferentialTests
+{
+    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+
+    private static void AssertOutput(string source, string expected)
+    {
+        var (ok, outp, detail) = CobolNet.CompileAndRun(source);
+        Assert.True(ok, $"COBOL.NET failed: {detail}");
+        Assert.Equal(expected, outp);
+    }
+
+    private static void AssertSameAsLegacy(string source)
+    {
+        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
+        Assert.True(lok, $"legacy oracle failed: {ldetail}");
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal(lout, cout);
+    }
+
+    private static string Program(string ws, string proc) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. SIZ.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        {ws}
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+        {proc}
+            STOP RUN.
+        """;
+
+    // ── Capacity overflow → ON SIZE ERROR fires, receiver UNCHANGED (§14.7.5 rule 1/case 3). ────────────────────
+    [Fact]
+    public void Overflow_FiresOnSizeError_ReceiverUnchanged()
+    {
+        // 99 + 50 = 149 does not fit PIC 9(2) (max 99) → ON SIZE ERROR; R keeps its initial VALUE 07 (an explicit
+        // VALUE makes the unchanged-receiver image deterministic — an unvalued numeric differs across engines).
+        var src = Program("01 R PIC 9(2) VALUE 7.", "    ADD 99 50 GIVING R ON SIZE ERROR DISPLAY \"OVF\".\n    DISPLAY R.");
+        AssertOutput(src, "OVF\n07");
+        AssertSameAsLegacy(src);
+    }
+
+    [Fact]
+    public void NoOverflow_FiresNotOnSizeError()
+    {
+        var src = Program("01 R PIC 9(2).", "    ADD 1 2 GIVING R NOT ON SIZE ERROR DISPLAY \"OK\".\n    DISPLAY R.");
+        AssertOutput(src, "OK\n03");
+        AssertSameAsLegacy(src);
+    }
+
+    [Fact]
+    public void BothPhrases_ErrorPath_RunsOnSizeErrorOnly()
+        => AssertOutput(Program("01 R PIC 9(2).",
+            "    ADD 99 50 GIVING R ON SIZE ERROR DISPLAY \"E\" NOT ON SIZE ERROR DISPLAY \"N\".\n    DISPLAY R."),
+            "E\n00");
+
+    [Fact]
+    public void BothPhrases_OkPath_RunsNotOnSizeErrorOnly()
+        => AssertOutput(Program("01 R PIC 9(2).",
+            "    ADD 1 2 GIVING R ON SIZE ERROR DISPLAY \"E\" NOT ON SIZE ERROR DISPLAY \"N\".\n    DISPLAY R."),
+            "N\n03");
+
+    // ── ROUNDED MODE IS PROHIBITED: an inexact result is a size error (§14.7.4.3 r7); an exact result is not. ────
+    [Fact]
+    public void ProhibitedInexact_FiresOnSizeError_ReceiverUnchanged()
+    {
+        // 10 / 3 = 3.333… is inexact at scale 0 → PROHIBITED size error; R unchanged (00).
+        var src = Program("01 R PIC 9(2).",
+            "    COMPUTE R ROUNDED MODE IS PROHIBITED = 10 / 3 ON SIZE ERROR DISPLAY \"PROH\".\n    DISPLAY R.");
+        AssertOutput(src, "PROH\n00");
+    }
+
+    [Fact]
+    public void ProhibitedExact_DoesNotFire()
+        // 9 / 3 = 3 is exact → no size error → NOT path; R = 03.
+        => AssertOutput(Program("01 R PIC 9(2).",
+            "    COMPUTE R ROUNDED MODE IS PROHIBITED = 9 / 3 ON SIZE ERROR DISPLAY \"P\" NOT ON SIZE ERROR DISPLAY \"OK\".\n    DISPLAY R."),
+            "OK\n03");
+
+    // ── Divide by zero → ON SIZE ERROR fires, receiver UNCHANGED (§14.7.5 case 2). ──────────────────────────────
+    [Fact]
+    public void DivideByZero_FiresOnSizeError_ReceiverUnchanged()
+        => AssertOutput(Program("01 R PIC 9(2) VALUE 7.",
+            "    DIVIDE 5 BY 0 GIVING R ON SIZE ERROR DISPLAY \"D0\".\n    DISPLAY R."),
+            "D0\n07");   // R keeps 07
+
+    // ── Multiple receivers: only the overflowing one is unchanged; the others ARE stored (§14.7.5 rule 2). ──────
+    [Fact]
+    public void MultiReceiver_PartialStore_OnlyOverflowingUnchanged()
+    {
+        // 50 → R1 PIC 9(3) = 050 (stored); R2 PIC 9(1) overflows (50 > 9) → unchanged at its VALUE 8; SIZE ERROR fires.
+        var src = Program("01 R1 PIC 9(3) VALUE 1.\n01 R2 PIC 9(1) VALUE 8.",
+            "    ADD 50 GIVING R1 R2 ON SIZE ERROR DISPLAY \"E\".\n    DISPLAY R1.\n    DISPLAY R2.");
+        AssertOutput(src, "E\n050\n8");
+        AssertSameAsLegacy(src);
+    }
+
+    // ── Intermediate overflow of the long engine → ON SIZE ERROR fires (§14.7.5 case 5; the phrase ENABLES the
+    //    check). 9999999999 × 9999999999 ≈ 9.9e19 overflows long; the checked(...) the store wraps the value in
+    //    throws, caught as the size error. The legacy reaches the same outcome via its wider intermediate then a
+    //    capacity overflow — both leave R unchanged and run the imperative. ───────────────────────────────────────
+    [Fact]
+    public void IntermediateOverflow_FiresOnSizeError_ReceiverUnchanged()
+    {
+        var src = Program("01 R PIC 9(4) VALUE 1234.",
+            "    COMPUTE R = 9999999999 * 9999999999 ON SIZE ERROR DISPLAY \"OVF\".\n    DISPLAY R.");
+        AssertOutput(src, "OVF\n1234");
+        AssertSameAsLegacy(src);
+    }
+
+    // ── No ON SIZE ERROR phrase: a normal in-range computation is unaffected (the unchecked path). ──────────────
+    [Fact]
+    public void NoPhrase_NormalArithmetic_Unaffected()
+        => AssertSameAsLegacy(Program("01 R PIC 9(2).", "    ADD 1 2 GIVING R.\n    DISPLAY R."));
+}

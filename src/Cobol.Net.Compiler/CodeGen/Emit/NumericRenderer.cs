@@ -67,7 +67,10 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     public NumX Combine(NumX a, string op, NumX b) => op switch
     {
         "+" or "-" => CombineAdditive(a, op, b),
-        "*" => new NumX($"({a.Expr} * {b.Expr})", a.Scale + b.Scale),     // multiplication: scales add (exact)
+        // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked (a
+        // runtime helper, so a constant product cannot overflow at compile time) → OverflowException maps to the
+        // size error condition (§14.7.5 case 5); without the phrase it is a bare unchecked `*` (unchanged).
+        "*" => new NumX(ctx.InSizeErrorContext ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"({a.Expr} * {b.Expr})", a.Scale + b.Scale),
         "/" => Divide(a, b),
         _ => a,
     };
@@ -83,7 +86,10 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     {
         int ds = DivScale(a, b);
         CobolRounding mode = ds == ctx.TargetScale ? ctx.TargetRounding : CobolRounding.Truncation;
-        return new NumX($"CobolNum.Divide({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
+        // Under an ON SIZE ERROR phrase, a zero divisor must raise the size error (ISO §14.7.5 case 2): the checked
+        // DivideOrThrow signals it (caught by the statement's try); otherwise Divide returns 0 unchanged.
+        string fn = ctx.InSizeErrorContext ? "DivideOrThrow" : "Divide";
+        return new NumX($"CobolNum.{fn}({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
     }
 
     private static NumX CombineAdditive(NumX a, string op, NumX b)

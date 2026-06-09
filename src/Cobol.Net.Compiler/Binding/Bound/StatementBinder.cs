@@ -145,16 +145,17 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         if (add.addOperandList() is not { } operands) return new BoundUnsupported("ADD CORRESPONDING");
         var addends = operands.addOperand().Select(BindExpr).ToList();
+        var sizeErr = BindSizeError(add.arithmeticOnSizeError());
         if (add.addGivingPhrase() is { } giving)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.1 Format 3: the TO operand is an addend, NOT a
             // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(DataRefs(toAddend).Select(BindExpr));
-            return new BoundAddGiving(addends, Receivers(giving.receivingArithmeticOperand()));
+            return new BoundAddGiving(addends, Receivers(giving.receivingArithmeticOperand()), sizeErr);
         }
         if (add.addToPhrase() is { } to)
-            return new BoundAddTo(addends, Receivers(to.receivingArithmeticOperand()));
+            return new BoundAddTo(addends, Receivers(to.receivingArithmeticOperand()), sizeErr);
         return new BoundUnsupported("ADD form");
     }
 
@@ -162,10 +163,11 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         if (sub.subtractOperandList() is not { } operands) return new BoundUnsupported("SUBTRACT CORRESPONDING");
         var minuends = operands.subtractOperand().Select(BindExpr).ToList();
+        var sizeErr = BindSizeError(sub.arithmeticOnSizeError());
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
-            return new BoundSubtractGiving(minuends, BindExpr(from), Receivers(giving.receivingArithmeticOperand()));
+            return new BoundSubtractGiving(minuends, BindExpr(from), Receivers(giving.receivingArithmeticOperand()), sizeErr);
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
-            return new BoundSubtractFrom(minuends, Receivers(targets.receivingArithmeticOperand()));
+            return new BoundSubtractFrom(minuends, Receivers(targets.receivingArithmeticOperand()), sizeErr);
         return new BoundUnsupported("SUBTRACT form");
     }
 
@@ -174,10 +176,11 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (mul.multiplyOperand() is not { } aCtx) return new BoundUnsupported("MULTIPLY form");
         var a = BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
+        var sizeErr = BindSizeError(mul.arithmeticOnSizeError());
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
-            return new BoundMultiplyGiving(a, BindExpr(byOps[0]), Receivers(giving.receivingArithmeticOperand()));
+            return new BoundMultiplyGiving(a, BindExpr(byOps[0]), Receivers(giving.receivingArithmeticOperand()), sizeErr);
         // In-place: each BY operand is itself the receiver (target ← target × a).
-        return new BoundMultiplyBy(a, Receivers(byOps));
+        return new BoundMultiplyBy(a, Receivers(byOps), sizeErr);
     }
 
     private BoundStatement BindDivide(Core.DivideStatementContext div)
@@ -185,14 +188,15 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (div.divideRemainderPhrase() is not null) return new BoundUnsupported("DIVIDE … REMAINDER");
         if (div.divideOperand() is not { } aCtx) return new BoundUnsupported("DIVIDE form");
         var a = BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
+        var sizeErr = BindSizeError(div.arithmeticOnSizeError());
         if (div.divideIntoPhrase() is { } into)
         {
             return div.divideGivingPhrase() is { } giving
-                ? new BoundDivideGiving(BindExpr(into.divideIntoOperand()), a, Receivers(giving.receivingArithmeticOperand()))
-                : new BoundDivideInto(a, Receivers(into.divideIntoOperand().receivingArithmeticOperand()));   // target ← target ÷ a
+                ? new BoundDivideGiving(BindExpr(into.divideIntoOperand()), a, Receivers(giving.receivingArithmeticOperand()), sizeErr)
+                : new BoundDivideInto(a, Receivers(into.divideIntoOperand().receivingArithmeticOperand()), sizeErr);   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } g)
-            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(g.receivingArithmeticOperand()));
+            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(g.receivingArithmeticOperand()), sizeErr);
         return new BoundUnsupported("DIVIDE form");
     }
 
@@ -200,7 +204,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
         var rhs = BindExpr(expr);
-        return new BoundCompute(rhs, Receivers(compute.computeStore()));
+        return new BoundCompute(rhs, Receivers(compute.computeStore()), BindSizeError(compute.computeOnSizeError()));
     }
 
     private BoundStatement BindIf(Core.IfStatementContext iff)
@@ -218,6 +222,28 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     private List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();
+
+    // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
+
+    private SizeErrorPhrase? BindSizeError(Core.ArithmeticOnSizeErrorContext? ctx) =>
+        ctx is null ? null : BuildSizeError(ctx.statementBlock(), StartsWithNot(ctx));
+
+    private SizeErrorPhrase? BindSizeError(Core.ComputeOnSizeErrorContext? ctx) =>
+        ctx is null ? null : BuildSizeError(ctx.statementBlock(), StartsWithNot(ctx));
+
+    /// <summary>Build the phrase from the (1 or 2) statement blocks. Both <c>arithmeticOnSizeError</c> and
+    /// <c>computeOnSizeError</c> have the shape <c>ON SIZE ERROR b1 (NOT ON SIZE ERROR b2)? | NOT ON SIZE ERROR b1</c>;
+    /// the NOT-only alternative is detected by its leading <c>NOT</c> token.</summary>
+    private SizeErrorPhrase BuildSizeError(Core.StatementBlockContext[] blocks, bool notOnly)
+    {
+        if (notOnly) return new SizeErrorPhrase(null, BindBlocks([blocks[0]]));
+        var onErr = blocks.Length >= 1 ? BindBlocks([blocks[0]]) : null;
+        var notErr = blocks.Length >= 2 ? BindBlocks([blocks[1]]) : null;
+        return new SizeErrorPhrase(onErr, notErr);
+    }
+
+    private static bool StartsWithNot(IParseTree ctx) =>
+        ctx.ChildCount > 0 && ctx.GetChild(0) is ITerminalNode t && t.Symbol.Type == CobolLexer.NOT;
 
     private BoundStatement BindPerform(Core.PerformStatementContext p)
     {
