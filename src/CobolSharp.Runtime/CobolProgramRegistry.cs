@@ -122,9 +122,20 @@ public static class CobolProgramRegistry
             if (entry != null) return entry;
         }
 
-        // Try loading from application directory
+        // Try loading from application directory. COBOL program-names are case-insensitive, but the on-disk
+        // assembly filename may use a different case than the CALL'd program-id (e.g. a source file named
+        // adder.cob compiles to adder.dll for PROGRAM-ID ADDER). On a case-sensitive filesystem (Linux/CI) an
+        // exact "<programId>.dll" probe misses a differently-cased file, so fall back to a case-insensitive
+        // directory match. (On Windows the exact probe already resolves case-insensitively.)
         string appDir = AppDomain.CurrentDomain.BaseDirectory;
         string dllPath = Path.Combine(appDir, programId + ".dll");
+        if (!File.Exists(dllPath))
+        {
+            string targetName = programId + ".dll";
+            string? match = Directory.EnumerateFiles(appDir, "*.dll")
+                .FirstOrDefault(f => string.Equals(Path.GetFileName(f), targetName, StringComparison.OrdinalIgnoreCase));
+            if (match != null) dllPath = match;
+        }
         if (File.Exists(dllPath))
         {
             try
