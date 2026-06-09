@@ -23,6 +23,8 @@ public sealed class NistDifferentialTests
     [InlineData("NC113M")]
     [InlineData("NC127A")]
     [InlineData("NC136A")]
+    [InlineData("NC211A")]   // the first NC conditional program: abbreviated/compound conditions, OCCURS-group image,
+                             // signed→alphanumeric de-sign, ALL "literal", IS NUMERIC over alphanumeric (DEVLOG 506–511)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

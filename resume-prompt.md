@@ -13,8 +13,9 @@
 >
 > **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
-> Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
-> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **279 conformance + 14
+> Differential harness LIVE + driving the **real NIST corpus**: **8 NC programs byte-match the golden** — NC101A +
+> NC110M/111A/112A/113M/127A/136A + **NC211A (the first nucleus CONDITIONAL program, GREEN as of DEVLOG 511)** — locked
+> into `NistDifferentialTests` (`[InlineData]`). **283 conformance + 14
 > unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
 > proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
 > before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
@@ -34,23 +35,17 @@
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
 > **RESUME AT — continue the G5 NC corpus drive (`NistDifferentialTests` is the net; add each newly-green program's
-> `[InlineData]`):** Snapshot after 507: ~80/95 NC compile; 7 byte-match the golden. Recommended order (advisor-guided):
-> **(1) FIRST, the whole-group MOVE to a mixed-USAGE group (Tier-C byte path)** — this is NC211A's CURRENT blocker
-> (DEVLOG 507): after abbreviated conditions landed, NC211A runs through GF-11…GF-22 and stops at GF-23 on the runtime
-> loud guard `MOVE to mixed-usage group 'IF-TABLE' with a COMP/binary leaf (Tier-C byte path, deferred)` — a group with
-> a COMP/binary leaf moved as a whole. This is the Tier-C `byte[]`+`RedefCodec` path (COBOLNET_DESIGN §4.2 / §14.4),
-> currently loud-rejected; implement it (or the narrower whole-group MOVE over a mixed-USAGE group) → green NC211A.
-> **(DONE in 507 — abbreviated combined relation conditions, ISO §8.8.4.12: `AbbrevCarry` threads the last stated
-> subject+operator through OR/XOR/AND in source order; bare-operand carries both [condition-name takes precedence];
-> NOT-as-operator vs leading-logical-NOT distinguished; paren = fresh scope. Tests SPEC-ANCHORED to §8.8.4.12.4 GR1.)**
-> **(DONE in 506 — the Entry-505 Tier-B
-> `.BB` blocker: the diagnosis was WRONG (it is NOT `Resolve`'s StringCanonical branch — the MOVE path proves `Resolve`
-> resolves a view fine); the real bug was `ReferenceResolver.ResolveItem(DataItem)` — used by level-88 / SET conditions —
-> always building a plain `MemberPlace`, bypassing the view machinery. Fixed by factoring ONE view-aware
-> `PlaceForItem(item, indexExprs)` that both `Resolve` and `ResolveItem` use; also fixed group-level-88 to compare the
-> character image per §8.8.4.5 GR2 / §8.8.4.1. NC252A is NOT cleared — it needs a numeric Tier-B-view 88 (`string == long`
-> today), a nested-Tier-B-through-suppressed-parent backing [`REDEF11`/`RDF3`], AND level-66 RENAMES.)** **(2) Then the
-> high-frequency string/table VERBS** (the 61 compile-but-mismatch programs each hit an
+> `[InlineData]`):** Snapshot after 511: ~80/95 NC compile; **8 byte-match the golden (NC211A is the newest — the first
+> nucleus CONDITIONAL program, green via the 506–511 stack).** Recommended order: **(1) TARGET THE NEXT NC PROGRAM** —
+> pick one (or two) compile-but-mismatch NC programs (run the compile/run-vs-golden sweep to pick the closest), implement
+> the UNION of verbs/features they need, finish at a NEW GREEN program. NC211A's stack is DONE (506 level-88 over a
+> REDEFINES view / group; 507 abbreviated combined relation conditions §8.8.4.12; 508 whole-group image over OCCURS
+> §14.9; 509 signed→alphanumeric de-sign §14.9.25.4 GR6a; 510 `ALL "literal"` §8.3.3.6.4; 511 IS NUMERIC rule 2
+> §8.8.4.4). **Still-open known gaps (each a likely next-program blocker):** the genuine Tier-C mixed-USAGE group
+> (`byte[]`+`RedefCodec`, COBOLNET_DESIGN §4.2 — a COMP/binary leaf moved as a whole, currently loud); NEXT SENTENCE
+> (loud); NC252A's numeric Tier-B-view 88 (`string == long` today) + nested-Tier-B-through-suppressed-parent
+> [`REDEF11`/`RDF3`] + level-66 RENAMES. **(2) Then the high-frequency string/table VERBS** (the ~60 compile-but-mismatch
+> programs each hit an
 > unimplemented verb's loud guard): **INSPECT** (TALLYING/REPLACING/CONVERTING), **EVALUATE**, **SEARCH**/SET-for-index,
 > **STRING**/**UNSTRING**, **INITIALIZE**, **ACCEPT** — each via `CobolStrings`/the bound tree + a differential test.
 > ⚠ **A single verb greens NO program (each MISS needs several) — so TARGET A PROGRAM: pick one (or two) NC programs,

@@ -4,27 +4,23 @@ namespace CobolNet.Runtime;
 
 /// <summary>
 /// Class-condition predicates over a value's character image (ISO §8.8.4.1.4). ALPHABETIC is the closed Latin set
-/// {A–Z, a–z, space} — NOT <c>char.IsLetter</c> (COBOLNET_DESIGN §11.2); NUMERIC is the digits 0–9 with an optional
-/// leading or trailing operational sign.
+/// {A–Z, a–z, space} — NOT <c>char.IsLetter</c> (COBOLNET_DESIGN §11.2); NUMERIC over an alphanumeric operand is the
+/// digits 0–9 only (no operational sign — §8.8.4.4 rule 2).
 /// </summary>
 public static class CobolClass
 {
     /// <summary>
-    /// True if the character image is all digits 0–9, with one optional leading or trailing separate sign
-    /// (<c>+</c>/<c>-</c>). An all-spaces / empty value is not numeric (ISO §8.8.4.1.4). NOTE: an over-punched
-    /// operational sign is honored only for a SIGNED item — but a typed-numeric COBOL.NET field IS NUMERIC folds to
-    /// <c>true</c> before reaching here, so this runtime check serves alphanumeric content, where over-punch letters
-    /// (e.g. the <c>A</c> in <c>"12A"</c>) are ordinary characters and make the value non-numeric.
+    /// The NUMERIC class test for the content that reaches this runtime check (ISO §8.8.4.4 GR2): true iff the value
+    /// consists ENTIRELY of the digits 0–9. An operational sign is NOT a valid character here — rule 2 governs a
+    /// NON-numeric (alphanumeric / edited) operand, the only kind that reaches this method (a numeric-category COBOL.NET
+    /// field IS NUMERIC folds to <c>true</c> at compile time, GR1). So <c>"+1234"</c> and <c>"12A"</c> are both
+    /// non-numeric; an all-spaces / empty value is non-numeric.
     /// </summary>
     public static bool IsNumeric(string? s)
     {
         if (string.IsNullOrEmpty(s)) return false;
-        int start = 0, end = s.Length;
-        if (s[0] is '+' or '-') start = 1;                       // leading separate sign
-        else if (s[^1] is '+' or '-') end--;                     // trailing separate sign
-        if (start >= end) return false;
-        for (int i = start; i < end; i++)
-            if (s[i] is < '0' or > '9') return false;
+        foreach (char c in s)
+            if (c is < '0' or > '9') return false;
         return true;
     }
 
