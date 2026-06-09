@@ -437,10 +437,12 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         return new BoundNumericLiteral(lit.GetText());
     }
 
-    /// <summary>Bind a figurative constant to a <see cref="BoundFigurative"/> (the ALL "x" forms are a later slice).</summary>
+    /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> (a multi-character figurative,
+    /// ISO §8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc. are the single-character
+    /// figurative repeated to width, identical to the bare word. (ALL HEXLIT / NULL stay a later slice.)</summary>
     private static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
-        if (fig.ALL() is not null) return new BoundOperandError($"figurative constant '{fig.GetText()}'");
+        if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(DecodeCobolString(allLit.GetText()));
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
         if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');

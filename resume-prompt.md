@@ -14,7 +14,7 @@
 > **STATE (DEVLOG 505):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅.**
 > Differential harness LIVE + driving the **real NIST corpus**: **NC101A + 6 more NC programs (NC110M/111A/112A/113M/
-> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **263 conformance + 14
+> 127A/136A) byte-match the golden** — locked into `NistDifferentialTests` (`[InlineData]`). **279 conformance + 14
 > unit green.** Greenfield-only since 497; the shared front-end + legacy oracle are untouched (legacy guard last
 > proven ALL GREEN — 364 NIST / 1204 unit / 535 integration — at the OPTIONS commit; re-run `scripts/guard-fast.sh`
 > before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).

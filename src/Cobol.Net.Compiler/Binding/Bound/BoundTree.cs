@@ -64,6 +64,11 @@ public sealed record BoundComputedOperand(BoundExpr Expr) : BoundOperand;
 /// width (a single occurrence in DISPLAY, the receiver width in MOVE, the other operand's width in a comparison).</summary>
 public sealed record BoundFigurative(char Kind) : BoundOperand;
 
+/// <summary>The figurative <c>ALL "literal"</c> (ISO §8.3.3.6.4 Format 6): the multi-character <paramref name="Literal"/>
+/// repeated to the associated width (the receiver in a MOVE, the other operand in a comparison — GR2) or used once in a
+/// length-unspecified context such as DISPLAY (GR3c).</summary>
+public sealed record BoundAllLiteral(string Literal) : BoundOperand;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundOperandError(string Feature) : BoundOperand;
 

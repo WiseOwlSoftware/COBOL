@@ -276,6 +276,9 @@ public sealed class CSharpEmitter
         // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24).
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric)
             return $"new string({FigurativeFill(f.Kind)}, {pic.Length})";
+        // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2).
+        if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
+            return CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length));
 
         switch (pic.Category)
         {

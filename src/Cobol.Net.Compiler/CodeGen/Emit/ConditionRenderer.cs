@@ -27,7 +27,9 @@ internal sealed class ConditionRenderer(NumericRenderer num)
 
     private string RenderRelational(BoundRelational r)
     {
-        if (r.Left is BoundFigurative || r.Right is BoundFigurative)
+        // A figurative operand (a single-character constant OR an ALL "literal") is materialized against the OTHER
+        // operand's width (ISO §8.3.3.6.4 GR2), so it routes through the width-aware figurative path.
+        if (r.Left is BoundFigurative or BoundAllLiteral || r.Right is BoundFigurative or BoundAllLiteral)
             return RenderFigurativeRelational(r);
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
@@ -42,8 +44,9 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     /// the figurative is a string of the anchor's width.</summary>
     private string RenderFigurativeRelational(BoundRelational r)
     {
-        BoundOperand anchor = r.Left is BoundFigurative ? r.Right : r.Left;
-        if (anchor is BoundFigurative || OperandText.IsString(anchor))
+        static bool IsFig(BoundOperand o) => o is BoundFigurative or BoundAllLiteral;
+        BoundOperand anchor = IsFig(r.Left) ? r.Right : r.Left;
+        if (IsFig(anchor) || OperandText.IsString(anchor))
         {
             int width = AnchorWidth(anchor);
             return $"CobolString.Compare({FigOrString(r.Left, width)}, {FigOrString(r.Right, width)}) {r.Op} 0";
@@ -55,13 +58,18 @@ internal sealed class ConditionRenderer(NumericRenderer num)
 
     private static int AnchorWidth(BoundOperand op) => op switch
     {
-        BoundFieldOperand f => f.Place.Item.Pic?.Length ?? 1,
+        BoundFieldOperand f => f.Place.Item.Pic?.Length ?? f.Place.Item.ImageWidth,
         BoundStringLiteral s => Math.Max(s.Value.Length, 1),
+        BoundAllLiteral a => Math.Max(a.Literal.Length, 1),
         _ => 1,
     };
 
-    private static string FigOrString(BoundOperand op, int width) =>
-        op is BoundFigurative f ? $"new string({EmitText.FigurativeFill(f.Kind)}, {width})" : OperandText.AsString(op);
+    private static string FigOrString(BoundOperand op, int width) => op switch
+    {
+        BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, {width})",
+        BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
+        _ => OperandText.AsString(op),
+    };
 
     private NumX FigOrNum(BoundOperand op) => op switch
     {
@@ -112,15 +120,23 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     {
         if (isString)
         {
-            string lo = EmitText.CsLiteral(EmitText.DecodeCobolString(low));
+            // A level-88 VALUE compares against the conditional variable, so a figurative ALL "literal" is repeated to
+            // the variable's width (ISO §8.3.3.6.4 GR2); a plain literal is decoded as-is.
+            int width = parent.Pic?.Length ?? parent.ImageWidth;
+            string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
             if (high is null) return $"CobolString.Compare({read}, {lo}) == 0";
-            return $"(CobolString.Compare({read}, {lo}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(EmitText.DecodeCobolString(high))}) <= 0)";
+            return $"(CobolString.Compare({read}, {lo}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}) <= 0)";
         }
         int scale = parent.Pic?.Scale ?? 0;
         string loN = NumericMembershipValue(low, scale);
         if (high is null) return $"{read} == {loN}";
         return $"({read} >= {loN} && {read} <= {NumericMembershipValue(high, scale)})";
     }
+
+    /// <summary>A string level-88 VALUE operand's character value: a figurative <c>ALL "literal"</c> repeated to the
+    /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), else the decoded literal.</summary>
+    private static string StringMembershipValue(string raw, int width) =>
+        EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width) : EmitText.DecodeCobolString(raw);
 
     /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
     /// (ISO §8.3.1.2 — a valid numeric operand); otherwise the literal is scaled. Without this a figurative VALUE word

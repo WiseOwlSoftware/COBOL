@@ -72,6 +72,32 @@ internal static class EmitText
     public static string DecodeCobolString(string raw) =>
         raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;
 
+    /// <summary>The character value of a figurative <c>ALL literal-1</c> in a WIDTH-SPECIFIED context (a VALUE clause /
+    /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by
+    /// character until its length is ≥ <paramref name="width"/>, then truncated from the right to <paramref
+    /// name="width"/> (or 1, whichever is greater). An empty literal yields spaces. (A length-UNSPECIFIED context —
+    /// DISPLAY / STOP / STRING — uses the literal once per GR3c, NOT this.)</summary>
+    public static string RepeatToWidth(string literal, int width)
+    {
+        int w = Math.Max(width, 1);
+        if (literal.Length == 0) return new string(' ', w);
+        var sb = new System.Text.StringBuilder(w + literal.Length);
+        while (sb.Length < w) sb.Append(literal);
+        return sb.ToString()[..w];
+    }
+
+    /// <summary>If <paramref name="raw"/> is the figurative <c>ALL "literal"</c> form (a VALUE / level-88 operand text),
+    /// the decoded literal; otherwise <see langword="null"/>. Tolerant of whether the front-end preserved the space
+    /// between <c>ALL</c> and the literal. Only the quoted-literal form matches — <c>ALL ZEROS</c> (a figurative word)
+    /// returns <see langword="null"/> and is handled by the figurative-word path.</summary>
+    public static string? AllLiteralText(string raw)
+    {
+        string t = raw.TrimStart();
+        if (t.Length < 3 || !t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)) return null;
+        string rest = t[3..].TrimStart();
+        return rest.Length >= 2 && rest[0] == '"' && rest[^1] == '"' ? DecodeCobolString(rest) : null;
+    }
+
     /// <summary>Render a numeric literal as a scaled <c>long</c>: its digits as the unscaled value, its fractional
     /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>).</summary>
     public static NumX UnscaledLit(string text)

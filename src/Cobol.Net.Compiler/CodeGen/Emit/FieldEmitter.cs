@@ -220,6 +220,10 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
 
+        // ALL "literal": the literal repeated to the item width (ISO §8.3.3.6.4 GR2; SR3 forbids it on a numeric item).
+        if (EmitText.AllLiteralText(raw) is { } allLit && pic.Category is not PicCategory.Numeric)
+            return EmitText.CsLiteral(EmitText.RepeatToWidth(allLit, pic.Length));
+
         return pic.Category switch
         {
             PicCategory.Alphanumeric or PicCategory.NumericEdited =>

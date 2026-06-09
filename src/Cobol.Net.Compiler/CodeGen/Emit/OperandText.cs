@@ -20,6 +20,7 @@ internal static class OperandText
         BoundNumericLiteral n => EmitText.CsLiteral(n.Text),
         BoundFieldOperand f => FieldAsString(f.Place, deSign),
         BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, 1)",   // DISPLAY shows one occurrence (GR3)
+        BoundAllLiteral a => EmitText.CsLiteral(a.Literal),                          // length-unspecified: the literal once (GR3c)
         BoundComputedOperand => EmitText.LoudValue("string", "computed expression in a string context"),
         BoundOperandError e => EmitText.LoudValue("string", e.Feature),
         _ => EmitText.LoudValue("string", $"bound operand '{op.GetType().Name}'"),
@@ -30,6 +31,7 @@ internal static class OperandText
     public static bool IsString(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,
+        BoundAllLiteral => true,   // ALL "literal" is an alphanumeric figurative
         BoundFieldOperand f => f.Place.Item.IsGroup || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited,
         _ => false,
     };
