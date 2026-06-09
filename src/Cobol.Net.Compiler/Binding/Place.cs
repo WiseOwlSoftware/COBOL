@@ -46,6 +46,34 @@ public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
 }
 
 /// <summary>
+/// A Tier-B REDEFINES view (COBOLNET_DESIGN §4.2): a typed <c>(offset, width)</c> character window over the class's
+/// ONE <see cref="string"/> backing field. Reading yields the window's character image (a substring); writing splices
+/// a new image back into the backing, preserving its full width — so a write through any view is visible through every
+/// other view of the class (one stored backing, ISO §13.18.44). The window carries the VIEW's <see cref="DataItem"/>,
+/// so its category/scale/profile drive interpretation: a numeric-DISPLAY view is flagged
+/// <see cref="DataItem.StoreAsImage"/>, so the numeric pipeline decodes/encodes the window via
+/// <c>CobolNum.ParseDisplay</c>/<c>FormatDisplay</c> exactly as for a whole-group numeric leaf (no new emitter path).
+/// </summary>
+public sealed record RedefViewPlace(string Backing, int Offset, int Width, DataItem ViewItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => ViewItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => ViewItem;
+
+    /// <summary>The character window this view occupies (1-based leftmost position; <c>CobolString.RefMod</c>).</summary>
+    private string Window => $"CobolString.RefMod({Backing}, {Offset + 1}, {Width})";
+
+    /// <inheritdoc/>
+    public override string Read() => Window;
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) =>
+        $"{Backing} = CobolString.SpliceInto({Backing}, {Offset + 1}, {Width}, {rhs});";
+}
+
+/// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.

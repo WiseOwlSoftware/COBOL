@@ -311,9 +311,33 @@ public sealed class DataBinder
             cls.Tier = ComputeTier(cls, out string? reject);
             cls.RejectReason = reject;
             cls.Width = cls.Members.Max(m => m.ImageWidth);
-            foreach (var view in cls.Members)
-                if (!view.IsCanonical)
-                    foreach (var d in DescendantsOf(view)) { d.IsCanonical = false; d.Class = cls; }
+            // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
+            // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
+            // member are themselves views (suppressed field, SR9).
+            foreach (var member in cls.Members)
+                AssignClassOffsets(member, 0, cls);
+            // A Tier-B (string-canonical) numeric-DISPLAY view reads/writes its window through the character pipeline
+            // (CobolNum.ParseDisplay / FormatDisplay) — the same StoreAsImage path used for whole-group numeric leaves.
+            if (cls.Tier == RedefinesTier.StringCanonical)
+                foreach (var leaf in cls.Members.SelectMany(LeavesOf))
+                    if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                        leaf.StoreAsImage = true;
+        }
+    }
+
+    /// <summary>Assign each item in a redefines class its window offset within the class image and its class link; a
+    /// top-level member starts at <paramref name="off"/> (0), a subordinate accumulates by preceding-sibling widths.
+    /// Every subordinate of a class member is itself a view (its stored field is suppressed — SR9).</summary>
+    private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls)
+    {
+        item.ClassOffset = off;
+        item.Class = cls;
+        int childOff = off;
+        foreach (var c in item.Children)
+        {
+            c.IsCanonical = false;
+            AssignClassOffsets(c, childOff, cls);
+            childOff += c.ImageWidth;
         }
     }
 
@@ -362,16 +386,6 @@ public sealed class DataBinder
         if (d.IsElementary) { yield return d; yield break; }
         foreach (var c in d.Children)
             foreach (var l in LeavesOf(c)) yield return l;
-    }
-
-    /// <summary>Every descendant of an item (children, recursively).</summary>
-    private static IEnumerable<DataItem> DescendantsOf(DataItem d)
-    {
-        foreach (var c in d.Children)
-        {
-            yield return c;
-            foreach (var x in DescendantsOf(c)) yield return x;
-        }
     }
 
     /// <summary>Find an item by COBOL name within a record subtree (the item itself or any descendant).</summary>

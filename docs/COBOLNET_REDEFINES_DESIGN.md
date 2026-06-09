@@ -139,7 +139,7 @@ Compose via each leaf's EXISTING read/write: get = concat each leaf's DISPLAY im
 
 ### Signed-DISPLAY overpunch: the byte image of S9(n) carries the sign as an overpunch on a digit, so a numeric view's encode/decode is not plain ASCII digits.
 
-Dependency: implement overpunch in CobolNum.FormatDisplaySigned / ParseDisplay (encode+decode incl. overpunch + leading/trailing separate sign) before Tier B/C numeric-view accessors are exact. CobolNum.FormatDisplay currently explicitly defers it (returns magnitude).
+Dependency: overpunch in CobolNum.FormatDisplaySigned / ParseDisplay (encode+decode incl. overpunch + leading/trailing separate sign). **RESOLVED (DEVLOG 493):** `CobolNum` now ships `FormatDisplaySigned` (overpunch + leading/trailing separate + binary-minus) and `ParseDisplay` (full inverse incl. overpunch decode), so Tier-B numeric-view accessors are exact today — no sequencing dependency remains. (A Tier-B numeric view rides the `StoreAsImage` path: its `Read()` is the character window, decoded by `CobolNum.ParseDisplay` in the numeric pipeline.)
 
 ### Lossless byte↔char carrier for alphanumeric content that holds binary (0x00–0xFF).
 
@@ -159,7 +159,7 @@ The overlay is PER ELEMENT: the array element type (the record struct for the OC
 - Larger level-01 redefiner (SR8 exception): class width = max across views, not the original's width.
 - Partial cross-field overlap: leaves are (offset,length) windows over the concatenated image.
 - REDEFINES inside OCCURS (SR5): overlay is per array element; element type carries canonical+accessors.
-- Signed-DISPLAY overpunch (SR-numeric): numeric view encode/decode is not plain ASCII digits; CobolNum currently defers overpunch.
+- Signed-DISPLAY overpunch (SR-numeric): numeric view encode/decode is not plain ASCII digits; handled by `CobolNum.FormatDisplaySigned`/`ParseDisplay` (implemented — DEVLOG 493).
 - Alphanumeric view over binary content: needs a lossless 8-bit (Latin-1) carrier — shared with whole-group-alphanumeric + file I/O.
 - Multiple redefinitions of one area (SR7): all redefiners name the original → one class, one canonical, anchored via RedefinesTarget closure.
 - Group redefiner over an elementary target and vice-versa: width/offsets over leaves; tier decided by the union of all leaves' usages.
@@ -208,7 +208,7 @@ The overlay is PER ELEMENT: the array element type (the record struct for the OC
 
 - OWNER FORK: confirm Tier C's PERSISTENT class-scoped byte[] canonical as the accepted realization of "bytes only at a boundary" (C-allow, RECOMMENDED — Tiers A/B stay 100% typed incl. the entire near-term NIST path which is DISPLAY-homogeneous, so the fork is off the critical path and A/B ship NIST-green regardless) — OR mandate rejecting mixed-USAGE REDEFINES loudly (collapse Tier C into Tier D), trading real-program coverage (X-over-COMP record/comms layouts are common in production COBOL) for zero-byte purity.
 - Latin-1 lossless 8-bit carrier (Encoding.Latin1) is a CROSS-SUBSYSTEM convention shared with whole-group-alphanumeric and file record serialization — settle it ONCE as a CobolNet.Runtime codepage constant; owner-visible because it spans subsystems.
-- Signed-DISPLAY overpunch: CobolNum currently DEFERS it (FormatDisplay returns magnitude). Tier B/C numeric-view accessors need CobolNum.FormatDisplaySigned/ParseDisplay (overpunch + leading/trailing separate sign). A sequencing dependency, not a design fork.
+- Signed-DISPLAY overpunch: **RESOLVED (DEVLOG 493)** — `CobolNum.FormatDisplaySigned`/`ParseDisplay` (overpunch + leading/trailing separate sign) are implemented; Tier-B numeric-view accessors are exact. The sequencing dependency is discharged.
 - EXTERNAL/GLOBAL redefines identity: defer cross-program canonical-member selection to the LINKAGE/EXTERNAL subsystem.
 - Int128 views (>18 digits): align numeric-view parsing with the numeric subsystem's Int128 escape hatch.
 - Tier C distinction from materialize-on-demand: Tier C byte[] is PERSISTENT (the only storage for a mixed-usage class); transient materialize-on-demand belongs to whole-group-alphanumeric — confirm the two are kept as separate mechanisms.

@@ -33,6 +33,9 @@ internal static class OperandText
 
     private static string FieldAsString(Place p)
     {
+        // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
+        // elementary view alike — use it directly (no .AsImage(), no FormatDisplay).
+        if (p is RedefViewPlace) return p.Read();
         if (p.Item.IsGroup)
             return p.Item.IsCharacterImage
                 ? $"{p.Read()}.AsImage()"

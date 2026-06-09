@@ -66,24 +66,35 @@ public sealed class ReferenceResolver(DataBinder data)
         // RENAMES (level 66) resolution lands in a later slice → loud for now (never emit an invalid member access).
         if (item.Renames is not null) return null;
 
-        // REDEFINES views (ISO §13.18.44): a Tier-A view forwards to the canonical's ONE stored field — the place
-        // carries the VIEW's DataItem (so its own Pic/scale/profile drive interpretation), but the access path is the
-        // canonical's, so a numeric view reinterprets the shared unscaled value via its own scale. Tier-B/C view
-        // accessors land in later slices; a Rejected class (mixed-USAGE Tier-C interim / unmodelable Tier-D) is loud.
-        if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
-            return null;   // loud — not yet wired (Tier B/C) or rejected
-        DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
-            ? ac.Canonical : item;
-
-        // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath returns null → loud.
-        if (AccessPath(accessItem, indexExprs) is not { } path) return null;
-        // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
-        // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
-        if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-        Place inner = new MemberPlace(path, item);
+        Place inner;
+        if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
+        {
+            // Tier B (ISO §13.18.44; COBOLNET_DESIGN §4.2): a typed (offset,width) window over the class's ONE string
+            // backing — the canonical too (so exactly one stored member). A subscripted Tier-B view (REDEFINES inside
+            // an OCCURS element) is a later slice → only the unsubscripted form here.
+            if (indexExprs.Count > 0) return null;
+            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+            inner = new RedefViewPlace(sc.BackingCsName, item.ClassOffset, item.ImageWidth, item);
+        }
+        else
+        {
+            // A Tier-A view forwards to the canonical's ONE stored field — the place carries the VIEW's DataItem (so
+            // its own Pic/scale/profile drive interpretation) over the canonical's access path, so a numeric view
+            // reinterprets the shared unscaled value via its own scale. A not-yet-wired (Tier-C) / Rejected view is loud.
+            if (item.Class is { } cls && !item.IsCanonical && cls.Tier != RedefinesTier.Alias)
+                return null;
+            DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
+                ? ac.Canonical : item;
+            // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
+            if (AccessPath(accessItem, indexExprs) is not { } path) return null;
+            // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
+            // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
+            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+            inner = new MemberPlace(path, item);
+        }
 
         if (refCtx is null) return inner;
-        // Reference modification is over a character string — restrict to alphanumeric/edited items for now.
+        // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B view).
         if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited)) return null;
         var (rm, _) = InterpretSubscripts(refCtx);
         return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;

@@ -20,20 +20,70 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         foreach (var root in ctx.Data.Roots) EmitProfiles(root, w);
         foreach (var (name, field) in ctx.Data.IndexFields)
             w.Line($"private static long {field} = 1;   // INDEX-NAME {name}");
-        foreach (var root in ctx.Data.Roots)
-            if ((root.IsGroup || root.IsElementary) && !SuppressField(root))
-            {
-                string comment = root.CobolName is { } n ? $"   // {n}{(root.Occurs is { } o ? $" OCCURS {o}" : "")}" : "";
-                w.Line($"private static {root.FieldType} {root.CsName} = {FieldInit(root)};{comment}");
-            }
+        foreach (var f in PhysicalFields(ctx.Data.Roots))
+            w.Line($"private static {f.Type} {f.Name} = {f.Init};   // {f.Comment}");
     }
 
-    /// <summary>True if this item emits NO stored field: a Tier-A redefines view forwards to the canonical's single
-    /// field (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area). Its <c>NumProfile</c>
-    /// is still emitted (it carries its own PICTURE), only the stored value field is suppressed. (Tier-B/C backings
-    /// are emitted by a later slice; standalone items always emit.)</summary>
-    private static bool SuppressField(DataItem item) =>
-        item.Class is { Tier: RedefinesTier.Alias } && !item.IsCanonical;
+    /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
+    /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
+    /// (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area).</summary>
+    private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment);
+
+    /// <summary>The physical fields a run of sibling items emits: skip REDEFINES views; substitute a Tier-B class's ONE
+    /// string backing (emitted once, at the canonical) for the whole class; a Tier-A view forwards to its canonical's
+    /// field. The class's numeric <c>NumProfile</c>s are still emitted elsewhere (EmitProfiles — D9).</summary>
+    private static IEnumerable<Physical> PhysicalFields(IEnumerable<DataItem> items)
+    {
+        foreach (var c in items)
+        {
+            if (!(c.IsGroup || c.IsElementary)) continue;
+            if (c.Class is { Tier: RedefinesTier.StringCanonical } cls)
+            {
+                // The whole redefines class is ONE string backing (the canonical's VALUE seeds it, SR9); every member
+                // is a window over it. A non-canonical Tier-B member yields no field.
+                if (c.IsCanonical)
+                    yield return new Physical(cls.BackingCsName, "string", cls.Width, false,
+                        $"CobolString.Store({ImageInitOf(c)}, {cls.Width})", $"REDEFINES backing for {c.CobolName}");
+                continue;
+            }
+            if (c.Class is { Tier: RedefinesTier.Alias } && !c.IsCanonical)
+                continue;   // a Tier-A view forwards to the canonical's stored field
+            string comment = c.CobolName is { } n ? $"{n}{(c.Occurs is { } o ? $" OCCURS {o}" : "")}" : "FILLER";
+            // For a group child, use its PHYSICAL image width (skips its own redefines views, counts a contained
+            // backing once) — the raw DataItem.ImageWidth over-counts a group that contains a redefines class.
+            int width = c.IsGroup ? PhysicalImageWidth(c) : c.ImageWidth;
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, FieldInit(c), comment);
+        }
+    }
+
+    /// <summary>The emitted character-image width of an item: a leaf's own width; a group's = the sum of its physical
+    /// fields (a contained REDEFINES class contributes its single backing width once, its views nothing).</summary>
+    private static int PhysicalImageWidth(DataItem item) =>
+        item.IsGroup ? PhysicalFields(item.Children).Sum(f => f.Width) : item.ImageWidth;
+
+    /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
+    /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
+    /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width).</summary>
+    private static string ImageInitOf(DataItem item)
+    {
+        if (item.IsGroup)
+        {
+            var parts = item.Children.Where(c => c.IsGroup || c.IsElementary).Select(ImageInitOf);
+            return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
+        }
+        var pic = item.Pic!;
+        if (item.RawValue is { } raw)
+        {
+            if (FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
+            if (pic.Category is PicCategory.Numeric && !pic.IsFloat && FigurativeInitializer(raw, pic) is null)
+                return $"CobolNum.FormatDisplay({EmitText.UnscaledAtScale(raw, pic.Scale)}, {item.ProfileName})";
+            if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
+                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
+        }
+        return pic.Category is PicCategory.Numeric && !pic.IsFloat
+            ? $"CobolNum.FormatDisplay(0L, {item.ProfileName})"
+            : $"new string(' ', {pic.Length})";
+    }
 
     private static void EmitStructTypeDecls(DataItem item, CodeWriter w)
     {
@@ -41,9 +91,8 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         foreach (var child in item.Children) EmitStructTypeDecls(child, w);   // nested types first (any order is fine)
         using (w.Block($"private record struct {item.StructName}"))
         {
-            foreach (var child in item.Children)
-                if ((child.IsGroup || child.IsElementary) && !SuppressField(child))
-                    w.Line($"public {child.FieldType} {child.CsName};   // {child.CobolName ?? "FILLER"}");
+            foreach (var f in PhysicalFields(item.Children))
+                w.Line($"public {f.Type} {f.Name};   // {f.Comment}");
 
             // A pure-character (DISPLAY-homogeneous) group gets the whole-group image facility (COBOLNET_DESIGN
             // §14.4): AsImage concatenates the leaves' character images; FromImage distributes a character image
@@ -55,20 +104,19 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     private static void EmitImageMethods(DataItem group, CodeWriter w)
     {
-        var members = group.Children.Where(c => (c.IsGroup || c.IsElementary) && !SuppressField(c)).ToList();
-        var parts = members.Select(c => c.IsGroup ? $"{c.CsName}.AsImage()" : c.CsName);
+        var members = PhysicalFields(group.Children).ToList();
+        var parts = members.Select(f => f.IsGroupStruct ? $"{f.Name}.AsImage()" : f.Name);
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
         using (w.Block("public void FromImage(string __s)"))
         {
-            w.Line($"__s = CobolString.Store(__s, {group.ImageWidth});");   // pad/truncate to the group width
+            w.Line($"__s = CobolString.Store(__s, {members.Sum(f => f.Width)});");   // pad/truncate to the image width
             int off = 0;
-            foreach (var c in members)
+            foreach (var f in members)
             {
-                int width = c.ImageWidth;
-                w.Line(c.IsGroup
-                    ? $"{c.CsName}.FromImage(__s.Substring({off}, {width}));"
-                    : $"{c.CsName} = __s.Substring({off}, {width});");
-                off += width;
+                w.Line(f.IsGroupStruct
+                    ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
+                    : $"{f.Name} = __s.Substring({off}, {f.Width});");
+                off += f.Width;
             }
         }
     }
@@ -94,9 +142,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     private static string ComposedInit(DataItem group)
     {
-        var parts = group.Children
-            .Where(c => (c.IsGroup || c.IsElementary) && !SuppressField(c))
-            .Select(c => $"{c.CsName} = {FieldInit(c)}");
+        var parts = PhysicalFields(group.Children).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
     }
 

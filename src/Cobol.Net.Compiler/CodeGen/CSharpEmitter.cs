@@ -236,7 +236,9 @@ public sealed class CSharpEmitter
         string image = source is BoundFigurative f
             ? $"new string({FigurativeFill(f.Kind)}, {width})"
             : $"CobolString.Store({OperandText.AsString(source)}, {width})";
-        _ctx.Writer.Line($"{target.Read()}.FromImage({image});");
+        // A Tier-B REDEFINES group view's image IS its character window — splice the image into the backing; a normal
+        // record-struct group distributes the image into its typed leaves via the generated FromImage.
+        _ctx.Writer.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");
     }
 
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.</summary>
