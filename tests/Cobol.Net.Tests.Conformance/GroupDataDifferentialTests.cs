@@ -114,4 +114,60 @@ public sealed class GroupDataDifferentialTests
     [InlineData("01 WS-AZ PIC X(4) VALUE ZEROS.", "    DISPLAY \"[\" WS-AZ \"]\".", "[0000]")]
     public void FigurativeValue_FullFieldWidth(string ws, string proc, string expected)
         => AssertSpec(Program(ws, proc), expected);
+
+    // ── Whole-group image over an OCCURS subordinate (ISO §14.9 group move / §8.8.4.1 group compare) ──────────
+    // A group move treats the whole group, INCLUDING every fixed-OCCURS position, as one alphanumeric item; the
+    // expected results are derived from the spec, then cross-checked against the legacy oracle (a regression net).
+
+    private static void AssertSpecAndLegacy(string source, string expected)
+    {
+        string want = CutRunner.Normalize(expected);
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal(want, cout);                       // primary: conformance to the ISO spec
+        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
+        Assert.True(lok, $"legacy oracle failed: {ldetail}");
+        Assert.Equal(want, lout);                       // cross-check: the oracle agrees with the spec value
+    }
+
+    [Fact]
+    // OCCURS of an alphanumeric element: a whole-group MOVE distributes the image across every occurrence (ISO §14.9),
+    // the group compares as its concatenated image (§8.8.4.1), and a subscripted write is visible in the group image.
+    public void WholeGroupImage_OccursOfAlphanumeric()
+        => AssertSpecAndLegacy(Program("01 TBL.\n   02 ELEM PIC X(2) OCCURS 3.",
+            """
+                MOVE "AABBCC" TO TBL.
+                IF TBL = "AABBCC" DISPLAY "EQ1" ELSE DISPLAY "NE1" END-IF.
+                MOVE "XY" TO ELEM (2).
+                IF TBL = "AAXYCC" DISPLAY "EQ2" ELSE DISPLAY "NE2" END-IF.
+                IF ELEM (3) = "CC" DISPLAY "EQ3" ELSE DISPLAY "NE3" END-IF.
+            """), "EQ1\nEQ2\nEQ3");
+
+    [Fact]
+    // OCCURS of a numeric-DISPLAY element: the leaves store their zoned character image in the whole-group image, yet
+    // a subscripted reference still reads/writes the numeric value (ISO §14.9; the image facility and the numeric
+    // pipeline share one string-stored representation).
+    public void WholeGroupImage_OccursOfNumericDisplay()
+        => AssertSpecAndLegacy(Program("01 NTBL.\n   02 NE PIC 9(3) OCCURS 3.\n01 WS-OUT PIC X(9).",
+            """
+                MOVE 12 TO NE (1).
+                MOVE 34 TO NE (2).
+                MOVE 56 TO NE (3).
+                ADD 1 TO NE (2).
+                MOVE NTBL TO WS-OUT.
+                IF WS-OUT = "012035056" DISPLAY "EQ" ELSE DISPLAY "NE" END-IF.
+                DISPLAY "NE2=" NE (2).
+            """), "EQ\nNE2=035");
+
+    [Fact]
+    // OCCURS of a GROUP element (multi-level): the table image is each occurrence's group image concatenated, and
+    // FromImage distributes back into each occurrence's subordinate leaves (ISO §14.9).
+    public void WholeGroupImage_OccursOfGroup()
+        => AssertSpecAndLegacy(Program("01 T2.\n   02 G OCCURS 2.\n      03 GA PIC X(2).\n      03 GB PIC X.",
+            """
+                MOVE "P1QR2S" TO T2.
+                IF GA (1) = "P1" DISPLAY "A1" ELSE DISPLAY "NA1" END-IF.
+                IF GB (2) = "S" DISPLAY "B2" ELSE DISPLAY "NB2" END-IF.
+                IF T2 = "P1QR2S" DISPLAY "EQ" ELSE DISPLAY "NE" END-IF.
+            """), "A1\nB2\nEQ");
 }

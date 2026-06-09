@@ -88,7 +88,10 @@ public sealed class CSharpEmitter
         {
             foreach (var child in item.Children)
             {
-                if (child.Occurs is not null) continue;   // OCCURS items aren't part of the no-OCCURS char-image model
+                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS position):
+                // a numeric-DISPLAY OCCURS leaf becomes string-stored (its array is string[]), so the §14.4 AsImage/
+                // FromImage facility distributes it with no special case, and its subscripted accesses go through the
+                // same StoreAsImage numeric pipeline (CobolNum.ParseDisplay/FormatDisplay).
                 if (child.IsGroup) MarkNumericDisplayLeaves(child);
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                     child.StoreAsImage = true;

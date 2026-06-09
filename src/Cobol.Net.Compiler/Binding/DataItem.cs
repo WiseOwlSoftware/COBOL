@@ -97,23 +97,28 @@ public sealed class DataItem
     public string ProfileName => "_P_" + Uid;
 
     /// <summary>
-    /// True if this item's storage is a pure character image (a C# <see cref="string"/> at every leaf, no OCCURS) — so
-    /// the group has a clean <c>AsImage()</c>/<c>FromImage()</c> (COBOLNET_DESIGN §14.4 / Tier-B §4.2). A leaf qualifies
-    /// when it is alphanumeric / numeric-edited (string-stored), OR a numeric-DISPLAY leaf flagged
-    /// <see cref="StoreAsImage"/> (also string-stored, its zoned image). A group with a COMP/COMP-3/COMP-5/float leaf
-    /// (native non-character storage) is the genuine mixed-usage byte-island (Tier-C), deferred.
+    /// True if this item's storage is a pure character image (a C# <see cref="string"/> at every leaf) — so the group
+    /// has a clean <c>AsImage()</c>/<c>FromImage()</c> (COBOLNET_DESIGN §14.4 / Tier-B §4.2). A leaf qualifies when it
+    /// is alphanumeric / numeric-edited (string-stored), OR a numeric-DISPLAY leaf flagged <see cref="StoreAsImage"/>
+    /// (also string-stored, its zoned image). An OCCURS table of a character-image element qualifies too — its image
+    /// is every occurrence's image concatenated (ISO §14.9 group move includes every OCCURS position; the count is the
+    /// fixed/max occurrence count, the only OCCURS form the data model tracks today). A group with a
+    /// COMP/COMP-3/COMP-5/float leaf (native non-character storage) is the genuine mixed-usage byte-island (Tier-C),
+    /// deferred.
     /// </summary>
     public bool IsCharacterImage =>
-        Occurs is null && (
-            IsElementary
-                ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited || StoreAsImage
-                : IsGroup && Children.All(c => c.IsCharacterImage));
+        IsElementary
+            ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited || StoreAsImage
+            : IsGroup && Children.All(c => c.IsCharacterImage);
 
-    /// <summary>The character width of this item's image (the sum of leaf widths) — meaningful for an
-    /// <see cref="IsCharacterImage"/> item. A numeric-DISPLAY leaf's image is its digit count plus a separate-sign
-    /// character when SIGN IS SEPARATE (ISO §13.18.52); an over-punched sign occupies no extra position.</summary>
+    /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a
+    /// group it is the sum of each child's TOTAL image contribution, i.e. the child's per-occurrence image width × its
+    /// fixed-OCCURS count (every OCCURS position is part of the group image, ISO §14.9). A numeric-DISPLAY leaf's image
+    /// is its digit count plus a separate-sign character when SIGN IS SEPARATE (ISO §13.18.52); an over-punched sign
+    /// occupies no extra position. (This is the per-occurrence width of THIS item; a parent multiplies by THIS item's
+    /// own OCCURS count.)</summary>
     public int ImageWidth =>
-        IsElementary ? ElementaryImageWidth : Children.Sum(c => c.ImageWidth);
+        IsElementary ? ElementaryImageWidth : Children.Sum(c => c.ImageWidth * (c.Occurs ?? 1));
 
     /// <summary>The character-image width of an elementary item (digit count + a separate-sign position when present
     /// for a signed numeric; otherwise the PICTURE's character length).</summary>

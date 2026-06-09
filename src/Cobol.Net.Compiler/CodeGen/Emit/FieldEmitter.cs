@@ -37,7 +37,11 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
     /// (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area).</summary>
-    private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment);
+    /// <summary>One emitted struct field. <paramref name="Width"/> is the field's TOTAL contribution to its group's
+    /// character image — element-image-width × <paramref name="Occurs"/> for a fixed-OCCURS table, else the item's own
+    /// image width. <paramref name="Occurs"/> is the fixed occurrence count (0 = not a table), so the image facility
+    /// knows to concat/distribute across the array's elements.</summary>
+    private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
     private IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
@@ -72,9 +76,12 @@ internal sealed class FieldEmitter(EmissionContext ctx)
                 continue;   // a Tier-A view forwards to the canonical's stored field
             string comment = c.CobolName is { } n ? $"{n}{(c.Occurs is { } o ? $" OCCURS {o}" : "")}" : "FILLER";
             // For a group child, use its PHYSICAL image width (skips its own redefines views, counts a contained
-            // backing once) — the raw DataItem.ImageWidth over-counts a group that contains a redefines class.
-            int width = c.IsGroup ? PhysicalImageWidth(c) : c.ImageWidth;
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, FieldInit(c), comment);
+            // backing once) — the raw DataItem.ImageWidth over-counts a group that contains a redefines class. A fixed
+            // OCCURS table contributes its per-occurrence image width × the count to the group image (ISO §14.9).
+            int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ImageWidth;
+            int occurs = c.Occurs ?? 0;
+            int width = occurs > 0 ? elemWidth * occurs : elemWidth;
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, FieldInit(c), comment, occurs);
         }
     }
 
@@ -127,20 +134,44 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     private void EmitImageMethods(DataItem group, CodeWriter w)
     {
         var members = PhysicalChildrenOf(group);
-        var parts = members.Select(f => f.IsGroupStruct ? $"{f.Name}.AsImage()" : f.Name);
-        w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", parts) : "\"\"")};");
+        w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
         using (w.Block("public void FromImage(string __s)"))
         {
             w.Line($"__s = CobolString.Store(__s, {members.Sum(f => f.Width)});");   // pad/truncate to the image width
             int off = 0;
             foreach (var f in members)
             {
-                w.Line(f.IsGroupStruct
-                    ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
-                    : $"{f.Name} = __s.Substring({off}, {f.Width});");
+                EmitMemberFromImage(f, off, w);
                 off += f.Width;
             }
         }
+    }
+
+    /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
+    /// <c>AsImage()</c>, or — for a fixed-OCCURS table — the concatenation of every occurrence's image (ISO §14.9: a
+    /// group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric item).</summary>
+    private static string AsImageOf(Physical f) =>
+        f.Occurs == 0 ? (f.IsGroupStruct ? $"{f.Name}.AsImage()" : f.Name)
+        : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
+        : $"string.Concat({f.Name})";
+
+    /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar field gets its
+    /// substring; a nested group gets <c>FromImage</c>; a fixed-OCCURS table loops its occurrences, each taking its
+    /// per-occurrence width in source order (the array elements are value-type structs/strings, mutated in place).</summary>
+    private static void EmitMemberFromImage(Physical f, int off, CodeWriter w)
+    {
+        if (f.Occurs == 0)
+        {
+            w.Line(f.IsGroupStruct
+                ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
+                : $"{f.Name} = __s.Substring({off}, {f.Width});");
+            return;
+        }
+        int elem = f.Width / f.Occurs;   // per-occurrence width (Width = elem × Occurs, exact by construction)
+        using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
+            w.Line(f.IsGroupStruct
+                ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
+                : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
     }
 
     private static void EmitProfiles(DataItem item, CodeWriter w)
