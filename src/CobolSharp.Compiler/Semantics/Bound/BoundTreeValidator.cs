@@ -13,33 +13,41 @@ namespace CobolSharp.Compiler.Semantics.Bound;
 /// - Dynamic CALL warnings (CBL3310)
 /// Runs after BoundTreeBuilder and ProcedureGraph, before IR lowering.
 /// </summary>
-public static class BoundTreeValidator
+public sealed class BoundTreeValidator
 {
-    // Scoped to a single Validate call (the binder runs one program at a time). Lets the START / READ KEY
-    // checks resolve storage offsets to recognize a generic-key prefix (ISO §14.9.41) — see ResolveKeyOfReference.
-    private static SemanticModel? _model;
+    // The semantic model for the program under validation, held PER-INSTANCE (one validator is constructed per
+    // Validate call; the binder validates one program at a time). It was formerly a STATIC field, which made this
+    // pass a data race under the parallel in-process compilation the test suite performs: a concurrent compile —
+    // or this same call's own teardown — could clobber the shared field mid-walk, so ValidateStart's
+    // ResolveKeyOfReference resolved a perfectly valid START key against the wrong (or null) model and reported a
+    // spurious CBL1603, failing an otherwise-correct compile. That was the recurring Linux-CI flake behind the
+    // START-with-KEY file-I/O tests (FileIO_Start_PositionsForReadNext, ReadPrevious_AfterStartEqual; DEVLOG 512,
+    // pinned by ConcurrentCompilationTests). Per-instance state is inherently race-free. The model lets the START
+    // / READ KEY checks resolve storage offsets to recognize a generic-key prefix (ISO §14.9.41) — see
+    // ResolveKeyOfReference.
+    private readonly SemanticModel _model;
+
+    private BoundTreeValidator(SemanticModel model) => _model = model;
 
     public static void Validate(BoundProgram program, DiagnosticBag diagnostics, SemanticModel model)
+        => new BoundTreeValidator(model).Run(program, diagnostics);
+
+    private void Run(BoundProgram program, DiagnosticBag diagnostics)
     {
-        _model = model;
-        try
+        foreach (var para in program.Paragraphs)
         {
-            foreach (var para in program.Paragraphs)
-            {
-                int line = para.Symbol.Line;
-                foreach (var sentence in para.Sentences)
-                    foreach (var stmt in sentence.Statements)
-                        WalkStatement(stmt, line, diagnostics);
-            }
+            int line = para.Symbol.Line;
+            foreach (var sentence in para.Sentences)
+                foreach (var stmt in sentence.Statements)
+                    WalkStatement(stmt, line, diagnostics);
         }
-        finally { _model = null; }
     }
 
     // ═══════════════════════════════════════════════════════════════
     // Recursive statement walker
     // ═══════════════════════════════════════════════════════════════
 
-    private static void WalkStatement(BoundStatement stmt, int line, DiagnosticBag diagnostics)
+    private void WalkStatement(BoundStatement stmt, int line, DiagnosticBag diagnostics)
     {
         switch (stmt)
         {
@@ -136,7 +144,7 @@ public static class BoundTreeValidator
         }
     }
 
-    private static void WalkStatements(IReadOnlyList<BoundStatement> statements, int line, DiagnosticBag diagnostics)
+    private void WalkStatements(IReadOnlyList<BoundStatement> statements, int line, DiagnosticBag diagnostics)
     {
         foreach (var stmt in statements)
             WalkStatement(stmt, line, diagnostics);
@@ -146,7 +154,7 @@ public static class BoundTreeValidator
     // PERFORM validation (CBL2303–CBL2308)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidatePerform(BoundPerformStatement perf, int line, DiagnosticBag diagnostics)
+    private void ValidatePerform(BoundPerformStatement perf, int line, DiagnosticBag diagnostics)
     {
         // CBL2302: PERFORM THRU out of order
         if (perf.Target != null && perf.ThruTarget != null)
@@ -181,7 +189,7 @@ public static class BoundTreeValidator
         }
     }
 
-    private static void ValidateVarying(BoundPerformVarying varying, int line, DiagnosticBag diagnostics)
+    private void ValidateVarying(BoundPerformVarying varying, int line, DiagnosticBag diagnostics)
     {
         // CBL2305: VARYING control must be integer/index
         var indexType = ExpressionType.FromDataSymbol(varying.Index);
@@ -208,7 +216,7 @@ public static class BoundTreeValidator
     // IF validation (CBL2401)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidateIf(BoundIfStatement ifStmt, int line, DiagnosticBag diagnostics)
+    private void ValidateIf(BoundIfStatement ifStmt, int line, DiagnosticBag diagnostics)
     {
         // CBL2401: IF condition must be boolean
         var type = ifStmt.Condition.ResultType;
@@ -220,7 +228,7 @@ public static class BoundTreeValidator
     // EVALUATE validation (CBL2501–CBL2503)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidateEvaluate(BoundEvaluateStatement eval, int line, DiagnosticBag diagnostics)
+    private void ValidateEvaluate(BoundEvaluateStatement eval, int line, DiagnosticBag diagnostics)
     {
         // Per-subject validation: TRUE/FALSE subjects get boolean check, Value subjects get type check
         for (int si = 0; si < eval.SubjectKinds.Count; si++)
@@ -280,7 +288,7 @@ public static class BoundTreeValidator
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>CBL1601: START not allowed on sequential files. CBL1603: KEY operand check.</summary>
-    private static void ValidateStart(BoundStartStatement start, int line, DiagnosticBag diagnostics)
+    private void ValidateStart(BoundStartStatement start, int line, DiagnosticBag diagnostics)
     {
         if (IsSequentialOrganization(start.File))
             Report(diagnostics, line, DiagnosticDescriptors.CBL1601);
@@ -297,7 +305,7 @@ public static class BoundTreeValidator
         if (start.KeyCondition is BoundBinaryExpression binExpr
             && binExpr.Left is BoundIdentifierExpression keyId
             && start.File.RecordKey != null
-            && _model?.ResolveKeyOfReference(start.File, keyId.Symbol) == null)
+            && _model.ResolveKeyOfReference(start.File, keyId.Symbol) == null)
         {
             Report(diagnostics, line, DiagnosticDescriptors.CBL1603);
         }
@@ -312,7 +320,7 @@ public static class BoundTreeValidator
     }
 
     /// <summary>CBL1801-1803: WRITE FROM + ADVANCING validation.</summary>
-    private static void ValidateWrite(BoundWriteStatement write, int line, DiagnosticBag diagnostics)
+    private void ValidateWrite(BoundWriteStatement write, int line, DiagnosticBag diagnostics)
     {
         // CBL1801: WRITE FROM source must be compatible with record
         if (write.From != null && write.File?.Record != null)
@@ -334,7 +342,7 @@ public static class BoundTreeValidator
     /// sequential, relative, and indexed — per ISO §14.9.35; it requires I-O mode and a prior READ
     /// at runtime, not a particular organization. The only sequential-specific syntax restriction is
     /// that INVALID KEY may not be used, ISO §14.9.35.3 — enforced elsewhere if at all.)</summary>
-    private static void ValidateRewrite(BoundRewriteStatement rewrite, int line, DiagnosticBag diagnostics)
+    private void ValidateRewrite(BoundRewriteStatement rewrite, int line, DiagnosticBag diagnostics)
     {
         // CBL1902: REWRITE FROM source must be compatible with record
         if (rewrite.From != null)
@@ -348,7 +356,7 @@ public static class BoundTreeValidator
     }
 
     /// <summary>CBL2001: DELETE not allowed on sequential files.</summary>
-    private static void ValidateDelete(BoundDeleteStatement del, int line, DiagnosticBag diagnostics)
+    private void ValidateDelete(BoundDeleteStatement del, int line, DiagnosticBag diagnostics)
     {
         if (IsSequentialOrganization(del.File))
             Report(diagnostics, line, DiagnosticDescriptors.CBL2001);
@@ -358,7 +366,7 @@ public static class BoundTreeValidator
     // RETURN validation (CBL2101)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidateReturn(BoundReturnStatement ret, int line, DiagnosticBag diagnostics)
+    private void ValidateReturn(BoundReturnStatement ret, int line, DiagnosticBag diagnostics)
     {
         // CBL2101: RETURN on non-sort/merge file
         if (!ret.File.IsSortMerge)
@@ -369,7 +377,7 @@ public static class BoundTreeValidator
     // CALL validation (CBL3310)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidateCall(BoundCallStatement call, int line, DiagnosticBag diagnostics)
+    private void ValidateCall(BoundCallStatement call, int line, DiagnosticBag diagnostics)
     {
         // CBL3310: Dynamic CALL — parameter list cannot be validated at compile time
         if (call.IsDynamic)
@@ -393,7 +401,7 @@ public static class BoundTreeValidator
     // READ validation (CBL1701–CBL1703)
     // ═══════════════════════════════════════════════════════════════
 
-    private static void ValidateRead(BoundReadStatement read, int line, DiagnosticBag diagnostics)
+    private void ValidateRead(BoundReadStatement read, int line, DiagnosticBag diagnostics)
     {
         // CBL1701: READ NEXT/PREVIOUS invalid for random-access-only
         if ((read.IsNext || read.IsPrevious)
@@ -426,7 +434,7 @@ public static class BoundTreeValidator
     /// <summary>CBL0701: OPEN EXTEND requires sequential access mode (ISO §14.9.30 GR2). EXTEND is valid for
     /// sequential, relative, AND indexed organizations (it positions after the last record / highest prime
     /// key — §14.9.30 GR15); only RANDOM/DYNAMIC access makes it invalid.</summary>
-    private static void ValidateOpen(BoundOpenStatement open, int line, DiagnosticBag diagnostics)
+    private void ValidateOpen(BoundOpenStatement open, int line, DiagnosticBag diagnostics)
     {
         foreach (var file in open.Files)
         {
@@ -485,11 +493,11 @@ public static class BoundTreeValidator
         return false;
     }
 
-    private static void Report(DiagnosticBag diagnostics, int line, DiagnosticDescriptor descriptor,
+    private void Report(DiagnosticBag diagnostics, int line, DiagnosticDescriptor descriptor,
         params object[] args)
     {
         diagnostics.Report(descriptor,
-            new SourceLocation(_model?.SourceName ?? "<source>", 0, line, 0),
+            new SourceLocation(_model.SourceName, 0, line, 0),
             TextSpan.Empty,
             args);
     }
