@@ -50,14 +50,11 @@ public readonly record struct NumProfile
     /// <summary>Count of digit positions in the PICTURE (the '9' count; integer + fraction).</summary>
     public required int Digits { get; init; }
 
-    /// <summary>Digits after the implied decimal point (the V position).</summary>
+    /// <summary>The net signed fraction scale: V-fraction digits, plus leading-P positions, minus trailing-P
+    /// positions (ISO §13.18.40). MAY BE NEGATIVE — a trailing-P item (e.g. <c>99P</c>) stores digits that are
+    /// multiples of 10^|scale|; leading P (e.g. <c>P(4)9</c>) puts the point left of every digit. The runtime rescales
+    /// to this scale natively (a single signed scale is the one canonical representation — no separate P fields).</summary>
     public required int FractionDigits { get; init; }
-
-    /// <summary>Leading-P scaling positions — shift the implied point left of the stored digits.</summary>
-    public int LeadingScaleDigits { get; init; }
-
-    /// <summary>Trailing-P scaling positions — the stored digits are multiples of 10^this.</summary>
-    public int TrailingScaleDigits { get; init; }
 
     /// <summary>Whether the item carries an operational sign (PIC S or a SIGN clause).</summary>
     public required bool Signed { get; init; }
@@ -72,14 +69,8 @@ public readonly record struct NumProfile
     /// (2n−1 digits) and <see cref="NumericTruncation.BinaryCapacity"/> two's-complement range.</summary>
     public int StorageLength { get; init; }
 
-    /// <summary>The number of fractional positions the value is scaled/rounded to: <c>FractionDigits +
-    /// LeadingScaleDigits</c>, never negative (ISO §14.9.4 — leading P adds to the fraction scale).</summary>
-    public int FractionScale
-    {
-        get
-        {
-            int s = FractionDigits + LeadingScaleDigits;
-            return s < 0 ? 0 : s;
-        }
-    }
+    /// <summary>The signed fractional scale a value is rescaled/rounded to when stored into this item — the net
+    /// <see cref="FractionDigits"/> (V fraction + leading P − trailing P). May be negative; <see cref="CobolNum.Rescale"/>
+    /// handles a negative scale natively.</summary>
+    public int FractionScale => FractionDigits;
 }

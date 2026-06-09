@@ -126,6 +126,18 @@ public sealed record PicInfo(
         bool hasV = expanded.Contains('V');
         int digits = expanded.Count(c => c is '9');
         int afterV = hasV ? expanded[(expanded.IndexOf('V') + 1)..].Count(c => c is '9') : 0;
+
+        // PICTURE 'P' scaling positions (ISO §13.18.40): each P holds no digit and no storage but shifts the implied
+        // decimal point. TRAILING P (e.g. 99P) scales the stored digits UP → a NEGATIVE fraction scale (the value is
+        // a multiple of 10^P). LEADING P (e.g. P(4)9) puts the point left of every digit → scale = leadingP + the
+        // digit count (all 9s are fractional). The net SIGNED scale flows through the whole numeric pipeline; the
+        // runtime Rescale handles a negative scale natively (Pow10 of the always-non-negative scale difference).
+        int firstNine = expanded.IndexOf('9'), lastNine = expanded.LastIndexOf('9');
+        int leadingP = 0, trailingP = 0;
+        for (int i = 0; i < expanded.Length; i++)
+            if (expanded[i] == 'P') { if (firstNine < 0 || i < firstNine) leadingP++; else if (i > lastNine) trailingP++; }
+        int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digits : afterV;
+
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/');
 
@@ -139,11 +151,12 @@ public sealed record PicInfo(
         if (anyEdit && digits > 0)
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol count.
             return new PicInfo(PicCategory.NumericEdited, usage,
-                Length: expanded.Count(c => c is not ('V' or 'S')), Digits: digits, Scale: afterV, Signed: signed)
+                Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
             { SignKind = signKind };
 
-        // Pure numeric.
-        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: afterV, Signed: signed)
+        // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
+        // storage; the implied decimal position lives entirely in the signed Scale.
+        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: scale, Signed: signed)
         { SignKind = signKind };
     }
 

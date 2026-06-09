@@ -84,7 +84,9 @@ internal static class EmitText
     }
 
     /// <summary>Render a numeric literal as a C# <c>long</c> holding its UNSCALED value at <paramref name="scale"/>
-    /// fractional digits — e.g. <c>"3.5"</c> at scale 2 → <c>350L</c>, <c>"12"</c> at scale 0 → <c>12L</c>.</summary>
+    /// fractional digits — e.g. <c>"3.5"</c> at scale 2 → <c>350L</c>, <c>"12"</c> at scale 0 → <c>12L</c>. A NEGATIVE
+    /// scale (a PICTURE-P trailing-scaled item, e.g. <c>99P(4) VALUE 990000</c> at scale −4 → <c>99L</c>) drops the
+    /// low <c>|scale|</c> integer digits (the stored value is a multiple of 10^|scale|).</summary>
     public static string UnscaledAtScale(string raw, int scale)
     {
         string t = raw.Trim().TrimStart('+');
@@ -93,9 +95,22 @@ internal static class EmitText
         int dot = t.IndexOf('.');
         string intPart = dot < 0 ? t : t[..dot];
         string fracPart = dot < 0 ? "" : t[(dot + 1)..];
-        if (fracPart.Length < scale) fracPart = fracPart.PadRight(scale, '0');
-        else if (fracPart.Length > scale) fracPart = fracPart[..scale];
-        string digits = (intPart + fracPart).TrimStart('0');
+        string digits;
+        if (scale >= 0)
+        {
+            if (fracPart.Length < scale) fracPart = fracPart.PadRight(scale, '0');
+            else if (fracPart.Length > scale) fracPart = fracPart[..scale];
+            digits = intPart + fracPart;
+        }
+        else
+        {
+            // Negative scale: the implied point sits |scale| positions right of the stored digits, so the low
+            // |scale| integer digits are dropped (they are the assumed-zero P positions).
+            string all = intPart + fracPart;
+            int drop = -scale;
+            digits = all.Length > drop ? all[..^drop] : "0";
+        }
+        digits = digits.TrimStart('0');
         return $"{(neg ? "-" : "")}{(digits.Length == 0 ? "0" : digits)}L";
     }
 }
