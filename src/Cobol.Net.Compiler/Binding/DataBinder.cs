@@ -67,7 +67,19 @@ public sealed class DataBinder(EditionContext? edition = null)
     /// resolve each file's FILE STATUS item.</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
-        Options = OptionsBinder.Bind(program);   // captured even when there is no WORKING-STORAGE
+        Options = OptionsBinder.Bind(program, Edition);   // captured even when there is no WORKING-STORAGE
+
+        // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE and STANDARD-DECIMAL are implemented;
+        // STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1) and documented-unsupported; plain STANDARD (the
+        // 2014 mode) was dropped by the 2023 revision (§8.8.1.2 names only the three) and is unsupported here.
+        if (Options.Arithmetic == ArithmeticMode.StandardBinary)
+            Edition.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is an obsolete feature (ISO §8.8.1.4.1 "
+                + "NOTE 1 / Annex F) and is not supported; use NATIVE or STANDARD-DECIMAL");
+        else if (Options.Arithmetic == ArithmeticMode.Standard)
+            Edition.Error("COBOLNET0807", Edition.DialectLevel >= 2023
+                ? "ARITHMETIC IS STANDARD was dropped by ISO/IEC 1989:2023 (§8.8.1 defines NATIVE, "
+                  + "STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL"
+                : "ARITHMETIC IS STANDARD (the 2014 mode) is not supported; use STANDARD-DECIMAL or NATIVE");
 
         // The C#-field-name scope at the Program level is shared by FILE SECTION records AND WORKING-STORAGE roots —
         // both emit as static fields, so a name used by an FD record must not collide with a WS root.

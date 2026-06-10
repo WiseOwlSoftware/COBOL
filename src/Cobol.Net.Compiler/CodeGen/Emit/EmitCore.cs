@@ -40,7 +40,9 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
 /// A rendered numeric expression: a C# <c>long</c>-valued expression holding the UNSCALED value, plus its fractional
 /// <see cref="Scale"/> (the implied decimal position). The pair lets the backend align scales (ISO §8.8.1).
 /// </summary>
-internal readonly record struct NumX(string Expr, int Scale);
+/// <param name="Dec">True when <see cref="Expr"/> is a STANDARD-DECIMAL intermediate (<c>CobolDec</c>-typed,
+/// §8.8.1.5) — <see cref="Scale"/> is then meaningless (the SDIDI carries its own exponent).</param>
+internal readonly record struct NumX(string Expr, int Scale, bool Dec = false);
 
 /// <summary>Small text utilities shared by every backend emitter: loud-failure guards, literal escaping, and the
 /// numeric-literal → unscaled-<c>long</c> conversions.</summary>

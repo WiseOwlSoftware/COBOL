@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Conformance;
 public sealed class RoundedDifferentialTests
 {
     private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler(dialectLevel: 2014);   // OPTIONS / ROUNDED MODE IS are ISO-2014+ features
 
     /// <summary>Compile+run with COBOL.NET and assert its stdout equals the hand-computed spec value.</summary>
     private static void AssertOutput(string source, string expected)

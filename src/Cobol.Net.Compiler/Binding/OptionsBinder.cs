@@ -13,14 +13,26 @@ using Core = CobolParserCore;
 /// </summary>
 internal static class OptionsBinder
 {
-    /// <summary>Read the program unit's OPTIONS paragraph into an <see cref="OptionsModel"/>.</summary>
-    public static OptionsModel Bind(Core.ProgramUnitContext program)
+    /// <summary>Read the program unit's OPTIONS paragraph into an <see cref="OptionsModel"/>. The OPTIONS
+    /// paragraph (and so every clause in it — ARITHMETIC, DEFAULT ROUNDED, INTERMEDIATE ROUNDING, …) was
+    /// introduced by ISO/IEC 1989:2014 (§11.9): targeting 85/2002 REJECTS it with an edition diagnostic, and the
+    /// implied defaults (native arithmetic, nearest-away-from-zero bare ROUNDED) apply — exactly the pre-2014
+    /// semantics.</summary>
+    public static OptionsModel Bind(Core.ProgramUnitContext program, EditionContext? edition = null)
     {
         var paragraphs = program.identificationDivision()?.identificationBody()?.identificationParagraph();
         if (paragraphs is null) return OptionsModel.Default;
 
         var options = paragraphs.Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
         if (options is null) return OptionsModel.Default;
+
+        if (edition is { DialectLevel: < 2014 })
+        {
+            edition.Error("COBOLNET0804", "the OPTIONS paragraph (ARITHMETIC / DEFAULT ROUNDED / INTERMEDIATE "
+                + $"ROUNDING …) was introduced by ISO/IEC 1989:2014 (§11.9) — it requires --std 2014 or later "
+                + $"(targeting COBOL-{edition.DialectLevel})");
+            return OptionsModel.Default;
+        }
 
         var model = OptionsModel.Default;
         foreach (var clause in options.optionsClause())

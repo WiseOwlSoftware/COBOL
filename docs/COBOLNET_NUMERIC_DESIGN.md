@@ -55,6 +55,28 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 ### D3. v1 arithmetic mode = NATIVE (§8.8.1.3); the Int128 fixed-point engine IS the documented implementor-defined native technique. ARITHMETIC IS STANDARD-DECIMAL and STANDARD-BINARY are deferred and owner-gated.
 
+> **✅ SUPERSEDED + SHIPPED (DEVLOG 541) — the owner's 2026-06-10 "numerics per edition, end to end" directive
+> LIFTED this section's owner-gate:**
+> - **NATIVE** (the default): the documented implementor-defined technique IS the exact Int128 fixed-point engine
+>   (D1/D2) — per §8.8.1.3 fully conformant.
+> - **STANDARD-DECIMAL — IMPLEMENTED** (`Cobol.Net.Runtime/Numeric/CobolDec.cs`): the SDIDI (§8.8.1.5.2) as
+>   `readonly record struct CobolDec(Int128 Sig, int Exp)` — every operation computes EXACTLY (a 256-bit
+>   hi:lo-UInt128 scratch for products/quotients; shift-subtract 256÷128 division, clarity-first until profiled)
+>   and rounds ONCE per op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11: default
+>   NEAREST-AWAY-FROM-ZERO; NEAREST-EVEN; TRUNCATION; PROHIBITED ⇒ EC-SIZE-TRUNCATION, surfaced as the size
+>   error until the EC model). Fixed-point operands lift EXACTLY (≤31 digits ≤ 34). The renderer routes
+>   `Combine`/comparisons through `CobolDec` when the mode is in effect (`NumX.Dec`); the receiver's ROUNDED
+>   applies only at the final transfer via the `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1).
+>   This DISPROVES the rationale's "incompatible with the locked substrate" claim: an Int128 significand
+>   represents every decimal128 value's 34-digit significand exactly; only the rejection of `decimal` stands.
+> - **STANDARD-BINARY — documented-unsupported** (COBOLNET0806): spec-obsolete (§8.8.1.4.1 NOTE 1); a binary128
+>   SDIDI has no exact .NET carrier; revisit only if the spec retains it.
+> - **Plain `ARITHMETIC IS STANDARD`** (the 2014 mode): dropped by ISO 2023 (§8.8.1.2 names only the three) —
+>   rejected with COBOLNET0807 ("removed at 2023" / "unsupported, use STANDARD-DECIMAL" below).
+> - **Edition gates:** the OPTIONS paragraph itself is 2014+ (COBOLNET0804); ROUNDED MODE IS is 2014+
+>   (COBOLNET0803); the composite-of-operands check is 31 at EVERY edition (§14.7 rule 2 — an 85-specific
+>   tightening to 18 was REFUTED by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
+
 **Rationale.** §8.8.1.3 lets the implementor define native arithmetic and it is the default when no ARITHMETIC clause is present — which is the entire NIST/conformance corpus. STANDARD-DECIMAL requires a decimal128 (34-digit, exp ±6144) decimal-floating type per §8.8.1.5.2 / ISO 60559:2020 — incompatible with both the locked substrate AND .NET `decimal`. STANDARD-BINARY is marked obsolete by the spec itself (NOTE, §8.8.1.4 / p9086). Documenting native = Int128 fixed-point is fully conformant and reproduces the 364-NIST-passing legacy behavior.
 
 **Rejected alternatives.** (a) Implement STANDARD-DECIMAL now — REJECTED: needs a decimal-float type the lock forbids; would silently reintroduce decimal/BigInteger. Flagged as a genuine owner open question, not solved. (b) Claim full ISO arithmetic-mode conformance — REJECTED: would be an uncited spec-compat claim; native is the honest, conformant v1 surface.

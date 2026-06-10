@@ -522,7 +522,8 @@ public sealed class CSharpEmitter
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
             int ms = CobolEdit.MaskScale(mask);
-            string aligned = value.Scale == ms ? value.Expr
+            string aligned = value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
+                : value.Scale == ms ? value.Expr
                 : $"CobolNum.Rescale({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
             w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)})"));
             return;
@@ -533,6 +534,8 @@ public sealed class CSharpEmitter
             return;
         }
         string profile = target.Item.ProfileName;
+        // A STANDARD-DECIMAL intermediate stores through the SDIDI overloads (the §14.7 final transfer).
+        string args = value.Dec ? $"{value.Expr}, {profile}" : $"{value.Expr}, {value.Scale}, {profile}";
         if (_sizeErrVar is { } flag)
         {
             string tmp = $"__sv{_storeTmpCounter++}";
@@ -540,12 +543,12 @@ public sealed class CSharpEmitter
             // size-error context (CobolNum.MulChecked → OverflowException, caught by the statement's try, §14.7.5
             // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
-            w.Line($"if (!CobolNum.TryStore({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode}, out var {tmp})) {flag} = true;");
+            w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {flag} = true;");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
             w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : Narrow(tmp, target.Item))}");
             return;
         }
-        string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode})";
+        string stored = $"CobolNum.Store({args}, CobolRounding.{mode})";
         w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : Narrow(stored, target.Item)));
     }
 

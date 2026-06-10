@@ -327,10 +327,16 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(DataRefs(toAddend).Select(BindExpr));
-            return new BoundAddGiving(addends, Receivers(giving.receivingArithmeticOperand()), sizeErr);
+            var givingRecv = Receivers(giving.receivingArithmeticOperand());
+            CheckComposite("ADD", addends, givingRecv);
+            return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
         if (add.addToPhrase() is { } to)
-            return new BoundAddTo(addends, Receivers(to.receivingArithmeticOperand()), sizeErr);
+        {
+            var recv = Receivers(to.receivingArithmeticOperand());
+            CheckComposite("ADD", addends, recv);
+            return new BoundAddTo(addends, recv, sizeErr);
+        }
         return new BoundUnsupported("ADD form");
     }
 
@@ -340,9 +346,18 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var minuends = operands.subtractOperand().Select(BindExpr).ToList();
         var sizeErr = BindSizeError(sub.arithmeticOnSizeError());
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
-            return new BoundSubtractGiving(minuends, BindExpr(from), Receivers(giving.receivingArithmeticOperand()), sizeErr);
+        {
+            var fromX = BindExpr(from);
+            var recv = Receivers(giving.receivingArithmeticOperand());
+            CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
+            return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
+        }
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
-            return new BoundSubtractFrom(minuends, Receivers(targets.receivingArithmeticOperand()), sizeErr);
+        {
+            var recv = Receivers(targets.receivingArithmeticOperand());
+            CheckComposite("SUBTRACT", minuends, recv);
+            return new BoundSubtractFrom(minuends, recv, sizeErr);
+        }
         return new BoundUnsupported("SUBTRACT form");
     }
 
@@ -353,9 +368,16 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var byOps = mul.multiplyByOperand();
         var sizeErr = BindSizeError(mul.arithmeticOnSizeError());
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
-            return new BoundMultiplyGiving(a, BindExpr(byOps[0]), Receivers(giving.receivingArithmeticOperand()), sizeErr);
+        {
+            var b = BindExpr(byOps[0]);
+            var recv = Receivers(giving.receivingArithmeticOperand());
+            CheckComposite("MULTIPLY", [a, b], recv);
+            return new BoundMultiplyGiving(a, b, recv, sizeErr);
+        }
         // In-place: each BY operand is itself the receiver (target ← target × a).
-        return new BoundMultiplyBy(a, Receivers(byOps), sizeErr);
+        var byRecv = Receivers(byOps);
+        CheckComposite("MULTIPLY", [a], byRecv);
+        return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
 
     private BoundStatement BindDivide(Core.DivideStatementContext div)
@@ -378,17 +400,30 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             BoundExpr divisor = div.divideIntoPhrase() is not null ? a
                 : div.divideByPhrase() is { } b ? BindExpr(b.divideOperand())
                 : a;
+            CheckComposite("DIVIDE", [dividend, divisor], quotients);
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
         }
 
         if (div.divideIntoPhrase() is { } into)
         {
-            return div.divideGivingPhrase() is { } giving
-                ? new BoundDivideGiving(BindExpr(into.divideIntoOperand()), a, Receivers(giving.receivingArithmeticOperand()), sizeErr)
-                : new BoundDivideInto(a, Receivers(into.divideIntoOperand().receivingArithmeticOperand()), sizeErr);   // target ← target ÷ a
+            if (div.divideGivingPhrase() is { } giving)
+            {
+                var dividendX = BindExpr(into.divideIntoOperand());
+                var recv = Receivers(giving.receivingArithmeticOperand());
+                CheckComposite("DIVIDE", [dividendX, a], recv);
+                return new BoundDivideGiving(dividendX, a, recv, sizeErr);
+            }
+            var intoRecv = Receivers(into.divideIntoOperand().receivingArithmeticOperand());
+            CheckComposite("DIVIDE", [a], intoRecv);
+            return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
-            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(gv.receivingArithmeticOperand()), sizeErr);
+        {
+            var divisorX = BindExpr(byPhrase.divideOperand());
+            var recv = Receivers(gv.receivingArithmeticOperand());
+            CheckComposite("DIVIDE", [a, divisorX], recv);
+            return new BoundDivideGiving(a, divisorX, recv, sizeErr);
+        }
         return new BoundUnsupported("DIVIDE form");
     }
 
@@ -702,10 +737,65 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     /// (rule 2); a bare <c>ROUNDED</c> → the program's DEFAULT ROUNDED mode (rule 1 / §11.9.6 — the OPTIONS
     /// <c>DEFAULT ROUNDED MODE IS x</c> clause, defaulting to NEAREST-AWAY-FROM-ZERO when absent); an explicit
     /// <c>MODE IS x</c> → the named mode (via the shared <see cref="RoundingModes"/> mapping).</summary>
-    private CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase) =>
-        phrase is null ? CobolRounding.Truncation
-        : phrase.roundingModeName() is { } mode ? RoundingModes.Map(mode)
-        : data.Options.DefaultRounding;
+    private CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase)
+    {
+        if (phrase is null) return CobolRounding.Truncation;
+        if (phrase.roundingModeName() is { } mode)
+        {
+            // The explicit MODE IS phrase (and the 8-mode set) is ISO 2014+ (§14.7.4); at 85/2002 a bare ROUNDED
+            // means the single nearest-away-from-zero rounding and MODE IS is rejected.
+            if (data.Edition.DialectLevel < 2014)
+                data.Edition.Error("COBOLNET0803", "ROUNDED MODE IS — the explicit rounding-mode phrase was "
+                    + $"introduced by ISO/IEC 1989:2014 (§14.7.4); it requires --std 2014 or later "
+                    + $"(targeting COBOL-{data.Edition.DialectLevel})");
+            return RoundingModes.Map(mode);
+        }
+        return data.Options.DefaultRounding;
+    }
+
+    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7 rule 2, NATIVE arithmetic, the four
+    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §8.8.1.2 r7): the hypothetical item
+    /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
+    /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
+    /// (rule 2b — the composite is then over the remaining operands).</summary>
+    private void CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
+    {
+        if (data.Options.Arithmetic != ArithmeticMode.Native) return;   // §14.7 r2 applies to native only
+        int maxInt = 0, maxFrac = 0;
+        void Shape(int digits, int scale)
+        {
+            maxInt = Math.Max(maxInt, digits - scale);   // a negative (P-scaled) scale ADDS integer positions
+            maxFrac = Math.Max(maxFrac, Math.Max(0, scale));
+        }
+        void OfExpr(BoundExpr e)
+        {
+            switch (e)
+            {
+                case BoundNumRef { Place.Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } p }:
+                    Shape(p.Digits, p.Scale);
+                    break;
+                case BoundNumLiteral lit:
+                    string t = lit.Text.TrimStart('+', '-');
+                    int dot = t.IndexOf('.');
+                    Shape(t.Count(char.IsAsciiDigit), dot < 0 ? 0 : t.Length - dot - 1);
+                    break;
+            }
+        }
+        foreach (var e in operands) OfExpr(e);
+        foreach (var r in receivers)
+            if (r.Place.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } rp)
+                Shape(rp.Digits, rp.Scale);
+
+        // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
+        // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
+        // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
+        // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
+        int composite = maxInt + maxFrac;
+        if (composite <= 31) return;
+        data.Edition.Error("COBOLNET0805",
+            $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
+            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7 rule 2)");
+    }
 
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
     /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>

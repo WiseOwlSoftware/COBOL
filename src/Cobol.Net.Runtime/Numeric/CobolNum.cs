@@ -82,6 +82,34 @@ public static class CobolNum
         return true;
     }
 
+    /// <summary>Store a STANDARD-DECIMAL intermediate (§8.8.1.5) into the receiver: the §14.7 final transfer —
+    /// the SDIDI rescales to the receiver's scale with the statement's ROUNDED <paramref name="mode"/>, then the
+    /// normal capacity rules apply.</summary>
+    public static Int128 Store(CobolDec value, in NumProfile receiver, CobolRounding mode = CobolRounding.Truncation)
+    {
+        Int128 v = value.ToUnscaled(receiver.FractionScale, mode);
+        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
+            v %= Pow10Wide(receiver.Digits);
+        return receiver.Signed ? v : Int128.Abs(v);
+    }
+
+    /// <summary>The SIZE-ERROR-checked sibling of the SDIDI store: false on capacity overflow or a
+    /// PROHIBITED-inexact transfer (receiver to be left unchanged by the caller).</summary>
+    public static bool TryStore(CobolDec value, in NumProfile receiver, CobolRounding mode, out Int128 stored)
+    {
+        stored = 0;
+        Int128 v;
+        try { v = value.ToUnscaled(receiver.FractionScale, mode); }
+        catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§14.7.4.3 r7)
+        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
+        {
+            Int128 limit = Pow10Wide(receiver.Digits);
+            if (v >= limit || v <= -limit) return false;
+        }
+        stored = receiver.Signed ? v : Int128.Abs(v);
+        return true;
+    }
+
     /// <summary>True when rescaling <paramref name="value"/> from <paramref name="fromScale"/> to a smaller
     /// <paramref name="toScale"/> would drop a nonzero fraction (an inexact transfer).</summary>
     private static bool IsInexactAtScale(Int128 value, int fromScale, int toScale) =>

@@ -35,6 +35,9 @@ internal sealed class ConditionRenderer(NumericRenderer num)
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}) {r.Op} 0";
         NumX l = num.AsNum(r.Left), rr = num.AsNum(r.Right);
+        // A STANDARD-DECIMAL intermediate compares algebraically in SDIDI form (§8.8.1.5).
+        if (l.Dec || rr.Dec)
+            return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }

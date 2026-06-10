@@ -17,9 +17,12 @@ public sealed class OnSizeErrorDifferentialTests
     private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
-    private static void AssertOutput(string source, string expected)
+    // ROUNDED MODE IS is an ISO-2014+ phrase (§14.7.4) — the PROHIBITED facts compile at 2014.
+    private static readonly ICompilerUnderTest CobolNet2014 = new CobolNetCompiler(dialectLevel: 2014);
+
+    private static void AssertOutput(string source, string expected, bool needs2014 = false)
     {
-        var (ok, outp, detail) = CobolNet.CompileAndRun(source);
+        var (ok, outp, detail) = (needs2014 ? CobolNet2014 : CobolNet).CompileAndRun(source);
         Assert.True(ok, $"COBOL.NET failed: {detail}");
         Assert.Equal(expected, outp);
     }
@@ -83,7 +86,7 @@ public sealed class OnSizeErrorDifferentialTests
         // 10 / 3 = 3.333… is inexact at scale 0 → PROHIBITED size error; R unchanged (00).
         var src = Program("01 R PIC 9(2).",
             "    COMPUTE R ROUNDED MODE IS PROHIBITED = 10 / 3 ON SIZE ERROR DISPLAY \"PROH\".\n    DISPLAY R.");
-        AssertOutput(src, "PROH\n00");
+        AssertOutput(src, "PROH\n00", needs2014: true);
     }
 
     [Fact]
@@ -91,7 +94,7 @@ public sealed class OnSizeErrorDifferentialTests
         // 9 / 3 = 3 is exact → no size error → NOT path; R = 03.
         => AssertOutput(Program("01 R PIC 9(2).",
             "    COMPUTE R ROUNDED MODE IS PROHIBITED = 9 / 3 ON SIZE ERROR DISPLAY \"P\" NOT ON SIZE ERROR DISPLAY \"OK\".\n    DISPLAY R."),
-            "OK\n03");
+            "OK\n03", needs2014: true);
 
     // ── Divide by zero → ON SIZE ERROR fires, receiver UNCHANGED (§14.7.5 case 2). ──────────────────────────────
     [Fact]

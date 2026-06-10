@@ -75,7 +75,32 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// of two 18-digit operands is 36 digits and an aligned sum 19+, both past the long range MID-computation even
     /// when the final receiver fits. The leading <c>(Int128)</c> cast forces wide arithmetic whatever the leaf
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
-    public NumX Combine(NumX a, string op, NumX b) => op switch
+    public NumX Combine(NumX a, string op, NumX b)
+    {
+        // STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation evaluates in SDIDI form (decimal128 semantics),
+        // rounded per-op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11); the receiver's
+        // ROUNDED applies only at the final transfer (§14.7 NOTE 1).
+        if (StandardDecimal)
+            return op switch
+            {
+                "+" => new NumX($"CobolDec.Add({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
+                "-" => new NumX($"CobolDec.Sub({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
+                "*" => new NumX($"CobolDec.Mul({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
+                "/" => new NumX($"CobolDec.Div({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
+                _ => a,
+            };
+        return CombineNative(a, op, b);
+    }
+
+    private bool StandardDecimal => ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
+
+    private string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
+
+    /// <summary>Render an operand in SDIDI form: an already-decimal intermediate passes through; a fixed-point
+    /// value lifts EXACTLY via <c>CobolDec.From</c> (≤31 digits always representable, §8.8.1.5.2).</summary>
+    public string DecOperand(NumX x) => x.Dec ? x.Expr : $"CobolDec.From({x.Expr}, {x.Scale})";
+
+    private NumX CombineNative(NumX a, string op, NumX b) => op switch
     {
         "+" or "-" => CombineAdditive(a, op, b),
         // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked at the
@@ -129,11 +154,13 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     public static string Align(NumX x, int toScale) =>
         toScale == x.Scale ? x.Expr : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
 
-    private static NumX Negate(NumX x) => new($"(-{x.Expr})", x.Scale);
+    private static NumX Negate(NumX x) =>
+        x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true) : new($"(-{x.Expr})", x.Scale);
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     private static string Real(NumX x) =>
-        x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
+        x.Dec ? $"({x.Expr}).ToDouble()"
+        : x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
 
     /// <summary>10^<paramref name="n"/> as a C# <c>double</c> literal. Handles a NEGATIVE scale (a PICTURE-P
     /// trailing-scaled operand): 10^−1 → <c>0.1d</c>, so <see cref="Real"/>'s <c>value / 10^scale</c> scales correctly.</summary>

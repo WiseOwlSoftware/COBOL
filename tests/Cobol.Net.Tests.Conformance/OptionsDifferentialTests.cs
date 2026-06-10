@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Conformance;
 public sealed class OptionsDifferentialTests
 {
     private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler(dialectLevel: 2014);   // OPTIONS / ROUNDED MODE IS are ISO-2014+ features
 
     private static void AssertOutput(string source, string expected)
     {
@@ -74,11 +74,12 @@ public sealed class OptionsDifferentialTests
         => AssertOutput(Program("           ARITHMETIC IS NATIVE.",
             "01 R PIC 9(3).", "    COMPUTE R ROUNDED = 25 / 10.\n    DISPLAY R."), "003");
 
-    // ── A multi-clause OPTIONS paragraph parses and runs (ARITHMETIC + DEFAULT ROUNDED), order-independent. ─────
+    // ── A multi-clause OPTIONS paragraph parses and runs (ARITHMETIC + DEFAULT ROUNDED), order-independent.
+    //    (ARITHMETIC IS STANDARD-DECIMAL — plain STANDARD, the 2014 mode, is rejected: dropped by ISO 2023.) ─────
     [Fact]
     public void MultiClauseOptions_ParsesAndRuns()
         => AssertSameAsLegacy(Program(
-            "           ARITHMETIC IS STANDARD\n           DEFAULT ROUNDED MODE IS NEAREST-EVEN.",
+            "           ARITHMETIC IS STANDARD-DECIMAL\n           DEFAULT ROUNDED MODE IS NEAREST-EVEN.",
             "01 R PIC 9(3).", "    COMPUTE R ROUNDED = 35 / 10.\n    DISPLAY R."));   // 3.5 → 4 (even)
 
     // ── A bare OPTIONS header with no clauses (§11.9.3 — period optional) still compiles. ───────────────────────

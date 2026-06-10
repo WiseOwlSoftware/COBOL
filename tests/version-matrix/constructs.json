@@ -98,6 +98,30 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WIDE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(19) VALUE 1234567890123456789.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
     },
     {
+      "id": "options-arithmetic-native-2014",
+      "description": "The OPTIONS paragraph with ARITHMETIC IS NATIVE — the OPTIONS paragraph is ISO 2014+ (§11.9)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "2014 introduction (the OPTIONS paragraph; derive from the 2014 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OA.\nOPTIONS.\n    ARITHMETIC IS NATIVE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3) VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "rounded-mode-is-2014",
+      "description": "The ROUNDED MODE IS phrase (the 8-mode set) — ISO 2014+ (§14.7.4); at 85/2002 bare ROUNDED is the single nearest-away-from-zero rounding",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "2014 introduction (§14.7.4 rounded-phrase modes)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W ROUNDED MODE IS NEAREST-EVEN = 5 / 2.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "arithmetic-standard-decimal-2014",
+      "description": "OPTIONS ARITHMETIC IS STANDARD-DECIMAL (decimal128 intermediates, §8.8.1.5) — ISO 2014+",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "2014 introduction (§11.9.5 / §8.8.1.5)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SDPROG.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = 1 / 8.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
       "id": "type-clause-2023",
       "description": "TYPE IS clause referencing a type declaration, ISO 2023 §13.18.58 (TYPEDEF family)",
       "introducedIn": 2023,
