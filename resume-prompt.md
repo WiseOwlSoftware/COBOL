@@ -24,8 +24,14 @@
 > SET + index machinery + USAGE INDEX ✅ (526), sections-as-procedure-targets + qualified procedure-names +
 > TIMES-once ✅ (527), PERFORM VARYING complete + ALL-to-group repeat + benign OOR subscripts via CobolTable.At ✅
 > (528), CobolEdit numeric-edited receivers + DIVIDE REMAINDER + alphanumeric→numeric MOVE ✅ (530).**
-> **36 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 360 conformance + 15 unit
-> green.** Sweep (results2): 36 GREEN / 10 DIFF / 49 RUNERR-blocked. The docs corpus was GOAL-ALIGNED (529) to the
+> **36 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 414 conformance + 15 unit
+> green.** Sweep (results2): 36 GREEN / 10 DIFF / 49 RUNERR-blocked. **TRACK-1 PHASE 1 ✅ (531):** canonical
+> `tests/version-matrix/constructs.json` (12 rows, 48 cells green) + `EditionHarness` + the FULL INV-1 continuity
+> sweep (`scripts/version-continuity-sweep.sh`) — **342/342 85-compiling NIST programs clean at 2002/2014/2023,
+> zero breaks**; first matrix catch fixed the placeholder JSON/XML grammar stubs to the real seam surface (legacy
+> guard re-ran ALL GREEN). **Serial SEARCH F1 ✅ (532)** — label-loop emission; its cluster now gates on the
+> wave-4 resolver gaps (subscripted Tier-B views needs B2 first) + NEXT SENTENCE. **NEXT: Phase 2
+> EditionValidator** (removal/reserved-word gating + edition-NAMING diagnostics, the diagnose-correctly half). The docs corpus was GOAL-ALIGNED (529) to the
 > owner's four restated goals (4-compilers-in-one + diagnostics co-equal; commercial/.NET 10/C#14-or-later with
 > .NET 11-preview pre-authorized; legacy = reference/oracle ONLY; ICodeGenBackend dual-backend discipline).
 > Greenfield-only; the shared front-end + legacy are untouched (re-run `scripts/guard-fast.sh` before touching
