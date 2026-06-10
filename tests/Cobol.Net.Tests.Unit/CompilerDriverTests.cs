@@ -55,4 +55,11 @@ public sealed class CompilerDriverTests : CobolNetTestBase
         Assert.Equal(CompilerDriver.Outcome.SourceNotFound, result.Status);
         Assert.False(result.Success);
     }
+
+    [Fact]
+    // Owner decision (DEVLOG 519 / VERSION_TEST_MATRIX_DESIGN §10 #2): an unspecified target edition defaults to the
+    // LATEST standard (2023), not 85. Edition-specific callers (the NIST harness, the differential harness, per-edition
+    // conformance) pass DialectLevel explicitly, so this default flip does not affect them.
+    public void CompilerDriver_DefaultsToLatestEdition()
+        => Assert.Equal(2023, new CompilerDriver.Options("x.cob").DialectLevel);
 }

@@ -21,7 +21,8 @@ internal sealed record CliOptions(
     public static CliOptions? Parse(string[] args)
     {
         string? source = null, output = null, nist = null;
-        int std = 85;
+        int std = 2023;        // no --std ⇒ the LATEST edition (owner decision, DEVLOG 519)
+        bool stdGiven = false;
         var copy = new List<string>();
         bool run = false;
 
@@ -34,6 +35,7 @@ internal sealed record CliOptions(
                 case "--copy": if (Next(args, ref i) is { } c) copy.Add(c); break;
                 case "--run": run = true; break;
                 case "--std":
+                    stdGiven = true;
                     if (!int.TryParse(Next(args, ref i), out std)) { Console.Error.WriteLine("error: --std expects a year"); return null; }
                     break;
                 default:
@@ -44,6 +46,9 @@ internal sealed record CliOptions(
         }
 
         if (source is null) { Console.Error.WriteLine("error: no source file"); return null; }
+        // The NIST CCVS corpus is COBOL-85: --nist without an explicit --std targets 85, not the 2023 default
+        // (else a CCVS program hits new-2023 reserved words / removed constructs). DEVLOG 519.
+        if (nist is not null && !stdGiven) std = 85;
         return new CliOptions(source, output, nist, std, copy, run);
 
         static string? Next(string[] a, ref int i) => ++i < a.Length ? a[i] : null;

@@ -17,13 +17,16 @@ public static class CompilerDriver
     /// <param name="SourcePath">Path to the COBOL source file.</param>
     /// <param name="OutputPath">Output assembly path; defaults to the source path with a <c>.dll</c> extension.</param>
     /// <param name="NistTestName">When set, enables NIST CCVS placeholder preprocessing for that test.</param>
-    /// <param name="DialectLevel">ISO dialect year the parser admits (85 / 2002 / 2014 / 2023).</param>
+    /// <param name="DialectLevel">ISO dialect year the parser admits (85 / 2002 / 2014 / 2023). DEFAULTS to the LATEST
+    /// edition (2023) when unspecified — an unflagged compile targets the newest standard (owner decision, DEVLOG 519;
+    /// docs/VERSION_TEST_MATRIX_DESIGN.md §10 #2). Callers that target a specific edition (the NIST harness at 85, the
+    /// differential harness, per-edition conformance) pass it explicitly, so the default flip does not affect them.</param>
     /// <param name="CopyPaths">Directories searched for COPY copybooks, in order.</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
         string? NistTestName = null,
-        int DialectLevel = 85,
+        int DialectLevel = 2023,
         IReadOnlyList<string>? CopyPaths = null);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
