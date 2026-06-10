@@ -91,18 +91,16 @@
 > (ZERO in arithmetic → 0; `ALL ZEROS` VALUE init) — cleared 5 more. (505) **figurative ZERO in a level-88 VALUE**
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
-> **⛔ ACTIVE OWNER DIRECTIVE (2026-06-10): "numerics properly implemented for each language version, end to
-> end."** Waves N1 (Int128 carrier, design D1+D2), N2 (PIC 9(19..31) Int128 storage), N3-core (EditionContext +
-> COBOLNET08xx bind-side gates: 18/31/never digit caps both ways) are SHIPPED (DEVLOG 539–540; 453 conformance +
-> 15 unit green). **REMAINING: N3-rest** — per-edition composite-of-operands compile check (ADD/SUBTRACT/
-> MULTIPLY/DIVIDE only, never COMPUTE; 18 at 85, 31 at 2002+, §14.7); ROUNDED MODE IS + DEFAULT ROUNDED (§11.9.6)
-> + INTERMEDIATE ROUNDING (§11.9.11) gated 2014+ (at 85/2002 bare ROUNDED = nearest-away-from-zero ONLY, MODE IS
-> diagnosed); **N4** — OPTIONS ARITHMETIC applied: NATIVE = the documented Int128 engine (done de facto, document
-> + matrix rows), STANDARD-DECIMAL = decimal128/34-digit per-op semantics (§8.8.1.5 — the owner directive unlocks
-> the design's owner-gate), STANDARD-BINARY = obsolete/loud. **The full 4-scout implementation brief (spec §s,
-> legacy behavior, complete surface inventory) is the workflow output at
-> `C:\Users\brent\AppData\Local\Temp\claude\E--CobolSharp\de401450-b4ae-4dd4-acdd-ad95a132ce21\tasks\wytmlapq6.output`.**
-> Then resume the corpus waves below.
+> **✅ OWNER DIRECTIVE DELIVERED (DEVLOG 539–541): "numerics properly implemented for each language version, end
+> to end" — ALL FOUR WAVES SHIPPED.** N1 Int128 carrier (D1+D2); N2 wide tier (PIC 9(19..31) → Int128); N3
+> edition gates (digit/literal caps 18@85 / 31@2002+ / never>31, OPTIONS paragraph + ROUNDED MODE IS 2014+,
+> §14.7 composite-31 — the 85-tightening-to-18 was REFUTED by CCVS-85/NC101A itself); N4 ARITHMETIC modes
+> (NATIVE = documented Int128 engine; **STANDARD-DECIMAL implemented** — CobolDec SDIDI, decimal128/34-digit
+> per-op semantics with all four INTERMEDIATE ROUNDING modes; STANDARD-BINARY documented-unsupported
+> COBOLNET0806; plain STANDARD dropped@2023 COBOLNET0807). **474 conformance + 15 unit green; 64 matrix cells.**
+> Numerics follow-ups (small, when touched next): COMP-5 binary-wrap store discipline; float↔fixed mixed
+> expressions (D7); de-editing senders (§14.9.25 GR5); FLOAT-BINARY/-DECIMAL OPTIONS clauses. Resume the corpus
+> waves below.
 >
 > **RESUME AT (refreshed after DEVLOG 530 — the 6-agent diagnosis workflow's wave plan is the worklist; its full
 > output is in the session log of 2026-06-10):**
