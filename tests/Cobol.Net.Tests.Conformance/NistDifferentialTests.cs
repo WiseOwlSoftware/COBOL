@@ -142,6 +142,11 @@ public sealed class NistDifferentialTests
     [InlineData("NC175A")]   // SUBTRACT GIVING into edited receivers under ON SIZE ERROR ($.** / $**.**CR)
     [InlineData("NC114M")]   // MOVE S9P(17) SIGN LEADING SEPARATE to X(18)/edited (P zeros + de-sign)
     [InlineData("NC250A")]   // IF torture: multi-term sign conditions + 88 VALUE QUOTE/SPACE
+    // Greened by the MOVE/PICTURE editing fixes (DEVLOG 545): PIC 9(5)CR classified numeric-edited (§13.18.40.4),
+    // GROUP-level VALUE distribution (§13.18.63), BLANK WHEN ZERO (§13.18.8), AN→NE editing moves (§14.9.25.4
+    // GR5), and P scaling in EDITED masks (ZZZPP — §13.18.40.3, mask scale −P, no output position).
+    [InlineData("NC104A")]   // the MOVE feature program (141 tests: every Table-16 pairing incl. CR/BWZ/group-VALUE)
+    [InlineData("NC124A")]   // the PICTURE feature program (169 tests incl. P-scaled edited masks)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

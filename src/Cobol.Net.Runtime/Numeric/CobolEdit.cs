@@ -17,12 +17,15 @@ public static class CobolEdit
     /// <summary>Format <paramref name="value"/> (unscaled, with <paramref name="valueScale"/> fraction digits)
     /// into <paramref name="picture"/> — the EXPANDED edited picture (repeats unrolled, uppercased, the implied
     /// decimal point <c>V</c> retained; <c>V</c> occupies no output position).</summary>
-    public static string Format(Int128 value, int valueScale, string picture)
+    public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false)
     {
         bool negative = value < 0;
 
         // The output pattern: V marks the implied point but holds no character position (ISO §13.18.40.3).
-        string pattern = picture.Replace("V", "");
+        string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
+
+        // BLANK WHEN ZERO (ISO §13.18.8): a zero value stores ALL spaces — before any editing.
+        if (blankWhenZero && value == 0) return new string(' ', pattern.Length);
 
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§13.18.40.4).
@@ -197,7 +200,7 @@ public static class CobolEdit
     /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
     public static Int128 DeEdit(string image, string picture)
     {
-        string pattern = picture.Replace("V", "");
+        string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
         const char currencyChar = '$';
         int plus = 0, minus = 0, cs = 0;
         foreach (char raw in pattern)
@@ -233,12 +236,12 @@ public static class CobolEdit
     /// rule 2: that resultant is left UNCHANGED and only the flag is set, the statement's other receivers still
     /// store). MOVE keeps the unchecked <see cref="Format"/> — high-order truncation IS the defined MOVE behavior
     /// (§14.9.25).</summary>
-    public static bool TryFormat(Int128 value, int valueScale, string picture, out string image)
+    public static bool TryFormat(Int128 value, int valueScale, string picture, out string image, bool blankWhenZero = false)
     {
         var (capacity, fracDigits) = MaskCapacity(picture);
         Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
         if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
-        image = Format(value, valueScale, picture);
+        image = Format(value, valueScale, picture, blankWhenZero);
         return true;
     }
 
@@ -247,7 +250,7 @@ public static class CobolEdit
     /// Mirrors <see cref="Format"/>'s prologue exactly.</summary>
     private static (int Capacity, int FracDigits) MaskCapacity(string picture)
     {
-        string pattern = picture.Replace("V", "");
+        string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
         const char currencyChar = '$';
         int plus = 0, minus = 0, cs = 0;
         foreach (char raw in pattern)
@@ -292,6 +295,20 @@ public static class CobolEdit
     /// character (only one of the two may appear, ISO §13.18.40.3).</summary>
     private static int FractionDigits(string picture, char currencyChar, bool fixedCs, bool fixedPlus, bool fixedMinus)
     {
+        // PICTURE P scaling positions (§13.18.40.3): trailing P → a NEGATIVE mask scale (the value is a multiple
+        // of 10^P — PIC ZZZPP aligns 900 to unscaled 9, NC124A PICTURE-TEST-30); leading P → every digit position
+        // is fractional (scale = P-count + digit positions). P never coexists with V-fraction digits.
+        int pCount = 0;
+        foreach (char raw in picture) if (char.ToUpperInvariant(raw) == 'P') pCount++;
+        if (pCount > 0)
+        {
+            string up = picture.ToUpperInvariant();
+            int lastDigitPos = up.LastIndexOfAny(['9', 'Z', '*']);
+            if (lastDigitPos >= 0 && up.IndexOf('P', lastDigitPos) > lastDigitPos) return -pCount;
+            int digitPositions = 0;
+            foreach (char c in up) if (c is '9' or 'Z' or '*') digitPositions++;
+            return pCount + digitPositions;
+        }
         int point = picture.IndexOf('V');
         if (point < 0) point = picture.IndexOf('.');
         if (point < 0) return 0;

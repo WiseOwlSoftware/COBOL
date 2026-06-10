@@ -331,7 +331,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int? occurs = null;
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
-        bool justified = false;
+        bool justified = false, blankWhenZero = false;
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -340,6 +340,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     pictureText = picTok.GetText();
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
+                else if (clause.blankWhenZeroClause() is not null)
+                    blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.usageClause() is { } usage)
                     usageText = UsageKeyword(usage);
                 else if (clause.redefinesClause() is { } redef)
@@ -381,6 +383,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Occurs = occurs,
             RedefinesTargetName = redefinesTargetName,
             Justified = justified,
+            BlankWhenZero = blankWhenZero,
         };
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).

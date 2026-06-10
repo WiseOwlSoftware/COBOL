@@ -394,7 +394,12 @@ public sealed partial class CSharpEmitter
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = _num.AsNum(source);
-                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)})";
+                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)})";
+            // An ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3 Table 16): the
+            // sending characters are treated as an unsigned integer and EDITED into the mask (§14.9.25.4 GR5 —
+            // NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
+            case PicCategory.NumericEdited:
+                return $"CobolEdit.Format(CobolNum.FromAlphanumeric({OperandText.AsString(source, deSign: true)}), 0, {CsLiteral(pic.EditMask!)}{BwzFlag(target)})";
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
@@ -403,7 +408,7 @@ public sealed partial class CSharpEmitter
                     ? $"new string({FigurativeFill(ff.Kind)}, {pic.Length})"
                     : OperandText.AsString(source, deSign: true);
                 return $"CobolEdit.FormatAlphanumeric({aeSrc}, {CsLiteral(amask)})";
-            case PicCategory.Alphanumeric or PicCategory.NumericEdited:
+            case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
@@ -534,6 +539,10 @@ public sealed partial class CSharpEmitter
     /// <summary>Set the working scale + rounding mode for the receiver about to be rendered/stored.</summary>
     private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; }
 
+    /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
+    /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
+    private static string BwzFlag(DataItem item) => item.BlankWhenZero ? ", blankWhenZero: true" : "";
+
     /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
     /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
     /// into each receiver's store would re-read its fields after earlier receivers stored.</summary>
@@ -603,11 +612,11 @@ public sealed partial class CSharpEmitter
             if (_sizeErrVar is { } eflag)
             {
                 string img = $"__sv{_storeTmpCounter++}";
-                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img})) {eflag} = true;");
+                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)})) {eflag} = true;");
                 w.Line($"else {target.Write(img)}");
                 return;
             }
-            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)})"));
+            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)})"));
             return;
         }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })

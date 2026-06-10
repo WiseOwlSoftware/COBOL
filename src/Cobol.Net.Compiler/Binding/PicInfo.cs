@@ -165,14 +165,20 @@ public sealed record PicInfo(
         // a multiple of 10^P). LEADING P (e.g. P(4)9) puts the point left of every digit → scale = leadingP + the
         // digit count (all 9s are fractional). The net SIGNED scale flows through the whole numeric pipeline; the
         // runtime Rescale handles a negative scale natively (Pow10 of the always-non-negative scale difference).
-        int firstNine = expanded.IndexOf('9'), lastNine = expanded.LastIndexOf('9');
+        // P positions classify against the DIGIT POSITIONS (9 and the suppression symbols Z/* — an EDITED
+        // P-scaled mask like ZZZPP has no '9' at all, NC124A PICTURE-TEST-30), not just the literal nines.
+        int firstNine = expanded.IndexOfAny(['9', 'Z', '*']), lastNine = expanded.LastIndexOfAny(['9', 'Z', '*']);
         int leadingP = 0, trailingP = 0;
         for (int i = 0; i < expanded.Length; i++)
             if (expanded[i] == 'P') { if (firstNine < 0 || i < firstNine) leadingP++; else if (i > lastNine) trailingP++; }
-        int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digits : afterV;
+        int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
+        int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions : afterV;
 
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
-        bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/');
+        // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
+        // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters.
+        bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/')
+            || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal);
 
         if (anyAlpha)
         {

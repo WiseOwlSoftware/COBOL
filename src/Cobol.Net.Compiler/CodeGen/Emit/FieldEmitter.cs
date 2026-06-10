@@ -195,8 +195,56 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     private string ComposedInit(DataItem group)
     {
+        // A GROUP-level VALUE initializes the whole area as ONE alphanumeric value (ISO §13.18.63): the decoded
+        // literal — space-padded / right-truncated to the group's image width — distributes over the subordinate
+        // items POSITIONALLY at compile time (NC104A `01 MOVE29A VALUE "$123.45". 02 MOVE30 PIC $999.99.`).
+        // Distribution requires every leaf string-stored and no shared-storage member in the subtree; anything
+        // else keeps the member-wise default (the leaf's own VALUE/default).
+        if (group.RawValue is { } graw && GroupValueText(graw, group) is { } text && DistributableSubtree(group))
+        {
+            string padded = text.Length >= group.ImageWidth ? text[..group.ImageWidth] : text.PadRight(group.ImageWidth);
+            return SliceInit(group, padded);
+        }
         var parts = PhysicalChildrenOf(group).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
+    }
+
+    /// <summary>The character text of a group VALUE operand: a quoted literal decoded, or <c>ALL "lit"</c>
+    /// repeated to the group width (§8.3.3.6.4 GR2); null for any other operand form.</summary>
+    private static string? GroupValueText(string raw, DataItem group) =>
+        EmitText.AllLiteralText(raw) is { } al ? EmitText.RepeatToWidth(al, group.ImageWidth)
+        : raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? EmitText.DecodeCobolString(raw)
+        : null;
+
+    private static bool DistributableSubtree(DataItem item) =>
+        item.Class is null && (item.IsGroup
+            ? item.Children.All(DistributableSubtree)
+            : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited);
+
+    /// <summary>Build the composed initializer of <paramref name="item"/> from its positional <paramref name="slice"/>
+    /// of the group VALUE text — each subordinate (and each OCCURS occurrence) takes its own window.</summary>
+    private static string SliceInit(DataItem item, string slice)
+    {
+        if (!item.IsGroup) return EmitText.CsLiteral(slice);
+        var parts = new List<string>();
+        int off = 0;
+        foreach (var c in item.Children)
+        {
+            int w = c.ImageWidth;
+            if (c.Occurs is { } n)
+            {
+                var elems = new List<string>();
+                for (int k = 0; k < n; k++) elems.Add(SliceInit(c, slice.Substring(off + k * w, w)));
+                parts.Add($"{c.CsName} = new {c.ElementType}[] {{ {string.Join(", ", elems)} }}");
+                off += w * n;
+            }
+            else
+            {
+                parts.Add($"{c.CsName} = {SliceInit(c, slice.Substring(off, w))}");
+                off += w;
+            }
+        }
+        return $"new {item.StructName} {{ {string.Join(", ", parts)} }}";
     }
 
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>

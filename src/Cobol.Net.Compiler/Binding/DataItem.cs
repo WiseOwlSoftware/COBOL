@@ -60,6 +60,10 @@ public sealed class DataItem
     /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c).</summary>
     public bool Justified { get; init; }
 
+    /// <summary>BLANK [WHEN] ZERO (ISO §13.18.8): storing a ZERO value fills the item with spaces — applied at
+    /// every numeric-edited store (MOVE editing and arithmetic resultants alike).</summary>
+    public bool BlankWhenZero { get; init; }
+
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 
