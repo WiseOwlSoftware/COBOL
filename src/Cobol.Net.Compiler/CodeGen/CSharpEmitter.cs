@@ -674,6 +674,7 @@ public sealed class CSharpEmitter
     {
         var w = _ctx.Writer;
         int id = _searchCounter++;
+        if (s.FromStart) w.Line($"{s.IndexField} = 1;");   // SEARCH ALL ignores the initial setting (GR9)
         w.Line($"__search{id}:");
         using (w.Block($"if ({s.IndexField} > {s.Count}L)"))
         {

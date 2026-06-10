@@ -126,6 +126,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.performStatement() is { } p => BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
+        _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.exitStatement() is { } e => BindExit(e),
         _ when s.openStatement() is { } o => BindOpen(o),
@@ -622,6 +623,32 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         return new BoundSearch(searchIx, table.Occurs!.Value, also, atEnd, whens);
     }
 
+    /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
+    /// is ignored (GR9) and the technique is implementor-specified: this implementation scans from occurrence 1,
+    /// conformant since Format 2 requires the table ordered by its OCCURS KEYs (SR7) and the WHEN tests key
+    /// equality. Bound onto the same <see cref="BoundSearch"/> machinery with <c>FromStart</c>.</summary>
+    private BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
+    {
+        string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
+        if (!data.ByName.TryGetValue(tableName, out var candidates)
+            || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
+            return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
+        if (table.IndexNames.Count == 0)
+            return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+
+        List<BoundStatement>? atEnd = null;
+        if (s.searchAtEndClause() is { } ae)
+        {
+            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
+            atEnd = BindBlocks(ae.statementBlock());
+        }
+        var whens = s.searchAllWhenClause()
+            .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
+            .ToList();
+        return new BoundSearch(data.IndexFields[table.IndexNames[0]], table.Occurs!.Value,
+            AlsoVaried: null, atEnd, whens, FromStart: true);
+    }
+
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name
     /// (ISO §13.18.38 — index-names are a separate name class living in <see cref="DataBinder.IndexFields"/>,
     /// not the data-item tree), else <see langword="null"/>.</summary>
@@ -913,7 +940,12 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
         if (vo?.arithmeticExpression() is { } expr)
-            return SoleDataRef(expr) is { } dref ? FieldOperand(dref) : new BoundComputedOperand(BindExpr(expr));
+            return SoleDataRef(expr) is { } dref ? FieldOperand(dref)
+                // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
+                // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1), which a
+                // computed wrapper would lose.
+                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(lit)
+                : new BoundComputedOperand(BindExpr(expr));
         return new BoundOperandError("comparison operand");
     }
 
@@ -970,6 +1002,19 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             n = n.GetChild(0);
         }
         return ((Core.PrimaryExpressionContext)n).dataReference();
+    }
+
+    /// <summary>The raw text of an arithmetic expression that is a SOLE numeric literal, else null.</summary>
+    private static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr)
+    {
+        IParseTree n = expr;
+        while (n is not Core.PrimaryExpressionContext)
+        {
+            if (n.ChildCount != 1) return null;
+            n = n.GetChild(0);
+        }
+        var pe = (Core.PrimaryExpressionContext)n;
+        return pe.numericLiteral()?.GetText() ?? (pe.ZERO_ARITH() is not null ? "0" : null);
     }
 
     private static IEnumerable<Core.DataReferenceContext> DataRefs(IParseTree node)

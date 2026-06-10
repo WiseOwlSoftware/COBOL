@@ -90,6 +90,12 @@ public sealed class NistDifferentialTests
     // Greened by Int128 radix alignment in the division kernel (Divide/RoundDiv/DivisionLosesPrecision — an
     // 18-digit dividend scaled by the receiver's fraction digits exceeded long MID-computation, DEVLOG 536).
     [InlineData("NC171A")]   // DIVIDE INTO with 18-significant-digit operands
+    // Greened by SEARCH ALL (ISO §14.9.37 F2 — from-start scan, GR9 technique-implementor-specified) and the
+    // sole-numeric-literal comparison operand (§8.8.4.2.1 written character form vs groups) — DEVLOG 537.
+    [InlineData("NC233A")]   // SEARCH ALL over 3-dim tables
+    [InlineData("NC238A")]   // SEARCH ALL + SET
+    [InlineData("NC237A")]   // 3-dim table build + group-vs-literal comparisons + SEARCH ALL
+    [InlineData("NC103A")]   // group-vs-numeric-literal comparisons + NEXT SENTENCE
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

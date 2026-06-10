@@ -253,10 +253,13 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// <summary><c>SEARCH table [VARYING …] [AT END …] WHEN…</c> (ISO §14.9.37 Format 1): a serial scan from the
 /// CURRENT setting of <paramref name="IndexField"/> (the table's first index, or the VARYING same-table index).
 /// Each pass: past-end → AT END; else the WHEN conditions in order; none true → the index (and
-/// <paramref name="AlsoVaried"/>, a different-table index or data item, GR8) increments by 1.</summary>
+/// <paramref name="AlsoVaried"/>, a different-table index or data item, GR8) increments by 1.
+/// <paramref name="FromStart"/> marks <c>SEARCH ALL</c> (Format 2): the initial index setting is IGNORED (GR9 —
+/// the technique is implementor-specified; this implementation scans from occurrence 1, conformant for the
+/// key-ordered tables Format 2 requires).</summary>
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
-    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens) : BoundStatement;
+    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens, bool FromStart = false) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 
