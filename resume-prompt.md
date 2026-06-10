@@ -19,6 +19,11 @@
 > editions is gated by `DialectLevel`; new features enabled only at ≥ their edition; obsolete/removed flagged. (Memories
 > `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.)
 >
+> **CI NOTE (DEVLOG 554): any .g4 change must COMMIT the regenerated `src/Cobol.Net.Frontend/Generated/*` in the
+> SAME commit — CI's Linux ANTLR regen fails (backslashed target paths) and silently falls back to the checked-in
+> parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
+> `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
+>
 > **STATE (DEVLOG 553, 2026-06-10 18:30): 88/95 NC + 14 ST + 27 RL/IX byte-match (all locked); 648 conformance +
 > 15 unit; legacy guard ALL GREEN. THREE of four wave-2 families integrated (ODO 551, SORT/MERGE 552, KeyedIO
 > 553). **RESUME AT: integrate the PARKED CALL family ALONE** — files in `/e/tmp/wave2-hold/call/`, 11 STRUCTURAL
