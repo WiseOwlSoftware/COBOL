@@ -33,6 +33,15 @@ public sealed partial class DataBinder
     /// (§8.8.4.1.4 — true when the operand consists entirely of members).</summary>
     public Dictionary<string, string> UserClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>ALPHABET names (case-insensitive) → the built collating table (ISO §12.3.7 GR7), or null for a
+    /// NATIVE/STANDARD-1/STANDARD-2 alphabet (ISO/IEC 646 order IS the Latin-1 native order — identity, no table).</summary>
+    public Dictionary<string, CollatingTable?> Alphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The resolved PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11), or null when none is specified /
+    /// the named alphabet is the native order. Drives relation, condition-name, and (later) SORT/MERGE-key
+    /// comparisons (GR11/GR13) and the runtime HIGH-/LOW-VALUE characters (§8.3.3.6 GR6/GR7).</summary>
+    public CollatingTable? Collating { get; private set; }
+
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7
     /// general format: <c>switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1]
     /// [OFF [STATUS] [IS] condition-name-2]</c>; the NIST-85 surface also writes <c>ON IS cond</c> with no STATUS —
@@ -42,11 +51,16 @@ public sealed partial class DataBinder
     {
         var cfg = program.environmentDivision()?.configurationSection();
         if (cfg is null) return;
+        string? pcsName = null;
         foreach (var para in cfg.configurationParagraph())
         {
+            // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE IS alphabet-name (ISO §12.3.6 — the 85 single-name form).
+            if (para.objectComputerParagraph()?.programCollatingSequenceClause() is { } pcs)
+                pcsName = pcs.cobolWord().GetText();
             if (para.specialNamesParagraph() is not { } sn) continue;
             foreach (var entry in sn.specialNameEntry())
             {
+                if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
                 if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
                 if (entry.implementorSwitchEntry() is not { } sw) continue;
                 var ids = sw.cobolWord();   // [0] = switch-name; [1] = mnemonic-name when Option 1
@@ -63,6 +77,115 @@ public sealed partial class DataBinder
                 if (offName is not null) SwitchConditions.TryAdd(offName, (implName, false));
             }
         }
+        // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §12.3.6 GR9); only
+        // the NAMED alphabet becomes the program sequence — other defined alphabets have no effect (NC219A's
+        // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves Collating null (the fast path).
+        if (pcsName is not null && Alphabets.TryGetValue(pcsName, out var pcsTable))
+            Collating = pcsTable;
+    }
+
+    /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §12.3.7 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
+    /// the native (ISO/IEC 646) order — no table; a literal phrase assigns successive ascending positions per
+    /// k)1–k)6 — a numeric literal is the 1-based NATIVE ordinal (k1a), a multi-character literal positions each
+    /// character leftmost-first (k1b), THRU expands the native run in EITHER direction (k5), ALSO members share
+    /// ONE position (k6), and every unspecified character takes a DISTINCT ascending position above the highest
+    /// specified, in native relative order (k3). HIGH-/LOW-VALUE written INSIDE the clause are the NATIVE extremes
+    /// (GR10 — the PCS re-derivation applies only outside SPECIAL-NAMES).</summary>
+    private void AlphabetBind(Core.AlphabetClauseContext alpha)
+    {
+        string name = alpha.cobolWord().GetText();
+        var def = alpha.alphabetDefinition();
+        if (def.NATIVE() is not null || def.STANDARD_1() is not null || def.STANDARD_2() is not null)
+        {
+            Alphabets.TryAdd(name, null);
+            return;
+        }
+
+        var pos = new ushort[256];
+        Array.Fill(pos, ushort.MaxValue);                  // sentinel: not yet specified
+        var specOrder = new List<char>();                  // every specified char in source order (tie rules)
+        ushort next = 0;
+        void Assign(char c, bool advance)
+        {
+            int code = c & 0xFF;
+            if (pos[code] != ushort.MaxValue) return;      // SR14a duplicate — first wins (diagnostic later)
+            pos[code] = next;
+            specOrder.Add((char)code);
+            if (advance) next++;
+        }
+
+        foreach (var entry in def.alphabetEntry())
+        {
+            var operands = AlphabetOperands(entry);
+            if (operands.Count == 0) continue;
+            if (entry.THRU() is not null || entry.THROUGH() is not null)
+            {
+                // k)5: the native run from operand-1 to operand-2, either direction, ascending positions.
+                if (operands.Count >= 2 && operands[0].Length == 1 && operands[1].Length == 1)
+                {
+                    int a = operands[0][0] & 0xFF, b = operands[1][0] & 0xFF, step = a <= b ? 1 : -1;
+                    for (int c = a; ; c += step) { Assign((char)c, advance: true); if (c == b) break; }
+                }
+                continue;
+            }
+            if (entry.ALSO().Length > 0)
+            {
+                // k)6: operand-1 and every ALSO operand share ONE ordinal position; operand-1 is the position's
+                // first character (the CHAR() pick and the LOW-VALUE tie winner).
+                foreach (var op in operands)
+                    if (op.Length == 1) Assign(op[0], advance: false);
+                next++;
+                continue;
+            }
+            // k)1.b: a (possibly multi-character) literal — each character, leftmost first, ascending positions.
+            foreach (char c in operands[0]) Assign(c, advance: true);
+        }
+
+        // k)3: unspecified characters follow, DISTINCT ascending positions in native relative order.
+        for (int code = 0; code < 256; code++)
+            if (pos[code] == ushort.MaxValue) pos[code] = next++;
+
+        // GR8/GR9 extremes: highest/lowest POSITION; ties (an ALSO group) take the last/first char SPECIFIED.
+        ushort maxPos = 0, minPos = ushort.MaxValue;
+        for (int code = 0; code < 256; code++) { if (pos[code] > maxPos) maxPos = pos[code]; if (pos[code] < minPos) minPos = pos[code]; }
+        char high = '\u00ff', low = '\u0000';
+        for (int code = 255; code >= 0; code--) if (pos[code] == maxPos) { high = (char)code; break; }
+        foreach (char c in specOrder) if (pos[c & 0xFF] == maxPos) high = c;                  // tie → LAST specified
+        for (int code = 0; code < 256; code++) if (pos[code] == minPos) { low = (char)code; break; }
+        foreach (char c in specOrder) if (pos[c & 0xFF] == minPos) { low = c; break; }        // tie → FIRST specified
+
+        Alphabets.TryAdd(name, new CollatingTable(pos, high, low));
+    }
+
+    /// <summary>An alphabet entry's operand texts in source order: quoted literals decoded, an unsigned integer
+    /// literal as the character at that 1-based NATIVE ordinal (GR7 k1a), and the figurative words written inside
+    /// SPECIAL-NAMES as the NATIVE extremes/values (GR10 — HIGH-VALUE=U+00FF, LOW-VALUE=U+0000, SPACE, QUOTE,
+    /// ZERO).</summary>
+    private static List<string> AlphabetOperands(Core.AlphabetEntryContext entry)
+    {
+        var result = new List<string>();
+        for (int i = 0; i < entry.ChildCount; i++)
+        {
+            switch (entry.GetChild(i))
+            {
+                case Core.LiteralContext lit:
+                    result.Add(LiteralChars(lit));
+                    break;
+                case Core.CobolWordContext w:
+                    string t = w.GetText().ToUpperInvariant();
+                    result.Add(t switch
+                    {
+                        "HIGH-VALUE" or "HIGH-VALUES" => "\u00ff",
+                        "LOW-VALUE" or "LOW-VALUES" => "\u0000",
+                        "SPACE" or "SPACES" => " ",
+                        "QUOTE" or "QUOTES" => "\"",
+                        "ZERO" or "ZEROS" or "ZEROES" => "0",
+                        _ => t,
+                    });
+                    break;
+            }
+        }
+        return result;
     }
 
     /// <summary>One <c>CLASS class-name IS {literal [THRU literal]}…</c> clause (ISO §12.3.7): expand each value

@@ -1369,8 +1369,15 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     describes the abandoned byte form (pre-DEVLOG-457) and is updated.
 13. **Boundary codec.** `System.Text.Encoding.Latin1` (lossless 8-bit) is the ONE shared boundary codepage constant
     — used by file serialization, REDEFINES Tier C, and the whole-group image. Settled once in `CobolNet.Runtime`.
-14. **Figurative HIGH/LOW-VALUE.** Alphanumeric `HIGH-VALUE`=U+00FF / `LOW-VALUE`=U+0000; national U+FFFF / U+0000.
-    Full custom-`ALPHABET` collating deferred (the `CobolString.Compare(a,b,weights?)` seam is fixed now).
+14. **Figurative HIGH/LOW-VALUE + collating (SHIPPED, DEVLOG 546).** No PCS ⇒ alphanumeric `HIGH-VALUE`=U+00FF /
+    `LOW-VALUE`=U+0000 (national U+FFFF / U+0000). With a PROGRAM COLLATING SEQUENCE they are the sequence's
+    EXTREME characters (ISO §8.3.3.6 GR6/7 + §12.3.7 GR8/9 — character identity, ties: highest→last-specified,
+    lowest→first-specified). The custom-`ALPHABET` subsystem is LIVE: `CollatingTable` (256-entry position table,
+    §12.3.7 GR7 k1–k6 incl. the k3 distinct-ascending unspecified tail), built in `DataBinder.Switches`
+    (`Alphabets`/`Collating`), rendered as the generated `__COLLATE` field, consumed by the settled seam
+    `CobolString.Compare(a,b,weights)` at every relation/condition-name comparison site (§12.3.6 GR11) and by the
+    PCS-aware figurative fills (`EmissionContext.FigFill`). SORT/MERGE keys + CHAR/ORD take the same table when
+    those subsystems land (GR13/GR5 precedence).
 15. **Reference modification out of range.** Throw (`EC-BOUND-REF-MOD` → `CobolRuntimeException`) by default; a
     lenient clamping dialect is a later option.
 16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — ISO §5000), enabled only by

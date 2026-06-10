@@ -10,7 +10,7 @@ namespace CobolNet.CodeGen.Emit;
 /// comparisons (numeric scale-aligned, or alphanumeric via <c>CobolString.Compare</c>), logical AND/OR/XOR/NOT,
 /// level-88 membership over the conditional variable, and sign conditions. An unbound condition fails loud (§1.4).
 /// </summary>
-internal sealed class ConditionRenderer(NumericRenderer num)
+internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx)
 {
     /// <summary>Render a bound condition as a C# boolean expression.</summary>
     public string Render(BoundCondition c) => c switch
@@ -43,7 +43,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
             return RenderFigurativeRelational(r);
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
-            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}) {r.Op} 0";
+            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
         NumX l = num.AsNum(r.Left), rr = num.AsNum(r.Right);
         // A STANDARD-DECIMAL intermediate compares algebraically in SDIDI form (§8.8.1.5).
         if (l.Dec || rr.Dec)
@@ -66,7 +66,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         if (IsFig(anchor) || OperandText.IsString(anchor) || NonNumericFig(r.Left) || NonNumericFig(r.Right))
         {
             int width = AnchorWidth(anchor);
-            return $"CobolString.Compare({FigOrString(r.Left, width)}, {FigOrString(r.Right, width)}) {r.Op} 0";
+            return $"CobolString.Compare({FigOrString(r.Left, width)}, {FigOrString(r.Right, width)}{ctx.CollateArg}) {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
         int s = Math.Max(l.Scale, rr.Scale);
@@ -81,9 +81,10 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         _ => 1,
     };
 
-    private static string FigOrString(BoundOperand op, int width) => op switch
+    private string FigOrString(BoundOperand op, int width) => op switch
     {
-        BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, {width})",
+        // PCS-aware: HIGH-/LOW-VALUE materialize as the program sequence's extreme characters (§8.3.3.6 GR6/7).
+        BoundFigurative f => $"new string({ctx.FigFill(f.Kind)}, {width})",
         BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
         _ => OperandText.AsString(op),
     };
@@ -127,7 +128,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         return c.Negated ? $"!({test})" : $"({test})";
     }
 
-    private static string RenderCondition88(BoundCondition88 c)
+    private string RenderCondition88(BoundCondition88 c)
     {
         bool isString = c.Parent.Item.IsGroup || c.Parent.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
         // ISO §8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
@@ -144,7 +145,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     }
 
     /// <summary>One VALUE-set membership test: equality for a singleton, an inclusive bound test for a THRU range.</summary>
-    private static string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high)
+    private string RenderMembershipTest(string read, DataItem parent, bool isString, string low, string? high)
     {
         if (isString)
         {
@@ -152,8 +153,8 @@ internal sealed class ConditionRenderer(NumericRenderer num)
             // the variable's width (ISO §8.3.3.6.4 GR2); a plain literal is decoded as-is.
             int width = parent.Pic?.Length ?? parent.ImageWidth;
             string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
-            if (high is null) return $"CobolString.Compare({read}, {lo}) == 0";
-            return $"(CobolString.Compare({read}, {lo}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}) <= 0)";
+            if (high is null) return $"CobolString.Compare({read}, {lo}{ctx.CollateArg}) == 0";
+            return $"(CobolString.Compare({read}, {lo}{ctx.CollateArg}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{ctx.CollateArg}) <= 0)";
         }
         int scale = parent.Pic?.Scale ?? 0;
         string loN = NumericMembershipValue(low, scale);
@@ -165,7 +166,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE /
     /// HIGH-VALUE / LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27),
     /// else the decoded literal.</summary>
-    private static string StringMembershipValue(string raw, int width) =>
+    private string StringMembershipValue(string raw, int width) =>
         EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
         : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
         : EmitText.DecodeCobolString(raw);
@@ -173,7 +174,7 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
     /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill
     /// characters match <see cref="EmitText.FigurativeFill"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
-    private static char? FigurativeFillChar(string raw)
+    private char? FigurativeFillChar(string raw)
     {
         string t = raw.Trim();
         if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3 && char.IsWhiteSpace(t[3]))
@@ -182,8 +183,8 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         {
             "SPACE" or "SPACES" => ' ',
             "QUOTE" or "QUOTES" => '"',
-            "HIGH-VALUE" or "HIGH-VALUES" => '\u00ff',
-            "LOW-VALUE" or "LOW-VALUES" => '\u0000',
+            "HIGH-VALUE" or "HIGH-VALUES" => ctx.Data.Collating?.HighValue ?? 'ÿ',
+            "LOW-VALUE" or "LOW-VALUES" => ctx.Data.Collating?.LowValue ?? ' ',
             "ZERO" or "ZEROS" or "ZEROES" => '0',
             _ => null,
         };

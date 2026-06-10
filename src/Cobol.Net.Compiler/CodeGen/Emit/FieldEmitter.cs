@@ -248,7 +248,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     }
 
     /// <summary>The C# initializer expression for an elementary item, from its VALUE clause or the COBOL default.</summary>
-    private static string InitializerFor(DataItem item)
+    private string InitializerFor(DataItem item)
     {
         var pic = item.Pic!;
 
@@ -284,7 +284,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category
     /// and width; otherwise null (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
-    private static string? FigurativeInitializer(string raw, PicInfo pic)
+    private string? FigurativeInitializer(string raw, PicInfo pic)
     {
         string key = raw.ToUpperInvariant();
         // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
@@ -298,12 +298,14 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>The C# <c>char</c>-literal a figurative-constant word fills with, or null if the text is not a
     /// figurative word (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
-    private static string? FillCharFor(string word) => word switch
+    private string? FillCharFor(string word) => word switch
     {
         "ZERO" or "ZEROS" or "ZEROES" => "'0'",
         "SPACE" or "SPACES" => "' '",
-        "HIGH-VALUE" or "HIGH-VALUES" => "'\\u00ff'",
-        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => "'\\u0000'",
+        // VALUE HIGH-/LOW-VALUE under a PROGRAM COLLATING SEQUENCE is the sequence's extreme character
+        // (ISO §8.3.3.6 GR7 — compile-time figurative; NC219A's NEW-LOW PIC X VALUE LOW-VALUE = 'F').
+        "HIGH-VALUE" or "HIGH-VALUES" => ctx.FigFill('H'),
+        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => ctx.FigFill('L'),
         "QUOTE" or "QUOTES" => "'\\\"'",
         _ => null,
     };

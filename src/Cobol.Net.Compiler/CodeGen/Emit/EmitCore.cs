@@ -20,6 +20,22 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBinder Data { get; } = data;
 
+    /// <summary>The trailing weights argument for collated comparison renders — <c>", __COLLATE"</c> when a
+    /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else
+    /// empty (the native two-argument <c>CobolString.Compare</c> overload).</summary>
+    public string CollateArg => Data.Collating is null ? "" : ", __COLLATE";
+
+    /// <summary>The C# char-literal a figurative constant fills with, PCS-AWARE for HIGH-/LOW-VALUE: under a
+    /// program collating sequence they are the sequence's extremes (ISO §8.3.3.6 GR6/GR7 + §12.3.7 GR8/GR9 —
+    /// character IDENTITY, not just comparison weight); otherwise the native U+00FF/U+0000 (COBOLNET_DESIGN
+    /// §14.9). Other figuratives are sequence-independent.</summary>
+    public string FigFill(char kind) => kind switch
+    {
+        'H' when Data.Collating is { } hc => SymbolDisplay.FormatLiteral(hc.HighValue, quote: true),
+        'L' or 'N' when Data.Collating is { } lc => SymbolDisplay.FormatLiteral(lc.LowValue, quote: true),
+        _ => EmitText.FigurativeFill(kind),
+    };
+
     /// <summary>The current division working scale (the receiving item's scale).</summary>
     public int TargetScale { get; set; }
 

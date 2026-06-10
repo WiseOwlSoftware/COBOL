@@ -147,6 +147,12 @@ public sealed class NistDifferentialTests
     // GR5), and P scaling in EDITED masks (ZZZPP — §13.18.40.3, mask scale −P, no output position).
     [InlineData("NC104A")]   // the MOVE feature program (141 tests: every Table-16 pairing incl. CR/BWZ/group-VALUE)
     [InlineData("NC124A")]   // the PICTURE feature program (169 tests incl. P-scaled edited masks)
+    // Greened by the PROGRAM COLLATING SEQUENCE subsystem (DEVLOG 546): ALPHABET literal phrases (§12.3.7 GR7
+    // k1–k6 incl. THRU either-direction, ALSO shared positions, the k3 distinct-ascending unspecified tail),
+    // PCS-collated relation/figurative/88 comparisons via CobolString.Compare(a,b,__COLLATE) (§12.3.6 GR11 /
+    // §8.8.4.2.7), and PCS-derived HIGH-/LOW-VALUE character identity (§8.3.3.6 GR6/7 + §12.3.7 GR8/9 tie rules).
+    [InlineData("NC215A")]   // THE-WILD-ONE alphabet: THRU+ALSO matrix, mixed numeric/alphanumeric collated compares
+    [InlineData("NC219A")]   // figuratives INSIDE the alphabet (GR10 native), HIGH=0xFE re-derivation, VALUE LOW-VALUE
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

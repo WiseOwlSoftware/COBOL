@@ -77,4 +77,24 @@ public static class CobolString
         }
         return 0;
     }
+
+    /// <summary>
+    /// Compare two alphanumeric values under the PROGRAM COLLATING SEQUENCE (ISO §8.8.4.2.7 — "with respect to
+    /// the collating sequence of characters specified for the current alphanumeric program collating sequence"):
+    /// the shorter operand space-extends on the right (the pad SPACE itself weighs through the sequence), and the
+    /// first position whose WEIGHTS differ decides. <paramref name="weights"/> is the compiled 256-entry
+    /// native-code → position table (the COBOLNET_DESIGN §14.9 seam).
+    /// </summary>
+    public static int Compare(string? left, string? right, ushort[] weights)
+    {
+        left ??= ""; right ??= "";
+        int n = Math.Max(left.Length, right.Length);
+        for (int i = 0; i < n; i++)
+        {
+            ushort a = weights[(i < left.Length ? left[i] : ' ') & 0xFF];
+            ushort b = weights[(i < right.Length ? right[i] : ' ') & 0xFF];
+            if (a != b) return a < b ? -1 : 1;
+        }
+        return 0;
+    }
 }
