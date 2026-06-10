@@ -31,6 +31,11 @@ public sealed class DataItem
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
     public PicInfo? Pic { get; set; }
 
+    /// <summary>This entry's OWN SIGN clause (ISO §13.18.52), or <see langword="null"/> when none — captured even on
+    /// a group item: a group-level SIGN applies to every subordinate signed numeric DISPLAY item, nearest enclosing
+    /// clause winning (GR1–3, applied by the binder's post-build inheritance pass).</summary>
+    public SignSpec? OwnSign { get; init; }
+
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.</summary>
     public string? RawValue { get; init; }
 

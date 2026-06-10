@@ -37,6 +37,10 @@ public sealed class NistDifferentialTests
     [InlineData("NC106A")]   // SUBTRACT + COMP ON SIZE ERROR, driven by a PERFORM THRU … TIMES loop
     [InlineData("NC176A")]   // ADD + COMP ON SIZE ERROR, driven by a PERFORM THRU … TIMES loop
     [InlineData("NC134A")]   // nucleus arithmetic exercising PERFORM THRU … TIMES ranges
+    // Greened by group-level SIGN clause inheritance (ISO §13.18.52 GR1–3, DEVLOG 525): a group SIGN applies to
+    // every subordinate signed numeric DISPLAY item, nearest enclosing clause wins (GF-17's SIGN LEADING SEPARATE
+    // group overrides the 01's SIGN TRAILING; the separate '+' is readable through a REDEFINES view).
+    [InlineData("NC116A")]   // SIGN clause precedence (GF-16/17/18) + signed data movement
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

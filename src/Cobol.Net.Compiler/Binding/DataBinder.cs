@@ -74,10 +74,13 @@ public sealed class DataBinder
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             BindEntries(ws.dataDescriptionEntry(), rootNames);
 
-        // Post-build (the forest is complete): resolve REDEFINES/RENAMES targets, then group overlaid items into
-        // shared-storage classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now
-        // covers the FILE SECTION records too (their multi-01 area sharing is a synthesized REDEFINES). Finally
-        // resolve each file's FILE STATUS data item.
+        // Post-build (the forest is complete): apply group-level SIGN clauses (must precede the REDEFINES
+        // classification — a SEPARATE sign adds a character position to the item's image width, which feeds the
+        // class-max width); then resolve REDEFINES/RENAMES targets, group overlaid items into shared-storage
+        // classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE
+        // SECTION records too (their multi-01 area sharing is a synthesized REDEFINES). Finally resolve each
+        // file's FILE STATUS data item.
+        InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
         ResolveFiles();
@@ -308,7 +311,7 @@ public sealed class DataBinder
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
         int? occurs = null;
         var indexNames = new List<string>();
-        bool hasSign = false, signLeading = false, signSeparate = false;
+        SignSpec? ownSign = null;
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -324,11 +327,7 @@ public sealed class DataBinder
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
                 else if (clause.signClause() is { } sign)
-                {
-                    hasSign = true;
-                    signLeading = sign.LEADING() is not null;
-                    signSeparate = sign.SEPARATE() is not null;
-                }
+                    ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.occursClause() is { } occ)
                 {
                     if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[0].GetText(), out int n))
@@ -341,13 +340,14 @@ public sealed class DataBinder
 
         var pic = pictureText is null
             ? null
-            : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), hasSign, signLeading, signSeparate);
+            : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign);
         var item = new DataItem
         {
             Level = level,
             CobolName = isFiller ? null : cobolName,
             CsName = csName,
             Pic = pic,
+            OwnSign = ownSign,
             RawValue = rawValue,
             Occurs = occurs,
             RedefinesTargetName = redefinesTargetName,
@@ -378,6 +378,24 @@ public sealed class DataBinder
     {
         var item = value.valueItem().FirstOrDefault();
         return item?.GetText();
+    }
+
+    /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):
+    /// a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST enclosing clause takes
+    /// precedence, and an item's OWN clause (already consumed by <see cref="PicInfo.Analyze"/> at entry bind) wins
+    /// outright. Runs BEFORE the REDEFINES classification pass because a SEPARATE sign occupies its own character
+    /// position (§13.18.52 GR6a) — it widens the item's image, which feeds the class-max width.</summary>
+    private void InheritSignClauses()
+    {
+        static void Walk(DataItem item, SignSpec? inherited)
+        {
+            SignSpec? effective = item.OwnSign ?? inherited;
+            if (item.OwnSign is null && effective is not null
+                && item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display } pic)
+                item.Pic = pic with { SignKind = PicInfo.SignKindFor(pic.Usage, signed: true, effective) };
+            foreach (var c in item.Children) Walk(c, effective);
+        }
+        foreach (var root in Roots) Walk(root, null);
     }
 
     // ── REDEFINES / RENAMES resolution + classification (post-build, ISO §13.18.44/45) ───────────────────────

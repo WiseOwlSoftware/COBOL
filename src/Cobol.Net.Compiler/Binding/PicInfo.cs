@@ -15,6 +15,11 @@ public enum PicCategory
     NumericEdited,
 }
 
+/// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
+/// Captured per data-description entry — including on a GROUP item, whose clause applies to every subordinate
+/// signed numeric item with the NEAREST enclosing clause taking precedence (§13.18.52 GR1–3).</summary>
+public sealed record SignSpec(bool Leading, bool Separate);
+
 /// <summary>The physical representation a <c>USAGE</c> clause selects.</summary>
 public enum Usage
 {
@@ -112,12 +117,11 @@ public sealed record PicInfo(
     }
 
     /// <summary>
-    /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and an
-    /// optional SIGN clause (LEADING/TRAILING, SEPARATE).
+    /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
+    /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
+    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3).
     /// </summary>
-    public static PicInfo Analyze(
-        string picture, Usage usage,
-        bool hasSignClause = false, bool signLeading = false, bool signSeparate = false)
+    public static PicInfo Analyze(string picture, Usage usage, SignSpec? sign = null)
     {
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
@@ -146,7 +150,7 @@ public sealed record PicInfo(
             return new PicInfo(PicCategory.Alphanumeric, usage,
                 Length: expanded.Count(c => c is 'X' or 'A' or '9'), Digits: 0, Scale: 0, Signed: false);
 
-        string signKind = SignKindFor(usage, signed, hasSignClause, signLeading, signSeparate);
+        string signKind = SignKindFor(usage, signed, sign);
 
         if (anyEdit && digits > 0)
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol count.
@@ -162,13 +166,14 @@ public sealed record PicInfo(
 
     /// <summary>The runtime <c>NumericSign</c> member name for a numeric item (COBOLNET_DESIGN §6.4): binary/packed
     /// usages use a leading minus; USAGE DISPLAY uses over-punch (trailing by default, leading under SIGN LEADING)
-    /// or a separate sign under SIGN SEPARATE.</summary>
-    private static string SignKindFor(Usage usage, bool signed, bool hasSignClause, bool signLeading, bool signSeparate)
+    /// or a separate <c>+</c>/<c>-</c> character under SIGN SEPARATE (ISO §13.18.52 GR5/GR6). The ONE computation of
+    /// SignKind — also called by the binder's group-SIGN inheritance pass with the nearest-ancestor clause.</summary>
+    public static string SignKindFor(Usage usage, bool signed, SignSpec? sign)
     {
         if (!signed) return "TrailingOverpunch";                        // unused for an unsigned item
         if (usage is not Usage.Display) return "BinaryMinus";           // COMP / COMP-3 / COMP-5
-        if (signSeparate) return signLeading ? "LeadingSeparate" : "TrailingSeparate";
-        return hasSignClause && signLeading ? "LeadingOverpunch" : "TrailingOverpunch";
+        if (sign is { Separate: true }) return sign.Leading ? "LeadingSeparate" : "TrailingSeparate";
+        return sign is { Leading: true } ? "LeadingOverpunch" : "TrailingOverpunch";
     }
 
     /// <summary>Expand <c>symbol(n)</c> repetition factors into a flat symbol run (uppercased).</summary>
