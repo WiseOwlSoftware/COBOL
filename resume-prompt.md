@@ -24,13 +24,19 @@
 > SET + index machinery + USAGE INDEX ✅ (526), sections-as-procedure-targets + qualified procedure-names +
 > TIMES-once ✅ (527), PERFORM VARYING complete + ALL-to-group repeat + benign OOR subscripts via CobolTable.At ✅
 > (528), CobolEdit numeric-edited receivers + DIVIDE REMAINDER + alphanumeric→numeric MOVE ✅ (530).**
-> **45 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 431 conformance + 15 unit
-> green (DEVLOG 533–535: B2 Tier-B layout accounting + GAP-1 subscripted REDEFINES views + NEXT SENTENCE +
-> GAP-2 qualified subscripts + qualified/subscripted 88s + CobolTable.Occ + B3 + alphanumeric figurative
-> comparisons + ALPHANUMERIC-EDITED pictures + all-symbol edited masks). Legacy-oracle hole #4: legacy SEARCH
-> VARYING-other-index falls through to DE-LETE — NC236A is SPEC-PINNED (SpecPinnedNistTests), golden re-baselines
-> at G8. Close diffs to chase: NC114M (16), NC219A collating (16), NC203A/251A + NC170-175 (Int128 gap),
-> NC215A (34), NC250A (50); then SEARCH ALL + OCCURS KEY (NC233A/237A/238A), CORR + statements.** **TRACK-1 PHASE 1 ✅ (531):** canonical
+> **54 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 437 conformance + 15 unit
+> green (DEVLOG 533–538: B2 Tier-B layout + GAP-1 subscripted views + NEXT SENTENCE + GAP-2 qualified subscripts
+> + qualified/subscripted 88s + B3 + alphanumeric-edited pictures + Int128 division kernel + SEARCH F1+ALL +
+> literal-vs-group comparisons + §14.9.12 GR6c subsidiary quotient + print-file plain WRITE). Legacy-oracle hole
+> #4: legacy SEARCH VARYING-other-index falls through to DE-LETE — NC236A SPEC-PINNED, golden re-baselines at G8.
+> **The 10-agent DIFF-diagnosis output (full per-row maps) is at
+> `C:\Users\brent\AppData\Local\Temp\claude\E--CobolSharp\de401450-b4ae-4dd4-acdd-ad95a132ce21\tasks\wl4xosa5z.output`
+> — remaining DIFFs:** NC172A/173A/175A/170A = expression-pipeline products beyond long (the FULL CobolInt/Int128
+> carrier in NumericRenderer — multiplications and aligned sums, not the kernels); NC114M (16) edited corners;
+> NC219A (16) collating; NC215A (34), NC104A (34), NC235A (44, +ODO), NC250A (50), NC124A (28). RUNERR remainder
+> (~29): CORR (NC202A/207A/208A/209A/253A), INSPECT/STRING/UNSTRING/EVALUATE/INITIALIZE/ACCEPT verbs, ALTER,
+> switch-status conditions (NC174A/254A — SPECIAL-NAMES SWITCH + COBOL_SWITCH_n env, see legacy SwitchRuntime),
+> NC105A group-in-numeric. Then Track-1 Phase 2 EditionValidator.** **TRACK-1 PHASE 1 ✅ (531):** canonical
 > `tests/version-matrix/constructs.json` (12 rows, 48 cells green) + `EditionHarness` + the FULL INV-1 continuity
 > sweep (`scripts/version-continuity-sweep.sh`) — **342/342 85-compiling NIST programs clean at 2002/2014/2023,
 > zero breaks**; first matrix catch fixed the placeholder JSON/XML grammar stubs to the real seam surface (legacy
