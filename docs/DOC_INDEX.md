@@ -7,8 +7,11 @@
 > is **`docs/COBOLNET_DESIGN.md`** (the decision-complete SSOT). The pre-PIVOT byte-engine plan + architecture docs
 > (MASTER_PLAN, PROJECT_PLAN, the DATA_MODEL_* / RECORD_STRUCT migration docs, the ~50 `CobolSharp …` architecture/guide
 > docs, the CIL-emitter/binder decomposition docs, the byte-engine plans/audits, and the extracted spec excerpts) were
-> **DELETED 2026-06-09 (DEVLOG 523–524)** as obsolete + misleading. Backend = **C# source via Roslyn**; numerics are
-> native `long`/`Int128` (no `decimal`/`BigInteger`); the legacy `CobolSharp.*` engine survives in `src/` ONLY as a
+> **DELETED 2026-06-09 (DEVLOG 523–524)** as obsolete + misleading. Backend = **C# source via Roslyn (primary)**
+> behind the backend-neutral `ICodeGenBackend` over ONE bound tree (`--backend roslyn|cil`; a Cecil/CIL backend is
+> future-additive with its OWN private structure→branch lowering — NO shared lowered IR); numerics are native scaled
+> `long`/`Int128` (+ IEEE `float`/`double` for COMP-1/2; no `decimal`/`BigInteger`); the legacy `CobolSharp.*` engine
+> survives in `src/` ONLY as a
 > differential oracle until cut-over (G8). The ISO spec is the submodule **`specs/ISO_COBOL.md`** (authoritative — the
 > extracted excerpts were removed as redundant).
 
@@ -22,9 +25,10 @@
 | `resume-prompt.md` | LIVE | **Read FIRST.** The session kickoff: mission (full ISO-2023 + all prior editions), current STATE, the two-track RESUME AT (version-correctness + the feature/NIST corpus drive), and the NON-NEGOTIABLE PROCESS RULES. |
 | `docs/COBOLNET_DESIGN.md` | LIVE | **The SSOT.** Decision-complete design for the rewrite: locked invariants (§1), cross-cutting (§14), settled decisions (§18), the G0–G8 build order, and pointers to the per-subsystem deep-dives. |
 | `CLAUDE.md` | LIVE | Project instructions / agent playbook (points here + to the SSOT). |
+| `docs/DOC_INDEX.md` | LIVE | This file — the doc map + maintenance guide (one row per surviving doc; keep in sync). |
 | `DEVLOG.md` | LIVE | Narrative log of decisions/failures/breakthroughs. **DESCENDING — newest `## Entry` first**, with a `YYYY-MM-DD HH:MM TZ` stamp. |
 | `CONSTRAINTS.md` | LIVE | Doctrine: anti-patterns, process rituals (some examples are byte-engine-era — the rules generalize). |
-| `PROMPT.md` | LIVE | Doctrine + the anti-pattern catalog (multi-session continuity; C# 14 / .NET 10). |
+| `PROMPT.md` | LIVE | Doctrine + the anti-pattern catalog (multi-session continuity; C# 14 / .NET 10 **or later** — a .NET 11 upgrade is pre-authorized when it helps the goals). |
 | `README.md` | LIVE | Repo front page. |
 
 ## COBOL.NET design corpus — one canonical deep-dive per subsystem
@@ -32,7 +36,7 @@
 | Doc | Type | Subject |
 |---|---|---|
 | `docs/COBOLNET_ARCHITECTURE.md` | DESIGN | Brief overview of the greenfield architecture (companion to the SSOT). |
-| `docs/COBOLNET_PIPELINE_DESIGN.md` | DESIGN | The compile pipeline: preprocess → ANTLR parse → bound tree → C# emit → Roslyn. |
+| `docs/COBOLNET_PIPELINE_DESIGN.md` | DESIGN | The compile pipeline: preprocess → ANTLR parse → bound tree (ALL semantics) → `ICodeGenBackend` (Roslyn C#-emit primary; CIL future-additive) — emitters only render. |
 | `docs/COBOLNET_DATA_MODEL_DESIGN.md` | DESIGN | Typed-native data model: groups→`record struct`, elementary→native fields, OCCURS→`T[]`, `Place`/`ReferenceResolver`. |
 | `docs/COBOLNET_NUMERIC_DESIGN.md` | DESIGN | Native scaled-integer numerics (`CobolNum`): scale/round, `TryStore`, ON SIZE ERROR, signed-DISPLAY. |
 | `docs/COBOLNET_CONTROL_FLOW_DESIGN.md` | DESIGN | The PC dispatcher (`__Dispatch`): GO TO / DEPENDING / PERFORM (THRU/TIMES/UNTIL) / EXIT. |
@@ -43,9 +47,15 @@
 | `docs/COBOLNET_OO_DESIGN.md` | DESIGN | OO — classes/methods/INVOKE as typed-native .NET. |
 | `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` | DESIGN | Conditions + the EC exception model / declaratives. |
 | `docs/COBOLNET_INTRINSICS_DESIGN.md` | DESIGN | Intrinsic FUNCTION resolution + semantics. |
-| `docs/COBOLNET_PROJECT_ORG_DESIGN.md` | DESIGN | Project/folder organization + the Cobol.NET / `cobol.exe` naming. |
+| `docs/COBOLNET_PROJECT_ORG_DESIGN.md` | DESIGN | Project/folder organization + the Cobol.NET / `cobol.exe` naming (G0 executed; G8 namespace big-bang pending). |
 
 ## Version-correctness (multi-edition)
+
+> ⛔ **Cross-cutting obligation:** `cobol.exe` is FOUR compilers in one (`--std` 1985/2002/2014/2023). Every subsystem
+> deep-dive above must state, for each edition-varying construct it designs, BOTH the per-edition behavior AND the
+> diagnostic emitted by every edition that lacks it (not-yet-introduced or removed), keyed to the rows of
+> `VERSION_CHANGE_REFERENCE.md`. A deep-dive that designs a post-1985 feature without its pre-introduction diagnostic
+> is incomplete.
 
 | Doc | Type | Subject |
 |---|---|---|

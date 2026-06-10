@@ -6,7 +6,7 @@
 > build order). This file remains the brief overview; where it conflicts, `COBOLNET_DESIGN.md` wins — notably the
 > §3 numeric table below, corrected to native `long`/`Int128`-unscaled (NO `decimal`).
 
-> **Status: LIVE / under construction.** This is the single source of truth for the blank-slate rewrite
+> **Status: LIVE — brief overview (companion to the SSOT `docs/COBOLNET_DESIGN.md`).** The overview of the blank-slate rewrite
 > directed by the owner on 2026-06-08: *"Move entirely to .NET representations for COBOL objects … totally
 > rewrite it … the best possible COBOL to .NET implementation."* It supersedes the byte-substrate compiler in
 > `src/CobolSharp.Compiler` (the *legacy* engine, kept only as a differential oracle until cut-over, task G8) and the
@@ -29,14 +29,25 @@ feeds either the **Roslyn** backend (idiomatic C# source — the v1 deliverable)
 (typed-native IL via Mono.Cecil — no C#-compile step / no Roslyn dependency, for AOT/direct-IL). See
 `COBOLNET_DESIGN.md` §1.1/§18.
 
+**Four compilers in one executable (the mission).** `cobol` targets ISO COBOL **1985 / 2002 / 2014 / 2023**, selected
+by `--std` (default COBOL-2023; `--nist` without an explicit `--std` targets 85). Every edition-varying construct
+carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the
+correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they
+never SCOPE. Framework: `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist; 2002→2023 deltas
+ONLY — derive 85↔2002 gating from the 2002 standard) + `docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition)
+matrix; Phase 0 done). All of it at commercial, decades-sustainable quality — no backward-compatibility constraints;
+rewrite anything necessary.
+
 ## 2. Pipeline
 
 ```
 source.cob
-  → Front-end (REUSED, src/CobolSharp.Compiler, front-end only — CobolNet.Frontend.Frontend):
+  → Front-end (src/Cobol.Net.Frontend — the greenfield front-end project, extracted at G0; entry type
+        CobolNet.Frontend.Frontend; internal namespaces remain CobolSharp.Compiler.* until the G8 namespace big-bang):
         Preprocess (reference-format, >>directives, COPY, NIST placeholders) → Lex → Parse → parse tree
   → Bind: typed semantic model — every data item gets a .NET type (no byte offsets)        [task G2]
-  → Lower: a C#-oriented model / direct emission                                            [tasks G3–G4]
+  → Render: the selected ICodeGenBackend (--backend roslyn|cil) renders the backend-NEUTRAL bound tree —
+        NO shared lowered IR                                                                  [tasks G3–G4]
   → Emit C# (CobolNet.CodeGen.CSharpEmitter → CodeWriter)                                    [all tasks]
   → Compile C# (CobolNet.CodeGen.RoslynBackend → Roslyn CSharpCompilation) → assembly + .g.cs
 Runtime: CobolNet.Runtime — CobolNum (numeric), CobolString (character), ManagedPointer, format/file helpers
@@ -44,7 +55,8 @@ Runtime: CobolNet.Runtime — CobolNum (numeric), CobolString (character), Manag
 ```
 
 **Reuse line (deliberate, audited):** only the ANTLR grammar + lexer/parser/preprocessor (a declarative,
-ISO-derived *spec* artifact) and the clean typed runtime substrates are reused. Nothing from the legacy byte
+ISO-derived *spec* artifact) and the clean typed runtime substrates were carried over — now owned by the greenfield
+`src/Cobol.Net.Frontend` / `src/Cobol.Net.Runtime` projects (G0). Nothing from the legacy byte
 engine — `ProgramState`, `StorageHelpers`, `StorageLayoutComputer`, `PicRuntime`'s byte-window APIs, the byte
 `IrLocation`/emit spine — is used. The conformance corpus (`tests/nist/`, `tests/conformance/`) and
 `specs/ISO_COBOL.md` are the target + oracle.
@@ -85,25 +97,37 @@ subsets. (Task G4.)
 
 ## 5. Project layout
 
-- `src/CobolNet/` — the compiler (exe `cobol`). `Frontend/` (parse), `CodeGen/` (`CSharpEmitter`, `CodeWriter`,
-  `RoslynBackend`), `Program.cs` (CLI).
-- `src/CobolNet.Runtime/` — the runtime the generated C# calls (planned; starts from the clean substrates).
-- `src/CobolSharp.*` — legacy (front-end reused; byte engine retired at G8).
+- `src/Cobol.Net.Frontend/` — preprocessor + ANTLR lexer/parser + parse tree + diagnostics (entry type
+  `CobolNet.Frontend.Frontend`; internal namespaces remain `CobolSharp.Compiler.*` until the G8 namespace big-bang).
+- `src/Cobol.Net.Compiler/` — bind → bound tree → `CodeGen/` (`CSharpEmitter`, `CodeWriter`, `RoslynBackend`) behind
+  `ICodeGenBackend`.
+- `src/Cobol.Net.Runtime/` — the runtime the generated C# calls (`CobolNum`, string ops, file connectors).
+- `src/Cobol.Net.Cli/` — the CLI shell (exe `cobol`; `--std`, default COBOL-2023).
+- `src/CobolSharp.*` — the legacy byte engine: differential oracle + reference ONLY (never authority — the ISO spec
+  is; never a substrate to fall back to). Deleted at G8 cut-over.
 
 ## 6. Roadmap (tasks)
 
 - **G1 ✅** Bootstrap + HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run). `DISPLAY` of literals, `STOP RUN`.
-- **G2** Data division → typed C# (elementary fields, groups→record struct, tables→arrays; VALUE init).
-- **G3** Core verbs (`MOVE`, arithmetic, `IF`/`EVALUATE`, `DISPLAY`/`ACCEPT`, `PERFORM` inline) on typed values.
-- **G4** Control-flow engine (port the PC/dispatch design) — `PERFORM THRU`, `GO TO`, `ALTER`, fall-through.
-- **G5** Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX → ST), then the conformance corpus.
-- **G6** Deferred data cases: `REDEFINES`/`RENAMES`, whole-group alphanumeric, file serialization.
-- **G7** M2/M3/M4 features (OO→.NET classes, UDF, pointers, national/boolean, JSON/XML, intrinsics) per `--standard`.
-- **G8** Cut over: retire the byte engine, rename to COBOL.NET / `cobol.exe`, final architecture/doc pass.
+- **G0 ✅** Project reorg (SSOT §17): split into `src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}` (exe `cobol`);
+  no-god-class emitter decomposition.
+- **G2 ✅** Data division → typed C# (elementary fields, groups→record struct, tables→arrays; VALUE init).
+- **G3 ✅ (core)** Core verbs (`MOVE`, arithmetic, `IF`/`EVALUATE`, `DISPLAY`/`ACCEPT`, `PERFORM` inline) on typed values.
+- **G4 ✅** Control-flow engine (port the PC/dispatch design) — `PERFORM THRU`, `GO TO`, `ALTER`, fall-through.
+- **G5 (in progress)** Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX → ST), then the conformance corpus.
+  Sequential file I/O ✅; SET/index machinery + sections landed; 27 NC programs byte-match the golden; 334 conformance
+  + 15 unit green.
+- **G6 (core ✅)** Deferred data cases: `REDEFINES`/`RENAMES` (Tier A+B ✅), whole-group alphanumeric, file serialization.
+- **G7** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean, JSON/XML, intrinsics) gated per `--std`
+  — each with BOTH the per-edition spec behavior AND the correct rejection diagnostic in every edition that lacks it
+  (`docs/VERSION_CHANGE_REFERENCE.md`, `docs/VERSION_TEST_MATRIX_DESIGN.md`).
+- **G8** Cut over: delete the legacy `src/CobolSharp.*` oracle, finish the cosmetic namespace rename, final
+  architecture/doc pass. (Projects already live as `Cobol.Net.*`; the exe is already `cobol`.)
 
 ## 7. Conventions
 
-- Latest .NET 10 / C# 14 idioms where they aid clarity (records, primary constructors, collection expressions,
+- Latest .NET 10 / C# 14 — or later (a .NET 11 upgrade is pre-authorized when its features advance the goals) —
+  idioms where they aid clarity (records, primary constructors, collection expressions,
   pattern matching, `using` scopes). Full XML doc comments on public surface + inline rationale on non-obvious code.
 - The generated C# is written to `<name>.g.cs` next to the assembly — always inspectable.
 - Conformance is the oracle: every feature is driven by (and proven against) `tests/nist/valid/*.txt` or a

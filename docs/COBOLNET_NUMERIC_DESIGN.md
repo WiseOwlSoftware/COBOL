@@ -9,13 +9,13 @@
 
 Decision-complete design for COBOL.NET's native scaled-integer numeric model. SUBSTRATE (owner-locked, documented + hardened): every fixed-point datum is a native integer holding its UNSCALED value (all digits; decimal point = compile-time scale metadata). Storage CLR type by capacity: PIC ≤18 digits → `long`; 19–38 digits → `Int128` (value type); COMP-1/COMP-2 → `float`/`double`; COMP-5 by width → `sbyte/byte/short/ushort/int/uint/long/ulong` (binary-wrap). NO `decimal`, NO `BigInteger`.
 
-THE CENTRAL HARDENING (advisor crux #2): the runtime's value engine must be Int128-monomorphic, NOT long. The current `src/CobolNet.Runtime/Numeric/CobolNum.cs` is long-only and silently overflows real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). Redesign: a `readonly record struct CobolInt(Int128 Unscaled, int Scale)` is the single intermediate carrier. Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
+THE CENTRAL HARDENING (advisor crux #2): the runtime's value engine must be Int128-monomorphic, NOT long. The current `src/Cobol.Net.Runtime/Numeric/CobolNum.cs` is long-only and silently overflows real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). Redesign: a `readonly record struct CobolInt(Int128 Unscaled, int Scale)` is the single intermediate carrier. Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
 INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION integer powers expand to repeated multiply (§8.8.1.5.4 a–d). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. v1 mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD-DECIMAL (decimal128) and STANDARD-BINARY are owner-gated/deferred.
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the existing `CobolRounding` enum (correct); harden `Store`→`TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR), the current `Store` is the no-SIZE-ERROR branch only.
 
-NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByEditPattern`/`FormatNumericEdited` verbatim (Z * $ + - CR DB B 0 / . , fixed+floating insertion, asterisk fill, BLANK WHEN ZERO, full-field-blank) into a `CobolEdit.Format(CobolInt, EditPattern, env)` runtime helper; the receiver field is a C# `string`. SIGN OVERPUNCH (NIST-exact, confirmed against legacy NIST-passing tests): IBM-ASCII tables positive 0→'{',1→'A'…9→'I'; negative 0→'}',1→'J'…9→'R'. Default = TrailingOverpunch; SignKind ∈ {LeadingOverpunch, TrailingOverpunch, LeadingSeparate('+'/'-'), TrailingSeparate}. NumProfile MUST gain a SignKind field (advisor #4 — currently only a `Signed` bool). P scaling, mixed float/fixed, IS NUMERIC, comparison scale-align, MOVE rescale all specified below.
+NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByEditPattern`/`FormatNumericEdited` verbatim (Z * $ + - CR DB B 0 / . , fixed+floating insertion, asterisk fill, BLANK WHEN ZERO, full-field-blank) into a `CobolEdit.Format(CobolInt, EditPattern, env)` runtime helper; the receiver field is a C# `string`. SIGN OVERPUNCH (NIST-exact, confirmed against legacy NIST-passing tests): IBM-ASCII tables positive 0→'{',1→'A'…9→'I'; negative 0→'}',1→'J'…9→'R'. Default = TrailingOverpunch; SignKind ∈ {LeadingOverpunch, TrailingOverpunch, LeadingSeparate('+'/'-'), TrailingSeparate}. NumProfile's `SignKind` field is SHIPPED (advisor #4 — `src/Cobol.Net.Runtime/Numeric/NumProfile.cs`, enum `NumericSign`, incl. a fifth member `BinaryMinus` for binary/packed DISPLAY images). P scaling, mixed float/fixed, IS NUMERIC, comparison scale-align, MOVE rescale all specified below.
 
 ## Decisions
 
@@ -41,13 +41,13 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 ### D4. Port the legacy two-pass NUMERIC-EDITED formatter (PicRuntime.FormatByEditPattern + FormatNumericEdited) verbatim into a value-level `CobolEdit.Format(CobolInt value, EditPattern pat, PicEnvironment env) → string`; the edited field's CLR storage is `string`.
 
-**Rationale.** NUMERIC-EDITED is a famously fiddly subsystem (fixed vs floating $ + -, asterisk check-protect, BLANK WHEN ZERO, full-field-blank-on-zero, comma/B suppression inside floating zones, CR/DB, DECIMAL-POINT IS COMMA, CURRENCY SIGN). The legacy engine passes 364 NIST tests, so it is the proven oracle — re-deriving from the spec grammar risks regressions the conformance corpus already covers. It needs no byte buffer: it produces a C# string directly, which is exactly the edited item's native representation (PicCategory.NumericEdited → `string`).
+**Rationale.** NUMERIC-EDITED is a famously fiddly subsystem (fixed vs floating $ + -, asterisk check-protect, BLANK WHEN ZERO, full-field-blank-on-zero, comma/B suppression inside floating zones, CR/DB, DECIMAL-POINT IS COMMA, CURRENCY SIGN). The legacy engine passes 364 NIST tests, so it is the proven PORTING SOURCE — re-deriving from scratch risks regressions the conformance corpus already covers. AUTHORITY NOTE (process rule #1): the ISO spec (§13.18.40 PICTURE editing rules), not the legacy oracle, defines correctness — validate the ported formatter clause-by-clause against the spec, resolve any legacy↔spec discrepancy to the SPEC (dialect-gated when the behavior is edition-varying), and treat NIST as a regression net that VERIFIES, never scopes. It needs no byte buffer: it produces a C# string directly, which is exactly the edited item's native representation (PicCategory.NumericEdited → `string`).
 
 **Rejected alternatives.** (a) Rewrite the editor from the ISO §14.9.x grammar — REJECTED: high regression risk against a battle-tested oracle; the task explicitly says mine the legacy for behavior. (b) Use .NET ToString format strings — REJECTED: cannot express floating insertion, check-protect, overpunch, or COBOL's zero-suppression rules. (c) Keep editing in a byte buffer — REJECTED: no byte substrate; the value→string transform is pure.
 
-### D5. Add a `SignKind` enum field to NumProfile (LeadingOverpunch / TrailingOverpunch[default] / LeadingSeparate / TrailingSeparate) and reproduce the IBM-ASCII overpunch tables: positive {ABCDEFGHI for 0-9, negative }JKLMNOPQR.
+### D5. NumProfile carries a `SignKind` field — SHIPPED as enum `NumericSign` (LeadingOverpunch / TrailingOverpunch[default] / LeadingSeparate / TrailingSeparate / BinaryMinus) — reproducing the IBM-ASCII overpunch tables: positive {ABCDEFGHI for 0-9, negative }JKLMNOPQR.
 
-**Rationale.** Confirmed NIST-exact against the legacy NIST-passing integration tests: PIC S9(3) +42→"04B", -42→"04K", -150→"0015}", +150→"0015{", SIGN LEADING -37→"}37". A signed-DISPLAY item's character image (what DISPLAY emits and what file records carry) is determined entirely by SignKind — the current NumProfile (and the new one) carry only a `Signed` bool, which cannot reproduce the image. The default with no SIGN clause is TRAILING overpunch (legacy SignStorageKind default).
+**Rationale.** Confirmed NIST-exact against the legacy NIST-passing integration tests: PIC S9(3) +42→"04B", -42→"04K", -150→"0015}", +150→"0015{", SIGN LEADING -37→"}37". A signed-DISPLAY item's character image (what DISPLAY emits and what file records carry) is determined entirely by SignKind — a bare `Signed` bool cannot reproduce the image (the legacy profile had only the bool; the shipped greenfield `NumProfile` now carries `NumericSign SignKind`). The default with no SIGN clause is TRAILING overpunch (legacy SignStorageKind default).
 
 **Rejected alternatives.** (a) Keep only `Signed` bool — REJECTED: cannot produce the overpunched DISPLAY image or SIGN SEPARATE; would fail any signed-display NIST test. (b) Store sign as a separate C# `bool isNegative` field beside magnitude — REJECTED: the unscaled Int128/long already carries the sign natively; the SignKind affects only the EXTERNAL image (DISPLAY/serialization), so it belongs in formatting metadata, not a parallel storage field.
 
@@ -68,7 +68,7 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 DATA-DIVISION → CLR storage type:
 - `01 N PIC 9(5).`            → `long N;`            (unscaled; 5 digits ≤ 18)
 - `01 B PIC S9(4)V99 COMP-3.` → `long B;`            (unscaled = value×100; scale=2 metadata)
-- `01 W PIC S9(31).`          → `Int128 W;`          (>18 digits)
+- `01 W PIC S9(31).`          → `Int128 W;`          (>18 digits — legal only at `--std ≥2002`; a >18-digit picture is a compile diagnostic at `--std 85`)
 - `01 H PIC 9(18) COMP-5.`    → `ulong H;`           (unsigned 8-byte native) ; `S9(9) COMP-5` → `int`
 - `01 R PIC S9(7)V9(2).`      → `long R;`            (DISPLAY signed; SignKind=TrailingOverpunch metadata)
 - `01 F COMP-1.`              → `float F;`  ; `COMP-2` → `double`
@@ -78,12 +78,12 @@ PROFILE (compile-time emitted once per item, runtime carrier):
 ```csharp
 public readonly record struct NumProfile {
   public required int Digits; public required int FractionDigits;
-  public int LeadingScaleDigits; public int TrailingScaleDigits;
-  public required bool Signed; public SignKind Sign;           // NEW (advisor #4)
+  // no separate P fields — FractionDigits IS the net signed scale (V-fraction + leading-P − trailing-P; may be NEGATIVE)
+  public required bool Signed; public NumericSign SignKind;    // SHIPPED (advisor #4)
   public required NumericTruncation Truncation; public int StorageLength;
-  public int FractionScale => Math.Max(0, FractionDigits + LeadingScaleDigits);
+  public int FractionScale => FractionDigits;   // signed; CobolNum.Rescale handles a negative scale natively
 }
-public enum SignKind { TrailingOverpunch, LeadingOverpunch, LeadingSeparate, TrailingSeparate }
+public enum NumericSign { TrailingOverpunch, LeadingOverpunch, LeadingSeparate, TrailingSeparate, BinaryMinus }
 ```
 
 INTERMEDIATE CARRIER + ENGINE (replaces the long-only CobolNum):
@@ -106,6 +106,8 @@ public readonly record struct CobolInt(Int128 Unscaled, int Scale) {
 public static bool TryStore(CobolInt v, in NumProfile r, CobolRounding m, out Int128 stored);
 ```
 
+BACKEND NOTE (dual backend, `--backend roslyn|cil`): `CobolNum`/`CobolInt`/`CobolEdit` are the backend-NEUTRAL runtime contract — the bound tree carries the structured operation (operands, scales, ROUNDED mode, receivers) and each `ICodeGenBackend` (Roslyn C# primary; future Cecil/CIL, own private lowering) renders calls to the same runtime API. The snippets below are the Roslyn rendering, not the semantic definition.
+
 GENERATED C# for `COMPUTE GROSS ROUNDED = RATE * HOURS + BONUS ON SIZE ERROR PERFORM E.` (RATE S9(3)V99, HOURS 9(3)V9, BONUS 9(5)V99, GROSS S9(7)V99):
 ```csharp
 var __t = CobolInt.Add(
@@ -117,7 +119,7 @@ else { /* PERFORM E */ }
 
 DISPLAY of a signed item `DISPLAY R` (R = -150, PIC S9(4) trailing overpunch):
 ```csharp
-Console.WriteLine(CobolNum.FormatSignedDisplay(R, P_R));   // → "015}"  ({/} table, last digit overpunched}
+Console.WriteLine(CobolNum.FormatDisplaySigned(R, P_R));   // → "015}"  ({/} table, last digit overpunched)
 ```
 NUMERIC-EDITED MOVE `MOVE AMT TO E` (E = ZZ,ZZ9.99-):
 ```csharp
@@ -127,6 +129,19 @@ IS NUMERIC on a DISPLAY field (the only nontrivial class test — magnitude+sign
 ```csharp
 if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 ```
+
+## Edition gating & diagnostics (G1 — four compilers in one)
+
+`cobol.exe` targets ISO COBOL 1985 / 2002 / 2014 / 2023 via `--std 85|2002|2014|2023`. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Derive each gate from `specs/ISO_COBOL.md` (Annex E) + `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog), and land each as (construct × edition) cases in the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` — the (construct × edition) matrix; Phase 0 done). Known gates in this subsystem:
+
+- **PICTURE digit ceiling — 18 (1985) vs 31 (2002+)**: `PIC S9(31)` (the `Int128` storage tier) is legal only at `--std ≥2002`; under `--std 85` any picture >18 digits is a compile diagnostic. The long→Int128 boundary is edition-reachable only at ≥2002.
+- **Composite-of-operands limit — 18 digits (1985) vs 31 (2002+)** (§14.7.5 rule 2): the compile-time threshold is per-edition, not the constant 31.
+- **ROUNDED MODE IS / the 8 modes / DEFAULT ROUNDED (§11.9.6) / INTERMEDIATE ROUNDING (§11.9.11) — 2014+**: at `--std 85|2002` bare ROUNDED means the single nearest-away-from-zero rounding, and `ROUNDED MODE IS …` + those OPTIONS clauses are not-yet-introduced diagnostics. 2014→2023 behavior delta: rounding raises EC-SIZE-TRUNCATION only under PROHIBITED (`VERSION_CHANGE_REFERENCE.md` row 53).
+- **ARITHMETIC clause**: `NATIVE`/`STANDARD` are 2002 introductions (derive from the 2002 standard); `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+; at 2023 `STANDARD` is REMOVED (row 28) and `STANDARD-BINARY` is flagged OBSOLETE (row 116). At `--std 85` the whole clause is not-yet-introduced. A legal-but-unimplemented mode (STANDARD-DECIMAL at 2014/2023) additionally needs a clean not-implemented diagnostic, distinct from the edition gate.
+- **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. COMP-5 itself is an extension — document its per-dialect availability.
+- **EC-* exception conditions (EC-SIZE-*) — 2002+**: at `--std 85` only the ON SIZE ERROR phrase semantics exist; EC names/TURN must not surface.
+
+(Verify every edition attribution above against the spec's Annex E / the edition record before wiring the gate — the spec, not this list, is authority.)
 
 ## Hard problems
 
@@ -148,7 +163,7 @@ MOVE is value-preserving with receiver-scale alignment (ISO §14.9.25): load sen
 
 ### P scaling (leading and trailing) in store, divide, and edited-format paths.
 
-Leading P: adds to FractionScale (the implied point is left of stored digits) — value is scaled down; FractionScale getter already folds LeadingScaleDigits in. Trailing P: stored digits are multiples of 10^TrailingScaleDigits — ScaleAndRound must round to that 10^P grid (legacy clean ScaleAndRound: shift by +trailingP, round to integer units, multiply back). Port this into CobolInt.ScaleAndRound and into CobolEdit (legacy FormatByEditPattern divides absValue by 10^trailingP before building digits). Capacity counts only the explicit '9' digits, not the P positions.
+SHIPPED MODEL (supersedes the two-field draft — a single signed scale removes a derived getter and a second source of truth): `NumProfile.FractionDigits` IS the net signed scale (V-fraction + leading-P − trailing-P, may be NEGATIVE; ISO §13.18.40) and `CobolNum.Rescale` handles a negative scale natively. Leading P deepens the scale (point left of every digit); trailing P makes the scale negative — stored digits are multiples of 10^|scale|, and ScaleAndRound must round to that 10^P grid (legacy clean ScaleAndRound: shift by +trailingP, round to integer units, multiply back). Port the grid-rounding into CobolInt and into CobolEdit (legacy FormatByEditPattern divides absValue by 10^trailingP before building digits). Capacity counts only the explicit '9' digits, not the P positions.
 
 ### Comparison scale-alignment (IF A = B, A > B) across operands of different scale/usage/sign.
 
@@ -177,7 +192,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 - Divide by zero → EC-SIZE / SIZE ERROR, receiver unchanged (NOT a .NET DivideByZeroException — CobolInt.Div must guard b.Unscaled==0 and signal up).
 - ROUNDED MODE PROHIBITED: an inexact result at the receiver scale raises SIZE ERROR and leaves the receiver UNCHANGED even though no overflow occurred (ISO §14.9.4) — TryStore checks inexactness before the capacity check.
 - Trailing-P rounding grid: PIC 9(3)P value 1234 is stored as 1230 (multiple of 10^1) and capacity counts only the 3 nines; ScaleAndRound must round to the 10^P grid, not to scale 0.
-- Composite-of-operands 31-digit limit is a COMPILE-time diagnostic for ADD/SUBTRACT/MULTIPLY/DIVIDE (not COMPUTE); exceeding it is a compile error, not a runtime SIZE ERROR.
+- Composite-of-operands limit is a COMPILE-time diagnostic for ADD/SUBTRACT/MULTIPLY/DIVIDE (not COMPUTE); exceeding it is a compile error, not a runtime SIZE ERROR. The threshold is PER-EDITION: 18 digits at `--std 85`, 31 from 2002 on (see the Edition gating section).
 - Mixed signed/unsigned and DISPLAY/COMP operands in one COMPUTE all reduce to algebraic CobolInt values — representation differences vanish in the intermediate; only the final receiver's representation matters.
 
 ## ISO citations
@@ -198,7 +213,7 @@ Two-phase per the spec: (a) evaluate the expression into the intermediate CobolI
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
 
-- ARITHMETIC IS STANDARD-DECIMAL (full ISO §8.8.1.5: decimal128, 34 sig digits, exp ±6144) is incompatible with the locked substrate AND with .NET `decimal` (96-bit/28-digit). v1 ships NATIVE arithmetic only (documented per §8.8.1.3). Delivering STANDARD-DECIMAL would require a decimal-floating type the lock forbids. OWNER DECISION NEEDED: (a) permanently scope COBOL.NET to native arithmetic (recommended — it is fully conformant as a default and is what the 364-NIST corpus uses), or (b) later add a quarantined decimal-float intermediate type usable ONLY when ARITHMETIC IS STANDARD-DECIMAL is in effect. STANDARD-BINARY is spec-obsolete and should stay unimplemented.
+- ARITHMETIC IS STANDARD-DECIMAL (full ISO §8.8.1.5: decimal128, 34 sig digits, exp ±6144) is incompatible with the locked substrate AND with .NET `decimal` (96-bit/28-digit). v1 ships NATIVE arithmetic only (documented per §8.8.1.3). Delivering STANDARD-DECIMAL would require a decimal-floating type the lock forbids. SETTLED (`COBOLNET_DESIGN.md` §18 #2): v1 ships native arithmetic only; STANDARD-DECIMAL stays owner-gated as a future QUARANTINED decimal-float intermediate type usable ONLY when ARITHMETIC IS STANDARD-DECIMAL is in effect; STANDARD-BINARY stays unimplemented (spec-obsolete). Per-edition: the clause gates per the Edition gating section (STANDARD-DECIMAL/-BINARY are 2014+), and a legal-but-unimplemented mode emits a clear not-implemented diagnostic.
 - DIV_GUARD_DIGITS value (proposed 14, reproducing the legacy decimal accumulator's headroom). Owner/empirical: confirm against the NIST division-rounding tests during G5 — a too-small guard loses rounding precision, too-large risks Int128 overflow on already-deep operands. This is tunable but should be locked once validated.
-- The >38-digit ceiling: COBOL-2002/2014 permit pictures up to 31 (mandatory) and some profiles to 38; arithmetic intermediates on 19+-digit operands can exceed Int128. If the conformance target ever requires guaranteed-exact arithmetic beyond 38 digits, the carrier must widen (Int256 / a fixed 128-bit decimal). Confirm 38 digits is sufficient for the M2/M3/M4 conformance scope, else this becomes a substrate question.
-- COBOLNET_ARCHITECTURE.md §3 data-model table currently says signed/scaled + COMP-3 → `decimal` — this CONTRADICTS the lock and PicInfo.ClrType (long-unscaled, no decimal). The table must be corrected to long/Int128-unscaled in the same change that lands this design, to avoid two SSOTs (flag, not a question — but needs an owner-visible doc edit).
+- The >38-digit ceiling: COBOL-2002/2014 permit pictures up to 31 (mandatory) and some profiles to 38; arithmetic intermediates on 19+-digit operands can exceed Int128. If the conformance target ever requires guaranteed-exact arithmetic beyond 38 digits, the carrier must widen (Int256 / a fixed 128-bit decimal). Confirm 38 digits is sufficient for the 2002/2014/2023 `--std` conformance scope (per `docs/VERSION_CHANGE_REFERENCE.md` + the version test matrix), else this becomes a substrate question.
+- RESOLVED: `COBOLNET_ARCHITECTURE.md` §3's data-model table has been corrected to native `long`/`Int128`-unscaled (NO `decimal`) — its banner records the correction; no second SSOT remains.

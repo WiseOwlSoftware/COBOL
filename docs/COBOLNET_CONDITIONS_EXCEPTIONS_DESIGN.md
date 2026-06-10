@@ -7,15 +7,15 @@
 
 ## Summary
 
-Decision-complete design for the conditions + exception subsystem of the greenfield COBOL→C#/Roslyn compiler (src/CobolNet). Covers IF/ELSE/END-IF; EVALUATE (all forms); level-88 condition-names + SET cond TO TRUE/FALSE; class/sign/relational/abbreviated-combined conditions with NOT>AND>XOR>OR precedence; and the COBOL-2002/2023 EC exception model (EC-* hierarchy, >>TURN, RAISE/RESUME, USE…EXCEPTION/ERROR declaratives, EXCEPTION-OBJECT, ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION).
+Decision-complete design for the conditions + exception subsystem of the greenfield COBOL→C#/Roslyn compiler (src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}; C# namespaces `CobolNet.*`). Covers IF/ELSE/END-IF; EVALUATE (all forms); level-88 condition-names + SET cond TO TRUE/FALSE; class/sign/relational/abbreviated-combined conditions with NOT>AND>XOR>OR precedence; and the COBOL-2002/2023 EC exception model (EC-* hierarchy, >>TURN, RAISE/RESUME, USE…EXCEPTION/ERROR declaratives, EXCEPTION-OBJECT, ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION).
 
-Two C# code shapes: (1) conditions are PURE C# boolean expressions (RenderCondition(node)→string, no side effects) so they compose into if/while/?:/EVALUATE-arms and level-88 bool properties; (2) the exception model is stateful runtime (CobolNet.Runtime.Exceptions) plus emitted guards that appear ONLY when a program uses the feature — EC checking is OFF by default (ISO §14.6.13.1.1, §5000), so the typed-native fast path emits zero exception scaffolding in the common case.
+Two C# code shapes — both are the Roslyn backend's rendering of the ONE backend-neutral bound tree (G4/ICodeGenBackend: all semantics live in the BoundCondition/EC bound nodes + the binder-computed TurnState; emitters only render; the future CIL backend lowers the SAME bound nodes to branches with its own private lowering): (1) conditions are PURE C# boolean expressions (ConditionRenderer.Render(BoundCondition)→string, no side effects) so they compose into if/while/?:/EVALUATE-arms and level-88 bool properties; (2) the exception model is stateful runtime (CobolNet.Runtime.Exceptions) plus emitted guards that appear ONLY when a program uses the feature — EC checking is OFF by default (ISO §14.6.13.1.1, §5000), so the typed-native fast path emits zero exception scaffolding in the common case.
 
-The proven COBOL semantics are mined from the legacy CobolSharp.Compiler/CodeGen/Lowering/ConditionLowerer.cs and CobolSharp.Runtime/PicRuntime.cs (which pass 364 NIST tests — the behavioral oracle); the byte IMPLEMENTATION is rejected and re-derived over native string/long/decimal/bool. Full prose with worked COBOL→C# examples lives in docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md (companion to docs/COBOLNET_ARCHITECTURE.md). New diagnostics occupy a COBOLNET07xx band. New runtime classes: CobolClass (class-condition predicates over UTF-16 chars), ExceptionCatalog (generated from ISO Table 13: level-3→level-2→EC-ALL hierarchy + fatality), ExceptionState (last-exception register, EXCEPTION-OBJECT, file/location/statement), CobolException/CobolFatalException, ExceptionDispatch (declarative registry). Implementation is mechanical from here.
+Correct behavior is defined by the ISO spec (specs/ISO_COBOL.md — cite the §); the legacy CobolSharp.Compiler/CodeGen/Lowering/ConditionLowerer.cs and CobolSharp.Runtime/PicRuntime.cs (364 NIST green) are a differential regression net and reference ONLY, never authority; the byte IMPLEMENTATION is rejected and re-derived over native string/long(/Int128)/bool — the numeric design's scaled integers; System.Decimal is rejected (docs/COBOLNET_NUMERIC_DESIGN.md). THIS document is that full prose (condensed view: docs/COBOLNET_DESIGN.md §11; brief overview: docs/COBOLNET_ARCHITECTURE.md). New diagnostics occupy a COBOLNET07xx band. New runtime classes: CobolClass (class-condition predicates over UTF-16 chars), ExceptionCatalog (generated from ISO Table 13: level-3→level-2→EC-ALL hierarchy + fatality), ExceptionState (last-exception register, EXCEPTION-OBJECT, file/location/statement), CobolException/CobolFatalException, ExceptionDispatch (declarative registry). Implementation is mechanical from here.
 
 ## Decisions
 
-### D1. Conditions emit as pure, side-effect-free C# boolean expressions via RenderCondition(node)→string, walking the ANTLR rule cascade (logicalOr→logicalXor→logicalAnd→unaryLogical→primaryCondition).
+### D1. Conditions are bound to backend-neutral BoundCondition nodes (BoundRelational/BoundLogical/BoundNot/BoundCondition88/BoundSignCondition/BoundClassCondition); the Roslyn backend's ConditionRenderer.Render(BoundCondition)→string emits them as pure, side-effect-free C# boolean expressions. The grammar's rule cascade (logicalOr→logicalXor→logicalAnd→unaryLogical→primaryCondition) fixes precedence at parse/bind time. (As built: src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs.)
 
 **Rationale.** COBOL condition precedence NOT>AND>XOR>OR is already encoded by the grammar's rule cascade, so precedence is preserved by construction without us re-grouping. Pure expressions compose into if/while(!(…))/?:/EVALUATE arms/level-88 properties — one translator serves every consumer.
 
@@ -57,7 +57,7 @@ The proven COBOL semantics are mined from the legacy CobolSharp.Compiler/CodeGen
 
 **Rejected alternatives.** Treat SET cond TO TRUE as setting a bool flag — wrong; it is a MOVE of a specific literal into the parent per the VALUE-clause rules.
 
-### D8. Class conditions (NUMERIC/ALPHABETIC/-LOWER/-UPPER/user CLASS) run over the character image via a new CobolClass runtime; for a pure numeric long/decimal item, IS NUMERIC folds to true (COBOLNET0706).
+### D8. Class conditions (NUMERIC/ALPHABETIC/-LOWER/-UPPER/user CLASS) run over the character image via a new CobolClass runtime; for a pure native scaled-integer (long/Int128) item, IS NUMERIC folds to true (COBOLNET0706).
 
 **Rationale.** In the typed model the value IS the field; class tests operate on the char image. A native numeric item cannot hold non-digits, so NUMERIC is constant-true (the meaningful test is on a PIC X holding digits). ALPHABETIC is the closed Latin set {A-Z,a-z,space} (ISO §8.8.4.4) — NOT char.IsLetter (must reject Unicode/accented letters; legacy comment).
 
@@ -65,7 +65,7 @@ The proven COBOL semantics are mined from the legacy CobolSharp.Compiler/CodeGen
 
 ### D9. EC checking is OFF by default; conditional phrases (ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION) are ALWAYS active when written and do NOT require >>TURN.
 
-**Rationale.** ISO §14.6.13.1.1/§5000: default is EC-ALL CHECKING OFF. ISO §14.6.13.1.4 GR1: an explicit conditional phrase handles the condition regardless of TURN state. The phrases are the COBOL-85/2002 handler form the NIST corpus uses; >>TURN/declaratives are the secondary M2+ mechanism. Result: programs that don't use exceptions emit zero scaffolding (commercial-quality fast path).
+**Rationale.** ISO §14.6.13.1.1/§5000: default is EC-ALL CHECKING OFF. ISO §14.6.13.1.4 GR1: an explicit conditional phrase handles the condition regardless of TURN state. The phrases are the COBOL-85/2002 handler form the NIST corpus uses; >>TURN/EC-name declaratives are the secondary 2002+ mechanism (edition-gated; diagnosed at --std=85 — see Per-edition gating). Result: programs that don't use exceptions emit zero scaffolding (commercial-quality fast path).
 
 **Rejected alternatives.** Always-on EC checking — huge per-statement runtime cost (ISO NOTE warns of significant penalty) and non-ISO default. Require >>TURN for the classic phrases — breaks COBOL-85 ON SIZE ERROR / AT END semantics.
 
@@ -81,7 +81,7 @@ The proven COBOL semantics are mined from the legacy CobolSharp.Compiler/CodeGen
 
 **Rejected alternatives.** A single program-wide try/catch that re-dispatches — loses the precise 'resume after the statement' semantics and the applicable-statement selection; harder to debug.
 
-### D12. The exception-checking PERFORM WHEN form (M2) is the one place a real C# try/catch is used; RAISE/RESUME and fatal/nonfatal termination are runtime calls (CobolException.Raise / CobolFatalException at the run-unit boundary in Main).
+### D12. The exception-checking PERFORM WHEN form (COBOL-2023 — VCR row 79; diagnosed at --std=85|2002|2014) is the one place a real C# try/catch is used; RAISE/RESUME and fatal/nonfatal termination are runtime calls (CobolException.Raise / CobolFatalException at the run-unit boundary in Main).
 
 **Rationale.** PERFORM…WHEN ec explicitly traps an exception in imperative-statement-1, which maps naturally to try{…}catch(CobolException)when(matches). RAISE EXCEPTION runs the §6.6 handling sequence; a fatal EC with no handler throws CobolFatalException caught at Main → abnormal termination + nonzero exit (ISO §14.6.13.1.3 — implementor may terminate).
 
@@ -113,7 +113,7 @@ private static bool ACTIVE  => WS_STATE == 1L;
 private static bool PENDING => WS_STATE >= 2L && WS_STATE <= 4L;
 private static bool DONE    => WS_STATE == 5L || WS_STATE == 9L;
 ```
-Single value→`==`; THRU→`>= from && <= to`; multiple→OR; alpha values space-extended to parent width, ALL literal repeated to width. Subscripted cond-name→method `bool COND(long i)=>parent[i-1]==v;` (COBOLNET0704 until tables). SET ACTIVE TO TRUE→`WS_STATE = CobolNum.Store(1L,0,_P_WS_STATE);`. SET DONE TO FALSE→`WS_STATE = CobolNum.Store(0L,0,_P_WS_STATE);`.
+Single value→`==`; THRU→`>= from && <= to`; multiple→OR; alpha values space-extended to parent width, ALL literal repeated to width. Subscripted cond-name→method `bool COND(long i)=>parent[i-1]==v;` (tables have LANDED — fixed OCCURS→T[]; implement the parameterized-method form, keeping COBOLNET0704 only while it remains unimplemented). SET ACTIVE TO TRUE→`WS_STATE = CobolNum.Store(1L,0,_P_WS_STATE);`. SET DONE TO FALSE→`WS_STATE = CobolNum.Store(0L,0,_P_WS_STATE);`.
 DataItem gains `List<ConditionName> ConditionNames`; `record ConditionName(string CobolName, string CsName, IReadOnlyList<CondValue> TrueValues, CondValue? FalseValue)`; `readonly record struct CondValue(string FromLiteral, string? ThruLiteral, bool IsAll)`.
 
 EVALUATE: hoist subjects → chained if/else-if/else. One WHEN clause's match = OR over its WHEN phrases ( AND over ALSO subjects ( per-subject match ) ). Per-subject: ANY→true; value→`==` (scaled/collating); range v1 THRU v2→`>=v1 && <=v2`; partial-expr (item starts with relop/class/sign)→prepend subject; TRUE/FALSE↔condition subject→`_eK == true/false`; group NOT→negate the group's conjunction. WHEN OTHER→final else.
@@ -141,9 +141,9 @@ USE declaratives: declarative SECTION→paragraph-method returning `enum ResumeA
 
 Chose short-circuit (idiomatic, safer). Verified corpus-safe by scanning tests/nist/programs: ZERO guard-then-same-variable-subscript idioms (the 44 'AND <subscripted>' cases use independent subscripts). Documented as a conscious divergence from the oracle; local escape hatch if a future program needs eager eval: hoist the right operand before &&.
 
-### Abbreviated combined conditions (IF A > B AND < C OR = D) — the subject and/or operator are elided after the first relation; the current emitter silently drops them.
+### Abbreviated combined conditions (IF A > B AND < C OR = D) — the subject and/or operator are elided after the first relation; the LEGACY emitter silently dropped them — the greenfield binder must expand them into full relations.
 
-Expand at emit time: maintain current-subject + current-operator from the most recent full relation; `op operand`→`subject op operand`; bare `operand`→`subject currentOp operand`; reset on each full comparison; leading NOT negates that relation only (it is part of the operator, not the subject). Ships with a dedicated test set; flagged as the single most error-prone condition feature.
+Expand at BIND time into ordinary full BoundRelational nodes (G4: the expansion is semantics, so it lives in the binder — every backend receives the already-expanded tree): maintain current-subject + current-operator from the most recent full relation; `op operand`→`subject op operand`; bare `operand`→`subject currentOp operand`; reset on each full comparison; leading NOT negates that relation only (it is part of the operator, not the subject). Ships with a dedicated test set; flagged as the single most error-prone condition feature.
 
 ### EVALUATE partial expressions (EVALUATE X ALSO Y / WHEN > 5 ALSO "A" THRU "M") — a WHEN object that begins with a relational/class/sign operator must be combined with its subject (ISO §14.9.13.3 GR5/8, §14.9.13.4 GR4a-2).
 
@@ -151,7 +151,7 @@ Binder detects the partial form (leftmost token is a relop/class-name-without-id
 
 ### ON SIZE ERROR leaving the receiver unchanged + multiple receivers + rounding interaction (ISO §14.7.5).
 
-CobolNum.StoreChecked computes the candidate, rounds to scale FIRST, then tests integer-part capacity; writes the field only if no overflow (or no SIZE ERROR phrase present). Each receiver tested independently; non-overflowing receivers updated; the phrase fires if ANY overflowed (OR of per-receiver flags). Division-by-zero and exponentiation-rule violations route to the same size-error path (EC-SIZE-ZERO-DIVIDE / EC-SIZE-EXPONENTIATION).
+CobolNum.TryStore (the single settled name — see the REVISED note in the C# mapping) computes the candidate, rounds to scale FIRST, then tests integer-part capacity; writes the field only if no overflow (or no SIZE ERROR phrase present). Each receiver tested independently; non-overflowing receivers updated; the phrase fires if ANY overflowed (OR of per-receiver flags). Division-by-zero and exponentiation-rule violations route to the same size-error path (EC-SIZE-ZERO-DIVIDE / EC-SIZE-EXPONENTIATION).
 
 ### RESUME control flow (NEXT STATEMENT vs procedure-name vs GLOBAL-declarative≡CONTINUE) requires a declarative to redirect the caller's control after it returns (ISO §14.9.33).
 
@@ -163,7 +163,7 @@ A compile-time TurnState walks the procedure division in source order maintainin
 
 ### Whole-group comparison (IF GROUP-A = GROUP-B, or group vs literal) compares the group as one alphanumeric value, but a group is a record struct in the typed model (no character buffer).
 
-Depends on the deferred G6 whole-group character-image facility. Interim: project record-struct→string and route through CobolString.Compare; flag COBOLNET0708. This is the one IF/EVALUATE operand kind that native field comparison cannot do alone.
+RESOLVED — the whole-group character-image facility LANDED (G6-core): every group record struct emits AsImage()/FromImage() (FieldEmitter), and a character-image group operand routes through .AsImage() into CobolString.Compare (OperandText). COBOLNET0708 is retired. This is the one IF/EVALUATE operand kind that native field comparison cannot do alone.
 
 ### Distinguishing a bare data-name operand in a condition: level-88 condition-name vs boolean PIC 1 vs mnemonic switch vs numeric-implicit-≠0 vs alphanumeric truthiness.
 
@@ -174,7 +174,7 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - NEXT SENTENCE (obsolete) is NOT CONTINUE: it jumps past the next period, so it lowers via a labeled sentence block + goto, unlike a plain if-fall-through (COBOLNET0701).
 - ALPHABETIC is the closed set {A-Z,a-z,space} only (ISO §8.8.4.4) — must NOT use char.IsLetter (rejects accented/Unicode letters); legacy comment line 2436.
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
-- IS NUMERIC on a pure native long/decimal folds to constant true (COBOLNET0706) — but this fold is only valid until REDEFINES/overlay (G6) lets a numeric item alias alphanumeric storage; revisit then so it is not silently wrong.
+- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706) — the REDEFINES/overlay revisit has FIRED (Tier A+B landed): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime CobolClass check (CobolClass.IsNumeric, §8.8.4.4 GR1/GR2).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
 - Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.1.2), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).
@@ -188,9 +188,37 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - AT END/INVALID KEY phrase, when present and the condition exists, suppresses all OTHER applicable exception processing (ISO §11409) — the phrase wins over declaratives.
 - Pointer relations support only = / NOT = (ISO §8.8.4.1.4) → ReferenceEquals / is null on ManagedPointer.
 - EC-I-O-WARNING can only be turned on/off explicitly in a >>TURN or PERFORM WHEN (§5006); EC-ALL does not include it.
-- Whole-group comparison needs the deferred G6 character-image (COBOLNET0708).
+- Whole-group comparison routes through the record struct's AsImage() character image (landed, G6-core) into CobolString.Compare.
 - User-defined exceptions EC-USER-<suffix> are always nonfatal (ISO §24505) and only raisable by RAISE / EXIT…RAISING / GOBACK RAISING.
-- A condition-name may be qualified/subscripted (cond-name OF grp (i)) → emit a parameterized bool method, not a property (COBOLNET0704 until tables land).
+- A condition-name may be qualified/subscripted (cond-name OF grp (i)) → emit a parameterized bool method, not a property (tables have landed; COBOLNET0704 only while the method form remains unimplemented).
+
+## Per-edition gating (G1 — one `cobol.exe`, four ISO editions via `--std`)
+
+Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in
+every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed).
+Tests (NIST etc.) only VERIFY; they never SCOPE. Gating keys off the single `DialectMode` (SSOT §2); the per-construct
+rows live in `docs/VERSION_CHANGE_REFERENCE.md` (VCR) — the 130-row edition-change checklist (2002→2023 deltas ONLY;
+it has NO 85→2002 rows — derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) —
+and become (construct × edition) cases in the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`; Phase 0
+done).
+
+- **COBOL-85 baseline (valid in all four editions):** IF/ELSE/END-IF, EVALUATE, CONTINUE, level-88 + SET cond TO TRUE,
+  class/sign/relation/abbreviated-combined conditions, the ON SIZE ERROR / AT END / INVALID KEY / ON OVERFLOW /
+  ON EXCEPTION phrases, and USE AFTER STANDARD ERROR/EXCEPTION file declaratives.
+- **XOR / EXCLUSIVE-OR (D1/D2): introduced 2023** (VCR rows 32/41 — user-defined words before). At `--std=85|2002|2014`
+  an XOR operator in a condition is a diagnostic, and `XOR`/`EXCLUSIVE-OR` must still be accepted as user-defined words.
+- **The EC model is 2002+:** `>>TURN`, the EC-* exception-names, RAISE, RESUME, EXCEPTION-OBJECT, the EC-name USE
+  declarative form (USE AFTER EXCEPTION CONDITION), and FUNCTION EXCEPTION-STATUS/-FILE/-LOCATION/-STATEMENT. At
+  `--std=85` each gets a not-in-this-edition diagnostic.
+- **2023-only EC additions, diagnosed at 85/2002/2014:** the exception-checking PERFORM (VCR row 79), `>>PROPAGATE`,
+  EC-I-O-WARNING and the EC-MCS-*/EC-FLOW-*/EC-CONTINUE-*/EC-EXTERNAL-* names (VCR rows 40/61), and the optional
+  file-connector argument of EXCEPTION-FILE/-N (VCR rows 68/69).
+- **SET cond-name TO FALSE / WHEN SET TO FALSE (D7): 2002+** — diagnosed at `--std=85`; COBOLNET0705 (missing FALSE
+  phrase) applies only in editions that have the phrase.
+- **CALL … ON OVERFLOW: REMOVED in 2023** (VCR row 3) — accepted at 85/2002/2014, diagnosed at 2023 (ON EXCEPTION is
+  the replacement).
+- **VALIDATE / EC-VALIDATE: obsolete in 2023** (VCR row 125; SSOT §18.17) — flag obsolete.
+- **NEXT SENTENCE:** edition-flagged per the spec's obsolete/archaic classification (see the edge-case note above).
 
 ## ISO citations
 
@@ -214,10 +242,10 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - TURN compiler directive (§4970/§5000-§5024 — default EC-ALL OFF; EC-ALL/level-2 expansion; WITH LOCATION; EC-I-O-WARNING explicit-only); PROPAGATE directive (§4808)
 - §15.28–15.33 — EXCEPTION-FILE/-LOCATION/-STATEMENT/-STATUS intrinsic functions
 
-## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
+## Resolved questions (settled in `COBOLNET_DESIGN.md` §18 — answers recorded inline per the keep-deep-dives-current rule)
 
-- EC default + dialect: ship EC checking OFF by default (NIST-faithful, fast, ISO §5000), enabled only by >>TURN/phrases, with the conformance corpus driving the EC-on paths? (Recommended.)
-- Fatal-EC termination policy: ISO §14.6.13.1.3 lets the implementor continue or terminate an unhandled fatal EC. Recommend terminating the run unit with a diagnostic + nonzero exit (commercial-quality, safest) — confirm this implementor choice.
-- PROPAGATE directive (§4808) and exception-checking PERFORM WHEN (§14.9.28) are post-'85 (M2/M3). Confirm in-scope for full-2023 and that they may land after the declarative/phrase path (the seams — declarative-returns-ResumeAction, runtime ExceptionState — admit them without rework).
-- VALIDATE / EC-VALIDATE is an OBSOLETE feature in 2023 (Table 13 note). Implement minimally for the conformance corpus and mark obsolete, or skip entirely?
+- SETTLED (§18.16): EC checking ships OFF by default (NIST-faithful, fast, ISO §5000), enabled only by >>TURN/phrases; the conformance corpus drives the EC-on paths.
+- SETTLED (§18.16): an unhandled fatal EC terminates the run unit with a diagnostic + a nonzero exit (the ISO §14.6.13.1.3 implementor choice).
+- PROPAGATE (§4808) and the exception-checking PERFORM WHEN (§14.9.28) are COBOL-2023 constructs (VCR row 79) — in scope for full-2023 (G1: diagnosed at --std=85|2002|2014); they land after the declarative/phrase path (the seams — declarative-returns-ResumeAction, runtime ExceptionState — admit them without rework).
+- SETTLED (§18.17): VALIDATE / EC-VALIDATE is implemented minimally for the conformance corpus and flagged obsolete (2023 Table 13; VCR row 125).
 - Program collating sequence for alphanumeric comparisons / HIGH-VALUE/LOW-VALUE remap is designed but deferred until the CobolNet collating subsystem lands; the API seam CobolString.Compare(a,b,weights?) is fixed now — confirm that seam is acceptable so call sites never change.

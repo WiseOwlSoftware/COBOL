@@ -43,6 +43,8 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 
 ## C# mapping
 
+> Dual-backend rule (SSOT §18 #23): ALL semantics in this section live in backend-neutral bound nodes behind `ICodeGenBackend` (`--backend roslyn|cil`); what follows is the RoslynBackend's C# rendering. Bound nodes carry structured forms (pass mode, carrier construction mode, caller PicMeta) — never pre-rendered C#-specific fragments; a future CIL backend renders the same bound semantics with its own private lowering.
+
 PASSING MODES — caller side:
   BY REFERENCE: CALL "INC" USING CTR.  (01 CTR PIC 9(4))  ->  _INC.Run(ManagedRef<long>.OverField(()=>CTR, v=>CTR=v));   // callee mutation visible
   BY CONTENT:   CALL "P" USING BY CONTENT CTR.            ->  _P.Run(ManagedRef<long>.Cell(CTR));                       // copy; not visible
@@ -96,7 +98,7 @@ Uniform ICobolProgram.Call(CobolArgs) where CobolArgs is an ordered list of (Pas
 
 ### GOBACK / EXIT PROGRAM semantics differ between a called program and the main program; today's `throw StopRun` always unwinds the whole run unit.
 
-In a called program, GOBACK/EXIT PROGRAM = normal method return to the caller (GOBACK RETURNING sets the return value); only in the main program (or STOP RUN anywhere) does it terminate the run unit. Refine the StopRun signal so a called program returns rather than unwinding past its caller.
+In a called program, GOBACK/EXIT PROGRAM = normal method return to the caller (GOBACK RETURNING sets the return value); only in the main program (or STOP RUN anywhere) does it terminate the run unit. Mechanism (settled, SSOT §9.4 + §18 #10): a called program's GOBACK/EXIT PROGRAM raises `ProgramReturn`, caught at that program's `Entry` (carrying the RETURNING value back to the caller); main-program GOBACK / STOP RUN terminates the run unit with the status as the process exit code. The greenfield `StopRun` signal (`src/Cobol.Net.Runtime/Control/StopRun.cs`) remains only the run-unit-termination half — `ProgramReturn` is a distinct called-program-return signal, not a refinement of `StopRun`.
 
 ### CANCEL must reset a program to initial state on next CALL, close its open files, cascade to contained programs, and be a no-op for never-called/already-canceled or active programs.
 
@@ -115,7 +117,7 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 - RETURNING a group item → compile-time error (must be elementary, BY VALUE semantics).
 - RETURNING with no caller target → value discarded.
 - CALL to a NULL program-pointer → EC-PROGRAM-PTR-NULL; unresolvable name → EC-PROGRAM-NOT-FOUND; both route to ON EXCEPTION if present.
-- ON EXCEPTION and ON OVERFLOW are synonyms in the grammar; NOT ON EXCEPTION runs only on a successful, non-EC-propagating return (§14.9.4.4 GR3i).
+- ON EXCEPTION / ON OVERFLOW are edition-gated, not unconditional grammar synonyms: `--std 85` has ON OVERFLOW only (ON EXCEPTION is 2002+); `--std 2023` rejects ON OVERFLOW (removed, `VERSION_CHANGE_REFERENCE.md` row 3 / E.2 item 1c); at 2002/2014 both are accepted and equivalent. NOT ON EXCEPTION runs only on a successful, non-EC-propagating return (§14.9.4.4 GR3i).
 - Variable-occurrence (OCCURS DEPENDING ON) BY CONTENT arg: copy the maximum size; callee honors the DEPENDING-ON value (§14.2.3 GR9).
 - BASED item with no associated pointer (unallocated / after FREE): reference is undefined → IsNull guard; double FREE / use-after-free guarded.
 - EXTERNAL items survive CANCEL (§14.9.5 GR8) and are shared across all programs describing the same external name (§8.6.7).
@@ -125,6 +127,15 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 - ADDRESS OF as a sending operand passed BY REFERENCE across a CALL (address-identifier, §14.9.4 SR3-4) passes the carrier itself.
 - ANY LENGTH formal parameter (excluded from BY REFERENCE Format-1 outermost; relevant for functions/methods) — defer to UDF/method slices but reserve carrier metadata to carry length.
 - SET ADDRESS OF on a LINKAGE item re-points the callee's formal mid-execution — the carrier field is reassigned; subsequent refs read the new target.
+
+## Edition gating (G1 — four per-`--std` compilers in one executable)
+
+Interprogram constructs vary heavily by edition. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. At each `DialectLevel` (85/2002/2014/2023) the lacks-it diagnostic is a targeted `COBOLNET-` diagnostic — never a generic parse error. Every row gets (construct × edition) coverage per `docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition) matrix; Phase 0 done); verify rows against `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so derive 85↔2002 gating from the 2002 standard) and the per-edition spec text.
+
+- **All editions (85+):** CALL USING BY REFERENCE / BY CONTENT, CALL … ON OVERFLOW (removed at 2023 — below), CANCEL, nested/contained programs, COMMON / INITIAL, GLOBAL / EXTERNAL, EXIT PROGRAM.
+- **2002+ (under `--std 85` reject with an "introduced in COBOL-2002" diagnostic):** CALL … BY VALUE; RETURNING (CALL and the procedure-division header); CALL … ON EXCEPTION / NOT ON EXCEPTION; OMITTED arguments + the omitted-argument condition; PROGRAM-ID … RECURSIVE; LOCAL-STORAGE; GOBACK; USAGE POINTER / ADDRESS OF / SET ADDRESS OF; BASED / ALLOCATE / FREE; ANY LENGTH; and the whole EC-PROGRAM-* exception machinery (at `--std 85` CALL failures surface only via ON OVERFLOW / abnormal termination — no EC names, no `>>TURN`).
+- **2014+:** `>>TURN` of EC-PROGRAM exceptions in a calling element is FLAG-02-flagged (`VERSION_CHANGE_REFERENCE.md` row 97).
+- **2023:** CALL … ON OVERFLOW is REMOVED (row 3, E.2 item 1c) — reject at 2023, accept at 85/2002/2014; EXIT PROGRAM is archaic (rows 89/126) — flag at 2023; GOBACK gains the STOP-style status phrase (row 75) — 2023-only; EXTERNAL-item conformance exception checking is added (row 15).
 
 ## ISO citations
 
@@ -136,13 +147,13 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 - §14.9.5 CANCEL statement (GR3 initial state on next CALL, GR4 cascade to contained, GR5 EC-PROGRAM-CANCEL-ACTIVE, GR7 no-op never-called/canceled, GR8 EXTERNAL not reset, GR9 implicit CLOSE)
 - §14.9.3 ALLOCATE statement / §14.9.15 FREE statement (managed dynamic storage; INITIALIZED)
 - §14.9.39 SET statement — pointer/address forms (SET p TO ADDRESS OF x; SET ADDRESS OF based-item TO p)
-- §14.9.14 ENTRY statement (alternate entry points, shared WORKING-STORAGE)
-- §13.18.5 BASED clause; §8.4.3 ADDRESS OF identifier; pointer-data-item reference restrictions (§ around 22728-22730)
+- §14.9.14 EXIT statement (the EXIT PROGRAM format — archaic in 2023, Annex F.1 item 1). NOTE: ISO 1989 defines NO ENTRY statement — alternate entry points are a vendor extension outside `--std` conformance; if ever supported, gate as an extension.
+- §13.18.5 BASED clause; §8.4.3 ADDRESS OF identifier; §13.18.60.3 USAGE clause SR8–SR9 (program-pointer / data-pointer reference restrictions)
 - §8.4.6 / §8.4.6.3 Scope of names / Scope of program-names (nested + COMMON visibility, program-name resolution)
 
-## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
+## Open questions — SETTLED in `COBOLNET_DESIGN.md` §18 (answers recorded below; only cross-assembly discovery remains open)
 
-- Program model: compile the whole run unit to ONE assembly (typed fast path available everywhere, nested = nested classes) vs support separately-compiled `<name>.dll` programs (uniform opaque ABI mandatory across assemblies, typed fast path unavailable). This decides how much of the convention can be fully typed.
-- The one carrier name + representation: confirm the typed-native carrier may be `ManagedRef<T>` (NOT the legacy byte[]+offset+length `ManagedPointer`) — the `feedback_managed_pointers` memory text still describes the byte form, which was the abandoned byte-substrate era (DEVLOG 457). Keep the public name `ManagedPointer` (owner's choice) over the typed carrier, or rename?
+- Program model — **SETTLED (§18 #8):** ONE `.g.cs` + ONE assembly per compilation; multiple/contained programs → nested classes with same-assembly direct CALL (the typed fast path everywhere). A per-unit/by-name separately-compiled `.dll` option is a later need and, when used, crosses the uniform opaque ABI (typed fast path unavailable across assemblies).
+- Carrier name + representation — **SETTLED (§18 #12):** the carrier is the typed `ManagedRef<T>` (NOT the abandoned `byte[]`+offset+length form); the public name **`ManagedPointer`** is kept over the typed carrier (owner preference). The `feedback_managed_pointers` memory has been updated to the typed form.
 - Cross-assembly dynamic CALL discovery: retain reflective auto-discovery (general profile, like legacy CobolProgramRegistry.DiscoverProgram) vs a prebuilt static registry only (AOT/WASM/trimming-safe profile). Affects deployment + trimming.
-- Category-mismatch BY REFERENCE byte boundary: acceptable to materialize a transient byte image for this narrow case, or should category mismatch be a hard compile error (stricter than ISO, but keeps 100% typed)?
+- Category-mismatch BY REFERENCE byte boundary — **SETTLED (§18 #1; SSOT §9.4):** the transient, never-persisted byte image IS the one sanctioned boundary for this narrow case (category mismatch is legal COBOL exercised by NIST — not a compile error); same-category stays 100% typed.

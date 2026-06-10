@@ -13,7 +13,7 @@ CENTRAL REPRESENTATION DECISION: alphanumeric/national elementary items are `str
 
 The legacy algorithms are PROVEN against 364 NIST tests (the comparison-cycle, region computation, ALL-skip, overflow conditions, GR4d signed-numeric de-signing). I am MINING them verbatim, changing only the I/O type from `(byte[],offset,len)` to `string`/`char[]`. Counters/pointers/COUNT route through the numeric subsystem (`CobolNum.Store` + `NumProfile`), not a parallel int path. Overlap (spec-undefined) becomes deterministic-and-safe via read-once / single-write-back.
 
-THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1) non-alphanumeric/group operands (INSPECT GR4b/4c, ref-mod GR2/3, STRING/UNSTRING) must be "treated as if redefined alphanumeric/national of the same size" — free for an elementary `string`, but a `record struct` group or `long` numeric must be materialized to its alphanumeric image, operated on, then DECOMPOSED back into typed sub-fields (the whole-group-alphanumeric boundary deferred to G6); (2) the lvalue gap — `CSharpEmitter.Resolve` today handles only simple unqualified/unsubscripted names, but string-op targets are subscripted/qualified/ref-mod-sliced, needing a typed string-lvalue abstraction (read-expr + write-back form); (3) STRING only changes written positions (GR7) so the working buffer must start from the dest's current value.
+THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1) non-alphanumeric/group operands (INSPECT GR4b/4c, ref-mod GR2/3, STRING/UNSTRING) must be "treated as if redefined alphanumeric/national of the same size" — free for an elementary `string`, but a `record struct` group or `long` numeric must be materialized to its alphanumeric image, operated on, then DECOMPOSED back into typed sub-fields (the whole-group-alphanumeric boundary deferred to G6); (2) the lvalue gap — string-op targets are subscripted/qualified/ref-mod-sliced; they resolve through the ONE universal `Place` lvalue built by `ReferenceResolver` (`MemberPlace`/`RefModPlace`, SSOT §14.1 — implemented, G2 ✅), never a per-verb string-lvalue (see D7); (3) STRING only changes written positions (GR7) so the working buffer must start from the dest's current value.
 
 ## Decisions
 
@@ -23,7 +23,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 
 **Rejected alternatives.** (a) Span<char>/mutable view over the field for in-place writes — IMPOSSIBLE: System.String is immutable, so a writable view requires fields to be char[] at rest, contradicting string-at-rest and forcing a second representation (violates the singular-pattern rule). (b) Keep a byte[] scratch and call legacy helpers — reintroduces the byte substrate the rewrite exists to remove.
 
-### D2. Reference modification: 1-based RefMod read helper + RefModStore splice write; bounds raise EC-BOUND-REF-MOD.
+### D2. Reference modification: 1-based `CobolString.RefMod` read helper + `CobolString.SpliceInto` splice write; bounds raise EC-BOUND-REF-MOD.
 
 **Rationale.** ISO §8.4.3.3.4 GR4 defines leftmost = ordinal position 1; GR5b/5c require positive integers with leftmost+length-1<=size, else EC-BOUND-REF-MOD (and §7.3.23.3 GR1: zero length raises it unless REF-MOD-ZERO-LENGTH on). Splice `dst[..(p-1)] + slice + dst[(p-1+len)..]` is the exact value-semantics write; slice is pre-sized by CobolString.Store so editing is not re-applied (spec NOTE line 21209).
 
@@ -61,7 +61,7 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 > UNSTRING / file READ-INTO / CALL-by-reference. INSPECT/STRING/UNSTRING emit `field.Write(CobolStrings.…(field.Read(),
 > …))` over a `Place`. Introducing a second per-verb lvalue would violate `feedback_singular_pattern`.
 
-**Rationale.** CSharpEmitter.Resolve today handles only simple unqualified/unsubscripted names, but string-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)). The single `Place` (a `MemberPlace`/`RefModPlace`) gives each a read C# expression and a write-back form. Centralizing this in the one resolver is required before any string-op write emits correctly.
+**Rationale.** (Historical: at design time `CSharpEmitter.Resolve` handled only simple unqualified/unsubscripted names.) String-op targets are subscripted elements (FLD(I)), qualified names (X OF Y), and ref-mod slices (FLD(3:5)) — all now resolved by `ReferenceResolver` into the universal `Place` (`MemberPlace`/`RefModPlace`, implemented in `src/Cobol.Net.Compiler/Binding/Place.cs`). The single `Place` (a `MemberPlace`/`RefModPlace`) gives each a read C# expression and a write-back form. Centralizing this in the one resolver is required before any string-op write emits correctly.
 
 **Rejected alternatives.** Per-statement ad-hoc string building (would duplicate the splice/subscript logic across INSPECT/STRING/UNSTRING/MOVE — rejected per refactor-first/scan-all-similar).
 
@@ -72,6 +72,16 @@ THREE THINGS A NAIVE "it's all strings" DESIGN GETS WRONG, all handled here: (1)
 **Rejected alternatives.** One helper call per operand — would break the shared-cycle eligibility (LEADING/FIRST/region interactions); rejected, it produces wrong NIST results.
 
 ## C# mapping
+
+> **Backend note (G4, SSOT §18 #23).** Everything below is the **RoslynBackend rendering**. Codegen sits behind
+> `ICodeGenBackend` over ONE backend-neutral bound tree (`--backend roslyn|cil`); the RoslynBackend (C# source) is
+> primary/v1; a Cecil/CIL backend is future-additive with its OWN private structure→branch lowering — NO shared
+> lowered IR. ALL semantics live in the binder/bound tree; emitters only RENDER; bound nodes carry no pre-rendered
+> C#-specific fragments where a structured form is feasible: the bound tree carries STRUCTURED operands (operand
+> kinds, patterns, BEFORE/AFTER regions, send/target lists — never pre-rendered C# fragments), and every backend
+> renders the same statement-level calls into the shared `Cobol.Net.Runtime` entry points
+> (`CobolStrings`/`CobolString`/`CobolNum`); a future CilBackend does its own private lowering to the identical
+> runtime methods.
 
 RUNTIME CLASS: `public static class CobolNet.Runtime.CobolStrings` (ported from legacy `InspectRuntime` + `StorageArea` STRING/UNSTRING). All algorithms operate on `string`/`char[]`; no byte arrays.
 
@@ -84,7 +94,8 @@ WRITE (the lvalue): `FIELD[a:b] = expr` becomes splice + a single MOVE-into-slic
   `FIELD = CobolString.SpliceInto(FIELD, 3, 5, CobolString.Store(<X-image>, 5));`
   where `CobolString.SpliceInto(string dst, int leftmost, int length, string newSlice)` returns `dst[..(leftmost-1)] + newSlice + dst[(leftmost-1+length)..]` (newSlice already exactly `length` chars via CobolString.Store — left-justified space-pad/truncate, the receiving-into-a-slice MOVE). Editing is NOT re-applied (spec NOTE at line 21209: ref-mod of an edited item as whole-of-itself prevents editing).
   > **Runtime-roster note (REVISED 2026-06-08, SSOT §14.8):** ref-mod read/write live on **`CobolString`** (the
-  > single-string class) as **`RefMod`** and **`SpliceInto`** — NOT on `CobolStrings` and NOT named `RefModStore`.
+  > single-string class) as **`RefMod`** and **`SpliceInto`** — NOT on `CobolStrings` and NOT under a separate
+> `…Store` splice-helper name.
   > `CobolStrings` is reserved for the MULTI-operand verbs (`InspectTally`/`InspectReplace`/`StringInto`/
   > `UnstringExtract`). (`CobolString.RefMod`/`SpliceInto` are implemented today, DEVLOG 487.)
 Length-omitted write target: length = `dst.Length - (leftmost-1)`.
@@ -105,7 +116,7 @@ COBOL `INSPECT WS-T REPLACING ALL "A" BY "B"` → `WS_T = CobolStrings.InspectRe
 kinds map: Tally{All=0,Leading=1,Characters=2}; Replace{All=0,First=1,Leading=2,Characters=3} (preserve legacy ordinals). FIRST/TRAILING in TALLYING fold to All (legacy behavior). The single comparison cycle over ordered operands is preserved exactly (ISO §14.9.22.4 GR8) — this is why "ALL A" before "LEADING AH" leaves LEADING=0.
 
 === STRING ===
-One helper call per statement (sendings marshalled into parallel arrays); pointer is `ref long` (or via NumProfile round-trip at the call site):
+One helper call per statement (sendings marshalled into parallel arrays); pointer is `ref int` (read via `CobolNum.AsLong` into an `int` local at statement start, written back via `CobolNum.Store` at statement end):
   `string StringInto(string dest, ref int pointer, out bool overflow, StringSend[] sends)` where
   `readonly record struct StringSend(string Value, string? Delimiter, bool BySize)` — Value already the sending operand's display image; Delimiter null = DELIMITED BY SIZE-equivalent (whole value).
 EMIT (`STRING A DELIMITED BY " " B DELIMITED BY SIZE INTO R WITH POINTER P ON OVERFLOW ... END-STRING`):
@@ -131,21 +142,21 @@ PREFERRED EMIT (mirrors proven legacy per-INTO loop): one `UnstringExtract` call
 For a numeric/edited/group target/source, the emitter wraps with materialize↔writeback:
   read:  `string img = <typed>.AsAlphanumericImage();`  (numeric long → unsigned digit string GR4d; group record struct → field-concatenation image)
   op on `img`
-  writeback: `<typed> = TypedFromAlphanumericImage(img);` (numeric: re-parse digits keep sign; group: re-slice the image back into each sub-field by its width). Helper signatures named now: `string GroupImage(in TGroup g)` + `TGroup GroupFromImage(string s)` generated per group struct (the G6 work).
+  writeback: `<typed> = TypedFromAlphanumericImage(img);` (numeric: re-parse digits keep sign; group: re-slice the image back into each sub-field by its width). Helper signatures — **implemented (G6-core ✅)** as per-group instance methods generated on each record struct: `public readonly string AsImage()` (concatenates the leaves' character images) + `public void FromImage(string)` (distributes a character image back into the leaves) — see `FieldEmitter` in `src/Cobol.Net.Compiler/CodeGen/Emit/`.
 
 ## Hard problems
 
 ### Non-alphanumeric / group operands: INSPECT GR4b/4c, ref-mod GR2/3, and STRING/UNSTRING all say a numeric/edited/group operand is 'treated as if redefined alphanumeric (or national) of the same size'. For a `record struct` group or a `long` numeric this needs materialize-to-image → operate → decompose-back-to-typed-fields — the whole-group-alphanumeric boundary deferred to G6.
 
-Two paths. NATIVE-STRING path (in scope now): elementary alphanumeric/national `string` — direct. MATERIALIZE/WRITEBACK path (signatures designed now, impl rides G6): `GroupImage(in TGroup)` concatenates each leaf's image left-to-right by declared width; `GroupFromImage(string)` re-slices the result back into each leaf by width and re-stores (numeric leaves re-parse digits keeping scale/sign). Numeric elementary: `n.AsAlphanumericImage()` = unsigned zero-padded digit string (GR4d de-signing, sign retained on completion for identifier-1); writeback re-parses. The emitter selects the path by the bound item's PicCategory/IsGroup. This is the single case that breaks a 'it's all strings' design; it is scoped explicitly, not silent.
+Two paths. NATIVE-STRING path (in scope now): elementary alphanumeric/national `string` — direct. MATERIALIZE/WRITEBACK path (**implemented, G6-core ✅**): the generated group-struct method `AsImage()` concatenates each leaf's image left-to-right by declared width; `FromImage(string)` re-slices the result back into each leaf by width and re-stores (numeric leaves re-parse digits keeping scale/sign). Numeric elementary: `n.AsAlphanumericImage()` = unsigned zero-padded digit string (GR4d de-signing, sign retained on completion for identifier-1); writeback re-parses. The emitter selects the path by the bound item's PicCategory/IsGroup. This is the single case that breaks a 'it's all strings' design; it is scoped explicitly, not silent.
 
-### BACKWARD inspection (ISO §14.9.22, COBOL-2002): right-to-left scan with BEFORE/AFTER evaluated in scan direction; matching still left-anchored at each position.
+### BACKWARD inspection (ISO §14.9.22, NEW IN COBOL-2023 — VERSION_CHANGE_REFERENCE.md #77 / E.3.3 item 34): right-to-left scan with BEFORE/AFTER evaluated in scan direction; matching still left-anchored at each position. At `--std` 85/2002/2014 the BACKWARD phrase is rejected with a not-yet-introduced diagnostic (G1).
 
 Port the legacy reverse-wrapper verbatim: reverse the target string AND each multi-char pattern/delimiter/before/after, run the existing forward passes, then reverse the result buffer back for REPLACING/CONVERTING (TALLYING needs no un-reverse — per-operand counts are direction-independent). FROM/TO sets for CONVERTING are positional maps, NOT reversed. This exactly reproduces the spec NOTE example (INSPECT BACKWARD "A12C21D12EF" TALLYING CHARACTERS BEFORE "12" = 2).
 
 ### The lvalue/subscript/ref-mod grammar shape: `FIELD(3:5)` and `TBL(I)` parse identically as `cobolWord subscriptPart` where subscriptPart is a flat `subToken+` sequence in lexer SUBSCRIPT mode; the binder distinguishes ref-mod by the presence of SUB_COLON (CobolParserCore.g4 lines 362-403).
 
-The new emitter must replicate the legacy binder's discrimination: scan the subToken sequence; if it contains SUB_COLON → ref-mod (split into leftmost arithmetic-expr : length arithmetic-expr); else → subscript list. Build the StringLvalue's read expression and write-back template accordingly. refModPart (default-mode `arithmeticExpression COLON arithmeticExpression?`) is the alternative shape when not after an identifier. Both feed RefMod/RefModStore.
+The BINDER (`ReferenceResolver`) must replicate the legacy discrimination: scan the subToken sequence; if it contains SUB_COLON → ref-mod (split into leftmost arithmetic-expr : length arithmetic-expr, producing a `RefModPlace` wrapping the inner `Place`); else → subscript list (a subscripted `MemberPlace`). Each backend then only RENDERS the resulting `Place`'s read/write forms (RoslynBackend → `CobolString.RefMod`/`SpliceInto`; a future CilBackend renders its own) — semantics stay in the binder per the dual-backend discipline (SSOT §18 #23). refModPart (default-mode `arithmeticExpression COLON arithmeticExpression?`) is the alternative shape when not after an identifier. Both feed `CobolString.RefMod`/`CobolString.SpliceInto`.
 
 ### STRING WITH POINTER and UNSTRING WITH POINTER/TALLYING write the pointer/tally back, but those are numeric items at arbitrary scale; STRING GR7 requires only written dest positions change.
 
@@ -173,6 +184,16 @@ Port legacy UnstringExtract exactly: earliest-matching delimiter across OR-set w
 - Figurative constant as STRING/UNSTRING delimiter or INSPECT pattern: one-char item of the receiver's usage (display U+00xx / national) — SPACE=' ', ZERO='0', HIGH-VALUE=U+00FF, LOW-VALUE=U+0000, QUOTE='"'.
 - DELIMITED BY SIZE / delimiter null: whole sending value transferred (§14.9.43.4 GR1).
 
+## Per-edition gating (G1: four compilers in one)
+
+String ops span editions. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Rows cite `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so 85↔2002 gating derives from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog); matrix cases per `docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition) matrix; Phase 0 done):
+
+- **INSPECT … BACKWARD — introduced in COBOL-2023** (VCR #77, E.3.3 item 34). At `--std` 85/2002/2014: reject with a "not introduced until COBOL-2023" diagnostic; the matrix gets a negative case per pre-2023 edition.
+- **REF-MOD-ZERO-LENGTH directive + zero-length ref-mod — COBOL-2023** (VCR #11/#30/#109). At `--std 2023`: zero-length ref-mod is legal only with the directive ON, else EC-BOUND-REF-MOD (plus FLAG-14 flagging per §7.3.15.4 GR4 i)). At earlier `--std`: the directive itself is diagnosed as not-yet-introduced, and a zero-length ref-mod result is undefined by those editions — we keep the conformant throw in all editions (deterministic; "undefined" permits it).
+- **National (PIC N, N"…" literals, national string-op operands) — a 2002 introduction** (derive gating from the 2002 standard; no VCR row). At `--std 85`: reject with a not-yet-introduced diagnostic.
+- **Reference modification and INSPECT CONVERTING** predate 2002 and are in the project's COBOL-85 baseline (NIST CCVS-85 exercises both); no gate.
+- All other behavior here (comparison cycle, overflow conditions, MOVE/JUSTIFIED, dest-seeding) is edition-invariant unless a VCR row says otherwise; any divergence is gated by DialectLevel in the BINDER, never in a backend.
+
 ## ISO citations
 
 - ISO/IEC 1989:2023 §8.4.3.3.4 (reference-modification general rules: 1-based leftmost ordinal, EC-BOUND-REF-MOD on out-of-range/zero/non-integer, length-omitted to rightmost, UTF-16 surrogate-as-position NOTE) — spec lines 7071-7091
@@ -187,9 +208,9 @@ Port legacy UnstringExtract exactly: earliest-matching delimiter across OR-set w
 - ISO/IEC 1989:2023 §14.6.10 Overlapping operands (results undefined when operands overlap) — referenced by INSPECT GR13/18/21, STRING GR10, UNSTRING GR18; spec note line 24376
 - ISO/IEC 1989:2023 NOTE at line 21209 (ref-mod of an edited receiving item as the whole of itself prevents editing rules being reapplied)
 
-## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
+## Open questions (#1 resolved in `COBOLNET_DESIGN.md` §18; #2–#4 still open — record resolutions in the SSOT §18)
 
 - National HIGH-VALUE/LOW-VALUE code points — **RESOLVED (SSOT §18 #14, 2026-06-08):** national `HIGH-VALUE` = **U+FFFF**, national `LOW-VALUE` = **U+0000**; alphanumeric stays U+00FF/U+0000 (Latin-1 codec). Full custom-`ALPHABET` collating is deferred behind the fixed `CobolString.Compare(a, b, weights?)` seam.
 - Out-of-range / zero / non-integer reference modification: throw (raise EC-BOUND-REF-MOD → CobolRuntimeException) vs clamp. Recommend THROW as default (conformant; results otherwise undefined). Should a lenient dialect that clamps be offered (the legacy compiler had dialect-gated leniencies)? Owner-gated.
 - Exception-condition surfacing in v1: the spec ties STRING/UNSTRING/INSPECT/ref-mod to EC-OVERFLOW-*, EC-RANGE-INSPECT-SIZE, EC-BOUND-REF-MOD as checkable conditions. v1 wires ON OVERFLOW directly and throws for fatal ref-mod; full EC handling (>>TURN, USE AFTER EXCEPTION CONDITION, EC- status registers) is the broader exception subsystem (M2 EC/exceptions). Confirm string-ops only needs ON OVERFLOW + ref-mod-throw now, deferring EC-register integration.
-- REF-MOD-ZERO-LENGTH directive plumbing: it is a compile-time directive affecting whether zero-length ref-mod is legal. Is it threaded into the binder now (so RefMod emits the zero-allowed branch) or deferred? Recommend recognizing the directive in G7; default OFF (throw on zero) until then.
+- REF-MOD-ZERO-LENGTH directive plumbing: it is a compile-time directive affecting whether zero-length ref-mod is legal. Is it threaded into the binder now (so RefMod emits the zero-allowed branch) or deferred? Recommend recognizing the directive in G7 as part of the version framework: REF-MOD-ZERO-LENGTH is a COBOL-2023 directive (`VERSION_CHANGE_REFERENCE.md` #11/#30/#109) — at `--std 2023` it gates zero-length ref-mod (OFF ⇒ EC-BOUND-REF-MOD, plus FLAG-14 flagging per §7.3.15.4 GR4 i)); at `--std` 85/2002/2014 the directive itself is diagnosed as not-yet-introduced and zero-length ref-mod keeps the conformant throw (undefined in those editions). Default OFF (throw on zero) until then.

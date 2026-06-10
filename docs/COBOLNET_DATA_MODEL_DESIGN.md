@@ -10,7 +10,7 @@
 DECISION-COMPLETE DESIGN: COBOL DATA DIVISION → typed-native C#, for COBOL.NET.
 
 == 0. THE CENTRAL IDEA: every reference is a Place ==
-The whole subsystem is organized around ONE abstraction — a `Place` — that names a typed C# location and serves MOVE, arithmetic, file I/O, and CALL-by-reference identically. This replaces the legacy `(byte[],offset,length)` IrLocation. A Place has two emission methods used by every consumer:
+The whole subsystem is organized around ONE abstraction — a `Place` — that names a typed C# location and serves MOVE, arithmetic, file I/O, and CALL-by-reference identically. This replaces the legacy `(byte[],offset,length)` IrLocation. A Place has two emission methods used by every consumer (the RoslynBackend's rendering of the Place's backend-neutral structured resolution — see the §11 backend note / SSOT §18 #23):
   • `string ReadExpr()`   — a C# rvalue expression of the item's CLR type (e.g. `WsRec.Count`, `Tbl[i-1]`, `Name.Substring(s-1, l)`).
   • `string WriteStmt(string rhs)` — a C# statement that stores `rhs` into the place (e.g. `WsRec.Count = …;`, `Tbl[i-1] = …;`, a runtime ref-mod splice call).
 Because both `record struct` members and array elements are addressable lvalues in C#, a Place composes by string concatenation of a *member access path*. The Place is built by ONE resolver, `ReferenceResolver.Resolve(DataReferenceContext) → Place`, that consumes the parse tree's base-word + flat suffix list once and is the single entry point for every operand.
@@ -34,10 +34,10 @@ The grammar (CobolParserCore.g4 §336-403) gives `dataReference: cobolWord dataR
   Phase B (semantic resolve): resolve the base name + qualifiers to a DataItem via right-to-left narrowing, build the member-access Place, attach subscripts to the OCCURS levels (outer→inner), then wrap in a ref-mod Place if present.
 
 == 3. QUALIFIED RESOLUTION (X OF Y OF Z), ISO §8.4.2.2 ==
-Algorithm (port legacy ResolveQualifiedName): resolve the rightmost qualifier Z as a 01/standalone, then FindChild(Z,Y), then FindChild(ctxY, X) — successively LESS inclusive. FindChild searches the group subtree (recursive). A bare unqualified name resolves by: unique-in-program → that item; else require qualification (diagnose CBL-ambiguous if >1 candidate and no qualifier — ISO §8.4.2.2 rule: uniqueness must be established). The DataBinder.ByName index must become a MULTIMAP (List<DataItem> per name) because COBOL permits duplicate names disambiguated only by qualification — the current single-value Dictionary is a latent bug. The Place records the full member path (Z.Y.X chain) so emission is `Z.Y.X`.
+Algorithm (port legacy ResolveQualifiedName): resolve the rightmost qualifier Z as a 01/standalone, then FindChild(Z,Y), then FindChild(ctxY, X) — successively LESS inclusive. FindChild searches the group subtree (recursive). A bare unqualified name resolves by: unique-in-program → that item; else require qualification (diagnose CBL-ambiguous if >1 candidate and no qualifier — ISO §8.4.2.2 rule: uniqueness must be established). The DataBinder.ByName index is a MULTIMAP (`Dictionary<string, List<DataItem>>` — IMPLEMENTED, `src/Cobol.Net.Compiler/Binding/DataBinder.cs`) because COBOL permits duplicate names disambiguated only by qualification. The Place records the full member path (Z.Y.X chain) so emission is `Z.Y.X`.
 
 == 4. SUBSCRIPTING / INDEXING, ISO §8.4.2.3 ==
-OCCURS dimensions are collected by walking item→ancestors (legacy LocationResolver does exactly this). COBOL subscripts are 1-BASED and listed OUTER→INNER (`T(outer, inner)`); C# arrays are 0-based — so each subscript emits as `[expr - 1]`. Multi-dim 1-3 (COBOL-85 cap; 2002 raises to 7 — store dims as a list, no fixed cap). Each dimension is a SEPARATE C# array index because a 2-D OCCURS is an array-of-structs-containing-array (`Rows[i-1].Cols[j-1]`), NOT a flattened 1-D — this is the natural .NET shape and removes all the legacy multiplier/stepSize offset arithmetic.
+OCCURS dimensions are collected by walking item→ancestors (legacy LocationResolver does exactly this). COBOL subscripts are 1-BASED and listed OUTER→INNER (`T(outer, inner)`); C# arrays are 0-based — so each subscript emits as `[expr - 1]`. Multi-dim: COBOL-85 caps a table at 7 dimensions (the 3-dim cap was ANSI-74, out of scope); 2002+ removes the fixed cap — store dims as a list, no fixed cap; >7 dims at `--std 85` ⇒ diagnostic (G1, per-edition gating section). Each dimension is a SEPARATE C# array index because a 2-D OCCURS is an array-of-structs-containing-array (`Rows[i-1].Cols[j-1]`), NOT a flattened 1-D — this is the natural .NET shape and removes all the legacy multiplier/stepSize offset arithmetic.
   • Subscript forms: integer literal, data-name, index-name, and relative `index ± literal` (ISO §8.4.2.3) → `idx ± lit - 1`.
   • INDEX-NAMEs (INDEXED BY): an index-name is a DISTINCT entity, NOT a data item (ISO §8.4.2.3 / §13.18.40). DECISION: an index-name → a C# `long` field holding a 1-BASED OCCURRENCE NUMBER (not a byte displacement; the legacy byte-displacement model is rejected as it leaks layout). SET idx TO n → `idx = n`; SET idx UP/DOWN BY k → `idx ±= k`; using idx as a subscript → `[idx - 1]`. (Rationale: occurrence-number semantics are layout-free and make SEARCH/SEARCH ALL emit as plain integer loops; the only observable difference — idx surviving a redefine of the table element width — is implementor-defined and not in the conformance corpus.) Index-name lives in the same static/instance scope as its table.
 
@@ -45,13 +45,13 @@ OCCURS dimensions are collected by walking item→ancestors (legacy LocationReso
 A typed substring over the item's CHARACTER image. DECISION: ref-mod always operates on the STRING image of the item (ISO §8.4.2.4 rule 2: a non-alphanumeric DISPLAY item is treated as if redefined alphanumeric of the same size; rule 3: NATIONAL likewise). So:
   • Read: `CobolString.RefMod(<charImage>, s, l)` → `charImage.Substring(s-1, lengthOrRest)`; l omitted → to end (ISO §8.4.2.4: default length = remaining). `<charImage>` is the item's display image (string field directly; a numeric item via `CobolNum.FormatDisplay` first — but a numeric ref-mod is rare and the spec says treat-as-alphanumeric-redefinition, so we render the raw digit/zoned image).
   • Write (ref-mod as a RECEIVER, the genuinely hard case): cannot reassign a substring in place on an immutable C# string. Runtime helper `CobolString.SpliceInto(ref string field, int start1, int len, string value)` rebuilds the string: `field = field[..(s-1)] + value-fitted-to-len + field[(s-1+len)..]`. The Place's WriteStmt for a ref-mod emits this. For ref-mod over a numeric/COMP item used as a receiver, route through the byte-image fallback (G6, deferred) — flag loud meanwhile. s and l are arbitrary arithmetic expressions (evaluated once into temps to avoid double-eval; ISO requires single evaluation of subscripts/positions).
-  • ZERO-LENGTH ref-mod (l=0) is conditionally-flagged per spec line 4523 (REF-MOD-ZERO-LENGTH) — allowed, yields "".
+  • ZERO-LENGTH ref-mod (l=0) is EDITION-VARYING (`VERSION_CHANGE_REFERENCE.md` #30): pre-2023 the result is undefined; at `--std 2023` it is allowed (yields "") ONLY when the REF-MOD-ZERO-LENGTH directive (§7.3.23) is in effect — otherwise EC-BOUND-REF-MOD is raised; FLAG-14 flags the ambiguous case (spec line 4523). Gate the emit by edition + directive state.
 
 == 6. NATIVE NUMERIC MODEL (owner-locked, reaffirm) ==
 Fixed-point = native `long` holding the UNSCALED value; scale is compile-time metadata on PicInfo (already implemented). 19-38 digit pictures → `Int128` (PicInfo gains a `WidePrecision` flag selecting Int128 vs long for ClrType + the runtime overloads; CobolNum must gain Int128 overloads — currently long-only). COMP-1/2 → float/double; COMP-5 → native int by width with binary wrap (PicInfo.StorageWidth already computes the byte width; runtime needs the wrap path, deferred). decimal/BigInteger essentially unused. This is settled (DEVLOG 462); the data-model design only needs to thread `WidePrecision` into ClrType, DefaultInitializer, ProfileInitializer, and the NumX scale-tracking expression type so wide items pick Int128 literals (`123` not `123L`).
 
 == 7. LEVELS 66 (RENAMES) and 88 (condition-names) ==
-  • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.34). The binder must capture 88 entries (currently SKIPPED in DataBinder.BindEntry) and their VALUE list incl. THRU ranges + multiple literals.
+  • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.34). The binder captures 88 entries as `Condition88` records on their conditional variable (IMPLEMENTED — `DataBinder.Conditions` multimap); ensure the captured VALUE list covers THRU ranges + multiple literals.
   • 66 RENAMES: a re-grouping alias over a contiguous run FROM..THRU of sibling elementary items. DECISION: model as a Place that is an ALIAS — for the common case (RENAMES of a single elementary, or a whole-group read/write) emit a computed property that concatenates/splits the underlying members' char images. The general overlapping-bytes RENAMES is a storage-overlay case → defer to G6 (the byte-image fallback) and flag loud. Capture RenamesInfo (FROM/THRU + qualifiers) now; resolution is deferred-pass like legacy.
 
 == 8. REDEFINES — the storage-overlay boundary ==
@@ -96,6 +96,14 @@ Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, po
 
 == 11. THE PLACE MODEL — concrete C# emission contract ==
 `abstract record Place { abstract string Read(); abstract string Write(string rhs); PicInfo Pic; bool IsNumeric/IsAlpha; }`
+
+> **Backend note (dual backend, SSOT §18 #23).** The backend-NEUTRAL content of a `Place` is its STRUCTURED
+> resolution — the member-path segments, the bound subscript expressions, the ref-mod start/length bound
+> expressions, the REDEFINES tier/backing, and the bound `DataItem`/`PicInfo`. The `Read()`/`Write()` C#-text
+> methods are the RoslynBackend's RENDERING of that structure; the future CilBackend (behind `ICodeGenBackend`,
+> `--backend roslyn|cil`) consumes the same structured `Place` and performs its OWN private lowering — it never
+> sees the C# strings. Keep the structure primary and the string emission in the renderer; never let a bound
+> node carry a pre-rendered C# fragment where the structured form is feasible (G4 discipline).
 Concrete kinds:
   • MemberPlace(path)        Read=`path`            Write=`path = rhs;`           (qualified+nested+array indices folded into one access string)
   • RefModPlace(inner,s,l)   Read=`CobolString.RefMod(inner.Read(),s,l)`  Write=`{var t=inner.Read(); inner.Write(CobolString.SpliceInto(t,s,l,rhs));}`
@@ -103,6 +111,10 @@ Concrete kinds:
 Every verb emitter (MOVE/ADD/COMPUTE/file READ INTO/WRITE FROM/CALL USING) takes Places and never touches layout — the unification the task demands. CALL BY REFERENCE passes the receiver Place's address: since a `record struct` member or array element is a C# variable, emit `ref` (e.g. `Sub(ref WsRec.Count)`) for BY REFERENCE; BY CONTENT copies the Read(). (A ref-mod or 88 receiver cannot be passed by ref → diagnose or pass by content per ISO.)
 
 == 12. SUMMARY OF REQUIRED CHANGES TO EXISTING CODE ==
+> **Status (2026-06-10):** this was the original G2 worklist; much has LANDED in `src/Cobol.Net.Compiler`
+> (`Place`/`ReferenceResolver`, nested record-struct emission, the `ByName` multimap, `Condition88` capture,
+> `WidePrecision`/Int128). Treat the list below as the design inventory; the live remaining-work tracker is
+> `resume-prompt.md`, not this section.
 DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Redefines, RenamesInfo, OccursInfo (min/max/dependingOn/indexNames/keys), IsGroup-aware ClrType using `_T_` struct names + array `[]`, Level-88 ValueSet, FigurativeInit/AllLiteralPattern, WidePrecision. DataBinder: stop skipping 66/88; capture all clauses; build a name MULTIMAP; collect OCCURS dims + INDEXED BY index-names as their own entities; deferred-resolution pass for REDEFINES/RENAMES/DEPENDING-ON targets. PicInfo: WidePrecision (Int128), BlankWhenZero, IsJustifiedRight; ParseUsage already covers usages. New `ReferenceResolver`(→Place) + the suffix flattener (port legacy SUB_* interpretation). CSharpEmitter: stop flattening groups to leaves (DEVLOG 458's stopgap) — emit nested record-struct TYPES + composed initializers; route every operand through Place. Runtime: CobolString.RefMod/SpliceInto, CobolCond.In, Int128 overloads of CobolNum, COMP-5 wrap.
 
 ## Decisions
@@ -159,7 +171,7 @@ CONCRETE COBOL→C# MAPPINGS:
   05 AMT   PIC S9(5)V99 COMP-3.           →  public long Amt; // unscaled (7 digits), scale=2; profile threads truncation=Packed
   05 BIG   PIC 9(30).                     →  public Int128 Big;  // WidePrecision → Int128
   05 RATE  COMP-2.                        →  public double Rate;
-  05 FLAG  PIC 1.                         →  public bool Flag;
+  05 FLAG  PIC 1.                         →  public bool Flag;   // PICTURE symbol '1' (boolean) is 2002+ — diagnose at --std 85 (per-edition gating section)
 
 — Group → nested record struct —
   01 WS-REC.                              →  record struct _T_WsRec { public string Name; public long Ct; }
@@ -233,7 +245,7 @@ Place.Write for a RefModPlace rebuilds the whole string: `field = field[..(s-1)]
 
 Allocate the array at MAX occurrences once; the length variable (DEPENDING ON item) bounds the LIVE range. Element access `Itm[K-1]` is unaffected. Whole-group operations branch on direction: sending → slice [0..N); receiving → full MAX (matches legacy IrOdoGroupLocation receiving:true logic, DEVLOG 290). When the DEPENDING-ON var is INSIDE the group, a receiving op still uses MAX (legacy dependOnInside rule). Bounds-check K vs N only when the EC-bound checking class is enabled (later).
 
-### Duplicate data-names disambiguated only by qualification — the current DataBinder.ByName is a single-value Dictionary, which silently overwrites and would resolve the WRONG item.
+### Duplicate data-names disambiguated only by qualification — a single-value name index would silently overwrite and resolve the WRONG item. (IMPLEMENTED: `DataBinder.ByName` is the multimap described below.)
 
 Make ByName a MULTIMAP (Dictionary<string,List<DataItem>>). Unqualified resolution: if the list has one entry use it; if >1 and a qualifier is required for uniqueness, emit the ISO §8.4.2.2 ambiguity diagnostic. Qualified resolution: right-to-left narrowing (resolve outermost qualifier, FindChild inward) — port legacy ResolveQualifiedName + FindChild exactly.
 
@@ -257,8 +269,33 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 - JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §13.18.30) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
 - COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width; the wrap path in CobolNum.Store is currently a TODO (`%= Pow10(Digits)` is wrong for BinaryCapacity). Must add the wrap before COMP-5 tests.
 - 19-38 digit pictures overflow `long` (max 18 digits) → Int128. PicInfo.ClrType/DefaultInitializer/ProfileInitializer and the NumX literal renderer must branch on WidePrecision; CobolNum needs Int128 overloads. Pictures >38 (NATIONAL/2014) are out of scope for v1.
-- REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; in the safe tier each is an independent typed field; in the unsafe tier all share one scratch region (G6).
+- REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `COBOLNET_REDEFINES_DESIGN.md`); never independent stored fields per view.
 - Qualification of an index-name or a LINAGE-COUNTER by file/report name (grammar dataReference alts): index-name qualification is by table name (ISO §8.4.2.2 rule 6) — resolve via the owning table; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER are special registers, not data items — they get dedicated Places.
+
+## Per-edition gating (the G1 obligation)
+
+`cobol.exe` is four compilers in one (`--std 85|2002|2014|2023`, default COBOL-2023). Every edition-varying
+construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition
+that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests
+(NIST etc.) only VERIFY; they never SCOPE. Framework: `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row
+edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows; derive 85↔2002 gating from the 2002
+standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) + `docs/VERSION_TEST_MATRIX_DESIGN.md` (the
+(construct × edition) matrix; Phase 0 done). Data-model constructs that MUST be gated:
+  • Table dimensions: COBOL-85 caps a table at 7 dimensions; 2002+ removes the fixed cap. >7 dims at
+    `--std 85` ⇒ diagnostic; dims are stored as a list with no engine cap.
+  • Numeric size: COBOL-85 caps fixed-point at 18 digits; 2002+ raises the cap to 31. PIC 9(19+) at `--std 85`
+    ⇒ diagnostic; >31 digits ⇒ diagnostic at every edition (Int128's 38-digit headroom is substrate, not surface).
+  • Boolean data (PICTURE symbol `1`, USAGE BIT): 2002 introduction (derive from the 2002 standard) — diagnose
+    at `--std 85`.
+  • Multi-literal table VALUE (one literal per element): 2002 introduction — diagnose at `--std 85`.
+  • SET condition-name TO FALSE / the `VALUE … WHEN SET TO FALSE` phrase: 2002 introduction — diagnose at
+    `--std 85`.
+  • Zero-length reference modification: edition-varying, 2023-only directive control — see §5
+    (REF-MOD-ZERO-LENGTH / EC-BOUND-REF-MOD, `VERSION_CHANGE_REFERENCE.md` #30).
+  • `BINARY-CHAR…BINARY-DOUBLE` usages: 2002 introduction — diagnose at `--std 85`; `COMP-5` is a dialect
+    extension — flag per the extension policy.
+Each bullet gets a (construct × edition) case in the version test matrix: accepted-with-correct-behavior at
+editions that have it, rejected-with-the-right-diagnostic below its intro edition.
 
 ## ISO citations
 
@@ -278,8 +315,8 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
 
-- Int128 substrate timing: PicInfo.WidePrecision + CobolNum Int128 overloads are needed before any 19-38 digit picture compiles. Is there a corpus program needing >18 digits in the early NIST waves (NC/SM/IC/IF), or can Int128 wait until a later wave? (Affects whether to build it in G2 or defer.)
-- COMP-5 / BINARY-* two's-complement WRAP semantics: confirm the owner wants true binary-width wrap (PIC S9(4) COMP-5 wraps at +-32768) vs digit-count truncation. The architecture says binary-wrap; the current CobolNum.Store has a digit-truncation TODO. Confirm before COMP-5 tests are in scope.
+- Int128 substrate timing — **RESOLVED:** the value engine is Int128-monomorphic (SSOT: the `CobolInt(Int128,scale)` carrier) and `CobolNum`/the numeric renderer carry Int128 support; `WidePrecision` selects the stored type. The SURFACE digit cap stays per-edition (18 at `--std 85`, 31 at 2002+ — see the per-edition gating section); Int128's 38 digits are substrate headroom only.
+- COMP-5 / BINARY-* two's-complement WRAP semantics — **RESOLVED (SSOT numeric model; §6 above; DEVLOG 462):** true binary-width wrap by storage width (PIC S9(4) COMP-5 wraps at ±32768), NOT digit-count truncation; implement the wrap path in `CobolNum.Store` before COMP-5 tests are in scope. Note `BINARY-CHAR…DOUBLE` are 2002+ (per-edition gating section); `COMP-5` is a dialect extension.
 - Whole-group-as-alphanumeric — **RESOLVED (SSOT §18 #21; DEVLOG 488/490):** the generated `string AsImage()`/`FromImage()` per struct IS the permanent typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups, INCLUDING numeric-DISPLAY leaves (those store their character image via `StoreAsImage` when whole-referenced — see the edge case above). Only groups with a COMP/COMP-3/COMP-5/float (non-character) leaf are the genuine mixed-usage byte-island routed to the Tier-C codec (§4); national-member groups use the same `AsImage` over UTF-16. No byte[] for any DISPLAY-homogeneous group.
-- REDEFINES cross-type-read detection: the loud guard needs a definition of 'cross-type read' precise enough to not false-positive on the safe alias pattern. Proposed: flag only when a write to view-A is followed (data-flow) by a read of view-B with an incompatible category. Is a conservative compile-time over-approximation (flag any program that both writes and reads two different-typed views of one redefined region) acceptable for v1, accepting that it routes more programs to the byte fallback than strictly necessary?
+- REDEFINES cross-type-read detection — **SUPERSEDED (the 4-tier model, SSOT §14.3):** with ONE canonical backing per redefines class every write is visible through every view, so no cross-type-read guard exists or is needed; genuine mixed-USAGE puns are Tier C (class-scoped byte canonical) and unmodelable puns are Tier D (reject loud). See `COBOLNET_REDEFINES_DESIGN.md`.
 - Passing a ref-modded or subscripted-with-variable receiver as CALL BY REFERENCE: C# `ref` to an array element is legal but `ref` to a ref-mod splice is not. Confirm the policy — diagnose (strict) vs silently promote to BY CONTENT (lenient) — and whether it should be dialect-gated.

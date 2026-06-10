@@ -265,8 +265,12 @@ public sealed class CSharpEmitter
         int width = target.Item.ImageWidth;
         // §8.8.4.1: an alphanumeric group receiver is treated as an elementary alphanumeric item, so a signed-numeric
         // source drops its operational sign here too (§14.9.25.4 GR6a) — deSign:true (a no-op for a non-numeric source).
+        // ALL "literal" repeats to the RECEIVER width (ISO §8.3.3.6.4 GR2) — space-padding it would fill the group's
+        // tail leaves with blanks instead of the repeated pattern (NC243A's 7-dim table seed).
         string image = source is BoundFigurative f
             ? $"new string({FigurativeFill(f.Kind)}, {width})"
+            : source is BoundAllLiteral all
+            ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {width})";
         // A Tier-B REDEFINES group view's image IS its character window — splice the image into the backing; a normal
         // record-struct group distributes the image into its typed leaves via the generated FromImage.
@@ -459,10 +463,67 @@ public sealed class CSharpEmitter
             case PerformUntil u:
                 using (w.Block($"while (!({_cond.Render(u.Until)}))")) body();
                 break;
+            case PerformVarying v:
+                EmitVarying(v, body);
+                break;
             default:   // PerformOnce — an inline body runs once via do/while(false); an out-of-line call is unconditional
                 if (inline) { using (w.Block("do")) body(); w.Line("while (false);"); }
                 else body();
                 break;
+        }
+    }
+
+    /// <summary>PERFORM VARYING … [AFTER …] (ISO §14.9.28 GR13), leftmost level outermost.
+    /// TEST BEFORE (GR13a/d/e): all induction variables initialize left-to-right ONCE; nested <c>while(!cond)</c>
+    /// loops; the innermost loop runs the body then augments its variable; when an inner condition goes true, its
+    /// variable RESETS to FROM and the variable to its LEFT augments (GR13e.2a–c) before the outer retest.
+    /// TEST AFTER (GR13b/c): body-first loops — the innermost tests after the body (false → augment, repeat);
+    /// when true the next level out tests (false → augment it, REINITIALIZE the inner variable, run again).
+    /// FROM/BY render inline so each set/augment re-reads their current contents (GR12).</summary>
+    private void EmitVarying(PerformVarying v, Action body)
+    {
+        var w = _ctx.Writer;
+        var levels = v.Levels;
+        if (!v.TestAfter)
+        {
+            foreach (var lv in levels) StoreSetTarget(lv.Var, _num.Render(lv.From));   // GR13a: left-to-right init
+            EmitBefore(0);
+            void EmitBefore(int k)
+            {
+                using (w.Block($"while (!({_cond.Render(levels[k].Until)}))"))
+                {
+                    if (k == levels.Count - 1)
+                    {
+                        body();
+                        AugmentSetTarget(levels[k].Var, down: false, _num.Render(levels[k].By));
+                    }
+                    else
+                    {
+                        EmitBefore(k + 1);
+                        StoreSetTarget(levels[k + 1].Var, _num.Render(levels[k + 1].From));   // reset inner (GR13e.2a)
+                        AugmentSetTarget(levels[k].Var, down: false, _num.Render(levels[k].By));
+                    }
+                }
+            }
+        }
+        else
+        {
+            StoreSetTarget(levels[0].Var, _num.Render(levels[0].From));
+            EmitAfter(0);
+            void EmitAfter(int k)
+            {
+                using (w.Block("while (true)"))
+                {
+                    if (k == levels.Count - 1) body();
+                    else
+                    {
+                        StoreSetTarget(levels[k + 1].Var, _num.Render(levels[k + 1].From));   // reinit on each entry
+                        EmitAfter(k + 1);
+                    }
+                    w.Line($"if ({_cond.Render(levels[k].Until)}) break;");
+                    AugmentSetTarget(levels[k].Var, down: false, _num.Render(levels[k].By));
+                }
+            }
         }
     }
 
@@ -484,46 +545,58 @@ public sealed class CSharpEmitter
     /// has no exception conditions, so the unchecked store IS the 85 semantics.</summary>
     private void EmitSetTo(BoundSetTo s)
     {
-        var w = _ctx.Writer;
         string tmp = $"__set{_setCounter++}";
-        w.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Value), 0)};");
-        foreach (var t in s.Targets)
-            switch (t)
-            {
-                case SetIndexTarget ix:
-                    w.Line($"{ix.IndexField} = {tmp};");
-                    break;
-                case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                    w.Line(p.Write(tmp));                                     // unchanged copy (GR2b)
-                    break;
-                case SetPlaceTarget { Place: var p }:
-                    StoreArith(p, new NumX(tmp, 0), CobolRounding.Truncation); // occurrence number via PIC store (GR2c)
-                    break;
-            }
+        _ctx.Writer.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Value), 0)};");
+        foreach (var t in s.Targets) StoreSetTarget(t, new NumX(tmp, 0));
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
-    /// (GR3), then each index is adjusted by it (GR4). Only an index receiver is legal in COBOL-85 (the data-name
-    /// forms are the 2014 dynamic-capacity / 2002 pointer formats — their subsystems are separate).</summary>
+    /// (GR3), then each index is adjusted by it (GR4).</summary>
     private void EmitSetUpDown(BoundSetUpDown s)
     {
-        var w = _ctx.Writer;
         string tmp = $"__set{_setCounter++}";
-        w.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Amount), 0)};");
-        string op = s.Down ? "-" : "+";
-        foreach (var t in s.Targets)
-            switch (t)
-            {
-                case SetIndexTarget ix:
-                    w.Line($"{ix.IndexField} {op}= {tmp};");
-                    break;
-                case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                    w.Line(p.Write($"{p.Read()} {op} {tmp}"));
-                    break;
-                case SetPlaceTarget { Place: var p }:
-                    w.Line(LoudStmt($"SET UP/DOWN BY on non-index receiver '{p.Item.CobolName ?? p.Read()}' (pointer F10 is 2002+; dynamic-capacity F14 is 2014+)"));
-                    break;
-            }
+        _ctx.Writer.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Amount), 0)};");
+        foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0));
+    }
+
+    /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an
+    /// index-name field or index data item takes the integer value UNCHANGED (§14.9.39 GR2a/2b — an index IS its
+    /// occurrence number); a numeric data item takes it through its own PICTURE store (GR2c).</summary>
+    private void StoreSetTarget(BoundSetTarget t, NumX value)
+    {
+        switch (t)
+        {
+            case SetIndexTarget ix:
+                _ctx.Writer.Line($"{ix.IndexField} = {NumericRenderer.Align(value, 0)};");
+                break;
+            case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
+                _ctx.Writer.Line(p.Write(NumericRenderer.Align(value, 0)));
+                break;
+            case SetPlaceTarget { Place: var p }:
+                StoreArith(p, value, CobolRounding.Truncation);
+                break;
+        }
+    }
+
+    /// <summary>THE augment of a SET-style target by ±amount (shared by SET UP/DOWN BY and PERFORM VARYING):
+    /// index-name / index data item → plain occurrence-number arithmetic; a numeric data item → an in-place add
+    /// through its PICTURE store (legal as a VARYING induction variable, §14.9.28 GR13; a plain SET UP/DOWN on a
+    /// numeric item is invalid COBOL — the edition validator will diagnose it, the behavior is the natural add).</summary>
+    private void AugmentSetTarget(BoundSetTarget t, bool down, NumX amount)
+    {
+        string op = down ? "-" : "+";
+        switch (t)
+        {
+            case SetIndexTarget ix:
+                _ctx.Writer.Line($"{ix.IndexField} {op}= {NumericRenderer.Align(amount, 0)};");
+                break;
+            case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
+                _ctx.Writer.Line(p.Write($"{p.Read()} {op} {NumericRenderer.Align(amount, 0)}"));
+                break;
+            case SetPlaceTarget { Place: var p }:
+                StoreArith(p, _num.Combine(NumericRenderer.FieldNum(p), op, amount), CobolRounding.Truncation);
+                break;
+        }
     }
 
     private void EmitSet(BoundSetConditions set)

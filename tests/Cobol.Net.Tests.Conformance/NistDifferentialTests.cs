@@ -56,6 +56,15 @@ public sealed class NistDifferentialTests
     [InlineData("NC139A")]   // SET + GO TO section-name
     [InlineData("NC140A")]   // SET + GO TO section-name
     [InlineData("NC245A")]   // SET + GO TO section-name (table series)
+    // Greened by PERFORM VARYING (ISO §14.9.28 Format 4 GR12-13, all levels/TEST modes) + ALL-"literal"
+    // repeat-to-group-width (§8.3.3.6.4 GR2) + benign out-of-range subscripts (§8.4.2.3.4 GR2, CobolTable.At) —
+    // DEVLOG 528.
+    [InlineData("NC239A")]   // PERFORM VARYING + SET over tables
+    [InlineData("NC240A")]   // PERFORM VARYING (pure)
+    [InlineData("NC241A")]   // PERFORM VARYING + SET
+    [InlineData("NC242A")]   // PERFORM VARYING + ALL-literal table seeding
+    [InlineData("NC243A")]   // VARYING up to 7 AFTER levels over a 7-dim table + past-end FAIL-path reads
+    [InlineData("NC244A")]   // SET multi-receiver + PERFORM VARYING
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

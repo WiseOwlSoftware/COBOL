@@ -455,8 +455,37 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var opt = p.performOptions().FirstOrDefault();
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
         if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(BindCondition(u.condition()), u.AFTER() is not null);
-        if ((p.performVarying() ?? opt?.performVarying()) is not null) return Unsupported("PERFORM VARYING (out-of-line)");
+        if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
         return new PerformOnce();
+    }
+
+    /// <summary>Bind a VARYING phrase (ISO §14.9.28 Format 4) into its ordered induction levels — the VARYING
+    /// level first, then each AFTER level left-to-right. TEST AFTER is the phrase's own <c>TEST AFTER</c> (the
+    /// AFTER tokens of the after-levels live in their sub-contexts, not here).</summary>
+    private BoundPerformControl BindVarying(Core.PerformVaryingContext v)
+    {
+        var levels = new List<VaryingLevel>();
+        if (BindVaryingLevel(v.dataReference(), v.arithmeticExpression(), v.condition()) is not { } head)
+            return Unsupported($"PERFORM VARYING induction variable '{v.dataReference().GetText()}'");
+        levels.Add(head);
+        foreach (var a in v.performVaryingAfter())
+        {
+            if (BindVaryingLevel(a.dataReference(), a.arithmeticExpression(), a.condition()) is not { } level)
+                return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
+            levels.Add(level);
+        }
+        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null);
+    }
+
+    /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression
+    /// array is [FROM] or [FROM, BY] (BY omitted ⇒ augment 1, GR12).</summary>
+    private VaryingLevel? BindVaryingLevel(
+        Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond)
+    {
+        if (SetTargetOf(dref) is not { } var) return null;
+        BoundExpr from = BindExpr(exprs[0]);
+        BoundExpr by = exprs.Length > 1 ? BindExpr(exprs[1]) : new BoundNumLiteral("1");
+        return new VaryingLevel(var, from, by, BindCondition(cond));
     }
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));

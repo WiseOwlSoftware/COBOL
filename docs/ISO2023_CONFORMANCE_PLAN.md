@@ -1,17 +1,22 @@
-# COBOL.NET — ISO/IEC 1989:2023 Conformance Plan (SINGLE SOURCE OF TRUTH)
+# COBOL.NET — ISO/IEC 1989:2023 Conformance Plan (LEDGER — the M2/M3/M4 post-85 feature catalog)
 
 > ⚠️ **PARTIALLY SUPERSEDED (2026-06-09, DEVLOG 521).** This doc predates the greenfield PIVOT (DEVLOG 457): its
 > framing — the byte-engine "data-model migration" being the #1 priority before conformance (§0 / §0.5), stages,
 > EnableTypedFields, "island the byte engine" — is **OBSOLETE** (the greenfield is born typed-native; there is no
 > migration). **Use this doc ONLY for the M2/M3/M4 FEATURE CATALOG (the still-valid list of post-85 features to
-> implement).** The live plan is `resume-prompt.md` (two-track RESUME AT) over the SSOT `docs/COBOLNET_DESIGN.md`;
+> implement).** ⚠ **Every ☑/◐/🐛 status and every recipe/file path in §1/§3 records the LEGACY byte-engine
+> compiler (`src/CobolSharp.*` — differential oracle only, deleted at G8). In the greenfield `src/Cobol.Net.*` a
+> feature counts as done ONLY when implemented there per the `COBOLNET_*` deep-dives + the ISO spec, with BOTH
+> per-edition obligations: the complete spec behavior AND the rejecting diagnostic under every `--std` edition
+> that lacks it.** The live plan is `resume-prompt.md` (two-track RESUME AT) over the SSOT `docs/COBOLNET_DESIGN.md`;
 > multi-edition correctness is driven by `docs/VERSION_TEST_MATRIX_DESIGN.md` / `docs/VERSION_CHANGE_REFERENCE.md`.
 
 > **Purpose.** This is the durable, authoritative work-breakdown to take the compiler to **complete,
 > production-quality ISO/IEC 1989:2023 COBOL support**. Work *from* this document — do **not** re-run the gap
 > analysis each session (it has been done at least three times). When an item lands, tick it here in the same
 > commit. When you discover a new gap, add it here. This supersedes ad-hoc backlogs scattered across DEVLOG /
-> memory; `docs/MULTIVERSION_ROADMAP.md` is the high-level milestone view and points here for detail.
+> memory; the live plan is `resume-prompt.md` over the SSOT `docs/COBOLNET_DESIGN.md` (the former milestone view
+> `docs/MULTIVERSION_ROADMAP.md` was deleted with the pre-PIVOT docs, DEVLOG 523–524).
 >
 > **Provenance.** Built 2026-06-05 from a 15-area parallel spec-conformance audit (workflow
 > `iso2023-conformance-audit`, 15 agents vs `specs/ISO_COBOL.md` + the actual compiler) plus the session's own
@@ -20,7 +25,8 @@
 ## 0. How to use this document
 
 - **Process (unchanged project discipline):** implement **one item at a time on `main`**; build all layers
-  together (grammar → semantic/binder → lowering → CIL emit → runtime → **output-verifying test**); run
+  together (preprocess/parse → binder/bound tree [ALL semantics live here] → backend render via `ICodeGenBackend`,
+  Roslyn C# primary → runtime → **output-verifying test**); run
   `bash scripts/guard.sh` after each (must stay **ALL GREEN**, 0 NIST FAIL); commit with a **DEVLOG** entry; then
   tick the item here.
 - **Conformance testing is PART AND PARCEL of every post-1985 feature (owner directive).** Every 2002/2014/2023
@@ -28,6 +34,13 @@
   `<name>.cob` + `<name>.out` (expected stdout), **auto-discovered** by `ConformanceTests` and run inside the
   guard. This corpus is the NIST-equivalent for the post-1985 standards (NIST CCVS covers only '85). See
   `tests/conformance/README.md`. It is both conformance evidence and the regression net as features accrue.
+- **⛔ TWO co-equal obligations per catalog item (owner, 2026-06-10):** for EVERY feature here, (1) implement the
+  complete per-edition ISO spec behavior, AND (2) emit the correct diagnostic under every `--std` edition that
+  lacks the feature (not-yet-introduced or removed) — e.g. an M2/2002 construct compiled `--std 85` must flag.
+  Version-gating is driven by `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023
+  deltas ONLY; it has NO 85→2002 rows; derive 85↔2002 gating from the 2002 standard / the M2 catalog in §3 below)
+  and verified by the (construct × edition) matrix in `docs/VERSION_TEST_MATRIX_DESIGN.md`; the negative
+  per-edition cases belong in that matrix alongside the positive `tests/conformance/<version>/` corpus.
 - **Do NOT use worktree-isolated implementation workflows** for compiler fixes — in this repo `isolation:'worktree'`
   branches from a stale commit. Do compiler work directly on `main`. (Parallel *audit/design* agents are fine.)
 - **Grammar changes are pre-authorized** in this conformance effort (log + full guard); new lexer keywords must be
@@ -37,10 +50,17 @@
 
 ---
 
-## 0.5 ⛔ TOP PRIORITY (set 2026-06-06): the .NET-native data-model migration comes BEFORE further conformance features
+## 0.5 [RETIRED 2026-06-10 — pre-PIVOT history only] The byte-engine data-model migration (DEVLOG 393–456)
 
-The owner has directed a foundational re-architecture to **"the best native .NET implementation of COBOL,"** and it
-is the **#1 work item for the next session — ahead of every remaining M2/M3/M4 feature in §3 below.** Do it FIRST.
+> ⛔ **OBSOLETE — do NOT execute anything in this section.** It describes the legacy byte-engine → typed-fields
+> migration. The greenfield COBOL.NET (`src/Cobol.Net.*`) is born typed-native (no byte substrate, no migration);
+> the Roslyn C# backend is PRIMARY with a Cecil/CIL backend future-additive behind `ICodeGenBackend`
+> (`docs/COBOLNET_DESIGN.md`). Its supporting docs (`DATA_MODEL_ARCHITECTURE.md`, `DATA_MODEL_REVIEW.md`,
+> `RECORD_STRUCT_STORAGE_DESIGN.md`, `OO_IMPLEMENTATION_DESIGN.md`) were DELETED (DEVLOG 523–524).
+
+The owner had directed a foundational re-architecture to **"the best native .NET implementation of COBOL"** — this
+was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the greenfield is born typed-native
+(no migration); the live plan is `resume-prompt.md`. Kept below for history only.
 
 - **The design is settled and reviewed — do NOT re-litigate it** (the owner co-authored it across a long dialogue,
   DEVLOG 393). Read both first:
@@ -49,8 +69,9 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     → `string` (UTF-16)**; a byte image is only a **classifier-scoped fallback** for REDEFINES/RENAMES type-puns,
     file records, and a few hot loops (an inline value type embedded in the typed record — never a heap `byte[]`);
     pointers → managed references; OO → .NET classes; in-memory representation is decoupled from external encoding
-    (`CODE-SET` is a boundary concern). Cecil/CIL stays primary; a Roslyn C# backend (Cecil as oracle) is a later
-    phase.
+    (`CODE-SET` is a boundary concern). ~~Cecil/CIL stays primary~~ **[SUPERSEDED — per the PIVOT the Roslyn C#
+    backend is PRIMARY; a Cecil/CIL backend is future-additive behind `ICodeGenBackend` with its own private
+    structure-to-branch lowering (no shared lowered IR).]**
   - `docs/DATA_MODEL_REVIEW.md` — a ~57-agent adversarial review; verdict **proceed-with-changes**; all 4 high + 6
     medium findings already folded into the ADR.
 - **Execute the migration in the ADR's 7 stages (§10), guard-green at EVERY step, one rule at a time:** Stage 0
@@ -197,7 +218,8 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
     to `scripts/guard.sh` via `scripts/guard-verify.sh`.** Use it for iteration; the serial guard remains the authority.
   - **Stage-4 OO → .NET classes: SLICE 1 DONE (DEVLOG 447)** — CLASS/NEW/INVOKE/OBJECT REFERENCE end-to-end (a
     class is an instance .NET type with per-instance `ProgramState`); see M2-OO-1 (§3.7) + `docs/OO_IMPLEMENTATION_DESIGN.md`.
-    **NEXT = OO slice 2 (INVOKE USING/RETURNING; turnkey gap analysis in `OO_IMPLEMENTATION_DESIGN.md` §6.7)**, then
+    **[STALE NEXT — pre-PIVOT; live next steps = `resume-prompt.md`; the cited `OO_IMPLEMENTATION_DESIGN.md` and
+    `RECORD_STRUCT_STORAGE_DESIGN.md` were DELETED (DEVLOG 523–524); OO design now = `docs/COBOLNET_OO_DESIGN.md`]**, then
     OO slices 3–6. Then Stage-5 **Roslyn C# backend** (Cecil oracle); Stage-6 finalize + flip-`EnableTypedFields`-
     on-by-default + rename. Substrate runtime ready (`CobolNum`/`CobolString` + oracles). See also
     `docs/RECORD_STRUCT_STORAGE_DESIGN.md` §6/§9/§10 + `resume-prompt.md`.
@@ -273,7 +295,7 @@ is the **#1 work item for the next session — ahead of every remaining M2/M3/M4
   (Data-model migration this drive (DEVLOG 394–397): Stage-0/1 numeric substrate + differential oracle (394),
   Stage-1 arithmetic + MOVE/edited/remainder wiring (395–396), Stage-2 classifier Phase A + 15 tests (397). All
   additive or byte-identical — no NIST/integration change. Prior tail (392/393): two ADR-review fixes.)
-- **NEXT UP (2026-06-08, DEVLOG 453):** the data-model migration CORE is done through Stage-4
+- **[STALE — pre-PIVOT, superseded by `resume-prompt.md`] NEXT UP (2026-06-08, DEVLOG 453):** the data-model migration CORE is done through Stage-4
   (char/numeric/groups/OCCURS + **pointers** — DEVLOG 394–437); Phase A enablers done (CLI dialect verified + CI,
   445–446); **OO slices 1–3a + 3b SUPER done** (M2-OO-1, DEVLOG 447–451). **Owner directive (DEVLOG 453): OO is now
   built TYPED-NATIVE per ADR §7** — object data → per-instance .NET fields, NOT the byte image. **OO-TYPED object data
@@ -570,7 +592,8 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 - ☐ **M3-1 — Dynamic-capacity tables** `OCCURS DYNAMIC [CAPACITY IN dn] [FROM…TO]`. *Medium–large.*
 - ☐ **M3-2 — `TYPEDEF` / `SAME AS` / `TYPE TO`.** *Medium.*
 - ☐ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
-  *Large.* `CobolParserJsonXml.g4` exists — assess completeness; likely needs binder/emit/runtime. §14.9.
+  *Large.* Greenfield: a version-gated grammar fragment in the `Cobol.Net.Frontend` parser (the legacy
+  `CobolParserJsonXml.g4` overlay is dead/unwired — do not build on it); needs binder/emit/runtime. §14.9.
 - ☐ **M3-4 — File sharing/locking finalization** (if not folded into M2-FILE-1), function/method pointers,
   IEEE-754 alignment, increased limits, conditional-expression enhancements.
 
@@ -591,7 +614,8 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   implied.
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit
   `specs/ISO_COBOL.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
-  verify completeness + **version gating**, i.e. a 2023 fn used under `--standard cobol85` should flag).
+  verify completeness + **version gating**, i.e. a 2023 fn used under `--std 85` / `2002` / `2014` MUST emit the
+  per-edition diagnostic — per `docs/VERSION_CHANGE_REFERENCE.md` + the version test matrix).
 
 ---
 
@@ -607,7 +631,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 **Wave 2 — arithmetic + data aliases:**
 5. **M2-ARITH-1** ROUNDED MODE (all 8) + DEFAULT ROUNDED (🐛 2-of-8).
 6. **M2-DATA-2** FLOAT-SHORT/LONG (alias COMP-1/2).
-7. **M2-PRE-1** preprocessor robustness trio (🐛 crashes).
+7. **M2-PRE-1** preprocessor robustness trio (re-scoped — NOT crashes; clean-error/mis-parse only, see §3.5).
 
 **Wave 3 — new data categories:**
 8. **M2-DATA-3** national data · **M2-DATA-4** boolean/bit · **M2-FILE-1/2** file 2002+.
@@ -629,15 +653,18 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 
 - **Diagnostics quality** — comprehensive `CBL####` coverage, accurate source locations, actionable messages,
   exit codes; never crash on invalid input (P1 hardening already started — see memory `project_p1_diagnostics`).
-- **Dialect strictness** — the two-axis model (version `--standard` × strictness); every leniency dialect-gated
+- **Dialect strictness** — the two-axis model (version `--std` × strictness); every leniency dialect-gated
   (see memory `project_dialect_strictness`).
 - **Conformance corpus (BUILT — `tests/conformance/`)** — the NIST-equivalent suite for 2002/2014/2023. A
   file-based corpus (`<name>.cob` + `<name>.out`) per version, auto-discovered + run under the matching
-  `--standard` by `ConformanceTests` (integration project), inside the guard. Seeded with M2 features (UDF
+  `--std` by `ConformanceTests` (integration project), inside the guard. Seeded with M2 features (UDF
   invocation, conditional compilation, OPTIONS, REPOSITORY); **grow it with every feature** and backfill
-  already-landed ones. Future: a per-version "% to spec" dashboard; optional negative tests (`.cob` + expected
-  diagnostic) for dialect-rejection cases.
-- **Performance** — parse/compile throughput on large programs; runtime efficiency of generated CIL.
+  already-landed ones. Future: a per-version "% to spec" dashboard. Negative per-edition tests (a construct
+  compiled under an edition that lacks it ⇒ the expected diagnostic) are NOT optional — they are the co-equal
+  second obligation of every feature (owner, 2026-06-10), owned by the version test matrix
+  (`docs/VERSION_TEST_MATRIX_DESIGN.md` over `docs/VERSION_CHANGE_REFERENCE.md`).
+- **Performance** — parse/compile throughput on large programs; runtime efficiency of the generated C# as compiled
+  by Roslyn (the primary backend; a future Cecil/CIL backend behind `ICodeGenBackend` gets its own perf track).
 - **Tooling & packaging** — CLI UX, `--help`, listing output, single-exe packaging, NuGet/runtime deployment.
 
 ---
@@ -653,7 +680,9 @@ A commercial compiler needs more than spec checkboxes. Track these in parallel:
 - **Complete, accurate code documentation + code comments** across the source.
 - Adopt the **latest C# language features**.
 
-### 6.2 Project + executable rename
+### 6.2 Project + executable rename — ☑ SUPERSEDED (realized by the PIVOT)
+> The greenfield is born `src/Cobol.Net.*` with exe `cobol` (`docs/COBOLNET_PROJECT_ORG_DESIGN.md`); the legacy
+> `CobolSharp.*` projects are deleted at G8, so no rename remains. The touch-points below are historical.
 - Rename the project **`CobolSharp` → `COBOL.NET`** (rationale: it is COBOL for the .NET runtime — there is no
   "sharp" in it).
 - **Produced executable MUST be named `cobol.exe`** (lowercase).

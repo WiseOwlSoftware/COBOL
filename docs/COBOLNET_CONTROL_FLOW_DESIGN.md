@@ -4,10 +4,24 @@
 > typed-native C# via Roslyn; no byte substrate). The condensed cross-referenced view is
 > `docs/COBOLNET_DESIGN.md` §5; THIS is the full design (decisions + rationale + C# mapping + hard
 > problems + edge cases). The locked invariants and cross-cutting consistency live in the SSOT.
+> **IMPLEMENTED** (G4, DEVLOG 485) as `__Dispatch` in `src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs` — emitted names
+> are `__`-prefixed (`__Dispatch`/`__pc`/`__startPc`/`__exitPc`/`__atExit`/`__N`) to avoid collision with translated
+> COBOL names; this doc's unprefixed `Dispatch`/`pc` sketches denote the same shapes.
 
 ## Summary
 
 A decision-complete design for COBOL.NET's control-flow engine: a single program-counter (PC) state machine emitted as ONE C# method `int Dispatch(int startPc, int exitPc)` per program unit, in which every paragraph (and, for sectioning, every paragraph of every section, flattened into one source-order PC space) is a `case` in one `switch (pc)`, NOT a separate method. This ports the LEGACY compiler's PROVEN return-address / exit-bounded dispatch semantics (which passes 364 NIST tests) but realizes them in idiomatic C# (switch + structured loops + goto) instead of CIL, and replaces the legacy's ambiguous "-1 return AND a catch" run-unit termination with the new runtime's clean exception signals. The dispatcher backbone is a deliberate state machine (the task explicitly accepts not-pretty for irregular control flow); "idiomatic" applies to CASE CONTENTS — IF→if/else, EVALUATE→switch, inline PERFORM→real for/while/do-while loops, typed-native field ops — not to the backbone. Sequential fall-through is `pc=i+1`, GO TO is `pc=idxTarget`, out-of-line PERFORM/THRU is a recursive `Dispatch(idxEntry, idxExit)`, STOP RUN/GOBACK throw distinct exceptions. Key invariant the design preserves verbatim from legacy: the exit-bounded full-switch dispatch gives correct handling of inverted THRU ranges (proc-2 physically before proc-1) and GO-TO-out-of-and-back-into a PERFORM range FOR FREE, because control is followed by PC value, never by physical block extent.
+
+## Backend neutrality (G4 — dual backend)
+
+This deep-dive fixes the SEMANTIC control-flow model — the flattened source-order PC space, the ParagraphTable /
+EntryParagraphIndex layout, the exit-bounded recursive dispatch contract, and the two termination exceptions
+(StopRun/ProgramReturn). That model lives in the binder/bound tree and is BACKEND-NEUTRAL behind `ICodeGenBackend`
+(`--backend roslyn|cil`). The C# realizations shown here (one `switch` method, `for`/`while`/`do-while` for inline
+PERFORM, `goto __sent_<n>` for NEXT SENTENCE) are the Roslyn backend's RENDERING of that model; the future Cecil/CIL
+backend implements the SAME bound contract with its OWN private structure-to-branch lowering (NO shared lowered IR).
+Bound control-flow nodes carry structured forms (paragraph symbols/PC indices, loop descriptors, sentence-boundary
+markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 ## Decisions
 
@@ -15,7 +29,7 @@ A decision-complete design for COBOL.NET's control-flow engine: a single program
 
 **Rationale.** Owner-LOCKED: 'paragraphs/sections are LABELS (PC cases) in one flow, NOT separate methods. GO TO sets the PC; fall-through is PC++; PERFORM range is a recursive bounded dispatch.' The legacy semantics (return-address model, exit-bounded Dispatch) are proven (364 NIST) and port directly; only the realization changes from CIL-with-method-per-paragraph to one C# switch. The exit-bounded full switch handles arbitrary GO TO and inverted THRU ranges by construction (follow pc, not physical extent).
 
-**Rejected alternatives.** (1) Paragraph-per-method + a dispatcher that CALLS them returning next-pc (the legacy CIL realization, CilEmitter.EmitDispatchHelper, and the current G4 entry-463 sequential-call-chain) — rejected: owner locked NOT-separate-methods; and the call-chain G4 cannot express GO TO out of a range, ALTER, or VARYING. (2) Structured-only reconstruction (relooper/Stackifier producing pure if/while/goto-free C#) — rejected for v1: arbitrary COBOL GO TO/ALTER is irreducible; task says correctness over prettiness for irregular flow. Recorded as a deferred open question (well-behaved paragraph → real C# method).
+**Rejected alternatives.** (1) Paragraph-per-method + a dispatcher that CALLS them returning next-pc (the legacy CIL realization, CilEmitter.EmitDispatchHelper, and the pre-G4 entry-463 sequential-call-chain stopgap, retired by the G4 PC dispatcher at DEVLOG 485) — rejected: owner locked NOT-separate-methods; and the call-chain cannot express GO TO out of a range, ALTER, or VARYING. (2) Structured-only reconstruction (relooper/Stackifier producing pure if/while/goto-free C#) — rejected for v1: arbitrary COBOL GO TO/ALTER is irreducible; task says correctness over prettiness for irregular flow. Recorded as a deferred open question (well-behaved paragraph → real C# method).
 
 ### D2. Sequential fall-through emits `pc = i+1; break;` as the LAST statement of each non-terminating case; a paragraph that ends by reaching the next paragraph just advances the PC.
 
@@ -33,13 +47,13 @@ A decision-complete design for COBOL.NET's control-flow engine: a single program
 
 **Rationale.** C#-NATIVE per owner decision ('ALTER → a mutable target var'), replacing the legacy `_alterTable[slot]` int array (CilControlFlowEmitter.EmitAlter/EmitReturnAlterable). A named int field is readable and exactly the legacy semantics. Default value = the GO TO's static written target (or -1/STOP if the bare GO TO was never given a target, ISO §14.9.17 undefined-then archaic).
 
-**Rejected alternatives.** The legacy shared `int[] _alterTable` indexed by slot — rejected: owner wants a mutable var; an array index is opaque. ALTER is an archaic feature (ISO Annex F.1) — supported because the NIST corpus and legacy support it, gated by dialect later if desired.
+**Rejected alternatives.** The legacy shared `int[] _alterTable` indexed by slot — rejected: owner wants a mutable var; an array index is opaque. ALTER is edition-varying — supported per §18 #10 (gated ON through 2014, flagged obsolete in strict 2023); see the per-edition gating & diagnostics section. The NIST corpus exercises it at `--std 85`.
 
 ### D5. Out-of-line PERFORM p [THRU q] → recursive `Dispatch(idxP, idxQ)` (idxQ=idxP when no THRU); the returned pc is discarded (PERFORM is a call, not a branch). PERFORM ... n TIMES / UNTIL / VARYING wrap that call in a real C# loop. The body of the case becomes e.g. `Dispatch(idxP, idxQ); pc = i+1; break;` for simple PERFORM, or a loop containing `Dispatch(...)`.
 
 **Rationale.** ISO §14.9.28: PERFORM transfers control to a procedure and returns implicitly when it completes. Recursive Dispatch with exitPc=idxQ is the legacy's proven mechanism (EmitPerformThru → Dispatch(start,end)): it follows control flow ANYWHERE within/leaving/re-entering the range and returns only when paragraph idxQ falls through (pc becomes idxQ+1) — handling inverted ranges (idxQ<idxP) and GO-TO-out for free. Recursion (a real C# call stack) gives correct nesting of overlapping/recursive PERFORM ranges automatically.
 
-**Rejected alternatives.** Inlining the THRU range's paragraph bodies into the call site (the current G4 approach, CSharpEmitter.EmitPerform) — rejected: cannot express a GO TO that leaves and re-enters the range, breaks on inverted ranges, and duplicates code. A return-address stack data structure managed by hand — rejected: the C# call stack already IS the return-address stack; recursion is simpler and re-entrant.
+**Rejected alternatives.** Inlining the THRU range's paragraph bodies into the call site (the pre-G4 stopgap formerly in CSharpEmitter.EmitPerform, retired at DEVLOG 485) — rejected: cannot express a GO TO that leaves and re-enters the range, breaks on inverted ranges, and duplicates code. A return-address stack data structure managed by hand — rejected: the C# call stack already IS the return-address stack; recursion is simpler and re-entrant.
 
 ### D6. Inline PERFORM (... END-PERFORM, no procedure-name) → REAL idiomatic C# loop INSIDE the case, never a Dispatch call: PERFORM TIMES→`for`, PERFORM UNTIL TEST BEFORE→`while(!(cond))`, TEST AFTER→`do{...}while(!(cond))`, PERFORM VARYING→`for`-style with COBOL FROM/BY/UNTIL, PERFORM (once)→`do{...}while(false)`. EXIT PERFORM→`break;`, EXIT PERFORM CYCLE→`continue;` (for VARYING/UNTIL-with-increment, continue must hit the increment — emit via a labeled-continue or a do/while-with-increment-at-bottom).
 
@@ -102,7 +116,7 @@ private static int Dispatch(int startPc, int exitPc) {
         throw new StopRun();           // STOP RUN
       case 1:   // SUB
         System.Console.WriteLine("S1");
-        if ((decimal)X == 1m) { pc = 3; break; }   // IF X=1 GO TO SKIP (idxSKIP=3)
+        if (X == 1L) { pc = 3; break; }            // IF X=1 GO TO SKIP (idxSKIP=3) — scale-aligned native long compare (COBOLNET_NUMERIC_DESIGN; never decimal)
         pc = 2; break;                 // fall-through to MID
       case 2:   // MID
         System.Console.WriteLine("MID");
@@ -129,7 +143,7 @@ internal static void Main() {
 Inline PERFORM (idiomatic loops, no Dispatch):
 ```csharp
 // PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3  ... END-PERFORM
-for (long _v = 1; ; ) { I = CobolNum.Store(_v, 0, _P_I); if ((decimal)I > 3m) break; /*body*/ _v += 1; }
+for (long _v = 1; ; ) { I = CobolNum.Store(_v, 0, _P_I); if (I > 3L) break; /*body*/ _v += 1; }
 // PERFORM UNTIL DONE  ... END-PERFORM (TEST BEFORE)     -> while (!(DONE)) { /*body; EXIT PERFORM=break*/ }
 // PERFORM 3 TIMES ... END-PERFORM                       -> for (long _i=0;_i<3;_i++) { /*body*/ }
 ```
@@ -144,7 +158,7 @@ private static int _alter_GATE = 6;          // default GO TO target paragraph i
 GO TO DEPENDING ON:
 ```csharp
 // GO TO P1 P2 P3 DEPENDING ON SEL
-switch ((int)(decimal)SEL) { case 1: pc=idxP1; break; case 2: pc=idxP2; break; case 3: pc=idxP3; break;
+switch ((int)SEL) { case 1: pc=idxP1; break; case 2: pc=idxP2; break; case 3: pc=idxP3; break;
   default: pc = thisIdx+1; break; }            // out of range -> normal fall-through
 break;
 ```
@@ -230,6 +244,30 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
 - CONTINUE as the sole statement of a paragraph (common with SKIP-style targets): no-op body, pure fall-through.
 - NEXT SENTENCE inside an inline PERFORM or EVALUATE WHEN: still targets the enclosing sentence period (the inline PERFORM/EVALUATE is within one sentence) — the goto-to-sentence-end label is correct.
 
+## Per-edition gating & diagnostics (G1 — four compilers in one executable)
+
+Control flow is edition-varying. Every edition-varying construct carries TWO co-equal obligations: (1) the complete
+per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it
+(not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Gating sources:
+`docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist; 2002→2023 deltas ONLY — it has NO 85→2002
+rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) and
+`docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition) matrix; Phase 0 done).
+
+| Construct | 85 | 2002 | 2014 | 2023 | Gating source |
+|---|---|---|---|---|---|
+| GO TO (simple/DEPENDING), out-of-line + inline PERFORM (TIMES/UNTIL/VARYING/AFTER, TEST BEFORE/AFTER), bare EXIT, CONTINUE, NEXT SENTENCE, STOP RUN | ✔ | ✔ | ✔ | ✔ (NEXT SENTENCE archaic-flagged) | invariant; NEXT SENTENCE archaic = row 127 (Annex F.1 #2) |
+| GOBACK | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (derive from the 2002 standard) |
+| GOBACK with STOP-style status phrase (main program only) | ✘ | ✘ | ✘ | ✔ | row 75 (E.3.3 item 32) |
+| EXIT PERFORM [CYCLE], EXIT PARAGRAPH, EXIT SECTION | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (derive from the 2002 standard) |
+| PERFORM … UNTIL EXIT | ✘ | ✘ | ✘ | ✔ | row 80 (E.3.3 item 37) |
+| Exception-checking PERFORM variant | ✘ | ✘ | ✘ | ✔ (owned by the EC deep-dive) | row 79 (E.3.3 item 36) |
+| ALTER + alterable GO TO | ✔ (obsolete-element flag) | per §18 #10 gated ON — ⚠ the 2002 standard DELETED ALTER; strict 2002/2014 may need reject-as-removed (reconcile in the SSOT) | same as 2002 | flagged obsolete in strict 2023 | §18 #10; Annex F.1 |
+| EXIT PROGRAM | ✔ | ✔ | ✔ | ✔ + archaic flag | rows 89/126 (Annex F.1 #1) |
+
+Diagnostics: use below the introduction edition ⇒ reject with the standard not-in-this-edition diagnostic (the
+negative half of the version test matrix); archaic/obsolete elements flag under the flagging options. Every row
+above requires its (construct × edition) matrix case — tests verify, they never scope.
+
 ## ISO citations
 
 - ISO/IEC 1989:2023 §14.9.28 — PERFORM statement (control transfer to a procedure and implicit return on completion; VARYING/TIMES/UNTIL/TEST BEFORE-AFTER; the range-completion = exit-paragraph-falls-through rule)
@@ -246,10 +284,10 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
 - ISO/IEC 1989:2023 Annex F.1 — Archaic language elements (NEXT SENTENCE; ALTER), and the IF-statement general rules (NEXT SENTENCE transfers to the implicit CONTINUE before the next separator period, NOT past a scope delimiter)
 - ISO/IEC 1989:2023 §14.6.11 — implicit CLOSE of files still open at normal run-unit termination
 
-## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
+## Resolved questions (settled in `COBOLNET_DESIGN.md` §18; edition gating in the per-edition section above)
 
-- Should well-behaved paragraphs (no GO TO out, not a THRU exit target, only fallen into / simple-PERFORMed) be emitted as REAL standalone C# methods for readability, with only the irregular subset using the PC switch? Owner LOCKED not-separate-methods for v1; this is a deferred post-conformance prettiness optimization (a hybrid emitter that proves a paragraph is structured and lifts it to a method). Flag for owner decision after NIST is green.
-- GOBACK status phrase: ISO 2023 (change item 32, line 50308) lets GOBACK carry the same status phrase as STOP, but only in a main program. Confirm the desired exit-code mapping (ProgramReturn carrying a status vs StopRun) for a main-program GOBACK with a status.
-- ALTER is an archaic feature (ISO Annex F.1, removed/obsolete in strict 2023). Confirm whether ALTER support should be dialect-gated OFF by default in COBOL.NET (the legacy supports it unconditionally for the NIST corpus). Owner-level dialect-policy call.
-- UNTIL EXIT phrase (ISO 2023 change item 37, line 50318: PERFORM UNTIL EXIT = infinite loop until EXIT PERFORM) — confirm it is in scope for the control-flow engine (it maps trivially to `while(true){...}` with EXIT PERFORM=break) so it can be included now.
-- Exact CALL boundary realization (how a C# CALL site catches ProgramReturn vs lets StopRun propagate, and how RETURNING / BY REFERENCE args cross) is owned by the CALL/inter-program subsystem; this design only fixes that GOBACK=ProgramReturn-at-Entry and STOP RUN=StopRun-at-Main. Confirm the seam with whoever designs CALL.
+- Should well-behaved paragraphs (no GO TO out, not a THRU exit target, only fallen into / simple-PERFORMed) be emitted as REAL standalone C# methods for readability, with only the irregular subset using the PC switch? Owner LOCKED not-separate-methods for v1; this is a deferred post-conformance prettiness optimization (a hybrid emitter that proves a paragraph is structured and lifts it to a method). SETTLED (§18 #9): v1 always emits the PC dispatcher; the structured lift is a deferred post-conformance pretty pass — no owner decision currently pending.
+- GOBACK status phrase: ISO 2023 (change item 32, line 50308) lets GOBACK carry the same status phrase as STOP, but only in a main program. SETTLED (§18 #10): a main-program GOBACK-with-status throws `ProgramReturn` carrying the status, surfaced as the process exit code via RETURN-CODE (§18 #20). The status phrase is 2023-only (VERSION_CHANGE_REFERENCE row 75, E.3.3 item 32) — diagnosed as not-in-edition at `--std` 85/2002/2014.
+- ALTER is an archaic feature (ISO Annex F.1, removed/obsolete in strict 2023). SETTLED (§18 #10): ALTER is dialect-gated ON through 2014 and flagged obsolete in strict 2023. ⚠ G1 reconciliation needed in the SSOT: the 2002 standard DELETED ALTER, so strict `--std 2002/2014` may need reject-as-removed (VERSION_CHANGE_REFERENCE carries no 85→2002 rows — derive from the 2002 standard). The NIST corpus exercises ALTER at `--std 85`.
+- UNTIL EXIT phrase (ISO 2023 change item 37, line 50318: PERFORM UNTIL EXIT = infinite loop until EXIT PERFORM) — SETTLED (§18 #10): in scope — `while(true){...}` with EXIT PERFORM=`break`. 2023-only (VERSION_CHANGE_REFERENCE row 80, E.3.3 item 37): diagnosed as not-in-edition at `--std` 85/2002/2014.
+- Exact CALL boundary realization (how a C# CALL site catches ProgramReturn vs lets StopRun propagate, and how RETURNING / BY REFERENCE args cross) is owned by the CALL/inter-program subsystem; this design only fixes that GOBACK=ProgramReturn-at-Entry and STOP RUN=StopRun-at-Main. The seam is owned by `docs/COBOLNET_INTERPROGRAM_DESIGN.md` (the CALL/interprogram deep-dive); this design fixes only GOBACK=ProgramReturn-at-Entry and STOP RUN=StopRun-at-Main.

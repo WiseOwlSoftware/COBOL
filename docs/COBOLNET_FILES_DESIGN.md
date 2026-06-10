@@ -7,7 +7,7 @@
 
 ## Summary
 
-Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Durable copies: E:/tmp/cobolnet_files_subsystem_design.md and E:/Demeanor/artifacts/cobolnet_files_subsystem_design.md. Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START, FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Decisive post-advisor move: ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
+Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records, clean byte boundary). Core architecture: the FD or SD record IS a .NET record struct (the record area is a typed field, not a byte buffer); the only bytes are at the on-disk edge, produced by a compiler-GENERATED per-layout codec (Serialize and Deserialize) running only at READ and WRITE. CODE-SET is one Encoding parameter threaded into that codec. The proven 364-NIST legacy handlers are ported VERBATIM for control logic (open-mode tables, ISO-cited status codes, the file-position-indicator plus key-of-reference plus duplicate-arrival state machines) but re-substrated from a byte array to a generic FileConnector plus an IRecordCodec. Covers all organizations (SEQUENTIAL, LINE SEQUENTIAL, RELATIVE, INDEXED), all access modes, OPEN CLOSE READ WRITE REWRITE DELETE START, FILE STATUS as a two-char string item, variable-length records, prime and composite ALTERNATE keys, SAME RECORD AREA, SORT and MERGE, and LINAGE. Decisive post-advisor move: ordering and lookup keys are a typed-derived CobolKey comparable (numeric by decoded value, alphanumeric by image plus collating, composite component-wise), decoupled from the stored payload; one comparison policy shared by indexed files and SORT.
 
 ## Decisions
 
@@ -49,6 +49,11 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 
 ## C# mapping
 
+> Backend neutrality (G4; SSOT §18 #23): everything semantic in this section — FILE STATUS capture, the AT END /
+> INVALID KEY branch, READ INTO / WRITE FROM expansion, the prologue registrations — is a structured BOUND-TREE form;
+> this section shows the primary RoslynBackend rendering. The future CilBackend renders the SAME bound nodes behind
+> `ICodeGenBackend` with its own private lowering; no bound node carries pre-rendered C# text.
+
 An FD record CUST-REC with CUST-ID PIC 9(5), CUST-NAME PIC X(20), CUST-BAL PIC S9(7)V99 COMP-3 maps to a public record struct CUST_REC holding public long CUST_ID, public string CUST_NAME, public long CUST_BAL, where CUST_BAL is the UNSCALED long (scale 2 is compile-time metadata per the owner numeric lock; no decimal). The record area is a single field of that type in the program class. The connector is a public sealed generic FileConnector of TRec exposing Open, Close, Read, ReadPrevious, ReadByKey, Write, Rewrite, Delete, Start, SetKey, plus properties CurrentSlot, LastRecordLength, EndOfPage, and LastStatus. There is NO program-supplied key parameter; the key is the current value of the typed RECORD KEY or RELATIVE KEY field. The codec is a generated IRecordCodec exposing Serialize, Deserialize, PrimeKey, AlternateKey, FixedLength, MinLength, MaxLength, and CodeSet. Stores: the sequential connector uses a StreamReader or StreamWriter for line-sequential and a FileStream for record-sequential with a 4-byte little-endian length prefix for varying; the relative connector uses a sorted dictionary from int slot to byte image with 0xFF gaps; the indexed connector uses a sorted dictionary from CobolKey to byte image as the sole source of truth, with alternates derived on demand and an arrival map for duplicate ordering. The run-unit prologue emits one registration per SELECT plus AddAlternateKey calls. After each I/O verb the compiler stores the connector LastStatus into the FILE STATUS item then branches AT END or INVALID KEY on the first char (1 at-end, 2 invalid-key, 3 4 7 9 fatal to a USE declarative). READ INTO lowers to Read plus a typed group MOVE; WRITE FROM lowers to a typed MOVE plus Write; a sequential RELATIVE WRITE or READ NEXT MOVEs CurrentSlot back into the RELATIVE KEY field.
 
 ## Hard problems
@@ -85,12 +90,45 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - Indexed: ascending-order WRITE in ACCESS SEQUENTIAL gives 21 on a non-increasing key; a duplicate prime or alt-without-duplicates gives 22; alt-with-duplicates gives 02; START supports a generic partial or prefix key compare (14.9.41) and positions inclusively so the next READ NEXT returns the matched record.
 - READ INTO and WRITE FROM lower to the verb plus a typed group MOVE (receiving uses the MAX length for ODO records, the ST146A lesson).
 - Record length mismatch on READ (a fixed file whose physical record differs from the FD size) gives status 04; add for conformance since the legacy pads silently.
-- LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status 06 and 09 are deferred to M2.
+- LINE SEQUENTIAL: newline-framed, TrimEnd on WRITE, pad or truncate on READ, LastRecordLength is the line length; status 06 and 09 are deferred to the post-85 feature drive (`docs/ISO2023_CONFORMANCE_PLAN.md` catalog) — LINE SEQUENTIAL itself is not COBOL-85; see Per-edition gating.
 - CODE-SET translates only character (alphanumeric and DISPLAY-numeric digit) bytes, not COMP or COMP-3 binary fields (13.18.13); the default is the native ASCII set.
 - LINAGE: LINAGE-COUNTER, PAGE reset, page overflow (GR26a), footing-area end-of-page (GR26b); END-OF-PAGE phrases branch on the EndOfPage flag; an ADVANCING or LINAGE file is forced to line-oriented output.
 - On-disk framing: a fixed record-sequential file is contiguous; a variable sequential, relative, or indexed file uses a 4-byte little-endian length prefix; a sparse relative file uses 0xFF gaps.
 - DELETE FILE statement (14.9.10): delete the host path and reset the in-memory map; status 00, 05, or 35.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
+
+## Per-edition gating (G1 — four compilers in one `cobol.exe`)
+
+File I/O contains edition-varying constructs. Every edition-varying construct carries TWO co-equal obligations:
+(1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every
+edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Rows cite
+`docs/VERSION_CHANGE_REFERENCE.md`, the 130-row edition-change checklist (2002→2023 deltas ONLY — it has NO 85→2002
+rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_PLAN M2 catalog); the
+(construct × edition) cases land in the version test matrix (`docs/VERSION_TEST_MATRIX_DESIGN.md`, Phase 0 done).
+
+- **DELETE FILE (14.9.10 Format 2) is NEW in 2023** (rows 58/78; E.3.3 items 15/35): rejected with a
+  not-yet-introduced diagnostic under `--std` 85/2002/2014; its statuses 05/37/39/41/62 from DELETE FILE exist only
+  at 2023. (Format-1 record DELETE is 85.)
+- **READ PREVIOUS is not COBOL-85** (a 2002 introduction — derive from the 2002 standard): rejected at 85. Its
+  behavior ALSO changed 2014→2023 (row 29): READ PREVIOUS immediately after OPEN retrieves the first record at 2014
+  but raises the at-end condition at 2023 — the connector's read-position state machine must take the target
+  edition. FLAG-14 flags every READ PREVIOUS (row 108).
+- **ORGANIZATION LINE SEQUENTIAL is not a COBOL-85 organization**: rejected at 85. The exact introduction edition is
+  not derivable from the 2023 spec (no ledger row; the ledger has no 85→2002 row set) — derive it from the 2002
+  standard before gating.
+- **RECORD IS VARYING (13.18.43) is a 2002 introduction** (derive from the 2002 standard) — the 85 RECORD clause has
+  only the CONTAINS forms; at 85 the VARYING phrase is rejected and `RECORD CONTAINS m TO n` drives
+  `IsVaryingRecord`.
+- **Format-2 in-place table SORT (D6) is a 2002 introduction** (derive from the 2002 standard): rejected at 85
+  (file-format SORT is 85). Note also row 27: MERGE newly prohibited in another MERGE's output procedure / a
+  file-format SORT input-output procedure at 2023.
+- **OPTIONAL reach differs by edition** (85 restricts which organizations/open modes admit OPTIONAL; 2002 widens
+  it) — the edge-case table above states the 2023 behavior; derive and gate the 85 subset from the 1985 standard.
+- Gating lives in the BINDER off the ONE `DialectMode` (SSOT §14.11): a construct the target edition lacks never
+  reaches the bound tree (it is a `COBOLNET-` diagnostic); the connectors/codec implement the union of editions, and
+  per-edition BEHAVIOR variants (e.g. READ PREVIOUS after OPEN) are bound-tree/runtime-parameterized by edition,
+  never duplicated per backend. The NIST corpus compiles at `--std` 85 and is the 85 positive net; the
+  rejected-construct negative cases are version-test-matrix work, not NIST work.
 
 ## ISO citations
 
@@ -100,10 +138,16 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
 - Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.24 and 14.9.45 SORT and MERGE, 14.9.40 and 14.9.22 numeric-key value compare, 8.8.4.1.2 alphanumeric compare with shorter-operand space-extension, 14.6.6 USE declarative.
 
-## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
+## Open questions — RESOLVED (`COBOLNET_DESIGN.md` §15 #3 + §18, owner-confirmed 2026-06-08)
 
-- Q6 cross-subsystem foundational: the task brief locks fixed-point to an unscaled long or Int128 (no decimal), but the committed PicInfo.cs and COBOLNET_ARCHITECTURE.md map scaled and COMP-3 to decimal. These conflict today. The files codec is designed to the lock; the owner must reconcile the numeric substrate in G2. If decimal wins the codec adapts trivially, but the brief and the code disagree.
+> Status of each: **Q6** — settled, native `long`/`Int128` (see below). **Q7** — settled by §18 #1: a `byte[]` is
+> sanctioned ONLY at the external-medium boundary, serialized via `IRecordCodec`; the connector's confined byte-image
+> payload IS that boundary, and the all-typed store remains a one-line flip. **Q1/Q2** — stand as the owner-reviewed
+> mechanical defaults (SSOT §15 #3 Q-file-1/-3): internal framed format + in-memory load/flush for v1, a pluggable
+> file-format provider / on-disk backend later. **Q4/Q5** — see the edge-case notes above.
+
+- Q6 cross-subsystem foundational — **RESOLVED** (`COBOLNET_DESIGN.md` §18 #2/#3/#19/#22, owner-confirmed 2026-06-08): the numeric substrate is native unscaled `long` (≤18 digits) / `Int128` (19–38 digits), never `decimal`; `COBOLNET_ARCHITECTURE.md`'s decimal rows were corrected in the same change set. The files codec is designed to exactly that lock — no conflict remains.
 - Q7: the relative and indexed connector holds the file on-disk image as a byte array per record in memory (payload only; deserialized to the typed record only on hand-back; ordering by the typed CobolKey). This is the exact spot the owner objected to for program data. Accept the legitimate-confined-file-bytes framing, or switch to an all-typed sorted-dictionary-of-typed-records store? Lean: byte-image payload; a one-line flip if the owner prefers all-typed.
 - Q1: the on-disk format for relative, indexed, and variable-sequential files is an internal framed convention (4-byte little-endian prefix, 0xFF gaps), not a standard interchange format. Keep for v1, or does commercial quality demand an interoperable format such as a real ISAM or GnuCOBOL-compatible layout? Recommendation: keep plus add a pluggable file-format provider later.
 - Q2: indexed and relative persistence loads the whole file into memory on OPEN and flushes on CLOSE, fine for batch and NIST but not for multi-gigabyte files. Scope v1 to in-memory plus a later pluggable on-disk B-plus-tree or SQLite-backed backend?
-- Q4 and Q5 minor: implement LINE SEQUENTIAL status 06 and 09 now or defer to the M2 conformance pass? Confirm SAME AREA buffer-only and SAME SORT-MERGE AREA are acceptable no-ops in a managed runtime.
+- Q4 and Q5 minor: implement LINE SEQUENTIAL status 06 and 09 now or defer them to the post-85 feature drive (`docs/ISO2023_CONFORMANCE_PLAN.md`)? Confirm SAME AREA buffer-only and SAME SORT-MERGE AREA are acceptable no-ops in a managed runtime.

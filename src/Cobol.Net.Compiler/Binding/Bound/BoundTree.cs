@@ -172,6 +172,16 @@ public sealed record PerformTimes(BoundOperand Count) : BoundPerformControl;
 /// <summary>Run the body until <paramref name="Until"/> (TEST BEFORE → while; <paramref name="TestAfter"/> → do/while).</summary>
 public sealed record PerformUntil(BoundCondition Until, bool TestAfter) : BoundPerformControl;
 
+/// <summary>One VARYING/AFTER level of a PERFORM Format 4 (ISO §14.9.28): the induction variable (an index-name or
+/// data item — SET-style target), its FROM initialization, BY augment (1 when the phrase is omitted, GR12), and
+/// UNTIL condition. FROM/BY stay EXPRESSIONS — they are re-evaluated at every setting/augmenting operation and the
+/// conditions at every test (GR12 item identification; changes inside the body have immediate effect).</summary>
+public sealed record VaryingLevel(BoundSetTarget Var, BoundExpr From, BoundExpr By, BoundCondition Until);
+
+/// <summary><c>PERFORM … VARYING v FROM f BY b UNTIL c [AFTER …]…</c> (ISO §14.9.28 Format 4, GR13): nested
+/// induction loops, leftmost level outermost.</summary>
+public sealed record PerformVarying(IReadOnlyList<VaryingLevel> Levels, bool TestAfter) : BoundPerformControl;
+
 /// <summary>An inline <c>PERFORM … END-PERFORM</c> (a real loop over a bound body).</summary>
 public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyList<BoundStatement> Body) : BoundStatement;
 

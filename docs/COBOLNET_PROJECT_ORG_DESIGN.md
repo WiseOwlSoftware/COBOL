@@ -3,13 +3,13 @@
 > **Status: LIVE / authoritative.** The rename to Cobol.NET / cobol.exe, target solution/folder/namespace
 > layout, front-end extraction, no-god-class discipline, and C# 14 usage. Condensed view: `COBOLNET_DESIGN.md` §17.
 
-All confirmed. Four projects reference `CobolSharp.Compiler.csproj` (the new CobolNet, legacy CLI, and both test projects) — these are the exact repoint targets. Five scripts reference CobolSharp paths. I have full decision-completeness now. Writing the design section as my final deliverable.
+> **Execution status (2026-06-10): G0 EXECUTED.** The §1.1 project set, the front-end extraction (§1.4), and §1.5 steps 1–5 are done — `src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}` and `tests/Cobol.Net.Tests.{Unit,Conformance}` exist and are green. Outstanding: the G8 namespace big-bang + legacy deletion (§1.5 step 6). Where the as-built layout diverges from the plan below, the as-built notes in §1.2 / §2 / §2.2 govern.
 
 ---
 
-# Project Organization & Code-Structure Plan (→ `docs/COBOLNET_DESIGN.md`)
+# Project Organization & Code-Structure (deep-dive; condensed copy lives in `COBOLNET_DESIGN.md` §17)
 
-> Scope of this section: the target solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 10 usage guidelines. It expands `COBOLNET_ARCHITECTURE.md` §5 (which currently sketches the layout in three bullets) into the decision-complete plan. Implementation is tracked as task **G0** (do before G2 grows `CSharpEmitter` into a god class; the rename half can land at **G8** cut-over).
+> Scope of this section: the target solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 10 usage guidelines. It expands `COBOLNET_ARCHITECTURE.md` §5 (which currently sketches the layout in three bullets) into the decision-complete plan. Implementation: **G0 is DONE** (the layout below is as-built; `CSharpEmitter` was decomposed before G2 grew it); the namespace-rename + legacy-deletion half lands at **G8** cut-over.
 
 ## A. Findings that drive every decision below
 
@@ -29,11 +29,11 @@ These were verified against the live tree (2026-06-08), not assumed:
 | # | Project (assembly) | Kind | `RootNamespace` | `AssemblyName` | Purpose |
 |---|---|---|---|---|---|
 | P1 | **`Cobol.Net.Frontend`** | library | `CobolNet.Frontend` | `Cobol.Net.Frontend` | Preprocessor + ANTLR lexer/parser + parse-tree + diagnostics. Extracted from `CobolSharp.Compiler`. The single front-end for both the new compiler and (until G8) the legacy oracle. |
-| P2 | **`Cobol.Net.Compiler`** | library | `CobolNet` | `Cobol.Net.Compiler` | Bind → lower → emit C# → Roslyn backend. The compiler proper, minus the CLI shell. |
+| P2 | **`Cobol.Net.Compiler`** | library | `CobolNet` | `Cobol.Net.Compiler` | Bind → backend-neutral bound tree → `ICodeGenBackend` (`--backend roslyn\|cil`: RoslynBackend = primary/v1 C# source; CilBackend = future-additive, with its OWN private structure→branch lowering — NO shared lowered IR). The compiler proper, minus the CLI shell. |
 | P3 | **`Cobol.Net.Cli`** | exe | `CobolNet.Cli` | **`cobol`** | Thin command-line driver (`Main`, arg parsing, file orchestration). Produces **`cobol.exe`**. |
 | P4 | **`Cobol.Net.Runtime`** | library | `CobolNet.Runtime` | `Cobol.Net.Runtime` | The typed-native runtime the *generated* programs call (`CobolNum`, `CobolString`, `NumProfile`, `ManagedPointer`, file/format helpers). |
 | T1 | **`Cobol.Net.Tests.Unit`** | xUnit | `CobolNet.Tests.Unit` | — | Unit tests for the new compiler + runtime. |
-| T2 | **`Cobol.Net.Tests.Conformance`** | xUnit | `CobolNet.Tests.Conformance` | — | NIST + post-85 conformance corpus, run against the new compiler. |
+| T2 | **`Cobol.Net.Tests.Conformance`** | xUnit | `CobolNet.Tests.Conformance` | — | NIST + post-85 conformance corpus + the differential harness + the VERSION TEST MATRIX (`VersionMatrixTests` — the compiler exercised as four per-edition compilers per `docs/VERSION_TEST_MATRIX_DESIGN.md`), run against the new compiler. |
 
 **Decision — name form.** Assembly/package/folder names use the dotted product brand **`Cobol.Net.*`** (reads as the product "COBOL.NET"); **root namespaces stay the single token `CobolNet`** (e.g. `CobolNet.Frontend`, `CobolNet.CodeGen`). Rationale: dotted `Cobol.Net.*` is the marketing/NuGet identity; `CobolNet` as the namespace root avoids a clash with the `.Net`/`System.Net` reading and keeps `using CobolNet.CodeGen;` clean. One rule, applied consistently. (Owner may prefer `Cobol.Net` namespaces too — trivially flippable since it is just the `<RootNamespace>` value; not load-bearing.)
 
@@ -59,12 +59,17 @@ src/Cobol.Net.Frontend/
 
 src/Cobol.Net.Compiler/
   Cobol.Net.Compiler.csproj
-  Binding/         DataItem.cs, DataBinder.cs, PicInfo.cs, (later: FileBinder, LinkageBinder, OoBinder, ConditionNameBinder)
-  Lowering/        (G3/G4: the C#-oriented model — control-flow normalization, CORR expansion, etc.; mirrors legacy Lowering/)
-  Emit/            EmissionContext.cs, CSharpProgramEmitter.cs, + one emitter per statement-family (see §2)
-    Numerics/      NumericExprRenderer.cs (the NumX machinery), ScaleMath.cs
-    Conditions/    ConditionRenderer.cs, ComparisonRenderer.cs
-  CodeGen/         CodeWriter.cs, RoslynBackend.cs, ReferenceAssemblies.cs, RuntimeConfigWriter.cs
+  Binding/         DataItem.cs, DataBinder.cs, PicInfo.cs, Place.cs, ReferenceResolver.cs, Condition88.cs, FileModel.cs,
+                   OptionsBinder.cs, OptionsModel.cs, RedefinesModel.cs, RoundingModes.cs   (as-built)
+    Bound/         BoundTree.cs, StatementBinder.cs — the backend-neutral bound tree. ALL semantics bind here; there is
+                   NO shared lowered IR (COBOLNET_DESIGN §1.1) — any structure→branch lowering is PRIVATE to a backend.
+  CodeGen/Emit/    (as-built) EmitCore.cs (the `EmissionContext`), FieldEmitter.cs, NumericRenderer.cs (the NumX
+                   machinery), ConditionRenderer.cs, OperandText.cs — grow toward one emitter file per
+                   statement-family as verb families are added (see §2)
+  CodeGen/         The `ICodeGenBackend` seam (G4): RoslynBackend.cs (primary — C# source), CSharpEmitter.cs
+                   (bound-tree orchestrator), CodeWriter.cs; ReferenceAssemblies/RuntimeConfigWriter factor out as they
+                   grow. The future-additive CilBackend (Mono.Cecil, its OWN private structure→branch lowering) slots
+                   in beside Roslyn here, behind the same interface (COBOLNET_DESIGN §1.1/§18.23).
   CompilerDriver.cs                  (the library entry: source path → result; what Program.Main calls)
 
 src/Cobol.Net.Cli/
@@ -129,13 +134,13 @@ Each step is a self-contained commit; `dotnet build CobolSharp.sln` (and the gua
 **Step 4 — Add the new test projects.** Create `tests/Cobol.Net.Tests.Unit` + `tests/Cobol.Net.Tests.Conformance`, referencing the new compiler library + the in-place `tests/nist`/`tests/conformance` corpus; add `InternalsVisibleTo`. Legacy test projects untouched (still guarding the oracle). ✅
 
 **Step 5 — Solution / scripts / CI / props (one commit).**
-- Rename `CobolSharp.sln` → `Cobol.Net.sln` (or keep the filename and just update entries — owner taste; recommend rename for brand consistency).
+- `CobolSharp.sln`: as executed the filename was KEPT (entries updated in place); the `Cobol.Net.sln` brand rename remains an owner-taste option, best bundled with the G8 big-bang.
 - Update the **five** scripts that hardcode paths: `scripts/guard.sh`, `guard-fast.sh`, `guard-run-group.sh`, `nist-batch.sh`, `run-suite.sh` (the `.sln` name and any `src/CobolNet*`/`CobolSharp.*` project paths and the runtime-DLL copy target).
 - Update CI `.github/workflows/build-and-test.yml` (it hardcodes `CobolSharp.sln` and the two `tests/CobolSharp.Tests.*` paths) in this same commit so CI tracks the rename.
 - `Directory.Build.props` / `Directory.Packages.props` need **no functional change** (TFM/lang/central-versions are name-agnostic); confirm the package-id list still covers `Antlr4.Runtime.Standard`, `Microsoft.CodeAnalysis.CSharp`, the test packages. (`Mono.Cecil` becomes legacy-only; keep its `PackageVersion` until G8.)
 - Full guard green. ✅
 
-**Step 6 — (at G8, not G0) Namespace big-bang + legacy deletion.** Delete `CobolSharp.Compiler` (`Semantics`/`IR`/`CodeGen`/`FlowAnalysis`/`Compilation*`), `CobolSharp.Runtime`, `CobolSharp.CLI`, and the legacy test projects. Rename `CobolSharp.Compiler.* → CobolNet.Frontend.*` across the surviving Frontend files + the new compiler's `using`s (one search-replace, now small because only the new compiler consumes it). Drop the `Mono.Cecil` `PackageVersion`. Update the generation script's emitted namespace. Final guard green. ✅
+**Step 6 — (at G8, not G0) Namespace big-bang + legacy deletion.** Delete `CobolSharp.Compiler` (`Semantics`/`IR`/`CodeGen`/`FlowAnalysis`/`Compilation*`), `CobolSharp.Runtime`, `CobolSharp.CLI`, and the legacy test projects. Rename `CobolSharp.Compiler.* → CobolNet.Frontend.*` across the surviving Frontend files + the new compiler's `using`s (one search-replace, now small because only the new compiler consumes it). Drop the `Mono.Cecil` `PackageVersion` (it returns only as the future-additive `CilBackend`'s IL writer, if/when that backend lands — COBOLNET_DESIGN §18.23). Update the generation script's emitted namespace. Final guard green. ✅
 
 > **`.sln` / config implications, summarized:** central package management means every new `.csproj` `PackageReference` is **version-less**; `Directory.Build.props` is the single TFM/lang/nullable/warnings-as-errors source — projects never re-declare those; the `.sln`, the 5 scripts, and the CI YAML are the only places project/solution *paths* are hardcoded and must move in lockstep (Step 5).
 
@@ -143,18 +148,24 @@ Each step is a self-contained commit; `dotnet build CobolSharp.sln` (and the gua
 
 ## 2. No god classes — structural discipline
 
-The legacy `CilEmitter` reached 2600 lines before being split into 11 `Cil*Emitter`s sharing an `EmissionContext`. `CSharpEmitter.cs` is already ~790 lines and growing (display + move + add/subtract/multiply/divide/compute + if + perform + conditions + the whole `NumX` numeric renderer + reference resolution). **Decompose it now, in G0, before G2/G3 push it past 1000 lines** — the proven legacy shape is the template, applied pre-emptively rather than as rescue surgery.
+The legacy `CilEmitter` reached 2600 lines before being split into 11 `Cil*Emitter`s sharing an `EmissionContext`. `CSharpEmitter.cs` is already ~790 lines and growing (display + move + add/subtract/multiply/divide/compute + if + perform + conditions + the whole `NumX` numeric renderer + reference resolution). **Decomposed in G0, before G2/G3 pushed it past 1000 lines** — the proven legacy shape as the template, applied pre-emptively rather than as rescue surgery. As-built (2026-06-10): `CodeGen/CSharpEmitter.cs` is the ~620-line bound-tree orchestrator over `CodeGen/Emit/{EmitCore (the EmissionContext), FieldEmitter, NumericRenderer, ConditionRenderer, OperandText}`; continue the one-file-per-statement-family split as verb families are added.
 
 ### 2.1 Rules (non-negotiable, in PROMPT.md spirit)
 
 1. **Shared state lives in a context object, never a mega-class.** An `EmissionContext` (the `CodeWriter`, the `DataBinder`, the paragraph table, the division working-scale `_targetScale`, the dialect level) is passed to every emitter. Emitters are stateless-but-for-the-context cooperating units — exactly the legacy `EmissionContext`/`LoweringContext` pattern that already works here.
 2. **One file per statement-family emitter.** A verb family = a file. Adding a verb = a method in its family's emitter (or a new file for a new family), never a new branch threaded into a shared switch in a 2000-line file.
-3. **Respect the bind → lower → emit boundary** (and `feedback_binder_no_ir`): the **binder** produces the typed model (`DataItem`/`PicInfo`) and resolves references; **lowering** (G3/G4) normalizes hard COBOL shapes (CORR expansion, control-flow flattening) into a C#-friendly form; **emit** turns that into C# text. An emitter must not re-discover semantics the binder owns (e.g. category compatibility), and the binder must not emit text.
+3. **Respect the bind → emit boundary** (and `feedback_binder_no_ir`): the **binder** produces the backend-neutral bound tree (`BoundProgram`, `DataItem`/`PicInfo`, `Place`) and resolves ALL references and semantics; **emit** is a backend behind `ICodeGenBackend` that only RENDERS the bound tree — there is NO shared lowering phase; any structure→branch lowering (e.g. for the future CIL backend) is PRIVATE to that backend (COBOLNET_DESIGN §1.1). An emitter must not re-discover semantics the binder owns (e.g. category compatibility), bound nodes must not carry pre-rendered C#-specific fragments where a structured form is feasible, and the binder must not emit text.
 4. **Dispatch generically, refactor-first** (`feedback_refactor_first_always`): the statement dispatcher routes by node type to the owning emitter; you never add per-caller if-else chains. New variant ⇒ extend the dispatch table, not each call site.
 5. **Size is a *smell*, not the law — SRP is the law.** Heuristic thresholds: a class > ~400 lines or a method > ~60 lines triggers a "does this have one responsibility?" review. *But note `CilDataEmitter.cs` is 44 KB even after the split* — data is intrinsically broad; the test is cohesion, not line count. A 500-line class with one job is fine; a 200-line class doing two jobs is not.
 6. **Runtime split by concern** (already followed): `Numeric/`, `Text/`, `Control/`, `Pointers/`, `Files/` — never a `CobolRuntime` god class.
+7. **Edition gating is structural (G1 — four compilers in one executable).** `--std 85|2002|2014|2023` (default 2023) is parsed in `Cobol.Net.Cli`, flows as the dialect level through the binder and `EmissionContext`, and every edition-varying construct carries BOTH obligations in code: the per-edition spec behavior AND the correct diagnostic in every edition that lacks the construct (not-yet-introduced or removed — `docs/VERSION_CHANGE_REFERENCE.md` is the checklist). No binder/emitter hard-codes a single edition's semantics, and no edition check is an ad-hoc comparison scattered per call site — gate through the one canonical dialect-level carrier.
 
 ### 2.2 Concrete decomposition of `CSharpEmitter` (the class list)
+
+> **As-built note (2026-06-10):** the table below is the pre-G0 template. The split landed with dispatch over **bound
+> nodes** (`BoundDisplay`, `BoundMove`, … from `Binding/Bound/BoundTree.cs`), NOT the parse-tree `*Context` types shown
+> in the "Lifted from" column — the bound tree (G1 milestone) landed first and obsoleted parse-context emitters (G4:
+> emitters only render the bound tree). Use the table for the target file granularity, not for method signatures.
 
 | New class (file) | Responsibility | Lifted from current `CSharpEmitter` |
 |---|---|---|
@@ -178,7 +189,11 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `DataRefs`
 
 ---
 
-## 3. C# 14 / .NET 10 feature usage guideline
+## 3. C# 14+ / .NET 10+ feature usage guideline
+
+> Toolchain floor: .NET 10 / C# 14 — **or later**. Upgrading (e.g. .NET 11, currently in preview) is pre-authorized
+> whenever newer features make the compiler clearer, safer, or more productive; the TFM/lang live in exactly one place
+> (`Directory.Build.props`), so the flip is a one-line change.
 
 **Principle: readability and correctness first, not feature golf.** A modern feature earns its place only when it makes the *emitter* code clearer or safer. Examples below are drawn from constructs already in this codebase.
 
@@ -226,9 +241,9 @@ internal sealed class ArithmeticEmitter(EmissionContext ctx)   // GOOD: collabor
 
 ---
 
-## Notes for the parent (assembling `COBOLNET_DESIGN.md`)
+## Historical assembly notes (reconciled 2026-06-10 — kept for provenance)
 
 - This section is the **Project Organization & Code-Structure** chapter; it expands `COBOLNET_ARCHITECTURE.md` **§5** (currently 3 bullets) — add a cross-link there pointing to this doc, and keep ARCHITECTURE's roadmap (G1–G8) authoritative for *feature* sequencing while this doc owns the *structure* sequencing (the new G0).
-- **`docs/DOC_INDEX.md` needs a new row** for `docs/COBOLNET_DESIGN.md` (type: DESIGN/LIVE, subject: COBOL.NET project organization + code structure + C# guidelines).
+- ~~`docs/DOC_INDEX.md` needs a new row for `docs/COBOLNET_DESIGN.md`~~ DONE — the index carries rows for the SSOT and for this doc.
 - Two owner-level decisions are taste calls flagged inline, defaulted but trivially flippable: (a) root namespace `CobolNet` vs `Cobol.Net` (I default to single-token `CobolNet`); (b) rename `.sln` file vs keep filename (I default to rename for brand consistency).
 - Relevant absolute paths: compiler `E:\CobolSharp\src\CobolNet\CodeGen\CSharpEmitter.cs` (the decomposition target), `E:\CobolSharp\src\CobolNet\Program.cs` (the P2/P3 split source); front-end extraction set under `E:\CobolSharp\src\CobolSharp.Compiler\{Parsing,Preprocessor,Diagnostics,Common,Generated,Grammar,ANTLR4}\`; the architecture doc `E:\CobolSharp\docs\COBOLNET_ARCHITECTURE.md`; consumers to repoint = the 4 `.csproj` referencing `CobolSharp.Compiler.csproj` + 5 scripts under `E:\CobolSharp\scripts\` + `E:\CobolSharp\.github\workflows\build-and-test.yml`.

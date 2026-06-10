@@ -181,14 +181,18 @@ public sealed class ReferenceResolver(DataBinder data)
         int occursLevels = chain.Count(n => n.Occurs is not null);
         if (occursLevels != indexExprs.Count) return null;   // wrong number of subscripts
 
-        var sb = new System.Text.StringBuilder();
+        string path = "";
         int si = 0;
         foreach (var seg in chain)
         {
-            sb.Append(sb.Length == 0 ? seg.CsName : "." + seg.CsName);
-            if (seg.Occurs is not null) sb.Append($"[{indexExprs[si++]} - 1]");
+            path += path.Length == 0 ? seg.CsName : "." + seg.CsName;
+            // Every subscripted access routes through the ref-returning CobolTable.At (ISO §8.4.2.3.4 GR2):
+            // an out-of-range occurrence number continues benignly with subscript checking off (the COBOL-85
+            // semantics — conditions and FAIL paths legally evaluate one-past-the-end references, e.g. an
+            // induction variable after its UNTIL went true), instead of a raw CLR IndexOutOfRangeException.
+            if (seg.Occurs is not null) path = $"CobolTable.At({path}, {indexExprs[si++]})";
         }
-        return sb.ToString();
+        return path;
     }
 
     // ── Subscript interpretation (the flat SUBSCRIPT-mode token stream) ──────────────────────────────────

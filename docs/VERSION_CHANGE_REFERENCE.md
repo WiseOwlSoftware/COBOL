@@ -2,11 +2,11 @@
 
 > **STATUS BANNER — LIVE reference (type: LEDGER / REFERENCE).**
 >
-> **Purpose.** This document is the **version-gating checklist** for the CobolSharp / COBOL.NET compiler. It
+> **Purpose.** This document is the **version-gating checklist** for the COBOL.NET compiler (`cobol.exe`, the greenfield `src/Cobol.Net.*` — the legacy `CobolSharp.*` oracle is reference-only). It
 > catalogues every edition-to-edition change of standard COBOL documented in the ISO/IEC 1989:2023 spec
 > (`specs/ISO_COBOL.md`) so that the compiler can drive **correct version-gating**:
 > - every **behavior** that changed across editions must be gated by the targeted standard via
->   `DialectLevel` / `--standard` (cite [[feedback_version_targeted_semantics]]);
+>   `DialectLevel` / `--std` (cite [[feedback_version_targeted_semantics]]);
 > - **new features** are enabled only at `>=` their introducing edition;
 > - **obsolete / archaic** elements are flagged (and, where the spec schedules removal, gated off in newer dialects).
 >
@@ -17,7 +17,7 @@
 > **full** change lists live in the ISO/IEC 1989:2002 and ISO/IEC 1989:2014 standards themselves. Rows whose
 > `Edition delta` is **2002→2014** (the FLAG-02 GR4 rows) are therefore marked:
 > **"delta under-documented in the 2023 spec; confirm against the older standard before gating."**
-> There is **no 85→2002 row set here at all** — when gating an 85↔2002 difference, derive it from the 2002 standard, not from this file.
+> There is **no 85→2002 row set here at all** — when gating an 85↔2002 difference, derive it from the 2002 standard, not from this file. **Gap-closure plan (the four-compilers-in-one mission needs the full deltas):** for *new-feature introduction* gating at the 85/2002 and 2002/2014 boundaries, use the post-85 feature catalog in `docs/ISO2023_CONFORMANCE_PLAN.md` (M2/M3/M4) plus the version test matrix's `introducedIn` tags (`docs/VERSION_TEST_MATRIX_DESIGN.md`); for *behavior changes* across those boundaries, extending THIS ledger with 85→2002 and 2002→2014 row sets sourced from the ISO/IEC 1989:2002 and 1989:2014 standards is planned follow-on work — add the rows here (one canonical ledger, never a fork) as each delta is researched.
 
 ---
 
@@ -27,14 +27,18 @@ When implementing or auditing a feature:
 
 1. **Find its row(s) here** by feature name / § / category.
 2. **If `Old → New behavior` shows a behavior change**, gate it by `DialectLevel` (cite
-   [[feedback_version_targeted_semantics]]): emit the older behavior when `--standard` targets the older edition and
+   [[feedback_version_targeted_semantics]]): emit the older behavior when `--std` targets the older edition and
    the newer behavior at `>=` the introducing edition. Do **not** hard-code a single behavior across all dialects.
 3. **New features** (`category: new-feature` / `new-reserved-word` / most `syntax-change`): enable / reserve only at
    `>=` the introducing edition. A word newly reserved in 2023 must still be usable as a user-defined word when the
-   target is an older dialect.
+   target is an older dialect. **Co-equal G1 obligation:** in every edition that LACKS the feature, the compiler must
+   emit a **specific diagnostic** naming the construct and the edition that introduces it (e.g. "DELETE FILE requires
+   --std 2023 or later") — never a generic parse error, never a silent mis-parse. The wrong-edition diagnostic ships
+   in the SAME change set as the feature itself.
 4. **Obsolete / archaic** (`category: obsolete` / `archaic`): flag in the dialect where the spec designates it
-   archaic/obsolete; where the spec schedules removal, gate the element **off** (or error) in still-newer dialects per
-   the row's note.
+   archaic/obsolete; where the spec documents removal by a later edition, **reject the element at `>=` that edition
+   with a specific diagnostic** naming the construct and the edition that removed it, per the row's note — accepting a
+   removed construct silently, or rejecting it with a generic parse error, fails G1's co-equal diagnostic obligation.
 5. **Pin-to-spec ONLY where a difference is a version-INVARIANT legacy bug** — i.e., the legacy oracle is wrong in
    *every* edition, so the spec behavior is correct for all dialects and no gating is needed. **Record that
    determination** (DEVLOG + flip Status here to `done (pin-to-spec)`). Do not pin-to-spec to dodge a genuine
@@ -174,8 +178,8 @@ all dialects.
 
 | # | Change (title) | § | Edition delta | Old → New behavior | Affects existing? | Compiler gating action | Status |
 |---|---|---|---|---|---|---|---|
-| 89 | EXIT PROGRAM statement designated archaic | §F.1 item 1 (cf. §14.9.20 EXIT Program format NOTE @27372) | archaic-in-2023 (remains supported; superseded by GOBACK + MODULE-NAME intrinsic) | **Old:** ordinary statement — in a subprogram returns to caller (like GOBACK); in a main program acts like CONTINUE. **New:** archaic, discouraged; GOBACK + MODULE-NAME provide its features; no removal schedule but may cause future compiler errors. | Yes | flag-obsolete (flag as archaic) | TODO |
-| 90 | NEXT SENTENCE phrase in IF and SEARCH designated archaic | §F.1 item 2 (IF §14.9.21; SEARCH §14.9.41; NOTES @27792, 30804, 30829) | archaic-in-2023 (remains supported; CONTINUE + scope delimiters preferred) | **Old:** transfers control to the statement after the next separator period. **New:** archaic, discouraged (confusing in delimited-scope statements, error-prone with stray periods); CONTINUE + scope delimiters are clearer; no removal schedule. | Yes | flag-obsolete (flag as archaic) | TODO |
+| 89 | EXIT PROGRAM statement designated archaic | §F.1 item 1 (cf. §14.9.14 EXIT Program format NOTE @27372) | archaic-in-2023 (remains supported; superseded by GOBACK + MODULE-NAME intrinsic) | **Old:** ordinary statement — in a subprogram returns to caller (like GOBACK); in a main program acts like CONTINUE. **New:** archaic, discouraged; GOBACK + MODULE-NAME provide its features; no removal schedule but may cause future compiler errors. | Yes | flag-obsolete (flag as archaic) | TODO |
+| 90 | NEXT SENTENCE phrase in IF and SEARCH designated archaic | §F.1 item 2 (IF §14.9.19; SEARCH §14.9.37; NOTES @27792, 30804, 30829) | archaic-in-2023 (remains supported; CONTINUE + scope delimiters preferred) | **Old:** transfers control to the statement after the next separator period. **New:** archaic, discouraged (confusing in delimited-scope statements, error-prone with stray periods); CONTINUE + scope delimiters are clearer; no removal schedule. | Yes | flag-obsolete (flag as archaic) | TODO |
 | 91 | FLAG-02 compiler directive designated obsolete | §F.2 item 1 (defined §7.3.14.1, NOTE @4366) | obsolete-in-2023 (FLAG-02 flagged 2002↔2014; superseded by FLAG-14) | **Old:** FLAG-02 flagged 2002↔2014 incompatibilities. **New:** obsolete, scheduled for removal next edition (FLAG-14 flags 2014↔2023); a conforming 2023 impl must still support but should flag use. | Yes | flag-obsolete | TODO |
 | 92 | MOVE of ALL "literal" / ALL symbolic-character (digits only) to integer numeric items designated obsolete | §F.2 item 2 (MOVE §14.9.25; GR5 + NOTE @28811-28813) | obsolete-in-2023 (the surviving digit-only ALL→integer MOVE now scheduled for removal) | **Old:** moving a digit-only ALL figurative constant to an integer numeric item was permitted. **New:** obsolete, to be removed next edition; use ZERO, HIGHEST-/LOWEST-ALGEBRAIC, or a numeric literal instead; 2023 impl must support but flag. | Yes | flag-obsolete | TODO |
 | 93 | STANDARD-BINARY arithmetic and STANDARD BINARY Intermediate Data Item designated obsolete | §F.2 item 3 (ARITHMETIC STANDARD-BINARY §8.8.x; NOTES @9086, 9099, 13404, 45853, 46001, 40076) | obsolete-in-2023 (reevaluation deferred to next revision before removal) | **Old:** STANDARD-BINARY mode and SBIDI were specified arithmetic facilities. **New:** obsolete (never implemented; no interest); reevaluated next revision before any removal; impls claiming support must support but flag. | Yes | flag-obsolete | TODO |

@@ -8,8 +8,9 @@
 > overview) and supersedes any contradicting statement in it (notably the §3 `decimal` rows — see §3.1 below).
 >
 > **Project:** COBOL.NET — a greenfield compiler translating COBOL → idiomatic, typed-native **C# source**, compiled
-> by **Roslyn**. New compiler in `src/CobolNet` (+ `src/CobolNet.Runtime`). It reuses ONLY the front-end (ANTLR
-> lexer/parser/preprocessor) from `src/CobolSharp.Compiler`; the legacy byte-array implementation is rejected, kept
+> by **Roslyn**. New compiler in `src/Cobol.Net.Compiler` + `src/Cobol.Net.Cli` (exe `cobol`) + `src/Cobol.Net.Runtime`;
+> the reused front-end (ANTLR lexer/parser/preprocessor) is extracted into `src/Cobol.Net.Frontend` (§17/G0 — DONE;
+> namespaces stay `CobolSharp.Compiler.*` until G8). The legacy byte-array implementation is rejected, kept
 > only as a differential **behavioral oracle** (it passes 364 NIST tests) until cut-over (G8).
 
 ---
@@ -24,6 +25,8 @@
 - **§15** Consolidated OWNER-LEVEL open questions (deduped; the task-named ones verbatim).
 - **§16** Dependency-ordered implementation sequence (G1–G8), each step NIST-testable, with the cross-design
   prerequisites surfaced.
+- **§17** Project organization / rename / structural discipline (the G0 plan — executed).
+- **§18** Settled decisions (the §15 questions, owner-resolved 2026-06-08).
 
 ---
 
@@ -108,8 +111,11 @@ other, not just against the legacy oracle.
 
 ### 1.3 Two universal abstractions (the spine of internal consistency — see §14.1, §14.2)
 
-- **`Place`** — the ONE typed-lvalue model. `Place.Read()` → a C# rvalue expression; `Place.Write(rhs)` → a C#
-  store statement. Built once by `ReferenceResolver`. Consumed identically by MOVE, arithmetic, INSPECT/STRING/
+- **`Place`** — the ONE typed-lvalue model. `Place.Read()`/`Place.Write(rhs)` are the ROSLYN backend's RENDERING of a
+  backend-neutral structural resolution (item + member-accessor chain + subscript expressions + ref-mod span + 88
+  value-set) — the structure, not C# text, is the bound-tree contract (G4: bound nodes carry no pre-rendered
+  C#-specific fragments; the CIL backend lowers the same structure to load/store sequences). Built once by
+  `ReferenceResolver`. Consumed identically by MOVE, arithmetic, INSPECT/STRING/
   UNSTRING, file READ INTO / WRITE FROM, and CALL-by-reference. There is no second lvalue type.
 - **The PC dispatcher** — one `Dispatch(int startPc, int exitPc)` method per program unit; STOP RUN and GOBACK are
   the only control transfers that use exceptions (everything else is integer-pc).
@@ -149,7 +155,14 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   the proven `guard-fast` parallelism; run each program in an ISOLATED working dir (file producer/consumer chains).
 - **One typed `DialectMode` enum** (`Cobol85/2002/2014/2023`) threaded CLI → Frontend (grammar admit/reject via
   `{isXXXX()}?` gates) → Binder (semantic gating AND flagging). Keep the legacy two-axis (version × strictness) model.
-- **Deploy:** fixed `net10.0` TFM (owner directive — not `Environment.Version`-by-luck); one ConsoleApplication
+  Default `--std` = COBOL-2023; `--nist` without an explicit `--std` targets 85. ⛔ Per-edition gating is a co-equal
+  obligation: each construct must compile + behave per the spec in every edition that HAS it AND draw the correct
+  diagnostic in every edition that LACKS it (not-yet-introduced or removed) — driven by
+  `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) and validated by
+  `docs/VERSION_TEST_MATRIX_DESIGN.md` (the construct × edition matrix).
+- **Deploy:** fixed TFM from `Directory.Build.props` — `net10.0` today, with a **.NET 11 upgrade pre-authorized**
+  when its features make the goals easier/more productive (owner, 2026-06-10); never `Environment.Version`-by-luck;
+  one ConsoleApplication
   assembly per compilation (the run-unit); emit a PDB mapped to the `.g.cs`; write `.g.cs` next to the assembly.
 
 **Hard problems** are all control-flow/data and live in §5/§3. Pipeline-level: disable nullable + suppress unused-var
@@ -189,7 +202,9 @@ Member access falls straight out: `VAL OF ITEMS(2) OF WS-REC` → `WsRec.Items[2
 ### 3.3 The `Place` abstraction (the universal lvalue — §14.1)
 
 ```csharp
-abstract record Place { abstract string Read(); abstract string Write(string rhs); PicInfo Pic; }
+abstract record Place { DataItem Item; PicInfo Pic; /* structural core: accessor chain, subscripts, ref-mod */ }
+// G4 note: the string Read()/Write(rhs) shown below are the RoslynBackend's RENDERING of this structure (C# text);
+// the CIL backend lowers the SAME structural Place to load/store sequences — no C# fragments live in bound nodes.
 // MemberPlace(path)        Read = path                Write = $"{path} = {rhs};"
 // RefModPlace(inner,s,l)   Read = CobolString.RefMod(inner.Read(), s, l)
 //                          Write = { var t=inner.Read(); inner.Write(CobolString.SpliceInto(t,s,l,rhs)); }
@@ -909,7 +924,7 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 
 ---
 
-## 15. OWNER-LEVEL open questions (consolidated; the task-named ones verbatim)
+## 15. OWNER-LEVEL open questions (consolidated; the task-named ones verbatim) — **RESOLVED: see §18** (kept for the option analysis / rationale)
 
 > Deduped across all 11 designs. The five the task names explicitly — **REDEFINES representation, standard-vs-native
 > arithmetic, file serialization, signed-DISPLAY overpunch, SCREEN/REPORT-WRITER/JSON-XML scope** — appear verbatim.
@@ -997,6 +1012,11 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 Threads the existing G1–G8 spine; each step ends at a checkpoint testable against the differential harness (§2). The
 cross-design prerequisites the subsystem designs flagged are surfaced inline.
 
+**STATUS (2026-06-10, DEVLOG 520+):** G0 ✅ · G1 ✅ · G2 ✅ · G3-core ✅ · G4 ✅ · G5 sequential file I/O ✅
+(sequential file I/O done; SET/index machinery + sections landed; relative/indexed/SORT pending) · G6-core ✅
+(REDEFINES Tier A+B, AsImage, ON SIZE ERROR, PICTURE P). 27 NC programs byte-match the golden; 334 conformance + 15
+unit tests green; default `--std` = COBOL-2023.
+
 ### G1 — Bootstrap ✅ (done)
 HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run); DISPLAY of literals; STOP RUN.
 **Checkpoint:** the differential harness runs at all; `oo_hello`-class trivial programs.
@@ -1048,7 +1068,18 @@ legacy (a slice of NC).
 - File-record serialization edge cases (variable-length, multi-01 overlay, CODE-SET) finalized.
 **Checkpoint:** the REDEFINES/RENAMES/whole-group-compare NIST programs + any deferred file cases green.
 
-### G7 — M2/M3/M4 features per `--standard`
+### G7 — Per-edition correctness: features AND diagnostics per `--std` (85|2002|2014|2023; default 2023)
+
+> ⛔ **Four compilers in one executable.** Every feature carries TWO co-equal obligations (owner, 2026-06-10):
+> (1) the complete ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that
+> LACKS it (not-yet-introduced or removed). Gating is driven by `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row
+> edition-change checklist) and validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` — test
+> the compiler as N per-edition compilers; Phase 0 done). NIST-85 is the 85 positive corpus; the negative
+> (rejected-construct) corpus is NEW.
+> ⚠ Reconciliation TODO (owner-visible): §18 #10 gates ALTER ON through 2014, but the 2002 standard DELETED ALTER —
+> decide whether strict `--std 2002|2014` must reject-as-removed (the ledger has no 85→2002 rows; derive from the
+> 2002 standard).
+
 - OO → .NET classes (§10): single-inheritance, NEW/INVOKE/SELF/SUPER, instance vs static scopes, FACTORY, PROPERTY;
   the conformance corpus (`tests/conformance/<ver>/`).
 - Full intrinsic catalog (§12.1); EC exception model (§11: `>>TURN`, RAISE/RESUME, USE…EXCEPTION, PERFORM…WHEN);
@@ -1067,17 +1098,11 @@ Retire the byte engine, drop the legacy from the test graph (resolve **Q13**), r
 with the loser stated (§14); the five task-named owner questions appear verbatim (§15 items 1–5). Implementation
 follows §16.*
 
-(Durable copy written to `E:\CobolSharp\docs\COBOLNET_DESIGN_SSOT.md`.)
-
----
-
-All confirmed. Four projects reference `CobolSharp.Compiler.csproj` (the new CobolNet, legacy CLI, and both test projects) — these are the exact repoint targets. Five scripts reference CobolSharp paths. I have full decision-completeness now. Writing the design section as my final deliverable.
-
 ---
 
 ## 17. Project organization, rename & code-structure plan
 
-> Scope of this section: the target solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 10 usage guidelines. It expands `COBOLNET_ARCHITECTURE.md` §5 (which currently sketches the layout in three bullets) into the decision-complete plan. Implementation is tracked as task **G0** (do before G2 grows `CSharpEmitter` into a god class; the rename half can land at **G8** cut-over).
+> Scope of this section: the target solution/project layout, the front-end extraction, the rename, the no-god-class structural rules, and the C# 14/.NET 10 usage guidelines. It expands `COBOLNET_ARCHITECTURE.md` §5 (which currently sketches the layout in three bullets) into the decision-complete plan. Implementation status: **G0 is DONE** — the tree now IS `src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}` + `tests/Cobol.Net.Tests.{Unit,Conformance}` (Steps 1–5 below were executed; the tables are kept as the executed record + rationale). The namespace big-bang + legacy deletion (Step 6) lands at **G8** cut-over.
 
 ### A. Findings that drive every decision below
 
@@ -1246,7 +1271,7 @@ The free helpers (`DecodeCobolString`, `CsStringLiteral`, `Children`, `DataRefs`
 
 ---
 
-### 3. C# 14 / .NET 10 feature usage guideline
+### 3. C# 14+ / .NET 10+ feature usage guideline (.NET 11 upgrade pre-authorized when it pays for itself)
 
 **Principle: readability and correctness first, not feature golf.** A modern feature earns its place only when it makes the *emitter* code clearer or safer. Examples below are drawn from constructs already in this codebase.
 
@@ -1315,7 +1340,7 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
    NIST corpus uses. `ARITHMETIC IS STANDARD-DECIMAL` (decimal128) would require a banned software decimal-float
    type; not implemented (documented). `STANDARD-BINARY` is spec-obsolete — not implemented.
 3. **Numeric carrier + division guard.** `long` (≤18 digits), `Int128` (19–38); a picture/intermediate needing
-   >38 digits is rejected loudly (outside the M2/M3/M4 conformance scope; revisit only if a target needs it).
+   >38 digits is rejected loudly (outside the 2002/2014/2023 `--std` conformance scope; revisit only if a target needs it).
    `DIV_GUARD_DIGITS = 14`, validated/tuned against the NIST division-rounding tests in G5.
 4. **Int128 timing.** Build the `Int128`/`CobolInt` overloads + `PicInfo.WidePrecision` in the wave that first needs
    a >18-digit picture (not the early NC/SM/IC/IF waves) — not earlier.
