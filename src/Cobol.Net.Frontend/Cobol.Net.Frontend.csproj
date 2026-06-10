@@ -30,12 +30,14 @@
   </ItemGroup>
 
   <!-- NEVER compile the ANTLR staging folder. GenerateIfNewer/Invoke-Antlr4CSharp generate into Generated_temp/
-       (the lexer lands in Generated_temp/Core/), copy the final files to Generated/, then delete the staging
-       folder on the success path. A fresh-checkout regen (mtime-triggered) that fails partway can leave the
+       (FLAT on every platform — each grammar is generated from its own directory with a bare filename, the
+       portable fix for ANTLR's separator-keyed output mirroring, DEVLOG 555), copy the final files to
+       Generated/, then delete the staging folder on the success path. A regen that fails partway can leave the
        staging folder behind, and the SDK default **/*.cs glob would then compile a SECOND copy of
        CobolLexer/CobolParserCore -> CS0102/CS0579 duplicate-definition build errors. Excluding it makes regen
-       harmless regardless of outcome (the committed Generated/ is authoritative). This is why CI failed on every
-       push while local builds were green (local regen is skipped when Generated/ is already up to date). -->
+       harmless regardless of outcome. Generated/ itself is a BUILD OUTPUT (.gitignored, never checked in):
+       a fresh checkout regenerates, so java + pwsh are build prerequisites on every platform, and a failed
+       generation FAILS the build (no stale-parser fallback — the DEVLOG-554 CI break). -->
   <ItemGroup>
     <Compile Remove="Generated_temp\**\*.cs" />
     <None Remove="Generated_temp\**\*" />
@@ -47,19 +49,20 @@
        in case they were missing during initial SDK globbing (e.g., after dotnet clean). -->
   <Target Name="EnsureGeneratedFiles"
           BeforeTargets="CoreCompile"
-          Inputs="Grammar\CobolParserCore.g4;Grammar\Core\*.g4"
-          Outputs="Generated\CobolLexer.cs;Generated\CobolParserCore.cs">
+          Inputs="Grammar/CobolParserCore.g4;Grammar/Core/*.g4"
+          Outputs="Generated/CobolLexer.cs;Generated/CobolParserCore.cs">
 
     <Message Text="Parser files not found. Generating..." Importance="high"
-             Condition="!Exists('Generated\CobolParserCore.cs')" />
+             Condition="!Exists('Generated/CobolParserCore.cs')" />
     <Message Text="Grammar file is newer than parser. Regenerating..." Importance="high"
-             Condition="Exists('Generated\CobolParserCore.cs')" />
+             Condition="Exists('Generated/CobolParserCore.cs')" />
 
     <!-- Create Generated folder if it doesn't exist -->
-    <MakeDir Directories="$(MSBuildProjectDirectory)\Generated" Condition="!Exists('$(MSBuildProjectDirectory)\Generated')" />
+    <MakeDir Directories="$(MSBuildProjectDirectory)/Generated" Condition="!Exists('$(MSBuildProjectDirectory)/Generated')" />
 
-    <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs) -->
-    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\GenerateIfNewer.ps1&quot;"
+    <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs).
+         A nonzero exit FAILS the build - GenerateIfNewer.ps1 propagates the generator's exit code. -->
+    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/GenerateIfNewer.ps1&quot;"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
 
     <!-- Add generated files to compilation in case they were missing during initial globbing -->
@@ -71,11 +74,11 @@
   <!-- Clean target: remove generated files AND temp folder -->
   <Target Name="CleanGenerated" AfterTargets="Clean">
     <ItemGroup>
-      <GeneratedFiles Include="$(MSBuildProjectDirectory)\Generated\*.*" />
+      <GeneratedFiles Include="$(MSBuildProjectDirectory)/Generated/*.*" />
     </ItemGroup>
     <Delete Files="@(GeneratedFiles)" TreatErrorsAsWarnings="true" />
-    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated" ContinueOnError="true" />
-    <RemoveDir Directories="$(MSBuildProjectDirectory)\Generated_temp" ContinueOnError="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)/Generated" ContinueOnError="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)/Generated_temp" ContinueOnError="true" />
   </Target>
 
 </Project>

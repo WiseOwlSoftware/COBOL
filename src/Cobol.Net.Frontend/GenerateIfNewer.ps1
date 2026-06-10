@@ -1,8 +1,12 @@
 <#
 .SYNOPSIS
-  Regenerates ANTLR C# parser files if the grammar has changed.
+  Regenerates ANTLR C# parser files if the grammar has changed (Windows AND Linux).
 .DESCRIPTION
-  Checks if CobolLexer.g4 or CobolParserCore.g4 is newer than generated files and regenerates if needed.
+  Compares every .g4 under Grammar/ against the generated lexer/parser and regenerates when anything is newer
+  or the generated files are absent. Generated/ is a BUILD OUTPUT (.gitignored, never checked in) — a fresh
+  checkout ALWAYS regenerates, so java (+ pwsh, which is running this) are build prerequisites on every
+  platform. A failed generation FAILS this script (and therefore the build) — the silent-fallback that broke CI
+  (DEVLOG 554) is not possible anymore.
 #>
 
 $GrammarDir = Join-Path $PSScriptRoot 'Grammar'
@@ -35,10 +39,17 @@ else {
 }
 
 if ($needsRegeneration) {
-    # Import and run the ANTLR generation script
+    # Import and run the ANTLR generation — and PROPAGATE failure to the caller (MSBuild Exec): a nonzero exit
+    # here fails the build instead of compiling against stale or absent generated files.
     . (Join-Path $PSScriptRoot 'Invoke-Antlr4CSharp.ps1')
-    Invoke-Antlr4CSharp
+    $result = Invoke-Antlr4CSharp
+    if ($result -ne 0) {
+        Write-Error "ANTLR generation FAILED - failing the build (no stale-parser fallback)."
+        exit 1
+    }
+    exit 0
 }
 else {
     Write-Host "Parser files are up to date." -ForegroundColor Green
+    exit 0
 }
