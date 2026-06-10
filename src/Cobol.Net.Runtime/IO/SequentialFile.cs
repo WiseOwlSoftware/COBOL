@@ -127,6 +127,11 @@ public sealed class SequentialFile
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
+        // On a PRINT file (this connector has seen print-control advancing), an omitted ADVANCING phrase still
+        // line-advances (ISO §14.9.46 GR — a raw fixed-width block would weld onto the previous line). In the
+        // pending-advance stream model (each AFTER-write leads with its newline; CLOSE supplies the final one),
+        // the write-then-advance shape reproduces the print stream the golden corpus encodes.
+        if (_afterAdvancing && !_lineSequential) return WriteAdvancing(image, 1, before: true);
         if (_lineSequential) _writer.WriteLine(image.TrimEnd());
         else _writer.Write(Fit(image, _recordWidth));
         _afterAdvancing = false;

@@ -96,6 +96,12 @@ public sealed class NistDifferentialTests
     [InlineData("NC238A")]   // SEARCH ALL + SET
     [InlineData("NC237A")]   // 3-dim table build + group-vs-literal comparisons + SEARCH ALL
     [InlineData("NC103A")]   // group-vs-numeric-literal comparisons + NEXT SENTENCE
+    [InlineData("NC133A")]   // SET + multi-index tables (greened by the union of the resolver waves)
+    // Greened by the §14.9.12 GR6c subsidiary-quotient fix (REMAINDER from the GIVING-scale-truncated quotient)
+    // and the print-file plain-WRITE line advance (§14.9.46) — DEVLOG 538.
+    [InlineData("NC203A")]   // DIVIDE REMAINDER across scales (S9(6)V9(6) dividends, edited remainders)
+    [InlineData("NC251A")]   // DIVIDE REMAINDER + END-DIVIDE scope
+    [InlineData("NC135A")]   // 3-dim table build via sections + plain WRITE in a print stream
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

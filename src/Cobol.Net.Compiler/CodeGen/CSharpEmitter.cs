@@ -438,15 +438,18 @@ public sealed class CSharpEmitter
             var w = _ctx.Writer;
             NumX dividend = _num.Render(d.Dividend), divisor = _num.Render(d.Divisor);
             int qs = ScaleOf(d.Quotient.Place);
-            _ctx.TargetScale = qs;
-            _ctx.TargetRounding = CobolRounding.Truncation;
+            // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c) —
+            // a DIRECT kernel call at EXACTLY the receiver scale, not the renderer's working-scale promotion
+            // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
+            string fn = _ctx.InSizeErrorContext ? "DivideOrThrow" : "Divide";
             string qt = $"__q{_storeTmpCounter++}";
-            w.Line($"long {qt} = {_num.Combine(dividend, "/", divisor).Expr};");
+            w.Line($"long {qt} = CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.Truncation);");
             var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
-            NumX remainder = _num.Combine(dividend, "-", product);
-            SetTarget(d.Quotient);
+            NumX remainder = _num.Combine(dividend, "-", product);   // GR7: dividend − subsidiaryQuotient × divisor
             StoreArith(d.Quotient.Place,
-                d.Quotient.Rounding == CobolRounding.Truncation ? new NumX(qt, qs) : _num.Combine(dividend, "/", divisor),
+                d.Quotient.Rounding == CobolRounding.Truncation
+                    ? new NumX(qt, qs)
+                    : new NumX($"CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.{d.Quotient.Rounding})", qs),
                 d.Quotient.Rounding);
             StoreArith(d.Remainder, remainder, CobolRounding.Truncation);   // REMAINDER has no ROUNDED phrase
         });
